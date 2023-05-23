@@ -1,3 +1,2 @@
 export * from './EditUserPasswordForm';
-export { default } from './EditUserPasswordForm';
-
+export { default as EditUserPasswordForm } from './EditUserPasswordForm';

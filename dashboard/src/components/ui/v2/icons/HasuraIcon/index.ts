@@ -1,1 +1,1 @@
-export { default } from './HasuraIcon';
+export { default as HasuraIcon } from './HasuraIcon';

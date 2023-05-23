@@ -1,1 +1,1 @@
-export { default } from './StorageIcon';
+export { default as StorageIcon } from './StorageIcon';

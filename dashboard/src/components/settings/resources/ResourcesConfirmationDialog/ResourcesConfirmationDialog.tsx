@@ -1,15 +1,15 @@
+import { useProPlan } from '@/features/projects/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/resources/settings/utils/calculateBillableResources';
 import { prettifyMemory } from '@/features/resources/settings/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/resources/settings/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
-import { useProPlan } from '@/hooks/common/useProPlan';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
+import { InfoIcon } from '@/ui/v2/icons/InfoIcon';
 import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
-import { InfoIcon } from '@/ui/v2/icons/InfoIcon';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,

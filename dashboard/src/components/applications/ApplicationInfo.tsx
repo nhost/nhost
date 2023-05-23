@@ -3,13 +3,13 @@ import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteApplicationMutation,
 } from '@/generated/graphql';
-import Button from '@/ui/v2/Button';
-import Link from '@/ui/v2/Link';
-import Text from '@/ui/v2/Text';
-import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
+import { Button } from '@/ui/v2/Button';
+import { ArrowRightIcon } from '@/ui/v2/icons/ArrowRightIcon';
+import { Link } from '@/ui/v2/Link';
+import { Text } from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import { getApplicationStatusString } from '@/utils/helpers';
-import getServerError from '@/utils/settings/getServerError';
+import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';

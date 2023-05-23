@@ -1,1 +1,1 @@
-export { default } from './PowerIcon';
+export { default as PowerIcon } from './PowerIcon';

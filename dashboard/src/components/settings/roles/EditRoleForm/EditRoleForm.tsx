@@ -2,20 +2,21 @@ import type {
   BaseRoleFormProps,
   BaseRoleFormValues,
 } from '@/components/settings/roles/BaseRoleForm';
-import BaseRoleForm, {
+import {
+  BaseRoleForm,
   baseRoleFormValidationSchema,
 } from '@/components/settings/roles/BaseRoleForm';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import type { Role } from '@/types/application';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { getServerError } from '@/utils/settings/getServerError';
+import { getUserRoles } from '@/utils/settings/getUserRoles';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-import getServerError from '@/utils/settings/getServerError';
-import getUserRoles from '@/utils/settings/getUserRoles';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';

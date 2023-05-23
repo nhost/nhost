@@ -1,2 +1,2 @@
 export * from './CreateRoleForm';
-export { default } from './CreateRoleForm';
+export { default as CreateRoleForm } from './CreateRoleForm';

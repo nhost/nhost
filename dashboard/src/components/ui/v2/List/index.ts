@@ -1,2 +1,2 @@
 export * from './List';
-export { default as List, default } from './List';
+export { default, default as List } from './List';

@@ -1,6 +1,6 @@
-import Form from '@/components/common/Form';
-import InlineCode from '@/components/common/InlineCode';
-import SettingsContainer from '@/components/settings/SettingsContainer';
+import { Form } from '@/components/common/Form';
+import { InlineCode } from '@/components/common/InlineCode';
+import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import {
@@ -8,9 +8,9 @@ import {
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { Alert } from '@/ui/Alert';
-import Input from '@/ui/v2/Input';
+import { Input } from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import getServerError from '@/utils/settings/getServerError';
+import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';

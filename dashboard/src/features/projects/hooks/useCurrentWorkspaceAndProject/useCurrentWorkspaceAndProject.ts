@@ -1,4 +1,4 @@
-import useIsPlatform from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import type { Project, Workspace } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { GetWorkspaceAndProjectDocument } from '@/utils/__generated__/graphql';

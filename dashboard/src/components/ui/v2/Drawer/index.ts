@@ -1,2 +1,2 @@
 export * from './Drawer';
-export { default } from './Drawer';
+export { default, default as Drawer } from './Drawer';

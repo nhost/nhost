@@ -1,1 +1,1 @@
-export { default } from './HomeIcon';
+export { default as HomeIcon } from './HomeIcon';

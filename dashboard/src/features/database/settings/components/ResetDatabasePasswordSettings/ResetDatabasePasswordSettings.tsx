@@ -8,9 +8,9 @@ import {
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { Button } from '@/ui/v2/Button';
+import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
 import { Input } from '@/ui/v2/Input';
 import { InputAdornment } from '@/ui/v2/InputAdornment';
-import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';

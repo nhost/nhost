@@ -1,1 +1,1 @@
-export { default } from './CloudIcon';
+export { default as CloudIcon } from './CloudIcon';

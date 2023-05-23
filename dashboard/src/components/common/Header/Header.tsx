@@ -6,7 +6,7 @@ import { MobileNav } from '@/components/common/MobileNav';
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/dashboard/AccountMenu';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/hooks/common/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import { ApplicationStatus } from '@/types/application';
 import { Box } from '@/ui/v2/Box';
 import { Chip } from '@/ui/v2/Chip';

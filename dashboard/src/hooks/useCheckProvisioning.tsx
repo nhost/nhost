@@ -1,9 +1,9 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useGetApplicationStateQuery,
 } from '@/generated/graphql';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { ApplicationStatus } from '@/types/application';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { useCallback, useEffect, useState } from 'react';

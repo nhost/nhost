@@ -1,9 +1,9 @@
+import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import {
   GetAllWorkspacesAndProjectsDocument,
   GetWorkspaceMemberInvitesToManageDocument,
   useGetWorkspaceMemberInvitesToManageQuery,
 } from '@/generated/graphql';
-import useIsPlatform from '@/hooks/common/useIsPlatform';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
