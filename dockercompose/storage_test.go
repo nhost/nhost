@@ -23,7 +23,7 @@ func expectedStorage() *Service {
 			"HASURA_GRAPHQL_ADMIN_SECRET": "adminSecret",
 			"HASURA_METADATA":             "1",
 			"POSTGRES_MIGRATIONS":         "1",
-			"POSTGRES_MIGRATIONS_SOURCE":  "postgres://nhost_storage_admin@postgres:5432/postgres?sslmode=disable",
+			"POSTGRES_MIGRATIONS_SOURCE":  "postgres://nhost_storage_admin@postgres:5432/local?sslmode=disable",
 			"PUBLIC_URL":                  "http://local.storage.nhost.run:444",
 			"S3_ACCESS_KEY":               "minioaccesskey123123",
 			"S3_BUCKET":                   "nhost",

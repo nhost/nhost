@@ -24,7 +24,7 @@ func expectedGraphql() *Service {
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",
 			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost",
-			"HASURA_GRAPHQL_DATABASE_URL":                              "postgres://nhost_hasura@postgres:5432/postgres",
+			"HASURA_GRAPHQL_DATABASE_URL":                              "postgres://nhost_hasura@postgres:5432/local",
 			"HASURA_GRAPHQL_DEV_MODE":                                  "false",
 			"HASURA_GRAPHQL_DISABLE_CORS":                              "false",
 			"HASURA_GRAPHQL_ENABLED_APIS":                              "metadata,graphql,config,pgdump",
@@ -148,7 +148,7 @@ func expectedConsole() *Service {
 		EntryPoint: nil,
 		Environment: map[string]string{
 			"HASURA_GRAPHQL_ADMIN_SECRET": "adminSecret",
-			"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_hasura@postgres:5432/postgres",
+			"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_hasura@postgres:5432/local",
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway", "local.auth.nhost.run:host-gateway",

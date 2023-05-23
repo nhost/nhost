@@ -18,7 +18,7 @@ func expectedPostgres() *Service {
 		EntryPoint: nil,
 		Environment: map[string]string{
 			"PGDATA":            "/var/lib/postgresql/data/pgdata",
-			"POSTGRES_DB":       "postgres",
+			"POSTGRES_DB":       "local",
 			"POSTGRES_PASSWORD": "postgres",
 			"POSTGRES_USER":     "postgres",
 		},

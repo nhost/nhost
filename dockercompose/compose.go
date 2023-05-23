@@ -283,7 +283,7 @@ func functions( //nolint:funlen
 ) *Service {
 	envVars := map[string]string{
 		"HASURA_GRAPHQL_ADMIN_SECRET": cfg.Hasura.AdminSecret,
-		"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_auth_admin@local.db.nhost.run:5432/postgres",
+		"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_auth_admin@local.db.nhost.run:5432/local",
 		"HASURA_GRAPHQL_GRAPHQL_URL":  "http://graphql:8080/v1/graphql",
 		"HASURA_GRAPHQL_JWT_SECRET":   `{"type":"HS256", "key": "0ac0b96af3f247ddbe95c380e70533a0cd6131b3e276ec91cd9971b6c9d2867fa18beb181ab777c450a7080acb742b32fbaeb1e5c782097553a1fa363775f1ba"}`, //nolint:lll
 		"NHOST_ADMIN_SECRET":          cfg.Hasura.AdminSecret,

@@ -14,7 +14,7 @@ func graphql(cfg *model.ConfigConfig, useTLS bool) (*Service, error) { //nolint:
 		"local",
 		"",
 		"nhost.run",
-		"postgres://nhost_hasura@postgres:5432/postgres",
+		"postgres://nhost_hasura@postgres:5432/local",
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hasura env vars: %w", err)
@@ -115,7 +115,7 @@ func console( //nolint:funlen
 		EntryPoint: nil,
 		Environment: map[string]string{
 			"HASURA_GRAPHQL_ADMIN_SECRET": cfg.GetHasura().GetAdminSecret(),
-			"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_hasura@postgres:5432/postgres",
+			"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_hasura@postgres:5432/local",
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",

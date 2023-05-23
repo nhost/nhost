@@ -30,7 +30,7 @@ func postgres( //nolint:funlen
 	}
 
 	envars, err := appconfig.PostgresEnv(
-		"postgres",
+		"local",
 		"postgres",
 		"postgres",
 	)

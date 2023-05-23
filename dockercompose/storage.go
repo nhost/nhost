@@ -11,7 +11,7 @@ func storage(cfg *model.ConfigConfig, useTLS bool, httpPort uint) (*Service, err
 	envars, err := appconfig.HasuraStorageEnv(
 		cfg,
 		"http://graphql:8080/v1",
-		"postgres://nhost_storage_admin@postgres:5432/postgres?sslmode=disable",
+		"postgres://nhost_storage_admin@postgres:5432/local?sslmode=disable",
 		URL("storage", httpPort, useTLS),
 		"http://minio:9000",
 		"",

@@ -17,7 +17,7 @@ func auth( //nolint:funlen
 		cfg,
 		"http://graphql:8080/v1/graphql",
 		URL("auth", httpPort, useTLS)+"/v1",
-		"postgres://nhost_auth_admin@postgres:5432/postgres",
+		"postgres://nhost_auth_admin@postgres:5432/local",
 		&model.ConfigSmtp{
 			User:     "user",
 			Password: "password",
