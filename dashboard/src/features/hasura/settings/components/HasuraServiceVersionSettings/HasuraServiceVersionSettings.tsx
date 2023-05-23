@@ -31,10 +31,9 @@ export type HasuraServiceVersionFormValues = Yup.InferType<
 >;
 
 const AVAILABLE_HASURA_VERSIONS = [
+  'v2.25.1-ce',
   'v2.25.0-ce',
   'v2.24.1-ce',
-  'v2.23.0-ce',
-  'v2.18.0-ce',
   'v2.15.2',
 ];
 
