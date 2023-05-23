@@ -10,7 +10,7 @@ import (
 //nolint:lll
 func expectedGraphql() *Service {
 	return &Service{
-		Image:   "hasura/graphql-engine:2.12.0",
+		Image:   "nhost/graphql-engine:2.12.0",
 		Command: nil,
 		DependsOn: map[string]DependsOn{
 			"functions": {Condition: "service_healthy"},

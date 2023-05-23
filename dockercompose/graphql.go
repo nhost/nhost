@@ -26,7 +26,7 @@ func graphql(cfg *model.ConfigConfig, useTLS bool) (*Service, error) { //nolint:
 	}
 
 	return &Service{
-		Image: fmt.Sprintf("hasura/graphql-engine:%s", *cfg.GetHasura().GetVersion()),
+		Image: fmt.Sprintf("nhost/graphql-engine:%s", *cfg.GetHasura().GetVersion()),
 		DependsOn: map[string]DependsOn{
 			"postgres": {
 				Condition: "service_healthy",
