@@ -1,2 +1,2 @@
 export * from './ResourcesConfirmationDialog';
-export { default } from './ResourcesConfirmationDialog';
+export { default as ResourcesConfirmationDialog } from './ResourcesConfirmationDialog';

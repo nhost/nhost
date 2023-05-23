@@ -1,1 +1,1 @@
-export { default } from './CogIcon';
+export { default as CogIcon } from './CogIcon';

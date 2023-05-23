@@ -1,3 +1,2 @@
 export * from './UsersBody';
-export { default } from './UsersBody';
-
+export { default as UsersBody } from './UsersBody';

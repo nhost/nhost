@@ -1,6 +1,6 @@
-import ControlledCheckbox from '@/components/common/ControlledCheckbox';
-import Form from '@/components/common/Form';
-import SettingsContainer from '@/components/settings/SettingsContainer';
+import { ControlledCheckbox } from '@/components/common/ControlledCheckbox';
+import { Form } from '@/components/common/Form';
+import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import {
@@ -8,9 +8,9 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Text from '@/ui/v2/Text';
-import getServerError from '@/utils/settings/getServerError';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Text } from '@/ui/v2/Text';
+import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';

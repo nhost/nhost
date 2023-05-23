@@ -1,5 +1,5 @@
-import Form from '@/components/common/Form';
-import SettingsContainer from '@/components/settings/SettingsContainer';
+import { Form } from '@/components/common/Form';
+import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import {
@@ -7,12 +7,12 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Input from '@/ui/v2/Input';
-import Option from '@/ui/v2/Option';
-import Select from '@/ui/v2/Select';
-import Text from '@/ui/v2/Text';
-import getServerError from '@/utils/settings/getServerError';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Input } from '@/ui/v2/Input';
+import { Option } from '@/ui/v2/Option';
+import { Select } from '@/ui/v2/Select';
+import { Text } from '@/ui/v2/Text';
+import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Image from 'next/image';

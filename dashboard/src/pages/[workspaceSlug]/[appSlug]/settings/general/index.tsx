@@ -1,9 +1,9 @@
 import { RemoveApplicationModal } from '@/components/applications/RemoveApplicationModal';
 import { useDialog } from '@/components/common/DialogProvider';
-import Form from '@/components/common/Form';
-import Container from '@/components/layout/Container';
-import SettingsContainer from '@/components/settings/SettingsContainer';
-import SettingsLayout from '@/components/settings/SettingsLayout';
+import { Form } from '@/components/common/Form';
+import { Container } from '@/components/layout/Container';
+import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/hooks/useIsCurrentUserOwner';
@@ -13,11 +13,11 @@ import {
   usePauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Input from '@/ui/v2/Input';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Input } from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { slugifyString } from '@/utils/helpers';
-import getServerError from '@/utils/settings/getServerError';
+import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';

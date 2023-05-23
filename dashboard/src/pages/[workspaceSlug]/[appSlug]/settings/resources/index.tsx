@@ -1,9 +1,9 @@
 import { UnlockFeatureByUpgrading } from '@/components/applications/UnlockFeatureByUpgrading';
-import Container from '@/components/layout/Container';
-import SettingsLayout from '@/components/settings/SettingsLayout';
-import ResourcesForm from '@/components/settings/resources/ResourcesForm';
+import { Container } from '@/components/layout/Container';
+import { ResourcesForm } from '@/components/settings/resources/ResourcesForm';
+import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator/ActivityIndicator';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import type { ReactElement } from 'react';
 
 export default function ResourceSettingsPage() {

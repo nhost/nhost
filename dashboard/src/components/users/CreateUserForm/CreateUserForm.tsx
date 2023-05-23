@@ -1,12 +1,12 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import Form from '@/components/common/Form';
+import { Form } from '@/components/common/Form';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import type { DialogFormProps } from '@/types/common';
 import { Alert } from '@/ui/Alert';
-import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
+import { Button } from '@/ui/v2/Button';
+import { Input } from '@/ui/v2/Input';
 import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
-import getServerError from '@/utils/settings/getServerError';
+import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';

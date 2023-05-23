@@ -1,2 +1,2 @@
 export * from './EditEnvironmentVariableForm';
-export { default } from './EditEnvironmentVariableForm';
+export { default as EditEnvironmentVariableForm } from './EditEnvironmentVariableForm';

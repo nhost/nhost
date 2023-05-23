@@ -1,1 +1,1 @@
-export { default } from './getReadableProviderName';
+export { default as getReadableProviderName } from './getReadableProviderName';

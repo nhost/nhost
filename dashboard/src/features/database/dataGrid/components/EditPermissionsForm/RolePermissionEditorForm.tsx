@@ -1,5 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import Form from '@/components/common/Form';
+import { Form } from '@/components/common/Form';
 import { HighlightedText } from '@/components/common/HighlightedText';
 import { useManagePermissionMutation } from '@/features/database/dataGrid/hooks/useManagePermissionMutation';
 import type {
@@ -11,10 +11,10 @@ import { convertToHasuraPermissions } from '@/features/database/dataGrid/utils/c
 import { convertToRuleGroup } from '@/features/database/dataGrid/utils/convertToRuleGroup';
 import type { DialogFormProps } from '@/types/common';
 import { Alert } from '@/ui/Alert';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Text from '@/ui/v2/Text';
-import getServerError from '@/utils/settings/getServerError';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Text } from '@/ui/v2/Text';
+import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';

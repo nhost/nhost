@@ -1,8 +1,8 @@
 import type { CardProps } from '@/features/projects/overview/types/cards';
-import DatabaseIcon from '@/ui/v2/icons/DatabaseIcon';
-import GraphQLIcon from '@/ui/v2/icons/GraphQLIcon';
-import StorageIcon from '@/ui/v2/icons/StorageIcon/StorageIcon';
-import UserIcon from '@/ui/v2/icons/UserIcon';
+import { DatabaseIcon } from '@/ui/v2/icons/DatabaseIcon';
+import { GraphQLIcon } from '@/ui/v2/icons/GraphQLIcon';
+import { StorageIcon } from '@/ui/v2/icons/StorageIcon';
+import { UserIcon } from '@/ui/v2/icons/UserIcon';
 
 const features: CardProps[] = [
   {

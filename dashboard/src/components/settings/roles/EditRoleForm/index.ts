@@ -1,2 +1,2 @@
 export * from './EditRoleForm';
-export { default } from './EditRoleForm';
+export { default as EditRoleForm } from './EditRoleForm';

@@ -1,6 +1,6 @@
-import ControlledSelect from '@/components/common/ControlledSelect';
-import Form from '@/components/common/Form';
-import SettingsContainer from '@/components/settings/SettingsContainer';
+import { ControlledSelect } from '@/components/common/ControlledSelect';
+import { Form } from '@/components/common/Form';
+import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import {
@@ -8,9 +8,9 @@ import {
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Option from '@/ui/v2/Option';
-import getServerError from '@/utils/settings/getServerError';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Option } from '@/ui/v2/Option';
+import { getServerError } from '@/utils/settings/getServerError';
 import {
   AUTH_GRAVATAR_DEFAULT,
   AUTH_GRAVATAR_RATING,

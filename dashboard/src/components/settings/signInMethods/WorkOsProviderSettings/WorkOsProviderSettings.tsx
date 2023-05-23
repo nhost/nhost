@@ -1,6 +1,6 @@
-import Form from '@/components/common/Form';
-import SettingsContainer from '@/components/settings/SettingsContainer';
-import BaseProviderSettings from '@/components/settings/signInMethods/BaseProviderSettings';
+import { Form } from '@/components/common/Form';
+import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { BaseProviderSettings } from '@/components/settings/signInMethods/BaseProviderSettings';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import {
@@ -8,14 +8,14 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import IconButton from '@/ui/v2/IconButton';
-import Input from '@/ui/v2/Input';
-import InputAdornment from '@/ui/v2/InputAdornment';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { IconButton } from '@/ui/v2/IconButton';
+import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
+import { Input } from '@/ui/v2/Input';
+import { InputAdornment } from '@/ui/v2/InputAdornment';
 import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
-import getServerError from '@/utils/settings/getServerError';
+import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';

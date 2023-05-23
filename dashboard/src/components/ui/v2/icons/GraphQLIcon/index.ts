@@ -1,1 +1,1 @@
-export { default } from './GraphQLIcon';
+export { default as GraphQLIcon } from './GraphQLIcon';

@@ -1,2 +1,2 @@
 export * from './InlineCode';
-export { default } from './InlineCode';
+export { default, default as InlineCode } from './InlineCode';

@@ -1,2 +1,2 @@
 export * from './CreatePermissionVariableForm';
-export { default } from './CreatePermissionVariableForm';
+export { default as CreatePermissionVariableForm } from './CreatePermissionVariableForm';

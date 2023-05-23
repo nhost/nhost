@@ -1,1 +1,1 @@
-export { default } from './XIcon';
+export { default, default as XIcon } from './XIcon';

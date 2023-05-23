@@ -1,23 +1,23 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import Form from '@/components/common/Form';
-import ResourcesConfirmationDialog from '@/components/settings/resources/ResourcesConfirmationDialog';
-import ServiceResourcesFormFragment from '@/components/settings/resources/ServiceResourcesFormFragment';
-import TotalResourcesFormFragment from '@/components/settings/resources/TotalResourcesFormFragment';
-import SettingsContainer from '@/components/settings/SettingsContainer';
+import { Form } from '@/components/common/Form';
+import { ResourcesConfirmationDialog } from '@/components/settings/resources/ResourcesConfirmationDialog';
+import { ServiceResourcesFormFragment } from '@/components/settings/resources/ServiceResourcesFormFragment';
+import { TotalResourcesFormFragment } from '@/components/settings/resources/TotalResourcesFormFragment';
+import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useProPlan } from '@/features/projects/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/resources/settings/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
 import { Alert } from '@/ui/Alert';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Box from '@/ui/v2/Box';
-import Divider from '@/ui/v2/Divider';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Box } from '@/ui/v2/Box';
+import { Divider } from '@/ui/v2/Divider';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
 } from '@/utils/CONSTANTS';
-import getServerError from '@/utils/settings/getServerError';
+import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { GetResourcesQuery } from '@/utils/__generated__/graphql';
 import {

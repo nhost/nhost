@@ -1,21 +1,21 @@
 import useGitHubModal from '@/components/applications/github/useGitHubModal';
-import DeploymentListItem from '@/components/deployments/DeploymentListItem';
+import { DeploymentListItem } from '@/components/deployments/DeploymentListItem';
 import GithubIcon from '@/components/icons/GithubIcon';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Divider from '@/ui/v2/Divider';
-import List from '@/ui/v2/List';
-import Text from '@/ui/v2/Text';
-import ChevronRightIcon from '@/ui/v2/icons/ChevronRightIcon';
-import RocketIcon from '@/ui/v2/icons/RocketIcon';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Divider } from '@/ui/v2/Divider';
+import { ChevronRightIcon } from '@/ui/v2/icons/ChevronRightIcon';
+import { RocketIcon } from '@/ui/v2/icons/RocketIcon';
+import { List } from '@/ui/v2/List';
+import { Text } from '@/ui/v2/Text';
+import { getLastLiveDeployment } from '@/utils/helpers';
 import {
   useGetDeploymentsSubSubscription,
   useScheduledOrPendingDeploymentsSubSubscription,
 } from '@/utils/__generated__/graphql';
-import { getLastLiveDeployment } from '@/utils/helpers';
 import NavLink from 'next/link';
 import { Fragment } from 'react';
 

@@ -1,1 +1,1 @@
-export { default } from './DotsHorizontalIcon';
+export { default, default as DotsHorizontalIcon } from './DotsHorizontalIcon';

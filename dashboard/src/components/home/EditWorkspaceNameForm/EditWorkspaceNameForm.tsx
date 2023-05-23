@@ -1,16 +1,16 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import Form from '@/components/common/Form';
+import { Form } from '@/components/common/Form';
 import type { DialogFormProps } from '@/types/common';
-import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
+import { Button } from '@/ui/v2/Button';
+import { Input } from '@/ui/v2/Input';
+import { slugifyString } from '@/utils/helpers';
+import { getServerError } from '@/utils/settings/getServerError';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useInsertWorkspaceMutation,
   useUpdateWorkspaceMutation,
 } from '@/utils/__generated__/graphql';
-import { slugifyString } from '@/utils/helpers';
-import getServerError from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
