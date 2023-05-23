@@ -37,7 +37,7 @@ export default function PATSettings() {
   const availablePersonalAccessTokens =
     data?.personalAccessTokens.map((pat) => ({
       id: pat.id,
-      name: pat.metadata?.name || 'n/a',
+      note: pat.metadata?.note || 'n/a',
       expiresAt: pat.expiresAt,
     })) || [];
 
@@ -46,8 +46,9 @@ export default function PATSettings() {
       title: 'Create Personal Access Token',
       component: <CreatePATForm />,
       props: {
+        maxWidth: 'md',
         titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-sm' },
+        PaperProps: { className: 'gap-2 max-w-md' },
       },
     });
   }
@@ -122,7 +123,7 @@ export default function PATSettings() {
       }}
     >
       <Box className="grid grid-cols-2 gap-2 border-b-1 py-3 pl-4 pr-12 lg:grid-cols-3">
-        <Text className="font-medium">Name</Text>
+        <Text className="font-medium">Note</Text>
         <Text className="font-medium lg:col-span-2">Expires at</Text>
       </Box>
 
@@ -144,7 +145,7 @@ export default function PATSettings() {
                           variant="borderless"
                           color="secondary"
                           disabled={maintenanceActive}
-                          aria-label={`More options for ${pat.name}`}
+                          aria-label={`More options for ${pat.note}`}
                         >
                           <DotsVerticalIcon />
                         </IconButton>
@@ -171,7 +172,7 @@ export default function PATSettings() {
                     </Dropdown.Root>
                   }
                 >
-                  <ListItem.Text className="truncate">{pat.name}</ListItem.Text>
+                  <ListItem.Text className="truncate">{pat.note}</ListItem.Text>
 
                   <Text className="truncate lg:col-span-2">
                     {new Date(pat.expiresAt).toLocaleDateString()}

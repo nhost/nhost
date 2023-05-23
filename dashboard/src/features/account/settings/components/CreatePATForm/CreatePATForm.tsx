@@ -1,3 +1,4 @@
+import { ControlledSelect } from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/common/Form';
 import { HighlightedText } from '@/components/common/HighlightedText';
@@ -8,8 +9,10 @@ import { Button } from '@/ui/v2/Button';
 import { IconButton } from '@/ui/v2/IconButton';
 import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
 import { Input } from '@/ui/v2/Input';
+import { Option } from '@/ui/v2/Option';
 import { Text } from '@/ui/v2/Text';
 import copy from '@/utils/copy';
+import { getDateComponents } from '@/utils/formatDate';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { GetPersonalAccessTokensDocument } from '@/utils/__generated__/graphql';
 import { useApolloClient } from '@apollo/client';
@@ -21,8 +24,8 @@ import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export const createPATFormValidationSchema = Yup.object({
-  name: Yup.string().label('Name').nullable().required(),
-  expiresAt: Yup.string().label('Expires at').nullable().required(),
+  note: Yup.string().label('Note').nullable().required(),
+  expiresAt: Yup.string().label('Expiration date').nullable().required(),
 });
 
 export type CreatePATFormValues = Yup.InferType<
@@ -36,6 +39,14 @@ export interface CreatePATFormProps extends DialogFormProps {
   onCancel?: VoidFunction;
 }
 
+function getStringifiedDateOffset(offsetDays: number) {
+  const { year, month, day } = getDateComponents(
+    new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000),
+  );
+
+  return `${year}-${month}-${day}`;
+}
+
 export default function CreatePATForm({
   onCancel,
   location,
@@ -46,6 +57,10 @@ export default function CreatePATForm({
   const apolloClient = useApolloClient();
   const form = useForm<CreatePATFormValues>({
     reValidateMode: 'onSubmit',
+    defaultValues: {
+      note: null,
+      expiresAt: null,
+    },
     resolver: yupResolver(createPATFormValidationSchema),
   });
 
@@ -61,7 +76,12 @@ export default function CreatePATForm({
     try {
       const { error, data } = await nhostClient.auth.createPAT(
         new Date(formValues.expiresAt),
-        { name: formValues.name },
+        {
+          note: formValues.note,
+          createdAt: new Date().toISOString(),
+          application: 'dashboard',
+          userAgent: window.navigator.userAgent,
+        },
       );
 
       const toastStyle = getToastStyleProps();
@@ -143,24 +163,37 @@ export default function CreatePATForm({
       <FormProvider {...form}>
         <Form onSubmit={handleSubmit} className="grid grid-flow-row gap-4">
           <Input
-            {...register('name')}
-            id="name"
-            label="Name"
+            {...register('note')}
+            id="note"
+            label="Note"
+            autoFocus
             fullWidth
-            helperText={formState.errors.name?.message}
-            error={Boolean(formState.errors.name)}
+            helperText={
+              formState.errors.note?.message || 'What is the token used for?'
+            }
+            error={Boolean(formState.errors.note)}
           />
 
-          <Input
-            {...register('expiresAt')}
-            type="date"
-            id="expires-at"
-            label="Expires at"
+          <ControlledSelect
+            placeholder="Select date"
+            slotProps={{
+              popper: { disablePortal: false, className: 'z-[10000]' },
+            }}
+            id="expiresAt"
+            name="expiresAt"
+            label="Expiration"
             fullWidth
-            inputProps={{ min: new Date().toISOString().split('T')[0] }}
             helperText={formState.errors.expiresAt?.message}
             error={Boolean(formState.errors.expiresAt)}
-          />
+          >
+            <Option value={getStringifiedDateOffset(7)}>7 days</Option>
+            <Option value={getStringifiedDateOffset(14)}>14 days</Option>
+            <Option value={getStringifiedDateOffset(30)}>30 days</Option>
+            <Option value={getStringifiedDateOffset(60)}>60 days</Option>
+            <Option value={getStringifiedDateOffset(90)}>90 days</Option>
+            <Option value={getStringifiedDateOffset(180)}>180 days</Option>
+            <Option value={getStringifiedDateOffset(366)}>1 year</Option>
+          </ControlledSelect>
 
           <Box className="grid grid-flow-row gap-2">
             <Button type="submit" loading={formState.isSubmitting}>
