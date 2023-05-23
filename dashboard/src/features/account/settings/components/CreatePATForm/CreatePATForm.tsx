@@ -192,7 +192,7 @@ export default function CreatePATForm({
             <Option value={getStringifiedDateOffset(60)}>60 days</Option>
             <Option value={getStringifiedDateOffset(90)}>90 days</Option>
             <Option value={getStringifiedDateOffset(180)}>180 days</Option>
-            <Option value={getStringifiedDateOffset(366)}>1 year</Option>
+            <Option value={getStringifiedDateOffset(365)}>1 year</Option>
           </ControlledSelect>
 
           <Box className="grid grid-flow-row gap-2">
