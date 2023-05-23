@@ -183,7 +183,7 @@ function DefaultValueAutocomplete({ index }: FieldArrayInputProps) {
           setValue(`columns.${index}.defaultValue`, null);
         }
       }}
-      showCustomOption
+      showCustomOption="always"
       customOptionLabel={(optionLabel) => `Use "${optionLabel}" as a literal`}
     />
   );

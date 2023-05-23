@@ -64,7 +64,11 @@ function ActivityIndicator({
     // intact in certain cases (e.g. when elements have a "space-between"
     // position).
     return (
-      <span role="progressbar" aria-label="Activity indicator placeholder" />
+      <span
+        role="progressbar"
+        aria-label="Activity indicator placeholder"
+        className="block h-0"
+      />
     );
   }
 

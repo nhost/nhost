@@ -1,5 +1,5 @@
 import { ChangePasswordModal } from '@/components/applications/ChangePasswordModal';
-import FeedbackForm from '@/components/common/FeedbackForm';
+import { FeedbackForm } from '@/components/common/FeedbackForm';
 import NavLink from '@/components/common/NavLink';
 import ThemeSwitcher from '@/components/common/ThemeSwitcher';
 import { Nav } from '@/components/dashboard/Nav';

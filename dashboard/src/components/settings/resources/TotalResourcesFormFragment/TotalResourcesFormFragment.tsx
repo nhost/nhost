@@ -1,18 +1,18 @@
 import { useProPlan } from '@/features/projects/hooks/useProPlan';
-import { calculateBillableResources } from '@/features/settings/resources/utils/calculateBillableResources';
-import { getAllocatedResources } from '@/features/settings/resources/utils/getAllocatedResources';
-import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
-import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
-import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
+import { calculateBillableResources } from '@/features/resources/settings/utils/calculateBillableResources';
+import { getAllocatedResources } from '@/features/resources/settings/utils/getAllocatedResources';
+import { prettifyMemory } from '@/features/resources/settings/utils/prettifyMemory';
+import { prettifyVCPU } from '@/features/resources/settings/utils/prettifyVCPU';
+import type { ResourceSettingsFormValues } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
 import {
   MAX_TOTAL_VCPU,
   MIN_TOTAL_VCPU,
-} from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
+} from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
 import { Alert } from '@/ui/Alert';
 import Box from '@/ui/v2/Box';
+import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
 import Slider, { sliderClasses } from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
-import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
 import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MEMORY_RATIO,

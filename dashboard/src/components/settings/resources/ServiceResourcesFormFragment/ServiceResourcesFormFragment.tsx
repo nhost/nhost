@@ -1,6 +1,6 @@
-import { prettifyMemory } from '@/features/settings/resources/utils/prettifyMemory';
-import { prettifyVCPU } from '@/features/settings/resources/utils/prettifyVCPU';
-import type { ResourceSettingsFormValues } from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
+import { prettifyMemory } from '@/features/resources/settings/utils/prettifyMemory';
+import { prettifyVCPU } from '@/features/resources/settings/utils/prettifyVCPU';
+import type { ResourceSettingsFormValues } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
 import {
   MAX_SERVICE_MEMORY,
   MAX_SERVICE_REPLICAS,
@@ -8,12 +8,12 @@ import {
   MIN_SERVICE_MEMORY,
   MIN_SERVICE_REPLICAS,
   MIN_SERVICE_VCPU,
-} from '@/features/settings/resources/utils/resourceSettingsValidationSchema';
+} from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
 import Box from '@/ui/v2/Box';
+import { ExclamationIcon } from '@/ui/v2/icons/ExclamationIcon';
 import Slider from '@/ui/v2/Slider';
 import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
-import { ExclamationIcon } from '@/ui/v2/icons/ExclamationIcon';
 import { RESOURCE_MEMORY_STEP, RESOURCE_VCPU_STEP } from '@/utils/CONSTANTS';
 import { useFormContext, useWatch } from 'react-hook-form';
 

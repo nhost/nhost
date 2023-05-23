@@ -1,4 +1,4 @@
-import FeedbackForm from '@/components/common/FeedbackForm';
+import { FeedbackForm } from '@/components/common/FeedbackForm';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useInterval } from '@/hooks/useInterval';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';

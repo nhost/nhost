@@ -1,7 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import InlineCode from '@/components/common/InlineCode';
-import SettingsContainer from '@/components/settings/SettingsContainer';
 import EditJwtSecretForm from '@/components/settings/environmentVariables/EditJwtSecretForm';
+import SettingsContainer from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useAppClient } from '@/features/projects/hooks/useAppClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
@@ -11,12 +11,11 @@ import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import IconButton from '@/ui/v2/IconButton';
+import EyeIcon from '@/ui/v2/icons/EyeIcon';
+import EyeOffIcon from '@/ui/v2/icons/EyeOffIcon';
 import List from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import Text from '@/ui/v2/Text';
-import EyeIcon from '@/ui/v2/icons/EyeIcon';
-import EyeOffIcon from '@/ui/v2/icons/EyeOffIcon';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import {
   defaultLocalBackendSlugs,
   defaultRemoteBackendSlugs,
@@ -24,6 +23,7 @@ import {
 } from '@/utils/common/generateAppServiceUrl';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import getJwtSecretsWithoutFalsyValues from '@/utils/settings/getJwtSecretsWithoutFalsyValues';
+import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { Fragment, useState } from 'react';
 
 export default function SystemEnvironmentVariableSettings() {

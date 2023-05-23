@@ -145,6 +145,13 @@ export default function SettingsSidebar({
               </SettingsNavLink>
             )}
             <SettingsNavLink
+              href="/hasura"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Hasura
+            </SettingsNavLink>
+            <SettingsNavLink
               href="/authentication"
               exact={false}
               onClick={handleSelect}
@@ -158,7 +165,13 @@ export default function SettingsSidebar({
             >
               Sign-In Methods
             </SettingsNavLink>
-
+            <SettingsNavLink
+              href="/storage"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Storage
+            </SettingsNavLink>
             <SettingsNavLink
               href="/roles-and-permissions"
               exact={false}

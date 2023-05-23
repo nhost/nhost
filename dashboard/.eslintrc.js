@@ -28,6 +28,8 @@ module.exports = {
     'import/no-named-as-default': 'off',
     'import/prefer-default-export': 'off',
     'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
+    // TODO: Temporarily disable this rule because of a WIP refactoring
+    'import/no-named-as-default': 'off',
     curly: ['error', 'all'],
     'no-restricted-exports': 'off',
     'no-undef': 'off',

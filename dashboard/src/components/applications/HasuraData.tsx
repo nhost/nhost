@@ -4,9 +4,9 @@ import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import IconButton from '@/ui/v2/IconButton';
-import Text from '@/ui/v2/Text';
 import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
+import Text from '@/ui/v2/Text';
 import {
   defaultLocalBackendSlugs,
   defaultRemoteBackendSlugs,

@@ -12,10 +12,10 @@ import { FilesDataGridControls } from '@/features/storage/dataGrid/components/Fi
 import { useBuckets } from '@/features/storage/dataGrid/hooks/useBuckets';
 import { useFiles } from '@/features/storage/dataGrid/hooks/useFiles';
 import { useFilesAggregate } from '@/features/storage/dataGrid/hooks/useFilesAggregate';
-import type { Files } from '@/utils/__generated__/graphql';
-import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
+import type { Files } from '@/utils/__generated__/graphql';
+import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
 import debounce from 'lodash.debounce';
 import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
@@ -66,16 +66,10 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
             {},
           )
         : { updatedAt: OrderBy.Desc },
-    options: {
-      fetchPolicy: 'cache-and-network',
-    },
   });
 
   const { numberOfFiles, refetch: refetchFilesAggregate } = useFilesAggregate({
     searchString,
-    options: {
-      fetchPolicy: 'cache-and-network',
-    },
   });
 
   const numberOfPages = numberOfFiles ? Math.ceil(numberOfFiles / limit) : 0;

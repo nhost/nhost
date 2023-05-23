@@ -1,2 +1,2 @@
 export * from './ActivityIndicator';
-export { default } from './ActivityIndicator';
+export { default as ActivityIndicator, default } from './ActivityIndicator';

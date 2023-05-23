@@ -10,8 +10,8 @@ import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import type { InputProps } from '@/ui/v2/Input';
 import { inputClasses } from '@/ui/v2/Input';
 import Option from '@/ui/v2/Option';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
+import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
 

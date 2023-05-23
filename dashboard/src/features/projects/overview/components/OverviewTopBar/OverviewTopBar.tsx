@@ -6,8 +6,8 @@ import { useIsCurrentUserOwner } from '@/features/projects/hooks/useIsCurrentUse
 import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
 import Button from '@/ui/v2/Button';
 import Chip from '@/ui/v2/Chip';
-import Text from '@/ui/v2/Text';
 import CogIcon from '@/ui/v2/icons/CogIcon';
+import Text from '@/ui/v2/Text';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';

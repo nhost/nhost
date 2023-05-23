@@ -1,2 +1,5 @@
 export * from './ControlledAutocomplete';
-export { default } from './ControlledAutocomplete';
+export {
+  default as ControlledAutocomplete,
+  default,
+} from './ControlledAutocomplete';

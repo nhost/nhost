@@ -2,9 +2,9 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurr
 import type { MetricsCardProps } from '@/features/projects/overview/components/MetricsCard';
 import { MetricsCard } from '@/features/projects/overview/components/MetricsCard';
 import Text from '@/ui/v2/Text';
-import { useGetProjectMetricsQuery } from '@/utils/__generated__/graphql';
 import { prettifyNumber } from '@/utils/common/prettifyNumber';
 import { prettifySize } from '@/utils/common/prettifySize';
+import { useGetProjectMetricsQuery } from '@/utils/__generated__/graphql';
 import { twMerge } from 'tailwind-merge';
 
 const now = new Date();
