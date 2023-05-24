@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.16.14
+
+### Patch Changes
+
+- 4c626174: chore: updated import paths, improved directory structure
+- cc047b71: chore(deps): bump `@fontsource` monorepo to `v5.0.0`
+- 99edd012: feat(account): add support for personal access tokens
+
 ## 0.16.13
 
 ### Patch Changes
