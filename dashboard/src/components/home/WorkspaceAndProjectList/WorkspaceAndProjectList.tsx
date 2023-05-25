@@ -1,10 +1,10 @@
+import { StateBadge } from '@/components/common/StateBadge';
+import type { DeploymentStatus } from '@/components/common/StatusCircle';
+import { StatusCircle } from '@/components/common/StatusCircle';
 import { useUI } from '@/context/UIContext';
 import { DeploymentStatusMessage } from '@/features/projects/deployments/components/DeploymentStatusMessage';
 import type { ApplicationState, Workspace } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
-import { StateBadge } from '@/ui/v1/StateBadge';
-import type { DeploymentStatus } from '@/ui/v1/StatusCircle';
-import { StatusCircle } from '@/ui/v1/StatusCircle';
 import type { BoxProps } from '@/ui/v2/Box';
 import { Box } from '@/ui/v2/Box';
 import type { ButtonProps } from '@/ui/v2/Button';

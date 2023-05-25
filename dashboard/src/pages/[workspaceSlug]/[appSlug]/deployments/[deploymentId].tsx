@@ -1,11 +1,11 @@
+import type { DeploymentStatus } from '@/components/common/StatusCircle';
+import { StatusCircle } from '@/components/common/StatusCircle';
 import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
 import { useDeploymentSubSubscription } from '@/generated/graphql';
 import { Avatar } from '@/ui/v1/Avatar';
-import type { DeploymentStatus } from '@/ui/v1/StatusCircle';
-import { StatusCircle } from '@/ui/v1/StatusCircle';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
 import { Link } from '@/ui/v2/Link';

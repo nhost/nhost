@@ -2,7 +2,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { PendingWorkspaceMemberInvitation } from '@/features/projects/workspaces/components/PendingWorkspaceMemberInvitation';
 import { WorkspaceMember } from '@/features/projects/workspaces/components/WorkspaceMember';
-import { Alert } from '@/ui/v1/Alert';
+import { Alert } from '@/ui/v2/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
 import Text from '@/ui/v2/Text';

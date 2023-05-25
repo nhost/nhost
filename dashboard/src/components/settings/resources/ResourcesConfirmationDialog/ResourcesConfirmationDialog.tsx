@@ -3,7 +3,7 @@ import { calculateBillableResources } from '@/features/resources/settings/utils/
 import { prettifyMemory } from '@/features/resources/settings/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/resources/settings/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
-import { Alert } from '@/ui/v1/Alert';
+import { Alert } from '@/ui/v2/Alert';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';

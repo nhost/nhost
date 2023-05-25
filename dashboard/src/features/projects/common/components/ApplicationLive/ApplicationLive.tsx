@@ -11,7 +11,7 @@ import { OverviewTopBar } from '@/features/projects/overview/components/Overview
 import { OverviewUsage } from '@/features/projects/overview/components/OverviewUsage';
 import { features } from '@/features/projects/overview/features';
 import { frameworks } from '@/features/projects/overview/frameworks';
-import { Alert } from '@/ui/v1/Alert';
+import { Alert } from '@/ui/v2/Alert';
 import { Divider } from '@/ui/v2/Divider';
 
 export interface ApplicationLiveProps {

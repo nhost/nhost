@@ -10,7 +10,7 @@ import type {
 import { convertToHasuraPermissions } from '@/features/database/dataGrid/utils/convertToHasuraPermissions';
 import { convertToRuleGroup } from '@/features/database/dataGrid/utils/convertToRuleGroup';
 import type { DialogFormProps } from '@/types/common';
-import { Alert } from '@/ui/v1/Alert';
+import { Alert } from '@/ui/v2/Alert';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { Text } from '@/ui/v2/Text';

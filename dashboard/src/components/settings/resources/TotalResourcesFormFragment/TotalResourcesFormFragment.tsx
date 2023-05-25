@@ -8,7 +8,7 @@ import {
   MAX_TOTAL_VCPU,
   MIN_TOTAL_VCPU,
 } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
-import { Alert } from '@/ui/v1/Alert';
+import { Alert } from '@/ui/v2/Alert';
 import Box from '@/ui/v2/Box';
 import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
 import Slider, { sliderClasses } from '@/ui/v2/Slider';

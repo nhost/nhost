@@ -1,9 +1,9 @@
 import NavLink from '@/components/common/NavLink';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import FloatingActionButton from '@/ui/v1/FloatingActionButton';
 import Backdrop from '@/ui/v2/Backdrop';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
+import { IconButton } from '@/ui/v2/IconButton';
 import List from '@/ui/v2/List';
 import type { ListItemButtonProps } from '@/ui/v2/ListItem';
 import { ListItem } from '@/ui/v2/ListItem';
@@ -208,8 +208,8 @@ export default function SettingsSidebar({
         </nav>
       </Box>
 
-      <FloatingActionButton
-        className="absolute bottom-4 left-4 z-[38] md:hidden"
+      <IconButton
+        className="absolute bottom-4 left-4 z-[38] h-11 w-11 rounded-full md:hidden"
         onClick={toggleExpanded}
         aria-label="Toggle sidebar"
       >
@@ -219,7 +219,7 @@ export default function SettingsSidebar({
           src="/assets/table.svg"
           alt="A monochrome table"
         />
-      </FloatingActionButton>
+      </IconButton>
     </>
   );
 }

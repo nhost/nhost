@@ -11,6 +11,9 @@ export type AvatarProps = Pick<BoxProps, 'component'> & {
   name?: string | null;
 };
 
+/**
+ * @deprecated Use `v2/Avatar` instead.
+ */
 export default function Avatar({
   style = {},
   className = '',

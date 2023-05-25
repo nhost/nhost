@@ -7,7 +7,7 @@ import {
   baseForeignKeyValidationSchema,
 } from '@/features/database/dataGrid/components/BaseForeignKeyForm';
 import type { ForeignKeyRelation } from '@/features/database/dataGrid/types/dataBrowser';
-import { Alert } from '@/ui/v1/Alert';
+import { Alert } from '@/ui/v2/Alert';
 import Button from '@/ui/v2/Button';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';

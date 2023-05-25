@@ -8,7 +8,6 @@ import { useDeleteTableWithToastMutation } from '@/features/database/dataGrid/ho
 import { isSchemaLocked } from '@/features/database/dataGrid/utils/schemaHelpers';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { FloatingActionButton } from '@/ui/v1/FloatingActionButton';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Backdrop } from '@/ui/v2/Backdrop';
 import type { BoxProps } from '@/ui/v2/Box';
@@ -594,8 +593,8 @@ export default function DataBrowserSidebar({
         </RetryableErrorBoundary>
       </Box>
 
-      <FloatingActionButton
-        className="absolute bottom-4 left-4 z-[38] sm:hidden"
+      <IconButton
+        className="absolute bottom-4 left-4 z-[38] h-11 w-11 rounded-full md:hidden"
         onClick={toggleExpanded}
         aria-label="Toggle sidebar"
       >
@@ -605,7 +604,7 @@ export default function DataBrowserSidebar({
           src="/assets/table.svg"
           alt="A monochrome table"
         />
-      </FloatingActionButton>
+      </IconButton>
     </>
   );
 }

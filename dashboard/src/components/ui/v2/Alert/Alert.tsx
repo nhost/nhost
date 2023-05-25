@@ -11,7 +11,7 @@ export interface AlertProps extends BoxProps {
   severity?: 'info' | 'success' | 'warning' | 'error';
 }
 
-export function Alert({
+export default function Alert({
   severity = 'info',
   children,
   className,
@@ -46,5 +46,3 @@ export function Alert({
     </Box>
   );
 }
-
-export default Alert;
