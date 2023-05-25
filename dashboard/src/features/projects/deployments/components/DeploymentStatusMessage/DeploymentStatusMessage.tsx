@@ -1,6 +1,6 @@
 import type { Deployment } from '@/types/application';
 import { Avatar } from '@/ui/Avatar';
-import Text from '@/ui/v2/Text';
+import { Text } from '@/ui/v2/Text';
 import formatDistance from 'date-fns/formatDistance';
 
 export interface DeploymentStatusMessageProps {

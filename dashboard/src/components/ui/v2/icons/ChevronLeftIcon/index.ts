@@ -1,1 +1,1 @@
-export { default } from './ChevronLeftIcon';
+export { default as ChevronLeftIcon, default } from './ChevronLeftIcon';

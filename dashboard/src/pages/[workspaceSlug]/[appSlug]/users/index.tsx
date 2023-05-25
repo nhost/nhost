@@ -9,7 +9,7 @@ import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
-import SearchIcon from '@/ui/v2/icons/SearchIcon';
+import { SearchIcon } from '@/ui/v2/icons/SearchIcon';
 import { UserIcon } from '@/ui/v2/icons/UserIcon';
 import { Input } from '@/ui/v2/Input';
 import { Text } from '@/ui/v2/Text';

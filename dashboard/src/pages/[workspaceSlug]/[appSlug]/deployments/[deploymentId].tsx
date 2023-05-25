@@ -1,15 +1,15 @@
-import AppDeploymentDuration from '@/components/deployments/AppDeploymentDuration';
-import Container from '@/components/layout/Container';
-import ProjectLayout from '@/components/layout/ProjectLayout';
+import { Container } from '@/components/layout/Container';
+import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
 import { useDeploymentSubSubscription } from '@/generated/graphql';
 import { Avatar } from '@/ui/Avatar';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Box from '@/ui/v2/Box';
-import Link from '@/ui/v2/Link';
-import Text from '@/ui/v2/Text';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Box } from '@/ui/v2/Box';
+import { Link } from '@/ui/v2/Link';
+import { Text } from '@/ui/v2/Text';
 import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
@@ -117,7 +117,7 @@ export default function DeploymentDetailsPage() {
           </Link>
 
           <div className="w-20 text-right">
-            <AppDeploymentDuration
+            <DeploymentDurationLabel
               startedAt={deployment.deploymentStartedAt}
               endedAt={deployment.deploymentEndedAt}
             />

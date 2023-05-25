@@ -1,6 +1,6 @@
 import { NavLink } from '@/components/common/NavLink';
-import { AppDeploymentDuration } from '@/components/deployments/AppDeploymentDuration';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
 import { Avatar } from '@/ui/Avatar';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
@@ -157,7 +157,7 @@ export default function DeploymentListItem({
           </div>
 
           <div className="text-right font-mono text-sm- font-medium sm:w-20">
-            <AppDeploymentDuration
+            <DeploymentDurationLabel
               startedAt={deployment.deploymentStartedAt}
               endedAt={deployment.deploymentEndedAt}
             />

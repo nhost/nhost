@@ -1,8 +1,8 @@
-import Text from '@/ui/v2/Text';
+import { Text } from '@/ui/v2/Text';
 import { differenceInSeconds, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
 
-export interface AppDeploymentDurationProps {
+export interface DeploymentDurationLabelProps {
   /**
    * Start date of the deployment.
    */
@@ -13,10 +13,10 @@ export interface AppDeploymentDurationProps {
   endedAt?: string;
 }
 
-export default function AppDeploymentDuration({
+export default function DeploymentDurationLabel({
   startedAt,
   endedAt,
-}: AppDeploymentDurationProps) {
+}: DeploymentDurationLabelProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
