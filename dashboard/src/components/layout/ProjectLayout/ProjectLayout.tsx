@@ -4,9 +4,9 @@ import type { AuthenticatedLayoutProps } from '@/components/layout/Authenticated
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useNavigationVisible } from '@/features/projects/common/hooks/useNavigationVisible';
 import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
 import { useProjectRoutes } from '@/features/projects/common/hooks/useProjectRoutes';
-import { useNavigationVisible } from '@/hooks/useNavigationVisible';
 import type { BoxProps } from '@/ui/v2/Box';
 import { Box } from '@/ui/v2/Box';
 import { NextSeo } from 'next-seo';

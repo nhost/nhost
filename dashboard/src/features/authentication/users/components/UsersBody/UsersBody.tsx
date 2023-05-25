@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/common/FormActivityIndicator';
-import type { EditUserFormValues } from '@/components/users/EditUserForm';
+import type { EditUserFormValues } from '@/features/authentication/users/components/EditUserForm';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
@@ -36,7 +36,10 @@ import { Fragment, useMemo } from 'react';
 import toast from 'react-hot-toast';
 
 const EditUserForm = dynamic(
-  () => import('@/components/users/EditUserForm/EditUserForm'),
+  () =>
+    import(
+      '@/features/authentication/users/components/EditUserForm/EditUserForm'
+    ),
   {
     ssr: false,
     loading: () => <FormActivityIndicator />,

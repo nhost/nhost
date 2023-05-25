@@ -5,9 +5,9 @@ import {
   useGetWorkspaceMemberInvitesToManageQuery,
 } from '@/generated/graphql';
 import { useSubmitState } from '@/hooks/useSubmitState';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Text from '@/ui/v2/Text';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Text } from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import { triggerToast } from '@/utils/toast';
 import { useApolloClient } from '@apollo/client';

@@ -2,7 +2,7 @@ import { ControlledCheckbox } from '@/components/common/ControlledCheckbox';
 import { ControlledSelect } from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/common/Form';
-import { EditUserPasswordForm } from '@/components/users/EditUserPasswordForm';
+import { EditUserPasswordForm } from '@/features/authentication/users/components/EditUserPasswordForm';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';

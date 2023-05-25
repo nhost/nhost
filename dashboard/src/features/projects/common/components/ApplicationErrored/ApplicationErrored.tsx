@@ -6,7 +6,6 @@ import { RemoveApplicationModal } from '@/features/projects/common/components/Re
 import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
-import { useCurrentDate } from '@/hooks/useCurrentDate';
 import type { ApplicationState } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { Modal } from '@/ui/Modal';
@@ -55,7 +54,7 @@ export default function ApplicationErrored() {
   const [showRecreateModal, setShowRecreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [insertApp] = useInsertApplicationMutation();
-  const { currentDate } = useCurrentDate();
+  const currentDate = new Date().getTime();
   const user = useUserData();
   const isOwner = useIsCurrentUserOwner();
 

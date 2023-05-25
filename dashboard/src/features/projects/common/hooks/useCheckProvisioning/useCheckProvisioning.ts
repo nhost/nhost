@@ -19,7 +19,7 @@ type ApplicationStateMetadata = {
  * When receiving at least one application state from the history
  * it will update the entire cache with the application state.
  */
-export function useCheckProvisioning() {
+export default function useCheckProvisioning() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [currentApplicationState, setCurrentApplicationState] =
     useState<ApplicationStateMetadata>({ state: ApplicationStatus.Empty });
@@ -101,5 +101,3 @@ export function useCheckProvisioning() {
 
   return currentApplicationState;
 }
-
-export default useCheckProvisioning;

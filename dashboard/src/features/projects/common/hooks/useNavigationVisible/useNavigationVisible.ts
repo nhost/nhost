@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 /**
  * This hook will check the route, the environment, and the history of the states of the app to correctly render the navigation header.
  */
-export function useNavigationVisible() {
+export default function useNavigationVisible() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const { state } = useAppState();
   const previousApplicationState = usePreviousApplicationState();
@@ -54,5 +54,3 @@ export function useNavigationVisible() {
 
   return false;
 }
-
-export default useNavigationVisible;

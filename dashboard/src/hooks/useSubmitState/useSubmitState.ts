@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export function useSubmitState() {
+export default function useSubmitState() {
   const [submitState, setSubmitState] = useState<{
     loading: boolean;
     error: Error | null;
@@ -13,5 +13,3 @@ export function useSubmitState() {
 
   return { submitState, setSubmitState };
 }
-
-export default useSubmitState;
