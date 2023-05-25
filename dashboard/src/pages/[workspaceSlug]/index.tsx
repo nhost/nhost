@@ -1,15 +1,13 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import {
-  WorkspaceApps,
-  WorkspaceHeader,
-  WorkspaceMembers,
-} from '@/components/workspace';
-import { WorkspaceInvoices } from '@/components/workspace/WorkspaceInvoices';
-import WorkspacePaymentMethods from '@/components/workspace/WorkspacePaymentMethods';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
+import { WorkspaceApps } from '@/features/projects/workspaces/components/WorkspaceApps';
+import { WorkspaceHeader } from '@/features/projects/workspaces/components/WorkspaceHeader';
+import { WorkspaceInvoices } from '@/features/projects/workspaces/components/WorkspaceInvoices';
+import { WorkspaceMembers } from '@/features/projects/workspaces/components/WorkspaceMembers';
+import { WorkspacePaymentMethods } from '@/features/projects/workspaces/components/WorkspacePaymentMethods';
 import { NextSeo } from 'next-seo';
 import type { ReactElement } from 'react';
 

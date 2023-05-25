@@ -1,5 +1,7 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
+import { PendingWorkspaceMemberInvitation } from '@/features/projects/workspaces/components/PendingWorkspaceMemberInvitation';
+import { WorkspaceMember } from '@/features/projects/workspaces/components/WorkspaceMember';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';
 import Input from '@/ui/v2/Input';
@@ -15,8 +17,6 @@ import {
 import { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import validator from 'validator';
-import WorkspaceMember from './WorkspaceMember';
-import WorkspaceMemberInvite from './WorkspaceMemberInvite';
 
 function WorkspaceMemberInviteForm({
   workspaceMembers,
@@ -167,7 +167,7 @@ export default function WorkspaceMembers() {
           <Text className="mb-2 text-lg font-medium">Pending Invitations</Text>
           {data?.workspace?.workspaceMemberInvites.map(
             (workspaceMemberInvite) => (
-              <WorkspaceMemberInvite
+              <PendingWorkspaceMemberInvitation
                 key={workspaceMemberInvite.id}
                 workspaceMemberInvite={workspaceMemberInvite}
                 isOwner={isOwner}

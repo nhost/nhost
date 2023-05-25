@@ -1,16 +1,18 @@
 import { ManageWorkspaceMemberInviteMenu } from '@/features/projects/workspaces/components/ManageWorkspaceMemberInviteMenu';
 import { Avatar } from '@/ui/Avatar';
-import Chip from '@/ui/v2/Chip';
-import Text from '@/ui/v2/Text';
+import { Chip } from '@/ui/v2/Chip';
+import { Text } from '@/ui/v2/Text';
 import type { GetWorkspaceMembersWorkspaceMemberInviteFragment } from '@/utils/__generated__/graphql';
 
-export default function WorkspaceMemberInvite({
-  workspaceMemberInvite,
-  isOwner,
-}: {
+export interface PendingWorkspaceMemberInvitationProps {
   workspaceMemberInvite: GetWorkspaceMembersWorkspaceMemberInviteFragment;
   isOwner: boolean;
-}) {
+}
+
+export default function PendingWorkspaceMemberInvitation({
+  workspaceMemberInvite,
+  isOwner,
+}: PendingWorkspaceMemberInvitationProps) {
   return (
     <div className="flex flex-row place-content-between">
       <div className=" flex flex-row">

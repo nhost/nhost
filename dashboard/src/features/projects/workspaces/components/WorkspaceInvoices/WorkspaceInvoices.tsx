@@ -5,7 +5,7 @@ import { nhost } from '@/utils/nhost';
 import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';
 
-export function WorkspaceInvoices() {
+export default function WorkspaceInvoices() {
   const [loading, setLoading] = useState(false);
 
   const { currentWorkspace } = useCurrentWorkspaceAndProject();
@@ -44,5 +44,3 @@ export function WorkspaceInvoices() {
     </div>
   );
 }
-
-export default WorkspaceInvoices;

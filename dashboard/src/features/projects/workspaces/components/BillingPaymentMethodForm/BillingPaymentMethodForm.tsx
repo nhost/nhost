@@ -6,9 +6,9 @@ import {
   useUpdateWorkspaceMutation,
 } from '@/generated/graphql';
 import { useSubmitState } from '@/hooks/useSubmitState';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Text from '@/ui/v2/Text';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Text } from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { nhost } from '@/utils/nhost';
 import { triggerToast } from '@/utils/toast';
@@ -20,7 +20,8 @@ import {
   useStripe,
 } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import React, { useState } from 'react';
+import type { SyntheticEvent } from 'react';
+import { useState } from 'react';
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PK
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PK)
@@ -54,7 +55,7 @@ function AddPaymentMethodForm({
   const [updateWorkspace] = useUpdateWorkspaceMutation();
   const { submitState, setSubmitState } = useSubmitState();
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setSubmitState({

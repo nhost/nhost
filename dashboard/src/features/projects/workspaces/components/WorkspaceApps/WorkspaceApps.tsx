@@ -1,14 +1,14 @@
-import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Chip from '@/ui/v2/Chip';
-import Divider from '@/ui/v2/Divider';
-import PlusCircleIcon from '@/ui/v2/icons/PlusCircleIcon';
-import List from '@/ui/v2/List';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Chip } from '@/ui/v2/Chip';
+import { Divider } from '@/ui/v2/Divider';
+import { PlusCircleIcon } from '@/ui/v2/icons/PlusCircleIcon';
+import { List } from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
-import Text from '@/ui/v2/Text';
+import { Text } from '@/ui/v2/Text';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Image from 'next/image';
 import NavLink from 'next/link';
@@ -93,6 +93,7 @@ function AllWorkspaceApps() {
     </List>
   );
 }
+
 export default function WorkspaceApps() {
   const { currentWorkspace, loading } = useCurrentWorkspaceAndProject();
 

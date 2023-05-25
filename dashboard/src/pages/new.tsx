@@ -1,10 +1,10 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import { BillingPaymentMethodForm } from '@/components/workspace/BillingPaymentMethodForm';
 import { useUI } from '@/context/UIContext';
 import features from '@/data/features.json';
 import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
+import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { Alert } from '@/ui/Alert';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';

@@ -1,7 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { BillingPaymentMethodForm } from '@/components/workspace/BillingPaymentMethodForm';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
+import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
 import type { GetPaymentMethodsFragment } from '@/generated/graphql';
 import {
   refetchGetPaymentMethodsQuery,
