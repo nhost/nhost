@@ -1,10 +1,10 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
+import useTablePath from '@/features/database/common/hooks/useTablePath/useTablePath';
 import { DataBrowserGrid } from '@/features/database/dataGrid/components/DataBrowserGrid';
 import { DataBrowserLayout } from '@/features/database/dataGrid/components/DataBrowserLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import useTablePath from '@/hooks/useTablePath';
 import type { ReactElement } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import type { SortingRule } from 'react-table';

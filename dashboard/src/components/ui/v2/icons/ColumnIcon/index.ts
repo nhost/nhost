@@ -1,1 +1,1 @@
-export { default } from './ColumnIcon';
+export { default as ColumnIcon } from './ColumnIcon';

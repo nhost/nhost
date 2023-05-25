@@ -1,1 +1,1 @@
-export { default } from './RowIcon';
+export { default as RowIcon } from './RowIcon';
