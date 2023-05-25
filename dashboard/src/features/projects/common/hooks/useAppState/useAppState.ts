@@ -5,7 +5,7 @@ import { ApplicationStatus } from '@/types/application';
  * This hook returns the current application state. If the application state
  * has not been filled, it returns an Empty application status.
  */
-export default function useApplicationState(): {
+export default function useAppState(): {
   state: ApplicationStatus;
   message?: string;
 } {

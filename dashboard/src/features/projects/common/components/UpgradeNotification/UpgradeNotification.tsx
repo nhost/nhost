@@ -7,7 +7,7 @@ import Text from '@/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface UnlockFeatureByUpgradingProps
+export interface UpgradeNotificationProps
   extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
   /**
    * Message to display in the alert.
@@ -15,11 +15,11 @@ export interface UnlockFeatureByUpgradingProps
   message: string;
 }
 
-export function UnlockFeatureByUpgrading({
+export default function UpgradeNotification({
   message,
   className,
   ...props
-}: UnlockFeatureByUpgradingProps) {
+}: UpgradeNotificationProps) {
   const { openDialog } = useDialog();
   const isOwner = useIsCurrentUserOwner();
 

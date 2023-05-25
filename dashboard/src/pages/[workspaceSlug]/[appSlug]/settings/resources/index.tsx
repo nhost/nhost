@@ -1,7 +1,7 @@
-import { UnlockFeatureByUpgrading } from '@/components/applications/UnlockFeatureByUpgrading';
 import { Container } from '@/components/layout/Container';
 import { ResourcesForm } from '@/components/settings/resources/ResourcesForm';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import type { ReactElement } from 'react';
@@ -15,7 +15,7 @@ export default function ResourceSettingsPage() {
 
   if (currentProject?.plan.isFree) {
     return (
-      <UnlockFeatureByUpgrading message="Unlock Compute settings by upgrading your project to the Pro plan." />
+      <UpgradeNotification message="Unlock Compute settings by upgrading your project to the Pro plan." />
     );
   }
 

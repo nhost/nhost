@@ -1,13 +1,13 @@
-import { UnlockFeatureByUpgrading } from '@/components/applications/UnlockFeatureByUpgrading';
-import ControlledCheckbox from '@/components/common/ControlledCheckbox';
-import Form from '@/components/common/Form';
-import Container from '@/components/layout/Container';
-import SettingsContainer from '@/components/settings/SettingsContainer';
-import SettingsLayout from '@/components/settings/SettingsLayout';
+import { ControlledCheckbox } from '@/components/common/ControlledCheckbox';
+import { Form } from '@/components/common/Form';
+import { Container } from '@/components/layout/Container';
+import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
+import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Input from '@/ui/v2/Input';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Input } from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetSmtpSettingsDocument,
@@ -94,7 +94,7 @@ export default function SMTPSettingsPage() {
         className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"
         rootClassName="bg-transparent"
       >
-        <UnlockFeatureByUpgrading message="Unlock SMTP settings by upgrading your project to the Pro plan." />
+        <UpgradeNotification message="Unlock SMTP settings by upgrading your project to the Pro plan." />
       </Container>
     );
   }

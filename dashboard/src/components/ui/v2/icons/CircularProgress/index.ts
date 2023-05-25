@@ -1,1 +1,1 @@
-export { default } from './CircularProgress';
+export { default as CircularProgress } from './CircularProgress';

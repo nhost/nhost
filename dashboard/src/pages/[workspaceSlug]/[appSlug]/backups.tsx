@@ -1,8 +1,8 @@
-import { UnlockFeatureByUpgrading } from '@/components/applications/UnlockFeatureByUpgrading';
 import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { RestoreBackupModal } from '@/features/projects/backups/components/RestoreBackupModal';
+import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useGetApplicationBackupsQuery } from '@/generated/graphql';
 import { Modal } from '@/ui';
@@ -152,7 +152,7 @@ function BackupsContent() {
 
   if (isPlanFree) {
     return (
-      <UnlockFeatureByUpgrading
+      <UpgradeNotification
         message="Unlock backups by upgrading your project to the Pro plan."
         className="mt-4"
       />

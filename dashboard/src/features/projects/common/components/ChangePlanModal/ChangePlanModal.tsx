@@ -1,5 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { BillingPaymentMethodForm } from '@/components/workspace/BillingPaymentMethodForm';
+import { useAppState } from '@/features/projects/common/hooks/useAppState';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   refetchGetApplicationPlanQuery,
@@ -7,7 +8,6 @@ import {
   useGetPaymentMethodsQuery,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import useApplicationState from '@/hooks/useApplicationState';
 import { ApplicationStatus } from '@/types/application';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
@@ -71,7 +71,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
     currentProject,
     refetch: refetchWorkspaceAndProject,
   } = useCurrentWorkspaceAndProject();
-  const { state } = useApplicationState();
+  const { state } = useAppState();
 
   const { data } = useGetPaymentMethodsQuery({
     variables: {

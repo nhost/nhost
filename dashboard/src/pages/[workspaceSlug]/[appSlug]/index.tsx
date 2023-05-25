@@ -6,16 +6,16 @@ import { ApplicationProvisioning } from '@/features/projects/common/components/A
 import { ApplicationRestoring } from '@/features/projects/common/components/ApplicationRestoring';
 import { ApplicationUnknown } from '@/features/projects/common/components/ApplicationUnknown';
 import { ApplicationUnpausing } from '@/features/projects/common/components/ApplicationUnpausing';
+import { useAppState } from '@/features/projects/common/hooks/useAppState';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import useApplicationState from '@/hooks/useApplicationState';
 import { ApplicationStatus } from '@/types/application';
 import type { ReactElement } from 'react';
 
 export default function AppIndexPage() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const isPlatform = useIsPlatform();
-  const { state } = useApplicationState();
+  const { state } = useAppState();
 
   if (!currentProject) {
     return null;

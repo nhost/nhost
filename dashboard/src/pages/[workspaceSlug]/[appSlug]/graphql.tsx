@@ -1,14 +1,14 @@
-import { UserSelect } from '@/components/applications/graphql/UserSelect';
-import { DEFAULT_ROLES } from '@/components/applications/graphql/utils';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
-import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import ProjectLayout from '@/components/layout/ProjectLayout';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { ProjectLayout } from '@/components/layout/ProjectLayout';
+import { UserSelect } from '@/features/graphql/common/components/UserSelect';
+import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import Button from '@/ui/v2/Button';
-import PlayIcon from '@/ui/v2/icons/PlayIcon';
-import Option from '@/ui/v2/Option';
-import Select from '@/ui/v2/Select';
-import Tooltip from '@/ui/v2/Tooltip';
+import { Button } from '@/ui/v2/Button';
+import { PlayIcon } from '@/ui/v2/icons/PlayIcon';
+import { Option } from '@/ui/v2/Option';
+import { Select } from '@/ui/v2/Select';
+import { Tooltip } from '@/ui/v2/Tooltip';
 import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import { triggerToast } from '@/utils/toast';
 import {
