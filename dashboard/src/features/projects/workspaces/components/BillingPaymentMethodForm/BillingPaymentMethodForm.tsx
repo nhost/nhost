@@ -1,4 +1,4 @@
-import { CountrySelector } from '@/components/dashboard/CountrySelector';
+import { CountrySelector } from '@/components/common/CountrySelector';
 import {
   refetchGetPaymentMethodsQuery,
   refetchPrefetchNewAppQuery,

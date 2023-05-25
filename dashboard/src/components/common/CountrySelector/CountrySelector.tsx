@@ -1,5 +1,5 @@
-import Option from '@/ui/v2/Option';
-import Select from '@/ui/v2/Select';
+import { Option } from '@/ui/v2/Option';
+import { Select } from '@/ui/v2/Select';
 import { useGetCountriesQuery } from '@/utils/__generated__/graphql';
 
 type CountrySelectorProps = {
@@ -7,7 +7,10 @@ type CountrySelectorProps = {
   onChange: (value: string) => void;
 };
 
-export function CountrySelector({ value, onChange }: CountrySelectorProps) {
+export default function CountrySelector({
+  value,
+  onChange,
+}: CountrySelectorProps) {
   const { data, error } = useGetCountriesQuery();
 
   if (error) {
@@ -38,5 +41,3 @@ export function CountrySelector({ value, onChange }: CountrySelectorProps) {
     </Select>
   );
 }
-
-export default CountrySelector;

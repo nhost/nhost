@@ -15,7 +15,7 @@ export interface NavProps
   flow?: 'column' | 'row';
 }
 
-export function Nav({
+export default function Nav({
   children,
   className,
   listProps: { className: listClassName, ...listProps } = {},

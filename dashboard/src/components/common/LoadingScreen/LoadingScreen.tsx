@@ -20,7 +20,7 @@ export interface LoadingScreenProps extends BoxProps {
   };
 }
 
-export function LoadingScreen({
+export default function LoadingScreen({
   className,
   slotProps = { root: {}, activityIndicator: {} },
   ...props
@@ -48,5 +48,3 @@ export function LoadingScreen({
     </Box>
   );
 }
-
-export default LoadingScreen;
