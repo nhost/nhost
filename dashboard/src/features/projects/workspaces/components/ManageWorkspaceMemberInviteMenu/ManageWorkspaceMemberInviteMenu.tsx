@@ -1,5 +1,5 @@
-import RemoveWorkspaceMemberInvite from '@/components/workspace/RemoveWorkspaceMemberInvite';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { RemoveWorkspaceMemberInviteModal } from '@/features/projects/workspaces/components/RemoveWorkspaceMemberInviteModal';
 import type { GetWorkspaceMembersWorkspaceMemberInviteFragment } from '@/generated/graphql';
 import {
   refetchGetWorkspaceMembersQuery,
@@ -7,23 +7,23 @@ import {
   useUpdateWorkspaceMemberInviteMutation,
 } from '@/generated/graphql';
 import { Modal } from '@/ui/Modal';
-import Button from '@/ui/v2/Button';
-import Divider from '@/ui/v2/Divider';
+import { Button } from '@/ui/v2/Button';
+import { Divider } from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import { capitalize } from '@/utils/helpers';
 import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';
 
-export interface WorkspaceMemberManageMenuProps {
+export interface ManageWorkspaceMemberInviteMenuProps {
   /**
    * Object containing workspace member invitation details.
    */
   workspaceMemberInvite: GetWorkspaceMembersWorkspaceMemberInviteFragment;
 }
 
-export function WorkspaceMemberInviteManageMenu({
+export default function ManageWorkspaceMemberInviteMenu({
   workspaceMemberInvite,
-}: WorkspaceMemberManageMenuProps) {
+}: ManageWorkspaceMemberInviteMenuProps) {
   const { currentWorkspace } = useCurrentWorkspaceAndProject();
   const [removeMemberInviteModal, setRemoveMemberInviteModal] = useState(false);
   const otherMemberType =
@@ -92,7 +92,7 @@ export function WorkspaceMemberInviteManageMenu({
         showModal={removeMemberInviteModal}
         close={() => setRemoveMemberInviteModal(false)}
       >
-        <RemoveWorkspaceMemberInvite
+        <RemoveWorkspaceMemberInviteModal
           handler={handleRemoveMemberInvite}
           close={() => setRemoveMemberInviteModal(false)}
         />

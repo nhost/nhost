@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { EditWorkspaceNameForm } from '@/components/home/EditWorkspaceNameForm';
 import { Resource } from '@/components/home/Resource';
+import { EditWorkspaceNameForm } from '@/features/projects/workspaces/components/EditWorkspaceNameForm';
 import type { Workspace } from '@/types/application';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import type { BoxProps } from '@/ui/v2/Box';

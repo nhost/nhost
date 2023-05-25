@@ -1,8 +1,8 @@
-import RemoveWorkspaceMember from '@/components/workspace/RemoveWorkspaceMember';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { RemoveWorkspaceMemberModal } from '@/features/projects/workspaces/components/RemoveWorkspaceMemberModal';
 import { Modal } from '@/ui/Modal';
-import Button from '@/ui/v2/Button';
-import Divider from '@/ui/v2/Divider';
+import { Button } from '@/ui/v2/Button';
+import { Divider } from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import { capitalize } from '@/utils/helpers';
 import { triggerToast } from '@/utils/toast';
@@ -14,13 +14,13 @@ import {
 } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
 
-type WorkspaceMemberManageMenuParams = {
+export type ManageWorkspaceMemberMenuProps = {
   workspaceMember: GetWorkspaceMembersWorkspaceMemberFragment;
 };
 
-export function WorkspaceMemberManageMenu({
+export default function ManageWorkspaceMemberMenu({
   workspaceMember,
-}: WorkspaceMemberManageMenuParams) {
+}: ManageWorkspaceMemberMenuProps) {
   const { currentWorkspace } = useCurrentWorkspaceAndProject();
   const [removeMemberModal, setRemoveMemberModal] = useState(false);
   const otherMemberType = workspaceMember.type === 'owner' ? 'member' : 'owner';
@@ -92,7 +92,7 @@ export function WorkspaceMemberManageMenu({
         showModal={removeMemberModal}
         close={() => setRemoveMemberModal(false)}
       >
-        <RemoveWorkspaceMember
+        <RemoveWorkspaceMemberModal
           handler={handleRemoveMember}
           close={() => setRemoveMemberModal(false)}
         />
@@ -126,5 +126,3 @@ export function WorkspaceMemberManageMenu({
     </div>
   );
 }
-
-export default WorkspaceMemberManageMenu;

@@ -1,8 +1,8 @@
+import { ManageWorkspaceMemberInviteMenu } from '@/features/projects/workspaces/components/ManageWorkspaceMemberInviteMenu';
 import { Avatar } from '@/ui/Avatar';
 import Chip from '@/ui/v2/Chip';
 import Text from '@/ui/v2/Text';
 import type { GetWorkspaceMembersWorkspaceMemberInviteFragment } from '@/utils/__generated__/graphql';
-import { WorkspaceMemberInviteManageMenu } from './WorkspaceMemberInviteManageMenu';
 
 export default function WorkspaceMemberInvite({
   workspaceMemberInvite,
@@ -27,7 +27,7 @@ export default function WorkspaceMemberInvite({
       </div>
       <div className=" right-0 flex flex-row self-center">
         {isOwner ? (
-          <WorkspaceMemberInviteManageMenu
+          <ManageWorkspaceMemberInviteMenu
             workspaceMemberInvite={workspaceMemberInvite}
           />
         ) : (

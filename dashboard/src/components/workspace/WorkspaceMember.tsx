@@ -1,9 +1,9 @@
-import { WorkspaceMemberManageMenu } from '@/components/workspace/WorkspaceMemberManageMenu';
+import { ManageWorkspaceMemberMenu } from '@/features/projects/workspaces/components/ManageWorkspaceMemberMenu';
 import { Avatar } from '@/ui/Avatar';
 import Chip from '@/ui/v2/Chip';
 import Text from '@/ui/v2/Text';
-import type { GetWorkspaceMembersWorkspaceMemberFragment } from '@/utils/__generated__/graphql';
 import { capitalize } from '@/utils/helpers';
+import type { GetWorkspaceMembersWorkspaceMemberFragment } from '@/utils/__generated__/graphql';
 import { useUserData } from '@nhost/nextjs';
 
 export interface WorkspaceMemberProps {
@@ -49,7 +49,7 @@ export default function WorkspaceMember({
         )}
 
         {isOwner && !isSelf && (
-          <WorkspaceMemberManageMenu workspaceMember={workspaceMember} />
+          <ManageWorkspaceMemberMenu workspaceMember={workspaceMember} />
         )}
 
         {!isOwner && !isSelf && (

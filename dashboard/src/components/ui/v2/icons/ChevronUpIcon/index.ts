@@ -1,1 +1,1 @@
-export { default } from './ChevronUpIcon';
+export { default as ChevronUpIcon } from './ChevronUpIcon';
