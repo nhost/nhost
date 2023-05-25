@@ -1,12 +1,12 @@
-import type { EditRepositorySettingsFormData } from '@/components/applications/github/EditRepositorySettings';
-import Box from '@/ui/v2/Box';
-import QuestionMarkCircleIcon from '@/ui/v2/icons/QuestionMarkCircleIcon';
-import Input from '@/ui/v2/Input';
-import InputLabel from '@/ui/v2/InputLabel';
-import Link from '@/ui/v2/Link';
+import type { EditRepositorySettingsFormData } from '@/features/git/common/components/EditRepositorySettings';
+import { Box } from '@/ui/v2/Box';
+import { QuestionMarkCircleIcon } from '@/ui/v2/icons/QuestionMarkCircleIcon';
+import { Input } from '@/ui/v2/Input';
+import { InputLabel } from '@/ui/v2/InputLabel';
+import { Link } from '@/ui/v2/Link';
 import { useFormContext } from 'react-hook-form';
 
-export function RepoAndBranch() {
+export default function EditRepositoryAndBranchSettings() {
   const { register, formState } =
     useFormContext<EditRepositorySettingsFormData>();
 
@@ -44,7 +44,7 @@ export function RepoAndBranch() {
             label={
               <InputLabel
                 htmlFor="repoBaseFolder"
-                className="grid grid-flow-col gap-1 items-center"
+                className="grid grid-flow-col items-center gap-1"
               >
                 Base Directory{' '}
                 <Link
@@ -69,5 +69,3 @@ export function RepoAndBranch() {
     </div>
   );
 }
-
-export default RepoAndBranch;

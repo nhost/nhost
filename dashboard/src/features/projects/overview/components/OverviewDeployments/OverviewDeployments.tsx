@@ -1,13 +1,13 @@
-import useGitHubModal from '@/components/applications/github/useGitHubModal';
 import { DeploymentListItem } from '@/components/deployments/DeploymentListItem';
-import GithubIcon from '@/components/icons/GithubIcon';
 import { useUI } from '@/context/UIContext';
+import { useGitHubModal } from '@/features/git/common/hooks/useGitHubModal';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { Divider } from '@/ui/v2/Divider';
 import { ChevronRightIcon } from '@/ui/v2/icons/ChevronRightIcon';
+import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';
 import { RocketIcon } from '@/ui/v2/icons/RocketIcon';
 import { List } from '@/ui/v2/List';
 import { Text } from '@/ui/v2/Text';
@@ -97,7 +97,7 @@ function OverviewDeploymentList() {
             className="ml-2 grid grid-flow-col gap-1.5"
             sx={{ backgroundColor: 'transparent' }}
           >
-            <GithubIcon className="h-4 w-4 self-center" />
+            <GitHubIcon className="h-4 w-4 self-center" />
             <Text variant="body1" className="self-center font-normal">
               {currentProject?.githubRepository?.fullName}
             </Text>
@@ -193,7 +193,7 @@ export default function OverviewDeployments() {
             onClick={openGitHubModal}
             disabled={maintenanceActive}
           >
-            <GithubIcon className="mr-1.5 h-4 w-4 self-center" />
+            <GitHubIcon className="mr-1.5 h-4 w-4 self-center" />
             Connect to GitHub
           </Button>
         </div>

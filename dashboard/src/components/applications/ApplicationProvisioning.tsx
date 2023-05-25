@@ -5,8 +5,8 @@ import { ApplicationStatus } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Text from '@/ui/v2/Text';
 import Image from 'next/image';
+import ApplicationInfo from '../../features/projects/components/ApplicationInfo/ApplicationInfo';
 import { AppLoader } from './AppLoader';
-import ApplicationInfo from './ApplicationInfo';
 import { StagingMetadata } from './StagingMetadata';
 
 export default function ApplicationProvisioning() {

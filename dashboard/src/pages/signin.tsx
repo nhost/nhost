@@ -1,10 +1,10 @@
-import NavLink from '@/components/common/NavLink';
-import GithubIcon from '@/components/icons/GithubIcon';
-import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Divider from '@/ui/v2/Divider';
-import Text from '@/ui/v2/Text';
+import { NavLink } from '@/components/common/NavLink';
+import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Divider } from '@/ui/v2/Divider';
+import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';
+import { Text } from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { ReactElement } from 'react';
@@ -27,7 +27,7 @@ export default function SignUpPage() {
       <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <Button
           className="!bg-white !text-black hover:ring-2 hover:ring-white hover:ring-opacity-50 disabled:!text-black disabled:!text-opacity-60"
-          startIcon={<GithubIcon />}
+          startIcon={<GitHubIcon />}
           size="large"
           disabled={loading}
           loading={loading}

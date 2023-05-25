@@ -1,8 +1,8 @@
-import ApplicationInfo from '@/components/applications/ApplicationInfo';
 import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 import { StagingMetadata } from '@/components/applications/StagingMetadata';
 import { useDialog } from '@/components/common/DialogProvider';
-import Container from '@/components/layout/Container';
+import { Container } from '@/components/layout/Container';
+import { ApplicationInfo } from '@/features/projects/components/ApplicationInfo';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/hooks/useIsCurrentUserOwner';
 import {
@@ -12,10 +12,10 @@ import {
 } from '@/generated/graphql';
 import { Modal } from '@/ui';
 import { Alert } from '@/ui/Alert';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Text from '@/ui/v2/Text';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Text } from '@/ui/v2/Text';
 import { MAX_FREE_PROJECTS } from '@/utils/CONSTANTS';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { ApolloError } from '@apollo/client';

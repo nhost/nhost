@@ -1,14 +1,14 @@
 import { FeedbackForm } from '@/components/common/FeedbackForm';
-import Container from '@/components/layout/Container';
+import { Container } from '@/components/layout/Container';
+import { ApplicationInfo } from '@/features/projects/components/ApplicationInfo';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/hooks/useIsCurrentUserOwner';
 import { Modal } from '@/ui/Modal';
-import Button from '@/ui/v2/Button';
+import { Button } from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';
-import Text from '@/ui/v2/Text';
+import { Text } from '@/ui/v2/Text';
 import Image from 'next/image';
 import { useState } from 'react';
-import ApplicationInfo from './ApplicationInfo';
 import { RemoveApplicationModal } from './RemoveApplicationModal';
 import { StagingMetadata } from './StagingMetadata';
 

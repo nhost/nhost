@@ -1,26 +1,26 @@
-import { CheckGithubConfiguration } from '@/components/applications/github/CheckGithubConfiguration';
-import { EditRepositorySettings } from '@/components/applications/github/EditRepositorySettings';
-import GitHubInstallNhostApplication from '@/components/applications/github/GitHubInstallNhostApplication';
-import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import GithubIcon from '@/components/icons/GithubIcon';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { EditRepositorySettings } from '@/features/git/common/components/EditRepositorySettings';
 import { useGetGithubRepositoriesQuery } from '@/generated/graphql';
 import { Avatar } from '@/ui/Avatar';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
-import List from '@/ui/v2/List';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { ArrowSquareOutIcon } from '@/ui/v2/icons/ArrowSquareOutIcon';
+import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';
+import { PlusCircleIcon } from '@/ui/v2/icons/PlusCircleIcon';
+import { Input } from '@/ui/v2/Input';
+import { Link } from '@/ui/v2/Link';
+import { List } from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
-import Text from '@/ui/v2/Text';
+import { Text } from '@/ui/v2/Text';
 import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
 import type { ChangeEvent } from 'react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { GitHubNoRepositoriesAdded } from './github/GitHubNoRepositoriesAdded';
 
-export type ConnectGithubModalState = 'CONNECTING' | 'EDITING';
+export type ConnectGitHubModalState = 'CONNECTING' | 'EDITING';
 
-export interface ConnectGithubModalProps {
+export interface ConnectGitHubModalProps {
   /**
    * You can pass a custom function to close the current modal if it was mounted on an a parent component (e.g. <Modal></Modal>)
    * (that is, a one off modal rendered on the parent component). This will be removed completely when we fully move to the new Dialogs.
@@ -28,10 +28,10 @@ export interface ConnectGithubModalProps {
   close?: VoidFunction;
 }
 
-export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
+export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
   const [filter, setFilter] = useState('');
-  const [connectGithubModalState, setConnectGithubModalState] =
-    useState<ConnectGithubModalState>('CONNECTING');
+  const [ConnectGitHubModalState, setConnectGitHubModalState] =
+    useState<ConnectGitHubModalState>('CONNECTING');
   const [selectedRepoId, setSelectedRepoId] = useState<string | null>(null);
 
   const { data, loading, error, startPolling } =
@@ -43,7 +43,7 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
 
   const handleSelectAnotherRepository = () => {
     setSelectedRepoId(null);
-    setConnectGithubModalState('CONNECTING');
+    setConnectGitHubModalState('CONNECTING');
   };
 
   const handleFilterChange = useMemo(
@@ -71,8 +71,8 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
       <EditRepositorySettings
         close={close}
         selectedRepoId={selectedRepoId}
-        openConnectGithubModal={() => setConnectGithubModalState('CONNECTING')}
-        connectGithubModalState={connectGithubModalState}
+        openConnectGithubModal={() => setConnectGitHubModalState('CONNECTING')}
+        connectGithubModalState={ConnectGitHubModalState}
         handleSelectAnotherRepository={handleSelectAnotherRepository}
       />
     );
@@ -99,7 +99,34 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
   const noRepositoriesAdded = data.githubRepositories.length === 0;
 
   if (faultyGitHubInstallation) {
-    return <GitHubInstallNhostApplication />;
+    return (
+      <div className="grid grid-flow-row justify-center gap-2 p-0.5">
+        <GitHubIcon className="mx-auto h-8 w-8" />
+
+        <div className="text-center">
+          <Text variant="h3" component="h2">
+            Install the Nhost GitHub Application
+          </Text>
+
+          <Text variant="subtitle2">
+            Install the Nhost application on your GitHub account and update
+            permissions to automatically track repositories.
+          </Text>
+        </div>
+
+        <Button
+          href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}
+          // Both `target` and `rel` are available when `href` is set. This is
+          // a limitation of MUI.
+          // @ts-ignore
+          target="_blank"
+          rel="noreferrer noopener"
+          endIcon={<ArrowSquareOutIcon className="h-4 w-4" />}
+        >
+          Configure the Nhost application on GitHub
+        </Button>
+      </div>
+    );
   }
 
   const githubRepositoriesToDisplay = filter
@@ -113,13 +140,55 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
       <div className="flex flex-col">
         <div className="mx-auto text-center">
           <div className="mx-auto h-8 w-8">
-            <GithubIcon className="h-8 w-8 " />
+            <GitHubIcon className="h-8 w-8" />
           </div>
         </div>
         {noRepositoriesAdded ? (
-          <GitHubNoRepositoriesAdded
-            filteredGitHubAppInstallations={filteredGitHubAppInstallations}
-          />
+          <div>
+            <Text className="mt-1 text-center text-lg font-medium">
+              No repositories found
+            </Text>
+
+            <Text className="text-center text-xs">
+              Check the Nhost app&apos;s settings on your GitHub account, or
+              install the app on a new account.
+            </Text>
+
+            <List className="my-2 border-y">
+              {filteredGitHubAppInstallations.map((githubApp, index) => (
+                <Fragment key={githubApp.id}>
+                  <ListItem.Root
+                    key={githubApp.id}
+                    className="grid grid-flow-col items-center justify-start gap-2 py-2.5"
+                  >
+                    <ListItem.Avatar>
+                      <Avatar
+                        avatarUrl={githubApp.accountAvatarUrl as string}
+                        className="mr-1 h-5 w-5"
+                      />
+                    </ListItem.Avatar>
+
+                    <ListItem.Text primary={githubApp.accountLogin} />
+                  </ListItem.Root>
+
+                  {index < filteredGitHubAppInstallations.length - 1 && (
+                    <Divider component="li" />
+                  )}
+                </Fragment>
+              ))}
+            </List>
+
+            <Link
+              href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}
+              target="_blank"
+              rel="noreferrer noopener"
+              underline="hover"
+              className="grid grid-flow-col items-center justify-start gap-1"
+            >
+              <PlusCircleIcon className="h-4 w-4" />
+              Configure the Nhost application on GitHub.
+            </Link>
+          </div>
         ) : (
           <div>
             <div>
@@ -188,7 +257,23 @@ export default function ConnectGithubModal({ close }: ConnectGithubModalProps) {
             </RetryableErrorBoundary>
           </div>
         )}
-        {!noRepositoriesAdded && <CheckGithubConfiguration />}
+
+        {!noRepositoriesAdded && (
+          <Text className="mt-2 text-center text-xs">
+            Do you miss a repository, or do you need to connect another GitHub
+            account?{' '}
+            <Link
+              href={process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-xs font-medium"
+              underline="hover"
+            >
+              Manage your GitHub configuration
+            </Link>
+            .
+          </Text>
+        )}
       </div>
     </div>
   );

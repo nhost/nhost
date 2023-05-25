@@ -1,22 +1,27 @@
-import type { EditRepositorySettingsFormData } from '@/components/applications/github/EditRepositorySettings';
 import { useDialog } from '@/components/common/DialogProvider';
-import ErrorBoundaryFallback from '@/components/common/ErrorBoundaryFallback';
-import GithubIcon from '@/components/icons/GithubIcon';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { EditRepositoryAndBranchSettings } from '@/features/git/common/components/EditRepositoryAndBranchSettings';
+import type { EditRepositorySettingsFormData } from '@/features/git/common/components/EditRepositorySettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useUpdateApplicationMutation } from '@/generated/graphql';
-import Button from '@/ui/v2/Button';
-import Text from '@/ui/v2/Text';
+import { Button } from '@/ui/v2/Button';
+import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';
+import { Text } from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
-import { ErrorBoundary } from 'react-error-boundary';
 import { useFormContext } from 'react-hook-form';
-import { RepoAndBranch } from './RepoAndBranch';
 
-export function EditRepositorySettingsModal({
+export interface EditRepositorySettingsModalProps {
+  selectedRepoId?: string;
+  close?: () => void;
+  handleSelectAnotherRepository?: () => void;
+}
+
+export default function EditRepositorySettingsModal({
   selectedRepoId,
   close,
   handleSelectAnotherRepository,
-}: any) {
+}: EditRepositorySettingsModalProps) {
   const {
     handleSubmit,
     watch,
@@ -77,7 +82,7 @@ export function EditRepositorySettingsModal({
     <div className="px-1">
       <div className="flex flex-col">
         <div className="mx-auto h-8 w-8">
-          <GithubIcon className="h-8 w-8" />
+          <GitHubIcon className="h-8 w-8" />
         </div>
         <Text className="mt-1.5 text-center text-lg font-medium">
           {selectedRepoId
@@ -89,12 +94,12 @@ export function EditRepositorySettingsModal({
           deployment branch.
         </Text>
         <div>
-          <ErrorBoundary fallbackRender={ErrorBoundaryFallback}>
+          <RetryableErrorBoundary>
             <form
               onSubmit={handleSubmit(handleEditGitHubIntegration)}
               autoComplete="off"
             >
-              <RepoAndBranch />
+              <EditRepositoryAndBranchSettings />
 
               <div className="mt-2 flex flex-col">
                 <Button
@@ -120,11 +125,9 @@ export function EditRepositorySettingsModal({
                 Select another repository
               </Button>
             </div>
-          </ErrorBoundary>
+          </RetryableErrorBoundary>
         </div>
       </div>
     </div>
   );
 }
-
-export default EditRepositorySettingsModal;

@@ -1,13 +1,13 @@
-import type { ConnectGithubModalState } from '@/components/applications/ConnectGithubModal';
+import type { ConnectGitHubModalState } from '@/features/git/common/components/ConnectGitHubModal';
+import { EditRepositorySettingsModal } from '@/features/git/common/components/EditRepositorySettingsModal';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { FormProvider, useForm } from 'react-hook-form';
-import { EditRepositorySettingsModal } from './EditRepositorySettingsModal';
 
 export interface EditRepositorySettingsProps {
   close?: () => void;
   openConnectGithubModal?: () => void;
   selectedRepoId?: string;
-  connectGithubModalState?: ConnectGithubModalState;
+  connectGithubModalState?: ConnectGitHubModalState;
   handleSelectAnotherRepository?: () => void;
 }
 
@@ -16,7 +16,7 @@ export interface EditRepositorySettingsFormData {
   repoBaseFolder: string;
 }
 
-export function EditRepositorySettings({
+export default function EditRepositorySettings({
   close,
   selectedRepoId,
   handleSelectAnotherRepository,

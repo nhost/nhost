@@ -1,16 +1,16 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { EditWorkspaceNameForm } from '@/components/home/EditWorkspaceNameForm';
 import { Resource } from '@/components/home/Resource';
-import GithubIcon from '@/components/icons/GithubIcon';
 import type { Workspace } from '@/types/application';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import type { BoxProps } from '@/ui/v2/Box';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import List from '@/ui/v2/List';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';
+import { PlusCircleIcon } from '@/ui/v2/icons/PlusCircleIcon';
+import { List } from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
-import Text from '@/ui/v2/Text';
-import PlusCircleIcon from '@/ui/v2/icons/PlusCircleIcon';
+import { Text } from '@/ui/v2/Text';
 import Image from 'next/image';
 import NavLink from 'next/link';
 import { twMerge } from 'tailwind-merge';
@@ -131,7 +131,7 @@ export default function Sidebar({
             className="grid grid-flow-col gap-1"
             variant="outlined"
             color="secondary"
-            startIcon={<GithubIcon />}
+            startIcon={<GitHubIcon />}
           >
             Star us on GitHub
           </Button>

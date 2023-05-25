@@ -1,10 +1,10 @@
 import { FeedbackForm } from '@/components/common/FeedbackForm';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import { useInterval } from '@/hooks/useInterval';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Button from '@/ui/v2/Button';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Button } from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';
-import Text from '@/ui/v2/Text';
+import { Text } from '@/ui/v2/Text';
 import { getRelativeDateByApplicationState } from '@/utils/helpers';
 import { useState } from 'react';
 
