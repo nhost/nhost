@@ -1,7 +1,7 @@
 import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { EditRepositorySettings } from '@/features/git/common/components/EditRepositorySettings';
 import { useGetGithubRepositoriesQuery } from '@/generated/graphql';
-import { Avatar } from '@/ui/Avatar';
+import { Avatar } from '@/ui/v1/Avatar';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';

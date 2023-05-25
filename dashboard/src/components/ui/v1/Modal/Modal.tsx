@@ -1,4 +1,4 @@
-import { ClientOnlyPortal } from '@/ui/ClientOnlyPortal';
+import { ClientOnlyPortal } from '@/ui/v1/ClientOnlyPortal';
 import { Box } from '@/ui/v2/Box';
 import { Dialog, Transition } from '@headlessui/react';
 import { alpha, useTheme } from '@mui/material';

@@ -8,7 +8,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import type { ApplicationState } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
-import { Modal } from '@/ui/Modal';
+import { Modal } from '@/ui/v1/Modal';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Button } from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';

@@ -6,7 +6,7 @@ import features from '@/data/features.json';
 import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
 import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
 import { useSubmitState } from '@/hooks/useSubmitState';
-import { Alert } from '@/ui/Alert';
+import { Alert } from '@/ui/v1/Alert';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';

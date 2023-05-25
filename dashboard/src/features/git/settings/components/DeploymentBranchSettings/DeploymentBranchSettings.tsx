@@ -6,7 +6,7 @@ import {
   GetAllWorkspacesAndProjectsDocument,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { Alert } from '@/ui/Alert';
+import { Alert } from '@/ui/v1/Alert';
 import { Input } from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { getServerError } from '@/utils/settings/getServerError';

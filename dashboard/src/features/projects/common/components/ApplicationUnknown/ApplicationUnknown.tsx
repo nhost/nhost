@@ -5,7 +5,7 @@ import { RemoveApplicationModal } from '@/features/projects/common/components/Re
 import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
-import { Modal } from '@/ui/Modal';
+import { Modal } from '@/ui/v1/Modal';
 import { Button } from '@/ui/v2/Button';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import { Text } from '@/ui/v2/Text';

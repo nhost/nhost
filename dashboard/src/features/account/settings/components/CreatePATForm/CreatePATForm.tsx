@@ -3,7 +3,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/common/Form';
 import { HighlightedText } from '@/components/common/HighlightedText';
 import type { DialogFormProps } from '@/types/common';
-import { Alert } from '@/ui/Alert';
+import { Alert } from '@/ui/v1/Alert';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { IconButton } from '@/ui/v2/IconButton';

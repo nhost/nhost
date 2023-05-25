@@ -6,7 +6,7 @@ import {
   useDeleteWorkspaceMemberInvitesMutation,
   useUpdateWorkspaceMemberInviteMutation,
 } from '@/generated/graphql';
-import { Modal } from '@/ui/Modal';
+import { Modal } from '@/ui/v1/Modal';
 import { Button } from '@/ui/v2/Button';
 import { Divider } from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';

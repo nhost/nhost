@@ -14,7 +14,7 @@ import type {
   NormalizedQueryDataRow,
 } from '@/features/database/dataGrid/types/dataBrowser';
 import { normalizeDatabaseColumn } from '@/features/database/dataGrid/utils/normalizeDatabaseColumn';
-import { Alert } from '@/ui/Alert';
+import { Alert } from '@/ui/v1/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Button from '@/ui/v2/Button';
 import { triggerToast } from '@/utils/toast';

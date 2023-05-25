@@ -2,7 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/common/Form';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { DialogFormProps } from '@/types/common';
-import { Alert } from '@/ui/Alert';
+import { Alert } from '@/ui/v1/Alert';
 import { Button } from '@/ui/v2/Button';
 import { Input } from '@/ui/v2/Input';
 import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';

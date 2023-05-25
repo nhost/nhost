@@ -1,6 +1,6 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { RemoveWorkspaceMemberModal } from '@/features/projects/workspaces/components/RemoveWorkspaceMemberModal';
-import { Modal } from '@/ui/Modal';
+import { Modal } from '@/ui/v1/Modal';
 import { Button } from '@/ui/v2/Button';
 import { Divider } from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';

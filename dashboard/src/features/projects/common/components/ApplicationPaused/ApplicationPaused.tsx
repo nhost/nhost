@@ -11,8 +11,8 @@ import {
   useGetFreeAndActiveProjectsQuery,
   useUnpauseApplicationMutation,
 } from '@/generated/graphql';
-import { Alert } from '@/ui/Alert';
-import { Modal } from '@/ui/Modal';
+import { Alert } from '@/ui/v1/Alert';
+import { Modal } from '@/ui/v1/Modal';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';

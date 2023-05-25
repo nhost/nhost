@@ -9,7 +9,7 @@ import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/resources/settings/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
-import { Alert } from '@/ui/Alert';
+import { Alert } from '@/ui/v1/Alert';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
 import { Divider } from '@/ui/v2/Divider';

@@ -1,6 +1,6 @@
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
-import { Avatar } from '@/ui/Avatar';
+import { Avatar } from '@/ui/v1/Avatar';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { Divider } from '@/ui/v2/Divider';

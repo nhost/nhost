@@ -1,6 +1,6 @@
 import { useAppClient } from '@/features/projects/common/hooks/useAppClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { Modal } from '@/ui/Modal';
+import { Modal } from '@/ui/v1/Modal';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
 import { IconButton } from '@/ui/v2/IconButton';

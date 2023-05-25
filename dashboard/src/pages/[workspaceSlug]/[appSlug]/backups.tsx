@@ -5,7 +5,7 @@ import { RestoreBackupModal } from '@/features/projects/backups/components/Resto
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useGetApplicationBackupsQuery } from '@/generated/graphql';
-import { Modal } from '@/ui/Modal';
+import { Modal } from '@/ui/v1/Modal';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';

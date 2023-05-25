@@ -10,7 +10,7 @@ import { useCreateTableMutation } from '@/features/database/dataGrid/hooks/useCr
 import { useTrackForeignKeyRelationsMutation } from '@/features/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { useTrackTableMutation } from '@/features/database/dataGrid/hooks/useTrackTableMutation';
 import type { DatabaseTable } from '@/features/database/dataGrid/types/dataBrowser';
-import { Alert } from '@/ui/Alert';
+import { Alert } from '@/ui/v1/Alert';
 import Button from '@/ui/v2/Button';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';

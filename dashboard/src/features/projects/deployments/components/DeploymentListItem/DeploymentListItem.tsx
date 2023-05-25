@@ -1,9 +1,9 @@
 import { NavLink } from '@/components/common/NavLink';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
-import { Avatar } from '@/ui/Avatar';
-import type { DeploymentStatus } from '@/ui/StatusCircle';
-import { StatusCircle } from '@/ui/StatusCircle';
+import { Avatar } from '@/ui/v1/Avatar';
+import type { DeploymentStatus } from '@/ui/v1/StatusCircle';
+import { StatusCircle } from '@/ui/v1/StatusCircle';
 import { Button } from '@/ui/v2/Button';
 import { Chip } from '@/ui/v2/Chip';
 import { ArrowCounterclockwiseIcon } from '@/ui/v2/icons/ArrowCounterclockwiseIcon';

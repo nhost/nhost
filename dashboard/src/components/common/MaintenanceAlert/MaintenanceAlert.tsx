@@ -1,5 +1,5 @@
 import { useUI } from '@/context/UIContext';
-import { Alert } from '@/ui/Alert';
+import { Alert } from '@/ui/v1/Alert';
 
 export default function MaintenanceAlert() {
   const { maintenanceActive, maintenanceEndDate } = useUI();

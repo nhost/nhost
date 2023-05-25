@@ -1,5 +1,5 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { Alert } from '@/ui/Alert';
+import { Alert } from '@/ui/v1/Alert';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { Checkbox } from '@/ui/v2/Checkbox';
