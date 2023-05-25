@@ -4,13 +4,14 @@ import Container from '@/components/layout/Container';
 import { BillingPaymentMethodForm } from '@/components/workspace/BillingPaymentMethodForm';
 import { useUI } from '@/context/UIContext';
 import features from '@/data/features.json';
-import { generateRandomDatabasePassword } from '@/features/database/utils/generateRandomDatabasePassword';
+import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { Alert } from '@/ui/Alert';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import IconButton from '@/ui/v2/IconButton';
+import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import Input from '@/ui/v2/Input';
 import InputAdornment from '@/ui/v2/InputAdornment';
 import Option from '@/ui/v2/Option';
@@ -20,8 +21,14 @@ import Select from '@/ui/v2/Select';
 import type { TextProps } from '@/ui/v2/Text';
 import Text from '@/ui/v2/Text';
 import Tooltip from '@/ui/v2/Tooltip';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
 import { MAX_FREE_PROJECTS } from '@/utils/CONSTANTS';
+import { copy } from '@/utils/copy';
+import { getErrorMessage } from '@/utils/getErrorMessage';
+import { getCurrentEnvironment } from '@/utils/helpers';
+import { planDescriptions } from '@/utils/planDescriptions';
+import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { triggerToast } from '@/utils/toast';
 import type {
   PrefetchNewAppPlansFragment,
   PrefetchNewAppRegionsFragment,
@@ -33,13 +40,6 @@ import {
   useInsertApplicationMutation,
   usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
-import { copy } from '@/utils/copy';
-import { getErrorMessage } from '@/utils/getErrorMessage';
-import { getCurrentEnvironment } from '@/utils/helpers';
-import { planDescriptions } from '@/utils/planDescriptions';
-import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
-import { triggerToast } from '@/utils/toast';
 import type { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';

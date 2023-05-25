@@ -224,7 +224,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                   href="/account"
                   onClick={() => setMenuOpen(false)}
                 >
-                  Settings
+                  Account Settings
                 </ListItem.Button>
               </ListItem.Root>
 

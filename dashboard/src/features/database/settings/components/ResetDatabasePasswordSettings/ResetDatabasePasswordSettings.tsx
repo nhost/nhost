@@ -1,7 +1,7 @@
 import { Form } from '@/components/common/Form';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
-import { generateRandomDatabasePassword } from '@/features/database/utils/generateRandomDatabasePassword';
+import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   useResetPostgresPasswordMutation,
