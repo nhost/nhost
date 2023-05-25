@@ -1,20 +1,25 @@
-export interface FileIconProps
-  extends JSX.IntrinsicAttributes,
-    React.SVGProps<SVGSVGElement> {
+import type { IconProps } from '@/ui/v2/icons';
+import { SvgIcon } from '@/ui/v2/icons/SvgIcon';
+
+export interface FilePreviewIconProps extends IconProps {
   /**
    * Determines if the error variant of the icon should be used.
    */
   error?: boolean;
 }
 
-export function FileIcon({ error, ...props }: FileIconProps) {
+export default function FilePreviewIcon({
+  error,
+  ...props
+}: FilePreviewIconProps) {
   return (
-    <svg
+    <SvgIcon
       width="16"
       height="16"
       viewBox="0 0 16 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-label="File"
       {...props}
     >
       <path
@@ -39,6 +44,6 @@ export function FileIcon({ error, ...props }: FileIconProps) {
         strokeLinecap="square"
         strokeLinejoin="round"
       />
-    </svg>
+    </SvgIcon>
   );
 }

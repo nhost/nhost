@@ -1,15 +1,15 @@
-import type { HTMLProps } from 'react';
+import type { IconProps } from '@/ui/v2/icons';
+import { SvgIcon } from '@/ui/v2/icons/SvgIcon';
 
-export default function VideoPreview(
-  props: Omit<HTMLProps<SVGSVGElement>, 'crossOrigin'>,
-) {
+export default function VideoPreviewIcon(props: IconProps) {
   return (
-    <svg
+    <SvgIcon
       width="16"
       height="16"
       viewBox="0 0 16 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-label="Video file"
       {...props}
     >
       <path
@@ -26,6 +26,6 @@ export default function VideoPreview(
         d="M8.75 6.5H4.75C4.6837 6.5 4.62011 6.52634 4.57322 6.57322C4.52634 6.62011 4.5 6.6837 4.5 6.75V9.75C4.5 10.0152 4.60536 10.2696 4.79289 10.4571C4.98043 10.6446 5.23478 10.75 5.5 10.75H9.5C9.5663 10.75 9.62989 10.7237 9.67678 10.6768C9.72366 10.6299 9.75 10.5663 9.75 10.5V9.125L12 10.25V7L9.75 8.125V7.5C9.75 7.23478 9.64464 6.98043 9.45711 6.79289C9.26957 6.60536 9.01522 6.5 8.75 6.5Z"
         fill="white"
       />
-    </svg>
+    </SvgIcon>
   );
 }

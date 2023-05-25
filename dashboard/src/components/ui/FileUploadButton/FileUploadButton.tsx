@@ -1,6 +1,6 @@
-import UploadIcon from '@/components/icons/UploadIcon';
 import type { ButtonProps } from '@/ui/v2/Button';
-import Button from '@/ui/v2/Button';
+import { Button } from '@/ui/v2/Button';
+import { UploadIcon } from '@/ui/v2/icons/UploadIcon';
 import clsx from 'clsx';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useRef } from 'react';

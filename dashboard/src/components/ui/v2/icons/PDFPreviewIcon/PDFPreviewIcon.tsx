@@ -1,15 +1,15 @@
-import type { HTMLProps } from 'react';
+import type { IconProps } from '@/ui/v2/icons';
+import { SvgIcon } from '@/ui/v2/icons/SvgIcon';
 
-export default function PDFPreview(
-  props: Omit<HTMLProps<SVGSVGElement>, 'crossOrigin'>,
-) {
+export default function PDFPreviewIcon(props: IconProps) {
   return (
-    <svg
+    <SvgIcon
       width="16"
       height="16"
       viewBox="0 0 16 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-label="PDF file"
       {...props}
     >
       <path
@@ -32,6 +32,6 @@ export default function PDFPreview(
         d="M11.384 11.8033V10.3683H12.8523V9.65506H11.384V8.73558H13V8H10.4673V11.8033H11.384Z"
         fill="white"
       />
-    </svg>
+    </SvgIcon>
   );
 }

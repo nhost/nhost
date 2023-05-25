@@ -1,14 +1,14 @@
-import AudioPreview from '@/components/icons/AudioPreview';
-import { FileIcon } from '@/components/icons/FileIcon';
-import PDFPreview from '@/components/icons/PDFPreview';
-import VideoPreview from '@/components/icons/VideoPreview';
 import { useAppClient } from '@/features/projects/common/hooks/useAppClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui/Modal';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Box from '@/ui/v2/Box';
-import IconButton from '@/ui/v2/IconButton';
-import XIcon from '@/ui/v2/icons/XIcon';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Box } from '@/ui/v2/Box';
+import { IconButton } from '@/ui/v2/IconButton';
+import { AudioPreviewIcon } from '@/ui/v2/icons/AudioPreviewIcon';
+import { FilePreviewIcon } from '@/ui/v2/icons/FilePreviewIcon';
+import { PDFPreviewIcon } from '@/ui/v2/icons/PDFPreviewIcon';
+import { VideoPreviewIcon } from '@/ui/v2/icons/VideoPreviewIcon';
+import { XIcon } from '@/ui/v2/icons/XIcon';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { useEffect, useReducer, useState } from 'react';
@@ -234,7 +234,7 @@ export default function DataGridPreviewCell<TData extends object>({
         className="grid w-full grid-flow-col items-center justify-center gap-1 text-center"
         sx={{ color: 'error.main' }}
       >
-        <FileIcon error /> Error
+        <FilePreviewIcon error /> Error
       </Box>
     );
   }
@@ -390,12 +390,12 @@ export default function DataGridPreviewCell<TData extends object>({
             aria-label={alt}
             className="grid h-full w-full items-center justify-center self-center"
           >
-            {isVideo && <VideoPreview className="h-5 w-5" />}
+            {isVideo && <VideoPreviewIcon className="h-5 w-5" />}
 
-            {isAudio && <AudioPreview className="h-5 w-5" />}
+            {isAudio && <AudioPreviewIcon className="h-5 w-5" />}
 
             {mimeType === 'application/pdf' && (
-              <PDFPreview className="h-5 w-5" />
+              <PDFPreviewIcon className="h-5 w-5" />
             )}
 
             {!isVideo &&

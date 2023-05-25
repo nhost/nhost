@@ -1,15 +1,15 @@
-import type { HTMLProps } from 'react';
+import type { IconProps } from '@/ui/v2/icons';
+import { SvgIcon } from '@/ui/v2/icons/SvgIcon';
 
-export default function AudioPreview(
-  props: Omit<HTMLProps<SVGSVGElement>, 'crossOrigin'>,
-) {
+export default function AudioPreviewIcon(props: IconProps) {
   return (
-    <svg
+    <SvgIcon
       width="16"
       height="16"
       viewBox="0 0 16 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-label="Audio file"
       {...props}
     >
       <path
@@ -26,6 +26,6 @@ export default function AudioPreview(
         d="M6.5 12V6H7.5V12H6.5ZM4.5 7V11H5.5V7H4.5ZM10.5 7V11H11.5V7H10.5ZM8.5 8V10H9.5V8H8.5Z"
         fill="white"
       />
-    </svg>
+    </SvgIcon>
   );
 }
