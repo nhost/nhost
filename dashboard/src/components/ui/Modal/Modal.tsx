@@ -1,17 +1,17 @@
-import Box from '@/ui/v2/Box';
+import { ClientOnlyPortal } from '@/ui/ClientOnlyPortal';
+import { Box } from '@/ui/v2/Box';
 import { Dialog, Transition } from '@headlessui/react';
 import { alpha, useTheme } from '@mui/material';
 import clsx from 'clsx';
-import type { CSSProperties, ReactChild } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
-import ClientOnlyPortal from './ClientOnlyPortal';
 
-interface ModalProps {
+export interface ModalProps {
   showModal: any;
   close: any;
   afterLeave?: VoidFunction;
-  children?: ReactChild;
+  children?: ReactNode;
   Component?: any;
   handler?: any;
   data?: any;
@@ -21,7 +21,7 @@ interface ModalProps {
   dialogStyle?: CSSProperties;
 }
 
-export function Modal({
+export default function Modal({
   children,
   Component,
   showModal = false,
@@ -108,5 +108,3 @@ export function Modal({
     </ClientOnlyPortal>
   );
 }
-
-export default Modal;

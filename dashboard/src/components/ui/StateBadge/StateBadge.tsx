@@ -1,5 +1,5 @@
 import { ApplicationStatus } from '@/types/application';
-import Chip from './v2/Chip';
+import { Chip } from '@/ui/v2/Chip';
 
 export interface StateBadgeProps {
   /**

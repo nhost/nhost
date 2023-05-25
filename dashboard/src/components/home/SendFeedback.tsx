@@ -1,11 +1,10 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useInsertFeedbackOneMutation } from '@/generated/graphql';
 import { Avatar } from '@/ui/Avatar';
-import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
-import Text from '@/ui/v2/Text';
+import { Button } from '@/ui/v2/Button';
+import { Input } from '@/ui/v2/Input';
+import { Text } from '@/ui/v2/Text';
 import { useUserData } from '@nhost/nextjs';
-import * as React from 'react';
 
 export function SendFeedback({ setFeedbackSent, feedback, setFeedback }: any) {
   const { currentProject } = useCurrentWorkspaceAndProject();

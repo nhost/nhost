@@ -2,7 +2,7 @@ import { useUI } from '@/context/UIContext';
 import { DeploymentStatusMessage } from '@/features/projects/deployments/components/DeploymentStatusMessage';
 import type { ApplicationState, Workspace } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
-import StateBadge from '@/ui/StateBadge';
+import { StateBadge } from '@/ui/StateBadge';
 import type { DeploymentStatus } from '@/ui/StatusCircle';
 import { StatusCircle } from '@/ui/StatusCircle';
 import type { BoxProps } from '@/ui/v2/Box';

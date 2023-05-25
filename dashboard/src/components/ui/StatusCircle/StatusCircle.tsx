@@ -1,5 +1,5 @@
+import { Box } from '@/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';
-import Box from './v2/Box';
 
 export type DeploymentStatus =
   | 'DEPLOYING'
@@ -10,11 +10,11 @@ export type DeploymentStatus =
   | undefined
   | null;
 
-type StatusCircleProps = {
+export type StatusCircleProps = {
   status: DeploymentStatus;
 };
 
-export function StatusCircle({ status }: StatusCircleProps) {
+export default function StatusCircle({ status }: StatusCircleProps) {
   const baseClasses = 'w-1.5 h-1.5 rounded-full';
 
   if (status === 'DEPLOYING' || status === 'PENDING') {
@@ -40,5 +40,3 @@ export function StatusCircle({ status }: StatusCircleProps) {
 
   return <Box className={baseClasses} sx={{ backgroundColor: 'grey.500' }} />;
 }
-
-export default StatusCircle;

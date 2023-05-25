@@ -2,7 +2,7 @@ import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';
 
-type AvatarProps = Pick<BoxProps, 'component'> & {
+export type AvatarProps = Pick<BoxProps, 'component'> & {
   style?: {
     [key: string]: string;
   };
@@ -11,7 +11,7 @@ type AvatarProps = Pick<BoxProps, 'component'> & {
   name?: string | null;
 };
 
-export function Avatar({
+export default function Avatar({
   style = {},
   className = '',
   avatarUrl,
@@ -59,5 +59,3 @@ export function Avatar({
     />
   );
 }
-
-export default Avatar;
