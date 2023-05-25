@@ -1,6 +1,6 @@
 import { MaintenanceAlert } from '@/components/common/MaintenanceAlert';
 import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
-import Container from '@/components/layout/Container';
+import { Container } from '@/components/layout/Container';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { OverviewDeployments } from '@/features/projects/overview/components/OverviewDeployments';
 import { OverviewDocumentation } from '@/features/projects/overview/components/OverviewDocumentation';
@@ -12,7 +12,7 @@ import { OverviewUsage } from '@/features/projects/overview/components/OverviewU
 import { features } from '@/features/projects/overview/features';
 import { frameworks } from '@/features/projects/overview/frameworks';
 import { Alert } from '@/ui/Alert';
-import Divider from '@/ui/v2/Divider';
+import { Divider } from '@/ui/v2/Divider';
 
 export interface ApplicationLiveProps {
   /**

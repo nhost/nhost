@@ -9,15 +9,15 @@ import {
   useGetPaymentMethodsQuery,
   useSetNewDefaultPaymentMethodMutation,
 } from '@/generated/graphql';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Button from '@/ui/v2/Button';
-import Table from '@/ui/v2/Table';
-import TableBody from '@/ui/v2/TableBody';
-import TableCell from '@/ui/v2/TableCell';
-import TableContainer from '@/ui/v2/TableContainer';
-import TableHead from '@/ui/v2/TableHead';
-import TableRow from '@/ui/v2/TableRow';
-import Text from '@/ui/v2/Text';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Button } from '@/ui/v2/Button';
+import { Table } from '@/ui/v2/Table';
+import { TableBody } from '@/ui/v2/TableBody';
+import { TableCell } from '@/ui/v2/TableCell';
+import { TableContainer } from '@/ui/v2/TableContainer';
+import { TableHead } from '@/ui/v2/TableHead';
+import { TableRow } from '@/ui/v2/TableRow';
+import { Text } from '@/ui/v2/Text';
 import { triggerToast } from '@/utils/toast';
 import { useTheme } from '@mui/material';
 import { formatDistanceToNowStrict } from 'date-fns';

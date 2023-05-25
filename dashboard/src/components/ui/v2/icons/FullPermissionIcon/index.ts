@@ -1,1 +1,1 @@
-export { default } from './FullPermissionIcon';
+export { default as FullPermissionIcon } from './FullPermissionIcon';

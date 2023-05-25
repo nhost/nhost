@@ -1,1 +1,1 @@
-export { default } from './ClockIcon';
+export { default as ClockIcon } from './ClockIcon';

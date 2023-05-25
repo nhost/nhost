@@ -1,12 +1,12 @@
-import Container from '@/components/layout/Container';
+import { Container } from '@/components/layout/Container';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
 import { AppLoader } from '@/features/projects/common/components/AppLoader';
 import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useCheckProvisioning } from '@/hooks/useCheckProvisioning';
 import { ApplicationStatus } from '@/types/application';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Text from '@/ui/v2/Text';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Text } from '@/ui/v2/Text';
 import Image from 'next/image';
 
 export default function ApplicationRestoring() {

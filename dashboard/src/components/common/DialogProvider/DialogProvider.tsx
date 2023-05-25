@@ -1,7 +1,7 @@
-import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import AlertDialog from '@/ui/v2/AlertDialog';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { AlertDialog } from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
-import Drawer from '@/ui/v2/Drawer';
+import { Drawer } from '@/ui/v2/Drawer';
 import { useRouter } from 'next/router';
 import type { BaseSyntheticEvent, PropsWithChildren } from 'react';
 import {

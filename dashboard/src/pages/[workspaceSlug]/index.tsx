@@ -1,6 +1,6 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
-import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
-import Container from '@/components/layout/Container';
+import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { Container } from '@/components/layout/Container';
 import {
   WorkspaceApps,
   WorkspaceHeader,
@@ -9,7 +9,7 @@ import {
 import { WorkspaceInvoices } from '@/components/workspace/WorkspaceInvoices';
 import WorkspacePaymentMethods from '@/components/workspace/WorkspacePaymentMethods';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import useNotFoundRedirect from '@/hooks/useNotFoundRedirect';
+import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
 import { NextSeo } from 'next-seo';
 import type { ReactElement } from 'react';
 

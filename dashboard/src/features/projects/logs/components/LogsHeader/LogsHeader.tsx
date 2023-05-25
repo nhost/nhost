@@ -1,12 +1,12 @@
-import LogsDatePicker from '@/components/logs/LogsDatePicker';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { LogsDatePicker } from '@/features/projects/logs/components/LogsDatePicker';
 import type { AvailableLogsServices, LogsCustomInterval } from '@/types/logs';
 import type { BoxProps } from '@/ui/v2/Box';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import ClockIcon from '@/ui/v2/icons/ClockIcon';
-import Option from '@/ui/v2/Option';
-import Select from '@/ui/v2/Select';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { ClockIcon } from '@/ui/v2/icons/ClockIcon';
+import { Option } from '@/ui/v2/Option';
+import { Select } from '@/ui/v2/Select';
 import { availableServices, logsCustomIntervals } from '@/utils/logs';
 import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';

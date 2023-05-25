@@ -1,2 +1,2 @@
 export * from './SettingsLayout';
-export { default as SettingsLayout, default } from './SettingsLayout';
+export { default as SettingsLayout } from './SettingsLayout';

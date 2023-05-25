@@ -1,9 +1,9 @@
-import Container from '@/components/layout/Container';
+import { Container } from '@/components/layout/Container';
 import PermissionVariableSettings from '@/components/settings/permissions/PermissionVariableSettings';
 import RolesSettings from '@/components/settings/roles/RoleSettings';
-import SettingsLayout from '@/components/settings/SettingsLayout';
+import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 

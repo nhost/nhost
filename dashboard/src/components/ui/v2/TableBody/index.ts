@@ -1,2 +1,2 @@
 export * from './TableBody';
-export { default } from './TableBody';
+export { default as TableBody } from './TableBody';

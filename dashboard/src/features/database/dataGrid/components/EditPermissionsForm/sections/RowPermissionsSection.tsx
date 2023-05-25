@@ -5,10 +5,10 @@ import type {
   DatabaseAction,
   RuleGroup,
 } from '@/features/database/dataGrid/types/dataBrowser';
-import Input from '@/ui/v2/Input';
-import Radio from '@/ui/v2/Radio';
-import RadioGroup from '@/ui/v2/RadioGroup';
-import Text from '@/ui/v2/Text';
+import { Input } from '@/ui/v2/Input';
+import { Radio } from '@/ui/v2/Radio';
+import { RadioGroup } from '@/ui/v2/RadioGroup';
+import { Text } from '@/ui/v2/Text';
 import type { FocusEvent } from 'react';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';

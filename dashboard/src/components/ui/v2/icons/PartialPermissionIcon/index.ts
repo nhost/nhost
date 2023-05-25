@@ -1,1 +1,1 @@
-export { default } from './PartialPermissionIcon';
+export { default as PartialPermissionIcon } from './PartialPermissionIcon';

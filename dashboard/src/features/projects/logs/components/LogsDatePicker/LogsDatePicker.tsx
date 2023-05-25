@@ -1,16 +1,14 @@
-import { DATEPICKER_DISPLAY_FORMAT } from '@/utils/logs/datepicker';
-
+import { LogsTimePicker } from '@/features/projects/logs/components/LogsTimePicker';
+import { usePreviousData } from '@/hooks/usePreviousData';
 import type { ButtonProps } from '@/ui/v2/Button';
-import Button from '@/ui/v2/Button';
-import { Dropdown } from '@/ui/v2/Dropdown';
-import CalendarIcon from '@/ui/v2/icons/CalendarIcon';
-import ChevronDownIcon from '@/ui/v2/icons/ChevronDownIcon';
-
-import LogsTimePicker from '@/components/logs/LogsTimePicker';
-import usePrevious from '@/hooks/usePrevious';
-import DatePicker from '@/ui/v2/DatePicker';
+import { Button } from '@/ui/v2/Button';
+import { DatePicker } from '@/ui/v2/DatePicker';
 import type { DatePickerProps } from '@/ui/v2/DatePicker/DatePicker';
-import Text from '@/ui/v2/Text';
+import { Dropdown } from '@/ui/v2/Dropdown';
+import { CalendarIcon } from '@/ui/v2/icons/CalendarIcon';
+import { ChevronDownIcon } from '@/ui/v2/icons/ChevronDownIcon';
+import { Text } from '@/ui/v2/Text';
+import { DATEPICKER_DISPLAY_FORMAT } from '@/utils/logs/datepicker';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -45,7 +43,7 @@ function LogsDatePicker({
   // We want to keep the previous state in the case
   // the `toDate` is set to null. If it's `live` we're
   // going to display the last state set.
-  const previousDate = usePrevious(selectedDate);
+  const previousDate = usePreviousData(selectedDate);
 
   return (
     <Dropdown.Root>
@@ -73,7 +71,7 @@ function LogsDatePicker({
               { color: 'text.secondary' },
             ]}
             className={twMerge(
-              'text-left transition-all tabular-nums',
+              'text-left tabular-nums transition-all',
               buttonSlotProps?.className,
             )}
           >

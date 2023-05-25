@@ -1,2 +1,2 @@
 export * from './TableRow';
-export { default } from './TableRow';
+export { default as TableRow } from './TableRow';
