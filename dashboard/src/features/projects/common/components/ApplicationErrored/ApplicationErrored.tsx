@@ -1,6 +1,8 @@
 import { FeedbackForm } from '@/components/common/FeedbackForm';
 import { Container } from '@/components/layout/Container';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
+import { ApplicationLive } from '@/features/projects/common/components/ApplicationLive';
+import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
 import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
@@ -25,8 +27,6 @@ import {
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useState } from 'react';
-import ApplicationLive from './ApplicationLive';
-import { RemoveApplicationModal } from './RemoveApplicationModal';
 
 export default function ApplicationErrored() {
   const {

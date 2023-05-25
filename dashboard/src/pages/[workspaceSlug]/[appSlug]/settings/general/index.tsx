@@ -1,10 +1,10 @@
-import { RemoveApplicationModal } from '@/components/applications/RemoveApplicationModal';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/common/Form';
 import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
+import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import {

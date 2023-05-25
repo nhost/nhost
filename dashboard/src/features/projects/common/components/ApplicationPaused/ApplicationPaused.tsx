@@ -2,6 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Container } from '@/components/layout/Container';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
 import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
+import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
 import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
@@ -23,7 +24,6 @@ import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { RemoveApplicationModal } from './RemoveApplicationModal';
 
 export default function ApplicationPaused() {
   const { openDialog } = useDialog();

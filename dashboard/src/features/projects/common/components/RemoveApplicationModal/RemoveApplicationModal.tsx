@@ -1,9 +1,9 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Checkbox from '@/ui/v2/Checkbox';
-import Divider from '@/ui/v2/Divider';
-import Text from '@/ui/v2/Text';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Checkbox } from '@/ui/v2/Checkbox';
+import { Divider } from '@/ui/v2/Divider';
+import { Text } from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 import {
@@ -19,7 +19,6 @@ export interface RemoveApplicationModalProps {
    * Call this function to imperatively close the modal.
    */
   close: any;
-
   /**
    * A custom function to be run instead of the own handle function defined by the component.
    */
@@ -38,7 +37,7 @@ export interface RemoveApplicationModalProps {
   className?: string;
 }
 
-export function RemoveApplicationModal({
+export default function RemoveApplicationModal({
   close,
   handler,
   title,
