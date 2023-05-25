@@ -20,7 +20,7 @@ export interface RestoreBackupModalModalProps {
   data: any;
 }
 
-export function RestoreBackupModal({
+export default function RestoreBackupModal({
   close,
   data,
 }: RestoreBackupModalModalProps) {

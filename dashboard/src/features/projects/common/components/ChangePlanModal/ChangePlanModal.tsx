@@ -329,7 +329,7 @@ export interface ChangePlanModalProps {
   onCancel?: () => void;
 }
 
-export function ChangePlanModal({ onCancel }: ChangePlanModalProps) {
+export default function ChangePlanModal({ onCancel }: ChangePlanModalProps) {
   const {
     query: { workspaceSlug, appSlug },
   } = useRouter();

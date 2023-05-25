@@ -3,7 +3,9 @@ import Box from '@/ui/v2/Box';
 import { isDevOrStaging } from '@/utils/helpers';
 import type { PropsWithChildren } from 'react';
 
-export function StagingMetadata({ children }: PropsWithChildren<unknown>) {
+export default function StagingMetadata({
+  children,
+}: PropsWithChildren<unknown>) {
   return (
     isDevOrStaging() && (
       <div className="mx-auto mt-10 max-w-sm">
@@ -15,5 +17,3 @@ export function StagingMetadata({ children }: PropsWithChildren<unknown>) {
     )
   );
 }
-
-export default StagingMetadata;

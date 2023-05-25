@@ -1,8 +1,8 @@
-import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
-import { StagingMetadata } from '@/components/applications/StagingMetadata';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Container } from '@/components/layout/Container';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
+import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
+import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import {

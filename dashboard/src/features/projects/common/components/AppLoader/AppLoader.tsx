@@ -27,7 +27,7 @@ export interface AppLoaderProps {
   restoring?: boolean;
 }
 
-export function AppLoader({
+export default function AppLoader({
   startLoader,
   unpause,
   date,

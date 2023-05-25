@@ -1,5 +1,5 @@
-import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 import { useDialog } from '@/components/common/DialogProvider';
+import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { Alert } from '@/ui/Alert';
 import Button from '@/ui/v2/Button';

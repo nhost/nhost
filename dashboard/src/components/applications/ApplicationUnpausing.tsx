@@ -1,7 +1,7 @@
-import Container from '@/components/layout/Container';
+import { Container } from '@/components/layout/Container';
+import { AppLoader } from '@/features/projects/common/components/AppLoader';
 import { useProjectRedirectWhenReady } from '@/features/projects/common/hooks/useProjectRedirectWhenReady';
 import Image from 'next/image';
-import { AppLoader } from './AppLoader';
 
 export default function ApplicationUnpausing() {
   useProjectRedirectWhenReady({ pollInterval: 2000 });

@@ -1,6 +1,7 @@
 import { FeedbackForm } from '@/components/common/FeedbackForm';
 import { Container } from '@/components/layout/Container';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
+import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { Modal } from '@/ui/Modal';
@@ -10,7 +11,6 @@ import { Text } from '@/ui/v2/Text';
 import Image from 'next/image';
 import { useState } from 'react';
 import { RemoveApplicationModal } from './RemoveApplicationModal';
-import { StagingMetadata } from './StagingMetadata';
 
 export default function ApplicationUnknown() {
   const { currentProject } = useCurrentWorkspaceAndProject();

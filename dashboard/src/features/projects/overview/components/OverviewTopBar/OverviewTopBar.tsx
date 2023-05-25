@@ -1,6 +1,6 @@
-import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/context/UIContext';
+import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
