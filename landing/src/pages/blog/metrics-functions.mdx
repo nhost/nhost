@@ -1,0 +1,39 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Monitor Serverless Functions',
+  description:
+    'Easily monitor the performance of your serverless functions with Nhost's improved metrics dashboard.',
+  image: '/images/blog/metrics/og-metrics.png',
+  date: '2023-05-10',
+  authors: [
+    {
+      name: 'David Barroso',
+      title: 'CTO',
+      avatarUrl: '/images/avatars/david.jpeg',
+      url: 'https://twitter.com/dbarrosop',
+    },
+  ],
+  tags: ['Product', 'Metrics', 'Functions'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+
+A few weeks ago, we released our first iteration of the [metrics](metrics) feature. We are excited to announce that this feature is about to become even better! If you are using our [serverless functions](/serverless-functions), you can now use our metrics [dashboard](/platform/metrics) to see how often they are being called, their response times, and their error rates.
+
+Our dashboard allows you to see how many function calls your serverless functions are getting, to which endpoints, their HTTP method, and what response statuses they are returning:
+
+![Functions summary](/images/blog/metrics-functions/summary.png)
+
+In addition, it provides you with useful information about response times, allowing you to identify bottlenecks in your application and outliers:
+
+![Response Times](/images/blog/metrics-functions/response_times.png)
+
+And last but not least, you can identify problems in your application by looking at the error rates and their response status:
+
+![Errors](/images/blog/metrics-functions/errors.png)
+
+
+We hope you find this dashboard useful! If you have any questions or feedback don't hesitate to [let us know](https://github.com/nhost/nhost/issues).
