@@ -1,17 +1,17 @@
 import RemoveWorkspaceMember from '@/components/workspace/RemoveWorkspaceMember';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { Modal } from '@/ui/Modal';
 import Button from '@/ui/v2/Button';
 import Divider from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
+import { capitalize } from '@/utils/helpers';
+import { triggerToast } from '@/utils/toast';
 import type { GetWorkspaceMembersWorkspaceMemberFragment } from '@/utils/__generated__/graphql';
 import {
   refetchGetWorkspaceMembersQuery,
   useDeleteWorkspaceMemberMutation,
   useUpdateWorkspaceMemberMutation,
 } from '@/utils/__generated__/graphql';
-import { capitalize } from '@/utils/helpers';
-import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';
 
 type WorkspaceMemberManageMenuParams = {

@@ -1,6 +1,6 @@
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   useGetAppFunctionsMetadataQuery,
   useGetProjectMetricsQuery,

@@ -1,11 +1,11 @@
 import Container from '@/components/layout/Container';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useCheckProvisioning } from '@/hooks/useCheckProvisioning';
 import { ApplicationStatus } from '@/types/application';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Text from '@/ui/v2/Text';
 import Image from 'next/image';
-import ApplicationInfo from '../../features/projects/components/ApplicationInfo/ApplicationInfo';
+import ApplicationInfo from '../../features/projects/common/components/ApplicationInfo/ApplicationInfo';
 import { AppLoader } from './AppLoader';
 import { StagingMetadata } from './StagingMetadata';
 

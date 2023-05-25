@@ -1,7 +1,7 @@
 import ControlledSelect from '@/components/common/ControlledSelect';
 import type { RolePermissionEditorFormValues } from '@/features/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import { useTableQuery } from '@/features/database/dataGrid/hooks/useTableQuery';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Autocomplete from '@/ui/v2/Autocomplete';
 import Button from '@/ui/v2/Button';

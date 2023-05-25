@@ -3,7 +3,7 @@ import { ControlledSelect } from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/common/Form';
 import { EditUserPasswordForm } from '@/components/users/EditUserPasswordForm';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
 import { Avatar } from '@/ui/v2/Avatar';

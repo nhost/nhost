@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
 import Text from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';

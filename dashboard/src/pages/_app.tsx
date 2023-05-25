@@ -1,7 +1,7 @@
 import { DialogProvider } from '@/components/common/DialogProvider';
 import ErrorBoundaryFallback from '@/components/common/ErrorBoundaryFallback';
 import { ManagedUIContext } from '@/context/UIContext';
-import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import '@/styles/fonts.css';
 import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';

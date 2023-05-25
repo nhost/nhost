@@ -1,15 +1,15 @@
 import { UnlockFeatureByUpgrading } from '@/components/applications/UnlockFeatureByUpgrading';
 import Container from '@/components/layout/Container';
 import ProjectLayout from '@/components/layout/ProjectLayout';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button/Button';
 import Divider from '@/ui/v2/Divider';
 import IconButton from '@/ui/v2/IconButton';
-import Text from '@/ui/v2/Text';
 import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
 import CopyIcon from '@/ui/v2/icons/CopyIcon';
+import Text from '@/ui/v2/Text';
 import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import { copy } from '@/utils/copy';
 import Image from 'next/image';

@@ -1,7 +1,7 @@
 import { MaintenanceAlert } from '@/components/common/MaintenanceAlert';
 import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import Container from '@/components/layout/Container';
-import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { OverviewDeployments } from '@/features/projects/overview/components/OverviewDeployments';
 import { OverviewDocumentation } from '@/features/projects/overview/components/OverviewDocumentation';
 import { OverviewMetrics } from '@/features/projects/overview/components/OverviewMetrics';

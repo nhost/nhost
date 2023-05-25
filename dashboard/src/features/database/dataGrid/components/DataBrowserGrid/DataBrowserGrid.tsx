@@ -25,7 +25,7 @@ import {
   POSTGRESQL_NUMERIC_TYPES,
 } from '@/features/database/dataGrid/utils/postgresqlConstants';
 import { isSchemaLocked } from '@/features/database/dataGrid/utils/schemaHelpers';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import useTablePath from '@/hooks/useTablePath';
 import KeyIcon from '@/ui/v2/icons/KeyIcon';
 import { useQueryClient } from '@tanstack/react-query';

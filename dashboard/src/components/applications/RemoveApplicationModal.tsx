@@ -1,15 +1,15 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import Divider from '@/ui/v2/Divider';
 import Text from '@/ui/v2/Text';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { triggerToast } from '@/utils/toast';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteApplicationMutation,
 } from '@/utils/__generated__/graphql';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { triggerToast } from '@/utils/toast';
 import router from 'next/router';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';

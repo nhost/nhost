@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { MetricsCardProps } from '@/features/projects/overview/components/MetricsCard';
 import { MetricsCard } from '@/features/projects/overview/components/MetricsCard';
 import Text from '@/ui/v2/Text';

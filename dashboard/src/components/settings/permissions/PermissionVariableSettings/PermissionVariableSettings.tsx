@@ -3,7 +3,7 @@ import { CreatePermissionVariableForm } from '@/components/settings/permissions/
 import { EditPermissionVariableForm } from '@/components/settings/permissions/EditPermissionVariableForm';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { PermissionVariable } from '@/types/application';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';

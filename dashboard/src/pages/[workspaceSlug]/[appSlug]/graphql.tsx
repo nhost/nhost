@@ -3,7 +3,7 @@ import { DEFAULT_ROLES } from '@/components/applications/graphql/utils';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
 import ProjectLayout from '@/components/layout/ProjectLayout';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import Button from '@/ui/v2/Button';
 import PlayIcon from '@/ui/v2/icons/PlayIcon';
 import Option from '@/ui/v2/Option';

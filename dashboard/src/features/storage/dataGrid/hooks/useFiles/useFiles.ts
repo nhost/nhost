@@ -1,11 +1,11 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
+import { getHasuraAdminSecret } from '@/utils/env';
 import type {
   Files_Order_By as FilesOrderBy,
   GetFilesQuery,
 } from '@/utils/__generated__/graphql';
 import { useGetFilesQuery } from '@/utils/__generated__/graphql';
-import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
-import { getHasuraAdminSecret } from '@/utils/env';
 import type { QueryHookOptions } from '@apollo/client';
 
 export type UseFilesOptions = {

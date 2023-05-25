@@ -5,15 +5,15 @@ import Container from '@/components/layout/Container';
 import SettingsContainer from '@/components/settings/SettingsContainer';
 import SettingsLayout from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';
 import Input from '@/ui/v2/Input';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetSmtpSettingsDocument,
   useGetSmtpSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import type { ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';

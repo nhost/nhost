@@ -6,7 +6,7 @@ import {
   baseProviderValidationSchema,
 } from '@/components/settings/signInMethods/BaseProviderSettings';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,

@@ -6,7 +6,7 @@ import type {
   DatabaseAction,
   HasuraMetadataPermission,
 } from '@/features/database/dataGrid/types/dataBrowser';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
 import { Alert } from '@/ui/Alert';

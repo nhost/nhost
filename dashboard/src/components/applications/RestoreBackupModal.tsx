@@ -1,10 +1,10 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import Box from '@/ui/v2/Box';
 import Button from '@/ui/v2/Button';
 import Checkbox from '@/ui/v2/Checkbox';
 import Text from '@/ui/v2/Text';
-import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
 import { triggerToast } from '@/utils/toast';
+import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
 import { formatISO9075 } from 'date-fns';
 import { useState } from 'react';
 

@@ -2,7 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useUI } from '@/context/UIContext';
 import { useGitHubModal } from '@/features/git/common/hooks/useGitHubModal';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';

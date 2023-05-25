@@ -1,4 +1,4 @@
-import { useProPlan } from '@/features/projects/hooks/useProPlan';
+import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/resources/settings/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
 import ActivityIndicator from '@/ui/v2/ActivityIndicator';

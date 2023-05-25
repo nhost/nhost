@@ -1,4 +1,4 @@
-import { useProPlan } from '@/features/projects/hooks/useProPlan';
+import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/resources/settings/utils/calculateBillableResources';
 import { prettifyMemory } from '@/features/resources/settings/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/resources/settings/utils/prettifyVCPU';

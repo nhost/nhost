@@ -1,6 +1,6 @@
 import type { ConnectGitHubModalState } from '@/features/git/common/components/ConnectGitHubModal';
 import { EditRepositorySettingsModal } from '@/features/git/common/components/EditRepositorySettingsModal';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { FormProvider, useForm } from 'react-hook-form';
 
 export interface EditRepositorySettingsProps {

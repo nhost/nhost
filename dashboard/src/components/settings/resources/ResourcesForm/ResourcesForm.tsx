@@ -4,8 +4,8 @@ import { ResourcesConfirmationDialog } from '@/components/settings/resources/Res
 import { ServiceResourcesFormFragment } from '@/components/settings/resources/ServiceResourcesFormFragment';
 import { TotalResourcesFormFragment } from '@/components/settings/resources/TotalResourcesFormFragment';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import { useProPlan } from '@/features/projects/hooks/useProPlan';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/resources/settings/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';

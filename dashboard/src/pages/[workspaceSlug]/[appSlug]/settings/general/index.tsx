@@ -5,8 +5,8 @@ import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import { useIsCurrentUserOwner } from '@/features/projects/hooks/useIsCurrentUserOwner';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteApplicationMutation,

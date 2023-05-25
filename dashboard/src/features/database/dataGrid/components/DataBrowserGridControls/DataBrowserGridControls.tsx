@@ -4,7 +4,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { useDeleteRecordMutation } from '@/features/database/dataGrid/hooks/useDeleteRecordMutation';
 import type { DataBrowserGridColumn } from '@/features/database/dataGrid/types/dataBrowser';
 import { isSchemaLocked } from '@/features/database/dataGrid/utils/schemaHelpers/isSchemaLocked';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import useDataGridConfig from '@/hooks/useDataGridConfig';
 import type { BoxProps } from '@/ui/v2/Box';
 import Box from '@/ui/v2/Box';

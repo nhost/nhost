@@ -1,4 +1,4 @@
-import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetAllWorkspacesAndProjectsDocument,
   GetWorkspaceMemberInvitesToManageDocument,

@@ -2,9 +2,9 @@ import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 import { StagingMetadata } from '@/components/applications/StagingMetadata';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Container } from '@/components/layout/Container';
-import { ApplicationInfo } from '@/features/projects/components/ApplicationInfo';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import { useIsCurrentUserOwner } from '@/features/projects/hooks/useIsCurrentUserOwner';
+import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useGetFreeAndActiveProjectsQuery,

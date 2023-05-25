@@ -1,5 +1,5 @@
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Button } from '@/ui/v2/Button';
 import { CopyIcon } from '@/ui/v2/icons/CopyIcon';

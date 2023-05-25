@@ -2,7 +2,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { EditRepositoryAndBranchSettings } from '@/features/git/common/components/EditRepositoryAndBranchSettings';
 import type { EditRepositorySettingsFormData } from '@/features/git/common/components/EditRepositorySettings';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useUpdateApplicationMutation } from '@/generated/graphql';
 import { Button } from '@/ui/v2/Button';
 import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';
