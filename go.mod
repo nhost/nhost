@@ -9,7 +9,7 @@ require (
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/go-getter v1.7.1
-	github.com/nhost/be v0.0.0-20230519092240-bfb4490a28f7
+	github.com/nhost/be v0.0.0-20230525170437-568cd72c7faa
 	github.com/pelletier/go-toml/v2 v2.0.7
 	github.com/urfave/cli/v2 v2.25.3
 	golang.org/x/mod v0.10.0

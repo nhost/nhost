@@ -368,7 +368,7 @@ github.com/muesli/reflow/wrap
 # github.com/muesli/termenv v0.15.1
 ## explicit; go 1.17
 github.com/muesli/termenv
-# github.com/nhost/be v0.0.0-20230519092240-bfb4490a28f7
+# github.com/nhost/be v0.0.0-20230525170437-568cd72c7faa
 ## explicit; go 1.20
 github.com/nhost/be/services/mimir/model
 github.com/nhost/be/services/mimir/schema
