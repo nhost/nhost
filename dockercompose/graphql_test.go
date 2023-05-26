@@ -130,7 +130,7 @@ func TestGraphql(t *testing.T) {
 
 func expectedConsole() *Service {
 	return &Service{
-		Image:     "hasura/graphql-engine:v2.25.0.cli-migrations-v3",
+		Image:     "nhost/graphql-engine:v2.25.0.cli-migrations-v3",
 		DependsOn: map[string]DependsOn{"graphql": {Condition: "service_healthy"}},
 		Command: []string{
 			"bash", "-c",

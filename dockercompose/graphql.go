@@ -93,7 +93,7 @@ func console( //nolint:funlen
 
 	return &Service{
 		Image: fmt.Sprintf(
-			"hasura/graphql-engine:%s.cli-migrations-v3",
+			"nhost/graphql-engine:%s.cli-migrations-v3",
 			*cfg.GetHasura().GetVersion(),
 		),
 		Command: []string{
