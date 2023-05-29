@@ -21,6 +21,7 @@ const (
 	flagHTTPPort     = "http-port"
 	flagDisableTLS   = "disable-tls"
 	flagPostgresPort = "postgres-port"
+	flagApplySeeds   = "apply-seeds"
 )
 
 const (
@@ -53,6 +54,12 @@ func CommandUp() *cli.Command {
 				Value:   defaultPostgresPort,
 				EnvVars: []string{"NHOST_POSTGRES_PORT"},
 			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:    flagApplySeeds,
+				Usage:   "Apply seeds",
+				Value:   false,
+				EnvVars: []string{"NHOST_APPLY_SEEDS"},
+			},
 		},
 	}
 }
@@ -80,6 +87,7 @@ func commandUp(cCtx *cli.Context) error {
 		cCtx.Uint(flagHTTPPort),
 		!cCtx.Bool(flagDisableTLS),
 		cCtx.Uint(flagPostgresPort),
+		cCtx.Bool(flagApplySeeds),
 	)
 }
 
@@ -99,7 +107,7 @@ func overrideEnv(ce *clienv.CliEnv, cfg *model.ConfigConfig) error {
 	return nil
 }
 
-func migrations(ctx context.Context, ce *clienv.CliEnv, dc *dockercompose.DockerCompose) error {
+func migrations(ctx context.Context, ce *clienv.CliEnv, dc *dockercompose.DockerCompose, applySeeds bool) error {
 	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "migrations", "default")) {
 		ce.Infoln("Applying migrations...")
 		if err := dc.ApplyMigrations(ctx); err != nil {
@@ -114,6 +122,15 @@ func migrations(ctx context.Context, ce *clienv.CliEnv, dc *dockercompose.Docker
 		}
 	}
 
+	if applySeeds {
+		if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "seeds", "default")) {
+			ce.Infoln("Applying seeds...")
+			if err := dc.ApplySeeds(ctx); err != nil {
+				return fmt.Errorf("failed to apply seeds: %w", err)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -125,6 +142,7 @@ func up(
 	httpPort uint,
 	useTLS bool,
 	postgresPort uint,
+	applySeeds bool,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -171,7 +189,7 @@ func up(
 		return fmt.Errorf("failed to start Nhost development environment: %w", err)
 	}
 
-	if err := migrations(ctx, ce, dc); err != nil {
+	if err := migrations(ctx, ce, dc, applySeeds); err != nil {
 		return err
 	}
 
@@ -210,11 +228,12 @@ func Up(
 	httpPort uint,
 	useTLS bool,
 	postgresPort uint,
+	applySeeds bool,
 ) error {
 	dc := dockercompose.New(ce.Path.DockerCompose(), projectName)
 
 	if err := up(
-		ctx, ce, dc, projectName, httpPort, useTLS, postgresPort,
+		ctx, ce, dc, projectName, httpPort, useTLS, postgresPort, applySeeds,
 	); err != nil {
 		ce.Warnln(err.Error())
 

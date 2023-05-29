@@ -1,7 +1,7 @@
 [global]
 
 [hasura]
-version = 'v2.25.0-ce'
+version = 'v2.25.1-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
@@ -28,7 +28,7 @@ httpPoolSize = 100
 version = 16
 
 [auth]
-version = '0.20.0'
+version = '0.20.1'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'

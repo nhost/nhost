@@ -192,3 +192,38 @@ func (dc *DockerCompose) ApplyMigrations(ctx context.Context) error {
 	}
 	return nil
 }
+
+func (dc *DockerCompose) ApplySeeds(ctx context.Context) error {
+	cmd := exec.CommandContext( //nolint:gosec
+		ctx,
+		"docker", "compose",
+		"-f", dc.filepath,
+		"-p", dc.projectName,
+		"exec",
+		"console",
+		"hasura-cli",
+		"seed",
+		"apply",
+		"--endpoint", "http://graphql:8080",
+		"--all-databases",
+		"--skip-update-check",
+	)
+
+	f, err := pty.Start(cmd)
+	if err != nil {
+		return fmt.Errorf("failed to start pty: %w", err)
+	}
+	defer f.Close()
+
+	if n, err := io.Copy(os.Stdout, f); err != nil {
+		var pathError *fs.PathError
+		switch {
+		case errors.As(err, &pathError) && n > 0 && pathError.Op == "read":
+			// linux pty returns an error when the process exits
+			return nil
+		default:
+			return fmt.Errorf("failed to copy pty output: %w", err)
+		}
+	}
+	return nil
+}
