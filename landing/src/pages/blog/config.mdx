@@ -1,0 +1,132 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost Config: Granular Control and a New Era of Environment Parity',
+  description:
+    'add something',
+  image: '/images/blog/metrics/og-metrics.png',
+  date: '2023-05-10',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'Config', 'CLI'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Today, we're introducing a new mechanism for managing and configuring your Nhost projects. It ensures consistency between local and cloud instances making environment-specific issues a thing of the past. It also gives you more fine-grained control over a project's runtime configuration. It's a significant leap forward in Nhost's commitment in making development easier and more efficient.
+
+## Background
+
+Until now, only database migrations, metadata changes (API schema, permissions, etc), functions, and email templates were supported and kept in sync both locally and in the cloud. 
+
+For other settings and options, the CLI relied on a soon-to-be-deprecated configuration file (`./nhost/config.yaml`) that only supported a limited number of options, none of which would be respected when deployed - the file was simply ignored. For that reason, we would have to introduce changes directly in cloud instances using the Nhost Dashboard, which is not really a great practice and opens the door to potential discrepancies between environments. 
+
+## The Motivation for Change
+
+The new configuration file, which is now respected by both the Nhost Cloud and the CLI, supports all configuration and options that makes up a running Nhost Project (e.g. resources like vCPUs and RAM, environment variables, settings specific to Hasura or Auth). Coupled with the already known and loved Git-based workflow, all changes to a project, can be first tested locally and seemlessly pushed and synced with a cloud project.
+
+This level of control helps in improving how you build and manage your Nhost projects, specially if you are working on a team.
+
+## Nhost Config
+
+Below is a contrived example of what the new config file looks like:
+
+
+```js
+[global.environment]
+name = 'MY_NHOST_CONFIG'
+value = "Nhost is Awesome!"
+
+[hasura]
+version = 'v2.15.2'
+adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
+webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
+
+[hasura.settings]
+devMode = true
+enabledAPIs = ['metadata', 'graphql', 'pgdump', 'config']
+
+[hasura.events]
+httpPoolSize = 100
+
+```
+
+
+A few things to note from the example bellow:
+
+- Service versions are now supported! you can upgrade at your own pace and time. Also available through the Dashboard.
+- There are new configurations available that you didn't have access before (e.g. admin secret, enabled APIs)
+- We can define environment variables
+- We can use secrets in our configuration
+- We use [TOML](https://toml.io/en) for the configuration format (more on that later)
+
+### Environment Variables
+
+Environment variables can be made available to all services by adding them to `global.environment`:
+
+```js
+[[ global.environment ]]
+name = 'MY_NHOST_CONFIG'
+value = "Nhost is Awesome!"
+```
+
+and then used as usual. For instance, in a function:
+
+```js
+import { Request, Response } from 'express'
+
+export default (req: Request, res: Response) => {
+    res.status(200).send(`${process.env.MY_NHOST_CONFIG} ${req.query.name}!`)
+}
+```
+
+Note that the value is a constant. If you wanted to have different values for different environments, you would have to set the value as a secret:
+
+```js
+[global.environment]
+name = "MY_NHOST_CONFIG'
+value = "{{ secrets.MY_NHOST_CONFIG }}"
+```
+
+### Secrets
+
+Secrets are used for two purposes:
+
+1. to avoid placing sensitive information in your configuration file in plain sight
+2. as placeholders for values that might differ between enviroments
+
+Secrets need to be set for all environments:
+
+1. for local projects managed by the CLI, secrets are set with the `.secrets.yaml` file.
+2. In a cloud instance, secrets can be set directly through the dashboard (project's settings -> secrets) or using the `secrets create` command from the Nhost CLi.
+
+
+
+## How to use the new Config?
+
+[link to the migration docs]
+
+The following CLI commands are related to this new feature:
+
+- nhost config pull for pulling current versions of `./nhost/nhost.toml` and `./secrets` used in the cloud environment.
+- nhost config show-full-example for displaying a full example of the configuration.
+- nhost config validate [--remote] for validating your environments are properly configured.
+
+
+## Why CUE and TOML?
+
+- CUE is a powerful language for validating data and configuration. As projects can have various options, it is important to have an easy and consistent way of enforcing certain rules that a project's configuration must adhere to (e.g. if apple oauth is enabled, a clientID and keyID are also required). This makes it a great choice to ensure that your projects are in a valid state. 
+
+- TOML is a minimal configuration file format that's easy to read due to its clear and obvious syntax. Because there are many configuration options available, we wanted a clear and obvious structure without nesting, and TOML's one-level structure made it a perfect fit.
+
+
+## Wrapping Up
+
+Nhost Config is a powerful tool that brings consistency and control to your development process. It's a significant step forward in our commitment to making development easier and more efficient. We can't wait to see what you'll build with it!
