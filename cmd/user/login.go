@@ -1,8 +1,6 @@
 package user
 
 import (
-	"fmt"
-
 	"github.com/nhost/cli/clienv"
 	"github.com/urfave/cli/v2"
 )
@@ -35,27 +33,6 @@ func CommandLogin() *cli.Command {
 
 func commandLogin(cCtx *cli.Context) error {
 	ce := clienv.New(cCtx)
-	email := cCtx.String(flagEmail)
-	password := cCtx.String(flagPassword)
-
-	var err error
-	if email == "" {
-		ce.PromptMessage("email: ")
-		email, err = ce.PromptInput(false)
-		if err != nil {
-			return fmt.Errorf("failed to read email: %w", err)
-		}
-	}
-
-	if password == "" {
-		ce.PromptMessage("password: ")
-		password, err = ce.PromptInput(true)
-		ce.Println("")
-		if err != nil {
-			return fmt.Errorf("failed to read password: %w", err)
-		}
-	}
-
-	_, err = ce.Login(cCtx.Context, email, password)
+	_, err := ce.Login(cCtx.Context, cCtx.String(flagEmail), cCtx.String(flagPassword))
 	return err //nolint:wrapcheck
 }

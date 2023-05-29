@@ -25,7 +25,7 @@ func commandCreate(cCtx *cli.Context) error {
 	}
 
 	ce := clienv.New(cCtx)
-	proj, err := ce.GetAppInfo()
+	proj, err := ce.GetAppInfo(cCtx.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}

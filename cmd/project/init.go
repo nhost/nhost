@@ -56,8 +56,14 @@ func commandInit(cCtx *cli.Context) error {
 		return fmt.Errorf("failed to initialize configuration: %w", err)
 	}
 
-	if err := initInit(cCtx.Context, ce.Path); err != nil {
-		return fmt.Errorf("failed to initialize project: %w", err)
+	if cCtx.Bool(flagRemote) {
+		if err := InitRemote(cCtx.Context, ce); err != nil {
+			return fmt.Errorf("failed to initialize remote project: %w", err)
+		}
+	} else {
+		if err := initInit(cCtx.Context, ce.Path); err != nil {
+			return fmt.Errorf("failed to initialize project: %w", err)
+		}
 	}
 
 	ce.Infoln("Successfully initialized Nhost project, run `nhost dev up` to start development")
@@ -125,7 +131,7 @@ func InitRemote(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 ) error {
-	proj, err := ce.GetAppInfo()
+	proj, err := ce.GetAppInfo(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}

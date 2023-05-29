@@ -91,7 +91,7 @@ func ValidateRemote(
 		return fmt.Errorf("failed to create schema: %w", err)
 	}
 
-	proj, err := ce.GetAppInfo()
+	proj, err := ce.GetAppInfo(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}

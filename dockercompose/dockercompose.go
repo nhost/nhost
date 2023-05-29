@@ -2,8 +2,10 @@ package dockercompose
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 
@@ -142,8 +144,15 @@ func (dc *DockerCompose) ApplyMetadata(ctx context.Context) error {
 	}
 	defer f.Close()
 
-	if _, err := io.Copy(os.Stdout, f); err != nil {
-		return fmt.Errorf("failed to copy pty output: %w", err)
+	if n, err := io.Copy(os.Stdout, f); err != nil {
+		var pathError *fs.PathError
+		switch {
+		case errors.As(err, &pathError) && n > 0 && pathError.Op == "read":
+			// linux pty returns an error when the process exits
+			return nil
+		default:
+			return fmt.Errorf("failed to copy pty output: %w", err)
+		}
 	}
 
 	return nil
@@ -171,8 +180,15 @@ func (dc *DockerCompose) ApplyMigrations(ctx context.Context) error {
 	}
 	defer f.Close()
 
-	if _, err := io.Copy(os.Stdout, f); err != nil {
-		return fmt.Errorf("failed to copy pty output: %w", err)
+	if n, err := io.Copy(os.Stdout, f); err != nil {
+		var pathError *fs.PathError
+		switch {
+		case errors.As(err, &pathError) && n > 0 && pathError.Op == "read":
+			// linux pty returns an error when the process exits
+			return nil
+		default:
+			return fmt.Errorf("failed to copy pty output: %w", err)
+		}
 	}
 	return nil
 }

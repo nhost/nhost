@@ -42,7 +42,7 @@ func commandPull(cCtx *cli.Context) error {
 		return err
 	}
 
-	proj, err := ce.GetAppInfo()
+	proj, err := ce.GetAppInfo(cCtx.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
