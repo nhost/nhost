@@ -20,13 +20,13 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-Today, we're introducing a new mechanism for managing and configuring your Nhost projects. It ensures consistency between local and cloud instances making environment-specific issues a thing of the past. It also gives you more fine-grained control over a project's runtime configuration. It's a significant leap forward in Nhost's commitment in making development easier and more efficient.
+Today, we're introducing a new mechanism for managing and configuring your projects. This new workflow helps you ensure consistency between local and cloud instances making environment-specific issues a thing of the past. It also gives you more fine-grained control over a project's runtime configuration. It's a significant leap forward in Nhost's commitment in making development easier and more efficient.
 
 ## Background
 
-Until now, only database migrations, metadata changes (API schema, permissions, etc), functions, and email templates were supported and kept in sync both locally and in the cloud. 
+Until now, only database migrations, metadata changes (API schema, permissions, etc), functions, and email templates were supported and kept in sync between local and cloud instances. 
 
-For other settings and options, the CLI relied on a soon-to-be-deprecated configuration file (`./nhost/config.yaml`) that only supported a limited number of options, none of which would be respected when deployed - the file was simply ignored. For that reason, we would have to introduce changes directly in cloud instances using the Nhost Dashboard, which is not really a great practice and opens the door to potential discrepancies between environments. 
+For other settings and options, like Auth's `clientUrl`, the CLI relied on a soon-to-be-deprecated configuration file (`./nhost/config.yaml`) that only supported a limited number of options, none of which would be respected when deployed - the file was simply ignored. For that reason, changes were made directly in production instances using the Nhost Dashboard, which is not really a great practice and opens the door to potential discrepancies between environments. 
 
 ## The Motivation for Change
 
@@ -37,7 +37,6 @@ This level of control helps in improving how you build and manage your Nhost pro
 ## Nhost Config
 
 Below is a contrived example of what the new config file looks like:
-
 
 ```js
 [global.environment]
@@ -58,14 +57,13 @@ httpPoolSize = 100
 
 ```
 
+A few things to note from the example above:
 
-A few things to note from the example bellow:
-
-- Service versions are now supported! you can upgrade at your own pace and time. Also available through the Dashboard.
-- There are new configurations available that you didn't have access before (e.g. admin secret, enabled APIs)
-- We can define environment variables
-- We can use secrets in our configuration
-- We use [TOML](https://toml.io/en) for the configuration format (more on that later)
+- Service versions are now supported! you can upgrade Hasura, Postgres, Auth, and Storage at your own pace and time.
+- There are new configurations available that you didn't have access before (e.g. admin secret, enabled APIs).
+- You can define environment variables.
+- You can use secrets in our configuration.
+- We went with [TOML](https://toml.io/en) for the configuration format (more on that later).
 
 ### Environment Variables
 
@@ -105,28 +103,60 @@ Secrets are used for two purposes:
 Secrets need to be set for all environments:
 
 1. for local projects managed by the CLI, secrets are set with the `.secrets.yaml` file.
-2. In a cloud instance, secrets can be set directly through the dashboard (project's settings -> secrets) or using the `secrets create` command from the Nhost CLi.
+2. In a cloud instance, secrets can be set directly through the dashboard (project's settings -> secrets) or using the `secrets create` command from the Nhost CLI.
 
+## How to Start?
 
+The new configuration file is supported from `v1.0.0-beta*` onwards, so make sure you are running on the latest CLI. All instructions can be found on the [Migrating to Nhost Config](https://docs.nhost.io/cli/migrate-config) guide. 
 
-## How to use the new Config?
-
-[link to the migration docs]
-
-The following CLI commands are related to this new feature:
-
-- nhost config pull for pulling current versions of `./nhost/nhost.toml` and `./secrets` used in the cloud environment.
-- nhost config show-full-example for displaying a full example of the configuration.
 - nhost config validate [--remote] for validating your environments are properly configured.
 
 
-## Why CUE and TOML?
+## Why TOML and CUE?
+
+
+- Our top priority was to design a configuration that was easy to update and simple to read and understand. TOML is a minimal configuration file format that's easy to read due to its clear and obvious syntax. Because there are many configuration options available, we wanted a clear and obvious structure without nesting, and TOML's one-level structure made it a perfect fit.
 
 - CUE is a powerful language for validating data and configuration. As projects can have various options, it is important to have an easy and consistent way of enforcing certain rules that a project's configuration must adhere to (e.g. if apple oauth is enabled, a clientID and keyID are also required). This makes it a great choice to ensure that your projects are in a valid state. 
 
-- TOML is a minimal configuration file format that's easy to read due to its clear and obvious syntax. Because there are many configuration options available, we wanted a clear and obvious structure without nesting, and TOML's one-level structure made it a perfect fit.
 
+### Validation: an example
+
+Let's imagine we want to configure Apple as an oauth provider. We would enable it in our configuration file as follows:
+
+```js
+[auth.method.oauth.apple]
+enabled = true
+```
+
+We can use the CLI to test and validate that the configuration is  valid:
+
+```bash
+$ nhost config validate
+
+> [config is not valid: #Config.auth.method.oauth.apple.clientId: incomplete value string (and 3 more errors)] Configuration is invalid
+```
+
+The validation error mentions 3 settings that are missing but are required. Let's add those:
+
+
+```js
+[auth.method.oauth.apple]
+enabled = true
+clientId = "my-client-id"
+keyId = "{{ secrets.APPLE_KEY_ID }}"
+teamId = "my-team-id"
+privateKey = "{{ secrets.APPLE_PRIVATE_KEY }}"
+```
+
+and validate it again:
+
+```bash
+$ nhost config validate
+
+> Configuration is valid
+```
 
 ## Wrapping Up
 
-Nhost Config is a powerful tool that brings consistency and control to your development process. It's a significant step forward in our commitment to making development easier and more efficient. We can't wait to see what you'll build with it!
+Nhost Config is a powerful tool that brings consistency and control to your development process. We recommend everyone to adopt it regardless, but if you are working on a team, it is definitely a feature you will find extremely valuable. 
