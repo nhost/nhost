@@ -22,7 +22,7 @@ func CommandHasura() *cli.Command {
 }
 
 func commandHasura(cCtx *cli.Context) error {
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 
 	cfg := &model.ConfigConfig{} //nolint:exhaustruct
 	if err := clienv.UnmarshalFile(ce.Path.NhostToml(), cfg, toml.Unmarshal); err != nil {

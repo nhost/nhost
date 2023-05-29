@@ -30,7 +30,7 @@ func CommandUninstall() *cli.Command {
 }
 
 func commandUninstall(cCtx *cli.Context) error {
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 
 	path, err := os.Executable()
 	if err != nil {

@@ -14,7 +14,7 @@ import (
 	"github.com/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/cli/system"
 	"github.com/urfave/cli/v2"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -41,7 +41,7 @@ func CommandInit() *cli.Command {
 }
 
 func commandInit(cCtx *cli.Context) error {
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 
 	if clienv.PathExists(ce.Path.NhostFolder()) {
 		return fmt.Errorf("nhost folder already exists") //nolint:goerr113

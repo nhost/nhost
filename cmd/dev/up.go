@@ -9,11 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/clienv"
 	"github.com/nhost/cli/cmd/config"
 	"github.com/nhost/cli/dockercompose"
-	"github.com/nhost/cli/project/env"
 	"github.com/urfave/cli/v2"
 )
 
@@ -65,7 +63,7 @@ func CommandUp() *cli.Command {
 }
 
 func commandUp(cCtx *cli.Context) error {
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 
 	// projname to be root directory
 
@@ -91,23 +89,12 @@ func commandUp(cCtx *cli.Context) error {
 	)
 }
 
-func overrideEnv(ce *clienv.CliEnv, cfg *model.ConfigConfig) error {
-	var envDev model.Secrets
-	if err := clienv.UnmarshalFile(ce.Path.EnvDevelopment(), &envDev, env.Unmarshal); err != nil {
-		return fmt.Errorf("failed to %s: %w", ce.Path.EnvDevelopment(), err)
-	}
-	for _, genv := range cfg.Global.Environment {
-		for _, devenv := range envDev {
-			if genv.Name == devenv.Name {
-				ce.Warnln("Overriding environment variable %s", genv.Name)
-				genv.Value = devenv.Value
-			}
-		}
-	}
-	return nil
-}
-
-func migrations(ctx context.Context, ce *clienv.CliEnv, dc *dockercompose.DockerCompose, applySeeds bool) error {
+func migrations(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	dc *dockercompose.DockerCompose,
+	applySeeds bool,
+) error {
 	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "migrations", "default")) {
 		ce.Infoln("Applying migrations...")
 		if err := dc.ApplyMigrations(ctx); err != nil {
@@ -153,16 +140,9 @@ func up(
 		cancel()
 	}()
 
-	cfg, err := config.Validate(ce)
+	cfg, err := config.Validate(ce, true)
 	if err != nil {
 		return fmt.Errorf("failed to validate config: %w", err)
-	}
-
-	if clienv.PathExists(ce.Path.EnvDevelopment()) {
-		ce.Infoln("Loading development environment variables...")
-		if err := overrideEnv(ce, cfg); err != nil {
-			return err
-		}
 	}
 
 	ce.Infoln("Setting up Nhost development environment...")

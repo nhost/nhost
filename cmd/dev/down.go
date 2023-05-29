@@ -17,7 +17,7 @@ func CommandDown() *cli.Command {
 }
 
 func commandDown(cCtx *cli.Context) error {
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 
 	dc := dockercompose.New(ce.Path.DockerCompose(), ce.ProjectName())
 

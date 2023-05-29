@@ -20,7 +20,7 @@ func CommandList() *cli.Command {
 }
 
 func commandList(cCtx *cli.Context) error {
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 	return List(cCtx.Context, ce)
 }
 

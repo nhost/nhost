@@ -24,7 +24,7 @@ func commandDelete(cCtx *cli.Context) error {
 		return fmt.Errorf("invalid number of arguments") //nolint:goerr113
 	}
 
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 	proj, err := ce.GetAppInfo(cCtx.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)

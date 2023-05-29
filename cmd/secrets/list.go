@@ -19,7 +19,7 @@ func CommandList() *cli.Command {
 }
 
 func commandList(cCtx *cli.Context) error {
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 
 	proj, err := ce.GetAppInfo(cCtx.Context)
 	if err != nil {

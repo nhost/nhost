@@ -10,7 +10,7 @@ import (
 	"os/exec"
 
 	"github.com/creack/pty"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type DockerCompose struct {
@@ -147,7 +147,7 @@ func (dc *DockerCompose) ApplyMetadata(ctx context.Context) error {
 	if n, err := io.Copy(os.Stdout, f); err != nil {
 		var pathError *fs.PathError
 		switch {
-		case errors.As(err, &pathError) && n > 0 && pathError.Op == "read":
+		case errors.As(err, &pathError) && n > 0 && pathError.Op == "read": //nolint:goconst
 			// linux pty returns an error when the process exits
 			return nil
 		default:

@@ -18,7 +18,7 @@ func CommandLogs() *cli.Command {
 }
 
 func commandLogs(cCtx *cli.Context) error {
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 
 	dc := dockercompose.New(ce.Path.DockerCompose(), ce.ProjectName())
 

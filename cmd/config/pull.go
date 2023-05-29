@@ -33,7 +33,7 @@ func CommandPull() *cli.Command {
 }
 
 func commandPull(cCtx *cli.Context) error {
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 
 	if err := verifyFile(ce, ce.Path.NhostToml()); err != nil {
 		return err

@@ -19,7 +19,7 @@ func CommandVersion() *cli.Command {
 }
 
 func commandVersion(cCtx *cli.Context) error {
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 
 	ce.Infoln("Nhost CLI %s for %s-%s", cCtx.App.Version, runtime.GOOS, runtime.GOARCH)
 

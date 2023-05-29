@@ -28,6 +28,7 @@
             "ssl/.ssl/fullchain.pem"
             "ssl/.ssl/privkey.pem"
             (inDirectory "vendor")
+            (inDirectory "cmd/config/testdata")
             isDirectory
             (nix-filter.lib.matchExt "go")
           ];

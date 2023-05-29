@@ -669,12 +669,12 @@ google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/fieldmaskpb
 google.golang.org/protobuf/types/known/timestamppb
+# gopkg.in/evanphx/json-patch.v5 v5.6.0
+## explicit
+gopkg.in/evanphx/json-patch.v5
 # gopkg.in/warnings.v0 v0.1.2
 ## explicit
 gopkg.in/warnings.v0
-# gopkg.in/yaml.v2 v2.4.0
-## explicit; go 1.15
-gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3

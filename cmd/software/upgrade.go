@@ -20,7 +20,7 @@ func CommandUpgrade() *cli.Command {
 }
 
 func commandUpgrade(cCtx *cli.Context) error {
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 
 	mgr := software.NewManager()
 	releases, err := mgr.GetReleases(cCtx.Context)

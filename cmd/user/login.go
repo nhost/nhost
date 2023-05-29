@@ -32,7 +32,7 @@ func CommandLogin() *cli.Command {
 }
 
 func commandLogin(cCtx *cli.Context) error {
-	ce := clienv.New(cCtx)
+	ce := clienv.FromCLI(cCtx)
 	_, err := ce.Login(cCtx.Context, cCtx.String(flagEmail), cCtx.String(flagPassword))
 	return err //nolint:wrapcheck
 }

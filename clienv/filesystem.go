@@ -27,10 +27,6 @@ func (p PathStructure) Root() string {
 	return p.root
 }
 
-func (p PathStructure) EnvDevelopment() string {
-	return filepath.Join(p.Root(), ".env.development")
-}
-
 func (p PathStructure) DotNhostFolder() string {
 	return p.dotNhostFolder
 }
@@ -49,6 +45,10 @@ func (p PathStructure) AuthFile() string {
 
 func (p PathStructure) NhostToml() string {
 	return filepath.Join(p.nhostFolder, "nhost.toml")
+}
+
+func (p PathStructure) JSONPatches() string {
+	return filepath.Join(p.nhostFolder, "overlays", "local.yaml")
 }
 
 func (p PathStructure) Secrets() string {

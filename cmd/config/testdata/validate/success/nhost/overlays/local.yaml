@@ -1,0 +1,19 @@
+# https://datatracker.ietf.org/doc/html/rfc6902
+- op: replace
+  path: /hasura/version               # override hasura version
+  value: "v2.25.0-ce"
+- op: replace
+  path: /global/environment/0         # replace first environment variables
+  value:
+    name: ENVIRONMENT
+    value: development
+- op: add                             # add a new env var
+  path: /global/environment/-
+  value:
+    name: FUNCTION_LOG_LEVEL
+    value: debug
+- op: replace                         # change the client url to local devenv
+  path: /auth/redirections/clientUrl
+  value: http://localhost:3000
+- op: remove                          # remove apple authentication
+  path: /auth/method/oauth/apple

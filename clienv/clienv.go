@@ -16,7 +16,24 @@ type CliEnv struct {
 	projectName string
 }
 
-func New(cCtx *cli.Context) *CliEnv {
+func New(
+	stdout io.Writer,
+	stderr io.Writer,
+	path *PathStructure,
+	domain string,
+	projectName string,
+) *CliEnv {
+	return &CliEnv{
+		stdout:      stdout,
+		stderr:      stderr,
+		Path:        path,
+		domain:      domain,
+		nhclient:    nil,
+		projectName: projectName,
+	}
+}
+
+func FromCLI(cCtx *cli.Context) *CliEnv {
 	return &CliEnv{
 		stdout: cCtx.App.Writer,
 		stderr: cCtx.App.ErrWriter,

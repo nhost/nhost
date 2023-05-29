@@ -1,13 +1,15 @@
 package dockercompose //nolint:testpackage
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/be/services/mimir/model"
 )
 
-func expectedPostgres() *Service {
+func expectedPostgres(tmpdir string) *Service {
 	return &Service{
 		Image: "nhost/postgres:14.5-20220831-1",
 		Command: []string{
@@ -39,12 +41,12 @@ func expectedPostgres() *Service {
 		Volumes: []Volume{
 			{
 				Type:   "bind",
-				Source: "/tmp/data/db/pgdata",
+				Source: filepath.Join(tmpdir, "db/pgdata"),
 				Target: "/var/lib/postgresql/data/pgdata",
 			},
 			{
 				Type:   "bind",
-				Source: "/tmp/data/db/pg_hba_local.conf",
+				Source: filepath.Join(tmpdir, "db/pg_hba_local.conf"),
 				Target: "/etc/pg_hba_local.conf",
 			},
 		},
@@ -58,7 +60,7 @@ func TestPostgres(t *testing.T) {
 	cases := []struct {
 		name     string
 		cfg      func() *model.ConfigConfig
-		expected func() *Service
+		expected func(tmpdir string) *Service
 	}{
 		{
 			name:     "success",
@@ -73,12 +75,13 @@ func TestPostgres(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			got, err := postgres(tc.cfg(), 5432, "/tmp/data")
+			tmpdir := filepath.Join(os.TempDir(), "data")
+			got, err := postgres(tc.cfg(), 5432, tmpdir)
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}
 
-			if diff := cmp.Diff(tc.expected(), got); diff != "" {
+			if diff := cmp.Diff(tc.expected(tmpdir), got); diff != "" {
 				t.Error(diff)
 			}
 		})
