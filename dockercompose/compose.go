@@ -320,8 +320,8 @@ func functions( //nolint:funlen
 				Rule: "Host(`local.functions.nhost.run`) && PathPrefix(`/v1`)",
 				Port: functionsPort,
 				Rewrite: &Rewrite{
-					Regex:       "/v1(/|$)(.*)",
-					Replacement: "/$2",
+					Regex:       "/v1(/|$$)(.*)",
+					Replacement: "/$$2",
 				},
 			},
 		}.Labels(),

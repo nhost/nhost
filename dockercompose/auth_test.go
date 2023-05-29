@@ -129,8 +129,8 @@ func expectedAuth() *Service {
 		},
 		Labels: map[string]string{
 			"traefik.enable": "true",
-			"traefik.http.middlewares.replace-auth.replacepathregex.regex":       "/v1(/|$)(.*)",
-			"traefik.http.middlewares.replace-auth.replacepathregex.replacement": "/$2",
+			"traefik.http.middlewares.replace-auth.replacepathregex.regex":       "/v1(/|$$)(.*)",
+			"traefik.http.middlewares.replace-auth.replacepathregex.replacement": "/$$2",
 			"traefik.http.routers.auth.entrypoints":                              "web",
 			"traefik.http.routers.auth.middlewares":                              "replace-auth",
 			"traefik.http.routers.auth.rule":                                     "Host(`local.auth.nhost.run`) && PathPrefix(`/v1`)",

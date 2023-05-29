@@ -73,8 +73,8 @@ func expectedGraphql() *Service {
 		},
 		Labels: map[string]string{
 			"traefik.enable": "true",
-			"traefik.http.middlewares.replace-graphql.replacepathregex.regex":       "/v1(/|$)(.*)",
-			"traefik.http.middlewares.replace-graphql.replacepathregex.replacement": "/v1/graphql$2",
+			"traefik.http.middlewares.replace-graphql.replacepathregex.regex":       "/v1(/|$$)(.*)",
+			"traefik.http.middlewares.replace-graphql.replacepathregex.replacement": "/v1/graphql$$2",
 			"traefik.http.routers.graphql.entrypoints":                              "web",
 			"traefik.http.routers.graphql.middlewares":                              "replace-graphql",
 			"traefik.http.routers.graphql.rule":                                     "PathPrefix(`/v1`) && Host(`local.graphql.nhost.run`)",

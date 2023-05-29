@@ -13,6 +13,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const op = "read"
+
 type DockerCompose struct {
 	filepath    string
 	projectName string
@@ -147,7 +149,7 @@ func (dc *DockerCompose) ApplyMetadata(ctx context.Context) error {
 	if n, err := io.Copy(os.Stdout, f); err != nil {
 		var pathError *fs.PathError
 		switch {
-		case errors.As(err, &pathError) && n > 0 && pathError.Op == "read": //nolint:goconst
+		case errors.As(err, &pathError) && n > 0 && pathError.Op == op:
 			// linux pty returns an error when the process exits
 			return nil
 		default:
@@ -183,7 +185,7 @@ func (dc *DockerCompose) ApplyMigrations(ctx context.Context) error {
 	if n, err := io.Copy(os.Stdout, f); err != nil {
 		var pathError *fs.PathError
 		switch {
-		case errors.As(err, &pathError) && n > 0 && pathError.Op == "read":
+		case errors.As(err, &pathError) && n > 0 && pathError.Op == op:
 			// linux pty returns an error when the process exits
 			return nil
 		default:
@@ -218,7 +220,7 @@ func (dc *DockerCompose) ApplySeeds(ctx context.Context) error {
 	if n, err := io.Copy(os.Stdout, f); err != nil {
 		var pathError *fs.PathError
 		switch {
-		case errors.As(err, &pathError) && n > 0 && pathError.Op == "read":
+		case errors.As(err, &pathError) && n > 0 && pathError.Op == op:
 			// linux pty returns an error when the process exits
 			return nil
 		default:

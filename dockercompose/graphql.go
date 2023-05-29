@@ -54,8 +54,8 @@ func graphql(cfg *model.ConfigConfig, useTLS bool) (*Service, error) { //nolint:
 				Rule: "PathPrefix(`/v1`) && Host(`local.graphql.nhost.run`)",
 				Port: hasuraPort,
 				Rewrite: &Rewrite{
-					Regex:       "/v1(/|$)(.*)",
-					Replacement: "/v1/graphql$2",
+					Regex:       "/v1(/|$$)(.*)",
+					Replacement: "/v1/graphql$$2",
 				},
 			},
 			{

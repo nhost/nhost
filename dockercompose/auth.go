@@ -62,8 +62,8 @@ func auth( //nolint:funlen
 				Rule: "Host(`local.auth.nhost.run`) && PathPrefix(`/v1`)",
 				Port: authPort,
 				Rewrite: &Rewrite{
-					Regex:       "/v1(/|$)(.*)",
-					Replacement: "/$2",
+					Regex:       "/v1(/|$$)(.*)",
+					Replacement: "/$$2",
 				},
 			},
 		}.Labels(),
