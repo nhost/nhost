@@ -11,7 +11,7 @@ import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
 import { Input } from '@/ui/v2/Input';
 import { Option } from '@/ui/v2/Option';
 import { Text } from '@/ui/v2/Text';
-import copy from '@/utils/common/copy';
+import { copy } from '@/utils/common/copy';
 import { getDateComponents } from '@/utils/formatDate';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { GetPersonalAccessTokensDocument } from '@/utils/__generated__/graphql';
