@@ -7,377 +7,202 @@ image: /img/og/get-started-with-nhost-cli.png
 
 Nhost's command-line interface (CLI) lets you run a complete Nhost development environment locally with the following services: PostgreSQL database, Hasura, Authentication, Storage (MinIO), Serverless Functions, and Emails (Mailhog).
 
-## Installation
 
-### Install the Nhost CLI
-
-To install **Nhost CLI**, run this command from any directory in your terminal:
-
-```bash
-sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
-```
-
-The Nhost CLI works for MacOS, Linux, and Windows WSL2.
-
-The Nhost CLI is installed at `/usr/local/bin`.
-
-<!-- On **MacOS, Linux, and Windows (WSL2)**, this will install the **Nhost CLI** in `/usr/local/bin`. -->
-
-If you'd prefer to install the CLI at a different location other than `/usr/local/bin`, set the `INSTALL_PATH` variable accordingly:
-
-```bash
-sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | INSTALL_PATH=$HOME/bin bash
-```
-
-You can move the executable to a different location and add the path to the environment variable `PATH` to make `nhost` accessible globally.
-
-Finally, you can check that everything has been successfully installed by typing:
-
-```bash
-nhost version
-```
-
-## Prerequisites
-
-### Dependencies
-
-Before using the **Nhost CLI**, make sure you have the following dependencies installed on your local machine:
+## Dependencies
 
 - [Git](https://git-scm.com/downloads)
 - [Docker](https://www.docker.com/get-started)
 
-### Nhost CLI Login
-
-After installing **Nhost CLI**, you can log in to your Nhost account by running the following command:
+## Login to Nhost
 
 ```bash
 nhost login
 ```
 
-This will display a prompt for you to enter your Nhost account credentials (email/password).
-
 :::info
-If you've signed up with GitHub you must first set a new password in the [Nhost Dashboard](https://app.nhost.io/) to use to sign in with the Nhost CLI.
+If you used GitHub to register, you will have to first set a password in your [account page](https://app.nhost.io/account).
 :::
 
-![Nhost CLI Login](/img/architecture/cli/cli-login.png)
 
-After successfully logging in, you are authorized to manage your Nhost projects using the Nhost CLI.
+## Initialize local project
 
-## Set Up Your Project
-
-### 1. Create a new Nhost project
-
-import CreateProject from '@site/src/components/create-nhost-project.mdx'
-
-<CreateProject />
-
-### 2. Create a New GitHub Repository
-
-A typical workflow would also include creating a Github repository for your Nhost project. It will facilitate your development workflow since Nhost can integrate with Github to enable continuous deployment.
-
-So, go to your Github account and [create a new repository](https://github.com/new). You can make your repository either public or private.
-
-![Create GitHub Repo](/img/architecture/cli/create-github-repo.png)
-
-### 3. Connect Nhost Project to Github
-
-Finally, connect your GitHub repository to your Nhost project. Doing so will enable Nhost to deploy new versions of your project when you push new commits to your connected Git repository.
-
-1. From your project workspace, click **Connect to GitHub**.
-
-![Connect to GitHub](/img/architecture/cli/connect-repo-step-1.png)
-
-2. **Install the Nhost app** on your GitHub account.
-
-![Connect to GitHub](/img/architecture/cli/connect-repo-step-2.png)
-
-3. **Connect** your GitHub repository.
-
-![Connect to GitHub](/img/architecture/cli/connect-repo-step-3.png)
-
-## Local Development
-
-## 1. Initialize your Nhost Project
-
-**Nhost CLI** brings the functionality of your Nhost production environment directly to your local machine.
-
-It provides Docker containers to run the backend services that match your production environment in a local environment. That way, you can make changes and test your code locally before deploying those changes to production.
-
-Initialize your Nhost project locally with the following command:
+Let's start by creating a directory to hold your project.
 
 ```bash
-nhost init --remote
+mkdir my-project
+cd my-project
 ```
 
-It will prompt you to choose what Nhost project you want to initialize.
-
-![Select Nhost Project](/img/architecture/cli/cli-select-app.png)
-
-Your file system will be populated with the following files and folders:
-
-```
-my-nhost-app/
-  └─ nhost/
-      ├─ config.yaml
-      ├─ emails/
-      ├─ metadata/
-      ├─ migrations/
-      └─ seeds/
-```
-
-Finally, make sure to link your current working directory to your GitHub repository:
+We can now initialize and create the necessary project configuration.
 
 ```bash
-echo "# my-nhost-app" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/[github-username]/my-nhost-app.git
-git push -u origin main
+nhost init
 ```
 
-## 2. Start a local development environment
+`nhost init` creates all the configuration necessary for your project, including database migrations and Hasura metadata.
 
-To start a local development environment for your Nhost project, run the following command:
+
+We can now start your project with `nhost dev`.
 
 ```bash
-nhost up
+nhost dev
 ```
 
-Running this command will start up all the backend services provided by Nhost.
-
-:::info
-
-Here are two tips when using the Nhost CLI:
-
-1. Use `nhost up -d` to run the Nhost CLI in debug mode for more verbose output.
-2. Use `nhost logs -f` in a different terminal to see local logs for your Nhost project.
-
-:::
-
-`nhost up` starts Hasura Console for the GraphQL Engine so you can manage the database and test the GraphQL API.
-
-The Hasura Console opens automatically at [http://localhost:9695](http://localhost:9695/).
-
-![Hasura Console](/img/architecture/cli/hasura-console.png)
-
-## 3. Make Changes
-
-There are three things the Nhost CLI and the GitHub integration track and apply to production:
-
-- Database Migrations
-- Hasura Metadata
-- Serverless Functions
-
-:::caution
-Settings in `nhost/config.yaml` are **not** deployed. That means you need to manually sync settings between local and remote environments between the CLI and Nhost Cloud.
-:::
-
-### Database Migrations
-
-Database changes are automatically tracked and managed through migrations.
-
-:::tip
-
-You must use the Hasura Console to make database changes. With the Hasura Console, database migration files are automatically generated incrementally to track database changes for you.
-
-:::
-
-To demonstrate how to make database changes, let's create a new table called `messages`, with the following columns:
-
-```
-- `id` (type UUID and default `gen_random_uuid()`),
-- `text` (type Text),
-- `authorId` (type UUID),
-- `createdAt` (type Timestamp and default `now()`)
-```
-
-In the Hasura Console, go to the **DATA** tab section and click on the
-PostgreSQL database (from the left side navigation) that Nhost provides us.
-
-Click on the **public** schema and then the **Create Table** button.
-
-![Create Table](/img/architecture/cli/create-table-step-1.png)
-
-Enter the values for creating the `messages` table as mentioned above.
-
-Also, specify the `id` column as the primary key of the table, and link the
-`authorId` column to the `users.id` column using a foreign key to link the
-`users` and `messages` tables together.
-
-![Create Table](/img/architecture/cli/create-table-step-2.png)
-
-Next, click on the **Add Table** button to create the table.
-
-Finally, check out the `migrations/` folder in your project directory. A
-migration file has been created automatically to reflect our database changes
-and track the new table creation.
-
-The migration was created under `nhost/migrations/default`:
+Once all services are up and running, the following information is displayed for your project:
 
 ```bash
-$ ls -la nhost/migrations/default
-total 0
-drwxr-xr-x  3 user  staff   96 Apr 27 17:06 .
-drwxr-xr-x  3 user  staff   96 Apr 27 17:06 ..
-drwxr-xr-x  4 user  staff  128 Apr 27 17:06 1651071963431_create_table_public_messages
+Nhost development environment started.
+
+URLs:
+- Postgres:             postgres://postgres:postgres@localhost:5432/local
+- Hasura:               https://local.hasura.nhost.run
+- GraphQL:              https://local.graphql.nhost.run
+- Auth:                 https://local.auth.nhost.run
+- Storage:              https://local.storage.nhost.run
+- Functions:            https://local.functions.nhost.run
+- Dashboard:            https://local.dashboard.nhost.run
+- Mailhog:              https://local.mailhog.nhost.run
+
+SDK Configuration:
+ Subdomain:             local
+ Region:                (empty)
+
+Run `nhost dev up` to reload the development environment
+Run `nhost dev down` to stop the development environment
+Run `nhost dev logs` to watch the logs
+
 ```
 
-Note that this database migration has only been applied locally. In
-other words, the `messages` table does not (yet) exists in production.
+You can use `nhost down` at any time to tear down your environment.
 
-To apply the local changes to production, check out the
-[Deploy your project](#deploy-your-project) section below.
+### Access your project's services
 
-### Hasura metadata
+To test that the services are running, let's curl the Auth endpoint and get its version:
 
-In addition to database schema changes, Nhost also tracks Hasura metadata.
+```bash
+curl https://local.auth.nhost.run/v1/version
 
-The Hasura metadata track all the actions performed on the console, like
-tracking tables/views/functions, creating relationships, configuring
-permissions, creating event triggers, and remote schemas.
+{"version":"v0.20.1"}
+```
 
-To demonstrate it, let's add a new permission to our `messages` table for the
-`user` role on the `insert` operation. That permission will allow users to
-create new messages.
+Hurrah! Auth seems to be running on v0.20.1. 
 
-So, open the permissions tab for the `messages` table, type in `user` in the
-role cell, and click the edit icon on the `insert` operation:
+We can also test that Postgres is running as expected by using `psql` (or your favourite Postgres client).
 
-![Create Table](/img/architecture/cli/permissions-1.png)
+```bash
+psql postgres://postgres:postgres@localhost:5432/local
 
-To restrict the users to create new messages only for themselves, specify an
-`_eq` condition between the `authorId` and the `X-Hasura-User-ID` session
-variable, which is passed with each request.
+psql (14.8 (Ubuntu 14.8-0ubuntu0.22.04.1), server 14.6 (Debian 14.6-1.pgdg110+1))
+Type "help" for help.
 
-![Create Table](/img/architecture/cli/permissions-2.png)
+local=# 
+```
 
-Then, select the columns the users can define through the GraphQL API, set the
-value for the `authorId` column to be equal to the `X-Hasura-User-ID` session
-variable, and click **Save Permissions**.
+## Database Migrations and Metadata Changes
 
-![Create Table](/img/architecture/cli/permissions-3.png)
+All changes to your project should be tested locally first before deploying to your users. In this guide, we will be creating a database migration and setting permissions.
 
-Finally, check out the `metadata/` folder in your project directory to confirm
-that the permission changes we did were tracked locally in your git repository.
+### Migration
 
-In our case, those changes should be tracked in
-`nhost/metadata/databases/default/tables/public_messages.yaml`:
+Let's create a new table called `messages`, with the following columns:
 
-```yaml title="nhost/metadata/databases/default/tables/public_messages.yaml"
+- id (UUID)
+- text (Text) 
+- author_id (UUID)
+- created_at (Timestamp)
+
+There are other ways to generate a migration, here we will use the local Nhost Dashboard running on `https://local.dashboard.nhost.run/local/local`. Please head to the `database` tab and add the columns as follows:
+
+
+![Nhost Local Dashboard](/img/cli-workflow/create-table-messages.png)
+
+To confirm that the migration was correctly generated with the correct SQL:
+
+```bash
+cat nhost/migrations/default/1685452095884_create_table_public_messages/up.sql 
+
+CREATE TABLE public.messages (id uuid DEFAULT gen_random_uuid() NOT NULL, text text NOT NULL, author_id uuid NOT NULL, created_at timestamp DEFAULT now() NOT NULL, PRIMARY KEY (id));
+```
+
+Now is a good time to commit the new migration.
+
+```bash
+git add .
+git commit -m 'add database migration to create the table `messages`'
+```
+
+### Metadata
+
+Metadata is used to track the state of the API, permissions, event triggers, remote schemas, etc. In this guide, we will use permissions to show how metadata is tracked.
+
+Again on the `database` tab of the Nhost Dashboard, click on the 3 dots right next to the table name and choose "Edit Permissions" to open the permissions editor.
+
+![Permissions Editor](/img/cli-workflow/matrix-permissions.png)
+
+Here we have access to a matrix of permissions for all available roles and actions. We want to set a permission to the `user` role and `insert` action as follows:
+
+![Permissions Editor](/img/cli-workflow/insert-permissions.png)
+
+We defined a simple permission to allow a `user` to insert or create messages. We can look at the underlying metadata that tracks it.
+
+```bash
+cat nhost/metadata/databases/default/tables/public_messages.yaml 
+
 table:
   name: messages
   schema: public
 insert_permissions:
-  - permission:
-      backend_only: false
+  - role: public
+    permission:
       check:
-        authorId:
+        author_id:
           _eq: X-Hasura-User-Id
+      set:
+        author_id: X-Hasura-User-Id
       columns:
         - text
-      set:
-        authorId: x-hasura-User-Id
-    role: user
 ```
 
-### Serverless Functions
-
-Now let's create a Serverless Function before we push all changes to GitHub so
-Nhost can deploy them to production.
-
-For this guide, let's create a Serverless Function that will return the
-current date-time when called.
-
-First, make sure to install `express`, which is required for serverless
-functions to work.
+As before, we can now commit this change:
 
 ```bash
-npm install express
-npm install -d @types/node @types/express
+git add .
+git commit -m 'add permission for user insert messages'
 ```
 
-Then, create a new file named `time.ts` inside the `functions/` folder of your
-working directory, and paste the following code:
+## Deploy your Project to Nhost
 
-```ts title="functions/time.ts"
-import { Request, Response } from 'express'
+We've been developing your project locally, introducing changes via the Dashboard, which in turn creates the actual database migrations and metadata changes that can be properly versioned and tracked. It's time to deploy your project to the Nhost Platform using Git. If you haven't already, please head to [Nhost](https://app.nhost.io) and create a project to deploy to. You will also need to connect a GitHub repository to it for automatic deployments with Git.
 
-export default (req: Request, res: Response) => {
-  return res.status(200).send(`Hello ${req.query.name}! It's now: ${new Date().toUTCString()}`)
-}
-```
+### Link your project
 
-Every JavaScript and TypeScript file inside the `functions/` folder becomes an
-API endpoint.
-
-Locally, the base URL for the serverless functions is
-`http://local.functions.nhost.run/v1/`. Then, the endpoint for each function is
-determined by its filename or the name of its dedicated parent directory.
-
-For example, the endpoint for our function is
-`http://local.functions.nhost.run/v1/time`.
+It's time to link, or associate, your local project to the remote one:
 
 ```bash
-curl http://local.functions.nhost.run/v1/time\?name\=Greg
-Hello Greg! It's now: Wed, 27 Apr 2022 18:52:12 GMT
+nhost link 
+
+    │                      │                                 │                  │              │
+ #  │ Subdomain            │ Project                         │ Workspace        │ Region       │
+ 1  │ kgrbyupffiamgqwnovkb │ local-development               │ Nhost            │ eu-central-1 │
+ 2  │ odtxlexktkcwdynjssqg │ nbp                             │ Nuno's Workspace │ eu-central-1 │
+    │                      │                                 │                  │              │
+- Select the workspace # to link: 1
+- Enter project subdomain to confirm: kgrbyupffiamgqwnovkb
 ```
 
-## 4. Managing Local Data
+You have now successfully linked your local project to a hosted project running on the Nhost Cloud. 
 
-Nhost makes it easy to manage data on different branches. Within your project directory there is an `.nhost` directory that tracks database configuration, database seeds, mail data, and functions.
-
-### Seed Data
-See [the section on seed data](https://docs.nhost.io/database#seed-data) for an overview.
-
-If seeds have been applied there will be a file `seeds.applied` within the `.nhost/data/<branch-name>/db` directory.
-
-If you need to re-apply your seeds, delete this file and restart nhost.
-
-
-## Deploy your project
-
-To deploy your local changes to production, you can commit and push them to
-GitHub. As a result, Nhost will automatically pick up the changes in your
-repository and apply them to your associated remote Nhost project.
-
-:::caution
-Make sure to [connect your Github repository](#3-connect-nhost-project-to-Github) to your Nhost project first.
-:::
+The final step is to push all changes to GitHub which will trigger a new deployment on Nhost.
 
 ```bash
 git add -A
-git commit -m "commit message"
-git push
+git push -u origin main
 ```
 
-To check out your deployment, head over to the **Deployments** tab in your
-[Nhost dashboard](https://app.nhost.io).
+To check out your deployment, head over to the **Deployments** tab (https://app.nhost.io).
 
-![Deployments](/img/architecture/cli/deployments.png)
+![Deployments](/img/cli-workflow/deployments.png)
 
-## Get help
+You should now have the same `messages` table (and permissions) on your production instance!
 
-To get usage tips and learn more about available commands from within Nhost CLI,
-run the following:
 
-```shell
-nhost help
-```
-
-For more information about a specific command, run the command with the `--help`
-flag:
-
-```
-nhost init --help
-```
-
-If you have additional questions or ideas for new features, you can
-[start an issue](https://github.com/nhost/cli/issues) or
-[a new discussion](https://github.com/nhost/cli/discussions/new) on Nhost CLI’s
-open-source repository. You can also
-[chat with our team](https://discord.com/invite/9V7Qb2U) on Discord.
-
-We’d love to hear from you!
