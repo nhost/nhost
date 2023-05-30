@@ -119,17 +119,14 @@ The new configuration file is supported from `v1.0.0-beta*` onwards, so make sur
 
 - CUE is a powerful language for validating data and configuration. As projects can have various options, it is important to have an easy and consistent way of enforcing certain rules that a project's configuration must adhere to (e.g. if apple oauth is enabled, a clientID and keyID are also required). This makes it a great choice to ensure that your projects are in a valid state. 
 
-
-### Validation: an example
-
-Let's imagine we want to configure Apple as an oauth provider. We would enable it in our configuration file as follows:
+As an example, let's imagine we want to configure Apple as an OAuth provider. We would enable it in our configuration file as follows:
 
 ```js
 [auth.method.oauth.apple]
 enabled = true
 ```
 
-We can use the CLI to test and validate that the configuration is  valid:
+And use the CLI to test and validate that the configuration is correct:
 
 ```bash
 $ nhost config validate
@@ -156,6 +153,10 @@ $ nhost config validate
 
 > Configuration is valid
 ```
+
+Awesome! the config is now valid. 
+
+To validate the configuration against a remote project, we can pass the `--remote` flag as `nhost config validate --remote`. This would catch, for example, if `APPLE_KEY_ID` was set locally but not in the cloud. 
 
 ## Wrapping Up
 
