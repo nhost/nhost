@@ -2,7 +2,8 @@ import type {
   BaseSecretFormProps,
   BaseSecretFormValues,
 } from '@/components/settings/secrets/BaseSecretForm';
-import BaseSecretForm, {
+import {
+  BaseSecretForm,
   baseSecretFormValidationSchema,
 } from '@/components/settings/secrets/BaseSecretForm';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';

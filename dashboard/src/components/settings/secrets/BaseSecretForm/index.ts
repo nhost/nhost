@@ -1,2 +1,2 @@
 export * from './BaseSecretForm';
-export { default } from './BaseSecretForm';
+export { default as BaseSecretForm } from './BaseSecretForm';
