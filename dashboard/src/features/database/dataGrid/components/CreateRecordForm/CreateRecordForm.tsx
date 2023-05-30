@@ -4,7 +4,7 @@ import { useCreateRecordMutation } from '@/features/database/dataGrid/hooks/useC
 import type { ColumnInsertOptions } from '@/features/database/dataGrid/types/dataBrowser';
 import { createDynamicValidationSchema } from '@/features/database/dataGrid/utils/validationSchemaHelpers';
 import { Alert } from '@/ui/v2/Alert';
-import Button from '@/ui/v2/Button';
+import { Button } from '@/ui/v2/Button';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';

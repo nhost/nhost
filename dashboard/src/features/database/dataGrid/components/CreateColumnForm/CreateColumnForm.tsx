@@ -9,7 +9,7 @@ import {
 import { useCreateColumnMutation } from '@/features/database/dataGrid/hooks/useCreateColumnMutation';
 import { useTrackForeignKeyRelationsMutation } from '@/features/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import { Alert } from '@/ui/v2/Alert';
-import Button from '@/ui/v2/Button';
+import { Button } from '@/ui/v2/Button';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';

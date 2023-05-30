@@ -1,4 +1,4 @@
-import Button from '@/ui/v2/Button';
+import { Button } from '@/ui/v2/Button';
 import type { CommonDialogProps } from '@/ui/v2/Dialog';
 import { Dialog } from '@/ui/v2/Dialog';
 

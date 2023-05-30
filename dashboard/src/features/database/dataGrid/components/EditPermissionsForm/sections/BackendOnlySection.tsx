@@ -1,5 +1,5 @@
-import ControlledSwitch from '@/components/common/ControlledSwitch';
-import Text from '@/ui/v2/Text';
+import { ControlledSwitch } from '@/components/common/ControlledSwitch';
+import { Text } from '@/ui/v2/Text';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
 export interface BackendOnlySectionProps {

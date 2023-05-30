@@ -1,9 +1,9 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import Form from '@/components/common/Form';
+import { Form } from '@/components/common/Form';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { DialogFormProps } from '@/types/common';
-import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
+import { Button } from '@/ui/v2/Button';
+import { Input } from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetEnvironmentVariablesDocument,

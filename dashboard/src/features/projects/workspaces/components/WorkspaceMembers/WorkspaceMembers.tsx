@@ -3,9 +3,9 @@ import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCur
 import { PendingWorkspaceMemberInvitation } from '@/features/projects/workspaces/components/PendingWorkspaceMemberInvitation';
 import { WorkspaceMember } from '@/features/projects/workspaces/components/WorkspaceMember';
 import { Alert } from '@/ui/v2/Alert';
-import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
-import Text from '@/ui/v2/Text';
+import { Button } from '@/ui/v2/Button';
+import { Input } from '@/ui/v2/Input';
+import { Text } from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import { triggerToast } from '@/utils/toast';

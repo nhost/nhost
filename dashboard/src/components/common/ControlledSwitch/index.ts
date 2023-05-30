@@ -1,2 +1,2 @@
 export * from './ControlledSwitch';
-export { default } from './ControlledSwitch';
+export { default as ControlledSwitch } from './ControlledSwitch';

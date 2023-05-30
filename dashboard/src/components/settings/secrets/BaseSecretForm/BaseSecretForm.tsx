@@ -1,7 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import Form from '@/components/common/Form';
-import Button from '@/ui/v2/Button';
-import Input from '@/ui/v2/Input';
+import { Form } from '@/components/common/Form';
+import { Button } from '@/ui/v2/Button';
+import { Input } from '@/ui/v2/Input';
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';

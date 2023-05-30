@@ -1,7 +1,7 @@
 import type { AlertProps } from '@/ui/v2/Alert';
 import { Alert } from '@/ui/v2/Alert';
 import type { ButtonProps } from '@/ui/v2/Button';
-import Button from '@/ui/v2/Button';
+import { Button } from '@/ui/v2/Button';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
 

@@ -6,10 +6,10 @@ import type {
   DatabaseColumn,
   ForeignKeyRelation,
 } from '@/features/database/dataGrid/types/dataBrowser';
-import Button from '@/ui/v2/Button';
-import InputLabel from '@/ui/v2/InputLabel';
-import Text from '@/ui/v2/Text';
-import PlusIcon from '@/ui/v2/icons/PlusIcon';
+import { Button } from '@/ui/v2/Button';
+import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
+import { InputLabel } from '@/ui/v2/InputLabel';
+import { Text } from '@/ui/v2/Text';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import ForeignKeyEditorRow from './ForeignKeyEditorRow';

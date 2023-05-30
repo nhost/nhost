@@ -1,5 +1,5 @@
-import Button from '@/ui/v2/Button';
-import Text from '@/ui/v2/Text';
+import { Button } from '@/ui/v2/Button';
+import { Text } from '@/ui/v2/Text';
 import Image from 'next/image';
 
 export function FeedbackReceived({ setFeedbackSent, close }: any) {

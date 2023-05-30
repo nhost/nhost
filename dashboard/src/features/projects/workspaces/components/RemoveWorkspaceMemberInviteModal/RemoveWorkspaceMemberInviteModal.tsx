@@ -1,7 +1,7 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Text from '@/ui/v2/Text';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Text } from '@/ui/v2/Text';
 
 export interface RemoveWorkspaceMemberInviteModalProps {
   /**

@@ -1,17 +1,17 @@
-import ControlledSelect from '@/components/common/ControlledSelect';
+import { ControlledSelect } from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
-import Form from '@/components/common/Form';
+import { Form } from '@/components/common/Form';
 import { useDatabaseQuery } from '@/features/database/dataGrid/hooks/useDatabaseQuery';
 import type {
   DatabaseColumn,
   ForeignKeyRelation,
 } from '@/features/database/dataGrid/types/dataBrowser';
 import type { DialogFormProps } from '@/types/common';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Divider from '@/ui/v2/Divider';
-import Option from '@/ui/v2/Option';
-import Text from '@/ui/v2/Text';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Divider } from '@/ui/v2/Divider';
+import { Option } from '@/ui/v2/Option';
+import { Text } from '@/ui/v2/Text';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useFormContext, useFormState } from 'react-hook-form';
