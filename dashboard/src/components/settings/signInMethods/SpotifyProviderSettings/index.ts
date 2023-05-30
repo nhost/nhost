@@ -1,1 +1,1 @@
-export { default } from './SpotifyProviderSettings';
+export { default as SpotifyProviderSettings } from './SpotifyProviderSettings';

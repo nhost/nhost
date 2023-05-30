@@ -1,2 +1,2 @@
 export * from './TwitterProviderSettings';
-export { default } from './TwitterProviderSettings';
+export { default as TwitterProviderSettings } from './TwitterProviderSettings';

@@ -1,7 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Container } from '@/components/layout/Container';
-import CreateSecretForm from '@/components/settings/secrets/CreateSecretForm';
-import EditSecretForm from '@/components/settings/secrets/EditSecretForm';
+import { CreateSecretForm } from '@/components/settings/secrets/CreateSecretForm';
+import { EditSecretForm } from '@/components/settings/secrets/EditSecretForm';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';

@@ -1,2 +1,2 @@
 export * from './WorkOsProviderSettings';
-export { default } from './WorkOsProviderSettings';
+export { default as WorkOsProviderSettings } from './WorkOsProviderSettings';

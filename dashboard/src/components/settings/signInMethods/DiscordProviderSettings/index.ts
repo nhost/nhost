@@ -1,1 +1,1 @@
-export { default } from './DiscordProviderSettings';
+export { default as DiscordProviderSettings } from './DiscordProviderSettings';

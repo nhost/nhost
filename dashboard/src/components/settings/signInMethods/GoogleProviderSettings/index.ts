@@ -1,1 +1,1 @@
-export { default } from './GoogleProviderSettings';
+export { default as GoogleProviderSettings } from './GoogleProviderSettings';

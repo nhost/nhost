@@ -1,2 +1,2 @@
 export * from './WebAuthnSettings';
-export { default } from './WebAuthnSettings';
+export { default as WebAuthnSettings } from './WebAuthnSettings';

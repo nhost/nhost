@@ -1,1 +1,1 @@
-export { default } from './GitHubProviderSettings';
+export { default as GitHubProviderSettings } from './GitHubProviderSettings';

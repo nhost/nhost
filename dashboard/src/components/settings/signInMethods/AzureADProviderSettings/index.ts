@@ -1,1 +1,1 @@
-export { default } from './AzureADProviderSettings';
+export { default as AzureADProviderSettings } from './AzureADProviderSettings';
