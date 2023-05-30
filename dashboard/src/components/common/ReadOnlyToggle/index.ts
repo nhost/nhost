@@ -1,1 +1,1 @@
-export { default, default as ReadOnlyToggle } from './ReadOnlyToggle';
+export { default as ReadOnlyToggle } from './ReadOnlyToggle';

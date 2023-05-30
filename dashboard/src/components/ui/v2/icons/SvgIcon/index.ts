@@ -1,2 +1,2 @@
 export * from './SvgIcon';
-export { default, default as SvgIcon } from './SvgIcon';
+export { default as SvgIcon } from './SvgIcon';

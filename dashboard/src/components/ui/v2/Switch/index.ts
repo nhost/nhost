@@ -1,2 +1,2 @@
 export * from './Switch';
-export { default, default as Switch } from './Switch';
+export { default as Switch } from './Switch';

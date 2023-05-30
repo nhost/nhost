@@ -1,1 +1,1 @@
-export { default, default as TrashIcon } from './TrashIcon';
+export { default as TrashIcon } from './TrashIcon';

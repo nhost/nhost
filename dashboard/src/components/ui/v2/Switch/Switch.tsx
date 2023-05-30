@@ -1,5 +1,5 @@
 import type { FormControlLabelProps } from '@/ui/v2/FormControlLabel';
-import FormControlLabel from '@/ui/v2/FormControlLabel';
+import { FormControlLabel } from '@/ui/v2/FormControlLabel';
 import SwitchUnstyled, {
   switchUnstyledClasses,
 } from '@mui/base/SwitchUnstyled';

@@ -1,1 +1,1 @@
-export { default } from './getDesignTokens';
+export { default as getDesignTokens } from './getDesignTokens';

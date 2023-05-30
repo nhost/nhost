@@ -1,1 +1,1 @@
-export { default, default as useIsPlatform } from './useIsPlatform';
+export { default as useIsPlatform } from './useIsPlatform';
