@@ -1,0 +1,137 @@
+---
+title: 'config'
+sidebar_position: 10
+---
+
+## Global
+
+Global configuration that applies to all services. It includes user-defined environment variables that are spread over all services.
+
+    environment: User-defined environment variables that are spread over all services. It is an array of #EnvironmentVariable or an empty array.
+
+## EnvironmentVariable
+
+Each environment variable has a name and a value.
+
+### name
+
+Name of the environment variable. It should not start with "NHOST_" or "HASURA_".
+
+### value 
+
+Value of the environment variable. It is a string.
+
+Service Configurations
+
+Each service (hasura, functions, auth, postgres, provider, storage, observability) has its own configuration.
+#Hasura
+
+Configuration for hasura service. It includes version, JWT secrets, admin secret, webhook secret, settings, logs, events, and resources for the Hasura service.
+
+    version: Version of hasura. Default is "v2.15.2".
+    jwtSecrets: JWT Secrets configuration. It is an array of #JWTSecret.
+    adminSecret: Admin secret. It is a string.
+    webhookSecret: Webhook secret. It is a string.
+    settings: Configuration for hasura services. It includes corsDomain, devMode, enableAllowList, enableConsole, enableRemoteSchemaPermissions, and enabledAPIs.
+    logs: Logs configuration. It includes level.
+    events: Events configuration. It includes httpPoolSize.
+    resources: Resources for the service. It is optional.
+
+#Functions
+
+Configuration for functions service. It includes node configuration.
+
+    node: Node configuration. It includes version.
+
+#Auth
+
+Configuration for auth service. It includes version, resources, redirections, signUp, user, session, method, totp.
+
+    version: Version of auth. Default is "0.19.1".
+    resources: Resources for the service. It is optional.
+    redirections: Redirections configuration. It includes clientUrl and allowedUrls.
+    signUp: SignUp configuration. It includes enabled.
+    user: User configuration. It includes roles, locale, gravatar, email, emailDomains.
+    session: Session configuration. It includes accessToken and refreshToken.
+    method: Method configuration. It includes anonymous, emailPasswordless, emailPassword, smsPasswordless, oauth, webauthn.
+    totp: TOTP configuration. It includes enabled.
+
+#Postgres
+
+Configuration for postgres service. It includes version and resources.
+
+    version: Version of postgres. Default is "14.5-20230104-1".
+    resources: Resources for the service. It includes replicas.
+
+#Provider
+
+Configuration for third party providers like SMTP, SMS, etc. It includes smtp and sms.
+#Storage
+
+Configuration for storage service. It includes version and resources.
+
+    version: Version of storage service. Default is "0.3.4".
+    resources: Resources for the service. It is optional.
+
+#Observability
+
+Configuration for observability service. It includes grafana configuration.
+
+    grafana: Grafana configuration. It includes adminPassword.
+
+Resource Configuration
+#Resources
+
+Resource configuration for a serviceI apologize for the abrupt stop. Let's continue:
+#Resources
+
+Resource configuration for a service. It includes compute and replicas.
+
+    compute: Compute resources configuration. It includes cpu and memory.
+    replicas: Number of replicas for a service.
+
+JWT Secret Configuration
+#JWTSecret
+
+JWT Secret configuration. It includes type, key, jwk_url, claims_format, audience, issuer, allowed_skew, header, claims_map, claims_namespace, claims_namespace_path.
+Standard OAuth Provider Configuration
+#StandardOauthProvider
+
+Standard OAuth provider configuration. It includes enabled, clientId, clientSecret.
+#StandardOauthProviderWithScope
+
+Standard OAuth provider configuration with scope. It includes enabled, clientId, clientSecret, scope.
+SMTP Configuration
+#Smtp
+
+SMTP configuration. It includes user, password, sender, host, port, secure, method.
+SMS Configuration
+#Sms
+
+SMS configuration. It includes provider, accountSid, authToken, messagingServiceId.
+System Configuration
+#SystemConfig
+
+System configuration. It includes auth and postgres.
+
+    auth: Auth configuration. It includes email.
+    postgres: Postgres configuration. It includes enabled, database, password, connectionString.
+
+Other Configurations
+#UserRole
+
+User role configuration. It's a string.
+#Url
+
+URL configuration. It's a string.
+#Port
+
+Port configuration. It's a uint16.
+#Email
+
+Email configuration. It's a string that matches the email format.
+#Locale
+
+Locale configuration. It's a string with a minimum of 2 runes and a maximum of 2 runes.
+
+Please note that this is a high-level overview and each configuration has its own set of rules and validations. For a more detailed understanding, you should refer to the actual CUE schema.
