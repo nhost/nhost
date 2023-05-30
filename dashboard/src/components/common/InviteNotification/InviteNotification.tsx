@@ -16,7 +16,7 @@ import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
-export function InviteAnnounce() {
+export default function InviteNotification() {
   const user = useUserData();
 
   const isPlatform = useIsPlatform();
@@ -198,5 +198,3 @@ export function InviteAnnounce() {
     </Box>
   );
 }
-
-export default InviteAnnounce;

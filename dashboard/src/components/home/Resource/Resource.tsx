@@ -1,15 +1,15 @@
-import ArrowSquareOutIcon from '@/ui/v2/icons/ArrowSquareOutIcon';
-import Text from '@/ui/v2/Text';
+import { ArrowSquareOutIcon } from '@/ui/v2/icons/ArrowSquareOutIcon';
+import { Text } from '@/ui/v2/Text';
 import { useTheme } from '@mui/material';
 import Image from 'next/image';
 
-interface ResourceProps {
+export interface ResourceProps {
   text: string;
   logo: string;
   link: string;
 }
 
-export function Resource({ text, logo, link }: ResourceProps) {
+export default function Resource({ text, logo, link }: ResourceProps) {
   const theme = useTheme();
 
   return (
@@ -36,10 +36,8 @@ export function Resource({ text, logo, link }: ResourceProps) {
         </Text>
       </div>
       <div className="flex self-center">
-        <ArrowSquareOutIcon className="w-4 h-4" />
+        <ArrowSquareOutIcon className="h-4 w-4" />
       </div>
     </a>
   );
 }
-
-export default Resource;
