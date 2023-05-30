@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.17.1
+
+### Patch Changes
+
+- 9b0d4dde: feat(secrets): enable secrets
+
 ## 0.17.0
 
 ### Minor Changes
