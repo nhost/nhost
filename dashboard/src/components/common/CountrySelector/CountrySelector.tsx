@@ -2,7 +2,7 @@ import { Option } from '@/ui/v2/Option';
 import { Select } from '@/ui/v2/Select';
 import { useGetCountriesQuery } from '@/utils/__generated__/graphql';
 
-type CountrySelectorProps = {
+export type CountrySelectorProps = {
   value: string;
   onChange: (value: string) => void;
 };
