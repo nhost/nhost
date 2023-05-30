@@ -10,7 +10,7 @@ import { useMemo } from 'react';
  * link for queries/mutations (HttpLink -- our own application querying through remote schemas) and subscriptions (GraphQLWsLink connected to the bragi endpoint).
  * @returns A function that returns a new ApolloClient instance with split functionality prepared for websockets connected to bragi.
  */
-export function useRemoteApplicationGQLClientWithSubscriptions() {
+export default function useRemoteApplicationGQLClientWithSubscriptions() {
   const client = useNhostClient();
   const token = useAccessToken();
 
@@ -53,5 +53,3 @@ export function useRemoteApplicationGQLClientWithSubscriptions() {
 
   return userApplicationClient;
 }
-
-export default useRemoteApplicationGQLClientWithSubscriptions;

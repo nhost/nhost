@@ -1,6 +1,6 @@
 import { useAppState } from '@/features/projects/common/hooks/useAppState';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import usePreviousApplicationState from '@/hooks/usePreviousApplicationStates';
+import { usePreviousApplicationStates } from '@/features/projects/common/hooks/usePreviousApplicationStates';
 import { ApplicationStatus } from '@/types/application';
 import { useRouter } from 'next/router';
 
@@ -10,7 +10,7 @@ import { useRouter } from 'next/router';
 export default function useNavigationVisible() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const { state } = useAppState();
-  const previousApplicationState = usePreviousApplicationState();
+  const previousApplicationState = usePreviousApplicationStates();
 
   const router = useRouter();
 

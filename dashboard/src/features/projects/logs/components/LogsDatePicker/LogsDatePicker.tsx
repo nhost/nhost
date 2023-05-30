@@ -1,4 +1,5 @@
 import { LogsTimePicker } from '@/features/projects/logs/components/LogsTimePicker';
+import { DATEPICKER_DISPLAY_FORMAT } from '@/features/projects/logs/utils/datepicker';
 import { usePreviousData } from '@/hooks/usePreviousData';
 import type { ButtonProps } from '@/ui/v2/Button';
 import { Button } from '@/ui/v2/Button';
@@ -8,7 +9,6 @@ import { Dropdown } from '@/ui/v2/Dropdown';
 import { CalendarIcon } from '@/ui/v2/icons/CalendarIcon';
 import { ChevronDownIcon } from '@/ui/v2/icons/ChevronDownIcon';
 import { Text } from '@/ui/v2/Text';
-import { DATEPICKER_DISPLAY_FORMAT } from '@/utils/logs/datepicker';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';

@@ -8,7 +8,7 @@ import { useMemo } from 'react';
  * It creates a new Apollo Client instance that connects to the remote application's GraphQL endpoint
  * @returns A function that returns a new ApolloClient instance.
  */
-export function useRemoteApplicationGQLClient() {
+export default function useRemoteApplicationGQLClient() {
   const { currentProject, loading } = useCurrentWorkspaceAndProject();
   const serviceUrl = generateAppServiceUrl(
     currentProject?.subdomain,
@@ -37,5 +37,3 @@ export function useRemoteApplicationGQLClient() {
 
   return userApplicationClient;
 }
-
-export default useRemoteApplicationGQLClient;
