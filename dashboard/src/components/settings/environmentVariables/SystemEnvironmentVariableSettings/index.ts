@@ -1,1 +1,1 @@
-export { default } from './SystemEnvironmentVariableSettings';
+export { default as SystemEnvironmentVariableSettings } from './SystemEnvironmentVariableSettings';

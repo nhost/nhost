@@ -1,2 +1,2 @@
 export * from './EnvironmentVariableSettings';
-export { default } from './EnvironmentVariableSettings';
+export { default as EnvironmentVariableSettings } from './EnvironmentVariableSettings';
