@@ -1,11 +1,11 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/common/Form';
-import { ResourcesConfirmationDialog } from '@/components/settings/resources/ResourcesConfirmationDialog';
-import { ServiceResourcesFormFragment } from '@/components/settings/resources/ServiceResourcesFormFragment';
-import { TotalResourcesFormFragment } from '@/components/settings/resources/TotalResourcesFormFragment';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
+import { ResourcesConfirmationDialog } from '@/features/resources/settings/components/ResourcesConfirmationDialog';
+import { ServiceResourcesFormFragment } from '@/features/resources/settings/components/ServiceResourcesFormFragment';
+import { TotalResourcesFormFragment } from '@/features/resources/settings/components/TotalResourcesFormFragment';
 import { calculateBillableResources } from '@/features/resources/settings/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/resources/settings/utils/resourceSettingsValidationSchema';

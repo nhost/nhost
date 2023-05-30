@@ -1,8 +1,8 @@
 import { Container } from '@/components/layout/Container';
-import { ResourcesForm } from '@/components/settings/resources/ResourcesForm';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { ResourcesForm } from '@/features/resources/settings/components/ResourcesForm';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import type { ReactElement } from 'react';
 
