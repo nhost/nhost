@@ -1,5 +1,5 @@
 import type { FormControlProps } from '@/ui/v2/FormControl';
-import FormControl from '@/ui/v2/FormControl';
+import { FormControl } from '@/ui/v2/FormControl';
 import { styled } from '@mui/material';
 import type { InputBaseProps as MaterialInputBaseProps } from '@mui/material/InputBase';
 import MaterialInputBase, { inputBaseClasses } from '@mui/material/InputBase';

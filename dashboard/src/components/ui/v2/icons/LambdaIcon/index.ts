@@ -1,1 +1,1 @@
-export { default } from './LambdaIcon';
+export { default as LambdaIcon } from './LambdaIcon';
