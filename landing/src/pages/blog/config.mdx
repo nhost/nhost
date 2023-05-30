@@ -20,7 +20,9 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-Today, we're introducing a new mechanism for managing and configuring your projects. This new workflow helps you ensure consistency between local and cloud instances making environment-specific issues a thing of the past. It also gives you more fine-grained control over a project's runtime configuration. It's a significant leap forward in Nhost's commitment in making development easier and more efficient.
+Today, we're introducing a new mechanism for managing and configuring your projects. This new workflow helps you ensure consistency between local and cloud instances, making environment-specific issues a thing of the past. Additionally, it gives you more fine-grained control over a project's runtime configuration. It's a significant leap forward in Nhost's commitment to making development easier and more efficient.
+
+It is worth mentioning that while writing this feature, we took our time and rewrote all critical paths of the CLI, yielding considerable improvements in terms of performance and stability. Our CLI has finally reached v1.0.0!
 
 ## Background
 
@@ -30,9 +32,9 @@ For other settings and options, like Auth's `clientUrl`, the CLI relied on a soo
 
 ## The Motivation for Change
 
-The new configuration file, which is now respected by both the Nhost Cloud and the CLI, supports all configuration and options that makes up a running Nhost Project (e.g. resources like vCPUs and RAM, environment variables, settings specific to Hasura or Auth). Coupled with the already known and loved Git-based workflow, all changes to a project, can be first tested locally and seemlessly pushed and synced with a cloud project.
+The new configuration file, which is now respected by both the Nhost Cloud and the CLI, supports all configurations and options that make up a running Nhost Project (e.g. resources like vCPUs and RAM, environment variables, settings specific to Hasura or Auth). Coupled with the already known and loved Git-based workflow, all changes to a project can be first tested locally and seamlessly pushed and synced with a cloud project.
 
-This level of control helps in improving how you build and manage your Nhost projects, specially if you are working on a team.
+This level of control helps in improving how you build and manage your Nhost projects, especially if you are working on a team.
 
 ## Nhost Config
 
@@ -60,7 +62,7 @@ httpPoolSize = 100
 A few things to note from the example above:
 
 - Service versions are now supported! you can upgrade Hasura, Postgres, Auth, and Storage at your own pace and time.
-- There are new configurations available that you didn't have access before (e.g. admin secret, enabled APIs).
+- There are new configurations available that you didn't have access to before (e.g. admin secret, enabled APIs).
 - You can define environment variables.
 - You can use secrets in our configuration.
 - We went with [TOML](https://toml.io/en) for the configuration format (more on that later).
@@ -98,7 +100,7 @@ value = "{{ secrets.MY_NHOST_CONFIG }}"
 Secrets are used for two purposes:
 
 1. to avoid placing sensitive information in your configuration file in plain sight
-2. as placeholders for values that might differ between enviroments
+2. as placeholders for values that might differ between environments
 
 Secrets need to be set for all environments:
 
@@ -107,10 +109,7 @@ Secrets need to be set for all environments:
 
 ## How to Start?
 
-The new configuration file is supported from `v1.0.0-beta*` onwards, so make sure you are running on the latest CLI. All instructions can be found on the [Migrating to Nhost Config](https://docs.nhost.io/cli/migrate-config) guide. 
-
-- nhost config validate [--remote] for validating your environments are properly configured.
-
+The new configuration file is supported from `v1.0.0` onwards, so make sure you are running on the latest version of the Nhost CLI. The complete set of instructions can be found in the [Migrate to Nhost Config](https://docs.nhost.io/cli/migrate-config) guide. 
 
 ## Why TOML and CUE?
 
