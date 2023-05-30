@@ -2,7 +2,8 @@ import type {
   BasePermissionVariableFormProps,
   BasePermissionVariableFormValues,
 } from '@/components/settings/permissions/BasePermissionVariableForm';
-import BasePermissionVariableForm, {
+import {
+  BasePermissionVariableForm,
   basePermissionVariableValidationSchema,
 } from '@/components/settings/permissions/BasePermissionVariableForm';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
