@@ -1,4 +1,1 @@
-export {
-  default,
-  default as QuestionMarkCircleIcon,
-} from './QuestionMarkCircleIcon';
+export { default as QuestionMarkCircleIcon } from './QuestionMarkCircleIcon';

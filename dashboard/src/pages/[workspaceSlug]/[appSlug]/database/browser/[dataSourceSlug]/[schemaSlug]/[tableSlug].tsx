@@ -1,6 +1,6 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
-import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import useTablePath from '@/features/database/common/hooks/useTablePath/useTablePath';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { useTablePath } from '@/features/database/common/hooks/useTablePath';
 import { DataBrowserGrid } from '@/features/database/dataGrid/components/DataBrowserGrid';
 import { DataBrowserLayout } from '@/features/database/dataGrid/components/DataBrowserLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';

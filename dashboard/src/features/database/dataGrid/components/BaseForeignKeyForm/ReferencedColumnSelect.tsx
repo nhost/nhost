@@ -1,6 +1,6 @@
-import ControlledSelect from '@/components/common/ControlledSelect';
+import { ControlledSelect } from '@/components/common/ControlledSelect';
 import { useTableQuery } from '@/features/database/dataGrid/hooks/useTableQuery';
-import Option from '@/ui/v2/Option';
+import { Option } from '@/ui/v2/Option';
 import { useFormState, useWatch } from 'react-hook-form';
 
 export default function ReferencedColumnSelect() {

@@ -7,8 +7,8 @@ import BasePermissionVariableForm, {
 } from '@/components/settings/permissions/BasePermissionVariableForm';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { PermissionVariable } from '@/types/application';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import getAllPermissionVariables from '@/utils/settings/getAllPermissionVariables';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { getAllPermissionVariables } from '@/utils/settings/getAllPermissionVariables';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetRolesPermissionsDocument,

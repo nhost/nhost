@@ -1,4 +1,4 @@
-import Backdrop from '@/ui/v2/Backdrop';
+import { Backdrop } from '@/ui/v2/Backdrop';
 import type { DialogTitleProps } from '@/ui/v2/Dialog';
 import { DialogTitle } from '@/ui/v2/Dialog';
 import { styled } from '@mui/material';

@@ -1,5 +1,5 @@
 import type { ActivityIndicatorProps } from '@/ui/v2/ActivityIndicator';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import type { BoxProps } from '@/ui/v2/Box';
 import { Box } from '@/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';

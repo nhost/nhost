@@ -1,1 +1,1 @@
-export { default } from './useColorPreference';
+export { default as useColorPreference } from './useColorPreference';
