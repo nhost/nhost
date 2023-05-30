@@ -1,6 +1,6 @@
-import Box from '@/ui/v2/Box';
+import { Box } from '@/ui/v2/Box';
 import type { TextProps } from '@/ui/v2/Text';
-import Text from '@/ui/v2/Text';
+import { Text } from '@/ui/v2/Text';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
 import { forwardRef } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -54,7 +54,7 @@ function ReadOnlyToggle(
           borderColor: checked ? 'transparent' : 'grey.700',
         }}
         className={twMerge(
-          'box-border border-1 inline-grid h-3 w-5 items-center rounded-full px-0.5',
+          'box-border inline-grid h-3 w-5 items-center rounded-full border-1 px-0.5',
           checked === true && 'justify-end',
         )}
       >
@@ -70,8 +70,8 @@ function ReadOnlyToggle(
             },
           }}
           className={twMerge(
-            'inline-block rounded-full h-2 w-2',
-            checked === null && 'h-px my-px justify-self-center',
+            'inline-block h-2 w-2 rounded-full',
+            checked === null && 'my-px h-px justify-self-center',
           )}
         />
       </Box>

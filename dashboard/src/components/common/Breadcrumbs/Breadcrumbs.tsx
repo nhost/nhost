@@ -1,9 +1,9 @@
-import NavLink from '@/components/common/NavLink';
+import { NavLink } from '@/components/common/NavLink';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import type { BoxProps } from '@/ui/v2/Box';
-import Box from '@/ui/v2/Box';
-import Text from '@/ui/v2/Text';
+import { Box } from '@/ui/v2/Box';
+import { Text } from '@/ui/v2/Text';
 import { twMerge } from 'tailwind-merge';
 
 export interface BreadcrumbsProps extends BoxProps {}
