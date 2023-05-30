@@ -1,4 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { InlineCode } from '@/components/common/InlineCode';
 import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { CreateSecretForm } from '@/components/settings/secrets/CreateSecretForm';
@@ -125,12 +126,22 @@ export default function SecretsPage() {
     >
       <SettingsContainer
         title="Secrets"
-        description="Secrets are key-value pairs configured outside your source code. TBD."
-        docsLink="https://docs.nhost.io/platform/environment-variables"
-        docsTitle="Secrets"
-        rootClassName="gap-0"
+        description={
+          <span>
+            To prevent exposing sensitive information, use secrets in your
+            configuration by replacing the actual value with{' '}
+            <InlineCode className="rounded-sm py-0.5 text-xs">
+              &#123;&#123; secrets.SECRET_NAME &#125;&#125;
+            </InlineCode>{' '}
+            in any configuration placeholder.
+          </span>
+        }
+        rootClassName="gap-0 pb-0"
         className={twMerge('my-2 px-0', secrets.length === 0 && 'gap-2')}
-        slotProps={{ submitButton: { className: 'hidden' } }}
+        slotProps={{
+          submitButton: { className: 'hidden' },
+          footer: { className: 'hidden' },
+        }}
       >
         <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3">
           <Text className="font-medium">Secret Name</Text>
