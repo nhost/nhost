@@ -1,10 +1,10 @@
-import NavLink from '@/components/common/NavLink';
+import { NavLink } from '@/components/common/NavLink';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import Backdrop from '@/ui/v2/Backdrop';
+import { Backdrop } from '@/ui/v2/Backdrop';
 import type { BoxProps } from '@/ui/v2/Box';
-import Box from '@/ui/v2/Box';
+import { Box } from '@/ui/v2/Box';
 import { IconButton } from '@/ui/v2/IconButton';
-import List from '@/ui/v2/List';
+import { List } from '@/ui/v2/List';
 import type { ListItemButtonProps } from '@/ui/v2/ListItem';
 import { ListItem } from '@/ui/v2/ListItem';
 import { isK8SPostgresEnabledInCurrentEnvironment } from '@/utils/helpers';

@@ -5,7 +5,7 @@ import type {
   DataBrowserGridCellProps,
 } from '@/features/database/dataGrid/types/dataBrowser';
 import type { BoxProps } from '@/ui/v2/Box';
-import Box from '@/ui/v2/Box';
+import { Box } from '@/ui/v2/Box';
 import Tooltip, { useTooltip } from '@/ui/v2/Tooltip';
 import { triggerToast } from '@/utils/toast';
 import type { FocusEvent, KeyboardEvent, MouseEvent } from 'react';
