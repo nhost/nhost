@@ -1,29 +1,30 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import Container from '@/components/layout/Container';
-import SettingsContainer from '@/components/settings/SettingsContainer';
-import SettingsLayout from '@/components/settings/SettingsLayout';
-import CreateSecretForm from '@/components/settings/secrets/CreateSecretForm';
-import EditSecretForm from '@/components/settings/secrets/EditSecretForm';
+import { InlineCode } from '@/components/common/InlineCode';
+import { Container } from '@/components/layout/Container';
+import { CreateSecretForm } from '@/components/settings/secrets/CreateSecretForm';
+import { EditSecretForm } from '@/components/settings/secrets/EditSecretForm';
+import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
 import type { Secret } from '@/types/application';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Divider from '@/ui/v2/Divider';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Divider } from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
-import IconButton from '@/ui/v2/IconButton';
-import List from '@/ui/v2/List';
+import { IconButton } from '@/ui/v2/IconButton';
+import { DotsVerticalIcon } from '@/ui/v2/icons/DotsVerticalIcon';
+import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
+import { List } from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
-import Text from '@/ui/v2/Text';
-import DotsVerticalIcon from '@/ui/v2/icons/DotsVerticalIcon';
-import PlusIcon from '@/ui/v2/icons/PlusIcon';
+import { Text } from '@/ui/v2/Text';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetSecretsDocument,
   useDeleteSecretMutation,
   useGetSecretsQuery,
 } from '@/utils/__generated__/graphql';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { ReactElement } from 'react';
 import { Fragment } from 'react';
 import { toast } from 'react-hot-toast';
@@ -125,12 +126,22 @@ export default function SecretsPage() {
     >
       <SettingsContainer
         title="Secrets"
-        description="Secrets are key-value pairs configured outside your source code. TBD."
-        docsLink="https://docs.nhost.io/platform/environment-variables"
-        docsTitle="Secrets"
-        rootClassName="gap-0"
+        description={
+          <span>
+            To prevent exposing sensitive information, use secrets in your
+            configuration by replacing the actual value with{' '}
+            <InlineCode className="rounded-sm py-0.5 text-xs">
+              &#123;&#123; secrets.SECRET_NAME &#125;&#125;
+            </InlineCode>{' '}
+            in any configuration placeholder.
+          </span>
+        }
+        rootClassName="gap-0 pb-0"
         className={twMerge('my-2 px-0', secrets.length === 0 && 'gap-2')}
-        slotProps={{ submitButton: { className: 'hidden' } }}
+        slotProps={{
+          submitButton: { className: 'hidden' },
+          footer: { className: 'hidden' },
+        }}
       >
         <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3">
           <Text className="font-medium">Secret Name</Text>
