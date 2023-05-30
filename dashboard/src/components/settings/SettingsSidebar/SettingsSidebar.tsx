@@ -200,7 +200,6 @@ export default function SettingsSidebar({
               href="/secrets"
               exact={false}
               onClick={handleSelect}
-              className="hidden"
             >
               Secrets
             </SettingsNavLink>
