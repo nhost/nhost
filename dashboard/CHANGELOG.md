@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.17.0
+
+### Minor Changes
+
+- 15d84a19: Add postgres 14.6-20230525
+
 ## 0.16.14
 
 ### Patch Changes
