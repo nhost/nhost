@@ -32,10 +32,15 @@ func main() {
 		Commands: []*cli.Command{
 			config.Command(),
 			dev.Command(),
-			project.Command(),
+			dev.CommandUp(),
+			dev.CommandDown(),
+			dev.CommandLogs(),
+			project.CommandInit(),
+			project.CommandList(),
+			project.CommandLink(),
 			secrets.Command(),
 			software.Command(),
-			user.Command(),
+			user.CommandLogin(),
 		},
 		Metadata: map[string]any{
 			"Author":  "Nhost",

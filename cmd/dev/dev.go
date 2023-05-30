@@ -9,10 +9,7 @@ func Command() *cli.Command {
 		Usage:   "Operate local development environment",
 		Subcommands: []*cli.Command{
 			CommandCompose(),
-			CommandDown(),
 			CommandHasura(),
-			CommandLogs(),
-			CommandUp(),
 		},
 	}
 }
