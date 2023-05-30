@@ -2,7 +2,8 @@ import type {
   BaseEnvironmentVariableFormProps,
   BaseEnvironmentVariableFormValues,
 } from '@/components/settings/environmentVariables/BaseEnvironmentVariableForm';
-import BaseEnvironmentVariableForm, {
+import {
+  BaseEnvironmentVariableForm,
   baseEnvironmentVariableFormValidationSchema,
 } from '@/components/settings/environmentVariables/BaseEnvironmentVariableForm';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
