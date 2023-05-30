@@ -1,6 +1,6 @@
 import { Container } from '@/components/layout/Container';
-import PermissionVariableSettings from '@/components/settings/permissions/PermissionVariableSettings';
-import RolesSettings from '@/components/settings/roles/RoleSettings';
+import { PermissionVariableSettings } from '@/components/settings/permissions/PermissionVariableSettings';
+import { RoleSettings } from '@/components/settings/roles/RoleSettings';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
@@ -33,7 +33,7 @@ export default function RolesAndPermissionsPage() {
       className="grid max-w-5xl grid-flow-row gap-6 bg-transparent"
       rootClassName="bg-transparent"
     >
-      <RolesSettings />
+      <RoleSettings />
       <PermissionVariableSettings />
     </Container>
   );

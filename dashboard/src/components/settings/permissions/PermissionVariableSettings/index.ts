@@ -1,1 +1,1 @@
-export { default } from './PermissionVariableSettings';
+export { default as PermissionVariableSettings } from './PermissionVariableSettings';
