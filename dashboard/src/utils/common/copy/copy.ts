@@ -1,11 +1,9 @@
-import { triggerToast } from './toast';
+import { triggerToast } from '@/utils/toast';
 
-export function copy(toCopy: string, name: string) {
+export default function copy(toCopy: string, name: string) {
   navigator.clipboard.writeText(toCopy).catch(() => {
     triggerToast('Error while copying');
   });
 
   triggerToast(`${name} copied to clipboard`);
 }
-
-export default copy;

@@ -3,7 +3,7 @@ import { Box } from '@/ui/v2/Box';
 import { IconButton } from '@/ui/v2/IconButton';
 import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
 import { Text } from '@/ui/v2/Text';
-import { copy } from '@/utils/copy';
+import { copy } from '@/utils/common/copy';
 import type { ReactNode } from 'react';
 
 export interface InfoCardProps extends BoxProps {
