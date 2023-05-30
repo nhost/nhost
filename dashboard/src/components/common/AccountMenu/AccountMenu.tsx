@@ -1,6 +1,6 @@
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
-import { Avatar } from '@/ui/v1/Avatar';
+import { Avatar } from '@/ui/v2/Avatar';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { Divider } from '@/ui/v2/Divider';
@@ -21,12 +21,14 @@ function AccountMenuContent() {
 
   return (
     <Box className="grid grid-flow-row">
-      <Box className="grid grid-flow-col items-center justify-start gap-4 p-4">
+      <Box className="grid grid-flow-col items-center justify-start gap-3 p-4">
         <Avatar
-          name={user?.displayName}
-          avatarUrl={user?.avatarUrl}
+          alt={user?.displayName}
+          src={user?.avatarUrl}
           className="h-10 w-10"
-        />
+        >
+          {user?.displayName}
+        </Avatar>
 
         <Box className="grid grid-flow-row gap-0.5">
           <Text className="font-semibold">{user?.displayName}</Text>
@@ -98,9 +100,11 @@ function AccountMenu() {
       <Dropdown.Trigger hideChevron className="rounded-full">
         <Avatar
           className="h-7 w-7 self-center rounded-full"
-          name={user?.displayName}
-          avatarUrl={user?.avatarUrl}
-        />
+          alt={user?.displayName}
+          src={user?.avatarUrl}
+        >
+          {user?.displayName}
+        </Avatar>
       </Dropdown.Trigger>
 
       <Dropdown.Content PaperProps={{ className: 'mt-1 max-w-xs w-full' }}>

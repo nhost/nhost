@@ -1,5 +1,5 @@
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
-import { Avatar } from '@/ui/v1/Avatar';
+import { Avatar } from '@/ui/v2/Avatar';
 import { Box } from '@/ui/v2/Box';
 import { Divider } from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
@@ -32,7 +32,7 @@ export default function LocalAccountMenu() {
         }}
       >
         <Box className="grid grid-flow-col items-center justify-start gap-4 p-4">
-          <Avatar name="Local User" className="h-10 w-10" />
+          <Avatar className="h-10 w-10">Local User</Avatar>
 
           <Box className="grid grid-flow-row gap-0.5">
             <Text className="font-semibold">Local User</Text>
