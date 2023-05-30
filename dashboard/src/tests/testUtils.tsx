@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-imports */
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
-import { ManagedUIContext } from '@/context/UIContext';
+import { UIProvider } from '@/components/common/UIProvider';
 import { mockRouter, mockSession } from '@/tests/mocks';
 import { createTheme } from '@/ui/v2/createTheme';
 import createEmotionCache from '@/utils/createEmotionCache';
@@ -69,12 +69,12 @@ function Providers({ children }: PropsWithChildren<{}>) {
                   }),
                 ]}
               >
-                <ManagedUIContext>
+                <UIProvider>
                   <Toaster position="bottom-center" />
                   <ThemeProvider theme={theme}>
                     <DialogProvider>{children}</DialogProvider>
                   </ThemeProvider>
-                </ManagedUIContext>
+                </UIProvider>
               </NhostApolloProvider>
             </NhostProvider>
           </CacheProvider>

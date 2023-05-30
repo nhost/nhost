@@ -1,7 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { useUI } from '@/components/common/UIProvider';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import { useUI } from '@/context/UIContext';
 import features from '@/data/features.json';
 import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
 import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';

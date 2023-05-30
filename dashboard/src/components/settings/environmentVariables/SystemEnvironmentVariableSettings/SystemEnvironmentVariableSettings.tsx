@@ -1,8 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { InlineCode } from '@/components/common/InlineCode';
+import { useUI } from '@/components/common/UIProvider';
 import { EditJwtSecretForm } from '@/components/settings/environmentVariables/EditJwtSecretForm';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { useUI } from '@/context/UIContext';
 import { useAppClient } from '@/features/projects/common/hooks/useAppClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';

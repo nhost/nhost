@@ -1,4 +1,4 @@
-import { useUI } from '@/context/UIContext';
+import { useUI } from '@/components/common/UIProvider';
 import { useGitHubModal } from '@/features/git/common/hooks/useGitHubModal';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentListItem } from '@/features/projects/deployments/components/DeploymentListItem';

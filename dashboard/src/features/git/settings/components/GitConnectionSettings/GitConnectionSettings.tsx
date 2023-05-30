@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { useUI } from '@/context/UIContext';
 import { useGitHubModal } from '@/features/git/common/hooks/useGitHubModal';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { Box } from '@/ui/v2/Box';

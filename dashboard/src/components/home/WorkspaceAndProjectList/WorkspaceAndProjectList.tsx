@@ -1,7 +1,7 @@
 import { StateBadge } from '@/components/common/StateBadge';
 import type { DeploymentStatus } from '@/components/common/StatusCircle';
 import { StatusCircle } from '@/components/common/StatusCircle';
-import { useUI } from '@/context/UIContext';
+import { useUI } from '@/components/common/UIProvider';
 import { DeploymentStatusMessage } from '@/features/projects/deployments/components/DeploymentStatusMessage';
 import type { ApplicationState, Workspace } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';

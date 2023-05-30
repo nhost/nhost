@@ -1,7 +1,7 @@
 import { ControlledAutocomplete } from '@/components/common/ControlledAutocomplete';
 import { Form } from '@/components/common/Form';
+import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetAuthenticationSettingsDocument,

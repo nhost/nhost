@@ -1,4 +1,4 @@
-import { useUI } from '@/context/UIContext';
+import { useUI } from '@/components/common/UIProvider';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';

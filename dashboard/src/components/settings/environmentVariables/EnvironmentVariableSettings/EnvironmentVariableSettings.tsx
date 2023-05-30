@@ -1,8 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { useUI } from '@/components/common/UIProvider';
 import { CreateEnvironmentVariableForm } from '@/components/settings/environmentVariables/CreateEnvironmentVariableForm';
 import { EditEnvironmentVariableForm } from '@/components/settings/environmentVariables/EditEnvironmentVariableForm';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { EnvironmentVariable } from '@/types/application';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';

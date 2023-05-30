@@ -1,4 +1,4 @@
-import { useUI } from '@/context/UIContext';
+import { useUI } from '@/components/common/UIProvider';
 import { Alert } from '@/ui/v2/Alert';
 
 export default function MaintenanceAlert() {

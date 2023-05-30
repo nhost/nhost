@@ -1,8 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { useUI } from '@/components/common/UIProvider';
 import { CreateRoleForm } from '@/components/settings/roles/CreateRoleForm';
 import { EditRoleForm } from '@/components/settings/roles/EditRoleForm';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { Role } from '@/types/application';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';

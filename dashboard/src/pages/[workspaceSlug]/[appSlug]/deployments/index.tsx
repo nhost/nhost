@@ -1,7 +1,7 @@
 import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
-import { useUI } from '@/context/UIContext';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { AppDeployments } from '@/features/projects/deployments/components/AppDeployments';
 import { Button } from '@/ui/v2/Button';

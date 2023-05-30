@@ -1,5 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/context/UIContext';
+import { useUI } from '@/components/common/UIProvider';
 import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';

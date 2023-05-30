@@ -1,4 +1,4 @@
-import { useUI } from '@/context/UIContext';
+import { useUI } from '@/components/common/UIProvider';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { CloudIcon } from '@/ui/v2/icons/CloudIcon';
 import { CogIcon } from '@/ui/v2/icons/CogIcon';

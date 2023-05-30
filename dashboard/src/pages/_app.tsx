@@ -1,6 +1,6 @@
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
-import { ManagedUIContext } from '@/context/UIContext';
+import { UIProvider } from '@/components/common/UIProvider';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import '@/styles/fonts.css';
 import '@/styles/globals.css';
@@ -90,7 +90,7 @@ function MyApp({
             nhost={nhost}
             connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
           >
-            <ManagedUIContext>
+            <UIProvider>
               <Toaster position="bottom-center" />
 
               {isPlatform && (
@@ -109,7 +109,7 @@ function MyApp({
                   </DialogProvider>
                 </RetryableErrorBoundary>
               </ThemeProvider>
-            </ManagedUIContext>
+            </UIProvider>
           </NhostApolloProvider>
         </NhostProvider>
       </CacheProvider>

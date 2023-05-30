@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { useUI } from '@/context/UIContext';
 import { CreatePATForm } from '@/features/account/settings/components/CreatePATForm';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
