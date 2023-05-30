@@ -1,5 +1,5 @@
 import type { ErrorMessageProps } from '@/components/common/ErrorMessage';
-import ErrorMessage from '@/components/common/ErrorMessage';
+import { ErrorMessage } from '@/components/common/ErrorMessage';
 import type { PropsWithChildren } from 'react';
 import type {
   ErrorBoundaryPropsWithRender,
