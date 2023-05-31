@@ -121,6 +121,19 @@ func migrations(
 	return nil
 }
 
+func restart(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	dc *dockercompose.DockerCompose,
+) error {
+	ce.Infoln("Restarting services to reapply metadata if needed...")
+	if err := dc.Wrapper(ctx, "restart", "auth", "storage", "functions"); err != nil {
+		return fmt.Errorf("failed to restart services: %w", err)
+	}
+
+	return nil
+}
+
 func up(
 	ctx context.Context,
 	ce *clienv.CliEnv,
@@ -170,6 +183,10 @@ func up(
 	}
 
 	if err := migrations(ctx, ce, dc, applySeeds); err != nil {
+		return err
+	}
+
+	if err := restart(ctx, ce, dc); err != nil {
 		return err
 	}
 
