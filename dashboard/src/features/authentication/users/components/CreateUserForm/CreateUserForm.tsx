@@ -1,11 +1,11 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import type { DialogFormProps } from '@/types/common';
 import { Alert } from '@/ui/v2/Alert';
 import { Button } from '@/ui/v2/Button';
 import { Input } from '@/ui/v2/Input';
-import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';

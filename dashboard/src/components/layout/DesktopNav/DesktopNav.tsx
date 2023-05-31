@@ -1,6 +1,6 @@
 import type { IconLinkProps } from '@/components/common/IconLink';
 import { IconLink } from '@/components/common/IconLink';
-import { Nav } from '@/components/common/Nav';
+import { Nav } from '@/components/presentational/Nav';
 import { useProjectRoutes } from '@/features/projects/common/hooks/useProjectRoutes';
 import type { BoxProps } from '@/ui/v2/Box';
 import { Box } from '@/ui/v2/Box';

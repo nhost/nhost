@@ -1,10 +1,10 @@
-import { AccountMenu } from '@/components/common/AccountMenu';
 import { FeedbackForm } from '@/components/common/FeedbackForm';
-import { LocalAccountMenu } from '@/components/common/LocalAccountMenu';
-import { Logo } from '@/components/common/Logo';
 import { NavLink } from '@/components/common/NavLink';
+import { AccountMenu } from '@/components/layout/AccountMenu';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
+import { LocalAccountMenu } from '@/components/layout/LocalAccountMenu';
 import { MobileNav } from '@/components/layout/MobileNav';
+import { Logo } from '@/components/presentational/Logo';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ApplicationStatus } from '@/types/application';

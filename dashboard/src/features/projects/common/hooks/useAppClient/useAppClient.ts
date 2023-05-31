@@ -1,6 +1,6 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
+import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import {
   getAuthServiceUrl,
   getFunctionsServiceUrl,

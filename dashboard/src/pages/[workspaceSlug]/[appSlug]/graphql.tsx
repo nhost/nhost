@@ -4,12 +4,12 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { UserSelect } from '@/features/graphql/common/components/UserSelect';
 import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { Button } from '@/ui/v2/Button';
 import { PlayIcon } from '@/ui/v2/icons/PlayIcon';
 import { Option } from '@/ui/v2/Option';
 import { Select } from '@/ui/v2/Select';
 import { Tooltip } from '@/ui/v2/Tooltip';
-import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import { triggerToast } from '@/utils/toast';
 import {
   DOC_EXPLORER_PLUGIN,

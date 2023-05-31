@@ -1,7 +1,7 @@
 import { FeedbackForm } from '@/components/common/FeedbackForm';
-import { Nav } from '@/components/common/Nav';
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
+import { Nav } from '@/components/presentational/Nav';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useNavigationVisible } from '@/features/projects/common/hooks/useNavigationVisible';
 import { useProjectRoutes } from '@/features/projects/common/hooks/useProjectRoutes';

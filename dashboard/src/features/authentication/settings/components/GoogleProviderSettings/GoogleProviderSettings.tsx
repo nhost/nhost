@@ -7,6 +7,7 @@ import {
   baseProviderValidationSchema,
 } from '@/features/authentication/settings/components/BaseProviderSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
@@ -18,7 +19,6 @@ import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
 import { Input } from '@/ui/v2/Input';
 import { InputAdornment } from '@/ui/v2/InputAdornment';
 import { copy } from '@/utils/common/copy';
-import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';

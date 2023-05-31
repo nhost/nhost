@@ -3,6 +3,7 @@ import type {
   RuleGroup,
 } from '@/features/database/dataGrid/types/dataBrowser';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { Alert } from '@/ui/v2/Alert';
 import type { BoxProps } from '@/ui/v2/Box';
 import { Box } from '@/ui/v2/Box';
@@ -10,7 +11,6 @@ import { Button } from '@/ui/v2/Button';
 import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
 import { Link } from '@/ui/v2/Link';
 import { Text } from '@/ui/v2/Text';
-import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';

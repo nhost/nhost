@@ -2,6 +2,7 @@ import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
@@ -11,7 +12,6 @@ import { ArrowSquareOutIcon } from '@/ui/v2/icons/ArrowSquareOutIcon';
 import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
 import { Text } from '@/ui/v2/Text';
 import { copy } from '@/utils/common/copy';
-import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import Image from 'next/image';
 import type { ReactElement } from 'react';
 

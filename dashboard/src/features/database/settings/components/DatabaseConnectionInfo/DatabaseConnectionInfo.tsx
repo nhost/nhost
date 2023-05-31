@@ -1,5 +1,6 @@
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Button } from '@/ui/v2/Button';
 import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
@@ -7,7 +8,6 @@ import type { InputProps } from '@/ui/v2/Input';
 import { Input } from '@/ui/v2/Input';
 import { InputAdornment } from '@/ui/v2/InputAdornment';
 import { copy } from '@/utils/common/copy';
-import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
 import { useGetPostgresSettingsQuery } from '@/utils/__generated__/graphql';
 
 export default function DatabaseConnectionInfo() {

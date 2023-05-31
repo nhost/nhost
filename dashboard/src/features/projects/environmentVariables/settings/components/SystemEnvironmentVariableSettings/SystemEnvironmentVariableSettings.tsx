@@ -5,6 +5,11 @@ import { InlineCode } from '@/components/presentational/InlineCode';
 import { useAppClient } from '@/features/projects/common/hooks/useAppClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import {
+  defaultLocalBackendSlugs,
+  defaultRemoteBackendSlugs,
+  generateAppServiceUrl,
+} from '@/features/projects/common/utils/generateAppServiceUrl';
 import { EditJwtSecretForm } from '@/features/projects/environmentVariables/settings/components/EditJwtSecretForm';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
@@ -16,11 +21,6 @@ import { EyeOffIcon } from '@/ui/v2/icons/EyeOffIcon';
 import { List } from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import { Text } from '@/ui/v2/Text';
-import {
-  defaultLocalBackendSlugs,
-  defaultRemoteBackendSlugs,
-  generateAppServiceUrl,
-} from '@/utils/common/generateAppServiceUrl';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import { getJwtSecretsWithoutFalsyValues } from '@/utils/settings/getJwtSecretsWithoutFalsyValues';
 import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
