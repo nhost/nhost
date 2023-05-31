@@ -20,7 +20,9 @@ function checkIfAcceptedState(appState: ApplicationStatus) {
  * Determines the previous state of an application.
  * @param states An array of the states history for an application.
  */
-export function getPreviousApplicationState(states: ApplicationState[]) {
+export default function getPreviousApplicationState(
+  states: ApplicationState[],
+) {
   let previousAcceptedStateInHistory: AcceptedState;
 
   let wasTheApplicationPaused: boolean = false;
@@ -92,5 +94,3 @@ export function getPreviousApplicationState(states: ApplicationState[]) {
 
   return ApplicationStatus.Empty;
 }
-
-export default getPreviousApplicationState;

@@ -21,6 +21,9 @@ export interface ModalProps {
   dialogStyle?: CSSProperties;
 }
 
+/**
+ * @deprecated Use the `useDialog()` hook instead.
+ */
 export default function Modal({
   children,
   Component,
