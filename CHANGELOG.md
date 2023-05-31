@@ -1,5 +1,11 @@
 ## Changelog
 
+## 0.20.2
+
+### Patch Changes
+
+- 0cc9d36: fix: don't crash when adding allowed roles upon sign-in with a provider
+
 ## 0.20.1
 
 ### Patch Changes
