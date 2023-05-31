@@ -1,4 +1,4 @@
-import { READ_ONLY_SCHEMAS } from '@/utils/CONSTANTS';
+import { READ_ONLY_SCHEMAS } from '@/utils/constants/common';
 
 /**
  * Returns `true` if the schema is read-only, `false` otherwise.

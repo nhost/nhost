@@ -7,7 +7,7 @@ import { Button } from '@/ui/v2/Button';
 import { Divider } from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import { Text } from '@/ui/v2/Text';
-import { copy } from '@/utils/common/copy';
+import { copy } from '@/utils/copy';
 import Image from 'next/image';
 
 export default function WorkspaceHeader() {

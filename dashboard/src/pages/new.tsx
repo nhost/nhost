@@ -4,6 +4,8 @@ import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import features from '@/data/features.json';
 import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
+import { resetDatabasePasswordValidationSchema } from '@/features/database/settings/utils/resetDatabasePasswordValidationSchema';
+import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
 import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
@@ -21,13 +23,11 @@ import { Select } from '@/ui/v2/Select';
 import type { TextProps } from '@/ui/v2/Text';
 import { Text } from '@/ui/v2/Text';
 import { Tooltip } from '@/ui/v2/Tooltip';
-import { copy } from '@/utils/common/copy';
-import { MAX_FREE_PROJECTS } from '@/utils/CONSTANTS';
+import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { copy } from '@/utils/copy';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import { getCurrentEnvironment } from '@/utils/helpers';
-import { planDescriptions } from '@/utils/planDescriptions';
-import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { triggerToast } from '@/utils/toast';
 import type {
   PrefetchNewAppPlansFragment,

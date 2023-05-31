@@ -1,9 +1,3 @@
-export function formatDate(time) {
-  return `${time.getFullYear()}-${
-    time.getMonth() + 1
-  }-${time.getDate()}T:${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}+00:00`;
-}
-
 /**
  * Returns components of a date.
  *
@@ -11,7 +5,7 @@ export function formatDate(time) {
  * @param options.adjustTimezone - Whether to adjust the date to UTC.
  * @returns Components of the date.
  */
-export function getDateComponents(
+export default function getDateComponents(
   date?: Date,
   options?: { adjustTimezone?: boolean },
 ): {

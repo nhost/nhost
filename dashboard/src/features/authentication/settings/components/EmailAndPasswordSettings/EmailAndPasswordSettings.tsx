@@ -10,8 +10,8 @@ import {
 } from '@/generated/graphql';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Text } from '@/ui/v2/Text';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';

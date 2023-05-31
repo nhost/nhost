@@ -1,5 +1,5 @@
-import type { PrettifyNumberOptions } from '@/utils/common/prettifyNumber';
-import { prettifyNumber } from '@/utils/common/prettifyNumber';
+import type { PrettifyNumberOptions } from '@/utils/prettifyNumber';
+import { prettifyNumber } from '@/utils/prettifyNumber';
 
 /**
  * Prettify a size value in bytes.

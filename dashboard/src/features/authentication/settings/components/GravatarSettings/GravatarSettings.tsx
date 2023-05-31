@@ -10,12 +10,12 @@ import {
 } from '@/generated/graphql';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Option } from '@/ui/v2/Option';
-import { getServerError } from '@/utils/settings/getServerError';
 import {
   AUTH_GRAVATAR_DEFAULT,
   AUTH_GRAVATAR_RATING,
   getToastStyleProps,
-} from '@/utils/settings/settingsConstants';
+} from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';

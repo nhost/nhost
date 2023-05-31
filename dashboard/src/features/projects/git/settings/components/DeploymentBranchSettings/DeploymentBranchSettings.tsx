@@ -8,9 +8,9 @@ import {
 } from '@/generated/graphql';
 import { Alert } from '@/ui/v2/Alert';
 import { Input } from '@/ui/v2/Input';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getServerError } from '@/utils/getServerError';
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';

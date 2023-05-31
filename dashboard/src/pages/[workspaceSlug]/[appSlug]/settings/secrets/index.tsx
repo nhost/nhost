@@ -19,7 +19,7 @@ import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
 import { List } from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import { Text } from '@/ui/v2/Text';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   GetSecretsDocument,
   useDeleteSecretMutation,

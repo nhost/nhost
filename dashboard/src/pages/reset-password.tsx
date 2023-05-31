@@ -5,7 +5,7 @@ import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { Input, inputClasses } from '@/ui/v2/Input';
 import { Text } from '@/ui/v2/Text';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
 import { useResetPassword } from '@nhost/nextjs';

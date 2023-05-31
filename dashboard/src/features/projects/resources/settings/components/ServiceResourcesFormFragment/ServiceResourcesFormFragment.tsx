@@ -14,7 +14,10 @@ import { ExclamationIcon } from '@/ui/v2/icons/ExclamationIcon';
 import { Slider } from '@/ui/v2/Slider';
 import { Text } from '@/ui/v2/Text';
 import { Tooltip } from '@/ui/v2/Tooltip';
-import { RESOURCE_MEMORY_STEP, RESOURCE_VCPU_STEP } from '@/utils/CONSTANTS';
+import {
+  RESOURCE_MEMORY_STEP,
+  RESOURCE_VCPU_STEP,
+} from '@/utils/constants/common';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 export interface ServiceResourcesFormFragmentProps {

@@ -4,6 +4,7 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { CreateRoleForm } from '@/features/projects/roles/settings/components/CreateRoleForm';
 import { EditRoleForm } from '@/features/projects/roles/settings/components/EditRoleForm';
+import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import type { Role } from '@/types/application';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
@@ -18,9 +19,8 @@ import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
 import { List } from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import { Text } from '@/ui/v2/Text';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getUserRoles } from '@/utils/settings/getUserRoles';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,

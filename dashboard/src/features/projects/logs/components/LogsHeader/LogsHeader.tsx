@@ -1,13 +1,19 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { LogsDatePicker } from '@/features/projects/logs/components/LogsDatePicker';
-import type { AvailableLogsServices, LogsCustomInterval } from '@/types/logs';
+import {
+  LogsCustomInterval,
+  LOGS_AVAILABLE_INTERVALS,
+} from '@/features/projects/logs/utils/constants/intervals';
+import {
+  AvailableLogsService,
+  LOGS_AVAILABLE_SERVICES,
+} from '@/features/projects/logs/utils/constants/services';
 import type { BoxProps } from '@/ui/v2/Box';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { ClockIcon } from '@/ui/v2/icons/ClockIcon';
 import { Option } from '@/ui/v2/Option';
 import { Select } from '@/ui/v2/Select';
-import { availableServices, logsCustomIntervals } from '@/utils/logs';
 import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -24,7 +30,7 @@ export interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
   /**
    * Service to where to fetch logs from.
    */
-  service: AvailableLogsServices;
+  service: AvailableLogsService;
   /**
    * Function to be called when the user changes the from date.
    */
@@ -36,7 +42,7 @@ export interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
   /**
    * Function to be called when the user changes service to which to query logs from.
    */
-  onServiceChange: (value: AvailableLogsServices) => void;
+  onServiceChange: (value: AvailableLogsService) => void;
 }
 
 type LogsToDatePickerLiveButtonProps = Pick<
@@ -170,7 +176,7 @@ export default function LogsHeader({
               if (typeof value !== 'string') {
                 return;
               }
-              onServiceChange(value as AvailableLogsServices);
+              onServiceChange(value as AvailableLogsService);
             }}
             value={service}
             aria-label="Select service"
@@ -179,7 +185,7 @@ export default function LogsHeader({
               root: { className: 'min-h-[initial] h-9 leading-[initial]' },
             }}
           >
-            {availableServices.map(({ value, label }) => (
+            {LOGS_AVAILABLE_SERVICES.map(({ value, label }) => (
               <Option
                 key={value}
                 value={value}
@@ -193,7 +199,7 @@ export default function LogsHeader({
       </Box>
 
       <Box className="hidden grid-flow-col items-center justify-center gap-3 md:grid lg:justify-end">
-        {logsCustomIntervals.map((logInterval) => (
+        {LOGS_AVAILABLE_INTERVALS.map((logInterval) => (
           <Button
             key={logInterval.label}
             variant="outlined"

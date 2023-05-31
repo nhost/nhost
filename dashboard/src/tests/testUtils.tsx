@@ -4,7 +4,7 @@ import { UIProvider } from '@/components/common/UIProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { mockRouter, mockSession } from '@/tests/mocks';
 import { createTheme } from '@/ui/v2/createTheme';
-import createEmotionCache from '@/utils/createEmotionCache';
+import { createEmotionCache } from '@/utils/createEmotionCache';
 import { createHttpLink } from '@apollo/client';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider } from '@mui/material/styles';

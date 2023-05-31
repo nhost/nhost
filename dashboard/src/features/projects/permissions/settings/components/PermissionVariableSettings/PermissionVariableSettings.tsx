@@ -4,6 +4,7 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { CreatePermissionVariableForm } from '@/features/projects/permissions/settings/components/CreatePermissionVariableForm';
 import { EditPermissionVariableForm } from '@/features/projects/permissions/settings/components/EditPermissionVariableForm';
+import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
 import type { PermissionVariable } from '@/types/application';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
@@ -18,9 +19,8 @@ import { List } from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import { Text } from '@/ui/v2/Text';
 import { Tooltip } from '@/ui/v2/Tooltip';
-import { getAllPermissionVariables } from '@/utils/settings/getAllPermissionVariables';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,

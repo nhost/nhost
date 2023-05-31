@@ -13,7 +13,7 @@ import { List } from '@/ui/v2/List';
 import { OptionBase } from '@/ui/v2/Option';
 import { OptionGroupBase } from '@/ui/v2/OptionGroup';
 import { Text } from '@/ui/v2/Text';
-import { getTruncatedText } from '@/utils/common/getTruncatedText';
+import { getTruncatedText } from '@/utils/getTruncatedText';
 import type { AutocompleteGroupedOption } from '@mui/base/AutocompleteUnstyled';
 import { useAutocomplete } from '@mui/base/AutocompleteUnstyled';
 import type { AutocompleteRenderGroupParams } from '@mui/material/Autocomplete';

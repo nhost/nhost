@@ -1,4 +1,4 @@
-import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/CONSTANTS';
+import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 
 /**
  * Prettifies a number of vCPUs.

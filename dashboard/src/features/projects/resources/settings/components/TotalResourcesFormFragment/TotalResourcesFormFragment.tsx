@@ -19,7 +19,7 @@ import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
   RESOURCE_VCPU_STEP,
-} from '@/utils/CONSTANTS';
+} from '@/utils/constants/common';
 import { alpha, styled } from '@mui/material';
 import { useFormContext, useWatch } from 'react-hook-form';
 

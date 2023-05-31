@@ -4,7 +4,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import type { DialogFormProps } from '@/types/common';
 import { Button } from '@/ui/v2/Button';
 import { Input } from '@/ui/v2/Input';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   GetEnvironmentVariablesDocument,
   useUpdateConfigMutation,

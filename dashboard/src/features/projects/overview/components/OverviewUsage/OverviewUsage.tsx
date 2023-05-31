@@ -9,7 +9,7 @@ import {
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import { LinearProgress } from '@/ui/v2/LinearProgress';
 import { Text } from '@/ui/v2/Text';
-import { prettifySize } from '@/utils/common/prettifySize';
+import { prettifySize } from '@/utils/prettifySize';
 
 const now = new Date();
 

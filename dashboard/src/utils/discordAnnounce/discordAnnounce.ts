@@ -1,9 +1,10 @@
-import { isDevOrStaging } from './helpers';
+import { isDevOrStaging } from '@/utils/helpers';
+
 /**
  * This function sends content via a Discord Webhook to the console logging channel.
  * @param content {string} This string to log on the particular channel.
  */
-export const discordAnnounce = async (content: string) => {
+const discordAnnounce = async (content: string) => {
   if (!process.env.NEXT_PUBLIC_DISCORD_LOGGING) {
     return;
   }

@@ -8,8 +8,8 @@ import {
   baseEnvironmentVariableFormValidationSchema,
 } from '@/features/projects/environmentVariables/settings/components/BaseEnvironmentVariableForm';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import {
   GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,

@@ -14,7 +14,7 @@ import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
   RESOURCE_VCPU_PRICE_PER_MINUTE,
-} from '@/utils/CONSTANTS';
+} from '@/utils/constants/common';
 
 export interface ResourcesConfirmationDialogProps {
   /**

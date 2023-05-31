@@ -7,9 +7,9 @@ import {
   BasePermissionVariableForm,
   basePermissionVariableValidationSchema,
 } from '@/features/projects/permissions/settings/components/BasePermissionVariableForm';
+import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { getAllPermissionVariables } from '@/utils/settings/getAllPermissionVariables';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,

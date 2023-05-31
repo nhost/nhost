@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { useAppState } from '@/features/projects/common/hooks/useAppState';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
 import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
 import {
   refetchGetApplicationPlanQuery,
@@ -16,9 +17,8 @@ import { Checkbox } from '@/ui/v2/Checkbox';
 import { BaseDialog } from '@/ui/v2/Dialog';
 import { Link } from '@/ui/v2/Link';
 import { Text } from '@/ui/v2/Text';
-import { planDescriptions } from '@/utils/planDescriptions';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';

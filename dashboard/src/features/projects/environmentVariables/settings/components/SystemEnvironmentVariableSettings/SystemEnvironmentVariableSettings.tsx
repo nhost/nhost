@@ -11,6 +11,7 @@ import {
   generateAppServiceUrl,
 } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { EditJwtSecretForm } from '@/features/projects/environmentVariables/settings/components/EditJwtSecretForm';
+import { getJwtSecretsWithoutFalsyValues } from '@/features/projects/environmentVariables/settings/utils/getJwtSecretsWithoutFalsyValues';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
@@ -22,7 +23,6 @@ import { List } from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
 import { Text } from '@/ui/v2/Text';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
-import { getJwtSecretsWithoutFalsyValues } from '@/utils/settings/getJwtSecretsWithoutFalsyValues';
 import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { Fragment, useState } from 'react';
 

@@ -1,5 +1,5 @@
 import { LogsTimePicker } from '@/features/projects/logs/components/LogsTimePicker';
-import { DATEPICKER_DISPLAY_FORMAT } from '@/features/projects/logs/utils/datepicker';
+import { DATEPICKER_DISPLAY_FORMAT } from '@/features/projects/logs/utils/constants/datePicker';
 import { usePreviousData } from '@/hooks/usePreviousData';
 import type { ButtonProps } from '@/ui/v2/Button';
 import { Button } from '@/ui/v2/Button';

@@ -1,5 +1,5 @@
-import { RESOURCE_MEMORY_MULTIPLIER } from '@/utils/CONSTANTS';
-import { prettifyNumber } from '@/utils/common/prettifyNumber';
+import { RESOURCE_MEMORY_MULTIPLIER } from '@/utils/constants/common';
+import { prettifyNumber } from '@/utils/prettifyNumber';
 
 /**
  * Prettifies a number of memory.

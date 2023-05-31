@@ -3,7 +3,9 @@ import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { EditUserPasswordForm } from '@/features/authentication/users/components/EditUserPasswordForm';
+import { getReadableProviderName } from '@/features/authentication/users/utils/getReadableProviderName';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
 import { Avatar } from '@/ui/v2/Avatar';
@@ -17,11 +19,9 @@ import { Input } from '@/ui/v2/Input';
 import { InputLabel } from '@/ui/v2/InputLabel';
 import { Option } from '@/ui/v2/Option';
 import { Text } from '@/ui/v2/Text';
-import { copy } from '@/utils/common/copy';
-import { getReadableProviderName } from '@/utils/common/getReadableProviderName';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getUserRoles } from '@/utils/settings/getUserRoles';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { copy } from '@/utils/copy';
+import { getServerError } from '@/utils/getServerError';
 import {
   RemoteAppGetUsersDocument,
   useGetRolesPermissionsQuery,

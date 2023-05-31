@@ -3,9 +3,9 @@ import { Alert } from '@/ui/v2/Alert';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { Checkbox } from '@/ui/v2/Checkbox';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { getErrorMessage } from '@/utils/getErrorMessage';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getServerError } from '@/utils/getServerError';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteWorkspaceMutation,

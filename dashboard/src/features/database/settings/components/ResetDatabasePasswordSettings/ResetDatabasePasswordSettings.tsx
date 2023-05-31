@@ -2,6 +2,7 @@ import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
+import { resetDatabasePasswordValidationSchema } from '@/features/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   useResetPostgresPasswordMutation,
@@ -11,9 +12,8 @@ import { Button } from '@/ui/v2/Button';
 import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
 import { Input } from '@/ui/v2/Input';
 import { InputAdornment } from '@/ui/v2/InputAdornment';
-import { copy } from '@/utils/common/copy';
+import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useUserData } from '@nhost/nextjs';

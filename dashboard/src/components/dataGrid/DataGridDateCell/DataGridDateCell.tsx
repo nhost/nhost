@@ -3,7 +3,7 @@ import { useDataGridCell } from '@/components/dataGrid/DataGridCell';
 import { Input, inputClasses } from '@/ui/v2/Input';
 import type { TextProps } from '@/ui/v2/Text';
 import { Text } from '@/ui/v2/Text';
-import { getDateComponents } from '@/utils/formatDate';
+import { getDateComponents } from '@/utils/getDateComponents';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import { twMerge } from 'tailwind-merge';
 

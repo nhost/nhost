@@ -3,9 +3,9 @@ import { Form } from '@/components/form/Form';
 import type { DialogFormProps } from '@/types/common';
 import { Button } from '@/ui/v2/Button';
 import { Input } from '@/ui/v2/Input';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { slugifyString } from '@/utils/helpers';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useInsertWorkspaceMutation,

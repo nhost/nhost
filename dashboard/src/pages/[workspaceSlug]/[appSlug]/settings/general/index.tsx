@@ -15,10 +15,10 @@ import {
 } from '@/generated/graphql';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Input } from '@/ui/v2/Input';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { discordAnnounce } from '@/utils/discordAnnounce';
+import { getServerError } from '@/utils/getServerError';
 import { slugifyString } from '@/utils/helpers';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';

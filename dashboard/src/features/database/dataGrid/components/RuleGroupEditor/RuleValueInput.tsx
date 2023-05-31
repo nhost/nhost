@@ -5,12 +5,12 @@ import type { ColumnAutocompleteProps } from '@/features/database/dataGrid/compo
 import { ColumnAutocomplete } from '@/features/database/dataGrid/components/ColumnAutocomplete';
 import type { HasuraOperator } from '@/features/database/dataGrid/types/dataBrowser';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import type { InputProps } from '@/ui/v2/Input';
 import { inputClasses } from '@/ui/v2/Input';
 import { Option } from '@/ui/v2/Option';
-import { getAllPermissionVariables } from '@/utils/settings/getAllPermissionVariables';
 import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';

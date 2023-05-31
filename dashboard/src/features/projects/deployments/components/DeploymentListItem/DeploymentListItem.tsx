@@ -10,8 +10,8 @@ import { ArrowCounterclockwiseIcon } from '@/ui/v2/icons/ArrowCounterclockwiseIc
 import { ChevronRightIcon } from '@/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/ui/v2/ListItem';
 import { Tooltip } from '@/ui/v2/Tooltip';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetAllWorkspacesAndProjectsDocument,

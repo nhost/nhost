@@ -11,7 +11,7 @@ import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { Chip } from '@/ui/v2/Chip';
 import { Text } from '@/ui/v2/Text';
-import { prettifySize } from '@/utils/common/prettifySize';
+import { prettifySize } from '@/utils/prettifySize';
 import { formatDistanceStrict, formatISO9075 } from 'date-fns';
 import type { ReactElement } from 'react';
 import { useState } from 'react';

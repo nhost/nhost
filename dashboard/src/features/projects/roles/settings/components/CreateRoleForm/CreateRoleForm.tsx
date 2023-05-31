@@ -7,10 +7,10 @@ import {
   BaseRoleForm,
   baseRoleFormValidationSchema,
 } from '@/features/projects/roles/settings/components/BaseRoleForm';
+import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getUserRoles } from '@/utils/settings/getUserRoles';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,

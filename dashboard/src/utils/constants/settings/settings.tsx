@@ -1,7 +1,7 @@
 import { CheckIcon } from '@/ui/v2/icons/CheckIcon';
 import { XIcon } from '@/ui/v2/icons/XIcon';
 import { getDesignTokens } from '@/ui/v2/theme/getDesignTokens';
-import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/CONSTANTS';
+import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
 import type { DefaultToastOptions } from 'react-hot-toast';
 
 function getToastBackgroundColor() {

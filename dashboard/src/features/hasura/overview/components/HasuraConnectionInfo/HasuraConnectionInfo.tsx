@@ -12,7 +12,7 @@ import { IconButton } from '@/ui/v2/IconButton';
 import { ArrowSquareOutIcon } from '@/ui/v2/icons/ArrowSquareOutIcon';
 import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
 import { Text } from '@/ui/v2/Text';
-import { copy } from '@/utils/common/copy';
+import { copy } from '@/utils/copy';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import Image from 'next/image';
 

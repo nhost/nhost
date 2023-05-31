@@ -2,7 +2,7 @@ import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MEMORY_RATIO,
   RESOURCE_VCPU_MULTIPLIER,
-} from '@/utils/CONSTANTS';
+} from '@/utils/constants/common';
 import * as Yup from 'yup';
 
 /**

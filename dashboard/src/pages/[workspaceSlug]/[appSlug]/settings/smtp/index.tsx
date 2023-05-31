@@ -8,7 +8,7 @@ import { UpgradeNotification } from '@/features/projects/common/components/Upgra
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Input } from '@/ui/v2/Input';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   GetSmtpSettingsDocument,
   useGetSmtpSettingsQuery,

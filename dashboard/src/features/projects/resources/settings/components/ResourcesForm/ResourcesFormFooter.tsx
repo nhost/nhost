@@ -12,7 +12,7 @@ import { Tooltip } from '@/ui/v2/Tooltip';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
-} from '@/utils/CONSTANTS';
+} from '@/utils/constants/common';
 import { useFormState, useWatch } from 'react-hook-form';
 
 export default function ResourcesFormFooter() {

@@ -19,7 +19,7 @@ import {
 import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MULTIPLIER,
-} from '@/utils/CONSTANTS';
+} from '@/utils/constants/common';
 import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
 import { expect, test, vi } from 'vitest';

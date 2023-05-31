@@ -7,7 +7,7 @@ import {
   BaseSecretForm,
   baseSecretFormValidationSchema,
 } from '@/features/projects/secrets/settings/components/BaseSecretForm';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   GetSecretsDocument,
   useInsertSecretMutation,
