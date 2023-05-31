@@ -99,6 +99,6 @@ jobs:
       - name: Install the Nhost CLI
         uses: ./.github/actions/nhost-cli
         with:
-          version: v0.8.10
+          version: v1.0.0
       - name: should find the correct version
-        run: nhost --version | head -n 1 | grep v0.8.10 || exit 1
+        run: nhost --version | head -n 1 | grep v1.0.0 || exit 1
