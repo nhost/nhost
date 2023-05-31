@@ -131,7 +131,7 @@ echo
 
 if [[ "$platform" != 'windows' ]]; then
     try sudo mv ./cli ${INSTALL_PATH}/nhost
-    nhost version
+    nhost --version
     echo
     log "${BLUE}Use Nhost CLI with: nhost --help${NC}"
 else
