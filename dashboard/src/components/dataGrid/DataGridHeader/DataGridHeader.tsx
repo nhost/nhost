@@ -1,15 +1,15 @@
 import type { DataGridProps } from '@/components/dataGrid/DataGrid';
 import { useDataGridConfig } from '@/components/dataGrid/DataGridConfigProvider';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Divider } from '@/components/ui/v2/Divider';
+import { Dropdown } from '@/components/ui/v2/Dropdown';
+import { ArrowDownIcon } from '@/components/ui/v2/icons/ArrowDownIcon';
+import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
+import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
+import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import type { DataBrowserGridColumn } from '@/features/database/dataGrid/types/dataBrowser';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Divider } from '@/ui/v2/Divider';
-import { Dropdown } from '@/ui/v2/Dropdown';
-import { ArrowDownIcon } from '@/ui/v2/icons/ArrowDownIcon';
-import { ArrowUpIcon } from '@/ui/v2/icons/ArrowUpIcon';
-import { PencilIcon } from '@/ui/v2/icons/PencilIcon';
-import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/ui/v2/icons/TrashIcon';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
 

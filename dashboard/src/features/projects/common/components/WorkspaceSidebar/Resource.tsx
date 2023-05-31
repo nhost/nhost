@@ -1,5 +1,5 @@
-import { ArrowSquareOutIcon } from '@/ui/v2/icons/ArrowSquareOutIcon';
-import { Text } from '@/ui/v2/Text';
+import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
+import { Text } from '@/components/ui/v2/Text';
 import { useTheme } from '@mui/material';
 import Image from 'next/image';
 

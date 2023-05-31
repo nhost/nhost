@@ -1,12 +1,12 @@
 import { NavLink } from '@/components/common/NavLink';
 import { Form } from '@/components/form/Form';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Divider } from '@/ui/v2/Divider';
-import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';
-import { Input, inputClasses } from '@/ui/v2/Input';
-import { Text } from '@/ui/v2/Text';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Divider } from '@/components/ui/v2/Divider';
+import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
+import { Input, inputClasses } from '@/components/ui/v2/Input';
+import { Text } from '@/components/ui/v2/Text';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
 import { yupResolver } from '@hookform/resolvers/yup';

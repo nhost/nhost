@@ -1,5 +1,10 @@
 import { FeedbackForm } from '@/components/common/FeedbackForm';
 import { Container } from '@/components/layout/Container';
+import { Modal } from '@/components/ui/v1/Modal';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Button } from '@/components/ui/v2/Button';
+import { Dropdown } from '@/components/ui/v2/Dropdown';
+import { Text } from '@/components/ui/v2/Text';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
 import { ApplicationLive } from '@/features/projects/common/components/ApplicationLive';
 import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
@@ -9,11 +14,6 @@ import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCur
 import { getPreviousApplicationState } from '@/features/projects/common/utils/getPreviousApplicationState';
 import type { ApplicationState } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
-import { Modal } from '@/ui/v1/Modal';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Button } from '@/ui/v2/Button';
-import { Dropdown } from '@/ui/v2/Dropdown';
-import { Text } from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { getApplicationStatusString } from '@/utils/helpers';
 import { triggerToast } from '@/utils/toast';

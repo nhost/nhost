@@ -1,4 +1,4 @@
-import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
+import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type { Cell, CellProps, ColumnInstance, Row } from 'react-table';
 
 /**

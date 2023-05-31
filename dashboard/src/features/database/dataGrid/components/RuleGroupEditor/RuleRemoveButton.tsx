@@ -1,10 +1,10 @@
+import type { ButtonProps } from '@/components/ui/v2/Button';
+import { Button } from '@/components/ui/v2/Button';
+import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import type {
   Rule,
   RuleGroup,
 } from '@/features/database/dataGrid/types/dataBrowser';
-import type { ButtonProps } from '@/ui/v2/Button';
-import { Button } from '@/ui/v2/Button';
-import { XIcon } from '@/ui/v2/icons/XIcon';
 import { useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 

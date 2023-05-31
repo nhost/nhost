@@ -1,6 +1,6 @@
+import { Button } from '@/components/ui/v2/Button';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { Button } from '@/ui/v2/Button';
-import { Text } from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';

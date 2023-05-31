@@ -1,8 +1,8 @@
+import { Alert } from '@/components/ui/v2/Alert';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { Alert } from '@/ui/v2/Alert';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Checkbox } from '@/ui/v2/Checkbox';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import { getServerError } from '@/utils/getServerError';

@@ -1,12 +1,12 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useGitHubModal } from '@/features/projects/git/common/hooks/useGitHubModal';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';
-import { Text } from '@/ui/v2/Text';
 import { triggerToast } from '@/utils/toast';
 import { useUpdateApplicationMutation } from '@/utils/__generated__/graphql';
 

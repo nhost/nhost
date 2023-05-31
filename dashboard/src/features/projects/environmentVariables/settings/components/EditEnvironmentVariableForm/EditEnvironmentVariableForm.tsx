@@ -1,3 +1,4 @@
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type {
   BaseEnvironmentVariableFormProps,
@@ -8,7 +9,6 @@ import {
   baseEnvironmentVariableFormValidationSchema,
 } from '@/features/projects/environmentVariables/settings/components/BaseEnvironmentVariableForm';
 import type { EnvironmentVariable } from '@/types/application';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
 import {

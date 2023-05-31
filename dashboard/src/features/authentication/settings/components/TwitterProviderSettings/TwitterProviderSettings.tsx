@@ -1,6 +1,11 @@
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { IconButton } from '@/components/ui/v2/IconButton';
+import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
+import { Input } from '@/components/ui/v2/Input';
+import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import {
@@ -8,11 +13,6 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { IconButton } from '@/ui/v2/IconButton';
-import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
-import { Input } from '@/ui/v2/Input';
-import { InputAdornment } from '@/ui/v2/InputAdornment';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
 import { getServerError } from '@/utils/getServerError';

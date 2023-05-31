@@ -13,7 +13,6 @@
       "@/styles/*": ["styles/*"],
       "@/data/*": ["data/*"],
       "@/generated/*": ["utils/__generated__/*"],
-      "@/ui/*": ["components/ui/*"],
       "@/features/*": ["features/*"],
       "@nhost/nextjs": ["../../packages/nextjs/src/index.ts"],
       "@nhost/react-apollo": ["../../packages/react-apollo/src/index.ts"]

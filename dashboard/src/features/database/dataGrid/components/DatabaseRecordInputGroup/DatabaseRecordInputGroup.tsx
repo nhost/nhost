@@ -1,15 +1,15 @@
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
+import { KeyIcon } from '@/components/ui/v2/icons/KeyIcon';
+import { Input } from '@/components/ui/v2/Input';
+import { Option } from '@/components/ui/v2/Option';
+import { Select } from '@/components/ui/v2/Select';
+import { Text } from '@/components/ui/v2/Text';
 import type { DataBrowserGridColumn } from '@/features/database/dataGrid/types/dataBrowser';
 import { getInputType } from '@/features/database/dataGrid/utils/inputHelpers';
 import { normalizeDefaultValue } from '@/features/database/dataGrid/utils/normalizeDefaultValue';
-import type { BoxProps } from '@/ui/v2/Box';
-import { Box } from '@/ui/v2/Box';
-import { KeyIcon } from '@/ui/v2/icons/KeyIcon';
-import { Input } from '@/ui/v2/Input';
-import { Option } from '@/ui/v2/Option';
-import { Select } from '@/ui/v2/Select';
-import { Text } from '@/ui/v2/Text';
 import { Controller, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 

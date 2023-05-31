@@ -3,6 +3,11 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { Form } from '@/components/form/Form';
 import { InlineCode } from '@/components/presentational/InlineCode';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Input } from '@/components/ui/v2/Input';
+import { OptionBase } from '@/components/ui/v2/Option';
+import { Text } from '@/components/ui/v2/Text';
 import type {
   ColumnType,
   DatabaseColumn,
@@ -13,11 +18,6 @@ import {
   postgresTypeGroups,
 } from '@/features/database/dataGrid/utils/postgresqlConstants';
 import type { DialogFormProps } from '@/types/common';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Input } from '@/ui/v2/Input';
-import { OptionBase } from '@/ui/v2/Option';
-import { Text } from '@/ui/v2/Text';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';

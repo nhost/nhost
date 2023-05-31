@@ -1,4 +1,4 @@
-import { Option } from '@/ui/v2/Option';
+import { Option } from '@/components/ui/v2/Option';
 import type { ComponentMeta, ComponentStory } from '@storybook/react';
 import type { SelectProps } from './Select';
 import Select from './Select';

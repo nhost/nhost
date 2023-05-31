@@ -1,8 +1,8 @@
 import { Form } from '@/components/form/Form';
+import { Button } from '@/components/ui/v2/Button';
+import { Text } from '@/components/ui/v2/Text';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
-import { Button } from '@/ui/v2/Button';
-import { Text } from '@/ui/v2/Text';
 import type { ComponentMeta, ComponentStory } from '@storybook/react';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';

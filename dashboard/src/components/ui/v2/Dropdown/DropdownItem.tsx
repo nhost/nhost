@@ -1,4 +1,4 @@
-import useDropdown from '@/ui/v2/Dropdown/useDropdown';
+import useDropdown from '@/components/ui/v2/Dropdown/useDropdown';
 import { styled } from '@mui/material';
 import { buttonBaseClasses } from '@mui/material/ButtonBase';
 import { dividerClasses } from '@mui/material/Divider';

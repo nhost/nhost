@@ -1,25 +1,25 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Divider } from '@/components/ui/v2/Divider';
+import { Dropdown } from '@/components/ui/v2/Dropdown';
+import { IconButton } from '@/components/ui/v2/IconButton';
+import { DotsVerticalIcon } from '@/components/ui/v2/icons/DotsVerticalIcon';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
+import { List } from '@/components/ui/v2/List';
+import { ListItem } from '@/components/ui/v2/ListItem';
+import { Text } from '@/components/ui/v2/Text';
 import { CreatePATForm } from '@/features/account/settings/components/CreatePATForm';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Divider } from '@/ui/v2/Divider';
-import { Dropdown } from '@/ui/v2/Dropdown';
-import { IconButton } from '@/ui/v2/IconButton';
-import { List } from '@/ui/v2/List';
-import { ListItem } from '@/ui/v2/ListItem';
-import { Text } from '@/ui/v2/Text';
-import { DotsVerticalIcon } from '@/ui/v2/icons/DotsVerticalIcon';
-import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import {
   GetPersonalAccessTokensDocument,
   useDeletePersonalAccessTokenMutation,
   useGetPersonalAccessTokensQuery,
 } from '@/utils/__generated__/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
 import { Fragment } from 'react';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';

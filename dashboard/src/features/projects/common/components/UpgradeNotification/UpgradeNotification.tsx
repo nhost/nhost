@@ -1,9 +1,9 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { Alert } from '@/components/ui/v2/Alert';
+import { Button } from '@/components/ui/v2/Button';
+import { Text } from '@/components/ui/v2/Text';
 import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
-import { Alert } from '@/ui/v2/Alert';
-import { Button } from '@/ui/v2/Button';
-import { Text } from '@/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
 

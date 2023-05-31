@@ -3,7 +3,7 @@ import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import type { SettingsSidebarProps } from '@/components/layout/SettingsSidebar';
 import { SettingsSidebar } from '@/components/layout/SettingsSidebar';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Box } from '@/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';
 
 export interface SettingsLayoutProps extends ProjectLayoutProps {

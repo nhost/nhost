@@ -1,16 +1,16 @@
 import { useUI } from '@/components/common/UIProvider';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Divider } from '@/components/ui/v2/Divider';
+import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
+import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
+import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
+import { List } from '@/components/ui/v2/List';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentListItem } from '@/features/projects/deployments/components/DeploymentListItem';
 import { useGitHubModal } from '@/features/projects/git/common/hooks/useGitHubModal';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Divider } from '@/ui/v2/Divider';
-import { ChevronRightIcon } from '@/ui/v2/icons/ChevronRightIcon';
-import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';
-import { RocketIcon } from '@/ui/v2/icons/RocketIcon';
-import { List } from '@/ui/v2/List';
-import { Text } from '@/ui/v2/Text';
 import { getLastLiveDeployment } from '@/utils/helpers';
 import {
   useGetDeploymentsSubSubscription,

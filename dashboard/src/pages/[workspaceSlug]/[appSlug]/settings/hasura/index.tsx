@@ -1,8 +1,8 @@
 import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { HasuraServiceVersionSettings } from '@/features/hasura/settings/components/HasuraServiceVersionSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 

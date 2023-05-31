@@ -28,7 +28,6 @@
       "@/styles/*": ["styles/*"],
       "@/data/*": ["data/*"],
       "@/generated/*": ["utils/__generated__/*"],
-      "@/ui/*": ["components/ui/*"],
       "@/features/*": ["features/*"]
     },
     "incremental": true

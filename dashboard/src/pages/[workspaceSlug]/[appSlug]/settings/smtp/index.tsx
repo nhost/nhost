@@ -4,10 +4,10 @@ import { Form } from '@/components/form/Form';
 import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Input } from '@/components/ui/v2/Input';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Input } from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   GetSmtpSettingsDocument,

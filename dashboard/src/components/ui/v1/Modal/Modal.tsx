@@ -1,5 +1,5 @@
-import { ClientOnlyPortal } from '@/ui/v1/ClientOnlyPortal';
-import { Box } from '@/ui/v2/Box';
+import { ClientOnlyPortal } from '@/components/ui/v1/ClientOnlyPortal';
+import { Box } from '@/components/ui/v2/Box';
 import { Dialog, Transition } from '@headlessui/react';
 import { alpha, useTheme } from '@mui/material';
 import clsx from 'clsx';

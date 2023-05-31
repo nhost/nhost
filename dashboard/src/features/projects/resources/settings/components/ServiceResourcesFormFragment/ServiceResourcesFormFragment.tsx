@@ -1,3 +1,8 @@
+import { Box } from '@/components/ui/v2/Box';
+import { ExclamationIcon } from '@/components/ui/v2/icons/ExclamationIcon';
+import { Slider } from '@/components/ui/v2/Slider';
+import { Text } from '@/components/ui/v2/Text';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/projects/resources/settings/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
@@ -9,11 +14,6 @@ import {
   MIN_SERVICE_REPLICAS,
   MIN_SERVICE_VCPU,
 } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { Box } from '@/ui/v2/Box';
-import { ExclamationIcon } from '@/ui/v2/icons/ExclamationIcon';
-import { Slider } from '@/ui/v2/Slider';
-import { Text } from '@/ui/v2/Text';
-import { Tooltip } from '@/ui/v2/Tooltip';
 import {
   RESOURCE_MEMORY_STEP,
   RESOURCE_VCPU_STEP,

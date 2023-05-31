@@ -1,3 +1,8 @@
+import { Alert } from '@/components/ui/v2/Alert';
+import { Box } from '@/components/ui/v2/Box';
+import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
+import { Slider, sliderClasses } from '@/components/ui/v2/Slider';
+import { Text } from '@/components/ui/v2/Text';
 import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/projects/resources/settings/utils/calculateBillableResources';
 import { getAllocatedResources } from '@/features/projects/resources/settings/utils/getAllocatedResources';
@@ -8,11 +13,6 @@ import {
   MAX_TOTAL_VCPU,
   MIN_TOTAL_VCPU,
 } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { Alert } from '@/ui/v2/Alert';
-import { Box } from '@/ui/v2/Box';
-import { ArrowRightIcon } from '@/ui/v2/icons/ArrowRightIcon';
-import { Slider, sliderClasses } from '@/ui/v2/Slider';
-import { Text } from '@/ui/v2/Text';
 import {
   RESOURCE_MEMORY_MULTIPLIER,
   RESOURCE_VCPU_MEMORY_RATIO,

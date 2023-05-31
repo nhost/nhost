@@ -1,6 +1,10 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
+import { Box } from '@/components/ui/v2/Box';
+import { Divider } from '@/components/ui/v2/Divider';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
 import { ResourcesConfirmationDialog } from '@/features/projects/resources/settings/components/ResourcesConfirmationDialog';
@@ -9,10 +13,6 @@ import { TotalResourcesFormFragment } from '@/features/projects/resources/settin
 import { calculateBillableResources } from '@/features/projects/resources/settings/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Alert } from '@/ui/v2/Alert';
-import { Box } from '@/ui/v2/Box';
-import { Divider } from '@/ui/v2/Divider';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,

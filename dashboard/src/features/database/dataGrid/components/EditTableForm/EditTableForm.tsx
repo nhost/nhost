@@ -1,3 +1,6 @@
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
+import { Button } from '@/components/ui/v2/Button';
 import type {
   BaseTableFormProps,
   BaseTableFormValues,
@@ -14,9 +17,6 @@ import type {
   NormalizedQueryDataRow,
 } from '@/features/database/dataGrid/types/dataBrowser';
 import { normalizeDatabaseColumn } from '@/features/database/dataGrid/utils/normalizeDatabaseColumn';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Alert } from '@/ui/v2/Alert';
-import { Button } from '@/ui/v2/Button';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';

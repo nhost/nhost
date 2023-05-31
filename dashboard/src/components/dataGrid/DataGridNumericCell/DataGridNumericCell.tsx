@@ -1,7 +1,7 @@
 import type { CommonDataGridCellProps } from '@/components/dataGrid/DataGridCell';
 import { useDataGridCell } from '@/components/dataGrid/DataGridCell';
-import { Input, inputClasses } from '@/ui/v2/Input';
-import { Text } from '@/ui/v2/Text';
+import { Input, inputClasses } from '@/components/ui/v2/Input';
+import { Text } from '@/components/ui/v2/Text';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 
 export type DataGridNumericCellProps<TData extends object> =

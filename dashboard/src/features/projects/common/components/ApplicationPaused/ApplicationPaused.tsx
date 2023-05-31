@@ -1,5 +1,11 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Container } from '@/components/layout/Container';
+import { Modal } from '@/components/ui/v1/Modal';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Text } from '@/components/ui/v2/Text';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
 import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
 import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
@@ -11,12 +17,6 @@ import {
   useGetFreeAndActiveProjectsQuery,
   useUnpauseApplicationMutation,
 } from '@/generated/graphql';
-import { Modal } from '@/ui/v1/Modal';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Alert } from '@/ui/v2/Alert';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Text } from '@/ui/v2/Text';
 import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import type { ApolloError } from '@apollo/client';

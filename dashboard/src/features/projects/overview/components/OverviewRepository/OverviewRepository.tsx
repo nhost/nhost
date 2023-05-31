@@ -1,9 +1,9 @@
 import { useUI } from '@/components/common/UIProvider';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';
-import { Text } from '@/ui/v2/Text';
 import NavLink from 'next/link';
 
 export default function OverviewRepository() {

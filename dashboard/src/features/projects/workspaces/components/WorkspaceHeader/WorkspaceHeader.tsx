@@ -1,12 +1,12 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { Button } from '@/components/ui/v2/Button';
+import { Divider } from '@/components/ui/v2/Divider';
+import { Dropdown } from '@/components/ui/v2/Dropdown';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { EditWorkspaceNameForm } from '@/features/projects/workspaces/components/EditWorkspaceNameForm';
 import { RemoveWorkspaceModal } from '@/features/projects/workspaces/components/RemoveWorkspaceModal';
-import { Button } from '@/ui/v2/Button';
-import { Divider } from '@/ui/v2/Divider';
-import { Dropdown } from '@/ui/v2/Dropdown';
-import { Text } from '@/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import Image from 'next/image';
 

@@ -1,7 +1,7 @@
-import type { HelperTextProps } from '@/ui/v2/HelperText';
-import { HelperText } from '@/ui/v2/HelperText';
-import type { InputLabelProps } from '@/ui/v2/InputLabel';
-import { InputLabel } from '@/ui/v2/InputLabel';
+import type { HelperTextProps } from '@/components/ui/v2/HelperText';
+import { HelperText } from '@/components/ui/v2/HelperText';
+import type { InputLabelProps } from '@/components/ui/v2/InputLabel';
+import { InputLabel } from '@/components/ui/v2/InputLabel';
 import { styled } from '@mui/material';
 import type { BoxProps } from '@mui/material/Box';
 import Box from '@mui/material/Box';

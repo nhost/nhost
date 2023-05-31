@@ -4,10 +4,10 @@ import { DataGridConfigProvider } from '@/components/dataGrid/DataGridConfigProv
 import { DataGridFrame } from '@/components/dataGrid/DataGridFrame';
 import type { DataGridHeaderProps } from '@/components/dataGrid/DataGridHeader';
 import { DataGridHeader } from '@/components/dataGrid/DataGridHeader';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Box } from '@/components/ui/v2/Box';
 import { DataBrowserEmptyState } from '@/features/database/dataGrid/components/DataBrowserEmptyState';
 import type { DataBrowserGridColumn } from '@/features/database/dataGrid/types/dataBrowser';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Box } from '@/ui/v2/Box';
 import type { ForwardedRef } from 'react';
 import { forwardRef, useEffect, useRef } from 'react';
 import mergeRefs from 'react-merge-refs';

@@ -1,10 +1,10 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
+import { Alert } from '@/components/ui/v2/Alert';
+import { Button } from '@/components/ui/v2/Button';
+import { Input } from '@/components/ui/v2/Input';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
-import { Alert } from '@/ui/v2/Alert';
-import { Button } from '@/ui/v2/Button';
-import { Input } from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';

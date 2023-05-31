@@ -1,6 +1,12 @@
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { InlineCode } from '@/components/presentational/InlineCode';
+import type { ButtonProps } from '@/components/ui/v2/Button';
+import type { CheckboxProps } from '@/components/ui/v2/Checkbox';
+import { IconButton } from '@/components/ui/v2/IconButton';
+import { XIcon } from '@/components/ui/v2/icons/XIcon';
+import { Input } from '@/components/ui/v2/Input';
+import { OptionBase } from '@/components/ui/v2/Option';
 import type {
   ColumnType,
   ForeignKeyRelation,
@@ -10,12 +16,6 @@ import {
   postgresFunctions,
   postgresTypeGroups,
 } from '@/features/database/dataGrid/utils/postgresqlConstants';
-import type { ButtonProps } from '@/ui/v2/Button';
-import type { CheckboxProps } from '@/ui/v2/Checkbox';
-import { IconButton } from '@/ui/v2/IconButton';
-import { XIcon } from '@/ui/v2/icons/XIcon';
-import { Input } from '@/ui/v2/Input';
-import { OptionBase } from '@/ui/v2/Option';
 import clsx from 'clsx';
 import type { PropsWithoutRef } from 'react';
 import { memo, useEffect, useState } from 'react';

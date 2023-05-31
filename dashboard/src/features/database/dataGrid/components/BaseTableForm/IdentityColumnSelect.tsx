@@ -1,10 +1,10 @@
 import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { Option } from '@/components/ui/v2/Option';
 import type {
   ColumnType,
   DatabaseColumn,
 } from '@/features/database/dataGrid/types/dataBrowser';
 import { identityTypes } from '@/features/database/dataGrid/utils/postgresqlConstants';
-import { Option } from '@/ui/v2/Option';
 import { useMemo } from 'react';
 import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 import type { BaseTableFormValues } from './BaseTableForm';

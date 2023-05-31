@@ -1,15 +1,15 @@
+import { IconButton } from '@/components/ui/v2/IconButton';
+import { FullPermissionIcon } from '@/components/ui/v2/icons/FullPermissionIcon';
+import { NoPermissionIcon } from '@/components/ui/v2/icons/NoPermissionIcon';
+import { PartialPermissionIcon } from '@/components/ui/v2/icons/PartialPermissionIcon';
+import type { TableCellProps } from '@/components/ui/v2/TableCell';
+import { TableCell } from '@/components/ui/v2/TableCell';
+import type { TableRowProps } from '@/components/ui/v2/TableRow';
+import { TableRow } from '@/components/ui/v2/TableRow';
 import type {
   DatabaseAccessLevel,
   DatabaseAction,
 } from '@/features/database/dataGrid/types/dataBrowser';
-import { IconButton } from '@/ui/v2/IconButton';
-import { FullPermissionIcon } from '@/ui/v2/icons/FullPermissionIcon';
-import { NoPermissionIcon } from '@/ui/v2/icons/NoPermissionIcon';
-import { PartialPermissionIcon } from '@/ui/v2/icons/PartialPermissionIcon';
-import type { TableCellProps } from '@/ui/v2/TableCell';
-import { TableCell } from '@/ui/v2/TableCell';
-import type { TableRowProps } from '@/ui/v2/TableRow';
-import { TableRow } from '@/ui/v2/TableRow';
 import { twMerge } from 'tailwind-merge';
 
 export interface RolePermissionsProps extends TableRowProps {

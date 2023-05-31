@@ -1,4 +1,4 @@
-import { ColorPreferenceContext } from '@/ui/v2/ColorPreferenceProvider';
+import { ColorPreferenceContext } from '@/components/ui/v2/ColorPreferenceProvider';
 import { useContext } from 'react';
 
 /**

@@ -1,8 +1,8 @@
-import type { BoxProps } from '@/ui/v2/Box';
-import { Box } from '@/ui/v2/Box';
-import { IconButton } from '@/ui/v2/IconButton';
-import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
-import { Text } from '@/ui/v2/Text';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
+import { IconButton } from '@/components/ui/v2/IconButton';
+import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
+import { Text } from '@/components/ui/v2/Text';
 import { copy } from '@/utils/copy';
 import type { ReactNode } from 'react';
 

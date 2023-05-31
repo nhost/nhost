@@ -1,3 +1,4 @@
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type {
   BasePermissionVariableFormProps,
@@ -9,7 +10,6 @@ import {
 } from '@/features/projects/permissions/settings/components/BasePermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
 import type { PermissionVariable } from '@/types/application';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   GetRolesPermissionsDocument,

@@ -1,8 +1,8 @@
 import type {
   AutocompleteOption,
   AutocompleteProps,
-} from '@/ui/v2/Autocomplete';
-import { Autocomplete } from '@/ui/v2/Autocomplete';
+} from '@/components/ui/v2/Autocomplete';
+import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { callAll } from '@/utils/callAll';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';

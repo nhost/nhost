@@ -7,6 +7,7 @@ import { DataGridNumericCell } from '@/components/dataGrid/DataGridNumericCell';
 import { DataGridTextCell } from '@/components/dataGrid/DataGridTextCell';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import { InlineCode } from '@/components/presentational/InlineCode';
+import { KeyIcon } from '@/components/ui/v2/icons/KeyIcon';
 import { useTablePath } from '@/features/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/database/dataGrid/components/DataBrowserGridControls';
@@ -27,7 +28,6 @@ import {
 } from '@/features/database/dataGrid/utils/postgresqlConstants';
 import { isSchemaLocked } from '@/features/database/dataGrid/utils/schemaHelpers';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { KeyIcon } from '@/ui/v2/icons/KeyIcon';
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';

@@ -1,19 +1,15 @@
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { ClockIcon } from '@/components/ui/v2/icons/ClockIcon';
+import { Option } from '@/components/ui/v2/Option';
+import { Select } from '@/components/ui/v2/Select';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { LogsDatePicker } from '@/features/projects/logs/components/LogsDatePicker';
-import {
-  LogsCustomInterval,
-  LOGS_AVAILABLE_INTERVALS,
-} from '@/features/projects/logs/utils/constants/intervals';
-import {
-  AvailableLogsService,
-  LOGS_AVAILABLE_SERVICES,
-} from '@/features/projects/logs/utils/constants/services';
-import type { BoxProps } from '@/ui/v2/Box';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { ClockIcon } from '@/ui/v2/icons/ClockIcon';
-import { Option } from '@/ui/v2/Option';
-import { Select } from '@/ui/v2/Select';
+import type { LogsCustomInterval } from '@/features/projects/logs/utils/constants/intervals';
+import { LOGS_AVAILABLE_INTERVALS } from '@/features/projects/logs/utils/constants/intervals';
+import type { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
+import { LOGS_AVAILABLE_SERVICES } from '@/features/projects/logs/utils/constants/services';
 import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';

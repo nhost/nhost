@@ -1,11 +1,11 @@
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
-import { Avatar } from '@/ui/v2/Avatar';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Divider } from '@/ui/v2/Divider';
-import { Dropdown, useDropdown } from '@/ui/v2/Dropdown';
-import { Text } from '@/ui/v2/Text';
+import { Avatar } from '@/components/ui/v2/Avatar';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Divider } from '@/components/ui/v2/Divider';
+import { Dropdown, useDropdown } from '@/components/ui/v2/Dropdown';
+import { Text } from '@/components/ui/v2/Text';
 import { useApolloClient } from '@apollo/client';
 import { useSignOut, useUserData } from '@nhost/nextjs';
 import getConfig from 'next/config';

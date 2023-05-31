@@ -1,8 +1,8 @@
-import type { BoxProps } from '@/ui/v2/Box';
-import { Box } from '@/ui/v2/Box';
-import { InfoIcon } from '@/ui/v2/icons/InfoIcon';
-import { Text } from '@/ui/v2/Text';
-import { Tooltip } from '@/ui/v2/Tooltip';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
+import { Text } from '@/components/ui/v2/Text';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { twMerge } from 'tailwind-merge';
 
 export interface MetricsCardProps extends BoxProps {

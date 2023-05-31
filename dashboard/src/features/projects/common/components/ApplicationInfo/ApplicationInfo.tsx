@@ -1,12 +1,12 @@
+import { Button } from '@/components/ui/v2/Button';
+import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
+import { Link } from '@/components/ui/v2/Link';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteApplicationMutation,
 } from '@/generated/graphql';
-import { Button } from '@/ui/v2/Button';
-import { ArrowRightIcon } from '@/ui/v2/icons/ArrowRightIcon';
-import { Link } from '@/ui/v2/Link';
-import { Text } from '@/ui/v2/Text';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
 import { getServerError } from '@/utils/getServerError';

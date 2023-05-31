@@ -1,5 +1,5 @@
-import { Option } from '@/ui/v2/Option';
-import { Select } from '@/ui/v2/Select';
+import { Option } from '@/components/ui/v2/Option';
+import { Select } from '@/components/ui/v2/Select';
 import { useGetCountriesQuery } from '@/utils/__generated__/graphql';
 
 export type CountrySelectorProps = {

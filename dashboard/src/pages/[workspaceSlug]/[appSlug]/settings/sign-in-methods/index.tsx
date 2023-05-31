@@ -1,5 +1,6 @@
 import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { AnonymousSignInSettings } from '@/features/authentication/settings/components/AnonymousSignInSettings';
 import { AppleProviderSettings } from '@/features/authentication/settings/components/AppleProviderSettings';
 import { AzureADProviderSettings } from '@/features/authentication/settings/components/AzureADProviderSettings';
@@ -19,7 +20,6 @@ import { WindowsLiveProviderSettings } from '@/features/authentication/settings/
 import { WorkOsProviderSettings } from '@/features/authentication/settings/components/WorkOsProviderSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useGetSignInMethodsQuery } from '@/generated/graphql';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import type { ReactElement } from 'react';
 
 export default function SettingsSignInMethodsPage() {

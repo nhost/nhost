@@ -92,7 +92,7 @@ pnpm storybook
 | Name                                         | Description                                                                                                                                                  |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `react/react-in-jsx-scope`                   | Disabled because we don't need to import `React` anymore.                                                                                                    |
-| `react/jsx-props-no-spreading`               | Disabled because we heavily rely on props spreading in our `@/ui/v2` components.                                                                             |
+| `react/jsx-props-no-spreading`               | Disabled because we heavily rely on props spreading in our `@/components/ui/v2` components.                                                                  |
 | `react/require-default-props`                | Disabled because we use TypeScript instead of PropTypes.                                                                                                     |
 | `react-hooks/exhaustive-deps`                | Because we already had several rule violations when proper ESLint rules were introduced, we changed this rule to a warning.                                  |
 | `import/extensions`                          | JS / TS files should be imported without file extensions.                                                                                                    |
@@ -101,7 +101,6 @@ pnpm storybook
 | `import/order`                               | Until we have a better auto-formatter, we disable this rule.                                                                                                 |
 | `import/no-extraneous-dependencies`          | `devDependencies` should be excluded from the list of disallowed imports.                                                                                    |
 | `curly`                                      | By default it only enforces curly braces for multi-line blocks, but it should be enforced for single-line blocks as well.                                    |
-| `no-restricted-exports`                      | `export { default } from './module'` is used heavily in `@/ui/v2` which is a restricted export by default.                                                   |
 | `@typescript-eslint/no-use-before-define`    | Order of type references should be ignored.                                                                                                                  |
 | `no-undef`                                   | [Official TypeScript ESLint packages](https://github.com/typescript-eslint/typescript-eslint/issues/4671#issuecomment-1065948494) are turning off this rule. |
 | `@typescript-eslint/no-shadow`               | TypeScript specific implementation of `no-shadow`.                                                                                                           |

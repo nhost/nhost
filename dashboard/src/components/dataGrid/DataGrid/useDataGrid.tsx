@@ -1,4 +1,4 @@
-import { Checkbox } from '@/ui/v2/Checkbox';
+import { Checkbox } from '@/components/ui/v2/Checkbox';
 import type { MutableRefObject } from 'react';
 import { useMemo } from 'react';
 import type { PluginHook, TableInstance, TableOptions } from 'react-table';

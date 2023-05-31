@@ -1,5 +1,5 @@
 import { useUI } from '@/components/common/UIProvider';
-import { Alert } from '@/ui/v2/Alert';
+import { Alert } from '@/components/ui/v2/Alert';
 
 export default function MaintenanceAlert() {
   const { maintenanceActive, maintenanceEndDate } = useUI();

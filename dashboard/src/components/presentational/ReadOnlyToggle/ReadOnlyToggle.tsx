@@ -1,6 +1,6 @@
-import { Box } from '@/ui/v2/Box';
-import type { TextProps } from '@/ui/v2/Text';
-import { Text } from '@/ui/v2/Text';
+import { Box } from '@/components/ui/v2/Box';
+import type { TextProps } from '@/components/ui/v2/Text';
+import { Text } from '@/components/ui/v2/Text';
 import type { DetailedHTMLProps, ForwardedRef, HTMLProps } from 'react';
 import { forwardRef } from 'react';
 import { twMerge } from 'tailwind-merge';

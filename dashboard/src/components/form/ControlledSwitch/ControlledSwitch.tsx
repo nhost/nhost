@@ -1,5 +1,5 @@
-import type { SwitchProps } from '@/ui/v2/Switch';
-import { Switch } from '@/ui/v2/Switch';
+import type { SwitchProps } from '@/components/ui/v2/Switch';
+import { Switch } from '@/components/ui/v2/Switch';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 import { useController, useFormContext } from 'react-hook-form';

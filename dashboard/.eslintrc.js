@@ -25,11 +25,9 @@ module.exports = {
       'error',
       { allowArrowFunctions: true, allowFunctions: true },
     ],
-    'import/no-named-as-default': 'off',
     'import/prefer-default-export': 'off',
     'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
     curly: ['error', 'all'],
-    'no-restricted-exports': 'off',
     'no-undef': 'off',
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': [
@@ -68,7 +66,7 @@ module.exports = {
           {
             group: ['..*'],
             message:
-              'Please use absolute imports instead. (e.g: @/ui/, @/hooks/, etc.)',
+              'Please use absolute imports instead. (e.g: @/components/, @/hooks/, etc.)',
           },
           {
             group: ['@testing-library/react*'],

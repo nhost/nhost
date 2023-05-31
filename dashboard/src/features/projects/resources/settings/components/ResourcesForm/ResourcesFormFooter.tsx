@@ -1,14 +1,14 @@
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
+import { Link } from '@/components/ui/v2/Link';
+import { Text } from '@/components/ui/v2/Text';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
 import { calculateBillableResources } from '@/features/projects/resources/settings/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { ArrowSquareOutIcon } from '@/ui/v2/icons/ArrowSquareOutIcon';
-import { InfoIcon } from '@/ui/v2/icons/InfoIcon';
-import { Link } from '@/ui/v2/Link';
-import { Text } from '@/ui/v2/Text';
-import { Tooltip } from '@/ui/v2/Tooltip';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,

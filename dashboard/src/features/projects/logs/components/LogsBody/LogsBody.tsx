@@ -1,15 +1,15 @@
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Table } from '@/components/ui/v2/Table';
+import { TableBody } from '@/components/ui/v2/TableBody';
+import { TableCell } from '@/components/ui/v2/TableCell';
+import { TableContainer } from '@/components/ui/v2/TableContainer';
+import { TableHead } from '@/components/ui/v2/TableHead';
+import { TableRow } from '@/components/ui/v2/TableRow';
+import { Text } from '@/components/ui/v2/Text';
 import type {
   GetLogsSubscriptionSubscription,
   GetProjectLogsQuery,
 } from '@/generated/graphql';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Table } from '@/ui/v2/Table';
-import { TableBody } from '@/ui/v2/TableBody';
-import { TableCell } from '@/ui/v2/TableCell';
-import { TableContainer } from '@/ui/v2/TableContainer';
-import { TableHead } from '@/ui/v2/TableHead';
-import { TableRow } from '@/ui/v2/TableRow';
-import { Text } from '@/ui/v2/Text';
 import type { QueryResult, SubscriptionResult } from '@apollo/client';
 import {
   flexRender,

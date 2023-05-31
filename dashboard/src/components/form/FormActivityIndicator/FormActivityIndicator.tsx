@@ -1,6 +1,6 @@
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import type { BoxProps } from '@/ui/v2/Box';
-import { Box } from '@/ui/v2/Box';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';
 
 export interface FormActivityIndicatorProps extends BoxProps {}

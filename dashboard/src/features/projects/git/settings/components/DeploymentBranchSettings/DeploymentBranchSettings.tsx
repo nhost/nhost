@@ -1,13 +1,13 @@
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { Alert } from '@/components/ui/v2/Alert';
+import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { Alert } from '@/ui/v2/Alert';
-import { Input } from '@/ui/v2/Input';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { getServerError } from '@/utils/getServerError';

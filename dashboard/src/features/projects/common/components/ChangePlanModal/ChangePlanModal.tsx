@@ -1,4 +1,11 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Checkbox } from '@/components/ui/v2/Checkbox';
+import { BaseDialog } from '@/components/ui/v2/Dialog';
+import { Link } from '@/components/ui/v2/Link';
+import { Text } from '@/components/ui/v2/Text';
 import { useAppState } from '@/features/projects/common/hooks/useAppState';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
@@ -10,13 +17,6 @@ import {
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Checkbox } from '@/ui/v2/Checkbox';
-import { BaseDialog } from '@/ui/v2/Dialog';
-import { Link } from '@/ui/v2/Link';
-import { Text } from '@/ui/v2/Text';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
 import Image from 'next/image';
