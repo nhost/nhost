@@ -1,6 +1,6 @@
-import { LoadingScreen } from '@/components/common/LoadingScreen';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
 import { WorkspaceApps } from '@/features/projects/workspaces/components/WorkspaceApps';

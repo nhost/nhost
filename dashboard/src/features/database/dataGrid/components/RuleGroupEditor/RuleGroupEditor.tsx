@@ -1,16 +1,16 @@
+import { Alert } from '@/components/ui/v2/Alert';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
+import { Link } from '@/components/ui/v2/Link';
+import { Text } from '@/components/ui/v2/Text';
 import type {
   Rule,
   RuleGroup,
 } from '@/features/database/dataGrid/types/dataBrowser';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { Alert } from '@/ui/v2/Alert';
-import type { BoxProps } from '@/ui/v2/Box';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
-import { Link } from '@/ui/v2/Link';
-import { Text } from '@/ui/v2/Text';
-import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
+import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { useMemo } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';

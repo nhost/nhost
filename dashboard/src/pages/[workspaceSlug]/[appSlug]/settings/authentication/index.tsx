@@ -1,5 +1,6 @@
 import { Container } from '@/components/layout/Container';
-import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { AllowedEmailSettings } from '@/features/authentication/settings/components/AllowedEmailSettings';
 import { AllowedRedirectURLsSettings } from '@/features/authentication/settings/components/AllowedRedirectURLsSettings';
 import { AuthServiceVersionSettings } from '@/features/authentication/settings/components/AuthServiceVersionSettings';
@@ -9,7 +10,6 @@ import { DisableNewUsersSettings } from '@/features/authentication/settings/comp
 import { GravatarSettings } from '@/features/authentication/settings/components/GravatarSettings';
 import { MFASettings } from '@/features/authentication/settings/components/MFASettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 

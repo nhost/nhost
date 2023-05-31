@@ -1,9 +1,9 @@
-import type { FormControlLabelProps } from '@/ui/v2/FormControlLabel';
+import type { FormControlLabelProps } from '@/components/ui/v2/FormControlLabel';
 import {
   FormControlLabel,
   formControlLabelClasses,
-} from '@/ui/v2/FormControlLabel';
-import { SvgIcon } from '@/ui/v2/icons/SvgIcon';
+} from '@/components/ui/v2/FormControlLabel';
+import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
 import { styled } from '@mui/material';
 import type { RadioProps as MaterialRadioProps } from '@mui/material/Radio';
 import MaterialRadio from '@mui/material/Radio';

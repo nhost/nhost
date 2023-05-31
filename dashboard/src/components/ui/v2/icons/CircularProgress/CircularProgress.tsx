@@ -1,5 +1,5 @@
-import type { IconProps } from '@/ui/v2/icons';
-import { SvgIcon } from '@/ui/v2/icons/SvgIcon';
+import type { IconProps } from '@/components/ui/v2/icons';
+import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
 import { keyframes } from '@emotion/react';
 import { styled } from '@mui/material';
 

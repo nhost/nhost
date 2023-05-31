@@ -1,5 +1,5 @@
-import { PlusCircleIcon } from '@/ui/v2/icons/PlusCircleIcon';
-import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
+import { PlusCircleIcon } from '@/components/ui/v2/icons/PlusCircleIcon';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import type { ComponentMeta, ComponentStory } from '@storybook/react';
 import type { ButtonProps } from './Button';
 import Button from './Button';

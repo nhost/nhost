@@ -1,4 +1,4 @@
-import type { BoxProps } from '@/ui/v2/Box';
+import type { BoxProps } from '@/components/ui/v2/Box';
 import type { ReactElement } from 'react';
 
 export interface CardProps extends BoxProps {

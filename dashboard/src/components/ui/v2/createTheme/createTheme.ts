@@ -1,4 +1,4 @@
-import { getDesignTokens } from '@/ui/v2/theme/getDesignTokens';
+import { getDesignTokens } from '@/components/ui/v2/theme/getDesignTokens';
 import type { PaletteMode } from '@mui/material';
 import { createTheme as createMuiTheme } from '@mui/material/styles';
 

@@ -1,9 +1,9 @@
 import { Container } from '@/components/layout/Container';
-import { EnvironmentVariableSettings } from '@/components/settings/environmentVariables/EnvironmentVariableSettings';
-import { SystemEnvironmentVariableSettings } from '@/components/settings/environmentVariables/SystemEnvironmentVariableSettings';
-import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { EnvironmentVariableSettings } from '@/features/projects/environmentVariables/settings/components/EnvironmentVariableSettings';
+import { SystemEnvironmentVariableSettings } from '@/features/projects/environmentVariables/settings/components/SystemEnvironmentVariableSettings';
 import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 

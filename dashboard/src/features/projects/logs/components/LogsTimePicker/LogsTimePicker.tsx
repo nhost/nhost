@@ -1,8 +1,8 @@
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { useDropdown } from '@/ui/v2/Dropdown';
-import type { InputProps } from '@/ui/v2/Input';
-import { Input } from '@/ui/v2/Input';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { useDropdown } from '@/components/ui/v2/Dropdown';
+import type { InputProps } from '@/components/ui/v2/Input';
+import { Input } from '@/components/ui/v2/Input';
 import { format, set } from 'date-fns';
 import type { ChangeEvent } from 'react';
 

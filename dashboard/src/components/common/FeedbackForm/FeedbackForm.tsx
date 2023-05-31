@@ -1,8 +1,8 @@
+import { Avatar } from '@/components/ui/v2/Avatar';
+import { Button } from '@/components/ui/v2/Button';
+import { Input } from '@/components/ui/v2/Input';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { Avatar } from '@/ui/v2/Avatar';
-import { Button } from '@/ui/v2/Button';
-import { Input } from '@/ui/v2/Input';
-import { Text } from '@/ui/v2/Text';
 import { useInsertFeedbackOneMutation } from '@/utils/__generated__/graphql';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';

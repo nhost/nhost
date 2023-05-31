@@ -1,14 +1,14 @@
 import { DialogProvider } from '@/components/common/DialogProvider';
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { UIProvider } from '@/components/common/UIProvider';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import '@/styles/fonts.css';
 import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
-import { ThemeProvider } from '@/ui/v2/ThemeProvider';
-import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/CONSTANTS';
-import createEmotionCache from '@/utils/createEmotionCache';
+import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
+import { createEmotionCache } from '@/utils/createEmotionCache';
 import { nhost } from '@/utils/nhost';
 import type { EmotionCache } from '@emotion/react';
 import { CacheProvider } from '@emotion/react';

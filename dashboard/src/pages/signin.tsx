@@ -1,12 +1,12 @@
 import { NavLink } from '@/components/common/NavLink';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Divider } from '@/ui/v2/Divider';
-import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';
-import { Text } from '@/ui/v2/Text';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Divider } from '@/components/ui/v2/Divider';
+import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
+import { Text } from '@/components/ui/v2/Text';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';

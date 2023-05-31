@@ -1,15 +1,15 @@
-import { LoadingScreen } from '@/components/common/LoadingScreen';
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { Button } from '@/components/ui/v2/Button';
+import { PlayIcon } from '@/components/ui/v2/icons/PlayIcon';
+import { Option } from '@/components/ui/v2/Option';
+import { Select } from '@/components/ui/v2/Select';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { UserSelect } from '@/features/graphql/common/components/UserSelect';
 import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { Button } from '@/ui/v2/Button';
-import { PlayIcon } from '@/ui/v2/icons/PlayIcon';
-import { Option } from '@/ui/v2/Option';
-import { Select } from '@/ui/v2/Select';
-import { Tooltip } from '@/ui/v2/Tooltip';
-import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';
+import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { triggerToast } from '@/utils/toast';
 import {
   DOC_EXPLORER_PLUGIN,

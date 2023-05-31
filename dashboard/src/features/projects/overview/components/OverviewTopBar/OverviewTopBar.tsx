@@ -1,13 +1,13 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
+import { Button } from '@/components/ui/v2/Button';
+import { Chip } from '@/components/ui/v2/Chip';
+import { CogIcon } from '@/components/ui/v2/icons/CogIcon';
+import { Text } from '@/components/ui/v2/Text';
 import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { Button } from '@/ui/v2/Button';
-import { Chip } from '@/ui/v2/Chip';
-import { CogIcon } from '@/ui/v2/icons/CogIcon';
-import { Text } from '@/ui/v2/Text';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';

@@ -1,25 +1,25 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { InlineCode } from '@/components/common/InlineCode';
 import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
-import { CreateSecretForm } from '@/components/settings/secrets/CreateSecretForm';
-import { EditSecretForm } from '@/components/settings/secrets/EditSecretForm';
-import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { InlineCode } from '@/components/presentational/InlineCode';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Divider } from '@/components/ui/v2/Divider';
+import { Dropdown } from '@/components/ui/v2/Dropdown';
+import { IconButton } from '@/components/ui/v2/IconButton';
+import { DotsVerticalIcon } from '@/components/ui/v2/icons/DotsVerticalIcon';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
+import { List } from '@/components/ui/v2/List';
+import { ListItem } from '@/components/ui/v2/ListItem';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { CreateSecretForm } from '@/features/projects/secrets/settings/components/CreateSecretForm';
+import { EditSecretForm } from '@/features/projects/secrets/settings/components/EditSecretForm';
 import type { Secret } from '@/types/application';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Divider } from '@/ui/v2/Divider';
-import { Dropdown } from '@/ui/v2/Dropdown';
-import { IconButton } from '@/ui/v2/IconButton';
-import { DotsVerticalIcon } from '@/ui/v2/icons/DotsVerticalIcon';
-import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
-import { List } from '@/ui/v2/List';
-import { ListItem } from '@/ui/v2/ListItem';
-import { Text } from '@/ui/v2/Text';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   GetSecretsDocument,
   useDeleteSecretMutation,

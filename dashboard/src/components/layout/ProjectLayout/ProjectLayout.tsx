@@ -1,14 +1,14 @@
-import { DesktopNav } from '@/components/common/DesktopNav';
-import { LoadingScreen } from '@/components/common/LoadingScreen';
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { DesktopNav } from '@/components/layout/DesktopNav';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useNavigationVisible } from '@/features/projects/common/hooks/useNavigationVisible';
 import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
 import { useProjectRoutes } from '@/features/projects/common/hooks/useProjectRoutes';
-import type { BoxProps } from '@/ui/v2/Box';
-import { Box } from '@/ui/v2/Box';
 import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';

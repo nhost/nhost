@@ -1,8 +1,8 @@
-import { Button } from '@/ui/v2/Button';
-import { HelperText } from '@/ui/v2/HelperText';
-import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
-import { InputLabel } from '@/ui/v2/InputLabel';
-import { Text } from '@/ui/v2/Text';
+import { Button } from '@/components/ui/v2/Button';
+import { HelperText } from '@/components/ui/v2/HelperText';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
+import { InputLabel } from '@/components/ui/v2/InputLabel';
+import { Text } from '@/components/ui/v2/Text';
 import { useFieldArray, useFormState } from 'react-hook-form';
 import ColumnEditorRow from './ColumnEditorRow';
 

@@ -1,3 +1,5 @@
+import { Alert } from '@/components/ui/v2/Alert';
+import { Button } from '@/components/ui/v2/Button';
 import type {
   BaseForeignKeyFormProps,
   BaseForeignKeyFormValues,
@@ -6,8 +8,6 @@ import {
   BaseForeignKeyForm,
   baseForeignKeyValidationSchema,
 } from '@/features/database/dataGrid/components/BaseForeignKeyForm';
-import { Alert } from '@/ui/v2/Alert';
-import { Button } from '@/ui/v2/Button';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';

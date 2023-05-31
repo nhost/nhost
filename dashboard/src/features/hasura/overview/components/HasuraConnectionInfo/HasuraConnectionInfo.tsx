@@ -1,18 +1,18 @@
-import { LoadingScreen } from '@/components/common/LoadingScreen';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { IconButton } from '@/components/ui/v2/IconButton';
+import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
+import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { IconButton } from '@/ui/v2/IconButton';
-import { ArrowSquareOutIcon } from '@/ui/v2/icons/ArrowSquareOutIcon';
-import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
-import { Text } from '@/ui/v2/Text';
-import { copy } from '@/utils/common/copy';
 import {
   defaultLocalBackendSlugs,
   defaultRemoteBackendSlugs,
   generateAppServiceUrl,
-} from '@/utils/common/generateAppServiceUrl';
+} from '@/features/projects/common/utils/generateAppServiceUrl';
+import { copy } from '@/utils/copy';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import Image from 'next/image';
 

@@ -1,9 +1,9 @@
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Checkbox } from '@/components/ui/v2/Checkbox';
+import { Divider } from '@/components/ui/v2/Divider';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Checkbox } from '@/ui/v2/Checkbox';
-import { Divider } from '@/ui/v2/Divider';
-import { Text } from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 import {

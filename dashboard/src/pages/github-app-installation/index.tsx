@@ -1,5 +1,5 @@
-import { LoadingScreen } from '@/components/common/LoadingScreen';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { nhost } from '@/utils/nhost';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import { useRouter } from 'next/router';

@@ -1,4 +1,7 @@
-import { CountrySelector } from '@/components/common/CountrySelector';
+import { CountrySelector } from '@/components/form/CountrySelector';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Text } from '@/components/ui/v2/Text';
 import {
   refetchGetPaymentMethodsQuery,
   refetchPrefetchNewAppQuery,
@@ -6,9 +9,6 @@ import {
   useUpdateWorkspaceMutation,
 } from '@/generated/graphql';
 import { useSubmitState } from '@/hooks/useSubmitState';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Text } from '@/ui/v2/Text';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { nhost } from '@/utils/nhost';
 import { triggerToast } from '@/utils/toast';

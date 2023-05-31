@@ -1,17 +1,17 @@
 import { useUI } from '@/components/common/UIProvider';
+import { CloudIcon } from '@/components/ui/v2/icons/CloudIcon';
+import { CogIcon } from '@/components/ui/v2/icons/CogIcon';
+import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
+import { FileTextIcon } from '@/components/ui/v2/icons/FileTextIcon';
+import { GaugeIcon } from '@/components/ui/v2/icons/GaugeIcon';
+import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
+import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
+import { HomeIcon } from '@/components/ui/v2/icons/HomeIcon';
+import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
+import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
+import type { SvgIconProps } from '@/components/ui/v2/icons/SvgIcon';
+import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { CloudIcon } from '@/ui/v2/icons/CloudIcon';
-import { CogIcon } from '@/ui/v2/icons/CogIcon';
-import { DatabaseIcon } from '@/ui/v2/icons/DatabaseIcon';
-import { FileTextIcon } from '@/ui/v2/icons/FileTextIcon';
-import { GaugeIcon } from '@/ui/v2/icons/GaugeIcon';
-import { GraphQLIcon } from '@/ui/v2/icons/GraphQLIcon';
-import { HasuraIcon } from '@/ui/v2/icons/HasuraIcon';
-import { HomeIcon } from '@/ui/v2/icons/HomeIcon';
-import { RocketIcon } from '@/ui/v2/icons/RocketIcon';
-import { StorageIcon } from '@/ui/v2/icons/StorageIcon';
-import type { SvgIconProps } from '@/ui/v2/icons/SvgIcon';
-import { UserIcon } from '@/ui/v2/icons/UserIcon';
 import type { ReactElement } from 'react';
 
 export interface ProjectRoute {

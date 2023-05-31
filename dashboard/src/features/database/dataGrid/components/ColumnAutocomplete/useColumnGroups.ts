@@ -1,6 +1,6 @@
+import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type { FetchMetadataReturnType } from '@/features/database/dataGrid/hooks/useMetadataQuery';
 import type { FetchTableReturnType } from '@/features/database/dataGrid/hooks/useTableQuery';
-import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 
 export interface UseColumnGroupsOptions {
   /**

@@ -1,7 +1,7 @@
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
-import { Link } from '@/ui/v2/Link';
-import { Text } from '@/ui/v2/Text';
+import { Link } from '@/components/ui/v2/Link';
+import { Text } from '@/components/ui/v2/Text';
 import NavLink from 'next/link';
 import type { ReactElement } from 'react';
 

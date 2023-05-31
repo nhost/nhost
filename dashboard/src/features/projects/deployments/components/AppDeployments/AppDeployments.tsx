@@ -1,16 +1,16 @@
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Divider } from '@/components/ui/v2/Divider';
+import { IconButton } from '@/components/ui/v2/IconButton';
+import { ChevronLeftIcon } from '@/components/ui/v2/icons/ChevronLeftIcon';
+import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
+import { List } from '@/components/ui/v2/List';
+import { Text } from '@/components/ui/v2/Text';
 import { DeploymentListItem } from '@/features/projects/deployments/components/DeploymentListItem';
 import {
   useGetDeploymentsSubSubscription,
   useLatestLiveDeploymentSubSubscription,
   useScheduledOrPendingDeploymentsSubSubscription,
 } from '@/generated/graphql';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Divider } from '@/ui/v2/Divider';
-import { IconButton } from '@/ui/v2/IconButton';
-import { ChevronLeftIcon } from '@/ui/v2/icons/ChevronLeftIcon';
-import { ChevronRightIcon } from '@/ui/v2/icons/ChevronRightIcon';
-import { List } from '@/ui/v2/List';
-import { Text } from '@/ui/v2/Text';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Fragment } from 'react';

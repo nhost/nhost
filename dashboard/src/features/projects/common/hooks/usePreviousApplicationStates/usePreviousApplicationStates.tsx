@@ -1,7 +1,7 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { getPreviousApplicationState } from '@/features/projects/common/utils/getPreviousApplicationState';
 import type { ApplicationStatus } from '@/types/application';
-import { getPreviousApplicationState } from '@/utils/getPreviousApplicationState';
 import { useGetApplicationStateQuery } from '@/utils/__generated__/graphql';
 import { useEffect, useState } from 'react';
 

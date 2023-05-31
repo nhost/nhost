@@ -1,3 +1,7 @@
+import { Modal } from '@/components/ui/v1/Modal';
+import { Button } from '@/components/ui/v2/Button';
+import { Divider } from '@/components/ui/v2/Divider';
+import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { RemoveWorkspaceMemberInviteModal } from '@/features/projects/workspaces/components/RemoveWorkspaceMemberInviteModal';
 import type { GetWorkspaceMembersWorkspaceMemberInviteFragment } from '@/generated/graphql';
@@ -6,10 +10,6 @@ import {
   useDeleteWorkspaceMemberInvitesMutation,
   useUpdateWorkspaceMemberInviteMutation,
 } from '@/generated/graphql';
-import { Modal } from '@/ui/v1/Modal';
-import { Button } from '@/ui/v2/Button';
-import { Divider } from '@/ui/v2/Divider';
-import { Dropdown } from '@/ui/v2/Dropdown';
 import { capitalize } from '@/utils/helpers';
 import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';

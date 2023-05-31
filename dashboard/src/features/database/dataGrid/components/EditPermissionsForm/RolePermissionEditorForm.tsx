@@ -1,6 +1,10 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/common/Form';
-import { HighlightedText } from '@/components/common/HighlightedText';
+import { Form } from '@/components/form/Form';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
+import { Alert } from '@/components/ui/v2/Alert';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Text } from '@/components/ui/v2/Text';
 import { useManagePermissionMutation } from '@/features/database/dataGrid/hooks/useManagePermissionMutation';
 import type {
   DatabaseAction,
@@ -10,12 +14,8 @@ import type {
 import { convertToHasuraPermissions } from '@/features/database/dataGrid/utils/convertToHasuraPermissions';
 import { convertToRuleGroup } from '@/features/database/dataGrid/utils/convertToRuleGroup';
 import type { DialogFormProps } from '@/types/common';
-import { Alert } from '@/ui/v2/Alert';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Text } from '@/ui/v2/Text';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';

@@ -1,10 +1,10 @@
-import type { BoxProps } from '@/ui/v2/Box';
-import { Box } from '@/ui/v2/Box';
-import type { IconButtonProps } from '@/ui/v2/IconButton';
-import { IconButton } from '@/ui/v2/IconButton';
-import { ChevronLeftIcon } from '@/ui/v2/icons/ChevronLeftIcon';
-import { ChevronRightIcon } from '@/ui/v2/icons/ChevronRightIcon';
-import { Text } from '@/ui/v2/Text';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
+import type { IconButtonProps } from '@/components/ui/v2/IconButton';
+import { IconButton } from '@/components/ui/v2/IconButton';
+import { ChevronLeftIcon } from '@/components/ui/v2/icons/ChevronLeftIcon';
+import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
+import { Text } from '@/components/ui/v2/Text';
 import clsx from 'clsx';
 
 export interface DataGridPaginationProps extends BoxProps {

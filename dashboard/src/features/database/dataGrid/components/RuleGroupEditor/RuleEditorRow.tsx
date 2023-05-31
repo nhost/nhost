@@ -1,8 +1,8 @@
-import { ControlledSelect } from '@/components/common/ControlledSelect';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { Option } from '@/components/ui/v2/Option';
+import { Text } from '@/components/ui/v2/Text';
 import { ColumnAutocomplete } from '@/features/database/dataGrid/components/ColumnAutocomplete';
 import type { HasuraOperator } from '@/features/database/dataGrid/types/dataBrowser';
-import { Option } from '@/ui/v2/Option';
-import { Text } from '@/ui/v2/Text';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useState } from 'react';
 import { useController, useFormContext } from 'react-hook-form';

@@ -1,12 +1,12 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
+import { Tooltip, useTooltip } from '@/components/ui/v2/Tooltip';
 import type {
   ColumnType,
   DataBrowserGridCell,
   DataBrowserGridCellProps,
 } from '@/features/database/dataGrid/types/dataBrowser';
-import type { BoxProps } from '@/ui/v2/Box';
-import { Box } from '@/ui/v2/Box';
-import { Tooltip, useTooltip } from '@/ui/v2/Tooltip';
 import { triggerToast } from '@/utils/toast';
 import type { FocusEvent, KeyboardEvent, MouseEvent } from 'react';
 import {

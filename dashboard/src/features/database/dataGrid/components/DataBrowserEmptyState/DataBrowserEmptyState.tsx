@@ -1,4 +1,4 @@
-import { Text } from '@/ui/v2/Text';
+import { Text } from '@/components/ui/v2/Text';
 import Image from 'next/image';
 import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';

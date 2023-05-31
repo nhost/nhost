@@ -1,4 +1,4 @@
-import { XIcon } from '@/ui/v2/icons/XIcon';
+import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import type { ComponentMeta, ComponentStory } from '@storybook/react';
 import type { ChipProps } from './Chip';
 import Chip from './Chip';

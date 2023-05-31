@@ -1,17 +1,17 @@
 import { NavLink } from '@/components/common/NavLink';
-import type { DeploymentStatus } from '@/components/common/StatusCircle';
-import { StatusCircle } from '@/components/common/StatusCircle';
+import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
+import { StatusCircle } from '@/components/presentational/StatusCircle';
+import { Avatar } from '@/components/ui/v1/Avatar';
+import { Button } from '@/components/ui/v2/Button';
+import { Chip } from '@/components/ui/v2/Chip';
+import { ArrowCounterclockwiseIcon } from '@/components/ui/v2/icons/ArrowCounterclockwiseIcon';
+import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
+import { ListItem } from '@/components/ui/v2/ListItem';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
-import { Avatar } from '@/ui/v1/Avatar';
-import { Button } from '@/ui/v2/Button';
-import { Chip } from '@/ui/v2/Chip';
-import { ArrowCounterclockwiseIcon } from '@/ui/v2/icons/ArrowCounterclockwiseIcon';
-import { ChevronRightIcon } from '@/ui/v2/icons/ChevronRightIcon';
-import { ListItem } from '@/ui/v2/ListItem';
-import { Tooltip } from '@/ui/v2/Tooltip';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetAllWorkspacesAndProjectsDocument,

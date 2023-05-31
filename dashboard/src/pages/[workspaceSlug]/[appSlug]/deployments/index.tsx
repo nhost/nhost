@@ -1,11 +1,11 @@
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { Button } from '@/components/ui/v2/Button';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { AppDeployments } from '@/features/projects/deployments/components/AppDeployments';
-import { Button } from '@/ui/v2/Button';
-import { Text } from '@/ui/v2/Text';
 import Image from 'next/image';
 import NavLink from 'next/link';
 import type { ReactElement } from 'react';

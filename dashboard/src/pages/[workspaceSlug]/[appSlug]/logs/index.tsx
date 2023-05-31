@@ -1,10 +1,10 @@
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { LogsBody } from '@/features/projects/logs/components/LogsBody';
 import { LogsHeader } from '@/features/projects/logs/components/LogsHeader';
+import { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
 import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
-import { AvailableLogsServices } from '@/types/logs';
 import {
   GetLogsSubscriptionDocument,
   useGetProjectLogsQuery,
@@ -21,8 +21,8 @@ export default function LogsPage() {
     subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
   );
   const [toDate, setToDate] = useState<Date | null>(new Date());
-  const [service, setService] = useState<AvailableLogsServices>(
-    AvailableLogsServices.ALL,
+  const [service, setService] = useState<AvailableLogsService>(
+    AvailableLogsService.ALL,
   );
 
   // create a client that sends http requests to Hasura but websocket requests to Bragi
@@ -32,7 +32,7 @@ export default function LogsPage() {
   /**
    * Will change the specific service from which we query logs.
    */
-  function handleServiceChange(value: AvailableLogsServices) {
+  function handleServiceChange(value: AvailableLogsService) {
     setService(value);
   }
 

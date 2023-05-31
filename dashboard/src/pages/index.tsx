@@ -1,12 +1,12 @@
-import { LoadingScreen } from '@/components/common/LoadingScreen';
-import { MaintenanceAlert } from '@/components/common/MaintenanceAlert';
-import { Sidebar } from '@/components/home/Sidebar';
-import { WorkspaceAndProjectList } from '@/components/home/WorkspaceAndProjectList';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Text } from '@/ui/v2/Text';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { MaintenanceAlert } from '@/components/presentational/MaintenanceAlert';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Text } from '@/components/ui/v2/Text';
+import { WorkspaceAndProjectList } from '@/features/projects/common/components/WorkspaceAndProjectList';
+import { WorkspaceSidebar } from '@/features/projects/common/components/WorkspaceSidebar';
 import { useGetAllWorkspacesAndProjectsQuery } from '@/utils/__generated__/graphql';
 import { darken } from '@mui/system';
 import { useUserData } from '@nhost/nextjs';
@@ -84,7 +84,7 @@ export default function IndexPage() {
           </div>
         </Box>
 
-        <Sidebar workspaces={data?.workspaces || []} />
+        <WorkspaceSidebar workspaces={data?.workspaces || []} />
       </Container>
     );
   }
@@ -96,7 +96,7 @@ export default function IndexPage() {
         className="col-span-1 md:col-span-3"
       />
 
-      <Sidebar workspaces={data?.workspaces || []} />
+      <WorkspaceSidebar workspaces={data?.workspaces || []} />
     </Container>
   );
 }

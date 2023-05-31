@@ -1,12 +1,12 @@
 import { Container } from '@/components/layout/Container';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Text } from '@/components/ui/v2/Text';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
 import { AppLoader } from '@/features/projects/common/components/AppLoader';
 import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
 import { useCheckProvisioning } from '@/features/projects/common/hooks/useCheckProvisioning';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { ApplicationStatus } from '@/types/application';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Text } from '@/ui/v2/Text';
 import Image from 'next/image';
 
 export default function ApplicationProvisioning() {

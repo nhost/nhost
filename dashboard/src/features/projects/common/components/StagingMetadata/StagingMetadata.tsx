@@ -1,5 +1,5 @@
-import { Box } from '@/ui/v2/Box';
-import { Chip } from '@/ui/v2/Chip';
+import { Box } from '@/components/ui/v2/Box';
+import { Chip } from '@/components/ui/v2/Chip';
 import { isDevOrStaging } from '@/utils/helpers';
 import type { PropsWithChildren } from 'react';
 

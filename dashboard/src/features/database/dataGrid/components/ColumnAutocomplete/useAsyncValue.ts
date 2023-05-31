@@ -1,7 +1,7 @@
+import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
 import type { FetchMetadataReturnType } from '@/features/database/dataGrid/hooks/useMetadataQuery';
 import type { FetchTableReturnType } from '@/features/database/dataGrid/hooks/useTableQuery';
 import type { HasuraMetadataTable } from '@/features/database/dataGrid/types/dataBrowser';
-import type { AutocompleteOption } from '@/ui/v2/Autocomplete';
 import { useEffect, useState } from 'react';
 
 export interface UseAsyncValueOptions {

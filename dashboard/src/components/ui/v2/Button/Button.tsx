@@ -1,4 +1,4 @@
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import type { SxProps, Theme } from '@mui/material';
 import { alpha, styled } from '@mui/material';
 import type {

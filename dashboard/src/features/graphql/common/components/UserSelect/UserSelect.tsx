@@ -1,9 +1,9 @@
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Option } from '@/components/ui/v2/Option';
+import { Select } from '@/components/ui/v2/Select';
 import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Option } from '@/ui/v2/Option';
-import { Select } from '@/ui/v2/Select';
 import type { RemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
 

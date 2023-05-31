@@ -3,11 +3,7 @@ query getApplicationState($appId: uuid!) {
     id
     name
     appStates(order_by: { createdAt: desc }, limit: 10) {
-      id
-      appId
-      message
-      stateId
-      createdAt
+      ...AppStateHistory
     }
   }
 }

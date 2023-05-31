@@ -1,6 +1,6 @@
-import { Button } from '@/ui/v2/Button';
-import type { CommonDialogProps } from '@/ui/v2/Dialog';
-import { Dialog } from '@/ui/v2/Dialog';
+import { Button } from '@/components/ui/v2/Button';
+import type { CommonDialogProps } from '@/components/ui/v2/Dialog';
+import { Dialog } from '@/components/ui/v2/Dialog';
 
 export interface AlertDialogProps extends CommonDialogProps {
   /**

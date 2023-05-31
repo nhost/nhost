@@ -1,15 +1,15 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/common/Form';
+import { Form } from '@/components/form/Form';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Input } from '@/components/ui/v2/Input';
+import { Text } from '@/components/ui/v2/Text';
 import { baseColumnValidationSchema } from '@/features/database/dataGrid/components/BaseColumnForm';
 import type {
   DatabaseTable,
   ForeignKeyRelation,
 } from '@/features/database/dataGrid/types/dataBrowser';
 import type { DialogFormProps } from '@/types/common';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { Input } from '@/ui/v2/Input';
-import { Text } from '@/ui/v2/Text';
 import { useEffect } from 'react';
 import { useFormContext, useFormState } from 'react-hook-form';
 import * as Yup from 'yup';

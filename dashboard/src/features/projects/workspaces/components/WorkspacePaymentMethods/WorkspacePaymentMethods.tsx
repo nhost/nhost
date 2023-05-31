@@ -1,4 +1,13 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Button } from '@/components/ui/v2/Button';
+import { Table } from '@/components/ui/v2/Table';
+import { TableBody } from '@/components/ui/v2/TableBody';
+import { TableCell } from '@/components/ui/v2/TableCell';
+import { TableContainer } from '@/components/ui/v2/TableContainer';
+import { TableHead } from '@/components/ui/v2/TableHead';
+import { TableRow } from '@/components/ui/v2/TableRow';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
@@ -9,15 +18,6 @@ import {
   useGetPaymentMethodsQuery,
   useSetNewDefaultPaymentMethodMutation,
 } from '@/generated/graphql';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Button } from '@/ui/v2/Button';
-import { Table } from '@/ui/v2/Table';
-import { TableBody } from '@/ui/v2/TableBody';
-import { TableCell } from '@/ui/v2/TableCell';
-import { TableContainer } from '@/ui/v2/TableContainer';
-import { TableHead } from '@/ui/v2/TableHead';
-import { TableRow } from '@/ui/v2/TableRow';
-import { Text } from '@/ui/v2/Text';
 import { triggerToast } from '@/utils/toast';
 import { useTheme } from '@mui/material';
 import { formatDistanceToNowStrict } from 'date-fns';

@@ -25,13 +25,9 @@ module.exports = {
       'error',
       { allowArrowFunctions: true, allowFunctions: true },
     ],
-    'import/no-named-as-default': 'off',
     'import/prefer-default-export': 'off',
     'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
-    // TODO: Temporarily disable this rule because of a WIP refactoring
-    'import/no-named-as-default': 'off',
     curly: ['error', 'all'],
-    'no-restricted-exports': 'off',
     'no-undef': 'off',
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': [
@@ -70,17 +66,7 @@ module.exports = {
           {
             group: ['..*'],
             message:
-              'Please use absolute imports instead. (e.g: @/ui/, @/hooks/, etc.)',
-          },
-          {
-            group: ['@/components/ui', '@/components/ui/*'],
-            message:
-              'Please use shorthand imports instead. (e.g: @/ui/ActivityIndicator, @/ui/Button, etc.)',
-          },
-          {
-            group: ['@/components/ui/v2*'],
-            message:
-              'Please use shorthand imports instead. (e.g: @/ui/v2/ActivityIndicator, @/ui/v2/Button, etc.)',
+              'Please use absolute imports instead. (e.g: @/components/, @/hooks/, etc.)',
           },
           {
             group: ['@testing-library/react*'],

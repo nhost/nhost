@@ -1,4 +1,4 @@
-import type { IconProps } from '@/ui/v2/icons';
+import type { IconProps } from '@/components/ui/v2/icons';
 
 function ArrowLeftIcon(props: IconProps) {
   return (

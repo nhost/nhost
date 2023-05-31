@@ -1,10 +1,10 @@
 /* eslint-disable no-restricted-imports */
 import { DialogProvider } from '@/components/common/DialogProvider';
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { UIProvider } from '@/components/common/UIProvider';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { createTheme } from '@/components/ui/v2/createTheme';
 import { mockRouter, mockSession } from '@/tests/mocks';
-import { createTheme } from '@/ui/v2/createTheme';
-import createEmotionCache from '@/utils/createEmotionCache';
+import { createEmotionCache } from '@/utils/createEmotionCache';
 import { createHttpLink } from '@apollo/client';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider } from '@mui/material/styles';

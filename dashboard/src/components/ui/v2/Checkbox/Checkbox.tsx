@@ -1,8 +1,8 @@
-import type { FormControlLabelProps } from '@/ui/v2/FormControlLabel';
-import { FormControlLabel } from '@/ui/v2/FormControlLabel';
-import { CheckIcon } from '@/ui/v2/icons/CheckIcon';
-import { MinusIcon } from '@/ui/v2/icons/MinusIcon';
-import { svgIconClasses as materialSvgIconClasses } from '@/ui/v2/icons/SvgIcon';
+import type { FormControlLabelProps } from '@/components/ui/v2/FormControlLabel';
+import { FormControlLabel } from '@/components/ui/v2/FormControlLabel';
+import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
+import { MinusIcon } from '@/components/ui/v2/icons/MinusIcon';
+import { svgIconClasses as materialSvgIconClasses } from '@/components/ui/v2/icons/SvgIcon';
 import { alpha, styled } from '@mui/material';
 import type { CheckboxProps as MaterialCheckboxProps } from '@mui/material/Checkbox';
 import MaterialCheckbox, {

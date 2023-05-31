@@ -1,21 +1,21 @@
-import { ControlledSelect } from '@/components/common/ControlledSelect';
-import { Form } from '@/components/common/Form';
 import { useUI } from '@/components/common/UIProvider';
-import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { Form } from '@/components/form/Form';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Option } from '@/components/ui/v2/Option';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Option } from '@/ui/v2/Option';
-import { getServerError } from '@/utils/settings/getServerError';
 import {
   AUTH_GRAVATAR_DEFAULT,
   AUTH_GRAVATAR_RATING,
   getToastStyleProps,
-} from '@/utils/settings/settingsConstants';
+} from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';

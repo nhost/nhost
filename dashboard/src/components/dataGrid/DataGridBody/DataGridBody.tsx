@@ -1,11 +1,11 @@
 import type { DataGridProps } from '@/components/dataGrid/DataGrid';
 import { DataGridCell } from '@/components/dataGrid/DataGridCell';
 import { useDataGridConfig } from '@/components/dataGrid/DataGridConfigProvider';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import type { DataBrowserGridColumn } from '@/features/database/dataGrid/types/dataBrowser';
-import type { BoxProps } from '@/ui/v2/Box';
-import { Box } from '@/ui/v2/Box';
-import { Button } from '@/ui/v2/Button';
-import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
 import type { DetailedHTMLProps, HTMLProps, KeyboardEvent } from 'react';
 import { Fragment, useMemo, useRef } from 'react';
 import type { Row } from 'react-table';

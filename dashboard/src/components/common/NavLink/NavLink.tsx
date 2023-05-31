@@ -1,5 +1,5 @@
-import type { LinkProps } from '@/ui/v2/Link';
-import { Link } from '@/ui/v2/Link';
+import type { LinkProps } from '@/components/ui/v2/Link';
+import { Link } from '@/components/ui/v2/Link';
 import NextLink from 'next/link';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';

@@ -1,5 +1,5 @@
-import { ChevronDownIcon } from '@/ui/v2/icons/ChevronDownIcon';
-import { ChevronUpIcon } from '@/ui/v2/icons/ChevronUpIcon';
+import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
+import { ChevronUpIcon } from '@/components/ui/v2/icons/ChevronUpIcon';
 import type { ButtonUnstyledProps } from '@mui/base/ButtonUnstyled';
 import ButtonUnstyled from '@mui/base/ButtonUnstyled';
 import { selectUnstyledClasses } from '@mui/base/SelectUnstyled';

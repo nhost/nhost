@@ -1,5 +1,5 @@
+import type { CommonDialogProps } from '@/components/ui/v2/Dialog';
 import type { DialogFormProps } from '@/types/common';
-import type { CommonDialogProps } from '@/ui/v2/Dialog';
 import type { ReactElement, ReactNode } from 'react';
 import { createContext } from 'react';
 

@@ -1,7 +1,7 @@
-import { Option } from '@/ui/v2/Option';
-import type { SelectProps } from '@/ui/v2/Select';
-import { Select } from '@/ui/v2/Select';
-import { useColorPreference } from '@/ui/v2/useColorPreference';
+import { Option } from '@/components/ui/v2/Option';
+import type { SelectProps } from '@/components/ui/v2/Select';
+import { Select } from '@/components/ui/v2/Select';
+import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 
 export interface ThemeSwitcherProps extends SelectProps<any> {}
 

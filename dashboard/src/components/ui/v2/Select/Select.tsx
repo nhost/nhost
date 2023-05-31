@@ -1,5 +1,5 @@
-import type { FormControlProps } from '@/ui/v2/FormControl';
-import { FormControl } from '@/ui/v2/FormControl';
+import type { FormControlProps } from '@/components/ui/v2/FormControl';
+import { FormControl } from '@/components/ui/v2/FormControl';
 import PopperUnstyled from '@mui/base/PopperUnstyled';
 import type { SelectUnstyledProps } from '@mui/base/SelectUnstyled';
 import SelectUnstyled from '@mui/base/SelectUnstyled';

@@ -1,9 +1,11 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/common/Form';
 import { useUI } from '@/components/common/UIProvider';
+import { Form } from '@/components/form/Form';
 import { Container } from '@/components/layout/Container';
-import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Input } from '@/components/ui/v2/Input';
 import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
@@ -13,12 +15,10 @@ import {
   usePauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
-import { Input } from '@/ui/v2/Input';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { discordAnnounce } from '@/utils/discordAnnounce';
+import { getServerError } from '@/utils/getServerError';
 import { slugifyString } from '@/utils/helpers';
-import { getServerError } from '@/utils/settings/getServerError';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';

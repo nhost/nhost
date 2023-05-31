@@ -1,4 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { Button } from '@/components/ui/v2/Button';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
+import { InputLabel } from '@/components/ui/v2/InputLabel';
+import { Text } from '@/components/ui/v2/Text';
 import type { BaseForeignKeyFormValues } from '@/features/database/dataGrid/components/BaseForeignKeyForm';
 import { CreateForeignKeyForm } from '@/features/database/dataGrid/components/CreateForeignKeyForm';
 import { EditForeignKeyForm } from '@/features/database/dataGrid/components/EditForeignKeyForm';
@@ -6,10 +10,6 @@ import type {
   DatabaseColumn,
   ForeignKeyRelation,
 } from '@/features/database/dataGrid/types/dataBrowser';
-import { Button } from '@/ui/v2/Button';
-import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
-import { InputLabel } from '@/ui/v2/InputLabel';
-import { Text } from '@/ui/v2/Text';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import ForeignKeyEditorRow from './ForeignKeyEditorRow';

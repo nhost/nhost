@@ -1,4 +1,4 @@
-import { Text } from '@/ui/v2/Text';
+import { Text } from '@/components/ui/v2/Text';
 import { differenceInSeconds, parseISO } from 'date-fns';
 import { useEffect, useState } from 'react';
 
