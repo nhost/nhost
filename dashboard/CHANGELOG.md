@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.17.2
+
+### Patch Changes
+
+- 88a4983f: chore(misc): under the hood improvements
+
 ## 0.17.1
 
 ### Patch Changes

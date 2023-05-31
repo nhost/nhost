@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.3.0
+
+### Minor Changes
+
+- 5b959cce: Update Local Development Guide for the CLI and add 2 new guides
+
 ## 0.2.1
 
 ### Patch Changes
