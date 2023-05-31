@@ -28,7 +28,7 @@ jobs:
           path: packages/nhost-js
           start: true
       - name: should be running
-        run: curl -sSf 'https://local.hasura.nhost.run' > /dev/null
+        run: curl -ksSf 'https://local.hasura.nhost.run' > /dev/null
 
   stop:
     runs-on: ubuntu-latest
@@ -59,10 +59,10 @@ jobs:
           start: true
           wait: false
       - name: should not be ready
-        run: curl -sSf -o /dev/null 'https://local.hasura.nhost.run' > /dev/null && exit 1 || true
+        run: curl -ksSf -o /dev/null 'https://local.hasura.nhost.run' > /dev/null && exit 1 || true
       - name: should eventually be ready
         run: |
-          curl -sSf --connect-timeout 3 \
+          curl -ksSf --connect-timeout 3 \
             --max-time 5 \
             --retry 300 \
             --retry-delay 1 \
