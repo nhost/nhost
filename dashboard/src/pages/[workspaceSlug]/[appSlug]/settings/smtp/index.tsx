@@ -1,19 +1,19 @@
-import { UnlockFeatureByUpgrading } from '@/components/applications/UnlockFeatureByUpgrading';
-import ControlledCheckbox from '@/components/common/ControlledCheckbox';
-import Form from '@/components/common/Form';
-import Container from '@/components/layout/Container';
-import SettingsContainer from '@/components/settings/SettingsContainer';
-import SettingsLayout from '@/components/settings/SettingsLayout';
-import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Input from '@/ui/v2/Input';
+import { ControlledCheckbox } from '@/components/common/ControlledCheckbox';
+import { Form } from '@/components/common/Form';
+import { useUI } from '@/components/common/UIProvider';
+import { Container } from '@/components/layout/Container';
+import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Input } from '@/ui/v2/Input';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetSmtpSettingsDocument,
   useGetSmtpSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import type { ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -94,7 +94,7 @@ export default function SMTPSettingsPage() {
         className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"
         rootClassName="bg-transparent"
       >
-        <UnlockFeatureByUpgrading message="Unlock SMTP settings by upgrading your project to the Pro plan." />
+        <UpgradeNotification message="Unlock SMTP settings by upgrading your project to the Pro plan." />
       </Container>
     );
   }

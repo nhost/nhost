@@ -1,2 +1,2 @@
 export * from './AnonymousSignInSettings';
-export { default } from './AnonymousSignInSettings';
+export { default as AnonymousSignInSettings } from './AnonymousSignInSettings';

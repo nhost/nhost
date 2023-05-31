@@ -1,2 +1,2 @@
 export * from './BasePermissionVariableForm';
-export { default } from './BasePermissionVariableForm';
+export { default as BasePermissionVariableForm } from './BasePermissionVariableForm';

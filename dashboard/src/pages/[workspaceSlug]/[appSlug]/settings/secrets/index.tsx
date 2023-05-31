@@ -1,12 +1,12 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { InlineCode } from '@/components/common/InlineCode';
+import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { CreateSecretForm } from '@/components/settings/secrets/CreateSecretForm';
 import { EditSecretForm } from '@/components/settings/secrets/EditSecretForm';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
-import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { Secret } from '@/types/application';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';

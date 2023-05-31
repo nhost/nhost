@@ -1,11 +1,11 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
-import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
-import BaseLayout from '@/components/layout/BaseLayout';
-import Container from '@/components/layout/Container';
-import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
-import Box from '@/ui/v2/Box';
-import ThemeProvider from '@/ui/v2/ThemeProvider';
+import { BaseLayout } from '@/components/layout/BaseLayout';
+import { Container } from '@/components/layout/Container';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { Box } from '@/ui/v2/Box';
+import { ThemeProvider } from '@/ui/v2/ThemeProvider';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import Image from 'next/image';

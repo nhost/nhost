@@ -1,8 +1,8 @@
-import ControlledSwitch from '@/components/common/ControlledSwitch';
+import { ControlledSwitch } from '@/components/common/ControlledSwitch';
 import type { RolePermissionEditorFormValues } from '@/features/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
-import Button from '@/ui/v2/Button';
-import Checkbox from '@/ui/v2/Checkbox';
-import Text from '@/ui/v2/Text';
+import { Button } from '@/ui/v2/Button';
+import { Checkbox } from '@/ui/v2/Checkbox';
+import { Text } from '@/ui/v2/Text';
 import { useFormContext, useWatch } from 'react-hook-form';
 import PermissionSettingsSection from './PermissionSettingsSection';
 

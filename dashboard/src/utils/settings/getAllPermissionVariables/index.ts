@@ -1,4 +1,1 @@
-export {
-  default,
-  default as getAllPermissionVariables,
-} from './getAllPermissionVariables';
+export { default as getAllPermissionVariables } from './getAllPermissionVariables';

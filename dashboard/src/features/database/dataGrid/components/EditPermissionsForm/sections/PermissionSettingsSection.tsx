@@ -1,7 +1,7 @@
 import type { BoxProps } from '@/ui/v2/Box';
-import Box from '@/ui/v2/Box';
+import { Box } from '@/ui/v2/Box';
 import type { TextProps } from '@/ui/v2/Text';
-import Text from '@/ui/v2/Text';
+import { Text } from '@/ui/v2/Text';
 import type { ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -50,7 +50,7 @@ export default function PermissionSettingsSection({
       <Box
         {...props}
         className={twMerge(
-          'grid grid-flow-row gap-4 items-center px-6 py-4 border-t-1',
+          'grid grid-flow-row items-center gap-4 border-t-1 px-6 py-4',
           className,
         )}
       >

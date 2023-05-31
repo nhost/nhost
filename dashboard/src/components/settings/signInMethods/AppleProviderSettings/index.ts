@@ -1,2 +1,2 @@
 export * from './AppleProviderSettings';
-export { default } from './AppleProviderSettings';
+export { default as AppleProviderSettings } from './AppleProviderSettings';

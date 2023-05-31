@@ -1,9 +1,9 @@
-import { ChangePlanModal } from '@/components/applications/ChangePlanModal';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import { useIsCurrentUserOwner } from '@/features/projects/hooks/useIsCurrentUserOwner';
-import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
+import { useUI } from '@/components/common/UIProvider';
+import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { Button } from '@/ui/v2/Button';
 import { Chip } from '@/ui/v2/Chip';
 import { CogIcon } from '@/ui/v2/icons/CogIcon';

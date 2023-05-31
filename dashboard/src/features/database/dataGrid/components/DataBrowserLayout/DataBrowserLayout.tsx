@@ -2,7 +2,7 @@ import type { ProjectLayoutProps } from '@/components/layout/ProjectLayout';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import type { DataBrowserSidebarProps } from '@/features/database/dataGrid/components/DataBrowserSidebar';
 import { DataBrowserSidebar } from '@/features/database/dataGrid/components/DataBrowserSidebar';
-import Box from '@/ui/v2/Box';
+import { Box } from '@/ui/v2/Box';
 import { useRouter } from 'next/router';
 import { twMerge } from 'tailwind-merge';
 

@@ -1,8 +1,8 @@
-import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import ProjectLayout from '@/components/layout/ProjectLayout';
-import LogsBody from '@/components/logs/LogsBody';
-import LogsHeader from '@/components/logs/LogsHeader';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { ProjectLayout } from '@/components/layout/ProjectLayout';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { LogsBody } from '@/features/projects/logs/components/LogsBody';
+import { LogsHeader } from '@/features/projects/logs/components/LogsHeader';
 import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
 import { AvailableLogsServices } from '@/types/logs';
 import {

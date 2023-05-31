@@ -2,15 +2,16 @@ import type {
   BaseSecretFormProps,
   BaseSecretFormValues,
 } from '@/components/settings/secrets/BaseSecretForm';
-import BaseSecretForm, {
+import {
+  BaseSecretForm,
   baseSecretFormValidationSchema,
 } from '@/components/settings/secrets/BaseSecretForm';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {
   GetSecretsDocument,
   useInsertSecretMutation,
 } from '@/utils/__generated__/graphql';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';

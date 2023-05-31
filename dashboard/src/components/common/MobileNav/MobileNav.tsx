@@ -1,10 +1,10 @@
 import { FeedbackForm } from '@/components/common/FeedbackForm';
+import { Nav } from '@/components/common/Nav';
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
-import { Nav } from '@/components/dashboard/Nav';
-import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
-import { useProjectRoutes } from '@/features/projects/hooks/useProjectRoutes';
-import { useNavigationVisible } from '@/hooks/useNavigationVisible';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useNavigationVisible } from '@/features/projects/common/hooks/useNavigationVisible';
+import { useProjectRoutes } from '@/features/projects/common/hooks/useProjectRoutes';
 import type { ButtonProps } from '@/ui/v2/Button';
 import { Button } from '@/ui/v2/Button';
 import { Divider } from '@/ui/v2/Divider';
@@ -224,7 +224,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                   href="/account"
                   onClick={() => setMenuOpen(false)}
                 >
-                  Settings
+                  Account Settings
                 </ListItem.Button>
               </ListItem.Root>
 

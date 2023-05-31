@@ -1,36 +1,35 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import FormActivityIndicator from '@/components/common/FormActivityIndicator';
-import InlineCode from '@/components/common/InlineCode';
-import NavLink from '@/components/common/NavLink';
-import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
+import { FormActivityIndicator } from '@/components/common/FormActivityIndicator';
+import { InlineCode } from '@/components/common/InlineCode';
+import { NavLink } from '@/components/common/NavLink';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { useDatabaseQuery } from '@/features/database/dataGrid/hooks/useDatabaseQuery';
 import { useDeleteTableWithToastMutation } from '@/features/database/dataGrid/hooks/useDeleteTableMutation';
 import { isSchemaLocked } from '@/features/database/dataGrid/utils/schemaHelpers';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
-import FloatingActionButton from '@/ui/FloatingActionButton';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Backdrop from '@/ui/v2/Backdrop';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Backdrop } from '@/ui/v2/Backdrop';
 import type { BoxProps } from '@/ui/v2/Box';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Chip from '@/ui/v2/Chip';
-import Divider from '@/ui/v2/Divider';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Chip } from '@/ui/v2/Chip';
+import { Divider } from '@/ui/v2/Divider';
 import { Dropdown } from '@/ui/v2/Dropdown';
-import IconButton from '@/ui/v2/IconButton';
-import ArrowRightIcon from '@/ui/v2/icons/ArrowRightIcon';
-import DotsHorizontalIcon from '@/ui/v2/icons/DotsHorizontalIcon';
-import LockIcon from '@/ui/v2/icons/LockIcon';
-import PencilIcon from '@/ui/v2/icons/PencilIcon';
-import PlusIcon from '@/ui/v2/icons/PlusIcon';
-import TrashIcon from '@/ui/v2/icons/TrashIcon';
-import UsersIcon from '@/ui/v2/icons/UsersIcon';
-import Link from '@/ui/v2/Link';
-import List from '@/ui/v2/List';
+import { IconButton } from '@/ui/v2/IconButton';
+import { ArrowRightIcon } from '@/ui/v2/icons/ArrowRightIcon';
+import { DotsHorizontalIcon } from '@/ui/v2/icons/DotsHorizontalIcon';
+import { LockIcon } from '@/ui/v2/icons/LockIcon';
+import { PencilIcon } from '@/ui/v2/icons/PencilIcon';
+import { PlusIcon } from '@/ui/v2/icons/PlusIcon';
+import { TrashIcon } from '@/ui/v2/icons/TrashIcon';
+import { UsersIcon } from '@/ui/v2/icons/UsersIcon';
+import { Link } from '@/ui/v2/Link';
+import { List } from '@/ui/v2/List';
 import { ListItem } from '@/ui/v2/ListItem';
-import Option from '@/ui/v2/Option';
-import Select from '@/ui/v2/Select';
-import Text from '@/ui/v2/Text';
+import { Option } from '@/ui/v2/Option';
+import { Select } from '@/ui/v2/Select';
+import { Text } from '@/ui/v2/Text';
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -594,8 +593,8 @@ export default function DataBrowserSidebar({
         </RetryableErrorBoundary>
       </Box>
 
-      <FloatingActionButton
-        className="absolute bottom-4 left-4 z-[38] sm:hidden"
+      <IconButton
+        className="absolute bottom-4 left-4 z-[38] h-11 w-11 rounded-full md:hidden"
         onClick={toggleExpanded}
         aria-label="Toggle sidebar"
       >
@@ -605,7 +604,7 @@ export default function DataBrowserSidebar({
           src="/assets/table.svg"
           alt="A monochrome table"
         />
-      </FloatingActionButton>
+      </IconButton>
     </>
   );
 }

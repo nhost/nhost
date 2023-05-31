@@ -24,16 +24,11 @@
       "@/components/*": ["components/*"],
       "@/hooks/*": ["hooks/*"],
       "@/utils/*": ["utils/*"],
-      "@/lib/*": ["lib/*"],
       "@/types/*": ["types/*"],
-      "@/css/*": ["css/*"],
       "@/styles/*": ["styles/*"],
       "@/data/*": ["data/*"],
-      "@/context/*": ["context/*"],
-      "@/theme/*": ["theme/*"],
       "@/generated/*": ["utils/__generated__/*"],
       "@/ui/*": ["components/ui/*"],
-      "@/ui": ["components/ui/index.ts"],
       "@/features/*": ["features/*"]
     },
     "incremental": true

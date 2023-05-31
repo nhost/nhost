@@ -1,9 +1,9 @@
 /* eslint-disable no-restricted-imports */
 import { DialogProvider } from '@/components/common/DialogProvider';
-import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import { ManagedUIContext } from '@/context/UIContext';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { UIProvider } from '@/components/common/UIProvider';
 import { mockRouter, mockSession } from '@/tests/mocks';
-import createTheme from '@/ui/v2/createTheme';
+import { createTheme } from '@/ui/v2/createTheme';
 import createEmotionCache from '@/utils/createEmotionCache';
 import { createHttpLink } from '@apollo/client';
 import { CacheProvider } from '@emotion/react';
@@ -13,8 +13,8 @@ import { NhostApolloProvider } from '@nhost/react-apollo';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type {
   Queries,
-  RenderOptions,
   queries,
+  RenderOptions,
   waitForOptions,
 } from '@testing-library/react';
 import {
@@ -69,12 +69,12 @@ function Providers({ children }: PropsWithChildren<{}>) {
                   }),
                 ]}
               >
-                <ManagedUIContext>
+                <UIProvider>
                   <Toaster position="bottom-center" />
                   <ThemeProvider theme={theme}>
                     <DialogProvider>{children}</DialogProvider>
                   </ThemeProvider>
-                </ManagedUIContext>
+                </UIProvider>
               </NhostApolloProvider>
             </NhostProvider>
           </CacheProvider>

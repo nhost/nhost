@@ -1,12 +1,12 @@
-import { RemoveApplicationModal } from '@/components/applications/RemoveApplicationModal';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/common/Form';
+import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
 import { SettingsLayout } from '@/components/settings/SettingsLayout';
-import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import { useIsCurrentUserOwner } from '@/features/projects/hooks/useIsCurrentUserOwner';
+import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteApplicationMutation,

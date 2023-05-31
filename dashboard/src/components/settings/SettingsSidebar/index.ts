@@ -1,2 +1,2 @@
 export * from './SettingsSidebar';
-export { default } from './SettingsSidebar';
+export { default as SettingsSidebar } from './SettingsSidebar';

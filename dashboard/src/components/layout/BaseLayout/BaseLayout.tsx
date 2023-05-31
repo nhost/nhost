@@ -1,5 +1,5 @@
 import type { BoxProps } from '@/ui/v2/Box';
-import Box from '@/ui/v2/Box';
+import { Box } from '@/ui/v2/Box';
 import { useTheme } from '@mui/material';
 import type { NextSeoProps } from 'next-seo';
 import { NextSeo } from 'next-seo';

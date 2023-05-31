@@ -1,5 +1,5 @@
-import Button from '@/ui/v2/Button';
-import XIcon from '@/ui/v2/icons/XIcon';
+import { Button } from '@/ui/v2/Button';
+import { XIcon } from '@/ui/v2/icons/XIcon';
 import { styled } from '@mui/material';
 import type { DialogTitleProps as MaterialDialogTitleProps } from '@mui/material/DialogTitle';
 import MaterialDialogTitle from '@mui/material/DialogTitle';

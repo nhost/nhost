@@ -1,13 +1,13 @@
 import { Form } from '@/components/common/Form';
 import { InlineCode } from '@/components/common/InlineCode';
+import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { useUI } from '@/context/UIContext';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { Alert } from '@/ui/Alert';
+import { Alert } from '@/ui/v2/Alert';
 import { Input } from '@/ui/v2/Input';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { getServerError } from '@/utils/settings/getServerError';

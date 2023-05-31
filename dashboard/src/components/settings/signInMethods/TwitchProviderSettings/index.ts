@@ -1,1 +1,1 @@
-export { default } from './TwitchProviderSettings';
+export { default as TwitchProviderSettings } from './TwitchProviderSettings';

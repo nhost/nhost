@@ -1,12 +1,12 @@
-import Form from '@/components/common/Form';
-import NavLink from '@/components/common/NavLink';
-import GithubIcon from '@/components/icons/GithubIcon';
-import UnauthenticatedLayout from '@/components/layout/UnauthenticatedLayout';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Divider from '@/ui/v2/Divider';
-import Input, { inputClasses } from '@/ui/v2/Input';
-import Text from '@/ui/v2/Text';
+import { Form } from '@/components/common/Form';
+import { NavLink } from '@/components/common/NavLink';
+import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Divider } from '@/ui/v2/Divider';
+import { GitHubIcon } from '@/ui/v2/icons/GitHubIcon';
+import { Input, inputClasses } from '@/ui/v2/Input';
+import { Text } from '@/ui/v2/Text';
 import { nhost } from '@/utils/nhost';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -88,7 +88,7 @@ export default function SignUpPage() {
         <Button
           variant="borderless"
           className="!bg-white !text-black hover:ring-2 hover:ring-white hover:ring-opacity-50 disabled:!text-black disabled:!text-opacity-60"
-          startIcon={<GithubIcon />}
+          startIcon={<GitHubIcon />}
           disabled={loading}
           loading={loading}
           size="large"

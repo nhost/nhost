@@ -1,1 +1,1 @@
-export { default } from './getTruncatedText';
+export { default as getTruncatedText } from './getTruncatedText';

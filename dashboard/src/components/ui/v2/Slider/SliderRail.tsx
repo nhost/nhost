@@ -1,5 +1,5 @@
 import type { BoxProps } from '@/ui/v2/Box';
-import Box from '@/ui/v2/Box';
+import { Box } from '@/ui/v2/Box';
 import { alpha, styled } from '@mui/material';
 import type { SliderProps as MaterialSliderProps } from '@mui/material/Slider';
 import MaterialSlider, {
@@ -46,7 +46,12 @@ const StyledInnerSlider = styled(MaterialSlider)(({ theme }) => ({
   },
 }));
 
-export interface SliderRailProps extends MaterialSliderProps {}
+export interface SliderRailProps extends MaterialSliderProps {
+  /**
+   * The value of the slider.
+   */
+  value: number;
+}
 
 export default function SliderRail({
   value,

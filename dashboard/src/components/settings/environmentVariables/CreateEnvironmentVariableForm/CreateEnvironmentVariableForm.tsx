@@ -2,11 +2,12 @@ import type {
   BaseEnvironmentVariableFormProps,
   BaseEnvironmentVariableFormValues,
 } from '@/components/settings/environmentVariables/BaseEnvironmentVariableForm';
-import BaseEnvironmentVariableForm, {
+import {
+  BaseEnvironmentVariableForm,
   baseEnvironmentVariableFormValidationSchema,
 } from '@/components/settings/environmentVariables/BaseEnvironmentVariableForm';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { getServerError } from '@/utils/settings/getServerError';
 import { getToastStyleProps } from '@/utils/settings/settingsConstants';
 import {

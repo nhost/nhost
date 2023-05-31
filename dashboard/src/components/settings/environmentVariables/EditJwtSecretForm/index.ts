@@ -1,2 +1,2 @@
 export * from './EditJwtSecretForm';
-export { default } from './EditJwtSecretForm';
+export { default as EditJwtSecretForm } from './EditJwtSecretForm';

@@ -1,5 +1,5 @@
 import type { BoxProps } from '@/ui/v2/Box';
-import Box from '@/ui/v2/Box';
+import { Box } from '@/ui/v2/Box';
 import type { KeyboardEvent } from 'react';
 import { useRef } from 'react';
 import { useFormContext } from 'react-hook-form';

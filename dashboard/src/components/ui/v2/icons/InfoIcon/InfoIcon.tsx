@@ -1,5 +1,5 @@
 import type { IconProps } from '@/ui/v2/icons';
-import SvgIcon from '@/ui/v2/icons/SvgIcon';
+import { SvgIcon } from '@/ui/v2/icons/SvgIcon';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 

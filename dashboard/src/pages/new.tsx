@@ -1,27 +1,34 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout';
-import Container from '@/components/layout/Container';
-import { BillingPaymentMethodForm } from '@/components/workspace/BillingPaymentMethodForm';
-import { useUI } from '@/context/UIContext';
+import { useUI } from '@/components/common/UIProvider';
+import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { Container } from '@/components/layout/Container';
 import features from '@/data/features.json';
-import { generateRandomDatabasePassword } from '@/features/database/utils/generateRandomDatabasePassword';
+import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
+import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
 import { useSubmitState } from '@/hooks/useSubmitState';
-import { Alert } from '@/ui/Alert';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import IconButton from '@/ui/v2/IconButton';
-import Input from '@/ui/v2/Input';
-import InputAdornment from '@/ui/v2/InputAdornment';
-import Option from '@/ui/v2/Option';
-import Radio from '@/ui/v2/Radio';
-import RadioGroup from '@/ui/v2/RadioGroup';
-import Select from '@/ui/v2/Select';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Alert } from '@/ui/v2/Alert';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { IconButton } from '@/ui/v2/IconButton';
+import { CopyIcon } from '@/ui/v2/icons/CopyIcon';
+import { Input } from '@/ui/v2/Input';
+import { InputAdornment } from '@/ui/v2/InputAdornment';
+import { Option } from '@/ui/v2/Option';
+import { Radio } from '@/ui/v2/Radio';
+import { RadioGroup } from '@/ui/v2/RadioGroup';
+import { Select } from '@/ui/v2/Select';
 import type { TextProps } from '@/ui/v2/Text';
-import Text from '@/ui/v2/Text';
-import Tooltip from '@/ui/v2/Tooltip';
-import CopyIcon from '@/ui/v2/icons/CopyIcon';
+import { Text } from '@/ui/v2/Text';
+import { Tooltip } from '@/ui/v2/Tooltip';
+import { copy } from '@/utils/common/copy';
 import { MAX_FREE_PROJECTS } from '@/utils/CONSTANTS';
+import { getErrorMessage } from '@/utils/getErrorMessage';
+import { getCurrentEnvironment } from '@/utils/helpers';
+import { planDescriptions } from '@/utils/planDescriptions';
+import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
+import { getToastStyleProps } from '@/utils/settings/settingsConstants';
+import { triggerToast } from '@/utils/toast';
 import type {
   PrefetchNewAppPlansFragment,
   PrefetchNewAppRegionsFragment,
@@ -33,13 +40,6 @@ import {
   useInsertApplicationMutation,
   usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
-import { copy } from '@/utils/copy';
-import { getErrorMessage } from '@/utils/getErrorMessage';
-import { getCurrentEnvironment } from '@/utils/helpers';
-import { planDescriptions } from '@/utils/planDescriptions';
-import { resetDatabasePasswordValidationSchema } from '@/utils/settings/resetDatabasePasswordValidationSchema';
-import { getToastStyleProps } from '@/utils/settings/settingsConstants';
-import { triggerToast } from '@/utils/toast';
 import type { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';

@@ -1,1 +1,1 @@
-export { default } from './FacebookProviderSettings';
+export { default as FacebookProviderSettings } from './FacebookProviderSettings';

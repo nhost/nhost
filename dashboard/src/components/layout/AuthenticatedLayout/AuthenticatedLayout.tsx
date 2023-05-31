@@ -1,15 +1,15 @@
-import Header from '@/components/common/Header';
+import { Header } from '@/components/common/Header';
 import { HighlightedText } from '@/components/common/HighlightedText';
+import { InviteNotification } from '@/components/common/InviteNotification';
 import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
-import { InviteAnnounce } from '@/components/home/InviteAnnounce';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
-import BaseLayout from '@/components/layout/BaseLayout';
-import Container from '@/components/layout/Container';
-import { useIsHealthy } from '@/features/projects/hooks/useIsHealthy';
-import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Link from '@/ui/v2/Link';
-import Text from '@/ui/v2/Text';
+import { BaseLayout } from '@/components/layout/BaseLayout';
+import { Container } from '@/components/layout/Container';
+import { useIsHealthy } from '@/features/projects/common/hooks/useIsHealthy';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Link } from '@/ui/v2/Link';
+import { Text } from '@/ui/v2/Text';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -118,7 +118,7 @@ export default function AuthenticatedLayout({
     <BaseLayout className="flex h-full flex-col" {...props}>
       <Header className="flex max-h-[59px] flex-auto" />
 
-      <InviteAnnounce />
+      <InviteNotification />
 
       <RetryableErrorBoundary errorMessageProps={{ className: 'pt-20' }}>
         <div

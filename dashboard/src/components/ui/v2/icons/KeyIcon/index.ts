@@ -1,1 +1,1 @@
-export { default } from './KeyIcon';
+export { default as KeyIcon } from './KeyIcon';

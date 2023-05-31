@@ -1,14 +1,14 @@
-import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   useGetAppFunctionsMetadataQuery,
   useGetProjectMetricsQuery,
   useGetRemoteAppMetricsQuery,
 } from '@/generated/graphql';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import LinearProgress from '@/ui/v2/LinearProgress';
-import Text from '@/ui/v2/Text';
+import { LinearProgress } from '@/ui/v2/LinearProgress';
+import { Text } from '@/ui/v2/Text';
 import { prettifySize } from '@/utils/common/prettifySize';
 
 const now = new Date();

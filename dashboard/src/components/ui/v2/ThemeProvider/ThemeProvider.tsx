@@ -1,6 +1,6 @@
-import ColorPreferenceProvider from '@/ui/v2/ColorPreferenceProvider';
-import createTheme from '@/ui/v2/createTheme';
-import useColorPreference from '@/ui/v2/useColorPreference';
+import { ColorPreferenceProvider } from '@/ui/v2/ColorPreferenceProvider';
+import { createTheme } from '@/ui/v2/createTheme';
+import { useColorPreference } from '@/ui/v2/useColorPreference';
 import CssBaseline from '@mui/material/CssBaseline';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import { ThemeProvider as MaterialThemeProvider } from '@mui/material/styles';

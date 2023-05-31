@@ -1,9 +1,9 @@
-import Chip from '@/ui/v2/Chip';
+import { Chip } from '@/ui/v2/Chip';
 import type { FormControlProps } from '@/ui/v2/FormControl';
-import ChevronDownIcon from '@/ui/v2/icons/ChevronDownIcon';
-import XIcon from '@/ui/v2/icons/XIcon';
+import { ChevronDownIcon } from '@/ui/v2/icons/ChevronDownIcon';
+import { XIcon } from '@/ui/v2/icons/XIcon';
 import type { InputProps } from '@/ui/v2/Input';
-import Input, { inputClasses } from '@/ui/v2/Input';
+import { Input, inputClasses } from '@/ui/v2/Input';
 import { OptionBase } from '@/ui/v2/Option';
 import { OptionGroupBase } from '@/ui/v2/OptionGroup';
 import type { StyledComponent } from '@emotion/styled';

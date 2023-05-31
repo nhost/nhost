@@ -1,1 +1,1 @@
-export { default } from './PencilIcon';
+export { default as PencilIcon } from './PencilIcon';

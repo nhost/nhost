@@ -1,16 +1,16 @@
-import { RestoreBackupModal } from '@/components/applications/RestoreBackupModal';
-import { UnlockFeatureByUpgrading } from '@/components/applications/UnlockFeatureByUpgrading';
-import RetryableErrorBoundary from '@/components/common/RetryableErrorBoundary';
-import Container from '@/components/layout/Container';
-import ProjectLayout from '@/components/layout/ProjectLayout';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { Container } from '@/components/layout/Container';
+import { ProjectLayout } from '@/components/layout/ProjectLayout';
+import { RestoreBackupModal } from '@/features/projects/backups/components/RestoreBackupModal';
+import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useGetApplicationBackupsQuery } from '@/generated/graphql';
-import { Modal } from '@/ui';
-import ActivityIndicator from '@/ui/v2/ActivityIndicator';
-import Box from '@/ui/v2/Box';
-import Button from '@/ui/v2/Button';
-import Chip from '@/ui/v2/Chip';
-import Text from '@/ui/v2/Text';
+import { Modal } from '@/ui/v1/Modal';
+import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
+import { Box } from '@/ui/v2/Box';
+import { Button } from '@/ui/v2/Button';
+import { Chip } from '@/ui/v2/Chip';
+import { Text } from '@/ui/v2/Text';
 import { prettifySize } from '@/utils/common/prettifySize';
 import { formatDistanceStrict, formatISO9075 } from 'date-fns';
 import type { ReactElement } from 'react';
@@ -152,7 +152,7 @@ function BackupsContent() {
 
   if (isPlanFree) {
     return (
-      <UnlockFeatureByUpgrading
+      <UpgradeNotification
         message="Unlock backups by upgrading your project to the Pro plan."
         className="mt-4"
       />

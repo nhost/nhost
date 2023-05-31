@@ -1,1 +1,1 @@
-export { default } from './LinkedInProviderSettings';
+export { default as LinkedInProviderSettings } from './LinkedInProviderSettings';

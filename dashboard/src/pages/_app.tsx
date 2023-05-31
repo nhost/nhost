@@ -1,12 +1,12 @@
 import { DialogProvider } from '@/components/common/DialogProvider';
-import ErrorBoundaryFallback from '@/components/common/ErrorBoundaryFallback';
-import { ManagedUIContext } from '@/context/UIContext';
-import { useIsPlatform } from '@/features/projects/hooks/useIsPlatform';
+import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { UIProvider } from '@/components/common/UIProvider';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import '@/styles/fonts.css';
 import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
-import ThemeProvider from '@/ui/v2/ThemeProvider';
+import { ThemeProvider } from '@/ui/v2/ThemeProvider';
 import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/CONSTANTS';
 import createEmotionCache from '@/utils/createEmotionCache';
 import { nhost } from '@/utils/nhost';
@@ -29,7 +29,6 @@ import { useRouter } from 'next/router';
 import Script from 'next/script';
 import type { ReactElement } from 'react';
 import { useEffect } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
 import { Toaster } from 'react-hot-toast';
 
 // Client-side cache, shared for the whole session of the user in the browser.
@@ -81,40 +80,40 @@ function MyApp({
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
 
   return (
-    <ErrorBoundary fallbackRender={ErrorBoundaryFallback}>
+    <QueryClientProvider client={queryClient}>
       <DefaultSeo titleTemplate="%s - Nhost" defaultTitle="Nhost" />
 
-      <QueryClientProvider client={queryClient}>
-        <CacheProvider value={emotionCache}>
-          <NhostProvider nhost={nhost}>
-            <NhostApolloProvider
-              fetchPolicy="cache-and-network"
-              nhost={nhost}
-              connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
-            >
-              <ManagedUIContext>
-                <Toaster position="bottom-center" />
+      <CacheProvider value={emotionCache}>
+        <NhostProvider nhost={nhost}>
+          <NhostApolloProvider
+            fetchPolicy="cache-and-network"
+            nhost={nhost}
+            connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
+          >
+            <UIProvider>
+              <Toaster position="bottom-center" />
 
-                {isPlatform && (
-                  <Script
-                    id="segment"
-                    dangerouslySetInnerHTML={{ __html: renderSnippet() }}
-                  />
-                )}
+              {isPlatform && (
+                <Script
+                  id="segment"
+                  dangerouslySetInnerHTML={{ __html: renderSnippet() }}
+                />
+              )}
 
-                <ThemeProvider
-                  colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
-                >
+              <ThemeProvider
+                colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
+              >
+                <RetryableErrorBoundary>
                   <DialogProvider>
                     {getLayout(<Component {...pageProps} />)}
                   </DialogProvider>
-                </ThemeProvider>
-              </ManagedUIContext>
-            </NhostApolloProvider>
-          </NhostProvider>
-        </CacheProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+                </RetryableErrorBoundary>
+              </ThemeProvider>
+            </UIProvider>
+          </NhostApolloProvider>
+        </NhostProvider>
+      </CacheProvider>
+    </QueryClientProvider>
   );
 }
 export default MyApp;

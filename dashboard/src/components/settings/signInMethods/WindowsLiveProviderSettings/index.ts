@@ -1,1 +1,1 @@
-export { default } from './WindowsLiveProviderSettings';
+export { default as WindowsLiveProviderSettings } from './WindowsLiveProviderSettings';

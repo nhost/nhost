@@ -1,4 +1,4 @@
-import Input from '@/ui/v2/Input';
+import { Input } from '@/ui/v2/Input';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 

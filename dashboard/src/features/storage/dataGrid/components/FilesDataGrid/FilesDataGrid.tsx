@@ -1,17 +1,17 @@
-import type { DataGridProps } from '@/components/common/DataGrid';
-import DataGrid from '@/components/common/DataGrid';
-import DataGridBooleanCell from '@/components/common/DataGridBooleanCell';
-import DataGridDateCell from '@/components/common/DataGridDateCell';
-import type { PreviewProps } from '@/components/common/DataGridPreviewCell';
-import DataGridPreviewCell from '@/components/common/DataGridPreviewCell';
-import DataGridTextCell from '@/components/common/DataGridTextCell';
-import { FileIcon } from '@/components/icons/FileIcon';
-import { useAppClient } from '@/features/projects/hooks/useAppClient';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/hooks/useCurrentWorkspaceAndProject';
+import type { DataGridProps } from '@/components/dataGrid/DataGrid';
+import { DataGrid } from '@/components/dataGrid/DataGrid';
+import { DataGridBooleanCell } from '@/components/dataGrid/DataGridBooleanCell';
+import { DataGridDateCell } from '@/components/dataGrid/DataGridDateCell';
+import type { PreviewProps } from '@/components/dataGrid/DataGridPreviewCell';
+import { DataGridPreviewCell } from '@/components/dataGrid/DataGridPreviewCell';
+import { DataGridTextCell } from '@/components/dataGrid/DataGridTextCell';
+import { useAppClient } from '@/features/projects/common/hooks/useAppClient';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { FilesDataGridControls } from '@/features/storage/dataGrid/components/FilesDataGridControls';
 import { useBuckets } from '@/features/storage/dataGrid/hooks/useBuckets';
 import { useFiles } from '@/features/storage/dataGrid/hooks/useFiles';
 import { useFilesAggregate } from '@/features/storage/dataGrid/hooks/useFilesAggregate';
+import { FilePreviewIcon } from '@/ui/v2/icons/FilePreviewIcon';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
 import type { Files } from '@/utils/__generated__/graphql';
@@ -116,7 +116,9 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
         Cell: (cellProps) =>
           DataGridPreviewCell({
             ...cellProps,
-            fallbackPreview: <FileIcon className="h-5 w-5 fill-current" />,
+            fallbackPreview: (
+              <FilePreviewIcon className="h-5 w-5 fill-current" />
+            ),
           }),
         minWidth: 80,
         width: 80,

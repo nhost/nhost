@@ -1,1 +1,1 @@
-export { default } from './getJwtSecretsWithoutFalsyValues';
+export { default as getJwtSecretsWithoutFalsyValues } from './getJwtSecretsWithoutFalsyValues';

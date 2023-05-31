@@ -1,2 +1,2 @@
 export * from './ProjectLayout';
-export { default as ProjectLayout, default } from './ProjectLayout';
+export { default as ProjectLayout } from './ProjectLayout';
