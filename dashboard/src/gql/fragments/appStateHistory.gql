@@ -1,0 +1,7 @@
+fragment AppStateHistory on appStateHistory {
+  id
+  appId
+  message
+  stateId
+  createdAt
+}

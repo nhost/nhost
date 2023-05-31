@@ -1,7 +1,6 @@
-// TODO: We should infer the types from GraphQL Codegens and never manually create types like this.
-// It's too easy to get types out-of-sync which will generate bugs down the line
-
 import type {
+  AppStateHistoryFragment,
+  DeploymentRowFragment,
   EnvironmentVariableFragment,
   PermissionVariableFragment,
   ProjectFragment,
@@ -36,33 +35,8 @@ export type DesiredState =
   | ApplicationStatus.Paused
   | ApplicationStatus.Migrating;
 
-export type ApplicationState = {
-  __typeName?: string;
-  id: string;
-  appId: string;
-  message?: string | null;
-  stateId: ApplicationStatus;
-  createdAt: string;
-};
-
-export type Deployment = {
-  id: string;
-  commitSHA: string;
-  commitUserName: string;
-  deploymentStartedAt: string;
-  deploymentEndedAt: string;
-  commitUserAvatarUrl: string;
-  deploymentStatus: string;
-  commitMessage?: string;
-};
-
-export type FeatureFlag = {
-  description: string;
-  id: string;
-  name: string;
-  value: string;
-};
-
+export type ApplicationState = AppStateHistoryFragment;
+export type Deployment = DeploymentRowFragment;
 export type Workspace = WorkspaceFragment;
 export type Project = ProjectFragment;
 
