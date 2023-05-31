@@ -1,7 +1,7 @@
 import { useUI } from '@/components/common/UIProvider';
-import { useGitHubModal } from '@/features/git/common/hooks/useGitHubModal';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentListItem } from '@/features/projects/deployments/components/DeploymentListItem';
+import { useGitHubModal } from '@/features/projects/git/common/hooks/useGitHubModal';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
