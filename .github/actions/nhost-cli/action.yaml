@@ -49,7 +49,7 @@ runs:
       if: ${{ inputs.start == 'true' }}
       shell: bash
       working-directory: ${{ inputs.path }}
-      run: nhost dev --no-browser &
+      run: nhost up &
     - name: Wait for the app to be ready
       id: wait
       if: ${{ inputs.start == 'true' && inputs.wait == 'true' }}
@@ -63,7 +63,7 @@ runs:
           --retry-delay 1 \
           --retry-max-time 300 \
           --retry-connrefused \
-          'http://localhost:9695' > /dev/null
+          'https://local.hasura.nhost.run' > /dev/null
     - name: Log on failure
       if: steps.wait.outcome == 'failure'
       shell: bash
