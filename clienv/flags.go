@@ -33,11 +33,12 @@ func getGitBranchName() string {
 }
 
 func Flags() ([]cli.Flag, error) {
-	workingDir, err := os.Getwd()
+	fullWorkingDir, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get working directory: %w", err)
 	}
 
+	workingDir := "."
 	dotNhostFolder := filepath.Join(workingDir, ".nhost")
 	dataFolder := filepath.Join(dotNhostFolder, "data", getGitBranchName())
 	nhostFolder := filepath.Join(workingDir, "nhost")
@@ -81,7 +82,7 @@ func Flags() ([]cli.Flag, error) {
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagProjectName,
 			Usage:   "Project name",
-			Value:   filepath.Base(workingDir),
+			Value:   filepath.Base(fullWorkingDir),
 			EnvVars: []string{"NHOST_PROJECT_NAME"},
 		},
 	}, nil

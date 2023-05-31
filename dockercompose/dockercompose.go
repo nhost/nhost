@@ -16,12 +16,14 @@ import (
 const op = "read"
 
 type DockerCompose struct {
+	workingDir  string
 	filepath    string
 	projectName string
 }
 
-func New(filepath, projectName string) *DockerCompose {
+func New(workingDir, filepath, projectName string) *DockerCompose {
 	return &DockerCompose{
+		workingDir:  workingDir,
 		filepath:    filepath,
 		projectName: projectName,
 	}
@@ -50,6 +52,7 @@ func (dc *DockerCompose) Start(ctx context.Context) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
 		"docker", "compose",
+		"--project-directory", dc.workingDir,
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 		"up",
@@ -68,6 +71,7 @@ func (dc *DockerCompose) Stop(ctx context.Context) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
 		"docker", "compose",
+		"--project-directory", dc.workingDir,
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 		"down",
@@ -84,6 +88,7 @@ func (dc *DockerCompose) Stop(ctx context.Context) error {
 func (dc *DockerCompose) Logs(ctx context.Context, extraArgs ...string) error {
 	args := []string{
 		"compose",
+		"--project-directory", dc.workingDir,
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 		"logs",
@@ -107,6 +112,7 @@ func (dc *DockerCompose) Logs(ctx context.Context, extraArgs ...string) error {
 func (dc *DockerCompose) Wrapper(ctx context.Context, extraArgs ...string) error {
 	args := []string{
 		"compose",
+		"--project-directory", dc.workingDir,
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 	}
@@ -130,6 +136,7 @@ func (dc *DockerCompose) ApplyMetadata(ctx context.Context) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
 		"docker", "compose",
+		"--project-directory", dc.workingDir,
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 		"exec",
@@ -164,6 +171,7 @@ func (dc *DockerCompose) ApplyMigrations(ctx context.Context) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
 		"docker", "compose",
+		"--project-directory", dc.workingDir,
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 		"exec",
@@ -199,6 +207,7 @@ func (dc *DockerCompose) ApplySeeds(ctx context.Context) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
 		"docker", "compose",
+		"--project-directory", dc.workingDir,
 		"-f", dc.filepath,
 		"-p", dc.projectName,
 		"exec",

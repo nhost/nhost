@@ -6,6 +6,7 @@ import (
 )
 
 type PathStructure struct {
+	workingDir     string
 	root           string
 	dotNhostFolder string
 	dataFolder     string
@@ -13,14 +14,19 @@ type PathStructure struct {
 }
 
 func NewPathStructure(
-	root, dotNhostFolder, dataFolder, nhostFolder string,
+	workingDir, root, dotNhostFolder, dataFolder, nhostFolder string,
 ) *PathStructure {
 	return &PathStructure{
+		workingDir:     workingDir,
 		root:           root,
 		dotNhostFolder: dotNhostFolder,
 		dataFolder:     dataFolder,
 		nhostFolder:    nhostFolder,
 	}
+}
+
+func (p PathStructure) WorkingDir() string {
+	return p.workingDir
 }
 
 func (p PathStructure) Root() string {

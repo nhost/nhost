@@ -19,7 +19,7 @@ func CommandDown() *cli.Command {
 func commandDown(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
-	dc := dockercompose.New(ce.Path.DockerCompose(), ce.ProjectName())
+	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
 	if err := dc.Stop(cCtx.Context); err != nil {
 		ce.Warnln("failed to stop Nhost development environment: %s", err)

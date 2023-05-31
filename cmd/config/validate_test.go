@@ -229,6 +229,7 @@ func TestValidate(t *testing.T) {
 				os.Stdout,
 				os.Stderr,
 				clienv.NewPathStructure(
+					".",
 					filepath.Join("testdata", "validate", tc.path),
 					filepath.Join("testdata", "validate", tc.path, ".nhost"),
 					filepath.Join("testdata", "validate", tc.path, ".nhost", "data"),

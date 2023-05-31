@@ -227,7 +227,7 @@ func Up(
 	postgresPort uint,
 	applySeeds bool,
 ) error {
-	dc := dockercompose.New(ce.Path.DockerCompose(), projectName)
+	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), projectName)
 
 	if err := up(
 		ctx, ce, dc, projectName, httpPort, useTLS, postgresPort, applySeeds,

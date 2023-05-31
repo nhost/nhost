@@ -375,10 +375,6 @@ func mailhog(dataFolder string, useTLS bool) (*Service, error) {
 				TLS:  useTLS,
 				Rule: "Host(`local.mailhog.nhost.run`)",
 				Port: mailhogPort,
-				// Rewrite: &Rewrite{
-				// 	Regex:       "/mailhog(/|$)(.*)",
-				// 	Replacement: "/$2",
-				// },
 			},
 		}.Labels(),
 		Ports:   nil,

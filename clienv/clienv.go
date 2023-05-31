@@ -2,6 +2,7 @@ package clienv
 
 import (
 	"io"
+	"os"
 
 	"github.com/nhost/cli/nhostclient"
 	"github.com/urfave/cli/v2"
@@ -34,10 +35,15 @@ func New(
 }
 
 func FromCLI(cCtx *cli.Context) *CliEnv {
+	cwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
 	return &CliEnv{
 		stdout: cCtx.App.Writer,
 		stderr: cCtx.App.ErrWriter,
 		Path: NewPathStructure(
+			cwd,
 			cCtx.String(flagRootFolder),
 			cCtx.String(flagDotNhostFolder),
 			cCtx.String(flagDataFolder),

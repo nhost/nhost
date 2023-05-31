@@ -19,6 +19,6 @@ func CommandCompose() *cli.Command {
 
 func commandCompose(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
-	dc := dockercompose.New(ce.Path.DockerCompose(), ce.ProjectName())
+	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 	return dc.Wrapper(cCtx.Context, cCtx.Args().Slice()...) //nolint:wrapcheck
 }

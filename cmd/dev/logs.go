@@ -20,7 +20,7 @@ func CommandLogs() *cli.Command {
 func commandLogs(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
-	dc := dockercompose.New(ce.Path.DockerCompose(), ce.ProjectName())
+	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
 	if err := dc.Logs(cCtx.Context, cCtx.Args().Slice()...); err != nil {
 		ce.Warnln("%s", err)
