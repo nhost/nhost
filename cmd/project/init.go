@@ -92,6 +92,10 @@ func initInit(
 		return fmt.Errorf("failed to add secrets to .gitignore: %w", err)
 	}
 
+	if err := system.AddToGitignore(".nhost"); err != nil {
+		return fmt.Errorf("failed to add .nhost to .gitignore: %w", err)
+	}
+
 	getclient := &getter.Client{ //nolint:exhaustruct
 		Ctx:  ctx,
 		Src:  "github.com/nhost/hasura-auth/email-templates",
