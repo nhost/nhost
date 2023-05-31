@@ -57,6 +57,7 @@ type DependsOn struct {
 //nolint:tagliatelle
 type HealthCheck struct {
 	Test        []string `yaml:"test"`
+	Timeout     string   `yaml:"timeout"`
 	Interval    string   `yaml:"interval"`
 	StartPeriod string   `yaml:"start_period"`
 }
@@ -311,7 +312,8 @@ func functions( //nolint:funlen
 		HealthCheck: &HealthCheck{
 			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:3000/healthz"},
 			Interval:    "5s",
-			StartPeriod: "60s",
+			Timeout:     "600s",
+			StartPeriod: "600s",
 		},
 		Labels: Ingresses{
 			{

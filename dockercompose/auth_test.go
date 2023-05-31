@@ -124,6 +124,7 @@ func expectedAuth() *Service {
 		},
 		HealthCheck: &HealthCheck{
 			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:4000/healthz"},
+			Timeout:     "60s",
 			Interval:    "5s",
 			StartPeriod: "60s",
 		},
