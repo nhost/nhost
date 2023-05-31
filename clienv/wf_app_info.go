@@ -21,7 +21,7 @@ func (ce *CliEnv) GetAppInfo(
 			}
 		} else {
 			ce.Warnln("Failed to find linked project: %v", err)
-			ce.Infoln("Please run `nhost project link` to link a project first")
+			ce.Infoln("Please run `nhost link` to link a project first")
 			return nil, err
 		}
 	}

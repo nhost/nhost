@@ -69,12 +69,12 @@ func commandUp(cCtx *cli.Context) error {
 
 	if !clienv.PathExists(ce.Path.NhostToml()) {
 		return fmt.Errorf( //nolint:goerr113
-			"no nhost project found, please run `nhost project init` or `nhost config pull`",
+			"no nhost project found, please run `nhost init` or `nhost config pull`",
 		)
 	}
 	if !clienv.PathExists(ce.Path.Secrets()) {
 		return fmt.Errorf( //nolint:goerr113
-			"no secrets found, please run `nhost project init` or `nhost config pull`",
+			"no secrets found, please run `nhost init` or `nhost config pull`",
 		)
 	}
 
@@ -196,9 +196,9 @@ func printInfo(ce *clienv.CliEnv, httpPort, postgresPort uint, useTLS bool) {
 	ce.Println(" Subdomain:             local")
 	ce.Println(" Region:                (empty)")
 	ce.Println("")
-	ce.Println("Run `nhost dev up` to reload the development environment")
-	ce.Println("Run `nhost dev down` to stop the development environment")
-	ce.Println("Run `nhost dev logs` to watch the logs")
+	ce.Println("Run `nhost up` to reload the development environment")
+	ce.Println("Run `nhost down` to stop the development environment")
+	ce.Println("Run `nhost logs` to watch the logs")
 }
 
 func Up(

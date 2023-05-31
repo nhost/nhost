@@ -66,7 +66,7 @@ func commandInit(cCtx *cli.Context) error {
 		}
 	}
 
-	ce.Infoln("Successfully initialized Nhost project, run `nhost dev up` to start development")
+	ce.Infoln("Successfully initialized Nhost project, run `nhost up` to start development")
 	return nil
 }
 
