@@ -28,7 +28,7 @@ jobs:
           path: packages/nhost-js
           start: true
       - name: should be running
-        run: curl -sSf 'http://localhost:9695' > /dev/null
+        run: curl -sSf 'https://local.hasura.nhost.run' > /dev/null
 
   stop:
     runs-on: ubuntu-latest
@@ -59,7 +59,7 @@ jobs:
           start: true
           wait: false
       - name: should not be ready
-        run: curl -sSf -o /dev/null 'http://localhost:9695' > /dev/null && exit 1 || true
+        run: curl -sSf -o /dev/null 'https://local.hasura.nhost.run' > /dev/null && exit 1 || true
       - name: should eventually be ready
         run: |
           curl -sSf --connect-timeout 3 \
@@ -68,7 +68,7 @@ jobs:
             --retry-delay 1 \
             --retry-max-time 300 \
             --retry-connrefused \
-            'http://localhost:9695' > /dev/null
+            'https://local.hasura.nhost.run' > /dev/null
 
   config:
     runs-on: ubuntu-latest
@@ -85,7 +85,7 @@ jobs:
                 image: nhost/hasura-auth:0.15.0
       - name: should find the injected hasura-auth version
         run: |
-          VERSION=$(curl -sSf 'http://localhost:1337/v1/auth/version')
+          VERSION=$(curl -sSf 'https://local.auth.nhost.run/v1/version')
           EXPECTED_VERSION='{"version":"v0.15.0"}'
           if [ "$VERSION" != "$EXPECTED_VERSION" ]; then
             echo "Expected version $EXPECTED_VERSION but got $VERSION"
@@ -99,6 +99,6 @@ jobs:
       - name: Install the Nhost CLI
         uses: ./.github/actions/nhost-cli
         with:
-          version: v1.0.0
+          version: latest
       - name: should find the correct version
         run: nhost --version | head -n 1 | grep v1.0.0 || exit 1
