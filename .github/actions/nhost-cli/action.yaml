@@ -49,7 +49,7 @@ runs:
       if: ${{ inputs.start == 'true' }}
       shell: bash
       working-directory: ${{ inputs.path }}
-      run: nhost up &
+      run: touch .secrets && nhost up &
     - name: Wait for the app to be ready
       id: wait
       if: ${{ inputs.start == 'true' && inputs.wait == 'true' }}
