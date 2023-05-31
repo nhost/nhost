@@ -46,7 +46,7 @@
     "typecheck": "tsc --noEmit",
     "build:lib": "vite build",
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
-    "e2e": "start-test e2e:backend http-get://localhost:9695 ci:test",
+    "e2e": "start-test e2e:backend https-get://local.hasura.nhost.run ci:test",
     "ci:test": "vitest run",
     "e2e:backend": "nhost dev --no-browser",
     "test": "vitest --config ./vite.unit.config.js",
