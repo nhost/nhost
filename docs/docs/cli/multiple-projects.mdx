@@ -8,7 +8,7 @@ image: /img/og/get-started-with-nhost-cli.png
 By default the name of the project is going to be the folder of the root of your project and it's goint to run on port 443 (https) and 5432 (postgres). If you need to run multiple projects or multiple instances of the same project at the same time you may need to override those. For instance:
 
 ```
-$ nhost dev up
+$ nhost up
 Verifying configuration...
 Configuration is valid!
 Setting up Nhost development environment...
@@ -42,9 +42,9 @@ SDK Configuration:
  Subdomain:             local
  Region:                (empty)
 
-Run `nhost dev up` to reload the development environment
-Run `nhost dev down` to stop the development environment
-Run `nhost dev logs` to watch the logs
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
 
 $ nhost --project-name alternativeproject dev up --http-port 8433 --postgres-port 5433
 Verifying configuration...
@@ -82,9 +82,9 @@ SDK Configuration:
  Subdomain:             local
  Region:                (empty)
 
-Run `nhost dev up` to reload the development environment
-Run `nhost dev down` to stop the development environment
-Run `nhost dev logs` to watch the logs
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
 ```
 
 From now on you can operate on each one of them accordingly by specifying `--project-name`:

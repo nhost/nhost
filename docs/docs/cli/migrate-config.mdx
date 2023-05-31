@@ -17,7 +17,7 @@ $ cd /path/to/existingproject
 2. Login:
 
 ```
-$ nhost user login
+$ nhost login
 - email: david@nhost.io
 - password:
 Authenticating
@@ -29,7 +29,7 @@ Storing PAT for future user
 3. Link your project:
 
 ```
-❯ nhost project link
+❯ nhost link
    │                      │               │            │              │
  # │ Subdomain            │ Project       │ Workspace  │ Region       │
  1 │ lrkadqfanxgmscttabiv │ demo          │ david-yirq │ eu-central-1 │
@@ -58,7 +58,7 @@ Success!
 6. Profit:
 
 ```
-$ nhost dev up
+$ nhost up
 Verifying configuration...
 Configuration is valid!
 Setting up Nhost development environment...
@@ -90,7 +90,7 @@ URLs:
 SDK Configuration:
  Subdomain:             local
  Region:                (empty)
-Run `nhost dev up` to reload the development environment
-Run `nhost dev down` to stop the development environment
-Run `nhost dev logs` to watch the logs
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
 ```
