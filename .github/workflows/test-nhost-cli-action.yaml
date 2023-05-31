@@ -79,10 +79,6 @@ jobs:
         with:
           path: packages/nhost-js
           start: true
-          config: |
-            services:
-              auth:
-                image: nhost/hasura-auth:0.15.0
       - name: should find the injected hasura-auth version
         run: |
           VERSION=$(curl -sSf 'https://local.auth.nhost.run/v1/version')
