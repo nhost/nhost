@@ -42,10 +42,10 @@ nhost init
 `nhost init` creates all the configuration necessary for your project, including database migrations and Hasura metadata.
 
 
-We can now start your project with `nhost dev`.
+We can now start your project with `nhost up`.
 
 ```bash
-nhost dev
+nhost up
 ```
 
 Once all services are up and running, the following information is displayed for your project:
@@ -67,9 +67,9 @@ SDK Configuration:
  Subdomain:             local
  Region:                (empty)
 
-Run `nhost dev up` to reload the development environment
-Run `nhost dev down` to stop the development environment
-Run `nhost dev logs` to watch the logs
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
 
 ```
 
@@ -85,7 +85,7 @@ curl https://local.auth.nhost.run/v1/version
 {"version":"v0.20.1"}
 ```
 
-Hurrah! Auth seems to be running on v0.20.1. 
+Hurrah! Auth seems to be running on v0.20.1.
 
 We can also test that Postgres is running as expected by using `psql` (or your favourite Postgres client).
 
@@ -95,7 +95,7 @@ psql postgres://postgres:postgres@localhost:5432/local
 psql (14.8 (Ubuntu 14.8-0ubuntu0.22.04.1), server 14.6 (Debian 14.6-1.pgdg110+1))
 Type "help" for help.
 
-local=# 
+local=#
 ```
 
 ## Database Migrations and Metadata Changes
@@ -107,7 +107,7 @@ All changes to your project should be tested locally first before deploying to y
 Let's create a new table called `messages`, with the following columns:
 
 - id (UUID)
-- text (Text) 
+- text (Text)
 - author_id (UUID)
 - created_at (Timestamp)
 
@@ -119,7 +119,7 @@ There are other ways to generate a migration, here we will use the local Nhost D
 To confirm that the migration was correctly generated with the correct SQL:
 
 ```bash
-cat nhost/migrations/default/1685452095884_create_table_public_messages/up.sql 
+cat nhost/migrations/default/1685452095884_create_table_public_messages/up.sql
 
 CREATE TABLE public.messages (id uuid DEFAULT gen_random_uuid() NOT NULL, text text NOT NULL, author_id uuid NOT NULL, created_at timestamp DEFAULT now() NOT NULL, PRIMARY KEY (id));
 ```
@@ -146,7 +146,7 @@ Here we have access to a matrix of permissions for all available roles and actio
 We defined a simple permission to allow a `user` to insert or create messages. We can look at the underlying metadata that tracks it.
 
 ```bash
-cat nhost/metadata/databases/default/tables/public_messages.yaml 
+cat nhost/metadata/databases/default/tables/public_messages.yaml
 
 table:
   name: messages
@@ -179,7 +179,7 @@ We've been developing your project locally, introducing changes via the Dashboar
 It's time to link, or associate, your local project to the remote one:
 
 ```bash
-nhost link 
+nhost link
 
     │                      │                                 │                  │              │
  #  │ Subdomain            │ Project                         │ Workspace        │ Region       │
@@ -190,7 +190,7 @@ nhost link
 - Enter project subdomain to confirm: kgrbyupffiamgqwnovkb
 ```
 
-You have now successfully linked your local project to a hosted project running on the Nhost Cloud. 
+You have now successfully linked your local project to a hosted project running on the Nhost Cloud.
 
 The final step is to push all changes to GitHub which will trigger a new deployment on Nhost.
 
