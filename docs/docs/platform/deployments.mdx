@@ -1,0 +1,40 @@
+---
+title: 'Deployments'
+sidebar_position: 2
+image: /img/og/platform/deployments.png
+---
+
+The following guide shows how to deploy a Nhost Project from a GitHub repository, and enable automatic deployments on every push to the **Deployment Branch**.
+
+Currently, only GitHub is supported, but other Git providers like GitLab and BitBucket are on the pipeline.
+
+## GitHub
+
+To setup your GitHub repository on Nhost, open the dashboard for the project you want to connect and click on "Connect to GitHub".
+
+![Connect to GitHub](/img/platform/deployments/connect-github.png)
+
+You might need to install the **Nhost** GitHub App in case you haven't or if the repository you want to connect to is not on the list.
+
+![Install the Nhost GitHub App](/img/platform/deployments/connect-github-install-nhost.png)
+
+Choose the account where you want to install the Nhost app and what repositories should it have access to.
+
+![Install the Nhost GitHub App](/img/platform/deployments/connect-github-install-nhost-3.png)
+
+Once the instalation is finished, go back to the list of repositories and click **Connect** on the repository you want to connect.  
+
+![Select Repository](/img/platform/deployments/connect-github-2.png)
+
+
+Finally, choose the deployment branch and base directory.
+
+![Select Repository](/img/platform/deployments/connect-github-3.png)
+
+- Nhost only deploys changes to the **Deployment Branch**. The default branch is `main`.
+
+- If your Nhost project is not located at the root of your Git repository, which is typically the case when using a monorepo, it's possible to set a custom **Base Directory**. The **Base Directory** is where the `nhost/` directory is located. In other words, the **Base Directory** is the parent directory of the `nhost/` directory.
+
+It's possible to have multiple Nhost projects connected to the same Git repository and use different **Deployment Branches** (e.g., `main` and `staging`). Learn more about [multiple environments](/platform/multiple-environments).
+
+The Deployment Branch and Base Directory can be updated on the project's settings page -> Deployments.
