@@ -1,4 +1,4 @@
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { EditRepositorySettings } from '@/features/projects/git/common/components/EditRepositorySettings';
 import { useGetGithubRepositoriesQuery } from '@/generated/graphql';
 import { Avatar } from '@/ui/v1/Avatar';

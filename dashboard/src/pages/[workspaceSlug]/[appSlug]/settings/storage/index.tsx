@@ -1,5 +1,5 @@
 import { Container } from '@/components/layout/Container';
-import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { StorageServiceVersionSettings } from '@/features/storage/settings/components/HasuraServiceVersionSettings';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';

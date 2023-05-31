@@ -1,6 +1,6 @@
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { RestoreBackupModal } from '@/features/projects/backups/components/RestoreBackupModal';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';

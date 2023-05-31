@@ -1,4 +1,4 @@
-import { ControlledSelect } from '@/components/common/ControlledSelect';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
 import type { RuleGroup } from '@/features/database/dataGrid/types/dataBrowser';
 import { Option } from '@/ui/v2/Option';
 import { Text } from '@/ui/v2/Text';

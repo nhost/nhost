@@ -1,5 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/common/Form';
+import { Form } from '@/components/form/Form';
 import { DatabaseRecordInputGroup } from '@/features/database/dataGrid/components/DatabaseRecordInputGroup';
 import type {
   ColumnInsertOptions,

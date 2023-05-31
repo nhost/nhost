@@ -1,7 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { InlineCode } from '@/components/common/InlineCode';
 import { useUI } from '@/components/common/UIProvider';
-import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { InlineCode } from '@/components/presentational/InlineCode';
 import { useAppClient } from '@/features/projects/common/hooks/useAppClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';

@@ -1,4 +1,4 @@
-import { ControlledSelect } from '@/components/common/ControlledSelect';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
 import type { NormalizedQueryDataRow } from '@/features/database/dataGrid/types/dataBrowser';
 import { Option } from '@/ui/v2/Option';
 import { useFormContext, useFormState, useWatch } from 'react-hook-form';

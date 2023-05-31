@@ -1,4 +1,4 @@
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
 import { Box } from '@/ui/v2/Box';

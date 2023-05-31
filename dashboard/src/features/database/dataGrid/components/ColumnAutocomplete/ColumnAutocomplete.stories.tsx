@@ -1,4 +1,4 @@
-import { Form } from '@/components/common/Form';
+import { Form } from '@/components/form/Form';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import { Button } from '@/ui/v2/Button';

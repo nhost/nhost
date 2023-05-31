@@ -1,5 +1,5 @@
 import { Container } from '@/components/layout/Container';
-import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { ResourcesForm } from '@/features/projects/resources/settings/components/ResourcesForm';

@@ -1,4 +1,4 @@
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { AlertDialog } from '@/ui/v2/AlertDialog';
 import { BaseDialog } from '@/ui/v2/Dialog';
 import { Drawer } from '@/ui/v2/Drawer';

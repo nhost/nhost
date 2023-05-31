@@ -1,5 +1,5 @@
 import { Container } from '@/components/layout/Container';
-import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { AllowedEmailSettings } from '@/features/authentication/settings/components/AllowedEmailSettings';
 import { AllowedRedirectURLsSettings } from '@/features/authentication/settings/components/AllowedRedirectURLsSettings';
 import { AuthServiceVersionSettings } from '@/features/authentication/settings/components/AuthServiceVersionSettings';

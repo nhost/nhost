@@ -1,8 +1,8 @@
-import { ControlledAutocomplete } from '@/components/common/ControlledAutocomplete';
-import { ControlledCheckbox } from '@/components/common/ControlledCheckbox';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/common/Form';
-import { InlineCode } from '@/components/common/InlineCode';
+import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
+import { Form } from '@/components/form/Form';
+import { InlineCode } from '@/components/presentational/InlineCode';
 import type {
   ColumnType,
   DatabaseColumn,

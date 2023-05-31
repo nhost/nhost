@@ -1,4 +1,4 @@
-import { ControlledSwitch } from '@/components/common/ControlledSwitch';
+import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Text } from '@/ui/v2/Text';
 import PermissionSettingsSection from './PermissionSettingsSection';
 

@@ -1,7 +1,7 @@
-import { Form } from '@/components/common/Form';
-import { InlineCode } from '@/components/common/InlineCode';
 import { useUI } from '@/components/common/UIProvider';
-import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { Form } from '@/components/form/Form';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { InlineCode } from '@/components/presentational/InlineCode';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetAllWorkspacesAndProjectsDocument,

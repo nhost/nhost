@@ -1,10 +1,10 @@
-import { Header } from '@/components/common/Header';
-import { HighlightedText } from '@/components/common/HighlightedText';
 import { InviteNotification } from '@/components/common/InviteNotification';
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
+import { Header } from '@/components/layout/Header';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { useIsHealthy } from '@/features/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';

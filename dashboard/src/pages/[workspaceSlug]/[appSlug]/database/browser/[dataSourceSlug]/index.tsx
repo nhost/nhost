@@ -1,4 +1,4 @@
-import { InlineCode } from '@/components/common/InlineCode';
+import { InlineCode } from '@/components/presentational/InlineCode';
 import { DataBrowserEmptyState } from '@/features/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserLayout } from '@/features/database/dataGrid/components/DataBrowserLayout';
 import { useRouter } from 'next/router';

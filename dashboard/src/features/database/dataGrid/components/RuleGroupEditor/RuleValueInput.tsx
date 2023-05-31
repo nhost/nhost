@@ -1,6 +1,6 @@
-import { ControlledAutocomplete } from '@/components/common/ControlledAutocomplete';
-import { ControlledSelect } from '@/components/common/ControlledSelect';
-import { ReadOnlyToggle } from '@/components/common/ReadOnlyToggle';
+import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import type { ColumnAutocompleteProps } from '@/features/database/dataGrid/components/ColumnAutocomplete';
 import { ColumnAutocomplete } from '@/features/database/dataGrid/components/ColumnAutocomplete';
 import type { HasuraOperator } from '@/features/database/dataGrid/types/dataBrowser';

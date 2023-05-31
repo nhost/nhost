@@ -1,4 +1,4 @@
-import { ControlledSwitch } from '@/components/common/ControlledSwitch';
+import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import type { RolePermissionEditorFormValues } from '@/features/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import { Button } from '@/ui/v2/Button';
 import { Checkbox } from '@/ui/v2/Checkbox';

@@ -1,4 +1,4 @@
-import { ControlledSelect } from '@/components/common/ControlledSelect';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { ColumnAutocomplete } from '@/features/database/dataGrid/components/ColumnAutocomplete';
 import type { HasuraOperator } from '@/features/database/dataGrid/types/dataBrowser';
 import { Option } from '@/ui/v2/Option';

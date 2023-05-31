@@ -1,6 +1,6 @@
-import { Form } from '@/components/common/Form';
 import { useUI } from '@/components/common/UIProvider';
-import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { Form } from '@/components/form/Form';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import type { BaseProviderSettingsFormValues } from '@/features/authentication/settings/components/BaseProviderSettings';
 import {
   BaseProviderSettings,

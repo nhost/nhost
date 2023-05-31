@@ -1,5 +1,5 @@
-import { Form } from '@/components/common/Form';
 import { NavLink } from '@/components/common/NavLink';
+import { Form } from '@/components/form/Form';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';

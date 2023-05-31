@@ -1,9 +1,9 @@
-import { ControlledCheckbox } from '@/components/common/ControlledCheckbox';
-import { Form } from '@/components/common/Form';
 import { useUI } from '@/components/common/UIProvider';
+import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
+import { Form } from '@/components/form/Form';
 import { Container } from '@/components/layout/Container';
-import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';

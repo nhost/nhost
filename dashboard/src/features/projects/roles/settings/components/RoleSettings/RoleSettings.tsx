@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
-import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { CreateRoleForm } from '@/features/projects/roles/settings/components/CreateRoleForm';
 import { EditRoleForm } from '@/features/projects/roles/settings/components/EditRoleForm';

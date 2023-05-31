@@ -1,8 +1,8 @@
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import type { ProjectLayoutProps } from '@/components/layout/ProjectLayout';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
-import type { SettingsSidebarProps } from '@/components/settings/SettingsSidebar';
-import { SettingsSidebar } from '@/components/settings/SettingsSidebar';
+import type { SettingsSidebarProps } from '@/components/layout/SettingsSidebar';
+import { SettingsSidebar } from '@/components/layout/SettingsSidebar';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Box } from '@/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';
 

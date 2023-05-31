@@ -1,7 +1,7 @@
-import { ControlledSelect } from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/common/Form';
-import { HighlightedText } from '@/components/common/HighlightedText';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { Form } from '@/components/form/Form';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
 import type { DialogFormProps } from '@/types/common';
 import { Alert } from '@/ui/v2/Alert';
 import { Box } from '@/ui/v2/Box';

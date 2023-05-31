@@ -1,6 +1,6 @@
-import { LoadingScreen } from '@/components/common/LoadingScreen';
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { UserSelect } from '@/features/graphql/common/components/UserSelect';
 import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';

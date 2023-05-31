@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/common/Form';
-import { HighlightedText } from '@/components/common/HighlightedText';
+import { Form } from '@/components/form/Form';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { useManagePermissionMutation } from '@/features/database/dataGrid/hooks/useManagePermissionMutation';
 import type {
   DatabaseAction,

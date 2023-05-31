@@ -1,12 +1,12 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { FormActivityIndicator } from '@/components/common/FormActivityIndicator';
-import { InlineCode } from '@/components/common/InlineCode';
 import type { DataGridProps } from '@/components/dataGrid/DataGrid';
 import { DataGrid } from '@/components/dataGrid/DataGrid';
 import { DataGridBooleanCell } from '@/components/dataGrid/DataGridBooleanCell';
 import { DataGridDateCell } from '@/components/dataGrid/DataGridDateCell';
 import { DataGridNumericCell } from '@/components/dataGrid/DataGridNumericCell';
 import { DataGridTextCell } from '@/components/dataGrid/DataGridTextCell';
+import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
+import { InlineCode } from '@/components/presentational/InlineCode';
 import { useTablePath } from '@/features/database/common/hooks/useTablePath';
 import { DataBrowserEmptyState } from '@/features/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserGridControls } from '@/features/database/dataGrid/components/DataBrowserGridControls';

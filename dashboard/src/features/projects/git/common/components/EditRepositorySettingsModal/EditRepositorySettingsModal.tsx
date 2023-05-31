@@ -1,5 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { EditRepositoryAndBranchSettings } from '@/features/projects/git/common/components/EditRepositoryAndBranchSettings';
 import type { EditRepositorySettingsFormData } from '@/features/projects/git/common/components/EditRepositorySettings';

@@ -1,4 +1,4 @@
-import { InlineCode } from '@/components/common/InlineCode';
+import { InlineCode } from '@/components/presentational/InlineCode';
 import { useMetadataQuery } from '@/features/database/dataGrid/hooks/useMetadataQuery';
 import { useTableQuery } from '@/features/database/dataGrid/hooks/useTableQuery';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';

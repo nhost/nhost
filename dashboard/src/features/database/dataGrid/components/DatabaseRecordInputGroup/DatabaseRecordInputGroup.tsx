@@ -1,5 +1,5 @@
-import { InlineCode } from '@/components/common/InlineCode';
-import { ReadOnlyToggle } from '@/components/common/ReadOnlyToggle';
+import { InlineCode } from '@/components/presentational/InlineCode';
+import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import type { DataBrowserGridColumn } from '@/features/database/dataGrid/types/dataBrowser';
 import { getInputType } from '@/features/database/dataGrid/utils/inputHelpers';
 import { normalizeDefaultValue } from '@/features/database/dataGrid/utils/normalizeDefaultValue';

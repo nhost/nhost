@@ -1,9 +1,9 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { InlineCode } from '@/components/common/InlineCode';
 import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
-import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
+import { InlineCode } from '@/components/presentational/InlineCode';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { CreateSecretForm } from '@/features/projects/secrets/settings/components/CreateSecretForm';
 import { EditSecretForm } from '@/features/projects/secrets/settings/components/EditSecretForm';

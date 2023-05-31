@@ -1,4 +1,4 @@
-import { HighlightedText } from '@/components/common/HighlightedText';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
 import type { RolePermissionEditorFormValues } from '@/features/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import { useTableQuery } from '@/features/database/dataGrid/hooks/useTableQuery';
 import type { DatabaseAction } from '@/features/database/dataGrid/types/dataBrowser';

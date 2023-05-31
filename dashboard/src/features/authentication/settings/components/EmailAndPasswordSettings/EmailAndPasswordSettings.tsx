@@ -1,7 +1,7 @@
-import { ControlledCheckbox } from '@/components/common/ControlledCheckbox';
-import { Form } from '@/components/common/Form';
 import { useUI } from '@/components/common/UIProvider';
-import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
+import { Form } from '@/components/form/Form';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetSignInMethodsDocument,

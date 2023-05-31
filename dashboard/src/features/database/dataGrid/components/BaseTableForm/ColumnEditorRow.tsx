@@ -1,6 +1,6 @@
-import { ControlledAutocomplete } from '@/components/common/ControlledAutocomplete';
-import { ControlledCheckbox } from '@/components/common/ControlledCheckbox';
-import { InlineCode } from '@/components/common/InlineCode';
+import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
+import { InlineCode } from '@/components/presentational/InlineCode';
 import type {
   ColumnType,
   ForeignKeyRelation,

@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-imports */
 import { DialogProvider } from '@/components/common/DialogProvider';
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { UIProvider } from '@/components/common/UIProvider';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { mockRouter, mockSession } from '@/tests/mocks';
 import { createTheme } from '@/ui/v2/createTheme';
 import createEmotionCache from '@/utils/createEmotionCache';

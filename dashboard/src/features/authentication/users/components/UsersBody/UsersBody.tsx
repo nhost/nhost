@@ -1,5 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { FormActivityIndicator } from '@/components/common/FormActivityIndicator';
+import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
 import type { EditUserFormValues } from '@/features/authentication/users/components/EditUserForm';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';

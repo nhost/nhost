@@ -1,4 +1,4 @@
-import { ControlledSelect } from '@/components/common/ControlledSelect';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
 import type {
   ColumnType,
   DatabaseColumn,

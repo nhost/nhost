@@ -1,5 +1,5 @@
 import { Container } from '@/components/layout/Container';
-import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { AnonymousSignInSettings } from '@/features/authentication/settings/components/AnonymousSignInSettings';
 import { AppleProviderSettings } from '@/features/authentication/settings/components/AppleProviderSettings';
 import { AzureADProviderSettings } from '@/features/authentication/settings/components/AzureADProviderSettings';

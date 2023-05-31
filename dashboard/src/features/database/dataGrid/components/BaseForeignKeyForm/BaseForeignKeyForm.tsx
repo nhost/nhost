@@ -1,6 +1,6 @@
-import { ControlledSelect } from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/common/Form';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { Form } from '@/components/form/Form';
 import { useDatabaseQuery } from '@/features/database/dataGrid/hooks/useDatabaseQuery';
 import type {
   DatabaseColumn,

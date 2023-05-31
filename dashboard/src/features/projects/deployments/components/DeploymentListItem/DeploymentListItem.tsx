@@ -1,6 +1,6 @@
 import { NavLink } from '@/components/common/NavLink';
-import type { DeploymentStatus } from '@/components/common/StatusCircle';
-import { StatusCircle } from '@/components/common/StatusCircle';
+import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
+import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
 import { Avatar } from '@/ui/v1/Avatar';

@@ -1,5 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/common/Form';
+import { Form } from '@/components/form/Form';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
 import { Alert } from '@/ui/v2/Alert';

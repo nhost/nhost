@@ -1,6 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/common/Form';
-import { SettingsContainer } from '@/components/settings/SettingsContainer';
+import { Form } from '@/components/form/Form';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
 import { ResourcesConfirmationDialog } from '@/features/projects/resources/settings/components/ResourcesConfirmationDialog';

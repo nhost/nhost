@@ -1,6 +1,6 @@
-import { LoadingScreen } from '@/components/common/LoadingScreen';
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { FilesDataGrid } from '@/features/storage/dataGrid/components/FilesDataGrid';
 import { generateAppServiceUrl } from '@/utils/common/generateAppServiceUrl';

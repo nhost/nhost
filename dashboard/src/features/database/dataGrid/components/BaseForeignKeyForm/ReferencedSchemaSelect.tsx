@@ -1,5 +1,5 @@
-import type { ControlledSelectProps } from '@/components/common/ControlledSelect';
-import { ControlledSelect } from '@/components/common/ControlledSelect';
+import type { ControlledSelectProps } from '@/components/form/ControlledSelect';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
 import type { NormalizedQueryDataRow } from '@/features/database/dataGrid/types/dataBrowser';
 import { Option } from '@/ui/v2/Option';
 import type { ForwardedRef, PropsWithoutRef } from 'react';

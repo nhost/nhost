@@ -1,5 +1,5 @@
 import { Container } from '@/components/layout/Container';
-import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { PermissionVariableSettings } from '@/features/projects/permissions/settings/components/PermissionVariableSettings';
 import { RoleSettings } from '@/features/projects/roles/settings/components/RoleSettings';

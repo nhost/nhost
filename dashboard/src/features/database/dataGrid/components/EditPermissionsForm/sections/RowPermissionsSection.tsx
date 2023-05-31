@@ -1,4 +1,4 @@
-import { HighlightedText } from '@/components/common/HighlightedText';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
 import type { RolePermissionEditorFormValues } from '@/features/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import { RuleGroupEditor } from '@/features/database/dataGrid/components/RuleGroupEditor';
 import type {

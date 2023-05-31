@@ -1,8 +1,8 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { FormActivityIndicator } from '@/components/common/FormActivityIndicator';
-import { InlineCode } from '@/components/common/InlineCode';
 import { NavLink } from '@/components/common/NavLink';
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
+import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
+import { InlineCode } from '@/components/presentational/InlineCode';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { useDatabaseQuery } from '@/features/database/dataGrid/hooks/useDatabaseQuery';
 import { useDeleteTableWithToastMutation } from '@/features/database/dataGrid/hooks/useDeleteTableMutation';
 import { isSchemaLocked } from '@/features/database/dataGrid/utils/schemaHelpers';

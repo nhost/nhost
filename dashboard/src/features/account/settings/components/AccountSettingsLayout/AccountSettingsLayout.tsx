@@ -1,6 +1,6 @@
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import type { BoxProps } from '@/ui/v2/Box';
 import { Box } from '@/ui/v2/Box';
 import { twMerge } from 'tailwind-merge';

@@ -1,6 +1,6 @@
-import { ReadOnlyToggle } from '@/components/common/ReadOnlyToggle';
 import type { CommonDataGridCellProps } from '@/components/dataGrid/DataGridCell';
 import { useDataGridCell } from '@/components/dataGrid/DataGridCell';
+import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import { Dropdown } from '@/ui/v2/Dropdown';
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent } from 'react';
 import { twMerge } from 'tailwind-merge';

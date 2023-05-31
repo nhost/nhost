@@ -1,5 +1,5 @@
-import { ControlledSwitch } from '@/components/common/ControlledSwitch';
-import { HighlightedText } from '@/components/common/HighlightedText';
+import { ControlledSwitch } from '@/components/form/ControlledSwitch';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
 import type { RolePermissionEditorFormValues } from '@/features/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import { Text } from '@/ui/v2/Text';
 import { useFormContext } from 'react-hook-form';

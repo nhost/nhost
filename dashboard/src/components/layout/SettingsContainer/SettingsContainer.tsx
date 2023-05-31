@@ -1,4 +1,4 @@
-import { ControlledSwitch } from '@/components/common/ControlledSwitch';
+import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import type { BoxProps } from '@/ui/v2/Box';
 import { Box } from '@/ui/v2/Box';
 import type { ButtonProps } from '@/ui/v2/Button';

@@ -1,6 +1,6 @@
 import { DialogProvider } from '@/components/common/DialogProvider';
-import { RetryableErrorBoundary } from '@/components/common/RetryableErrorBoundary';
 import { UIProvider } from '@/components/common/UIProvider';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import '@/styles/fonts.css';
 import '@/styles/globals.css';

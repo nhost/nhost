@@ -1,7 +1,7 @@
-import { ControlledCheckbox } from '@/components/common/ControlledCheckbox';
-import { ControlledSelect } from '@/components/common/ControlledSelect';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/common/Form';
+import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { Form } from '@/components/form/Form';
 import { EditUserPasswordForm } from '@/features/authentication/users/components/EditUserPasswordForm';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';

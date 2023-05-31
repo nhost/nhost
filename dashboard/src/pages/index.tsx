@@ -1,7 +1,7 @@
-import { LoadingScreen } from '@/components/common/LoadingScreen';
-import { MaintenanceAlert } from '@/components/common/MaintenanceAlert';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { MaintenanceAlert } from '@/components/presentational/MaintenanceAlert';
 import { WorkspaceAndProjectList } from '@/features/projects/common/components/WorkspaceAndProjectList';
 import { WorkspaceSidebar } from '@/features/projects/common/components/WorkspaceSidebar';
 import { Box } from '@/ui/v2/Box';

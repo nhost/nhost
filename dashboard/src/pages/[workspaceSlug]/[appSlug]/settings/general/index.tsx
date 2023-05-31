@@ -1,9 +1,9 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { Form } from '@/components/common/Form';
 import { useUI } from '@/components/common/UIProvider';
+import { Form } from '@/components/form/Form';
 import { Container } from '@/components/layout/Container';
-import { SettingsContainer } from '@/components/settings/SettingsContainer';
-import { SettingsLayout } from '@/components/settings/SettingsLayout';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';

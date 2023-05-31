@@ -1,4 +1,4 @@
-import { Form } from '@/components/common/Form';
+import { Form } from '@/components/form/Form';
 import type { RuleGroup } from '@/features/database/dataGrid/types/dataBrowser';
 import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariablesQuery';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
