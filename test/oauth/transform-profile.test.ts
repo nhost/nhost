@@ -86,4 +86,50 @@ describe('OAuth helpers', () => {
     const output = await transformOauthProfile(normalisedProfile);
     expect(output).toMatchSnapshot();
   });
+
+  it('should handle an array of allowed roles', async () => {
+    const facebookProfile = {
+      id: '1234567890123456',
+      name: 'Bob Smith',
+      email: 'bob.smith@gmail.com',
+      picture: {
+        data: {
+          height: 50,
+          is_silhouette: false,
+          url: 'https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1234567890123456&height=50&width=50&ext=1234567894&hash=Qdiofewu-OPO',
+          width: 50,
+        },
+      },
+    };
+    const normalisedProfile = await normaliseProfile('facebook', {
+      profile: facebookProfile,
+    });
+    const output = await transformOauthProfile(normalisedProfile, {
+      allowedRoles: ['user', 'me'],
+    });
+    expect(output).toMatchSnapshot();
+  });
+
+  it('should handle comma separated allowedRoles', async () => {
+    const facebookProfile = {
+      id: '1234567890123456',
+      name: 'Bob Smith',
+      email: 'bob.smith@gmail.com',
+      picture: {
+        data: {
+          height: 50,
+          is_silhouette: false,
+          url: 'https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=1234567890123456&height=50&width=50&ext=1234567894&hash=Qdiofewu-OPO',
+          width: 50,
+        },
+      },
+    };
+    const normalisedProfile = await normaliseProfile('facebook', {
+      profile: facebookProfile,
+    });
+    const output = await transformOauthProfile(normalisedProfile, {
+      allowedRoles: 'user,me' as any,
+    });
+    expect(output).toMatchSnapshot();
+  });
 });
