@@ -1,7 +1,7 @@
 import features from '@/data/features.json';
 import { ApplicationStatus } from '@/types/application';
+import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import slugify from 'slugify';
-import type { DeploymentRowFragment } from './__generated__/graphql';
 
 export function getLastLiveDeployment(deployments?: DeploymentRowFragment[]) {
   if (!deployments) {

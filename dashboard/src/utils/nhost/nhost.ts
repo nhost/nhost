@@ -8,7 +8,7 @@ import {
 import { NhostClient } from '@nhost/nextjs';
 
 // eslint-disable-next-line no-nested-ternary
-export const nhost = isPlatform()
+const nhost = isPlatform()
   ? new NhostClient({ backendUrl: process.env.NEXT_PUBLIC_NHOST_BACKEND_URL })
   : getAuthServiceUrl() &&
     getGraphqlServiceUrl() &&
