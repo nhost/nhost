@@ -1,9 +1,9 @@
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import { MaintenanceAlert } from '@/components/common/MaintenanceAlert';
-import { Sidebar } from '@/components/home/Sidebar';
-import { WorkspaceAndProjectList } from '@/components/home/WorkspaceAndProjectList';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
+import { WorkspaceAndProjectList } from '@/features/projects/common/components/WorkspaceAndProjectList';
+import { WorkspaceSidebar } from '@/features/projects/common/components/WorkspaceSidebar';
 import { Box } from '@/ui/v2/Box';
 import { Button } from '@/ui/v2/Button';
 import { Text } from '@/ui/v2/Text';
@@ -84,7 +84,7 @@ export default function IndexPage() {
           </div>
         </Box>
 
-        <Sidebar workspaces={data?.workspaces || []} />
+        <WorkspaceSidebar workspaces={data?.workspaces || []} />
       </Container>
     );
   }
@@ -96,7 +96,7 @@ export default function IndexPage() {
         className="col-span-1 md:col-span-3"
       />
 
-      <Sidebar workspaces={data?.workspaces || []} />
+      <WorkspaceSidebar workspaces={data?.workspaces || []} />
     </Container>
   );
 }

@@ -1,5 +1,4 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { Resource } from '@/components/home/Resource';
 import { EditWorkspaceNameForm } from '@/features/projects/workspaces/components/EditWorkspaceNameForm';
 import type { Workspace } from '@/types/application';
 import { ActivityIndicator } from '@/ui/v2/ActivityIndicator';
@@ -14,19 +13,20 @@ import { Text } from '@/ui/v2/Text';
 import Image from 'next/image';
 import NavLink from 'next/link';
 import { twMerge } from 'tailwind-merge';
+import Resource from './Resource';
 
-export interface SidebarProps extends BoxProps {
+export interface WorkspaceSidebarProps extends BoxProps {
   /**
    * List of workspaces to be displayed.
    */
   workspaces: Workspace[];
 }
 
-export default function Sidebar({
+export default function WorkspaceSidebar({
   className,
   workspaces,
   ...props
-}: SidebarProps) {
+}: WorkspaceSidebarProps) {
   const { openDialog } = useDialog();
 
   return (
