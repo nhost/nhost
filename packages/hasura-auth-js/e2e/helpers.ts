@@ -4,7 +4,7 @@ import createMailhogClient from 'mailhog'
 import { expect } from 'vitest'
 import { HasuraAuthClient, SignUpParams } from '../src'
 
-const AUTH_BACKEND_URL = 'http://localhost:1337/v1/auth'
+const AUTH_BACKEND_URL = 'https://local.auth.nhost.run/v1'
 
 const auth = new HasuraAuthClient({
   url: AUTH_BACKEND_URL
@@ -12,7 +12,8 @@ const auth = new HasuraAuthClient({
 
 const mailhog = createMailhogClient({
   host: 'local.mailhog.nhost.run',
-  protocol: 'https'
+  protocol: 'https:',
+  port: 443
 })
 
 export { auth, mailhog }

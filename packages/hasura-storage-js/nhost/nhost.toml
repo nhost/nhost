@@ -66,12 +66,12 @@ expiresIn = 43200
 enabled = false
 
 [auth.method.emailPasswordless]
-enabled = false
+enabled = true
 
 [auth.method.emailPassword]
 hibpEnabled = false
 emailVerificationRequired = true
-passwordMinLength = 9
+passwordMinLength = 8
 
 [auth.method.smsPasswordless]
 enabled = false

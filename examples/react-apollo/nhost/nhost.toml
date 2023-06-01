@@ -63,15 +63,15 @@ expiresIn = 43200
 
 [auth.method]
 [auth.method.anonymous]
-enabled = false
+enabled = true
 
 [auth.method.emailPasswordless]
-enabled = false
+enabled = true
 
 [auth.method.emailPassword]
 hibpEnabled = false
 emailVerificationRequired = true
-passwordMinLength = 9
+passwordMinLength = 8
 
 [auth.method.smsPasswordless]
 enabled = false
@@ -130,7 +130,8 @@ enabled = false
 timeout = 60000
 
 [auth.totp]
-enabled = false
+enabled = true
+issuer = 'nhost'
 
 [postgres]
 version = '14.6-20230406-2'
