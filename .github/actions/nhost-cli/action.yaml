@@ -51,7 +51,7 @@ runs:
       working-directory: ${{ inputs.path }}
       run: |
         echo -e "HASURA_GRAPHQL_ADMIN_SECRET=nhost-admin-secret\nHASURA_GRAPHQL_JWT_SECRET=nhost-graphql-jwt-secret\nNHOST_WEBHOOK_SECRET=nhost-webhook-secret\nGRAFANA_ADMIN_PASSWORD=grafana-admin-password" > .secrets
-        nhost up &
+        nhost up
     - name: Wait for the app to be ready
       id: wait
       if: ${{ inputs.start == 'true' && inputs.wait == 'true' }}
