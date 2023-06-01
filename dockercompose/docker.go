@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/creack/pty"
 )
@@ -24,9 +25,13 @@ func (d *Docker) HasuraWrapper(
 	hasuraVersion string,
 	exrtaArgs ...string,
 ) error {
+	absPath, err := filepath.Abs(nhostfolder)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path: %w", err)
+	}
 	args := []string{
 		"run",
-		"-v", fmt.Sprintf("%s:/app", nhostfolder),
+		"-v", fmt.Sprintf("%s:/app", absPath),
 		"-e", "HASURA_GRAPHQL_ENABLE_TELEMETRY=false",
 		"-w", "/app",
 		"-it", "--rm",
