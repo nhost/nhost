@@ -52,20 +52,6 @@ runs:
       run: |
         echo -e "HASURA_GRAPHQL_ADMIN_SECRET=nhost-admin-secret\nHASURA_GRAPHQL_JWT_SECRET=0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db\nNHOST_WEBHOOK_SECRET=nhost-webhook-secret\nGRAFANA_ADMIN_PASSWORD=grafana-admin-password" > .secrets
         nhost up
-    - name: Wait for the app to be ready
-      id: wait
-      if: ${{ inputs.start == 'true' && inputs.wait == 'true' }}
-      shell: bash
-      working-directory: ${{ inputs.path }}
-      continue-on-error: true
-      run: |
-        curl -sSf --connect-timeout 3 \
-          --max-time 5 \
-          --retry 300 \
-          --retry-delay 1 \
-          --retry-max-time 300 \
-          --retry-connrefused \
-          'https://local.hasura.nhost.run' > /dev/null
     - name: Log on failure
       if: steps.wait.outcome == 'failure'
       shell: bash

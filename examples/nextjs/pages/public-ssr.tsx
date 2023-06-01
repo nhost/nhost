@@ -1,10 +1,10 @@
 import { GetServerSideProps } from 'next'
 
 import { Container, Title } from '@mantine/core'
-import { getNhostSession, NhostSession, useAccessToken, useAuthenticated } from '@nhost/nextjs'
+import { NhostSession, getNhostSession, useAccessToken, useAuthenticated } from '@nhost/nextjs'
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const nhostSession = await getNhostSession({ subdomain: 'localhost' }, context)
+  const nhostSession = await getNhostSession({ subdomain: 'local' }, context)
   return {
     props: {
       nhostSession
