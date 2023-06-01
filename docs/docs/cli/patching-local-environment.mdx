@@ -12,22 +12,22 @@ In some cases you may need to modify your configuration file to accommodate mino
 name = 'ENVIRONMENT'
 value = 'production'
 
-...
+... (omitted for brevity)
 
 [hasura]
 version = 'v2.24.1-ce'
 
-...
+... (omitted for brevity)
 
 [hasura.logs]
 level = 'warn'
 
-...
+... (omitted for brevity)
 
 [auth.redirections]
 clientUrl = 'https://my.app.com'
 
-...
+... (omitted for brevity)
 
 [auth.method.oauth]
 [auth.method.oauth.apple]
@@ -37,7 +37,7 @@ keyId = '{{ secrets.APPLE_KEY_ID }}'
 teamId = '{{ secrets.APPLE_TEAM_ID }}'
 privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
 
-...
+... (omitted for brevity)
 
 ```
 
@@ -81,22 +81,24 @@ value = 'development'
 name = 'FUNCTION_LOG_LEVEL'
 value = 'debug'
 
-...
+... (omitted for brevity)
 
 [hasura]
 version = 'v2.25.1-ce'
 
-...
+... (omitted for brevity)
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
 
-...
+... (omitted for brevity)
 
 [auth.method.oauth]
 [auth.method.oauth.apple]
 enabled = false
 
-...
+... (omitted for brevity)
 
 ```
+
+Keep in mind that, while it might be convenient to modify your local environment for development purposes, the more it deviates from production the harder it will become to detect issues before releasing to production. For this reason, we recommend keeping changes to the strictly necessary.
