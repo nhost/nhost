@@ -50,7 +50,7 @@ runs:
       shell: bash
       working-directory: ${{ inputs.path }}
       run: |
-        echo -e "HASURA_GRAPHQL_ADMIN_SECRET=nhost-admin-secret\nHASURA_GRAPHQL_JWT_SECRET=nhost-graphql-jwt-secret\nNHOST_WEBHOOK_SECRET=nhost-webhook-secret\nGRAFANA_ADMIN_PASSWORD=grafana-admin-password" > .secrets
+        echo -e "HASURA_GRAPHQL_ADMIN_SECRET=nhost-admin-secret\nHASURA_GRAPHQL_JWT_SECRET=0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db\nNHOST_WEBHOOK_SECRET=nhost-webhook-secret\nGRAFANA_ADMIN_PASSWORD=grafana-admin-password" > .secrets
         nhost up
     - name: Wait for the app to be ready
       id: wait
