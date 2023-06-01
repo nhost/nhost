@@ -31,13 +31,14 @@ export interface BaseSecretFormProps {
 
 export const baseSecretFormValidationSchema = Yup.object({
   name: Yup.string()
+    .label('Name')
     .required('This field is required.')
     .test(
       'isSecretValid',
       'A name must start with a letter and can only contain letters, numbers, and underscores.',
       (value) => /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
     ),
-  value: Yup.string().required('This field is required.'),
+  value: Yup.string().label('Value'),
 });
 
 export type BaseSecretFormValues = Yup.InferType<
