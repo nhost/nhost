@@ -22,8 +22,8 @@
   "scripts": {
     "dev": "vite --host localhost --port 3000",
     "generate": "graphql-codegen --config graphql.config.yaml",
-    "e2e": "start-test e2e:start-backend https-get://local.hasura.nhost.run e2e:test",
-    "e2e:test": "npx playwright@1.34.0 install --with-deps && playwright test",
+    "e2e": "pnpm e2e:start-backend && pnpm e2e:test",
+    "e2e:test": "npx playwright@1.34.0 install --with-deps && playwright test; nhost down",
     "e2e:start-backend": "cp .secrets.example .secrets && nhost up",
     "e2e:start-ui": "run-s build preview",
     "build": "vite build",
@@ -61,7 +61,6 @@
     "dotenv": "^16.0.3",
     "jsqr": "^1.4.0",
     "pngjs": "^7.0.0",
-    "start-server-and-test": "^1.15.4",
     "totp-generator": "^0.0.13",
     "typescript": "^4.9.5",
     "vite": "^4.3.7",
