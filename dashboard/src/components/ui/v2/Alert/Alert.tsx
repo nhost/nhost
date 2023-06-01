@@ -1,6 +1,6 @@
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
-import { twMerge } from 'tailwind-merge';
+import { styled } from '@mui/material';
 
 export interface AlertProps extends BoxProps {
   /**
@@ -11,19 +11,25 @@ export interface AlertProps extends BoxProps {
   severity?: 'info' | 'success' | 'warning' | 'error';
 }
 
+const StyledBox = styled(Box)(({ theme }) => ({
+  borderRadius: 4,
+  padding: theme.spacing(1.5, 2),
+  textAlign: 'center',
+  fontSize: theme.typography.pxToRem(15),
+  lineHeight: theme.typography.pxToRem(22),
+  '@media (prefers-reduced-motion: no-preference)': {
+    transition: theme.transitions.create('background-color'),
+  },
+}));
+
 export default function Alert({
   severity = 'info',
   children,
-  className,
   sx,
   ...props
 }: AlertProps) {
   return (
-    <Box
-      className={twMerge(
-        'rounded-sm+ bg-opacity-20 p-4 text-center text-sm+ motion-safe:transition-colors',
-        className,
-      )}
+    <StyledBox
       sx={[
         ...(Array.isArray(sx) ? sx : [sx]),
         severity === 'error' && {
@@ -43,6 +49,6 @@ export default function Alert({
       {...props}
     >
       {children}
-    </Box>
+    </StyledBox>
   );
 }
