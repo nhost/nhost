@@ -59,7 +59,7 @@ runs:
       working-directory: ${{ inputs.path }}
       continue-on-error: true
       run: |
-        curl -ksSf --connect-timeout 3 \
+        curl -sSf --connect-timeout 3 \
           --max-time 5 \
           --retry 300 \
           --retry-delay 1 \
