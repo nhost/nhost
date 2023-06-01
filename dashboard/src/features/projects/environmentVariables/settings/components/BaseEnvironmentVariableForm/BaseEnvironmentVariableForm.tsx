@@ -67,7 +67,7 @@ export const baseEnvironmentVariableFormValidationSchema = Yup.object({
       'A name must start with a letter and can only contain letters, numbers, and underscores.',
       (value) => /^[a-zA-Z]{1,}[a-zA-Z0-9_]*$/i.test(value),
     ),
-  value: Yup.string().label('Value').nullable().required(),
+  value: Yup.string().label('Value'),
 });
 
 export type BaseEnvironmentVariableFormValues = Yup.InferType<
