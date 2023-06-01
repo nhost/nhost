@@ -1,5 +1,16 @@
 # @nhost/dashboard
 
+## 0.17.3
+
+### Patch Changes
+
+- 01eeef9de: chore(misc): under the hood improvements
+- 21e13db05: chore(deps): bump `@types/react` to `v18.2.7` and `turbo` to `v1.10.1`
+- f16433ae6: chore(secrets): allow empty secrets and environment variables
+- aa3c62989: chore(cli): bump Nhost CLI version to v1.0
+  - @nhost/react-apollo@5.0.24
+  - @nhost/nextjs@1.13.26
+
 ## 0.17.2
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nhost-examples/serverless-functions
 
+## 0.0.8
+
+### Patch Changes
+
+- aa3c62989: chore(cli): bump Nhost CLI version to v1.0
+
 ## 0.0.7
 
 ### Patch Changes

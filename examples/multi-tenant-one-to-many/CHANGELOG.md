@@ -1,5 +1,13 @@
 # @nhost-examples/multi-tenant-one-to-many
 
+## 1.0.4
+
+### Patch Changes
+
+- aa3c62989: chore(cli): bump Nhost CLI version to v1.0
+- Updated dependencies [aa3c62989]
+  - @nhost/nhost-js@2.2.6
+
 ## 1.0.3
 
 ### Patch Changes

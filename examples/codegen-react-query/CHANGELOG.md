@@ -1,5 +1,12 @@
 # @nhost-examples/codegen-react-query
 
+## 0.1.10
+
+### Patch Changes
+
+- aa3c62989: chore(cli): bump Nhost CLI version to v1.0
+  - @nhost/react@2.0.20
+
 ## 0.1.9
 
 ### Patch Changes
