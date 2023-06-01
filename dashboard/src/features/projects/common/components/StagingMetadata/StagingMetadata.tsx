@@ -49,7 +49,7 @@ export default function StagingMetadata({
   return (
     isDevOrStaging() && (
       <div className="mx-auto mt-10 max-w-sm">
-        <Box className="mx-auto flex flex-col rounded-md border p-5 text-center">
+        <Box className="mx-auto grid grid-flow-row justify-items-center rounded-md border p-5 text-center">
           <Status status={StatusEnum.Deploying}>Internal info</Status>
           {children}
         </Box>

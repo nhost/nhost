@@ -1,5 +1,0 @@
-{
-  "k8s-postgres": {
-    "enabled": ["dev", "staging", "production"]
-  }
-}
