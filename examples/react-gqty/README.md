@@ -25,7 +25,7 @@ cd examples/react-gqty
 4. Terminal 1: Start Nhost
 
 ```sh
-nhost dev
+nhost up
 ```
 
 5. Terminal 2: Start the React application

@@ -31,7 +31,7 @@ cd examples/react-apollo
 > Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli).
 
 ```sh
-nhost dev
+nhost up
 ```
 
 5. Terminal 2: Start the React application

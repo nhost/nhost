@@ -29,3 +29,4 @@ dist-ssr
 # nhost
 .nhost
 functions/node_modules
+.secrets

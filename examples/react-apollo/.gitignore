@@ -29,3 +29,4 @@ functions/node_modules
 /playwright-report/
 /playwright/.cache/
 storageState.json
+.secrets

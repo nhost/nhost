@@ -49,21 +49,9 @@ runs:
       if: ${{ inputs.start == 'true' }}
       shell: bash
       working-directory: ${{ inputs.path }}
-      run: nhost dev --no-browser &
-    - name: Wait for the app to be ready
-      id: wait
-      if: ${{ inputs.start == 'true' && inputs.wait == 'true' }}
-      shell: bash
-      working-directory: ${{ inputs.path }}
-      continue-on-error: true
       run: |
-        curl -sSf --connect-timeout 3 \
-          --max-time 5 \
-          --retry 300 \
-          --retry-delay 1 \
-          --retry-max-time 300 \
-          --retry-connrefused \
-          'http://localhost:9695' > /dev/null
+        cp .secrets.example .secrets
+        nhost up
     - name: Log on failure
       if: steps.wait.outcome == 'failure'
       shell: bash

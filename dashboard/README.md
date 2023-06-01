@@ -13,7 +13,7 @@ pnpm install
 
 Depending on the environment you wish to target you can configure environment variables in `.env.<target_environment>.local`.
 
-- `.env.development`: This file is used if you run `nhost dev`
+- `.env.development`: This file is used if you run `nhost up`
 - `.env.development.local`: This file is used if you run `pnpm dev`. It takes precedence over `.env.local` if available.
 - `.env.production.local`: This file is used if you run `pnpm build`. It takes precedence over `.env.local` if available.
 - `.env.local`: This file is used if you run either `pnpm dev` or `pnpm build`.
@@ -27,7 +27,7 @@ You can connect the Nhost Dashboard to your **locally running** Nhost backend in
 First, you need to run the following command to start your backend locally:
 
 ```bash
-cd <your_nhost_project> && nhost dev
+cd <your_nhost_project> && nhost up
 ```
 
 You can connect the Nhost Dashboard to your locally running backend by setting the following environment variables in `.env.development.local`:
