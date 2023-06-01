@@ -107,8 +107,8 @@ export default function ResetDatabasePasswordSettings() {
               sx: { borderColor: (theme) => theme.palette.error.main },
             },
             submitButton: {
-              variant: 'contained',
-              color: 'error',
+              variant: isDirty ? 'contained' : 'outlined',
+              color: isDirty ? 'error' : 'secondary',
               disabled: !isDirty || maintenanceActive,
               loading: isSubmitting,
             },
@@ -126,6 +126,7 @@ export default function ResetDatabasePasswordSettings() {
             hideEmptyHelperText
             slotProps={{
               input: { className: 'lg:w-1/2' },
+              inputRoot: { className: '!pr-8' },
               helperText: { component: 'div' },
             }}
             helperText={

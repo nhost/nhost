@@ -445,20 +445,6 @@ export function NewProjectPageContent({
                   );
                 })}
               </RadioGroup>
-
-              <div className="col-span-2">
-                <Text className="text-xs font-medium">Database Password</Text>
-                <Text variant="subtitle2">You can change this later</Text>
-              </div>
-
-              <Alert
-                severity="info"
-                className="col-span-6 col-start-3 px-2.5 pt-1.5 pb-2 text-left"
-              >
-                A password is automatically generated for you. You can change it
-                later in the database settings if you want to connect to
-                Postgres directly.
-              </Alert>
             </div>
           </div>
 

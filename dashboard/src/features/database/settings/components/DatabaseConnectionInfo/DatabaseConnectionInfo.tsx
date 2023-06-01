@@ -1,5 +1,6 @@
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import type { InputProps } from '@/components/ui/v2/Input';
@@ -91,28 +92,33 @@ export default function DatabaseConnectionInfo() {
             disabled
             value={inputValue}
             className={className}
+            slotProps={{ inputRoot: { className: '!pr-8 truncate' } }}
             fullWidth
             hideEmptyHelperText
             endAdornment={
-              name !== 'postgresPassword' && (
-                <InputAdornment position="end" className="absolute right-2">
-                  <Button
-                    sx={{ minWidth: 0, padding: 0 }}
-                    color="secondary"
-                    variant="borderless"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      copy(inputValue as string, `${label}`);
-                    }}
-                  >
-                    <CopyIcon className="h-4 w-4" />
-                  </Button>
-                </InputAdornment>
-              )
+              <InputAdornment position="end" className="absolute right-2">
+                <Button
+                  sx={{ minWidth: 0, padding: 0 }}
+                  color="secondary"
+                  variant="borderless"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    copy(inputValue as string, `${label}`);
+                  }}
+                >
+                  <CopyIcon className="h-4 w-4" />
+                </Button>
+              </InputAdornment>
             }
           />
         ),
       )}
+
+      <Alert severity="info" className="col-span-6 text-left">
+        To connect to the Postgres database directly, generate a new password,
+        securely save it, and then modify your connection string with the newly
+        created password.
+      </Alert>
     </SettingsContainer>
   );
 }
