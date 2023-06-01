@@ -52,7 +52,7 @@
     "test:watch": "vitest",
     "e2e": "start-test e2e:backend https-get://local.hasura.nhost.run ci:test",
     "ci:test": "vitest run --config vite.config.e2e.js",
-    "e2e:backend": "nhost up",
+    "e2e:backend": "cp .secrets.example .secrets && nhost up",
     "test:coverage": "vitest run --coverage",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
