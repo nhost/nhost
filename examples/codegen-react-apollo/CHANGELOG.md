@@ -1,5 +1,13 @@
 # @nhost-examples/codegen-react-apollo
 
+## 0.1.9
+
+### Patch Changes
+
+- aa3c62989: chore(cli): bump Nhost CLI version to v1.0
+  - @nhost/react@2.0.20
+  - @nhost/react-apollo@5.0.24
+
 ## 0.1.8
 
 ### Patch Changes

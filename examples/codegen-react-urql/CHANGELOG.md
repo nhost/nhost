@@ -1,5 +1,13 @@
 # @nhost-examples/react-urql
 
+## 0.0.6
+
+### Patch Changes
+
+- aa3c62989: chore(cli): bump Nhost CLI version to v1.0
+  - @nhost/react@2.0.20
+  - @nhost/react-urql@2.0.21
+
 ## 0.0.5
 
 ### Patch Changes

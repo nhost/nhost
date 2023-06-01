@@ -1,5 +1,14 @@
 # @nhost-examples/nextjs
 
+## 0.1.11
+
+### Patch Changes
+
+- aa3c62989: chore(cli): bump Nhost CLI version to v1.0
+  - @nhost/react@2.0.20
+  - @nhost/react-apollo@5.0.24
+  - @nhost/nextjs@1.13.26
+
 ## 0.1.10
 
 ### Patch Changes

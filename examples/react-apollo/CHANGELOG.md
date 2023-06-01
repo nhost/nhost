@@ -1,5 +1,13 @@
 # @nhost-examples/react-apollo
 
+## 0.1.12
+
+### Patch Changes
+
+- aa3c62989: chore(cli): bump Nhost CLI version to v1.0
+  - @nhost/react@2.0.20
+  - @nhost/react-apollo@5.0.24
+
 ## 0.1.11
 
 ### Patch Changes

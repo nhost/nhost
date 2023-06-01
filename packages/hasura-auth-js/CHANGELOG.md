@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.1.5
+
+### Patch Changes
+
+- aa3c62989: chore(cli): bump Nhost CLI version to v1.0
+
 ## 2.1.4
 
 ### Patch Changes

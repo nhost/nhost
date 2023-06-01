@@ -1,5 +1,12 @@
 # @nhost-examples/react-gqty
 
+## 0.0.8
+
+### Patch Changes
+
+- aa3c62989: chore(cli): bump Nhost CLI version to v1.0
+  - @nhost/react@2.0.20
+
 ## 0.0.7
 
 ### Patch Changes

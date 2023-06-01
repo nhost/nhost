@@ -1,5 +1,13 @@
 # @nhost-examples/cli
 
+## 0.1.2
+
+### Patch Changes
+
+- aa3c62989: chore(cli): bump Nhost CLI version to v1.0
+- Updated dependencies [aa3c62989]
+  - @nhost/nhost-js@2.2.6
+
 ## 0.1.1
 
 ### Patch Changes
