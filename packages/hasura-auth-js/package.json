@@ -50,8 +50,8 @@
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "start-test e2e:backend https-get://local.hasura.nhost.run ci:test",
-    "ci:test": "vitest run --config vite.config.e2e.js",
+    "e2e": "pnpm e2e:backend && pnpm ci:test",
+    "ci:test": "vitest run --config vite.config.e2e.js; nhost down",
     "e2e:backend": "cp .secrets.example .secrets && nhost up",
     "test:coverage": "vitest run --coverage",
     "prettier": "prettier --check src/",
@@ -76,7 +76,6 @@
     "@types/js-cookie": "^3.0.2",
     "cheerio": "1.0.0-rc.12",
     "mailhog": "^4.16.0",
-    "msw": "^1.0.1",
-    "start-server-and-test": "^1.15.2"
+    "msw": "^1.0.1"
   }
 }
