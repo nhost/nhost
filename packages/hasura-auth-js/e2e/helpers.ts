@@ -11,8 +11,8 @@ const auth = new HasuraAuthClient({
 })
 
 const mailhog = createMailhogClient({
-  host: 'local.mailhog.nhost.run',
-  protocol: 'https'
+  host: '127.0.0.1',
+  port: 8025
 })
 
 export { auth, mailhog }
