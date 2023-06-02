@@ -12,10 +12,12 @@ import {
   useResetPostgresPasswordMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
+import { useLeaveConfirm } from '@/hooks/useLeaveConfirm';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { alpha } from '@mui/system';
 import { useUserData } from '@nhost/nextjs';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -30,6 +32,9 @@ export interface ResetDatabasePasswordFormValues {
 export default function ResetDatabasePasswordSettings() {
   const [updateApplication] = useUpdateApplicationMutation();
   const { maintenanceActive } = useUI();
+  const [resetPostgresPasswordMutation] = useResetPostgresPasswordMutation();
+  const user = useUserData();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const form = useForm<ResetDatabasePasswordFormValues>({
     reValidateMode: 'onSubmit',
@@ -46,12 +51,12 @@ export default function ResetDatabasePasswordSettings() {
     setValue,
     getValues,
     register,
-    formState: { errors, isDirty, isSubmitting },
+    formState: { errors, dirtyFields, isSubmitting },
   } = form;
 
-  const [resetPostgresPasswordMutation] = useResetPostgresPasswordMutation();
-  const user = useUserData();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const isDirty = Object.keys(dirtyFields).length > 0;
+
+  useLeaveConfirm({ isDirty });
 
   const handleGenerateRandomPassword = () => {
     const newRandomDatabasePassword = generateRandomDatabasePassword();
@@ -104,7 +109,16 @@ export default function ResetDatabasePasswordSettings() {
           submitButtonText="Reset"
           slotProps={{
             root: {
-              sx: { borderColor: (theme) => theme.palette.error.main },
+              sx: {
+                borderColor: (theme) =>
+                  isDirty
+                    ? theme.palette.error.main
+                    : alpha(theme.palette.error.main, 0.5),
+                '@media (prefers-reduced-motion: no-preference)': {
+                  transition: (theme) =>
+                    theme.transitions.create('border-color'),
+                },
+              },
             },
             submitButton: {
               variant: isDirty ? 'contained' : 'outlined',
