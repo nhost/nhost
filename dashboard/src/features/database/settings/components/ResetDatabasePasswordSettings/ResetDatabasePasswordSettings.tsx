@@ -1,3 +1,4 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -5,6 +6,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
+import { Text } from '@/components/ui/v2/Text';
 import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
 import { resetDatabasePasswordValidationSchema } from '@/features/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -35,6 +37,7 @@ export default function ResetDatabasePasswordSettings() {
   const [resetPostgresPasswordMutation] = useResetPostgresPasswordMutation();
   const user = useUserData();
   const { currentProject } = useCurrentWorkspaceAndProject();
+  const { openAlertDialog } = useDialog();
 
   const form = useForm<ResetDatabasePasswordFormValues>({
     reValidateMode: 'onSubmit',
@@ -58,34 +61,40 @@ export default function ResetDatabasePasswordSettings() {
 
   useLeaveConfirm({ isDirty });
 
-  const handleGenerateRandomPassword = () => {
+  function handleGenerateRandomPassword() {
     const newRandomDatabasePassword = generateRandomDatabasePassword();
-    triggerToast('New random database password generated.');
+    triggerToast(
+      <Text>
+        Random database password generated and copied to clipboard. Submit the
+        form to save it.
+      </Text>,
+    );
+    copy(newRandomDatabasePassword);
     setValue('databasePassword', newRandomDatabasePassword, {
       shouldDirty: true,
     });
-  };
+  }
 
-  const handleChangeDatabasePassword = async (
-    values: ResetDatabasePasswordFormValues,
-  ) => {
+  async function handleChangeDatabasePassword(
+    formValues: ResetDatabasePasswordFormValues,
+  ) {
     try {
       await resetPostgresPasswordMutation({
         variables: {
           appID: currentProject.id,
-          newPassword: values.databasePassword,
+          newPassword: formValues.databasePassword,
         },
       });
       await updateApplication({
         variables: {
           appId: currentProject.id,
           app: {
-            postgresPassword: values.databasePassword,
+            postgresPassword: formValues.databasePassword,
           },
         },
       });
 
-      form.reset(values);
+      form.reset(formValues);
 
       triggerToast(
         `The database password for ${currentProject.name} has been updated successfully.`,
@@ -98,15 +107,27 @@ export default function ResetDatabasePasswordSettings() {
         `An error occurred while trying to update the database password: ${currentProject.name} (${user.email}): ${e.message}`,
       );
     }
-  };
+  }
+
+  function handleSubmit(formValues: ResetDatabasePasswordFormValues) {
+    openAlertDialog({
+      title: 'Confirm Change',
+      payload: 'Are you sure you want to change the database password?',
+      props: {
+        primaryButtonColor: 'error',
+        primaryButtonText: 'Confirm',
+        onPrimaryAction: () => handleChangeDatabasePassword(formValues),
+      },
+    });
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleChangeDatabasePassword}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Reset Password"
-          description="This password is used for accessing your database."
-          submitButtonText="Reset"
+          description="This password will be used for accessing your database."
+          submitButtonText="Save"
           slotProps={{
             root: {
               sx: {
