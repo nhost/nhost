@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker'
 import { expect, test } from '@playwright/test'
 import { signUpWithEmailAndPassword, verifyEmail } from '../utils'
 
-test('should be able to change email', async ({ page }) => {
+test('should be able to change email', async ({ page, browser }) => {
   const email = faker.internet.email()
   const password = faker.internet.password()
 
@@ -25,10 +25,12 @@ test('should be able to change email', async ({ page }) => {
 
   await newPage.getByRole('button', { name: /sign out/i }).click()
 
+  const mailhogPage = await browser.newPage()
+
   const updatedEmailPage = await verifyEmail({
-    page: newPage,
+    page: mailhogPage,
     email: newEmail,
-    context: page.context(),
+    context: mailhogPage.context(),
     linkText: /change email/i
   })
 
