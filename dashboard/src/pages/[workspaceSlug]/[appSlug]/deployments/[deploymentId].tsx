@@ -140,7 +140,7 @@ export default function DeploymentDetailsPage() {
           {deployment.deploymentLogs.map((log) => (
             <div key={log.id} className="flex font-mono">
               <div className=" mr-2 flex-shrink-0">
-                {format(parseISO(log.createdAt), 'KK:mm:ss')}:
+                {format(parseISO(log.createdAt), 'HH:mm:ss')}:
               </div>
               <div className="break-all">{log.message}</div>
             </div>
