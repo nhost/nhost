@@ -34,7 +34,8 @@ export interface ResetDatabasePasswordFormValues {
 export default function ResetDatabasePasswordSettings() {
   const [updateApplication] = useUpdateApplicationMutation();
   const { maintenanceActive } = useUI();
-  const [resetPostgresPasswordMutation] = useResetPostgresPasswordMutation();
+  const [resetPostgresPasswordMutation, { loading: resetPasswordLoading }] =
+    useResetPostgresPasswordMutation();
   const user = useUserData();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const { openAlertDialog } = useDialog();
@@ -145,7 +146,7 @@ export default function ResetDatabasePasswordSettings() {
               variant: isDirty ? 'contained' : 'outlined',
               color: isDirty ? 'error' : 'secondary',
               disabled: !isDirty || maintenanceActive,
-              loading: isSubmitting,
+              loading: isSubmitting || resetPasswordLoading,
             },
           }}
           className="grid grid-flow-row pb-4"
