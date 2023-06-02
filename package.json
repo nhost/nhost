@@ -89,7 +89,7 @@
   },
   "packageManager": "pnpm@8.5.1",
   "engines": {
-    "node": ">=16 <17",
+    "node": ">=18 <19",
     "pnpm": ">=8.0.0"
   },
   "eslintConfig": {

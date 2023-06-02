@@ -1,6 +1,5 @@
 import FormData from 'form-data'
 import fs from 'fs'
-import fetch from 'isomorphic-unfetch'
 import { v4 as uuidv4 } from 'uuid'
 import { describe, expect, it } from 'vitest'
 import { storage } from './utils/helpers'
@@ -12,8 +11,17 @@ describe('test get presigned url of file', () => {
 
     const { fileMetadata } = await storage.upload({ formData })
 
+    if (!fileMetadata) {
+      throw new Error('fileMetadata is missing')
+    }
+
+    const fileId =
+      'processedFiles' in fileMetadata
+        ? fileMetadata.processedFiles[0]?.id
+        : (fileMetadata.id as string)
+
     const { presignedUrl, error } = await storage.getPresignedUrl({
-      fileId: fileMetadata?.id as string
+      fileId
     })
 
     expect(presignedUrl).not.toBeNull()
