@@ -234,7 +234,7 @@ func Up(
 	); err != nil {
 		ce.Warnln(err.Error())
 
-		ce.PromptMessage("Do you want to stop Nhost development environment it? [y/N] ")
+		ce.PromptMessage("Do you want to stop Nhost's development environment? [y/N] ")
 		resp, err := ce.PromptInput(false)
 		if err != nil {
 			ce.Warnln("failed to read input: %s", err)
