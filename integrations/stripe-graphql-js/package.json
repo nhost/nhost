@@ -43,7 +43,7 @@
     "@pothos/core": "^3.21.0",
     "graphql": "16.6.0",
     "graphql-scalars": "^1.18.0",
-    "graphql-yoga": "^3.4.0",
+    "graphql-yoga": "^4.0.0",
     "jsonwebtoken": "^9.0.0",
     "stripe": "^11.8.0"
   },
