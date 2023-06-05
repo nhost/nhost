@@ -76,19 +76,18 @@ export class HasuraStorageClient {
   async upload(params: StorageUploadFileParams): Promise<StorageUploadResponse>
   async upload(params: StorageUploadFormDataParams): Promise<StorageUploadResponse>
   async upload(params: StorageUploadParams): Promise<StorageUploadResponse> {
-    let formData: FormData
-
     if ('file' in params) {
-      formData = new FormData()
-      formData.append('file', params.file)
-    } else {
-      formData = params.formData
+      const formData = new FormData()
+
+      formData.append('file[]', params.file)
+
+      return this.api.upload({
+        ...params,
+        formData
+      })
     }
 
-    return this.api.upload({
-      ...params,
-      formData
-    })
+    return this.api.upload(params)
   }
 
   /**

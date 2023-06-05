@@ -1,13 +1,15 @@
-import fetch from 'isomorphic-unfetch'
+import fetchPonyfill from 'fetch-ponyfill'
 import {
   ApiDeleteParams,
   ApiDeleteResponse,
   ApiGetPresignedUrlParams,
   ApiGetPresignedUrlResponse,
-  ApiUploadParams,
+  StorageUploadFormDataParams,
   StorageUploadResponse
 } from './utils/types'
 import { fetchUpload } from './utils/upload'
+
+const { fetch } = fetchPonyfill()
 
 /**
  * @internal
@@ -22,15 +24,20 @@ export class HasuraStorageApi {
     this.url = url
   }
 
-  async upload(params: ApiUploadParams): Promise<StorageUploadResponse> {
-    const { formData } = params
-
+  async upload({
+    formData,
+    headers,
+    bucketId,
+    id,
+    name
+  }: StorageUploadFormDataParams): Promise<StorageUploadResponse> {
     return fetchUpload(this.url, formData, {
       accessToken: this.accessToken,
       adminSecret: this.adminSecret,
-      bucketId: params.bucketId,
-      fileId: params.id,
-      name: params.name
+      bucketId,
+      fileId: id,
+      name,
+      headers
     })
   }
 

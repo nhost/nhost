@@ -143,8 +143,14 @@ export const createFileUploadMachine = () =>
             if (error) {
               callback({ type: 'UPLOAD_ERROR', error })
             }
-            if (fileMetadata) {
+            if (fileMetadata && !('processedFiles' in fileMetadata)) {
               const { id, bucketId } = fileMetadata
+              callback({ type: 'UPLOAD_DONE', id, bucketId })
+            }
+
+            if (fileMetadata && 'processedFiles' in fileMetadata) {
+              // TODO: Add support for multiple files
+              const { id, bucketId } = fileMetadata.processedFiles[0]
               callback({ type: 'UPLOAD_DONE', id, bucketId })
             }
           })

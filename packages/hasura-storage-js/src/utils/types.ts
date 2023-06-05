@@ -39,13 +39,14 @@ export interface StorageUploadFormDataParams {
   id?: string
   name?: string
   bucketId?: string
+  headers?: Record<string, string>
 }
 
 // works in browser and server
 export type StorageUploadParams = StorageUploadFileParams | StorageUploadFormDataParams
 
 export type StorageUploadResponse =
-  | { fileMetadata: FileResponse; error: null }
+  | { fileMetadata: FileResponse | { processedFiles: FileResponse[] }; error: null }
   | { fileMetadata: null; error: StorageErrorPayload }
 
 export interface StorageImageTransformationParams {
@@ -92,13 +93,6 @@ export interface FileResponse {
   isUploaded: true
   updatedAt: string
   uploadedByUserId: string
-}
-
-export interface ApiUploadParams {
-  formData: FormData
-  id?: string
-  name?: string
-  bucketId?: string
 }
 
 // TODO not implemented yet in hasura-storage
