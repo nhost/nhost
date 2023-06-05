@@ -36,7 +36,7 @@ yarn add @nhost/nhost-js graphql
 
 ## Initializing
 
-Initialize a single `nhost` instance using your Nhost backend URL:
+Initialize a single `nhost` instance using your Nhost `subdomain` and `region`:
 
 ```ts title=utils/nhost.ts
 import { NhostClient } from '@nhost/nhost-js'
@@ -44,6 +44,24 @@ import { NhostClient } from '@nhost/nhost-js'
 const nhost = new NhostClient({
   subdomain: '<your-subdomain>',
   region: '<your-region>'
+})
+```
+
+## Using custom URLs
+
+There are cases where you might want to use a custom URL for one or more of the
+services (e.g: when you are self-hosting or you are running services on custom
+ports). You can do this by passing in the custom URLs when initializing the
+Nhost client:
+
+```ts title=utils/nhost.ts
+import { NhostClient } from '@nhost/nhost-js'
+
+const nhost = new NhostClient({
+  authUrl: 'https://auth.mydomain.com',
+  storageUrl: 'https://storage.mydomain.com',
+  graphqlUrl: 'https://graphql.mydomain.com',
+  functionsUrl: 'https://functions.mydomain.com'
 })
 ```
 
