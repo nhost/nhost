@@ -1,5 +1,13 @@
 # @nhost-examples/vue-quickstart
 
+## 0.0.9
+
+### Patch Changes
+
+- 4c00a796e: chore(autoimports): update type definitions
+  - @nhost/apollo@5.2.9
+  - @nhost/vue@1.13.27
+
 ## 0.0.8
 
 ### Patch Changes
