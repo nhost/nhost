@@ -15,7 +15,7 @@ func CommandDelete() *cli.Command {
 		Aliases:   []string{},
 		Usage:     "Delete secret in the cloud environment",
 		Action:    commandDelete,
-		Flags:     []cli.Flag{},
+		Flags:     commonFlags(),
 	}
 }
 
@@ -25,7 +25,7 @@ func commandDelete(cCtx *cli.Context) error {
 	}
 
 	ce := clienv.FromCLI(cCtx)
-	proj, err := ce.GetAppInfo(cCtx.Context)
+	proj, err := ce.GetAppInfo(cCtx.Context, cCtx.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}

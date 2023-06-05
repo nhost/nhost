@@ -28,7 +28,13 @@ func CommandPull() *cli.Command {
 		Aliases: []string{},
 		Usage:   "Get cloud configuration",
 		Action:  commandPull,
-		Flags:   []cli.Flag{},
+		Flags: []cli.Flag{
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagSubdomain,
+				Usage:   "Pull this subdomain's configuration. Defaults to linked project",
+				EnvVars: []string{"NHOST_SUBDOMAIN"},
+			},
+		},
 	}
 }
 
@@ -42,7 +48,7 @@ func commandPull(cCtx *cli.Context) error {
 		return err
 	}
 
-	proj, err := ce.GetAppInfo(cCtx.Context)
+	proj, err := ce.GetAppInfo(cCtx.Context, cCtx.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}

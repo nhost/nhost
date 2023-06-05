@@ -14,14 +14,14 @@ func CommandList() *cli.Command {
 		Aliases: []string{},
 		Usage:   "List secrets in the cloud environment",
 		Action:  commandList,
-		Flags:   []cli.Flag{},
+		Flags:   commonFlags(),
 	}
 }
 
 func commandList(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
-	proj, err := ce.GetAppInfo(cCtx.Context)
+	proj, err := ce.GetAppInfo(cCtx.Context, cCtx.String(flagSubdomain))
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}

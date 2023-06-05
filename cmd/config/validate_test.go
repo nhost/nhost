@@ -187,36 +187,6 @@ func TestValidate(t *testing.T) {
 			expected:     expectedConfig,
 			applyPatches: true,
 		},
-		{
-			name: "skippatches",
-			path: "success",
-			expected: func() *model.ConfigConfig {
-				cfg := expectedConfig()
-
-				cfg.Global.Environment = []*model.ConfigEnvironmentVariable{
-					{
-						Name:  "ENVIRONMENT",
-						Value: "production",
-					},
-				}
-
-				cfg.Hasura.Version = ptr("v2.24.1-ce")
-
-				cfg.Auth.Redirections.ClientUrl = ptr("https://my.app.com")
-
-				cfg.Auth.Method.Oauth.Apple = &model.ConfigAuthMethodOauthApple{
-					Enabled:    ptr(true),
-					ClientId:   ptr("clientID"),
-					KeyId:      ptr("keyID"),
-					TeamId:     ptr("teamID"),
-					PrivateKey: ptr("privateKey"),
-					Scope:      nil,
-				}
-
-				return cfg
-			},
-			applyPatches: false,
-		},
 	}
 
 	for _, tc := range cases {
@@ -236,10 +206,10 @@ func TestValidate(t *testing.T) {
 					filepath.Join("testdata", "validate", tc.path, "nhost"),
 				),
 				"fakedomain",
-				"fakeproject",
+				"",
 			)
 
-			cfg, err := config.Validate(ce, tc.applyPatches)
+			cfg, err := config.Validate(ce, "local")
 			if err != nil {
 				t.Fatal(err)
 			}

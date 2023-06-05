@@ -153,7 +153,7 @@ func up(
 		cancel()
 	}()
 
-	cfg, err := config.Validate(ce, true)
+	cfg, err := config.Validate(ce, "local")
 	if err != nil {
 		return fmt.Errorf("failed to validate config: %w", err)
 	}
