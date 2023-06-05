@@ -1,5 +1,11 @@
 # @nhost-examples/react-apollo
 
+## 0.1.13
+
+### Patch Changes
+
+- e3001ba4a: fix(examples): don't break E2E tests
+
 ## 0.1.12
 
 ### Patch Changes
