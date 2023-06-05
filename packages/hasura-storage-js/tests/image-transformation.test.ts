@@ -1,6 +1,5 @@
 import FormData from 'form-data'
 import fs from 'fs'
-import fetch from 'isomorphic-unfetch'
 import jpeg from 'jpeg-js'
 import pixelmatch from 'pixelmatch'
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -18,7 +17,15 @@ describe('Image transformation', () => {
     const { fileMetadata } = await storage.upload({
       formData: fd
     })
-    fileId = fileMetadata?.id as string
+
+    if (!fileMetadata) {
+      throw new Error('fileMetadata is missing')
+    }
+
+    fileId =
+      'processedFiles' in fileMetadata
+        ? fileMetadata.processedFiles[0]?.id
+        : (fileMetadata.id as string)
   })
 
   it('should be able to change the image width in a public url', async () => {

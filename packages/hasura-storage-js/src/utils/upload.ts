@@ -1,5 +1,5 @@
+import fetchPonyfill from 'fetch-ponyfill'
 import FormData from 'form-data'
-import fetch from 'isomorphic-unfetch'
 import { StorageErrorPayload, StorageUploadResponse } from './types'
 
 /** Convert any string into ISO-8859-1 */
@@ -12,6 +12,8 @@ export const toIso88591 = (fileName: string) => {
   }
 }
 
+const { fetch } = fetchPonyfill()
+
 export const fetchUpload = async (
   backendUrl: string,
   data: FormData,
@@ -21,7 +23,8 @@ export const fetchUpload = async (
     fileId,
     bucketId,
     adminSecret,
-    onUploadProgress
+    onUploadProgress,
+    headers: initialHeaders = {}
   }: {
     accessToken?: string
     name?: string
@@ -29,9 +32,13 @@ export const fetchUpload = async (
     bucketId?: string
     adminSecret?: string
     onUploadProgress?: (event: { total: number; loaded: number }) => void
+    headers?: Record<string, string>
   } = {}
 ): Promise<StorageUploadResponse> => {
-  const headers: HeadersInit = {}
+  const headers: HeadersInit = {
+    ...initialHeaders
+  }
+
   if (fileId) {
     headers['x-nhost-file-id'] = fileId
   }
@@ -58,16 +65,18 @@ export const fetchUpload = async (
         body: data as any // * https://github.com/form-data/form-data/issues/513
       })
 
+      const responseData = await response.json()
+
       if (!response.ok) {
         const error: StorageErrorPayload = {
           status: response.status,
-          message: await response.text(),
+          message: responseData?.error?.message || response.statusText,
           // * errors from hasura-storage are not codified
           error: response.statusText
         }
         return { error, fileMetadata: null }
       }
-      const fileMetadata = await response.json()
+      const fileMetadata = responseData
       return { fileMetadata, error: null }
     } catch (e) {
       const error: StorageErrorPayload = {
@@ -78,6 +87,7 @@ export const fetchUpload = async (
       return { error, fileMetadata: null }
     }
   }
+
   // * Browser environment: XMLHttpRequest is available
   return new Promise((resolve) => {
     let xhr = new XMLHttpRequest()
