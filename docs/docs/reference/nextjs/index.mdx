@@ -31,12 +31,12 @@ yarn add @nhost/nextjs graphql
 
 ## Initializing
 
-Initialize a single `nhost` instance and wrap your app with the `NhostProvider`.
+Initialize a single `nhost` instance using your Nhost `subdomain` and `region`,
+and wrap your app with the `NhostProvider`:
 
-```jsx title=pages/_app.js
-import type { AppProps } from 'next/app'
-
+```tsx title=pages/_app.tsx
 import { NhostClient, NhostProvider } from '@nhost/nextjs'
+import type { AppProps } from 'next/app'
 
 const nhost = new NhostClient({
   subdomain: '<your-subdomain>',
@@ -59,6 +59,35 @@ export default MyApp
 The `nhost` instance created with the `NhostClient` above is the same as the [JavaScript Nhost client](/reference/javascript).
 
 :::
+
+## Using custom URLs
+
+There are cases where you might want to use a custom URL for one or more of the
+services (e.g: when you are self-hosting or you are running services on custom
+ports). You can do this by passing in the custom URLs when initializing the
+Nhost client:
+
+```tsx title=pages/_app.tsx
+import { NhostClient, NhostProvider } from '@nhost/nextjs'
+import type { AppProps } from 'next/app'
+
+const nhost = new NhostClient({
+  authUrl: 'https://auth.mydomain.com',
+  storageUrl: 'https://storage.mydomain.com',
+  graphqlUrl: 'https://graphql.mydomain.com',
+  functionsUrl: 'https://functions.mydomain.com'
+})
+
+function MyApp({ Component, pageProps }: AppProps) {
+  return (
+    <NhostProvider nhost={nhost} initial={pageProps.nhostSession}>
+      <Component {...pageProps} />
+    </NhostProvider>
+  )
+}
+
+export default MyApp
+```
 
 ## Server-Side Rendering (SSR)
 
