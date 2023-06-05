@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.1.5
+
+### Patch Changes
+
+- 4c00a796e: fix(upload): don't break upload in Node 18
+
 ## 2.1.4
 
 ### Patch Changes
