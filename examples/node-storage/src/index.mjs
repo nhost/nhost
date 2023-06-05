@@ -1,15 +1,11 @@
-import { NhostClient } from '@nhost/nhost-js'
 import dotenv from 'dotenv'
 import FormData from 'form-data'
 import fetch from 'node-fetch'
+import { createClient } from './client.mjs'
 
 dotenv.config()
 
-const client = new NhostClient({
-  subdomain: process.env.SUBDOMAIN,
-  region: process.env.REGION,
-  adminSecret: process.env.ADMIN_SECRET
-})
+const client = createClient()
 
 async function uploadImage() {
   try {
@@ -50,17 +46,14 @@ async function uploadImage() {
 
     // Generate a presigned URL for the uploaded file
     const { error: presignError, presignedUrl: blurredImage } =
-      await client.storage.getPresignedUrl({
-        fileId: uploadedFile.id,
-        blur: 50
-      })
+      await client.storage.getPresignedUrl({ fileId: uploadedFile.id })
 
     if (presignError) {
       console.error(presignError)
       return
     }
 
-    console.info(`Blurred Image URL: ${blurredImage.url}`)
+    console.info(`Presigned URL: ${blurredImage.url}`)
   } catch (error) {
     console.error(error.message)
   }
