@@ -31,17 +31,33 @@ yarn add @nhost/react graphql
 
 ## Initializing
 
-After installation, initialize a single Nhost Client (`nhost`) under `src/lib/nhost.js`.
+Initialize a single `nhost` instance using your Nhost `subdomain` and `region`:
 
 ```jsx title=src/lib/nhost.js
 import { NhostClient } from '@nhost/react'
 
-const nhost = new NhostClient({
+export const nhost = new NhostClient({
   subdomain: '<your-subdomain>',
   region: '<your-region>'
 })
+```
 
-export { nhost }
+## Using custom URLs
+
+There are cases where you might want to use a custom URL for one or more of the
+services (e.g: when you are self-hosting or you are running services on custom
+ports). You can do this by passing in the custom URLs when initializing the
+Nhost client:
+
+```ts title=src/lib/nhost.ts
+import { NhostClient } from '@nhost/react'
+
+export const nhost = new NhostClient({
+  authUrl: 'https://auth.mydomain.com',
+  storageUrl: 'https://storage.mydomain.com',
+  graphqlUrl: 'https://graphql.mydomain.com',
+  functionsUrl: 'https://functions.mydomain.com'
+})
 ```
 
 Import `nhost` and wrap your app with the `NhostProvider`.

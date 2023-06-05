@@ -38,10 +38,10 @@ yarn add @nhost/nhost-js graphql
 
 Initialize a single `nhost` instance using your Nhost `subdomain` and `region`:
 
-```ts title=utils/nhost.ts
+```ts title=src/lib/nhost.ts
 import { NhostClient } from '@nhost/nhost-js'
 
-const nhost = new NhostClient({
+export const nhost = new NhostClient({
   subdomain: '<your-subdomain>',
   region: '<your-region>'
 })
@@ -54,10 +54,10 @@ services (e.g: when you are self-hosting or you are running services on custom
 ports). You can do this by passing in the custom URLs when initializing the
 Nhost client:
 
-```ts title=utils/nhost.ts
+```ts title=src/lib/nhost.ts
 import { NhostClient } from '@nhost/nhost-js'
 
-const nhost = new NhostClient({
+export const nhost = new NhostClient({
   authUrl: 'https://auth.mydomain.com',
   storageUrl: 'https://storage.mydomain.com',
   graphqlUrl: 'https://graphql.mydomain.com',
