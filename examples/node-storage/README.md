@@ -18,16 +18,13 @@ REGION=<your-region>
 ADMIN_SECRET=<your-admin-secret>
 ```
 
+You can use the `.env.example` file as a starting point.
+
 ## Running the example
-
-First, you need to build the project:
-
-```bash
-pnpm build
-```
-
-Then, you can run the example:
 
 ```bash
 pnpm start
 ```
+
+The example will download a file from a public URL and upload it to your Nhost
+Storage bucket.

@@ -2,11 +2,10 @@
   "name": "@nhost-examples/node-storage",
   "version": "0.0.1",
   "description": "This is an example of how to use the Storage with Node.js",
-  "main": "dist/index.js",
+  "main": "src/index.mjs",
   "type": "module",
   "scripts": {
-    "start": "node dist/index.js",
-    "build": "tsc"
+    "start": "node src/index.mjs"
   },
   "author": "",
   "license": "ISC",
@@ -17,7 +16,6 @@
     "node-fetch": "^3.3.0"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "typescript": "^5.0.3"
+    "@types/node": "^18.15.11"
   }
 }
