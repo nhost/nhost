@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.17.4
+
+### Patch Changes
+
+- 9b1d0f7a5: fix(deployments): use correct timestamp for deployment details
+- 6d2963ffa: chore(deps): bump `@types/react` to `v18.2.8`
+- 8871267b9: chore(deps): downgrade `pnpm` to `v8.5.1` because of no Turborepo support
+
 ## 0.17.3
 
 ### Patch Changes
