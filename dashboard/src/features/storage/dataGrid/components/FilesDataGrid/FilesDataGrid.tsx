@@ -277,7 +277,16 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
         throw new Error(fileError.message);
       }
 
-      triggerToast(`File has been uploaded successfully (${fileMetadata?.id})`);
+      if (!fileMetadata) {
+        throw new Error('File metadata is missing.');
+      }
+
+      const fileId =
+        'processedFiles' in fileMetadata
+          ? fileMetadata.processedFiles[0]?.id
+          : fileMetadata.id;
+
+      triggerToast(`File has been uploaded successfully (${fileId})`);
 
       await refetchFilesAndAggregate();
     } catch (uploadError) {
