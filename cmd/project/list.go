@@ -13,7 +13,7 @@ func CommandList() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "list",
 		Aliases: []string{},
-		Usage:   "Lst remote apps",
+		Usage:   "List remote apps",
 		Action:  commandList,
 		Flags:   []cli.Flag{},
 	}
