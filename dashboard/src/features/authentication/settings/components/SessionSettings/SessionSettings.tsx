@@ -14,7 +14,6 @@ import { getServerError } from '@/utils/getServerError';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
-import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -116,7 +115,7 @@ export default function SessionSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          className={twMerge('grid grid-cols-5 grid-rows-2 gap-y-6')}
+          className="grid grid-cols-5 grid-rows-2 gap-y-6"
         >
           <Input
             {...register('accessTokenExpiresIn')}

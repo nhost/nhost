@@ -4,6 +4,9 @@ query GetHasuraSettings($appId: uuid!) {
     __typename
     hasura {
       version
+      settings {
+        corsDomain
+      }
     }
   }
 }
