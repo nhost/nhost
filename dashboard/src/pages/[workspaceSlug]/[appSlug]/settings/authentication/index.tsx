@@ -9,6 +9,7 @@ import { ClientURLSettings } from '@/features/authentication/settings/components
 import { DisableNewUsersSettings } from '@/features/authentication/settings/components/DisableNewUsersSettings';
 import { GravatarSettings } from '@/features/authentication/settings/components/GravatarSettings';
 import { MFASettings } from '@/features/authentication/settings/components/MFASettings';
+import { SessionSettings } from '@/features/authentication/settings/components/SessionSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
@@ -46,6 +47,7 @@ export default function SettingsAuthenticationPage() {
       <AllowedEmailSettings />
       <BlockedEmailSettings />
       <MFASettings />
+      <SessionSettings />
       <GravatarSettings />
       <DisableNewUsersSettings />
     </Container>

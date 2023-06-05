@@ -16,6 +16,14 @@ query GetAuthenticationSettings($appId: uuid!) {
       signUp {
         enabled
       }
+      session {
+        accessToken {
+          expiresIn
+        }
+        refreshToken {
+          expiresIn
+        }
+      }
       user {
         email {
           allowed
