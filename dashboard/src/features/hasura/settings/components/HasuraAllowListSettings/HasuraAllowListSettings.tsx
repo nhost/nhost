@@ -105,7 +105,7 @@ export default function HasuraAllowListSettings() {
             },
           }}
           switchId="enabled"
-          docsTitle="Allow Lists"
+          docsTitle="enabling or disabling Allow Lists"
           docsLink="https://hasura.io/learn/graphql/hasura-advanced/security/3-allow-list/"
           showSwitch
           className="hidden"

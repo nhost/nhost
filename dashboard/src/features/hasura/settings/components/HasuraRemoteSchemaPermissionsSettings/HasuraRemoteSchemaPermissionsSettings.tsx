@@ -100,7 +100,7 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
-          title="remote schema permissions"
+          title="Remote Schema Permissions"
           description="Enable or disable remote schema permissions."
           slotProps={{
             submitButton: {
@@ -109,7 +109,7 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
             },
           }}
           switchId="enabled"
-          docsTitle="enabling or disabling remote schema permissions"
+          docsTitle="enabling or disabling Remote Schema Permissions"
           docsLink="https://hasura.io/docs/latest/remote-schemas/auth/remote-schema-permissions/"
           showSwitch
           className="hidden"
