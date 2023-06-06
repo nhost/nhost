@@ -4,6 +4,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { HasuraAllowListSettings } from '@/features/hasura/settings/components/HasuraAllowListSettings';
 import { HasuraConsoleSettings } from '@/features/hasura/settings/components/HasuraConsoleSettings';
 import { HasuraCorsDomainSettings } from '@/features/hasura/settings/components/HasuraCorsDomainSettings';
+import { HasuraDevModeSettings } from '@/features/hasura/settings/components/HasuraDevModeSettings';
 import { HasuraServiceVersionSettings } from '@/features/hasura/settings/components/HasuraServiceVersionSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
@@ -38,8 +39,9 @@ export default function HasuraSettingsPage() {
     >
       <HasuraServiceVersionSettings />
       <HasuraCorsDomainSettings />
-      <HasuraAllowListSettings />
       <HasuraConsoleSettings />
+      <HasuraDevModeSettings />
+      <HasuraAllowListSettings />
     </Container>
   );
 }

@@ -39,7 +39,8 @@ const AVAILABLE_HASURA_VERSIONS = [
 
 export default function HasuraServiceVersionSettings() {
   const { maintenanceActive } = useUI();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { currentProject, refetch: refetchWorkspaceAndProject } =
+    useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetHasuraSettingsDocument],
   });
@@ -110,6 +111,7 @@ export default function HasuraServiceVersionSettings() {
       );
 
       form.reset(formValues);
+      await refetchWorkspaceAndProject();
     } catch {
       // Note: The toast will handle the error.
     }

@@ -23,7 +23,8 @@ export type HasuraAllowListFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function HasuraAllowListSettings() {
   const { maintenanceActive } = useUI();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { currentProject, refetch: refetchWorkspaceAndProject } =
+    useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetHasuraSettingsDocument],
   });
@@ -87,6 +88,7 @@ export default function HasuraAllowListSettings() {
       );
 
       form.reset(formValues);
+      await refetchWorkspaceAndProject();
     } catch {
       // Note: The toast will handle the error.
     }

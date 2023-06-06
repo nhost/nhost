@@ -31,7 +31,8 @@ export type HasuraCorsDomainFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function HasuraCorsDomainSettings() {
   const { maintenanceActive } = useUI();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { currentProject, refetch: refetchWorkspaceAndProject } =
+    useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetHasuraSettingsDocument],
   });
@@ -110,6 +111,7 @@ export default function HasuraCorsDomainSettings() {
       );
 
       form.reset(formValues);
+      await refetchWorkspaceAndProject();
     } catch {
       // Note: The toast will handle the error.
     }

@@ -19,9 +19,9 @@ const validationSchema = Yup.object({
   enabled: Yup.boolean(),
 });
 
-export type HasuraConsoleFormValues = Yup.InferType<typeof validationSchema>;
+export type HasuraDevModeFormValues = Yup.InferType<typeof validationSchema>;
 
-export default function HasuraConsoleSettings() {
+export default function HasuraDevModeSettings() {
   const { maintenanceActive } = useUI();
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
@@ -34,12 +34,12 @@ export default function HasuraConsoleSettings() {
     fetchPolicy: 'cache-first',
   });
 
-  const { enableConsole } = data?.config?.hasura.settings || {};
+  const { devMode } = data?.config?.hasura.settings || {};
 
-  const form = useForm<HasuraConsoleFormValues>({
+  const form = useForm<HasuraDevModeFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabled: enableConsole,
+      enabled: devMode,
     },
     resolver: yupResolver(validationSchema),
   });
@@ -48,7 +48,7 @@ export default function HasuraConsoleSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Hasura Console settings..."
+        label="Loading dev mode settings..."
         className="justify-center"
       />
     );
@@ -58,9 +58,7 @@ export default function HasuraConsoleSettings() {
     throw error;
   }
 
-  const handleHasuraConsoleChange = async (
-    formValues: HasuraConsoleFormValues,
-  ) => {
+  const handleDevModeChange = async (formValues: HasuraDevModeFormValues) => {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -78,10 +76,10 @@ export default function HasuraConsoleSettings() {
       await toast.promise(
         updateConfigPromise,
         {
-          loading: `Hasura Console settings are being updated...`,
-          success: `Hasura Console settings have been updated successfully.`,
+          loading: `Dev Mode settings are being updated...`,
+          success: `Dev Mode settings have been updated successfully.`,
           error: getServerError(
-            `An error occurred while trying to update Hasura Console settings.`,
+            `An error occurred while trying to update Dev Mode settings.`,
           ),
         },
         getToastStyleProps(),
@@ -96,10 +94,10 @@ export default function HasuraConsoleSettings() {
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleHasuraConsoleChange}>
+      <Form onSubmit={handleDevModeChange}>
         <SettingsContainer
-          title="Hasura Console"
-          description="Enable or disable the Hasura Console."
+          title="Dev Mode"
+          description="Enable or disable Dev Mode."
           slotProps={{
             submitButton: {
               disabled: !form.formState.isDirty || maintenanceActive,
@@ -107,8 +105,8 @@ export default function HasuraConsoleSettings() {
             },
           }}
           switchId="enabled"
-          docsTitle="enabling or disabling the Hasura Console"
-          docsLink="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#enable-console"
+          docsTitle="enabling or disabling Dev Mode"
+          docsLink="https://hasura.io/learn/graphql/hasura-advanced/debugging/1-dev-mode/"
           showSwitch
           className="hidden"
         />
