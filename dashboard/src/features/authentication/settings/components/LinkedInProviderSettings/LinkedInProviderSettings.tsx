@@ -68,9 +68,7 @@ export default function LinkedInProviderSettings() {
   const { formState, watch } = form;
   const authEnabled = watch('enabled');
 
-  const handleProviderUpdate = async (
-    values: BaseProviderSettingsFormValues,
-  ) => {
+  async function handleSubmit(formValues: BaseProviderSettingsFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -79,7 +77,7 @@ export default function LinkedInProviderSettings() {
             method: {
               oauth: {
                 linkedin: {
-                  ...values,
+                  ...formValues,
                   scope: [],
                 },
               },
@@ -102,15 +100,15 @@ export default function LinkedInProviderSettings() {
         getToastStyleProps(),
       );
 
-      form.reset(values);
+      form.reset(formValues);
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleProviderUpdate}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="LinkedIn"
           description="Allow users to sign in with LinkedIn."

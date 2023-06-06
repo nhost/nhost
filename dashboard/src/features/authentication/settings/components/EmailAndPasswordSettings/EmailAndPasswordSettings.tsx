@@ -64,9 +64,7 @@ export default function EmailAndPasswordSettings() {
 
   const { formState } = form;
 
-  const handleEmailAndPasswordSettingsChange = async (
-    values: EmailAndPasswordFormValues,
-  ) => {
+  async function handleSubmit(values: EmailAndPasswordFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -97,11 +95,11 @@ export default function EmailAndPasswordSettings() {
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleEmailAndPasswordSettingsChange}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Email and Password"
           description="Allow users to sign in with email and password."

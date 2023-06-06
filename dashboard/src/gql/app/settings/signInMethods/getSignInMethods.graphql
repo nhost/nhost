@@ -40,6 +40,23 @@ query GetSignInMethods($appId: uuid!) {
             teamId
             privateKey
           }
+          bitbucket {
+            enabled
+            clientId
+            clientSecret
+          }
+          gitlab {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          strava {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
           discord {
             enabled
             clientId

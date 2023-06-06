@@ -70,9 +70,7 @@ export default function GitHubProviderSettings() {
   const { formState, watch } = form;
   const authEnabled = watch('enabled');
 
-  const handleProviderUpdate = async (
-    values: BaseProviderSettingsFormValues,
-  ) => {
+  async function handleSubmit(formValues: BaseProviderSettingsFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -81,7 +79,7 @@ export default function GitHubProviderSettings() {
             method: {
               oauth: {
                 github: {
-                  ...values,
+                  ...formValues,
                   scope: [],
                 },
               },
@@ -104,15 +102,15 @@ export default function GitHubProviderSettings() {
         getToastStyleProps(),
       );
 
-      form.reset(values);
+      form.reset(formValues);
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleProviderUpdate}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="GitHub"
           description="Allow users to sign in with GitHub."
