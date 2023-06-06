@@ -5,6 +5,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
+import { Link } from '@/components/ui/v2/Link';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
 import { ResourcesConfirmationDialog } from '@/features/projects/resources/settings/components/ResourcesConfirmationDialog';
@@ -348,6 +349,13 @@ export default function ResourcesForm() {
                   </Alert>
                 </Box>
               )}
+
+              <Box className="px-4 pb-4">
+                <Alert severity="info">
+                  In case you need more resources, please reach out to us at{' '}
+                  <Link href="mailto:support@nhost.io">support@nhost.io</Link>.
+                </Alert>
+              </Box>
             </>
           ) : (
             <Box className={twMerge('px-4', 'pb-4')}>

@@ -21,7 +21,7 @@ export const MIN_TOTAL_MEMORY =
 /**
  * The maximum total CPU that can be allocated.
  */
-export const MAX_TOTAL_VCPU = 60 * RESOURCE_VCPU_MULTIPLIER;
+export const MAX_TOTAL_VCPU = 28 * RESOURCE_VCPU_MULTIPLIER;
 
 /**
  * The maximum amount of memory that can be allocated in total.
@@ -46,7 +46,7 @@ export const MIN_SERVICE_VCPU = 0.25 * RESOURCE_VCPU_MULTIPLIER;
 /**
  * The maximum amount of CPU that can be allocated per service.
  */
-export const MAX_SERVICE_VCPU = 15 * RESOURCE_VCPU_MULTIPLIER;
+export const MAX_SERVICE_VCPU = 7 * RESOURCE_VCPU_MULTIPLIER;
 
 /**
  * The minimum amount of memory that has to be allocated per service.
