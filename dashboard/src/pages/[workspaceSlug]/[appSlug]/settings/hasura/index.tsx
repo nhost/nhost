@@ -1,6 +1,7 @@
 import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { HasuraAllowListSettings } from '@/features/hasura/settings/components/HasuraAllowListSettings';
 import { HasuraCorsDomainSettings } from '@/features/hasura/settings/components/HasuraCorsDomainSettings';
 import { HasuraServiceVersionSettings } from '@/features/hasura/settings/components/HasuraServiceVersionSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -10,12 +11,12 @@ import type { ReactElement } from 'react';
 export default function HasuraSettingsPage() {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const { loading, error } = useGetHasuraSettingsQuery({
+  const { data, loading, error } = useGetHasuraSettingsQuery({
     variables: { appId: currentProject?.id },
     skip: !currentProject,
   });
 
-  if (loading) {
+  if (!data && loading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -36,6 +37,7 @@ export default function HasuraSettingsPage() {
     >
       <HasuraServiceVersionSettings />
       <HasuraCorsDomainSettings />
+      <HasuraAllowListSettings />
     </Container>
   );
 }

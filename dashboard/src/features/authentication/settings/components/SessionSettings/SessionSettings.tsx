@@ -121,7 +121,7 @@ export default function SessionSettings() {
             {...register('accessTokenExpiresIn')}
             id="accessTokenExpiresIn"
             type="number"
-            label="Access Token Expiration Seconds"
+            label="Access Token Expires In (Seconds)"
             fullWidth
             className="col-span-5 lg:col-span-2"
             error={Boolean(formState.errors.accessTokenExpiresIn?.message)}
@@ -132,7 +132,7 @@ export default function SessionSettings() {
             {...register('refreshTokenExpiresIn')}
             id="refreshTokenExpiresIn"
             type="number"
-            label="Refresh Token Expiration Seconds"
+            label="Refresh Token Expires In (Seconds)"
             fullWidth
             className="col-span-5 row-start-2 lg:col-span-2"
             error={Boolean(formState.errors.refreshTokenExpiresIn?.message)}

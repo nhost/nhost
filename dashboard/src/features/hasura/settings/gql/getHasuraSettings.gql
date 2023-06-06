@@ -5,6 +5,7 @@ query GetHasuraSettings($appId: uuid!) {
     hasura {
       version
       settings {
+        enableAllowList
         corsDomain
       }
     }

@@ -17,16 +17,16 @@ import type { ReactElement } from 'react';
 export default function SettingsAuthenticationPage() {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const { loading, error } = useGetAuthenticationSettingsQuery({
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: currentProject?.id },
     skip: !currentProject,
   });
 
-  if (loading) {
+  if (!data && loading) {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Authentication settings..."
+        label="Loading authentication settings..."
         className="justify-center"
       />
     );
