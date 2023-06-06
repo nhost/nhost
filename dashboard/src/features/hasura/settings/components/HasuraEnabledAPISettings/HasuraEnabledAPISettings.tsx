@@ -3,7 +3,6 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetHasuraSettingsDocument,
@@ -18,26 +17,21 @@ import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  version: Yup.object({
-    label: Yup.string().required(),
-    value: Yup.string().required(),
-  })
-    .label('Hasura Version')
+  enabledAPIs: Yup.array(
+    Yup.object({
+      label: Yup.string().required(),
+      value: Yup.string().required(),
+    }),
+  )
+    .label('Enabled Hasura APIs')
     .required(),
 });
 
-export type HasuraServiceVersionFormValues = Yup.InferType<
-  typeof validationSchema
->;
+export type HasuraEnabledAPIFormValues = Yup.InferType<typeof validationSchema>;
 
-const AVAILABLE_HASURA_VERSIONS = [
-  'v2.25.1-ce',
-  'v2.25.0-ce',
-  'v2.24.1-ce',
-  'v2.15.2',
-];
+const AVAILABLE_HASURA_APIS = ['metadata', 'graphql', 'pgdump', 'config'];
 
-export default function HasuraServiceVersionSettings() {
+export default function HasuraEnabledAPISettings() {
   const { maintenanceActive } = useUI();
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
@@ -50,20 +44,16 @@ export default function HasuraServiceVersionSettings() {
     fetchPolicy: 'cache-only',
   });
 
-  const { version } = data?.config?.hasura || {};
-  const availableVersions = Array.from(
-    new Set(AVAILABLE_HASURA_VERSIONS).add(version),
-  )
-    .sort()
-    .reverse()
-    .map((availableVersion) => ({
-      label: availableVersion,
-      value: availableVersion,
-    }));
+  const { enabledAPIs } = data?.config?.hasura.settings || {};
 
-  const form = useForm<HasuraServiceVersionFormValues>({
+  const form = useForm<HasuraEnabledAPIFormValues>({
     reValidateMode: 'onSubmit',
-    defaultValues: { version: { label: version, value: version } },
+    defaultValues: {
+      enabledAPIs: enabledAPIs.map((api) => ({
+        label: api,
+        value: api,
+      })),
+    },
     resolver: yupResolver(validationSchema),
   });
 
@@ -71,7 +61,7 @@ export default function HasuraServiceVersionSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Hasura version..."
+        label="Loading enabled APIs..."
         className="justify-center"
       />
     );
@@ -82,14 +72,22 @@ export default function HasuraServiceVersionSettings() {
   }
 
   const { formState } = form;
+  const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
-  async function handleSubmit(formValues: HasuraServiceVersionFormValues) {
+  const availableAPIs = AVAILABLE_HASURA_APIS.map((api) => ({
+    label: api,
+    value: api,
+  }));
+
+  async function handleSubmit(formValues: HasuraEnabledAPIFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
         config: {
           hasura: {
-            version: formValues.version.value,
+            settings: {
+              enabledAPIs: formValues.enabledAPIs.map((api) => api.value),
+            },
           },
         },
       },
@@ -99,10 +97,10 @@ export default function HasuraServiceVersionSettings() {
       await toast.promise(
         updateConfigPromise,
         {
-          loading: `Hasura version is being updated...`,
-          success: `Hasura version has been updated successfully.`,
+          loading: `Enabled APIs are being updated...`,
+          success: `Enabled APIs have been updated successfully.`,
           error: getServerError(
-            `An error occurred while trying to update Hasura version.`,
+            `An error occurred while trying to update enabled APIs.`,
           ),
         },
         getToastStyleProps(),
@@ -119,36 +117,26 @@ export default function HasuraServiceVersionSettings() {
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
-          title="Hasura GraphQL Engine Version"
-          description="The version of the Hasura GraphQL Engine to use."
+          title="Enabled APIs"
+          description="Enable or disable APIs for your Hasura instance."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || maintenanceActive,
+              disabled: !isDirty || maintenanceActive,
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://hub.docker.com/r/nhost/graphql-engine/tags"
-          docsTitle="the latest releases"
-          className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-6"
         >
           <ControlledAutocomplete
-            id="version"
-            name="version"
-            filterOptions={(options, state) => {
-              if (state.inputValue === version) {
-                return options;
-              }
-
-              return filterOptions(options, state);
-            }}
+            id="enabledAPIs"
+            name="enabledAPIs"
             fullWidth
-            className="lg:col-span-2"
-            aria-label="Hasura Service Version"
-            options={availableVersions}
-            error={!!formState.errors?.version?.message}
-            helperText={formState.errors?.version?.message}
-            showCustomOption="auto"
-            customOptionLabel={(value) => `Use custom value: "${value}"`}
+            multiple
+            className="lg:col-span-3"
+            aria-label="Enabled APIs"
+            options={availableAPIs}
+            error={!!formState.errors?.enabledAPIs?.message}
+            helperText={formState.errors?.enabledAPIs?.message}
           />
         </SettingsContainer>
       </Form>
