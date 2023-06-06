@@ -3671,7 +3671,7 @@ export type AuthRefreshTokens = {
   refresh_token?: Maybe<Scalars['uuid']>;
   /** An object relationship */
   refresh_token_type: Auth_Refresh_Token_Types;
-  type: Scalars['String'];
+  type: Auth_Refresh_Token_Types_Enum;
   /** An object relationship */
   user: Users;
   userId: Scalars['uuid'];
@@ -3747,7 +3747,7 @@ export type AuthRefreshTokens_Bool_Exp = {
   refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
   refresh_token?: InputMaybe<Uuid_Comparison_Exp>;
   refresh_token_type?: InputMaybe<Auth_Refresh_Token_Types_Bool_Exp>;
-  type?: InputMaybe<String_Comparison_Exp>;
+  type?: InputMaybe<Auth_Refresh_Token_Types_Enum_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
 };
@@ -3782,7 +3782,7 @@ export type AuthRefreshTokens_Insert_Input = {
   refreshTokenHash?: InputMaybe<Scalars['String']>;
   refresh_token?: InputMaybe<Scalars['uuid']>;
   refresh_token_type?: InputMaybe<Auth_Refresh_Token_Types_Obj_Rel_Insert_Input>;
-  type?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Auth_Refresh_Token_Types_Enum>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -3795,7 +3795,6 @@ export type AuthRefreshTokens_Max_Fields = {
   id?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
   refresh_token?: Maybe<Scalars['uuid']>;
-  type?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -3806,7 +3805,6 @@ export type AuthRefreshTokens_Max_Order_By = {
   id?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
   refresh_token?: InputMaybe<Order_By>;
-  type?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -3818,7 +3816,6 @@ export type AuthRefreshTokens_Min_Fields = {
   id?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
   refresh_token?: Maybe<Scalars['uuid']>;
-  type?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -3829,7 +3826,6 @@ export type AuthRefreshTokens_Min_Order_By = {
   id?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
   refresh_token?: InputMaybe<Order_By>;
-  type?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -3901,7 +3897,7 @@ export type AuthRefreshTokens_Set_Input = {
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
   refresh_token?: InputMaybe<Scalars['uuid']>;
-  type?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Auth_Refresh_Token_Types_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -3921,7 +3917,7 @@ export type AuthRefreshTokens_Stream_Cursor_Value_Input = {
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
   refresh_token?: InputMaybe<Scalars['uuid']>;
-  type?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Auth_Refresh_Token_Types_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -5209,31 +5205,7 @@ export type Auth_Migrations_Variance_Fields = {
 export type Auth_Refresh_Token_Types = {
   __typename?: 'auth_refresh_token_types';
   comment?: Maybe<Scalars['String']>;
-  /** An array relationship */
-  refresh_tokens: Array<AuthRefreshTokens>;
-  /** An aggregate relationship */
-  refresh_tokens_aggregate: AuthRefreshTokens_Aggregate;
   value: Scalars['String'];
-};
-
-
-/** columns and relationships of "auth.refresh_token_types" */
-export type Auth_Refresh_Token_TypesRefresh_TokensArgs = {
-  distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<AuthRefreshTokens_Order_By>>;
-  where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
-};
-
-
-/** columns and relationships of "auth.refresh_token_types" */
-export type Auth_Refresh_Token_TypesRefresh_Tokens_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<AuthRefreshTokens_Order_By>>;
-  where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
 /** aggregated selection of "auth.refresh_token_types" */
@@ -5264,8 +5236,6 @@ export type Auth_Refresh_Token_Types_Bool_Exp = {
   _not?: InputMaybe<Auth_Refresh_Token_Types_Bool_Exp>;
   _or?: InputMaybe<Array<Auth_Refresh_Token_Types_Bool_Exp>>;
   comment?: InputMaybe<String_Comparison_Exp>;
-  refresh_tokens?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
-  refresh_tokens_aggregate?: InputMaybe<AuthRefreshTokens_Aggregate_Bool_Exp>;
   value?: InputMaybe<String_Comparison_Exp>;
 };
 
@@ -5275,10 +5245,25 @@ export enum Auth_Refresh_Token_Types_Constraint {
   RefreshTokenTypesPkey = 'refresh_token_types_pkey'
 }
 
+export enum Auth_Refresh_Token_Types_Enum {
+  /** Personal access token */
+  Pat = 'pat',
+  /** Regular refresh token */
+  Regular = 'regular'
+}
+
+/** Boolean expression to compare columns of type "auth_refresh_token_types_enum". All fields are combined with logical 'AND'. */
+export type Auth_Refresh_Token_Types_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Auth_Refresh_Token_Types_Enum>;
+  _in?: InputMaybe<Array<Auth_Refresh_Token_Types_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<Auth_Refresh_Token_Types_Enum>;
+  _nin?: InputMaybe<Array<Auth_Refresh_Token_Types_Enum>>;
+};
+
 /** input type for inserting data into table "auth.refresh_token_types" */
 export type Auth_Refresh_Token_Types_Insert_Input = {
   comment?: InputMaybe<Scalars['String']>;
-  refresh_tokens?: InputMaybe<AuthRefreshTokens_Arr_Rel_Insert_Input>;
   value?: InputMaybe<Scalars['String']>;
 };
 
@@ -5322,7 +5307,6 @@ export type Auth_Refresh_Token_Types_On_Conflict = {
 /** Ordering options when selecting data from "auth.refresh_token_types". */
 export type Auth_Refresh_Token_Types_Order_By = {
   comment?: InputMaybe<Order_By>;
-  refresh_tokens_aggregate?: InputMaybe<AuthRefreshTokens_Aggregate_Order_By>;
   value?: InputMaybe<Order_By>;
 };
 
@@ -19910,7 +19894,7 @@ export const GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc = gql`
 export const GetPersonalAccessTokensDocument = gql`
     query GetPersonalAccessTokens {
   personalAccessTokens: authRefreshTokens(
-    where: {type: {_eq: "pat"}}
+    where: {type: {_eq: pat}}
     order_by: {expiresAt: asc}
   ) {
     id

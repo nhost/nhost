@@ -1,5 +1,17 @@
 # @nhost/dashboard
 
+## 0.17.7
+
+### Patch Changes
+
+- 4f0368b95: fix(account): don't break account settings page
+
+## 0.17.6
+
+### Patch Changes
+
+- 64a8f41d0: chore(resources): lower the maximum allowed resources per service
+
 ## 0.17.5
 
 ### Patch Changes

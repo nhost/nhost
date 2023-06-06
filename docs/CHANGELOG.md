@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.3.1
+
+### Patch Changes
+
+- 564ce1ac2: docs: add docs about using custom URLs for the Nhost SDK
+
 ## 0.3.0
 
 ### Minor Changes

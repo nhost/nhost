@@ -1,4 +1,5 @@
 import { Container } from '@/components/layout/Container';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { AccountSettingsLayout } from '@/features/account/settings/components/AccountSettingsLayout';
 import { PasswordSettings } from '@/features/account/settings/components/PasswordSettings';
 import { PATSettings } from '@/features/account/settings/components/PATSettings';
@@ -10,8 +11,13 @@ export default function AccountSettingsPage() {
       className="grid max-w-5xl grid-flow-row gap-8 bg-transparent"
       rootClassName="bg-transparent"
     >
-      <PasswordSettings />
-      <PATSettings />
+      <RetryableErrorBoundary>
+        <PasswordSettings />
+      </RetryableErrorBoundary>
+
+      <RetryableErrorBoundary>
+        <PATSettings />
+      </RetryableErrorBoundary>
     </Container>
   );
 }
