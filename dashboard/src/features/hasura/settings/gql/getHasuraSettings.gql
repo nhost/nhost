@@ -6,6 +6,9 @@ query GetHasuraSettings($appId: uuid!) {
       version
       settings {
         enableAllowList
+        enableRemoteSchemaPermissions
+        enableConsole
+        devMode
         corsDomain
       }
     }

@@ -17,6 +17,9 @@ fragment Project on apps {
     }
     hasura {
       adminSecret
+      settings {
+        enableConsole
+      }
     }
   }
   featureFlags {

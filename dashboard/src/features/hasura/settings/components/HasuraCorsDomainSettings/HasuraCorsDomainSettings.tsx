@@ -139,15 +139,13 @@ export default function HasuraCorsDomainSettings() {
           <Input
             {...register('corsDomain')}
             label="Allowed CORS domains"
+            placeholder="https://example.com, https://*.example.com"
             id="corsDomain"
             fullWidth
             className="col-span-5 lg:col-span-2"
             error={Boolean(formState.errors.corsDomain)}
             aria-hidden={!enabled}
-            helperText={
-              formState.errors.corsDomain?.message ||
-              'Comma-separated list of domains (e.g: https://example.com, https://*.example.com)'
-            }
+            helperText={formState.errors.corsDomain?.message}
           />
         </SettingsContainer>
       </Form>

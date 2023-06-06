@@ -2,6 +2,7 @@ import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { HasuraAllowListSettings } from '@/features/hasura/settings/components/HasuraAllowListSettings';
+import { HasuraConsoleSettings } from '@/features/hasura/settings/components/HasuraConsoleSettings';
 import { HasuraCorsDomainSettings } from '@/features/hasura/settings/components/HasuraCorsDomainSettings';
 import { HasuraServiceVersionSettings } from '@/features/hasura/settings/components/HasuraServiceVersionSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -38,6 +39,7 @@ export default function HasuraSettingsPage() {
       <HasuraServiceVersionSettings />
       <HasuraCorsDomainSettings />
       <HasuraAllowListSettings />
+      <HasuraConsoleSettings />
     </Container>
   );
 }
