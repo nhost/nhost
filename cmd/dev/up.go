@@ -134,7 +134,7 @@ func restart(
 	return nil
 }
 
-func up(
+func up( //nolint:funlen
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	dc *dockercompose.DockerCompose,
@@ -188,6 +188,20 @@ func up(
 
 	if err := restart(ctx, ce, dc); err != nil {
 		return err
+	}
+
+	docker := dockercompose.NewDocker()
+	ce.Infoln("Downloading metadata")
+	if err := docker.HasuraWrapper(
+		ctx, ce.Path.NhostFolder(),
+		*cfg.Hasura.Version,
+		"metadata", "export",
+		"--skip-update-check",
+		"--log-level", "ERROR",
+		"--endpoint", dockercompose.URL("hasura", httpPort, useTLS),
+		"--admin-secret", cfg.Hasura.AdminSecret,
+	); err != nil {
+		return fmt.Errorf("failed to create metadata: %w", err)
 	}
 
 	ce.Infoln("Nhost development environment started.")
