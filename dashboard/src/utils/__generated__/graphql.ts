@@ -19058,7 +19058,7 @@ export type GetHasuraSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null, settings?: { __typename?: 'ConfigHasuraSettings', enableAllowList?: boolean | null, enableRemoteSchemaPermissions?: boolean | null, enableConsole?: boolean | null, devMode?: boolean | null, corsDomain?: Array<any> | null, enabledAPIs?: Array<any> | null } | null, logs?: { __typename?: 'ConfigHasuraLogs', level?: string | null } | null } } | null };
+export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null, settings?: { __typename?: 'ConfigHasuraSettings', enableAllowList?: boolean | null, enableRemoteSchemaPermissions?: boolean | null, enableConsole?: boolean | null, devMode?: boolean | null, corsDomain?: Array<any> | null, enabledAPIs?: Array<any> | null } | null, logs?: { __typename?: 'ConfigHasuraLogs', level?: string | null } | null, events?: { __typename?: 'ConfigHasuraEvents', httpPoolSize?: any | null } | null } } | null };
 
 export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null };
 
@@ -20126,6 +20126,9 @@ export const GetHasuraSettingsDocument = gql`
       }
       logs {
         level
+      }
+      events {
+        httpPoolSize
       }
     }
   }

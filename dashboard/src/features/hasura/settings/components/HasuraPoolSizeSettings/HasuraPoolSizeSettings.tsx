@@ -1,8 +1,8 @@
 import { useUI } from '@/components/common/UIProvider';
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetHasuraSettingsDocument,
@@ -17,19 +17,17 @@ import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  logLevel: Yup.object({
-    label: Yup.string().required(),
-    value: Yup.string().required(),
-  })
-    .label('Log level')
+  httpPoolSize: Yup.number()
+    .label('HTTP Pool Size')
+    .min(1)
+    .max(100)
+    .typeError('HTTP Pool Size must be a number')
     .required(),
 });
 
-export type HasuraLogLevelFormValues = Yup.InferType<typeof validationSchema>;
+export type HasuraPoolSizeFormValues = Yup.InferType<typeof validationSchema>;
 
-const AVAILABLE_HASURA_LOG_LEVELS = ['debug', 'info', 'warn', 'error'];
-
-export default function HasuraLogLevelSettings() {
+export default function HasuraPoolSizeSettings() {
   const { maintenanceActive } = useUI();
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
@@ -42,18 +40,11 @@ export default function HasuraLogLevelSettings() {
     fetchPolicy: 'cache-first',
   });
 
-  const { level } = data?.config?.hasura.logs || {};
+  const { httpPoolSize } = data?.config?.hasura.events || {};
 
-  const form = useForm<HasuraLogLevelFormValues>({
+  const form = useForm<HasuraPoolSizeFormValues>({
     reValidateMode: 'onSubmit',
-    defaultValues: {
-      logLevel: level
-        ? {
-            label: level,
-            value: level,
-          }
-        : { label: 'warn', value: 'warn' },
-    },
+    defaultValues: { httpPoolSize: httpPoolSize || 100 },
     resolver: yupResolver(validationSchema),
   });
 
@@ -61,7 +52,7 @@ export default function HasuraLogLevelSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading log level settings..."
+        label="Loading pool size settings..."
         className="justify-center"
       />
     );
@@ -71,22 +62,17 @@ export default function HasuraLogLevelSettings() {
     throw error;
   }
 
-  const { formState } = form;
+  const { formState, register } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
-  const availableLogLevels = AVAILABLE_HASURA_LOG_LEVELS.map((api) => ({
-    label: api,
-    value: api,
-  }));
-
-  async function handleSubmit(formValues: HasuraLogLevelFormValues) {
+  async function handleSubmit(formValues: HasuraPoolSizeFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
         config: {
           hasura: {
-            logs: {
-              level: formValues.logLevel?.value || 'warn',
+            events: {
+              httpPoolSize: formValues.httpPoolSize,
             },
           },
         },
@@ -97,10 +83,10 @@ export default function HasuraLogLevelSettings() {
       await toast.promise(
         updateConfigPromise,
         {
-          loading: `Log level is being updated...`,
-          success: `Log level has been updated successfully.`,
+          loading: `Pool size is being updated...`,
+          success: `Pool size has been updated successfully.`,
           error: getServerError(
-            `An error occurred while trying to update log level.`,
+            `An error occurred while trying to update the pool size.`,
           ),
         },
         getToastStyleProps(),
@@ -117,10 +103,9 @@ export default function HasuraLogLevelSettings() {
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
-          title="Log Level"
-          description="Set the log level for Hasura."
-          docsLink="https://hasura.io/docs/latest/deployment/logging/#logging-levels"
-          docsTitle="Log Levels"
+          title="HTTP Pool Size"
+          description="Set the maximum number of concurrent HTTP workers for event delivery."
+          docsLink="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#events-http-pool-size"
           slotProps={{
             submitButton: {
               disabled: !isDirty || maintenanceActive,
@@ -129,15 +114,17 @@ export default function HasuraLogLevelSettings() {
           }}
           className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-5"
         >
-          <ControlledAutocomplete
-            id="logLevel"
-            name="logLevel"
+          <Input
+            {...register('httpPoolSize')}
+            id="httpPoolSize"
+            name="httpPoolSize"
+            type="number"
+            label="HTTP Pool Size"
             fullWidth
             className="lg:col-span-2"
-            aria-label="Hasura Log Level"
-            options={availableLogLevels}
-            error={!!formState.errors?.logLevel?.message}
-            helperText={formState.errors?.logLevel?.message}
+            error={Boolean(formState.errors.httpPoolSize?.message)}
+            helperText={formState.errors.httpPoolSize?.message}
+            slotProps={{ inputRoot: { min: 1, max: 100 } }}
           />
         </SettingsContainer>
       </Form>

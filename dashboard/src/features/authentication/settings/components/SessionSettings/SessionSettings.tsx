@@ -19,11 +19,11 @@ import * as Yup from 'yup';
 const validationSchema = Yup.object({
   accessTokenExpiresIn: Yup.number()
     .label('Access token expiration')
-    .typeError('Access token expiration be a number')
+    .typeError('Access token expiration must be a number')
     .required(),
   refreshTokenExpiresIn: Yup.number()
     .label('Refresh token expiration')
-    .typeError('Refresh token expiration be a number')
+    .typeError('Refresh token expiration must be a number')
     .required(),
 });
 

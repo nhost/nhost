@@ -7,6 +7,7 @@ import { HasuraCorsDomainSettings } from '@/features/hasura/settings/components/
 import { HasuraDevModeSettings } from '@/features/hasura/settings/components/HasuraDevModeSettings';
 import { HasuraEnabledAPISettings } from '@/features/hasura/settings/components/HasuraEnabledAPISettings';
 import { HasuraLogLevelSettings } from '@/features/hasura/settings/components/HasuraLogLevelSettings';
+import { HasuraPoolSizeSettings } from '@/features/hasura/settings/components/HasuraPoolSizeSettings';
 import { HasuraRemoteSchemaPermissionsSettings } from '@/features/hasura/settings/components/HasuraRemoteSchemaPermissionsSettings';
 import { HasuraServiceVersionSettings } from '@/features/hasura/settings/components/HasuraServiceVersionSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -42,12 +43,13 @@ export default function HasuraSettingsPage() {
     >
       <HasuraServiceVersionSettings />
       <HasuraLogLevelSettings />
+      <HasuraEnabledAPISettings />
+      <HasuraPoolSizeSettings />
       <HasuraCorsDomainSettings />
       <HasuraConsoleSettings />
       <HasuraDevModeSettings />
       <HasuraAllowListSettings />
       <HasuraRemoteSchemaPermissionsSettings />
-      <HasuraEnabledAPISettings />
     </Container>
   );
 }

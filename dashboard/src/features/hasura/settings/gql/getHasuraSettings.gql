@@ -15,6 +15,9 @@ query GetHasuraSettings($appId: uuid!) {
       logs {
         level
       }
+      events {
+        httpPoolSize
+      }
     }
   }
 }
