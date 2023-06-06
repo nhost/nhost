@@ -83,9 +83,7 @@ export default function HasuraServiceVersionSettings() {
 
   const { formState } = form;
 
-  const handleHasuraServiceVersionsChange = async (
-    formValues: HasuraServiceVersionFormValues,
-  ) => {
+  async function handleSubmit(formValues: HasuraServiceVersionFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -115,11 +113,11 @@ export default function HasuraServiceVersionSettings() {
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleHasuraServiceVersionsChange}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Hasura GraphQL Engine Version"
           description="The version of the Hasura GraphQL Engine to use."

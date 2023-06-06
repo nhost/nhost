@@ -58,9 +58,7 @@ export default function HasuraAllowListSettings() {
     throw error;
   }
 
-  const handleAllowListChange = async (
-    formValues: HasuraAllowListFormValues,
-  ) => {
+  async function handleSubmit(formValues: HasuraAllowListFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -92,11 +90,11 @@ export default function HasuraAllowListSettings() {
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleAllowListChange}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Allow List"
           description="Safely allow a limited number of GraphQL queries, mutations and subscriptions for your project."

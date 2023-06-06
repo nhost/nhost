@@ -19,9 +19,11 @@ const validationSchema = Yup.object({
   enabled: Yup.boolean(),
 });
 
-export type HasuraConsoleFormValues = Yup.InferType<typeof validationSchema>;
+export type HasuraRemoteSchemaPermissionsFormValues = Yup.InferType<
+  typeof validationSchema
+>;
 
-export default function HasuraConsoleSettings() {
+export default function HasuraRemoteSchemaPermissionsSettings() {
   const { maintenanceActive } = useUI();
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
@@ -34,12 +36,12 @@ export default function HasuraConsoleSettings() {
     fetchPolicy: 'cache-first',
   });
 
-  const { enableConsole } = data?.config?.hasura.settings || {};
+  const { enableRemoteSchemaPermissions } = data?.config?.hasura.settings || {};
 
-  const form = useForm<HasuraConsoleFormValues>({
+  const form = useForm<HasuraRemoteSchemaPermissionsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabled: enableConsole,
+      enabled: enableRemoteSchemaPermissions,
     },
     resolver: yupResolver(validationSchema),
   });
@@ -48,7 +50,7 @@ export default function HasuraConsoleSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Hasura Console settings..."
+        label="Loading remote schema permission settings..."
         className="justify-center"
       />
     );
@@ -58,7 +60,9 @@ export default function HasuraConsoleSettings() {
     throw error;
   }
 
-  async function handleSubmit(formValues: HasuraConsoleFormValues) {
+  async function handleSubmit(
+    formValues: HasuraRemoteSchemaPermissionsFormValues,
+  ) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -76,10 +80,10 @@ export default function HasuraConsoleSettings() {
       await toast.promise(
         updateConfigPromise,
         {
-          loading: `Hasura Console settings are being updated...`,
-          success: `Hasura Console settings have been updated successfully.`,
+          loading: `Remote schema permission settings are being updated...`,
+          success: `Remote schema permission settings have been updated successfully.`,
           error: getServerError(
-            `An error occurred while trying to update Hasura Console settings.`,
+            `An error occurred while trying to update remote schema permission settings.`,
           ),
         },
         getToastStyleProps(),
@@ -96,8 +100,8 @@ export default function HasuraConsoleSettings() {
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
-          title="Hasura Console"
-          description="Enable or disable the Hasura Console. This will enable or disable the Hasura Console on the dashboard as well."
+          title="remote schema permissions"
+          description="Enable or disable remote schema permissions."
           slotProps={{
             submitButton: {
               disabled: !form.formState.isDirty || maintenanceActive,
@@ -105,8 +109,8 @@ export default function HasuraConsoleSettings() {
             },
           }}
           switchId="enabled"
-          docsTitle="enabling or disabling the Hasura Console"
-          docsLink="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#enable-console"
+          docsTitle="enabling or disabling remote schema permissions"
+          docsLink="https://hasura.io/docs/latest/remote-schemas/auth/remote-schema-permissions/"
           showSwitch
           className="hidden"
         />

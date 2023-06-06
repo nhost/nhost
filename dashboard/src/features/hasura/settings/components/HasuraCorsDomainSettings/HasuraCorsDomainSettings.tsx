@@ -77,9 +77,7 @@ export default function HasuraCorsDomainSettings() {
     throw error;
   }
 
-  const handleHasuraCorsDomainChange = async (
-    formValues: HasuraCorsDomainFormValues,
-  ) => {
+  async function handleSubmit(formValues: HasuraCorsDomainFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -115,11 +113,11 @@ export default function HasuraCorsDomainSettings() {
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleHasuraCorsDomainChange}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Configure CORS"
           description="Allow requests from specific domains to access your GraphQL API. Disable this setting to allow requests from all domains."

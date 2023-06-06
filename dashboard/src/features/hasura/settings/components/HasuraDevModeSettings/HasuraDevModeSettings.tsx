@@ -48,7 +48,7 @@ export default function HasuraDevModeSettings() {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading dev mode settings..."
+        label="Loading Dev Mode settings..."
         className="justify-center"
       />
     );
@@ -58,7 +58,7 @@ export default function HasuraDevModeSettings() {
     throw error;
   }
 
-  const handleDevModeChange = async (formValues: HasuraDevModeFormValues) => {
+  async function handleSubmit(formValues: HasuraDevModeFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -90,11 +90,11 @@ export default function HasuraDevModeSettings() {
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleDevModeChange}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Dev Mode"
           description="Enable or disable Dev Mode."
