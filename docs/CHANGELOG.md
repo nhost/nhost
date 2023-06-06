@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.3.2
+
+### Patch Changes
+
+- 227d1704f: docs: use correct sample URLs for custom client
+
 ## 0.3.1
 
 ### Patch Changes
