@@ -6,6 +6,7 @@ import { HasuraConsoleSettings } from '@/features/hasura/settings/components/Has
 import { HasuraCorsDomainSettings } from '@/features/hasura/settings/components/HasuraCorsDomainSettings';
 import { HasuraDevModeSettings } from '@/features/hasura/settings/components/HasuraDevModeSettings';
 import { HasuraEnabledAPISettings } from '@/features/hasura/settings/components/HasuraEnabledAPISettings';
+import { HasuraLogLevelSettings } from '@/features/hasura/settings/components/HasuraLogLevelSettings';
 import { HasuraRemoteSchemaPermissionsSettings } from '@/features/hasura/settings/components/HasuraRemoteSchemaPermissionsSettings';
 import { HasuraServiceVersionSettings } from '@/features/hasura/settings/components/HasuraServiceVersionSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -40,6 +41,7 @@ export default function HasuraSettingsPage() {
       rootClassName="bg-transparent"
     >
       <HasuraServiceVersionSettings />
+      <HasuraLogLevelSettings />
       <HasuraCorsDomainSettings />
       <HasuraConsoleSettings />
       <HasuraDevModeSettings />

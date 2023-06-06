@@ -12,6 +12,9 @@ query GetHasuraSettings($appId: uuid!) {
         corsDomain
         enabledAPIs
       }
+      logs {
+        level
+      }
     }
   }
 }
