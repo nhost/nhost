@@ -14,7 +14,7 @@ runs:
   steps:
     - uses: pnpm/action-setup@v2.2.4
       with:
-        version: 8.5.1
+        version: 8.6.1
         run_install: false
     - name: Get pnpm cache directory
       id: pnpm-cache-dir
