@@ -137,7 +137,7 @@ export default function GitHubProviderSettings() {
           <BaseProviderSettings providerName="github" />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="github-redirectUrl"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText

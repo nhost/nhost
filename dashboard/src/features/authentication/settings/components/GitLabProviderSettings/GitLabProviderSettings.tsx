@@ -129,7 +129,7 @@ export default function GitLabProviderSettings() {
           <BaseProviderSettings providerName="gitlab" />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="gitlab-redirectUrl"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText

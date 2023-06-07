@@ -214,7 +214,7 @@ export default function AppleProviderSettings() {
           />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="apple-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
               currentProject.region,

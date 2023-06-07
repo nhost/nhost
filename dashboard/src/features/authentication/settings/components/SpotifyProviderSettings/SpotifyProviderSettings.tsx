@@ -131,7 +131,7 @@ export default function SpotifyProviderSettings() {
           <BaseProviderSettings providerName="spotify" />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="spotify-redirectUrl"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText

@@ -131,7 +131,7 @@ export default function GoogleProviderSettings() {
           <BaseProviderSettings providerName="google" />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="google-redirectUrl"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText

@@ -130,7 +130,7 @@ export default function WindowsLiveProviderSettings() {
           <BaseProviderSettings providerName="windowslive" />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="windowslive-redirectUrl"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText

@@ -160,7 +160,7 @@ export default function AzureADProviderSettings() {
           />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="azuerad-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
               currentProject.region,

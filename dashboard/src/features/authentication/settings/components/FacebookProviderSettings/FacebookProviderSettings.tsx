@@ -131,7 +131,7 @@ export default function FacebookProviderSettings() {
           <BaseProviderSettings providerName="facebook" />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="facebook-redirectUrl"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText

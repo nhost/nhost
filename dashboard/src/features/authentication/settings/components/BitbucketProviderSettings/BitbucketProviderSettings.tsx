@@ -126,7 +126,7 @@ export default function BitbucketProviderSettings() {
           <BaseProviderSettings providerName="bitbucket" />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="bitbucket-redirectUrl"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText

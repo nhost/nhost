@@ -129,7 +129,7 @@ export default function StravaProviderSettings() {
           <BaseProviderSettings providerName="strava" />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="strava-redirectUrl"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText

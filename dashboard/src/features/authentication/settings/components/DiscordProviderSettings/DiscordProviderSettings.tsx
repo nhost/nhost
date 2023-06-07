@@ -131,7 +131,7 @@ export default function DiscordProviderSettings() {
           <BaseProviderSettings providerName="discord" />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="discord-redirectUrl"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText

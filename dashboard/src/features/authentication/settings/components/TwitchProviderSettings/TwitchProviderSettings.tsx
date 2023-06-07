@@ -137,7 +137,7 @@ export default function TwitchProviderSettings() {
           <BaseProviderSettings providerName="twitch" />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="twitch-redirectUrl"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText

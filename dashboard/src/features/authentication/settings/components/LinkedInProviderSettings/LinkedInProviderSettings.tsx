@@ -131,7 +131,7 @@ export default function LinkedInProviderSettings() {
           <BaseProviderSettings providerName="linkedin" />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="linkedin-redirectUrl"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText

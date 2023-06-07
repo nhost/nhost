@@ -164,7 +164,7 @@ export default function TwitterProviderSettings() {
           />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="twitter-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
               currentProject.region,

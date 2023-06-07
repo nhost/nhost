@@ -181,7 +181,7 @@ export default function WorkOsProviderSettings() {
           />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="workos-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
               currentProject.region,
