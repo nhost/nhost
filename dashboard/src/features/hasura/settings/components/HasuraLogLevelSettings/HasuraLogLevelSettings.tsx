@@ -2,6 +2,7 @@ import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
@@ -118,7 +119,15 @@ export default function HasuraLogLevelSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Log Level"
-          description="Set the log level for Hasura."
+          description={
+            <>
+              Setting a log-level will print all logs of priority greater than
+              the set level. The log-level hierarchy is:{' '}
+              <HighlightedText>
+                debug &rarr; info &rarr; warn &rarr; error
+              </HighlightedText>
+            </>
+          }
           docsLink="https://hasura.io/docs/latest/deployment/logging/#logging-levels"
           docsTitle="Log Levels"
           slotProps={{
