@@ -4,18 +4,15 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { AnonymousSignInSettings } from '@/features/authentication/settings/components/AnonymousSignInSettings';
 import { AppleProviderSettings } from '@/features/authentication/settings/components/AppleProviderSettings';
 import { AzureADProviderSettings } from '@/features/authentication/settings/components/AzureADProviderSettings';
-import { BitbucketProviderSettings } from '@/features/authentication/settings/components/BitbucketProviderSettings';
 import { DiscordProviderSettings } from '@/features/authentication/settings/components/DiscordProviderSettings';
 import { EmailAndPasswordSettings } from '@/features/authentication/settings/components/EmailAndPasswordSettings';
 import { FacebookProviderSettings } from '@/features/authentication/settings/components/FacebookProviderSettings';
 import { GitHubProviderSettings } from '@/features/authentication/settings/components/GitHubProviderSettings';
-import { GitLabProviderSettings } from '@/features/authentication/settings/components/GitLabProviderSettings';
 import { GoogleProviderSettings } from '@/features/authentication/settings/components/GoogleProviderSettings';
 import { LinkedInProviderSettings } from '@/features/authentication/settings/components/LinkedInProviderSettings';
 import { MagicLinkSettings } from '@/features/authentication/settings/components/MagicLinkSettings';
 import { SMSSettings } from '@/features/authentication/settings/components/SMSSettings';
 import { SpotifyProviderSettings } from '@/features/authentication/settings/components/SpotifyProviderSettings';
-import { StravaProviderSettings } from '@/features/authentication/settings/components/StravaProviderSettings';
 import { TwitchProviderSettings } from '@/features/authentication/settings/components/TwitchProviderSettings';
 import { TwitterProviderSettings } from '@/features/authentication/settings/components/TwitterProviderSettings';
 import { WebAuthnSettings } from '@/features/authentication/settings/components/WebAuthnSettings';
@@ -59,15 +56,12 @@ export default function SettingsSignInMethodsPage() {
       <SMSSettings />
       <AppleProviderSettings />
       <AzureADProviderSettings />
-      <BitbucketProviderSettings />
       <DiscordProviderSettings />
       <FacebookProviderSettings />
       <GitHubProviderSettings />
-      <GitLabProviderSettings />
       <GoogleProviderSettings />
       <LinkedInProviderSettings />
       <SpotifyProviderSettings />
-      <StravaProviderSettings />
       <TwitchProviderSettings />
       <TwitterProviderSettings />
       <WindowsLiveProviderSettings />
