@@ -19,6 +19,7 @@ query GetSignInMethods($appId: uuid!) {
         emailPassword {
           emailVerificationRequired
           hibpEnabled
+          passwordMinLength
         }
         emailPasswordless {
           enabled
