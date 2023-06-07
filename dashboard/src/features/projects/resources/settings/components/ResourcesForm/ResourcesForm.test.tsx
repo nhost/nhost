@@ -9,6 +9,7 @@ import {
   resourcesUpdatedQuery,
 } from '@/tests/msw/mocks/graphql/resourceSettingsQuery';
 import updateConfigMutation from '@/tests/msw/mocks/graphql/updateConfigMutation';
+import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   fireEvent,
   render,
@@ -35,6 +36,7 @@ vi.mock('next/router', () => ({
 }));
 
 const server = setupServer(
+  tokenQuery,
   resourcesAvailableQuery,
   getProPlanOnlyQuery,
   getWorkspaceAndProjectQuery,

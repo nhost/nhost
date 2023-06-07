@@ -1,4 +1,5 @@
 import { mockApplication, mockWorkspace } from '@/tests/mocks';
+import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { queryClient, render, screen } from '@/tests/testUtils';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
@@ -34,6 +35,7 @@ vi.mock('next/router', () => ({
 }));
 
 const server = setupServer(
+  tokenQuery,
   rest.get('https://local.graphql.nhost.run/v1', (_req, res, ctx) =>
     res(ctx.status(200)),
   ),
