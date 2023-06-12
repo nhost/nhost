@@ -26,11 +26,7 @@ runs:
         path: ${{ steps.pnpm-cache-dir.outputs.dir }}
         key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml') }}
         restore-keys: ${{ runner.os }}-node-
-<<<<<<< HEAD
-    - name: Use Node.js v18
-=======
     - name: Use Node.js v16
->>>>>>> a10ce2753 (chore: revert Node version to 16 for now)
       uses: actions/setup-node@v3
       with:
         node-version: 16
