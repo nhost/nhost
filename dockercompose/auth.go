@@ -12,6 +12,7 @@ func auth( //nolint:funlen
 	httpPort uint,
 	useTLS bool,
 	nhostFolder string,
+	port uint,
 ) (*Service, error) {
 	envars, err := appconfig.HasuraAuthEnv(
 		cfg,
@@ -68,7 +69,7 @@ func auth( //nolint:funlen
 				},
 			},
 		}.Labels(),
-		Ports:   []Port{},
+		Ports:   ports(port, authPort),
 		Restart: "always",
 		Volumes: []Volume{
 			{

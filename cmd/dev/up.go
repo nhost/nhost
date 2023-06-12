@@ -16,10 +16,15 @@ import (
 )
 
 const (
-	flagHTTPPort     = "http-port"
-	flagDisableTLS   = "disable-tls"
-	flagPostgresPort = "postgres-port"
-	flagApplySeeds   = "apply-seeds"
+	flagHTTPPort           = "http-port"
+	flagDisableTLS         = "disable-tls"
+	flagPostgresPort       = "postgres-port"
+	flagApplySeeds         = "apply-seeds"
+	flagAuthPort           = "auth-port"
+	flagStoragePort        = "storage-port"
+	flagsFunctionsPort     = "functions-port"
+	flagsHasuraPort        = "hasura-port"
+	flagsHasuraConsolePort = "hasura-console-port"
 )
 
 const (
@@ -58,6 +63,31 @@ func CommandUp() *cli.Command {
 				Value:   false,
 				EnvVars: []string{"NHOST_APPLY_SEEDS"},
 			},
+			&cli.UintFlag{ //nolint:exhaustruct
+				Name:  flagAuthPort,
+				Usage: "If specified, expose auth on this port. Not recommended",
+				Value: 0,
+			},
+			&cli.UintFlag{ //nolint:exhaustruct
+				Name:  flagStoragePort,
+				Usage: "If specified, expose storage on this port. Not recommended",
+				Value: 0,
+			},
+			&cli.UintFlag{ //nolint:exhaustruct
+				Name:  flagsFunctionsPort,
+				Usage: "If specified, expose functions on this port. Not recommended",
+				Value: 0,
+			},
+			&cli.UintFlag{ //nolint:exhaustruct
+				Name:  flagsHasuraPort,
+				Usage: "If specified, expose hasura on this port. Not recommended",
+				Value: 0,
+			},
+			&cli.UintFlag{ //nolint:exhaustruct
+				Name:  flagsHasuraConsolePort,
+				Usage: "If specified, expose hasura console on this port. Not recommended",
+				Value: 0,
+			},
 		},
 	}
 }
@@ -86,6 +116,13 @@ func commandUp(cCtx *cli.Context) error {
 		!cCtx.Bool(flagDisableTLS),
 		cCtx.Uint(flagPostgresPort),
 		cCtx.Bool(flagApplySeeds),
+		map[string]uint{
+			"auth":           cCtx.Uint(flagAuthPort),
+			"storage":        cCtx.Uint(flagStoragePort),
+			"hasura":         cCtx.Uint(flagsHasuraPort),
+			"hasura-console": cCtx.Uint(flagsHasuraConsolePort),
+			"functions":      cCtx.Uint(flagsFunctionsPort),
+		},
 	)
 }
 
@@ -143,6 +180,7 @@ func up( //nolint:funlen
 	useTLS bool,
 	postgresPort uint,
 	applySeeds bool,
+	ports map[string]uint,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -169,6 +207,7 @@ func up( //nolint:funlen
 		ce.Path.NhostFolder(),
 		ce.Path.DotNhostFolder(),
 		ce.Path.Root(),
+		ports,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to generate docker-compose.yaml: %w", err)
@@ -240,11 +279,12 @@ func Up(
 	useTLS bool,
 	postgresPort uint,
 	applySeeds bool,
+	ports map[string]uint,
 ) error {
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), projectName)
 
 	if err := up(
-		ctx, ce, dc, projectName, httpPort, useTLS, postgresPort, applySeeds,
+		ctx, ce, dc, projectName, httpPort, useTLS, postgresPort, applySeeds, ports,
 	); err != nil {
 		ce.Warnln(err.Error())
 

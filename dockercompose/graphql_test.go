@@ -117,7 +117,7 @@ func TestGraphql(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			got, err := graphql(tc.cfg(), tc.useTlS)
+			got, err := graphql(tc.cfg(), tc.useTlS, 0)
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}
@@ -218,7 +218,7 @@ func TestConsole(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			got, err := console(tc.cfg(), 1337, tc.useTlS, "/path/to/nhost")
+			got, err := console(tc.cfg(), 1337, tc.useTlS, "/path/to/nhost", 0)
 			if err != nil {
 				t.Fatalf("got error: %v", err)
 			}

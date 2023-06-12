@@ -8,7 +8,7 @@ import (
 	"golang.org/x/mod/semver"
 )
 
-func graphql(cfg *model.ConfigConfig, useTLS bool) (*Service, error) { //nolint:funlen
+func graphql(cfg *model.ConfigConfig, useTLS bool, port uint) (*Service, error) { //nolint:funlen
 	envars, err := appconfig.HasuraEnv(
 		cfg,
 		"local",
@@ -67,7 +67,7 @@ func graphql(cfg *model.ConfigConfig, useTLS bool) (*Service, error) { //nolint:
 				Rewrite: nil,
 			},
 		}.Labels(),
-		Ports:      nil,
+		Ports:      ports(port, hasuraPort),
 		Restart:    "always",
 		Volumes:    nil,
 		WorkingDir: nil,
@@ -79,6 +79,7 @@ func console( //nolint:funlen
 	httpPort uint,
 	useTLS bool,
 	nhostFolder string,
+	port uint,
 ) (*Service, error) {
 	if semver.Compare(*cfg.GetHasura().GetVersion(), minimumHasuraVerson) < 0 {
 		return nil, fmt.Errorf( //nolint:goerr113
@@ -152,7 +153,7 @@ func console( //nolint:funlen
 				Rewrite: nil,
 			},
 		}.Labels(),
-		Ports:   nil,
+		Ports:   ports(port, consolePort),
 		Restart: "always",
 		Volumes: []Volume{
 			{

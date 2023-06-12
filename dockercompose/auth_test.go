@@ -150,7 +150,7 @@ func expectedAuth() *Service {
 			"traefik.http.routers.auth.tls":                                      "false",
 			"traefik.http.services.auth.loadbalancer.server.port":                "4000",
 		},
-		Ports:   []Port{},
+		Ports:   nil,
 		Restart: "always",
 		Volumes: []Volume{
 			{Type: "bind", Source: "/tmp/nhost/emails", Target: "/app/email-templates"},
@@ -181,7 +181,7 @@ func TestAuth(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			got, err := auth(tc.cfg(), 1336, tc.useTlS, "/tmp/nhost")
+			got, err := auth(tc.cfg(), 1336, tc.useTlS, "/tmp/nhost", 0)
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}

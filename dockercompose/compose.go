@@ -28,6 +28,20 @@ func ptr[T any](v T) *T {
 	return &v
 }
 
+func ports(host, container uint) []Port {
+	if host == 0 {
+		return nil
+	}
+	return []Port{
+		{
+			Mode:      "ingress",
+			Target:    container,
+			Published: fmt.Sprintf("%d", host),
+			Protocol:  "tcp",
+		},
+	}
+}
+
 type ComposeFile struct {
 	Version  string              `yaml:"version"`
 	Services map[string]*Service `yaml:"services"`
@@ -282,6 +296,7 @@ func functions( //nolint:funlen
 	useTLS bool,
 	rootFolder string,
 	jwtSecret string,
+	port uint,
 ) *Service {
 	envVars := map[string]string{
 		"HASURA_GRAPHQL_ADMIN_SECRET": cfg.Hasura.AdminSecret,
@@ -327,7 +342,7 @@ func functions( //nolint:funlen
 				},
 			},
 		}.Labels(),
-		Ports:   []Port{},
+		Ports:   ports(port, functionsPort),
 		Restart: "always",
 		Volumes: []Volume{
 			{
@@ -403,18 +418,19 @@ func ComposeFileFromConfig( //nolint:funlen
 	nhostFolder string,
 	dotNhostFolder string,
 	rootFolder string,
+	ports map[string]uint,
 ) (*ComposeFile, error) {
 	minio, err := minio(dataFolder)
 	if err != nil {
 		return nil, err
 	}
 
-	auth, err := auth(cfg, httpPort, useTLS, nhostFolder)
+	auth, err := auth(cfg, httpPort, useTLS, nhostFolder, ports["auth"])
 	if err != nil {
 		return nil, err
 	}
 
-	storage, err := storage(cfg, useTLS, httpPort)
+	storage, err := storage(cfg, useTLS, httpPort, ports["storage"])
 	if err != nil {
 		return nil, err
 	}
@@ -424,13 +440,13 @@ func ComposeFileFromConfig( //nolint:funlen
 		return nil, err
 	}
 
-	graphql, err := graphql(cfg, useTLS)
+	graphql, err := graphql(cfg, useTLS, ports["graphql"])
 	if err != nil {
 		return nil, err
 	}
 	jwtSecret := graphql.Environment["HASURA_GRAPHQL_JWT_SECRET"]
 
-	console, err := console(cfg, httpPort, useTLS, nhostFolder)
+	console, err := console(cfg, httpPort, useTLS, nhostFolder, ports["console"])
 	if err != nil {
 		return nil, err
 	}
@@ -451,13 +467,20 @@ func ComposeFileFromConfig( //nolint:funlen
 			"auth":      auth,
 			"console":   console,
 			"dashboard": dashboard(cfg, httpPort, useTLS),
-			"functions": functions(cfg, httpPort, useTLS, rootFolder, jwtSecret),
-			"graphql":   graphql,
-			"minio":     minio,
-			"postgres":  postgres,
-			"storage":   storage,
-			"mailhog":   mailhog,
-			"traefik":   traefik,
+			"functions": functions(
+				cfg,
+				httpPort,
+				useTLS,
+				rootFolder,
+				jwtSecret,
+				ports["functions"],
+			),
+			"graphql":  graphql,
+			"minio":    minio,
+			"postgres": postgres,
+			"storage":  storage,
+			"mailhog":  mailhog,
+			"traefik":  traefik,
 		},
 		Volumes: map[string]struct{}{
 			"functions_node_modules": {},

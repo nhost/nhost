@@ -76,7 +76,7 @@ func TestStorage(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			got, err := storage(tc.cfg(), tc.useTlS, 444)
+			got, err := storage(tc.cfg(), tc.useTlS, 444, 0)
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}
