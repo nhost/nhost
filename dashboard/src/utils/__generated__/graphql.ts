@@ -19060,6 +19060,24 @@ export type GetHasuraSettingsQueryVariables = Exact<{
 
 export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null, settings?: { __typename?: 'ConfigHasuraSettings', enableAllowList?: boolean | null, enableRemoteSchemaPermissions?: boolean | null, enableConsole?: boolean | null, devMode?: boolean | null, corsDomain?: Array<any> | null, enabledAPIs?: Array<any> | null } | null, logs?: { __typename?: 'ConfigHasuraLogs', level?: string | null } | null, events?: { __typename?: 'ConfigHasuraEvents', httpPoolSize?: any | null } | null } } | null };
 
+export type BackupFragment = { __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null };
+
+export type GetApplicationBackupsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetApplicationBackupsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', backups: Array<{ __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null }> } | null };
+
+export type GetBackupPresignedUrlQueryVariables = Exact<{
+  appId: Scalars['String'];
+  backupId: Scalars['String'];
+  expireInMinutes?: InputMaybe<Scalars['Int']>;
+}>;
+
+
+export type GetBackupPresignedUrlQuery = { __typename?: 'query_root', getBackupPresignedUrl: { __typename?: 'BackupPresignedURL', url: string, expiresAt: any } };
+
 export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null };
 
 export type GetResourcesQueryVariables = Exact<{
@@ -19099,13 +19117,6 @@ export type GetAppPlanAndGlobalPlansQueryVariables = Exact<{
 
 
 export type GetAppPlanAndGlobalPlansQuery = { __typename?: 'query_root', apps: Array<{ __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }, plan: { __typename?: 'plans', id: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number, featureMaxDbSize: number }> };
-
-export type GetApplicationBackupsQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetApplicationBackupsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', backups: Array<{ __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null }> } | null };
 
 export type GetApplicationPlanQueryVariables = Exact<{
   workspace: Scalars['String'];
@@ -19586,6 +19597,14 @@ export type UpdateWorkspaceMutationVariables = Exact<{
 
 export type UpdateWorkspaceMutation = { __typename?: 'mutation_root', updateWorkspace?: { __typename?: 'workspaces', id: any, name: string, email: string, companyName: string, addressLine1: string, addressLine2: string, addressPostalCode: string, addressCity: string, addressCountryCode?: string | null, slug: string, taxIdType: string, taxIdValue: string } | null };
 
+export const BackupFragmentDoc = gql`
+    fragment Backup on backups {
+  id
+  size
+  createdAt
+  completedAt
+}
+    `;
 export const ServiceResourcesFragmentDoc = gql`
     fragment ServiceResources on ConfigConfig {
   auth {
@@ -20165,6 +20184,91 @@ export type GetHasuraSettingsQueryResult = Apollo.QueryResult<GetHasuraSettingsQ
 export function refetchGetHasuraSettingsQuery(variables: GetHasuraSettingsQueryVariables) {
       return { query: GetHasuraSettingsDocument, variables: variables }
     }
+export const GetApplicationBackupsDocument = gql`
+    query getApplicationBackups($appId: uuid!) {
+  app(id: $appId) {
+    backups(order_by: {createdAt: desc}) {
+      ...Backup
+    }
+  }
+}
+    ${BackupFragmentDoc}`;
+
+/**
+ * __useGetApplicationBackupsQuery__
+ *
+ * To run a query within a React component, call `useGetApplicationBackupsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetApplicationBackupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetApplicationBackupsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetApplicationBackupsQuery(baseOptions: Apollo.QueryHookOptions<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>(GetApplicationBackupsDocument, options);
+      }
+export function useGetApplicationBackupsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>(GetApplicationBackupsDocument, options);
+        }
+export type GetApplicationBackupsQueryHookResult = ReturnType<typeof useGetApplicationBackupsQuery>;
+export type GetApplicationBackupsLazyQueryHookResult = ReturnType<typeof useGetApplicationBackupsLazyQuery>;
+export type GetApplicationBackupsQueryResult = Apollo.QueryResult<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>;
+export function refetchGetApplicationBackupsQuery(variables: GetApplicationBackupsQueryVariables) {
+      return { query: GetApplicationBackupsDocument, variables: variables }
+    }
+export const GetBackupPresignedUrlDocument = gql`
+    query GetBackupPresignedUrl($appId: String!, $backupId: String!, $expireInMinutes: Int) {
+  getBackupPresignedUrl: getBackupPresignedURL(
+    appID: $appId
+    backupID: $backupId
+    expireInMinutes: $expireInMinutes
+  ) {
+    url
+    expiresAt: expires_at
+  }
+}
+    `;
+
+/**
+ * __useGetBackupPresignedUrlQuery__
+ *
+ * To run a query within a React component, call `useGetBackupPresignedUrlQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBackupPresignedUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBackupPresignedUrlQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      backupId: // value for 'backupId'
+ *      expireInMinutes: // value for 'expireInMinutes'
+ *   },
+ * });
+ */
+export function useGetBackupPresignedUrlQuery(baseOptions: Apollo.QueryHookOptions<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>(GetBackupPresignedUrlDocument, options);
+      }
+export function useGetBackupPresignedUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>(GetBackupPresignedUrlDocument, options);
+        }
+export type GetBackupPresignedUrlQueryHookResult = ReturnType<typeof useGetBackupPresignedUrlQuery>;
+export type GetBackupPresignedUrlLazyQueryHookResult = ReturnType<typeof useGetBackupPresignedUrlLazyQuery>;
+export type GetBackupPresignedUrlQueryResult = Apollo.QueryResult<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>;
+export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedUrlQueryVariables) {
+      return { query: GetBackupPresignedUrlDocument, variables: variables }
+    }
 export const GetResourcesDocument = gql`
     query GetResources($appId: uuid!) {
   config(appID: $appId, resolve: true) {
@@ -20357,49 +20461,6 @@ export type GetAppPlanAndGlobalPlansLazyQueryHookResult = ReturnType<typeof useG
 export type GetAppPlanAndGlobalPlansQueryResult = Apollo.QueryResult<GetAppPlanAndGlobalPlansQuery, GetAppPlanAndGlobalPlansQueryVariables>;
 export function refetchGetAppPlanAndGlobalPlansQuery(variables: GetAppPlanAndGlobalPlansQueryVariables) {
       return { query: GetAppPlanAndGlobalPlansDocument, variables: variables }
-    }
-export const GetApplicationBackupsDocument = gql`
-    query getApplicationBackups($appId: uuid!) {
-  app(id: $appId) {
-    backups(order_by: {createdAt: desc}) {
-      id
-      size
-      createdAt
-      completedAt
-    }
-  }
-}
-    `;
-
-/**
- * __useGetApplicationBackupsQuery__
- *
- * To run a query within a React component, call `useGetApplicationBackupsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetApplicationBackupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetApplicationBackupsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetApplicationBackupsQuery(baseOptions: Apollo.QueryHookOptions<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>(GetApplicationBackupsDocument, options);
-      }
-export function useGetApplicationBackupsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>(GetApplicationBackupsDocument, options);
-        }
-export type GetApplicationBackupsQueryHookResult = ReturnType<typeof useGetApplicationBackupsQuery>;
-export type GetApplicationBackupsLazyQueryHookResult = ReturnType<typeof useGetApplicationBackupsLazyQuery>;
-export type GetApplicationBackupsQueryResult = Apollo.QueryResult<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>;
-export function refetchGetApplicationBackupsQuery(variables: GetApplicationBackupsQueryVariables) {
-      return { query: GetApplicationBackupsDocument, variables: variables }
     }
 export const GetApplicationPlanDocument = gql`
     query getApplicationPlan($workspace: String!, $slug: String!) {
