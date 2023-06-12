@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.1.6
+
+### Patch Changes
+
+- 28a305d9b: chore(jwt): add `exp` and `iss` to JWTClaims
+
 ## 2.1.5
 
 ### Patch Changes
