@@ -145,7 +145,7 @@ func InitRemote(
 		return fmt.Errorf("failed to load session: %w", err)
 	}
 
-	cfg, err := config.Pull(ctx, ce, proj, session)
+	cfg, err := config.Pull(ctx, ce, proj, session, true)
 	if err != nil {
 		return fmt.Errorf("failed to pull config: %w", err)
 	}
