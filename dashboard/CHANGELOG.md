@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.17.8
+
+### Patch Changes
+
+- d0457fe5c: feat(settings): improve the dashboard and config parity
+  - @nhost/react-apollo@5.0.26
+  - @nhost/nextjs@1.13.28
+
 ## 0.17.7
 
 ### Patch Changes
