@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema"
@@ -14,7 +16,6 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
 	jsonpatch "gopkg.in/evanphx/json-patch.v5"
-	"gopkg.in/yaml.v3"
 )
 
 func CommandValidate() *cli.Command {
@@ -53,38 +54,43 @@ func commandValidate(cCtx *cli.Context) error {
 	return nil
 }
 
-func applyJSONPatches(ce *clienv.CliEnv, cfg *model.ConfigConfig) (*model.ConfigConfig, error) {
-	var y any
-	if err := clienv.UnmarshalFile(ce.Path.JSONPatches(), &y, yaml.Unmarshal); err != nil {
-		return nil, fmt.Errorf("failed to parse json patches: %w", err)
-	}
-
-	b, err := json.Marshal(y)
+func applyJSONPatches(
+	ce *clienv.CliEnv,
+	cfg model.ConfigConfig,
+	subdomain string,
+) (*model.ConfigConfig, error) {
+	f, err := os.Open(ce.Path.Overlay(subdomain))
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal json patches: %w", err)
+		return nil, fmt.Errorf("failed to open json patches file: %w", err)
 	}
+	defer f.Close()
 
-	patch, err := jsonpatch.DecodePatch(b)
+	patchesb, err := io.ReadAll(f)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode json patches: %w", err)
+		return nil, fmt.Errorf("failed to read json patches file: %w", err)
 	}
 
-	b, err = json.Marshal(cfg)
+	cfgb, err := json.Marshal(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	b, err = patch.Apply(b)
+	patch, err := jsonpatch.DecodePatch(patchesb)
 	if err != nil {
 		return nil, fmt.Errorf("failed to apply json patches: %w", err)
 	}
 
-	cfg = &model.ConfigConfig{} //nolint:exhaustruct
-	if err := json.Unmarshal(b, cfg); err != nil {
+	cfgb, err = patch.Apply(cfgb)
+	if err != nil {
+		return nil, fmt.Errorf("failed to apply json patches: %w", err)
+	}
+
+	cfg = model.ConfigConfig{} //nolint:exhaustruct
+	if err := json.Unmarshal(cfgb, &cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	return cfg, nil
+	return &cfg, nil
 }
 
 func Validate(ce *clienv.CliEnv, subdomain string) (*model.ConfigConfig, error) {
@@ -98,9 +104,9 @@ func Validate(ce *clienv.CliEnv, subdomain string) (*model.ConfigConfig, error) 
 		return nil, fmt.Errorf("failed to parse secrets: %w", err)
 	}
 
-	if subdomain == "local" && clienv.PathExists(ce.Path.JSONPatches()) {
+	if clienv.PathExists(ce.Path.Overlay(subdomain)) {
 		var err error
-		cfg, err = applyJSONPatches(ce, cfg)
+		cfg, err = applyJSONPatches(ce, *cfg, subdomain)
 		if err != nil {
 			return nil, fmt.Errorf("failed to apply json patches: %w", err)
 		}
@@ -153,6 +159,14 @@ func ValidateRemote(
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get secrets: %w", err)
+	}
+
+	if clienv.PathExists(ce.Path.Overlay(proj.GetSubdomain())) {
+		var err error
+		cfg, err = applyJSONPatches(ce, *cfg, proj.GetSubdomain())
+		if err != nil {
+			return fmt.Errorf("failed to apply json patches: %w", err)
+		}
 	}
 
 	_, err = appconfig.Config(schema, cfg, respToSecrets(secrets.GetAppSecrets(), false))

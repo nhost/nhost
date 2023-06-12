@@ -9,6 +9,7 @@ require (
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/go-getter v1.7.1
+	github.com/mattbaird/jsonpatch v0.0.0-20230413205102-771768614e91
 	github.com/nhost/be v0.0.0-20230612071328-08130c475f15
 	github.com/pelletier/go-toml/v2 v2.0.7
 	github.com/urfave/cli/v2 v2.25.3
@@ -36,6 +37,7 @@ require (
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
+	github.com/evanphx/json-patch v0.5.2 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.4.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -87,3 +89,5 @@ require (
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
+
+replace github.com/pelletier/go-toml/v2 => github.com/dbarrosop/go-toml/v2 v2.0.0-20230603161714-891170c4bf79

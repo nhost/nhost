@@ -15,6 +15,7 @@ func Command() *cli.Command {
 			CommandPull(),
 			CommandShow(),
 			CommandValidate(),
+			CommandEdit(),
 		},
 	}
 }

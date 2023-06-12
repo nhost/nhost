@@ -41,7 +41,8 @@ func getRemoteAppInfo(
 }
 
 func (ce *CliEnv) GetAppInfo(
-	ctx context.Context, subdomain string,
+	ctx context.Context,
+	subdomain string,
 ) (*graphql.GetWorkspacesApps_Workspaces_Apps, error) {
 	if subdomain != "" {
 		return getRemoteAppInfo(ctx, ce, subdomain)

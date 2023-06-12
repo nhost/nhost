@@ -1,10 +1,14 @@
 [global]
 [[global.environment]]
-name = 'ENVIRONMENT'
-value = 'production'
+name = 'GREET_PLAIN'
+value = 'Sayonara'
+
+[[global.environment]]
+name = 'GREET_TYPE'
+value = '{{ secrets.GREET_TYPE }}'
 
 [hasura]
-version = 'v2.25.1-ce'
+version = 'v2.25.0-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
@@ -13,18 +17,7 @@ type = 'HS256'
 key = '{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}'
 
 [hasura.settings]
-corsDomain = ['*']
-devMode = true
-enableAllowList = false
-enableConsole = true
 enableRemoteSchemaPermissions = false
-enabledAPIs = ['metadata', 'graphql', 'pgdump', 'config']
-
-[hasura.logs]
-level = 'warn'
-
-[hasura.events]
-httpPoolSize = 100
 
 [functions]
 [functions.node]
@@ -34,7 +27,7 @@ version = 16
 version = '0.20.1'
 
 [auth.redirections]
-clientUrl = 'https://my.app.com'
+clientUrl = 'http://localhost:3000'
 
 [auth.signUp]
 enabled = true
@@ -81,11 +74,7 @@ enabled = false
 
 [auth.method.oauth]
 [auth.method.oauth.apple]
-enabled = true
-clientId = '{{ secrets.APPLE_CLIENT_ID }}'
-keyId = '{{ secrets.APPLE_KEY_ID }}'
-teamId = '{{ secrets.APPLE_TEAM_ID }}'
-privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
+enabled = false
 
 [auth.method.oauth.azuread]
 tenant = 'common'
@@ -140,7 +129,7 @@ timeout = 60000
 enabled = false
 
 [postgres]
-version = '14.6-20230406-2'
+version = '14.6-20230406-1'
 
 [provider]
 

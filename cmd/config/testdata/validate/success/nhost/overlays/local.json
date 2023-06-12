@@ -1,0 +1,32 @@
+[
+  {
+    "op": "replace",
+    "path": "/hasura/version",
+    "value": "v2.25.0-ce"
+  },
+  {
+    "op": "replace",
+    "path": "/global/environment/0",
+    "value": {
+      "name": "ENVIRONMENT",
+      "value": "development"
+    }
+  },
+  {
+    "op": "add",
+    "path": "/global/environment/-",
+    "value": {
+      "name": "FUNCTION_LOG_LEVEL",
+      "value": "debug"
+    }
+  },
+  {
+    "op": "replace",
+    "path": "/auth/redirections/clientUrl",
+    "value": "http://localhost:3000"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/method/oauth/apple"
+  }
+]
