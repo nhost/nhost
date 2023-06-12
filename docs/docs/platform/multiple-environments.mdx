@@ -41,6 +41,11 @@ Once you've tested your changes in the staging environment, you can create a new
 
 This will automatically trigger a new deployment to the production project on the Nhost platform.
 
+## Configuration Overlays
+
+While Nhost uses a single file to deploy all of the environments connected to the same repository and branch, overlays allow you to accommodate for minor differences in those environments by allowing you to define rules to modify the base configuration. For details on overlays head to [Configuration Overlays](/cli/overlays)
+
+
 ## Summary
 
 Now you have two environments, one for staging and one for production. You can use this workflow to do local development, and test your changes in a staging environment before deploying them to production.
