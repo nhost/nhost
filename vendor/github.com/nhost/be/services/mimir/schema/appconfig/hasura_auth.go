@@ -24,6 +24,9 @@ const (
 	secretHasuraAuthAppleKeyID              = "appleKeyID"
 	secretHasuraAuthApplePrivateKey         = "applePrivateKey"
 	secretHasuraAuthAzureADClientSecret     = "azureADClientSecret"
+	secretHasuraAuthGitlabClientSecret      = "gitlabClientSecret" //nolint: gosec
+	secretHasuraAuthStravaClientSecret      = "stravaClientSecret" //nolint: gosec
+	secretHasuraAuthBitbucketClientSecret   = "bitbucketClientSecret"
 	secretHasuraAuthSMTPPassword            = "smtpPassword"
 )
 
@@ -954,6 +957,145 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetAzuread().
 						GetTenant(),
 				),
+			},
+		}...)
+	}
+
+	if unptr(
+		config.GetAuth().GetMethod().GetOauth().GetGitlab().GetEnabled(),
+	) {
+		env = append(env, []EnvVar{
+			{
+				Name: "AUTH_PROVIDER_GITLAB_ENABLED",
+				Value: Stringify(
+					unptr(
+						config.
+							GetAuth().
+							GetMethod().
+							GetOauth().
+							GetGitlab().
+							GetEnabled(),
+					),
+				),
+			},
+			{
+				Name: "AUTH_PROVIDER_GITLAB_CLIENT_ID",
+				Value: unptr(
+					config.
+						GetAuth().
+						GetMethod().
+						GetOauth().
+						GetGitlab().
+						GetClientId(),
+				),
+			},
+			{
+				Name:       "AUTH_PROVIDER_GITLAB_CLIENT_SECRET",
+				SecretName: secretHasuraAuthGitlabClientSecret,
+				Value: unptr(
+					config.GetAuth().GetMethod().GetOauth().GetGitlab().GetClientSecret(),
+				),
+				IsSecret: true,
+			},
+			{
+				Name: "AUTH_PROVIDER_GITLAB_SCOPE",
+				Value: Stringify(
+					config.
+						GetAuth().
+						GetMethod().
+						GetOauth().
+						GetGitlab().
+						GetScope(),
+				),
+			},
+		}...)
+	}
+
+	if unptr(
+		config.GetAuth().GetMethod().GetOauth().GetStrava().GetEnabled(),
+	) {
+		env = append(env, []EnvVar{
+			{
+				Name: "AUTH_PROVIDER_STRAVA_ENABLED",
+				Value: Stringify(
+					unptr(
+						config.
+							GetAuth().
+							GetMethod().
+							GetOauth().
+							GetStrava().
+							GetEnabled(),
+					),
+				),
+			},
+			{
+				Name: "AUTH_PROVIDER_STRAVA_CLIENT_ID",
+				Value: unptr(
+					config.
+						GetAuth().
+						GetMethod().
+						GetOauth().
+						GetStrava().
+						GetClientId(),
+				),
+			},
+			{
+				Name:       "AUTH_PROVIDER_STRAVA_CLIENT_SECRET",
+				SecretName: secretHasuraAuthStravaClientSecret,
+				Value: unptr(
+					config.GetAuth().GetMethod().GetOauth().GetStrava().GetClientSecret(),
+				),
+				IsSecret: true,
+			},
+			{
+				Name: "AUTH_PROVIDER_STRAVA_SCOPE",
+				Value: Stringify(
+					config.
+						GetAuth().
+						GetMethod().
+						GetOauth().
+						GetStrava().
+						GetScope(),
+				),
+			},
+		}...)
+	}
+
+	if unptr(
+		config.GetAuth().GetMethod().GetOauth().GetBitbucket().GetEnabled(),
+	) {
+		env = append(env, []EnvVar{
+			{
+				Name: "AUTH_PROVIDER_BITBUCKET_ENABLED",
+				Value: Stringify(
+					unptr(
+						config.
+							GetAuth().
+							GetMethod().
+							GetOauth().
+							GetBitbucket().
+							GetEnabled(),
+					),
+				),
+			},
+			{
+				Name: "AUTH_PROVIDER_BITBUCKET_CLIENT_ID",
+				Value: unptr(
+					config.
+						GetAuth().
+						GetMethod().
+						GetOauth().
+						GetBitbucket().
+						GetClientId(),
+				),
+			},
+			{
+				Name:       "AUTH_PROVIDER_BITBUCKET_CLIENT_SECRET",
+				SecretName: secretHasuraAuthBitbucketClientSecret,
+				Value: unptr(
+					config.GetAuth().GetMethod().GetOauth().GetBitbucket().GetClientSecret(),
+				),
+				IsSecret: true,
 			},
 		}...)
 	}
