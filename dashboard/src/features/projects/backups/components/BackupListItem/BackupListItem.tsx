@@ -56,9 +56,7 @@ export default function BackupListItem({
   function restoreBackup() {
     openDialog({
       title: 'Restore Backup',
-      component: (
-        <RestoreBackupModal data={{ id, createdAt }} close={closeDialog} />
-      ),
+      component: <RestoreBackupModal backup={backup} close={closeDialog} />,
     });
   }
 

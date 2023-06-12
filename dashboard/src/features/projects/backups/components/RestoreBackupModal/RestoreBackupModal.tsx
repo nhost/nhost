@@ -3,38 +3,38 @@ import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import type { Backup } from '@/types/application';
 import { triggerToast } from '@/utils/toast';
 import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
 import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 
-export interface RestoreBackupModalModalProps {
+export interface RestoreBackupModalProps {
   /**
    * Call this function to imperatively close the modal.
    */
-  close: any;
+  close: VoidFunction;
   /**
-   * Arbitrary data passed down to the modal.
-   *
+   * Backup data.
    */
-  data: any;
+  backup: Backup;
 }
 
 export default function RestoreBackupModal({
   close,
-  data,
-}: RestoreBackupModalModalProps) {
-  const { id: backupId, createdAt } = data;
+  backup,
+}: RestoreBackupModalProps) {
+  const { id: backupId, createdAt } = backup;
 
   const [isSure, setIsSure] = useState(false);
-  const [mutationIsCompleted, setMutationIsCompleted] = useState(false);
+  const [restoreCompleted, setRestoreCompleted] = useState(false);
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const [restoreApplicationDatabase, { loading }] =
     useRestoreApplicationDatabaseMutation();
 
-  const handleSubmit = async () => {
-    setMutationIsCompleted(false);
+  async function handleSubmit() {
+    setRestoreCompleted(false);
     try {
       await restoreApplicationDatabase({
         variables: {
@@ -43,26 +43,20 @@ export default function RestoreBackupModal({
         },
       });
     } catch (error) {
-      setMutationIsCompleted(false);
+      setRestoreCompleted(false);
       triggerToast('Database backup restoration failed');
       return;
     }
-    setMutationIsCompleted(true);
+    setRestoreCompleted(true);
     triggerToast('Database backup successfully scheduled for restoration.');
-  };
+  }
 
-  if (mutationIsCompleted) {
+  if (restoreCompleted) {
     return (
-      <Box className="p-6">
-        <div className="flex flex-col">
-          <Text className="text-center text-lg font-medium">
-            The backup has been restored successfully.
-          </Text>
+      <Box className="grid grid-flow-row gap-4 px-6 pb-6">
+        <Text>The backup has been restored successfully.</Text>
 
-          <Button className="mt-5" onClick={close}>
-            OK
-          </Button>
-        </div>
+        <Button onClick={close}>OK</Button>
       </Box>
     );
   }
@@ -70,7 +64,7 @@ export default function RestoreBackupModal({
   return (
     <Box className="grid grid-flow-row gap-2 px-6 pb-6">
       <Text>
-        You current database will be deleted, and the backup created{' '}
+        You current database will be deleted, and the backup created at{' '}
         <span className="font-semibold">
           {format(parseISO(createdAt), 'yyyy-MM-dd HH:mm:ss')}
         </span>{' '}
