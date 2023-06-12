@@ -3,6 +3,7 @@ import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
@@ -20,6 +21,11 @@ import * as Yup from 'yup';
 const validationSchema = Yup.object({
   emailVerificationRequired: Yup.boolean(),
   hibpEnabled: Yup.boolean(),
+  passwordMinLength: Yup.number()
+    .label('Minimum password length')
+    .min(3)
+    .typeError('Minimum password length must be a number')
+    .required(),
 });
 
 export type EmailAndPasswordFormValues = Yup.InferType<typeof validationSchema>;
@@ -36,7 +42,7 @@ export default function EmailAndPasswordSettings() {
     fetchPolicy: 'cache-only',
   });
 
-  const { hibpEnabled, emailVerificationRequired } =
+  const { hibpEnabled, emailVerificationRequired, passwordMinLength } =
     data?.config?.auth?.method?.emailPassword || {};
 
   const form = useForm<EmailAndPasswordFormValues>({
@@ -44,6 +50,7 @@ export default function EmailAndPasswordSettings() {
     defaultValues: {
       hibpEnabled: hibpEnabled || false,
       emailVerificationRequired: emailVerificationRequired || false,
+      passwordMinLength: passwordMinLength || 9,
     },
     resolver: yupResolver(validationSchema),
   });
@@ -62,18 +69,16 @@ export default function EmailAndPasswordSettings() {
     throw error;
   }
 
-  const { formState } = form;
+  const { formState, register } = form;
 
-  const handleEmailAndPasswordSettingsChange = async (
-    values: EmailAndPasswordFormValues,
-  ) => {
+  async function handleSubmit(formValues: EmailAndPasswordFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
         config: {
           auth: {
             method: {
-              emailPassword: values,
+              emailPassword: formValues,
             },
           },
         },
@@ -93,15 +98,15 @@ export default function EmailAndPasswordSettings() {
         getToastStyleProps(),
       );
 
-      form.reset(values);
+      form.reset(formValues);
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleEmailAndPasswordSettingsChange}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Email and Password"
           description="Allow users to sign in with email and password."
@@ -118,6 +123,19 @@ export default function EmailAndPasswordSettings() {
             },
           }}
         >
+          <Input
+            {...register('passwordMinLength')}
+            id="passwordMinLength"
+            name="passwordMinLength"
+            type="number"
+            label="Minimum required password length"
+            fullWidth
+            className="lg:max-w-[50%]"
+            error={Boolean(formState.errors.passwordMinLength?.message)}
+            helperText={formState.errors.passwordMinLength?.message}
+            slotProps={{ inputRoot: { min: 3 } }}
+          />
+
           <ControlledCheckbox
             name="emailVerificationRequired"
             id="emailVerificationRequired"

@@ -39,7 +39,8 @@ const AVAILABLE_HASURA_VERSIONS = [
 
 export default function HasuraServiceVersionSettings() {
   const { maintenanceActive } = useUI();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { currentProject, refetch: refetchWorkspaceAndProject } =
+    useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetHasuraSettingsDocument],
   });
@@ -82,9 +83,7 @@ export default function HasuraServiceVersionSettings() {
 
   const { formState } = form;
 
-  const handleHasuraServiceVersionsChange = async (
-    formValues: HasuraServiceVersionFormValues,
-  ) => {
+  async function handleSubmit(formValues: HasuraServiceVersionFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -110,14 +109,15 @@ export default function HasuraServiceVersionSettings() {
       );
 
       form.reset(formValues);
+      await refetchWorkspaceAndProject();
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleHasuraServiceVersionsChange}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Hasura GraphQL Engine Version"
           description="The version of the Hasura GraphQL Engine to use."
@@ -143,6 +143,7 @@ export default function HasuraServiceVersionSettings() {
             }}
             fullWidth
             className="lg:col-span-2"
+            aria-label="Hasura Service Version"
             options={availableVersions}
             error={!!formState.errors?.version?.message}
             helperText={formState.errors?.version?.message}

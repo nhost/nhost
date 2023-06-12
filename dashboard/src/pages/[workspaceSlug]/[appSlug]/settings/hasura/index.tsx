@@ -1,6 +1,14 @@
 import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { HasuraAllowListSettings } from '@/features/hasura/settings/components/HasuraAllowListSettings';
+import { HasuraConsoleSettings } from '@/features/hasura/settings/components/HasuraConsoleSettings';
+import { HasuraCorsDomainSettings } from '@/features/hasura/settings/components/HasuraCorsDomainSettings';
+import { HasuraDevModeSettings } from '@/features/hasura/settings/components/HasuraDevModeSettings';
+import { HasuraEnabledAPISettings } from '@/features/hasura/settings/components/HasuraEnabledAPISettings';
+import { HasuraLogLevelSettings } from '@/features/hasura/settings/components/HasuraLogLevelSettings';
+import { HasuraPoolSizeSettings } from '@/features/hasura/settings/components/HasuraPoolSizeSettings';
+import { HasuraRemoteSchemaPermissionsSettings } from '@/features/hasura/settings/components/HasuraRemoteSchemaPermissionsSettings';
 import { HasuraServiceVersionSettings } from '@/features/hasura/settings/components/HasuraServiceVersionSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
@@ -9,12 +17,12 @@ import type { ReactElement } from 'react';
 export default function HasuraSettingsPage() {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const { loading, error } = useGetHasuraSettingsQuery({
+  const { data, loading, error } = useGetHasuraSettingsQuery({
     variables: { appId: currentProject?.id },
     skip: !currentProject,
   });
 
-  if (loading) {
+  if (!data && loading) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -34,6 +42,14 @@ export default function HasuraSettingsPage() {
       rootClassName="bg-transparent"
     >
       <HasuraServiceVersionSettings />
+      <HasuraLogLevelSettings />
+      <HasuraEnabledAPISettings />
+      <HasuraPoolSizeSettings />
+      <HasuraCorsDomainSettings />
+      <HasuraConsoleSettings />
+      <HasuraDevModeSettings />
+      <HasuraAllowListSettings />
+      <HasuraRemoteSchemaPermissionsSettings />
     </Container>
   );
 }

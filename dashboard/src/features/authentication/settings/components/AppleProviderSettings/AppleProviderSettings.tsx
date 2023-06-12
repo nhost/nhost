@@ -98,7 +98,7 @@ export default function AppleProviderSettings() {
   const { register, formState, watch } = form;
   const authEnabled = watch('enabled');
 
-  const handleProviderUpdate = async (values: AppleProviderFormValues) => {
+  async function handleSubmit(formValues: AppleProviderFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -107,7 +107,7 @@ export default function AppleProviderSettings() {
             method: {
               oauth: {
                 apple: {
-                  ...values,
+                  ...formValues,
                   scope: [],
                 },
               },
@@ -130,15 +130,15 @@ export default function AppleProviderSettings() {
         getToastStyleProps(),
       );
 
-      form.reset(values);
+      form.reset(formValues);
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleProviderUpdate}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Apple"
           description="Allow users to sign in with Apple."
@@ -214,7 +214,7 @@ export default function AppleProviderSettings() {
           />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="apple-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
               currentProject.region,

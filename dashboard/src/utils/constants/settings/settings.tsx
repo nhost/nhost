@@ -63,8 +63,8 @@ export const AUTH_GRAVATAR_DEFAULT = [
     label: 'monsterid',
   },
   {
-    value: 'waatar',
-    label: 'waatar',
+    value: 'wavatar',
+    label: 'wavatar',
   },
   {
     value: 'retro',

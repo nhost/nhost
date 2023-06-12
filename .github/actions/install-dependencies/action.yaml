@@ -29,7 +29,7 @@ runs:
     - name: Use Node.js 16
       uses: actions/setup-node@v3
       with:
-        node-version: 16
+        node-version: 18
     - shell: bash
       name: Install packages
       run: pnpm install --frozen-lockfile

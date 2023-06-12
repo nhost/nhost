@@ -9,6 +9,7 @@ import { ClientURLSettings } from '@/features/authentication/settings/components
 import { DisableNewUsersSettings } from '@/features/authentication/settings/components/DisableNewUsersSettings';
 import { GravatarSettings } from '@/features/authentication/settings/components/GravatarSettings';
 import { MFASettings } from '@/features/authentication/settings/components/MFASettings';
+import { SessionSettings } from '@/features/authentication/settings/components/SessionSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
@@ -16,16 +17,16 @@ import type { ReactElement } from 'react';
 export default function SettingsAuthenticationPage() {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const { loading, error } = useGetAuthenticationSettingsQuery({
+  const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: currentProject?.id },
     skip: !currentProject,
   });
 
-  if (loading) {
+  if (!data && loading) {
     return (
       <ActivityIndicator
         delay={1000}
-        label="Loading Authentication settings..."
+        label="Loading authentication settings..."
         className="justify-center"
       />
     );
@@ -46,6 +47,7 @@ export default function SettingsAuthenticationPage() {
       <AllowedEmailSettings />
       <BlockedEmailSettings />
       <MFASettings />
+      <SessionSettings />
       <GravatarSettings />
       <DisableNewUsersSettings />
     </Container>

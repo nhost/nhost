@@ -68,9 +68,7 @@ export default function GoogleProviderSettings() {
   const { formState, watch } = form;
   const authEnabled = watch('enabled');
 
-  const handleProviderUpdate = async (
-    values: BaseProviderSettingsFormValues,
-  ) => {
+  async function handleSubmit(formValues: BaseProviderSettingsFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -79,7 +77,7 @@ export default function GoogleProviderSettings() {
             method: {
               oauth: {
                 google: {
-                  ...values,
+                  ...formValues,
                   scope: [],
                 },
               },
@@ -102,15 +100,15 @@ export default function GoogleProviderSettings() {
         getToastStyleProps(),
       );
 
-      form.reset(values);
+      form.reset(formValues);
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleProviderUpdate}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Google"
           description="Allow users to sign in with Google."
@@ -133,7 +131,7 @@ export default function GoogleProviderSettings() {
           <BaseProviderSettings providerName="google" />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="google-redirectUrl"
             className="col-span-2"
             fullWidth
             hideEmptyHelperText

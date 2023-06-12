@@ -82,7 +82,7 @@ export default function TwitterProviderSettings() {
   const { register, formState, watch } = form;
   const authEnabled = watch('enabled');
 
-  const handleProviderUpdate = async (values: TwitterProviderFormValues) => {
+  async function handleSubmit(formValues: TwitterProviderFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -90,7 +90,7 @@ export default function TwitterProviderSettings() {
           auth: {
             method: {
               oauth: {
-                twitter: values,
+                twitter: formValues,
               },
             },
           },
@@ -111,15 +111,15 @@ export default function TwitterProviderSettings() {
         getToastStyleProps(),
       );
 
-      form.reset(values);
+      form.reset(formValues);
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleProviderUpdate}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Twitter"
           description="Allow users to sign in with Twitter."
@@ -164,7 +164,7 @@ export default function TwitterProviderSettings() {
           />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="twitter-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
               currentProject.region,

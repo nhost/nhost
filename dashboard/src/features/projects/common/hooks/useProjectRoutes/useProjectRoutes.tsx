@@ -11,6 +11,7 @@ import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import type { SvgIconProps } from '@/components/ui/v2/icons/SvgIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import type { ReactElement } from 'react';
 
@@ -55,6 +56,8 @@ export interface ProjectRoute {
 export default function useProjectRoutes() {
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const { currentProject, loading: currentProjectLoading } =
+    useCurrentWorkspaceAndProject();
 
   const nhostRoutes: ProjectRoute[] = [
     {
@@ -119,6 +122,7 @@ export default function useProjectRoutes() {
       exact: true,
       label: 'Hasura',
       icon: <HasuraIcon />,
+      disabled: !currentProject?.config?.hasura.settings?.enableConsole,
     },
     {
       relativePath: '/users',
@@ -135,5 +139,9 @@ export default function useProjectRoutes() {
     ...nhostRoutes,
   ];
 
-  return { nhostRoutes, allRoutes };
+  return {
+    nhostRoutes,
+    allRoutes,
+    loading: currentProjectLoading,
+  };
 }

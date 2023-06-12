@@ -1,5 +1,6 @@
 import { Chip } from '@/components/ui/v2/Chip';
 import type { FormControlProps } from '@/components/ui/v2/FormControl';
+import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import type { InputProps } from '@/components/ui/v2/Input';
@@ -133,6 +134,13 @@ const StyledAutocomplete = styled(MaterialAutocomplete)(({ theme }) => ({
 })) as any as StyledComponent<
   MaterialAutocompleteProps<AutocompleteOption, boolean, boolean, boolean>
 >;
+
+const StyledOptionBase = styled(OptionBase)(({ theme }) => ({
+  display: 'grid !important',
+  gridAutoFlow: 'column',
+  justifyContent: 'space-between !important',
+  gap: theme.spacing(0.5),
+}));
 
 export const AutocompletePopper = styled(PopperUnstyled)(({ theme }) => ({
   zIndex: theme.zIndex.modal + 1,
@@ -326,6 +334,7 @@ function Autocomplete(
             <StyledTag
               deleteIcon={<XIcon />}
               size="small"
+              sx={{ fontSize: (theme) => theme.typography.pxToRem(12) }}
               label={
                 typeof option !== 'object' ? option.toString() : option.value
               }
@@ -349,17 +358,32 @@ function Autocomplete(
         optionProps,
         option: string | number | AutocompleteOption<string>,
       ) => {
+        const selected = optionProps['aria-selected'];
+
         if (typeof option !== 'object') {
-          return <OptionBase {...optionProps}>{option.toString()}</OptionBase>;
+          return (
+            <StyledOptionBase {...optionProps} key={option.toString()}>
+              {option.toString()}
+              {selected && props.multiple && (
+                <CheckIcon sx={{ width: 16, height: 16 }} />
+              )}
+            </StyledOptionBase>
+          );
         }
 
         return (
-          <OptionBase
+          <StyledOptionBase
             {...optionProps}
             key={option.dropdownLabel || option.label}
           >
-            {option.dropdownLabel || option.label}
-          </OptionBase>
+            <>
+              <span>{option.dropdownLabel || option.label}</span>
+
+              {selected && props.multiple && (
+                <CheckIcon key="asd" sx={{ width: 16, height: 16 }} />
+              )}
+            </>
+          </StyledOptionBase>
         );
       }}
       filterOptions={

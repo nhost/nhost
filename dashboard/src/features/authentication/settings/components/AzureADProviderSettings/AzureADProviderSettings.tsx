@@ -90,7 +90,7 @@ export default function AzureADProviderSettings() {
   const { register, formState, watch } = form;
   const authEnabled = watch('enabled');
 
-  const handleProviderUpdate = async (values: AzureADProviderFormValues) => {
+  async function handleSubmit(formValues: AzureADProviderFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -98,7 +98,7 @@ export default function AzureADProviderSettings() {
           auth: {
             method: {
               oauth: {
-                azuread: values,
+                azuread: formValues,
               },
             },
           },
@@ -119,15 +119,15 @@ export default function AzureADProviderSettings() {
         getToastStyleProps(),
       );
 
-      form.reset(values);
+      form.reset(formValues);
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleProviderUpdate}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Azure AD"
           description="Allow users to sign in with Azure AD."
@@ -160,7 +160,7 @@ export default function AzureADProviderSettings() {
           />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="azuerad-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
               currentProject.region,

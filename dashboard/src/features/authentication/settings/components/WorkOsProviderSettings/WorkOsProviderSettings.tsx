@@ -97,7 +97,7 @@ export default function WorkOsProviderSettings() {
   const { register, formState, watch } = form;
   const authEnabled = watch('enabled');
 
-  const handleProviderUpdate = async (values: WorkOsProviderFormValues) => {
+  async function handleSubmit(formValues: WorkOsProviderFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -105,7 +105,7 @@ export default function WorkOsProviderSettings() {
           auth: {
             method: {
               oauth: {
-                workos: values,
+                workos: formValues,
               },
             },
           },
@@ -126,15 +126,15 @@ export default function WorkOsProviderSettings() {
         getToastStyleProps(),
       );
 
-      form.reset(values);
+      form.reset(formValues);
     } catch {
       // Note: The toast will handle the error.
     }
-  };
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleProviderUpdate}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="WorkOS"
           description="Allow users to sign in with WorkOS."
@@ -181,7 +181,7 @@ export default function WorkOsProviderSettings() {
           />
           <Input
             name="redirectUrl"
-            id="redirectUrl"
+            id="workos-redirectUrl"
             defaultValue={`${generateAppServiceUrl(
               currentProject.subdomain,
               currentProject.region,

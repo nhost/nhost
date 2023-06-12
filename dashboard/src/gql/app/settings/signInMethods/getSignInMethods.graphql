@@ -19,6 +19,7 @@ query GetSignInMethods($appId: uuid!) {
         emailPassword {
           emailVerificationRequired
           hibpEnabled
+          passwordMinLength
         }
         emailPasswordless {
           enabled
@@ -39,6 +40,23 @@ query GetSignInMethods($appId: uuid!) {
             keyId
             teamId
             privateKey
+          }
+          bitbucket {
+            enabled
+            clientId
+            clientSecret
+          }
+          gitlab {
+            enabled
+            clientId
+            clientSecret
+            scope
+          }
+          strava {
+            enabled
+            clientId
+            clientSecret
+            scope
           }
           discord {
             enabled
