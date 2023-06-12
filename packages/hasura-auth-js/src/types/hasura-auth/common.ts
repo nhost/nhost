@@ -72,6 +72,8 @@ export type Provider =
 export interface JWTClaims {
   sub?: string
   iat?: number
+  exp?: number
+  iss?: string
   'https://hasura.io/jwt/claims': JWTHasuraClaims
 }
 
