@@ -5,7 +5,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { triggerToast } from '@/utils/toast';
 import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
-import { formatISO9075 } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 
 export interface RestoreBackupModalModalProps {
@@ -53,7 +53,7 @@ export default function RestoreBackupModal({
 
   if (mutationIsCompleted) {
     return (
-      <Box className="w-modal rounded-lg p-6">
+      <Box className="p-6">
         <div className="flex flex-col">
           <Text className="text-center text-lg font-medium">
             The backup has been restored successfully.
@@ -68,30 +68,30 @@ export default function RestoreBackupModal({
   }
 
   return (
-    <Box className="w-modal rounded-lg px-6 py-6 text-left">
-      <div className="flex flex-col">
-        <Text className="text-center text-lg font-medium">
-          Restore Database Backup
-        </Text>
-        <Text className="mt-2 text-center font-normal">
-          You current database will be deleted, and the backup created{' '}
-          <span className="font-semibold">
-            {formatISO9075(new Date(createdAt))}
-          </span>{' '}
-          will be restored.
-        </Text>
+    <Box className="grid grid-flow-row gap-2 px-6 pb-6">
+      <Text>
+        You current database will be deleted, and the backup created{' '}
+        <span className="font-semibold">
+          {format(parseISO(createdAt), 'yyyy-MM-dd HH:mm:ss')}
+        </span>{' '}
+        will be restored.
+      </Text>
 
-        <Box className="my-4 border-y py-2 px-2">
-          <Checkbox
-            checked={isSure}
-            onChange={(_event, checked) => setIsSure(checked)}
-            label="I'm sure I want to restore this backup."
-          />
-        </Box>
-        <Button onClick={handleSubmit} disabled={!isSure} loading={loading}>
-          Restore
-        </Button>
-      </div>
+      <Box className="pt-1 pb-2.5">
+        <Checkbox
+          checked={isSure}
+          onChange={(_event, checked) => setIsSure(checked)}
+          label="I'm sure I want to restore this backup"
+        />
+      </Box>
+
+      <Button onClick={handleSubmit} disabled={!isSure} loading={loading}>
+        Restore
+      </Button>
+
+      <Button variant="outlined" color="secondary" onClick={close}>
+        Cancel
+      </Button>
     </Box>
   );
 }

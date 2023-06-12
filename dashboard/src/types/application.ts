@@ -1,5 +1,6 @@
 import type {
   AppStateHistoryFragment,
+  BackupFragment,
   DeploymentRowFragment,
   EnvironmentVariableFragment,
   PermissionVariableFragment,
@@ -39,6 +40,7 @@ export type ApplicationState = AppStateHistoryFragment;
 export type Deployment = DeploymentRowFragment;
 export type Workspace = WorkspaceFragment;
 export type Project = ProjectFragment;
+export type Backup = BackupFragment;
 
 export interface PermissionVariable extends PermissionVariableFragment {
   isSystemVariable?: boolean;

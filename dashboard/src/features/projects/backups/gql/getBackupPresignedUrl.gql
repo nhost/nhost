@@ -1,0 +1,14 @@
+query GetBackupPresignedUrl(
+  $appId: String!
+  $backupId: String!
+  $expireInMinutes: Int
+) {
+  getBackupPresignedUrl: getBackupPresignedURL(
+    appID: $appId
+    backupID: $backupId
+    expireInMinutes: $expireInMinutes
+  ) {
+    url
+    expiresAt: expires_at
+  }
+}
