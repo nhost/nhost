@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 0.17.9
+
+### Patch Changes
+
+- 842055099: chore(deps): bump `turbo` to `v1.10.3` and `pnpm` to `v8.6.2`
+- fd12aa0a8: chore(projects): remove the postgres password input from the project creation screen
+- 022b76e78: chore(deps): bump `@types/react` to `v18.2.11`
+- 3555ab2b7: chore(deps): bump `vitest` monorepo to `v0.32.0`
+- c43e54922: feat(backups): add download button to backups
+
 ## 0.17.8
 
 ### Patch Changes
