@@ -126,7 +126,6 @@
               nhost
               nodejs_18
               nodePackages.pnpm
-              nhost
             ] ++ buildInputs ++ nativeBuildInputs;
           };
         };
