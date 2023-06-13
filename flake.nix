@@ -124,7 +124,7 @@
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               nhost
-              nodejs_16
+              nodejs_18
               nodePackages.pnpm
               nhost
             ] ++ buildInputs ++ nativeBuildInputs;
