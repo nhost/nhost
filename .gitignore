@@ -62,3 +62,7 @@ todo.md
 
 # Nhost CLI data
 .nhost
+
+# Nix
+.envrc
+.direnv/
