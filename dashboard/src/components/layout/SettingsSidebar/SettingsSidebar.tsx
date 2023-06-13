@@ -7,7 +7,6 @@ import { List } from '@/components/ui/v2/List';
 import type { ListItemButtonProps } from '@/components/ui/v2/ListItem';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { isK8SPostgresEnabledInCurrentEnvironment } from '@/utils/helpers';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -135,15 +134,13 @@ export default function SettingsSidebar({
             >
               Compute Resources
             </SettingsNavLink>
-            {isK8SPostgresEnabledInCurrentEnvironment && (
-              <SettingsNavLink
-                href="/database"
-                exact={false}
-                onClick={handleSelect}
-              >
-                Database
-              </SettingsNavLink>
-            )}
+            <SettingsNavLink
+              href="/database"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Database
+            </SettingsNavLink>
             <SettingsNavLink
               href="/hasura"
               exact={false}

@@ -1,3 +1,4 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -5,6 +6,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
+import { Text } from '@/components/ui/v2/Text';
 import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
 import { resetDatabasePasswordValidationSchema } from '@/features/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -12,10 +14,12 @@ import {
   useResetPostgresPasswordMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
+import { useLeaveConfirm } from '@/hooks/useLeaveConfirm';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { alpha } from '@mui/system';
 import { useUserData } from '@nhost/nextjs';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -30,6 +34,11 @@ export interface ResetDatabasePasswordFormValues {
 export default function ResetDatabasePasswordSettings() {
   const [updateApplication] = useUpdateApplicationMutation();
   const { maintenanceActive } = useUI();
+  const [resetPostgresPasswordMutation, { loading: resetPasswordLoading }] =
+    useResetPostgresPasswordMutation();
+  const user = useUserData();
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { openAlertDialog } = useDialog();
 
   const form = useForm<ResetDatabasePasswordFormValues>({
     reValidateMode: 'onSubmit',
@@ -46,41 +55,47 @@ export default function ResetDatabasePasswordSettings() {
     setValue,
     getValues,
     register,
-    formState: { errors, isDirty, isSubmitting },
+    formState: { errors, dirtyFields, isSubmitting },
   } = form;
 
-  const [resetPostgresPasswordMutation] = useResetPostgresPasswordMutation();
-  const user = useUserData();
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const isDirty = Object.keys(dirtyFields).length > 0;
 
-  const handleGenerateRandomPassword = () => {
+  useLeaveConfirm({ isDirty });
+
+  function handleGenerateRandomPassword() {
     const newRandomDatabasePassword = generateRandomDatabasePassword();
-    triggerToast('New random database password generated.');
+    triggerToast(
+      <Text>
+        Random database password generated and copied to clipboard. Submit the
+        form to save it.
+      </Text>,
+    );
+    copy(newRandomDatabasePassword);
     setValue('databasePassword', newRandomDatabasePassword, {
       shouldDirty: true,
     });
-  };
+  }
 
-  const handleChangeDatabasePassword = async (
-    values: ResetDatabasePasswordFormValues,
-  ) => {
+  async function handleChangeDatabasePassword(
+    formValues: ResetDatabasePasswordFormValues,
+  ) {
     try {
       await resetPostgresPasswordMutation({
         variables: {
           appID: currentProject.id,
-          newPassword: values.databasePassword,
+          newPassword: formValues.databasePassword,
         },
       });
       await updateApplication({
         variables: {
           appId: currentProject.id,
           app: {
-            postgresPassword: values.databasePassword,
+            postgresPassword: formValues.databasePassword,
           },
         },
       });
 
-      form.reset(values);
+      form.reset(formValues);
 
       triggerToast(
         `The database password for ${currentProject.name} has been updated successfully.`,
@@ -93,24 +108,45 @@ export default function ResetDatabasePasswordSettings() {
         `An error occurred while trying to update the database password: ${currentProject.name} (${user.email}): ${e.message}`,
       );
     }
-  };
+  }
+
+  function handleSubmit(formValues: ResetDatabasePasswordFormValues) {
+    openAlertDialog({
+      title: 'Confirm Change',
+      payload: 'Are you sure you want to change the database password?',
+      props: {
+        primaryButtonColor: 'error',
+        primaryButtonText: 'Confirm',
+        onPrimaryAction: () => handleChangeDatabasePassword(formValues),
+      },
+    });
+  }
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleChangeDatabasePassword}>
+      <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Reset Password"
-          description="This password is used for accessing your database."
-          submitButtonText="Reset"
+          description="This password will be used for accessing your database."
+          submitButtonText="Save"
           slotProps={{
             root: {
-              sx: { borderColor: (theme) => theme.palette.error.main },
+              sx: {
+                borderColor: (theme) =>
+                  isDirty
+                    ? theme.palette.error.main
+                    : alpha(theme.palette.error.main, 0.5),
+                '@media (prefers-reduced-motion: no-preference)': {
+                  transition: (theme) =>
+                    theme.transitions.create('border-color'),
+                },
+              },
             },
             submitButton: {
-              variant: 'contained',
-              color: 'error',
+              variant: isDirty ? 'contained' : 'outlined',
+              color: isDirty ? 'error' : 'secondary',
               disabled: !isDirty || maintenanceActive,
-              loading: isSubmitting,
+              loading: isSubmitting || resetPasswordLoading,
             },
           }}
           className="grid grid-flow-row pb-4"
@@ -126,6 +162,7 @@ export default function ResetDatabasePasswordSettings() {
             hideEmptyHelperText
             slotProps={{
               input: { className: 'lg:w-1/2' },
+              inputRoot: { className: '!pr-8' },
               helperText: { component: 'div' },
             }}
             helperText={

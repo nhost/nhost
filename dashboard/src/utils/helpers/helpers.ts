@@ -1,4 +1,3 @@
-import features from '@/data/features.json';
 import { ApplicationStatus } from '@/types/application';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import slugify from 'slugify';
@@ -73,7 +72,3 @@ export function getRelativeDateByApplicationState(date: string) {
 
   return Math.floor(difference / 1000);
 }
-
-export const isK8SPostgresEnabledInCurrentEnvironment = features[
-  'k8s-postgres'
-].enabled.find((e) => e === getCurrentEnvironment());

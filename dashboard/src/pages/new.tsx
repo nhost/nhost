@@ -6,10 +6,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input } from '@/components/ui/v2/Input';
-import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { Option } from '@/components/ui/v2/Option';
 import { Radio } from '@/components/ui/v2/Radio';
 import { RadioGroup } from '@/components/ui/v2/RadioGroup';
@@ -17,18 +14,12 @@ import { Select } from '@/components/ui/v2/Select';
 import type { TextProps } from '@/components/ui/v2/Text';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import features from '@/data/features.json';
-import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
-import { resetDatabasePasswordValidationSchema } from '@/features/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
 import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { copy } from '@/utils/copy';
 import { getErrorMessage } from '@/utils/getErrorMessage';
-import { getCurrentEnvironment } from '@/utils/helpers';
-import { triggerToast } from '@/utils/toast';
 import type {
   PrefetchNewAppPlansFragment,
   PrefetchNewAppRegionsFragment,
@@ -73,7 +64,6 @@ export function NewProjectPageContent({
 
   // form
   const [name, setName] = useState('');
-  const [passwordError, setPasswordError] = useState('');
 
   const [selectedWorkspace, setSelectedWorkspace] = useState({
     id: preSelectedWorkspace.id,
@@ -88,10 +78,6 @@ export function NewProjectPageContent({
     disabled: false,
     code: preSelectedRegion.country.code,
   });
-
-  const [databasePassword, setDatabasePassword] = useState(
-    generateRandomDatabasePassword(),
-  );
 
   // find the first acceptable plan as default plan
   const defaultSelectedPlan = plans.find((plan) => {
@@ -131,18 +117,6 @@ export function NewProjectPageContent({
     (availableWorkspace) => availableWorkspace.id === selectedWorkspace.id,
   );
 
-  const isK8SPostgresEnabledInCurrentEnvironment = features[
-    'k8s-postgres'
-  ].enabled.find((e) => e === getCurrentEnvironment());
-
-  // function handlers
-  const handleGenerateRandomPassword = () => {
-    const newRandomDatabasePassword = generateRandomDatabasePassword();
-    setPasswordError('');
-    triggerToast('New random database password generated.');
-    setDatabasePassword(newRandomDatabasePassword);
-  };
-
   async function handleCreateProject(event: FormEvent) {
     event.preventDefault();
 
@@ -159,19 +133,6 @@ export function NewProjectPageContent({
       return;
     }
 
-    if (isK8SPostgresEnabledInCurrentEnvironment) {
-      try {
-        await resetDatabasePasswordValidationSchema.validate({
-          databasePassword,
-        });
-      } catch (validationError) {
-        setSubmitState({
-          error: Error(validationError.errors),
-          loading: false,
-        });
-      }
-    }
-
     const slug = slugify(name, { lower: true, strict: true });
 
     try {
@@ -184,9 +145,6 @@ export function NewProjectPageContent({
               planId: plan.id,
               workspaceId: selectedWorkspace.id,
               regionId: selectedRegion.id,
-              postgresPassword: isK8SPostgresEnabledInCurrentEnvironment
-                ? databasePassword
-                : undefined,
             },
           },
         }),
@@ -343,86 +301,6 @@ export function NewProjectPageContent({
               ))}
             </Select>
 
-            {isK8SPostgresEnabledInCurrentEnvironment && (
-              <Input
-                name="databasePassword"
-                id="databasePassword"
-                autoComplete="new-password"
-                label="Database Password"
-                value={databasePassword}
-                variant="inline"
-                type="password"
-                error={!!passwordError}
-                hideEmptyHelperText
-                endAdornment={
-                  <InputAdornment position="end" className="mr-2">
-                    <IconButton
-                      color="secondary"
-                      onClick={() => {
-                        copy(databasePassword, 'Postgres password');
-                      }}
-                      variant="borderless"
-                      aria-label="Copy password"
-                    >
-                      <CopyIcon className="h-4 w-4" />
-                    </IconButton>
-                  </InputAdornment>
-                }
-                slotProps={{
-                  // Note: this is supposed to fix a `validateDOMNesting` error
-                  helperText: { component: 'div' },
-                }}
-                helperText={
-                  <div className="grid max-w-xs grid-flow-row gap-2">
-                    {passwordError && (
-                      <Text
-                        variant="subtitle2"
-                        sx={{
-                          color: (theme) =>
-                            `${theme.palette.error.main} !important`,
-                        }}
-                      >
-                        {passwordError}
-                      </Text>
-                    )}
-
-                    <Box className="font-medium">
-                      The root Postgres password for your database - it must be
-                      strong and hard to guess.{' '}
-                      <Button
-                        type="button"
-                        variant="borderless"
-                        color="secondary"
-                        onClick={handleGenerateRandomPassword}
-                        className="px-1 py-0.5 text-xs underline underline-offset-2 hover:underline"
-                        tabIndex={-1}
-                      >
-                        Generate a password
-                      </Button>
-                    </Box>
-                  </div>
-                }
-                onChange={async (e) => {
-                  e.preventDefault();
-                  setSubmitState({
-                    error: null,
-                    loading: false,
-                  });
-                  setDatabasePassword(e.target.value);
-
-                  try {
-                    await resetDatabasePasswordValidationSchema.validate({
-                      databasePassword: e.target.value,
-                    });
-                    setPasswordError('');
-                  } catch (validationError) {
-                    setPasswordError(validationError.message);
-                  }
-                }}
-                fullWidth
-              />
-            )}
-
             <Select
               id="region"
               label="Region"
@@ -499,7 +377,7 @@ export function NewProjectPageContent({
             <div className="grid w-full grid-cols-8 gap-x-4 gap-y-2">
               <div className="col-span-8 sm:col-span-2">
                 <Text className="text-xs font-medium">Plan</Text>
-                <Text variant="subtitle2">You can change this later.</Text>
+                <Text variant="subtitle2">You can change this later</Text>
               </div>
 
               <RadioGroup
@@ -584,7 +462,7 @@ export function NewProjectPageContent({
             <Button
               type="submit"
               loading={submitState.loading}
-              disabled={!!passwordError || maintenanceActive}
+              disabled={maintenanceActive}
               id="create-app"
             >
               Create Project
