@@ -1746,7 +1746,6 @@ export type ConfigSystemConfigPostgres = {
   connectionString: ConfigSystemConfigPostgresConnectionString;
   database: Scalars['String'];
   enabled?: Maybe<Scalars['Boolean']>;
-  password: Scalars['String'];
 };
 
 export type ConfigSystemConfigPostgresComparisonExp = {
@@ -1756,7 +1755,6 @@ export type ConfigSystemConfigPostgresComparisonExp = {
   connectionString?: InputMaybe<ConfigSystemConfigPostgresConnectionStringComparisonExp>;
   database?: InputMaybe<ConfigStringComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
-  password?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigSystemConfigPostgresConnectionString = {
@@ -1795,14 +1793,12 @@ export type ConfigSystemConfigPostgresInsertInput = {
   connectionString: ConfigSystemConfigPostgresConnectionStringInsertInput;
   database: Scalars['String'];
   enabled?: InputMaybe<Scalars['Boolean']>;
-  password: Scalars['String'];
 };
 
 export type ConfigSystemConfigPostgresUpdateInput = {
   connectionString?: InputMaybe<ConfigSystemConfigPostgresConnectionStringUpdateInput>;
   database?: InputMaybe<Scalars['String']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
-  password?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigUpdateInput = {
@@ -2549,7 +2545,6 @@ export type Apps = {
   /** An object relationship */
   plan: Plans;
   planId: Scalars['uuid'];
-  postgresPassword: Scalars['String'];
   providersUpdated?: Maybe<Scalars['Boolean']>;
   /** An object relationship */
   region: Regions;
@@ -2787,7 +2782,6 @@ export type Apps_Bool_Exp = {
   paused?: InputMaybe<Boolean_Comparison_Exp>;
   plan?: InputMaybe<Plans_Bool_Exp>;
   planId?: InputMaybe<Uuid_Comparison_Exp>;
-  postgresPassword?: InputMaybe<String_Comparison_Exp>;
   providersUpdated?: InputMaybe<Boolean_Comparison_Exp>;
   region?: InputMaybe<Regions_Bool_Exp>;
   regionId?: InputMaybe<Uuid_Comparison_Exp>;
@@ -2859,7 +2853,6 @@ export type Apps_Insert_Input = {
   paused?: InputMaybe<Scalars['Boolean']>;
   plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
   planId?: InputMaybe<Scalars['uuid']>;
-  postgresPassword?: InputMaybe<Scalars['String']>;
   providersUpdated?: InputMaybe<Scalars['Boolean']>;
   region?: InputMaybe<Regions_Obj_Rel_Insert_Input>;
   regionId?: InputMaybe<Scalars['uuid']>;
@@ -2886,7 +2879,6 @@ export type Apps_Max_Fields = {
   name?: Maybe<Scalars['String']>;
   nhostBaseFolder?: Maybe<Scalars['String']>;
   planId?: Maybe<Scalars['uuid']>;
-  postgresPassword?: Maybe<Scalars['String']>;
   regionId?: Maybe<Scalars['uuid']>;
   repositoryProductionBranch?: Maybe<Scalars['String']>;
   slug?: Maybe<Scalars['String']>;
@@ -2909,7 +2901,6 @@ export type Apps_Max_Order_By = {
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   planId?: InputMaybe<Order_By>;
-  postgresPassword?: InputMaybe<Order_By>;
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
   slug?: InputMaybe<Order_By>;
@@ -2933,7 +2924,6 @@ export type Apps_Min_Fields = {
   name?: Maybe<Scalars['String']>;
   nhostBaseFolder?: Maybe<Scalars['String']>;
   planId?: Maybe<Scalars['uuid']>;
-  postgresPassword?: Maybe<Scalars['String']>;
   regionId?: Maybe<Scalars['uuid']>;
   repositoryProductionBranch?: Maybe<Scalars['String']>;
   slug?: Maybe<Scalars['String']>;
@@ -2956,7 +2946,6 @@ export type Apps_Min_Order_By = {
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
   planId?: InputMaybe<Order_By>;
-  postgresPassword?: InputMaybe<Order_By>;
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
   slug?: InputMaybe<Order_By>;
@@ -3017,7 +3006,6 @@ export type Apps_Order_By = {
   paused?: InputMaybe<Order_By>;
   plan?: InputMaybe<Plans_Order_By>;
   planId?: InputMaybe<Order_By>;
-  postgresPassword?: InputMaybe<Order_By>;
   providersUpdated?: InputMaybe<Order_By>;
   region?: InputMaybe<Regions_Order_By>;
   regionId?: InputMaybe<Order_By>;
@@ -3072,8 +3060,6 @@ export enum Apps_Select_Column {
   Paused = 'paused',
   /** column name */
   PlanId = 'planId',
-  /** column name */
-  PostgresPassword = 'postgresPassword',
   /** column name */
   ProvidersUpdated = 'providersUpdated',
   /** column name */
@@ -3134,7 +3120,6 @@ export type Apps_Set_Input = {
   /** whether or not this app is paused */
   paused?: InputMaybe<Scalars['Boolean']>;
   planId?: InputMaybe<Scalars['uuid']>;
-  postgresPassword?: InputMaybe<Scalars['String']>;
   providersUpdated?: InputMaybe<Scalars['Boolean']>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
@@ -3204,7 +3189,6 @@ export type Apps_Stream_Cursor_Value_Input = {
   /** whether or not this app is paused */
   paused?: InputMaybe<Scalars['Boolean']>;
   planId?: InputMaybe<Scalars['uuid']>;
-  postgresPassword?: InputMaybe<Scalars['String']>;
   providersUpdated?: InputMaybe<Scalars['Boolean']>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
@@ -3258,8 +3242,6 @@ export enum Apps_Update_Column {
   Paused = 'paused',
   /** column name */
   PlanId = 'planId',
-  /** column name */
-  PostgresPassword = 'postgresPassword',
   /** column name */
   ProvidersUpdated = 'providersUpdated',
   /** column name */
@@ -19053,6 +19035,14 @@ export type GetPostgresSettingsQueryVariables = Exact<{
 
 export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', version?: string | null } | null } | null };
 
+export type ResetDatabasePasswordMutationVariables = Exact<{
+  appId: Scalars['String'];
+  newPassword: Scalars['String'];
+}>;
+
+
+export type ResetDatabasePasswordMutation = { __typename?: 'mutation_root', resetPostgresPassword: boolean };
+
 export type GetHasuraSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -19275,14 +19265,6 @@ export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetCountriesQuery = { __typename?: 'query_root', countries: Array<{ __typename?: 'countries', code: any, name: string }> };
-
-export type ResetPostgresPasswordMutationVariables = Exact<{
-  appID: Scalars['String'];
-  newPassword: Scalars['String'];
-}>;
-
-
-export type ResetPostgresPasswordMutation = { __typename?: 'mutation_root', resetPostgresPassword: boolean };
 
 export type DeploymentRowFragment = { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null };
 
@@ -20128,6 +20110,38 @@ export type GetPostgresSettingsQueryResult = Apollo.QueryResult<GetPostgresSetti
 export function refetchGetPostgresSettingsQuery(variables: GetPostgresSettingsQueryVariables) {
       return { query: GetPostgresSettingsDocument, variables: variables }
     }
+export const ResetDatabasePasswordDocument = gql`
+    mutation ResetDatabasePassword($appId: String!, $newPassword: String!) {
+  resetPostgresPassword(appID: $appId, newPassword: $newPassword)
+}
+    `;
+export type ResetDatabasePasswordMutationFn = Apollo.MutationFunction<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
+
+/**
+ * __useResetDatabasePasswordMutation__
+ *
+ * To run a mutation, you first call `useResetDatabasePasswordMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResetDatabasePasswordMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resetDatabasePasswordMutation, { data, loading, error }] = useResetDatabasePasswordMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      newPassword: // value for 'newPassword'
+ *   },
+ * });
+ */
+export function useResetDatabasePasswordMutation(baseOptions?: Apollo.MutationHookOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>(ResetDatabasePasswordDocument, options);
+      }
+export type ResetDatabasePasswordMutationHookResult = ReturnType<typeof useResetDatabasePasswordMutation>;
+export type ResetDatabasePasswordMutationResult = Apollo.MutationResult<ResetDatabasePasswordMutation>;
+export type ResetDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
 export const GetHasuraSettingsDocument = gql`
     query GetHasuraSettings($appId: uuid!) {
   config(appID: $appId, resolve: true) {
@@ -21414,38 +21428,6 @@ export type GetCountriesQueryResult = Apollo.QueryResult<GetCountriesQuery, GetC
 export function refetchGetCountriesQuery(variables?: GetCountriesQueryVariables) {
       return { query: GetCountriesDocument, variables: variables }
     }
-export const ResetPostgresPasswordDocument = gql`
-    mutation resetPostgresPassword($appID: String!, $newPassword: String!) {
-  resetPostgresPassword(appID: $appID, newPassword: $newPassword)
-}
-    `;
-export type ResetPostgresPasswordMutationFn = Apollo.MutationFunction<ResetPostgresPasswordMutation, ResetPostgresPasswordMutationVariables>;
-
-/**
- * __useResetPostgresPasswordMutation__
- *
- * To run a mutation, you first call `useResetPostgresPasswordMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useResetPostgresPasswordMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [resetPostgresPasswordMutation, { data, loading, error }] = useResetPostgresPasswordMutation({
- *   variables: {
- *      appID: // value for 'appID'
- *      newPassword: // value for 'newPassword'
- *   },
- * });
- */
-export function useResetPostgresPasswordMutation(baseOptions?: Apollo.MutationHookOptions<ResetPostgresPasswordMutation, ResetPostgresPasswordMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ResetPostgresPasswordMutation, ResetPostgresPasswordMutationVariables>(ResetPostgresPasswordDocument, options);
-      }
-export type ResetPostgresPasswordMutationHookResult = ReturnType<typeof useResetPostgresPasswordMutation>;
-export type ResetPostgresPasswordMutationResult = Apollo.MutationResult<ResetPostgresPasswordMutation>;
-export type ResetPostgresPasswordMutationOptions = Apollo.BaseMutationOptions<ResetPostgresPasswordMutation, ResetPostgresPasswordMutationVariables>;
 export const ScheduledOrPendingDeploymentsSubDocument = gql`
     subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
   deployments(
