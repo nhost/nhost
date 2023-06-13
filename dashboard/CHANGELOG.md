@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.17.10
+
+### Patch Changes
+
+- c8c2a10b2: fix(database): don't break the password reset flow
+- e70b45498: chore(deps): bump `@types/react` to `v18.2.12` and `@types/react-dom` to `v18.2.5`
+
 ## 0.17.9
 
 ### Patch Changes
