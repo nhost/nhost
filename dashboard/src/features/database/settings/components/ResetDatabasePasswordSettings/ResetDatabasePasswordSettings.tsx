@@ -6,14 +6,11 @@ import { Button } from '@/components/ui/v2/Button';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { Text } from '@/components/ui/v2/Text';
 import { generateRandomDatabasePassword } from '@/features/database/common/utils/generateRandomDatabasePassword';
+import type { ResetDatabasePasswordFormValues } from '@/features/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { resetDatabasePasswordValidationSchema } from '@/features/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import {
-  useResetPostgresPasswordMutation,
-  useUpdateApplicationMutation,
-} from '@/generated/graphql';
+import { useResetDatabasePasswordMutation } from '@/generated/graphql';
 import { useLeaveConfirm } from '@/hooks/useLeaveConfirm';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';
@@ -24,18 +21,10 @@ import { useUserData } from '@nhost/nextjs';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
-export interface ResetDatabasePasswordFormValues {
-  /**
-   * The new password to set for the database.
-   */
-  databasePassword: string;
-}
-
 export default function ResetDatabasePasswordSettings() {
-  const [updateApplication] = useUpdateApplicationMutation();
+  const [resetPassword, { loading: resetPasswordLoading }] =
+    useResetDatabasePasswordMutation();
   const { maintenanceActive } = useUI();
-  const [resetPostgresPasswordMutation, { loading: resetPasswordLoading }] =
-    useResetPostgresPasswordMutation();
   const user = useUserData();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const { openAlertDialog } = useDialog();
@@ -65,10 +54,7 @@ export default function ResetDatabasePasswordSettings() {
   function handleGenerateRandomPassword() {
     const newRandomDatabasePassword = generateRandomDatabasePassword();
     triggerToast(
-      <Text>
-        Random database password generated and copied to clipboard. Submit the
-        form to save it.
-      </Text>,
+      'Random database password was generated and copied to clipboard. Submit the form to save it.',
     );
     copy(newRandomDatabasePassword);
     setValue('databasePassword', newRandomDatabasePassword, {
@@ -80,18 +66,10 @@ export default function ResetDatabasePasswordSettings() {
     formValues: ResetDatabasePasswordFormValues,
   ) {
     try {
-      await resetPostgresPasswordMutation({
-        variables: {
-          appID: currentProject.id,
-          newPassword: formValues.databasePassword,
-        },
-      });
-      await updateApplication({
+      await resetPassword({
         variables: {
           appId: currentProject.id,
-          app: {
-            postgresPassword: formValues.databasePassword,
-          },
+          newPassword: formValues.databasePassword,
         },
       });
 

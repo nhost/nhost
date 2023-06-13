@@ -4,7 +4,7 @@ export default function getColor() {
   const colorPreference =
     typeof window !== 'undefined'
       ? window.localStorage.getItem(COLOR_PREFERENCE_STORAGE_KEY)
-      : 'light';
+      : 'system';
   const prefersDarkMode =
     typeof window !== 'undefined'
       ? window.matchMedia('(prefers-color-scheme: dark)').matches

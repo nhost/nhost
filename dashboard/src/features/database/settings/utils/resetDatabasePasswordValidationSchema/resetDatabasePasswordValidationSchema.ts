@@ -16,4 +16,8 @@ export const resetDatabasePasswordValidationSchema = yup.object().shape({
     .minUppercase(1),
 });
 
+export type ResetDatabasePasswordFormValues = yup.InferType<
+  typeof resetDatabasePasswordValidationSchema
+>;
+
 export default resetDatabasePasswordValidationSchema;
