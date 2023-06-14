@@ -1,9 +1,9 @@
 import {
   AuthMachine,
+  NHOST_REFRESH_TOKEN_KEY,
   NhostClient,
   NhostReactClientConstructorParams,
   NhostSession,
-  NHOST_REFRESH_TOKEN_KEY,
   VanillaNhostClient
 } from '@nhost/react'
 import Cookies from 'js-cookie'
@@ -12,9 +12,11 @@ import { StateFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { NHOST_SESSION_KEY } from './utils'
 
-export type CreateServerSideClientParams = Pick<
-  NhostReactClientConstructorParams,
-  'subdomain' | 'region' | 'authUrl' | 'functionsUrl' | 'graphqlUrl' | 'storageUrl'
+export type CreateServerSideClientParams = Partial<
+  Pick<
+    NhostReactClientConstructorParams,
+    'subdomain' | 'region' | 'authUrl' | 'functionsUrl' | 'graphqlUrl' | 'storageUrl'
+  >
 >
 
 /**

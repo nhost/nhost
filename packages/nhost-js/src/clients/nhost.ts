@@ -52,12 +52,19 @@ export class NhostClient {
     this.functions = createFunctionsClient({ adminSecret, ...urlParams })
     this.graphql = createGraphqlClient({ adminSecret, ...urlParams })
 
-    this.auth.onAuthStateChanged((_event, session) => {
-      if (_event === 'SIGNED_OUT') {
+    this.auth.onAuthStateChanged((event, session) => {
+      if (event === 'SIGNED_OUT') {
         this.storage.setAccessToken(undefined)
         this.functions.setAccessToken(undefined)
         this.graphql.setAccessToken(undefined)
+
+        return
       }
+
+      const accessToken = session?.accessToken
+      this.storage.setAccessToken(accessToken)
+      this.functions.setAccessToken(accessToken)
+      this.graphql.setAccessToken(accessToken)
     })
 
     // * Update access token for clients, including when signin in
