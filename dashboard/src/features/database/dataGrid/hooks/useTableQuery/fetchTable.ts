@@ -187,11 +187,11 @@ export default async function fetchTable({
       const queryError = responseData as QueryError;
       const schemaNotFound =
         POSTGRESQL_ERROR_CODES.SCHEMA_NOT_FOUND ===
-        queryError.internal.error.status_code;
+        queryError.internal?.error?.status_code;
 
       const tableNotFound =
         POSTGRESQL_ERROR_CODES.TABLE_NOT_FOUND ===
-        queryError.internal.error.status_code;
+        queryError.internal?.error?.status_code;
 
       if (schemaNotFound || tableNotFound) {
         return {
@@ -203,7 +203,7 @@ export default async function fetchTable({
       }
 
       if (
-        queryError.internal.error.status_code ===
+        queryError.internal?.error?.status_code ===
         POSTGRESQL_ERROR_CODES.COLUMNS_NOT_FOUND
       ) {
         return {
@@ -214,7 +214,7 @@ export default async function fetchTable({
         };
       }
 
-      throw new Error(queryError.internal.error.message);
+      throw new Error(queryError.internal?.error?.message);
     }
 
     if ('error' in responseData) {

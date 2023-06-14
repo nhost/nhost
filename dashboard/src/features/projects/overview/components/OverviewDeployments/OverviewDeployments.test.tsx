@@ -1,4 +1,5 @@
 import { mockApplication, mockWorkspace } from '@/tests/mocks';
+import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { queryClient, render, screen } from '@/tests/testUtils';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
@@ -34,6 +35,7 @@ vi.mock('next/router', () => ({
 }));
 
 const server = setupServer(
+  tokenQuery,
   rest.get('https://local.graphql.nhost.run/v1', (_req, res, ctx) =>
     res(ctx.status(200)),
   ),
@@ -135,6 +137,7 @@ test('should render an empty state when GitHub is connected, but there are no de
 
 test('should render a list of deployments', async () => {
   server.use(
+    tokenQuery,
     rest.post('https://local.graphql.nhost.run/v1', async (_req, res, ctx) => {
       const { operationName } = await _req.json();
 
@@ -194,6 +197,7 @@ test('should render a list of deployments', async () => {
 
 test('should disable redeployments if a deployment is already in progress', async () => {
   server.use(
+    tokenQuery,
     rest.post('https://local.graphql.nhost.run/v1', async (req, res, ctx) => {
       const { operationName } = await req.json();
 

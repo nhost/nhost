@@ -1,7 +1,7 @@
 import { rest } from 'msw';
 
 const tableQuery = rest.post(
-  'http://localhost:8080/v2/query',
+  'https://local.hasura.nhost.run/v2/query',
   async (req, res, ctx) => {
     const body = await req.json();
 

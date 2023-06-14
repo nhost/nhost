@@ -3,9 +3,19 @@
 This is the Nhost Dashboard, a web application that allows you to manage your Nhost projects.
 To get started, you need to have an Nhost project. If you don't have one, you can [create a project here](https://app.nhost.io).
 
+First, install the dependencies:
+
 ```bash
 pnpm install
 ```
+
+Then, run the development server:
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## Environment
 
@@ -52,6 +62,12 @@ Components are documented using [Storybook](https://storybook.js.org/). To run S
 
 ```bash
 pnpm storybook
+```
+
+By default, Storybook will run on port `6006`. You can change this by passing the `--port` flag:
+
+```bash
+pnpm storybook --port 6007
 ```
 
 ### General Environment Variables
@@ -109,6 +125,14 @@ pnpm storybook
 | `@typescript-eslint/consistent-type-imports` | Enforces `import type { Type } from 'module'` syntax. It prevents false positive circular dependency errors.                                                 |
 | `@typescript-eslint/naming-convention`       | Enforces a consistent naming convention.                                                                                                                     |
 | `no-restricted-imports`                      | Enforces absolute imports and consistent import paths for components from `src/components/ui` folder.                                                        |
+
+### Unit Tests
+
+Unit tests are written using [Vitest](https://vitest.dev/). To run the tests, run the following command:
+
+```bash
+pnpm test
+```
 
 ### End-to-End Tests
 
