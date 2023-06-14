@@ -261,7 +261,7 @@ describe('General and disabled auto-sign in', () => {
       data: {
         session: {
           accessToken,
-          accessTokenExpiresIn: 0,
+          accessTokenExpiresIn: 15,
           refreshToken,
           user
         }
