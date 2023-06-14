@@ -309,8 +309,8 @@ importers:
         specifier: ^12.3.1
         version: 12.3.1
       '@playwright/test':
-        specifier: ^1.34.0
-        version: 1.34.0
+        specifier: 1.31.0
+        version: 1.31.0
       '@storybook/addon-actions':
         specifier: ^6.5.14
         version: 6.5.14(react-dom@18.2.0)(react@18.2.0)
@@ -923,8 +923,8 @@ importers:
         specifier: ^3.3.2
         version: 3.3.2
       '@playwright/test':
-        specifier: ^1.34.0
-        version: 1.34.0
+        specifier: 1.31.0
+        version: 1.31.0
       '@types/pngjs':
         specifier: ^6.0.1
         version: 6.0.1
@@ -7957,7 +7957,7 @@ packages:
       graphql: 16.6.0
       is-glob: 4.0.3
       micromatch: 4.0.5
-      tslib: 2.5.2
+      tslib: 2.5.0
       unixify: 1.0.0
     transitivePeerDependencies:
       - '@babel/core'
@@ -8007,7 +8007,7 @@ packages:
       '@graphql-tools/utils': 8.9.0(graphql@16.6.0)
       globby: 11.1.0
       graphql: 16.6.0
-      tslib: 2.5.0
+      tslib: 2.5.2
       unixify: 1.0.0
     dev: true
 
@@ -8098,7 +8098,7 @@ packages:
       '@graphql-tools/utils': 8.9.0(graphql@16.6.0)
       globby: 11.1.0
       graphql: 16.6.0
-      tslib: 2.5.0
+      tslib: 2.5.2
       unixify: 1.0.0
     dev: true
 
@@ -8111,7 +8111,7 @@ packages:
       '@graphql-tools/utils': 8.12.0(graphql@16.6.0)
       graphql: 16.6.0
       p-limit: 3.1.0
-      tslib: 2.5.0
+      tslib: 2.5.2
     dev: true
 
   /@graphql-tools/merge@8.3.1(graphql@16.6.0):
@@ -9782,13 +9782,13 @@ packages:
       tslib: 2.5.2
       webcrypto-core: 1.7.5
 
-  /@playwright/test@1.34.0:
-    resolution: {integrity: sha512-GIALJVODOIrMflLV54H3Cow635OfrTwOu24ZTDyKC66uchtFX2NcCRq83cLdakMjZKYK78lODNLQSYBj2OgaTw==}
+  /@playwright/test@1.31.0:
+    resolution: {integrity: sha512-Ys5s/06Dg9g3zAIdCIb/UOBYim3U7Zjb3DvC6XBtnRmnglH5O47iwYzmtxXu9fhSyzI2Jn28apkXIOD81GgCdw==}
     engines: {node: '>=14'}
     hasBin: true
     dependencies:
       '@types/node': 18.16.14
-      playwright-core: 1.34.0
+      playwright-core: 1.31.0
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
@@ -13345,7 +13345,7 @@ packages:
       ignore: 5.2.0
       natural-compare-lite: 1.4.0
       regexpp: 3.2.0
-      semver: 7.3.8
+      semver: 7.5.1
       tsutils: 3.21.0(typescript@4.9.5)
       typescript: 4.9.5
     transitivePeerDependencies:
@@ -14367,7 +14367,7 @@ packages:
       '@vueuse/metadata': 8.9.4
       '@vueuse/shared': 8.9.4(vue@3.2.40)
       vue: 3.2.40
-      vue-demi: 0.13.4(vue@3.2.40)
+      vue-demi: 0.14.0(vue@3.2.40)
 
   /@vueuse/metadata@10.0.2:
     resolution: {integrity: sha512-APSjlABrV+Q74c+FR0kFETvcN9W2pAaT3XF3WwqWUuk4srmVxv7DY4WshZxK2KYk1+MVY0Fus6J1Hk/JXVm6Aw==}
@@ -21463,7 +21463,7 @@ packages:
       '@graphql-tools/graphql-file-loader': 7.5.0(graphql@16.6.0)
       '@graphql-tools/json-file-loader': 7.4.1(graphql@16.6.0)
       '@graphql-tools/load': 7.8.0(graphql@16.6.0)
-      '@graphql-tools/merge': 8.3.6(graphql@16.6.0)
+      '@graphql-tools/merge': 8.3.18(graphql@16.6.0)
       '@graphql-tools/url-loader': 7.17.13(@types/node@16.18.11)(encoding@0.1.13)(graphql@16.6.0)
       '@graphql-tools/utils': 9.2.1(graphql@16.6.0)
       cosmiconfig: 8.0.0
@@ -25863,9 +25863,10 @@ packages:
       find-up: 3.0.0
     dev: false
 
-  /playwright-core@1.34.0:
-    resolution: {integrity: sha512-fMUY1+iR6kYbJF/EsOOqzBA99ZHXbw9sYPNjwA4X/oV0hVF/1aGlWYBGPVUEqxBkGANDKMziYoOdKGU5DIP5Gg==}
+  /playwright-core@1.31.0:
+    resolution: {integrity: sha512-/KquBjS5DcASCh8cGeNVHuC0kyb7c9plKTwaKxgOGtxT7+DZO2fjmFvPDBSXslEIK5CeOO/2kk5rOCktFXKEdA==}
     engines: {node: '>=14'}
+    hasBin: true
     dev: true
 
   /pluralize@8.0.0:
@@ -31710,6 +31711,7 @@ packages:
         optional: true
     dependencies:
       vue: 3.2.40
+    dev: false
 
   /vue-demi@0.13.4(vue@3.2.41):
     resolution: {integrity: sha512-KP4lq9uSz0KZbaqCllRhnxMV3mYRsRWJfdsAhZyt5bV5O1RTpoeDptBRV9NOa/JgOpfaA9ane88VF7OjWNK/DA==}

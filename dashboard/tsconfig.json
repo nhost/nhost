@@ -33,5 +33,5 @@
     "incremental": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", ".nhost", "nhost", "functions"]
+  "exclude": ["node_modules", ".nhost", "nhost", "functions", "playwright.config.ts"]
 }

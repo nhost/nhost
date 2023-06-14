@@ -136,13 +136,9 @@ pnpm test
 
 ### End-to-End Tests
 
-End-to-end tests are written using [Playwright](https://playwright.dev/). To run the tests, run the following command:
+Most of the end-to-end tests require access to an Nhost test user and a live project. You can register one and create a test project on the [Nhost Dashboard](https://app.nhost.io/).
 
-```bash
-pnpm e2e
-```
-
-Most of the tests require access to the Nhost test user. To run these tests, you need to set the following environment variables in `.env.test`:
+Next, you need to create a project. Make sure to copy the workspace name, project name, and project admin secret and save them in `.env.test`:
 
 ```
 NHOST_TEST_DASHBOARD_URL=<test_dashboard_url>
@@ -151,4 +147,10 @@ NHOST_TEST_USER_PASSWORD=<test_user_password>
 NHOST_TEST_WORKSPACE_NAME=<test_workspace_name>
 NHOST_TEST_PROJECT_NAME=<test_project_name>
 NHOST_TEST_PROJECT_ADMIN_SECRET=<test_project_admin_secret>
+```
+
+End-to-end tests are written using [Playwright](https://playwright.dev/). To run the tests, run the following command:
+
+```bash
+pnpm e2e
 ```
