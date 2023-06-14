@@ -1,8 +1,10 @@
 import { load } from 'cheerio'
-import fetch from 'isomorphic-unfetch'
+import fetchPonyfill from 'fetch-ponyfill'
 import createMailhogClient from 'mailhog'
 import { expect } from 'vitest'
 import { HasuraAuthClient, SignUpParams } from '../src'
+
+const { fetch } = fetchPonyfill()
 
 const AUTH_BACKEND_URL = 'https://local.auth.nhost.run/v1'
 

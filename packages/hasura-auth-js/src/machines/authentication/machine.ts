@@ -11,7 +11,7 @@ import {
   NHOST_REFRESH_TOKEN_ID_KEY,
   NHOST_REFRESH_TOKEN_KEY,
   REFRESH_TOKEN_MAX_ATTEMPTS,
-  TOKEN_REFRESH_MARGIN
+  TOKEN_REFRESH_MARGIN_SECONDS
 } from '../../constants'
 import {
   CodifiedError,
@@ -548,13 +548,15 @@ export const createAuthMachine = ({
               storageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh.toISOString())
               return {
                 value: accessToken,
-                expiresAt: nextRefresh
+                expiresAt: nextRefresh,
+                expiresInSeconds: accessTokenExpiresIn
               }
             }
             storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
             return {
               value: null,
-              expiresAt: null
+              expiresAt: null,
+              expiresInSeconds: null
             }
           },
           refreshToken: (_, { data }) => {
@@ -582,13 +584,15 @@ export const createAuthMachine = ({
               storageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh.toISOString())
               return {
                 value: accessToken,
-                expiresAt: nextRefresh
+                expiresAt: nextRefresh,
+                expiresInSeconds: accessTokenExpiresIn
               }
             }
             storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
             return {
               value: null,
-              expiresAt: null
+              expiresAt: null,
+              expiresInSeconds: null
             }
           },
           refreshToken: (_, { data }) => {
@@ -704,10 +708,23 @@ export const createAuthMachine = ({
             }
           }
           // * In any case, it's time to refresh when there's less than
-          // * TOKEN_REFRESH_MARGIN seconds before the JWT exprires
-          const expiresIn = expiresAt.getTime() - Date.now()
-          const remaining = expiresIn - 1_000 * TOKEN_REFRESH_MARGIN
-          return remaining <= 0
+          // * TOKEN_REFRESH_MARGIN_SECONDS seconds before the JWT exprires
+          const accessTokenExpirationTime = ctx.accessToken.expiresInSeconds
+
+          if (!accessTokenExpirationTime) {
+            return false
+          }
+
+          const expiresInMilliseconds = expiresAt.getTime() - Date.now()
+
+          // If the token expires in less time than the margin, we should use
+          // a margin based on the token expiration time to avoid refreshing
+          // the token infinitely
+          const remainingMilliseconds =
+            expiresInMilliseconds -
+            1_000 * Math.min(TOKEN_REFRESH_MARGIN_SECONDS, accessTokenExpirationTime * 0.5)
+
+          return remainingMilliseconds <= 0
         },
         // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
         /** Shoud retry to import the token on network error or any internal server error.

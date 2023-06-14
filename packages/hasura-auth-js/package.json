@@ -65,7 +65,7 @@
   },
   "dependencies": {
     "@simplewebauthn/browser": "^6.0.0",
-    "isomorphic-unfetch": "^3.1.0",
+    "fetch-ponyfill": "^7.1.0",
     "js-cookie": "^3.0.1",
     "jwt-decode": "^3.1.2",
     "xstate": "^4.33.5"
@@ -76,6 +76,6 @@
     "@types/js-cookie": "^3.0.2",
     "cheerio": "1.0.0-rc.12",
     "mailhog": "^4.16.0",
-    "msw": "^1.0.1"
+    "msw": "^1.2.2"
   }
 }

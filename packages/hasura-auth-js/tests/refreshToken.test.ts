@@ -1,14 +1,14 @@
 import { faker } from '@faker-js/faker'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
-import { interpret, InterpreterFrom } from 'xstate'
+import { InterpreterFrom, interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import {
   AuthMachine,
-  createAuthMachine,
   INVALID_REFRESH_TOKEN,
   NHOST_JWT_EXPIRES_AT_KEY,
   NHOST_REFRESH_TOKEN_KEY,
-  TOKEN_REFRESH_MARGIN
+  TOKEN_REFRESH_MARGIN_SECONDS,
+  createAuthMachine
 } from '../src'
 import { BASE_URL } from './helpers/config'
 import {
@@ -68,7 +68,8 @@ describe(`Time based token refresh`, () => {
     ...contextWithUser,
     accessToken: {
       value: initialToken,
-      expiresAt: initialExpiration
+      expiresAt: initialExpiration,
+      expiresInSeconds: 900
     }
   })
 
@@ -105,7 +106,7 @@ describe(`Time based token refresh`, () => {
 
   test(`access token should always be refreshed when reaching the expiration margin`, async () => {
     // Fast forward to the initial expiration date
-    vi.setSystemTime(new Date(initialExpiration.getTime() - TOKEN_REFRESH_MARGIN * 1000))
+    vi.setSystemTime(new Date(initialExpiration.getTime() - TOKEN_REFRESH_MARGIN_SECONDS * 1000))
 
     await waitFor(authServiceWithInitialSession, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
@@ -126,7 +127,7 @@ describe(`Time based token refresh`, () => {
 
     // Fast forward to the expiration date of the access token
     vi.setSystemTime(
-      new Date(firstRefreshAccessTokenExpiration.getTime() - TOKEN_REFRESH_MARGIN * 1000)
+      new Date(firstRefreshAccessTokenExpiration.getTime() - TOKEN_REFRESH_MARGIN_SECONDS * 1000)
     )
 
     await waitFor(authServiceWithInitialSession, (state) =>
@@ -148,7 +149,9 @@ describe(`Time based token refresh`, () => {
 
     // Fast forward to a time when the access token is still valid, so nothing should be refreshed
     vi.setSystemTime(
-      new Date(secondRefreshAccessTokenExpiration.getTime() - TOKEN_REFRESH_MARGIN * 5 * 1000)
+      new Date(
+        secondRefreshAccessTokenExpiration.getTime() - TOKEN_REFRESH_MARGIN_SECONDS * 5 * 1000
+      )
     )
 
     const thirdRefreshState = await waitFor(authServiceWithInitialSession, (state) =>
@@ -165,7 +168,7 @@ describe(`Time based token refresh`, () => {
   })
 
   test(`token should be refreshed every N seconds based on the refresh interval`, async () => {
-    const refreshIntervalTime = faker.datatype.number({ min: 800, max: 900 })
+    const refreshIntervalTime = faker.datatype.number({ min: 1000, max: 1500 })
 
     const authMachineWithInitialSession = createAuthMachine({
       backendUrl: BASE_URL,
@@ -178,7 +181,8 @@ describe(`Time based token refresh`, () => {
       ...contextWithUser,
       accessToken: {
         value: initialToken,
-        expiresAt: initialExpiration
+        expiresAt: initialExpiration,
+        expiresInSeconds: 900
       }
     })
 
@@ -249,6 +253,7 @@ describe('General and disabled auto-sign in', () => {
     const user = { ...fakeUser }
     const accessToken = faker.datatype.string(40)
     const refreshToken = faker.datatype.uuid()
+    const accessTokenExpiresIn = 900
 
     server.use(authTokenNetworkErrorHandler)
 
@@ -257,12 +262,15 @@ describe('General and disabled auto-sign in', () => {
       data: {
         session: {
           accessToken,
-          accessTokenExpiresIn: 0,
+          accessTokenExpiresIn,
           refreshToken,
           user
         }
       }
     })
+
+    // Fast forward to a time when the access token is already expired
+    vi.setSystemTime(Date.now() + accessTokenExpiresIn * 1.5 * 1000)
 
     const state = await waitFor(authService, (state) => state.context.refreshTimer.attempts > 0)
     expect(state.context.refreshTimer.attempts).toBeGreaterThan(0)
