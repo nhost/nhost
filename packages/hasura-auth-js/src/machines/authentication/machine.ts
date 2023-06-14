@@ -715,16 +715,16 @@ export const createAuthMachine = ({
             return false
           }
 
-          const expiresInSeconds = expiresAt.getTime() - Date.now()
+          const expiresInMilliseconds = expiresAt.getTime() - Date.now()
 
           // If the token expires in less time than the margin, we should use
           // a margin based on the token expiration time to avoid refreshing
           // the token infinitely
-          const remainingSeconds =
-            expiresInSeconds -
+          const remainingMilliseconds =
+            expiresInMilliseconds -
             1_000 * Math.min(TOKEN_REFRESH_MARGIN_SECONDS, accessTokenExpirationTime * 0.5)
 
-          return remainingSeconds <= 0
+          return remainingMilliseconds <= 0
         },
         // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
         /** Shoud retry to import the token on network error or any internal server error.

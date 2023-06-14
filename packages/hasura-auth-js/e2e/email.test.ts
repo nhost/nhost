@@ -1,7 +1,9 @@
 import { faker } from '@faker-js/faker'
-import fetch from 'isomorphic-unfetch'
+import fetchPonyfill from 'fetch-ponyfill'
 import { afterEach, describe, expect, it } from 'vitest'
 import { auth, getHtmlLink, mailhog } from './helpers'
+
+const { fetch } = fetchPonyfill()
 
 describe('emails', () => {
   afterEach(async () => {

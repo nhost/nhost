@@ -1,10 +1,12 @@
-import fetch from 'isomorphic-unfetch'
+import fetchPonyfill from 'fetch-ponyfill'
 import { NETWORK_ERROR_CODE } from '../errors'
 import { NullableErrorResponse } from '../types'
 
 interface FetcResponse<T> extends NullableErrorResponse {
   data: T
 }
+
+const { fetch } = fetchPonyfill()
 
 const fetchWrapper = async <T>(
   url: string,
