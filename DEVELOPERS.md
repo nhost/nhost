@@ -116,6 +116,21 @@ This command will guide you through the process of creating a changeset. It will
 
 You can take a look at the changeset documentation: [How to add a changeset](https://github.com/changesets/changesets/blob/main/docs/adding-a-changeset.md).
 
+### Selecting the Version
+
+When you create a changeset, you will be asked to select the version of the package that you are bumping. The versioning scheme is as follows:
+
+- **major**
+  - For breaking changes (e.g: changing the function signature, etc.)
+  - Should be avoided as much as possible as it will require users to update their code. Instead, consider supporting both the old and the new API simultaneously for a while.
+  - For example: `v1.5.8` -> `v2.0.0`
+- **minor**
+  - For new features (e.g: adding a new page to the dashboard, etc.)
+  - For example: `v1.5.8` -> `v1.6.0`
+- **patch**
+  - For bug fixes (e.g: fixing a typo, etc.)
+  - For example: `v1.5.8` -> `v1.5.9`
+
 ### Writing Good Changesets
 
 A concise summary that describes the changes should be added to each PR. This summary will be used as the changeset description.
