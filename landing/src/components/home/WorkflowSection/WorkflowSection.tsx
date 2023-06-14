@@ -6,6 +6,7 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import { DetailedHTMLProps, HTMLProps, useEffect, useState } from 'react'
+import { ErrorBoundary } from 'react-error-boundary'
 import { useInView } from 'react-intersection-observer'
 import { twMerge } from 'tailwind-merge'
 
@@ -161,7 +162,22 @@ function CloudWorkflow({
   return (
     <div className={twMerge('lg:-mt-16', className)} {...props}>
       <div className="relative z-0 h-60 w-full md:h-80">
-        <Globe />
+        <ErrorBoundary
+          FallbackComponent={() => (
+            <div className="w-full">
+              <Image
+                src="/common/globe.png"
+                width={513}
+                height={309}
+                alt="Static globe"
+                className="mx-auto h-80 object-contain"
+              />
+            </div>
+          )}
+        >
+          <Globe />
+        </ErrorBoundary>
+
         <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-20 h-full w-full" />
         <div className="border-gradient relative z-30 mx-auto h-px w-10/12" />
         <div className="bg-black-to-transparent absolute -bottom-[300px] z-20 h-[664px] w-full" />
