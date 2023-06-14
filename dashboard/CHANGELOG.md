@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.17.11
+
+### Patch Changes
+
+- bd4d0c270: chore(dashboard):add postgres 14.6-20230613-1 to the version selector
+
 ## 0.17.10
 
 ### Patch Changes
