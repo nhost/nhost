@@ -138,7 +138,7 @@ pnpm test
 
 Most of the end-to-end tests require access to an Nhost test user and a live project. You can register one and create a test project on the [Nhost Dashboard](https://app.nhost.io/).
 
-Next, you need to create a project. Make sure to copy the workspace name, project name, and project admin secret and save them in `.env.test`:
+Next, you need to create a project. Create a `.env.test` file with the following variables:
 
 ```
 NHOST_TEST_DASHBOARD_URL=<test_dashboard_url>
@@ -148,6 +148,17 @@ NHOST_TEST_WORKSPACE_NAME=<test_workspace_name>
 NHOST_TEST_PROJECT_NAME=<test_project_name>
 NHOST_TEST_PROJECT_ADMIN_SECRET=<test_project_admin_secret>
 ```
+
+**Required Variables**:
+
+- `NHOST_TEST_DASHBOARD_URL`: The URL to run the tests against (e.g: http://localhost:3000 or https://staging.app.nhost.io)
+- `NHOST_TEST_USER_EMAIL`: Email address of the test user that owns the test project
+- `NHOST_TEST_USER_PASSWORD`: Password of the test user that owns the test project
+- `NHOST_TEST_WORKSPACE_NAME`: Name of the workspace that contains the test project
+- `NHOST_TEST_PROJECT_NAME`: Name of the test project
+- `NHOST_TEST_PROJECT_ADMIN_SECRET`: Admin secret of the test project
+
+Make sure to copy the workspace and project information from the [Nhost Dashboard](https://app.nhost.io/).
 
 End-to-end tests are written using [Playwright](https://playwright.dev/). To run the tests, run the following command:
 
