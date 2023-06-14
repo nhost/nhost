@@ -10,6 +10,7 @@ export type AuthContext = {
   accessToken: {
     value: string | null
     expiresAt: Date | null
+    expiresInSeconds: number | null
   }
   refreshTimer: {
     startedAt: Date | null
@@ -30,7 +31,8 @@ export const INITIAL_MACHINE_CONTEXT: AuthContext = {
   mfa: null,
   accessToken: {
     value: null,
-    expiresAt: null
+    expiresAt: null,
+    expiresInSeconds: 15
   },
   refreshTimer: {
     startedAt: null,

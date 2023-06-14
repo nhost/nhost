@@ -6,7 +6,8 @@ export const contextWithUser: AuthContext = {
   ...INITIAL_MACHINE_CONTEXT,
   accessToken: {
     value: faker.datatype.string(40),
-    expiresAt: faker.date.future()
+    expiresAt: faker.date.future(),
+    expiresInSeconds: 15
   },
   refreshToken: {
     value: faker.datatype.uuid()
