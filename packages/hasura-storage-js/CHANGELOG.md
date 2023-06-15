@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.1.6
+
+### Patch Changes
+
+- 1d04ad630: chore(deps): use `fetch-ponyfill` instead of `isomorphic-unfetch`
+
 ## 2.1.5
 
 ### Patch Changes
