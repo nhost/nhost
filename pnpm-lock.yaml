@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 overrides:
   graphql: 16.6.0
 
@@ -54,7 +58,7 @@ importers:
         version: 8.0.3(@babel/plugin-syntax-flow@7.18.6)(@babel/plugin-transform-react-jsx@7.19.0)(eslint@8.26.0)
       eslint-plugin-import:
         specifier: ^2.26.0
-        version: 2.26.0(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-typescript@2.7.1)(eslint@8.28.0)
+        version: 2.26.0(@typescript-eslint/parser@5.43.0)(eslint@8.26.0)
       eslint-plugin-jsx-a11y:
         specifier: ^6.6.1
         version: 6.6.1(eslint@8.26.0)
@@ -309,8 +313,8 @@ importers:
         specifier: ^12.3.1
         version: 12.3.1
       '@playwright/test':
-        specifier: 1.31.0
-        version: 1.31.0
+        specifier: 1.35.1
+        version: 1.35.1
       '@storybook/addon-actions':
         specifier: ^6.5.14
         version: 6.5.14(react-dom@18.2.0)(react@18.2.0)
@@ -624,7 +628,7 @@ importers:
         version: 4.9.4
       vite:
         specifier: ^4.0.2
-        version: 4.0.2(@types/node@16.18.11)(sass@1.32.0)
+        version: 4.0.2(@types/node@18.11.17)
 
   examples/codegen-react-query:
     dependencies:
@@ -1012,7 +1016,7 @@ importers:
         version: 8.4.18
       tailwindcss:
         specifier: ^3.2.1
-        version: 3.2.1(postcss@8.4.19)(ts-node@10.9.1)
+        version: 3.2.1(postcss@8.4.18)
       typescript:
         specifier: ^4.6.4
         version: 4.8.3
@@ -1766,7 +1770,7 @@ packages:
       eslint-plugin-antfu: 0.23.1(eslint@8.25.0)(typescript@4.8.3)
       eslint-plugin-eslint-comments: 3.2.0(eslint@8.25.0)
       eslint-plugin-html: 6.2.0
-      eslint-plugin-import: 2.26.0(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-typescript@2.7.1)(eslint@8.28.0)
+      eslint-plugin-import: 2.26.0(@typescript-eslint/parser@5.43.0)(eslint@8.25.0)
       eslint-plugin-jsonc: 2.2.1(eslint@8.25.0)
       eslint-plugin-markdown: 2.2.1(eslint@8.25.0)
       eslint-plugin-n: 15.2.0(eslint@8.25.0)
@@ -1842,7 +1846,7 @@ packages:
       eslint: 8.25.0
       eslint-plugin-eslint-comments: 3.2.0(eslint@8.25.0)
       eslint-plugin-html: 6.2.0
-      eslint-plugin-import: 2.26.0(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-typescript@2.7.1)(eslint@8.28.0)
+      eslint-plugin-import: 2.26.0(@typescript-eslint/parser@5.43.0)(eslint@8.25.0)
       eslint-plugin-jsonc: 2.2.1(eslint@8.25.0)
       eslint-plugin-n: 15.2.0(eslint@8.25.0)
       eslint-plugin-promise: 6.0.1(eslint@8.25.0)
@@ -7174,7 +7178,7 @@ packages:
       '@graphql-tools/apollo-engine-loader': 7.3.6(encoding@0.1.13)(graphql@16.6.0)
       '@graphql-tools/code-file-loader': 7.3.13(@babel/core@7.21.8)(graphql@16.6.0)
       '@graphql-tools/git-loader': 7.2.13(@babel/core@7.21.8)(graphql@16.6.0)
-      '@graphql-tools/github-loader': 7.3.20(@babel/core@7.20.2)(encoding@0.1.13)(graphql@16.6.0)
+      '@graphql-tools/github-loader': 7.3.20(@babel/core@7.21.8)(graphql@16.6.0)
       '@graphql-tools/graphql-file-loader': 7.5.0(graphql@16.6.0)
       '@graphql-tools/json-file-loader': 7.4.1(graphql@16.6.0)
       '@graphql-tools/load': 7.8.0(graphql@16.6.0)
@@ -7230,7 +7234,7 @@ packages:
       '@graphql-tools/apollo-engine-loader': 7.3.6(encoding@0.1.13)(graphql@16.6.0)
       '@graphql-tools/code-file-loader': 7.3.13(@babel/core@7.21.8)(graphql@16.6.0)
       '@graphql-tools/git-loader': 7.2.13(@babel/core@7.21.8)(graphql@16.6.0)
-      '@graphql-tools/github-loader': 7.3.20(@babel/core@7.20.2)(encoding@0.1.13)(graphql@16.6.0)
+      '@graphql-tools/github-loader': 7.3.20(@babel/core@7.21.8)(graphql@16.6.0)
       '@graphql-tools/graphql-file-loader': 7.5.0(graphql@16.6.0)
       '@graphql-tools/json-file-loader': 7.4.1(graphql@16.6.0)
       '@graphql-tools/load': 7.8.0(graphql@16.6.0)
@@ -7286,12 +7290,12 @@ packages:
       '@graphql-tools/apollo-engine-loader': 7.3.6(encoding@0.1.13)(graphql@16.6.0)
       '@graphql-tools/code-file-loader': 7.3.13(@babel/core@7.21.8)(graphql@16.6.0)
       '@graphql-tools/git-loader': 7.2.13(@babel/core@7.21.8)(graphql@16.6.0)
-      '@graphql-tools/github-loader': 7.3.20(@babel/core@7.20.2)(encoding@0.1.13)(graphql@16.6.0)
+      '@graphql-tools/github-loader': 7.3.20(@babel/core@7.21.8)(graphql@16.6.0)
       '@graphql-tools/graphql-file-loader': 7.5.0(graphql@16.6.0)
       '@graphql-tools/json-file-loader': 7.4.1(graphql@16.6.0)
       '@graphql-tools/load': 7.8.0(graphql@16.6.0)
       '@graphql-tools/prisma-loader': 7.2.8(@types/node@18.11.17)(graphql@16.6.0)
-      '@graphql-tools/url-loader': 7.13.3(@types/node@16.18.11)(encoding@0.1.13)(graphql@16.6.0)
+      '@graphql-tools/url-loader': 7.13.3(@types/node@18.11.17)(graphql@16.6.0)
       '@graphql-tools/utils': 8.12.0(graphql@16.6.0)
       '@whatwg-node/fetch': 0.3.2
       ansi-escapes: 4.3.2
@@ -7342,12 +7346,12 @@ packages:
       '@graphql-tools/apollo-engine-loader': 7.3.6(encoding@0.1.13)(graphql@16.6.0)
       '@graphql-tools/code-file-loader': 7.3.21(@babel/core@7.21.8)(graphql@16.6.0)
       '@graphql-tools/git-loader': 7.2.13(@babel/core@7.21.8)(graphql@16.6.0)
-      '@graphql-tools/github-loader': 7.3.20(@babel/core@7.20.2)(encoding@0.1.13)(graphql@16.6.0)
+      '@graphql-tools/github-loader': 7.3.20(@babel/core@7.21.8)(graphql@16.6.0)
       '@graphql-tools/graphql-file-loader': 7.5.0(graphql@16.6.0)
       '@graphql-tools/json-file-loader': 7.4.1(graphql@16.6.0)
       '@graphql-tools/load': 7.8.0(graphql@16.6.0)
-      '@graphql-tools/prisma-loader': 7.2.64(@types/node@16.18.11)(encoding@0.1.13)(graphql@16.6.0)
-      '@graphql-tools/url-loader': 7.17.13(@types/node@16.18.11)(encoding@0.1.13)(graphql@16.6.0)
+      '@graphql-tools/prisma-loader': 7.2.64(@types/node@18.16.14)(graphql@16.6.0)
+      '@graphql-tools/url-loader': 7.17.13(@types/node@18.16.14)(graphql@16.6.0)
       '@graphql-tools/utils': 9.2.1(graphql@16.6.0)
       '@whatwg-node/fetch': 0.6.2
       chalk: 4.1.2
@@ -7357,7 +7361,7 @@ packages:
       debounce: 1.2.1
       detect-indent: 6.1.0
       graphql: 16.6.0
-      graphql-config: 4.4.1(@types/node@16.18.11)(cosmiconfig-typescript-loader@4.3.0)(encoding@0.1.13)(graphql@16.6.0)
+      graphql-config: 4.4.1(@types/node@18.16.14)(cosmiconfig-typescript-loader@4.3.0)(graphql@16.6.0)
       inquirer: 8.2.5
       is-glob: 4.0.3
       json-to-pretty-yaml: 1.2.2
@@ -7905,6 +7909,42 @@ packages:
       - '@types/node'
     dev: true
 
+  /@graphql-tools/executor-http@0.1.9(@types/node@18.11.17)(graphql@16.6.0):
+    resolution: {integrity: sha512-tNzMt5qc1ptlHKfpSv9wVBVKCZ7gks6Yb/JcYJluxZIT4qRV+TtOFjpptfBU63usgrGVOVcGjzWc/mt7KhmmpQ==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+    dependencies:
+      '@graphql-tools/utils': 9.2.1(graphql@16.6.0)
+      '@repeaterjs/repeater': 3.0.4
+      '@whatwg-node/fetch': 0.8.1(@types/node@18.11.17)
+      dset: 3.1.2
+      extract-files: 11.0.0
+      graphql: 16.6.0
+      meros: 1.2.1(@types/node@18.11.17)
+      tslib: 2.5.2
+      value-or-promise: 1.0.12
+    transitivePeerDependencies:
+      - '@types/node'
+    dev: true
+
+  /@graphql-tools/executor-http@0.1.9(@types/node@18.16.14)(graphql@16.6.0):
+    resolution: {integrity: sha512-tNzMt5qc1ptlHKfpSv9wVBVKCZ7gks6Yb/JcYJluxZIT4qRV+TtOFjpptfBU63usgrGVOVcGjzWc/mt7KhmmpQ==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+    dependencies:
+      '@graphql-tools/utils': 9.2.1(graphql@16.6.0)
+      '@repeaterjs/repeater': 3.0.4
+      '@whatwg-node/fetch': 0.8.1(@types/node@18.16.14)
+      dset: 3.1.2
+      extract-files: 11.0.0
+      graphql: 16.6.0
+      meros: 1.2.1(@types/node@18.16.14)
+      tslib: 2.5.2
+      value-or-promise: 1.0.12
+    transitivePeerDependencies:
+      - '@types/node'
+    dev: true
+
   /@graphql-tools/executor-legacy-ws@0.0.9(graphql@16.6.0):
     resolution: {integrity: sha512-L7oDv7R5yoXzMH+KLKDB2WHVijfVW4dB2H+Ae1RdW3MFvwbYjhnIB6QzHqKEqksjp/FndtxZkbuTIuAOsYGTYw==}
     peerDependencies:
@@ -7988,6 +8028,23 @@ packages:
     dependencies:
       '@ardatan/sync-fetch': 0.0.1(encoding@0.1.13)
       '@graphql-tools/graphql-tag-pluck': 7.4.0(@babel/core@7.20.2)(graphql@16.6.0)
+      '@graphql-tools/utils': 9.1.1(graphql@16.6.0)
+      '@whatwg-node/fetch': 0.5.3(encoding@0.1.13)
+      graphql: 16.6.0
+      tslib: 2.5.2
+    transitivePeerDependencies:
+      - '@babel/core'
+      - encoding
+      - supports-color
+    dev: true
+
+  /@graphql-tools/github-loader@7.3.20(@babel/core@7.21.8)(graphql@16.6.0):
+    resolution: {integrity: sha512-kIgloHb+yJJYR6K47HNBv7vI7IF73eoGsQy77H+2WDA+zwE5PuRXGUTAlJXRQdwiY71/Nvbw44P3l4WWbMRv0Q==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+    dependencies:
+      '@ardatan/sync-fetch': 0.0.1(encoding@0.1.13)
+      '@graphql-tools/graphql-tag-pluck': 7.4.0(@babel/core@7.21.8)(graphql@16.6.0)
       '@graphql-tools/utils': 9.1.1(graphql@16.6.0)
       '@whatwg-node/fetch': 0.5.3(encoding@0.1.13)
       graphql: 16.6.0
@@ -8184,6 +8241,39 @@ packages:
       - utf-8-validate
     dev: true
 
+  /@graphql-tools/prisma-loader@7.2.64(@types/node@18.16.14)(graphql@16.6.0):
+    resolution: {integrity: sha512-W8GfzfBKiBSIEgw+/nJk6zUlF6k/jterlNoFhM27mBsbeMtWxKnm1+gEU6KA0N1PNEdq2RIa2W4AfVfVBl2GgQ==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+    dependencies:
+      '@graphql-tools/url-loader': 7.17.13(@types/node@18.16.14)(graphql@16.6.0)
+      '@graphql-tools/utils': 9.2.1(graphql@16.6.0)
+      '@types/js-yaml': 4.0.5
+      '@types/json-stable-stringify': 1.0.34
+      '@types/jsonwebtoken': 9.0.0
+      chalk: 4.1.2
+      debug: 4.3.4
+      dotenv: 16.1.3
+      graphql: 16.6.0
+      graphql-request: 5.1.0(encoding@0.1.13)(graphql@16.6.0)
+      http-proxy-agent: 5.0.0
+      https-proxy-agent: 5.0.1
+      isomorphic-fetch: 3.0.0(encoding@0.1.13)
+      js-yaml: 4.1.0
+      json-stable-stringify: 1.0.1
+      jsonwebtoken: 9.0.0
+      lodash: 4.17.21
+      scuid: 1.1.0
+      tslib: 2.5.2
+      yaml-ast-parser: 0.0.43
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - encoding
+      - supports-color
+      - utf-8-validate
+    dev: true
+
   /@graphql-tools/prisma-loader@7.2.8(@types/node@16.18.11)(graphql@16.6.0):
     resolution: {integrity: sha512-GeMZe3QHdLlsTmRn4dE/yB2lSR4RF9kmyeNGLMKmTQLzHxT5kjjDTmX00T5F1RO5fh+5jPwIVCMw+MQxB7nXpA==}
     peerDependencies:
@@ -8222,7 +8312,7 @@ packages:
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
     dependencies:
-      '@graphql-tools/url-loader': 7.13.3(@types/node@16.18.11)(encoding@0.1.13)(graphql@16.6.0)
+      '@graphql-tools/url-loader': 7.13.3(@types/node@18.11.17)(graphql@16.6.0)
       '@graphql-tools/utils': 8.9.0(graphql@16.6.0)
       '@types/js-yaml': 4.0.5
       '@types/json-stable-stringify': 1.0.34
@@ -8326,6 +8416,34 @@ packages:
       - utf-8-validate
     dev: true
 
+  /@graphql-tools/url-loader@7.13.3(@types/node@18.11.17)(graphql@16.6.0):
+    resolution: {integrity: sha512-92z2HJd+Ae2wlZH0kFb20aSxX8CkJDcYyUtbtBNSadu5rKzkiYQPlihfRJFJs4zmDdV+DSmmGvQtDuAKLV+iNg==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+    dependencies:
+      '@ardatan/sync-fetch': 0.0.1(encoding@0.1.13)
+      '@graphql-tools/delegate': 8.8.1(graphql@16.6.0)
+      '@graphql-tools/utils': 8.9.0(graphql@16.6.0)
+      '@graphql-tools/wrap': 8.5.1(graphql@16.6.0)
+      '@n1ru4l/graphql-live-query': 0.10.0(graphql@16.6.0)
+      '@types/ws': 8.5.3
+      '@whatwg-node/fetch': 0.2.6(encoding@0.1.13)
+      dset: 3.1.2
+      extract-files: 11.0.0
+      graphql: 16.6.0
+      graphql-ws: 5.11.3(graphql@16.6.0)
+      isomorphic-ws: 5.0.0(ws@8.13.0)
+      meros: 1.2.1(@types/node@18.11.17)
+      tslib: 2.5.2
+      value-or-promise: 1.0.12
+      ws: 8.13.0
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - encoding
+      - utf-8-validate
+    dev: true
+
   /@graphql-tools/url-loader@7.17.13(@types/node@16.18.11)(encoding@0.1.13)(graphql@16.6.0):
     resolution: {integrity: sha512-FEmbvw68kxeZLn4VYGAl+NuBPk09ZnxymjW07A6mCtiDayFgYfHdWeRzXn/iM5PzsEuCD73R1sExtNQ/ISiajg==}
     peerDependencies:
@@ -8340,6 +8458,58 @@ packages:
       '@graphql-tools/wrap': 9.3.6(graphql@16.6.0)
       '@types/ws': 8.5.3
       '@whatwg-node/fetch': 0.8.1(@types/node@16.18.11)
+      graphql: 16.6.0
+      isomorphic-ws: 5.0.0(ws@8.13.0)
+      tslib: 2.5.2
+      value-or-promise: 1.0.12
+      ws: 8.13.0
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - encoding
+      - utf-8-validate
+    dev: true
+
+  /@graphql-tools/url-loader@7.17.13(@types/node@18.11.17)(graphql@16.6.0):
+    resolution: {integrity: sha512-FEmbvw68kxeZLn4VYGAl+NuBPk09ZnxymjW07A6mCtiDayFgYfHdWeRzXn/iM5PzsEuCD73R1sExtNQ/ISiajg==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+    dependencies:
+      '@ardatan/sync-fetch': 0.0.1(encoding@0.1.13)
+      '@graphql-tools/delegate': 9.0.27(graphql@16.6.0)
+      '@graphql-tools/executor-graphql-ws': 0.0.11(graphql@16.6.0)
+      '@graphql-tools/executor-http': 0.1.9(@types/node@18.11.17)(graphql@16.6.0)
+      '@graphql-tools/executor-legacy-ws': 0.0.9(graphql@16.6.0)
+      '@graphql-tools/utils': 9.2.1(graphql@16.6.0)
+      '@graphql-tools/wrap': 9.3.6(graphql@16.6.0)
+      '@types/ws': 8.5.3
+      '@whatwg-node/fetch': 0.8.1(@types/node@18.11.17)
+      graphql: 16.6.0
+      isomorphic-ws: 5.0.0(ws@8.13.0)
+      tslib: 2.5.2
+      value-or-promise: 1.0.12
+      ws: 8.13.0
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - encoding
+      - utf-8-validate
+    dev: true
+
+  /@graphql-tools/url-loader@7.17.13(@types/node@18.16.14)(graphql@16.6.0):
+    resolution: {integrity: sha512-FEmbvw68kxeZLn4VYGAl+NuBPk09ZnxymjW07A6mCtiDayFgYfHdWeRzXn/iM5PzsEuCD73R1sExtNQ/ISiajg==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
+    dependencies:
+      '@ardatan/sync-fetch': 0.0.1(encoding@0.1.13)
+      '@graphql-tools/delegate': 9.0.27(graphql@16.6.0)
+      '@graphql-tools/executor-graphql-ws': 0.0.11(graphql@16.6.0)
+      '@graphql-tools/executor-http': 0.1.9(@types/node@18.16.14)(graphql@16.6.0)
+      '@graphql-tools/executor-legacy-ws': 0.0.9(graphql@16.6.0)
+      '@graphql-tools/utils': 9.2.1(graphql@16.6.0)
+      '@graphql-tools/wrap': 9.3.6(graphql@16.6.0)
+      '@types/ws': 8.5.3
+      '@whatwg-node/fetch': 0.8.1(@types/node@18.16.14)
       graphql: 16.6.0
       isomorphic-ws: 5.0.0(ws@8.13.0)
       tslib: 2.5.2
@@ -9789,6 +9959,17 @@ packages:
     dependencies:
       '@types/node': 18.16.14
       playwright-core: 1.31.0
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: true
+
+  /@playwright/test@1.35.1:
+    resolution: {integrity: sha512-b5YoFe6J9exsMYg0pQAobNDR85T1nLumUYgUTtKm4d21iX2L7WqKq9dW8NGJ+2vX0etZd+Y7UeuqsxDXm9+5ZA==}
+    engines: {node: '>=16'}
+    hasBin: true
+    dependencies:
+      '@types/node': 18.16.14
+      playwright-core: 1.35.1
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
@@ -13925,7 +14106,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.19.6(@babel/core@7.20.5)
       magic-string: 0.27.0
       react-refresh: 0.14.0
-      vite: 4.0.2(@types/node@16.18.11)(sass@1.32.0)
+      vite: 4.0.2(@types/node@18.11.17)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -14799,12 +14980,62 @@ packages:
       - '@types/node'
     dev: true
 
+  /@whatwg-node/fetch@0.8.1(@types/node@18.11.17):
+    resolution: {integrity: sha512-Fkd1qQHK2tAWxKlC85h9L86Lgbq3BzxMnHSnTsnzNZMMzn6Xi+HlN8/LJ90LxorhSqD54td+Q864LgwUaYDj1Q==}
+    dependencies:
+      '@peculiar/webcrypto': 1.4.0
+      '@whatwg-node/node-fetch': 0.3.0(@types/node@18.11.17)
+      busboy: 1.6.0
+      urlpattern-polyfill: 6.0.2
+      web-streams-polyfill: 3.2.1
+    transitivePeerDependencies:
+      - '@types/node'
+    dev: true
+
+  /@whatwg-node/fetch@0.8.1(@types/node@18.16.14):
+    resolution: {integrity: sha512-Fkd1qQHK2tAWxKlC85h9L86Lgbq3BzxMnHSnTsnzNZMMzn6Xi+HlN8/LJ90LxorhSqD54td+Q864LgwUaYDj1Q==}
+    dependencies:
+      '@peculiar/webcrypto': 1.4.0
+      '@whatwg-node/node-fetch': 0.3.0(@types/node@18.16.14)
+      busboy: 1.6.0
+      urlpattern-polyfill: 6.0.2
+      web-streams-polyfill: 3.2.1
+    transitivePeerDependencies:
+      - '@types/node'
+    dev: true
+
   /@whatwg-node/node-fetch@0.3.0(@types/node@16.18.11):
     resolution: {integrity: sha512-mPM8WnuHiI/3kFxDeE0SQQXAElbz4onqmm64fEGCwYEcBes2UsvIDI8HwQIqaXCH42A9ajJUPv4WsYoN/9oG6w==}
     peerDependencies:
       '@types/node': ^18.0.6
     dependencies:
       '@types/node': 16.18.11
+      '@whatwg-node/events': 0.0.2
+      busboy: 1.6.0
+      fast-querystring: 1.1.1
+      fast-url-parser: 1.1.3
+      tslib: 2.5.2
+    dev: true
+
+  /@whatwg-node/node-fetch@0.3.0(@types/node@18.11.17):
+    resolution: {integrity: sha512-mPM8WnuHiI/3kFxDeE0SQQXAElbz4onqmm64fEGCwYEcBes2UsvIDI8HwQIqaXCH42A9ajJUPv4WsYoN/9oG6w==}
+    peerDependencies:
+      '@types/node': ^18.0.6
+    dependencies:
+      '@types/node': 18.11.17
+      '@whatwg-node/events': 0.0.2
+      busboy: 1.6.0
+      fast-querystring: 1.1.1
+      fast-url-parser: 1.1.3
+      tslib: 2.5.2
+    dev: true
+
+  /@whatwg-node/node-fetch@0.3.0(@types/node@18.16.14):
+    resolution: {integrity: sha512-mPM8WnuHiI/3kFxDeE0SQQXAElbz4onqmm64fEGCwYEcBes2UsvIDI8HwQIqaXCH42A9ajJUPv4WsYoN/9oG6w==}
+    peerDependencies:
+      '@types/node': ^18.0.6
+    dependencies:
+      '@types/node': 18.16.14
       '@whatwg-node/events': 0.0.2
       busboy: 1.6.0
       fast-querystring: 1.1.1
@@ -19088,7 +19319,7 @@ packages:
       eslint: 8.41.0
       eslint-import-resolver-node: 0.3.6
       eslint-import-resolver-typescript: 2.7.1(eslint-plugin-import@2.26.0)(eslint@8.41.0)
-      eslint-plugin-import: 2.26.0(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-typescript@2.7.1)(eslint@8.28.0)
+      eslint-plugin-import: 2.26.0(@typescript-eslint/parser@5.43.0)(eslint@8.41.0)
       eslint-plugin-jsx-a11y: 6.6.1(eslint@8.41.0)
       eslint-plugin-react: 7.31.10(eslint@8.41.0)
       eslint-plugin-react-hooks: 4.6.0(eslint@8.41.0)
@@ -19152,7 +19383,7 @@ packages:
       confusing-browser-globals: 1.0.11
       eslint: 8.26.0
       eslint-plugin-flowtype: 8.0.3(@babel/plugin-syntax-flow@7.18.6)(@babel/plugin-transform-react-jsx@7.19.0)(eslint@8.26.0)
-      eslint-plugin-import: 2.26.0(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-typescript@2.7.1)(eslint@8.28.0)
+      eslint-plugin-import: 2.26.0(@typescript-eslint/parser@5.43.0)(eslint@8.26.0)
       eslint-plugin-jest: 25.7.0(@typescript-eslint/eslint-plugin@5.43.0)(eslint@8.26.0)(typescript@4.9.5)
       eslint-plugin-jsx-a11y: 6.6.1(eslint@8.26.0)
       eslint-plugin-react: 7.31.10(eslint@8.26.0)
@@ -19204,7 +19435,7 @@ packages:
     dependencies:
       debug: 4.3.4
       eslint: 8.41.0
-      eslint-plugin-import: 2.26.0(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-typescript@2.7.1)(eslint@8.28.0)
+      eslint-plugin-import: 2.26.0(@typescript-eslint/parser@5.43.0)(eslint@8.41.0)
       glob: 7.2.3
       is-glob: 4.0.3
       resolve: 1.22.1
@@ -19239,6 +19470,93 @@ packages:
       eslint: 8.28.0
       eslint-import-resolver-node: 0.3.6
       eslint-import-resolver-typescript: 2.7.1(eslint-plugin-import@2.26.0)(eslint@8.28.0)
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /eslint-module-utils@2.7.4(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-node@0.3.6)(eslint@8.25.0):
+    resolution: {integrity: sha512-j4GT+rqzCoRKHwURX7pddtIPGySnX9Si/cgMI5ztrcqOPtk5dDEeZ34CQVPphnqkJytlc97Vuk05Um2mJ3gEQA==}
+    engines: {node: '>=4'}
+    peerDependencies:
+      '@typescript-eslint/parser': '*'
+      eslint: '*'
+      eslint-import-resolver-node: '*'
+      eslint-import-resolver-typescript: '*'
+      eslint-import-resolver-webpack: '*'
+    peerDependenciesMeta:
+      '@typescript-eslint/parser':
+        optional: true
+      eslint:
+        optional: true
+      eslint-import-resolver-node:
+        optional: true
+      eslint-import-resolver-typescript:
+        optional: true
+      eslint-import-resolver-webpack:
+        optional: true
+    dependencies:
+      '@typescript-eslint/parser': 5.43.0(eslint@8.25.0)(typescript@4.8.3)
+      debug: 3.2.7
+      eslint: 8.25.0
+      eslint-import-resolver-node: 0.3.6
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /eslint-module-utils@2.7.4(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-node@0.3.6)(eslint@8.26.0):
+    resolution: {integrity: sha512-j4GT+rqzCoRKHwURX7pddtIPGySnX9Si/cgMI5ztrcqOPtk5dDEeZ34CQVPphnqkJytlc97Vuk05Um2mJ3gEQA==}
+    engines: {node: '>=4'}
+    peerDependencies:
+      '@typescript-eslint/parser': '*'
+      eslint: '*'
+      eslint-import-resolver-node: '*'
+      eslint-import-resolver-typescript: '*'
+      eslint-import-resolver-webpack: '*'
+    peerDependenciesMeta:
+      '@typescript-eslint/parser':
+        optional: true
+      eslint:
+        optional: true
+      eslint-import-resolver-node:
+        optional: true
+      eslint-import-resolver-typescript:
+        optional: true
+      eslint-import-resolver-webpack:
+        optional: true
+    dependencies:
+      '@typescript-eslint/parser': 5.43.0(eslint@8.26.0)(typescript@4.9.5)
+      debug: 3.2.7
+      eslint: 8.26.0
+      eslint-import-resolver-node: 0.3.6
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /eslint-module-utils@2.7.4(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-node@0.3.6)(eslint@8.41.0):
+    resolution: {integrity: sha512-j4GT+rqzCoRKHwURX7pddtIPGySnX9Si/cgMI5ztrcqOPtk5dDEeZ34CQVPphnqkJytlc97Vuk05Um2mJ3gEQA==}
+    engines: {node: '>=4'}
+    peerDependencies:
+      '@typescript-eslint/parser': '*'
+      eslint: '*'
+      eslint-import-resolver-node: '*'
+      eslint-import-resolver-typescript: '*'
+      eslint-import-resolver-webpack: '*'
+    peerDependenciesMeta:
+      '@typescript-eslint/parser':
+        optional: true
+      eslint:
+        optional: true
+      eslint-import-resolver-node:
+        optional: true
+      eslint-import-resolver-typescript:
+        optional: true
+      eslint-import-resolver-webpack:
+        optional: true
+    dependencies:
+      '@typescript-eslint/parser': 5.43.0(eslint@8.26.0)(typescript@4.9.5)
+      debug: 3.2.7
+      eslint: 8.41.0
+      eslint-import-resolver-node: 0.3.6
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -19325,6 +19643,99 @@ packages:
       eslint: 8.28.0
       eslint-import-resolver-node: 0.3.6
       eslint-module-utils: 2.7.4(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-node@0.3.6)(eslint-import-resolver-typescript@2.7.1)(eslint@8.28.0)
+      has: 1.0.3
+      is-core-module: 2.11.0
+      is-glob: 4.0.3
+      minimatch: 3.1.2
+      object.values: 1.1.5
+      resolve: 1.22.1
+      tsconfig-paths: 3.14.1
+    transitivePeerDependencies:
+      - eslint-import-resolver-typescript
+      - eslint-import-resolver-webpack
+      - supports-color
+    dev: true
+
+  /eslint-plugin-import@2.26.0(@typescript-eslint/parser@5.43.0)(eslint@8.25.0):
+    resolution: {integrity: sha512-hYfi3FXaM8WPLf4S1cikh/r4IxnO6zrhZbEGz2b660EJRbuxgpDS5gkCuYgGWg2xxh2rBuIr4Pvhve/7c31koA==}
+    engines: {node: '>=4'}
+    peerDependencies:
+      '@typescript-eslint/parser': '*'
+      eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8
+    peerDependenciesMeta:
+      '@typescript-eslint/parser':
+        optional: true
+    dependencies:
+      '@typescript-eslint/parser': 5.43.0(eslint@8.25.0)(typescript@4.8.3)
+      array-includes: 3.1.5
+      array.prototype.flat: 1.3.0
+      debug: 2.6.9
+      doctrine: 2.1.0
+      eslint: 8.25.0
+      eslint-import-resolver-node: 0.3.6
+      eslint-module-utils: 2.7.4(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-node@0.3.6)(eslint@8.25.0)
+      has: 1.0.3
+      is-core-module: 2.11.0
+      is-glob: 4.0.3
+      minimatch: 3.1.2
+      object.values: 1.1.5
+      resolve: 1.22.1
+      tsconfig-paths: 3.14.1
+    transitivePeerDependencies:
+      - eslint-import-resolver-typescript
+      - eslint-import-resolver-webpack
+      - supports-color
+    dev: true
+
+  /eslint-plugin-import@2.26.0(@typescript-eslint/parser@5.43.0)(eslint@8.26.0):
+    resolution: {integrity: sha512-hYfi3FXaM8WPLf4S1cikh/r4IxnO6zrhZbEGz2b660EJRbuxgpDS5gkCuYgGWg2xxh2rBuIr4Pvhve/7c31koA==}
+    engines: {node: '>=4'}
+    peerDependencies:
+      '@typescript-eslint/parser': '*'
+      eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8
+    peerDependenciesMeta:
+      '@typescript-eslint/parser':
+        optional: true
+    dependencies:
+      '@typescript-eslint/parser': 5.43.0(eslint@8.26.0)(typescript@4.9.5)
+      array-includes: 3.1.5
+      array.prototype.flat: 1.3.0
+      debug: 2.6.9
+      doctrine: 2.1.0
+      eslint: 8.26.0
+      eslint-import-resolver-node: 0.3.6
+      eslint-module-utils: 2.7.4(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-node@0.3.6)(eslint@8.26.0)
+      has: 1.0.3
+      is-core-module: 2.11.0
+      is-glob: 4.0.3
+      minimatch: 3.1.2
+      object.values: 1.1.5
+      resolve: 1.22.1
+      tsconfig-paths: 3.14.1
+    transitivePeerDependencies:
+      - eslint-import-resolver-typescript
+      - eslint-import-resolver-webpack
+      - supports-color
+    dev: true
+
+  /eslint-plugin-import@2.26.0(@typescript-eslint/parser@5.43.0)(eslint@8.41.0):
+    resolution: {integrity: sha512-hYfi3FXaM8WPLf4S1cikh/r4IxnO6zrhZbEGz2b660EJRbuxgpDS5gkCuYgGWg2xxh2rBuIr4Pvhve/7c31koA==}
+    engines: {node: '>=4'}
+    peerDependencies:
+      '@typescript-eslint/parser': '*'
+      eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8
+    peerDependenciesMeta:
+      '@typescript-eslint/parser':
+        optional: true
+    dependencies:
+      '@typescript-eslint/parser': 5.43.0(eslint@8.26.0)(typescript@4.9.5)
+      array-includes: 3.1.5
+      array.prototype.flat: 1.3.0
+      debug: 2.6.9
+      doctrine: 2.1.0
+      eslint: 8.41.0
+      eslint-import-resolver-node: 0.3.6
+      eslint-module-utils: 2.7.4(@typescript-eslint/parser@5.43.0)(eslint-import-resolver-node@0.3.6)(eslint@8.41.0)
       has: 1.0.3
       is-core-module: 2.11.0
       is-glob: 4.0.3
@@ -21427,7 +21838,7 @@ packages:
       '@graphql-tools/json-file-loader': 7.4.1(graphql@16.6.0)
       '@graphql-tools/load': 7.8.0(graphql@16.6.0)
       '@graphql-tools/merge': 8.3.6(graphql@16.6.0)
-      '@graphql-tools/url-loader': 7.17.13(@types/node@16.18.11)(encoding@0.1.13)(graphql@16.6.0)
+      '@graphql-tools/url-loader': 7.17.13(@types/node@18.11.17)(graphql@16.6.0)
       '@graphql-tools/utils': 8.12.0(graphql@16.6.0)
       cosmiconfig: 7.0.1
       cosmiconfig-toml-loader: 1.0.0
@@ -21468,6 +21879,38 @@ packages:
       '@graphql-tools/utils': 9.2.1(graphql@16.6.0)
       cosmiconfig: 8.0.0
       cosmiconfig-typescript-loader: 4.3.0(@types/node@16.18.11)(cosmiconfig@7.0.1)(ts-node@10.9.1)(typescript@4.9.5)
+      graphql: 16.6.0
+      minimatch: 4.2.1
+      string-env-interpolation: 1.0.1
+      tslib: 2.5.2
+    transitivePeerDependencies:
+      - '@types/node'
+      - bufferutil
+      - encoding
+      - utf-8-validate
+    dev: true
+
+  /graphql-config@4.4.1(@types/node@18.16.14)(cosmiconfig-typescript-loader@4.3.0)(graphql@16.6.0):
+    resolution: {integrity: sha512-B8wlvfBHZ5WnI4IiuQZRqql6s+CKz7S+xpUeTb28Z8nRBi8tH9ChEBgT5FnTyE05PUhHlrS2jK9ICJ4YBl9OtQ==}
+    engines: {node: '>= 10.0.0'}
+    peerDependencies:
+      cosmiconfig-toml-loader: ^1.0.0
+      cosmiconfig-typescript-loader: ^4.0.0
+      graphql: ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
+    peerDependenciesMeta:
+      cosmiconfig-toml-loader:
+        optional: true
+      cosmiconfig-typescript-loader:
+        optional: true
+    dependencies:
+      '@graphql-tools/graphql-file-loader': 7.5.0(graphql@16.6.0)
+      '@graphql-tools/json-file-loader': 7.4.1(graphql@16.6.0)
+      '@graphql-tools/load': 7.8.0(graphql@16.6.0)
+      '@graphql-tools/merge': 8.3.18(graphql@16.6.0)
+      '@graphql-tools/url-loader': 7.17.13(@types/node@18.16.14)(graphql@16.6.0)
+      '@graphql-tools/utils': 9.2.1(graphql@16.6.0)
+      cosmiconfig: 8.0.0
+      cosmiconfig-typescript-loader: 4.3.0(@types/node@18.16.14)(cosmiconfig@7.0.1)(ts-node@10.9.1)(typescript@4.9.5)
       graphql: 16.6.0
       minimatch: 4.2.1
       string-env-interpolation: 1.0.1
@@ -24199,6 +24642,30 @@ packages:
     dependencies:
       '@types/node': 16.18.11
 
+  /meros@1.2.1(@types/node@18.11.17):
+    resolution: {integrity: sha512-R2f/jxYqCAGI19KhAvaxSOxALBMkaXWH2a7rOyqQw+ZmizX5bKkEYWLzdhC+U82ZVVPVp6MCXe3EkVligh+12g==}
+    engines: {node: '>=13'}
+    peerDependencies:
+      '@types/node': '>=13'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+    dependencies:
+      '@types/node': 18.11.17
+    dev: true
+
+  /meros@1.2.1(@types/node@18.16.14):
+    resolution: {integrity: sha512-R2f/jxYqCAGI19KhAvaxSOxALBMkaXWH2a7rOyqQw+ZmizX5bKkEYWLzdhC+U82ZVVPVp6MCXe3EkVligh+12g==}
+    engines: {node: '>=13'}
+    peerDependencies:
+      '@types/node': '>=13'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+    dependencies:
+      '@types/node': 18.16.14
+    dev: true
+
   /methods@1.1.2:
     resolution: {integrity: sha512-iclAHeNqNm68zFtnZ0e+1L2yUIdvzNoauKU4WBA3VvH/vPFieF7qfRlwUZU+DA9P9bPXIS90ulxoUoCH23sV2w==}
     engines: {node: '>= 0.6'}
@@ -25869,6 +26336,12 @@ packages:
     hasBin: true
     dev: true
 
+  /playwright-core@1.35.1:
+    resolution: {integrity: sha512-pNXb6CQ7OqmGDRspEjlxE49w+4YtR6a3X6mT1hZXeJHWmsEz7SunmvZeiG/+y1yyMZdHnnn73WKYdtV1er0Xyg==}
+    engines: {node: '>=16'}
+    hasBin: true
+    dev: true
+
   /pluralize@8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
@@ -25996,6 +26469,18 @@ packages:
       postcss: 7.0.39
     dev: true
 
+  /postcss-import@14.1.0(postcss@8.4.18):
+    resolution: {integrity: sha512-flwI+Vgm4SElObFVPpTIT7SU7R3qk2L7PyduMcokiaVKuWv9d/U+Gm/QAd8NDLuykTWTkcrjOeD2Pp1rMeBTGw==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      postcss: ^8.0.0
+    dependencies:
+      postcss: 8.4.18
+      postcss-value-parser: 4.2.0
+      read-cache: 1.0.0
+      resolve: 1.22.1
+    dev: true
+
   /postcss-import@14.1.0(postcss@8.4.19):
     resolution: {integrity: sha512-flwI+Vgm4SElObFVPpTIT7SU7R3qk2L7PyduMcokiaVKuWv9d/U+Gm/QAd8NDLuykTWTkcrjOeD2Pp1rMeBTGw==}
     engines: {node: '>=10.0.0'}
@@ -26019,6 +26504,16 @@ packages:
       read-cache: 1.0.0
       resolve: 1.22.1
 
+  /postcss-js@4.0.0(postcss@8.4.18):
+    resolution: {integrity: sha512-77QESFBwgX4irogGVPgQ5s07vLvFqWr228qZY+w6lW599cRlK/HmnlivnnVUxkjHnCu4J16PDMHcH+e+2HbvTQ==}
+    engines: {node: ^12 || ^14 || >= 16}
+    peerDependencies:
+      postcss: ^8.3.3
+    dependencies:
+      camelcase-css: 2.0.1
+      postcss: 8.4.18
+    dev: true
+
   /postcss-js@4.0.0(postcss@8.4.19):
     resolution: {integrity: sha512-77QESFBwgX4irogGVPgQ5s07vLvFqWr228qZY+w6lW599cRlK/HmnlivnnVUxkjHnCu4J16PDMHcH+e+2HbvTQ==}
     engines: {node: ^12 || ^14 || >= 16}
@@ -26037,6 +26532,23 @@ packages:
     dependencies:
       camelcase-css: 2.0.1
       postcss: 8.4.20
+
+  /postcss-load-config@3.1.4(postcss@8.4.18):
+    resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
+    engines: {node: '>= 10'}
+    peerDependencies:
+      postcss: '>=8.0.9'
+      ts-node: '>=9.0.0'
+    peerDependenciesMeta:
+      postcss:
+        optional: true
+      ts-node:
+        optional: true
+    dependencies:
+      lilconfig: 2.0.6
+      postcss: 8.4.18
+      yaml: 1.10.2
+    dev: true
 
   /postcss-load-config@3.1.4(postcss@8.4.19)(ts-node@10.9.1):
     resolution: {integrity: sha512-6DiM4E7v4coTE4uzA8U//WhtPwyhiim3eyjEMFCnUpzbrkK9wJHgKDT2mR+HbtSrd/NubVaYTOpSpjUl8NQeRg==}
@@ -26266,6 +26778,16 @@ packages:
     dependencies:
       icss-utils: 5.1.0(postcss@8.4.23)
       postcss: 8.4.23
+
+  /postcss-nested@6.0.0(postcss@8.4.18):
+    resolution: {integrity: sha512-0DkamqrPcmkBDsLn+vQDIrtkSbNkv5AD/M322ySo9kqFkCIYklym2xEmWkwo+Y3/qZo34tzEPNUw4y7yMCdv5w==}
+    engines: {node: '>=12.0'}
+    peerDependencies:
+      postcss: ^8.2.14
+    dependencies:
+      postcss: 8.4.18
+      postcss-selector-parser: 6.0.10
+    dev: true
 
   /postcss-nested@6.0.0(postcss@8.4.19):
     resolution: {integrity: sha512-0DkamqrPcmkBDsLn+vQDIrtkSbNkv5AD/M322ySo9kqFkCIYklym2xEmWkwo+Y3/qZo34tzEPNUw4y7yMCdv5w==}
@@ -29458,6 +29980,40 @@ packages:
     resolution: {integrity: sha512-tER/2SbYRdfPYg6m4pDWZSlbymLTmDi+dx4iCsJmgmz4UDGzgnVelOvBe3GNtGCw9Bmc4MiObfJJbKeVL+KnMQ==}
     dev: false
 
+  /tailwindcss@3.2.1(postcss@8.4.18):
+    resolution: {integrity: sha512-Uw+GVSxp5CM48krnjHObqoOwlCt5Qo6nw1jlCRwfGy68dSYb/LwS9ZFidYGRiM+w6rMawkZiu1mEMAsHYAfoLg==}
+    engines: {node: '>=12.13.0'}
+    hasBin: true
+    peerDependencies:
+      postcss: ^8.0.9
+    dependencies:
+      arg: 5.0.2
+      chokidar: 3.5.3
+      color-name: 1.1.4
+      detective: 5.2.1
+      didyoumean: 1.2.2
+      dlv: 1.1.3
+      fast-glob: 3.2.12
+      glob-parent: 6.0.2
+      is-glob: 4.0.3
+      lilconfig: 2.0.6
+      micromatch: 4.0.5
+      normalize-path: 3.0.0
+      object-hash: 3.0.0
+      picocolors: 1.0.0
+      postcss: 8.4.18
+      postcss-import: 14.1.0(postcss@8.4.18)
+      postcss-js: 4.0.0(postcss@8.4.18)
+      postcss-load-config: 3.1.4(postcss@8.4.18)
+      postcss-nested: 6.0.0(postcss@8.4.18)
+      postcss-selector-parser: 6.0.10
+      postcss-value-parser: 4.2.0
+      quick-lru: 5.1.1
+      resolve: 1.22.1
+    transitivePeerDependencies:
+      - ts-node
+    dev: true
+
   /tailwindcss@3.2.1(postcss@8.4.19)(ts-node@10.9.1):
     resolution: {integrity: sha512-Uw+GVSxp5CM48krnjHObqoOwlCt5Qo6nw1jlCRwfGy68dSYb/LwS9ZFidYGRiM+w6rMawkZiu1mEMAsHYAfoLg==}
     engines: {node: '>=12.13.0'}
@@ -31450,6 +32006,40 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
 
+  /vite@4.0.2(@types/node@18.11.17):
+    resolution: {integrity: sha512-QJaY3R+tFlTagH0exVqbgkkw45B+/bXVBzF2ZD1KB5Z8RiAoiKo60vSUf6/r4c2Vh9jfGBKM4oBI9b4/1ZJYng==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': '>= 14'
+      less: '*'
+      sass: '*'
+      stylus: '*'
+      sugarss: '*'
+      terser: ^5.4.0
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      less:
+        optional: true
+      sass:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+    dependencies:
+      '@types/node': 18.11.17
+      esbuild: 0.16.10
+      postcss: 8.4.20
+      resolve: 1.22.1
+      rollup: 3.7.5
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: true
+
   /vite@4.0.3(@types/node@16.18.11):
     resolution: {integrity: sha512-HvuNv1RdE7deIfQb8mPk51UKjqptO/4RXZ5yXSAvurd5xOckwS/gg8h9Tky3uSbnjYTgUm0hVCet1cyhKd73ZA==}
     engines: {node: ^14.18.0 || >=16.0.0}
@@ -32798,7 +33388,3 @@ packages:
 
   /zwitch@1.0.5:
     resolution: {integrity: sha512-V50KMwwzqJV0NpZIZFwfOD5/lyny3WlSzRiXgA0G7VUnRlqttta1L6UQIHzd6EuBY/cHGfwTIck7w1yH6Q5zUw==}
-
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
