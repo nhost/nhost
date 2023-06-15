@@ -3,9 +3,19 @@
 This is the Nhost Dashboard, a web application that allows you to manage your Nhost projects.
 To get started, you need to have an Nhost project. If you don't have one, you can [create a project here](https://app.nhost.io).
 
+First, install the dependencies:
+
 ```bash
 pnpm install
 ```
+
+Then, run the development server:
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## Environment
 
@@ -52,6 +62,12 @@ Components are documented using [Storybook](https://storybook.js.org/). To run S
 
 ```bash
 pnpm storybook
+```
+
+By default, Storybook will run on port `6006`. You can change this by passing the `--port` flag:
+
+```bash
+pnpm storybook --port 6007
 ```
 
 ### General Environment Variables
@@ -110,15 +126,19 @@ pnpm storybook
 | `@typescript-eslint/naming-convention`       | Enforces a consistent naming convention.                                                                                                                     |
 | `no-restricted-imports`                      | Enforces absolute imports and consistent import paths for components from `src/components/ui` folder.                                                        |
 
-### End-to-End Tests
+### Unit Tests
 
-End-to-end tests are written using [Playwright](https://playwright.dev/). To run the tests, run the following command:
+Unit tests are written using [Vitest](https://vitest.dev/). To run the tests, run the following command:
 
 ```bash
-pnpm e2e
+pnpm test
 ```
 
-Most of the tests require access to the Nhost test user. To run these tests, you need to set the following environment variables in `.env.test`:
+### End-to-End Tests
+
+Most of the end-to-end tests require access to an Nhost test user and a live project. You can register a user and create a test project on the [Nhost Dashboard](https://app.nhost.io/).
+
+Next, you need to create a project. Create a `.env.test` file with the following variables:
 
 ```
 NHOST_TEST_DASHBOARD_URL=<test_dashboard_url>
@@ -127,4 +147,21 @@ NHOST_TEST_USER_PASSWORD=<test_user_password>
 NHOST_TEST_WORKSPACE_NAME=<test_workspace_name>
 NHOST_TEST_PROJECT_NAME=<test_project_name>
 NHOST_TEST_PROJECT_ADMIN_SECRET=<test_project_admin_secret>
+```
+
+**Required Variables**:
+
+- `NHOST_TEST_DASHBOARD_URL`: The URL to run the tests against (e.g: http://localhost:3000 or https://staging.app.nhost.io)
+- `NHOST_TEST_USER_EMAIL`: Email address of the test user that owns the test project
+- `NHOST_TEST_USER_PASSWORD`: Password of the test user that owns the test project
+- `NHOST_TEST_WORKSPACE_NAME`: Name of the workspace that contains the test project
+- `NHOST_TEST_PROJECT_NAME`: Name of the test project
+- `NHOST_TEST_PROJECT_ADMIN_SECRET`: Admin secret of the test project
+
+Make sure to copy the workspace and project information from the [Nhost Dashboard](https://app.nhost.io/).
+
+End-to-end tests are written using [Playwright](https://playwright.dev/). To run the tests, run the following command:
+
+```bash
+pnpm e2e
 ```

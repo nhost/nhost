@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
+import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import type { ComponentMeta, ComponentStory } from '@storybook/react';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -34,7 +35,7 @@ const defaultParameters = {
     },
   },
   msw: {
-    handlers: [tableQuery, hasuraMetadataQuery],
+    handlers: [tokenQuery, tableQuery, hasuraMetadataQuery],
   },
 };
 

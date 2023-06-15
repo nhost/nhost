@@ -32,13 +32,13 @@ process.env = {
   NODE_ENV: 'development',
   NEXT_PUBLIC_NHOST_PLATFORM: 'false',
   NEXT_PUBLIC_ENV: 'dev',
-  NEXT_PUBLIC_NHOST_AUTH_URL: 'https://localdev.nhost.run/v1/auth',
-  NEXT_PUBLIC_NHOST_FUNCTIONS_URL: 'https://localdev.nhost.run/v1/functions',
-  NEXT_PUBLIC_NHOST_GRAPHQL_URL: 'https://localdev.nhost.run/v1/graphql',
-  NEXT_PUBLIC_NHOST_STORAGE_URL: 'https://localdev.nhost.run/v1/storage',
-  NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL: 'http://localhost:9695',
-  NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL: 'http://localhost:9693',
-  NEXT_PUBLIC_NHOST_HASURA_API_URL: 'http://localhost:8080',
+  NEXT_PUBLIC_NHOST_AUTH_URL: 'https://local.auth.nhost.run/v1',
+  NEXT_PUBLIC_NHOST_FUNCTIONS_URL: 'https://local.functions.nhost.run/v1',
+  NEXT_PUBLIC_NHOST_GRAPHQL_URL: 'https://local.graphql.nhost.run/v1',
+  NEXT_PUBLIC_NHOST_STORAGE_URL: 'https://local.storage.nhost.run/v1',
+  NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL: 'https://local.hasura.nhost.run',
+  NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL: 'https://local.hasura.nhost.run',
+  NEXT_PUBLIC_NHOST_HASURA_API_URL: 'https://local.hasura.nhost.run',
 };
 
 export const queryClient = new QueryClient({

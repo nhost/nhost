@@ -1,3 +1,4 @@
+import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { render, screen, waitFor } from '@/tests/testUtils';
 import { graphql } from 'msw';
 import { setupServer } from 'msw/node';
@@ -5,6 +6,7 @@ import { beforeAll, expect, test } from 'vitest';
 import HasuraCorsDomainSettings from './HasuraCorsDomainSettings';
 
 const server = setupServer(
+  tokenQuery,
   graphql.query('GetHasuraSettings', (_req, res, ctx) =>
     res(
       ctx.data({
@@ -15,7 +17,14 @@ const server = setupServer(
             version: 'v2.25.1-ce',
             settings: {
               corsDomain: ['*'],
+              enableAllowList: false,
+              enableRemoteSchemaPermissions: false,
+              enableConsole: false,
+              devMode: false,
+              enabledAPIs: [],
             },
+            logs: [],
+            events: [],
           },
         },
       }),
@@ -56,7 +65,14 @@ test('should enable switch by default when CORS domain is set to one or more dom
               version: 'v2.25.1-ce',
               settings: {
                 corsDomain: ['https://example.com', 'https://*.example.com'],
+                enableAllowList: false,
+                enableRemoteSchemaPermissions: false,
+                enableConsole: false,
+                devMode: false,
+                enabledAPIs: [],
               },
+              logs: [],
+              events: [],
             },
           },
         }),
