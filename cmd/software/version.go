@@ -35,7 +35,7 @@ func commandVersion(cCtx *cli.Context) error {
 	}
 
 	ce.Warnln("A new version of Nhost CLI is available: %s", latest.TagName)
-	ce.Println("You can upgrade by running `nhost upgrade`")
+	ce.Println("You can upgrade by running `nhost sw upgrade`")
 
 	if cCtx.App.Version == devVersion || cCtx.App.Version == "" {
 		return nil
