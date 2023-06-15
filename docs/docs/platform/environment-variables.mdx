@@ -6,10 +6,6 @@ image: /img/og/platform/environment-variables.png
 
 Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys.
 
-You can manage your project's Environment Variables in Nhost Dashboard under **Variables**. When you define a new variable, you can set one value for **production** and one for **development**.
-
-![Environment Variables](/img/platform/environment-variables/environment-variables.png)
-
 Environment Variables are available for:
 
 - [Hasura GraphQL Engine](/graphql)
@@ -17,13 +13,44 @@ Environment Variables are available for:
 
 When an Environment Variable has updated the changes happen immediately for Hasura GraphQL Engine. For Serverless Functions, a new deployment via [Git](/platform/git) is required.
 
+## Custom Environment Variables
+
+You can manage your project's Environment Variables in the Nhost Dashboard or by using the configuration file.
+
+### Dashboard
+
+![Environment Variables](/img/platform/environment-variables/environment-variables.png)
+
+Environment Variables can be managed in the Nhost Dashboard under **Settings** &rarr; **Environment Variables**.
+
+### Configuration File
+
+Environment Variables can also be managed by adding new `[[global.environment]]` sections to the `nhost.toml` file.
+
+```toml
+[global]
+[[global.environment]]
+name = 'MY_ENV_VAR'
+value = '<first-value>'
+
+[[global.environment]]
+name = 'MY_OTHER_ENV_VAR'
+value = '<second-value>'
+
+# ... omitted for brevity
+```
+
+These environment variables will also be available on the Nhost Dashboard after committing and pushing the changes to your Git repository.
+
 ## System Environment Variables
 
-System Environment Variables are automatically available in production and during local development. The following system Environment Variables are available:
+System environment variables are automatically generated from the configuration file and your project's subdomain and region.
+
+The following system environment variables are available:
 
 - `NHOST_ADMIN_SECRET`
 - `NHOST_WEBHOOK_SECRET`
-- `NHOST_BACKEND_URL` ([deprecated](https://github.com/nhost/nhost/discussions/1319))
+- ~~`NHOST_BACKEND_URL`~~ ([deprecated](https://github.com/nhost/nhost/discussions/1319))
 - `NHOST_SUBDOMAIN`
 - `NHOST_REGION`
 - `NHOST_HASURA_URL`
@@ -33,7 +60,9 @@ System Environment Variables are automatically available in production and durin
 - `NHOST_FUNCTIONS_URL`
 - `NHOST_JWT_SECRET`
 
-Example values:
+`NHOST_ADMIN_SECRET`, `NHOST_WEBHOOK_SECRET` and `NHOST_JWT_SECRET` are populated with values from the configuration file. The rest of the system environment variables are populated with values from your project's subdomain and region.
+
+**Example values**:
 
 ```text
 NHOST_ADMIN_SECRET=e7w36ag287qn5qry795f6ymm57qgvqup
@@ -58,10 +87,3 @@ NHOST_FUNCTIONS_URL=https://abc123abc.functions.eu-central-1.nhost.run/v1
 
 NHOST_JWT_SECRET={"type": "HS256", "key": "vumpbe2w2mgaqj5yqfp7dvxu6kywtvsgb68ejpdaqxerea8jwrsszdp2dhkjxsh4df69pzm3ja6ukedx8ja43zdt6q9kgbgg2w9vh2sedeppukud9a2qzy29v3afdn7m"}
 ```
-
-## Development Environment Variables
-
-When developing locally using the [CLI](/cli), Environment Variables set in `.env.development` are available in your local environment. There are two ways to manage them:
-
-1. Edit the `.env.development` file manually.
-2. Add development Environment Variables in the Nhost Dashboard and use `nhost env pull` to sync them. This way, your team members will also have access to the same Environment Variables.
