@@ -123,7 +123,7 @@ export default function SystemEnvironmentVariableSettings() {
   return (
     <SettingsContainer
       title="System Environment Variables"
-      description="Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys."
+      description="System environment variables are automatically generated from the configuration file and your project's subdomain and region."
       docsLink="https://docs.nhost.io/platform/environment-variables#system-environment-variables"
       rootClassName="gap-0"
       className="mt-2 mb-2.5 px-0"
