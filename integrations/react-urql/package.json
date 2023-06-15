@@ -68,7 +68,7 @@
     "graphql": "^16.0.0",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0",
-    "urql": "^3.0.3"
+    "urql": "^3.0.3 || ^4.0.0"
   },
   "devDependencies": {
     "@nhost/react": "workspace:*",
