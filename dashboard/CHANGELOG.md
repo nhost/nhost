@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.17.13
+
+### Patch Changes
+
+- cc02902cb: chore(docs): update environment variable documentation
+
 ## 0.17.12
 
 ### Patch Changes
