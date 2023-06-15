@@ -136,7 +136,7 @@ pnpm test
 
 ### End-to-End Tests
 
-Most of the end-to-end tests require access to an Nhost test user and a live project. You can register one and create a test project on the [Nhost Dashboard](https://app.nhost.io/).
+Most of the end-to-end tests require access to an Nhost test user and a live project. You can register a user and create a test project on the [Nhost Dashboard](https://app.nhost.io/).
 
 Next, you need to create a project. Create a `.env.test` file with the following variables:
 

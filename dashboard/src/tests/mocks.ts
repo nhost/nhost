@@ -88,6 +88,7 @@ export const mockWorkspace: Workspace = {
   slug: 'test-workspace',
   workspaceMembers: [],
   projects: [mockApplication],
+  creatorUserId: '1',
 };
 
 export const mockSession: NhostSession = {
