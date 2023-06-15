@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.3.3
+
+### Patch Changes
+
+- cc02902cb: chore(docs): update environment variable documentation
+
 ## 0.3.2
 
 ### Patch Changes
