@@ -1,5 +1,15 @@
 # @nhost/nhost-js
 
+## 2.2.9
+
+### Patch Changes
+
+- 5a4e237a2: fix(deps): pass access token to clients on sign in
+- Updated dependencies [1d04ad630]
+- Updated dependencies [7e973d568]
+  - @nhost/hasura-auth-js@2.1.7
+  - @nhost/hasura-storage-js@2.1.6
+
 ## 2.2.8
 
 ### Patch Changes

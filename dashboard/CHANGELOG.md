@@ -1,5 +1,14 @@
 # @nhost/dashboard
 
+## 0.17.12
+
+### Patch Changes
+
+- 660d339e1: fix(storybook): don't break storybook
+- 660d339e1: fix(tests): prevent warnings during tests
+  - @nhost/react-apollo@5.0.27
+  - @nhost/nextjs@1.13.29
+
 ## 0.17.11
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @nhost/hasura-auth-js
 
+## 2.1.7
+
+### Patch Changes
+
+- 1d04ad630: chore(deps): use `fetch-ponyfill` instead of `isomorphic-unfetch`
+- 7e973d568: fix(tokens): prevent infinite token refresh when using custom expiration
+
 ## 2.1.6
 
 ### Patch Changes
