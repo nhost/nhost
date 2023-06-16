@@ -1,5 +1,11 @@
 # @nhost/docgen
 
+## 0.1.11
+
+### Patch Changes
+
+- 5ef0b3157: chore(deps): bump `commander` to `v11`
+
 ## 0.1.10
 
 ### Patch Changes
