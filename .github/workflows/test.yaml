@@ -10,73 +10,32 @@ on:
       - '!*.md'
 
 env:
-  HASURA_GRAPHQL_ADMIN_SECRET: test_secret_key
-  JWT_ALGORITHM: HS256
-  JWT_KEY: never_use_this_secret_key_in_production_this_is_only_for_CI_testing_098hu32r4389ufb4n38994321
   POSTGRES_PASSWORD: postgrespassword
+  HASURA_GRAPHQL_ADMIN_SECRET: test_secret_key
+  HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256", "key":"never_use_this_secret_key_in_production_this_is_only_for_CI_testing_098hu32r4389ufb4n38994321","issuer":"hasura-auth"}'
+  HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgrespassword@localhost:5432/postgres
+  HASURA_GRAPHQL_GRAPHQL_URL: http://localhost:8080/v1/graphql
+  AUTH_SERVER_URL: http://localhost:4000
+  AUTH_CLIENT_URL: http://localhost:3000
+  AUTH_SMTP_HOST: localhost
+  AUTH_SMTP_PORT: 1025
+  AUTH_SMTP_USER: user
+  AUTH_SMTP_PASS: password
+  AUTH_SMTP_SENDER: hasura-auth@example.com
+  AUTH_SMTP_SECURE: false
+  AUTH_EMAIL_PASSWORDLESS_ENABLED: true
+  AUTH_LOG_LEVEL: info
 
 jobs:
   test:
     name: Service tests
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        # TODO bump
-        image: nhost/postgres:12-v0.0.6
-        env:
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
-        options: >-
-          --restart always
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      graphql-engine:
-        image: hasura/graphql-engine:v2.15.2
-        env:
-          HASURA_GRAPHQL_ENABLE_TELEMETRY: 'false'
-          HASURA_GRAPHQL_ADMIN_SECRET: ${{ env.HASURA_GRAPHQL_ADMIN_SECRET }}
-          HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${{ env.POSTGRES_PASSWORD }}@postgres:5432/postgres
-          HASURA_GRAPHQL_JWT_SECRET: '{"type": "${{ env.JWT_ALGORITHM }}", "key": "${{ env.JWT_KEY }}"}'
-        options: >-
-          --restart always
-      mailhog:
-        image: mailhog/mailhog
-        env:
-          SMTP_HOST: mailhog
-          SMTP_PORT: 1025
-          SMTP_PASS: password
-          SMTP_USER: user
-          SMTP_SECURE: 'false'
-          SMTP_SENDER: hbp@hbp.com
-    container:
-      image: node:16
-      env:
-        AUTH_PORT: 4000
-        HASURA_GRAPHQL_ADMIN_SECRET: ${{ env.HASURA_GRAPHQL_ADMIN_SECRET }}
-        HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${{env.POSTGRES_PASSWORD }}@postgres:5432/postgres
-        HASURA_GRAPHQL_GRAPHQL_URL: 'http://graphql-engine:8080/v1/graphql'
-        HASURA_GRAPHQL_JWT_SECRET: '{"type": "${{ env.JWT_ALGORITHM }}", "key": "${{ env.JWT_KEY }}"}'
-        AUTH_SMTP_HOST: mailhog
-        AUTH_SMTP_PORT: 1025
-        AUTH_SMTP_USER: user
-        AUTH_SMTP_PASS: password
-        AUTH_SMTP_SENDER: hasura-auth@example.com
-        AUTH_SMTP_SECURE: false
-        AUTH_CLIENT_URL: http://localhost:3000
-      options: --hostname hasura-auth
     steps:
       - uses: actions/checkout@v3
 
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
 
-      - name: Run Jest tests
-        # env:
-        #   AUTH_LOCALE_ALLOWED_LOCALES: en,fr
-        run: pnpm run test --coverage
-      - name: Upload test results
-        uses: actions/upload-artifact@v1
-        with:
-          name: coverage
-          path: coverage
+      - name: Run tests
+        shell: bash
+        run: make test

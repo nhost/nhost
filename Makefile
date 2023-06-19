@@ -33,12 +33,12 @@ test: check-port install dev-env-up ## Run end-to-end tests.
 
 .PHONY: check-port
 check-port:
-	[[ -z $$(lsof -t -i tcp:$(PORT)) ]] || (echo "The port $(PORT) is already in use"; exit 1;)
+	[ -z $$(lsof -t -i tcp:$(PORT)) ] || (echo "The port $(PORT) is already in use"; exit 1;)
 
 .PHONY: docgen
 docgen: check-port install dev-env-up ## Generate the openapi.json file.
 	AUTH_CLIENT_URL=https://my-app.com AUTH_LOG_LEVEL=error AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS= pnpm dev &
-	while [[ "$$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:$(PORT)/healthz)" != "200" ]]; do sleep 1; done
+	while [ "$$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:$(PORT)/healthz)" != "200" ]; do sleep 1; done
 	curl http://localhost:$(PORT)/openapi.json | json_pp > docs/openapi.json
 	kill -9 $$(lsof -t -i tcp:$(PORT))
 	make dev-env-down
@@ -57,7 +57,7 @@ build:
 .PHONY: dev-env-down 
 dev-env-up: ## Start required services (Hasura, Postgres, Mailhog).
 	docker-compose -f docker-compose.yaml up -d
-	while [[ "$$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:8080/healthz)" != "200" ]]; do sleep 1; done
+	while [ "$$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:8080/healthz)" != "200" ]; do sleep 1; done
 	@echo "Hasura is ready";
 
 
