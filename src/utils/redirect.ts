@@ -17,9 +17,10 @@ export const createEmailRedirectionLink = (
   type: EmailType,
   ticket: string,
   redirectTo: string
-) =>
-  `${
-    ENV.AUTH_SERVER_URL
-  }/verify?&ticket=${ticket}&type=${type}&redirectTo=${encodeURIComponent(
-    redirectTo
-  )}`;
+): string => {
+  const url = new URL(`${ENV.AUTH_SERVER_URL}/verify`)
+  url.searchParams.set('ticket', ticket)
+  url.searchParams.set('type', type)
+  url.searchParams.set('redirectTo', redirectTo)
+  return url.toString()
+};
