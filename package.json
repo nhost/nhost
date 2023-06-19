@@ -134,7 +134,7 @@
     "typescript": "4.5.4"
   },
   "engines": {
-    "node": ">=16 <17"
+    "node": ">=18 <19"
   },
   "commitlint": {
     "extends": [

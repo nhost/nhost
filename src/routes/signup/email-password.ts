@@ -1,10 +1,10 @@
 import { RequestHandler } from 'express';
 
-import { getSignInResponse, getUserByEmail, ENV } from '@/utils';
-import { UserRegistrationOptionsWithRedirect } from '@/types';
 import { sendError } from '@/errors';
-import { Joi, email, passwordInsert, registrationOptions } from '@/validation';
+import { UserRegistrationOptionsWithRedirect } from '@/types';
+import { ENV, getSignInResponse, getUserByEmail } from '@/utils';
 import { createUserAndSendVerificationEmail } from '@/utils/user/email-verification';
+import { Joi, email, passwordInsert, registrationOptions } from '@/validation';
 
 export const signUpEmailPasswordSchema = Joi.object({
   email: email.required(),
@@ -37,17 +37,14 @@ export const signUpEmailPasswordHandler: RequestHandler<
 
   // SIGNIN_EMAIL_VERIFIED_REQUIRED = true => User must verify their email before signing in.
   // SIGNIN_EMAIL_VERIFIED_REQUIRED = false => User don't have to verify their email before signin in.
-
-  if (!ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
-    const signInResponse = await getSignInResponse({
-      userId: user.id,
-      checkMFA: false,
-    });
-
-    // return logged in session because user does not have to verify their email
-    // to sign in
-    return res.send(signInResponse);
+  if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
+    return res.send({ session: null, mfa: null });
   }
 
-  return res.send({ session: null, mfa: null });
+  const signInResponse = await getSignInResponse({
+    userId: user.id,
+    checkMFA: false,
+  });
+
+  return res.send(signInResponse);
 };

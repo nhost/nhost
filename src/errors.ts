@@ -3,27 +3,6 @@ import { StatusCodes } from 'http-status-codes';
 
 import { ENV, generateRedirectUrl } from './utils';
 
-/**
- * This is a custom error middleware for Express.
- * https://expressjs.com/en/guide/error-handling.html
- */
-export async function serverErrors(
-  error: Error,
-  _req: Request,
-  res: Response,
-  // * See: https://stackoverflow.com/a/61464426
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _next: NextFunction
-): Promise<unknown> {
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
-  } else {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-      message: error.message,
-    });
-  }
-}
-
 // TODO Errors must be put in a shared package that the SDK also uses
 export type ErrorPayload = {
   error: string;
@@ -195,17 +174,28 @@ export const sendError = (
   return res.status(status).send({ status, message, error: code });
 };
 
+/**
+ * This is a custom error middleware for Express.
+ * https://expressjs.com/en/guide/error-handling.html
+ */
+export async function serverErrors(
+  error: Error,
+  _req: Request,
+  res: Response,
+  // * See: https://stackoverflow.com/a/61464426
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _next: NextFunction
+): Promise<unknown> {
+  return sendError(res, 'internal-error', {
+    customMessage: error.message || 'An unknown error occurred',
+  });
+}
+
 export const sendUnspecifiedError = (res: Response, e: unknown) => {
   const error = e as Error;
   if (error.message in ERRORS) {
     return sendError(res, error.message as keyof typeof ERRORS);
   } else {
-    return sendError(
-      res,
-      'internal-error',
-      process.env.NODE_ENV !== 'production'
-        ? { customMessage: error.message }
-        : undefined
-    );
+    return sendError(res, 'internal-error', { customMessage: error.message });
   }
 };
