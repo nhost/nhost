@@ -138,13 +138,21 @@ export default server
 
 Add `STRIPE_SECRET_KEY` as an environment variable.
 
-If you're using Nhost, add `STRIPE_SECRET_KEY` to `.env.development` like this:
+If you're using Nhost, add `STRIPE_SECRET_KEY` to `nhost.toml` like this:
+
+```
+[[ global.environment ]]
+name=STRIPE_SECRET_KEY
+value='{{ secrets.STRIPE_SECRET_KEY }}'
+```
+
+And then add to your `.secrets` file:
 
 ```
 STRIPE_SECRET_KEY=sk_test_***
 ```
 
-And add the production key (`sk_live_***`) to [environment variables](/platform/environment-variables) in the Nhost dashboard.
+In production set your secret with your stripe production key (`sk_live_***`) in the Nhost dashboard.
 
 Learn more about [Stripe API keys](https://stripe.com/docs/keys#obtain-api-keys).
 
