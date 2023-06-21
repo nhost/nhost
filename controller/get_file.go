@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -222,7 +223,7 @@ func (ctrl *Controller) getFileProcess(ctx *gin.Context) (*FileResponse, *APIErr
 
 	if response.statusCode == http.StatusOK {
 		// if we want to download files at some point prepend `attachment;` before filename
-		response.headers.Add("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, fileMetadata.Name))
+		response.headers.Add("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, url.QueryEscape(fileMetadata.Name)))
 	}
 
 	return response, nil
