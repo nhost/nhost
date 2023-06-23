@@ -3,7 +3,7 @@ import type { Project, Workspace } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { GetWorkspaceAndProjectDocument } from '@/utils/__generated__/graphql';
-import { useNhostClient, useUserData } from '@nhost/nextjs';
+import { useAuthenticationStatus, useNhostClient } from '@nhost/nextjs';
 import type { RefetchOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -34,8 +34,9 @@ export interface UseCurrentWorkspaceAndProjectReturnType {
 
 export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndProjectReturnType {
   const client = useNhostClient();
-  const user = useUserData();
   const isPlatform = useIsPlatform();
+  const { isAuthenticated, isLoading: isAuthLoading } =
+    useAuthenticationStatus();
 
   const {
     query: { workspaceSlug, appSlug },
@@ -59,7 +60,12 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
       }),
     {
       keepPreviousData: true,
-      enabled: isPlatform && isReady && !!workspaceSlug && !!user,
+      enabled:
+        isPlatform &&
+        isReady &&
+        !!workspaceSlug &&
+        isAuthenticated &&
+        !isAuthLoading,
       // multiple components are relying on this query, so we don't want to
       // refetch it too often - kind of a hack, should be improved later
       staleTime: 1000,
@@ -142,7 +148,7 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
   return {
     currentWorkspace,
     currentProject,
-    loading: response ? false : isFetching,
+    loading: response ? false : isFetching || isAuthLoading,
     error: response?.error
       ? new Error(error?.message || 'Unknown error occurred.')
       : null,
