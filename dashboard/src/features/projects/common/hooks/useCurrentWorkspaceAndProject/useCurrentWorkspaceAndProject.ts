@@ -40,8 +40,17 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
 
   const {
     query: { workspaceSlug, appSlug },
-    isReady,
+    isReady: isRouterReady,
   } = useRouter();
+
+  const isWorkspaceSlugAvailable = Boolean(workspaceSlug);
+
+  const shouldFetchWorkspaceAndProject =
+    isPlatform &&
+    isRouterReady &&
+    isWorkspaceSlugAvailable &&
+    isAuthenticated &&
+    !isAuthLoading;
 
   // We can't use the hook exported by the codegen here because there are cases
   // where it doesn't target the Nhost backend, but the currently active project
@@ -60,12 +69,7 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
       }),
     {
       keepPreviousData: true,
-      enabled:
-        isPlatform &&
-        isReady &&
-        !!workspaceSlug &&
-        isAuthenticated &&
-        !isAuthLoading,
+      enabled: shouldFetchWorkspaceAndProject,
       // multiple components are relying on this query, so we don't want to
       // refetch it too often - kind of a hack, should be improved later
       staleTime: 1000,
