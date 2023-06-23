@@ -2,9 +2,9 @@
 import Email from 'email-templates';
 import nodemailer from 'nodemailer';
 
-import { ENV } from './utils/env';
-import { EmailLocals, renderTemplate } from './templates';
 import { logger } from './logger';
+import { EmailLocals, renderTemplate } from './templates';
+import { ENV } from './utils/env';
 
 /**
  * SMTP transport.
@@ -25,7 +25,9 @@ const transport = nodemailer.createTransport({
  */
 export const emailClient = new Email<EmailLocals>({
   transport,
-  message: { from: ENV.AUTH_SMTP_SENDER },
+  message: {
+    from: ENV.AUTH_SMTP_SENDER,
+  },
   send: true,
   render: renderTemplate,
 });
@@ -34,7 +36,21 @@ export const sendEmail = async (
   options: Parameters<typeof emailClient['send']>[0]
 ) => {
   try {
-    await emailClient.send(options);
+    let headers: typeof options['message']['headers'] = {
+      ...options.message.headers,
+    };
+
+    if (ENV.AUTH_SMTP_X_SMTPAPI_HEADER) {
+      headers = {
+        ...headers,
+        'X-SMTPAPI': ENV.AUTH_SMTP_X_SMTPAPI_HEADER,
+      };
+    }
+
+    await emailClient.send({
+      ...options,
+      message: { ...options.message, headers },
+    });
   } catch (err) {
     const error = err as Error;
     logger.warn(

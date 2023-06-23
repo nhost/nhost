@@ -187,7 +187,10 @@ export async function serverErrors(
   _next: NextFunction
 ): Promise<unknown> {
   return sendError(res, 'internal-error', {
-    customMessage: error.message || 'An unknown error occurred',
+    customMessage: JSON.stringify({
+      message: error.message || 'An unknown error occurred',
+      stack: error.stack,
+    }),
   });
 }
 
@@ -196,6 +199,11 @@ export const sendUnspecifiedError = (res: Response, e: unknown) => {
   if (error.message in ERRORS) {
     return sendError(res, error.message as keyof typeof ERRORS);
   } else {
-    return sendError(res, 'internal-error', { customMessage: error.message });
+    return sendError(res, 'internal-error', {
+      customMessage: JSON.stringify({
+        message: error.message || 'An unknown error occurred',
+        stack: error.stack,
+      }),
+    });
   }
 };
