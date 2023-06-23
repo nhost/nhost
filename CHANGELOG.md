@@ -1,5 +1,17 @@
 ## Changelog
 
+## 0.21.0
+
+### Minor Changes
+
+- ceaca45: chore(node): bump Node.js to v18
+
+### Patch Changes
+
+- 1706c37: fix(redirect): generate valid redirection links
+- ceaca45: chore(logs): improve logging in production
+- 60dcbf4: fix(email-templates): correct typos in the French translation
+
 ## 0.20.2
 
 ### Patch Changes
