@@ -1,5 +1,11 @@
 ## Changelog
 
+## 0.21.1
+
+### Patch Changes
+
+- 840d730: feat(smtp): make the `X-SMTPAPI` header configurable
+
 ## 0.21.0
 
 ### Minor Changes
