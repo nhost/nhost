@@ -1,5 +1,11 @@
 # @nhost/stripe-graphql-js
 
+## 1.0.4
+
+### Patch Changes
+
+- 07a45fde0: chore(deps): bump `graphql` to `v16.7.1`
+
 ## 1.0.3
 
 ### Patch Changes

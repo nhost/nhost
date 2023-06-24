@@ -1,5 +1,13 @@
 # @nhost/apollo
 
+## 5.2.12
+
+### Patch Changes
+
+- 07a45fde0: chore(deps): bump `graphql` to `v16.7.1`
+- Updated dependencies [07a45fde0]
+  - @nhost/nhost-js@2.2.10
+
 ## 5.2.11
 
 ### Patch Changes

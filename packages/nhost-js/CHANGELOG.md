@@ -1,5 +1,13 @@
 # @nhost/nhost-js
 
+## 2.2.10
+
+### Patch Changes
+
+- 07a45fde0: chore(deps): bump `graphql` to `v16.7.1`
+- Updated dependencies [07a45fde0]
+  - @nhost/graphql-js@0.1.4
+
 ## 2.2.9
 
 ### Patch Changes

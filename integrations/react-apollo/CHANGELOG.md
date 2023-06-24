@@ -1,5 +1,14 @@
 # @nhost/react-apollo
 
+## 5.0.28
+
+### Patch Changes
+
+- 07a45fde0: chore(deps): bump `graphql` to `v16.7.1`
+- Updated dependencies [07a45fde0]
+  - @nhost/apollo@5.2.12
+  - @nhost/react@2.0.24
+
 ## 5.0.27
 
 ### Patch Changes
