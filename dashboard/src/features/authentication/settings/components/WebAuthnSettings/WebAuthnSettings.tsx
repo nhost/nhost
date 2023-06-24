@@ -66,7 +66,10 @@ export default function WebAuthnSettings() {
         config: {
           auth: {
             method: {
-              webauthn: values,
+              webauthn: {...values,
+              relyingParty: {
+                name: currentProject.name,
+              }},
             },
           },
         },
