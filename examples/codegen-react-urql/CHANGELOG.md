@@ -1,5 +1,14 @@
 # @nhost-examples/react-urql
 
+## 0.0.7
+
+### Patch Changes
+
+- b3b64a3b7: chore(deps): bump `@types/react` to `v18.2.14` and `@types/react-dom` to `v18.2.6`
+- Updated dependencies [b3b64a3b7]
+  - @nhost/react-urql@2.0.26
+  - @nhost/react@2.0.25
+
 ## 0.0.6
 
 ### Patch Changes

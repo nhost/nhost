@@ -1,5 +1,11 @@
 # @nhost/react
 
+## 2.0.25
+
+### Patch Changes
+
+- b3b64a3b7: chore(deps): bump `@types/react` to `v18.2.14` and `@types/react-dom` to `v18.2.6`
+
 ## 2.0.24
 
 ### Patch Changes
