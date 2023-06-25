@@ -125,7 +125,7 @@
             buildInputs = with pkgs; [
               nhost
               nodejs_18
-              # nodePackages.pnpm
+              nodePackages.pnpm
             ] ++ buildInputs ++ nativeBuildInputs;
           };
         };
