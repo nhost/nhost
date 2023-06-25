@@ -1,5 +1,12 @@
 # @nhost/react-urql
 
+## 2.0.25
+
+### Patch Changes
+
+- 07a45fde0: chore(deps): bump `graphql` to `v16.7.1`
+  - @nhost/react@2.0.24
+
 ## 2.0.24
 
 ### Patch Changes

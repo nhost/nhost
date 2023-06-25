@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 0.17.15
+
+### Patch Changes
+
+- f41fdc12a: chore(deps): bump `turbo` to `1.10.5`
+- 6199c1c55: fix(projects): don't redirect to 404 page
+- Updated dependencies [07a45fde0]
+  - @nhost/react-apollo@5.0.28
+  - @nhost/nextjs@1.13.30
+
 ## 0.17.14
 
 ### Patch Changes
