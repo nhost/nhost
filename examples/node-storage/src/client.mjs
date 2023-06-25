@@ -1,4 +1,7 @@
 import { NhostClient } from '@nhost/nhost-js'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 /**
  * Create a new Nhost client.

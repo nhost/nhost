@@ -38,11 +38,10 @@ describe('test upload', () => {
   it('should upload a file with specific id', async () => {
     const RANDOM_UUID = uuidv4()
 
-    const fd = new FormData()
-    fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+    const file = fs.createReadStream('./tests/assets/sample.pdf')
 
     const { fileMetadata, error } = await storage.upload({
-      formData: fd,
+      file: file as unknown as File,
       id: RANDOM_UUID
     })
 
@@ -50,8 +49,7 @@ describe('test upload', () => {
       throw new Error('fileMetadata is missing')
     }
 
-    const { id: fileId } =
-      'processedFiles' in fileMetadata ? fileMetadata.processedFiles[0] : fileMetadata
+    const { id: fileId } = fileMetadata
 
     expect(error).toBeNull()
     expect(fileId).toBe(RANDOM_UUID)
@@ -60,11 +58,10 @@ describe('test upload', () => {
   it('should upload a file with specific name', async () => {
     const FILE_NAME = 'special-name.pdf'
 
-    const fd = new FormData()
-    fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+    const file = fs.createReadStream('./tests/assets/sample.pdf')
 
     const { fileMetadata, error } = await storage.upload({
-      formData: fd,
+      file: file as unknown as File,
       name: FILE_NAME
     })
 
@@ -72,19 +69,17 @@ describe('test upload', () => {
       throw new Error('fileMetadata is missing')
     }
 
-    const { name: fileName } =
-      'processedFiles' in fileMetadata ? fileMetadata.processedFiles[0] : fileMetadata
+    const { name: fileName } = fileMetadata
 
     expect(error).toBeNull()
     expect(fileName).toBe(FILE_NAME)
   })
 
   it('should upload a file with a non-ISO 8859-1 name', async () => {
-    const fd = new FormData()
-    fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+    const file = fs.createReadStream('./tests/assets/sample.pdf')
 
     const { fileMetadata, error } = await storage.upload({
-      formData: fd,
+      file: file as unknown as File,
       name: '你 好'
     })
 
@@ -92,8 +87,7 @@ describe('test upload', () => {
       throw new Error('fileMetadata is missing')
     }
 
-    const { name: fileName } =
-      'processedFiles' in fileMetadata ? fileMetadata.processedFiles[0] : fileMetadata
+    const { name: fileName } = fileMetadata
 
     expect(error).toBeNull()
     expect(fileName).toMatchInlineSnapshot('"%E4%BD%A0%20%E5%A5%BD"')
@@ -103,11 +97,10 @@ describe('test upload', () => {
     const RANDOM_UUID = uuidv4()
     const FILE_NAME = 'special-name.pdf'
 
-    const fd = new FormData()
-    fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+    const file = fs.createReadStream('./tests/assets/sample.pdf')
 
     const { fileMetadata, error } = await storage.upload({
-      formData: fd,
+      file: file as unknown as File,
       id: RANDOM_UUID,
       name: FILE_NAME
     })
@@ -116,8 +109,7 @@ describe('test upload', () => {
       throw new Error('fileMetadata is missing')
     }
 
-    const { id: fileId, name: fileName } =
-      'processedFiles' in fileMetadata ? fileMetadata.processedFiles[0] : fileMetadata
+    const { id: fileId, name: fileName } = fileMetadata
 
     expect(error).toBeNull()
     expect(fileId).toBe(RANDOM_UUID)
