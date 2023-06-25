@@ -367,7 +367,7 @@ importers:
         specifier: 18.2.14
         version: 18.2.14
       '@types/react-dom':
-        specifier: 18.2.6
+        specifier: ^18.2.6
         version: 18.2.6
       '@types/react-table':
         specifier: ^7.7.12
@@ -606,11 +606,11 @@ importers:
         specifier: ^18.11.9
         version: 18.11.17
       '@types/react':
-        specifier: ^18.0.34
-        version: 18.0.34
+        specifier: ^18.2.14
+        version: 18.2.14
       '@types/react-dom':
-        specifier: ^18.0.11
-        version: 18.0.11
+        specifier: ^18.2.6
+        version: 18.2.6
       '@vitejs/plugin-react':
         specifier: ^3.0.0
         version: 3.0.0(vite@4.0.2)
@@ -673,11 +673,11 @@ importers:
         specifier: ^16.11.56
         version: 16.18.11
       '@types/react':
-        specifier: ^18.0.34
-        version: 18.0.34
+        specifier: ^18.2.14
+        version: 18.2.14
       '@types/react-dom':
-        specifier: ^18.0.11
-        version: 18.0.11
+        specifier: ^18.2.6
+        version: 18.2.6
       autoprefixer:
         specifier: ^10.4.13
         version: 10.4.13(postcss@8.4.20)
@@ -737,11 +737,11 @@ importers:
         specifier: ^16.11.7
         version: 16.18.11
       '@types/react':
-        specifier: ^18.0.34
-        version: 18.0.34
+        specifier: ^18.2.14
+        version: 18.2.14
       '@types/react-dom':
-        specifier: ^18.0.11
-        version: 18.0.11
+        specifier: ^18.2.6
+        version: 18.2.6
       '@vitejs/plugin-react':
         specifier: ^3.0.0
         version: 3.0.0(vite@4.0.3)
@@ -790,13 +790,13 @@ importers:
         version: 3.6.9(graphql@16.7.1)(react@18.2.0)
       '@mantine/core':
         specifier: ^4.2.12
-        version: 4.2.12(@babel/core@7.19.6)(@mantine/hooks@4.2.12)(@types/react@18.0.34)(react-dom@18.2.0)(react@18.2.0)
+        version: 4.2.12(@babel/core@7.19.6)(@mantine/hooks@4.2.12)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
       '@mantine/hooks':
         specifier: ^4.2.12
         version: 4.2.12(react@18.2.0)
       '@mantine/next':
         specifier: ^4.2.12
-        version: 4.2.12(@babel/core@7.19.6)(@types/react@18.0.34)(next@12.1.6)(react-dom@18.2.0)(react@18.2.0)
+        version: 4.2.12(@babel/core@7.19.6)(@types/react@18.2.14)(next@12.1.6)(react-dom@18.2.0)(react@18.2.0)
       '@mantine/notifications':
         specifier: ^4.2.12
         version: 4.2.12(@mantine/core@4.2.12)(@mantine/hooks@4.2.12)(react-dom@18.2.0)(react@18.2.0)
@@ -832,8 +832,8 @@ importers:
         specifier: ^16.11.7
         version: 16.18.11
       '@types/react':
-        specifier: 18.0.34
-        version: 18.0.34
+        specifier: ^18.2.14
+        version: 18.2.14
       '@xstate/inspect':
         specifier: ^0.6.2
         version: 0.6.5(ws@8.9.0)(xstate@4.33.6)
@@ -876,7 +876,7 @@ importers:
         version: 3.7.14(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
       '@mantine/core':
         specifier: ^4.2.12
-        version: 4.2.12(@babel/core@7.21.8)(@mantine/hooks@4.2.12)(@types/react@18.2.6)(react-dom@18.2.0)(react@18.2.0)
+        version: 4.2.12(@babel/core@7.21.8)(@mantine/hooks@4.2.12)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
       '@mantine/dropzone':
         specifier: ^4.2.12
         version: 4.2.12(@mantine/core@4.2.12)(@mantine/hooks@4.2.12)(react-dom@18.2.0)(react@18.2.0)
@@ -933,11 +933,11 @@ importers:
         specifier: ^6.0.1
         version: 6.0.1
       '@types/react':
+        specifier: ^18.2.14
+        version: 18.2.14
+      '@types/react-dom':
         specifier: ^18.2.6
         version: 18.2.6
-      '@types/react-dom':
-        specifier: ^18.2.4
-        version: 18.2.4
       '@types/totp-generator':
         specifier: ^0.0.4
         version: 0.0.4
@@ -1000,11 +1000,11 @@ importers:
         specifier: ^0.5.3
         version: 0.5.3(tailwindcss@3.2.1)
       '@types/react':
-        specifier: ^18.0.34
-        version: 18.0.34
+        specifier: ^18.2.14
+        version: 18.2.14
       '@types/react-dom':
-        specifier: ^18.0.11
-        version: 18.0.11
+        specifier: ^18.2.6
+        version: 18.2.6
       '@vitejs/plugin-react':
         specifier: ^3.0.0
         version: 3.0.0(vite@4.0.2)
@@ -1260,8 +1260,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/react
       '@types/react':
-        specifier: ^18.0.34
-        version: 18.0.34
+        specifier: ^18.2.14
+        version: 18.2.14
       graphql:
         specifier: 16.7.1
         version: 16.7.1
@@ -1288,8 +1288,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/react
       '@types/react':
-        specifier: ^18.0.34
-        version: 18.0.34
+        specifier: ^18.2.14
+        version: 18.2.14
       graphql:
         specifier: 16.7.1
         version: 16.7.1
@@ -1512,7 +1512,7 @@ importers:
         version: link:../nhost-js
       '@xstate/react':
         specifier: ^3.0.1
-        version: 3.0.1(@types/react@18.0.34)(react@18.2.0)(xstate@4.33.6)
+        version: 3.0.1(@types/react@18.2.14)(react@18.2.0)(xstate@4.33.6)
       jwt-decode:
         specifier: ^3.1.2
         version: 3.1.2
@@ -1527,8 +1527,8 @@ importers:
         specifier: workspace:*
         version: link:../docgen
       '@types/react':
-        specifier: ^18.0.34
-        version: 18.0.34
+        specifier: ^18.2.14
+        version: 18.2.14
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -6168,7 +6168,7 @@ packages:
       react: 18.2.0
     dev: false
 
-  /@emotion/react@11.7.1(@babel/core@7.19.6)(@types/react@18.0.34)(react@18.2.0):
+  /@emotion/react@11.7.1(@babel/core@7.19.6)(@types/react@18.2.14)(react@18.2.0):
     resolution: {integrity: sha512-DV2Xe3yhkF1yT4uAUoJcYL1AmrnO5SVsdfvu+fBuS7IbByDeTVx9+wFmvx9Idzv7/78+9Mgx2Hcmr7Fex3tIyw==}
     peerDependencies:
       '@babel/core': ^7.0.0
@@ -6187,12 +6187,12 @@ packages:
       '@emotion/sheet': 1.2.1
       '@emotion/utils': 1.2.0
       '@emotion/weak-memoize': 0.2.5
-      '@types/react': 18.0.34
+      '@types/react': 18.2.14
       hoist-non-react-statics: 3.3.2
       react: 18.2.0
     dev: false
 
-  /@emotion/react@11.7.1(@babel/core@7.21.8)(@types/react@18.2.6)(react@18.2.0):
+  /@emotion/react@11.7.1(@babel/core@7.21.8)(@types/react@18.2.14)(react@18.2.0):
     resolution: {integrity: sha512-DV2Xe3yhkF1yT4uAUoJcYL1AmrnO5SVsdfvu+fBuS7IbByDeTVx9+wFmvx9Idzv7/78+9Mgx2Hcmr7Fex3tIyw==}
     peerDependencies:
       '@babel/core': ^7.0.0
@@ -6211,7 +6211,7 @@ packages:
       '@emotion/sheet': 1.2.1
       '@emotion/utils': 1.2.0
       '@emotion/weak-memoize': 0.2.5
-      '@types/react': 18.2.6
+      '@types/react': 18.2.14
       hoist-non-react-statics: 3.3.2
       react: 18.2.0
     dev: false
@@ -9020,7 +9020,7 @@ packages:
       '@lezer/common': 1.0.1
     dev: false
 
-  /@mantine/core@4.2.12(@babel/core@7.19.6)(@mantine/hooks@4.2.12)(@types/react@18.0.34)(react-dom@18.2.0)(react@18.2.0):
+  /@mantine/core@4.2.12(@babel/core@7.19.6)(@mantine/hooks@4.2.12)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-PZcVUvcSZiZmLR1moKBJFdFIh6a4C+TE2ao91kzTAlH5Qb8t/V3ONbfPk3swHoYr7OSLJQM8vZ7UD5sFDiq0/g==}
     peerDependencies:
       '@mantine/hooks': 4.2.12
@@ -9028,19 +9028,19 @@ packages:
       react-dom: '>=16.8.0'
     dependencies:
       '@mantine/hooks': 4.2.12(react@18.2.0)
-      '@mantine/styles': 4.2.12(@babel/core@7.19.6)(@types/react@18.0.34)(react-dom@18.2.0)(react@18.2.0)
+      '@mantine/styles': 4.2.12(@babel/core@7.19.6)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
       '@popperjs/core': 2.11.5
       '@radix-ui/react-scroll-area': 0.1.4(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       react-popper: 2.3.0(@popperjs/core@2.11.5)(react-dom@18.2.0)(react@18.2.0)
-      react-textarea-autosize: 8.3.3(@types/react@18.0.34)(react@18.2.0)
+      react-textarea-autosize: 8.3.3(@types/react@18.2.14)(react@18.2.0)
     transitivePeerDependencies:
       - '@babel/core'
       - '@types/react'
     dev: false
 
-  /@mantine/core@4.2.12(@babel/core@7.21.8)(@mantine/hooks@4.2.12)(@types/react@18.2.6)(react-dom@18.2.0)(react@18.2.0):
+  /@mantine/core@4.2.12(@babel/core@7.21.8)(@mantine/hooks@4.2.12)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-PZcVUvcSZiZmLR1moKBJFdFIh6a4C+TE2ao91kzTAlH5Qb8t/V3ONbfPk3swHoYr7OSLJQM8vZ7UD5sFDiq0/g==}
     peerDependencies:
       '@mantine/hooks': 4.2.12
@@ -9048,13 +9048,13 @@ packages:
       react-dom: '>=16.8.0'
     dependencies:
       '@mantine/hooks': 4.2.12(react@18.2.0)
-      '@mantine/styles': 4.2.12(@babel/core@7.21.8)(@types/react@18.2.6)(react-dom@18.2.0)(react@18.2.0)
+      '@mantine/styles': 4.2.12(@babel/core@7.21.8)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
       '@popperjs/core': 2.11.5
       '@radix-ui/react-scroll-area': 0.1.4(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       react-popper: 2.3.0(@popperjs/core@2.11.5)(react-dom@18.2.0)(react@18.2.0)
-      react-textarea-autosize: 8.3.3(@types/react@18.2.6)(react@18.2.0)
+      react-textarea-autosize: 8.3.3(@types/react@18.2.14)(react@18.2.0)
     transitivePeerDependencies:
       - '@babel/core'
       - '@types/react'
@@ -9068,7 +9068,7 @@ packages:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
-      '@mantine/core': 4.2.12(@babel/core@7.21.8)(@mantine/hooks@4.2.12)(@types/react@18.2.6)(react-dom@18.2.0)(react@18.2.0)
+      '@mantine/core': 4.2.12(@babel/core@7.21.8)(@mantine/hooks@4.2.12)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
       '@mantine/hooks': 4.2.12(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
@@ -9083,14 +9083,14 @@ packages:
       react: 18.2.0
     dev: false
 
-  /@mantine/next@4.2.12(@babel/core@7.19.6)(@types/react@18.0.34)(next@12.1.6)(react-dom@18.2.0)(react@18.2.0):
+  /@mantine/next@4.2.12(@babel/core@7.19.6)(@types/react@18.2.14)(next@12.1.6)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-Wpjjp5lLy14gFV84EV3Yu4j1uLFugf8mSwQOJa+gD5IT9ENpOHEGykmo7SHS3EormFLPE9seDD28dACC2sNM5Q==}
     peerDependencies:
       next: '*'
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
-      '@mantine/ssr': 4.2.12(@babel/core@7.19.6)(@types/react@18.0.34)(react-dom@18.2.0)(react@18.2.0)
+      '@mantine/ssr': 4.2.12(@babel/core@7.19.6)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
       next: 12.1.6(@babel/core@7.19.6)(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
@@ -9108,7 +9108,7 @@ packages:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
-      '@mantine/core': 4.2.12(@babel/core@7.19.6)(@mantine/hooks@4.2.12)(@types/react@18.0.34)(react-dom@18.2.0)(react@18.2.0)
+      '@mantine/core': 4.2.12(@babel/core@7.19.6)(@mantine/hooks@4.2.12)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
       '@mantine/hooks': 4.2.12(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
@@ -9123,25 +9123,25 @@ packages:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
-      '@mantine/core': 4.2.12(@babel/core@7.21.8)(@mantine/hooks@4.2.12)(@types/react@18.2.6)(react-dom@18.2.0)(react@18.2.0)
+      '@mantine/core': 4.2.12(@babel/core@7.21.8)(@mantine/hooks@4.2.12)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
       '@mantine/hooks': 4.2.12(react@18.2.0)
       prism-react-renderer: 1.3.5(react@18.2.0)
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
     dev: false
 
-  /@mantine/ssr@4.2.12(@babel/core@7.19.6)(@types/react@18.0.34)(react-dom@18.2.0)(react@18.2.0):
+  /@mantine/ssr@4.2.12(@babel/core@7.19.6)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-PhM+nYzKs7ooPgMyJGPrdE0KaBB1T72yln3K/3ydkJBAMb/gl08Gm8gpzInzfn2kB7bdRVNwuF0i8Ba0pDbvJg==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
       '@emotion/cache': 11.7.1
-      '@emotion/react': 11.7.1(@babel/core@7.19.6)(@types/react@18.0.34)(react@18.2.0)
+      '@emotion/react': 11.7.1(@babel/core@7.19.6)(@types/react@18.2.14)(react@18.2.0)
       '@emotion/serialize': 1.0.2
       '@emotion/server': 11.4.0
       '@emotion/utils': 1.0.0
-      '@mantine/styles': 4.2.12(@babel/core@7.19.6)(@types/react@18.0.34)(react-dom@18.2.0)(react@18.2.0)
+      '@mantine/styles': 4.2.12(@babel/core@7.19.6)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
       csstype: 3.0.9
       html-react-parser: 1.3.0(react@18.2.0)
       react: 18.2.0
@@ -9152,14 +9152,14 @@ packages:
       - '@types/react'
     dev: false
 
-  /@mantine/styles@4.2.12(@babel/core@7.19.6)(@types/react@18.0.34)(react-dom@18.2.0)(react@18.2.0):
+  /@mantine/styles@4.2.12(@babel/core@7.19.6)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-9q1DzW0UNW/ORMGLHfN2XABOSEm0ZQebhNlLD757R6OQouoLuUf9elUwgGOXSyogMlsAYoy84XbJ3ZbbTm4YCA==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
       '@emotion/cache': 11.7.1
-      '@emotion/react': 11.7.1(@babel/core@7.19.6)(@types/react@18.0.34)(react@18.2.0)
+      '@emotion/react': 11.7.1(@babel/core@7.19.6)(@types/react@18.2.14)(react@18.2.0)
       '@emotion/serialize': 1.0.2
       '@emotion/utils': 1.0.0
       clsx: 1.2.1
@@ -9171,14 +9171,14 @@ packages:
       - '@types/react'
     dev: false
 
-  /@mantine/styles@4.2.12(@babel/core@7.21.8)(@types/react@18.2.6)(react-dom@18.2.0)(react@18.2.0):
+  /@mantine/styles@4.2.12(@babel/core@7.21.8)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-9q1DzW0UNW/ORMGLHfN2XABOSEm0ZQebhNlLD757R6OQouoLuUf9elUwgGOXSyogMlsAYoy84XbJ3ZbbTm4YCA==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
       '@emotion/cache': 11.7.1
-      '@emotion/react': 11.7.1(@babel/core@7.21.8)(@types/react@18.2.6)(react@18.2.0)
+      '@emotion/react': 11.7.1(@babel/core@7.21.8)(@types/react@18.2.14)(react@18.2.0)
       '@emotion/serialize': 1.0.2
       '@emotion/utils': 1.0.0
       clsx: 1.2.1
@@ -13545,18 +13545,6 @@ packages:
   /@types/range-parser@1.2.4:
     resolution: {integrity: sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==}
 
-  /@types/react-dom@18.0.11:
-    resolution: {integrity: sha512-O38bPbI2CWtgw/OoQoY+BRelw7uysmXbWvw3nLWO21H1HSh+GOlqPuXshJfjmpNlKiiSDG9cc1JZAaMmVdcTlw==}
-    dependencies:
-      '@types/react': 18.0.34
-    dev: true
-
-  /@types/react-dom@18.2.4:
-    resolution: {integrity: sha512-G2mHoTMTL4yoydITgOGwWdWMVd8sNgyEP85xVmMKAPUBwQWm9wBPQUmvbeF4V3WBY1P7mmL4BkjQ0SqUpf1snw==}
-    dependencies:
-      '@types/react': 18.2.6
-    dev: true
-
   /@types/react-dom@18.2.6:
     resolution: {integrity: sha512-2et4PDvg6PVCyS7fuTc4gPoksV58bW0RwSxWKcPRcHZf0PRUGq03TKcD/rUHe3azfV6/5/biUBJw+HhCQjaP0A==}
     dependencies:
@@ -13600,22 +13588,8 @@ packages:
       '@types/react': 18.2.14
     dev: false
 
-  /@types/react@18.0.34:
-    resolution: {integrity: sha512-NO1UO8941541CJl1BeOXi8a9dNKFK09Gnru5ZJqkm4Q3/WoQJtHvmwt0VX0SB9YCEwe7TfSSxDuaNmx6H2BAIQ==}
-    dependencies:
-      '@types/prop-types': 15.7.5
-      '@types/scheduler': 0.16.2
-      csstype: 3.1.1
-
   /@types/react@18.2.14:
     resolution: {integrity: sha512-A0zjq+QN/O0Kpe30hA1GidzyFjatVvrpIvWLxD+xv67Vt91TWWgco9IvrJBkeyHm1trGaFS/FSGqPlhyeZRm0g==}
-    dependencies:
-      '@types/prop-types': 15.7.5
-      '@types/scheduler': 0.16.2
-      csstype: 3.1.1
-
-  /@types/react@18.2.6:
-    resolution: {integrity: sha512-wRZClXn//zxCFW+ye/D2qY65UsYP1Fpex2YXorHc8awoNamkMZSvBxwxdYVInsHOZZd2Ppq8isnSzJL5Mpf8OA==}
     dependencies:
       '@types/prop-types': 15.7.5
       '@types/scheduler': 0.16.2
@@ -15434,7 +15408,7 @@ packages:
       xstate: 4.33.6
     dev: true
 
-  /@xstate/react@3.0.1(@types/react@18.0.34)(react@18.2.0)(xstate@4.33.6):
+  /@xstate/react@3.0.1(@types/react@18.2.14)(react@18.2.0)(xstate@4.33.6):
     resolution: {integrity: sha512-/tq/gg92P9ke8J+yDNDBv5/PAxBvXJf2cYyGDByzgtl5wKaxKxzDT82Gj3eWlCJXkrBg4J5/V47//gRJuVH2fA==}
     peerDependencies:
       '@xstate/fsm': ^2.0.0
@@ -15447,7 +15421,7 @@ packages:
         optional: true
     dependencies:
       react: 18.2.0
-      use-isomorphic-layout-effect: 1.1.2(@types/react@18.0.34)(react@18.2.0)
+      use-isomorphic-layout-effect: 1.1.2(@types/react@18.2.14)(react@18.2.0)
       use-sync-external-store: 1.2.0(react@18.2.0)
       xstate: 4.33.6
     transitivePeerDependencies:
@@ -28112,7 +28086,7 @@ packages:
       react-base16-styling: 0.6.0
       react-dom: 18.2.0(react@18.2.0)
       react-lifecycles-compat: 3.0.4
-      react-textarea-autosize: 8.3.3(@types/react@18.2.6)(react@18.2.0)
+      react-textarea-autosize: 8.3.3(@types/react@18.2.14)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
       - encoding
@@ -28321,7 +28295,7 @@ packages:
       react: 18.2.0
     dev: false
 
-  /react-textarea-autosize@8.3.3(@types/react@18.0.34)(react@18.2.0):
+  /react-textarea-autosize@8.3.3(@types/react@18.2.14)(react@18.2.0):
     resolution: {integrity: sha512-2XlHXK2TDxS6vbQaoPbMOfQ8GK7+irc2fVK6QFIcC8GOnH3zI/v481n+j1L0WaPVvKxwesnY93fEfH++sus2rQ==}
     engines: {node: '>=10'}
     peerDependencies:
@@ -28330,21 +28304,7 @@ packages:
       '@babel/runtime': 7.21.0
       react: 18.2.0
       use-composed-ref: 1.2.1(react@18.2.0)
-      use-latest: 1.2.0(@types/react@18.0.34)(react@18.2.0)
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
-
-  /react-textarea-autosize@8.3.3(@types/react@18.2.6)(react@18.2.0):
-    resolution: {integrity: sha512-2XlHXK2TDxS6vbQaoPbMOfQ8GK7+irc2fVK6QFIcC8GOnH3zI/v481n+j1L0WaPVvKxwesnY93fEfH++sus2rQ==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0
-    dependencies:
-      '@babel/runtime': 7.21.0
-      react: 18.2.0
-      use-composed-ref: 1.2.1(react@18.2.0)
-      use-latest: 1.2.0(@types/react@18.2.6)(react@18.2.0)
+      use-latest: 1.2.0(@types/react@18.2.14)(react@18.2.0)
     transitivePeerDependencies:
       - '@types/react'
     dev: false
@@ -31938,7 +31898,7 @@ packages:
       react: 18.2.0
     dev: false
 
-  /use-isomorphic-layout-effect@1.1.2(@types/react@18.0.34)(react@18.2.0):
+  /use-isomorphic-layout-effect@1.1.2(@types/react@18.2.14)(react@18.2.0):
     resolution: {integrity: sha512-49L8yCO3iGT/ZF9QttjwLF/ZD9Iwto5LnH5LmEdk/6cFmXddqi2ulF0edxTwjj+7mqvpVVGQWvbXZdn32wRSHA==}
     peerDependencies:
       '@types/react': '*'
@@ -31947,24 +31907,11 @@ packages:
       '@types/react':
         optional: true
     dependencies:
-      '@types/react': 18.0.34
+      '@types/react': 18.2.14
       react: 18.2.0
     dev: false
 
-  /use-isomorphic-layout-effect@1.1.2(@types/react@18.2.6)(react@18.2.0):
-    resolution: {integrity: sha512-49L8yCO3iGT/ZF9QttjwLF/ZD9Iwto5LnH5LmEdk/6cFmXddqi2ulF0edxTwjj+7mqvpVVGQWvbXZdn32wRSHA==}
-    peerDependencies:
-      '@types/react': '*'
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-    dependencies:
-      '@types/react': 18.2.6
-      react: 18.2.0
-    dev: false
-
-  /use-latest@1.2.0(@types/react@18.0.34)(react@18.2.0):
+  /use-latest@1.2.0(@types/react@18.2.14)(react@18.2.0):
     resolution: {integrity: sha512-d2TEuG6nSLKQLAfW3By8mKr8HurOlTkul0sOpxbClIv4SQ4iOd7BYr7VIzdbktUCnv7dua/60xzd8igMU6jmyw==}
     peerDependencies:
       '@types/react': '*'
@@ -31973,23 +31920,9 @@ packages:
       '@types/react':
         optional: true
     dependencies:
-      '@types/react': 18.0.34
+      '@types/react': 18.2.14
       react: 18.2.0
-      use-isomorphic-layout-effect: 1.1.2(@types/react@18.0.34)(react@18.2.0)
-    dev: false
-
-  /use-latest@1.2.0(@types/react@18.2.6)(react@18.2.0):
-    resolution: {integrity: sha512-d2TEuG6nSLKQLAfW3By8mKr8HurOlTkul0sOpxbClIv4SQ4iOd7BYr7VIzdbktUCnv7dua/60xzd8igMU6jmyw==}
-    peerDependencies:
-      '@types/react': '*'
-      react: ^16.8.0 || ^17.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-    dependencies:
-      '@types/react': 18.2.6
-      react: 18.2.0
-      use-isomorphic-layout-effect: 1.1.2(@types/react@18.2.6)(react@18.2.0)
+      use-isomorphic-layout-effect: 1.1.2(@types/react@18.2.14)(react@18.2.0)
     dev: false
 
   /use-sidecar@1.1.2(@types/react@18.2.14)(react@18.2.0):
