@@ -1,5 +1,13 @@
 # @nhost/react-apollo
 
+## 5.0.29
+
+### Patch Changes
+
+- b3b64a3b7: chore(deps): bump `@types/react` to `v18.2.14` and `@types/react-dom` to `v18.2.6`
+- Updated dependencies [b3b64a3b7]
+  - @nhost/react@2.0.25
+
 ## 5.0.28
 
 ### Patch Changes
