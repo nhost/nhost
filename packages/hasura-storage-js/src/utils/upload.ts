@@ -39,7 +39,7 @@ export const fetchUpload = async (
     ...initialHeaders
   }
   if (bucketId) {
-    headers['x-nhost-bucket-id'] = bucketId
+    data.append('bucketId', bucketId)
   }
   if (adminSecret) {
     headers['x-hasura-admin-secret'] = adminSecret

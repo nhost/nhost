@@ -19,6 +19,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11"
+    "@types/node": "^18.15.11",
+    "@types/uuid": "^9.0.1"
   }
 }

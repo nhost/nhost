@@ -1,11 +1,12 @@
 import FormData from 'form-data'
 import fetch from 'node-fetch'
+import { v4 as uuidv4 } from 'uuid'
 import { createClient } from './client.mjs'
 
 const client = createClient()
 
 export async function uploadFormData() {
-  console.info('Uploading Using Form Data...')
+  console.info('Uploading 2 Files via Form Data...')
 
   try {
     // Download image from remote URL
@@ -21,10 +22,25 @@ export async function uploadFormData() {
 
     const arrayBuffer = await response.arrayBuffer()
 
-    const formData = new FormData()
-    formData.append('file[]', Buffer.from(arrayBuffer), 'cat.jpg')
+    const customValues = [
+      {
+        id: uuidv4(),
+        name: 'cat1.jpg'
+      },
+      {
+        id: uuidv4(),
+        name: 'cat2.jpg'
+      }
+    ]
 
-    // Upload file to Nhost Storage
+    const formData = new FormData()
+
+    formData.append('file[]', Buffer.from(arrayBuffer), customValues[0].name)
+    formData.append('metadata[]', JSON.stringify(customValues[0]))
+    formData.append('file[]', Buffer.from(arrayBuffer), customValues[1].name)
+    formData.append('metadata[]', JSON.stringify(customValues[1]))
+
+    // Upload files to Nhost Storage
     const { error: uploadError, fileMetadata } = await client.storage.upload({
       formData,
       headers: { ...formData.getHeaders() }
@@ -36,23 +52,38 @@ export async function uploadFormData() {
       return
     }
 
-    console.info(`[form-data]`, `File has been uploaded successfully!`)
+    if (fileMetadata.processedFiles.length !== 2) {
+      console.error(
+        `[form-data]`,
+        `Expected 2 files to be uploaded, but got ${fileMetadata.processedFiles.length}`
+      )
 
-    const uploadedFile =
-      'processedFiles' in fileMetadata ? fileMetadata.processedFiles[0] : fileMetadata
-
-    console.info(`[form-data]`, `ID: ${uploadedFile?.id}`)
-
-    // Generate a presigned URL for the uploaded file
-    const { error: presignError, presignedUrl: blurredImage } =
-      await client.storage.getPresignedUrl({ fileId: uploadedFile.id })
-
-    if (presignError) {
-      console.error(`[form-data]`, presignError)
       return
     }
 
-    console.info(`[form-data]`, `Presigned URL: ${blurredImage.url}`)
+    await Promise.all(
+      fileMetadata?.processedFiles.map(async (processedFile, index) => {
+        console.info(`[form-data]`, `File has been uploaded successfully!`)
+
+        console.info(`[form-data]`, `ID: ${processedFile.id}`)
+        console.info(
+          `[form-data]`,
+          `Matches custom ID: ${customValues.some(({ id }) => processedFile.id === id)}`
+        )
+
+        // Generate a presigned URL for the uploaded file
+        const { error: presignError, presignedUrl: image } = await client.storage.getPresignedUrl({
+          fileId: processedFile.id
+        })
+
+        if (presignError) {
+          console.error(`[form-data]`, presignError)
+          return
+        }
+
+        console.info(`[form-data]`, `Presigned URL: ${image.url}`)
+      })
+    )
   } catch (error) {
     console.error(`[form-data]`, error.message)
   }

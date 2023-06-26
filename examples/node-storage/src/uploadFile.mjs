@@ -6,7 +6,7 @@ import { createClient } from './client.mjs'
 const client = createClient()
 
 export async function uploadFile() {
-  console.info('Uploading Using File...')
+  console.info('Uploading a Single File Directly...')
 
   try {
     // Download image from remote URL
@@ -47,21 +47,20 @@ export async function uploadFile() {
 
       console.info(`[file]`, `File has been uploaded successfully!`)
 
-      const uploadedFile =
-        'processedFiles' in fileMetadata ? fileMetadata.processedFiles[0] : fileMetadata
-
-      console.info(`[file]`, `ID: ${uploadedFile?.id}`)
+      console.info(`[file]`, `ID: ${fileMetadata?.id}`)
+      console.info(`[file]`, `Matches custom ID: ${fileMetadata?.id === customFileId}`)
 
       // Generate a presigned URL for the uploaded file
-      const { error: presignError, presignedUrl: blurredImage } =
-        await client.storage.getPresignedUrl({ fileId: uploadedFile.id })
+      const { error: presignError, presignedUrl: image } = await client.storage.getPresignedUrl({
+        fileId: fileMetadata.id
+      })
 
       if (presignError) {
         console.error(`[file]`, presignError)
         return
       }
 
-      console.info(`[file]`, `Presigned URL: ${blurredImage.url}`)
+      console.info(`[file]`, `Presigned URL: ${image.url}`)
     })
 
     // Upload file to Nhost Storage

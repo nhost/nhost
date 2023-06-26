@@ -1,5 +1,12 @@
 import { uploadFile } from './uploadFile.mjs'
 import { uploadFormData } from './uploadFormData.mjs'
 
-uploadFormData()
-uploadFile()
+async function uploadFiles() {
+  await uploadFormData()
+
+  console.info('-----')
+
+  await uploadFile()
+}
+
+uploadFiles()
