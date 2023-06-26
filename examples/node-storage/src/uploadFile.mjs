@@ -39,11 +39,6 @@ export async function uploadFile() {
         id: customFileId
       })
 
-      client.storage.upload({
-        formData: {},
-        id: 'asdasd'
-      })
-
       if (uploadError) {
         console.error(`[file]`, uploadError)
 

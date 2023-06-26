@@ -63,7 +63,8 @@ export class HasuraStorageApi {
   }: StorageUploadFileParams): Promise<StorageUploadFileResponse> {
     const formData = new FormData()
 
-    formData.append('file', file)
+    formData.append('file[]', file)
+    formData.append('metadata[]', JSON.stringify({ id, name }))
 
     const { error, fileMetadata } = await fetchUpload(this.url, formData, {
       accessToken: this.accessToken,
