@@ -9,13 +9,19 @@ First, install the dependencies:
 pnpm install
 ```
 
-Then, run the development server:
+Then, build the packages that are used by the Nhost Dashboard:
+
+```bash
+pnpm -w build
+```
+
+Finally, run the development server:
 
 ```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the result in your browser.
 
 ## Environment
 
