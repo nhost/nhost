@@ -110,7 +110,7 @@ Learn more about the [Nhost CLI](https://docs.nhost.io/platform/cli).
 
 Test the Google Translation GraphQL API in the browser:
 
-[http://localhost:1337/v1/functions/graphql/google-translation](http://localhost:1337/v1/functions/graphql/google-translation)
+[https://local.functions.nhost.run/v1/graphql/google-translation](https://local.functions.nhost.run/v1/graphql/google-translation)
 
 ### Remote Schema
 
@@ -119,7 +119,7 @@ Add the Google Translation GraphQL API as a Remote Schema in Hasura.
 **URL**
 
 ```
-{{NHOST_BACKEND_URL}}/v1/functions/graphql/google-translation
+https://local.functions.nhost.run/v1/graphql/google-translation
 ```
 
 **Headers**
