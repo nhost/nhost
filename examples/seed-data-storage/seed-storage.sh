@@ -10,7 +10,7 @@ jq -c '.[]' input.json | while read i; do
     -H "Content-Type: multipart/form-data" \
     -H "x-hasura-admin-secret: nhost-admin-secret" \
     -F "file=@$path" \
-    http://localhost:1337/v1/storage/files/$id
+    https://local.storage.nhost.run/v1/files/$id
 done
 
 

@@ -48,7 +48,7 @@ Learn more about [`upload()`](/reference/javascript/storage/upload).
   <TabItem value="http" label="HTTP" default>
 
 ```http
-POST /v1/storage/files HTTP/1.1
+POST https://local.storage.nhost.run/v1/files HTTP/1.1
 ```
 
   </TabItem>
@@ -80,7 +80,7 @@ Learn more about [`getPublicUrl()`](/reference/javascript/storage/get-public-url
   <TabItem value="http" label="HTTP" default>
 
 ```http
-GET /v1/storage/files/{file_id} HTTP/1.1
+GET https://local.storage.nhost.run/v1/files/{file_id} HTTP/1.1
 ```
 
   </TabItem>
@@ -109,7 +109,7 @@ Learn more about [`getPresignedUrl()`](/reference/javascript/storage/get-presign
   <TabItem value="http" label="HTTP" default>
 
 ```http
-GET /v1/storage/files/{file_id}/presignedurl HTTP/1.1
+GET https://local.storage.nhost.run/v1/files/{file_id}/presignedurl HTTP/1.1
 ```
 
   </TabItem>
@@ -132,7 +132,7 @@ Learn more about [`delete()`](/reference/javascript/storage/delete).
   <TabItem value="http" label="HTTP" default>
 
 ```http
-DELETE /v1/storage/files/{file_id} HTTP/1.1
+DELETE https://local.storage.nhost.run/v1/files/{file_id} HTTP/1.1
 ```
 
   </TabItem>
@@ -193,7 +193,7 @@ Image Transformation works on both public and pre-signed URLs.
 **Example**: Transform an image to 500px width (`?w=500`):
 
 ```text
-https://[subdomain].nhost.run/v1/storage/files/08e6fa32-0880-4d0e-a832-278198acb363?w=500
+https://[subdomain].storage.[region].nhost.run/v1/files/08e6fa32-0880-4d0e-a832-278198acb363?w=500
 ```
 
 ## Example: CRM System
