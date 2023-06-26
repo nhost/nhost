@@ -119,7 +119,7 @@ Add the Google Translation GraphQL API as a Remote Schema in Hasura.
 **URL**
 
 ```
-{{NHOST_BACKEND_URL}}/v1/functions/graphql/google-translation
+https://local.functions.nhost.run/v1/graphql/google-translation
 ```
 
 **Headers**
