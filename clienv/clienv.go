@@ -3,10 +3,17 @@ package clienv
 import (
 	"io"
 	"os"
+	"regexp"
+	"strings"
 
 	"github.com/nhost/cli/nhostclient"
 	"github.com/urfave/cli/v2"
 )
+
+func sanitizeName(name string) string {
+	re := regexp.MustCompile(`[^a-z0-9_-]`)
+	return strings.ToLower(re.ReplaceAllString(name, ""))
+}
 
 type CliEnv struct {
 	stdout      io.Writer
@@ -50,7 +57,7 @@ func FromCLI(cCtx *cli.Context) *CliEnv {
 			cCtx.String(flagNhostFolder),
 		),
 		domain:      cCtx.String(flagDomain),
-		projectName: cCtx.String(flagProjectName),
+		projectName: sanitizeName(cCtx.String(flagProjectName)),
 		nhclient:    nil,
 	}
 }

@@ -124,6 +124,7 @@
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               goreleaser
+              certbot-full
             ] ++ goCheckDeps ++ buildInputs ++ nativeBuildInputs;
           };
 

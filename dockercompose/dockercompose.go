@@ -8,8 +8,6 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
-	"regexp"
-	"strings"
 
 	"github.com/creack/pty"
 	"gopkg.in/yaml.v3"
@@ -23,16 +21,11 @@ type DockerCompose struct {
 	projectName string
 }
 
-func sanitizeName(name string) string {
-	re := regexp.MustCompile(`[^a-z0-9_-]`)
-	return strings.ToLower(re.ReplaceAllString(name, ""))
-}
-
 func New(workingDir, filepath, projectName string) *DockerCompose {
 	return &DockerCompose{
 		workingDir:  workingDir,
 		filepath:    filepath,
-		projectName: sanitizeName(projectName),
+		projectName: projectName,
 	}
 }
 

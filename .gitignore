@@ -43,3 +43,4 @@ generate-changelog.sh
 letsencrypt/*
 result
 dist/
+letsencrypt/

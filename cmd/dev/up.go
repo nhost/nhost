@@ -111,7 +111,6 @@ func commandUp(cCtx *cli.Context) error {
 	return Up(
 		cCtx.Context,
 		ce,
-		ce.ProjectName(),
 		cCtx.Uint(flagHTTPPort),
 		!cCtx.Bool(flagDisableTLS),
 		cCtx.Uint(flagPostgresPort),
@@ -175,7 +174,6 @@ func up( //nolint:funlen
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	dc *dockercompose.DockerCompose,
-	projectName string,
 	httpPort uint,
 	useTLS bool,
 	postgresPort uint,
@@ -199,7 +197,7 @@ func up( //nolint:funlen
 	ce.Infoln("Setting up Nhost development environment...")
 	composeFile, err := dockercompose.ComposeFileFromConfig(
 		cfg,
-		projectName,
+		ce.ProjectName(),
 		httpPort,
 		useTLS,
 		postgresPort,
@@ -274,17 +272,16 @@ func printInfo(ce *clienv.CliEnv, httpPort, postgresPort uint, useTLS bool) {
 func Up(
 	ctx context.Context,
 	ce *clienv.CliEnv,
-	projectName string,
 	httpPort uint,
 	useTLS bool,
 	postgresPort uint,
 	applySeeds bool,
 	ports map[string]uint,
 ) error {
-	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), projectName)
+	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
 	if err := up(
-		ctx, ce, dc, projectName, httpPort, useTLS, postgresPort, applySeeds, ports,
+		ctx, ce, dc, httpPort, useTLS, postgresPort, applySeeds, ports,
 	); err != nil {
 		ce.Warnln(err.Error())
 
