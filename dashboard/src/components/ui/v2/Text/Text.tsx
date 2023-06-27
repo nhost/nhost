@@ -18,7 +18,7 @@ export type TextProps<
    *
    * @default 'primary'
    */
-  color?: 'primary' | 'secondary' | 'disabled' | 'error';
+  color?: 'primary' | 'secondary' | 'disabled' | 'error' | 'warning';
   /**
    * The component used for the root node.
    */
@@ -31,6 +31,7 @@ const textClasses = {
   colorSecondary: getTypographyUtilityClass('colorSecondary'),
   colorDisabled: getTypographyUtilityClass('colorDisabled'),
   colorError: getTypographyUtilityClass('colorError'),
+  colorWarning: getTypographyUtilityClass('colorWarning'),
 };
 
 const StyledTypography = styled(MaterialTypography)<TextProps>(({ theme }) => ({
@@ -49,6 +50,9 @@ const StyledTypography = styled(MaterialTypography)<TextProps>(({ theme }) => ({
   },
   [`&.${textClasses.colorError}`]: {
     color: theme.palette.error.main,
+  },
+  [`&.${textClasses.colorWarning}`]: {
+    color: theme.palette.warning.dark,
   },
 }));
 
@@ -70,6 +74,7 @@ function Text<
         color === 'secondary' && textClasses.colorSecondary,
         color === 'disabled' && textClasses.colorDisabled,
         color === 'error' && textClasses.colorError,
+        color === 'warning' && textClasses.colorWarning,
         className,
       )}
       {...props}

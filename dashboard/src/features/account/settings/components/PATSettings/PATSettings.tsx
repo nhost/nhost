@@ -9,9 +9,11 @@ import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { DotsVerticalIcon } from '@/components/ui/v2/icons/DotsVerticalIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
+import { WarningIcon } from '@/components/ui/v2/icons/WarningIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { CreatePATForm } from '@/features/account/settings/components/CreatePATForm';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
@@ -133,69 +135,91 @@ export default function PATSettings() {
       <Box className="grid grid-flow-row gap-2">
         {availablePersonalAccessTokens.length > 0 && (
           <List>
-            {availablePersonalAccessTokens.map((pat, index) => (
-              <Fragment key={pat.id}>
-                <ListItem.Root
-                  className="grid grid-cols-3 gap-2 px-4 pr-12"
-                  secondaryAction={
-                    <Dropdown.Root>
-                      <Dropdown.Trigger
-                        asChild
-                        hideChevron
-                        className="absolute right-4 top-1/2 -translate-y-1/2"
-                      >
-                        <IconButton
-                          variant="borderless"
-                          color="secondary"
-                          disabled={maintenanceActive}
-                          aria-label={`More options for ${pat.name}`}
+            {availablePersonalAccessTokens.map((pat, index) => {
+              const tokenHasExpired = new Date(pat.expiresAt) < new Date();
+
+              return (
+                <Fragment key={pat.id}>
+                  <ListItem.Root
+                    className="grid grid-cols-3 gap-2 px-4 pr-12"
+                    secondaryAction={
+                      <Dropdown.Root>
+                        <Dropdown.Trigger
+                          asChild
+                          hideChevron
+                          className="absolute right-4 top-1/2 -translate-y-1/2"
                         >
-                          <DotsVerticalIcon />
-                        </IconButton>
-                      </Dropdown.Trigger>
+                          <IconButton
+                            variant="borderless"
+                            color="secondary"
+                            disabled={maintenanceActive}
+                            aria-label={`More options for ${pat.name}`}
+                          >
+                            <DotsVerticalIcon />
+                          </IconButton>
+                        </Dropdown.Trigger>
 
-                      <Dropdown.Content
-                        menu
-                        PaperProps={{ className: 'w-32' }}
-                        anchorOrigin={{
-                          vertical: 'bottom',
-                          horizontal: 'right',
-                        }}
-                        transformOrigin={{
-                          vertical: 'top',
-                          horizontal: 'right',
-                        }}
-                      >
-                        <Dropdown.Item onClick={() => handleConfirmDelete(pat)}>
-                          <Text className="font-medium" color="error">
-                            Delete
-                          </Text>
-                        </Dropdown.Item>
-                      </Dropdown.Content>
-                    </Dropdown.Root>
-                  }
-                >
-                  <ListItem.Text className="truncate">{pat.name}</ListItem.Text>
+                        <Dropdown.Content
+                          menu
+                          PaperProps={{ className: 'w-32' }}
+                          anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'right',
+                          }}
+                          transformOrigin={{
+                            vertical: 'top',
+                            horizontal: 'right',
+                          }}
+                        >
+                          <Dropdown.Item
+                            onClick={() => handleConfirmDelete(pat)}
+                          >
+                            <Text className="font-medium" color="error">
+                              Delete
+                            </Text>
+                          </Dropdown.Item>
+                        </Dropdown.Content>
+                      </Dropdown.Root>
+                    }
+                  >
+                    <ListItem.Text
+                      className="truncate"
+                      color={tokenHasExpired ? 'warning' : 'primary'}
+                    >
+                      <span className="mr-2">{pat.name}</span>
+                      {tokenHasExpired && (
+                        <Tooltip title="This personal access token is expired.">
+                          <WarningIcon className="h-4 w-4" />
+                        </Tooltip>
+                      )}
+                    </ListItem.Text>
 
-                  <Text className="truncate">
-                    {new Date(pat.expiresAt).toLocaleDateString()}
-                  </Text>
+                    <Text
+                      className="truncate"
+                      color={tokenHasExpired ? 'warning' : 'primary'}
+                    >
+                      {new Date(pat.expiresAt).toLocaleDateString()}
+                    </Text>
 
-                  <Text className="truncate">
-                    {new Date(pat.createdAt).toLocaleDateString()}
-                  </Text>
-                </ListItem.Root>
+                    <Text
+                      className="truncate"
+                      color={tokenHasExpired ? 'warning' : 'primary'}
+                    >
+                      {new Date(pat.createdAt).toLocaleDateString()}
+                    </Text>
+                  </ListItem.Root>
 
-                <Divider
-                  component="li"
-                  className={twMerge(
-                    index === availablePersonalAccessTokens.length - 1
-                      ? '!mt-4'
-                      : '!my-4',
-                  )}
-                />
-              </Fragment>
-            ))}
+                  <Divider
+                    component="li"
+                    className={twMerge(
+                      index === availablePersonalAccessTokens.length - 1
+                        ? '!mt-4'
+                        : '!my-4',
+                    )}
+                  />
+                </Fragment>
+              );
+            })}
           </List>
         )}
 
