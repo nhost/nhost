@@ -52,7 +52,7 @@ const StyledTypography = styled(MaterialTypography)<TextProps>(({ theme }) => ({
     color: theme.palette.error.main
   },
   [`&.${textClasses.colorWarning}`]: {
-    color: theme.palette.warning.main
+    color: theme.palette.warning.dark
   }
 }))
 

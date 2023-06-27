@@ -24,7 +24,7 @@ const StyledListItemText = styled(MaterialListItemText)(({ theme }) => ({
     margin: 0
   },
   [`&.${listItemTextClasses.warning}`]: {
-    color: theme.palette.warning.main
+    color: theme.palette.warning.dark
   },
   [`& > .${listItemTextClasses.primary}`]: {
     fontWeight: 500,
