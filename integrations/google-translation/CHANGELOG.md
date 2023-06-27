@@ -1,5 +1,11 @@
 # @nhost/google-translation
 
+## 0.0.6
+
+### Patch Changes
+
+- a5305e6b5: docs: update old URLs to the new format
+
 ## 0.0.5
 
 ### Patch Changes

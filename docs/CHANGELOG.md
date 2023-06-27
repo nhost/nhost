@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.3.4
+
+### Patch Changes
+
+- a5305e6b5: docs: update old URLs to the new format
+
 ## 0.3.3
 
 ### Patch Changes
