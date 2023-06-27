@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.17.17
+
+### Patch Changes
+
+- ea7b102c0: fix(pat): highlight expired tokens
+
 ## 0.17.16
 
 ### Patch Changes
