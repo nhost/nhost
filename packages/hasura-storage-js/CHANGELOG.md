@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.2.0
+
+### Minor Changes
+
+- 2cdb13b3e: fix(upload): allow specifying `id` and `name` only when not using `form-data`
+
 ## 2.1.6
 
 ### Patch Changes

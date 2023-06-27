@@ -1,5 +1,11 @@
 # @nhost/react-urql
 
+## 2.0.27
+
+### Patch Changes
+
+- @nhost/react@2.0.26
+
 ## 2.0.26
 
 ### Patch Changes
