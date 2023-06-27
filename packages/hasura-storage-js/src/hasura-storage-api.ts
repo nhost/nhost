@@ -1,11 +1,14 @@
 import fetchPonyfill from 'fetch-ponyfill'
+import FormData from 'form-data'
 import {
   ApiDeleteParams,
   ApiDeleteResponse,
   ApiGetPresignedUrlParams,
   ApiGetPresignedUrlResponse,
+  StorageUploadFileParams,
+  StorageUploadFileResponse,
   StorageUploadFormDataParams,
-  StorageUploadResponse
+  StorageUploadFormDataResponse
 } from './utils/types'
 import { fetchUpload } from './utils/upload'
 
@@ -24,21 +27,65 @@ export class HasuraStorageApi {
     this.url = url
   }
 
-  async upload({
+  async uploadFormData({
     formData,
     headers,
+    bucketId
+  }: StorageUploadFormDataParams): Promise<StorageUploadFormDataResponse> {
+    const { error, fileMetadata } = await fetchUpload(this.url, formData, {
+      accessToken: this.accessToken,
+      adminSecret: this.adminSecret,
+      bucketId,
+      headers
+    })
+
+    if (error) {
+      return { fileMetadata: null, error }
+    }
+
+    if (fileMetadata && !('processedFiles' in fileMetadata)) {
+      return {
+        fileMetadata: {
+          processedFiles: [fileMetadata]
+        },
+        error: null
+      }
+    }
+
+    return { fileMetadata, error: null }
+  }
+
+  async uploadFile({
+    file,
     bucketId,
     id,
     name
-  }: StorageUploadFormDataParams): Promise<StorageUploadResponse> {
-    return fetchUpload(this.url, formData, {
+  }: StorageUploadFileParams): Promise<StorageUploadFileResponse> {
+    const formData = new FormData()
+
+    formData.append('file[]', file)
+    formData.append('metadata[]', JSON.stringify({ id, name }))
+
+    const { error, fileMetadata } = await fetchUpload(this.url, formData, {
       accessToken: this.accessToken,
       adminSecret: this.adminSecret,
       bucketId,
       fileId: id,
-      name,
-      headers
+      name
     })
+
+    if (error) {
+      return { fileMetadata: null, error }
+    }
+
+    if (fileMetadata && 'processedFiles' in fileMetadata) {
+      return {
+        fileMetadata: fileMetadata.processedFiles[0],
+        error: null
+      }
+    }
+
+    return { fileMetadata, error: null }
   }
 
   async getPresignedUrl(params: ApiGetPresignedUrlParams): Promise<ApiGetPresignedUrlResponse> {

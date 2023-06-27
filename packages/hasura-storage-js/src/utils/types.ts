@@ -36,8 +36,6 @@ export interface StorageUploadFileParams {
 // works in browser and server
 export interface StorageUploadFormDataParams {
   formData: FormData
-  id?: string
-  name?: string
   bucketId?: string
   headers?: Record<string, string>
 }
@@ -45,9 +43,15 @@ export interface StorageUploadFormDataParams {
 // works in browser and server
 export type StorageUploadParams = StorageUploadFileParams | StorageUploadFormDataParams
 
-export type StorageUploadResponse =
-  | { fileMetadata: FileResponse | { processedFiles: FileResponse[] }; error: null }
+export type StorageUploadFileResponse =
+  | { fileMetadata: FileResponse; error: null }
   | { fileMetadata: null; error: StorageErrorPayload }
+
+export type StorageUploadFormDataResponse =
+  | { fileMetadata: { processedFiles: FileResponse[] }; error: null }
+  | { fileMetadata: null; error: StorageErrorPayload }
+
+export type StorageUploadResponse = StorageUploadFileResponse | StorageUploadFormDataResponse
 
 export interface StorageImageTransformationParams {
   /** Image width, in pixels */

@@ -38,15 +38,8 @@ export const fetchUpload = async (
   const headers: HeadersInit = {
     ...initialHeaders
   }
-
-  if (fileId) {
-    headers['x-nhost-file-id'] = fileId
-  }
   if (bucketId) {
-    headers['x-nhost-bucket-id'] = bucketId
-  }
-  if (name) {
-    headers['x-nhost-file-name'] = toIso88591(name)
+    data.append('bucketId', bucketId)
   }
   if (adminSecret) {
     headers['x-hasura-admin-secret'] = adminSecret

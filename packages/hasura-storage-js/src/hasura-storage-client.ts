@@ -1,4 +1,3 @@
-import FormData from 'form-data'
 import { HasuraStorageApi } from './hasura-storage-api'
 import {
   appendImageTransformationParameters,
@@ -8,7 +7,9 @@ import {
   StorageGetPresignedUrlResponse,
   StorageGetUrlParams,
   StorageUploadFileParams,
+  StorageUploadFileResponse,
   StorageUploadFormDataParams,
+  StorageUploadFormDataResponse,
   StorageUploadParams,
   StorageUploadResponse
 } from './utils'
@@ -73,21 +74,14 @@ export class HasuraStorageClient {
    * @docs https://docs.nhost.io/reference/javascript/storage/upload
    */
 
-  async upload(params: StorageUploadFileParams): Promise<StorageUploadResponse>
-  async upload(params: StorageUploadFormDataParams): Promise<StorageUploadResponse>
+  async upload(params: StorageUploadFileParams): Promise<StorageUploadFileResponse>
+  async upload(params: StorageUploadFormDataParams): Promise<StorageUploadFormDataResponse>
   async upload(params: StorageUploadParams): Promise<StorageUploadResponse> {
     if ('file' in params) {
-      const formData = new FormData()
-
-      formData.append('file[]', params.file)
-
-      return this.api.upload({
-        ...params,
-        formData
-      })
+      return this.api.uploadFile(params)
     }
 
-    return this.api.upload(params)
+    return this.api.uploadFormData(params)
   }
 
   /**

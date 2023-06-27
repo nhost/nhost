@@ -1,17 +1,15 @@
 import fs from 'fs'
-import { describe, expect, it } from 'vitest'
 import { v4 as uuidv4 } from 'uuid'
+import { describe, expect, it } from 'vitest'
 
 import { storage } from './utils/helpers'
-import FormData from 'form-data'
 
 describe('test delete file', () => {
   it('should be able to get delete file', async () => {
-    const fd = new FormData()
-    fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+    const file = fs.createReadStream('./tests/assets/sample.pdf')
 
     const { fileMetadata } = await storage.upload({
-      formData: fd
+      file: file as unknown as File
     })
 
     const { error } = await storage.delete({
