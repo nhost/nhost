@@ -146,7 +146,7 @@ func TestGetFileInfo(t *testing.T) {
 				logger,
 			)
 
-			router, _ := ctrl.SetupRouter(nil, "/v1", ginLogger(logger))
+			router, _ := ctrl.SetupRouter(nil, "/v1", []string{"*"}, false, ginLogger(logger))
 
 			responseRecorder := httptest.NewRecorder()
 

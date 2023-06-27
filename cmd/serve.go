@@ -39,6 +39,8 @@ const (
 	postgresMigrationsSourceFlag = "postgres-migrations-source"
 	fastlyServiceFlag            = "fastly-service"
 	fastlyKeyFlag                = "fastly-key"
+	corsAllowOriginsFlag				 = "cors-allow-origins"
+	corsAllowCredentialsFlag		 = "cors-allow-credentials"
 )
 
 func ginLogger(logger *logrus.Logger) gin.HandlerFunc {
@@ -82,6 +84,8 @@ func getGin(
 	trustedProxies []string,
 	logger *logrus.Logger,
 	debug bool,
+	corsAllowOrigins []string,
+	corsAllowCredentials bool,
 ) (*gin.Engine, error) {
 	if !debug {
 		gin.SetMode(gin.ReleaseMode)
@@ -107,7 +111,7 @@ func getGin(
 		middlewares = append(middlewares, fastly.New(fastlyService, viper.GetString(fastlyKeyFlag), logger))
 	}
 
-	return ctrl.SetupRouter(trustedProxies, apiRootPrefix, middlewares...) //nolint: wrapcheck
+	return ctrl.SetupRouter(trustedProxies, apiRootPrefix, corsAllowOrigins, corsAllowCredentials, middlewares...) //nolint: wrapcheck
 }
 
 func getMetadataStorage(endpoint string) *metadata.Hasura {
@@ -214,6 +218,11 @@ func init() {
 		addStringFlag(serveCmd.Flags(), fastlyServiceFlag, "", "Enable Fastly middleware and enable automated purges")
 		addStringFlag(serveCmd.Flags(), fastlyKeyFlag, "", "Fastly CDN Key to authenticate purges")
 	}
+
+	{
+		addStringArrayFlag(serveCmd.Flags(), corsAllowOriginsFlag, []string{"*"}, "CORS allow origins")
+		addBoolFlag(serveCmd.Flags(), corsAllowCredentialsFlag, false, "CORS allow credentials")
+	}
 }
 
 var serveCmd = &cobra.Command{
@@ -282,6 +291,8 @@ var serveCmd = &cobra.Command{
 			viper.GetStringSlice(trustedProxiesFlag),
 			logger,
 			viper.GetBool(debugFlag),
+			viper.GetStringSlice(corsAllowOriginsFlag),
+			viper.GetBool(corsAllowCredentialsFlag),
 		)
 		cobra.CheckErr(err)
 

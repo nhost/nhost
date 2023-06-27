@@ -111,7 +111,11 @@ func New(
 }
 
 func (ctrl *Controller) SetupRouter(
-	trustedProxies []string, apiRootPrefix string, middleware ...gin.HandlerFunc,
+	trustedProxies []string,
+	apiRootPrefix string,
+	corsOrigins []string,
+	corsAllowCredentials bool,
+	middleware ...gin.HandlerFunc,
 ) (*gin.Engine, error) {
 	router := gin.New()
 	if err := router.SetTrustedProxies(trustedProxies); err != nil {
@@ -126,20 +130,25 @@ func (ctrl *Controller) SetupRouter(
 		router.Use(mw)
 	}
 
-	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
+	corsConfig := cors.Config{
+		AllowOrigins: corsOrigins,
 		AllowMethods: []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
 		AllowHeaders: []string{
 			"Authorization", "Origin", "if-match", "if-none-match", "if-modified-since", "if-unmodified-since",
 			"x-hasura-admin-secret", "x-nhost-bucket-id", "x-nhost-file-name", "x-nhost-file-id",
 			"x-hasura-role",
 		},
-		// AllowWildcard: true,
 		ExposeHeaders: []string{
 			"Content-Length", "Content-Type", "Cache-Control", "ETag", "Last-Modified", "X-Error",
 		},
 		MaxAge: 12 * time.Hour, //nolint: gomnd
-	}))
+	}
+
+	if corsAllowCredentials {
+		corsConfig.AllowCredentials = true
+	}
+
+	router.Use(cors.New(corsConfig))
 
 	router.GET("/healthz", ctrl.Health)
 

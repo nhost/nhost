@@ -231,7 +231,7 @@ func TestUploadFile(t *testing.T) {
 
 			ctrl := controller.New("http://asd", "/v1", "asdasd", metadataStorage, contentStorage, nil, logger)
 
-			router, _ := ctrl.SetupRouter(nil, "/v1", ginLogger(logger))
+			router, _ := ctrl.SetupRouter(nil, "/v1", []string{"*"}, false, ginLogger(logger))
 
 			body, contentType := createMultiForm(t, files...)
 
