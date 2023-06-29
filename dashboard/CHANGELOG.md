@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.17.19
+
+### Patch Changes
+
+- f866120a6: fix(users): use the password length from the config
+
 ## 0.17.18
 
 ### Patch Changes
