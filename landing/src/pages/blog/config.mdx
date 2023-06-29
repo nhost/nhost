@@ -41,7 +41,7 @@ Below is a contrived example of what the new config file looks like:
 
 {/* prettier-ignore */}
 ```js
-[global.environment]
+[[global.environment]]
 name = 'MY_NHOST_CONFIG'
 value = "Nhost is Awesome!"
 
@@ -68,11 +68,11 @@ A few things to note from the example above:
 
 ### Environment Variables
 
-Environment variables can be made available to all services by adding them to `global.environment`:
+Environment variables can be made available to all services by adding them to `[[global.environment]]`:
 
 {/* prettier-ignore */}
 ```js focus=1:3
-[global.environment]
+[[global.environment]]
 name = 'MY_NHOST_CONFIG'
 value = "Nhost is Awesome!"
 
@@ -102,7 +102,7 @@ export default (req: Request, res: Response) => {
 Note that the value is a constant. If you wanted to have different values for different environments, you would have to set the value as a secret:
 
 ```js
-[global.environment]
+[[global.environment]]
 name = "MY_NHOST_CONFIG'
 value = "{{ secrets.MY_NHOST_CONFIG }}"
 ```
