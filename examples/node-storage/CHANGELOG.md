@@ -1,5 +1,12 @@
 # @nhost-examples/node-storage
 
+## 0.0.4
+
+### Patch Changes
+
+- d54e4cdd4: fix(buckets): allow using custom buckets for upload
+  - @nhost/nhost-js@2.2.12
+
 ## 0.0.3
 
 ### Patch Changes
