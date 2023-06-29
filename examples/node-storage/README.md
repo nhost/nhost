@@ -26,5 +26,4 @@ You can use the `.env.example` file as a starting point.
 pnpm start
 ```
 
-The example will download a file from a public URL and upload it to your Nhost
-Storage bucket.
+The example will run a few upload operations and then exit.

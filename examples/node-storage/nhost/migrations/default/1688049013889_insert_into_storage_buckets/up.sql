@@ -1,0 +1,1 @@
+INSERT INTO "storage"."buckets"("presigned_urls_enabled", "download_expiration", "max_upload_file_size", "min_upload_file_size", "cache_control", "id", "created_at", "updated_at") VALUES (true, 30, 30000000, 1, E'max-age=3600', E'custom', E'2023-06-29T14:30:13.859559+00:00', E'2023-06-29T14:30:13.859559+00:00');
