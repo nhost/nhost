@@ -176,7 +176,8 @@ query GetSchemasAndTables {
 
 query GetData($id: uuid!) {
   table_by_pk(id: $id) {
-    data { # sorting and pagination, etc.
+    data {
+      # sorting and pagination, etc.
       # the list of columns generated on-the-fly
     }
   }
