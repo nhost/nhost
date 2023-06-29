@@ -3,12 +3,16 @@ import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
-import { useUpdateRemoteAppUserMutation } from '@/utils/__generated__/graphql';
+import {
+  useGetSignInMethodsQuery,
+  useUpdateRemoteAppUserMutation,
+} from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import bcrypt from 'bcryptjs';
 import { useState } from 'react';
@@ -27,19 +31,6 @@ export interface EditUserPasswordFormProps extends DialogFormProps {
   user: RemoteAppGetUsersQuery['users'][0];
 }
 
-export const validationSchema = Yup.object({
-  password: Yup.string()
-    .label('Users Password')
-    .min(8, 'Password must be at least 8 characters long.')
-    .required('This field is required.'),
-  cpassword: Yup.string()
-    .required('Confirm Password is required')
-    .min(8, 'Password must be at least 8 characters long.')
-    .oneOf([Yup.ref('password')], 'Passwords do not match'),
-});
-
-export type EditUserPasswordFormValues = Yup.InferType<typeof validationSchema>;
-
 export default function EditUserPasswordForm({
   onCancel,
   user,
@@ -49,26 +40,52 @@ export default function EditUserPasswordForm({
     client: remoteProjectGQLClient,
   });
   const { closeDialog } = useDialog();
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { data } = useGetSignInMethodsQuery({
+    variables: { appId: currentProject?.id },
+    skip: !currentProject?.id,
+  });
+
+  const passwordMinLength =
+    data?.config?.auth?.method?.emailPassword?.passwordMinLength || 1;
+
+  const validationSchema = Yup.object({
+    password: Yup.string()
+      .label('Password')
+      .min(
+        passwordMinLength,
+        `Password must be at least ${passwordMinLength} characters long.`,
+      )
+      .required('This field is required.'),
+    cpassword: Yup.string()
+      .label('Password Confirmation')
+      .min(
+        passwordMinLength,
+        `Password must be at least ${passwordMinLength} characters long.`,
+      )
+      .oneOf([Yup.ref('password')], 'Passwords do not match')
+      .required('This field is required.'),
+  });
 
   const [editUserPasswordFormError, setEditUserPasswordFormError] =
     useState<Error | null>(null);
 
-  const form = useForm<EditUserPasswordFormValues>({
+  const form = useForm<Yup.InferType<typeof validationSchema>>({
     defaultValues: {},
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
   });
 
-  const handleSubmit = async ({ password }: EditUserPasswordFormValues) => {
+  const handleSubmit = async ({
+    password,
+  }: Yup.InferType<typeof validationSchema>) => {
     setEditUserPasswordFormError(null);
     const passwordHash = await bcrypt.hash(password, 10);
 
     const updateUserPasswordPromise = updateUser({
       variables: {
         id: user.id,
-        user: {
-          passwordHash,
-        },
+        user: { passwordHash },
       },
       client: remoteProjectGQLClient,
     });
