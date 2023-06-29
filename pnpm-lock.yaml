@@ -542,8 +542,8 @@ importers:
         specifier: 2.4.1
         version: 2.4.1(react-dom@18.2.0)(react@18.2.0)
       '@tsconfig/docusaurus':
-        specifier: ^1.0.6
-        version: 1.0.6
+        specifier: ^2.0.0
+        version: 2.0.0
       typescript:
         specifier: ^4.8.4
         version: 4.8.4
@@ -13193,8 +13193,8 @@ packages:
       path-browserify: 1.0.1
     dev: true
 
-  /@tsconfig/docusaurus@1.0.6:
-    resolution: {integrity: sha512-1QxDaP54hpzM6bq9E+yFEo4F9WbWHhsDe4vktZXF/iDlc9FqGr9qlg+3X/nuKQXx8QxHV7ue8NXFazzajsxFBA==}
+  /@tsconfig/docusaurus@2.0.0:
+    resolution: {integrity: sha512-X5wptT7pXA/46/IRFTW76oR5GNjoy9qjNM/1JGhFV4QAsmLh3YUpJJA+Vpx7Ds6eEBxSxz1QrgoNEBy6rLVs8w==}
     dev: true
 
   /@tsconfig/node10@1.0.8:
