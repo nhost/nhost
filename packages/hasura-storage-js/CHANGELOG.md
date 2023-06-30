@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.2.1
+
+### Patch Changes
+
+- d54e4cdd4: fix(buckets): allow using custom buckets for upload
+
 ## 2.2.0
 
 ### Minor Changes

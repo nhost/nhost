@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.3.5
+
+### Patch Changes
+
+- 923abd365: chore(deps): update dependency @tsconfig/docusaurus to v2
+
 ## 0.3.4
 
 ### Patch Changes
