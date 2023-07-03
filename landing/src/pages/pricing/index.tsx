@@ -177,7 +177,8 @@ export default function PricingPage() {
                 </div>
               </div>
               <h2 className="font-normal text-white text-opacity-65">
-                Designed for production applications. With the option to scale.
+                Well suited for production applications. Meets your needs as you
+                grow.
               </h2>
             </div>
             {/* Plan Header End */}
@@ -288,7 +289,7 @@ export default function PricingPage() {
             <h2 className="font-mona text-2xl font-semibold">Enterprise</h2>
 
             <h2 className="font-normal text-white text-opacity-65">
-              Ideal for managing significant workloads in large-scale / tailored
+              Ideal for managing significant workloads in large-scale
               applications.
             </h2>
           </div>
