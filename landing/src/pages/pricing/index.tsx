@@ -289,8 +289,8 @@ export default function PricingPage() {
             <h2 className="font-mona text-2xl font-semibold">Enterprise</h2>
 
             <h2 className="font-normal text-white text-opacity-65">
-              Ideal for managing significant workloads in large-scale
-              applications.
+              Ideal for large-scale applications or those with specific
+              infrastructure and customization needs.
             </h2>
           </div>
 
