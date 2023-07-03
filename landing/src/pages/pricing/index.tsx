@@ -37,33 +37,25 @@ export default function PricingPage() {
         />
       </Container>
 
-      <Container className="grid grid-flow-row grid-cols-1 gap-4 pb-8 md:grid-cols-2 lg:grid-cols-3">
+      <Container className="grid w-full grid-flow-row grid-cols-1 justify-items-center gap-4 pb-8 lg:grid-cols-3">
         {/* Starter plan  */}
-        <div className="mt-14 space-y-8 overflow-hidden rounded-md border border-divider p-8">
+        <div className="mt-14 w-full max-w-[500px] space-y-8 self-start overflow-hidden rounded-md border border-divider p-8">
           {/* Plan Header Start */}
-
           <div className="flex flex-col space-y-4 ">
-            <h2 className="font-mona text-2xl font-semibold">Starter</h2>
-
-            <h2 className="font-normal text-white text-opacity-65">
-              Get you idea off the ground for free.
-            </h2>
-
             <div className="flex flex-row justify-between">
+              <h2 className="font-mona text-2xl font-semibold">Starter</h2>
               <div className="flex flex-row items-center space-x-2">
                 <h2 className="font-mona text-2xl font-semibold">$0</h2>
                 <h2 className="mt-1 font-normal text-white text-opacity-65">
                   / month
                 </h2>
               </div>
-
-              {/* todo move this color to tailwind.config.js */}
-              <div className="mt-2 rounded bg-[#001D49] px-3 py-1 text-xs">
-                Limited to 1 project
-              </div>
             </div>
-          </div>
 
+            <h2 className="font-normal text-white text-opacity-65">
+              Get your idea off the ground for free. Limited to 1 project.
+            </h2>
+          </div>
           {/* Plan Header End */}
 
           {/* Call to action start */}
@@ -170,24 +162,26 @@ export default function PricingPage() {
         </div>
 
         {/* Pro plan */}
-        <div className="flex flex-col rounded-md bg-[#0052CD] p-1">
-          {/* todo move this color to tailwind.config.js */}
+        <div className="flex w-full max-w-[500px] flex-col self-start rounded-md bg-brand-main p-1">
           <span className="px-8 py-4 uppercase">most popular</span>
           <div className="space-y-8 overflow-hidden rounded-md border border-divider bg-black p-8">
             {/* Plan Header Start */}
             <div className="flex flex-col space-y-4 ">
-              <h2 className="font-mona text-2xl font-semibold">Pro</h2>
-              <h2 className="font-normal text-white text-opacity-65">
-                For production apps.
-              </h2>
-              <div className="flex flex-row items-center space-x-2">
-                <h2 className="font-mona text-2xl font-semibold">$25</h2>
-                <h2 className="mt-1 font-normal text-white text-opacity-65">
-                  / month
-                </h2>
+              <div className="flex flex-row justify-between">
+                <h2 className="font-mona text-2xl font-semibold">Pro</h2>
+                <div className="flex flex-row items-center space-x-2">
+                  <h2 className="font-mona text-2xl font-semibold">$25</h2>
+                  <h2 className="mt-1 font-normal text-white text-opacity-65">
+                    / month
+                  </h2>
+                </div>
               </div>
+              <h2 className="font-normal text-white text-opacity-65">
+                Designed for production applications. With the option to scale.
+              </h2>
             </div>
             {/* Plan Header End */}
+
             {/* Call to action start */}
             <Button
               className="w-full justify-center text-center"
@@ -198,6 +192,7 @@ export default function PricingPage() {
               Buy Pro <ArrowRightIcon />
             </Button>
             {/* Call to action end */}
+
             {/* Plan details start */}
             <PricingFeature
               feature="Postgres"
@@ -286,19 +281,16 @@ export default function PricingPage() {
         </div>
 
         {/* Enterprise plan */}
-        <div className="mt-14 space-y-8 overflow-hidden rounded-md border border-divider p-8">
+        <div className="w-full max-w-[500px] space-y-8 self-start overflow-hidden rounded-md border border-divider p-8 md:mt-14">
           {/* Plan Header Start */}
 
           <div className="flex flex-col space-y-4 ">
             <h2 className="font-mona text-2xl font-semibold">Enterprise</h2>
 
             <h2 className="font-normal text-white text-opacity-65">
-              Custom plan.
+              Ideal for managing significant workloads in large-scale / tailored
+              applications.
             </h2>
-
-            <div className="flex flex-row items-center space-x-2">
-              <h2 className="font-mona text-2xl font-semibold">-</h2>
-            </div>
           </div>
 
           {/* Plan Header End */}
@@ -399,90 +391,88 @@ export default function PricingPage() {
             subFeatures={['Custom', 'Custom', '600 sec timeout']}
           />
         </div>
-
-        <section className="col-span-3 mx-auto mt-16 grid max-w-5xl grid-flow-row gap-16 lg:mt-24">
-          <SectionHeading
-            title="FAQ"
-            subtitle={
-              <>
-                Didn&apos;t find what you&apos;re looking for?{' '}
-                <Link
-                  href="mailto:hello@nhost.io"
-                  className="text-white text-opacity-100"
-                >
-                  Contact Us
-                </Link>
-                .
-              </>
-            }
-          />
-
-          <ul className="divide-y divide-divider">
-            <li className="grid grid-flow-row gap-4 py-6">
-              <h3 className="text-xl">Do I pick one plan per project?</h3>
-
-              <p className="text-base">
-                Yes. When creating a project, you will be asked about which plan
-                you want for your backend.
-              </p>
-            </li>
-            <li className="grid grid-flow-row gap-4 py-6">
-              <h3 className="text-xl">
-                How many free Starter projects can I have?
-              </h3>
-
-              <p className="text-base">
-                You can have maximum 1 Starter project.
-              </p>
-            </li>
-            <li className="grid grid-flow-row gap-4 py-6">
-              <h3 className="text-xl">Can I switch between plans later?</h3>
-
-              <p className="text-base">
-                Yes, you can upgrade plans at any time. To downgrade, please
-                contact us at{' '}
-                <Link
-                  href="mailto:support@nhost.io"
-                  className="text-opacity-100 underline"
-                >
-                  support@nhost.io
-                </Link>
-                .
-              </p>
-            </li>
-            <li className="grid grid-flow-row gap-4 py-6">
-              <h3 className="text-xl">Can I export my data?</h3>
-
-              <p className="text-base">
-                Yes. You have full access to your database and the storage. If
-                you decide to leave and want to export all your data, we will
-                help you. Nhost has no vendor lock-in.
-              </p>
-            </li>
-            <li className="grid grid-flow-row gap-4 py-6">
-              <h3 className="text-xl">What happens if I exceed the limits?</h3>
-
-              <p className="text-base">
-                We never shut down service without warning. Your project will
-                continue to work, and we will contact you and resolve the
-                situation.
-              </p>
-            </li>
-            <li className="grid grid-flow-row gap-4 py-6">
-              <h3 className="text-xl">
-                How does payment get made for the Nhost paid plans?
-              </h3>
-
-              <p className="text-base">
-                For Starter plan, payment is made by Stripe on a monthly basis.
-                For Enterprise plan, payment is made by Stripe on a monthly
-                basis, however, this can also be discussed to accommodate
-                procurement processes.
-              </p>
-            </li>
-          </ul>
-        </section>
       </Container>
+
+      <section className="col-span-3 mx-auto mt-4 grid max-w-5xl grid-flow-row gap-16 p-8">
+        <SectionHeading
+          title="FAQ"
+          subtitle={
+            <>
+              Didn&apos;t find what you&apos;re looking for?{' '}
+              <Link
+                href="mailto:hello@nhost.io"
+                className="text-white text-opacity-100"
+              >
+                Contact Us
+              </Link>
+              .
+            </>
+          }
+        />
+
+        <ul className="divide-y divide-divider">
+          <li className="grid grid-flow-row gap-4 py-6">
+            <h3 className="text-xl">Do I pick one plan per project?</h3>
+
+            <p className="text-base">
+              Yes. When creating a project, you will be asked about which plan
+              you want for your backend.
+            </p>
+          </li>
+          <li className="grid grid-flow-row gap-4 py-6">
+            <h3 className="text-xl">
+              How many free Starter projects can I have?
+            </h3>
+
+            <p className="text-base">You can have maximum 1 Starter project.</p>
+          </li>
+          <li className="grid grid-flow-row gap-4 py-6">
+            <h3 className="text-xl">Can I switch between plans later?</h3>
+
+            <p className="text-base">
+              Yes, you can upgrade plans at any time. To downgrade, please
+              contact us at{' '}
+              <Link
+                href="mailto:support@nhost.io"
+                className="text-opacity-100 underline"
+              >
+                support@nhost.io
+              </Link>
+              .
+            </p>
+          </li>
+          <li className="grid grid-flow-row gap-4 py-6">
+            <h3 className="text-xl">Can I export my data?</h3>
+
+            <p className="text-base">
+              Yes. You have full access to your database and the storage. If you
+              decide to leave and want to export all your data, we will help
+              you. Nhost has no vendor lock-in.
+            </p>
+          </li>
+          <li className="grid grid-flow-row gap-4 py-6">
+            <h3 className="text-xl">What happens if I exceed the limits?</h3>
+
+            <p className="text-base">
+              We never shut down service without warning. Your project will
+              continue to work, and we will contact you and resolve the
+              situation.
+            </p>
+          </li>
+          <li className="grid grid-flow-row gap-4 py-6">
+            <h3 className="text-xl">
+              How does payment get made for the Nhost paid plans?
+            </h3>
+
+            <p className="text-base">
+              For Starter plan, payment is made by Stripe on a monthly basis.
+              For Enterprise plan, payment is made by Stripe on a monthly basis,
+              however, this can also be discussed to accommodate procurement
+              processes.
+            </p>
+          </li>
+        </ul>
+      </section>
     </>
   )
 }

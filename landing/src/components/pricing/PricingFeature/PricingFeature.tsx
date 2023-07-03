@@ -23,8 +23,7 @@ export default function PricingFeature({
         {subFeatures.map((subFeature, index) => (
           <div
             key={String(index)}
-            // todo move this color to tailwind.config.js
-            className="flex flex-row items-center space-x-4 text-[#0052CD]"
+            className="flex flex-row items-center space-x-4 text-brand-main"
           >
             <TickIcon />
             <span className="font-normal text-white text-opacity-65">
