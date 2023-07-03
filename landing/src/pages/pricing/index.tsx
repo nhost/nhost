@@ -4,39 +4,16 @@ import { Glow } from '@/components/common/Glow'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
+import { Link } from '@/components/common/Link'
 import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { PlanSelector } from '@/components/pricing/PlanSelector'
 import { PricingFeature } from '@/components/pricing/PricingFeature'
-import { Transition } from '@headlessui/react'
 import Image from 'next/image'
-import { Fragment, ReactElement, useState } from 'react'
+import { ReactElement } from 'react'
 
 export default function PricingPage() {
-  const [planSelectorVisible, setPlanSelectorVisible] = useState(false)
-  const [selectedPlan, setSelectedPlan] = useState<
-    'starter' | 'pro' | 'enterprise'
-  >('starter')
-
   return (
     <>
-      <Transition
-        show={planSelectorVisible}
-        as={Fragment}
-        enter="transition ease-out duration-200"
-        enterFrom="opacity-0 translate-y-1"
-        enterTo="opacity-100 translate-y-0"
-        leave="transition ease-in duration-150"
-        leaveFrom="opacity-100 translate-y-0"
-        leaveTo="opacity-0 translate-y-1"
-      >
-        <PlanSelector
-          onSelect={setSelectedPlan}
-          onClose={() => setPlanSelectorVisible(false)}
-          selectedPlan={selectedPlan}
-        />
-      </Transition>
-
       <Container
         component="section"
         className="relative flex max-w-5xl pt-20 pb-4 lg:pt-28 lg:pb-12"
@@ -81,7 +58,7 @@ export default function PricingPage() {
               </div>
 
               {/* todo move this color to tailwind.config.js */}
-              <div className="mt-2 rounded bg-[#001D49] px-3 py-1 text-xs font-black">
+              <div className="mt-2 rounded bg-[#001D49] px-3 py-1 text-xs">
                 Limited to 1 project
               </div>
             </div>
@@ -194,9 +171,8 @@ export default function PricingPage() {
 
         {/* Pro plan */}
         <div className="flex flex-col rounded-md bg-[#0052CD] p-1">
-          {' '}
           {/* todo move this color to tailwind.config.js */}
-          <span className="px-8 py-4 uppercase ">most popular</span>
+          <span className="px-8 py-4 uppercase">most popular</span>
           <div className="space-y-8 overflow-hidden rounded-md border border-divider bg-black p-8">
             {/* Plan Header Start */}
             <div className="flex flex-col space-y-4 ">
@@ -317,11 +293,11 @@ export default function PricingPage() {
             <h2 className="font-mona text-2xl font-semibold">Enterprise</h2>
 
             <h2 className="font-normal text-white text-opacity-65">
-              For production apps.
+              Custom plan.
             </h2>
 
             <div className="flex flex-row items-center space-x-2">
-              <h2 className="font-mona text-2xl font-semibold">Custom</h2>
+              <h2 className="font-mona text-2xl font-semibold">-</h2>
             </div>
           </div>
 
@@ -423,6 +399,89 @@ export default function PricingPage() {
             subFeatures={['Custom', 'Custom', '600 sec timeout']}
           />
         </div>
+
+        <section className="col-span-3 mx-auto mt-16 grid max-w-5xl grid-flow-row gap-16 lg:mt-24">
+          <SectionHeading
+            title="FAQ"
+            subtitle={
+              <>
+                Didn&apos;t find what you&apos;re looking for?{' '}
+                <Link
+                  href="mailto:hello@nhost.io"
+                  className="text-white text-opacity-100"
+                >
+                  Contact Us
+                </Link>
+                .
+              </>
+            }
+          />
+
+          <ul className="divide-y divide-divider">
+            <li className="grid grid-flow-row gap-4 py-6">
+              <h3 className="text-xl">Do I pick one plan per project?</h3>
+
+              <p className="text-base">
+                Yes. When creating a project, you will be asked about which plan
+                you want for your backend.
+              </p>
+            </li>
+            <li className="grid grid-flow-row gap-4 py-6">
+              <h3 className="text-xl">
+                How many free Starter projects can I have?
+              </h3>
+
+              <p className="text-base">
+                You can have maximum 1 Starter project.
+              </p>
+            </li>
+            <li className="grid grid-flow-row gap-4 py-6">
+              <h3 className="text-xl">Can I switch between plans later?</h3>
+
+              <p className="text-base">
+                Yes, you can upgrade plans at any time. To downgrade, please
+                contact us at{' '}
+                <Link
+                  href="mailto:support@nhost.io"
+                  className="text-opacity-100 underline"
+                >
+                  support@nhost.io
+                </Link>
+                .
+              </p>
+            </li>
+            <li className="grid grid-flow-row gap-4 py-6">
+              <h3 className="text-xl">Can I export my data?</h3>
+
+              <p className="text-base">
+                Yes. You have full access to your database and the storage. If
+                you decide to leave and want to export all your data, we will
+                help you. Nhost has no vendor lock-in.
+              </p>
+            </li>
+            <li className="grid grid-flow-row gap-4 py-6">
+              <h3 className="text-xl">What happens if I exceed the limits?</h3>
+
+              <p className="text-base">
+                We never shut down service without warning. Your project will
+                continue to work, and we will contact you and resolve the
+                situation.
+              </p>
+            </li>
+            <li className="grid grid-flow-row gap-4 py-6">
+              <h3 className="text-xl">
+                How does payment get made for the Nhost paid plans?
+              </h3>
+
+              <p className="text-base">
+                For Starter plan, payment is made by Stripe on a monthly basis.
+                For Enterprise plan, payment is made by Stripe on a monthly
+                basis, however, this can also be discussed to accommodate
+                procurement processes.
+              </p>
+            </li>
+          </ul>
+        </section>
       </Container>
     </>
   )
