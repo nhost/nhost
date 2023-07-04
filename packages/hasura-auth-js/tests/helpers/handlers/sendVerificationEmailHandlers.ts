@@ -1,4 +1,4 @@
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { BASE_URL } from '../config'
 
 /**
@@ -6,10 +6,14 @@ import { BASE_URL } from '../config'
  */
 export const sendVerificationEmailInternalErrorHandler = rest.post(
   `${BASE_URL}/user/email/send-verification-email`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(500),
-      ctx.json({ status: 500, error: 'internal-error', message: 'Internal error' })
+  () => {
+    return HttpResponse.json(
+      {
+        status: 500,
+        error: 'internal-error',
+        message: 'Internal error'
+      },
+      { status: 500 }
     )
   }
 )
@@ -19,9 +23,7 @@ export const sendVerificationEmailInternalErrorHandler = rest.post(
  */
 export const sendVerificationEmailNetworkErrorHandler = rest.post(
   `${BASE_URL}/user/email/send-verification-email`,
-  (_req, res) => {
-    return res.networkError('Network error')
-  }
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
@@ -29,16 +31,15 @@ export const sendVerificationEmailNetworkErrorHandler = rest.post(
  */
 export const sendVerificationEmailInvalidEmailHandler = rest.post(
   `${BASE_URL}/user/email/send-verification-email`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(400),
-      ctx.json({
+  () =>
+    HttpResponse.json(
+      {
         status: 400,
         message: '"email" must be a valid email',
         error: 'invalid-request'
-      })
+      },
+      { status: 400 }
     )
-  }
 )
 
 /**
@@ -46,16 +47,15 @@ export const sendVerificationEmailInvalidEmailHandler = rest.post(
  */
 export const sendVerificationEmailUserNotFoundHandler = rest.post(
   `${BASE_URL}/user/email/send-verification-email`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(400),
-      ctx.json({
+  () =>
+    HttpResponse.json(
+      {
         status: 400,
         message: 'No user found',
         error: 'user-not-found'
-      })
+      },
+      { status: 400 }
     )
-  }
 )
 
 /**
@@ -63,7 +63,5 @@ export const sendVerificationEmailUserNotFoundHandler = rest.post(
  */
 export const sendVerificationEmailSuccessHandler = rest.post(
   `${BASE_URL}/user/email/send-verification-email`,
-  (_req, res, ctx) => {
-    return res(ctx.status(200), ctx.json('OK'))
-  }
+  () => new Response('OK', { status: 200 })
 )

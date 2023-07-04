@@ -1,4 +1,4 @@
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { BASE_URL } from '../config'
 
 /**
@@ -7,9 +7,7 @@ import { BASE_URL } from '../config'
  */
 export const correctPasswordlessEmailHandler = rest.post(
   `${BASE_URL}/signin/passwordless/email`,
-  (_req, res, ctx) => {
-    return res(ctx.status(200), ctx.json('OK'))
-  }
+  () => new Response('OK', { status: 200 })
 )
 
 /**
@@ -18,9 +16,7 @@ export const correctPasswordlessEmailHandler = rest.post(
  */
 export const passwordlessEmailNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/passwordless/email`,
-  (_req, res) => {
-    return res.networkError('Network error')
-  }
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
@@ -29,10 +25,13 @@ export const passwordlessEmailNetworkErrorHandler = rest.post(
  */
 export const passwordlessEmailInternalErrorHandler = rest.post(
   `${BASE_URL}/signin/passwordless/email`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(500),
-      ctx.json({ status: 500, error: 'internal-error', message: 'Internal error' })
+  () =>
+    HttpResponse.json(
+      {
+        status: 500,
+        error: 'internal-error',
+        message: 'Internal error'
+      },
+      { status: 500 }
     )
-  }
 )

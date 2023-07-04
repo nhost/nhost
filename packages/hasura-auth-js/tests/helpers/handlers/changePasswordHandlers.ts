@@ -1,4 +1,4 @@
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { BASE_URL } from '../config'
 
 /**
@@ -6,40 +6,32 @@ import { BASE_URL } from '../config'
  */
 export const changePasswordNetworkErrorHandler = rest.post(
   `${BASE_URL}/user/password`,
-  (_req, res) => {
-    return res.networkError('Network error')
-  }
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
  * Request handler for MSW to mock an an internal server error when changing password address.
  */
-export const changePasswordInternalErrorHandler = rest.post(
-  `${BASE_URL}/user/password`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(500),
-      ctx.json({ status: 500, error: 'internal-error', message: 'Internal error' })
-    )
-  }
+export const changePasswordInternalErrorHandler = rest.post(`${BASE_URL}/user/password`, () =>
+  HttpResponse.json(
+    { status: 500, error: 'internal-error', message: 'Internal error' },
+    { status: 500 }
+  )
 )
 
 /**
  * Request handler for MSW to mock an error when access token is invalid or not provided when
  * changing password address.
  */
-export const changePasswordUnauthorizedErrorHandler = rest.post(
-  `${BASE_URL}/user/password`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(401),
-      ctx.json({
-        status: 401,
-        message: 'User is not logged in',
-        error: 'unauthenticated-user'
-      })
-    )
-  }
+export const changePasswordUnauthorizedErrorHandler = rest.post(`${BASE_URL}/user/password`, () =>
+  HttpResponse.json(
+    {
+      status: 401,
+      message: 'User is not logged in',
+      error: 'unauthenticated-user'
+    },
+    { status: 401 }
+  )
 )
 
 /**
@@ -47,7 +39,5 @@ export const changePasswordUnauthorizedErrorHandler = rest.post(
  */
 export const changePasswordSuccessHandler = rest.post(
   `${BASE_URL}/user/password`,
-  (_req, res, ctx) => {
-    return res(ctx.status(200), ctx.json('OK'))
-  }
+  () => new Response('OK', { status: 200 })
 )

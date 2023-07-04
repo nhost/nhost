@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { BASE_URL } from '../config'
 
 /**
@@ -7,22 +7,21 @@ import { BASE_URL } from '../config'
  */
 export const generateMfaTotpNetworkErrorHandler = rest.get(
   `${BASE_URL}/mfa/totp/generate`,
-  (_req, res) => {
-    return res.networkError('Network error')
-  }
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
  * Request handler for MSW to mock an an internal server error when generating MFA TOTP.
  */
-export const generateMfaTotpInternalErrorHandler = rest.get(
-  `${BASE_URL}/mfa/totp/generate`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(500),
-      ctx.json({ status: 500, error: 'internal-error', message: 'Internal error' })
-    )
-  }
+export const generateMfaTotpInternalErrorHandler = rest.get(`${BASE_URL}/mfa/totp/generate`, () =>
+  HttpResponse.json(
+    {
+      status: 500,
+      error: 'internal-error',
+      message: 'Internal error'
+    },
+    { status: 500 }
+  )
 )
 
 /**
@@ -31,75 +30,71 @@ export const generateMfaTotpInternalErrorHandler = rest.get(
  */
 export const generateMfaTotpUnauthorizedErrorHandler = rest.get(
   `${BASE_URL}/mfa/totp/generate`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(401),
-      ctx.json({
+  () =>
+    HttpResponse.json(
+      {
         status: 401,
         message: 'User is not logged in',
         error: 'unauthenticated-user'
-      })
+      },
+      { status: 401 }
     )
-  }
 )
 
 /**
  * Request handler for MSW to mock a successful network request when generating MFA TOTP.
  */
-export const generateMfaTotpSuccessHandler = rest.get(
-  `${BASE_URL}/mfa/totp/generate`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        imageUrl: faker.image.imageUrl(),
-        totpSecret: faker.datatype.uuid()
-      })
-    )
-  }
+export const generateMfaTotpSuccessHandler = rest.get(`${BASE_URL}/mfa/totp/generate`, () =>
+  HttpResponse.json(
+    {
+      imageUrl: faker.image.imageUrl(),
+      totpSecret: faker.datatype.uuid()
+    },
+    { status: 200 }
+  )
 )
 
 /**
  * Request handler for MSW to mock a network error when activating MFA.
  */
-export const activateMfaTotpNetworkErrorHandler = rest.post(`${BASE_URL}/user/mfa`, (_req, res) => {
-  return res.networkError('Network error')
-})
+export const activateMfaTotpNetworkErrorHandler = rest.post(
+  `${BASE_URL}/user/mfa`,
+  () => new Response('Network error', { status: 500 })
+)
 
 /**
  * Request handler for MSW to mock an an internal server error when activating MFA.
  */
-export const activateMfaTotpInternalErrorHandler = rest.post(
-  `${BASE_URL}/user/mfa`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(500),
-      ctx.json({ status: 500, error: 'internal-error', message: 'Internal error' })
-    )
-  }
+export const activateMfaTotpInternalErrorHandler = rest.post(`${BASE_URL}/user/mfa`, () =>
+  HttpResponse.json(
+    {
+      status: 500,
+      error: 'internal-error',
+      message: 'Internal error'
+    },
+    { status: 500 }
+  )
 )
 
 /**
  * Request handler for MSW to mock an error when access token is invalid or not provided when
  * activating MFA.
  */
-export const activateMfaTotpUnauthorizedErrorHandler = rest.post(
-  `${BASE_URL}/user/mfa`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(401),
-      ctx.json({
-        status: 401,
-        message: 'User is not logged in',
-        error: 'unauthenticated-user'
-      })
-    )
-  }
+export const activateMfaTotpUnauthorizedErrorHandler = rest.post(`${BASE_URL}/user/mfa`, () =>
+  HttpResponse.json(
+    {
+      status: 401,
+      message: 'User is not logged in',
+      error: 'unauthenticated-user'
+    },
+    { status: 401 }
+  )
 )
 
 /**
  * Request handler for MSW to mock an successful network request when activating MFA.
  */
-export const activateMfaTotpSuccessHandler = rest.post(`${BASE_URL}/user/mfa`, (_req, res, ctx) => {
-  return res(ctx.status(200), ctx.json('OK'))
-})
+export const activateMfaTotpSuccessHandler = rest.post(
+  `${BASE_URL}/user/mfa`,
+  () => new Response('OK', { status: 200 })
+)
