@@ -1,14 +1,13 @@
-import { rest } from 'msw';
+import { HttpResponse, rest } from 'msw';
 
 const tableQuery = rest.post(
   'https://local.hasura.nhost.run/v2/query',
-  async (req, res, ctx) => {
-    const body = await req.json();
+  async ({ request }) => {
+    const body = (await request.json()) as any;
 
     if (/table_name = 'authors'/gim.exec(body.args[0].args.sql) !== null) {
-      return res(
-        ctx.delay(250),
-        ctx.json([
+      return HttpResponse.json({
+        data: [
           {
             result_type: 'TuplesOk',
             result: [
@@ -35,13 +34,12 @@ const tableQuery = rest.post(
             ],
           },
           { result_type: 'TuplesOk', result: [['count'], ['0']] },
-        ]),
-      );
+        ],
+      });
     }
 
-    return res(
-      ctx.delay(250),
-      ctx.json([
+    return HttpResponse.json({
+      data: [
         {
           result_type: 'TuplesOk',
           result: [
@@ -74,8 +72,8 @@ const tableQuery = rest.post(
           ],
         },
         { result_type: 'TuplesOk', result: [['count'], ['0']] },
-      ]),
-    );
+      ],
+    });
   },
 );
 

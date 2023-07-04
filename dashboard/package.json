@@ -131,7 +131,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "jsdom": "^22.0.0",
     "lint-staged": ">=13",
-    "msw": "^1.0.1",
+    "msw": "0.0.0-fetch.rc-15",
     "msw-storybook-addon": "^1.6.3",
     "node-fetch": "^3.3.0",
     "postcss": "^8.4.19",

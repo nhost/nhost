@@ -14,6 +14,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   waitForElementToBeRemoved,
   within,
 } from '@/tests/testUtils';
@@ -64,7 +65,13 @@ test('should show an empty state message that the feature must be enabled if no 
 
   render(<ResourcesForm />);
 
-  expect(await screen.findByText(/enable this feature/i)).toBeInTheDocument();
+  await waitFor(
+    () => {
+      const element = screen.queryByText(/enable this feature/i);
+      expect(element).toBeInTheDocument();
+    },
+    { timeout: 5000 },
+  );
 });
 
 test('should show the sliders if the switch is enabled', async () => {

@@ -1,3 +1,4 @@
+import { HttpResponse } from 'msw';
 import nhostGraphQLLink from './nhostGraphQLLink';
 
 /**
@@ -5,25 +6,28 @@ import nhostGraphQLLink from './nhostGraphQLLink';
  */
 export const resourcesUnavailableQuery = nhostGraphQLLink.query(
   'GetResources',
-  (_req, res, ctx) =>
-    res(
-      ctx.data({
-        config: {
-          __typename: 'ConfigConfig',
-          postgres: {
-            resources: null,
-          },
-          hasura: {
-            resources: null,
-          },
-          auth: {
-            resources: null,
-          },
-          storage: {
-            resources: null,
+  () =>
+    HttpResponse.json(
+      {
+        data: {
+          config: {
+            __typename: 'ConfigConfig',
+            postgres: {
+              resources: null,
+            },
+            hasura: {
+              resources: null,
+            },
+            auth: {
+              resources: null,
+            },
+            storage: {
+              resources: null,
+            },
           },
         },
-      }),
+      },
+      { status: 200 },
     ),
 );
 
@@ -32,49 +36,52 @@ export const resourcesUnavailableQuery = nhostGraphQLLink.query(
  */
 export const resourcesAvailableQuery = nhostGraphQLLink.query(
   'GetResources',
-  (_req, res, ctx) =>
-    res(
-      ctx.data({
-        config: {
-          __typename: 'ConfigConfig',
-          postgres: {
-            resources: {
-              compute: {
-                cpu: 2000,
-                memory: 4096,
+  () =>
+    HttpResponse.json(
+      {
+        data: {
+          config: {
+            __typename: 'ConfigConfig',
+            postgres: {
+              resources: {
+                compute: {
+                  cpu: 2000,
+                  memory: 4096,
+                },
+                replicas: 1,
               },
-              replicas: 1,
             },
-          },
-          hasura: {
-            resources: {
-              compute: {
-                cpu: 2000,
-                memory: 4096,
+            hasura: {
+              resources: {
+                compute: {
+                  cpu: 2000,
+                  memory: 4096,
+                },
+                replicas: 1,
               },
-              replicas: 1,
             },
-          },
-          auth: {
-            resources: {
-              compute: {
-                cpu: 2000,
-                memory: 4096,
+            auth: {
+              resources: {
+                compute: {
+                  cpu: 2000,
+                  memory: 4096,
+                },
+                replicas: 1,
               },
-              replicas: 1,
             },
-          },
-          storage: {
-            resources: {
-              compute: {
-                cpu: 2000,
-                memory: 4096,
+            storage: {
+              resources: {
+                compute: {
+                  cpu: 2000,
+                  memory: 4096,
+                },
+                replicas: 1,
               },
-              replicas: 1,
             },
           },
         },
-      }),
+      },
+      { status: 200 },
     ),
 );
 
@@ -83,48 +90,51 @@ export const resourcesAvailableQuery = nhostGraphQLLink.query(
  */
 export const resourcesUpdatedQuery = nhostGraphQLLink.query(
   'GetResources',
-  (_req, res, ctx) =>
-    res(
-      ctx.data({
-        config: {
-          __typename: 'ConfigConfig',
-          postgres: {
-            resources: {
-              compute: {
-                cpu: 2250,
-                memory: 4608,
+  () =>
+    HttpResponse.json(
+      {
+        data: {
+          config: {
+            __typename: 'ConfigConfig',
+            postgres: {
+              resources: {
+                compute: {
+                  cpu: 2250,
+                  memory: 4608,
+                },
+                replicas: 1,
               },
-              replicas: 1,
             },
-          },
-          hasura: {
-            resources: {
-              compute: {
-                cpu: 2250,
-                memory: 4608,
+            hasura: {
+              resources: {
+                compute: {
+                  cpu: 2250,
+                  memory: 4608,
+                },
+                replicas: 1,
               },
-              replicas: 1,
             },
-          },
-          auth: {
-            resources: {
-              compute: {
-                cpu: 2250,
-                memory: 4608,
+            auth: {
+              resources: {
+                compute: {
+                  cpu: 2250,
+                  memory: 4608,
+                },
+                replicas: 1,
               },
-              replicas: 1,
             },
-          },
-          storage: {
-            resources: {
-              compute: {
-                cpu: 2250,
-                memory: 4608,
+            storage: {
+              resources: {
+                compute: {
+                  cpu: 2250,
+                  memory: 4608,
+                },
+                replicas: 1,
               },
-              replicas: 1,
             },
           },
         },
-      }),
+      },
+      { status: 200 },
     ),
 );

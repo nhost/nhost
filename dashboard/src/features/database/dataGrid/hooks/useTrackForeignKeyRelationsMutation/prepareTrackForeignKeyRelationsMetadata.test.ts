@@ -1,5 +1,5 @@
 import type { HasuraMetadata } from '@/features/database/dataGrid/types/dataBrowser';
-import { rest } from 'msw';
+import { HttpResponse, rest } from 'msw';
 import { setupServer } from 'msw/node';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
 
@@ -28,11 +28,8 @@ const testMetadataResponse: { metadata: HasuraMetadata } = {
 };
 
 const metadataHandlers = [
-  rest.post(`${APP_URL}/v1/metadata`, (_req, res, ctx) =>
-    res(
-      ctx.status(200),
-      ctx.json<{ metadata: HasuraMetadata }>(testMetadataResponse),
-    ),
+  rest.post(`${APP_URL}/v1/metadata`, () =>
+    HttpResponse.json(testMetadataResponse, { status: 200 }),
   ),
 ];
 
@@ -131,10 +128,9 @@ test('should only prepare a one-to-one relationship if the table does not have a
 
 test('should drop existing relationships and prepare a new one-to-many relationship', async () => {
   server.use(
-    rest.post(`${APP_URL}/v1/metadata`, (_req, res, ctx) =>
-      res(
-        ctx.status(200),
-        ctx.json<{ metadata: HasuraMetadata }>({
+    rest.post(`${APP_URL}/v1/metadata`, () =>
+      HttpResponse.json(
+        {
           ...testMetadataResponse,
           metadata: {
             ...testMetadataResponse.metadata,
@@ -179,7 +175,8 @@ test('should drop existing relationships and prepare a new one-to-many relations
               },
             ],
           },
-        }),
+        },
+        { status: 200 },
       ),
     ),
   );
