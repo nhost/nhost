@@ -20,7 +20,7 @@ export const resetPasswordInternalErrorHandler = rest.post(`${BASE_URL}/user/pas
  */
 export const resetPasswordNetworkErrorHandler = rest.post(
   `${BASE_URL}/user/password/reset`,
-  () => new Response('Network error', { status: 500 })
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
 )
 
 /**

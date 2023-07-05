@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { HttpResponse, rest } from 'msw'
+import { Mfa, NhostSession } from '../../../src'
 import { BASE_URL } from '../config'
 import { fakeAnonymousUser } from '../mocks/user'
 
@@ -25,7 +26,7 @@ export const anonymousInternalErrorHandler = rest.post(`${BASE_URL}/signin/anony
  * Request handler for MSW to mock a successful anonymous sign.
  */
 export const correctAnonymousHandler = rest.post(`${BASE_URL}/signin/anonymous`, () =>
-  HttpResponse.json({
+  HttpResponse.json<{ mfa: Mfa | null; session: NhostSession | null }>({
     session: {
       user: fakeAnonymousUser,
       accessTokenExpiresIn: 900,

@@ -79,7 +79,7 @@ export const unverifiedEmailErrorHandler = rest.post(`${BASE_URL}/signin/email-p
  */
 export const emailPasswordNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/email-password`,
-  () => new Response('Network error', { status: 500 })
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
 )
 
 /**

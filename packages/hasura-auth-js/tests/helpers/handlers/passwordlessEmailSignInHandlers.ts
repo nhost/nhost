@@ -16,7 +16,7 @@ export const correctPasswordlessEmailHandler = rest.post(
  */
 export const passwordlessEmailNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/passwordless/email`,
-  () => new Response('Network error', { status: 500 })
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
 )
 
 /**

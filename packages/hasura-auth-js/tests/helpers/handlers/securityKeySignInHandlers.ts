@@ -57,7 +57,7 @@ export const incorrectSecurityKeyVerifyHandler = rest.post(
  */
 export const emailSecurityKeyNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/webauthn`,
-  () => new Response('Network error', { status: 500 })
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
 )
 
 /**

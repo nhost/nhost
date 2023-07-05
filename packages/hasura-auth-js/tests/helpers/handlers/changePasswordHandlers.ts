@@ -6,7 +6,7 @@ import { BASE_URL } from '../config'
  */
 export const changePasswordNetworkErrorHandler = rest.post(
   `${BASE_URL}/user/password`,
-  () => new Response('Network error', { status: 500 })
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
 )
 
 /**

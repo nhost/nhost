@@ -9,7 +9,7 @@ import fakeUser from '../mocks/user'
  */
 export const patSignInNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/pat`,
-  () => new Response('Network error', { status: 500 })
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
 )
 
 /**

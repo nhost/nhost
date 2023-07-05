@@ -6,7 +6,7 @@ import { BASE_URL } from '../config'
  */
 export const changeEmailNetworkErrorHandler = rest.post(
   `${BASE_URL}/user/email/change`,
-  () => new Response('Network error', { status: 500 })
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
 )
 
 /**

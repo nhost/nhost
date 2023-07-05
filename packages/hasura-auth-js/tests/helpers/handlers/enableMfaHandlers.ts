@@ -7,7 +7,7 @@ import { BASE_URL } from '../config'
  */
 export const generateMfaTotpNetworkErrorHandler = rest.get(
   `${BASE_URL}/mfa/totp/generate`,
-  () => new Response('Network error', { status: 500 })
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
 )
 
 /**
@@ -59,7 +59,7 @@ export const generateMfaTotpSuccessHandler = rest.get(`${BASE_URL}/mfa/totp/gene
  */
 export const activateMfaTotpNetworkErrorHandler = rest.post(
   `${BASE_URL}/user/mfa`,
-  () => new Response('Network error', { status: 500 })
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
 )
 
 /**

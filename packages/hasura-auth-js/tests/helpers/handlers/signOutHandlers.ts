@@ -6,7 +6,7 @@ import { BASE_URL } from '../config'
  */
 export const signOutNetworkErrorHandler = rest.post(
   `${BASE_URL}/signout`,
-  () => new Response('Network error', { status: 500 })
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
 )
 
 /**

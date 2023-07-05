@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { HttpResponse, rest } from 'msw'
+import { NhostSession } from '../../../src'
 import { BASE_URL } from '../config'
 import fakeUser from '../mocks/user'
 
@@ -7,7 +8,7 @@ import fakeUser from '../mocks/user'
  * Request handler for MSW to mock a successful request for a new access token.
  */
 export const authTokenSuccessHandler = rest.post(`${BASE_URL}/token`, () => {
-  return HttpResponse.json({
+  return HttpResponse.json<NhostSession>({
     accessToken: faker.datatype.string(40),
     refreshToken: faker.datatype.uuid(),
     accessTokenExpiresIn: 900,
@@ -42,6 +43,7 @@ export const authTokenInternalErrorHandler = rest.post(`${BASE_URL}/token`, () =
 /**
  * Request handler for MSW to mock a network error when requesting a new access token.
  */
-export const authTokenNetworkErrorHandler = rest.post(`${BASE_URL}/token`, () => {
-  return new Response('Network error', { status: 500 })
-})
+export const authTokenNetworkErrorHandler = rest.post(
+  `${BASE_URL}/token`,
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
+)

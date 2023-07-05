@@ -19,7 +19,7 @@ export const correctPasswordlessSmsHandler = rest.post(
  */
 export const passwordlessSmsNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/passwordless/sms`,
-  () => new Response('Network error', { status: 500 })
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
 )
 
 /**
@@ -100,5 +100,5 @@ export const passwordlessSmsOtpInvalidOtpHandler = rest.post(
  */
 export const passwordlessSmsOtpNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/passwordless/sms/otp`,
-  () => new Response('Network error', { status: 500 })
+  () => new Response(null, { status: 500, statusText: 'Network erro' })
 )
