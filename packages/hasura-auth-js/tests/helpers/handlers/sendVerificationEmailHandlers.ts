@@ -23,7 +23,7 @@ export const sendVerificationEmailInternalErrorHandler = rest.post(
  */
 export const sendVerificationEmailNetworkErrorHandler = rest.post(
   `${BASE_URL}/user/email/send-verification-email`,
-  () => new Response(null, { status: 500, statusText: 'Network erro' })
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
@@ -63,5 +63,5 @@ export const sendVerificationEmailUserNotFoundHandler = rest.post(
  */
 export const sendVerificationEmailSuccessHandler = rest.post(
   `${BASE_URL}/user/email/send-verification-email`,
-  () => new Response('OK', { status: 200 })
+  () => HttpResponse.json('OK', { status: 200 })
 )

@@ -20,7 +20,7 @@ export const resetPasswordInternalErrorHandler = rest.post(`${BASE_URL}/user/pas
  */
 export const resetPasswordNetworkErrorHandler = rest.post(
   `${BASE_URL}/user/password/reset`,
-  () => new Response(null, { status: 500, statusText: 'Network erro' })
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
@@ -54,7 +54,6 @@ export const resetPasswordUserNotFoundHandler = rest.post(`${BASE_URL}/user/pass
 /**
  * Request handler for MSW to mock a successful network request when requesting a password reset.
  */
-export const resetPasswordSuccessHandler = rest.post(
-  `${BASE_URL}/user/password/reset`,
-  () => new Response('OK', { status: 200 })
+export const resetPasswordSuccessHandler = rest.post(`${BASE_URL}/user/password/reset`, () =>
+  HttpResponse.json('OK', { status: 200 })
 )

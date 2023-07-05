@@ -6,7 +6,7 @@ import { BASE_URL } from '../config'
  */
 export const signOutNetworkErrorHandler = rest.post(
   `${BASE_URL}/signout`,
-  () => new Response(null, { status: 500, statusText: 'Network erro' })
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
@@ -29,17 +29,17 @@ export const signOutInternalErrorHandler = rest.post(`${BASE_URL}/signout`, ({ r
 export const signOutHandler = rest.post(`${BASE_URL}/signout`, async ({ request }) => {
   const reqBody = (await request.json()) as { refreshToken?: string }
   if (!reqBody?.refreshToken) {
-    return HttpResponse.json(
-      {
+    return new Response(
+      JSON.stringify({
         status: 400,
         message: '"refreshToken" is required',
         error: 'invalid-request'
-      },
-      { status: 400 }
+      }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
     )
   }
 
-  return new Response('OK', { status: 200 })
+  return new Response('OK', { status: 200, headers: { 'Content-Type': 'application/json' } })
 })
 
 /**

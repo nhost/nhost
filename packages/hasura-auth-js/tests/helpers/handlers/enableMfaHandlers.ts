@@ -7,7 +7,7 @@ import { BASE_URL } from '../config'
  */
 export const generateMfaTotpNetworkErrorHandler = rest.get(
   `${BASE_URL}/mfa/totp/generate`,
-  () => new Response(null, { status: 500, statusText: 'Network erro' })
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
@@ -59,7 +59,7 @@ export const generateMfaTotpSuccessHandler = rest.get(`${BASE_URL}/mfa/totp/gene
  */
 export const activateMfaTotpNetworkErrorHandler = rest.post(
   `${BASE_URL}/user/mfa`,
-  () => new Response(null, { status: 500, statusText: 'Network erro' })
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
@@ -94,7 +94,6 @@ export const activateMfaTotpUnauthorizedErrorHandler = rest.post(`${BASE_URL}/us
 /**
  * Request handler for MSW to mock an successful network request when activating MFA.
  */
-export const activateMfaTotpSuccessHandler = rest.post(
-  `${BASE_URL}/user/mfa`,
-  () => new Response('OK', { status: 200 })
+export const activateMfaTotpSuccessHandler = rest.post(`${BASE_URL}/user/mfa`, () =>
+  HttpResponse.json('OK', { status: 200 })
 )

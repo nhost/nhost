@@ -9,7 +9,7 @@ import fakeUser from '../mocks/user'
  */
 export const signUpNetworkErrorHandler = rest.post(
   `${BASE_URL}/signup/email-password`,
-  () => new Response(null, { status: 500, statusText: 'Network erro' })
+  () => new Response('Network error', { status: 500 })
 )
 
 /**

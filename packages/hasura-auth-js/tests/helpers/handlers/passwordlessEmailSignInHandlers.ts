@@ -7,7 +7,7 @@ import { BASE_URL } from '../config'
  */
 export const correctPasswordlessEmailHandler = rest.post(
   `${BASE_URL}/signin/passwordless/email`,
-  () => new Response('OK', { status: 200 })
+  () => HttpResponse.json('OK', { status: 200 })
 )
 
 /**
@@ -16,7 +16,7 @@ export const correctPasswordlessEmailHandler = rest.post(
  */
 export const passwordlessEmailNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/passwordless/email`,
-  () => new Response(null, { status: 500, statusText: 'Network erro' })
+  () => new Response('Network error', { status: 500 })
 )
 
 /**

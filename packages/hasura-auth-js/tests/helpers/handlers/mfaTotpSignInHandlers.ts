@@ -10,7 +10,7 @@ import fakeUser from '../mocks/user'
  */
 export const mfaTotpNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/mfa/totp`,
-  () => new Response(null, { status: 500, statusText: 'Network erro' })
+  () => new Response('Network error', { status: 500 })
 )
 
 /**

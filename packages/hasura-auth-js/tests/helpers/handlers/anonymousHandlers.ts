@@ -9,7 +9,7 @@ import { fakeAnonymousUser } from '../mocks/user'
  */
 export const anonymousNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/anonymous`,
-  () => new Response(null, { status: 500, statusText: 'Network error' })
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
@@ -40,9 +40,8 @@ export const correctAnonymousHandler = rest.post(`${BASE_URL}/signin/anonymous`,
 /**
  * Request handler for MSW to mock a successful deanonymisation request for an anonymous user
  */
-export const deamonymisationSuccessfulHandler = rest.post(
-  `${BASE_URL}/user/deanonymize`,
-  () => new Response('OK', { status: 200 })
+export const deamonymisationSuccessfulHandler = rest.post(`${BASE_URL}/user/deanonymize`, () =>
+  HttpResponse.json('OK', { status: 200 })
 )
 
 /**

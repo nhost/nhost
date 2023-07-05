@@ -8,9 +8,8 @@ import fakeUser from '../mocks/user'
  * Request handler for MSW to mock a successful sign in request using the passwordless email sign in
  * method.
  */
-export const correctPasswordlessSmsHandler = rest.post(
-  `${BASE_URL}/signin/passwordless/sms`,
-  () => new Response('OK', { status: 200 })
+export const correctPasswordlessSmsHandler = rest.post(`${BASE_URL}/signin/passwordless/sms`, () =>
+  HttpResponse.json('OK', { status: 200 })
 )
 
 /**
@@ -19,7 +18,7 @@ export const correctPasswordlessSmsHandler = rest.post(
  */
 export const passwordlessSmsNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/passwordless/sms`,
-  () => new Response(null, { status: 500, statusText: 'Network erro' })
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
@@ -49,15 +48,18 @@ export const correctPasswordlessSmsOtpHandler = rest.post(
     HttpResponse.json<{
       mfa: Mfa | null
       session: NhostSession | null
-    }>({
-      session: {
-        user: fakeUser,
-        accessTokenExpiresIn: 900,
-        accessToken: faker.datatype.string(40),
-        refreshToken: faker.datatype.uuid()
+    }>(
+      {
+        session: {
+          user: fakeUser,
+          accessTokenExpiresIn: 900,
+          accessToken: faker.datatype.string(40),
+          refreshToken: faker.datatype.uuid()
+        },
+        mfa: null
       },
-      mfa: null
-    })
+      { status: 200 }
+    )
 )
 
 /**
@@ -100,5 +102,5 @@ export const passwordlessSmsOtpInvalidOtpHandler = rest.post(
  */
 export const passwordlessSmsOtpNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/passwordless/sms/otp`,
-  () => new Response(null, { status: 500, statusText: 'Network erro' })
+  () => new Response('Network error', { status: 500 })
 )

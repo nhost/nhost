@@ -108,9 +108,13 @@ async function waitForElementToBeRemoved<T>(
   }
 }
 
-function getNonStrictHttpResponseFromData<T>(data?: T): Response {
+function getNonStrictHttpResponseFromData<T>(
+  data?: T,
+  status?: number,
+): Response {
   return new Response(JSON.stringify(data), {
     headers: { 'Content-Type': 'application/json' },
+    ...(status && { status }),
   });
 }
 

@@ -6,7 +6,7 @@ import { BASE_URL } from '../config'
  */
 export const changeEmailNetworkErrorHandler = rest.post(
   `${BASE_URL}/user/email/change`,
-  () => new Response(null, { status: 500, statusText: 'Network erro' })
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
@@ -37,7 +37,6 @@ export const changeEmailUnauthorizedErrorHandler = rest.post(`${BASE_URL}/user/e
 /**
  * Request handler for MSW to mock a successful network request when changing email address.
  */
-export const changeEmailSuccessHandler = rest.post(
-  `${BASE_URL}/user/email/change`,
-  () => new Response('OK', { status: 200 })
+export const changeEmailSuccessHandler = rest.post(`${BASE_URL}/user/email/change`, () =>
+  HttpResponse.json('OK', { status: 200 })
 )
