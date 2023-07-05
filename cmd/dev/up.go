@@ -59,7 +59,7 @@ func CommandUp() *cli.Command {
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagApplySeeds,
-				Usage:   "Apply seeds",
+				Usage:   "Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag",
 				Value:   false,
 				EnvVars: []string{"NHOST_APPLY_SEEDS"},
 			},
@@ -108,13 +108,14 @@ func commandUp(cCtx *cli.Context) error {
 		)
 	}
 
+	applySeeds := cCtx.Bool(flagApplySeeds) || !clienv.PathExists(ce.Path.DotNhostFolder())
 	return Up(
 		cCtx.Context,
 		ce,
 		cCtx.Uint(flagHTTPPort),
 		!cCtx.Bool(flagDisableTLS),
 		cCtx.Uint(flagPostgresPort),
-		cCtx.Bool(flagApplySeeds),
+		applySeeds,
 		map[string]uint{
 			"auth":           cCtx.Uint(flagAuthPort),
 			"storage":        cCtx.Uint(flagStoragePort),
