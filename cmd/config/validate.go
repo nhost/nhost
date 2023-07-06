@@ -101,7 +101,10 @@ func Validate(ce *clienv.CliEnv, subdomain string) (*model.ConfigConfig, error) 
 
 	var secrets model.Secrets
 	if err := clienv.UnmarshalFile(ce.Path.Secrets(), &secrets, env.Unmarshal); err != nil {
-		return nil, fmt.Errorf("failed to parse secrets: %w", err)
+		return nil, fmt.Errorf(
+			"failed to parse secrets, make sure secret values are between quotes: %w",
+			err,
+		)
 	}
 
 	if clienv.PathExists(ce.Path.Overlay(subdomain)) {
