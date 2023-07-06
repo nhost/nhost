@@ -31,6 +31,7 @@ export type DatabaseServiceVersionFormValues = Yup.InferType<
 >;
 
 const AVAILABLE_POSTGRES_VERSIONS = [
+  '14.6-20230705-1',
   '14.6-20230613-1',
   '14.6-20230525',
   '14.6-20230406-2',
