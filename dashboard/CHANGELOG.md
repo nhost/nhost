@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.18.0
+
+### Minor Changes
+
+- ee0b9b8ed: chore(dashboard):add hasura v2.28.2 and v2.29.0 to the version selector
+
 ## 0.17.20
 
 ### Patch Changes
