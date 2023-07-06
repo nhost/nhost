@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.4.0
+
+### Minor Changes
+
+- c6fa8da6d: fix(docs): remove outdated reference/cli
+
 ## 0.3.5
 
 ### Patch Changes
