@@ -183,23 +183,6 @@ const sidebars = {
           dirName: 'reference/docgen/vue/content'
         }
       ]
-    },
-    {
-      type: 'category',
-      label: 'CLI',
-      link: { type: 'doc', id: 'reference/cli/index' },
-      items: [
-        'reference/cli/init',
-        'reference/cli/up',
-        'reference/cli/down',
-        'reference/cli/link',
-        'reference/cli/login',
-        'reference/cli/logout',
-        'reference/cli/list',
-        'reference/cli/upgrade',
-        'reference/cli/logs',
-        'reference/cli/global-flags'
-      ]
     }
   ]
 }

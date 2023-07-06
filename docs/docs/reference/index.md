@@ -30,7 +30,3 @@ In this section:
 - [Getting started](/reference/vue)
 - [Protecting routes](/reference/vue/protecting-routes)
 - [Apollo GraphQL](/reference/vue/apollo)
-
-### Nhost CLI
-
-- [CLI overview](/reference/cli)
