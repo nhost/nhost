@@ -118,7 +118,7 @@ export const createFileUploadMachine = () =>
         uploadFile: (context, event) => (callback) => {
           const file = (event.file || context.file)!
           const data = new FormData()
-          data.append('file', file)
+          data.append('file[]', file)
 
           let currentLoaded = 0
 
