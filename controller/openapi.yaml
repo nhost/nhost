@@ -141,7 +141,7 @@ paths:
             schema:
               type: object
               properties:
-                bucket_id:
+                bucket-id:
                   type: string
                   description: Bucket to upload the files to
                 metadata[]:
