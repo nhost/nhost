@@ -16,6 +16,8 @@ module.exports = {
     extend: {
       colors: {
         github: '#24292E;',
+        brown: '#382D22',
+        copper: '#DD792D',
       },
       boxShadow: {
         outline: 'inset 0 0 0 2px rgba(0, 82, 205, 0.6)',
