@@ -69,12 +69,12 @@ HTTP endpoints are automatically generated based on the file structure inside `f
 
 Here's an example of four Serverless Functions with their files and their HTTP endpoints:
 
-| File                        | HTTP Endpoint                                                     |
-| --------------------------- | ----------------------------------------------------------------- |
-| `functions/index.js`        | `https://[project-subdomain].nhost.run/v1/functions/`             |
-| `functions/users/index.ts`  | `https://[project-subdomain].nhost.run/v1/functions/users`        |
-| `functions/users/active.ts` | `https://[project-subdomain].nhost.run/v1/functions/users/active` |
-| `functions/my-company.js`   | `https://[project-subdomain].nhost.run/v1/functions/my-company`   |
+| File                        | HTTP Endpoint                                                      |
+| --------------------------- | ------------------------------------------------------------------ |
+| `functions/index.js`        | `https://[subdomain].functions.[region].nhost.run/v1/`             |
+| `functions/users/index.ts`  | `https://[subdomain].functions.[region].nhost.run/v1/users`        |
+| `functions/users/active.ts` | `https://[subdomain].functions.[region].nhost.run/v1/users/active` |
+| `functions/my-company.js`   | `https://[subdomain].functions.[region].nhost.run/v1/my-company`   |
 
 You can prepend files and folders with an underscore (`_`) to prevent them from being treated as Serverless Functions and
 be turned into HTTP endpoints. This is useful if you have, for example, a utils file (`functions/_utils.js`) or a utils-f
