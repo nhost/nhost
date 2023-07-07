@@ -48,7 +48,7 @@ export default function SettingsLayout({
         className="flex flex-col flex-auto w-full overflow-scroll overflow-x-hidden"
       >
         <RetryableErrorBoundary>
-          {!hasGitRepo && (
+          {hasGitRepo && (
             <Alert
               severity="warning"
               className="grid grid-flow-row gap-2 place-content-center"
