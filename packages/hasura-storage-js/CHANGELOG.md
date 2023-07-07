@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.2.2
+
+### Patch Changes
+
+- 300e3f49e: fix(hasura-storage-js): fix file upload formData field
+
 ## 2.2.1
 
 ### Patch Changes

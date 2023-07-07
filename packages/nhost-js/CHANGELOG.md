@@ -1,5 +1,12 @@
 # @nhost/nhost-js
 
+## 2.2.13
+
+### Patch Changes
+
+- Updated dependencies [300e3f49e]
+  - @nhost/hasura-storage-js@2.2.2
+
 ## 2.2.12
 
 ### Patch Changes
