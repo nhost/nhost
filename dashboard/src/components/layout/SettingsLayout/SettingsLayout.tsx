@@ -7,6 +7,7 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useTheme } from '@mui/material';
 import { twMerge } from 'tailwind-merge';
 
 export interface SettingsLayoutProps extends ProjectLayoutProps {
@@ -25,6 +26,7 @@ export default function SettingsLayout({
   sidebarProps: { className: sidebarClassName, ...sidebarProps } = {},
   ...props
 }: SettingsLayoutProps) {
+  const theme = useTheme();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const hasGitRepo = !!currentProject?.githubRepository;
 
@@ -43,18 +45,25 @@ export default function SettingsLayout({
 
       <Box
         sx={{ backgroundColor: 'background.default' }}
-        className="flex w-full flex-auto flex-col overflow-scroll overflow-x-hidden"
+        className="flex flex-col flex-auto w-full overflow-scroll overflow-x-hidden"
       >
         <RetryableErrorBoundary>
           {hasGitRepo && (
             <Alert
               severity="warning"
-              className="grid grid-flow-row place-content-center gap-2"
+              className="grid grid-flow-row gap-2 place-content-center"
             >
               <Text color="warning" className="text-sm ">
                 As you have a connected repository, make sure to synchronize
                 your changes with{' '}
-                <code className="rounded-md bg-slate-200 px-2 py-px text-slate-500">
+                <code
+                  className={twMerge(
+                    'rounded-md px-2 py-px',
+                    theme.palette.mode === 'dark'
+                      ? 'bg-brown text-copper'
+                      : 'bg-slate-200 text-slate-700',
+                  )}
+                >
                   nhost config pull
                 </code>{' '}
                 or they may be reverted with the next push.
