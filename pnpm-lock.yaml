@@ -364,8 +364,8 @@ importers:
         specifier: ^16.11.7
         version: 16.18.11
       '@types/pluralize':
-        specifier: ^0.0.29
-        version: 0.0.29
+        specifier: ^0.0.30
+        version: 0.0.30
       '@types/react':
         specifier: ^18.2.14
         version: 18.2.14
@@ -13534,8 +13534,8 @@ packages:
   /@types/parse5@5.0.3:
     resolution: {integrity: sha512-kUNnecmtkunAoQ3CnjmMkzNU/gtxG8guhi+Fk2U/kOpIKjIMKnXGp4IJCgQJrXSgMsWYimYG4TGjz/UzbGEBTw==}
 
-  /@types/pluralize@0.0.29:
-    resolution: {integrity: sha512-BYOID+l2Aco2nBik+iYS4SZX0Lf20KPILP5RGmM1IgzdwNdTs0eebiFriOPcej1sX9mLnSoiNte5zcFxssgpGA==}
+  /@types/pluralize@0.0.30:
+    resolution: {integrity: sha512-kVww6xZrW/db5BR9OqiT71J9huRdQ+z/r+LbDuT7/EK50mCmj5FoaIARnVv0rvjUS/YpDox0cDU9lpQT011VBA==}
     dev: true
 
   /@types/pngjs@6.0.1:
