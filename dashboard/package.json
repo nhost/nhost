@@ -101,6 +101,7 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.4.3",
+    "@types/ace": "^0.0.48",
     "@types/bcryptjs": "^2.4.2",
     "@types/lodash.debounce": "^4.0.7",
     "@types/node": "^16.11.7",

@@ -84,7 +84,7 @@ test("should show the project's name, the Upgrade button and the Settings button
 
 test("should show the project's region and subdomain", async () => {
   await expect(page.locator('p:has-text("Region") + div p').nth(0)).toHaveText(
-    /frankfurt \(eu-central-1\)/i,
+    /London \(eu-west-2\)/i,
   );
   await expect(
     page.locator('p:has-text("Subdomain") + div p').nth(0),
