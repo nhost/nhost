@@ -129,18 +129,19 @@ jobs:
       - name: Install Nhost CLI
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
         uses: ./.github/actions/nhost-cli
-      - name: Fetch Dashboard Preview URL
-        id: fetch-dashboard-preview-url
-        uses: zentered/vercel-preview-url@v1.1.9
-        if: github.ref_name != 'main'
-        env:
-          VERCEL_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-          GITHUB_REF: ${{ github.ref_name }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        with:
-          vercel_team_id: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
-          vercel_project_id: ${{ secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
-          vercel_state: BUILDING,READY,INITIALIZING
+      # * Since we're using a production app to run e2e test for the dashboard we don't need these anymore
+      # - name: Fetch Dashboard Preview URL
+      #   id: fetch-dashboard-preview-url
+      #   uses: zentered/vercel-preview-url@v1.1.9
+      #   if: github.ref_name != 'main'
+      #   env:
+      #     VERCEL_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+      #     GITHUB_REF: ${{ github.ref_name }}
+      #     GITHUB_REPOSITORY: ${{ github.repository }}
+      #   with:
+      #     vercel_team_id: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+      #     vercel_project_id: ${{ secrets.DASHBOARD_STAGING_VERCEL_PROJECT_ID }}
+      #     vercel_state: BUILDING,READY,INITIALIZING
       # - name: Set Dashboard Preview URL
       #   if: steps.fetch-dashboard-preview-url.outputs.preview_url != ''
       #   run: echo "NHOST_TEST_DASHBOARD_URL=https://${{ steps.fetch-dashboard-preview-url.outputs.preview_url }}" >> $GITHUB_ENV
