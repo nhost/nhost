@@ -9,7 +9,7 @@ import { openProject } from '@/e2e/utils';
 import { chromium } from '@playwright/test';
 
 async function globalTeardown() {
-  const browser = await chromium.launch({});
+  const browser = await chromium.launch({ slowMo: 1000 });
 
   const context = await browser.newContext({
     baseURL: TEST_DASHBOARD_URL,
@@ -65,7 +65,6 @@ async function globalTeardown() {
   });
 
   await hasuraPage.getByRole('button', { name: /run!/i }).click();
-
   await hasuraPage.getByText(/sql executed!/i).waitFor();
 }
 
