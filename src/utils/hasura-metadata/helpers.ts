@@ -115,11 +115,17 @@ export const patchTableObject = (
   }
 
   if (select_permissions) {
-    existingTable.select_permissions = [...select_permissions];
+    const mergedSelectPermissions = [...(existingTable.select_permissions ?? []), ...select_permissions];
+    existingTable.select_permissions = [
+      ...new Map(mergedSelectPermissions.map((permission) => [permission.role, permission])).values()
+    ];
   }
 
   if (delete_permissions) {
-    existingTable.delete_permissions = [...delete_permissions];
+    const mergedDeletePermissions = [...(existingTable.delete_permissions ?? []), ...delete_permissions];
+    existingTable.delete_permissions = [
+      ...new Map(mergedDeletePermissions.map((permission) => [permission.role, permission])).values()
+    ];
   }
 
   // TODO merge other fields (permissions, computed fields, etc.) - not required by Hasura-auth yet
