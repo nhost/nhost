@@ -1,5 +1,16 @@
 # @nhost/dashboard
 
+## 0.19.2
+
+### Patch Changes
+
+- face99ccd: chore(deps): bump turbo version
+- cfe527307: style: tweak pull config warning in dark mode
+- a9d7da8af: chore(deps): update dependency @types/pluralize to ^0.0.30
+- 9aa4371ef: chore: add hasura-auth version 0.21.2
+- d14e112bf: chore(deps): update dependency prettier-plugin-tailwindcss to ^0.4.0
+- d3e8bb94a: chore(deps): update dependency vite-plugin-dts to v3
+
 ## 0.19.1
 
 ### Patch Changes
