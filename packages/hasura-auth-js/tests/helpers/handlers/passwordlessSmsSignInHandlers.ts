@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { Mfa, NhostSession } from '../../../src'
 import { BASE_URL } from '../config'
 import fakeUser from '../mocks/user'
@@ -8,11 +8,8 @@ import fakeUser from '../mocks/user'
  * Request handler for MSW to mock a successful sign in request using the passwordless email sign in
  * method.
  */
-export const correctPasswordlessSmsHandler = rest.post(
-  `${BASE_URL}/signin/passwordless/sms`,
-  (_req, res, ctx) => {
-    return res(ctx.status(200), ctx.json('OK'))
-  }
+export const correctPasswordlessSmsHandler = rest.post(`${BASE_URL}/signin/passwordless/sms`, () =>
+  HttpResponse.json('OK', { status: 200 })
 )
 
 /**
@@ -21,9 +18,7 @@ export const correctPasswordlessSmsHandler = rest.post(
  */
 export const passwordlessSmsNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/passwordless/sms`,
-  (_req, res) => {
-    return res.networkError('Network error')
-  }
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
@@ -32,12 +27,15 @@ export const passwordlessSmsNetworkErrorHandler = rest.post(
  */
 export const passwordlessSmsInternalErrorHandler = rest.post(
   `${BASE_URL}/signin/passwordless/sms`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(500),
-      ctx.json({ status: 500, error: 'internal-error', message: 'Internal error' })
+  () =>
+    HttpResponse.json(
+      {
+        status: 500,
+        error: 'internal-error',
+        message: 'Internal error'
+      },
+      { status: 500 }
     )
-  }
 )
 
 /**
@@ -46,10 +44,12 @@ export const passwordlessSmsInternalErrorHandler = rest.post(
  */
 export const correctPasswordlessSmsOtpHandler = rest.post(
   `${BASE_URL}/signin/passwordless/sms/otp`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json<{ mfa: Mfa | null; session: NhostSession | null }>({
+  () =>
+    HttpResponse.json<{
+      mfa: Mfa | null
+      session: NhostSession | null
+    }>(
+      {
         session: {
           user: fakeUser,
           accessTokenExpiresIn: 900,
@@ -57,9 +57,9 @@ export const correctPasswordlessSmsOtpHandler = rest.post(
           refreshToken: faker.datatype.uuid()
         },
         mfa: null
-      })
+      },
+      { status: 200 }
     )
-  }
 )
 
 /**
@@ -68,12 +68,15 @@ export const correctPasswordlessSmsOtpHandler = rest.post(
  */
 export const passwordlessSmsOtpInternalErrorHandler = rest.post(
   `${BASE_URL}/signin/passwordless/sms/otp`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(500),
-      ctx.json({ status: 500, error: 'internal-error', message: 'Internal error' })
+  () =>
+    HttpResponse.json(
+      {
+        status: 500,
+        error: 'internal-error',
+        message: 'Internal error'
+      },
+      { status: 500 }
     )
-  }
 )
 
 /**
@@ -82,16 +85,15 @@ export const passwordlessSmsOtpInternalErrorHandler = rest.post(
  */
 export const passwordlessSmsOtpInvalidOtpHandler = rest.post(
   `${BASE_URL}/signin/passwordless/sms/otp`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(401),
-      ctx.json({
+  () =>
+    HttpResponse.json(
+      {
         status: 401,
         message: 'Invalid or expired OTP',
         error: 'invalid-otp'
-      })
+      },
+      { status: 401 }
     )
-  }
 )
 
 /**
@@ -100,7 +102,5 @@ export const passwordlessSmsOtpInvalidOtpHandler = rest.post(
  */
 export const passwordlessSmsOtpNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/passwordless/sms/otp`,
-  (_req, res) => {
-    return res.networkError('Network error')
-  }
+  () => new Response('Network error', { status: 500 })
 )

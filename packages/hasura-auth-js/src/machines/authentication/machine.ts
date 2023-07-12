@@ -544,6 +544,9 @@ export const createAuthMachine = ({
           accessToken: (_, { data }) => {
             if (data.session) {
               const { accessTokenExpiresIn, accessToken } = data.session
+
+              console.info({ accessTokenExpiresIn })
+
               const nextRefresh = new Date(Date.now() + accessTokenExpiresIn * 1_000)
               storageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh.toISOString())
               return {

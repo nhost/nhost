@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { rest } from 'msw'
+import { HttpResponse, rest } from 'msw'
 import { Mfa, NhostSession } from '../../../src'
 import { BASE_URL } from '../config'
 import fakeUser from '../mocks/user'
@@ -8,21 +8,19 @@ import fakeUser from '../mocks/user'
  * Request handler for MSW to mock a successful sign in request when using the email and password
  * sign in method.
  */
-export const correctEmailPasswordHandler = rest.post(
-  `${BASE_URL}/signin/email-password`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.json<{ mfa: Mfa | null; session: NhostSession | null }>({
-        session: {
-          user: fakeUser,
-          accessTokenExpiresIn: 900,
-          accessToken: faker.datatype.string(40),
-          refreshToken: faker.datatype.uuid()
-        },
-        mfa: null
-      })
-    )
-  }
+export const correctEmailPasswordHandler = rest.post(`${BASE_URL}/signin/email-password`, () =>
+  HttpResponse.json<{
+    mfa: Mfa | null
+    session: NhostSession | null
+  }>({
+    session: {
+      user: fakeUser,
+      accessTokenExpiresIn: 900,
+      accessToken: faker.datatype.string(40),
+      refreshToken: faker.datatype.uuid()
+    },
+    mfa: null
+  })
 )
 
 /**
@@ -31,16 +29,16 @@ export const correctEmailPasswordHandler = rest.post(
  */
 export const correctEmailPasswordWithMfaHandler = rest.post(
   `${BASE_URL}/signin/email-password`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.json<{ mfa: Mfa; session: NhostSession | null }>({
-        session: null,
-        mfa: {
-          ticket: `mfaTotp:${faker.datatype.uuid()}`
-        }
-      })
-    )
-  }
+  () =>
+    HttpResponse.json<{
+      mfa: Mfa
+      session: NhostSession | null
+    }>({
+      session: null,
+      mfa: {
+        ticket: `mfaTotp:${faker.datatype.uuid()}`
+      }
+    })
 )
 
 /**
@@ -48,18 +46,15 @@ export const correctEmailPasswordWithMfaHandler = rest.post(
  * password sign in method. Useful if you'd like to mock a scenario where the user provided an
  * incorrect email or password.
  */
-export const incorrectEmailPasswordHandler = rest.post(
-  `${BASE_URL}/signin/email-password`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(401),
-      ctx.json({
-        status: 401,
-        error: 'invalid-email-password',
-        message: 'Incorrect email or password'
-      })
-    )
-  }
+export const incorrectEmailPasswordHandler = rest.post(`${BASE_URL}/signin/email-password`, () =>
+  HttpResponse.json(
+    {
+      status: 401,
+      error: 'invalid-email-password',
+      message: 'Incorrect email or password'
+    },
+    { status: 401 }
+  )
 )
 
 /**
@@ -67,18 +62,15 @@ export const incorrectEmailPasswordHandler = rest.post(
  * password sign in method. Useful if you'd like to mock a scenario where the user provided an
  * signed in with an unverified account.
  */
-export const unverifiedEmailErrorHandler = rest.post(
-  `${BASE_URL}/signin/email-password`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(401),
-      ctx.json({
-        status: 401,
-        error: 'unverified-email',
-        message: 'Email needs verification'
-      })
-    )
-  }
+export const unverifiedEmailErrorHandler = rest.post(`${BASE_URL}/signin/email-password`, () =>
+  HttpResponse.json(
+    {
+      status: 401,
+      error: 'unverified-email',
+      message: 'Email needs verification'
+    },
+    { status: 401 }
+  )
 )
 
 /**
@@ -87,9 +79,7 @@ export const unverifiedEmailErrorHandler = rest.post(
  */
 export const emailPasswordNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/email-password`,
-  (_req, res) => {
-    return res.networkError('Network error')
-  }
+  () => new Response('Network error', { status: 500 })
 )
 
 /**
@@ -98,10 +88,13 @@ export const emailPasswordNetworkErrorHandler = rest.post(
  */
 export const emailPasswordInternalErrorHandler = rest.post(
   `${BASE_URL}/signin/email-password`,
-  (_req, res, ctx) => {
-    return res(
-      ctx.status(500),
-      ctx.json({ status: 500, error: 'internal-error', message: 'Internal error' })
+  () =>
+    HttpResponse.json(
+      {
+        status: 500,
+        error: 'internal-error',
+        message: 'Internal error'
+      },
+      { status: 500 }
     )
-  }
 )

@@ -1,11 +1,10 @@
-import { rest } from 'msw';
+import { HttpResponse, rest } from 'msw';
 
 const hasuraMetadataQuery = rest.post(
   'https://local.hasura.nhost.run/v1/metadata',
-  (_req, res, ctx) =>
-    res(
-      ctx.delay(250),
-      ctx.json({
+  () =>
+    HttpResponse.json({
+      data: {
         metadata: {
           version: 3,
           sources: [
@@ -54,8 +53,8 @@ const hasuraMetadataQuery = rest.post(
           ],
         },
         resource_version: 10,
-      }),
-    ),
+      },
+    }),
 );
 
 export default hasuraMetadataQuery;
