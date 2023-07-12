@@ -292,7 +292,7 @@ func Up(
 			ce.Warnln("failed to read input: %s", err)
 			return nil
 		}
-		if resp != "y" {
+		if resp != "y" && resp != "Y" {
 			return nil
 		}
 

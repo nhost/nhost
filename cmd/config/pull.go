@@ -72,7 +72,7 @@ func verifyFile(ce *clienv.CliEnv, name string) error {
 		if err != nil {
 			return fmt.Errorf("failed to read input: %w", err)
 		}
-		if resp != "y" {
+		if resp != "y" && resp != "Y" {
 			return fmt.Errorf("aborting") //nolint:goerr113
 		}
 	}
