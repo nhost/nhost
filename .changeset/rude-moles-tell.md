@@ -2,4 +2,4 @@
 '@nhost/dashboard': patch
 ---
 
-chore: add hasura-auth version 0.20.2
+chore: add hasura-auth version 0.21.2
