@@ -1,5 +1,11 @@
 ## Changelog
 
+## 0.21.2
+
+### Patch Changes
+
+- ca5010d: fix: merge new select/delete permissions with the existing ones
+
 ## 0.21.1
 
 ### Patch Changes
