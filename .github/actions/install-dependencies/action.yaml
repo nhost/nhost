@@ -26,10 +26,10 @@ runs:
         path: ${{ steps.pnpm-cache-dir.outputs.dir }}
         key: ${{ runner.os }}-node-${{ hashFiles('pnpm-lock.yaml') }}
         restore-keys: ${{ runner.os }}-node-
-    - name: Use Node.js v16
+    - name: Use Node.js v18
       uses: actions/setup-node@v3
       with:
-        node-version: 16
+        node-version: 18
     - shell: bash
       name: Install packages
       run: pnpm install --frozen-lockfile

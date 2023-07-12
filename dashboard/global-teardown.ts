@@ -9,7 +9,7 @@ import { openProject } from '@/e2e/utils';
 import { chromium } from '@playwright/test';
 
 async function globalTeardown() {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({ slowMo: 1000 });
 
   const context = await browser.newContext({
     baseURL: TEST_DASHBOARD_URL,
@@ -46,18 +46,23 @@ async function globalTeardown() {
   await hasuraPage.locator('a', { hasText: /data/i }).click();
   await hasuraPage.getByRole('link', { name: /sql/i }).click();
 
-  await hasuraPage.locator('#raw_sql > textarea').fill(`
-DO $$ DECLARE
-  tablename text;
-BEGIN
-  FOR tablename IN
-    SELECT table_name FROM information_schema.tables
-    WHERE table_schema = 'public'
-  LOOP
-    EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(tablename) || ' CASCADE';
-  END LOOP;
-END $$;
-`);
+  // Set the value of the Ace code editor using JavaScript evaluation in the browser context
+  await hasuraPage.evaluate(() => {
+    const editor = ace.edit('raw_sql');
+
+    editor.setValue(`
+        DO $$ DECLARE
+          tablename text;
+        BEGIN
+          FOR tablename IN
+            SELECT table_name FROM information_schema.tables
+            WHERE table_schema = 'public'
+          LOOP
+            EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(tablename) || ' CASCADE';
+          END LOOP;
+        END $$;
+     `);
+  });
 
   await hasuraPage.getByRole('button', { name: /run!/i }).click();
   await hasuraPage.getByText(/sql executed!/i).waitFor();
