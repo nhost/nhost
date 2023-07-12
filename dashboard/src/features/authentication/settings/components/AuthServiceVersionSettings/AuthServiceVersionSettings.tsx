@@ -29,6 +29,7 @@ export type AuthServiceVersionFormValues = Yup.InferType<
 >;
 
 const AVAILABLE_AUTH_VERSIONS = [
+  '0.21.2',
   '0.20.1',
   '0.20.0',
   '0.19.3',
