@@ -8,6 +8,7 @@ import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
 import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
 import { HomeIcon } from '@/components/ui/v2/icons/HomeIcon';
 import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
+import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import type { SvgIconProps } from '@/components/ui/v2/icons/SvgIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
@@ -135,6 +136,12 @@ export default function useProjectRoutes() {
       exact: false,
       label: 'Storage',
       icon: <StorageIcon />,
+    },
+    {
+      relativePath: '/services',
+      exact: false,
+      label: 'Services',
+      icon: <ServicesIcon />,
     },
     ...nhostRoutes,
   ];
