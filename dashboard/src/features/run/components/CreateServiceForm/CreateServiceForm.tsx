@@ -7,21 +7,26 @@ import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import {
-  MAX_SERVICE_REPLICAS,
-  MAX_STORAGE_CAPACITY,
-  MIN_STORAGE_CAPACITY,
-} from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { MAX_SERVICE_REPLICAS } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { ComputeFormSection } from '@/features/run/components/ComputeFormSection';
 import { EnvironmentFormSection } from '@/features/run/components/EnvironmentFormSection';
 import { PortsFormSection } from '@/features/run/components/PortsFormSection';
 import { ReplicasFormSection } from '@/features/run/components/ReplicasFormSection';
 import { StorageFormSection } from '@/features/run/components/StorageFormSection';
 import type { DialogFormProps } from '@/types/common';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import {
+  useInsertRunServiceConfigMutation,
+  useInsertRunServiceMutation,
+} from '@/utils/__generated__/graphql';
+import type { ApolloError } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
+import CommandFormSection from '../CommandFormSection/CommandFormSection';
 
 export interface CreateServiceFormProps extends DialogFormProps {
   /**
@@ -33,20 +38,6 @@ export interface CreateServiceFormProps extends DialogFormProps {
    */
   onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
 }
-
-const EnvironementVariableSchema = Yup.object().shape({
-  name: Yup.string().required(),
-  value: Yup.string().required(),
-});
-
-const StorageSchema = Yup.object().shape({
-  name: Yup.string().required(),
-  capacity: Yup.number()
-    .min(MIN_STORAGE_CAPACITY)
-    .max(MAX_STORAGE_CAPACITY)
-    .required(),
-  path: Yup.string().required(),
-});
 
 enum PortTypes {
   HTTP = 'http',
@@ -63,14 +54,28 @@ const PortSchema = Yup.object().shape({
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
   image: Yup.string().label('Image to run').required('The image is required.'),
-  environment: Yup.array().of(EnvironementVariableSchema),
+  command: Yup.array().of(Yup.string()),
+  environment: Yup.array().of(
+    Yup.object().shape({
+      name: Yup.string().required(),
+      value: Yup.string().required(),
+    }),
+  ),
   compute: Yup.object({
     cpu: Yup.number().min(64).max(7000).required(),
     memory: Yup.number().min(128).max(14000).required(),
   }),
   replicas: Yup.number().min(1).max(MAX_SERVICE_REPLICAS).required(),
   ports: Yup.array().of(PortSchema),
-  storage: Yup.array().of(StorageSchema),
+  storage: Yup.array().of(
+    Yup.object()
+      .shape({
+        name: Yup.string().required(),
+        path: Yup.string().required(),
+        capacity: Yup.number().nonNullable().required(),
+      })
+      .required(),
+  ),
 });
 
 export type CreateServiceFormValues = Yup.InferType<typeof validationSchema>;
@@ -81,7 +86,10 @@ export default function CreateServiceForm({
   location,
 }: CreateServiceFormProps) {
   const { onDirtyStateChange } = useDialog();
-  // const { currentProject } = useCurrentWorkspaceAndProject();
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const [insertRunService] = useInsertRunServiceMutation();
+  const [insertRunServiceConfig] = useInsertRunServiceConfigMutation();
+
   const [createServiceFormError, setCreateServiceFormError] =
     useState<Error | null>(null);
 
@@ -99,11 +107,7 @@ export default function CreateServiceForm({
 
   const {
     register,
-    // control,
-    // watch,
-    // setValue,
     formState: { errors, isSubmitting, dirtyFields },
-    // setError,
   } = form;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
@@ -112,22 +116,91 @@ export default function CreateServiceForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  async function handleCreateService(values: CreateServiceFormValues) {
-    setCreateServiceFormError(null);
+  const createService = async (values: CreateServiceFormValues) => {
+    const {
+      data: {
+        insertRunService: { id },
+      },
+    } = await insertRunService({
+      variables: {
+        object: {
+          appID: currentProject.id,
+        },
+      },
+    });
 
+    await insertRunServiceConfig({
+      variables: {
+        appID: currentProject.id,
+        serviceID: id,
+        config: {
+          name: values.name,
+          image: {
+            image: values.image,
+          },
+          command: [],
+          resources: {
+            compute: {
+              cpu: values.compute.cpu,
+              memory: values.compute.memory,
+            },
+            storage: values.storage.map((item) => ({
+              name: item.name,
+              path: item.path,
+              capacity: item.capacity,
+            })),
+            replicas: values.replicas,
+          },
+          environment: values.environment.map((item) => ({
+            name: item.name,
+            value: item.value,
+          })),
+          ports: values.ports.map((item) => ({
+            port: item.port,
+            type: item.type,
+            publish: item.publish,
+          })),
+        },
+      },
+    });
+  };
+
+  const handleSubmit = async (values: CreateServiceFormValues) => {
     try {
-      console.log({ values });
+      await toast.promise(
+        createService(values),
+        {
+          loading: 'Creating the service...',
+          success: `The service has been started successfully.`,
+          error: (arg: ApolloError) => {
+            // we need to get the internal error message from the GraphQL error
+            const { internal } = arg.graphQLErrors[0]?.extensions || {};
+            const { message } = (internal as Record<string, any>)?.error || {};
 
+            // we use the default Apollo error message if we can't find the
+            // internal error message
+            return (
+              message ||
+              arg.message ||
+              'An error occurred while creating the service. Please try again.'
+            );
+          },
+        },
+        getToastStyleProps(),
+      );
+
+      // await refetchWorkspaceAndProject();
+      // refestch the services
       onSubmit?.();
-    } catch (error) {
-      // Note: The error is already handled by the toast promise.
+    } catch {
+      // Note: The toast will handle the error.
     }
-  }
+  };
 
   return (
     <FormProvider {...form}>
       <Form
-        onSubmit={handleCreateService}
+        onSubmit={handleSubmit}
         className="grid grid-flow-row gap-4 px-6 pb-6"
       >
         <Input
@@ -177,9 +250,11 @@ export default function CreateServiceForm({
           autoComplete="off"
         />
 
-        <EnvironmentFormSection />
-
         <ComputeFormSection />
+
+        <CommandFormSection />
+
+        <EnvironmentFormSection />
 
         <PortsFormSection />
 

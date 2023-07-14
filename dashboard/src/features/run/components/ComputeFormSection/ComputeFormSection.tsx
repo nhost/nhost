@@ -20,7 +20,7 @@ export default function ComputeFormSection() {
   const handleSliderUpdate = (value: string) => {
     const updatedMem = parseFloat(value);
 
-    if (Number.isNaN(updatedMem) || updatedMem < 14000) {
+    if (Number.isNaN(updatedMem) || updatedMem < 128) {
       return;
     }
 
