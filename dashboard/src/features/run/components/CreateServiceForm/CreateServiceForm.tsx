@@ -1,8 +1,12 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v2/Alert';
+import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { Text } from '@/components/ui/v2/Text';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import {
   MAX_SERVICE_MEMORY,
   MAX_SERVICE_REPLICAS,
@@ -15,13 +19,13 @@ import {
 import { ComputeFormSection } from '@/features/run/components/ComputeFormSection';
 import { EnvironmentFormSection } from '@/features/run/components/EnvironmentFormSection';
 import { PortsFormSection } from '@/features/run/components/PortsFormSection';
+import { ReplicasFormSection } from '@/features/run/components/ReplicasFormSection';
 import { StorageFormSection } from '@/features/run/components/StorageFormSection';
 import type { DialogFormProps } from '@/types/common';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { ReplicasFormSection } from '../ReplicasFormSection';
 
 export interface CreateServiceFormProps extends DialogFormProps {
   /**
@@ -136,7 +140,18 @@ export default function CreateServiceForm({
         <Input
           {...register('name')}
           id="name"
-          label="Name"
+          label={
+            <Box className="flex flex-row items-center space-x-2">
+              <Text>Name</Text>
+              <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
+                <InfoIcon
+                  aria-label="Info"
+                  className="h-4 w-4"
+                  color="primary"
+                />
+              </Tooltip>
+            </Box>
+          }
           placeholder="Service name"
           hideEmptyHelperText
           error={!!errors.name}
@@ -149,7 +164,18 @@ export default function CreateServiceForm({
         <Input
           {...register('image')}
           id="image"
-          label="Image"
+          label={
+            <Box className="flex flex-row items-center space-x-2">
+              <Text>Image</Text>
+              <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
+                <InfoIcon
+                  aria-label="Info"
+                  className="h-4 w-4"
+                  color="primary"
+                />
+              </Tooltip>
+            </Box>
+          }
           placeholder="Image to run"
           hideEmptyHelperText
           error={!!errors.image}
