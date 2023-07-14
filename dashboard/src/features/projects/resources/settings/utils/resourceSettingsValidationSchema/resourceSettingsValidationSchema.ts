@@ -51,7 +51,7 @@ export const MAX_SERVICE_VCPU = 7 * RESOURCE_VCPU_MULTIPLIER;
 /**
  * Best resource utilization ration for CPU-Memory.
  */
-export const MEM_CPU_RATIO = 2.048;
+export const MEM_CPU_RATIO = 2;
 
 /**
  * Minimum storage capacity (Gib)

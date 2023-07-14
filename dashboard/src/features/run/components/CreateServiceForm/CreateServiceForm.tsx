@@ -8,12 +8,8 @@ import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import {
-  MAX_SERVICE_MEMORY,
   MAX_SERVICE_REPLICAS,
-  MAX_SERVICE_VCPU,
   MAX_STORAGE_CAPACITY,
-  MIN_SERVICE_MEMORY,
-  MIN_SERVICE_VCPU,
   MIN_STORAGE_CAPACITY,
 } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { ComputeFormSection } from '@/features/run/components/ComputeFormSection';
@@ -69,11 +65,8 @@ export const validationSchema = Yup.object({
   image: Yup.string().label('Image to run').required('The image is required.'),
   environment: Yup.array().of(EnvironementVariableSchema),
   compute: Yup.object({
-    cpu: Yup.number().min(MIN_SERVICE_VCPU).max(MAX_SERVICE_VCPU).required(),
-    memory: Yup.number()
-      .min(MIN_SERVICE_MEMORY)
-      .max(MAX_SERVICE_MEMORY)
-      .required(),
+    cpu: Yup.number().min(64).max(7000).required(),
+    memory: Yup.number().min(128).max(14000).required(),
   }),
   replicas: Yup.number().min(1).max(MAX_SERVICE_REPLICAS).required(),
   ports: Yup.array().of(PortSchema),
@@ -95,7 +88,7 @@ export default function CreateServiceForm({
   const form = useForm<CreateServiceFormValues>({
     defaultValues: {
       compute: {
-        cpu: 62,
+        cpu: 64,
         memory: 128,
       },
       replicas: 1,
@@ -107,8 +100,8 @@ export default function CreateServiceForm({
   const {
     register,
     // control,
-    watch,
-    setValue,
+    // watch,
+    // setValue,
     formState: { errors, isSubmitting, dirtyFields },
     // setError,
   } = form;

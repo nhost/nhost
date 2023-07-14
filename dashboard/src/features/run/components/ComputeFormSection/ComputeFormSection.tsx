@@ -4,13 +4,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import {
-  MAX_SERVICE_MEMORY,
-  MAX_SERVICE_VCPU,
-  MEM_CPU_RATIO,
-  MIN_SERVICE_MEMORY,
-  MIN_SERVICE_VCPU,
-} from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { MEM_CPU_RATIO } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { CreateServiceFormValues } from '@/features/run/components/CreateServiceForm';
 import { useFormContext, useWatch } from 'react-hook-form';
 
@@ -26,12 +20,12 @@ export default function ComputeFormSection() {
   const handleSliderUpdate = (value: string) => {
     const updatedMem = parseFloat(value);
 
-    if (Number.isNaN(updatedMem) || updatedMem < MIN_SERVICE_MEMORY) {
+    if (Number.isNaN(updatedMem) || updatedMem < 14000) {
       return;
     }
 
     setValue('compute.memory', Math.floor(updatedMem), { shouldDirty: true });
-    setValue('compute.cpu', Math.floor(updatedMem / 2.048), {
+    setValue('compute.cpu', Math.floor(updatedMem / 2), {
       shouldDirty: true,
     });
   };
@@ -50,20 +44,20 @@ export default function ComputeFormSection() {
     const updatedCPU = parseFloat(value);
 
     if (Number.isNaN(updatedCPU)) {
-      setValue('compute.cpu', MIN_SERVICE_VCPU);
-      setValue('compute.memory', MIN_SERVICE_VCPU * MEM_CPU_RATIO);
+      setValue('compute.cpu', 64);
+      setValue('compute.memory', 128);
       return;
     }
 
-    if (updatedCPU < MIN_SERVICE_VCPU) {
-      setValue('compute.cpu', MIN_SERVICE_VCPU);
-      setValue('compute.memory', MIN_SERVICE_VCPU * MEM_CPU_RATIO);
+    if (updatedCPU < 64) {
+      setValue('compute.cpu', 64);
+      setValue('compute.memory', 128);
       return;
     }
 
-    if (updatedCPU > MAX_SERVICE_VCPU) {
-      setValue('compute.cpu', MAX_SERVICE_VCPU);
-      setValue('compute.memory', MAX_SERVICE_VCPU * MEM_CPU_RATIO);
+    if (updatedCPU > 7000) {
+      setValue('compute.cpu', 7000);
+      setValue('compute.memory', 14000);
     }
   };
 
@@ -81,20 +75,20 @@ export default function ComputeFormSection() {
     const updatedMem = parseFloat(value);
 
     if (Number.isNaN(updatedMem)) {
-      setValue('compute.cpu', MIN_SERVICE_VCPU);
-      setValue('compute.memory', MIN_SERVICE_VCPU * MEM_CPU_RATIO);
+      setValue('compute.cpu', 64);
+      setValue('compute.memory', 128);
       return;
     }
 
-    if (updatedMem < MIN_SERVICE_MEMORY) {
-      setValue('compute.cpu', MIN_SERVICE_VCPU);
-      setValue('compute.memory', MIN_SERVICE_VCPU * MEM_CPU_RATIO);
+    if (updatedMem < 128) {
+      setValue('compute.cpu', 7000);
+      setValue('compute.memory', 14000);
       return;
     }
 
-    if (updatedMem > MAX_SERVICE_MEMORY) {
-      setValue('compute.cpu', MAX_SERVICE_VCPU);
-      setValue('compute.memory', MAX_SERVICE_VCPU * MEM_CPU_RATIO);
+    if (updatedMem > 14000) {
+      setValue('compute.cpu', 7000);
+      setValue('compute.memory', 14000);
     }
   };
 
@@ -125,6 +119,11 @@ export default function ComputeFormSection() {
           fullWidth
           autoComplete="off"
           type="number"
+          slotProps={{
+            inputRoot: {
+              step: 64,
+            },
+          }}
         />
         <Input
           {...register('compute.memory', {
@@ -141,13 +140,18 @@ export default function ComputeFormSection() {
           fullWidth
           autoComplete="off"
           type="number"
+          slotProps={{
+            inputRoot: {
+              step: 128,
+            },
+          }}
         />
       </Box>
       <Slider
         value={formValues.compute.memory}
         onChange={(_event, value) => handleSliderUpdate(value.toString())}
-        max={MAX_SERVICE_MEMORY}
-        min={MIN_SERVICE_MEMORY}
+        max={14000}
+        min={128}
         step={256}
         aria-label="Compute resources"
         marks

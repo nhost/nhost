@@ -15,11 +15,11 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 export default function PortsFormSection() {
   const {
     register,
-    setValue,
+    // setValue,
     formState: { errors },
   } = useFormContext<CreateServiceFormValues>();
 
-  const { fields, append, remove, update } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     name: 'ports',
   });
 
@@ -80,7 +80,6 @@ export default function PortsFormSection() {
             <ControlledSwitch
               {...register(`ports.${index}.publish`)}
               disabled={false} // TODO turn off and disable if the port is not http
-              name={`publish-port-${index}`}
               label={
                 <Text variant="subtitle1" component="span">
                   Publish
