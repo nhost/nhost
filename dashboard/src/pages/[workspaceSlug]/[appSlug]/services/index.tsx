@@ -4,10 +4,13 @@ import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { CubeIcon } from '@/components/ui/v2/icons/CubeIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { CreateServiceForm } from '@/features/run/components/CreateServiceForm';
+
 import Image from 'next/image';
 import NavLink from 'next/link';
 import type { ReactElement } from 'react';
@@ -15,14 +18,21 @@ import type { ReactElement } from 'react';
 const numberOfServices = 0;
 
 export default function ServicesPage() {
-  const { openDialog } = useDialog();
+  const { openDrawer } = useDialog();
   const { maintenanceActive } = useUI();
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
 
+  const refetchProjectServices = () => {};
+
   const openCreateServiceDialog = () => {
-    openDialog({
-      title: 'Create new service',
-      component: <span>Create Service Form Component</span>,
+    openDrawer({
+      title: (
+        <Box className="flex flex-row items-center space-x-2">
+          <CubeIcon className="h-5 w-5" />
+          <Text>Create a new service</Text>
+        </Box>
+      ),
+      component: <CreateServiceForm onSubmit={refetchProjectServices} />,
     });
   };
 

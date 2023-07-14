@@ -49,6 +49,21 @@ export const MIN_SERVICE_VCPU = 0.25 * RESOURCE_VCPU_MULTIPLIER;
 export const MAX_SERVICE_VCPU = 7 * RESOURCE_VCPU_MULTIPLIER;
 
 /**
+ * Best resource utilization ration for CPU-Memory.
+ */
+export const MEM_CPU_RATIO = 2.048;
+
+/**
+ * Minimum storage capacity (Gib)
+ */
+export const MIN_STORAGE_CAPACITY = 1;
+
+/**
+ * Maximum storage capacity (Gib)
+ */
+export const MAX_STORAGE_CAPACITY = 1000;
+
+/**
  * The minimum amount of memory that has to be allocated per service.
  */
 export const MIN_SERVICE_MEMORY = 128;
