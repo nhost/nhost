@@ -96,7 +96,7 @@ export default function CreateServiceForm({
   const form = useForm<CreateServiceFormValues>({
     defaultValues: {
       compute: {
-        cpu: 64,
+        cpu: 62,
         memory: 128,
       },
       replicas: 1,

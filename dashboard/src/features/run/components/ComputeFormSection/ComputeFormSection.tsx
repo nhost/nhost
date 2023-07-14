@@ -4,9 +4,14 @@ import { Input } from '@/components/ui/v2/Input';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { MEM_CPU_RATIO } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { CreateServiceFormValues } from '@/features/run/components/CreateServiceForm';
 import { useFormContext, useWatch } from 'react-hook-form';
+
+const CPU_MEM_RATIO = 2.048;
+const MIN_CPU = Math.floor(128 / CPU_MEM_RATIO);
+const MIN_MEM = 128;
+const MAX_CPU = 7000;
+const MAX_MEM = Math.floor(MAX_CPU * CPU_MEM_RATIO);
 
 export default function ComputeFormSection() {
   const {
@@ -20,12 +25,12 @@ export default function ComputeFormSection() {
   const handleSliderUpdate = (value: string) => {
     const updatedMem = parseFloat(value);
 
-    if (Number.isNaN(updatedMem) || updatedMem < 128) {
+    if (Number.isNaN(updatedMem) || updatedMem < MIN_MEM) {
       return;
     }
 
     setValue('compute.memory', Math.floor(updatedMem), { shouldDirty: true });
-    setValue('compute.cpu', Math.floor(updatedMem / 2), {
+    setValue('compute.cpu', Math.floor(updatedMem / 2.048), {
       shouldDirty: true,
     });
   };
@@ -37,21 +42,21 @@ export default function ComputeFormSection() {
       return;
     }
 
-    setValue('compute.memory', Math.floor(updatedCPU * MEM_CPU_RATIO));
+    setValue('compute.memory', Math.floor(updatedCPU * CPU_MEM_RATIO));
   };
 
   const checkCPUBounds = (value: string) => {
     const updatedCPU = parseFloat(value);
 
     if (Number.isNaN(updatedCPU)) {
-      setValue('compute.cpu', 64);
-      setValue('compute.memory', 128);
+      setValue('compute.cpu', MIN_CPU);
+      setValue('compute.memory', MIN_MEM);
       return;
     }
 
     if (updatedCPU < 64) {
-      setValue('compute.cpu', 64);
-      setValue('compute.memory', 128);
+      setValue('compute.cpu', MIN_CPU);
+      setValue('compute.memory', MIN_MEM);
       return;
     }
 
@@ -68,27 +73,27 @@ export default function ComputeFormSection() {
       return;
     }
 
-    setValue('compute.cpu', Math.floor(updatedMem / MEM_CPU_RATIO));
+    setValue('compute.cpu', Math.floor(updatedMem / CPU_MEM_RATIO));
   };
 
   const checkMemBounds = (value: string) => {
     const updatedMem = parseFloat(value);
 
     if (Number.isNaN(updatedMem)) {
-      setValue('compute.cpu', 64);
-      setValue('compute.memory', 128);
+      setValue('compute.cpu', MIN_CPU);
+      setValue('compute.memory', MIN_MEM);
       return;
     }
 
-    if (updatedMem < 128) {
-      setValue('compute.cpu', 7000);
-      setValue('compute.memory', 14000);
+    if (updatedMem < MIN_MEM) {
+      setValue('compute.cpu', MIN_CPU);
+      setValue('compute.memory', MIN_MEM);
       return;
     }
 
-    if (updatedMem > 14000) {
-      setValue('compute.cpu', 7000);
-      setValue('compute.memory', 14000);
+    if (updatedMem > MAX_MEM) {
+      setValue('compute.cpu', MAX_CPU);
+      setValue('compute.memory', MAX_MEM);
     }
   };
 
@@ -119,11 +124,11 @@ export default function ComputeFormSection() {
           fullWidth
           autoComplete="off"
           type="number"
-          slotProps={{
-            inputRoot: {
-              step: 64,
-            },
-          }}
+          // slotProps={{
+          //   inputRoot: {
+          //     step: 64,
+          //   },
+          // }}
         />
         <Input
           {...register('compute.memory', {
@@ -140,18 +145,18 @@ export default function ComputeFormSection() {
           fullWidth
           autoComplete="off"
           type="number"
-          slotProps={{
-            inputRoot: {
-              step: 128,
-            },
-          }}
+          // slotProps={{
+          //   inputRoot: {
+          //     step: 128,
+          //   },
+          // }}
         />
       </Box>
       <Slider
         value={formValues.compute.memory}
         onChange={(_event, value) => handleSliderUpdate(value.toString())}
-        max={14000}
-        min={128}
+        max={MAX_MEM}
+        min={MIN_MEM}
         step={256}
         aria-label="Compute resources"
         marks
