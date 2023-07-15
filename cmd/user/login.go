@@ -8,6 +8,7 @@ import (
 const (
 	flagEmail    = "email"
 	flagPassword = "password"
+	flagPAT      = "pat"
 )
 
 func CommandLogin() *cli.Command {
@@ -27,12 +28,19 @@ func CommandLogin() *cli.Command {
 				Usage:   "Password",
 				EnvVars: []string{"NHOST_PASSWORD"},
 			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagPAT,
+				Usage:   "Use this Personal Access Token instead of generating a new one with your email/password",
+				EnvVars: []string{"NHOST_PAT"},
+			},
 		},
 	}
 }
 
 func commandLogin(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
-	_, err := ce.Login(cCtx.Context, cCtx.String(flagEmail), cCtx.String(flagPassword))
+	_, err := ce.Login(
+		cCtx.Context, cCtx.String(flagEmail), cCtx.String(flagPassword), cCtx.String(flagPAT),
+	)
 	return err //nolint:wrapcheck
 }

@@ -13,7 +13,7 @@ func (ce *CliEnv) LoadSession(
 ) (credentials.Session, error) {
 	var creds credentials.Credentials
 	if err := UnmarshalFile(ce.Path.AuthFile(), &creds, json.Unmarshal); err != nil {
-		creds, err = ce.Login(ctx, "", "")
+		creds, err = ce.Login(ctx, "", "", "")
 		if err != nil {
 			return credentials.Session{}, fmt.Errorf("failed to login: %w", err)
 		}

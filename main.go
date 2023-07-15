@@ -9,6 +9,7 @@ import (
 	"github.com/nhost/cli/clienv"
 	"github.com/nhost/cli/cmd/config"
 	"github.com/nhost/cli/cmd/dev"
+	"github.com/nhost/cli/cmd/dockercredentials"
 	"github.com/nhost/cli/cmd/project"
 	"github.com/nhost/cli/cmd/secrets"
 	"github.com/nhost/cli/cmd/software"
@@ -35,6 +36,7 @@ func main() {
 			dev.CommandUp(),
 			dev.CommandDown(),
 			dev.CommandLogs(),
+			dockercredentials.Command(),
 			project.CommandInit(),
 			project.CommandList(),
 			project.CommandLink(),
