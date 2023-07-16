@@ -54,16 +54,21 @@ export default function ComputeFormSection() {
       return;
     }
 
-    if (updatedCPU < 64) {
+    if (updatedCPU < MIN_CPU) {
       setValue('compute.cpu', MIN_CPU);
       setValue('compute.memory', MIN_MEM);
       return;
     }
 
-    if (updatedCPU > 7000) {
-      setValue('compute.cpu', 7000);
-      setValue('compute.memory', 14000);
+    if (updatedCPU > MAX_CPU) {
+      setValue('compute.cpu', MAX_CPU);
+      setValue('compute.memory', MAX_MEM);
     }
+
+    setValue(
+      'compute.cpu',
+      Math.floor(formValues.compute.memory / CPU_MEM_RATIO),
+    );
   };
 
   const handleMemoryInputValueChange = (value: string) => {
@@ -124,11 +129,12 @@ export default function ComputeFormSection() {
           fullWidth
           autoComplete="off"
           type="number"
-          // slotProps={{
-          //   inputRoot: {
-          //     step: 64,
-          //   },
-          // }}
+          slotProps={{
+            inputRoot: {
+              min: MIN_CPU,
+              max: MAX_CPU,
+            },
+          }}
         />
         <Input
           {...register('compute.memory', {
@@ -145,15 +151,17 @@ export default function ComputeFormSection() {
           fullWidth
           autoComplete="off"
           type="number"
-          // slotProps={{
-          //   inputRoot: {
-          //     step: 128,
-          //   },
-          // }}
+          slotProps={{
+            inputRoot: {
+              step: 128,
+              min: MIN_MEM,
+              max: MAX_MEM,
+            },
+          }}
         />
       </Box>
       <Slider
-        value={formValues.compute.memory}
+        value={Number(formValues.compute.memory)}
         onChange={(_event, value) => handleSliderUpdate(value.toString())}
         max={MAX_MEM}
         min={MIN_MEM}
