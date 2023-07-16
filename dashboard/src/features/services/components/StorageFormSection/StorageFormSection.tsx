@@ -91,6 +91,11 @@ export default function StorageFormSection() {
               helperText={errors?.storage?.at(index)?.message}
               fullWidth
               autoComplete="off"
+              endAdornment={
+                <Text sx={{ color: 'grey.500' }} className="pr-2">
+                  GiB
+                </Text>
+              }
             />
 
             <Input
