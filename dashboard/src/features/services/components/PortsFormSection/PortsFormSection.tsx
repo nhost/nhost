@@ -1,22 +1,26 @@
+import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { Option } from '@/components/ui/v2/Option';
+import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import type { CreateServiceFormValues } from '@/features/run/components/CreateServiceForm';
+import type { CreateServiceFormValues } from '@/features/services/components/CreateServiceForm';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
-export default function EnvironmentFormSection() {
+export default function PortsFormSection() {
   const {
     register,
+    // setValue,
     formState: { errors },
   } = useFormContext<CreateServiceFormValues>();
 
   const { fields, append, remove } = useFieldArray({
-    name: 'environment',
+    name: 'ports',
   });
 
   return (
@@ -24,7 +28,7 @@ export default function EnvironmentFormSection() {
       <Box className="flex flex-row items-center justify-between ">
         <Box className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
-            Environment
+            Ports
           </Text>
           <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
             <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
@@ -32,7 +36,7 @@ export default function EnvironmentFormSection() {
         </Box>
         <Button
           variant="borderless"
-          onClick={() => append({ name: '', value: '' })}
+          onClick={() => append({ port: '', type: 'http', publish: false })}
         >
           <PlusIcon className="h-5 w-5" />
         </Button>
@@ -42,27 +46,45 @@ export default function EnvironmentFormSection() {
         {fields.map((field, index) => (
           <Box key={field.id} className="flex w-full flex-row space-x-2">
             <Input
-              {...register(`environment.${index}.name`)}
-              id={`${field.id}-name`}
-              placeholder={`Key ${index}`}
+              {...register(`ports.${index}.port`)}
+              id={`${field.id}-port`}
+              placeholder="Port"
               className="w-full"
               hideEmptyHelperText
-              error={!!errors?.environment?.at(index)}
-              helperText={errors?.environment?.at(index)?.message}
+              error={!!errors?.ports?.at(index)}
+              helperText={errors?.ports?.at(index)?.message}
               fullWidth
               autoComplete="off"
-              // TODO check the min max props here
             />
-            <Input
-              {...register(`environment.${index}.value`)}
-              id={`${field.id}-value`}
-              placeholder={`Value ${index}`}
-              className="w-full"
-              hideEmptyHelperText
-              error={!!errors?.environment?.at(index)}
-              helperText={errors?.environment?.at(index)?.message}
+
+            <Select
               fullWidth
-              autoComplete="off"
+              {...register(`ports.${index}.type`)}
+              // onChange={(_event, inputValue) => onChange(inputValue as string)}
+              placeholder="Select port type"
+              slotProps={{
+                listbox: { className: 'min-w-0 w-full' },
+                popper: {
+                  disablePortal: false,
+                  className: 'z-[10000] w-[270px] w-full',
+                },
+              }}
+            >
+              {['http', 'tcp', 'udp']?.map((portType) => (
+                <Option key={portType} value={portType}>
+                  {portType}
+                </Option>
+              ))}
+            </Select>
+
+            <ControlledSwitch
+              {...register(`ports.${index}.publish`)}
+              disabled={false} // TODO turn off and disable if the port is not http
+              label={
+                <Text variant="subtitle1" component="span">
+                  Publish
+                </Text>
+              }
             />
 
             <Button

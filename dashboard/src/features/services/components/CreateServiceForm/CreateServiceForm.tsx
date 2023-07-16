@@ -9,11 +9,11 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { MAX_SERVICE_REPLICAS } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { ComputeFormSection } from '@/features/run/components/ComputeFormSection';
-import { EnvironmentFormSection } from '@/features/run/components/EnvironmentFormSection';
-import { PortsFormSection } from '@/features/run/components/PortsFormSection';
-import { ReplicasFormSection } from '@/features/run/components/ReplicasFormSection';
-import { StorageFormSection } from '@/features/run/components/StorageFormSection';
+import { ComputeFormSection } from '@/features/services/components/ComputeFormSection';
+import { EnvironmentFormSection } from '@/features/services/components/EnvironmentFormSection';
+import { PortsFormSection } from '@/features/services/components/PortsFormSection';
+import { ReplicasFormSection } from '@/features/services/components/ReplicasFormSection';
+import { StorageFormSection } from '@/features/services/components/StorageFormSection';
 import type { DialogFormProps } from '@/types/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import {

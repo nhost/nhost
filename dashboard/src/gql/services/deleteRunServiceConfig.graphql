@@ -1,0 +1,5 @@
+mutation deleteRunServiceConfig($appID: uuid!, $serviceID: uuid!) {
+  deleteRunServiceConfig(appID: $appID, serviceID: $serviceID) {
+    name
+  }
+}

@@ -6,7 +6,7 @@ import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import type { CreateServiceFormValues } from '@/features/run/components/CreateServiceForm';
+import type { CreateServiceFormValues } from '@/features/services/components/CreateServiceForm';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 export default function CommandFormSection() {

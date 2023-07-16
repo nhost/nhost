@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import type { CreateServiceFormValues } from '@/features/run/components/CreateServiceForm';
+import type { CreateServiceFormValues } from '@/features/services/components/CreateServiceForm';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 const CPU_MEM_RATIO = 2.048;

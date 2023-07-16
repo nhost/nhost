@@ -13997,6 +13997,7 @@ export type Query_Root = {
   /** fetch data from the table: "run_service" using primary key columns */
   runService?: Maybe<Run_Service>;
   runServiceConfig?: Maybe<ConfigRunServiceConfig>;
+  runServiceConfigRawJSON: Scalars['String'];
   runServiceConfigs: Array<ConfigRunServiceConfigWithId>;
   /** An array relationship */
   runServices: Array<Run_Service>;
@@ -14849,6 +14850,13 @@ export type Query_RootRunServiceArgs = {
 
 
 export type Query_RootRunServiceConfigArgs = {
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+  serviceID: Scalars['uuid'];
+};
+
+
+export type Query_RootRunServiceConfigRawJsonArgs = {
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
   serviceID: Scalars['uuid'];
@@ -20148,6 +20156,29 @@ export type DeleteRemoteAppUserRolesMutationVariables = Exact<{
 
 export type DeleteRemoteAppUserRolesMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
 
+export type DeleteRunServiceMutationVariables = Exact<{
+  serviceID: Scalars['uuid'];
+}>;
+
+
+export type DeleteRunServiceMutation = { __typename?: 'mutation_root', deleteRunService?: { __typename?: 'run_service', id: any } | null };
+
+export type DeleteRunServiceConfigMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  serviceID: Scalars['uuid'];
+}>;
+
+
+export type DeleteRunServiceConfigMutation = { __typename?: 'mutation_root', deleteRunServiceConfig?: { __typename?: 'ConfigRunServiceConfig', name: string } | null };
+
+export type GetRunServicesQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, config?: { __typename?: 'ConfigRunServiceConfig', name: string, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigRunServiceResourcesCompute', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: string, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null }> } | null };
+
 export type InsertRunServiceMutationVariables = Exact<{
   object: Run_Service_Insert_Input;
 }>;
@@ -23226,6 +23257,143 @@ export function useDeleteRemoteAppUserRolesMutation(baseOptions?: Apollo.Mutatio
 export type DeleteRemoteAppUserRolesMutationHookResult = ReturnType<typeof useDeleteRemoteAppUserRolesMutation>;
 export type DeleteRemoteAppUserRolesMutationResult = Apollo.MutationResult<DeleteRemoteAppUserRolesMutation>;
 export type DeleteRemoteAppUserRolesMutationOptions = Apollo.BaseMutationOptions<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>;
+export const DeleteRunServiceDocument = gql`
+    mutation deleteRunService($serviceID: uuid!) {
+  deleteRunService(id: $serviceID) {
+    id
+  }
+}
+    `;
+export type DeleteRunServiceMutationFn = Apollo.MutationFunction<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>;
+
+/**
+ * __useDeleteRunServiceMutation__
+ *
+ * To run a mutation, you first call `useDeleteRunServiceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteRunServiceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteRunServiceMutation, { data, loading, error }] = useDeleteRunServiceMutation({
+ *   variables: {
+ *      serviceID: // value for 'serviceID'
+ *   },
+ * });
+ */
+export function useDeleteRunServiceMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>(DeleteRunServiceDocument, options);
+      }
+export type DeleteRunServiceMutationHookResult = ReturnType<typeof useDeleteRunServiceMutation>;
+export type DeleteRunServiceMutationResult = Apollo.MutationResult<DeleteRunServiceMutation>;
+export type DeleteRunServiceMutationOptions = Apollo.BaseMutationOptions<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>;
+export const DeleteRunServiceConfigDocument = gql`
+    mutation deleteRunServiceConfig($appID: uuid!, $serviceID: uuid!) {
+  deleteRunServiceConfig(appID: $appID, serviceID: $serviceID) {
+    name
+  }
+}
+    `;
+export type DeleteRunServiceConfigMutationFn = Apollo.MutationFunction<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>;
+
+/**
+ * __useDeleteRunServiceConfigMutation__
+ *
+ * To run a mutation, you first call `useDeleteRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteRunServiceConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteRunServiceConfigMutation, { data, loading, error }] = useDeleteRunServiceConfigMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      serviceID: // value for 'serviceID'
+ *   },
+ * });
+ */
+export function useDeleteRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>(DeleteRunServiceConfigDocument, options);
+      }
+export type DeleteRunServiceConfigMutationHookResult = ReturnType<typeof useDeleteRunServiceConfigMutation>;
+export type DeleteRunServiceConfigMutationResult = Apollo.MutationResult<DeleteRunServiceConfigMutation>;
+export type DeleteRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>;
+export const GetRunServicesDocument = gql`
+    query getRunServices($appID: uuid!, $resolve: Boolean!) {
+  app(id: $appID) {
+    runServices {
+      id
+      createdAt
+      config(resolve: $resolve) {
+        name
+        image {
+          image
+        }
+        command
+        resources {
+          compute {
+            cpu
+            memory
+          }
+          storage {
+            name
+            path
+            capacity
+          }
+          replicas
+        }
+        environment {
+          name
+          value
+        }
+        ports {
+          port
+          type
+          publish
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetRunServicesQuery__
+ *
+ * To run a query within a React component, call `useGetRunServicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRunServicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRunServicesQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetRunServicesQuery(baseOptions: Apollo.QueryHookOptions<GetRunServicesQuery, GetRunServicesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRunServicesQuery, GetRunServicesQueryVariables>(GetRunServicesDocument, options);
+      }
+export function useGetRunServicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServicesQuery, GetRunServicesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRunServicesQuery, GetRunServicesQueryVariables>(GetRunServicesDocument, options);
+        }
+export type GetRunServicesQueryHookResult = ReturnType<typeof useGetRunServicesQuery>;
+export type GetRunServicesLazyQueryHookResult = ReturnType<typeof useGetRunServicesLazyQuery>;
+export type GetRunServicesQueryResult = Apollo.QueryResult<GetRunServicesQuery, GetRunServicesQueryVariables>;
+export function refetchGetRunServicesQuery(variables: GetRunServicesQueryVariables) {
+      return { query: GetRunServicesDocument, variables: variables }
+    }
 export const InsertRunServiceDocument = gql`
     mutation insertRunService($object: run_service_insert_input!) {
   insertRunService(object: $object) {
