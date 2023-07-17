@@ -9,19 +9,37 @@ import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import type { CreateServiceFormValues } from '@/features/services/components/CreateServiceForm';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { InfoCard } from '@/features/projects/overview/components/InfoCard';
+import {
+  PortTypes,
+  type CreateServiceFormValues,
+} from '@/features/services/components/CreateServiceForm';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 
 export default function PortsFormSection() {
+  const form = useFormContext<CreateServiceFormValues>();
+
+  const { currentProject } = useCurrentWorkspaceAndProject();
+
   const {
     register,
-    // setValue,
+    setValue,
     formState: { errors },
-  } = useFormContext<CreateServiceFormValues>();
+  } = form;
 
   const { fields, append, remove } = useFieldArray({
     name: 'ports',
   });
+
+  const formValues = useWatch<CreateServiceFormValues>();
+
+  const onChangePortType = (value: string | undefined, index: number) =>
+    setValue(`ports.${index}.type`, value as PortTypes);
+
+  const showURL = (index: number) =>
+    formValues.ports[index]?.type === PortTypes.HTTP &&
+    formValues.ports[index]?.publish;
 
   return (
     <Box className="space-y-4 rounded border-1 p-4">
@@ -44,57 +62,65 @@ export default function PortsFormSection() {
 
       <Box className="flex flex-col space-y-4">
         {fields.map((field, index) => (
-          <Box key={field.id} className="flex w-full flex-row space-x-2">
-            <Input
-              {...register(`ports.${index}.port`)}
-              id={`${field.id}-port`}
-              placeholder="Port"
-              className="w-full"
-              hideEmptyHelperText
-              error={!!errors?.ports?.at(index)}
-              helperText={errors?.ports?.at(index)?.message}
-              fullWidth
-              autoComplete="off"
-            />
+          <Box key={field.id} className="flex flex-col space-y-2">
+            <Box className="flex w-full flex-row space-x-2">
+              <Input
+                {...register(`ports.${index}.port`)}
+                id={`${field.id}-port`}
+                placeholder="Port"
+                className="w-full"
+                hideEmptyHelperText
+                error={!!errors?.ports?.at(index)}
+                helperText={errors?.ports?.at(index)?.message}
+                fullWidth
+                autoComplete="off"
+              />
+              <Select
+                fullWidth
+                {...register(`ports.${index}.type`)}
+                onChange={(_event, inputValue) =>
+                  onChangePortType(inputValue as string, index)
+                }
+                placeholder="Select port type"
+                slotProps={{
+                  listbox: { className: 'min-w-0 w-full' },
+                  popper: {
+                    disablePortal: false,
+                    className: 'z-[10000] w-[270px] w-full',
+                  },
+                }}
+              >
+                {['http', 'tcp', 'udp']?.map((portType) => (
+                  <Option key={portType} value={portType}>
+                    {portType}
+                  </Option>
+                ))}
+              </Select>
+              <ControlledSwitch
+                {...register(`ports.${index}.publish`)}
+                disabled={false} // TODO turn off and disable if the port is not http
+                label={
+                  <Text variant="subtitle1" component="span">
+                    Publish
+                  </Text>
+                }
+              />
+              <Button
+                variant="borderless"
+                className=""
+                color="error"
+                onClick={() => remove(index)}
+              >
+                <TrashIcon className="h-4 w-4" />
+              </Button>
+            </Box>
 
-            <Select
-              fullWidth
-              {...register(`ports.${index}.type`)}
-              // onChange={(_event, inputValue) => onChange(inputValue as string)}
-              placeholder="Select port type"
-              slotProps={{
-                listbox: { className: 'min-w-0 w-full' },
-                popper: {
-                  disablePortal: false,
-                  className: 'z-[10000] w-[270px] w-full',
-                },
-              }}
-            >
-              {['http', 'tcp', 'udp']?.map((portType) => (
-                <Option key={portType} value={portType}>
-                  {portType}
-                </Option>
-              ))}
-            </Select>
-
-            <ControlledSwitch
-              {...register(`ports.${index}.publish`)}
-              disabled={false} // TODO turn off and disable if the port is not http
-              label={
-                <Text variant="subtitle1" component="span">
-                  Publish
-                </Text>
-              }
-            />
-
-            <Button
-              variant="borderless"
-              className=""
-              color="error"
-              onClick={() => remove(index)}
-            >
-              <TrashIcon className="h-4 w-4" />
-            </Button>
+            {showURL(index) && (
+              <InfoCard
+                title="URL"
+                value={`https://${currentProject.subdomain}-${formValues.name}-${formValues.ports[index]?.port}.svc.${currentProject.region.awsName}.${currentProject.region.domain}`}
+              />
+            )}
           </Box>
         ))}
       </Box>

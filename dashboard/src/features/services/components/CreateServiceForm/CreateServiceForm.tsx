@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import { MAX_SERVICE_REPLICAS } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { EnvironmentFormSection } from '@/features/services/components//EnvironmentFormSection';
 import { CommandFormSection } from '@/features/services/components/CommandFormSection';
@@ -39,7 +40,7 @@ export interface CreateServiceFormProps extends DialogFormProps {
   onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
 }
 
-enum PortTypes {
+export enum PortTypes {
   HTTP = 'http',
   TCP = 'tcp',
   UDP = 'udp',
@@ -106,9 +107,12 @@ export default function CreateServiceForm({
   });
 
   const {
+    watch,
     register,
     formState: { errors, isSubmitting, dirtyFields },
   } = form;
+
+  const serviceImage = watch('image');
 
   const isDirty = Object.keys(dirtyFields).length > 0;
 
@@ -250,7 +254,16 @@ export default function CreateServiceForm({
           autoComplete="off"
         />
 
+        {serviceImage && (
+          <InfoCard
+            title="Private registry"
+            value={`registry.${currentProject.region.awsName}.${currentProject.region.domain}/<service-id>`}
+          />
+        )}
+
         <ComputeFormSection />
+
+        <ReplicasFormSection />
 
         <CommandFormSection />
 
@@ -259,8 +272,6 @@ export default function CreateServiceForm({
         <PortsFormSection />
 
         <StorageFormSection />
-
-        <ReplicasFormSection />
 
         {createServiceFormError && (
           <Alert
