@@ -1,0 +1,70 @@
+---
+title: Deploying via CI
+sidebar_label: Deploying via CI
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+
+``` graphql
+mutation {
+  insertRunServiceConfig(
+    appID:"7fdd3b0e-5b0d-4ce3-a9fc-bd4b78d29dce",
+    serviceID: "b719c4a4-6fb2-4feb-8220-c7f01ef5bfe8",
+    config: {
+      name: "mysvc",
+      image: {
+        image: "registry.eu-central-1.nhost.run/8e00eb02-1e53-40a9-9607-604ad199517d:123"
+      },
+      ports: [
+        {
+            port: 3000,
+            type: "http",
+            publish: true,
+        },
+      ],
+      resources: {
+        compute: {
+          cpu: 62,
+          memory: 128,
+        },
+        replicas: 0,
+      }
+    }
+  ) {
+    __typename
+  }
+}
+```
+
+``` shell
+mutation {
+  replaceRunServiceConfig(
+    appID:"7fdd3b0e-5b0d-4ce3-a9fc-bd4b78d29dce",
+    serviceID: "b719c4a4-6fb2-4feb-8220-c7f01ef5bfe8",
+    config: {
+      name: "mysvc",
+      image: {
+        image: "registry.eu-central-1.nhost.run/b719c4a4-6fb2-4feb-8220-c7f01ef5bfe8:123"
+      },
+      ports: [
+        {
+            port: 3000,
+            type: "http",
+            publish: true,
+        },
+      ],
+      resources: {
+        compute: {
+          cpu: 62,
+          memory: 128,
+        },
+        replicas: 1,
+      }
+    }
+  ) {
+    __typename
+  }
+}
+```
