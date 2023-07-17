@@ -20171,6 +20171,14 @@ export type DeleteRunServiceConfigMutationVariables = Exact<{
 
 export type DeleteRunServiceConfigMutation = { __typename?: 'mutation_root', deleteRunServiceConfig?: { __typename?: 'ConfigRunServiceConfig', name: string } | null };
 
+export type GetRunServiceQueryVariables = Exact<{
+  id: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, config?: { __typename?: 'ConfigRunServiceConfig', name: string, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigRunServiceResourcesCompute', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: string, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
+
 export type GetRunServicesQueryVariables = Exact<{
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
@@ -23324,6 +23332,73 @@ export function useDeleteRunServiceConfigMutation(baseOptions?: Apollo.MutationH
 export type DeleteRunServiceConfigMutationHookResult = ReturnType<typeof useDeleteRunServiceConfigMutation>;
 export type DeleteRunServiceConfigMutationResult = Apollo.MutationResult<DeleteRunServiceConfigMutation>;
 export type DeleteRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>;
+export const GetRunServiceDocument = gql`
+    query getRunService($id: uuid!, $resolve: Boolean!) {
+  runService(id: $id) {
+    id
+    config(resolve: $resolve) {
+      name
+      image {
+        image
+      }
+      command
+      resources {
+        compute {
+          cpu
+          memory
+        }
+        storage {
+          name
+          path
+          capacity
+        }
+        replicas
+      }
+      environment {
+        name
+        value
+      }
+      ports {
+        port
+        type
+        publish
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetRunServiceQuery__
+ *
+ * To run a query within a React component, call `useGetRunServiceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRunServiceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRunServiceQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetRunServiceQuery(baseOptions: Apollo.QueryHookOptions<GetRunServiceQuery, GetRunServiceQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRunServiceQuery, GetRunServiceQueryVariables>(GetRunServiceDocument, options);
+      }
+export function useGetRunServiceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServiceQuery, GetRunServiceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRunServiceQuery, GetRunServiceQueryVariables>(GetRunServiceDocument, options);
+        }
+export type GetRunServiceQueryHookResult = ReturnType<typeof useGetRunServiceQuery>;
+export type GetRunServiceLazyQueryHookResult = ReturnType<typeof useGetRunServiceLazyQuery>;
+export type GetRunServiceQueryResult = Apollo.QueryResult<GetRunServiceQuery, GetRunServiceQueryVariables>;
+export function refetchGetRunServiceQuery(variables: GetRunServiceQueryVariables) {
+      return { query: GetRunServiceDocument, variables: variables }
+    }
 export const GetRunServicesDocument = gql`
     query getRunServices($appID: uuid!, $resolve: Boolean!) {
   app(id: $appID) {

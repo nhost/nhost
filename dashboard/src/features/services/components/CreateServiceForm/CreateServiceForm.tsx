@@ -9,8 +9,9 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { MAX_SERVICE_REPLICAS } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { EnvironmentFormSection } from '@/features/services/components//EnvironmentFormSection';
+import { CommandFormSection } from '@/features/services/components/CommandFormSection';
 import { ComputeFormSection } from '@/features/services/components/ComputeFormSection';
-import { EnvironmentFormSection } from '@/features/services/components/EnvironmentFormSection';
 import { PortsFormSection } from '@/features/services/components/PortsFormSection';
 import { ReplicasFormSection } from '@/features/services/components/ReplicasFormSection';
 import { StorageFormSection } from '@/features/services/components/StorageFormSection';
@@ -26,7 +27,6 @@ import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
-import CommandFormSection from '../CommandFormSection/CommandFormSection';
 
 export interface CreateServiceFormProps extends DialogFormProps {
   /**
@@ -62,8 +62,8 @@ export const validationSchema = Yup.object({
     }),
   ),
   compute: Yup.object({
-    cpu: Yup.number().min(64).max(7000).required(),
-    memory: Yup.number().min(128).max(14000).required(),
+    cpu: Yup.number().min(62).max(7000).required(),
+    memory: Yup.number().min(128).max(14336).required(),
   }),
   replicas: Yup.number().min(1).max(MAX_SERVICE_REPLICAS).required(),
   ports: Yup.array().of(PortSchema),
