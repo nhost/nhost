@@ -6,3 +6,50 @@ sidebar_label: Configuration
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
+To configure a service you can use either the dashboard or a toml configuration file with the following format:
+
+<Tabs groupId="package-manager">
+  <TabItem value="dashboard" label="dashboard" default>
+
+
+![configuration](/img/cloud-run/configuration.png)
+
+  </TabItem>
+  <TabItem value="toml" label="toml">
+
+```
+name="mynodeapp"
+
+[image]
+image="registry.eu-central-1.nhost.run/b719c4a4-6fb2-4feb-8220-c7f01ef5bfe8:0.1.1"
+
+[[environment]]
+name="ENV"
+value="prod"
+
+[[ports]]
+type="http"
+port=3000
+publish=true
+
+[resources]
+replicas=1
+
+[resources.compute]
+cpu=62
+memory=128
+
+[[resources.storage]]
+name="data"
+path="/var/lib/data"
+capacity=1
+```
+
+  </TabItem>
+</Tabs>
+
+The `name` of the service is used as an identifier and to generate URLs when exposing the service to the Internet and you can use any container image publicly available you want or you can push your own to [Nhost's container registry](/cloud-run/registry).
+
+The environment is dedicated to the service and environment variables set here will not be shared with other services or with the Nhost stack. If you are using a configuration file secrets are supported.
+
+For more details about the the `ports` section head to [networking](/cloud-run/networking). You can also head to [resources](/cloud-run/resources) for more information about replicas, compute and storage.

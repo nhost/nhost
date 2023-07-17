@@ -26,13 +26,13 @@ To connect to your own service internally from another service, follow these ste
 Example for MySQL service:
 
 <Tabs groupId="package-manager">
-  <TabItem value="npm" label="dashboard" default>
+  <TabItem value="dashboard" label="dashboard" default>
 
 
 ![exposing a port](/img/cloud-run/configure-port.png)
 
   </TabItem>
-  <TabItem value="yarn" label="toml">
+  <TabItem value="toml" label="toml">
 
 ```
 [[ports]]
@@ -55,13 +55,13 @@ Example for a service exposing the ports tcp/3000 and udp/4000:
 
 
 <Tabs groupId="package-manager">
-  <TabItem value="npm" label="dashboard" default>
+  <TabItem value="dashboard" label="dashboard" default>
 
 
 ![exposing multiple ports](/img/cloud-run/configure-multiple-ports.png)
 
   </TabItem>
-  <TabItem value="yarn" label="toml">
+  <TabItem value="toml" label="toml">
 
 ```
 [[ports]]
@@ -88,13 +88,13 @@ Example for a nodejs service exposing an API on port 3000:
 
 
 <Tabs groupId="package-manager">
-  <TabItem value="npm" label="dashboard" default>
+  <TabItem value="dashboard" label="dashboard" default>
 
 
 ![expose http port](/img/cloud-run/configure-http-port.png)
 
   </TabItem>
-  <TabItem value="yarn" label="toml">
+  <TabItem value="toml" label="toml">
 
 ```
 [[ports]]
