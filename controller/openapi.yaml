@@ -152,7 +152,9 @@ paths:
                 file[]:
                   description: Array of files to upload.
                   type: array
-                  items: {}
+                  items:
+                    type: string
+                    format: binary
             encoding:
               file[]:
                 contentType: application/octet-stream
