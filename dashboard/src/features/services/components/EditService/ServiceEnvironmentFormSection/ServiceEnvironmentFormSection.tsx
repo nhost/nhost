@@ -29,15 +29,17 @@ export default function ServiceEnvironmentFormSection({
     name: 'environment',
   });
 
-  const handleEnvironmentChange = async (
-    values: ServiceEnvironmentFormValues,
-  ) => {
-    console.log({ values });
-  };
+  // const handleEnvironmentChange = async (
+  //   values: ServiceEnvironmentFormValues,
+  // ) => {
+  //   console.log({ values });
+  // };
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleEnvironmentChange}>
+      <Form
+      // onSubmit={handleEnvironmentChange}
+      >
         <SettingsContainer
           title="Environment"
           // className="grid grid-flow-row px-4 lg:grid-cols-4"

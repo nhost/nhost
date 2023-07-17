@@ -20,13 +20,15 @@ export default function ServiceImageSection({
 
   const { formState, register } = form;
 
-  const handleServiceNameChange = async (values: ServiceImageValues) => {
-    console.log({ values });
-  };
+  // const handleServiceNameChange = async (values: ServiceImageValues) => {
+  //   console.log({ values });
+  // };
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleServiceNameChange}>
+      <Form
+      // onSubmit={handleServiceNameChange}
+      >
         <SettingsContainer
           title="Service Image"
           description="The image of the service."

@@ -14,6 +14,7 @@ import { EnvironmentFormSection } from '@/features/services/components//Environm
 import { CommandFormSection } from '@/features/services/components/CommandFormSection';
 import { ComputeFormSection } from '@/features/services/components/ComputeFormSection';
 import { PortsFormSection } from '@/features/services/components/PortsFormSection';
+// eslint-disable-next-line import/no-cycle
 import { ReplicasFormSection } from '@/features/services/components/ReplicasFormSection';
 import { StorageFormSection } from '@/features/services/components/StorageFormSection';
 import type { DialogFormProps } from '@/types/common';

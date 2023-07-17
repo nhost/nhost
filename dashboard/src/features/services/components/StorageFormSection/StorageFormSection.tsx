@@ -32,12 +32,10 @@ export default function StorageFormSection() {
     }
 
     if (storageCapacity > MAX_STORAGE_CAPACITY) {
-      console.log('more');
       setValue(`storage.${index}.capacity`, MAX_STORAGE_CAPACITY);
     }
 
     if (storageCapacity < MIN_STORAGE_CAPACITY) {
-      console.log('less');
       setValue(`storage.${index}.capacity`, MIN_STORAGE_CAPACITY);
     }
   };

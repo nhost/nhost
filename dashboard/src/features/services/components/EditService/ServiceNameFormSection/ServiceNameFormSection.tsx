@@ -17,13 +17,15 @@ export default function ServiceNameFormSection({
 
   const { formState, register } = form;
 
-  const handleServiceNameChange = async (values: ServiceNameFormValues) => {
-    console.log({ values });
-  };
+  // const handleServiceNameChange = async (values: ServiceNameFormValues) => {
+  //   console.log({ values });
+  // };
 
   return (
     <FormProvider {...form}>
-      <Form onSubmit={handleServiceNameChange}>
+      <Form
+      // onSubmit={handleServiceNameChange}
+      >
         <SettingsContainer
           title="Service Name"
           description="The name of the service."
