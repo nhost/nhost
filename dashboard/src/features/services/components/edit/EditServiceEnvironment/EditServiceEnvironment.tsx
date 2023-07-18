@@ -5,44 +5,94 @@ import { Button } from '@/components/ui/v2/Button';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { CreateServiceFormValues } from '@/features/services/components/CreateServiceForm';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { useUpdateRunServiceConfigMutation } from '@/utils/__generated__/graphql';
+import type { ApolloError } from '@apollo/client';
+import { useRouter } from 'next/router';
 import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 
-interface ServiceEnvironmentFormValues
+interface EditServiceEnvironmentFormValues
   extends Pick<CreateServiceFormValues, 'environment'> {}
-interface ServiceEnvironmentFormSectionProps
+interface EditServiceEnvironmentProps
   extends Pick<CreateServiceFormValues, 'environment'> {}
 
-export default function ServiceEnvironmentFormSection({
+export default function EditServiceEnvironment({
   environment,
-}: ServiceEnvironmentFormSectionProps) {
-  const form = useForm<ServiceEnvironmentFormValues>({
+}: EditServiceEnvironmentProps) {
+  const {
+    query: { serviceId },
+  } = useRouter();
+
+  const { currentProject } = useCurrentWorkspaceAndProject();
+
+  const form = useForm<EditServiceEnvironmentFormValues>({
     defaultValues: {
       environment,
     },
   });
 
-  const { control, register, formState } = form;
+  const [updateRunServiceConfig] = useUpdateRunServiceConfigMutation();
+
+  const { reset, control, register, formState } = form;
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'environment',
   });
 
-  // const handleEnvironmentChange = async (
-  //   values: ServiceEnvironmentFormValues,
-  // ) => {
-  //   console.log({ values });
-  // };
+  const handleEnvironmentChange = async (
+    values: EditServiceEnvironmentFormValues,
+  ) => {
+    try {
+      await toast.promise(
+        updateRunServiceConfig({
+          variables: {
+            appID: currentProject.id,
+            serviceID: serviceId,
+            config: {
+              environment: values.environment.map((item) => ({
+                name: item.name,
+                value: item.value,
+              })),
+            },
+          },
+        }),
+        {
+          loading: 'Updating...',
+          success: () => {
+            // Reset the form state to disable the save button
+            reset({}, { keepValues: true });
+            return 'The service has been updated successfully.';
+          },
+          error: (arg: ApolloError) => {
+            // we need to get the internal error message from the GraphQL error
+            const { internal } = arg.graphQLErrors[0]?.extensions || {};
+            const { message } = (internal as Record<string, any>)?.error || {};
+
+            // we use the default Apollo error message if we can't find the
+            // internal error message
+            return (
+              message ||
+              arg.message ||
+              'An error occurred while updating the service. Please try again.'
+            );
+          },
+        },
+        getToastStyleProps(),
+      );
+    } catch {
+      // Note the error is handled by the toast
+    }
+  };
 
   return (
     <FormProvider {...form}>
-      <Form
-      // onSubmit={handleEnvironmentChange}
-      >
+      <Form onSubmit={handleEnvironmentChange}>
         <SettingsContainer
           title="Environment"
-          // className="grid grid-flow-row px-4 lg:grid-cols-4"
           slotProps={{
             submitButton: {
               disabled: !formState.isDirty,

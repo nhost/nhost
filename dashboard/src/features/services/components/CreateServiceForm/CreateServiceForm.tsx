@@ -56,7 +56,13 @@ const PortSchema = Yup.object().shape({
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
   image: Yup.string().label('Image to run').required('The image is required.'),
-  command: Yup.array().of(Yup.string()),
+  // We use an array of objects here because
+  // react-hook-form useFieldArray doesn't work with flat arrays
+  command: Yup.array().of(
+    Yup.object().shape({
+      command: Yup.string().required(),
+    }),
+  ),
   environment: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required(),
@@ -143,7 +149,7 @@ export default function CreateServiceForm({
           image: {
             image: values.image,
           },
-          command: [],
+          command: values.command.map((item) => item.command),
           resources: {
             compute: {
               cpu: values.compute.cpu,

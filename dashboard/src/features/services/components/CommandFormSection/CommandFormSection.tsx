@@ -11,11 +11,13 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 
 export default function CommandFormSection() {
   const {
+    control,
     register,
     formState: { errors },
   } = useFormContext<CreateServiceFormValues>();
 
   const { fields, append, remove } = useFieldArray({
+    control,
     name: 'command',
   });
 
@@ -30,7 +32,7 @@ export default function CommandFormSection() {
             <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
           </Tooltip>
         </Box>
-        <Button variant="borderless" onClick={() => append('')}>
+        <Button variant="borderless" onClick={() => append({ command: '' })}>
           <PlusIcon className="h-5 w-5" />
         </Button>
       </Box>
@@ -39,7 +41,7 @@ export default function CommandFormSection() {
         {fields.map((field, index) => (
           <Box key={field.id} className="flex w-full flex-row space-x-2">
             <Input
-              {...register(`command.${index}`)}
+              {...register(`command.${index}.command`)}
               id={`${field.id}`}
               className="w-full"
               hideEmptyHelperText

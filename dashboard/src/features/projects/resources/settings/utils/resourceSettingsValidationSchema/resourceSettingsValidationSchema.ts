@@ -150,3 +150,8 @@ export const resourceSettingsValidationSchema = Yup.object({
 export type ResourceSettingsFormValues = Yup.InferType<
   typeof resourceSettingsValidationSchema
 >;
+
+export const MIN_SERVICES_CPU = Math.floor(128 / MEM_CPU_RATIO);
+export const MIN_SERVICES_MEM = 128;
+export const MAX_SERVICES_CPU = 7000;
+export const MAX_SERVICES_MEM = Math.floor(MAX_SERVICES_CPU * MEM_CPU_RATIO);
