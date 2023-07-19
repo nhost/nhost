@@ -45,7 +45,7 @@ export enum PortTypes {
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
-  image: Yup.string().label('Image to run').required('The image is required.'),
+  image: Yup.string().label('Image to run'),
   command: Yup.string().required(),
   environment: Yup.array().of(
     Yup.object().shape({
@@ -199,7 +199,16 @@ export default function ServiceForm({
         variables: {
           appID: currentProject.id,
           serviceID: newServiceID,
-          config,
+          config: {
+            ...config,
+            image: {
+              // If the image field left empty then we auto-populate following this format
+              // registry.<region>.<nhost_domain>/<service_id>
+              image:
+                values.image ??
+                `registry.${currentProject.region.awsName}.${currentProject.region.domain}/${newServiceID}`,
+            },
+          },
         },
       });
     }
@@ -282,7 +291,7 @@ export default function ServiceForm({
               </Tooltip>
             </Box>
           }
-          placeholder="Image to run"
+          placeholder="To automatically fill the private registry, leave it blank."
           hideEmptyHelperText
           error={!!errors.image}
           helperText={errors?.image?.message}

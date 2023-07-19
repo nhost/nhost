@@ -41,7 +41,7 @@ export default function StorageFormSection() {
   };
 
   return (
-    <Box className="space-y-4 rounded border-1 p-4">
+    <Box className="p-4 space-y-4 rounded border-1">
       <Box className="flex flex-row items-center justify-between ">
         <Box className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
@@ -49,7 +49,7 @@ export default function StorageFormSection() {
           </Text>
 
           <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
           </Tooltip>
         </Box>
 
@@ -57,16 +57,17 @@ export default function StorageFormSection() {
           variant="borderless"
           onClick={() => append({ name: '', capacity: 1, path: '' })}
         >
-          <PlusIcon className="h-5 w-5" />
+          <PlusIcon className="w-5 h-5" />
         </Button>
       </Box>
 
       <Box className="flex flex-col space-y-4">
         {fields.map((field, index) => (
-          <Box key={field.id} className="flex w-full flex-row space-x-2">
+          <Box key={field.id} className="flex flex-row w-full space-x-2">
             <Input
               {...register(`storage.${index}.name`)}
               id={`${field.id}-name`}
+              label={!index && 'Name'}
               placeholder="Name"
               className="w-full"
               hideEmptyHelperText
@@ -81,6 +82,7 @@ export default function StorageFormSection() {
                 onBlur: (event) => checkBounds(event.target.value, index),
               })}
               id={`${field.id}-capacity`}
+              label={!index && 'Capacity'}
               type="number"
               placeholder="Capacity"
               className="w-full"
@@ -99,6 +101,7 @@ export default function StorageFormSection() {
             <Input
               {...register(`storage.${index}.path`)}
               id={`${field.id}-path`}
+              label={!index && 'Path'}
               placeholder="Path"
               className="w-full"
               hideEmptyHelperText
@@ -114,7 +117,7 @@ export default function StorageFormSection() {
               color="error"
               onClick={() => remove(index)}
             >
-              <TrashIcon className="h-4 w-4" />
+              <TrashIcon className="w-4 h-4" />
             </Button>
           </Box>
         ))}

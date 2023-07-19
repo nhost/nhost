@@ -44,6 +44,7 @@ export default function EnvironmentFormSection() {
             <Input
               {...register(`environment.${index}.name`)}
               id={`${field.id}-name`}
+              label={!index && 'Name'}
               placeholder={`Key ${index}`}
               className="w-full"
               hideEmptyHelperText
@@ -55,6 +56,7 @@ export default function EnvironmentFormSection() {
             <Input
               {...register(`environment.${index}.value`)}
               id={`${field.id}-value`}
+              label={!index && 'Value'}
               placeholder={`Value ${index}`}
               className="w-full"
               hideEmptyHelperText
