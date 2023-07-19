@@ -144,7 +144,6 @@ export default function ServiceForm({
   const createOrUpdateService = async (values: ServiceFormValues) => {
     const config: ConfigRunServiceConfigInsertInput = {
       name: values.name,
-      // TODO @Hassan when the image is not set - auto-populate it
       image: {
         image: values.image,
       },
@@ -205,8 +204,9 @@ export default function ServiceForm({
               // If the image field left empty then we auto-populate following this format
               // registry.<region>.<nhost_domain>/<service_id>
               image:
-                values.image ??
-                `registry.${currentProject.region.awsName}.${currentProject.region.domain}/${newServiceID}`,
+                values.image.length > 0
+                  ? values.image
+                  : `registry.${currentProject.region.awsName}.${currentProject.region.domain}/${newServiceID}`,
             },
           },
         },
