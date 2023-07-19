@@ -3,7 +3,6 @@ import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
-import type { PortTypes } from '@/features/services/components/CreateServiceForm';
 import { EditServiceCommand } from '@/features/services/components/edit/EditServiceCommand';
 import { EditServiceCompute } from '@/features/services/components/edit/EditServiceCompute';
 import { EditServiceEnvironment } from '@/features/services/components/edit/EditServiceEnvironment';
@@ -12,6 +11,7 @@ import { EditServiceName } from '@/features/services/components/edit/EditService
 import { EditServicePorts } from '@/features/services/components/edit/EditServicePorts';
 import { EditServiceReplicas } from '@/features/services/components/edit/EditServiceReplicas';
 import { EditServiceStorage } from '@/features/services/components/edit/EditServiceStorage';
+import type { PortTypes } from '@/features/services/components/ServiceForm';
 
 import { useGetRunServiceQuery } from '@/generated/graphql';
 import { useRouter } from 'next/router';

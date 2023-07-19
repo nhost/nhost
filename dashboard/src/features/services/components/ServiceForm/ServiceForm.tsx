@@ -10,18 +10,20 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import { MAX_SERVICE_REPLICAS } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { EnvironmentFormSection } from '@/features/services/components//EnvironmentFormSection';
-import { CommandFormSection } from '@/features/services/components/CommandFormSection';
-import { ComputeFormSection } from '@/features/services/components/ComputeFormSection';
-import { PortsFormSection } from '@/features/services/components/PortsFormSection';
 // eslint-disable-next-line import/no-cycle
-import { ReplicasFormSection } from '@/features/services/components/ReplicasFormSection';
-import { StorageFormSection } from '@/features/services/components/StorageFormSection';
+import { CommandFormSection } from '@/features/services/components/ServiceForm/components/CommandFormSection';
+import { ComputeFormSection } from '@/features/services/components/ServiceForm/components/ComputeFormSection';
+import { EnvironmentFormSection } from '@/features/services/components/ServiceForm/components/EnvironmentFormSection';
+import { PortsFormSection } from '@/features/services/components/ServiceForm/components/PortsFormSection';
+import { ReplicasFormSection } from '@/features/services/components/ServiceForm/components/ReplicasFormSection';
+import { StorageFormSection } from '@/features/services/components/ServiceForm/components/StorageFormSection';
 import type { DialogFormProps } from '@/types/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   useInsertRunServiceConfigMutation,
   useInsertRunServiceMutation,
+  useReplaceRunServiceConfigMutation,
+  type ConfigRunServiceConfigInsertInput,
 } from '@/utils/__generated__/graphql';
 import type { ApolloError } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -30,28 +32,11 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
-export interface CreateServiceFormProps extends DialogFormProps {
-  /**
-   * Function to be called when the operation is cancelled.
-   */
-  onCancel?: VoidFunction;
-  /**
-   * Function to be called when the submit is successful.
-   */
-  onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
-}
-
 export enum PortTypes {
   HTTP = 'http',
   TCP = 'tcp',
   UDP = 'udp',
 }
-
-const PortSchema = Yup.object().shape({
-  port: Yup.number().required(),
-  type: Yup.mixed<PortTypes>().oneOf(Object.values(PortTypes)).required(),
-  publish: Yup.boolean().default(false),
-});
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
@@ -74,7 +59,13 @@ export const validationSchema = Yup.object({
     memory: Yup.number().min(128).max(14336).required(),
   }),
   replicas: Yup.number().min(1).max(MAX_SERVICE_REPLICAS).required(),
-  ports: Yup.array().of(PortSchema),
+  ports: Yup.array().of(
+    Yup.object().shape({
+      port: Yup.number().required(),
+      type: Yup.mixed<PortTypes>().oneOf(Object.values(PortTypes)).required(),
+      publish: Yup.boolean().default(false),
+    }),
+  ),
   storage: Yup.array().of(
     Yup.object()
       .shape({
@@ -86,23 +77,47 @@ export const validationSchema = Yup.object({
   ),
 });
 
-export type CreateServiceFormValues = Yup.InferType<typeof validationSchema>;
+export type ServiceFormValues = Yup.InferType<typeof validationSchema>;
 
-export default function CreateServiceForm({
+export interface ServiceFormProps extends DialogFormProps {
+  /**
+   * To use in conjunction with initialData to allow for updating the service
+   */
+  serviceID?: string;
+
+  /**
+   * if there is initialData then it's an update operation
+   */
+  initialData?: ServiceFormValues;
+
+  /**
+   * Function to be called when the operation is cancelled.
+   */
+  onCancel?: VoidFunction;
+  /**
+   * Function to be called when the submit is successful.
+   */
+  onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
+}
+
+export default function ServiceForm({
+  serviceID,
+  initialData,
   onSubmit,
   onCancel,
   location,
-}: CreateServiceFormProps) {
+}: ServiceFormProps) {
   const { onDirtyStateChange } = useDialog();
-  const { currentProject } = useCurrentWorkspaceAndProject();
   const [insertRunService] = useInsertRunServiceMutation();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [insertRunServiceConfig] = useInsertRunServiceConfigMutation();
+  const [replaceRunServiceConfig] = useReplaceRunServiceConfigMutation();
 
   const [createServiceFormError, setCreateServiceFormError] =
     useState<Error | null>(null);
 
-  const form = useForm<CreateServiceFormValues>({
-    defaultValues: {
+  const form = useForm<ServiceFormValues>({
+    defaultValues: initialData ?? {
       compute: {
         cpu: 62,
         memory: 128,
@@ -127,62 +142,77 @@ export default function CreateServiceForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  const createService = async (values: CreateServiceFormValues) => {
-    const {
-      data: {
-        insertRunService: { id },
+  const createOrUpdateService = async (values: ServiceFormValues) => {
+    const config: ConfigRunServiceConfigInsertInput = {
+      name: values.name,
+      // TODO @Hassan when the image is not set - auto-populate it
+      image: {
+        image: values.image,
       },
-    } = await insertRunService({
-      variables: {
-        object: {
-          appID: currentProject.id,
+      command: values.command.map((item) => item.command),
+      resources: {
+        compute: {
+          cpu: values.compute.cpu,
+          memory: values.compute.memory,
         },
+        storage: values.storage.map((item) => ({
+          name: item.name,
+          path: item.path,
+          capacity: item.capacity,
+        })),
+        replicas: values.replicas,
       },
-    });
+      environment: values.environment.map((item) => ({
+        name: item.name,
+        value: item.value,
+      })),
+      ports: values.ports.map((item) => ({
+        port: item.port,
+        type: item.type,
+        publish: item.publish,
+      })),
+    };
 
-    await insertRunServiceConfig({
-      variables: {
-        appID: currentProject.id,
-        serviceID: id,
-        config: {
-          name: values.name,
-          image: {
-            image: values.image,
-          },
-          command: values.command.map((item) => item.command),
-          resources: {
-            compute: {
-              cpu: values.compute.cpu,
-              memory: values.compute.memory,
-            },
-            storage: values.storage.map((item) => ({
-              name: item.name,
-              path: item.path,
-              capacity: item.capacity,
-            })),
-            replicas: values.replicas,
-          },
-          environment: values.environment.map((item) => ({
-            name: item.name,
-            value: item.value,
-          })),
-          ports: values.ports.map((item) => ({
-            port: item.port,
-            type: item.type,
-            publish: item.publish,
-          })),
+    if (initialData) {
+      // Update service config
+      await replaceRunServiceConfig({
+        variables: {
+          appID: currentProject.id,
+          serviceID,
+          config,
         },
-      },
-    });
+      });
+    } else {
+      // Insert service config
+      const {
+        data: {
+          insertRunService: { id: newServiceID },
+        },
+      } = await insertRunService({
+        variables: {
+          object: {
+            appID: currentProject.id,
+          },
+        },
+      });
+
+      await insertRunServiceConfig({
+        variables: {
+          appID: currentProject.id,
+          serviceID: newServiceID,
+          config,
+        },
+      });
+    }
   };
 
-  const handleSubmit = async (values: CreateServiceFormValues) => {
+  const handleSubmit = async (values: ServiceFormValues) => {
     try {
       await toast.promise(
-        createService(values),
+        createOrUpdateService(values),
         {
-          loading: 'Creating the service...',
-          success: `The service has been started successfully.`,
+          loading: 'Configuring the service...',
+          success: `The service has been configured successfully.`,
           error: (arg: ApolloError) => {
             // we need to get the internal error message from the GraphQL error
             const { internal } = arg.graphQLErrors[0]?.extensions || {};
@@ -193,7 +223,7 @@ export default function CreateServiceForm({
             return (
               message ||
               arg.message ||
-              'An error occurred while creating the service. Please try again.'
+              'An error occurred while configuring the service. Please try again.'
             );
           },
         },
@@ -261,10 +291,11 @@ export default function CreateServiceForm({
           autoComplete="off"
         />
 
-        {serviceImage && (
+        {/* This shows only when trying to edit a service */}
+        {serviceID && serviceImage && (
           <InfoCard
             title="Private registry"
-            value={`registry.${currentProject.region.awsName}.${currentProject.region.domain}/<service-id>`}
+            value={`registry.${currentProject.region.awsName}.${currentProject.region.domain}/${serviceID}`}
           />
         )}
 
@@ -303,7 +334,7 @@ export default function CreateServiceForm({
         )}
         <div className="grid grid-flow-row gap-2">
           <Button type="submit" disabled={isSubmitting}>
-            Create
+            {initialData ? 'Update' : 'Create'}
           </Button>
 
           <Button variant="outlined" color="secondary" onClick={onCancel}>

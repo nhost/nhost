@@ -20203,6 +20203,15 @@ export type InsertRunServiceConfigMutationVariables = Exact<{
 
 export type InsertRunServiceConfigMutation = { __typename?: 'mutation_root', insertRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: string } };
 
+export type ReplaceRunServiceConfigMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  serviceID: Scalars['uuid'];
+  config: ConfigRunServiceConfigInsertInput;
+}>;
+
+
+export type ReplaceRunServiceConfigMutation = { __typename?: 'mutation_root', replaceRunServiceConfig: { __typename: 'ConfigRunServiceConfig' } };
+
 export type UpdateRunServiceConfigMutationVariables = Exact<{
   appID: Scalars['uuid'];
   serviceID: Scalars['uuid'];
@@ -23547,6 +23556,41 @@ export function useInsertRunServiceConfigMutation(baseOptions?: Apollo.MutationH
 export type InsertRunServiceConfigMutationHookResult = ReturnType<typeof useInsertRunServiceConfigMutation>;
 export type InsertRunServiceConfigMutationResult = Apollo.MutationResult<InsertRunServiceConfigMutation>;
 export type InsertRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>;
+export const ReplaceRunServiceConfigDocument = gql`
+    mutation replaceRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
+  replaceRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
+    __typename
+  }
+}
+    `;
+export type ReplaceRunServiceConfigMutationFn = Apollo.MutationFunction<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>;
+
+/**
+ * __useReplaceRunServiceConfigMutation__
+ *
+ * To run a mutation, you first call `useReplaceRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReplaceRunServiceConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [replaceRunServiceConfigMutation, { data, loading, error }] = useReplaceRunServiceConfigMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      serviceID: // value for 'serviceID'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useReplaceRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>(ReplaceRunServiceConfigDocument, options);
+      }
+export type ReplaceRunServiceConfigMutationHookResult = ReturnType<typeof useReplaceRunServiceConfigMutation>;
+export type ReplaceRunServiceConfigMutationResult = Apollo.MutationResult<ReplaceRunServiceConfigMutation>;
+export type ReplaceRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>;
 export const UpdateRunServiceConfigDocument = gql`
     mutation updateRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigUpdateInput!) {
   updateRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {

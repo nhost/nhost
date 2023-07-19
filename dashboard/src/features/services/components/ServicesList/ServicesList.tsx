@@ -1,3 +1,5 @@
+import { useDialog } from '@/components/common/DialogProvider';
+import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
@@ -9,13 +11,17 @@ import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import {
+  ServiceForm,
+  type PortTypes,
+} from '@/features/services/components/ServiceForm';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   useDeleteRunServiceConfigMutation,
   useDeleteRunServiceMutation,
+  useGetRunServicesQuery,
 } from '@/utils/__generated__/graphql';
 import type { ApolloError } from '@apollo/client';
-import { useRouter } from 'next/router';
 import type { RunService } from 'pages/[workspaceSlug]/[appSlug]/services';
 import { Fragment } from 'react';
 import { toast } from 'react-hot-toast';
@@ -37,15 +43,59 @@ export default function ServicesList({
   services,
   onDelete,
 }: ServicesListProps) {
-  const router = useRouter();
+  const { openDrawer } = useDialog();
   const [deleteRunService] = useDeleteRunServiceMutation();
-  const { currentProject, currentWorkspace } = useCurrentWorkspaceAndProject();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const [deleteRunServiceConfig] = useDeleteRunServiceConfigMutation();
+
+  const { refetch: refetchServices } = useGetRunServicesQuery({
+    variables: {
+      appID: currentProject.id,
+      resolve: false,
+    },
+  });
 
   const deleteServiceAndConfig = async (appID: string, serviceID: string) => {
     await deleteRunService({ variables: { serviceID } });
     await deleteRunServiceConfig({ variables: { appID, serviceID } });
     await onDelete?.();
+  };
+
+  const viewService = async (service: RunService) => {
+    const {
+      image,
+      command,
+      ports,
+      resources: { compute, replicas, storage },
+    } = service.config;
+
+    openDrawer({
+      title: (
+        <Box className="flex flex-row items-center space-x-2">
+          <CubeIcon className="h-5 w-5" />
+          <Text>Edit {service.config.name}</Text>
+        </Box>
+      ),
+      component: (
+        <ServiceForm
+          serviceID={service.id}
+          initialData={{
+            ...service.config,
+            image: image.image,
+            command: command.map((item) => ({ command: item })),
+            ports: ports.map((item) => ({
+              port: item.port,
+              type: item.type as PortTypes,
+              publish: item.publish,
+            })),
+            compute,
+            replicas,
+            storage,
+          }}
+          onSubmit={refetchServices}
+        />
+      ),
+    });
   };
 
   const deleteService = async (serviceID: string) => {
@@ -96,9 +146,7 @@ export default function ServicesList({
                   transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 >
                   <Dropdown.Item
-                    onClick={() => {
-                      // TODO handle view service
-                    }}
+                    onClick={() => viewService(service)}
                     className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                   >
                     <UserIcon className="h-4 w-4" />
@@ -123,12 +171,7 @@ export default function ServicesList({
           >
             <ListItem.Button
               className="grid h-full w-full grid-cols-1 py-2.5 lg:grid-cols-6"
-              // href={`/${currentWorkspace.slug}/${currentProject.slug}/deployments/${service.id}`}
-              onClick={async () => {
-                await router.push(
-                  `/${currentWorkspace.slug}/${currentProject.slug}/services/${service.id}`,
-                );
-              }} // handle view service
+              onClick={() => viewService(service)}
               aria-label={`View ${service.config.name}`}
             >
               <div className="col-span-2 grid grid-flow-col place-content-start items-center gap-4">

@@ -6,14 +6,14 @@ import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import type { CreateServiceFormValues } from '@/features/services/components/CreateServiceForm';
+import { ServiceFormValues } from '@/features/services/components/ServiceForm';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 export default function EnvironmentFormSection() {
   const {
     register,
     formState: { errors },
-  } = useFormContext<CreateServiceFormValues>();
+  } = useFormContext<ServiceFormValues>();
 
   const { fields, append, remove } = useFieldArray({
     name: 'environment',
@@ -51,7 +51,6 @@ export default function EnvironmentFormSection() {
               helperText={errors?.environment?.at(index)?.message}
               fullWidth
               autoComplete="off"
-              // TODO check the min max props here
             />
             <Input
               {...register(`environment.${index}.value`)}

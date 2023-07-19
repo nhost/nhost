@@ -8,10 +8,10 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { CreateServiceForm } from '@/features/services/components/CreateServiceForm';
 import type { GetRunServicesQuery } from '@/utils/__generated__/graphql';
 import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
 
+import { ServiceForm } from '@/features/services/components/ServiceForm';
 import ServicesList from '@/features/services/components/ServicesList/ServicesList';
 import { useMemo, type ReactElement } from 'react';
 
@@ -48,7 +48,7 @@ export default function ServicesPage() {
           <Text>Create a new service</Text>
         </Box>
       ),
-      component: <CreateServiceForm onSubmit={refetchServices} />,
+      component: <ServiceForm onSubmit={refetchServices} />,
     });
   };
 

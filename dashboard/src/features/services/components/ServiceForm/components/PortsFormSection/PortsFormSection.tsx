@@ -13,12 +13,12 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import {
   PortTypes,
-  type CreateServiceFormValues,
-} from '@/features/services/components/CreateServiceForm';
+  type ServiceFormValues,
+} from '@/features/services/components/ServiceForm';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 
 export default function PortsFormSection() {
-  const form = useFormContext<CreateServiceFormValues>();
+  const form = useFormContext<ServiceFormValues>();
 
   const { currentProject } = useCurrentWorkspaceAndProject();
 
@@ -32,7 +32,7 @@ export default function PortsFormSection() {
     name: 'ports',
   });
 
-  const formValues = useWatch<CreateServiceFormValues>();
+  const formValues = useWatch<ServiceFormValues>();
 
   const onChangePortType = (value: string | undefined, index: number) =>
     setValue(`ports.${index}.type`, value as PortTypes);
@@ -54,7 +54,7 @@ export default function PortsFormSection() {
         </Box>
         <Button
           variant="borderless"
-          onClick={() => append({ port: '', type: 'http', publish: false })}
+          onClick={() => append({ port: null, type: null, publish: false })}
         >
           <PlusIcon className="h-5 w-5" />
         </Button>
@@ -75,9 +75,10 @@ export default function PortsFormSection() {
                 fullWidth
                 autoComplete="off"
               />
+
               <Select
                 fullWidth
-                {...register(`ports.${index}.type`)}
+                value={formValues.ports.at(index)?.type || ''}
                 onChange={(_event, inputValue) =>
                   onChangePortType(inputValue as string, index)
                 }
@@ -96,6 +97,7 @@ export default function PortsFormSection() {
                   </Option>
                 ))}
               </Select>
+
               <ControlledSwitch
                 {...register(`ports.${index}.publish`)}
                 disabled={false} // TODO turn off and disable if the port is not http

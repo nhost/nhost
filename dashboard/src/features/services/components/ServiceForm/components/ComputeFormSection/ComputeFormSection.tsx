@@ -4,33 +4,34 @@ import { Input } from '@/components/ui/v2/Input';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import type { CreateServiceFormValues } from '@/features/services/components/CreateServiceForm';
+import {
+  MAX_SERVICES_CPU,
+  MAX_SERVICES_MEM,
+  MEM_CPU_RATIO,
+  MIN_SERVICES_CPU,
+  MIN_SERVICES_MEM,
+} from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import type { ServiceFormValues } from '@/features/services/components/ServiceForm';
 import { useFormContext, useWatch } from 'react-hook-form';
-
-const CPU_MEM_RATIO = 2.048;
-const MIN_CPU = Math.floor(128 / CPU_MEM_RATIO);
-const MIN_MEM = 128;
-const MAX_CPU = 7000;
-const MAX_MEM = Math.floor(MAX_CPU * CPU_MEM_RATIO);
 
 export default function ComputeFormSection() {
   const {
     register,
     setValue,
     formState: { errors },
-  } = useFormContext<CreateServiceFormValues>();
+  } = useFormContext<ServiceFormValues>();
 
-  const formValues = useWatch<CreateServiceFormValues>();
+  const formValues = useWatch<ServiceFormValues>();
 
   const handleSliderUpdate = (value: string) => {
     const updatedMem = parseFloat(value);
 
-    if (Number.isNaN(updatedMem) || updatedMem < MIN_MEM) {
+    if (Number.isNaN(updatedMem) || updatedMem < MIN_SERVICES_MEM) {
       return;
     }
 
     setValue('compute.memory', Math.floor(updatedMem), { shouldDirty: true });
-    setValue('compute.cpu', Math.floor(updatedMem / 2.048), {
+    setValue('compute.cpu', Math.floor(updatedMem / MEM_CPU_RATIO), {
       shouldDirty: true,
     });
   };
@@ -42,32 +43,32 @@ export default function ComputeFormSection() {
       return;
     }
 
-    setValue('compute.memory', Math.floor(updatedCPU * CPU_MEM_RATIO));
+    setValue('compute.memory', Math.floor(updatedCPU * MEM_CPU_RATIO));
   };
 
   const checkCPUBounds = (value: string) => {
     const updatedCPU = parseFloat(value);
 
     if (Number.isNaN(updatedCPU)) {
-      setValue('compute.cpu', MIN_CPU);
-      setValue('compute.memory', MIN_MEM);
+      setValue('compute.cpu', MIN_SERVICES_CPU);
+      setValue('compute.memory', MIN_SERVICES_MEM);
       return;
     }
 
-    if (updatedCPU < MIN_CPU) {
-      setValue('compute.cpu', MIN_CPU);
-      setValue('compute.memory', MIN_MEM);
+    if (updatedCPU < MIN_SERVICES_CPU) {
+      setValue('compute.cpu', MIN_SERVICES_CPU);
+      setValue('compute.memory', MIN_SERVICES_MEM);
       return;
     }
 
-    if (updatedCPU > MAX_CPU) {
-      setValue('compute.cpu', MAX_CPU);
-      setValue('compute.memory', MAX_MEM);
+    if (updatedCPU > MAX_SERVICES_CPU) {
+      setValue('compute.cpu', MAX_SERVICES_CPU);
+      setValue('compute.memory', MAX_SERVICES_MEM);
     }
 
     setValue(
       'compute.cpu',
-      Math.floor(formValues.compute.memory / CPU_MEM_RATIO),
+      Math.floor(formValues.compute.memory / MEM_CPU_RATIO),
     );
   };
 
@@ -78,27 +79,27 @@ export default function ComputeFormSection() {
       return;
     }
 
-    setValue('compute.cpu', Math.floor(updatedMem / CPU_MEM_RATIO));
+    setValue('compute.cpu', Math.floor(updatedMem / MEM_CPU_RATIO));
   };
 
   const checkMemBounds = (value: string) => {
     const updatedMem = parseFloat(value);
 
     if (Number.isNaN(updatedMem)) {
-      setValue('compute.cpu', MIN_CPU);
-      setValue('compute.memory', MIN_MEM);
+      setValue('compute.cpu', MIN_SERVICES_CPU);
+      setValue('compute.memory', MIN_SERVICES_MEM);
       return;
     }
 
-    if (updatedMem < MIN_MEM) {
-      setValue('compute.cpu', MIN_CPU);
-      setValue('compute.memory', MIN_MEM);
+    if (updatedMem < MIN_SERVICES_MEM) {
+      setValue('compute.cpu', MIN_SERVICES_CPU);
+      setValue('compute.memory', MIN_SERVICES_MEM);
       return;
     }
 
-    if (updatedMem > MAX_MEM) {
-      setValue('compute.cpu', MAX_CPU);
-      setValue('compute.memory', MAX_MEM);
+    if (updatedMem > MAX_SERVICES_MEM) {
+      setValue('compute.cpu', MAX_SERVICES_CPU);
+      setValue('compute.memory', MAX_SERVICES_MEM);
     }
   };
 
@@ -131,8 +132,9 @@ export default function ComputeFormSection() {
           type="number"
           slotProps={{
             inputRoot: {
-              min: MIN_CPU,
-              max: MAX_CPU,
+              step: 62.5,
+              min: MIN_SERVICES_CPU,
+              max: MAX_SERVICES_CPU,
             },
           }}
         />
@@ -154,8 +156,8 @@ export default function ComputeFormSection() {
           slotProps={{
             inputRoot: {
               step: 128,
-              min: MIN_MEM,
-              max: MAX_MEM,
+              min: MIN_SERVICES_MEM,
+              max: MAX_SERVICES_MEM,
             },
           }}
         />
@@ -163,8 +165,8 @@ export default function ComputeFormSection() {
       <Slider
         value={Number(formValues.compute.memory)}
         onChange={(_event, value) => handleSliderUpdate(value.toString())}
-        max={MAX_MEM}
-        min={MIN_MEM}
+        max={MAX_SERVICES_MEM}
+        min={MIN_SERVICES_MEM}
         step={256}
         aria-label="Compute resources"
         marks
