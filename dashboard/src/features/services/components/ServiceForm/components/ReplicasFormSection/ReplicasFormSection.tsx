@@ -4,13 +4,13 @@ import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { MAX_SERVICE_REPLICAS } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import type { CreateServiceFormValues } from '@/features/services/components/ServiceForm';
+import type { ServiceFormValues } from '@/features/services/components/ServiceForm';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 export default function ReplicasFormSection() {
-  const { setValue } = useFormContext<CreateServiceFormValues>();
+  const { setValue } = useFormContext<ServiceFormValues>();
 
-  const { replicas } = useWatch<CreateServiceFormValues>();
+  const { replicas } = useWatch<ServiceFormValues>();
 
   const handleReplicasChange = (value: string) => {
     const updatedReplicas = parseInt(value, 10);
