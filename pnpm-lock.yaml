@@ -269,6 +269,9 @@ importers:
       sharp:
         specifier: ^0.32.0
         version: 0.32.0
+      shell-quote:
+        specifier: ^1.8.1
+        version: 1.8.1
       slugify:
         specifier: ^1.6.5
         version: 1.6.5
@@ -378,6 +381,9 @@ importers:
       '@types/react-table':
         specifier: ^7.7.12
         version: 7.7.12
+      '@types/shell-quote':
+        specifier: ^1.7.1
+        version: 1.7.1
       '@types/testing-library__jest-dom':
         specifier: ^5.14.5
         version: 5.14.5
@@ -7486,7 +7492,7 @@ packages:
       json-to-pretty-yaml: 1.2.2
       listr2: 4.0.5
       log-symbols: 4.1.0
-      shell-quote: 1.7.3
+      shell-quote: 1.8.1
       string-env-interpolation: 1.0.1
       ts-log: 2.2.4
       ts-node: 10.9.1(@types/node@16.18.11)(typescript@4.9.5)
@@ -13654,6 +13660,10 @@ packages:
     resolution: {integrity: sha512-fBZgytwhYAUkj/jC/FAV4RQ5EerRup1YQsXQCh8rZfiHkc4UahC192oH0smGwsXol3cL3A5oETuAHeQHmhXM4w==}
     dependencies:
       '@types/node': 18.16.14
+    dev: true
+
+  /@types/shell-quote@1.7.1:
+    resolution: {integrity: sha512-SWZ2Nom1pkyXCDohRSrkSKvDh8QOG9RfAsrt5/NsPQC4UQJ55eG0qClA40I+Gkez4KTQ0uDUT8ELRXThf3J5jw==}
     dev: true
 
   /@types/sockjs@0.3.33:
@@ -27980,7 +27990,7 @@ packages:
       prompts: 2.4.2
       react-error-overlay: 6.0.11
       recursive-readdir: 2.2.2
-      shell-quote: 1.7.3
+      shell-quote: 1.8.1
       strip-ansi: 6.0.1
       text-table: 0.2.0
       typescript: 4.8.4
@@ -29418,6 +29428,10 @@ packages:
 
   /shell-quote@1.7.3:
     resolution: {integrity: sha512-Vpfqwm4EnqGdlsBFNmHhxhElJYrdfcxPThu+ryKS5J8L/fhAwLazFZtq+S+TWZ9ANj2piSQLGj6NQg+lKPmxrw==}
+    dev: true
+
+  /shell-quote@1.8.1:
+    resolution: {integrity: sha512-6j1W9l1iAs/4xYBI1SYOVZyFcCis9b4KCLQ8fgAGG07QvzaRLVVRQvAy85yNmmZSjYjg4MWh4gNvlPujU/5LpA==}
 
   /shelljs@0.8.5:
     resolution: {integrity: sha512-TiwcRcrkhHvbrZbnRcFYMLl30Dfov3HKqzp5tO5b4pt6G/SezKcYhmDg15zXVBswHmctSAQKznqNW2LO5tTDow==}

@@ -6,7 +6,7 @@ import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { ServiceFormValues } from '@/features/services/components/ServiceForm';
+import type { ServiceFormValues } from '@/features/services/components/ServiceForm';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 export default function EnvironmentFormSection() {
@@ -20,27 +20,27 @@ export default function EnvironmentFormSection() {
   });
 
   return (
-    <Box className="space-y-4 rounded border-1 p-4">
+    <Box className="p-4 space-y-4 rounded border-1">
       <Box className="flex flex-row items-center justify-between ">
         <Box className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
             Environment
           </Text>
           <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
           </Tooltip>
         </Box>
         <Button
           variant="borderless"
           onClick={() => append({ name: '', value: '' })}
         >
-          <PlusIcon className="h-5 w-5" />
+          <PlusIcon className="w-5 h-5" />
         </Button>
       </Box>
 
       <Box className="flex flex-col space-y-4">
         {fields.map((field, index) => (
-          <Box key={field.id} className="flex w-full flex-row space-x-2">
+          <Box key={field.id} className="flex flex-row w-full space-x-2">
             <Input
               {...register(`environment.${index}.name`)}
               id={`${field.id}-name`}
@@ -70,7 +70,7 @@ export default function EnvironmentFormSection() {
               color="error"
               onClick={() => remove(index)}
             >
-              <TrashIcon className="h-4 w-4" />
+              <TrashIcon className="w-4 h-4" />
             </Button>
           </Box>
         ))}

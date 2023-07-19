@@ -3,24 +3,24 @@ import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
+import { List } from '@/components/ui/v2/List';
+import { ListItem } from '@/components/ui/v2/ListItem';
+import { Text } from '@/components/ui/v2/Text';
 import { CubeIcon } from '@/components/ui/v2/icons/CubeIcon';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
-import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   ServiceForm,
   type PortTypes,
 } from '@/features/services/components/ServiceForm';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   useDeleteRunServiceConfigMutation,
   useDeleteRunServiceMutation,
   useGetRunServicesQuery,
 } from '@/utils/__generated__/graphql';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import type { ApolloError } from '@apollo/client';
 import type { RunService } from 'pages/[workspaceSlug]/[appSlug]/services';
 import { Fragment } from 'react';
@@ -72,7 +72,7 @@ export default function ServicesList({
     openDrawer({
       title: (
         <Box className="flex flex-row items-center space-x-2">
-          <CubeIcon className="h-5 w-5" />
+          <CubeIcon className="w-5 h-5" />
           <Text>Edit {service.config.name}</Text>
         </Box>
       ),
@@ -82,7 +82,7 @@ export default function ServicesList({
           initialData={{
             ...service.config,
             image: image.image,
-            command: command.map((item) => ({ command: item })),
+            command: command.join(' '),
             ports: ports.map((item) => ({
               port: item.port,
               type: item.type as PortTypes,
@@ -149,7 +149,7 @@ export default function ServicesList({
                     onClick={() => viewService(service)}
                     className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                   >
-                    <UserIcon className="h-4 w-4" />
+                    <UserIcon className="w-4 h-4" />
                     <Text className="font-medium">View Service</Text>
                   </Dropdown.Item>
 
@@ -160,7 +160,7 @@ export default function ServicesList({
                     sx={{ color: 'error.main' }}
                     onClick={() => deleteService(service.id)}
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon className="w-4 h-4" />
                     <Text className="font-medium" color="error">
                       Delete Service
                     </Text>
@@ -174,16 +174,16 @@ export default function ServicesList({
               onClick={() => viewService(service)}
               aria-label={`View ${service.config.name}`}
             >
-              <div className="col-span-2 grid grid-flow-col place-content-start items-center gap-4">
-                <CubeIcon className="h-5 w-5" />
-                <div className="grid grid-flow-row items-center">
-                  <div className="grid grid-flow-col items-center gap-2">
-                    <Text className="truncate font-medium leading-5">
+              <div className="grid items-center grid-flow-col col-span-2 gap-4 place-content-start">
+                <CubeIcon className="w-5 h-5" />
+                <div className="grid items-center grid-flow-row">
+                  <div className="grid items-center grid-flow-col gap-2">
+                    <Text className="font-medium leading-5 truncate">
                       {service.config.name}
                     </Text>
                   </div>
 
-                  <Text className="truncate font-normal" color="secondary">
+                  <Text className="font-normal truncate" color="secondary">
                     {/* TODO wire this to an updatedAt */}
                     Deployed 2 hours ago
                   </Text>

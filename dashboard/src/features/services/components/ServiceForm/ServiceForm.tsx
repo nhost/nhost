@@ -9,27 +9,32 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
-import { MAX_SERVICE_REPLICAS } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-// eslint-disable-next-line import/no-cycle
-import { CommandFormSection } from '@/features/services/components/ServiceForm/components/CommandFormSection';
+import {
+  MAX_SERVICE_REPLICAS,
+  MAX_SERVICES_CPU,
+  MAX_SERVICES_MEM,
+  MIN_SERVICES_CPU,
+  MIN_SERVICES_MEM,
+} from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { ComputeFormSection } from '@/features/services/components/ServiceForm/components/ComputeFormSection';
 import { EnvironmentFormSection } from '@/features/services/components/ServiceForm/components/EnvironmentFormSection';
 import { PortsFormSection } from '@/features/services/components/ServiceForm/components/PortsFormSection';
 import { ReplicasFormSection } from '@/features/services/components/ServiceForm/components/ReplicasFormSection';
 import { StorageFormSection } from '@/features/services/components/ServiceForm/components/StorageFormSection';
 import type { DialogFormProps } from '@/types/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   useInsertRunServiceConfigMutation,
   useInsertRunServiceMutation,
   useReplaceRunServiceConfigMutation,
   type ConfigRunServiceConfigInsertInput,
 } from '@/utils/__generated__/graphql';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import type { ApolloError } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import { parse } from 'shell-quote';
 import * as Yup from 'yup';
 
 export enum PortTypes {
@@ -41,13 +46,7 @@ export enum PortTypes {
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
   image: Yup.string().label('Image to run').required('The image is required.'),
-  // We use an array of objects here because
-  // react-hook-form useFieldArray doesn't work with flat arrays
-  command: Yup.array().of(
-    Yup.object().shape({
-      command: Yup.string().required(),
-    }),
-  ),
+  command: Yup.string().required(),
   environment: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required(),
@@ -55,8 +54,8 @@ export const validationSchema = Yup.object({
     }),
   ),
   compute: Yup.object({
-    cpu: Yup.number().min(62).max(7000).required(),
-    memory: Yup.number().min(128).max(14336).required(),
+    cpu: Yup.number().min(MIN_SERVICES_CPU).max(MAX_SERVICES_CPU).required(),
+    memory: Yup.number().min(MIN_SERVICES_MEM).max(MAX_SERVICES_MEM).required(),
   }),
   replicas: Yup.number().min(1).max(MAX_SERVICE_REPLICAS).required(),
   ports: Yup.array().of(
@@ -149,7 +148,7 @@ export default function ServiceForm({
       image: {
         image: values.image,
       },
-      command: values.command.map((item) => item.command),
+      command: parse(values.command).map((item) => item.toString()),
       resources: {
         compute: {
           cpu: values.compute.cpu,
@@ -253,7 +252,7 @@ export default function ServiceForm({
               <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
                 <InfoIcon
                   aria-label="Info"
-                  className="h-4 w-4"
+                  className="w-4 h-4"
                   color="primary"
                 />
               </Tooltip>
@@ -277,7 +276,7 @@ export default function ServiceForm({
               <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
                 <InfoIcon
                   aria-label="Info"
-                  className="h-4 w-4"
+                  className="w-4 h-4"
                   color="primary"
                 />
               </Tooltip>
@@ -299,11 +298,32 @@ export default function ServiceForm({
           />
         )}
 
+        <Input
+          {...register('command')}
+          id="command"
+          label={
+            <Box className="flex flex-row items-center space-x-2">
+              <Text>Command</Text>
+              <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
+                <InfoIcon
+                  aria-label="Info"
+                  className="w-4 h-4"
+                  color="primary"
+                />
+              </Tooltip>
+            </Box>
+          }
+          placeholder="$ npm start"
+          hideEmptyHelperText
+          error={!!errors.command}
+          helperText={errors?.command?.message}
+          fullWidth
+          autoComplete="off"
+        />
+
         <ComputeFormSection />
 
         <ReplicasFormSection />
-
-        <CommandFormSection />
 
         <EnvironmentFormSection />
 
@@ -314,7 +334,7 @@ export default function ServiceForm({
         {createServiceFormError && (
           <Alert
             severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            className="grid items-center justify-between grid-flow-col px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {createServiceFormError.message}
