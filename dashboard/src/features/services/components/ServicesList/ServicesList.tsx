@@ -82,7 +82,7 @@ export default function ServicesList({
           initialData={{
             ...service.config,
             image: image.image,
-            command: command.join(' '),
+            command: command?.join(' '),
             ports: ports.map((item) => ({
               port: item.port,
               type: item.type as PortTypes,
