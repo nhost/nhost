@@ -3,6 +3,7 @@ query getRunServices($appID: uuid!, $resolve: Boolean!) {
     runServices {
       id
       createdAt
+      updatedAt
       config(resolve: $resolve) {
         name
         image {

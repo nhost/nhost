@@ -3,9 +3,9 @@ import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { CubeIcon } from '@/components/ui/v2/icons/CubeIcon';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
@@ -21,9 +21,10 @@ import {
   useGetRunServicesQuery,
 } from '@/utils/__generated__/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
+import { copy } from '@/utils/copy';
 import type { ApolloError } from '@apollo/client';
+import { formatDistanceToNow } from 'date-fns';
 import type { RunService } from 'pages/[workspaceSlug]/[appSlug]/services';
-import { Fragment } from 'react';
 import { toast } from 'react-hot-toast';
 
 interface ServicesListProps {
@@ -121,79 +122,87 @@ export default function ServicesList({
       getToastStyleProps(),
     );
   };
+
   return (
-    <List>
+    <Box className="flex flex-col">
       {services.map((service) => (
-        <Fragment key={service.id}>
-          <ListItem.Root
-            className="h-[64px] w-full"
-            secondaryAction={
-              <Dropdown.Root>
-                <Dropdown.Trigger asChild hideChevron>
-                  <IconButton
-                    variant="borderless"
-                    color="secondary"
-                    aria-label="More options"
-                  >
-                    <DotsHorizontalIcon />
-                  </IconButton>
-                </Dropdown.Trigger>
-
-                <Dropdown.Content
-                  menu
-                  PaperProps={{ className: 'w-52' }}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        <Box
+          className="flex items-center justify-between w-full px-4 py-2 space-x-4 transition-colors cursor-pointer border-b-1"
+          onClick={() => viewService(service)}
+          sx={{
+            [`&:hover`]: {
+              backgroundColor: 'action.hover',
+            },
+          }}
+        >
+          <div className="flex flex-row items-center space-x-4">
+            <CubeIcon className="w-5 h-5" />
+            <div className="flex flex-col">
+              <div className="flex flex-row items-center space-x-2">
+                <Text className="">{service.id}</Text>
+                <IconButton
+                  variant="borderless"
+                  color="secondary"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    copy(service.id, 'Service Id');
+                  }}
+                  aria-label="Service Id"
                 >
-                  <Dropdown.Item
-                    onClick={() => viewService(service)}
-                    className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                  >
-                    <UserIcon className="w-4 h-4" />
-                    <Text className="font-medium">View Service</Text>
-                  </Dropdown.Item>
-
-                  <Divider component="li" />
-
-                  <Dropdown.Item
-                    className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                    sx={{ color: 'error.main' }}
-                    onClick={() => deleteService(service.id)}
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                    <Text className="font-medium" color="error">
-                      Delete Service
-                    </Text>
-                  </Dropdown.Item>
-                </Dropdown.Content>
-              </Dropdown.Root>
-            }
-          >
-            <ListItem.Button
-              className="grid h-full w-full grid-cols-1 py-2.5 lg:grid-cols-6"
-              onClick={() => viewService(service)}
-              aria-label={`View ${service.config.name}`}
-            >
-              <div className="grid items-center grid-flow-col col-span-2 gap-4 place-content-start">
-                <CubeIcon className="w-5 h-5" />
-                <div className="grid items-center grid-flow-row">
-                  <div className="grid items-center grid-flow-col gap-2">
-                    <Text className="font-medium leading-5 truncate">
-                      {service.config.name}
-                    </Text>
-                  </div>
-
-                  <Text className="font-normal truncate" color="secondary">
-                    {/* TODO wire this to an updatedAt */}
-                    Deployed 2 hours ago
-                  </Text>
-                </div>
+                  <CopyIcon className="w-4 h-4" />
+                </IconButton>
               </div>
-            </ListItem.Button>
-          </ListItem.Root>
-          <Divider component="li" />
-        </Fragment>
+              <Text>{service.config.name}</Text>
+              <Tooltip title={service.updatedAt}>
+                <span className="cursor-pointer">
+                  Last updated{' '}
+                  {formatDistanceToNow(new Date(service.updatedAt))} ago
+                </span>
+              </Tooltip>
+            </div>
+          </div>
+
+          <Dropdown.Root>
+            <Dropdown.Trigger asChild hideChevron>
+              <IconButton
+                variant="borderless"
+                color="secondary"
+                aria-label="More options"
+              >
+                <DotsHorizontalIcon />
+              </IconButton>
+            </Dropdown.Trigger>
+
+            <Dropdown.Content
+              menu
+              PaperProps={{ className: 'w-52' }}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+              <Dropdown.Item
+                onClick={() => viewService(service)}
+                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+              >
+                <UserIcon className="w-4 h-4" />
+                <Text className="font-medium">View Service</Text>
+              </Dropdown.Item>
+
+              <Divider component="li" />
+
+              <Dropdown.Item
+                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                sx={{ color: 'error.main' }}
+                onClick={() => deleteService(service.id)}
+              >
+                <TrashIcon className="w-4 h-4" />
+                <Text className="font-medium" color="error">
+                  Delete Service
+                </Text>
+              </Dropdown.Item>
+            </Dropdown.Content>
+          </Dropdown.Root>
+        </Box>
       ))}
-    </List>
+    </Box>
   );
 }
