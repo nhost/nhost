@@ -40,7 +40,10 @@ export default function EnvironmentFormSection() {
 
       <Box className="flex flex-col space-y-4">
         {fields.map((field, index) => (
-          <Box key={field.id} className="flex flex-row w-full space-x-2">
+          <Box
+            key={field.id}
+            className="flex w-full flex-col space-y-2 xs+:flex-row xs+:space-y-0 xs+:space-x-2"
+          >
             <Input
               {...register(`environment.${index}.name`)}
               id={`${field.id}-name`}
