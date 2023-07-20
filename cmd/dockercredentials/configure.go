@@ -13,6 +13,10 @@ import (
 
 const (
 	flagDockerConfig  = "docker-config"
+	flagNoInteractive = "no-interactive"
+)
+
+const (
 	credentialsPath   = "/usr/local/bin/docker-credential-nhost-login" //nolint:gosec
 	credentialsHelper = "nhost-login"
 )
@@ -32,6 +36,12 @@ func CommandConfigure() *cli.Command {
 				Usage:   "Path to docker config file",
 				EnvVars: []string{"DOCKER_CONFIG"},
 				Value:   fmt.Sprintf("%s/.docker/config.json", home),
+			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:    flagNoInteractive,
+				Usage:   "Do not prompt for confirmation",
+				EnvVars: []string{"NO_INTERACTIVE"},
+				Value:   false,
 			},
 		},
 		Action: actionConfigure,
@@ -129,6 +139,10 @@ func actionConfigure(c *cli.Context) error {
 
 	if err := writeScript(c.Context, ce); err != nil {
 		return err
+	}
+
+	if c.Bool(flagNoInteractive) {
+		return configureDocker(c.String(flagDockerConfig))
 	}
 
 	//nolint:lll
