@@ -106,18 +106,18 @@ func configureDocker(dockerConfig string) error {
 		config = make(map[string]interface{})
 	}
 
-	credsHelpers, ok := config["credsHelpers"].(map[string]interface{})
+	credHelpers, ok := config["credHelpers"].(map[string]interface{})
 	if !ok {
-		credsHelpers = make(map[string]interface{})
+		credHelpers = make(map[string]interface{})
 	}
-	credsHelpers["registry.ap-south-1.nhost.run"] = credentialsHelper
-	credsHelpers["registry.ap-southeast-1.nhost.run"] = credentialsHelper
-	credsHelpers["registry.eu-central-1.nhost.run"] = credentialsHelper
-	credsHelpers["registry.eu-west-2.nhost.run"] = credentialsHelper
-	credsHelpers["registry.us-east-1.nhost.run"] = credentialsHelper
-	credsHelpers["registry.sa-east-1.nhost.run"] = credentialsHelper
+	credHelpers["registry.ap-south-1.nhost.run"] = credentialsHelper
+	credHelpers["registry.ap-southeast-1.nhost.run"] = credentialsHelper
+	credHelpers["registry.eu-central-1.nhost.run"] = credentialsHelper
+	credHelpers["registry.eu-west-2.nhost.run"] = credentialsHelper
+	credHelpers["registry.us-east-1.nhost.run"] = credentialsHelper
+	credHelpers["registry.sa-east-1.nhost.run"] = credentialsHelper
 
-	config["credsHelpers"] = credsHelpers
+	config["credHelpers"] = credHelpers
 
 	if err := f.Truncate(0); err != nil {
 		return fmt.Errorf("could not truncate docker config file: %w", err)
