@@ -7,7 +7,7 @@ import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
 
-Nhost Cloud Run services and the main Nhost stack share the same network, facilitating direct and efficient communication. This network connectivity offers low latency, high throughput, and eliminates egress costs.
+Nhost Run services and the main Nhost stack share the same network, facilitating direct and efficient communication. This network connectivity offers low latency, high throughput, and eliminates egress costs.
 ## Connecting to the Nhost stack
 
 To connect your service to the Nhost stack, use the following information:
@@ -29,7 +29,7 @@ Example for MySQL service:
   <TabItem value="dashboard" label="dashboard" default>
 
 
-![exposing a port](/img/cloud-run/configure-port.png)
+![exposing a port](/img/run/configure-port.png)
 
   </TabItem>
   <TabItem value="toml" label="toml">
@@ -58,7 +58,7 @@ Example for a service exposing the ports tcp/3000 and udp/4000:
   <TabItem value="dashboard" label="dashboard" default>
 
 
-![exposing multiple ports](/img/cloud-run/configure-multiple-ports.png)
+![exposing multiple ports](/img/run/configure-multiple-ports.png)
 
   </TabItem>
   <TabItem value="toml" label="toml">
@@ -91,7 +91,7 @@ Example for a nodejs service exposing an API on port 3000:
   <TabItem value="dashboard" label="dashboard" default>
 
 
-![expose http port](/img/cloud-run/configure-http-port.png)
+![expose http port](/img/run/configure-http-port.png)
 
   </TabItem>
   <TabItem value="toml" label="toml">

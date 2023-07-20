@@ -12,7 +12,7 @@ To configure a service you can use either the dashboard or a toml configuration 
   <TabItem value="dashboard" label="dashboard" default>
 
 
-![configuration](/img/cloud-run/configuration.png)
+![configuration](/img/run/configuration.png)
 
   </TabItem>
   <TabItem value="toml" label="toml">
@@ -48,8 +48,8 @@ capacity=1
   </TabItem>
 </Tabs>
 
-The `name` of the service is used as an identifier and to generate URLs when exposing the service to the Internet and you can use any container image publicly available you want or you can push your own to [Nhost's container registry](/cloud-run/registry).
+The `name` of the service is used as an identifier and to generate URLs when exposing the service to the Internet and you can use any container image publicly available you want or you can push your own to [Nhost's container registry](/run/registry).
 
 The environment is dedicated to the service and environment variables set here will not be shared with other services or with the Nhost stack. If you are using a configuration file secrets are supported.
 
-For more details about the the `ports` section head to [networking](/cloud-run/networking). You can also head to [resources](/cloud-run/resources) for more information about replicas, compute and storage.
+For more details about the the `ports` section head to [networking](/run/networking). You can also head to [resources](/run/resources) for more information about replicas, compute and storage.
