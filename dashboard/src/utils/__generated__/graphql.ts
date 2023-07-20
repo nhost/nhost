@@ -20182,10 +20182,12 @@ export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __t
 export type GetRunServicesQueryVariables = Exact<{
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
 }>;
 
 
-export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, config?: { __typename?: 'ConfigRunServiceConfig', name: string, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigRunServiceResourcesCompute', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: string, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null }> } | null };
+export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, config?: { __typename?: 'ConfigRunServiceConfig', name: string, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigRunServiceResourcesCompute', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: string, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
 
 export type InsertRunServiceMutationVariables = Exact<{
   object: Run_Service_Insert_Input;
@@ -23418,9 +23420,9 @@ export function refetchGetRunServiceQuery(variables: GetRunServiceQueryVariables
       return { query: GetRunServiceDocument, variables: variables }
     }
 export const GetRunServicesDocument = gql`
-    query getRunServices($appID: uuid!, $resolve: Boolean!) {
+    query getRunServices($appID: uuid!, $resolve: Boolean!, $limit: Int!, $offset: Int!) {
   app(id: $appID) {
-    runServices {
+    runServices(limit: $limit, offset: $offset) {
       id
       createdAt
       updatedAt
@@ -23453,6 +23455,11 @@ export const GetRunServicesDocument = gql`
         }
       }
     }
+    runServices_aggregate {
+      aggregate {
+        count
+      }
+    }
   }
 }
     `;
@@ -23471,6 +23478,8 @@ export const GetRunServicesDocument = gql`
  *   variables: {
  *      appID: // value for 'appID'
  *      resolve: // value for 'resolve'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
  *   },
  * });
  */

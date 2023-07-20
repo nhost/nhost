@@ -15,6 +15,7 @@ export type PaginationProps = DetailedHTMLProps<
    * Total number of pages.
    */
   totalNrOfPages: number;
+
   /**
    * Number of total elements per page.
    */
@@ -23,6 +24,10 @@ export type PaginationProps = DetailedHTMLProps<
    * Total number of elements.
    */
   totalNrOfElements: number;
+  /**
+   * Label of the elements displayed ex: pages, users...
+   */
+  itemsLabel: string;
   /**
    * Current page number.
    */
@@ -64,6 +69,7 @@ export default function Pagination({
   elementsPerPage,
   onPageChange,
   totalNrOfElements,
+  itemsLabel,
   ...props
 }: PaginationProps) {
   return (
@@ -132,7 +138,7 @@ export default function Pagination({
           {totalNrOfElements < currentPageNumber * elementsPerPage
             ? totalNrOfElements
             : currentPageNumber * elementsPerPage}{' '}
-          of {totalNrOfElements} users
+          of {totalNrOfElements} {itemsLabel}
         </Text>
       </div>
     </div>

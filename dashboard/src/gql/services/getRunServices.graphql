@@ -1,6 +1,11 @@
-query getRunServices($appID: uuid!, $resolve: Boolean!) {
+query getRunServices(
+  $appID: uuid!
+  $resolve: Boolean!
+  $limit: Int!
+  $offset: Int!
+) {
   app(id: $appID) {
-    runServices {
+    runServices(limit: $limit, offset: $offset) {
       id
       createdAt
       updatedAt
@@ -31,6 +36,12 @@ query getRunServices($appID: uuid!, $resolve: Boolean!) {
           type
           publish
         }
+      }
+    }
+
+    runServices_aggregate {
+      aggregate {
+        count
       }
     }
   }
