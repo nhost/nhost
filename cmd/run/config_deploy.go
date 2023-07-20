@@ -12,7 +12,7 @@ import (
 
 func CommandConfigDeploy() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
-		Name:    "config-replace",
+		Name:    "config-deploy",
 		Aliases: []string{},
 		Usage:   "Deploy service configuration",
 		Action:  commandConfigDeploy,
