@@ -9,7 +9,7 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-// Error is the standard graphql error type described in https://facebook.github.io/graphql/draft/#sec-Errors
+// Error is the standard graphql error type described in https://spec.graphql.org/draft/#sec-Errors
 type Error struct {
 	err        error                  `json:"-"`
 	Message    string                 `json:"message"`
@@ -104,6 +104,13 @@ func WrapPath(path ast.Path, err error) *Error {
 		err:     err,
 		Message: err.Error(),
 		Path:    path,
+	}
+}
+
+func Wrap(err error) *Error {
+	return &Error{
+		err:     err,
+		Message: err.Error(),
 	}
 }
 

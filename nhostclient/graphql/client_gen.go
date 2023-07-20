@@ -36,6 +36,9 @@ type QueryRoot struct {
 	AuthProviders                           []*AuthProviders                        "json:\"authProviders\" graphql:\"authProviders\""
 	AuthProvidersAggregate                  AuthProvidersAggregate                  "json:\"authProvidersAggregate\" graphql:\"authProvidersAggregate\""
 	AuthRefreshToken                        *AuthRefreshTokens                      "json:\"authRefreshToken,omitempty\" graphql:\"authRefreshToken\""
+	AuthRefreshTokenType                    *AuthRefreshTokenTypes                  "json:\"authRefreshTokenType,omitempty\" graphql:\"authRefreshTokenType\""
+	AuthRefreshTokenTypes                   []*AuthRefreshTokenTypes                "json:\"authRefreshTokenTypes\" graphql:\"authRefreshTokenTypes\""
+	AuthRefreshTokenTypesAggregate          AuthRefreshTokenTypesAggregate          "json:\"authRefreshTokenTypesAggregate\" graphql:\"authRefreshTokenTypesAggregate\""
 	AuthRefreshTokens                       []*AuthRefreshTokens                    "json:\"authRefreshTokens\" graphql:\"authRefreshTokens\""
 	AuthRefreshTokensAggregate              AuthRefreshTokensAggregate              "json:\"authRefreshTokensAggregate\" graphql:\"authRefreshTokensAggregate\""
 	AuthRole                                *AuthRoles                              "json:\"authRole,omitempty\" graphql:\"authRole\""
@@ -96,6 +99,7 @@ type QueryRoot struct {
 	File                                    *Files                                  "json:\"file,omitempty\" graphql:\"file\""
 	Files                                   []*Files                                "json:\"files\" graphql:\"files\""
 	FilesAggregate                          FilesAggregate                          "json:\"filesAggregate\" graphql:\"filesAggregate\""
+	GetBackupPresignedURL                   BackupPresignedURL                      "json:\"getBackupPresignedURL\" graphql:\"getBackupPresignedURL\""
 	GetCPUSecondsUsage                      Metrics                                 "json:\"getCPUSecondsUsage\" graphql:\"getCPUSecondsUsage\""
 	GetEgressVolume                         Metrics                                 "json:\"getEgressVolume\" graphql:\"getEgressVolume\""
 	GetFunctionsInvocations                 Metrics                                 "json:\"getFunctionsInvocations\" graphql:\"getFunctionsInvocations\""
@@ -116,9 +120,21 @@ type QueryRoot struct {
 	Plan                                    *Plans                                  "json:\"plan,omitempty\" graphql:\"plan\""
 	Plans                                   []*Plans                                "json:\"plans\" graphql:\"plans\""
 	PlansAggregate                          PlansAggregate                          "json:\"plansAggregate\" graphql:\"plansAggregate\""
+	RegionType                              []*RegionType                           "json:\"region_type\" graphql:\"region_type\""
+	RegionTypeAggregate                     RegionTypeAggregate                     "json:\"region_type_aggregate\" graphql:\"region_type_aggregate\""
+	RegionTypeByPk                          *RegionType                             "json:\"region_type_by_pk,omitempty\" graphql:\"region_type_by_pk\""
 	Regions                                 []*Regions                              "json:\"regions\" graphql:\"regions\""
 	RegionsAggregate                        RegionsAggregate                        "json:\"regions_aggregate\" graphql:\"regions_aggregate\""
 	RegionsByPk                             *Regions                                "json:\"regions_by_pk,omitempty\" graphql:\"regions_by_pk\""
+	RunService                              *RunService                             "json:\"runService,omitempty\" graphql:\"runService\""
+	RunServiceConfig                        *ConfigRunServiceConfig                 "json:\"runServiceConfig,omitempty\" graphql:\"runServiceConfig\""
+	RunServiceConfigRawJSON                 string                                  "json:\"runServiceConfigRawJSON\" graphql:\"runServiceConfigRawJSON\""
+	RunServiceConfigs                       []*ConfigRunServiceConfigWithID         "json:\"runServiceConfigs\" graphql:\"runServiceConfigs\""
+	RunServices                             []*RunService                           "json:\"runServices\" graphql:\"runServices\""
+	RunServicesAggregate                    RunServiceAggregate                     "json:\"runServicesAggregate\" graphql:\"runServicesAggregate\""
+	SelectRegionsAllowedWorkspace           *RegionsAllowedWorkspace                "json:\"selectRegionsAllowedWorkspace,omitempty\" graphql:\"selectRegionsAllowedWorkspace\""
+	SelectRegionsAllowedWorkspaces          []*RegionsAllowedWorkspace              "json:\"selectRegionsAllowedWorkspaces\" graphql:\"selectRegionsAllowedWorkspaces\""
+	SelectRegionsAllowedWorkspacesAggregate RegionsAllowedWorkspaceAggregate        "json:\"selectRegionsAllowedWorkspacesAggregate\" graphql:\"selectRegionsAllowedWorkspacesAggregate\""
 	StatsLiveApps                           StatsLiveApps                           "json:\"statsLiveApps\" graphql:\"statsLiveApps\""
 	SystemConfig                            *ConfigSystemConfig                     "json:\"systemConfig,omitempty\" graphql:\"systemConfig\""
 	SystemConfigs                           []*ConfigAppSystemConfig                "json:\"systemConfigs\" graphql:\"systemConfigs\""
@@ -155,6 +171,8 @@ type MutationRoot struct {
 	DeleteAuthProviderRequests                          *AuthProviderRequestsMutationResponse             "json:\"deleteAuthProviderRequests,omitempty\" graphql:\"deleteAuthProviderRequests\""
 	DeleteAuthProviders                                 *AuthProvidersMutationResponse                    "json:\"deleteAuthProviders,omitempty\" graphql:\"deleteAuthProviders\""
 	DeleteAuthRefreshToken                              *AuthRefreshTokens                                "json:\"deleteAuthRefreshToken,omitempty\" graphql:\"deleteAuthRefreshToken\""
+	DeleteAuthRefreshTokenType                          *AuthRefreshTokenTypes                            "json:\"deleteAuthRefreshTokenType,omitempty\" graphql:\"deleteAuthRefreshTokenType\""
+	DeleteAuthRefreshTokenTypes                         *AuthRefreshTokenTypesMutationResponse            "json:\"deleteAuthRefreshTokenTypes,omitempty\" graphql:\"deleteAuthRefreshTokenTypes\""
 	DeleteAuthRefreshTokens                             *AuthRefreshTokensMutationResponse                "json:\"deleteAuthRefreshTokens,omitempty\" graphql:\"deleteAuthRefreshTokens\""
 	DeleteAuthRole                                      *AuthRoles                                        "json:\"deleteAuthRole,omitempty\" graphql:\"deleteAuthRole\""
 	DeleteAuthRoles                                     *AuthRolesMutationResponse                        "json:\"deleteAuthRoles,omitempty\" graphql:\"deleteAuthRoles\""
@@ -189,7 +207,12 @@ type MutationRoot struct {
 	DeletePaymentMethods                                *PaymentMethodsMutationResponse                   "json:\"deletePaymentMethods,omitempty\" graphql:\"deletePaymentMethods\""
 	DeletePlan                                          *Plans                                            "json:\"deletePlan,omitempty\" graphql:\"deletePlan\""
 	DeletePlans                                         *PlansMutationResponse                            "json:\"deletePlans,omitempty\" graphql:\"deletePlans\""
-	DeleteSecret                                        ConfigEnvironmentVariable                         "json:\"deleteSecret\" graphql:\"deleteSecret\""
+	DeleteRegionsAllowedWorkspace                       *RegionsAllowedWorkspace                          "json:\"deleteRegionsAllowedWorkspace,omitempty\" graphql:\"deleteRegionsAllowedWorkspace\""
+	DeleteRegionsAllowedWorkspaces                      *RegionsAllowedWorkspaceMutationResponse          "json:\"deleteRegionsAllowedWorkspaces,omitempty\" graphql:\"deleteRegionsAllowedWorkspaces\""
+	DeleteRunService                                    *RunService                                       "json:\"deleteRunService,omitempty\" graphql:\"deleteRunService\""
+	DeleteRunServiceConfig                              *ConfigRunServiceConfig                           "json:\"deleteRunServiceConfig,omitempty\" graphql:\"deleteRunServiceConfig\""
+	DeleteRunServices                                   *RunServiceMutationResponse                       "json:\"deleteRunServices,omitempty\" graphql:\"deleteRunServices\""
+	DeleteSecret                                        *ConfigEnvironmentVariable                        "json:\"deleteSecret,omitempty\" graphql:\"deleteSecret\""
 	DeleteUser                                          *Users                                            "json:\"deleteUser,omitempty\" graphql:\"deleteUser\""
 	DeleteUsers                                         *UsersMutationResponse                            "json:\"deleteUsers,omitempty\" graphql:\"deleteUsers\""
 	DeleteWorkspace                                     *Workspaces                                       "json:\"deleteWorkspace,omitempty\" graphql:\"deleteWorkspace\""
@@ -204,6 +227,8 @@ type MutationRoot struct {
 	DeleteContinentsByPk                                *Continents                                       "json:\"delete_continents_by_pk,omitempty\" graphql:\"delete_continents_by_pk\""
 	DeleteCountries                                     *CountriesMutationResponse                        "json:\"delete_countries,omitempty\" graphql:\"delete_countries\""
 	DeleteCountriesByPk                                 *Countries                                        "json:\"delete_countries_by_pk,omitempty\" graphql:\"delete_countries_by_pk\""
+	DeleteRegionType                                    *RegionTypeMutationResponse                       "json:\"delete_region_type,omitempty\" graphql:\"delete_region_type\""
+	DeleteRegionTypeByPk                                *RegionType                                       "json:\"delete_region_type_by_pk,omitempty\" graphql:\"delete_region_type_by_pk\""
 	DeleteRegions                                       *RegionsMutationResponse                          "json:\"delete_regions,omitempty\" graphql:\"delete_regions\""
 	DeleteRegionsByPk                                   *Regions                                          "json:\"delete_regions_by_pk,omitempty\" graphql:\"delete_regions_by_pk\""
 	InsertApp                                           *Apps                                             "json:\"insertApp,omitempty\" graphql:\"insertApp\""
@@ -217,6 +242,8 @@ type MutationRoot struct {
 	InsertAuthProviderRequests                          *AuthProviderRequestsMutationResponse             "json:\"insertAuthProviderRequests,omitempty\" graphql:\"insertAuthProviderRequests\""
 	InsertAuthProviders                                 *AuthProvidersMutationResponse                    "json:\"insertAuthProviders,omitempty\" graphql:\"insertAuthProviders\""
 	InsertAuthRefreshToken                              *AuthRefreshTokens                                "json:\"insertAuthRefreshToken,omitempty\" graphql:\"insertAuthRefreshToken\""
+	InsertAuthRefreshTokenType                          *AuthRefreshTokenTypes                            "json:\"insertAuthRefreshTokenType,omitempty\" graphql:\"insertAuthRefreshTokenType\""
+	InsertAuthRefreshTokenTypes                         *AuthRefreshTokenTypesMutationResponse            "json:\"insertAuthRefreshTokenTypes,omitempty\" graphql:\"insertAuthRefreshTokenTypes\""
 	InsertAuthRefreshTokens                             *AuthRefreshTokensMutationResponse                "json:\"insertAuthRefreshTokens,omitempty\" graphql:\"insertAuthRefreshTokens\""
 	InsertAuthRole                                      *AuthRoles                                        "json:\"insertAuthRole,omitempty\" graphql:\"insertAuthRole\""
 	InsertAuthRoles                                     *AuthRolesMutationResponse                        "json:\"insertAuthRoles,omitempty\" graphql:\"insertAuthRoles\""
@@ -251,6 +278,11 @@ type MutationRoot struct {
 	InsertPaymentMethods                                *PaymentMethodsMutationResponse                   "json:\"insertPaymentMethods,omitempty\" graphql:\"insertPaymentMethods\""
 	InsertPlan                                          *Plans                                            "json:\"insertPlan,omitempty\" graphql:\"insertPlan\""
 	InsertPlans                                         *PlansMutationResponse                            "json:\"insertPlans,omitempty\" graphql:\"insertPlans\""
+	InsertRegionsAllowedWorkspace                       *RegionsAllowedWorkspace                          "json:\"insertRegionsAllowedWorkspace,omitempty\" graphql:\"insertRegionsAllowedWorkspace\""
+	InsertRegionsAllowedWorkspaces                      *RegionsAllowedWorkspaceMutationResponse          "json:\"insertRegionsAllowedWorkspaces,omitempty\" graphql:\"insertRegionsAllowedWorkspaces\""
+	InsertRunService                                    *RunService                                       "json:\"insertRunService,omitempty\" graphql:\"insertRunService\""
+	InsertRunServiceConfig                              ConfigRunServiceConfig                            "json:\"insertRunServiceConfig\" graphql:\"insertRunServiceConfig\""
+	InsertRunServices                                   *RunServiceMutationResponse                       "json:\"insertRunServices,omitempty\" graphql:\"insertRunServices\""
 	InsertSecret                                        ConfigEnvironmentVariable                         "json:\"insertSecret\" graphql:\"insertSecret\""
 	InsertUser                                          *Users                                            "json:\"insertUser,omitempty\" graphql:\"insertUser\""
 	InsertUsers                                         *UsersMutationResponse                            "json:\"insertUsers,omitempty\" graphql:\"insertUsers\""
@@ -266,13 +298,16 @@ type MutationRoot struct {
 	InsertContinentsOne                                 *Continents                                       "json:\"insert_continents_one,omitempty\" graphql:\"insert_continents_one\""
 	InsertCountries                                     *CountriesMutationResponse                        "json:\"insert_countries,omitempty\" graphql:\"insert_countries\""
 	InsertCountriesOne                                  *Countries                                        "json:\"insert_countries_one,omitempty\" graphql:\"insert_countries_one\""
+	InsertRegionType                                    *RegionTypeMutationResponse                       "json:\"insert_region_type,omitempty\" graphql:\"insert_region_type\""
+	InsertRegionTypeOne                                 *RegionType                                       "json:\"insert_region_type_one,omitempty\" graphql:\"insert_region_type_one\""
 	InsertRegions                                       *RegionsMutationResponse                          "json:\"insert_regions,omitempty\" graphql:\"insert_regions\""
 	InsertRegionsOne                                    *Regions                                          "json:\"insert_regions_one,omitempty\" graphql:\"insert_regions_one\""
-	MigrateRDSToPostgres                                bool                                              "json:\"migrateRDSToPostgres\" graphql:\"migrateRDSToPostgres\""
 	PauseInactiveApps                                   []string                                          "json:\"pauseInactiveApps\" graphql:\"pauseInactiveApps\""
 	ReplaceConfig                                       ConfigConfig                                      "json:\"replaceConfig\" graphql:\"replaceConfig\""
+	ReplaceRunServiceConfig                             ConfigRunServiceConfig                            "json:\"replaceRunServiceConfig\" graphql:\"replaceRunServiceConfig\""
 	ResetPostgresPassword                               bool                                              "json:\"resetPostgresPassword\" graphql:\"resetPostgresPassword\""
 	RestoreApplicationDatabase                          bool                                              "json:\"restoreApplicationDatabase\" graphql:\"restoreApplicationDatabase\""
+	SendEmailTemplate                                   bool                                              "json:\"sendEmailTemplate\" graphql:\"sendEmailTemplate\""
 	UpdateApp                                           *Apps                                             "json:\"updateApp,omitempty\" graphql:\"updateApp\""
 	UpdateAppState                                      *AppStates                                        "json:\"updateAppState,omitempty\" graphql:\"updateAppState\""
 	UpdateAppStateHistories                             *AppStateHistoryMutationResponse                  "json:\"updateAppStateHistories,omitempty\" graphql:\"updateAppStateHistories\""
@@ -284,6 +319,8 @@ type MutationRoot struct {
 	UpdateAuthProviderRequests                          *AuthProviderRequestsMutationResponse             "json:\"updateAuthProviderRequests,omitempty\" graphql:\"updateAuthProviderRequests\""
 	UpdateAuthProviders                                 *AuthProvidersMutationResponse                    "json:\"updateAuthProviders,omitempty\" graphql:\"updateAuthProviders\""
 	UpdateAuthRefreshToken                              *AuthRefreshTokens                                "json:\"updateAuthRefreshToken,omitempty\" graphql:\"updateAuthRefreshToken\""
+	UpdateAuthRefreshTokenType                          *AuthRefreshTokenTypes                            "json:\"updateAuthRefreshTokenType,omitempty\" graphql:\"updateAuthRefreshTokenType\""
+	UpdateAuthRefreshTokenTypes                         *AuthRefreshTokenTypesMutationResponse            "json:\"updateAuthRefreshTokenTypes,omitempty\" graphql:\"updateAuthRefreshTokenTypes\""
 	UpdateAuthRefreshTokens                             *AuthRefreshTokensMutationResponse                "json:\"updateAuthRefreshTokens,omitempty\" graphql:\"updateAuthRefreshTokens\""
 	UpdateAuthRole                                      *AuthRoles                                        "json:\"updateAuthRole,omitempty\" graphql:\"updateAuthRole\""
 	UpdateAuthRoles                                     *AuthRolesMutationResponse                        "json:\"updateAuthRoles,omitempty\" graphql:\"updateAuthRoles\""
@@ -318,6 +355,11 @@ type MutationRoot struct {
 	UpdatePaymentMethods                                *PaymentMethodsMutationResponse                   "json:\"updatePaymentMethods,omitempty\" graphql:\"updatePaymentMethods\""
 	UpdatePlan                                          *Plans                                            "json:\"updatePlan,omitempty\" graphql:\"updatePlan\""
 	UpdatePlans                                         *PlansMutationResponse                            "json:\"updatePlans,omitempty\" graphql:\"updatePlans\""
+	UpdateRegionsAllowedWorkspace                       *RegionsAllowedWorkspace                          "json:\"updateRegionsAllowedWorkspace,omitempty\" graphql:\"updateRegionsAllowedWorkspace\""
+	UpdateRegionsAllowedWorkspaces                      *RegionsAllowedWorkspaceMutationResponse          "json:\"updateRegionsAllowedWorkspaces,omitempty\" graphql:\"updateRegionsAllowedWorkspaces\""
+	UpdateRunService                                    *RunService                                       "json:\"updateRunService,omitempty\" graphql:\"updateRunService\""
+	UpdateRunServiceConfig                              ConfigRunServiceConfig                            "json:\"updateRunServiceConfig\" graphql:\"updateRunServiceConfig\""
+	UpdateRunServices                                   *RunServiceMutationResponse                       "json:\"updateRunServices,omitempty\" graphql:\"updateRunServices\""
 	UpdateSecret                                        ConfigEnvironmentVariable                         "json:\"updateSecret\" graphql:\"updateSecret\""
 	UpdateSystemConfig                                  ConfigSystemConfig                                "json:\"updateSystemConfig\" graphql:\"updateSystemConfig\""
 	UpdateUser                                          *Users                                            "json:\"updateUser,omitempty\" graphql:\"updateUser\""
@@ -333,6 +375,7 @@ type MutationRoot struct {
 	UpdateAppsMany                                      []*AppsMutationResponse                           "json:\"update_apps_many,omitempty\" graphql:\"update_apps_many\""
 	UpdateAuthProviderRequestsMany                      []*AuthProviderRequestsMutationResponse           "json:\"update_authProviderRequests_many,omitempty\" graphql:\"update_authProviderRequests_many\""
 	UpdateAuthProvidersMany                             []*AuthProvidersMutationResponse                  "json:\"update_authProviders_many,omitempty\" graphql:\"update_authProviders_many\""
+	UpdateAuthRefreshTokenTypesMany                     []*AuthRefreshTokenTypesMutationResponse          "json:\"update_authRefreshTokenTypes_many,omitempty\" graphql:\"update_authRefreshTokenTypes_many\""
 	UpdateAuthRefreshTokensMany                         []*AuthRefreshTokensMutationResponse              "json:\"update_authRefreshTokens_many,omitempty\" graphql:\"update_authRefreshTokens_many\""
 	UpdateAuthRolesMany                                 []*AuthRolesMutationResponse                      "json:\"update_authRoles_many,omitempty\" graphql:\"update_authRoles_many\""
 	UpdateAuthUserProvidersMany                         []*AuthUserProvidersMutationResponse              "json:\"update_authUserProviders_many,omitempty\" graphql:\"update_authUserProviders_many\""
@@ -359,9 +402,14 @@ type MutationRoot struct {
 	UpdateGithubRepositoriesMany                        []*GithubRepositoriesMutationResponse             "json:\"update_githubRepositories_many,omitempty\" graphql:\"update_githubRepositories_many\""
 	UpdatePaymentMethodsMany                            []*PaymentMethodsMutationResponse                 "json:\"update_paymentMethods_many,omitempty\" graphql:\"update_paymentMethods_many\""
 	UpdatePlansMany                                     []*PlansMutationResponse                          "json:\"update_plans_many,omitempty\" graphql:\"update_plans_many\""
+	UpdateRegionType                                    *RegionTypeMutationResponse                       "json:\"update_region_type,omitempty\" graphql:\"update_region_type\""
+	UpdateRegionTypeByPk                                *RegionType                                       "json:\"update_region_type_by_pk,omitempty\" graphql:\"update_region_type_by_pk\""
+	UpdateRegionTypeMany                                []*RegionTypeMutationResponse                     "json:\"update_region_type_many,omitempty\" graphql:\"update_region_type_many\""
 	UpdateRegions                                       *RegionsMutationResponse                          "json:\"update_regions,omitempty\" graphql:\"update_regions\""
+	UpdateRegionsAllowedWorkspaceMany                   []*RegionsAllowedWorkspaceMutationResponse        "json:\"update_regions_allowed_workspace_many,omitempty\" graphql:\"update_regions_allowed_workspace_many\""
 	UpdateRegionsByPk                                   *Regions                                          "json:\"update_regions_by_pk,omitempty\" graphql:\"update_regions_by_pk\""
 	UpdateRegionsMany                                   []*RegionsMutationResponse                        "json:\"update_regions_many,omitempty\" graphql:\"update_regions_many\""
+	UpdateRunServiceMany                                []*RunServiceMutationResponse                     "json:\"update_run_service_many,omitempty\" graphql:\"update_run_service_many\""
 	UpdateUsersMany                                     []*UsersMutationResponse                          "json:\"update_users_many,omitempty\" graphql:\"update_users_many\""
 	UpdateWorkspaceMemberInvitesMany                    []*WorkspaceMemberInvitesMutationResponse         "json:\"update_workspaceMemberInvites_many,omitempty\" graphql:\"update_workspaceMemberInvites_many\""
 	UpdateWorkspaceMembersMany                          []*WorkspaceMembersMutationResponse               "json:\"update_workspaceMembers_many,omitempty\" graphql:\"update_workspaceMembers_many\""
@@ -490,14 +538,14 @@ func (t *GetHasuraAdminSecret_App) GetConfig() *GetHasuraAdminSecret_App_Config 
 }
 
 type DeleteRefreshToken_DeleteAuthRefreshTokens_Returning struct {
-	RefreshToken string "json:\"refreshToken\" graphql:\"refreshToken\""
+	Typename *string "json:\"__typename,omitempty\" graphql:\"__typename\""
 }
 
-func (t *DeleteRefreshToken_DeleteAuthRefreshTokens_Returning) GetRefreshToken() string {
+func (t *DeleteRefreshToken_DeleteAuthRefreshTokens_Returning) GetTypename() *string {
 	if t == nil {
 		t = &DeleteRefreshToken_DeleteAuthRefreshTokens_Returning{}
 	}
-	return t.RefreshToken
+	return t.Typename
 }
 
 type DeleteRefreshToken_DeleteAuthRefreshTokens struct {
@@ -583,6 +631,39 @@ func (t *UpdateSecret_UpdateSecret) GetValue() string {
 	return t.Value
 }
 
+type UpdateRunServiceConfig_UpdateRunServiceConfig struct {
+	Typename *string "json:\"__typename,omitempty\" graphql:\"__typename\""
+}
+
+func (t *UpdateRunServiceConfig_UpdateRunServiceConfig) GetTypename() *string {
+	if t == nil {
+		t = &UpdateRunServiceConfig_UpdateRunServiceConfig{}
+	}
+	return t.Typename
+}
+
+type ReplaceRunServiceConfig_ReplaceRunServiceConfig struct {
+	Typename *string "json:\"__typename,omitempty\" graphql:\"__typename\""
+}
+
+func (t *ReplaceRunServiceConfig_ReplaceRunServiceConfig) GetTypename() *string {
+	if t == nil {
+		t = &ReplaceRunServiceConfig_ReplaceRunServiceConfig{}
+	}
+	return t.Typename
+}
+
+type GetRunServiceInfo_RunService struct {
+	AppID string "json:\"appID\" graphql:\"appID\""
+}
+
+func (t *GetRunServiceInfo_RunService) GetAppID() string {
+	if t == nil {
+		t = &GetRunServiceInfo_RunService{}
+	}
+	return t.AppID
+}
+
 type GetWorkspacesApps struct {
 	Workspaces []*GetWorkspacesApps_Workspaces "json:\"workspaces\" graphql:\"workspaces\""
 }
@@ -650,14 +731,14 @@ func (t *CreateSecret) GetInsertSecret() *CreateSecret_InsertSecret {
 }
 
 type DeleteSecret struct {
-	DeleteSecret DeleteSecret_DeleteSecret "json:\"deleteSecret\" graphql:\"deleteSecret\""
+	DeleteSecret *DeleteSecret_DeleteSecret "json:\"deleteSecret,omitempty\" graphql:\"deleteSecret\""
 }
 
 func (t *DeleteSecret) GetDeleteSecret() *DeleteSecret_DeleteSecret {
 	if t == nil {
 		t = &DeleteSecret{}
 	}
-	return &t.DeleteSecret
+	return t.DeleteSecret
 }
 
 type UpdateSecret struct {
@@ -669,6 +750,50 @@ func (t *UpdateSecret) GetUpdateSecret() *UpdateSecret_UpdateSecret {
 		t = &UpdateSecret{}
 	}
 	return &t.UpdateSecret
+}
+
+type UpdateRunServiceConfig struct {
+	UpdateRunServiceConfig UpdateRunServiceConfig_UpdateRunServiceConfig "json:\"updateRunServiceConfig\" graphql:\"updateRunServiceConfig\""
+}
+
+func (t *UpdateRunServiceConfig) GetUpdateRunServiceConfig() *UpdateRunServiceConfig_UpdateRunServiceConfig {
+	if t == nil {
+		t = &UpdateRunServiceConfig{}
+	}
+	return &t.UpdateRunServiceConfig
+}
+
+type ReplaceRunServiceConfig struct {
+	ReplaceRunServiceConfig ReplaceRunServiceConfig_ReplaceRunServiceConfig "json:\"replaceRunServiceConfig\" graphql:\"replaceRunServiceConfig\""
+}
+
+func (t *ReplaceRunServiceConfig) GetReplaceRunServiceConfig() *ReplaceRunServiceConfig_ReplaceRunServiceConfig {
+	if t == nil {
+		t = &ReplaceRunServiceConfig{}
+	}
+	return &t.ReplaceRunServiceConfig
+}
+
+type GetRunServiceInfo struct {
+	RunService *GetRunServiceInfo_RunService "json:\"runService,omitempty\" graphql:\"runService\""
+}
+
+func (t *GetRunServiceInfo) GetRunService() *GetRunServiceInfo_RunService {
+	if t == nil {
+		t = &GetRunServiceInfo{}
+	}
+	return t.RunService
+}
+
+type GetRunServiceConfigRawJSON struct {
+	RunServiceConfigRawJSON string "json:\"runServiceConfigRawJSON\" graphql:\"runServiceConfigRawJSON\""
+}
+
+func (t *GetRunServiceConfigRawJSON) GetRunServiceConfigRawJSON() string {
+	if t == nil {
+		t = &GetRunServiceConfigRawJSON{}
+	}
+	return t.RunServiceConfigRawJSON
 }
 
 const GetWorkspacesAppsDocument = `query GetWorkspacesApps {
@@ -744,7 +869,7 @@ const DeleteRefreshTokenDocument = `mutation DeleteRefreshToken ($where: authRef
 	deleteAuthRefreshTokens(where: $where) {
 		affected_rows
 		returning {
-			refreshToken
+			__typename
 		}
 	}
 }
@@ -845,6 +970,90 @@ func (c *Client) UpdateSecret(ctx context.Context, appID string, name string, va
 
 	var res UpdateSecret
 	if err := c.Client.Post(ctx, "UpdateSecret", UpdateSecretDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const UpdateRunServiceConfigDocument = `mutation UpdateRunServiceConfig ($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigUpdateInput!) {
+	updateRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
+		__typename
+	}
+}
+`
+
+func (c *Client) UpdateRunServiceConfig(ctx context.Context, appID string, serviceID string, config ConfigRunServiceConfigUpdateInput, interceptors ...clientv2.RequestInterceptor) (*UpdateRunServiceConfig, error) {
+	vars := map[string]interface{}{
+		"appID":     appID,
+		"serviceID": serviceID,
+		"config":    config,
+	}
+
+	var res UpdateRunServiceConfig
+	if err := c.Client.Post(ctx, "UpdateRunServiceConfig", UpdateRunServiceConfigDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const ReplaceRunServiceConfigDocument = `mutation ReplaceRunServiceConfig ($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
+	replaceRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
+		__typename
+	}
+}
+`
+
+func (c *Client) ReplaceRunServiceConfig(ctx context.Context, appID string, serviceID string, config ConfigRunServiceConfigInsertInput, interceptors ...clientv2.RequestInterceptor) (*ReplaceRunServiceConfig, error) {
+	vars := map[string]interface{}{
+		"appID":     appID,
+		"serviceID": serviceID,
+		"config":    config,
+	}
+
+	var res ReplaceRunServiceConfig
+	if err := c.Client.Post(ctx, "ReplaceRunServiceConfig", ReplaceRunServiceConfigDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetRunServiceInfoDocument = `query GetRunServiceInfo ($serviceID: uuid!) {
+	runService(id: $serviceID) {
+		appID
+	}
+}
+`
+
+func (c *Client) GetRunServiceInfo(ctx context.Context, serviceID string, interceptors ...clientv2.RequestInterceptor) (*GetRunServiceInfo, error) {
+	vars := map[string]interface{}{
+		"serviceID": serviceID,
+	}
+
+	var res GetRunServiceInfo
+	if err := c.Client.Post(ctx, "GetRunServiceInfo", GetRunServiceInfoDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const GetRunServiceConfigRawJSONDocument = `query GetRunServiceConfigRawJSON ($appID: uuid!, $serviceID: uuid!, $resolve: Boolean!) {
+	runServiceConfigRawJSON(appID: $appID, serviceID: $serviceID, resolve: $resolve)
+}
+`
+
+func (c *Client) GetRunServiceConfigRawJSON(ctx context.Context, appID string, serviceID string, resolve bool, interceptors ...clientv2.RequestInterceptor) (*GetRunServiceConfigRawJSON, error) {
+	vars := map[string]interface{}{
+		"appID":     appID,
+		"serviceID": serviceID,
+		"resolve":   resolve,
+	}
+
+	var res GetRunServiceConfigRawJSON
+	if err := c.Client.Post(ctx, "GetRunServiceConfigRawJSON", GetRunServiceConfigRawJSONDocument, &res, vars, interceptors...); err != nil {
 		return nil, err
 	}
 

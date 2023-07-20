@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+type BackupPresignedURL struct {
+	ExpiresAt string `json:"expires_at"`
+	URL       string `json:"url"`
+}
+
 type BackupResult struct {
 	BackupID string `json:"backupID"`
 	Size     int64  `json:"size"`
@@ -50,15 +55,25 @@ type ConfigAppSystemConfig struct {
 	SystemConfig ConfigSystemConfig `json:"systemConfig"`
 }
 
+// Configuration for auth service
+// You can find more information about the configuration here:
+// https://github.com/nhost/hasura-auth/blob/main/docs/environment-variables.md
 type ConfigAuth struct {
 	Method       *ConfigAuthMethod       `json:"method,omitempty"`
 	Redirections *ConfigAuthRedirections `json:"redirections,omitempty"`
-	Resources    *ConfigResources        `json:"resources,omitempty"`
-	Session      *ConfigAuthSession      `json:"session,omitempty"`
-	SignUp       *ConfigAuthSignUp       `json:"signUp,omitempty"`
-	Totp         *ConfigAuthTotp         `json:"totp,omitempty"`
-	User         *ConfigAuthUser         `json:"user,omitempty"`
-	Version      *string                 `json:"version,omitempty"`
+	// Resources for the service
+	Resources *ConfigResources   `json:"resources,omitempty"`
+	Session   *ConfigAuthSession `json:"session,omitempty"`
+	SignUp    *ConfigAuthSignUp  `json:"signUp,omitempty"`
+	Totp      *ConfigAuthTotp    `json:"totp,omitempty"`
+	User      *ConfigAuthUser    `json:"user,omitempty"`
+	// Version of auth, you can see available versions in the URL below:
+	// https://hub.docker.com/r/nhost/hasura-auth/tags
+	//
+	// Releases:
+	//
+	// https://github.com/nhost/hasura-auth/releases
+	Version *string `json:"version,omitempty"`
 }
 
 type ConfigAuthComparisonExp struct {
@@ -127,9 +142,11 @@ type ConfigAuthMethodComparisonExp struct {
 }
 
 type ConfigAuthMethodEmailPassword struct {
-	EmailVerificationRequired *bool   `json:"emailVerificationRequired,omitempty"`
-	HibpEnabled               *bool   `json:"hibpEnabled,omitempty"`
-	PasswordMinLength         *string `json:"passwordMinLength,omitempty"`
+	EmailVerificationRequired *bool `json:"emailVerificationRequired,omitempty"`
+	// Disabling email+password sign in is not implmented yet
+	// enabled: bool | *true
+	HibpEnabled       *bool   `json:"hibpEnabled,omitempty"`
+	PasswordMinLength *uint32 `json:"passwordMinLength,omitempty"`
 }
 
 type ConfigAuthMethodEmailPasswordComparisonExp struct {
@@ -144,13 +161,13 @@ type ConfigAuthMethodEmailPasswordComparisonExp struct {
 type ConfigAuthMethodEmailPasswordInsertInput struct {
 	EmailVerificationRequired *bool   `json:"emailVerificationRequired,omitempty"`
 	HibpEnabled               *bool   `json:"hibpEnabled,omitempty"`
-	PasswordMinLength         *string `json:"passwordMinLength,omitempty"`
+	PasswordMinLength         *uint32 `json:"passwordMinLength,omitempty"`
 }
 
 type ConfigAuthMethodEmailPasswordUpdateInput struct {
 	EmailVerificationRequired *bool   `json:"emailVerificationRequired,omitempty"`
 	HibpEnabled               *bool   `json:"hibpEnabled,omitempty"`
-	PasswordMinLength         *string `json:"passwordMinLength,omitempty"`
+	PasswordMinLength         *uint32 `json:"passwordMinLength,omitempty"`
 }
 
 type ConfigAuthMethodEmailPasswordless struct {
@@ -423,7 +440,7 @@ type ConfigAuthMethodWebauthn struct {
 }
 
 type ConfigAuthMethodWebauthnAttestation struct {
-	Timeout *string `json:"timeout,omitempty"`
+	Timeout *uint32 `json:"timeout,omitempty"`
 }
 
 type ConfigAuthMethodWebauthnAttestationComparisonExp struct {
@@ -434,11 +451,11 @@ type ConfigAuthMethodWebauthnAttestationComparisonExp struct {
 }
 
 type ConfigAuthMethodWebauthnAttestationInsertInput struct {
-	Timeout *string `json:"timeout,omitempty"`
+	Timeout *uint32 `json:"timeout,omitempty"`
 }
 
 type ConfigAuthMethodWebauthnAttestationUpdateInput struct {
-	Timeout *string `json:"timeout,omitempty"`
+	Timeout *uint32 `json:"timeout,omitempty"`
 }
 
 type ConfigAuthMethodWebauthnComparisonExp struct {
@@ -486,8 +503,10 @@ type ConfigAuthMethodWebauthnUpdateInput struct {
 }
 
 type ConfigAuthRedirections struct {
+	// AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS
 	AllowedUrls []string `json:"allowedUrls,omitempty"`
-	ClientURL   *string  `json:"clientUrl,omitempty"`
+	// AUTH_CLIENT_URL
+	ClientURL *string `json:"clientUrl,omitempty"`
 }
 
 type ConfigAuthRedirectionsComparisonExp struct {
@@ -514,8 +533,10 @@ type ConfigAuthSession struct {
 }
 
 type ConfigAuthSessionAccessToken struct {
+	// AUTH_JWT_CUSTOM_CLAIMS
 	CustomClaims []*ConfigAuthsessionaccessTokenCustomClaims `json:"customClaims,omitempty"`
-	ExpiresIn    *string                                     `json:"expiresIn,omitempty"`
+	// AUTH_ACCESS_TOKEN_EXPIRES_IN
+	ExpiresIn *uint32 `json:"expiresIn,omitempty"`
 }
 
 type ConfigAuthSessionAccessTokenComparisonExp struct {
@@ -528,12 +549,12 @@ type ConfigAuthSessionAccessTokenComparisonExp struct {
 
 type ConfigAuthSessionAccessTokenInsertInput struct {
 	CustomClaims []*ConfigAuthsessionaccessTokenCustomClaimsInsertInput `json:"customClaims,omitempty"`
-	ExpiresIn    *string                                                `json:"expiresIn,omitempty"`
+	ExpiresIn    *uint32                                                `json:"expiresIn,omitempty"`
 }
 
 type ConfigAuthSessionAccessTokenUpdateInput struct {
 	CustomClaims []*ConfigAuthsessionaccessTokenCustomClaimsUpdateInput `json:"customClaims,omitempty"`
-	ExpiresIn    *string                                                `json:"expiresIn,omitempty"`
+	ExpiresIn    *uint32                                                `json:"expiresIn,omitempty"`
 }
 
 type ConfigAuthSessionComparisonExp struct {
@@ -550,7 +571,8 @@ type ConfigAuthSessionInsertInput struct {
 }
 
 type ConfigAuthSessionRefreshToken struct {
-	ExpiresIn *string `json:"expiresIn,omitempty"`
+	// AUTH_REFRESH_TOKEN_EXPIRES_IN
+	ExpiresIn *uint32 `json:"expiresIn,omitempty"`
 }
 
 type ConfigAuthSessionRefreshTokenComparisonExp struct {
@@ -561,11 +583,11 @@ type ConfigAuthSessionRefreshTokenComparisonExp struct {
 }
 
 type ConfigAuthSessionRefreshTokenInsertInput struct {
-	ExpiresIn *string `json:"expiresIn,omitempty"`
+	ExpiresIn *uint32 `json:"expiresIn,omitempty"`
 }
 
 type ConfigAuthSessionRefreshTokenUpdateInput struct {
-	ExpiresIn *string `json:"expiresIn,omitempty"`
+	ExpiresIn *uint32 `json:"expiresIn,omitempty"`
 }
 
 type ConfigAuthSessionUpdateInput struct {
@@ -574,6 +596,7 @@ type ConfigAuthSessionUpdateInput struct {
 }
 
 type ConfigAuthSignUp struct {
+	// Inverse of AUTH_DISABLE_NEW_USERS
 	Enabled *bool `json:"enabled,omitempty"`
 }
 
@@ -646,7 +669,9 @@ type ConfigAuthUserComparisonExp struct {
 }
 
 type ConfigAuthUserEmail struct {
+	// AUTH_ACCESS_CONTROL_ALLOWED_EMAILS
 	Allowed []string `json:"allowed,omitempty"`
+	// AUTH_ACCESS_CONTROL_BLOCKED_EMAILS
 	Blocked []string `json:"blocked,omitempty"`
 }
 
@@ -659,7 +684,9 @@ type ConfigAuthUserEmailComparisonExp struct {
 }
 
 type ConfigAuthUserEmailDomains struct {
+	// AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS
 	Allowed []string `json:"allowed,omitempty"`
+	// AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS
 	Blocked []string `json:"blocked,omitempty"`
 }
 
@@ -693,6 +720,7 @@ type ConfigAuthUserEmailUpdateInput struct {
 
 type ConfigAuthUserGravatar struct {
 	Default *string `json:"default,omitempty"`
+	// AUTH_GRAVATAR_ENABLED
 	Enabled *bool   `json:"enabled,omitempty"`
 	Rating  *string `json:"rating,omitempty"`
 }
@@ -727,8 +755,10 @@ type ConfigAuthUserInsertInput struct {
 }
 
 type ConfigAuthUserLocale struct {
+	// AUTH_LOCALE_ALLOWED_LOCALES
 	Allowed []string `json:"allowed,omitempty"`
-	Default *string  `json:"default,omitempty"`
+	// AUTH_LOCALE_DEFAULT
+	Default *string `json:"default,omitempty"`
 }
 
 type ConfigAuthUserLocaleComparisonExp struct {
@@ -750,8 +780,10 @@ type ConfigAuthUserLocaleUpdateInput struct {
 }
 
 type ConfigAuthUserRoles struct {
+	// AUTH_USER_DEFAULT_ALLOWED_ROLES
 	Allowed []string `json:"allowed,omitempty"`
-	Default *string  `json:"default,omitempty"`
+	// AUTH_USER_DEFAULT_ROLE
+	Default *string `json:"default,omitempty"`
 }
 
 type ConfigAuthUserRolesComparisonExp struct {
@@ -780,6 +812,7 @@ type ConfigAuthUserUpdateInput struct {
 	Roles        *ConfigAuthUserRolesUpdateInput        `json:"roles,omitempty"`
 }
 
+// AUTH_JWT_CUSTOM_CLAIMS
 type ConfigAuthsessionaccessTokenCustomClaims struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
@@ -841,15 +874,24 @@ type ConfigClaimMapUpdateInput struct {
 	Value   *string `json:"value,omitempty"`
 }
 
+// main entrypoint to the configuration
 type ConfigConfig struct {
-	Auth          *ConfigAuth          `json:"auth,omitempty"`
-	Functions     *ConfigFunctions     `json:"functions,omitempty"`
-	Global        *ConfigGlobal        `json:"global,omitempty"`
-	Hasura        ConfigHasura         `json:"hasura"`
-	Observability *ConfigObservability `json:"observability,omitempty"`
-	Postgres      *ConfigPostgres      `json:"postgres,omitempty"`
-	Provider      *ConfigProvider      `json:"provider,omitempty"`
-	Storage       *ConfigStorage       `json:"storage,omitempty"`
+	// Configuration for auth service
+	Auth *ConfigAuth `json:"auth,omitempty"`
+	// Configuration for functions service
+	Functions *ConfigFunctions `json:"functions,omitempty"`
+	// Global configuration that applies to all services
+	Global *ConfigGlobal `json:"global,omitempty"`
+	// Configuration for hasura
+	Hasura ConfigHasura `json:"hasura"`
+	// Configuration for observability service
+	Observability ConfigObservability `json:"observability"`
+	// Configuration for postgres service
+	Postgres *ConfigPostgres `json:"postgres,omitempty"`
+	// Configuration for third party providers like SMTP, SMS, etc.
+	Provider *ConfigProvider `json:"provider,omitempty"`
+	// Configuration for storage service
+	Storage *ConfigStorage `json:"storage,omitempty"`
 }
 
 type ConfigConfigComparisonExp struct {
@@ -867,14 +909,14 @@ type ConfigConfigComparisonExp struct {
 }
 
 type ConfigConfigInsertInput struct {
-	Auth          *ConfigAuthInsertInput          `json:"auth,omitempty"`
-	Functions     *ConfigFunctionsInsertInput     `json:"functions,omitempty"`
-	Global        *ConfigGlobalInsertInput        `json:"global,omitempty"`
-	Hasura        ConfigHasuraInsertInput         `json:"hasura"`
-	Observability *ConfigObservabilityInsertInput `json:"observability,omitempty"`
-	Postgres      *ConfigPostgresInsertInput      `json:"postgres,omitempty"`
-	Provider      *ConfigProviderInsertInput      `json:"provider,omitempty"`
-	Storage       *ConfigStorageInsertInput       `json:"storage,omitempty"`
+	Auth          *ConfigAuthInsertInput         `json:"auth,omitempty"`
+	Functions     *ConfigFunctionsInsertInput    `json:"functions,omitempty"`
+	Global        *ConfigGlobalInsertInput       `json:"global,omitempty"`
+	Hasura        ConfigHasuraInsertInput        `json:"hasura"`
+	Observability ConfigObservabilityInsertInput `json:"observability"`
+	Postgres      *ConfigPostgresInsertInput     `json:"postgres,omitempty"`
+	Provider      *ConfigProviderInsertInput     `json:"provider,omitempty"`
+	Storage       *ConfigStorageInsertInput      `json:"storage,omitempty"`
 }
 
 type ConfigConfigUpdateInput struct {
@@ -896,7 +938,8 @@ type ConfigEmailComparisonExp struct {
 }
 
 type ConfigEnvironmentVariable struct {
-	Name  string `json:"name"`
+	Name string `json:"name"`
+	// Value of the environment variable
 	Value string `json:"value"`
 }
 
@@ -918,6 +961,7 @@ type ConfigEnvironmentVariableUpdateInput struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// Configuration for functions service
 type ConfigFunctions struct {
 	Node *ConfigFunctionsNode `json:"node,omitempty"`
 }
@@ -956,7 +1000,9 @@ type ConfigFunctionsUpdateInput struct {
 	Node *ConfigFunctionsNodeUpdateInput `json:"node,omitempty"`
 }
 
+// Global configuration that applies to all services
 type ConfigGlobal struct {
+	// User-defined environment variables that are spread over all services
 	Environment []*ConfigEnvironmentVariable `json:"environment,omitempty"`
 }
 
@@ -994,15 +1040,31 @@ type ConfigGrafanaUpdateInput struct {
 	AdminPassword *string `json:"adminPassword,omitempty"`
 }
 
+// Configuration for hasura service
 type ConfigHasura struct {
-	AdminSecret   string                `json:"adminSecret"`
-	Events        *ConfigHasuraEvents   `json:"events,omitempty"`
-	JwtSecrets    []*ConfigJWTSecret    `json:"jwtSecrets,omitempty"`
-	Logs          *ConfigHasuraLogs     `json:"logs,omitempty"`
-	Resources     *ConfigResources      `json:"resources,omitempty"`
-	Settings      *ConfigHasuraSettings `json:"settings,omitempty"`
-	Version       *string               `json:"version,omitempty"`
-	WebhookSecret string                `json:"webhookSecret"`
+	// Admin secret
+	AdminSecret string              `json:"adminSecret"`
+	Events      *ConfigHasuraEvents `json:"events,omitempty"`
+	// JWT Secrets configuration
+	JwtSecrets []*ConfigJWTSecret `json:"jwtSecrets,omitempty"`
+	Logs       *ConfigHasuraLogs  `json:"logs,omitempty"`
+	// Resources for the service
+	Resources *ConfigResources `json:"resources,omitempty"`
+	// Configuration for hasura services
+	// Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
+	Settings *ConfigHasuraSettings `json:"settings,omitempty"`
+	// Version of hasura, you can see available versions in the URL below:
+	// https://hub.docker.com/r/hasura/graphql-engine/tags
+	Version *string `json:"version,omitempty"`
+	// Webhook secret
+	WebhookSecret string `json:"webhookSecret"`
+}
+
+type ConfigHasuraAPIsComparisonExp struct {
+	Eq  *string  `json:"_eq,omitempty"`
+	In  []string `json:"_in,omitempty"`
+	Neq *string  `json:"_neq,omitempty"`
+	Nin []string `json:"_nin,omitempty"`
 }
 
 type ConfigHasuraComparisonExp struct {
@@ -1020,7 +1082,8 @@ type ConfigHasuraComparisonExp struct {
 }
 
 type ConfigHasuraEvents struct {
-	HTTPPoolSize *string `json:"httpPoolSize,omitempty"`
+	// HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
+	HTTPPoolSize *uint32 `json:"httpPoolSize,omitempty"`
 }
 
 type ConfigHasuraEventsComparisonExp struct {
@@ -1031,11 +1094,11 @@ type ConfigHasuraEventsComparisonExp struct {
 }
 
 type ConfigHasuraEventsInsertInput struct {
-	HTTPPoolSize *string `json:"httpPoolSize,omitempty"`
+	HTTPPoolSize *uint32 `json:"httpPoolSize,omitempty"`
 }
 
 type ConfigHasuraEventsUpdateInput struct {
-	HTTPPoolSize *string `json:"httpPoolSize,omitempty"`
+	HTTPPoolSize *uint32 `json:"httpPoolSize,omitempty"`
 }
 
 type ConfigHasuraInsertInput struct {
@@ -1068,23 +1131,51 @@ type ConfigHasuraLogsUpdateInput struct {
 	Level *string `json:"level,omitempty"`
 }
 
+// Configuration for hasura services
+// Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
 type ConfigHasuraSettings struct {
+	// HASURA_GRAPHQL_CORS_DOMAIN
+	CorsDomain []string `json:"corsDomain,omitempty"`
+	// HASURA_GRAPHQL_DEV_MODE
+	DevMode *bool `json:"devMode,omitempty"`
+	// HASURA_GRAPHQL_ENABLE_ALLOWLIST
+	EnableAllowList *bool `json:"enableAllowList,omitempty"`
+	// HASURA_GRAPHQL_ENABLE_CONSOLE
+	EnableConsole *bool `json:"enableConsole,omitempty"`
+	// HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
 	EnableRemoteSchemaPermissions *bool `json:"enableRemoteSchemaPermissions,omitempty"`
+	// HASURA_GRAPHQL_ENABLED_APIS
+	EnabledAPIs []string `json:"enabledAPIs,omitempty"`
 }
 
 type ConfigHasuraSettingsComparisonExp struct {
 	And                           []*ConfigHasuraSettingsComparisonExp `json:"_and,omitempty"`
 	Not                           *ConfigHasuraSettingsComparisonExp   `json:"_not,omitempty"`
 	Or                            []*ConfigHasuraSettingsComparisonExp `json:"_or,omitempty"`
+	CorsDomain                    *ConfigURLComparisonExp              `json:"corsDomain,omitempty"`
+	DevMode                       *ConfigBooleanComparisonExp          `json:"devMode,omitempty"`
+	EnableAllowList               *ConfigBooleanComparisonExp          `json:"enableAllowList,omitempty"`
+	EnableConsole                 *ConfigBooleanComparisonExp          `json:"enableConsole,omitempty"`
 	EnableRemoteSchemaPermissions *ConfigBooleanComparisonExp          `json:"enableRemoteSchemaPermissions,omitempty"`
+	EnabledAPIs                   *ConfigHasuraAPIsComparisonExp       `json:"enabledAPIs,omitempty"`
 }
 
 type ConfigHasuraSettingsInsertInput struct {
-	EnableRemoteSchemaPermissions *bool `json:"enableRemoteSchemaPermissions,omitempty"`
+	CorsDomain                    []string `json:"corsDomain,omitempty"`
+	DevMode                       *bool    `json:"devMode,omitempty"`
+	EnableAllowList               *bool    `json:"enableAllowList,omitempty"`
+	EnableConsole                 *bool    `json:"enableConsole,omitempty"`
+	EnableRemoteSchemaPermissions *bool    `json:"enableRemoteSchemaPermissions,omitempty"`
+	EnabledAPIs                   []string `json:"enabledAPIs,omitempty"`
 }
 
 type ConfigHasuraSettingsUpdateInput struct {
-	EnableRemoteSchemaPermissions *bool `json:"enableRemoteSchemaPermissions,omitempty"`
+	CorsDomain                    []string `json:"corsDomain,omitempty"`
+	DevMode                       *bool    `json:"devMode,omitempty"`
+	EnableAllowList               *bool    `json:"enableAllowList,omitempty"`
+	EnableConsole                 *bool    `json:"enableConsole,omitempty"`
+	EnableRemoteSchemaPermissions *bool    `json:"enableRemoteSchemaPermissions,omitempty"`
+	EnabledAPIs                   []string `json:"enabledAPIs,omitempty"`
 }
 
 type ConfigHasuraUpdateInput struct {
@@ -1111,8 +1202,9 @@ type ConfigIntComparisonExp struct {
 	Nin []int64 `json:"_nin,omitempty"`
 }
 
+// See https://hasura.io/docs/latest/auth/authentication/jwt/
 type ConfigJWTSecret struct {
-	AllowedSkew         *string           `json:"allowed_skew,omitempty"`
+	AllowedSkew         *uint32           `json:"allowed_skew,omitempty"`
 	Audience            *string           `json:"audience,omitempty"`
 	ClaimsFormat        *string           `json:"claims_format,omitempty"`
 	ClaimsMap           []*ConfigClaimMap `json:"claims_map,omitempty"`
@@ -1143,7 +1235,7 @@ type ConfigJWTSecretComparisonExp struct {
 }
 
 type ConfigJWTSecretInsertInput struct {
-	AllowedSkew         *string                      `json:"allowed_skew,omitempty"`
+	AllowedSkew         *uint32                      `json:"allowed_skew,omitempty"`
 	Audience            *string                      `json:"audience,omitempty"`
 	ClaimsFormat        *string                      `json:"claims_format,omitempty"`
 	ClaimsMap           []*ConfigClaimMapInsertInput `json:"claims_map,omitempty"`
@@ -1157,7 +1249,7 @@ type ConfigJWTSecretInsertInput struct {
 }
 
 type ConfigJWTSecretUpdateInput struct {
-	AllowedSkew         *string                      `json:"allowed_skew,omitempty"`
+	AllowedSkew         *uint32                      `json:"allowed_skew,omitempty"`
 	Audience            *string                      `json:"audience,omitempty"`
 	ClaimsFormat        *string                      `json:"claims_format,omitempty"`
 	ClaimsMap           []*ConfigClaimMapUpdateInput `json:"claims_map,omitempty"`
@@ -1178,7 +1270,7 @@ type ConfigLocaleComparisonExp struct {
 }
 
 type ConfigObservability struct {
-	Grafana *ConfigGrafana `json:"grafana,omitempty"`
+	Grafana ConfigGrafana `json:"grafana"`
 }
 
 type ConfigObservabilityComparisonExp struct {
@@ -1189,7 +1281,7 @@ type ConfigObservabilityComparisonExp struct {
 }
 
 type ConfigObservabilityInsertInput struct {
-	Grafana *ConfigGrafanaInsertInput `json:"grafana,omitempty"`
+	Grafana ConfigGrafanaInsertInput `json:"grafana"`
 }
 
 type ConfigObservabilityUpdateInput struct {
@@ -1197,15 +1289,19 @@ type ConfigObservabilityUpdateInput struct {
 }
 
 type ConfigPortComparisonExp struct {
-	Eq  *string  `json:"_eq,omitempty"`
-	In  []string `json:"_in,omitempty"`
-	Neq *string  `json:"_neq,omitempty"`
-	Nin []string `json:"_nin,omitempty"`
+	Eq  *uint32  `json:"_eq,omitempty"`
+	In  []uint32 `json:"_in,omitempty"`
+	Neq *uint32  `json:"_neq,omitempty"`
+	Nin []uint32 `json:"_nin,omitempty"`
 }
 
+// Configuration for postgres service
 type ConfigPostgres struct {
+	// Resources for the service
 	Resources *ConfigResources `json:"resources,omitempty"`
-	Version   *string          `json:"version,omitempty"`
+	// Version of postgres, you can see available versions in the URL below:
+	// https://hub.docker.com/r/nhost/postgres/tags
+	Version *string `json:"version,omitempty"`
 }
 
 type ConfigPostgresComparisonExp struct {
@@ -1249,9 +1345,11 @@ type ConfigProviderUpdateInput struct {
 	SMTP *ConfigSMTPUpdateInput `json:"smtp,omitempty"`
 }
 
+// Resource configuration for a service
 type ConfigResources struct {
-	Compute  ConfigResourcesCompute `json:"compute"`
-	Replicas string                 `json:"replicas"`
+	Compute ConfigResourcesCompute `json:"compute"`
+	// Number of replicas for a service
+	Replicas uint32 `json:"replicas"`
 }
 
 type ConfigResourcesComparisonExp struct {
@@ -1263,8 +1361,10 @@ type ConfigResourcesComparisonExp struct {
 }
 
 type ConfigResourcesCompute struct {
-	CPU    string `json:"cpu"`
-	Memory string `json:"memory"`
+	// milicpus, 1000 milicpus = 1 cpu
+	CPU uint32 `json:"cpu"`
+	// MiB: 128MiB to 30GiB
+	Memory uint32 `json:"memory"`
 }
 
 type ConfigResourcesComputeComparisonExp struct {
@@ -1276,23 +1376,196 @@ type ConfigResourcesComputeComparisonExp struct {
 }
 
 type ConfigResourcesComputeInsertInput struct {
-	CPU    string `json:"cpu"`
-	Memory string `json:"memory"`
+	CPU    uint32 `json:"cpu"`
+	Memory uint32 `json:"memory"`
 }
 
 type ConfigResourcesComputeUpdateInput struct {
-	CPU    *string `json:"cpu,omitempty"`
-	Memory *string `json:"memory,omitempty"`
+	CPU    *uint32 `json:"cpu,omitempty"`
+	Memory *uint32 `json:"memory,omitempty"`
 }
 
 type ConfigResourcesInsertInput struct {
 	Compute  ConfigResourcesComputeInsertInput `json:"compute"`
-	Replicas string                            `json:"replicas"`
+	Replicas uint32                            `json:"replicas"`
 }
 
 type ConfigResourcesUpdateInput struct {
 	Compute  *ConfigResourcesComputeUpdateInput `json:"compute,omitempty"`
-	Replicas *string                            `json:"replicas,omitempty"`
+	Replicas *uint32                            `json:"replicas,omitempty"`
+}
+
+type ConfigRunServiceConfig struct {
+	Command     []string                     `json:"command,omitempty"`
+	Environment []*ConfigEnvironmentVariable `json:"environment,omitempty"`
+	Image       ConfigRunServiceImage        `json:"image"`
+	Name        string                       `json:"name"`
+	Ports       []*ConfigRunServicePort      `json:"ports,omitempty"`
+	Resources   ConfigRunServiceResources    `json:"resources"`
+}
+
+type ConfigRunServiceConfigComparisonExp struct {
+	And         []*ConfigRunServiceConfigComparisonExp  `json:"_and,omitempty"`
+	Not         *ConfigRunServiceConfigComparisonExp    `json:"_not,omitempty"`
+	Or          []*ConfigRunServiceConfigComparisonExp  `json:"_or,omitempty"`
+	Command     *ConfigStringComparisonExp              `json:"command,omitempty"`
+	Environment *ConfigEnvironmentVariableComparisonExp `json:"environment,omitempty"`
+	Image       *ConfigRunServiceImageComparisonExp     `json:"image,omitempty"`
+	Name        *ConfigStringComparisonExp              `json:"name,omitempty"`
+	Ports       *ConfigRunServicePortComparisonExp      `json:"ports,omitempty"`
+	Resources   *ConfigRunServiceResourcesComparisonExp `json:"resources,omitempty"`
+}
+
+type ConfigRunServiceConfigInsertInput struct {
+	Command     []string                                `json:"command,omitempty"`
+	Environment []*ConfigEnvironmentVariableInsertInput `json:"environment,omitempty"`
+	Image       ConfigRunServiceImageInsertInput        `json:"image"`
+	Name        string                                  `json:"name"`
+	Ports       []*ConfigRunServicePortInsertInput      `json:"ports,omitempty"`
+	Resources   ConfigRunServiceResourcesInsertInput    `json:"resources"`
+}
+
+type ConfigRunServiceConfigUpdateInput struct {
+	Command     []string                                `json:"command,omitempty"`
+	Environment []*ConfigEnvironmentVariableUpdateInput `json:"environment,omitempty"`
+	Image       *ConfigRunServiceImageUpdateInput       `json:"image,omitempty"`
+	Name        *string                                 `json:"name,omitempty"`
+	Ports       []*ConfigRunServicePortUpdateInput      `json:"ports,omitempty"`
+	Resources   *ConfigRunServiceResourcesUpdateInput   `json:"resources,omitempty"`
+}
+
+type ConfigRunServiceConfigWithID struct {
+	Config    ConfigRunServiceConfig `json:"config"`
+	ServiceID string                 `json:"serviceID"`
+}
+
+type ConfigRunServiceImage struct {
+	Image string `json:"image"`
+}
+
+type ConfigRunServiceImageComparisonExp struct {
+	And   []*ConfigRunServiceImageComparisonExp `json:"_and,omitempty"`
+	Not   *ConfigRunServiceImageComparisonExp   `json:"_not,omitempty"`
+	Or    []*ConfigRunServiceImageComparisonExp `json:"_or,omitempty"`
+	Image *ConfigStringComparisonExp            `json:"image,omitempty"`
+}
+
+type ConfigRunServiceImageInsertInput struct {
+	Image string `json:"image"`
+}
+
+type ConfigRunServiceImageUpdateInput struct {
+	Image *string `json:"image,omitempty"`
+}
+
+type ConfigRunServicePort struct {
+	Port    uint32 `json:"port"`
+	Publish *bool  `json:"publish,omitempty"`
+	Type    string `json:"type"`
+}
+
+type ConfigRunServicePortComparisonExp struct {
+	And     []*ConfigRunServicePortComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigRunServicePortComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigRunServicePortComparisonExp `json:"_or,omitempty"`
+	Port    *ConfigPortComparisonExp             `json:"port,omitempty"`
+	Publish *ConfigBooleanComparisonExp          `json:"publish,omitempty"`
+	Type    *ConfigStringComparisonExp           `json:"type,omitempty"`
+}
+
+type ConfigRunServicePortInsertInput struct {
+	Port    uint32 `json:"port"`
+	Publish *bool  `json:"publish,omitempty"`
+	Type    string `json:"type"`
+}
+
+type ConfigRunServicePortUpdateInput struct {
+	Port    *uint32 `json:"port,omitempty"`
+	Publish *bool   `json:"publish,omitempty"`
+	Type    *string `json:"type,omitempty"`
+}
+
+// Resource configuration for a service
+type ConfigRunServiceResources struct {
+	Compute ConfigRunServiceResourcesCompute `json:"compute"`
+	// Number of replicas for a service
+	Replicas uint32                              `json:"replicas"`
+	Storage  []*ConfigRunServiceResourcesStorage `json:"storage,omitempty"`
+}
+
+type ConfigRunServiceResourcesComparisonExp struct {
+	And      []*ConfigRunServiceResourcesComparisonExp      `json:"_and,omitempty"`
+	Not      *ConfigRunServiceResourcesComparisonExp        `json:"_not,omitempty"`
+	Or       []*ConfigRunServiceResourcesComparisonExp      `json:"_or,omitempty"`
+	Compute  *ConfigRunServiceResourcesComputeComparisonExp `json:"compute,omitempty"`
+	Replicas *ConfigUint8ComparisonExp                      `json:"replicas,omitempty"`
+	Storage  *ConfigRunServiceResourcesStorageComparisonExp `json:"storage,omitempty"`
+}
+
+type ConfigRunServiceResourcesCompute struct {
+	// milicpus, 1000 milicpus = 1 cpu
+	CPU uint32 `json:"cpu"`
+	// MiB: 128MiB to 30GiB
+	Memory uint32 `json:"memory"`
+}
+
+type ConfigRunServiceResourcesComputeComparisonExp struct {
+	And    []*ConfigRunServiceResourcesComputeComparisonExp `json:"_and,omitempty"`
+	Not    *ConfigRunServiceResourcesComputeComparisonExp   `json:"_not,omitempty"`
+	Or     []*ConfigRunServiceResourcesComputeComparisonExp `json:"_or,omitempty"`
+	CPU    *ConfigUint32ComparisonExp                       `json:"cpu,omitempty"`
+	Memory *ConfigUint32ComparisonExp                       `json:"memory,omitempty"`
+}
+
+type ConfigRunServiceResourcesComputeInsertInput struct {
+	CPU    uint32 `json:"cpu"`
+	Memory uint32 `json:"memory"`
+}
+
+type ConfigRunServiceResourcesComputeUpdateInput struct {
+	CPU    *uint32 `json:"cpu,omitempty"`
+	Memory *uint32 `json:"memory,omitempty"`
+}
+
+type ConfigRunServiceResourcesInsertInput struct {
+	Compute  ConfigRunServiceResourcesComputeInsertInput    `json:"compute"`
+	Replicas uint32                                         `json:"replicas"`
+	Storage  []*ConfigRunServiceResourcesStorageInsertInput `json:"storage,omitempty"`
+}
+
+type ConfigRunServiceResourcesStorage struct {
+	// GiB
+	Capacity uint32 `json:"capacity"`
+	// name of the volume, changing it will cause data loss
+	Name string `json:"name"`
+	Path string `json:"path"`
+}
+
+type ConfigRunServiceResourcesStorageComparisonExp struct {
+	And      []*ConfigRunServiceResourcesStorageComparisonExp `json:"_and,omitempty"`
+	Not      *ConfigRunServiceResourcesStorageComparisonExp   `json:"_not,omitempty"`
+	Or       []*ConfigRunServiceResourcesStorageComparisonExp `json:"_or,omitempty"`
+	Capacity *ConfigUint32ComparisonExp                       `json:"capacity,omitempty"`
+	Name     *ConfigStringComparisonExp                       `json:"name,omitempty"`
+	Path     *ConfigStringComparisonExp                       `json:"path,omitempty"`
+}
+
+type ConfigRunServiceResourcesStorageInsertInput struct {
+	Capacity uint32 `json:"capacity"`
+	Name     string `json:"name"`
+	Path     string `json:"path"`
+}
+
+type ConfigRunServiceResourcesStorageUpdateInput struct {
+	Capacity *uint32 `json:"capacity,omitempty"`
+	Name     *string `json:"name,omitempty"`
+	Path     *string `json:"path,omitempty"`
+}
+
+type ConfigRunServiceResourcesUpdateInput struct {
+	Compute  *ConfigRunServiceResourcesComputeUpdateInput   `json:"compute,omitempty"`
+	Replicas *uint32                                        `json:"replicas,omitempty"`
+	Storage  []*ConfigRunServiceResourcesStorageUpdateInput `json:"storage,omitempty"`
 }
 
 type ConfigSms struct {
@@ -1330,7 +1603,7 @@ type ConfigSMTP struct {
 	Host     string `json:"host"`
 	Method   string `json:"method"`
 	Password string `json:"password"`
-	Port     string `json:"port"`
+	Port     uint32 `json:"port"`
 	Secure   bool   `json:"secure"`
 	Sender   string `json:"sender"`
 	User     string `json:"user"`
@@ -1353,7 +1626,7 @@ type ConfigSMTPInsertInput struct {
 	Host     string `json:"host"`
 	Method   string `json:"method"`
 	Password string `json:"password"`
-	Port     string `json:"port"`
+	Port     uint32 `json:"port"`
 	Secure   bool   `json:"secure"`
 	Sender   string `json:"sender"`
 	User     string `json:"user"`
@@ -1363,7 +1636,7 @@ type ConfigSMTPUpdateInput struct {
 	Host     *string `json:"host,omitempty"`
 	Method   *string `json:"method,omitempty"`
 	Password *string `json:"password,omitempty"`
-	Port     *string `json:"port,omitempty"`
+	Port     *uint32 `json:"port,omitempty"`
 	Secure   *bool   `json:"secure,omitempty"`
 	Sender   *string `json:"sender,omitempty"`
 	User     *string `json:"user,omitempty"`
@@ -1427,9 +1700,17 @@ type ConfigStandardOauthProviderWithScopeUpdateInput struct {
 	Scope        []string `json:"scope,omitempty"`
 }
 
+// Configuration for storage service
 type ConfigStorage struct {
+	// Resources for the service
 	Resources *ConfigResources `json:"resources,omitempty"`
-	Version   *string          `json:"version,omitempty"`
+	// Version of storage service, you can see available versions in the URL below:
+	// https://hub.docker.com/r/nhost/hasura-storage/tags
+	//
+	// Releases:
+	//
+	// https://github.com/nhost/hasura-storage/releases
+	Version *string `json:"version,omitempty"`
 }
 
 type ConfigStorageComparisonExp struct {
@@ -1536,7 +1817,6 @@ type ConfigSystemConfigPostgres struct {
 	ConnectionString ConfigSystemConfigPostgresConnectionString `json:"connectionString"`
 	Database         string                                     `json:"database"`
 	Enabled          *bool                                      `json:"enabled,omitempty"`
-	Password         string                                     `json:"password"`
 }
 
 type ConfigSystemConfigPostgresComparisonExp struct {
@@ -1546,7 +1826,6 @@ type ConfigSystemConfigPostgresComparisonExp struct {
 	ConnectionString *ConfigSystemConfigPostgresConnectionStringComparisonExp `json:"connectionString,omitempty"`
 	Database         *ConfigStringComparisonExp                               `json:"database,omitempty"`
 	Enabled          *ConfigBooleanComparisonExp                              `json:"enabled,omitempty"`
-	Password         *ConfigStringComparisonExp                               `json:"password,omitempty"`
 }
 
 type ConfigSystemConfigPostgresConnectionString struct {
@@ -1584,14 +1863,12 @@ type ConfigSystemConfigPostgresInsertInput struct {
 	ConnectionString ConfigSystemConfigPostgresConnectionStringInsertInput `json:"connectionString"`
 	Database         string                                                `json:"database"`
 	Enabled          *bool                                                 `json:"enabled,omitempty"`
-	Password         string                                                `json:"password"`
 }
 
 type ConfigSystemConfigPostgresUpdateInput struct {
 	ConnectionString *ConfigSystemConfigPostgresConnectionStringUpdateInput `json:"connectionString,omitempty"`
 	Database         *string                                                `json:"database,omitempty"`
 	Enabled          *bool                                                  `json:"enabled,omitempty"`
-	Password         *string                                                `json:"password,omitempty"`
 }
 
 type ConfigSystemConfigUpdateInput struct {
@@ -1600,17 +1877,17 @@ type ConfigSystemConfigUpdateInput struct {
 }
 
 type ConfigUint32ComparisonExp struct {
-	Eq  *string  `json:"_eq,omitempty"`
-	In  []string `json:"_in,omitempty"`
-	Neq *string  `json:"_neq,omitempty"`
-	Nin []string `json:"_nin,omitempty"`
+	Eq  *uint32  `json:"_eq,omitempty"`
+	In  []uint32 `json:"_in,omitempty"`
+	Neq *uint32  `json:"_neq,omitempty"`
+	Nin []uint32 `json:"_nin,omitempty"`
 }
 
 type ConfigUint8ComparisonExp struct {
-	Eq  *string  `json:"_eq,omitempty"`
-	In  []string `json:"_in,omitempty"`
-	Neq *string  `json:"_neq,omitempty"`
-	Nin []string `json:"_nin,omitempty"`
+	Eq  *uint32  `json:"_eq,omitempty"`
+	In  []uint32 `json:"_in,omitempty"`
+	Neq *uint32  `json:"_neq,omitempty"`
+	Nin []uint32 `json:"_nin,omitempty"`
 }
 
 type ConfigURLComparisonExp struct {
@@ -1932,8 +2209,9 @@ type AppStateHistoryUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *AppStateHistoryIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *AppStateHistorySetInput `json:"_set,omitempty"`
-	Where AppStateHistoryBoolExp   `json:"where"`
+	Set *AppStateHistorySetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where AppStateHistoryBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -2123,8 +2401,9 @@ type AppStatesUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *AppStatesIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *AppStatesSetInput `json:"_set,omitempty"`
-	Where AppStatesBoolExp   `json:"where"`
+	Set *AppStatesSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where AppStatesBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -2192,17 +2471,20 @@ type Apps struct {
 	// An object relationship
 	Plan             Plans  `json:"plan"`
 	PlanID           string `json:"planId"`
-	PostgresPassword string `json:"postgresPassword"`
 	ProvidersUpdated *bool  `json:"providersUpdated,omitempty"`
 	// An object relationship
-	Region                     Regions             `json:"region"`
-	RegionID                   string              `json:"regionId"`
-	RepositoryProductionBranch string              `json:"repositoryProductionBranch"`
-	Slug                       string              `json:"slug"`
-	StripeSubscriptionID       *string             `json:"stripeSubscriptionId,omitempty"`
-	Subdomain                  string              `json:"subdomain"`
-	SystemConfig               *ConfigSystemConfig `json:"systemConfig,omitempty"`
-	UpdatedAt                  time.Time           `json:"updatedAt"`
+	Region                     Regions `json:"region"`
+	RegionID                   string  `json:"regionId"`
+	RepositoryProductionBranch string  `json:"repositoryProductionBranch"`
+	// An array relationship
+	RunServices []*RunService `json:"runServices"`
+	// An aggregate relationship
+	RunServicesAggregate RunServiceAggregate `json:"runServices_aggregate"`
+	Slug                 string              `json:"slug"`
+	StripeSubscriptionID *string             `json:"stripeSubscriptionId,omitempty"`
+	Subdomain            string              `json:"subdomain"`
+	SystemConfig         *ConfigSystemConfig `json:"systemConfig,omitempty"`
+	UpdatedAt            time.Time           `json:"updatedAt"`
 	// An object relationship
 	Workspace   Workspaces `json:"workspace"`
 	WorkspaceID string     `json:"workspaceId"`
@@ -2328,11 +2610,12 @@ type AppsBoolExp struct {
 	Paused                         *BooleanComparisonExp                  `json:"paused,omitempty"`
 	Plan                           *PlansBoolExp                          `json:"plan,omitempty"`
 	PlanID                         *UUIDComparisonExp                     `json:"planId,omitempty"`
-	PostgresPassword               *StringComparisonExp                   `json:"postgresPassword,omitempty"`
 	ProvidersUpdated               *BooleanComparisonExp                  `json:"providersUpdated,omitempty"`
 	Region                         *RegionsBoolExp                        `json:"region,omitempty"`
 	RegionID                       *UUIDComparisonExp                     `json:"regionId,omitempty"`
 	RepositoryProductionBranch     *StringComparisonExp                   `json:"repositoryProductionBranch,omitempty"`
+	RunServices                    *RunServiceBoolExp                     `json:"runServices,omitempty"`
+	RunServicesAggregate           *RunServiceAggregateBoolExp            `json:"runServices_aggregate,omitempty"`
 	Slug                           *StringComparisonExp                   `json:"slug,omitempty"`
 	StripeSubscriptionID           *StringComparisonExp                   `json:"stripeSubscriptionId,omitempty"`
 	Subdomain                      *StringComparisonExp                   `json:"subdomain,omitempty"`
@@ -2390,11 +2673,11 @@ type AppsInsertInput struct {
 	Paused                     *bool                        `json:"paused,omitempty"`
 	Plan                       *PlansObjRelInsertInput      `json:"plan,omitempty"`
 	PlanID                     *string                      `json:"planId,omitempty"`
-	PostgresPassword           *string                      `json:"postgresPassword,omitempty"`
 	ProvidersUpdated           *bool                        `json:"providersUpdated,omitempty"`
 	Region                     *RegionsObjRelInsertInput    `json:"region,omitempty"`
 	RegionID                   *string                      `json:"regionId,omitempty"`
 	RepositoryProductionBranch *string                      `json:"repositoryProductionBranch,omitempty"`
+	RunServices                *RunServiceArrRelInsertInput `json:"runServices,omitempty"`
 	Slug                       *string                      `json:"slug,omitempty"`
 	StripeSubscriptionID       *string                      `json:"stripeSubscriptionId,omitempty"`
 	Subdomain                  *string                      `json:"subdomain,omitempty"`
@@ -2416,7 +2699,6 @@ type AppsMaxFields struct {
 	Name                       *string    `json:"name,omitempty"`
 	NhostBaseFolder            *string    `json:"nhostBaseFolder,omitempty"`
 	PlanID                     *string    `json:"planId,omitempty"`
-	PostgresPassword           *string    `json:"postgresPassword,omitempty"`
 	RegionID                   *string    `json:"regionId,omitempty"`
 	RepositoryProductionBranch *string    `json:"repositoryProductionBranch,omitempty"`
 	Slug                       *string    `json:"slug,omitempty"`
@@ -2439,7 +2721,6 @@ type AppsMaxOrderBy struct {
 	Name                       *OrderBy `json:"name,omitempty"`
 	NhostBaseFolder            *OrderBy `json:"nhostBaseFolder,omitempty"`
 	PlanID                     *OrderBy `json:"planId,omitempty"`
-	PostgresPassword           *OrderBy `json:"postgresPassword,omitempty"`
 	RegionID                   *OrderBy `json:"regionId,omitempty"`
 	RepositoryProductionBranch *OrderBy `json:"repositoryProductionBranch,omitempty"`
 	Slug                       *OrderBy `json:"slug,omitempty"`
@@ -2462,7 +2743,6 @@ type AppsMinFields struct {
 	Name                       *string    `json:"name,omitempty"`
 	NhostBaseFolder            *string    `json:"nhostBaseFolder,omitempty"`
 	PlanID                     *string    `json:"planId,omitempty"`
-	PostgresPassword           *string    `json:"postgresPassword,omitempty"`
 	RegionID                   *string    `json:"regionId,omitempty"`
 	RepositoryProductionBranch *string    `json:"repositoryProductionBranch,omitempty"`
 	Slug                       *string    `json:"slug,omitempty"`
@@ -2485,7 +2765,6 @@ type AppsMinOrderBy struct {
 	Name                       *OrderBy `json:"name,omitempty"`
 	NhostBaseFolder            *OrderBy `json:"nhostBaseFolder,omitempty"`
 	PlanID                     *OrderBy `json:"planId,omitempty"`
-	PostgresPassword           *OrderBy `json:"postgresPassword,omitempty"`
 	RegionID                   *OrderBy `json:"regionId,omitempty"`
 	RepositoryProductionBranch *OrderBy `json:"repositoryProductionBranch,omitempty"`
 	Slug                       *OrderBy `json:"slug,omitempty"`
@@ -2545,11 +2824,11 @@ type AppsOrderBy struct {
 	Paused                         *OrderBy                               `json:"paused,omitempty"`
 	Plan                           *PlansOrderBy                          `json:"plan,omitempty"`
 	PlanID                         *OrderBy                               `json:"planId,omitempty"`
-	PostgresPassword               *OrderBy                               `json:"postgresPassword,omitempty"`
 	ProvidersUpdated               *OrderBy                               `json:"providersUpdated,omitempty"`
 	Region                         *RegionsOrderBy                        `json:"region,omitempty"`
 	RegionID                       *OrderBy                               `json:"regionId,omitempty"`
 	RepositoryProductionBranch     *OrderBy                               `json:"repositoryProductionBranch,omitempty"`
+	RunServicesAggregate           *RunServiceAggregateOrderBy            `json:"runServices_aggregate,omitempty"`
 	Slug                           *OrderBy                               `json:"slug,omitempty"`
 	StripeSubscriptionID           *OrderBy                               `json:"stripeSubscriptionId,omitempty"`
 	Subdomain                      *OrderBy                               `json:"subdomain,omitempty"`
@@ -2586,7 +2865,6 @@ type AppsSetInput struct {
 	// whether or not this app is paused
 	Paused                     *bool      `json:"paused,omitempty"`
 	PlanID                     *string    `json:"planId,omitempty"`
-	PostgresPassword           *string    `json:"postgresPassword,omitempty"`
 	ProvidersUpdated           *bool      `json:"providersUpdated,omitempty"`
 	RegionID                   *string    `json:"regionId,omitempty"`
 	RepositoryProductionBranch *string    `json:"repositoryProductionBranch,omitempty"`
@@ -2653,7 +2931,6 @@ type AppsStreamCursorValueInput struct {
 	// whether or not this app is paused
 	Paused                     *bool      `json:"paused,omitempty"`
 	PlanID                     *string    `json:"planId,omitempty"`
-	PostgresPassword           *string    `json:"postgresPassword,omitempty"`
 	ProvidersUpdated           *bool      `json:"providersUpdated,omitempty"`
 	RegionID                   *string    `json:"regionId,omitempty"`
 	RepositoryProductionBranch *string    `json:"repositoryProductionBranch,omitempty"`
@@ -2688,8 +2965,9 @@ type AppsUpdates struct {
 	// prepend existing jsonb value of filtered columns with new jsonb value
 	Prepend *AppsPrependInput `json:"_prepend,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *AppsSetInput `json:"_set,omitempty"`
-	Where AppsBoolExp   `json:"where"`
+	Set *AppsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where AppsBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -2849,8 +3127,9 @@ type AuthProviderRequestsUpdates struct {
 	// prepend existing jsonb value of filtered columns with new jsonb value
 	Prepend *AuthProviderRequestsPrependInput `json:"_prepend,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *AuthProviderRequestsSetInput `json:"_set,omitempty"`
-	Where AuthProviderRequestsBoolExp   `json:"where"`
+	Set *AuthProviderRequestsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where AuthProviderRequestsBoolExp `json:"where"`
 }
 
 // List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly.
@@ -2954,19 +3233,136 @@ type AuthProvidersStreamCursorValueInput struct {
 
 type AuthProvidersUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *AuthProvidersSetInput `json:"_set,omitempty"`
-	Where AuthProvidersBoolExp   `json:"where"`
+	Set *AuthProvidersSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where AuthProvidersBoolExp `json:"where"`
+}
+
+// columns and relationships of "auth.refresh_token_types"
+type AuthRefreshTokenTypes struct {
+	Comment *string `json:"comment,omitempty"`
+	// An array relationship
+	RefreshTokens []*AuthRefreshTokens `json:"refreshTokens"`
+	// An aggregate relationship
+	RefreshTokensAggregate AuthRefreshTokensAggregate `json:"refreshTokens_aggregate"`
+	Value                  string                     `json:"value"`
+}
+
+// aggregated selection of "auth.refresh_token_types"
+type AuthRefreshTokenTypesAggregate struct {
+	Aggregate *AuthRefreshTokenTypesAggregateFields `json:"aggregate,omitempty"`
+	Nodes     []*AuthRefreshTokenTypes              `json:"nodes"`
+}
+
+// aggregate fields of "auth.refresh_token_types"
+type AuthRefreshTokenTypesAggregateFields struct {
+	Count int64                           `json:"count"`
+	Max   *AuthRefreshTokenTypesMaxFields `json:"max,omitempty"`
+	Min   *AuthRefreshTokenTypesMinFields `json:"min,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "auth.refresh_token_types". All fields are combined with a logical 'AND'.
+type AuthRefreshTokenTypesBoolExp struct {
+	And                    []*AuthRefreshTokenTypesBoolExp    `json:"_and,omitempty"`
+	Not                    *AuthRefreshTokenTypesBoolExp      `json:"_not,omitempty"`
+	Or                     []*AuthRefreshTokenTypesBoolExp    `json:"_or,omitempty"`
+	Comment                *StringComparisonExp               `json:"comment,omitempty"`
+	RefreshTokens          *AuthRefreshTokensBoolExp          `json:"refreshTokens,omitempty"`
+	RefreshTokensAggregate *AuthRefreshTokensAggregateBoolExp `json:"refreshTokens_aggregate,omitempty"`
+	Value                  *StringComparisonExp               `json:"value,omitempty"`
+}
+
+// Boolean expression to compare columns of type "authRefreshTokenTypes_enum". All fields are combined with logical 'AND'.
+type AuthRefreshTokenTypesEnumComparisonExp struct {
+	Eq     *AuthRefreshTokenTypesEnum  `json:"_eq,omitempty"`
+	In     []AuthRefreshTokenTypesEnum `json:"_in,omitempty"`
+	IsNull *bool                       `json:"_is_null,omitempty"`
+	Neq    *AuthRefreshTokenTypesEnum  `json:"_neq,omitempty"`
+	Nin    []AuthRefreshTokenTypesEnum `json:"_nin,omitempty"`
+}
+
+// input type for inserting data into table "auth.refresh_token_types"
+type AuthRefreshTokenTypesInsertInput struct {
+	Comment       *string                             `json:"comment,omitempty"`
+	RefreshTokens *AuthRefreshTokensArrRelInsertInput `json:"refreshTokens,omitempty"`
+	Value         *string                             `json:"value,omitempty"`
+}
+
+// aggregate max on columns
+type AuthRefreshTokenTypesMaxFields struct {
+	Comment *string `json:"comment,omitempty"`
+	Value   *string `json:"value,omitempty"`
+}
+
+// aggregate min on columns
+type AuthRefreshTokenTypesMinFields struct {
+	Comment *string `json:"comment,omitempty"`
+	Value   *string `json:"value,omitempty"`
+}
+
+// response of any mutation on the table "auth.refresh_token_types"
+type AuthRefreshTokenTypesMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*AuthRefreshTokenTypes `json:"returning"`
+}
+
+// on_conflict condition type for table "auth.refresh_token_types"
+type AuthRefreshTokenTypesOnConflict struct {
+	Constraint    AuthRefreshTokenTypesConstraint     `json:"constraint"`
+	UpdateColumns []AuthRefreshTokenTypesUpdateColumn `json:"update_columns"`
+	Where         *AuthRefreshTokenTypesBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "auth.refresh_token_types".
+type AuthRefreshTokenTypesOrderBy struct {
+	Comment                *OrderBy                           `json:"comment,omitempty"`
+	RefreshTokensAggregate *AuthRefreshTokensAggregateOrderBy `json:"refreshTokens_aggregate,omitempty"`
+	Value                  *OrderBy                           `json:"value,omitempty"`
+}
+
+// primary key columns input for table: auth.refresh_token_types
+type AuthRefreshTokenTypesPkColumnsInput struct {
+	Value string `json:"value"`
+}
+
+// input type for updating data in table "auth.refresh_token_types"
+type AuthRefreshTokenTypesSetInput struct {
+	Comment *string `json:"comment,omitempty"`
+	Value   *string `json:"value,omitempty"`
+}
+
+// Streaming cursor of the table "authRefreshTokenTypes"
+type AuthRefreshTokenTypesStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue AuthRefreshTokenTypesStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type AuthRefreshTokenTypesStreamCursorValueInput struct {
+	Comment *string `json:"comment,omitempty"`
+	Value   *string `json:"value,omitempty"`
+}
+
+type AuthRefreshTokenTypesUpdates struct {
+	// sets the columns of the filtered rows to the given values
+	Set *AuthRefreshTokenTypesSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where AuthRefreshTokenTypesBoolExp `json:"where"`
 }
 
 // User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthRefreshTokens struct {
-	CreatedAt time.Time              `json:"createdAt"`
-	ExpiresAt time.Time              `json:"expiresAt"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
-	// DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead.
-	RefreshToken     string  `json:"refreshToken"`
-	RefreshTokenHash *string `json:"refreshTokenHash,omitempty"`
-	Type             string  `json:"type"`
+	CreatedAt        time.Time                 `json:"createdAt"`
+	ExpiresAt        time.Time                 `json:"expiresAt"`
+	ID               string                    `json:"id"`
+	Metadata         map[string]interface{}    `json:"metadata,omitempty"`
+	RefreshTokenHash *string                   `json:"refreshTokenHash,omitempty"`
+	RefreshToken     *string                   `json:"refresh_token,omitempty"`
+	Type             AuthRefreshTokenTypesEnum `json:"type"`
 	// An object relationship
 	User   Users  `json:"user"`
 	UserID string `json:"userId"`
@@ -3017,17 +3413,18 @@ type AuthRefreshTokensArrRelInsertInput struct {
 
 // Boolean expression to filter rows from the table "auth.refresh_tokens". All fields are combined with a logical 'AND'.
 type AuthRefreshTokensBoolExp struct {
-	And              []*AuthRefreshTokensBoolExp    `json:"_and,omitempty"`
-	Not              *AuthRefreshTokensBoolExp      `json:"_not,omitempty"`
-	Or               []*AuthRefreshTokensBoolExp    `json:"_or,omitempty"`
-	CreatedAt        *TimestamptzComparisonExp      `json:"createdAt,omitempty"`
-	ExpiresAt        *TimestamptzComparisonExp      `json:"expiresAt,omitempty"`
-	Metadata         *JsonbComparisonExp            `json:"metadata,omitempty"`
-	RefreshToken     *UUIDComparisonExp             `json:"refreshToken,omitempty"`
-	RefreshTokenHash *StringComparisonExp           `json:"refreshTokenHash,omitempty"`
-	Type             *RefreshTokenTypeComparisonExp `json:"type,omitempty"`
-	User             *UsersBoolExp                  `json:"user,omitempty"`
-	UserID           *UUIDComparisonExp             `json:"userId,omitempty"`
+	And              []*AuthRefreshTokensBoolExp             `json:"_and,omitempty"`
+	Not              *AuthRefreshTokensBoolExp               `json:"_not,omitempty"`
+	Or               []*AuthRefreshTokensBoolExp             `json:"_or,omitempty"`
+	CreatedAt        *TimestamptzComparisonExp               `json:"createdAt,omitempty"`
+	ExpiresAt        *TimestamptzComparisonExp               `json:"expiresAt,omitempty"`
+	ID               *UUIDComparisonExp                      `json:"id,omitempty"`
+	Metadata         *JsonbComparisonExp                     `json:"metadata,omitempty"`
+	RefreshTokenHash *StringComparisonExp                    `json:"refreshTokenHash,omitempty"`
+	RefreshToken     *UUIDComparisonExp                      `json:"refresh_token,omitempty"`
+	Type             *AuthRefreshTokenTypesEnumComparisonExp `json:"type,omitempty"`
+	User             *UsersBoolExp                           `json:"user,omitempty"`
+	UserID           *UUIDComparisonExp                      `json:"userId,omitempty"`
 }
 
 // delete the field or element with specified path (for JSON arrays, negative integers count from the end)
@@ -3047,57 +3444,54 @@ type AuthRefreshTokensDeleteKeyInput struct {
 
 // input type for inserting data into table "auth.refresh_tokens"
 type AuthRefreshTokensInsertInput struct {
-	CreatedAt *time.Time             `json:"createdAt,omitempty"`
-	ExpiresAt *time.Time             `json:"expiresAt,omitempty"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
-	// DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead.
-	RefreshToken *string                 `json:"refreshToken,omitempty"`
-	Type         *string                 `json:"type,omitempty"`
-	User         *UsersObjRelInsertInput `json:"user,omitempty"`
-	UserID       *string                 `json:"userId,omitempty"`
+	CreatedAt        *time.Time                 `json:"createdAt,omitempty"`
+	ExpiresAt        *time.Time                 `json:"expiresAt,omitempty"`
+	ID               *string                    `json:"id,omitempty"`
+	Metadata         map[string]interface{}     `json:"metadata,omitempty"`
+	RefreshTokenHash *string                    `json:"refreshTokenHash,omitempty"`
+	RefreshToken     *string                    `json:"refresh_token,omitempty"`
+	Type             *AuthRefreshTokenTypesEnum `json:"type,omitempty"`
+	User             *UsersObjRelInsertInput    `json:"user,omitempty"`
+	UserID           *string                    `json:"userId,omitempty"`
 }
 
 // aggregate max on columns
 type AuthRefreshTokensMaxFields struct {
-	CreatedAt *time.Time `json:"createdAt,omitempty"`
-	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
-	// DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead.
-	RefreshToken     *string `json:"refreshToken,omitempty"`
-	RefreshTokenHash *string `json:"refreshTokenHash,omitempty"`
-	Type             *string `json:"type,omitempty"`
-	UserID           *string `json:"userId,omitempty"`
+	CreatedAt        *time.Time `json:"createdAt,omitempty"`
+	ExpiresAt        *time.Time `json:"expiresAt,omitempty"`
+	ID               *string    `json:"id,omitempty"`
+	RefreshTokenHash *string    `json:"refreshTokenHash,omitempty"`
+	RefreshToken     *string    `json:"refresh_token,omitempty"`
+	UserID           *string    `json:"userId,omitempty"`
 }
 
 // order by max() on columns of table "auth.refresh_tokens"
 type AuthRefreshTokensMaxOrderBy struct {
-	CreatedAt *OrderBy `json:"createdAt,omitempty"`
-	ExpiresAt *OrderBy `json:"expiresAt,omitempty"`
-	// DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead.
-	RefreshToken     *OrderBy `json:"refreshToken,omitempty"`
+	CreatedAt        *OrderBy `json:"createdAt,omitempty"`
+	ExpiresAt        *OrderBy `json:"expiresAt,omitempty"`
+	ID               *OrderBy `json:"id,omitempty"`
 	RefreshTokenHash *OrderBy `json:"refreshTokenHash,omitempty"`
-	Type             *OrderBy `json:"type,omitempty"`
+	RefreshToken     *OrderBy `json:"refresh_token,omitempty"`
 	UserID           *OrderBy `json:"userId,omitempty"`
 }
 
 // aggregate min on columns
 type AuthRefreshTokensMinFields struct {
-	CreatedAt *time.Time `json:"createdAt,omitempty"`
-	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
-	// DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead.
-	RefreshToken     *string `json:"refreshToken,omitempty"`
-	RefreshTokenHash *string `json:"refreshTokenHash,omitempty"`
-	Type             *string `json:"type,omitempty"`
-	UserID           *string `json:"userId,omitempty"`
+	CreatedAt        *time.Time `json:"createdAt,omitempty"`
+	ExpiresAt        *time.Time `json:"expiresAt,omitempty"`
+	ID               *string    `json:"id,omitempty"`
+	RefreshTokenHash *string    `json:"refreshTokenHash,omitempty"`
+	RefreshToken     *string    `json:"refresh_token,omitempty"`
+	UserID           *string    `json:"userId,omitempty"`
 }
 
 // order by min() on columns of table "auth.refresh_tokens"
 type AuthRefreshTokensMinOrderBy struct {
-	CreatedAt *OrderBy `json:"createdAt,omitempty"`
-	ExpiresAt *OrderBy `json:"expiresAt,omitempty"`
-	// DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead.
-	RefreshToken     *OrderBy `json:"refreshToken,omitempty"`
+	CreatedAt        *OrderBy `json:"createdAt,omitempty"`
+	ExpiresAt        *OrderBy `json:"expiresAt,omitempty"`
+	ID               *OrderBy `json:"id,omitempty"`
 	RefreshTokenHash *OrderBy `json:"refreshTokenHash,omitempty"`
-	Type             *OrderBy `json:"type,omitempty"`
+	RefreshToken     *OrderBy `json:"refresh_token,omitempty"`
 	UserID           *OrderBy `json:"userId,omitempty"`
 }
 
@@ -3120,9 +3514,10 @@ type AuthRefreshTokensOnConflict struct {
 type AuthRefreshTokensOrderBy struct {
 	CreatedAt        *OrderBy      `json:"createdAt,omitempty"`
 	ExpiresAt        *OrderBy      `json:"expiresAt,omitempty"`
+	ID               *OrderBy      `json:"id,omitempty"`
 	Metadata         *OrderBy      `json:"metadata,omitempty"`
-	RefreshToken     *OrderBy      `json:"refreshToken,omitempty"`
 	RefreshTokenHash *OrderBy      `json:"refreshTokenHash,omitempty"`
+	RefreshToken     *OrderBy      `json:"refresh_token,omitempty"`
 	Type             *OrderBy      `json:"type,omitempty"`
 	User             *UsersOrderBy `json:"user,omitempty"`
 	UserID           *OrderBy      `json:"userId,omitempty"`
@@ -3130,8 +3525,7 @@ type AuthRefreshTokensOrderBy struct {
 
 // primary key columns input for table: auth.refresh_tokens
 type AuthRefreshTokensPkColumnsInput struct {
-	// DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead.
-	RefreshToken string `json:"refreshToken"`
+	ID string `json:"id"`
 }
 
 // prepend existing jsonb value of filtered columns with new jsonb value
@@ -3141,13 +3535,14 @@ type AuthRefreshTokensPrependInput struct {
 
 // input type for updating data in table "auth.refresh_tokens"
 type AuthRefreshTokensSetInput struct {
-	CreatedAt *time.Time             `json:"createdAt,omitempty"`
-	ExpiresAt *time.Time             `json:"expiresAt,omitempty"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
-	// DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead.
-	RefreshToken *string `json:"refreshToken,omitempty"`
-	Type         *string `json:"type,omitempty"`
-	UserID       *string `json:"userId,omitempty"`
+	CreatedAt        *time.Time                 `json:"createdAt,omitempty"`
+	ExpiresAt        *time.Time                 `json:"expiresAt,omitempty"`
+	ID               *string                    `json:"id,omitempty"`
+	Metadata         map[string]interface{}     `json:"metadata,omitempty"`
+	RefreshTokenHash *string                    `json:"refreshTokenHash,omitempty"`
+	RefreshToken     *string                    `json:"refresh_token,omitempty"`
+	Type             *AuthRefreshTokenTypesEnum `json:"type,omitempty"`
+	UserID           *string                    `json:"userId,omitempty"`
 }
 
 // Streaming cursor of the table "authRefreshTokens"
@@ -3160,14 +3555,14 @@ type AuthRefreshTokensStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type AuthRefreshTokensStreamCursorValueInput struct {
-	CreatedAt *time.Time             `json:"createdAt,omitempty"`
-	ExpiresAt *time.Time             `json:"expiresAt,omitempty"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
-	// DEPRECATED: auto-generated refresh token id. Will be replaced by a genereric id column that will be used as a primary key, not the refresh token itself. Use refresh_token_hash instead.
-	RefreshToken     *string `json:"refreshToken,omitempty"`
-	RefreshTokenHash *string `json:"refreshTokenHash,omitempty"`
-	Type             *string `json:"type,omitempty"`
-	UserID           *string `json:"userId,omitempty"`
+	CreatedAt        *time.Time                 `json:"createdAt,omitempty"`
+	ExpiresAt        *time.Time                 `json:"expiresAt,omitempty"`
+	ID               *string                    `json:"id,omitempty"`
+	Metadata         map[string]interface{}     `json:"metadata,omitempty"`
+	RefreshTokenHash *string                    `json:"refreshTokenHash,omitempty"`
+	RefreshToken     *string                    `json:"refresh_token,omitempty"`
+	Type             *AuthRefreshTokenTypesEnum `json:"type,omitempty"`
+	UserID           *string                    `json:"userId,omitempty"`
 }
 
 type AuthRefreshTokensUpdates struct {
@@ -3182,8 +3577,9 @@ type AuthRefreshTokensUpdates struct {
 	// prepend existing jsonb value of filtered columns with new jsonb value
 	Prepend *AuthRefreshTokensPrependInput `json:"_prepend,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *AuthRefreshTokensSetInput `json:"_set,omitempty"`
-	Where AuthRefreshTokensBoolExp   `json:"where"`
+	Set *AuthRefreshTokensSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where AuthRefreshTokensBoolExp `json:"where"`
 }
 
 // Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly.
@@ -3295,8 +3691,9 @@ type AuthRolesStreamCursorValueInput struct {
 
 type AuthRolesUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *AuthRolesSetInput `json:"_set,omitempty"`
-	Where AuthRolesBoolExp   `json:"where"`
+	Set *AuthRolesSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where AuthRolesBoolExp `json:"where"`
 }
 
 // Active providers for a given user. Don't modify its structure as Hasura Auth relies on it to function properly.
@@ -3500,8 +3897,9 @@ type AuthUserProvidersStreamCursorValueInput struct {
 
 type AuthUserProvidersUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *AuthUserProvidersSetInput `json:"_set,omitempty"`
-	Where AuthUserProvidersBoolExp   `json:"where"`
+	Set *AuthUserProvidersSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where AuthUserProvidersBoolExp `json:"where"`
 }
 
 // Roles of users. Don't modify its structure as Hasura Auth relies on it to function properly.
@@ -3665,8 +4063,9 @@ type AuthUserRolesStreamCursorValueInput struct {
 
 type AuthUserRolesUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *AuthUserRolesSetInput `json:"_set,omitempty"`
-	Where AuthUserRolesBoolExp   `json:"where"`
+	Set *AuthUserRolesSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where AuthUserRolesBoolExp `json:"where"`
 }
 
 // User webauthn security keys. Don't modify its structure as Hasura Auth relies on it to function properly.
@@ -3924,8 +4323,9 @@ type AuthUserSecurityKeysUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *AuthUserSecurityKeysIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *AuthUserSecurityKeysSetInput `json:"_set,omitempty"`
-	Where AuthUserSecurityKeysBoolExp   `json:"where"`
+	Set *AuthUserSecurityKeysSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where AuthUserSecurityKeysBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -4108,8 +4508,9 @@ type AuthMigrationsUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *AuthMigrationsIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *AuthMigrationsSetInput `json:"_set,omitempty"`
-	Where AuthMigrationsBoolExp   `json:"where"`
+	Set *AuthMigrationsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where AuthMigrationsBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -4376,8 +4777,9 @@ type BackupsUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *BackupsIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *BackupsSetInput `json:"_set,omitempty"`
-	Where BackupsBoolExp   `json:"where"`
+	Set *BackupsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where BackupsBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -4735,8 +5137,9 @@ type BillingDedicatedComputeReportsUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *BillingDedicatedComputeReportsIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *BillingDedicatedComputeReportsSetInput `json:"_set,omitempty"`
-	Where BillingDedicatedComputeReportsBoolExp   `json:"where"`
+	Set *BillingDedicatedComputeReportsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where BillingDedicatedComputeReportsBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -4804,8 +5207,9 @@ type BillingDedicatedComputeUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *BillingDedicatedComputeIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *BillingDedicatedComputeSetInput `json:"_set,omitempty"`
-	Where BillingDedicatedComputeBoolExp   `json:"where"`
+	Set *BillingDedicatedComputeSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where BillingDedicatedComputeBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -4953,8 +5357,9 @@ type BillingSubscriptionsStreamCursorValueInput struct {
 
 type BillingSubscriptionsUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *BillingSubscriptionsSetInput `json:"_set,omitempty"`
-	Where BillingSubscriptionsBoolExp   `json:"where"`
+	Set *BillingSubscriptionsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where BillingSubscriptionsBoolExp `json:"where"`
 }
 
 // Boolean expression to compare columns of type "bpchar". All fields are combined with logical 'AND'.
@@ -5197,8 +5602,9 @@ type BucketsUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *BucketsIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *BucketsSetInput `json:"_set,omitempty"`
-	Where BucketsBoolExp   `json:"where"`
+	Set *BucketsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where BucketsBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -5434,8 +5840,9 @@ type CliTokensStreamCursorValueInput struct {
 
 type CliTokensUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *CliTokensSetInput `json:"_set,omitempty"`
-	Where CliTokensBoolExp   `json:"where"`
+	Set *CliTokensSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where CliTokensBoolExp `json:"where"`
 }
 
 // columns and relationships of "continents"
@@ -5560,8 +5967,9 @@ type ContinentsStreamCursorValueInput struct {
 
 type ContinentsUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *ContinentsSetInput `json:"_set,omitempty"`
-	Where ContinentsBoolExp   `json:"where"`
+	Set *ContinentsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where ContinentsBoolExp `json:"where"`
 }
 
 // columns and relationships of "countries"
@@ -5898,8 +6306,9 @@ type CountriesUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *CountriesIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *CountriesSetInput `json:"_set,omitempty"`
-	Where CountriesBoolExp   `json:"where"`
+	Set *CountriesSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where CountriesBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -6094,8 +6503,9 @@ type DeploymentLogsStreamCursorValueInput struct {
 
 type DeploymentLogsUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *DeploymentLogsSetInput `json:"_set,omitempty"`
-	Where DeploymentLogsBoolExp   `json:"where"`
+	Set *DeploymentLogsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where DeploymentLogsBoolExp `json:"where"`
 }
 
 // Table that keeps track of deployments done by watchtower
@@ -6409,8 +6819,9 @@ type DeploymentsStreamCursorValueInput struct {
 
 type DeploymentsUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *DeploymentsSetInput `json:"_set,omitempty"`
-	Where DeploymentsBoolExp   `json:"where"`
+	Set *DeploymentsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where DeploymentsBoolExp `json:"where"`
 }
 
 // columns and relationships of "feature_flags"
@@ -6579,8 +6990,9 @@ type FeatureFlagsStreamCursorValueInput struct {
 
 type FeatureFlagsUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *FeatureFlagsSetInput `json:"_set,omitempty"`
-	Where FeatureFlagsBoolExp   `json:"where"`
+	Set *FeatureFlagsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where FeatureFlagsBoolExp `json:"where"`
 }
 
 // columns and relationships of "feedback"
@@ -6812,8 +7224,9 @@ type FeedbackUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *FeedbackIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *FeedbackSetInput `json:"_set,omitempty"`
-	Where FeedbackBoolExp   `json:"where"`
+	Set *FeedbackSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where FeedbackBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -7147,8 +7560,9 @@ type FilesUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *FilesIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *FilesSetInput `json:"_set,omitempty"`
-	Where FilesBoolExp   `json:"where"`
+	Set *FilesSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where FilesBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -7516,8 +7930,9 @@ type GithubAppInstallationsUpdates struct {
 	// prepend existing jsonb value of filtered columns with new jsonb value
 	Prepend *GithubAppInstallationsPrependInput `json:"_prepend,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *GithubAppInstallationsSetInput `json:"_set,omitempty"`
-	Where GithubAppInstallationsBoolExp   `json:"where"`
+	Set *GithubAppInstallationsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where GithubAppInstallationsBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -7773,8 +8188,9 @@ type GithubRepositoriesStreamCursorValueInput struct {
 
 type GithubRepositoriesUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *GithubRepositoriesSetInput `json:"_set,omitempty"`
-	Where GithubRepositoriesBoolExp   `json:"where"`
+	Set *GithubRepositoriesSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where GithubRepositoriesBoolExp `json:"where"`
 }
 
 type JsonbCastExp struct {
@@ -8129,8 +8545,9 @@ type PaymentMethodsUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *PaymentMethodsIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *PaymentMethodsSetInput `json:"_set,omitempty"`
-	Where PaymentMethodsBoolExp   `json:"where"`
+	Set *PaymentMethodsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where PaymentMethodsBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -8496,8 +8913,9 @@ type PlansUpdates struct {
 	// increments the numeric columns with given value of the filtered values
 	Inc *PlansIncInput `json:"_inc,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *PlansSetInput `json:"_set,omitempty"`
-	Where PlansBoolExp   `json:"where"`
+	Set *PlansSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where PlansBoolExp `json:"where"`
 }
 
 // aggregate var_pop on columns
@@ -8536,22 +8954,134 @@ type PlansVarianceFields struct {
 	Sort                                     *float64 `json:"sort,omitempty"`
 }
 
-// Boolean expression to compare columns of type "refresh_token_type". All fields are combined with logical 'AND'.
-type RefreshTokenTypeComparisonExp struct {
-	Eq     *string  `json:"_eq,omitempty"`
-	Gt     *string  `json:"_gt,omitempty"`
-	Gte    *string  `json:"_gte,omitempty"`
-	In     []string `json:"_in,omitempty"`
-	IsNull *bool    `json:"_is_null,omitempty"`
-	Lt     *string  `json:"_lt,omitempty"`
-	Lte    *string  `json:"_lte,omitempty"`
-	Neq    *string  `json:"_neq,omitempty"`
-	Nin    []string `json:"_nin,omitempty"`
+// columns and relationships of "region_type"
+type RegionType struct {
+	Comment string `json:"comment"`
+	// An array relationship
+	Regions []*Regions `json:"regions"`
+	// An aggregate relationship
+	RegionsAggregate RegionsAggregate `json:"regions_aggregate"`
+	Type             string           `json:"type"`
+}
+
+// aggregated selection of "region_type"
+type RegionTypeAggregate struct {
+	Aggregate *RegionTypeAggregateFields `json:"aggregate,omitempty"`
+	Nodes     []*RegionType              `json:"nodes"`
+}
+
+// aggregate fields of "region_type"
+type RegionTypeAggregateFields struct {
+	Count int64                `json:"count"`
+	Max   *RegionTypeMaxFields `json:"max,omitempty"`
+	Min   *RegionTypeMinFields `json:"min,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "region_type". All fields are combined with a logical 'AND'.
+type RegionTypeBoolExp struct {
+	And              []*RegionTypeBoolExp     `json:"_and,omitempty"`
+	Not              *RegionTypeBoolExp       `json:"_not,omitempty"`
+	Or               []*RegionTypeBoolExp     `json:"_or,omitempty"`
+	Comment          *StringComparisonExp     `json:"comment,omitempty"`
+	Regions          *RegionsBoolExp          `json:"regions,omitempty"`
+	RegionsAggregate *RegionsAggregateBoolExp `json:"regions_aggregate,omitempty"`
+	Type             *StringComparisonExp     `json:"type,omitempty"`
+}
+
+// Boolean expression to compare columns of type "region_type_enum". All fields are combined with logical 'AND'.
+type RegionTypeEnumComparisonExp struct {
+	Eq     *RegionTypeEnum  `json:"_eq,omitempty"`
+	In     []RegionTypeEnum `json:"_in,omitempty"`
+	IsNull *bool            `json:"_is_null,omitempty"`
+	Neq    *RegionTypeEnum  `json:"_neq,omitempty"`
+	Nin    []RegionTypeEnum `json:"_nin,omitempty"`
+}
+
+// input type for inserting data into table "region_type"
+type RegionTypeInsertInput struct {
+	Comment *string                   `json:"comment,omitempty"`
+	Regions *RegionsArrRelInsertInput `json:"regions,omitempty"`
+	Type    *string                   `json:"type,omitempty"`
+}
+
+// aggregate max on columns
+type RegionTypeMaxFields struct {
+	Comment *string `json:"comment,omitempty"`
+	Type    *string `json:"type,omitempty"`
+}
+
+// aggregate min on columns
+type RegionTypeMinFields struct {
+	Comment *string `json:"comment,omitempty"`
+	Type    *string `json:"type,omitempty"`
+}
+
+// response of any mutation on the table "region_type"
+type RegionTypeMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*RegionType `json:"returning"`
+}
+
+// input type for inserting object relation for remote table "region_type"
+type RegionTypeObjRelInsertInput struct {
+	Data RegionTypeInsertInput `json:"data"`
+	// upsert condition
+	OnConflict *RegionTypeOnConflict `json:"on_conflict,omitempty"`
+}
+
+// on_conflict condition type for table "region_type"
+type RegionTypeOnConflict struct {
+	Constraint    RegionTypeConstraint     `json:"constraint"`
+	UpdateColumns []RegionTypeUpdateColumn `json:"update_columns"`
+	Where         *RegionTypeBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "region_type".
+type RegionTypeOrderBy struct {
+	Comment          *OrderBy                 `json:"comment,omitempty"`
+	RegionsAggregate *RegionsAggregateOrderBy `json:"regions_aggregate,omitempty"`
+	Type             *OrderBy                 `json:"type,omitempty"`
+}
+
+// primary key columns input for table: region_type
+type RegionTypePkColumnsInput struct {
+	Type string `json:"type"`
+}
+
+// input type for updating data in table "region_type"
+type RegionTypeSetInput struct {
+	Comment *string `json:"comment,omitempty"`
+	Type    *string `json:"type,omitempty"`
+}
+
+// Streaming cursor of the table "region_type"
+type RegionTypeStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue RegionTypeStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type RegionTypeStreamCursorValueInput struct {
+	Comment *string `json:"comment,omitempty"`
+	Type    *string `json:"type,omitempty"`
+}
+
+type RegionTypeUpdates struct {
+	// sets the columns of the filtered rows to the given values
+	Set *RegionTypeSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where RegionTypeBoolExp `json:"where"`
 }
 
 // columns and relationships of "regions"
 type Regions struct {
 	Active bool `json:"active"`
+	// An object relationship
+	AllowedWorkspaces *RegionsAllowedWorkspace `json:"allowedWorkspaces,omitempty"`
 	// An array relationship
 	Apps []*Apps `json:"apps"`
 	// An aggregate relationship
@@ -8562,9 +9092,18 @@ type Regions struct {
 	Country         Countries `json:"country"`
 	CountryCode     string    `json:"countryCode"`
 	CreatedAt       time.Time `json:"createdAt"`
+	Description     *string   `json:"description,omitempty"`
+	Domain          string    `json:"domain"`
 	ID              string    `json:"id"`
 	IsGdprCompliant bool      `json:"isGdprCompliant"`
-	UpdatedAt       time.Time `json:"updatedAt"`
+	// An object relationship
+	RegionType RegionType `json:"region_type"`
+	// An array relationship
+	RegionsAllowedWorkspaces []*RegionsAllowedWorkspace `json:"regions_allowed_workspaces"`
+	// An aggregate relationship
+	RegionsAllowedWorkspacesAggregate RegionsAllowedWorkspaceAggregate `json:"regions_allowed_workspaces_aggregate"`
+	Type                              RegionTypeEnum                   `json:"type"`
+	UpdatedAt                         time.Time                        `json:"updatedAt"`
 }
 
 // aggregated selection of "regions"
@@ -8614,6 +9153,199 @@ type RegionsAggregateOrderBy struct {
 	Min   *RegionsMinOrderBy `json:"min,omitempty"`
 }
 
+// columns and relationships of "regions_allowed_workspace"
+type RegionsAllowedWorkspace struct {
+	CreatedAt   time.Time `json:"created_at"`
+	Description string    `json:"description"`
+	ID          string    `json:"id"`
+	// An object relationship
+	Region    *Regions  `json:"region,omitempty"`
+	RegionID  string    `json:"region_id"`
+	UpdatedAt time.Time `json:"updated_at"`
+	// An object relationship
+	Workspace   *Workspaces `json:"workspace,omitempty"`
+	WorkspaceID string      `json:"workspace_id"`
+}
+
+// aggregated selection of "regions_allowed_workspace"
+type RegionsAllowedWorkspaceAggregate struct {
+	Aggregate *RegionsAllowedWorkspaceAggregateFields `json:"aggregate,omitempty"`
+	Nodes     []*RegionsAllowedWorkspace              `json:"nodes"`
+}
+
+type RegionsAllowedWorkspaceAggregateBoolExp struct {
+	Count *RegionsAllowedWorkspaceAggregateBoolExpCount `json:"count,omitempty"`
+}
+
+type RegionsAllowedWorkspaceAggregateBoolExpCount struct {
+	Arguments []RegionsAllowedWorkspaceSelectColumn `json:"arguments,omitempty"`
+	Distinct  *bool                                 `json:"distinct,omitempty"`
+	Filter    *RegionsAllowedWorkspaceBoolExp       `json:"filter,omitempty"`
+	Predicate IntComparisonExp                      `json:"predicate"`
+}
+
+// aggregate fields of "regions_allowed_workspace"
+type RegionsAllowedWorkspaceAggregateFields struct {
+	Count int64                             `json:"count"`
+	Max   *RegionsAllowedWorkspaceMaxFields `json:"max,omitempty"`
+	Min   *RegionsAllowedWorkspaceMinFields `json:"min,omitempty"`
+}
+
+// order by aggregate values of table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceAggregateOrderBy struct {
+	Count *OrderBy                           `json:"count,omitempty"`
+	Max   *RegionsAllowedWorkspaceMaxOrderBy `json:"max,omitempty"`
+	Min   *RegionsAllowedWorkspaceMinOrderBy `json:"min,omitempty"`
+}
+
+// input type for inserting array relation for remote table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceArrRelInsertInput struct {
+	Data []*RegionsAllowedWorkspaceInsertInput `json:"data"`
+	// upsert condition
+	OnConflict *RegionsAllowedWorkspaceOnConflict `json:"on_conflict,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "regions_allowed_workspace". All fields are combined with a logical 'AND'.
+type RegionsAllowedWorkspaceBoolExp struct {
+	And         []*RegionsAllowedWorkspaceBoolExp `json:"_and,omitempty"`
+	Not         *RegionsAllowedWorkspaceBoolExp   `json:"_not,omitempty"`
+	Or          []*RegionsAllowedWorkspaceBoolExp `json:"_or,omitempty"`
+	CreatedAt   *TimestamptzComparisonExp         `json:"created_at,omitempty"`
+	Description *StringComparisonExp              `json:"description,omitempty"`
+	ID          *UUIDComparisonExp                `json:"id,omitempty"`
+	Region      *RegionsBoolExp                   `json:"region,omitempty"`
+	RegionID    *UUIDComparisonExp                `json:"region_id,omitempty"`
+	UpdatedAt   *TimestamptzComparisonExp         `json:"updated_at,omitempty"`
+	Workspace   *WorkspacesBoolExp                `json:"workspace,omitempty"`
+	WorkspaceID *UUIDComparisonExp                `json:"workspace_id,omitempty"`
+}
+
+// input type for inserting data into table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceInsertInput struct {
+	CreatedAt   *time.Time                   `json:"created_at,omitempty"`
+	Description *string                      `json:"description,omitempty"`
+	ID          *string                      `json:"id,omitempty"`
+	Region      *RegionsObjRelInsertInput    `json:"region,omitempty"`
+	RegionID    *string                      `json:"region_id,omitempty"`
+	UpdatedAt   *time.Time                   `json:"updated_at,omitempty"`
+	Workspace   *WorkspacesObjRelInsertInput `json:"workspace,omitempty"`
+	WorkspaceID *string                      `json:"workspace_id,omitempty"`
+}
+
+// aggregate max on columns
+type RegionsAllowedWorkspaceMaxFields struct {
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	ID          *string    `json:"id,omitempty"`
+	RegionID    *string    `json:"region_id,omitempty"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
+	WorkspaceID *string    `json:"workspace_id,omitempty"`
+}
+
+// order by max() on columns of table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceMaxOrderBy struct {
+	CreatedAt   *OrderBy `json:"created_at,omitempty"`
+	Description *OrderBy `json:"description,omitempty"`
+	ID          *OrderBy `json:"id,omitempty"`
+	RegionID    *OrderBy `json:"region_id,omitempty"`
+	UpdatedAt   *OrderBy `json:"updated_at,omitempty"`
+	WorkspaceID *OrderBy `json:"workspace_id,omitempty"`
+}
+
+// aggregate min on columns
+type RegionsAllowedWorkspaceMinFields struct {
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	ID          *string    `json:"id,omitempty"`
+	RegionID    *string    `json:"region_id,omitempty"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
+	WorkspaceID *string    `json:"workspace_id,omitempty"`
+}
+
+// order by min() on columns of table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceMinOrderBy struct {
+	CreatedAt   *OrderBy `json:"created_at,omitempty"`
+	Description *OrderBy `json:"description,omitempty"`
+	ID          *OrderBy `json:"id,omitempty"`
+	RegionID    *OrderBy `json:"region_id,omitempty"`
+	UpdatedAt   *OrderBy `json:"updated_at,omitempty"`
+	WorkspaceID *OrderBy `json:"workspace_id,omitempty"`
+}
+
+// response of any mutation on the table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*RegionsAllowedWorkspace `json:"returning"`
+}
+
+// input type for inserting object relation for remote table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceObjRelInsertInput struct {
+	Data RegionsAllowedWorkspaceInsertInput `json:"data"`
+	// upsert condition
+	OnConflict *RegionsAllowedWorkspaceOnConflict `json:"on_conflict,omitempty"`
+}
+
+// on_conflict condition type for table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceOnConflict struct {
+	Constraint    RegionsAllowedWorkspaceConstraint     `json:"constraint"`
+	UpdateColumns []RegionsAllowedWorkspaceUpdateColumn `json:"update_columns"`
+	Where         *RegionsAllowedWorkspaceBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "regions_allowed_workspace".
+type RegionsAllowedWorkspaceOrderBy struct {
+	CreatedAt   *OrderBy           `json:"created_at,omitempty"`
+	Description *OrderBy           `json:"description,omitempty"`
+	ID          *OrderBy           `json:"id,omitempty"`
+	Region      *RegionsOrderBy    `json:"region,omitempty"`
+	RegionID    *OrderBy           `json:"region_id,omitempty"`
+	UpdatedAt   *OrderBy           `json:"updated_at,omitempty"`
+	Workspace   *WorkspacesOrderBy `json:"workspace,omitempty"`
+	WorkspaceID *OrderBy           `json:"workspace_id,omitempty"`
+}
+
+// primary key columns input for table: regions_allowed_workspace
+type RegionsAllowedWorkspacePkColumnsInput struct {
+	ID string `json:"id"`
+}
+
+// input type for updating data in table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceSetInput struct {
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	ID          *string    `json:"id,omitempty"`
+	RegionID    *string    `json:"region_id,omitempty"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
+	WorkspaceID *string    `json:"workspace_id,omitempty"`
+}
+
+// Streaming cursor of the table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue RegionsAllowedWorkspaceStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type RegionsAllowedWorkspaceStreamCursorValueInput struct {
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	ID          *string    `json:"id,omitempty"`
+	RegionID    *string    `json:"region_id,omitempty"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
+	WorkspaceID *string    `json:"workspace_id,omitempty"`
+}
+
+type RegionsAllowedWorkspaceUpdates struct {
+	// sets the columns of the filtered rows to the given values
+	Set *RegionsAllowedWorkspaceSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where RegionsAllowedWorkspaceBoolExp `json:"where"`
+}
+
 // input type for inserting array relation for remote table "regions"
 type RegionsArrRelInsertInput struct {
 	Data []*RegionsInsertInput `json:"data"`
@@ -8623,34 +9355,47 @@ type RegionsArrRelInsertInput struct {
 
 // Boolean expression to filter rows from the table "regions". All fields are combined with a logical 'AND'.
 type RegionsBoolExp struct {
-	And             []*RegionsBoolExp         `json:"_and,omitempty"`
-	Not             *RegionsBoolExp           `json:"_not,omitempty"`
-	Or              []*RegionsBoolExp         `json:"_or,omitempty"`
-	Active          *BooleanComparisonExp     `json:"active,omitempty"`
-	Apps            *AppsBoolExp              `json:"apps,omitempty"`
-	AppsAggregate   *AppsAggregateBoolExp     `json:"apps_aggregate,omitempty"`
-	AwsName         *StringComparisonExp      `json:"awsName,omitempty"`
-	City            *StringComparisonExp      `json:"city,omitempty"`
-	Country         *CountriesBoolExp         `json:"country,omitempty"`
-	CountryCode     *StringComparisonExp      `json:"countryCode,omitempty"`
-	CreatedAt       *TimestamptzComparisonExp `json:"createdAt,omitempty"`
-	ID              *UUIDComparisonExp        `json:"id,omitempty"`
-	IsGdprCompliant *BooleanComparisonExp     `json:"isGdprCompliant,omitempty"`
-	UpdatedAt       *TimestamptzComparisonExp `json:"updatedAt,omitempty"`
+	And                               []*RegionsBoolExp                        `json:"_and,omitempty"`
+	Not                               *RegionsBoolExp                          `json:"_not,omitempty"`
+	Or                                []*RegionsBoolExp                        `json:"_or,omitempty"`
+	Active                            *BooleanComparisonExp                    `json:"active,omitempty"`
+	AllowedWorkspaces                 *RegionsAllowedWorkspaceBoolExp          `json:"allowedWorkspaces,omitempty"`
+	Apps                              *AppsBoolExp                             `json:"apps,omitempty"`
+	AppsAggregate                     *AppsAggregateBoolExp                    `json:"apps_aggregate,omitempty"`
+	AwsName                           *StringComparisonExp                     `json:"awsName,omitempty"`
+	City                              *StringComparisonExp                     `json:"city,omitempty"`
+	Country                           *CountriesBoolExp                        `json:"country,omitempty"`
+	CountryCode                       *StringComparisonExp                     `json:"countryCode,omitempty"`
+	CreatedAt                         *TimestamptzComparisonExp                `json:"createdAt,omitempty"`
+	Description                       *StringComparisonExp                     `json:"description,omitempty"`
+	Domain                            *StringComparisonExp                     `json:"domain,omitempty"`
+	ID                                *UUIDComparisonExp                       `json:"id,omitempty"`
+	IsGdprCompliant                   *BooleanComparisonExp                    `json:"isGdprCompliant,omitempty"`
+	RegionType                        *RegionTypeBoolExp                       `json:"region_type,omitempty"`
+	RegionsAllowedWorkspaces          *RegionsAllowedWorkspaceBoolExp          `json:"regions_allowed_workspaces,omitempty"`
+	RegionsAllowedWorkspacesAggregate *RegionsAllowedWorkspaceAggregateBoolExp `json:"regions_allowed_workspaces_aggregate,omitempty"`
+	Type                              *RegionTypeEnumComparisonExp             `json:"type,omitempty"`
+	UpdatedAt                         *TimestamptzComparisonExp                `json:"updatedAt,omitempty"`
 }
 
 // input type for inserting data into table "regions"
 type RegionsInsertInput struct {
-	Active          *bool                       `json:"active,omitempty"`
-	Apps            *AppsArrRelInsertInput      `json:"apps,omitempty"`
-	AwsName         *string                     `json:"awsName,omitempty"`
-	City            *string                     `json:"city,omitempty"`
-	Country         *CountriesObjRelInsertInput `json:"country,omitempty"`
-	CountryCode     *string                     `json:"countryCode,omitempty"`
-	CreatedAt       *time.Time                  `json:"createdAt,omitempty"`
-	ID              *string                     `json:"id,omitempty"`
-	IsGdprCompliant *bool                       `json:"isGdprCompliant,omitempty"`
-	UpdatedAt       *time.Time                  `json:"updatedAt,omitempty"`
+	Active                   *bool                                     `json:"active,omitempty"`
+	AllowedWorkspaces        *RegionsAllowedWorkspaceObjRelInsertInput `json:"allowedWorkspaces,omitempty"`
+	Apps                     *AppsArrRelInsertInput                    `json:"apps,omitempty"`
+	AwsName                  *string                                   `json:"awsName,omitempty"`
+	City                     *string                                   `json:"city,omitempty"`
+	Country                  *CountriesObjRelInsertInput               `json:"country,omitempty"`
+	CountryCode              *string                                   `json:"countryCode,omitempty"`
+	CreatedAt                *time.Time                                `json:"createdAt,omitempty"`
+	Description              *string                                   `json:"description,omitempty"`
+	Domain                   *string                                   `json:"domain,omitempty"`
+	ID                       *string                                   `json:"id,omitempty"`
+	IsGdprCompliant          *bool                                     `json:"isGdprCompliant,omitempty"`
+	RegionType               *RegionTypeObjRelInsertInput              `json:"region_type,omitempty"`
+	RegionsAllowedWorkspaces *RegionsAllowedWorkspaceArrRelInsertInput `json:"regions_allowed_workspaces,omitempty"`
+	Type                     *RegionTypeEnum                           `json:"type,omitempty"`
+	UpdatedAt                *time.Time                                `json:"updatedAt,omitempty"`
 }
 
 // aggregate max on columns
@@ -8659,6 +9404,8 @@ type RegionsMaxFields struct {
 	City        *string    `json:"city,omitempty"`
 	CountryCode *string    `json:"countryCode,omitempty"`
 	CreatedAt   *time.Time `json:"createdAt,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	Domain      *string    `json:"domain,omitempty"`
 	ID          *string    `json:"id,omitempty"`
 	UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
 }
@@ -8669,6 +9416,8 @@ type RegionsMaxOrderBy struct {
 	City        *OrderBy `json:"city,omitempty"`
 	CountryCode *OrderBy `json:"countryCode,omitempty"`
 	CreatedAt   *OrderBy `json:"createdAt,omitempty"`
+	Description *OrderBy `json:"description,omitempty"`
+	Domain      *OrderBy `json:"domain,omitempty"`
 	ID          *OrderBy `json:"id,omitempty"`
 	UpdatedAt   *OrderBy `json:"updatedAt,omitempty"`
 }
@@ -8679,6 +9428,8 @@ type RegionsMinFields struct {
 	City        *string    `json:"city,omitempty"`
 	CountryCode *string    `json:"countryCode,omitempty"`
 	CreatedAt   *time.Time `json:"createdAt,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	Domain      *string    `json:"domain,omitempty"`
 	ID          *string    `json:"id,omitempty"`
 	UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
 }
@@ -8689,6 +9440,8 @@ type RegionsMinOrderBy struct {
 	City        *OrderBy `json:"city,omitempty"`
 	CountryCode *OrderBy `json:"countryCode,omitempty"`
 	CreatedAt   *OrderBy `json:"createdAt,omitempty"`
+	Description *OrderBy `json:"description,omitempty"`
+	Domain      *OrderBy `json:"domain,omitempty"`
 	ID          *OrderBy `json:"id,omitempty"`
 	UpdatedAt   *OrderBy `json:"updatedAt,omitempty"`
 }
@@ -8717,16 +9470,22 @@ type RegionsOnConflict struct {
 
 // Ordering options when selecting data from "regions".
 type RegionsOrderBy struct {
-	Active          *OrderBy              `json:"active,omitempty"`
-	AppsAggregate   *AppsAggregateOrderBy `json:"apps_aggregate,omitempty"`
-	AwsName         *OrderBy              `json:"awsName,omitempty"`
-	City            *OrderBy              `json:"city,omitempty"`
-	Country         *CountriesOrderBy     `json:"country,omitempty"`
-	CountryCode     *OrderBy              `json:"countryCode,omitempty"`
-	CreatedAt       *OrderBy              `json:"createdAt,omitempty"`
-	ID              *OrderBy              `json:"id,omitempty"`
-	IsGdprCompliant *OrderBy              `json:"isGdprCompliant,omitempty"`
-	UpdatedAt       *OrderBy              `json:"updatedAt,omitempty"`
+	Active                            *OrderBy                                 `json:"active,omitempty"`
+	AllowedWorkspaces                 *RegionsAllowedWorkspaceOrderBy          `json:"allowedWorkspaces,omitempty"`
+	AppsAggregate                     *AppsAggregateOrderBy                    `json:"apps_aggregate,omitempty"`
+	AwsName                           *OrderBy                                 `json:"awsName,omitempty"`
+	City                              *OrderBy                                 `json:"city,omitempty"`
+	Country                           *CountriesOrderBy                        `json:"country,omitempty"`
+	CountryCode                       *OrderBy                                 `json:"countryCode,omitempty"`
+	CreatedAt                         *OrderBy                                 `json:"createdAt,omitempty"`
+	Description                       *OrderBy                                 `json:"description,omitempty"`
+	Domain                            *OrderBy                                 `json:"domain,omitempty"`
+	ID                                *OrderBy                                 `json:"id,omitempty"`
+	IsGdprCompliant                   *OrderBy                                 `json:"isGdprCompliant,omitempty"`
+	RegionType                        *RegionTypeOrderBy                       `json:"region_type,omitempty"`
+	RegionsAllowedWorkspacesAggregate *RegionsAllowedWorkspaceAggregateOrderBy `json:"regions_allowed_workspaces_aggregate,omitempty"`
+	Type                              *OrderBy                                 `json:"type,omitempty"`
+	UpdatedAt                         *OrderBy                                 `json:"updatedAt,omitempty"`
 }
 
 // primary key columns input for table: regions
@@ -8736,14 +9495,17 @@ type RegionsPkColumnsInput struct {
 
 // input type for updating data in table "regions"
 type RegionsSetInput struct {
-	Active          *bool      `json:"active,omitempty"`
-	AwsName         *string    `json:"awsName,omitempty"`
-	City            *string    `json:"city,omitempty"`
-	CountryCode     *string    `json:"countryCode,omitempty"`
-	CreatedAt       *time.Time `json:"createdAt,omitempty"`
-	ID              *string    `json:"id,omitempty"`
-	IsGdprCompliant *bool      `json:"isGdprCompliant,omitempty"`
-	UpdatedAt       *time.Time `json:"updatedAt,omitempty"`
+	Active          *bool           `json:"active,omitempty"`
+	AwsName         *string         `json:"awsName,omitempty"`
+	City            *string         `json:"city,omitempty"`
+	CountryCode     *string         `json:"countryCode,omitempty"`
+	CreatedAt       *time.Time      `json:"createdAt,omitempty"`
+	Description     *string         `json:"description,omitempty"`
+	Domain          *string         `json:"domain,omitempty"`
+	ID              *string         `json:"id,omitempty"`
+	IsGdprCompliant *bool           `json:"isGdprCompliant,omitempty"`
+	Type            *RegionTypeEnum `json:"type,omitempty"`
+	UpdatedAt       *time.Time      `json:"updatedAt,omitempty"`
 }
 
 // Streaming cursor of the table "regions"
@@ -8756,20 +9518,211 @@ type RegionsStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type RegionsStreamCursorValueInput struct {
-	Active          *bool      `json:"active,omitempty"`
-	AwsName         *string    `json:"awsName,omitempty"`
-	City            *string    `json:"city,omitempty"`
-	CountryCode     *string    `json:"countryCode,omitempty"`
-	CreatedAt       *time.Time `json:"createdAt,omitempty"`
-	ID              *string    `json:"id,omitempty"`
-	IsGdprCompliant *bool      `json:"isGdprCompliant,omitempty"`
-	UpdatedAt       *time.Time `json:"updatedAt,omitempty"`
+	Active          *bool           `json:"active,omitempty"`
+	AwsName         *string         `json:"awsName,omitempty"`
+	City            *string         `json:"city,omitempty"`
+	CountryCode     *string         `json:"countryCode,omitempty"`
+	CreatedAt       *time.Time      `json:"createdAt,omitempty"`
+	Description     *string         `json:"description,omitempty"`
+	Domain          *string         `json:"domain,omitempty"`
+	ID              *string         `json:"id,omitempty"`
+	IsGdprCompliant *bool           `json:"isGdprCompliant,omitempty"`
+	Type            *RegionTypeEnum `json:"type,omitempty"`
+	UpdatedAt       *time.Time      `json:"updatedAt,omitempty"`
 }
 
 type RegionsUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *RegionsSetInput `json:"_set,omitempty"`
-	Where RegionsBoolExp   `json:"where"`
+	Set *RegionsSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where RegionsBoolExp `json:"where"`
+}
+
+// columns and relationships of "run_service"
+type RunService struct {
+	// An object relationship
+	App       Apps                    `json:"app"`
+	AppID     string                  `json:"appID"`
+	Config    *ConfigRunServiceConfig `json:"config,omitempty"`
+	CreatedAt time.Time               `json:"createdAt"`
+	// An object relationship
+	Creator        Users     `json:"creator"`
+	CreatorUserID  string    `json:"creatorUserId"`
+	ID             string    `json:"id"`
+	MimirConfigEnc *string   `json:"mimirConfigEnc,omitempty"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+}
+
+// aggregated selection of "run_service"
+type RunServiceAggregate struct {
+	Aggregate *RunServiceAggregateFields `json:"aggregate,omitempty"`
+	Nodes     []*RunService              `json:"nodes"`
+}
+
+type RunServiceAggregateBoolExp struct {
+	Count *RunServiceAggregateBoolExpCount `json:"count,omitempty"`
+}
+
+type RunServiceAggregateBoolExpCount struct {
+	Arguments []RunServiceSelectColumn `json:"arguments,omitempty"`
+	Distinct  *bool                    `json:"distinct,omitempty"`
+	Filter    *RunServiceBoolExp       `json:"filter,omitempty"`
+	Predicate IntComparisonExp         `json:"predicate"`
+}
+
+// aggregate fields of "run_service"
+type RunServiceAggregateFields struct {
+	Count int64                `json:"count"`
+	Max   *RunServiceMaxFields `json:"max,omitempty"`
+	Min   *RunServiceMinFields `json:"min,omitempty"`
+}
+
+// order by aggregate values of table "run_service"
+type RunServiceAggregateOrderBy struct {
+	Count *OrderBy              `json:"count,omitempty"`
+	Max   *RunServiceMaxOrderBy `json:"max,omitempty"`
+	Min   *RunServiceMinOrderBy `json:"min,omitempty"`
+}
+
+// input type for inserting array relation for remote table "run_service"
+type RunServiceArrRelInsertInput struct {
+	Data []*RunServiceInsertInput `json:"data"`
+	// upsert condition
+	OnConflict *RunServiceOnConflict `json:"on_conflict,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "run_service". All fields are combined with a logical 'AND'.
+type RunServiceBoolExp struct {
+	And            []*RunServiceBoolExp      `json:"_and,omitempty"`
+	Not            *RunServiceBoolExp        `json:"_not,omitempty"`
+	Or             []*RunServiceBoolExp      `json:"_or,omitempty"`
+	App            *AppsBoolExp              `json:"app,omitempty"`
+	AppID          *UUIDComparisonExp        `json:"appID,omitempty"`
+	CreatedAt      *TimestamptzComparisonExp `json:"createdAt,omitempty"`
+	Creator        *UsersBoolExp             `json:"creator,omitempty"`
+	CreatorUserID  *UUIDComparisonExp        `json:"creatorUserId,omitempty"`
+	ID             *UUIDComparisonExp        `json:"id,omitempty"`
+	MimirConfigEnc *StringComparisonExp      `json:"mimirConfigEnc,omitempty"`
+	UpdatedAt      *TimestamptzComparisonExp `json:"updatedAt,omitempty"`
+}
+
+// input type for inserting data into table "run_service"
+type RunServiceInsertInput struct {
+	App            *AppsObjRelInsertInput  `json:"app,omitempty"`
+	AppID          *string                 `json:"appID,omitempty"`
+	CreatedAt      *time.Time              `json:"createdAt,omitempty"`
+	Creator        *UsersObjRelInsertInput `json:"creator,omitempty"`
+	CreatorUserID  *string                 `json:"creatorUserId,omitempty"`
+	ID             *string                 `json:"id,omitempty"`
+	MimirConfigEnc *string                 `json:"mimirConfigEnc,omitempty"`
+	UpdatedAt      *time.Time              `json:"updatedAt,omitempty"`
+}
+
+// aggregate max on columns
+type RunServiceMaxFields struct {
+	AppID          *string    `json:"appID,omitempty"`
+	CreatedAt      *time.Time `json:"createdAt,omitempty"`
+	CreatorUserID  *string    `json:"creatorUserId,omitempty"`
+	ID             *string    `json:"id,omitempty"`
+	MimirConfigEnc *string    `json:"mimirConfigEnc,omitempty"`
+	UpdatedAt      *time.Time `json:"updatedAt,omitempty"`
+}
+
+// order by max() on columns of table "run_service"
+type RunServiceMaxOrderBy struct {
+	AppID          *OrderBy `json:"appID,omitempty"`
+	CreatedAt      *OrderBy `json:"createdAt,omitempty"`
+	CreatorUserID  *OrderBy `json:"creatorUserId,omitempty"`
+	ID             *OrderBy `json:"id,omitempty"`
+	MimirConfigEnc *OrderBy `json:"mimirConfigEnc,omitempty"`
+	UpdatedAt      *OrderBy `json:"updatedAt,omitempty"`
+}
+
+// aggregate min on columns
+type RunServiceMinFields struct {
+	AppID          *string    `json:"appID,omitempty"`
+	CreatedAt      *time.Time `json:"createdAt,omitempty"`
+	CreatorUserID  *string    `json:"creatorUserId,omitempty"`
+	ID             *string    `json:"id,omitempty"`
+	MimirConfigEnc *string    `json:"mimirConfigEnc,omitempty"`
+	UpdatedAt      *time.Time `json:"updatedAt,omitempty"`
+}
+
+// order by min() on columns of table "run_service"
+type RunServiceMinOrderBy struct {
+	AppID          *OrderBy `json:"appID,omitempty"`
+	CreatedAt      *OrderBy `json:"createdAt,omitempty"`
+	CreatorUserID  *OrderBy `json:"creatorUserId,omitempty"`
+	ID             *OrderBy `json:"id,omitempty"`
+	MimirConfigEnc *OrderBy `json:"mimirConfigEnc,omitempty"`
+	UpdatedAt      *OrderBy `json:"updatedAt,omitempty"`
+}
+
+// response of any mutation on the table "run_service"
+type RunServiceMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*RunService `json:"returning"`
+}
+
+// on_conflict condition type for table "run_service"
+type RunServiceOnConflict struct {
+	Constraint    RunServiceConstraint     `json:"constraint"`
+	UpdateColumns []RunServiceUpdateColumn `json:"update_columns"`
+	Where         *RunServiceBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "run_service".
+type RunServiceOrderBy struct {
+	App            *AppsOrderBy  `json:"app,omitempty"`
+	AppID          *OrderBy      `json:"appID,omitempty"`
+	CreatedAt      *OrderBy      `json:"createdAt,omitempty"`
+	Creator        *UsersOrderBy `json:"creator,omitempty"`
+	CreatorUserID  *OrderBy      `json:"creatorUserId,omitempty"`
+	ID             *OrderBy      `json:"id,omitempty"`
+	MimirConfigEnc *OrderBy      `json:"mimirConfigEnc,omitempty"`
+	UpdatedAt      *OrderBy      `json:"updatedAt,omitempty"`
+}
+
+// primary key columns input for table: run_service
+type RunServicePkColumnsInput struct {
+	ID string `json:"id"`
+}
+
+// input type for updating data in table "run_service"
+type RunServiceSetInput struct {
+	AppID          *string    `json:"appID,omitempty"`
+	CreatedAt      *time.Time `json:"createdAt,omitempty"`
+	CreatorUserID  *string    `json:"creatorUserId,omitempty"`
+	ID             *string    `json:"id,omitempty"`
+	MimirConfigEnc *string    `json:"mimirConfigEnc,omitempty"`
+	UpdatedAt      *time.Time `json:"updatedAt,omitempty"`
+}
+
+// Streaming cursor of the table "run_service"
+type RunServiceStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue RunServiceStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type RunServiceStreamCursorValueInput struct {
+	AppID          *string    `json:"appID,omitempty"`
+	CreatedAt      *time.Time `json:"createdAt,omitempty"`
+	CreatorUserID  *string    `json:"creatorUserId,omitempty"`
+	ID             *string    `json:"id,omitempty"`
+	MimirConfigEnc *string    `json:"mimirConfigEnc,omitempty"`
+	UpdatedAt      *time.Time `json:"updatedAt,omitempty"`
+}
+
+type RunServiceUpdates struct {
+	// sets the columns of the filtered rows to the given values
+	Set *RunServiceSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where RunServiceBoolExp `json:"where"`
 }
 
 // Boolean expression to compare columns of type "smallint". All fields are combined with logical 'AND'.
@@ -8828,6 +9781,14 @@ type SubscriptionRoot struct {
 	AuthProvidersStream []*AuthProviders `json:"authProviders_stream"`
 	// fetch data from the table: "auth.refresh_tokens" using primary key columns
 	AuthRefreshToken *AuthRefreshTokens `json:"authRefreshToken,omitempty"`
+	// fetch data from the table: "auth.refresh_token_types" using primary key columns
+	AuthRefreshTokenType *AuthRefreshTokenTypes `json:"authRefreshTokenType,omitempty"`
+	// fetch data from the table: "auth.refresh_token_types"
+	AuthRefreshTokenTypes []*AuthRefreshTokenTypes `json:"authRefreshTokenTypes"`
+	// fetch aggregated fields from the table: "auth.refresh_token_types"
+	AuthRefreshTokenTypesAggregate AuthRefreshTokenTypesAggregate `json:"authRefreshTokenTypesAggregate"`
+	// fetch data from the table in a streaming manner: "auth.refresh_token_types"
+	AuthRefreshTokenTypesStream []*AuthRefreshTokenTypes `json:"authRefreshTokenTypes_stream"`
 	// fetch data from the table: "auth.refresh_tokens"
 	AuthRefreshTokens []*AuthRefreshTokens `json:"authRefreshTokens"`
 	// fetch aggregated fields from the table: "auth.refresh_tokens"
@@ -9013,14 +9974,38 @@ type SubscriptionRoot struct {
 	PlansAggregate PlansAggregate `json:"plansAggregate"`
 	// fetch data from the table in a streaming manner: "plans"
 	PlansStream []*Plans `json:"plans_stream"`
-	// fetch data from the table: "regions"
+	// fetch data from the table: "region_type"
+	RegionType []*RegionType `json:"region_type"`
+	// fetch aggregated fields from the table: "region_type"
+	RegionTypeAggregate RegionTypeAggregate `json:"region_type_aggregate"`
+	// fetch data from the table: "region_type" using primary key columns
+	RegionTypeByPk *RegionType `json:"region_type_by_pk,omitempty"`
+	// fetch data from the table in a streaming manner: "region_type"
+	RegionTypeStream []*RegionType `json:"region_type_stream"`
+	// An array relationship
 	Regions []*Regions `json:"regions"`
-	// fetch aggregated fields from the table: "regions"
+	// An aggregate relationship
 	RegionsAggregate RegionsAggregate `json:"regions_aggregate"`
+	// fetch data from the table in a streaming manner: "regions_allowed_workspace"
+	RegionsAllowedWorkspaceStream []*RegionsAllowedWorkspace `json:"regions_allowed_workspace_stream"`
 	// fetch data from the table: "regions" using primary key columns
 	RegionsByPk *Regions `json:"regions_by_pk,omitempty"`
 	// fetch data from the table in a streaming manner: "regions"
 	RegionsStream []*Regions `json:"regions_stream"`
+	// fetch data from the table: "run_service" using primary key columns
+	RunService *RunService `json:"runService,omitempty"`
+	// An array relationship
+	RunServices []*RunService `json:"runServices"`
+	// fetch aggregated fields from the table: "run_service"
+	RunServicesAggregate RunServiceAggregate `json:"runServicesAggregate"`
+	// fetch data from the table in a streaming manner: "run_service"
+	RunServiceStream []*RunService `json:"run_service_stream"`
+	// fetch data from the table: "regions_allowed_workspace" using primary key columns
+	SelectRegionsAllowedWorkspace *RegionsAllowedWorkspace `json:"selectRegionsAllowedWorkspace,omitempty"`
+	// fetch data from the table: "regions_allowed_workspace"
+	SelectRegionsAllowedWorkspaces []*RegionsAllowedWorkspace `json:"selectRegionsAllowedWorkspaces"`
+	// fetch aggregated fields from the table: "regions_allowed_workspace"
+	SelectRegionsAllowedWorkspacesAggregate RegionsAllowedWorkspaceAggregate `json:"selectRegionsAllowedWorkspacesAggregate"`
 	// fetch data from the table: "auth.users" using primary key columns
 	User *Users `json:"user,omitempty"`
 	// fetch data from the table: "auth.users"
@@ -9140,6 +10125,10 @@ type Users struct {
 	Roles []*AuthUserRoles `json:"roles"`
 	// An aggregate relationship
 	RolesAggregate AuthUserRolesAggregate `json:"roles_aggregate"`
+	// An array relationship
+	RunServices []*RunService `json:"runServices"`
+	// An aggregate relationship
+	RunServicesAggregate RunServiceAggregate `json:"runServices_aggregate"`
 	// An array relationship
 	SecurityKeys []*AuthUserSecurityKeys `json:"securityKeys"`
 	// An aggregate relationship
@@ -9269,6 +10258,8 @@ type UsersBoolExp struct {
 	Role                                             *AuthRolesBoolExp                       `json:"role,omitempty"`
 	Roles                                            *AuthUserRolesBoolExp                   `json:"roles,omitempty"`
 	RolesAggregate                                   *AuthUserRolesAggregateBoolExp          `json:"roles_aggregate,omitempty"`
+	RunServices                                      *RunServiceBoolExp                      `json:"runServices,omitempty"`
+	RunServicesAggregate                             *RunServiceAggregateBoolExp             `json:"runServices_aggregate,omitempty"`
 	SecurityKeys                                     *AuthUserSecurityKeysBoolExp            `json:"securityKeys,omitempty"`
 	SecurityKeysAggregate                            *AuthUserSecurityKeysAggregateBoolExp   `json:"securityKeys_aggregate,omitempty"`
 	Ticket                                           *StringComparisonExp                    `json:"ticket,omitempty"`
@@ -9333,6 +10324,7 @@ type UsersInsertInput struct {
 	RefreshTokens                           *AuthRefreshTokensArrRelInsertInput      `json:"refreshTokens,omitempty"`
 	Role                                    *AuthRolesObjRelInsertInput              `json:"role,omitempty"`
 	Roles                                   *AuthUserRolesArrRelInsertInput          `json:"roles,omitempty"`
+	RunServices                             *RunServiceArrRelInsertInput             `json:"runServices,omitempty"`
 	SecurityKeys                            *AuthUserSecurityKeysArrRelInsertInput   `json:"securityKeys,omitempty"`
 	Ticket                                  *string                                  `json:"ticket,omitempty"`
 	TicketExpiresAt                         *time.Time                               `json:"ticketExpiresAt,omitempty"`
@@ -9495,6 +10487,7 @@ type UsersOrderBy struct {
 	RefreshTokensAggregate                           *AuthRefreshTokensAggregateOrderBy      `json:"refreshTokens_aggregate,omitempty"`
 	Role                                             *AuthRolesOrderBy                       `json:"role,omitempty"`
 	RolesAggregate                                   *AuthUserRolesAggregateOrderBy          `json:"roles_aggregate,omitempty"`
+	RunServicesAggregate                             *RunServiceAggregateOrderBy             `json:"runServices_aggregate,omitempty"`
 	SecurityKeysAggregate                            *AuthUserSecurityKeysAggregateOrderBy   `json:"securityKeys_aggregate,omitempty"`
 	Ticket                                           *OrderBy                                `json:"ticket,omitempty"`
 	TicketExpiresAt                                  *OrderBy                                `json:"ticketExpiresAt,omitempty"`
@@ -9594,8 +10587,9 @@ type UsersUpdates struct {
 	// prepend existing jsonb value of filtered columns with new jsonb value
 	Prepend *UsersPrependInput `json:"_prepend,omitempty"`
 	// sets the columns of the filtered rows to the given values
-	Set   *UsersSetInput `json:"_set,omitempty"`
-	Where UsersBoolExp   `json:"where"`
+	Set *UsersSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where UsersBoolExp `json:"where"`
 }
 
 // Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'.
@@ -9837,8 +10831,9 @@ type WorkspaceMemberInvitesStreamCursorValueInput struct {
 
 type WorkspaceMemberInvitesUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *WorkspaceMemberInvitesSetInput `json:"_set,omitempty"`
-	Where WorkspaceMemberInvitesBoolExp   `json:"where"`
+	Set *WorkspaceMemberInvitesSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where WorkspaceMemberInvitesBoolExp `json:"where"`
 }
 
 // columns and relationships of "workspace_members"
@@ -10030,8 +11025,9 @@ type WorkspaceMembersStreamCursorValueInput struct {
 
 type WorkspaceMembersUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *WorkspaceMembersSetInput `json:"_set,omitempty"`
-	Where WorkspaceMembersBoolExp   `json:"where"`
+	Set *WorkspaceMembersSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where WorkspaceMembersBoolExp `json:"where"`
 }
 
 // columns and relationships of "workspaces"
@@ -10050,6 +11046,8 @@ type Workspaces struct {
 	AddressPostalCode string `json:"addressPostalCode"`
 	// State, county, province, or region.
 	AddressState string `json:"addressState"`
+	// An object relationship
+	AllowedPrivateRegions *RegionsAllowedWorkspace `json:"allowedPrivateRegions,omitempty"`
 	// An array relationship
 	Apps []*Apps `json:"apps"`
 	// An aggregate relationship
@@ -10068,11 +11066,15 @@ type Workspaces struct {
 	PaymentMethods []*PaymentMethods `json:"paymentMethods"`
 	// An aggregate relationship
 	PaymentMethodsAggregate PaymentMethodsAggregate `json:"paymentMethods_aggregate"`
-	Slug                    string                  `json:"slug"`
-	StripeCustomerID        *string                 `json:"stripeCustomerId,omitempty"`
-	TaxIDType               string                  `json:"taxIdType"`
-	TaxIDValue              string                  `json:"taxIdValue"`
-	UpdatedAt               time.Time               `json:"updatedAt"`
+	// An array relationship
+	RegionsAllowedWorkspaces []*RegionsAllowedWorkspace `json:"regions_allowed_workspaces"`
+	// An aggregate relationship
+	RegionsAllowedWorkspacesAggregate RegionsAllowedWorkspaceAggregate `json:"regions_allowed_workspaces_aggregate"`
+	Slug                              string                           `json:"slug"`
+	StripeCustomerID                  *string                          `json:"stripeCustomerId,omitempty"`
+	TaxIDType                         string                           `json:"taxIdType"`
+	TaxIDValue                        string                           `json:"taxIdValue"`
+	UpdatedAt                         time.Time                        `json:"updatedAt"`
 	// An array relationship
 	WorkspaceMemberInvites []*WorkspaceMemberInvites `json:"workspaceMemberInvites"`
 	// An aggregate relationship
@@ -10123,37 +11125,40 @@ type WorkspacesArrRelInsertInput struct {
 
 // Boolean expression to filter rows from the table "workspaces". All fields are combined with a logical 'AND'.
 type WorkspacesBoolExp struct {
-	And                             []*WorkspacesBoolExp                    `json:"_and,omitempty"`
-	Not                             *WorkspacesBoolExp                      `json:"_not,omitempty"`
-	Or                              []*WorkspacesBoolExp                    `json:"_or,omitempty"`
-	AddressCity                     *StringComparisonExp                    `json:"addressCity,omitempty"`
-	AddressCountry                  *CountriesBoolExp                       `json:"addressCountry,omitempty"`
-	AddressCountryCode              *StringComparisonExp                    `json:"addressCountryCode,omitempty"`
-	AddressLine1                    *StringComparisonExp                    `json:"addressLine1,omitempty"`
-	AddressLine2                    *StringComparisonExp                    `json:"addressLine2,omitempty"`
-	AddressPostalCode               *StringComparisonExp                    `json:"addressPostalCode,omitempty"`
-	AddressState                    *StringComparisonExp                    `json:"addressState,omitempty"`
-	Apps                            *AppsBoolExp                            `json:"apps,omitempty"`
-	AppsAggregate                   *AppsAggregateBoolExp                   `json:"apps_aggregate,omitempty"`
-	CompanyName                     *StringComparisonExp                    `json:"companyName,omitempty"`
-	CreatedAt                       *TimestamptzComparisonExp               `json:"createdAt,omitempty"`
-	CreatorUser                     *UsersBoolExp                           `json:"creatorUser,omitempty"`
-	CreatorUserID                   *UUIDComparisonExp                      `json:"creatorUserId,omitempty"`
-	Email                           *StringComparisonExp                    `json:"email,omitempty"`
-	ID                              *UUIDComparisonExp                      `json:"id,omitempty"`
-	Name                            *StringComparisonExp                    `json:"name,omitempty"`
-	PaymentMethod                   *PaymentMethodsBoolExp                  `json:"paymentMethod,omitempty"`
-	PaymentMethods                  *PaymentMethodsBoolExp                  `json:"paymentMethods,omitempty"`
-	PaymentMethodsAggregate         *PaymentMethodsAggregateBoolExp         `json:"paymentMethods_aggregate,omitempty"`
-	Slug                            *StringComparisonExp                    `json:"slug,omitempty"`
-	StripeCustomerID                *StringComparisonExp                    `json:"stripeCustomerId,omitempty"`
-	TaxIDType                       *StringComparisonExp                    `json:"taxIdType,omitempty"`
-	TaxIDValue                      *StringComparisonExp                    `json:"taxIdValue,omitempty"`
-	UpdatedAt                       *TimestamptzComparisonExp               `json:"updatedAt,omitempty"`
-	WorkspaceMemberInvites          *WorkspaceMemberInvitesBoolExp          `json:"workspaceMemberInvites,omitempty"`
-	WorkspaceMemberInvitesAggregate *WorkspaceMemberInvitesAggregateBoolExp `json:"workspaceMemberInvites_aggregate,omitempty"`
-	WorkspaceMembers                *WorkspaceMembersBoolExp                `json:"workspaceMembers,omitempty"`
-	WorkspaceMembersAggregate       *WorkspaceMembersAggregateBoolExp       `json:"workspaceMembers_aggregate,omitempty"`
+	And                               []*WorkspacesBoolExp                     `json:"_and,omitempty"`
+	Not                               *WorkspacesBoolExp                       `json:"_not,omitempty"`
+	Or                                []*WorkspacesBoolExp                     `json:"_or,omitempty"`
+	AddressCity                       *StringComparisonExp                     `json:"addressCity,omitempty"`
+	AddressCountry                    *CountriesBoolExp                        `json:"addressCountry,omitempty"`
+	AddressCountryCode                *StringComparisonExp                     `json:"addressCountryCode,omitempty"`
+	AddressLine1                      *StringComparisonExp                     `json:"addressLine1,omitempty"`
+	AddressLine2                      *StringComparisonExp                     `json:"addressLine2,omitempty"`
+	AddressPostalCode                 *StringComparisonExp                     `json:"addressPostalCode,omitempty"`
+	AddressState                      *StringComparisonExp                     `json:"addressState,omitempty"`
+	AllowedPrivateRegions             *RegionsAllowedWorkspaceBoolExp          `json:"allowedPrivateRegions,omitempty"`
+	Apps                              *AppsBoolExp                             `json:"apps,omitempty"`
+	AppsAggregate                     *AppsAggregateBoolExp                    `json:"apps_aggregate,omitempty"`
+	CompanyName                       *StringComparisonExp                     `json:"companyName,omitempty"`
+	CreatedAt                         *TimestamptzComparisonExp                `json:"createdAt,omitempty"`
+	CreatorUser                       *UsersBoolExp                            `json:"creatorUser,omitempty"`
+	CreatorUserID                     *UUIDComparisonExp                       `json:"creatorUserId,omitempty"`
+	Email                             *StringComparisonExp                     `json:"email,omitempty"`
+	ID                                *UUIDComparisonExp                       `json:"id,omitempty"`
+	Name                              *StringComparisonExp                     `json:"name,omitempty"`
+	PaymentMethod                     *PaymentMethodsBoolExp                   `json:"paymentMethod,omitempty"`
+	PaymentMethods                    *PaymentMethodsBoolExp                   `json:"paymentMethods,omitempty"`
+	PaymentMethodsAggregate           *PaymentMethodsAggregateBoolExp          `json:"paymentMethods_aggregate,omitempty"`
+	RegionsAllowedWorkspaces          *RegionsAllowedWorkspaceBoolExp          `json:"regions_allowed_workspaces,omitempty"`
+	RegionsAllowedWorkspacesAggregate *RegionsAllowedWorkspaceAggregateBoolExp `json:"regions_allowed_workspaces_aggregate,omitempty"`
+	Slug                              *StringComparisonExp                     `json:"slug,omitempty"`
+	StripeCustomerID                  *StringComparisonExp                     `json:"stripeCustomerId,omitempty"`
+	TaxIDType                         *StringComparisonExp                     `json:"taxIdType,omitempty"`
+	TaxIDValue                        *StringComparisonExp                     `json:"taxIdValue,omitempty"`
+	UpdatedAt                         *TimestamptzComparisonExp                `json:"updatedAt,omitempty"`
+	WorkspaceMemberInvites            *WorkspaceMemberInvitesBoolExp           `json:"workspaceMemberInvites,omitempty"`
+	WorkspaceMemberInvitesAggregate   *WorkspaceMemberInvitesAggregateBoolExp  `json:"workspaceMemberInvites_aggregate,omitempty"`
+	WorkspaceMembers                  *WorkspaceMembersBoolExp                 `json:"workspaceMembers,omitempty"`
+	WorkspaceMembersAggregate         *WorkspaceMembersAggregateBoolExp        `json:"workspaceMembers_aggregate,omitempty"`
 }
 
 // input type for inserting data into table "workspaces"
@@ -10170,24 +11175,26 @@ type WorkspacesInsertInput struct {
 	// ZIP or postal code.
 	AddressPostalCode *string `json:"addressPostalCode,omitempty"`
 	// State, county, province, or region.
-	AddressState           *string                                  `json:"addressState,omitempty"`
-	Apps                   *AppsArrRelInsertInput                   `json:"apps,omitempty"`
-	CompanyName            *string                                  `json:"companyName,omitempty"`
-	CreatedAt              *time.Time                               `json:"createdAt,omitempty"`
-	CreatorUser            *UsersObjRelInsertInput                  `json:"creatorUser,omitempty"`
-	CreatorUserID          *string                                  `json:"creatorUserId,omitempty"`
-	Email                  *string                                  `json:"email,omitempty"`
-	ID                     *string                                  `json:"id,omitempty"`
-	Name                   *string                                  `json:"name,omitempty"`
-	PaymentMethod          *PaymentMethodsObjRelInsertInput         `json:"paymentMethod,omitempty"`
-	PaymentMethods         *PaymentMethodsArrRelInsertInput         `json:"paymentMethods,omitempty"`
-	Slug                   *string                                  `json:"slug,omitempty"`
-	StripeCustomerID       *string                                  `json:"stripeCustomerId,omitempty"`
-	TaxIDType              *string                                  `json:"taxIdType,omitempty"`
-	TaxIDValue             *string                                  `json:"taxIdValue,omitempty"`
-	UpdatedAt              *time.Time                               `json:"updatedAt,omitempty"`
-	WorkspaceMemberInvites *WorkspaceMemberInvitesArrRelInsertInput `json:"workspaceMemberInvites,omitempty"`
-	WorkspaceMembers       *WorkspaceMembersArrRelInsertInput       `json:"workspaceMembers,omitempty"`
+	AddressState             *string                                   `json:"addressState,omitempty"`
+	AllowedPrivateRegions    *RegionsAllowedWorkspaceObjRelInsertInput `json:"allowedPrivateRegions,omitempty"`
+	Apps                     *AppsArrRelInsertInput                    `json:"apps,omitempty"`
+	CompanyName              *string                                   `json:"companyName,omitempty"`
+	CreatedAt                *time.Time                                `json:"createdAt,omitempty"`
+	CreatorUser              *UsersObjRelInsertInput                   `json:"creatorUser,omitempty"`
+	CreatorUserID            *string                                   `json:"creatorUserId,omitempty"`
+	Email                    *string                                   `json:"email,omitempty"`
+	ID                       *string                                   `json:"id,omitempty"`
+	Name                     *string                                   `json:"name,omitempty"`
+	PaymentMethod            *PaymentMethodsObjRelInsertInput          `json:"paymentMethod,omitempty"`
+	PaymentMethods           *PaymentMethodsArrRelInsertInput          `json:"paymentMethods,omitempty"`
+	RegionsAllowedWorkspaces *RegionsAllowedWorkspaceArrRelInsertInput `json:"regions_allowed_workspaces,omitempty"`
+	Slug                     *string                                   `json:"slug,omitempty"`
+	StripeCustomerID         *string                                   `json:"stripeCustomerId,omitempty"`
+	TaxIDType                *string                                   `json:"taxIdType,omitempty"`
+	TaxIDValue               *string                                   `json:"taxIdValue,omitempty"`
+	UpdatedAt                *time.Time                                `json:"updatedAt,omitempty"`
+	WorkspaceMemberInvites   *WorkspaceMemberInvitesArrRelInsertInput  `json:"workspaceMemberInvites,omitempty"`
+	WorkspaceMembers         *WorkspaceMembersArrRelInsertInput        `json:"workspaceMembers,omitempty"`
 }
 
 // aggregate max on columns
@@ -10322,30 +11329,32 @@ type WorkspacesOnConflict struct {
 
 // Ordering options when selecting data from "workspaces".
 type WorkspacesOrderBy struct {
-	AddressCity                     *OrderBy                                `json:"addressCity,omitempty"`
-	AddressCountry                  *CountriesOrderBy                       `json:"addressCountry,omitempty"`
-	AddressCountryCode              *OrderBy                                `json:"addressCountryCode,omitempty"`
-	AddressLine1                    *OrderBy                                `json:"addressLine1,omitempty"`
-	AddressLine2                    *OrderBy                                `json:"addressLine2,omitempty"`
-	AddressPostalCode               *OrderBy                                `json:"addressPostalCode,omitempty"`
-	AddressState                    *OrderBy                                `json:"addressState,omitempty"`
-	AppsAggregate                   *AppsAggregateOrderBy                   `json:"apps_aggregate,omitempty"`
-	CompanyName                     *OrderBy                                `json:"companyName,omitempty"`
-	CreatedAt                       *OrderBy                                `json:"createdAt,omitempty"`
-	CreatorUser                     *UsersOrderBy                           `json:"creatorUser,omitempty"`
-	CreatorUserID                   *OrderBy                                `json:"creatorUserId,omitempty"`
-	Email                           *OrderBy                                `json:"email,omitempty"`
-	ID                              *OrderBy                                `json:"id,omitempty"`
-	Name                            *OrderBy                                `json:"name,omitempty"`
-	PaymentMethod                   *PaymentMethodsOrderBy                  `json:"paymentMethod,omitempty"`
-	PaymentMethodsAggregate         *PaymentMethodsAggregateOrderBy         `json:"paymentMethods_aggregate,omitempty"`
-	Slug                            *OrderBy                                `json:"slug,omitempty"`
-	StripeCustomerID                *OrderBy                                `json:"stripeCustomerId,omitempty"`
-	TaxIDType                       *OrderBy                                `json:"taxIdType,omitempty"`
-	TaxIDValue                      *OrderBy                                `json:"taxIdValue,omitempty"`
-	UpdatedAt                       *OrderBy                                `json:"updatedAt,omitempty"`
-	WorkspaceMemberInvitesAggregate *WorkspaceMemberInvitesAggregateOrderBy `json:"workspaceMemberInvites_aggregate,omitempty"`
-	WorkspaceMembersAggregate       *WorkspaceMembersAggregateOrderBy       `json:"workspaceMembers_aggregate,omitempty"`
+	AddressCity                       *OrderBy                                 `json:"addressCity,omitempty"`
+	AddressCountry                    *CountriesOrderBy                        `json:"addressCountry,omitempty"`
+	AddressCountryCode                *OrderBy                                 `json:"addressCountryCode,omitempty"`
+	AddressLine1                      *OrderBy                                 `json:"addressLine1,omitempty"`
+	AddressLine2                      *OrderBy                                 `json:"addressLine2,omitempty"`
+	AddressPostalCode                 *OrderBy                                 `json:"addressPostalCode,omitempty"`
+	AddressState                      *OrderBy                                 `json:"addressState,omitempty"`
+	AllowedPrivateRegions             *RegionsAllowedWorkspaceOrderBy          `json:"allowedPrivateRegions,omitempty"`
+	AppsAggregate                     *AppsAggregateOrderBy                    `json:"apps_aggregate,omitempty"`
+	CompanyName                       *OrderBy                                 `json:"companyName,omitempty"`
+	CreatedAt                         *OrderBy                                 `json:"createdAt,omitempty"`
+	CreatorUser                       *UsersOrderBy                            `json:"creatorUser,omitempty"`
+	CreatorUserID                     *OrderBy                                 `json:"creatorUserId,omitempty"`
+	Email                             *OrderBy                                 `json:"email,omitempty"`
+	ID                                *OrderBy                                 `json:"id,omitempty"`
+	Name                              *OrderBy                                 `json:"name,omitempty"`
+	PaymentMethod                     *PaymentMethodsOrderBy                   `json:"paymentMethod,omitempty"`
+	PaymentMethodsAggregate           *PaymentMethodsAggregateOrderBy          `json:"paymentMethods_aggregate,omitempty"`
+	RegionsAllowedWorkspacesAggregate *RegionsAllowedWorkspaceAggregateOrderBy `json:"regions_allowed_workspaces_aggregate,omitempty"`
+	Slug                              *OrderBy                                 `json:"slug,omitempty"`
+	StripeCustomerID                  *OrderBy                                 `json:"stripeCustomerId,omitempty"`
+	TaxIDType                         *OrderBy                                 `json:"taxIdType,omitempty"`
+	TaxIDValue                        *OrderBy                                 `json:"taxIdValue,omitempty"`
+	UpdatedAt                         *OrderBy                                 `json:"updatedAt,omitempty"`
+	WorkspaceMemberInvitesAggregate   *WorkspaceMemberInvitesAggregateOrderBy  `json:"workspaceMemberInvites_aggregate,omitempty"`
+	WorkspaceMembersAggregate         *WorkspaceMembersAggregateOrderBy        `json:"workspaceMembers_aggregate,omitempty"`
 }
 
 // primary key columns input for table: workspaces
@@ -10417,8 +11426,9 @@ type WorkspacesStreamCursorValueInput struct {
 
 type WorkspacesUpdates struct {
 	// sets the columns of the filtered rows to the given values
-	Set   *WorkspacesSetInput `json:"_set,omitempty"`
-	Where WorkspacesBoolExp   `json:"where"`
+	Set *WorkspacesSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where WorkspacesBoolExp `json:"where"`
 }
 
 // unique or primary key constraints on table "app_state_history"
@@ -10782,8 +11792,6 @@ const (
 	// column name
 	AppsSelectColumnPlanID AppsSelectColumn = "planId"
 	// column name
-	AppsSelectColumnPostgresPassword AppsSelectColumn = "postgresPassword"
-	// column name
 	AppsSelectColumnProvidersUpdated AppsSelectColumn = "providersUpdated"
 	// column name
 	AppsSelectColumnRegionID AppsSelectColumn = "regionId"
@@ -10817,7 +11825,6 @@ var AllAppsSelectColumn = []AppsSelectColumn{
 	AppsSelectColumnNhostBaseFolder,
 	AppsSelectColumnPaused,
 	AppsSelectColumnPlanID,
-	AppsSelectColumnPostgresPassword,
 	AppsSelectColumnProvidersUpdated,
 	AppsSelectColumnRegionID,
 	AppsSelectColumnRepositoryProductionBranch,
@@ -10830,7 +11837,7 @@ var AllAppsSelectColumn = []AppsSelectColumn{
 
 func (e AppsSelectColumn) IsValid() bool {
 	switch e {
-	case AppsSelectColumnAutoUpdate, AppsSelectColumnCreatedAt, AppsSelectColumnCreatorUserID, AppsSelectColumnDesiredState, AppsSelectColumnGithubRepositoryID, AppsSelectColumnID, AppsSelectColumnIsProvisioned, AppsSelectColumnMetadataFunctions, AppsSelectColumnMimirConfigEnc, AppsSelectColumnMimirSecretsEnc, AppsSelectColumnMimirSystemConfigEnc, AppsSelectColumnName, AppsSelectColumnNhostBaseFolder, AppsSelectColumnPaused, AppsSelectColumnPlanID, AppsSelectColumnPostgresPassword, AppsSelectColumnProvidersUpdated, AppsSelectColumnRegionID, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnSlug, AppsSelectColumnStripeSubscriptionID, AppsSelectColumnSubdomain, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID:
+	case AppsSelectColumnAutoUpdate, AppsSelectColumnCreatedAt, AppsSelectColumnCreatorUserID, AppsSelectColumnDesiredState, AppsSelectColumnGithubRepositoryID, AppsSelectColumnID, AppsSelectColumnIsProvisioned, AppsSelectColumnMetadataFunctions, AppsSelectColumnMimirConfigEnc, AppsSelectColumnMimirSecretsEnc, AppsSelectColumnMimirSystemConfigEnc, AppsSelectColumnName, AppsSelectColumnNhostBaseFolder, AppsSelectColumnPaused, AppsSelectColumnPlanID, AppsSelectColumnProvidersUpdated, AppsSelectColumnRegionID, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnSlug, AppsSelectColumnStripeSubscriptionID, AppsSelectColumnSubdomain, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID:
 		return true
 	}
 	return false
@@ -10992,8 +11999,6 @@ const (
 	// column name
 	AppsUpdateColumnPlanID AppsUpdateColumn = "planId"
 	// column name
-	AppsUpdateColumnPostgresPassword AppsUpdateColumn = "postgresPassword"
-	// column name
 	AppsUpdateColumnProvidersUpdated AppsUpdateColumn = "providersUpdated"
 	// column name
 	AppsUpdateColumnRegionID AppsUpdateColumn = "regionId"
@@ -11027,7 +12032,6 @@ var AllAppsUpdateColumn = []AppsUpdateColumn{
 	AppsUpdateColumnNhostBaseFolder,
 	AppsUpdateColumnPaused,
 	AppsUpdateColumnPlanID,
-	AppsUpdateColumnPostgresPassword,
 	AppsUpdateColumnProvidersUpdated,
 	AppsUpdateColumnRegionID,
 	AppsUpdateColumnRepositoryProductionBranch,
@@ -11040,7 +12044,7 @@ var AllAppsUpdateColumn = []AppsUpdateColumn{
 
 func (e AppsUpdateColumn) IsValid() bool {
 	switch e {
-	case AppsUpdateColumnAutoUpdate, AppsUpdateColumnCreatedAt, AppsUpdateColumnCreatorUserID, AppsUpdateColumnDesiredState, AppsUpdateColumnGithubRepositoryID, AppsUpdateColumnID, AppsUpdateColumnIsProvisioned, AppsUpdateColumnMetadataFunctions, AppsUpdateColumnMimirConfigEnc, AppsUpdateColumnMimirSecretsEnc, AppsUpdateColumnMimirSystemConfigEnc, AppsUpdateColumnName, AppsUpdateColumnNhostBaseFolder, AppsUpdateColumnPaused, AppsUpdateColumnPlanID, AppsUpdateColumnPostgresPassword, AppsUpdateColumnProvidersUpdated, AppsUpdateColumnRegionID, AppsUpdateColumnRepositoryProductionBranch, AppsUpdateColumnSlug, AppsUpdateColumnStripeSubscriptionID, AppsUpdateColumnSubdomain, AppsUpdateColumnUpdatedAt, AppsUpdateColumnWorkspaceID:
+	case AppsUpdateColumnAutoUpdate, AppsUpdateColumnCreatedAt, AppsUpdateColumnCreatorUserID, AppsUpdateColumnDesiredState, AppsUpdateColumnGithubRepositoryID, AppsUpdateColumnID, AppsUpdateColumnIsProvisioned, AppsUpdateColumnMetadataFunctions, AppsUpdateColumnMimirConfigEnc, AppsUpdateColumnMimirSecretsEnc, AppsUpdateColumnMimirSystemConfigEnc, AppsUpdateColumnName, AppsUpdateColumnNhostBaseFolder, AppsUpdateColumnPaused, AppsUpdateColumnPlanID, AppsUpdateColumnProvidersUpdated, AppsUpdateColumnRegionID, AppsUpdateColumnRepositoryProductionBranch, AppsUpdateColumnSlug, AppsUpdateColumnStripeSubscriptionID, AppsUpdateColumnSubdomain, AppsUpdateColumnUpdatedAt, AppsUpdateColumnWorkspaceID:
 		return true
 	}
 	return false
@@ -11319,11 +12323,183 @@ func (e AuthProvidersUpdateColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+// unique or primary key constraints on table "auth.refresh_token_types"
+type AuthRefreshTokenTypesConstraint string
+
+const (
+	// unique or primary key constraint on columns "value"
+	AuthRefreshTokenTypesConstraintRefreshTokenTypesPkey AuthRefreshTokenTypesConstraint = "refresh_token_types_pkey"
+)
+
+var AllAuthRefreshTokenTypesConstraint = []AuthRefreshTokenTypesConstraint{
+	AuthRefreshTokenTypesConstraintRefreshTokenTypesPkey,
+}
+
+func (e AuthRefreshTokenTypesConstraint) IsValid() bool {
+	switch e {
+	case AuthRefreshTokenTypesConstraintRefreshTokenTypesPkey:
+		return true
+	}
+	return false
+}
+
+func (e AuthRefreshTokenTypesConstraint) String() string {
+	return string(e)
+}
+
+func (e *AuthRefreshTokenTypesConstraint) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuthRefreshTokenTypesConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid authRefreshTokenTypes_constraint", str)
+	}
+	return nil
+}
+
+func (e AuthRefreshTokenTypesConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type AuthRefreshTokenTypesEnum string
+
+const (
+	// Personal access token
+	AuthRefreshTokenTypesEnumPat AuthRefreshTokenTypesEnum = "pat"
+	// Regular refresh token
+	AuthRefreshTokenTypesEnumRegular AuthRefreshTokenTypesEnum = "regular"
+)
+
+var AllAuthRefreshTokenTypesEnum = []AuthRefreshTokenTypesEnum{
+	AuthRefreshTokenTypesEnumPat,
+	AuthRefreshTokenTypesEnumRegular,
+}
+
+func (e AuthRefreshTokenTypesEnum) IsValid() bool {
+	switch e {
+	case AuthRefreshTokenTypesEnumPat, AuthRefreshTokenTypesEnumRegular:
+		return true
+	}
+	return false
+}
+
+func (e AuthRefreshTokenTypesEnum) String() string {
+	return string(e)
+}
+
+func (e *AuthRefreshTokenTypesEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuthRefreshTokenTypesEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid authRefreshTokenTypes_enum", str)
+	}
+	return nil
+}
+
+func (e AuthRefreshTokenTypesEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "auth.refresh_token_types"
+type AuthRefreshTokenTypesSelectColumn string
+
+const (
+	// column name
+	AuthRefreshTokenTypesSelectColumnComment AuthRefreshTokenTypesSelectColumn = "comment"
+	// column name
+	AuthRefreshTokenTypesSelectColumnValue AuthRefreshTokenTypesSelectColumn = "value"
+)
+
+var AllAuthRefreshTokenTypesSelectColumn = []AuthRefreshTokenTypesSelectColumn{
+	AuthRefreshTokenTypesSelectColumnComment,
+	AuthRefreshTokenTypesSelectColumnValue,
+}
+
+func (e AuthRefreshTokenTypesSelectColumn) IsValid() bool {
+	switch e {
+	case AuthRefreshTokenTypesSelectColumnComment, AuthRefreshTokenTypesSelectColumnValue:
+		return true
+	}
+	return false
+}
+
+func (e AuthRefreshTokenTypesSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *AuthRefreshTokenTypesSelectColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuthRefreshTokenTypesSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid authRefreshTokenTypes_select_column", str)
+	}
+	return nil
+}
+
+func (e AuthRefreshTokenTypesSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// update columns of table "auth.refresh_token_types"
+type AuthRefreshTokenTypesUpdateColumn string
+
+const (
+	// column name
+	AuthRefreshTokenTypesUpdateColumnComment AuthRefreshTokenTypesUpdateColumn = "comment"
+	// column name
+	AuthRefreshTokenTypesUpdateColumnValue AuthRefreshTokenTypesUpdateColumn = "value"
+)
+
+var AllAuthRefreshTokenTypesUpdateColumn = []AuthRefreshTokenTypesUpdateColumn{
+	AuthRefreshTokenTypesUpdateColumnComment,
+	AuthRefreshTokenTypesUpdateColumnValue,
+}
+
+func (e AuthRefreshTokenTypesUpdateColumn) IsValid() bool {
+	switch e {
+	case AuthRefreshTokenTypesUpdateColumnComment, AuthRefreshTokenTypesUpdateColumnValue:
+		return true
+	}
+	return false
+}
+
+func (e AuthRefreshTokenTypesUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *AuthRefreshTokenTypesUpdateColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuthRefreshTokenTypesUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid authRefreshTokenTypes_update_column", str)
+	}
+	return nil
+}
+
+func (e AuthRefreshTokenTypesUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 // unique or primary key constraints on table "auth.refresh_tokens"
 type AuthRefreshTokensConstraint string
 
 const (
-	// unique or primary key constraint on columns "refresh_token"
+	// unique or primary key constraint on columns "id"
 	AuthRefreshTokensConstraintRefreshTokensPkey AuthRefreshTokensConstraint = "refresh_tokens_pkey"
 )
 
@@ -11369,11 +12545,13 @@ const (
 	// column name
 	AuthRefreshTokensSelectColumnExpiresAt AuthRefreshTokensSelectColumn = "expiresAt"
 	// column name
+	AuthRefreshTokensSelectColumnID AuthRefreshTokensSelectColumn = "id"
+	// column name
 	AuthRefreshTokensSelectColumnMetadata AuthRefreshTokensSelectColumn = "metadata"
 	// column name
-	AuthRefreshTokensSelectColumnRefreshToken AuthRefreshTokensSelectColumn = "refreshToken"
-	// column name
 	AuthRefreshTokensSelectColumnRefreshTokenHash AuthRefreshTokensSelectColumn = "refreshTokenHash"
+	// column name
+	AuthRefreshTokensSelectColumnRefreshToken AuthRefreshTokensSelectColumn = "refresh_token"
 	// column name
 	AuthRefreshTokensSelectColumnType AuthRefreshTokensSelectColumn = "type"
 	// column name
@@ -11383,16 +12561,17 @@ const (
 var AllAuthRefreshTokensSelectColumn = []AuthRefreshTokensSelectColumn{
 	AuthRefreshTokensSelectColumnCreatedAt,
 	AuthRefreshTokensSelectColumnExpiresAt,
+	AuthRefreshTokensSelectColumnID,
 	AuthRefreshTokensSelectColumnMetadata,
-	AuthRefreshTokensSelectColumnRefreshToken,
 	AuthRefreshTokensSelectColumnRefreshTokenHash,
+	AuthRefreshTokensSelectColumnRefreshToken,
 	AuthRefreshTokensSelectColumnType,
 	AuthRefreshTokensSelectColumnUserID,
 }
 
 func (e AuthRefreshTokensSelectColumn) IsValid() bool {
 	switch e {
-	case AuthRefreshTokensSelectColumnCreatedAt, AuthRefreshTokensSelectColumnExpiresAt, AuthRefreshTokensSelectColumnMetadata, AuthRefreshTokensSelectColumnRefreshToken, AuthRefreshTokensSelectColumnRefreshTokenHash, AuthRefreshTokensSelectColumnType, AuthRefreshTokensSelectColumnUserID:
+	case AuthRefreshTokensSelectColumnCreatedAt, AuthRefreshTokensSelectColumnExpiresAt, AuthRefreshTokensSelectColumnID, AuthRefreshTokensSelectColumnMetadata, AuthRefreshTokensSelectColumnRefreshTokenHash, AuthRefreshTokensSelectColumnRefreshToken, AuthRefreshTokensSelectColumnType, AuthRefreshTokensSelectColumnUserID:
 		return true
 	}
 	return false
@@ -11428,9 +12607,13 @@ const (
 	// column name
 	AuthRefreshTokensUpdateColumnExpiresAt AuthRefreshTokensUpdateColumn = "expiresAt"
 	// column name
+	AuthRefreshTokensUpdateColumnID AuthRefreshTokensUpdateColumn = "id"
+	// column name
 	AuthRefreshTokensUpdateColumnMetadata AuthRefreshTokensUpdateColumn = "metadata"
 	// column name
-	AuthRefreshTokensUpdateColumnRefreshToken AuthRefreshTokensUpdateColumn = "refreshToken"
+	AuthRefreshTokensUpdateColumnRefreshTokenHash AuthRefreshTokensUpdateColumn = "refreshTokenHash"
+	// column name
+	AuthRefreshTokensUpdateColumnRefreshToken AuthRefreshTokensUpdateColumn = "refresh_token"
 	// column name
 	AuthRefreshTokensUpdateColumnType AuthRefreshTokensUpdateColumn = "type"
 	// column name
@@ -11440,7 +12623,9 @@ const (
 var AllAuthRefreshTokensUpdateColumn = []AuthRefreshTokensUpdateColumn{
 	AuthRefreshTokensUpdateColumnCreatedAt,
 	AuthRefreshTokensUpdateColumnExpiresAt,
+	AuthRefreshTokensUpdateColumnID,
 	AuthRefreshTokensUpdateColumnMetadata,
+	AuthRefreshTokensUpdateColumnRefreshTokenHash,
 	AuthRefreshTokensUpdateColumnRefreshToken,
 	AuthRefreshTokensUpdateColumnType,
 	AuthRefreshTokensUpdateColumnUserID,
@@ -11448,7 +12633,7 @@ var AllAuthRefreshTokensUpdateColumn = []AuthRefreshTokensUpdateColumn{
 
 func (e AuthRefreshTokensUpdateColumn) IsValid() bool {
 	switch e {
-	case AuthRefreshTokensUpdateColumnCreatedAt, AuthRefreshTokensUpdateColumnExpiresAt, AuthRefreshTokensUpdateColumnMetadata, AuthRefreshTokensUpdateColumnRefreshToken, AuthRefreshTokensUpdateColumnType, AuthRefreshTokensUpdateColumnUserID:
+	case AuthRefreshTokensUpdateColumnCreatedAt, AuthRefreshTokensUpdateColumnExpiresAt, AuthRefreshTokensUpdateColumnID, AuthRefreshTokensUpdateColumnMetadata, AuthRefreshTokensUpdateColumnRefreshTokenHash, AuthRefreshTokensUpdateColumnRefreshToken, AuthRefreshTokensUpdateColumnType, AuthRefreshTokensUpdateColumnUserID:
 		return true
 	}
 	return false
@@ -15370,24 +16555,349 @@ func (e PlansUpdateColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+// unique or primary key constraints on table "region_type"
+type RegionTypeConstraint string
+
+const (
+	// unique or primary key constraint on columns "type"
+	RegionTypeConstraintRegionTypePkey RegionTypeConstraint = "region_type_pkey"
+)
+
+var AllRegionTypeConstraint = []RegionTypeConstraint{
+	RegionTypeConstraintRegionTypePkey,
+}
+
+func (e RegionTypeConstraint) IsValid() bool {
+	switch e {
+	case RegionTypeConstraintRegionTypePkey:
+		return true
+	}
+	return false
+}
+
+func (e RegionTypeConstraint) String() string {
+	return string(e)
+}
+
+func (e *RegionTypeConstraint) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RegionTypeConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid region_type_constraint", str)
+	}
+	return nil
+}
+
+func (e RegionTypeConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type RegionTypeEnum string
+
+const (
+	// Private region available to selected workspaces
+	RegionTypeEnumPrivate RegionTypeEnum = "private"
+	// Public region available to all Nhost projects
+	RegionTypeEnumPublic RegionTypeEnum = "public"
+)
+
+var AllRegionTypeEnum = []RegionTypeEnum{
+	RegionTypeEnumPrivate,
+	RegionTypeEnumPublic,
+}
+
+func (e RegionTypeEnum) IsValid() bool {
+	switch e {
+	case RegionTypeEnumPrivate, RegionTypeEnumPublic:
+		return true
+	}
+	return false
+}
+
+func (e RegionTypeEnum) String() string {
+	return string(e)
+}
+
+func (e *RegionTypeEnum) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RegionTypeEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid region_type_enum", str)
+	}
+	return nil
+}
+
+func (e RegionTypeEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "region_type"
+type RegionTypeSelectColumn string
+
+const (
+	// column name
+	RegionTypeSelectColumnComment RegionTypeSelectColumn = "comment"
+	// column name
+	RegionTypeSelectColumnType RegionTypeSelectColumn = "type"
+)
+
+var AllRegionTypeSelectColumn = []RegionTypeSelectColumn{
+	RegionTypeSelectColumnComment,
+	RegionTypeSelectColumnType,
+}
+
+func (e RegionTypeSelectColumn) IsValid() bool {
+	switch e {
+	case RegionTypeSelectColumnComment, RegionTypeSelectColumnType:
+		return true
+	}
+	return false
+}
+
+func (e RegionTypeSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *RegionTypeSelectColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RegionTypeSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid region_type_select_column", str)
+	}
+	return nil
+}
+
+func (e RegionTypeSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// update columns of table "region_type"
+type RegionTypeUpdateColumn string
+
+const (
+	// column name
+	RegionTypeUpdateColumnComment RegionTypeUpdateColumn = "comment"
+	// column name
+	RegionTypeUpdateColumnType RegionTypeUpdateColumn = "type"
+)
+
+var AllRegionTypeUpdateColumn = []RegionTypeUpdateColumn{
+	RegionTypeUpdateColumnComment,
+	RegionTypeUpdateColumnType,
+}
+
+func (e RegionTypeUpdateColumn) IsValid() bool {
+	switch e {
+	case RegionTypeUpdateColumnComment, RegionTypeUpdateColumnType:
+		return true
+	}
+	return false
+}
+
+func (e RegionTypeUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *RegionTypeUpdateColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RegionTypeUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid region_type_update_column", str)
+	}
+	return nil
+}
+
+func (e RegionTypeUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// unique or primary key constraints on table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceConstraint string
+
+const (
+	// unique or primary key constraint on columns "id"
+	RegionsAllowedWorkspaceConstraintRegionsAllowedWorkspacePkey RegionsAllowedWorkspaceConstraint = "regions_allowed_workspace_pkey"
+	// unique or primary key constraint on columns "workspace_id", "region_id"
+	RegionsAllowedWorkspaceConstraintRegionsAllowedWorkspaceRegionIDWorkspaceIDKey RegionsAllowedWorkspaceConstraint = "regions_allowed_workspace_region_id_workspace_id_key"
+)
+
+var AllRegionsAllowedWorkspaceConstraint = []RegionsAllowedWorkspaceConstraint{
+	RegionsAllowedWorkspaceConstraintRegionsAllowedWorkspacePkey,
+	RegionsAllowedWorkspaceConstraintRegionsAllowedWorkspaceRegionIDWorkspaceIDKey,
+}
+
+func (e RegionsAllowedWorkspaceConstraint) IsValid() bool {
+	switch e {
+	case RegionsAllowedWorkspaceConstraintRegionsAllowedWorkspacePkey, RegionsAllowedWorkspaceConstraintRegionsAllowedWorkspaceRegionIDWorkspaceIDKey:
+		return true
+	}
+	return false
+}
+
+func (e RegionsAllowedWorkspaceConstraint) String() string {
+	return string(e)
+}
+
+func (e *RegionsAllowedWorkspaceConstraint) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RegionsAllowedWorkspaceConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid regions_allowed_workspace_constraint", str)
+	}
+	return nil
+}
+
+func (e RegionsAllowedWorkspaceConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceSelectColumn string
+
+const (
+	// column name
+	RegionsAllowedWorkspaceSelectColumnCreatedAt RegionsAllowedWorkspaceSelectColumn = "created_at"
+	// column name
+	RegionsAllowedWorkspaceSelectColumnDescription RegionsAllowedWorkspaceSelectColumn = "description"
+	// column name
+	RegionsAllowedWorkspaceSelectColumnID RegionsAllowedWorkspaceSelectColumn = "id"
+	// column name
+	RegionsAllowedWorkspaceSelectColumnRegionID RegionsAllowedWorkspaceSelectColumn = "region_id"
+	// column name
+	RegionsAllowedWorkspaceSelectColumnUpdatedAt RegionsAllowedWorkspaceSelectColumn = "updated_at"
+	// column name
+	RegionsAllowedWorkspaceSelectColumnWorkspaceID RegionsAllowedWorkspaceSelectColumn = "workspace_id"
+)
+
+var AllRegionsAllowedWorkspaceSelectColumn = []RegionsAllowedWorkspaceSelectColumn{
+	RegionsAllowedWorkspaceSelectColumnCreatedAt,
+	RegionsAllowedWorkspaceSelectColumnDescription,
+	RegionsAllowedWorkspaceSelectColumnID,
+	RegionsAllowedWorkspaceSelectColumnRegionID,
+	RegionsAllowedWorkspaceSelectColumnUpdatedAt,
+	RegionsAllowedWorkspaceSelectColumnWorkspaceID,
+}
+
+func (e RegionsAllowedWorkspaceSelectColumn) IsValid() bool {
+	switch e {
+	case RegionsAllowedWorkspaceSelectColumnCreatedAt, RegionsAllowedWorkspaceSelectColumnDescription, RegionsAllowedWorkspaceSelectColumnID, RegionsAllowedWorkspaceSelectColumnRegionID, RegionsAllowedWorkspaceSelectColumnUpdatedAt, RegionsAllowedWorkspaceSelectColumnWorkspaceID:
+		return true
+	}
+	return false
+}
+
+func (e RegionsAllowedWorkspaceSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *RegionsAllowedWorkspaceSelectColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RegionsAllowedWorkspaceSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid regions_allowed_workspace_select_column", str)
+	}
+	return nil
+}
+
+func (e RegionsAllowedWorkspaceSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// update columns of table "regions_allowed_workspace"
+type RegionsAllowedWorkspaceUpdateColumn string
+
+const (
+	// column name
+	RegionsAllowedWorkspaceUpdateColumnCreatedAt RegionsAllowedWorkspaceUpdateColumn = "created_at"
+	// column name
+	RegionsAllowedWorkspaceUpdateColumnDescription RegionsAllowedWorkspaceUpdateColumn = "description"
+	// column name
+	RegionsAllowedWorkspaceUpdateColumnID RegionsAllowedWorkspaceUpdateColumn = "id"
+	// column name
+	RegionsAllowedWorkspaceUpdateColumnRegionID RegionsAllowedWorkspaceUpdateColumn = "region_id"
+	// column name
+	RegionsAllowedWorkspaceUpdateColumnUpdatedAt RegionsAllowedWorkspaceUpdateColumn = "updated_at"
+	// column name
+	RegionsAllowedWorkspaceUpdateColumnWorkspaceID RegionsAllowedWorkspaceUpdateColumn = "workspace_id"
+)
+
+var AllRegionsAllowedWorkspaceUpdateColumn = []RegionsAllowedWorkspaceUpdateColumn{
+	RegionsAllowedWorkspaceUpdateColumnCreatedAt,
+	RegionsAllowedWorkspaceUpdateColumnDescription,
+	RegionsAllowedWorkspaceUpdateColumnID,
+	RegionsAllowedWorkspaceUpdateColumnRegionID,
+	RegionsAllowedWorkspaceUpdateColumnUpdatedAt,
+	RegionsAllowedWorkspaceUpdateColumnWorkspaceID,
+}
+
+func (e RegionsAllowedWorkspaceUpdateColumn) IsValid() bool {
+	switch e {
+	case RegionsAllowedWorkspaceUpdateColumnCreatedAt, RegionsAllowedWorkspaceUpdateColumnDescription, RegionsAllowedWorkspaceUpdateColumnID, RegionsAllowedWorkspaceUpdateColumnRegionID, RegionsAllowedWorkspaceUpdateColumnUpdatedAt, RegionsAllowedWorkspaceUpdateColumnWorkspaceID:
+		return true
+	}
+	return false
+}
+
+func (e RegionsAllowedWorkspaceUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *RegionsAllowedWorkspaceUpdateColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RegionsAllowedWorkspaceUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid regions_allowed_workspace_update_column", str)
+	}
+	return nil
+}
+
+func (e RegionsAllowedWorkspaceUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 // unique or primary key constraints on table "regions"
 type RegionsConstraint string
 
 const (
 	// unique or primary key constraint on columns "id"
 	RegionsConstraintLocationsPkey RegionsConstraint = "locations_pkey"
-	// unique or primary key constraint on columns "aws_name"
-	RegionsConstraintRegionsAwsNameKey RegionsConstraint = "regions_aws_name_key"
 )
 
 var AllRegionsConstraint = []RegionsConstraint{
 	RegionsConstraintLocationsPkey,
-	RegionsConstraintRegionsAwsNameKey,
 }
 
 func (e RegionsConstraint) IsValid() bool {
 	switch e {
-	case RegionsConstraintLocationsPkey, RegionsConstraintRegionsAwsNameKey:
+	case RegionsConstraintLocationsPkey:
 		return true
 	}
 	return false
@@ -15429,9 +16939,15 @@ const (
 	// column name
 	RegionsSelectColumnCreatedAt RegionsSelectColumn = "createdAt"
 	// column name
+	RegionsSelectColumnDescription RegionsSelectColumn = "description"
+	// column name
+	RegionsSelectColumnDomain RegionsSelectColumn = "domain"
+	// column name
 	RegionsSelectColumnID RegionsSelectColumn = "id"
 	// column name
 	RegionsSelectColumnIsGdprCompliant RegionsSelectColumn = "isGdprCompliant"
+	// column name
+	RegionsSelectColumnType RegionsSelectColumn = "type"
 	// column name
 	RegionsSelectColumnUpdatedAt RegionsSelectColumn = "updatedAt"
 )
@@ -15442,14 +16958,17 @@ var AllRegionsSelectColumn = []RegionsSelectColumn{
 	RegionsSelectColumnCity,
 	RegionsSelectColumnCountryCode,
 	RegionsSelectColumnCreatedAt,
+	RegionsSelectColumnDescription,
+	RegionsSelectColumnDomain,
 	RegionsSelectColumnID,
 	RegionsSelectColumnIsGdprCompliant,
+	RegionsSelectColumnType,
 	RegionsSelectColumnUpdatedAt,
 }
 
 func (e RegionsSelectColumn) IsValid() bool {
 	switch e {
-	case RegionsSelectColumnActive, RegionsSelectColumnAwsName, RegionsSelectColumnCity, RegionsSelectColumnCountryCode, RegionsSelectColumnCreatedAt, RegionsSelectColumnID, RegionsSelectColumnIsGdprCompliant, RegionsSelectColumnUpdatedAt:
+	case RegionsSelectColumnActive, RegionsSelectColumnAwsName, RegionsSelectColumnCity, RegionsSelectColumnCountryCode, RegionsSelectColumnCreatedAt, RegionsSelectColumnDescription, RegionsSelectColumnDomain, RegionsSelectColumnID, RegionsSelectColumnIsGdprCompliant, RegionsSelectColumnType, RegionsSelectColumnUpdatedAt:
 		return true
 	}
 	return false
@@ -15579,9 +17098,15 @@ const (
 	// column name
 	RegionsUpdateColumnCreatedAt RegionsUpdateColumn = "createdAt"
 	// column name
+	RegionsUpdateColumnDescription RegionsUpdateColumn = "description"
+	// column name
+	RegionsUpdateColumnDomain RegionsUpdateColumn = "domain"
+	// column name
 	RegionsUpdateColumnID RegionsUpdateColumn = "id"
 	// column name
 	RegionsUpdateColumnIsGdprCompliant RegionsUpdateColumn = "isGdprCompliant"
+	// column name
+	RegionsUpdateColumnType RegionsUpdateColumn = "type"
 	// column name
 	RegionsUpdateColumnUpdatedAt RegionsUpdateColumn = "updatedAt"
 )
@@ -15592,14 +17117,17 @@ var AllRegionsUpdateColumn = []RegionsUpdateColumn{
 	RegionsUpdateColumnCity,
 	RegionsUpdateColumnCountryCode,
 	RegionsUpdateColumnCreatedAt,
+	RegionsUpdateColumnDescription,
+	RegionsUpdateColumnDomain,
 	RegionsUpdateColumnID,
 	RegionsUpdateColumnIsGdprCompliant,
+	RegionsUpdateColumnType,
 	RegionsUpdateColumnUpdatedAt,
 }
 
 func (e RegionsUpdateColumn) IsValid() bool {
 	switch e {
-	case RegionsUpdateColumnActive, RegionsUpdateColumnAwsName, RegionsUpdateColumnCity, RegionsUpdateColumnCountryCode, RegionsUpdateColumnCreatedAt, RegionsUpdateColumnID, RegionsUpdateColumnIsGdprCompliant, RegionsUpdateColumnUpdatedAt:
+	case RegionsUpdateColumnActive, RegionsUpdateColumnAwsName, RegionsUpdateColumnCity, RegionsUpdateColumnCountryCode, RegionsUpdateColumnCreatedAt, RegionsUpdateColumnDescription, RegionsUpdateColumnDomain, RegionsUpdateColumnID, RegionsUpdateColumnIsGdprCompliant, RegionsUpdateColumnType, RegionsUpdateColumnUpdatedAt:
 		return true
 	}
 	return false
@@ -15623,6 +17151,159 @@ func (e *RegionsUpdateColumn) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RegionsUpdateColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// unique or primary key constraints on table "run_service"
+type RunServiceConstraint string
+
+const (
+	// unique or primary key constraint on columns "id"
+	RunServiceConstraintRunServicePkey RunServiceConstraint = "run_service_pkey"
+)
+
+var AllRunServiceConstraint = []RunServiceConstraint{
+	RunServiceConstraintRunServicePkey,
+}
+
+func (e RunServiceConstraint) IsValid() bool {
+	switch e {
+	case RunServiceConstraintRunServicePkey:
+		return true
+	}
+	return false
+}
+
+func (e RunServiceConstraint) String() string {
+	return string(e)
+}
+
+func (e *RunServiceConstraint) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RunServiceConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid run_service_constraint", str)
+	}
+	return nil
+}
+
+func (e RunServiceConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "run_service"
+type RunServiceSelectColumn string
+
+const (
+	// column name
+	RunServiceSelectColumnAppID RunServiceSelectColumn = "appID"
+	// column name
+	RunServiceSelectColumnCreatedAt RunServiceSelectColumn = "createdAt"
+	// column name
+	RunServiceSelectColumnCreatorUserID RunServiceSelectColumn = "creatorUserId"
+	// column name
+	RunServiceSelectColumnID RunServiceSelectColumn = "id"
+	// column name
+	RunServiceSelectColumnMimirConfigEnc RunServiceSelectColumn = "mimirConfigEnc"
+	// column name
+	RunServiceSelectColumnUpdatedAt RunServiceSelectColumn = "updatedAt"
+)
+
+var AllRunServiceSelectColumn = []RunServiceSelectColumn{
+	RunServiceSelectColumnAppID,
+	RunServiceSelectColumnCreatedAt,
+	RunServiceSelectColumnCreatorUserID,
+	RunServiceSelectColumnID,
+	RunServiceSelectColumnMimirConfigEnc,
+	RunServiceSelectColumnUpdatedAt,
+}
+
+func (e RunServiceSelectColumn) IsValid() bool {
+	switch e {
+	case RunServiceSelectColumnAppID, RunServiceSelectColumnCreatedAt, RunServiceSelectColumnCreatorUserID, RunServiceSelectColumnID, RunServiceSelectColumnMimirConfigEnc, RunServiceSelectColumnUpdatedAt:
+		return true
+	}
+	return false
+}
+
+func (e RunServiceSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *RunServiceSelectColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RunServiceSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid run_service_select_column", str)
+	}
+	return nil
+}
+
+func (e RunServiceSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// update columns of table "run_service"
+type RunServiceUpdateColumn string
+
+const (
+	// column name
+	RunServiceUpdateColumnAppID RunServiceUpdateColumn = "appID"
+	// column name
+	RunServiceUpdateColumnCreatedAt RunServiceUpdateColumn = "createdAt"
+	// column name
+	RunServiceUpdateColumnCreatorUserID RunServiceUpdateColumn = "creatorUserId"
+	// column name
+	RunServiceUpdateColumnID RunServiceUpdateColumn = "id"
+	// column name
+	RunServiceUpdateColumnMimirConfigEnc RunServiceUpdateColumn = "mimirConfigEnc"
+	// column name
+	RunServiceUpdateColumnUpdatedAt RunServiceUpdateColumn = "updatedAt"
+)
+
+var AllRunServiceUpdateColumn = []RunServiceUpdateColumn{
+	RunServiceUpdateColumnAppID,
+	RunServiceUpdateColumnCreatedAt,
+	RunServiceUpdateColumnCreatorUserID,
+	RunServiceUpdateColumnID,
+	RunServiceUpdateColumnMimirConfigEnc,
+	RunServiceUpdateColumnUpdatedAt,
+}
+
+func (e RunServiceUpdateColumn) IsValid() bool {
+	switch e {
+	case RunServiceUpdateColumnAppID, RunServiceUpdateColumnCreatedAt, RunServiceUpdateColumnCreatorUserID, RunServiceUpdateColumnID, RunServiceUpdateColumnMimirConfigEnc, RunServiceUpdateColumnUpdatedAt:
+		return true
+	}
+	return false
+}
+
+func (e RunServiceUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *RunServiceUpdateColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RunServiceUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid run_service_update_column", str)
+	}
+	return nil
+}
+
+func (e RunServiceUpdateColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

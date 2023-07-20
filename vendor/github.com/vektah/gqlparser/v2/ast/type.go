@@ -63,6 +63,6 @@ func (t *Type) IsCompatible(other *Type) bool {
 	return true
 }
 
-func (v *Type) Dump() string {
-	return v.String()
+func (t *Type) Dump() string {
+	return t.String()
 }

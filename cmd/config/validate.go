@@ -120,7 +120,7 @@ func Validate(ce *clienv.CliEnv, subdomain string) (*model.ConfigConfig, error) 
 		return nil, fmt.Errorf("failed to create schema: %w", err)
 	}
 
-	cfg, err = appconfig.Config(schema, cfg, secrets)
+	cfg, err = appconfig.SecretsResolver[model.ConfigConfig](cfg, secrets, schema.Fill)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}
@@ -155,7 +155,7 @@ func ValidateRemote(
 
 	ce.Infoln("Getting secrets...")
 	cl := ce.GetNhostClient()
-	secrets, err := cl.GetSecrets(
+	secretsResp, err := cl.GetSecrets(
 		ctx,
 		proj.ID,
 		graphql.WithAccessToken(session.Session.AccessToken),
@@ -172,7 +172,8 @@ func ValidateRemote(
 		}
 	}
 
-	_, err = appconfig.Config(schema, cfg, respToSecrets(secrets.GetAppSecrets(), false))
+	secrets := respToSecrets(secretsResp.GetAppSecrets(), false)
+	_, err = appconfig.SecretsResolver[model.ConfigConfig](cfg, secrets, schema.Fill)
 	if err != nil {
 		return fmt.Errorf("failed to validate config: %w", err)
 	}

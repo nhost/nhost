@@ -1,0 +1,25 @@
+name = 'mysvc'
+
+[image]
+image = 'registry.eu-central-1.nhost.run/21039060-88b3-4382-bc09-86c21fe3156b:123'
+
+[[environment]]
+name = 'MY_ENV2'
+value = 'myvalue2'
+
+[[ports]]
+port = 3000
+type = 'http'
+publish = true
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 62
+memory = 128
+
+[[resources.storage]]
+name = 'storage1'
+capacity = 1
+path = '/var/lib/storage1'

@@ -22,3 +22,8 @@ type ConfigInsertConfigResponse struct {
 	SystemConfig *ConfigSystemConfig          `json:"systemConfig"`
 	Secrets      []*ConfigEnvironmentVariable `json:"secrets"`
 }
+
+type ConfigRunServiceConfigWithID struct {
+	ServiceID string                  `json:"serviceID"`
+	Config    *ConfigRunServiceConfig `json:"config"`
+}

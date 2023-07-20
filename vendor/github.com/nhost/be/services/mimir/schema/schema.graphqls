@@ -25,6 +25,11 @@ type ConfigInsertConfigResponse {
     secrets: [ConfigEnvironmentVariable!]!
 }
 
+type ConfigRunServiceConfigWithID {
+    serviceID: uuid!
+    config: ConfigRunServiceConfig!
+}
+
 type Query {
     configRawJSON(
         appID: uuid! @hasAppVisibility(),
@@ -52,6 +57,21 @@ type Query {
     systemConfigs(
         where: ConfigSystemConfigComparisonExp @isAdmin(),
     ): [ConfigAppSystemConfig!]!
+
+    runServiceConfigRawJSON(
+        appID: uuid! @hasAppVisibility(),
+        serviceID: uuid!,
+        resolve: Boolean!,
+    ):String!
+    runServiceConfig(
+        appID: uuid! @hasAppVisibility(),
+        serviceID: uuid!,
+        resolve: Boolean!,
+    ): ConfigRunServiceConfig
+    runServiceConfigs(
+        resolve: Boolean!,
+        where: ConfigRunServiceConfigComparisonExp, @isAdmin(),
+    ): [ConfigRunServiceConfigWithID!]!
 }
 
 
@@ -85,10 +105,30 @@ type Mutation {
     deleteSecret(
         appID: uuid! @hasAppVisibility(),
         key: String!,
-    ): ConfigEnvironmentVariable!
+    ): ConfigEnvironmentVariable
 
     updateSystemConfig(
         appID: uuid! @hasAppVisibility(), @isAdmin(),
         systemConfig: ConfigSystemConfigUpdateInput!,
     ): ConfigSystemConfig!
+
+    insertRunServiceConfig(
+        appID: uuid! @hasAppVisibility(),
+        serviceID: uuid!,
+        config: ConfigRunServiceConfigInsertInput!,
+    ): ConfigRunServiceConfig!
+    updateRunServiceConfig(
+        appID: uuid! @hasAppVisibility(),
+        serviceID: uuid!,
+        config: ConfigRunServiceConfigUpdateInput!,
+    ): ConfigRunServiceConfig!
+    replaceRunServiceConfig(
+        appID: uuid! @hasAppVisibility(),
+        serviceID: uuid!,
+        config: ConfigRunServiceConfigInsertInput!,
+    ): ConfigRunServiceConfig!
+    deleteRunServiceConfig(
+        appID: uuid! @hasAppVisibility(),
+        serviceID: uuid!,
+    ): ConfigRunServiceConfig
 }

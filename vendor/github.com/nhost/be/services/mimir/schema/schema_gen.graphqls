@@ -1939,6 +1939,240 @@ input ConfigResourcesComputeComparisonExp {
 """
 
 """
+type ConfigRunServiceConfig {
+    """
+
+    """
+    name: String!
+    """
+
+    """
+    image: ConfigRunServiceImage!
+    """
+
+    """
+    command: [String!]
+    """
+
+    """
+    environment: [ConfigEnvironmentVariable!]
+    """
+
+    """
+    ports: [ConfigRunServicePort!]
+    """
+
+    """
+    resources: ConfigRunServiceResources!
+}
+
+input ConfigRunServiceConfigUpdateInput {
+    name: String
+    image: ConfigRunServiceImageUpdateInput
+        command: [String!]
+        environment: [ConfigEnvironmentVariableUpdateInput!]
+        ports: [ConfigRunServicePortUpdateInput!]
+    resources: ConfigRunServiceResourcesUpdateInput
+}
+
+input ConfigRunServiceConfigInsertInput {
+    name: String!
+    image: ConfigRunServiceImageInsertInput!
+        command: [String!]
+        environment: [ConfigEnvironmentVariableInsertInput!]
+        ports: [ConfigRunServicePortInsertInput!]
+    resources: ConfigRunServiceResourcesInsertInput!
+}
+
+input ConfigRunServiceConfigComparisonExp {
+    _and: [ConfigRunServiceConfigComparisonExp!]
+    _not: ConfigRunServiceConfigComparisonExp
+    _or: [ConfigRunServiceConfigComparisonExp!]
+    name: ConfigStringComparisonExp
+    image: ConfigRunServiceImageComparisonExp
+    command: ConfigStringComparisonExp
+    environment: ConfigEnvironmentVariableComparisonExp
+    ports: ConfigRunServicePortComparisonExp
+    resources: ConfigRunServiceResourcesComparisonExp
+}
+
+"""
+
+"""
+type ConfigRunServiceImage {
+    """
+
+    """
+    image: String!
+}
+
+input ConfigRunServiceImageUpdateInput {
+    image: String
+}
+
+input ConfigRunServiceImageInsertInput {
+    image: String!
+}
+
+input ConfigRunServiceImageComparisonExp {
+    _and: [ConfigRunServiceImageComparisonExp!]
+    _not: ConfigRunServiceImageComparisonExp
+    _or: [ConfigRunServiceImageComparisonExp!]
+    image: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigRunServicePort {
+    """
+
+    """
+    port: ConfigPort!
+    """
+
+    """
+    type: String!
+    """
+
+    """
+    publish: Boolean
+}
+
+input ConfigRunServicePortUpdateInput {
+    port: ConfigPort
+    type: String
+    publish: Boolean
+}
+
+input ConfigRunServicePortInsertInput {
+    port: ConfigPort!
+    type: String!
+    publish: Boolean
+}
+
+input ConfigRunServicePortComparisonExp {
+    _and: [ConfigRunServicePortComparisonExp!]
+    _not: ConfigRunServicePortComparisonExp
+    _or: [ConfigRunServicePortComparisonExp!]
+    port: ConfigPortComparisonExp
+    type: ConfigStringComparisonExp
+    publish: ConfigBooleanComparisonExp
+}
+
+"""
+Resource configuration for a service
+"""
+type ConfigRunServiceResources {
+    """
+
+    """
+    compute: ConfigRunServiceResourcesCompute!
+    """
+
+    """
+    storage: [ConfigRunServiceResourcesStorage!]
+    """
+    Number of replicas for a service
+    """
+    replicas: ConfigUint8!
+}
+
+input ConfigRunServiceResourcesUpdateInput {
+    compute: ConfigRunServiceResourcesComputeUpdateInput
+        storage: [ConfigRunServiceResourcesStorageUpdateInput!]
+    replicas: ConfigUint8
+}
+
+input ConfigRunServiceResourcesInsertInput {
+    compute: ConfigRunServiceResourcesComputeInsertInput!
+        storage: [ConfigRunServiceResourcesStorageInsertInput!]
+    replicas: ConfigUint8!
+}
+
+input ConfigRunServiceResourcesComparisonExp {
+    _and: [ConfigRunServiceResourcesComparisonExp!]
+    _not: ConfigRunServiceResourcesComparisonExp
+    _or: [ConfigRunServiceResourcesComparisonExp!]
+    compute: ConfigRunServiceResourcesComputeComparisonExp
+    storage: ConfigRunServiceResourcesStorageComparisonExp
+    replicas: ConfigUint8ComparisonExp
+}
+
+"""
+
+"""
+type ConfigRunServiceResourcesCompute {
+    """
+    milicpus, 1000 milicpus = 1 cpu
+    """
+    cpu: ConfigUint32!
+    """
+    MiB: 128MiB to 30GiB
+    """
+    memory: ConfigUint32!
+}
+
+input ConfigRunServiceResourcesComputeUpdateInput {
+    cpu: ConfigUint32
+    memory: ConfigUint32
+}
+
+input ConfigRunServiceResourcesComputeInsertInput {
+    cpu: ConfigUint32!
+    memory: ConfigUint32!
+}
+
+input ConfigRunServiceResourcesComputeComparisonExp {
+    _and: [ConfigRunServiceResourcesComputeComparisonExp!]
+    _not: ConfigRunServiceResourcesComputeComparisonExp
+    _or: [ConfigRunServiceResourcesComputeComparisonExp!]
+    cpu: ConfigUint32ComparisonExp
+    memory: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
+type ConfigRunServiceResourcesStorage {
+    """
+    name of the volume, changing it will cause data loss
+    """
+    name: String!
+    """
+    GiB
+    """
+    capacity: ConfigUint32!
+    """
+
+    """
+    path: String!
+}
+
+input ConfigRunServiceResourcesStorageUpdateInput {
+    name: String
+    capacity: ConfigUint32
+    path: String
+}
+
+input ConfigRunServiceResourcesStorageInsertInput {
+    name: String!
+    capacity: ConfigUint32!
+    path: String!
+}
+
+input ConfigRunServiceResourcesStorageComparisonExp {
+    _and: [ConfigRunServiceResourcesStorageComparisonExp!]
+    _not: ConfigRunServiceResourcesStorageComparisonExp
+    _or: [ConfigRunServiceResourcesStorageComparisonExp!]
+    name: ConfigStringComparisonExp
+    capacity: ConfigUint32ComparisonExp
+    path: ConfigStringComparisonExp
+}
+
+"""
+
+"""
 type ConfigSms {
     """
 
@@ -2294,24 +2528,18 @@ type ConfigSystemConfigPostgres {
 
     """
     connectionString: ConfigSystemConfigPostgresConnectionString!
-    """
-
-    """
-    password: String!
 }
 
 input ConfigSystemConfigPostgresUpdateInput {
     enabled: Boolean
     database: String
     connectionString: ConfigSystemConfigPostgresConnectionStringUpdateInput
-    password: String
 }
 
 input ConfigSystemConfigPostgresInsertInput {
     enabled: Boolean
     database: String!
     connectionString: ConfigSystemConfigPostgresConnectionStringInsertInput!
-    password: String!
 }
 
 input ConfigSystemConfigPostgresComparisonExp {
@@ -2321,7 +2549,6 @@ input ConfigSystemConfigPostgresComparisonExp {
     enabled: ConfigBooleanComparisonExp
     database: ConfigStringComparisonExp
     connectionString: ConfigSystemConfigPostgresConnectionStringComparisonExp
-    password: ConfigStringComparisonExp
 }
 
 """

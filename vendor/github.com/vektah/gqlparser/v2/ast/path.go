@@ -60,8 +60,8 @@ func (path *Path) UnmarshalJSON(b []byte) error {
 
 type PathIndex int
 
-func (_ PathIndex) isPathElement() {}
+func (PathIndex) isPathElement() {}
 
 type PathName string
 
-func (_ PathName) isPathElement() {}
+func (PathName) isPathElement() {}

@@ -8,7 +8,7 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 )
 
-func unptr[T any](t *T) T { //nolint: ireturn
+func unptr[T any](t *T) T { //nolint:ireturn
 	if t == nil {
 		return *new(T)
 	}
@@ -51,9 +51,9 @@ func Stringify(value any) string {
 }
 
 type claim struct {
-	Value   *string "json:\"value,omitempty\" graphql:\"value\""
-	Path    *string "json:\"path,omitempty\" graphql:\"path\""
-	Default *string "json:\"default,omitempty\" graphql:\"default\""
+	Value   *string `graphql:"value"   json:"value,omitempty"`
+	Path    *string `graphql:"path"    json:"path,omitempty"`
+	Default *string `graphql:"default" json:"default,omitempty"`
 }
 
 func (t *claim) MarshalJSON() ([]byte, error) {
@@ -70,18 +70,19 @@ func (t *claim) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s) //nolint:wrapcheck
 }
 
+//nolint:tagliatelle
 type jwtSecret struct {
-	AllowedSkew         *uint32           "json:\"allowed_skew,omitempty\" graphql:\"allowed_skew\""
-	Audience            *string           "json:\"audience,omitempty\" graphql:\"audience\""
-	ClaimsMap           map[string]*claim "json:\"claims_map,omitempty\" graphql:\"claims_map\""
-	ClaimsFormat        *string           "json:\"claims_format,omitempty\" graphql:\"claims_format\""
-	ClaimsNamespace     *string           "json:\"claims_namespace,omitempty\" graphql:\"claims_namespace\""
-	ClaimsNamespacePath *string           "json:\"claims_namespace_path,omitempty\" graphql:\"claims_namespace_path\""
-	Header              *string           "json:\"header,omitempty\" graphql:\"header\""
-	Issuer              *string           "json:\"issuer,omitempty\" graphql:\"issuer\""
-	JwkURL              *string           "json:\"jwk_url,omitempty\" graphql:\"jwk_url\""
-	Key                 *string           "json:\"key,omitempty\" graphql:\"key\""
-	Type                *string           "json:\"type,omitempty\" graphql:\"type\""
+	AllowedSkew         *uint32           `graphql:"allowed_skew"          json:"allowed_skew,omitempty"`
+	Audience            *string           `graphql:"audience"              json:"audience,omitempty"`
+	ClaimsMap           map[string]*claim `graphql:"claims_map"            json:"claims_map,omitempty"`
+	ClaimsFormat        *string           `graphql:"claims_format"         json:"claims_format,omitempty"`
+	ClaimsNamespace     *string           `graphql:"claims_namespace"      json:"claims_namespace,omitempty"`
+	ClaimsNamespacePath *string           `graphql:"claims_namespace_path" json:"claims_namespace_path,omitempty"`
+	Header              *string           `graphql:"header"                json:"header,omitempty"`
+	Issuer              *string           `graphql:"issuer"                json:"issuer,omitempty"`
+	JwkURL              *string           `graphql:"jwk_url"               json:"jwk_url,omitempty"`
+	Key                 *string           `graphql:"key"                   json:"key,omitempty"`
+	Type                *string           `graphql:"type"                  json:"type,omitempty"`
 }
 
 func marshalJWT(jwt *model.ConfigJWTSecret) ([]byte, error) {

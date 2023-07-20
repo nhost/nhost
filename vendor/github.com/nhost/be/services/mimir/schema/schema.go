@@ -161,3 +161,31 @@ func (s *Schema) FillSystemConfig(
 
 	return &merged, nil
 }
+
+func (s *Schema) FillRunServiceConfig(
+	config any,
+) (*model.ConfigRunServiceConfig, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	u, err := s.unify(config, "RunServiceConfig")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := u.Validate(cue.All(), cue.Concrete(true)); err != nil {
+		return nil, NewConfigNotValidError(err)
+	}
+
+	b, err := json.Marshal(u)
+	if err != nil {
+		return nil, fmt.Errorf("problem marshaling cue value: %w", err)
+	}
+
+	var merged model.ConfigRunServiceConfig
+	if err := json.Unmarshal(b, &merged); err != nil {
+		return nil, fmt.Errorf("problem unmarshaling cue value: %w", err)
+	}
+
+	return &merged, nil
+}

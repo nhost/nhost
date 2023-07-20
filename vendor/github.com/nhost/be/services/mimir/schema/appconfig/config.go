@@ -9,15 +9,14 @@ import (
 	"unsafe"
 
 	"github.com/nhost/be/services/mimir/model"
-	"github.com/nhost/be/services/mimir/schema"
 	"github.com/valyala/fasttemplate"
 )
 
-func Config(
-	sch *schema.Schema,
-	conf *model.ConfigConfig,
+func SecretsResolver[T any](
+	conf *T,
 	secrets model.Secrets,
-) (*model.ConfigConfig, error) {
+	fillerFunc func(any) (*T, error),
+) (*T, error) {
 	vars := map[string]any{}
 	for _, e := range secrets {
 		vars["secrets."+e.Name] = strings.ReplaceAll(e.Value, `"`, `\"`)
@@ -33,12 +32,12 @@ func Config(
 		return nil, fmt.Errorf("failed to render config tempolate: %w", err)
 	}
 
-	cfg := &model.ConfigConfig{} //nolint: exhaustruct
+	cfg := new(T)
 	if err := json.Unmarshal(data, cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	cfg, err = sch.Fill(cfg)
+	cfg, err = fillerFunc(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}
