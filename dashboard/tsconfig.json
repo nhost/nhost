@@ -29,7 +29,8 @@
       "@/styles/*": ["styles/*"],
       "@/data/*": ["data/*"],
       "@/generated/*": ["utils/__generated__/*"],
-      "@/features/*": ["features/*"]
+      "@/features/*": ["features/*"],
+      "@/hypertune/*": ["hypertune/*"]
     },
     "incremental": true
   },
