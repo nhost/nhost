@@ -10,6 +10,7 @@ on:
       - '**.md'
       - '!.changeset/**'
       - 'LICENSE'
+  workflow_dispatch:
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
