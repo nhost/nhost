@@ -1,0 +1,33 @@
+query getRunService($id: uuid!, $resolve: Boolean!) {
+  runService(id: $id) {
+    id
+    config(resolve: $resolve) {
+      name
+      image {
+        image
+      }
+      command
+      resources {
+        compute {
+          cpu
+          memory
+        }
+        storage {
+          name
+          path
+          capacity
+        }
+        replicas
+      }
+      environment {
+        name
+        value
+      }
+      ports {
+        port
+        type
+        publish
+      }
+    }
+  }
+}

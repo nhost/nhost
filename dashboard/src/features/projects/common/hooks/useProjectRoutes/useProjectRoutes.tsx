@@ -8,11 +8,13 @@ import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
 import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
 import { HomeIcon } from '@/components/ui/v2/icons/HomeIcon';
 import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
+import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import type { SvgIconProps } from '@/components/ui/v2/icons/SvgIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useHypertune } from '@/hooks/useHypertune';
 import type { ReactElement } from 'react';
 
 export interface ProjectRoute {
@@ -56,8 +58,26 @@ export interface ProjectRoute {
 export default function useProjectRoutes() {
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
-  const { currentProject, loading: currentProjectLoading } =
-    useCurrentWorkspaceAndProject();
+  const {
+    currentWorkspace,
+    currentProject,
+    loading: currentProjectLoading,
+  } = useCurrentWorkspaceAndProject();
+
+  const hypertune = useHypertune();
+
+  const enableServices =
+    currentWorkspace &&
+    hypertune
+      .root({
+        context: {
+          workSpace: {
+            id: currentWorkspace.id,
+          },
+        },
+      })
+      .enableServices({})
+      .get(false);
 
   const nhostRoutes: ProjectRoute[] = [
     {
@@ -98,7 +118,7 @@ export default function useProjectRoutes() {
     },
   ];
 
-  const allRoutes: ProjectRoute[] = [
+  let allRoutes: ProjectRoute[] = [
     {
       relativePath: '/',
       exact: true,
@@ -136,8 +156,18 @@ export default function useProjectRoutes() {
       label: 'Storage',
       icon: <StorageIcon />,
     },
-    ...nhostRoutes,
   ];
+
+  if (enableServices) {
+    allRoutes.push({
+      relativePath: '/services',
+      exact: false,
+      label: 'Run',
+      icon: <ServicesIcon />,
+    });
+  }
+
+  allRoutes = [...allRoutes, ...nhostRoutes];
 
   return {
     nhostRoutes,

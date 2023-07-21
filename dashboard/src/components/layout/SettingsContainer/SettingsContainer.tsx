@@ -114,7 +114,7 @@ export default function SettingsContainer({
     <Box
       {...root}
       className={twMerge(
-        'grid grid-flow-row gap-4 rounded-lg border-1 py-4',
+        'grid grid-flow-row gap-4 overflow-hidden rounded-lg border-1 py-4',
         root?.className || rootClassName,
       )}
     >

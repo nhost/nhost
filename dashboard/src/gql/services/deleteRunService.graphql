@@ -1,0 +1,5 @@
+mutation deleteRunService($serviceID: uuid!) {
+  deleteRunService(id: $serviceID) {
+    id
+  }
+}

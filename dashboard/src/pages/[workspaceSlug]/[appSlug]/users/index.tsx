@@ -30,7 +30,7 @@ export default function UsersPage() {
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
 
-  const limit = useRef(25);
+  const limit = useRef(1);
   const router = useRouter();
   const [nrOfPages, setNrOfPages] = useState(
     parseInt(router.query.page as string, 10) || 1,
@@ -347,6 +347,7 @@ export default function UsersPage() {
                           .count
                       : dataRemoteAppUsers?.usersAggregate?.aggregate?.count
                   }
+                  itemsLabel="users"
                   elementsPerPage={
                     searchString
                       ? dataRemoteAppUsers?.filteredUsersAggreggate.aggregate

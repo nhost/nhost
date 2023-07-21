@@ -1,0 +1,13 @@
+mutation replaceRunServiceConfig(
+  $appID: uuid!
+  $serviceID: uuid!
+  $config: ConfigRunServiceConfigInsertInput!
+) {
+  replaceRunServiceConfig(
+    appID: $appID
+    serviceID: $serviceID
+    config: $config
+  ) {
+    __typename
+  }
+}

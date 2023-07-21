@@ -28,6 +28,7 @@ export type Scalars = {
   citext: any;
   float64: any;
   jsonb: any;
+  map: any;
   smallint: any;
   timestamp: any;
   timestamptz: any;
@@ -1485,6 +1486,186 @@ export type ConfigResourcesUpdateInput = {
   replicas?: InputMaybe<Scalars['ConfigUint8']>;
 };
 
+export type ConfigRunServiceConfig = {
+  __typename?: 'ConfigRunServiceConfig';
+  command?: Maybe<Array<Scalars['String']>>;
+  environment?: Maybe<Array<ConfigEnvironmentVariable>>;
+  image: ConfigRunServiceImage;
+  name: Scalars['String'];
+  ports?: Maybe<Array<ConfigRunServicePort>>;
+  resources: ConfigRunServiceResources;
+};
+
+export type ConfigRunServiceConfigComparisonExp = {
+  _and?: InputMaybe<Array<ConfigRunServiceConfigComparisonExp>>;
+  _not?: InputMaybe<ConfigRunServiceConfigComparisonExp>;
+  _or?: InputMaybe<Array<ConfigRunServiceConfigComparisonExp>>;
+  command?: InputMaybe<ConfigStringComparisonExp>;
+  environment?: InputMaybe<ConfigEnvironmentVariableComparisonExp>;
+  image?: InputMaybe<ConfigRunServiceImageComparisonExp>;
+  name?: InputMaybe<ConfigStringComparisonExp>;
+  ports?: InputMaybe<ConfigRunServicePortComparisonExp>;
+  resources?: InputMaybe<ConfigRunServiceResourcesComparisonExp>;
+};
+
+export type ConfigRunServiceConfigInsertInput = {
+  command?: InputMaybe<Array<Scalars['String']>>;
+  environment?: InputMaybe<Array<ConfigEnvironmentVariableInsertInput>>;
+  image: ConfigRunServiceImageInsertInput;
+  name: Scalars['String'];
+  ports?: InputMaybe<Array<ConfigRunServicePortInsertInput>>;
+  resources: ConfigRunServiceResourcesInsertInput;
+};
+
+export type ConfigRunServiceConfigUpdateInput = {
+  command?: InputMaybe<Array<Scalars['String']>>;
+  environment?: InputMaybe<Array<ConfigEnvironmentVariableUpdateInput>>;
+  image?: InputMaybe<ConfigRunServiceImageUpdateInput>;
+  name?: InputMaybe<Scalars['String']>;
+  ports?: InputMaybe<Array<ConfigRunServicePortUpdateInput>>;
+  resources?: InputMaybe<ConfigRunServiceResourcesUpdateInput>;
+};
+
+export type ConfigRunServiceConfigWithId = {
+  __typename?: 'ConfigRunServiceConfigWithID';
+  config: ConfigRunServiceConfig;
+  serviceID: Scalars['uuid'];
+};
+
+export type ConfigRunServiceImage = {
+  __typename?: 'ConfigRunServiceImage';
+  image: Scalars['String'];
+};
+
+export type ConfigRunServiceImageComparisonExp = {
+  _and?: InputMaybe<Array<ConfigRunServiceImageComparisonExp>>;
+  _not?: InputMaybe<ConfigRunServiceImageComparisonExp>;
+  _or?: InputMaybe<Array<ConfigRunServiceImageComparisonExp>>;
+  image?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigRunServiceImageInsertInput = {
+  image: Scalars['String'];
+};
+
+export type ConfigRunServiceImageUpdateInput = {
+  image?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigRunServicePort = {
+  __typename?: 'ConfigRunServicePort';
+  port: Scalars['ConfigPort'];
+  publish?: Maybe<Scalars['Boolean']>;
+  type: Scalars['String'];
+};
+
+export type ConfigRunServicePortComparisonExp = {
+  _and?: InputMaybe<Array<ConfigRunServicePortComparisonExp>>;
+  _not?: InputMaybe<ConfigRunServicePortComparisonExp>;
+  _or?: InputMaybe<Array<ConfigRunServicePortComparisonExp>>;
+  port?: InputMaybe<ConfigPortComparisonExp>;
+  publish?: InputMaybe<ConfigBooleanComparisonExp>;
+  type?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigRunServicePortInsertInput = {
+  port: Scalars['ConfigPort'];
+  publish?: InputMaybe<Scalars['Boolean']>;
+  type: Scalars['String'];
+};
+
+export type ConfigRunServicePortUpdateInput = {
+  port?: InputMaybe<Scalars['ConfigPort']>;
+  publish?: InputMaybe<Scalars['Boolean']>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+/** Resource configuration for a service */
+export type ConfigRunServiceResources = {
+  __typename?: 'ConfigRunServiceResources';
+  compute: ConfigRunServiceResourcesCompute;
+  /** Number of replicas for a service */
+  replicas: Scalars['ConfigUint8'];
+  storage?: Maybe<Array<ConfigRunServiceResourcesStorage>>;
+};
+
+export type ConfigRunServiceResourcesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigRunServiceResourcesComparisonExp>>;
+  _not?: InputMaybe<ConfigRunServiceResourcesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigRunServiceResourcesComparisonExp>>;
+  compute?: InputMaybe<ConfigRunServiceResourcesComputeComparisonExp>;
+  replicas?: InputMaybe<ConfigUint8ComparisonExp>;
+  storage?: InputMaybe<ConfigRunServiceResourcesStorageComparisonExp>;
+};
+
+export type ConfigRunServiceResourcesCompute = {
+  __typename?: 'ConfigRunServiceResourcesCompute';
+  /** milicpus, 1000 milicpus = 1 cpu */
+  cpu: Scalars['ConfigUint32'];
+  /** MiB: 128MiB to 30GiB */
+  memory: Scalars['ConfigUint32'];
+};
+
+export type ConfigRunServiceResourcesComputeComparisonExp = {
+  _and?: InputMaybe<Array<ConfigRunServiceResourcesComputeComparisonExp>>;
+  _not?: InputMaybe<ConfigRunServiceResourcesComputeComparisonExp>;
+  _or?: InputMaybe<Array<ConfigRunServiceResourcesComputeComparisonExp>>;
+  cpu?: InputMaybe<ConfigUint32ComparisonExp>;
+  memory?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigRunServiceResourcesComputeInsertInput = {
+  cpu: Scalars['ConfigUint32'];
+  memory: Scalars['ConfigUint32'];
+};
+
+export type ConfigRunServiceResourcesComputeUpdateInput = {
+  cpu?: InputMaybe<Scalars['ConfigUint32']>;
+  memory?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigRunServiceResourcesInsertInput = {
+  compute: ConfigRunServiceResourcesComputeInsertInput;
+  replicas: Scalars['ConfigUint8'];
+  storage?: InputMaybe<Array<ConfigRunServiceResourcesStorageInsertInput>>;
+};
+
+export type ConfigRunServiceResourcesStorage = {
+  __typename?: 'ConfigRunServiceResourcesStorage';
+  /** GiB */
+  capacity: Scalars['ConfigUint32'];
+  /** name of the volume, changing it will cause data loss */
+  name: Scalars['String'];
+  path: Scalars['String'];
+};
+
+export type ConfigRunServiceResourcesStorageComparisonExp = {
+  _and?: InputMaybe<Array<ConfigRunServiceResourcesStorageComparisonExp>>;
+  _not?: InputMaybe<ConfigRunServiceResourcesStorageComparisonExp>;
+  _or?: InputMaybe<Array<ConfigRunServiceResourcesStorageComparisonExp>>;
+  capacity?: InputMaybe<ConfigUint32ComparisonExp>;
+  name?: InputMaybe<ConfigStringComparisonExp>;
+  path?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigRunServiceResourcesStorageInsertInput = {
+  capacity: Scalars['ConfigUint32'];
+  name: Scalars['String'];
+  path: Scalars['String'];
+};
+
+export type ConfigRunServiceResourcesStorageUpdateInput = {
+  capacity?: InputMaybe<Scalars['ConfigUint32']>;
+  name?: InputMaybe<Scalars['String']>;
+  path?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigRunServiceResourcesUpdateInput = {
+  compute?: InputMaybe<ConfigRunServiceResourcesComputeUpdateInput>;
+  replicas?: InputMaybe<Scalars['ConfigUint8']>;
+  storage?: InputMaybe<Array<ConfigRunServiceResourcesStorageUpdateInput>>;
+};
+
 export type ConfigSms = {
   __typename?: 'ConfigSms';
   accountSid: Scalars['String'];
@@ -2550,6 +2731,10 @@ export type Apps = {
   region: Regions;
   regionId: Scalars['uuid'];
   repositoryProductionBranch: Scalars['String'];
+  /** An array relationship */
+  runServices: Array<Run_Service>;
+  /** An aggregate relationship */
+  runServices_aggregate: Run_Service_Aggregate;
   slug: Scalars['String'];
   stripeSubscriptionId?: Maybe<Scalars['String']>;
   subdomain: Scalars['String'];
@@ -2650,6 +2835,26 @@ export type AppsFeatureFlags_AggregateArgs = {
 /** columns and relationships of "apps" */
 export type AppsMetadataFunctionsArgs = {
   path?: InputMaybe<Scalars['String']>;
+};
+
+
+/** columns and relationships of "apps" */
+export type AppsRunServicesArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
+/** columns and relationships of "apps" */
+export type AppsRunServices_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
 };
 
 /** aggregated selection of "apps" */
@@ -2786,6 +2991,8 @@ export type Apps_Bool_Exp = {
   region?: InputMaybe<Regions_Bool_Exp>;
   regionId?: InputMaybe<Uuid_Comparison_Exp>;
   repositoryProductionBranch?: InputMaybe<String_Comparison_Exp>;
+  runServices?: InputMaybe<Run_Service_Bool_Exp>;
+  runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Bool_Exp>;
   slug?: InputMaybe<String_Comparison_Exp>;
   stripeSubscriptionId?: InputMaybe<String_Comparison_Exp>;
   subdomain?: InputMaybe<String_Comparison_Exp>;
@@ -2857,6 +3064,7 @@ export type Apps_Insert_Input = {
   region?: InputMaybe<Regions_Obj_Rel_Insert_Input>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
+  runServices?: InputMaybe<Run_Service_Arr_Rel_Insert_Input>;
   slug?: InputMaybe<Scalars['String']>;
   stripeSubscriptionId?: InputMaybe<Scalars['String']>;
   subdomain?: InputMaybe<Scalars['String']>;
@@ -3010,6 +3218,7 @@ export type Apps_Order_By = {
   region?: InputMaybe<Regions_Order_By>;
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
+  runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Order_By>;
   slug?: InputMaybe<Order_By>;
   stripeSubscriptionId?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
@@ -10232,7 +10441,12 @@ export type Mutation_Root = {
   deleteRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** delete data from the table: "regions_allowed_workspace" */
   deleteRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
-  deleteSecret: ConfigEnvironmentVariable;
+  /** delete single row from the table: "run_service" */
+  deleteRunService?: Maybe<Run_Service>;
+  deleteRunServiceConfig?: Maybe<ConfigRunServiceConfig>;
+  /** delete data from the table: "run_service" */
+  deleteRunServices?: Maybe<Run_Service_Mutation_Response>;
+  deleteSecret?: Maybe<ConfigEnvironmentVariable>;
   /** delete single row from the table: "auth.users" */
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
@@ -10366,6 +10580,11 @@ export type Mutation_Root = {
   insertRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** insert data into the table: "regions_allowed_workspace" */
   insertRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
+  /** insert a single row into the table: "run_service" */
+  insertRunService?: Maybe<Run_Service>;
+  insertRunServiceConfig: ConfigRunServiceConfig;
+  /** insert data into the table: "run_service" */
+  insertRunServices?: Maybe<Run_Service_Mutation_Response>;
   insertSecret: ConfigEnvironmentVariable;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
@@ -10403,11 +10622,12 @@ export type Mutation_Root = {
   insert_regions?: Maybe<Regions_Mutation_Response>;
   /** insert a single row into the table: "regions" */
   insert_regions_one?: Maybe<Regions>;
-  migrateRDSToPostgres: Scalars['Boolean'];
   pauseInactiveApps: Array<Scalars['String']>;
   replaceConfig: ConfigConfig;
+  replaceRunServiceConfig: ConfigRunServiceConfig;
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
+  sendEmailTemplate: Scalars['Boolean'];
   /** update single row of the table: "apps" */
   updateApp?: Maybe<Apps>;
   /** update single row of the table: "app_states" */
@@ -10505,6 +10725,11 @@ export type Mutation_Root = {
   updateRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** update data of the table: "regions_allowed_workspace" */
   updateRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
+  /** update single row of the table: "run_service" */
+  updateRunService?: Maybe<Run_Service>;
+  updateRunServiceConfig: ConfigRunServiceConfig;
+  /** update data of the table: "run_service" */
+  updateRunServices?: Maybe<Run_Service_Mutation_Response>;
   updateSecret: ConfigEnvironmentVariable;
   updateSystemConfig: ConfigSystemConfig;
   /** update single row of the table: "auth.users" */
@@ -10601,6 +10826,8 @@ export type Mutation_Root = {
   update_regions_by_pk?: Maybe<Regions>;
   /** update multiples rows of table: "regions" */
   update_regions_many?: Maybe<Array<Maybe<Regions_Mutation_Response>>>;
+  /** update multiples rows of table: "run_service" */
+  update_run_service_many?: Maybe<Array<Maybe<Run_Service_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
   /** update multiples rows of table: "workspace_member_invites" */
@@ -10992,6 +11219,25 @@ export type Mutation_RootDeleteRegionsAllowedWorkspaceArgs = {
 /** mutation root */
 export type Mutation_RootDeleteRegionsAllowedWorkspacesArgs = {
   where: Regions_Allowed_Workspace_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteRunServiceArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteRunServiceConfigArgs = {
+  appID: Scalars['uuid'];
+  serviceID: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteRunServicesArgs = {
+  where: Run_Service_Bool_Exp;
 };
 
 
@@ -11456,6 +11702,28 @@ export type Mutation_RootInsertRegionsAllowedWorkspacesArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsertRunServiceArgs = {
+  object: Run_Service_Insert_Input;
+  on_conflict?: InputMaybe<Run_Service_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertRunServiceConfigArgs = {
+  appID: Scalars['uuid'];
+  config: ConfigRunServiceConfigInsertInput;
+  serviceID: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertRunServicesArgs = {
+  objects: Array<Run_Service_Insert_Input>;
+  on_conflict?: InputMaybe<Run_Service_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertSecretArgs = {
   appID: Scalars['uuid'];
   secret: ConfigEnvironmentVariableInsertInput;
@@ -11589,16 +11857,17 @@ export type Mutation_RootInsert_Regions_OneArgs = {
 
 
 /** mutation root */
-export type Mutation_RootMigrateRdsToPostgresArgs = {
-  appID: Scalars['String'];
-  backupID: Scalars['String'];
+export type Mutation_RootReplaceConfigArgs = {
+  appID: Scalars['uuid'];
+  config: ConfigConfigInsertInput;
 };
 
 
 /** mutation root */
-export type Mutation_RootReplaceConfigArgs = {
+export type Mutation_RootReplaceRunServiceConfigArgs = {
   appID: Scalars['uuid'];
-  config: ConfigConfigInsertInput;
+  config: ConfigRunServiceConfigInsertInput;
+  serviceID: Scalars['uuid'];
 };
 
 
@@ -11613,6 +11882,15 @@ export type Mutation_RootResetPostgresPasswordArgs = {
 export type Mutation_RootRestoreApplicationDatabaseArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootSendEmailTemplateArgs = {
+  from: Scalars['String'];
+  templateAlias: Scalars['String'];
+  templateModel?: InputMaybe<Scalars['map']>;
+  to: Scalars['String'];
 };
 
 
@@ -12022,6 +12300,28 @@ export type Mutation_RootUpdateRegionsAllowedWorkspacesArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateRunServiceArgs = {
+  _set?: InputMaybe<Run_Service_Set_Input>;
+  pk_columns: Run_Service_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateRunServiceConfigArgs = {
+  appID: Scalars['uuid'];
+  config: ConfigRunServiceConfigUpdateInput;
+  serviceID: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateRunServicesArgs = {
+  _set?: InputMaybe<Run_Service_Set_Input>;
+  where: Run_Service_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateSecretArgs = {
   appID: Scalars['uuid'];
   secret: ConfigEnvironmentVariableInsertInput;
@@ -12346,6 +12646,12 @@ export type Mutation_RootUpdate_Regions_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Regions_ManyArgs = {
   updates: Array<Regions_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Run_Service_ManyArgs = {
+  updates: Array<Run_Service_Updates>;
 };
 
 
@@ -13688,6 +13994,15 @@ export type Query_Root = {
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
+  /** fetch data from the table: "run_service" using primary key columns */
+  runService?: Maybe<Run_Service>;
+  runServiceConfig?: Maybe<ConfigRunServiceConfig>;
+  runServiceConfigRawJSON: Scalars['String'];
+  runServiceConfigs: Array<ConfigRunServiceConfigWithId>;
+  /** An array relationship */
+  runServices: Array<Run_Service>;
+  /** fetch aggregated fields from the table: "run_service" */
+  runServicesAggregate: Run_Service_Aggregate;
   /** fetch data from the table: "regions_allowed_workspace" using primary key columns */
   selectRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** fetch data from the table: "regions_allowed_workspace" */
@@ -14526,6 +14841,49 @@ export type Query_RootRegions_AggregateArgs = {
 
 export type Query_RootRegions_By_PkArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Query_RootRunServiceArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootRunServiceConfigArgs = {
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+  serviceID: Scalars['uuid'];
+};
+
+
+export type Query_RootRunServiceConfigRawJsonArgs = {
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+  serviceID: Scalars['uuid'];
+};
+
+
+export type Query_RootRunServiceConfigsArgs = {
+  resolve: Scalars['Boolean'];
+  where?: InputMaybe<ConfigRunServiceConfigComparisonExp>;
+};
+
+
+export type Query_RootRunServicesArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
+export type Query_RootRunServicesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
 };
 
 
@@ -15485,6 +15843,250 @@ export type Regions_Updates = {
   where: Regions_Bool_Exp;
 };
 
+/** columns and relationships of "run_service" */
+export type Run_Service = {
+  __typename?: 'run_service';
+  /** An object relationship */
+  app: Apps;
+  appID: Scalars['uuid'];
+  config?: Maybe<ConfigRunServiceConfig>;
+  createdAt: Scalars['timestamptz'];
+  /** An object relationship */
+  creator: Users;
+  creatorUserId: Scalars['uuid'];
+  id: Scalars['uuid'];
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  updatedAt: Scalars['timestamptz'];
+};
+
+
+/** columns and relationships of "run_service" */
+export type Run_ServiceConfigArgs = {
+  resolve: Scalars['Boolean'];
+};
+
+/** aggregated selection of "run_service" */
+export type Run_Service_Aggregate = {
+  __typename?: 'run_service_aggregate';
+  aggregate?: Maybe<Run_Service_Aggregate_Fields>;
+  nodes: Array<Run_Service>;
+};
+
+export type Run_Service_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Run_Service_Aggregate_Bool_Exp_Count>;
+};
+
+export type Run_Service_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Run_Service_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Run_Service_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "run_service" */
+export type Run_Service_Aggregate_Fields = {
+  __typename?: 'run_service_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Run_Service_Max_Fields>;
+  min?: Maybe<Run_Service_Min_Fields>;
+};
+
+
+/** aggregate fields of "run_service" */
+export type Run_Service_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Run_Service_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "run_service" */
+export type Run_Service_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Run_Service_Max_Order_By>;
+  min?: InputMaybe<Run_Service_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "run_service" */
+export type Run_Service_Arr_Rel_Insert_Input = {
+  data: Array<Run_Service_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Run_Service_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "run_service". All fields are combined with a logical 'AND'. */
+export type Run_Service_Bool_Exp = {
+  _and?: InputMaybe<Array<Run_Service_Bool_Exp>>;
+  _not?: InputMaybe<Run_Service_Bool_Exp>;
+  _or?: InputMaybe<Array<Run_Service_Bool_Exp>>;
+  app?: InputMaybe<Apps_Bool_Exp>;
+  appID?: InputMaybe<Uuid_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  creator?: InputMaybe<Users_Bool_Exp>;
+  creatorUserId?: InputMaybe<Uuid_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  mimirConfigEnc?: InputMaybe<String_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "run_service" */
+export enum Run_Service_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  RunServicePkey = 'run_service_pkey'
+}
+
+/** input type for inserting data into table "run_service" */
+export type Run_Service_Insert_Input = {
+  app?: InputMaybe<Apps_Obj_Rel_Insert_Input>;
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  creator?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  creatorUserId?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Run_Service_Max_Fields = {
+  __typename?: 'run_service_max_fields';
+  appID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  creatorUserId?: Maybe<Scalars['uuid']>;
+  id?: Maybe<Scalars['uuid']>;
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by max() on columns of table "run_service" */
+export type Run_Service_Max_Order_By = {
+  appID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  creatorUserId?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Run_Service_Min_Fields = {
+  __typename?: 'run_service_min_fields';
+  appID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  creatorUserId?: Maybe<Scalars['uuid']>;
+  id?: Maybe<Scalars['uuid']>;
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by min() on columns of table "run_service" */
+export type Run_Service_Min_Order_By = {
+  appID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  creatorUserId?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "run_service" */
+export type Run_Service_Mutation_Response = {
+  __typename?: 'run_service_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Run_Service>;
+};
+
+/** on_conflict condition type for table "run_service" */
+export type Run_Service_On_Conflict = {
+  constraint: Run_Service_Constraint;
+  update_columns?: Array<Run_Service_Update_Column>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "run_service". */
+export type Run_Service_Order_By = {
+  app?: InputMaybe<Apps_Order_By>;
+  appID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  creator?: InputMaybe<Users_Order_By>;
+  creatorUserId?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: run_service */
+export type Run_Service_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "run_service" */
+export enum Run_Service_Select_Column {
+  /** column name */
+  AppId = 'appID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  CreatorUserId = 'creatorUserId',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  MimirConfigEnc = 'mimirConfigEnc',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "run_service" */
+export type Run_Service_Set_Input = {
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  creatorUserId?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "run_service" */
+export type Run_Service_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Run_Service_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Run_Service_Stream_Cursor_Value_Input = {
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  creatorUserId?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "run_service" */
+export enum Run_Service_Update_Column {
+  /** column name */
+  AppId = 'appID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  CreatorUserId = 'creatorUserId',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  MimirConfigEnc = 'mimirConfigEnc',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type Run_Service_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Run_Service_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Run_Service_Bool_Exp;
+};
+
 /** Boolean expression to compare columns of type "smallint". All fields are combined with logical 'AND'. */
 export type Smallint_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['smallint']>;
@@ -15755,6 +16357,14 @@ export type Subscription_Root = {
   regions_by_pk?: Maybe<Regions>;
   /** fetch data from the table in a streaming manner: "regions" */
   regions_stream: Array<Regions>;
+  /** fetch data from the table: "run_service" using primary key columns */
+  runService?: Maybe<Run_Service>;
+  /** An array relationship */
+  runServices: Array<Run_Service>;
+  /** fetch aggregated fields from the table: "run_service" */
+  runServicesAggregate: Run_Service_Aggregate;
+  /** fetch data from the table in a streaming manner: "run_service" */
+  run_service_stream: Array<Run_Service>;
   /** fetch data from the table: "regions_allowed_workspace" using primary key columns */
   selectRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** fetch data from the table: "regions_allowed_workspace" */
@@ -16740,6 +17350,36 @@ export type Subscription_RootRegions_StreamArgs = {
 };
 
 
+export type Subscription_RootRunServiceArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootRunServicesArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
+export type Subscription_RootRunServicesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
+export type Subscription_RootRun_Service_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Run_Service_Stream_Cursor_Input>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
 export type Subscription_RootSelectRegionsAllowedWorkspaceArgs = {
   id: Scalars['uuid'];
 };
@@ -16969,6 +17609,10 @@ export type Users = {
   /** An aggregate relationship */
   roles_aggregate: AuthUserRoles_Aggregate;
   /** An array relationship */
+  runServices: Array<Run_Service>;
+  /** An aggregate relationship */
+  runServices_aggregate: Run_Service_Aggregate;
+  /** An array relationship */
   securityKeys: Array<AuthUserSecurityKeys>;
   /** An aggregate relationship */
   securityKeys_aggregate: AuthUserSecurityKeys_Aggregate;
@@ -17158,6 +17802,26 @@ export type UsersRoles_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<AuthUserRoles_Order_By>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersRunServicesArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersRunServices_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
 };
 
 
@@ -17372,6 +18036,8 @@ export type Users_Bool_Exp = {
   role?: InputMaybe<AuthRoles_Bool_Exp>;
   roles?: InputMaybe<AuthUserRoles_Bool_Exp>;
   roles_aggregate?: InputMaybe<AuthUserRoles_Aggregate_Bool_Exp>;
+  runServices?: InputMaybe<Run_Service_Bool_Exp>;
+  runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Bool_Exp>;
   securityKeys?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
   securityKeys_aggregate?: InputMaybe<AuthUserSecurityKeys_Aggregate_Bool_Exp>;
   ticket?: InputMaybe<String_Comparison_Exp>;
@@ -17446,6 +18112,7 @@ export type Users_Insert_Input = {
   refreshTokens?: InputMaybe<AuthRefreshTokens_Arr_Rel_Insert_Input>;
   role?: InputMaybe<AuthRoles_Obj_Rel_Insert_Input>;
   roles?: InputMaybe<AuthUserRoles_Arr_Rel_Insert_Input>;
+  runServices?: InputMaybe<Run_Service_Arr_Rel_Insert_Input>;
   securityKeys?: InputMaybe<AuthUserSecurityKeys_Arr_Rel_Insert_Input>;
   ticket?: InputMaybe<Scalars['String']>;
   ticketExpiresAt?: InputMaybe<Scalars['timestamptz']>;
@@ -17611,6 +18278,7 @@ export type Users_Order_By = {
   refreshTokens_aggregate?: InputMaybe<AuthRefreshTokens_Aggregate_Order_By>;
   role?: InputMaybe<AuthRoles_Order_By>;
   roles_aggregate?: InputMaybe<AuthUserRoles_Aggregate_Order_By>;
+  runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Order_By>;
   securityKeys_aggregate?: InputMaybe<AuthUserSecurityKeys_Aggregate_Order_By>;
   ticket?: InputMaybe<Order_By>;
   ticketExpiresAt?: InputMaybe<Order_By>;
@@ -19197,7 +19865,7 @@ export type DeleteSecretMutationVariables = Exact<{
 }>;
 
 
-export type DeleteSecretMutation = { __typename?: 'mutation_root', deleteSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+export type DeleteSecretMutation = { __typename?: 'mutation_root', deleteSecret?: { __typename?: 'ConfigEnvironmentVariable', name: string } | null };
 
 export type SecretFragment = { __typename?: 'ConfigEnvironmentVariable', name: string };
 
@@ -19487,6 +20155,73 @@ export type DeleteRemoteAppUserRolesMutationVariables = Exact<{
 
 
 export type DeleteRemoteAppUserRolesMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
+
+export type DeleteRunServiceMutationVariables = Exact<{
+  serviceID: Scalars['uuid'];
+}>;
+
+
+export type DeleteRunServiceMutation = { __typename?: 'mutation_root', deleteRunService?: { __typename?: 'run_service', id: any } | null };
+
+export type DeleteRunServiceConfigMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  serviceID: Scalars['uuid'];
+}>;
+
+
+export type DeleteRunServiceConfigMutation = { __typename?: 'mutation_root', deleteRunServiceConfig?: { __typename?: 'ConfigRunServiceConfig', name: string } | null };
+
+export type GetRunServiceQueryVariables = Exact<{
+  id: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, config?: { __typename?: 'ConfigRunServiceConfig', name: string, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigRunServiceResourcesCompute', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: string, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
+
+export type GetRunServicesQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
+}>;
+
+
+export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, config?: { __typename?: 'ConfigRunServiceConfig', name: string, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigRunServiceResourcesCompute', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: string, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
+
+export type InsertRunServiceMutationVariables = Exact<{
+  object: Run_Service_Insert_Input;
+}>;
+
+
+export type InsertRunServiceMutation = { __typename?: 'mutation_root', insertRunService?: { __typename?: 'run_service', id: any, appID: any } | null };
+
+export type InsertRunServiceConfigMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  serviceID: Scalars['uuid'];
+  config: ConfigRunServiceConfigInsertInput;
+}>;
+
+
+export type InsertRunServiceConfigMutation = { __typename?: 'mutation_root', insertRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: string } };
+
+export type ReplaceRunServiceConfigMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  serviceID: Scalars['uuid'];
+  config: ConfigRunServiceConfigInsertInput;
+}>;
+
+
+export type ReplaceRunServiceConfigMutation = { __typename?: 'mutation_root', replaceRunServiceConfig: { __typename: 'ConfigRunServiceConfig' } };
+
+export type UpdateRunServiceConfigMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  serviceID: Scalars['uuid'];
+  config: ConfigRunServiceConfigUpdateInput;
+}>;
+
+
+export type UpdateRunServiceConfigMutation = { __typename?: 'mutation_root', updateRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: string } };
 
 export type GetFreeAndActiveProjectsQueryVariables = Exact<{
   userId: Scalars['uuid'];
@@ -22550,6 +23285,357 @@ export function useDeleteRemoteAppUserRolesMutation(baseOptions?: Apollo.Mutatio
 export type DeleteRemoteAppUserRolesMutationHookResult = ReturnType<typeof useDeleteRemoteAppUserRolesMutation>;
 export type DeleteRemoteAppUserRolesMutationResult = Apollo.MutationResult<DeleteRemoteAppUserRolesMutation>;
 export type DeleteRemoteAppUserRolesMutationOptions = Apollo.BaseMutationOptions<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>;
+export const DeleteRunServiceDocument = gql`
+    mutation deleteRunService($serviceID: uuid!) {
+  deleteRunService(id: $serviceID) {
+    id
+  }
+}
+    `;
+export type DeleteRunServiceMutationFn = Apollo.MutationFunction<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>;
+
+/**
+ * __useDeleteRunServiceMutation__
+ *
+ * To run a mutation, you first call `useDeleteRunServiceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteRunServiceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteRunServiceMutation, { data, loading, error }] = useDeleteRunServiceMutation({
+ *   variables: {
+ *      serviceID: // value for 'serviceID'
+ *   },
+ * });
+ */
+export function useDeleteRunServiceMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>(DeleteRunServiceDocument, options);
+      }
+export type DeleteRunServiceMutationHookResult = ReturnType<typeof useDeleteRunServiceMutation>;
+export type DeleteRunServiceMutationResult = Apollo.MutationResult<DeleteRunServiceMutation>;
+export type DeleteRunServiceMutationOptions = Apollo.BaseMutationOptions<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>;
+export const DeleteRunServiceConfigDocument = gql`
+    mutation deleteRunServiceConfig($appID: uuid!, $serviceID: uuid!) {
+  deleteRunServiceConfig(appID: $appID, serviceID: $serviceID) {
+    name
+  }
+}
+    `;
+export type DeleteRunServiceConfigMutationFn = Apollo.MutationFunction<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>;
+
+/**
+ * __useDeleteRunServiceConfigMutation__
+ *
+ * To run a mutation, you first call `useDeleteRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteRunServiceConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteRunServiceConfigMutation, { data, loading, error }] = useDeleteRunServiceConfigMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      serviceID: // value for 'serviceID'
+ *   },
+ * });
+ */
+export function useDeleteRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>(DeleteRunServiceConfigDocument, options);
+      }
+export type DeleteRunServiceConfigMutationHookResult = ReturnType<typeof useDeleteRunServiceConfigMutation>;
+export type DeleteRunServiceConfigMutationResult = Apollo.MutationResult<DeleteRunServiceConfigMutation>;
+export type DeleteRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>;
+export const GetRunServiceDocument = gql`
+    query getRunService($id: uuid!, $resolve: Boolean!) {
+  runService(id: $id) {
+    id
+    config(resolve: $resolve) {
+      name
+      image {
+        image
+      }
+      command
+      resources {
+        compute {
+          cpu
+          memory
+        }
+        storage {
+          name
+          path
+          capacity
+        }
+        replicas
+      }
+      environment {
+        name
+        value
+      }
+      ports {
+        port
+        type
+        publish
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetRunServiceQuery__
+ *
+ * To run a query within a React component, call `useGetRunServiceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRunServiceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRunServiceQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetRunServiceQuery(baseOptions: Apollo.QueryHookOptions<GetRunServiceQuery, GetRunServiceQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRunServiceQuery, GetRunServiceQueryVariables>(GetRunServiceDocument, options);
+      }
+export function useGetRunServiceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServiceQuery, GetRunServiceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRunServiceQuery, GetRunServiceQueryVariables>(GetRunServiceDocument, options);
+        }
+export type GetRunServiceQueryHookResult = ReturnType<typeof useGetRunServiceQuery>;
+export type GetRunServiceLazyQueryHookResult = ReturnType<typeof useGetRunServiceLazyQuery>;
+export type GetRunServiceQueryResult = Apollo.QueryResult<GetRunServiceQuery, GetRunServiceQueryVariables>;
+export function refetchGetRunServiceQuery(variables: GetRunServiceQueryVariables) {
+      return { query: GetRunServiceDocument, variables: variables }
+    }
+export const GetRunServicesDocument = gql`
+    query getRunServices($appID: uuid!, $resolve: Boolean!, $limit: Int!, $offset: Int!) {
+  app(id: $appID) {
+    runServices(limit: $limit, offset: $offset) {
+      id
+      createdAt
+      updatedAt
+      config(resolve: $resolve) {
+        name
+        image {
+          image
+        }
+        command
+        resources {
+          compute {
+            cpu
+            memory
+          }
+          storage {
+            name
+            path
+            capacity
+          }
+          replicas
+        }
+        environment {
+          name
+          value
+        }
+        ports {
+          port
+          type
+          publish
+        }
+      }
+    }
+    runServices_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetRunServicesQuery__
+ *
+ * To run a query within a React component, call `useGetRunServicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRunServicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRunServicesQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      resolve: // value for 'resolve'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useGetRunServicesQuery(baseOptions: Apollo.QueryHookOptions<GetRunServicesQuery, GetRunServicesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRunServicesQuery, GetRunServicesQueryVariables>(GetRunServicesDocument, options);
+      }
+export function useGetRunServicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServicesQuery, GetRunServicesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRunServicesQuery, GetRunServicesQueryVariables>(GetRunServicesDocument, options);
+        }
+export type GetRunServicesQueryHookResult = ReturnType<typeof useGetRunServicesQuery>;
+export type GetRunServicesLazyQueryHookResult = ReturnType<typeof useGetRunServicesLazyQuery>;
+export type GetRunServicesQueryResult = Apollo.QueryResult<GetRunServicesQuery, GetRunServicesQueryVariables>;
+export function refetchGetRunServicesQuery(variables: GetRunServicesQueryVariables) {
+      return { query: GetRunServicesDocument, variables: variables }
+    }
+export const InsertRunServiceDocument = gql`
+    mutation insertRunService($object: run_service_insert_input!) {
+  insertRunService(object: $object) {
+    id
+    appID
+  }
+}
+    `;
+export type InsertRunServiceMutationFn = Apollo.MutationFunction<InsertRunServiceMutation, InsertRunServiceMutationVariables>;
+
+/**
+ * __useInsertRunServiceMutation__
+ *
+ * To run a mutation, you first call `useInsertRunServiceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertRunServiceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertRunServiceMutation, { data, loading, error }] = useInsertRunServiceMutation({
+ *   variables: {
+ *      object: // value for 'object'
+ *   },
+ * });
+ */
+export function useInsertRunServiceMutation(baseOptions?: Apollo.MutationHookOptions<InsertRunServiceMutation, InsertRunServiceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertRunServiceMutation, InsertRunServiceMutationVariables>(InsertRunServiceDocument, options);
+      }
+export type InsertRunServiceMutationHookResult = ReturnType<typeof useInsertRunServiceMutation>;
+export type InsertRunServiceMutationResult = Apollo.MutationResult<InsertRunServiceMutation>;
+export type InsertRunServiceMutationOptions = Apollo.BaseMutationOptions<InsertRunServiceMutation, InsertRunServiceMutationVariables>;
+export const InsertRunServiceConfigDocument = gql`
+    mutation insertRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
+  insertRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
+    name
+  }
+}
+    `;
+export type InsertRunServiceConfigMutationFn = Apollo.MutationFunction<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>;
+
+/**
+ * __useInsertRunServiceConfigMutation__
+ *
+ * To run a mutation, you first call `useInsertRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertRunServiceConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertRunServiceConfigMutation, { data, loading, error }] = useInsertRunServiceConfigMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      serviceID: // value for 'serviceID'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useInsertRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>(InsertRunServiceConfigDocument, options);
+      }
+export type InsertRunServiceConfigMutationHookResult = ReturnType<typeof useInsertRunServiceConfigMutation>;
+export type InsertRunServiceConfigMutationResult = Apollo.MutationResult<InsertRunServiceConfigMutation>;
+export type InsertRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>;
+export const ReplaceRunServiceConfigDocument = gql`
+    mutation replaceRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
+  replaceRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
+    __typename
+  }
+}
+    `;
+export type ReplaceRunServiceConfigMutationFn = Apollo.MutationFunction<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>;
+
+/**
+ * __useReplaceRunServiceConfigMutation__
+ *
+ * To run a mutation, you first call `useReplaceRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReplaceRunServiceConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [replaceRunServiceConfigMutation, { data, loading, error }] = useReplaceRunServiceConfigMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      serviceID: // value for 'serviceID'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useReplaceRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>(ReplaceRunServiceConfigDocument, options);
+      }
+export type ReplaceRunServiceConfigMutationHookResult = ReturnType<typeof useReplaceRunServiceConfigMutation>;
+export type ReplaceRunServiceConfigMutationResult = Apollo.MutationResult<ReplaceRunServiceConfigMutation>;
+export type ReplaceRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>;
+export const UpdateRunServiceConfigDocument = gql`
+    mutation updateRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigUpdateInput!) {
+  updateRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
+    name
+  }
+}
+    `;
+export type UpdateRunServiceConfigMutationFn = Apollo.MutationFunction<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
+
+/**
+ * __useUpdateRunServiceConfigMutation__
+ *
+ * To run a mutation, you first call `useUpdateRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateRunServiceConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateRunServiceConfigMutation, { data, loading, error }] = useUpdateRunServiceConfigMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      serviceID: // value for 'serviceID'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useUpdateRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>(UpdateRunServiceConfigDocument, options);
+      }
+export type UpdateRunServiceConfigMutationHookResult = ReturnType<typeof useUpdateRunServiceConfigMutation>;
+export type UpdateRunServiceConfigMutationResult = Apollo.MutationResult<UpdateRunServiceConfigMutation>;
+export type UpdateRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
 export const GetFreeAndActiveProjectsDocument = gql`
     query GetFreeAndActiveProjects($userId: uuid!) {
   freeAndActiveProjects: apps(
