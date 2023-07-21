@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.0
+
+### Minor Changes
+
+- c99d117d1: feat(services): add support for custom services
+
 ## 0.19.2
 
 ### Patch Changes
