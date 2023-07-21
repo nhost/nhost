@@ -162,7 +162,7 @@ export default function useProjectRoutes() {
     allRoutes.push({
       relativePath: '/services',
       exact: false,
-      label: 'Services',
+      label: 'Run',
       icon: <ServicesIcon />,
     });
   }

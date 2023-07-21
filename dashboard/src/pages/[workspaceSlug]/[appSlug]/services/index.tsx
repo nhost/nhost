@@ -12,6 +12,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import type { GetRunServicesQuery } from '@/utils/__generated__/graphql';
 import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
 
+import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { ServiceForm } from '@/features/services/components/ServiceForm';
 import ServicesList from '@/features/services/components/ServicesList/ServicesList';
 import { useRouter } from 'next/router';
@@ -27,6 +28,7 @@ export default function ServicesPage() {
   const router = useRouter();
   const { openDrawer } = useDialog();
   const { currentProject } = useCurrentWorkspaceAndProject();
+  const isPlanFree = currentProject.plan.isFree;
 
   const [currentPage, setCurrentPage] = useState(
     parseInt(router.query.page as string, 10) || 1,
@@ -75,6 +77,17 @@ export default function ServicesPage() {
       component: <ServiceForm onSubmit={refetchServices} />,
     });
   };
+
+  if (isPlanFree) {
+    return (
+      <Container>
+        <UpgradeNotification
+          message="Unlock Nhost Run by upgrading your project to the Pro plan."
+          className="mt-4"
+        />
+      </Container>
+    );
+  }
 
   if (data?.app.runServices.length === 0 && !loading) {
     return (
