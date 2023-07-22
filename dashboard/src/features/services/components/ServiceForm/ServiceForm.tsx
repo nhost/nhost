@@ -10,9 +10,9 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import {
-  MAX_SERVICE_REPLICAS,
   MAX_SERVICES_CPU,
   MAX_SERVICES_MEM,
+  MAX_SERVICE_REPLICAS,
   MIN_SERVICES_CPU,
   MIN_SERVICES_MEM,
 } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
@@ -22,13 +22,13 @@ import { PortsFormSection } from '@/features/services/components/ServiceForm/com
 import { ReplicasFormSection } from '@/features/services/components/ServiceForm/components/ReplicasFormSection';
 import { StorageFormSection } from '@/features/services/components/ServiceForm/components/StorageFormSection';
 import type { DialogFormProps } from '@/types/common';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   useInsertRunServiceConfigMutation,
   useInsertRunServiceMutation,
   useReplaceRunServiceConfigMutation,
   type ConfigRunServiceConfigInsertInput,
 } from '@/utils/__generated__/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import type { ApolloError } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
@@ -46,7 +46,7 @@ export enum PortTypes {
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
   image: Yup.string().label('Image to run'),
-  command: Yup.string().required(),
+  command: Yup.string(),
   environment: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required(),
@@ -57,7 +57,7 @@ export const validationSchema = Yup.object({
     cpu: Yup.number().min(MIN_SERVICES_CPU).max(MAX_SERVICES_CPU).required(),
     memory: Yup.number().min(MIN_SERVICES_MEM).max(MAX_SERVICES_MEM).required(),
   }),
-  replicas: Yup.number().min(1).max(MAX_SERVICE_REPLICAS).required(),
+  replicas: Yup.number().min(0).max(MAX_SERVICE_REPLICAS).required(),
   ports: Yup.array().of(
     Yup.object().shape({
       port: Yup.number().required(),
@@ -261,7 +261,7 @@ export default function ServiceForm({
               <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -285,7 +285,7 @@ export default function ServiceForm({
               <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -316,7 +316,7 @@ export default function ServiceForm({
               <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -343,7 +343,7 @@ export default function ServiceForm({
         {createServiceFormError && (
           <Alert
             severity="error"
-            className="grid items-center justify-between grid-flow-col px-4 py-3"
+            className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {createServiceFormError.message}
