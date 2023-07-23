@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.1
+
+### Patch Changes
+
+- 3d5c34f4c: fix(auth): fix users pagination limit
+
 ## 0.20.0
 
 ### Minor Changes
