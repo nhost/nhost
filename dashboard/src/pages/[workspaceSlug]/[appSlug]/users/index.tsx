@@ -30,7 +30,7 @@ export default function UsersPage() {
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
 
-  const limit = useRef(1);
+  const limit = useRef(25);
   const router = useRouter();
   const [nrOfPages, setNrOfPages] = useState(
     parseInt(router.query.page as string, 10) || 1,
