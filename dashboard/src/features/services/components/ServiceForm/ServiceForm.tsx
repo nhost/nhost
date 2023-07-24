@@ -258,7 +258,7 @@ export default function ServiceForm({
           label={
             <Box className="flex flex-row items-center space-x-2">
               <Text>Name</Text>
-              <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
+              <Tooltip title="Name of the service, must be unique per project.">
                 <InfoIcon
                   aria-label="Info"
                   className="h-4 w-4"
@@ -282,7 +282,23 @@ export default function ServiceForm({
           label={
             <Box className="flex flex-row items-center space-x-2">
               <Text>Image</Text>
-              <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
+              <Tooltip
+                title={
+                  <span>
+                    Image to use, it can be hosted on any public registry or it
+                    can use the{' '}
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href="https://docs.nhost.io/run/registry"
+                      className="underline"
+                    >
+                      Nhost registry
+                    </a>
+                    . Image needs to support arm.
+                  </span>
+                }
+              >
                 <InfoIcon
                   aria-label="Info"
                   className="h-4 w-4"
@@ -313,7 +329,7 @@ export default function ServiceForm({
           label={
             <Box className="flex flex-row items-center space-x-2">
               <Text>Command</Text>
-              <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
+              <Tooltip title="Command to run when to start the service. This is optional as the image may already have a baked-in command.">
                 <InfoIcon
                   aria-label="Info"
                   className="h-4 w-4"

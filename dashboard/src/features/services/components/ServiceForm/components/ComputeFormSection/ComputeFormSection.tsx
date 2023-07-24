@@ -45,14 +45,29 @@ export default function ComputeFormSection() {
   };
 
   return (
-    <Box className="p-4 space-y-4 rounded border-1">
+    <Box className="space-y-4 rounded border-1 p-4">
       <Box className="flex flex-row items-center space-x-2">
         <Text variant="h4" className="font-semibold">
           CPU: {formValues.compute.cpu} / Memory: {formValues.compute.memory}
         </Text>
 
-        <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
-          <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
+        <Tooltip
+          title={
+            <span>
+              Compute resources dedicated for the service. Refer to{' '}
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://docs.nhost.io/run/resources"
+                className="underline"
+              >
+                resources
+              </a>{' '}
+              for more information.
+            </span>
+          }
+        >
+          <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
         </Tooltip>
       </Box>
 
@@ -62,7 +77,7 @@ export default function ComputeFormSection() {
           variant="outlined"
           onClick={decrementCompute}
         >
-          <ArrowLeftIcon className="w-4 h-4" />
+          <ArrowLeftIcon className="h-4 w-4" />
         </Button>
 
         <Slider
@@ -79,7 +94,7 @@ export default function ComputeFormSection() {
           variant="outlined"
           onClick={incrementCompute}
         >
-          <ArrowRightIcon className="w-4 h-4" />
+          <ArrowRightIcon className="h-4 w-4" />
         </Button>
       </Box>
     </Box>

@@ -26,7 +26,24 @@ export default function ReplicasFormSection() {
         <Text variant="h4" className="font-semibold">
           Replicas ({replicas})
         </Text>
-        <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
+        <Tooltip
+          title={
+            <span>
+              Number of replicas for the service. Multiple replicas can process
+              requests/work in parallel. You can set replicas to 0 to pause the
+              service. Refer to{' '}
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://docs.nhost.io/run/resources"
+                className="underline"
+              >
+                resources
+              </a>{' '}
+              for more information.
+            </span>
+          }
+        >
           <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
         </Tooltip>
       </Box>
