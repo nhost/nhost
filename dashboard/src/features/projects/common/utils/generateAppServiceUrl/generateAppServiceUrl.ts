@@ -102,5 +102,11 @@ export default function generateAppServiceUrl(
     .filter(Boolean)
     .join('.');
 
-  return `https://${constructedDomain}${remoteBackendSlugs[service]}`;
+  let url = `https://${constructedDomain}${remoteBackendSlugs[service]}`;
+
+  if (service === 'grafana') {
+    url = `${url}/dashboards`;
+  }
+
+  return url;
 }
