@@ -41,15 +41,31 @@ export default function StorageFormSection() {
   };
 
   return (
-    <Box className="p-4 space-y-4 rounded border-1">
+    <Box className="space-y-4 rounded border-1 p-4">
       <Box className="flex flex-row items-center justify-between ">
         <Box className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
             Storage
           </Text>
 
-          <Tooltip title="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s">
-            <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
+          <Tooltip
+            title={
+              <span>
+                By default, services do not have persistent storage. You can add
+                SSD disks to the service here. Refer to{' '}
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href="https://docs.nhost.io/run/storage"
+                  className="underline"
+                >
+                  Storage
+                </a>{' '}
+                for more information.
+              </span>
+            }
+          >
+            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
           </Tooltip>
         </Box>
 
@@ -57,7 +73,7 @@ export default function StorageFormSection() {
           variant="borderless"
           onClick={() => append({ name: '', capacity: 1, path: '' })}
         >
-          <PlusIcon className="w-5 h-5" />
+          <PlusIcon className="h-5 w-5" />
         </Button>
       </Box>
 
@@ -120,7 +136,7 @@ export default function StorageFormSection() {
               color="error"
               onClick={() => remove(index)}
             >
-              <TrashIcon className="w-4 h-4" />
+              <TrashIcon className="h-4 w-4" />
             </Button>
           </Box>
         ))}
