@@ -1,5 +1,14 @@
 # @nhost/dashboard
 
+## 0.20.2
+
+### Patch Changes
+
+- 9073182d5: chore(dashboard): bump `turbo` to 1.10.11
+- ece717d6e: feat(logs): show services in the logs page
+- 82b335311: feat(metrics): change grafana link to point to the dashboards
+- b135ef695: fix(services): set command as optional and set min replicas to 0
+
 ## 0.20.1
 
 ### Patch Changes
