@@ -69,7 +69,7 @@ test('should generate a per service subdomain in remote mode', () => {
   );
 
   expect(generateAppServiceUrl('test', region, 'grafana')).toBe(
-    'https://test.grafana.eu-west-1.nhost.run',
+    'https://test.grafana.eu-west-1.nhost.run/dashboards',
   );
 });
 
@@ -102,7 +102,7 @@ test('should generate staging subdomains in staging environment', () => {
   );
 
   expect(generateAppServiceUrl('test', stagingRegion, 'grafana')).toBe(
-    'https://test.grafana.eu-west-1.staging.nhost.run',
+    'https://test.grafana.eu-west-1.staging.nhost.run/dashboards',
   );
 });
 
@@ -120,7 +120,7 @@ test('should generate no slug for Hasura and Grafana neither in local mode nor i
     'https://test.hasura.eu-west-1.staging.nhost.run',
   );
   expect(generateAppServiceUrl('test', stagingRegion, 'grafana')).toBe(
-    'https://test.grafana.eu-west-1.staging.nhost.run',
+    'https://test.grafana.eu-west-1.staging.nhost.run/dashboards',
   );
 
   process.env.NEXT_PUBLIC_ENV = 'production';
@@ -129,7 +129,7 @@ test('should generate no slug for Hasura and Grafana neither in local mode nor i
     'https://test.hasura.eu-west-1.nhost.run',
   );
   expect(generateAppServiceUrl('test', region, 'grafana')).toBe(
-    'https://test.grafana.eu-west-1.nhost.run',
+    'https://test.grafana.eu-west-1.nhost.run/dashboards',
   );
 });
 
