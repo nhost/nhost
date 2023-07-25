@@ -100,7 +100,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and push to Docker Hub
         uses: docker/build-push-action@v4
-        timeout-minutes: 60
+        timeout-minutes: 90
         with:
           context: .
           file: ./dashboard/Dockerfile
