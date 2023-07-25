@@ -10,6 +10,7 @@ import type { LogsCustomInterval } from '@/features/projects/logs/utils/constant
 import { LOGS_AVAILABLE_INTERVALS } from '@/features/projects/logs/utils/constants/intervals';
 import type { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
 import { LOGS_AVAILABLE_SERVICES } from '@/features/projects/logs/utils/constants/services';
+import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
 import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -132,6 +133,35 @@ export default function LogsHeader({
   const { currentProject } = useCurrentWorkspaceAndProject();
   const applicationCreationDate = new Date(currentProject.createdAt);
 
+  const [runServices, setRunServices] = useState<
+    {
+      label: string;
+      value: string;
+    }[]
+  >([]);
+
+  const { data, loading } = useGetRunServicesQuery({
+    variables: {
+      appID: currentProject.id,
+      resolve: false,
+      limit: 1000,
+      offset: 0,
+    },
+  });
+
+  useEffect(() => {
+    if (!loading) {
+      const services = data.app?.runServices ?? [];
+
+      setRunServices(
+        services.map((s) => ({
+          label: s.config.name,
+          value: s.config.name,
+        })),
+      );
+    }
+  }, [loading, data]);
+
   /**
    * Will subtract the `customInterval` time in minutes from the current date.
    */
@@ -181,15 +211,17 @@ export default function LogsHeader({
               root: { className: 'min-h-[initial] h-9 leading-[initial]' },
             }}
           >
-            {LOGS_AVAILABLE_SERVICES.map(({ value, label }) => (
-              <Option
-                key={value}
-                value={value}
-                className="text-sm+ font-medium"
-              >
-                {label}
-              </Option>
-            ))}
+            {[...LOGS_AVAILABLE_SERVICES, ...runServices].map(
+              ({ value, label }) => (
+                <Option
+                  key={value}
+                  value={value}
+                  className="text-sm+ font-medium"
+                >
+                  {label}
+                </Option>
+              ),
+            )}
           </Select>
         </Box>
       </Box>
