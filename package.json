@@ -76,7 +76,7 @@
     "husky": "^8.0.1",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.7.1",
-    "turbo": "1.10.7",
+    "turbo": "1.10.11",
     "typedoc": "^0.22.18",
     "typescript": "4.9.5",
     "vite": "^4.3.8",
