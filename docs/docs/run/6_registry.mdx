@@ -42,7 +42,11 @@ After you have configured the credentials helper with the command above docker s
 
 
 ```
-$ docker buildx build --push --platform linux/amd64,linux/arm64 -t registry.eu-central-1.nhost.run/f02bb536-f785-4732-9eb8-d1d3664d7949:123 .
+$ docker buildx build \
+    --push \
+    --platform linux/amd64,linux/arm64 \
+    -t registry.eu-central-1.nhost.run/f02bb536-f785-4732-9eb8-d1d3664d7949:123 \
+    .
 [+] Building 8.7s (11/11) FINISHED                                                                                                                  docker-container:focused_dirac
  => [internal] load .dockerignore                                                                                                                                             0.0s
  => => transferring context: 2B                                                                                                                                               0.0s

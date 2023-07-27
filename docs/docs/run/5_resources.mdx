@@ -11,11 +11,24 @@ import TabItem from '@theme/TabItem'
 
 You can configure compute resources for your service like this:
 
-``` toml
+<Tabs groupId="package-manager">
+  <TabItem value="dashboard" label="dashboard" default>
+
+
+![compute slider](/img/run/resources_1.png)
+
+  </TabItem>
+  <TabItem value="toml" label="toml">
+
+```
 [resources.compute]
 cpu = 62
 memory = 128
 ```
+
+  </TabItem>
+</Tabs>
+
 If you are configuring the resources via the configuration file instead of using the dashboard, keep in mind that cpu and memory allocation need to follow the following rules:
 
 * The value of the `memory` parameter must be exactly 2,048 times the value of the cpu parameter.
@@ -26,6 +39,15 @@ Don't forget you can use `nhost run config-validate` command to verify your valu
 ## Storage
 
 By default a container's disk is ephemeral so data isn't persisted across reboots. If your service needs persistent storage you can attach one or more SSD disks by adding the following configuration:
+
+<Tabs groupId="package-manager">
+  <TabItem value="dashboard" label="dashboard" default>
+
+
+![storage](/img/run/resources_2.png)
+
+  </TabItem>
+  <TabItem value="toml" label="toml">
 
 ``` toml
 [[resources.storage]]
@@ -39,6 +61,9 @@ name="data"
 path="/mnt/data"
 capacity=1
 ```
+  </TabItem>
+</Tabs>
+
 
 With the above configuration, two disks will be provided. The first disk named `database` will have a capacity of 10 GiB and will be mounted at ``/var/lib/db`. The second disk named `data`` will have a capacity of 1 GiB and will be mounted at ``/mnt/data`.`
 
@@ -53,10 +78,22 @@ It's important to note that disks are unique to each service and cannot be share
 
 To pause a service, simply set its number of replicas to `0`:
 
+<Tabs groupId="package-manager">
+  <TabItem value="dashboard" label="dashboard" default>
+
+
+![pausing a service](/img/run/resources_3.png)
+
+  </TabItem>
+  <TabItem value="toml" label="toml">
+
 ```toml
 [resources]
 replicas = 0
-````
+```
+
+  </TabItem>
+</Tabs>
 
 When you pause a service, it will cease running while keeping any associated disk and registry intact.
 
