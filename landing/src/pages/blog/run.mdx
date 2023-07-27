@@ -2,10 +2,10 @@ import Image from 'next/image'
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
-  title: 'Introducing Nhost Run - the first truly extensible BaaS platform',
+  title: 'My name is Run, Nhost Run',
   description:
-    'Run ',
-  image: '/images/blog/dedicated-compute/og-dedicated-compute.png',
+    'Run Custom Services',
+  image: '/images/blog/run/og-run.png',
   date: '2023-04-18',
   authors: [
     {
@@ -15,56 +15,77 @@ export const article = {
       url: 'https://twitter.com/nunopato',
     },
   ],
-  tags: ['Product', 'Resources'],
+  tags: ['Product', 'Nhost Run'],
 }
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-Today we are releasing a new feature that sets the stage for the next phase of our product. We are making Nhost the first truly extensible Backend-as-a-Service platform by allowing our users to run their own custom services alongside the existing Nhost Stack - With **Nhost Run**, users can bring their services written in their favourite languages and frameworks. We currently support JS/TS, Go, and Python and we will be adding new environments soon enough.
+Today we are releasing a feature that sets the stage for the next phase of Nhost as a platform. We are making Nhost the first truly extensible Backend-as-a-Service platform by bringing custom and third party OSS services to run alongside our default Nhost Stack - With **Nhost Run**, you can bring your own services written in your favourite languages and create a truly customized backend infrastructure. 
 
 ## Background and Motivation
-
-As your app requirements grow in complexity, it's crucial that your backend is able to evolve in a way that it doesn't become an issue. Nhost Run gives our users the power and flexibility to run services other then the default ones: PostgreSQL, Hasura, Auth, and Storage. All of your app's building blocks can now run under the same umbrella!
+`
+As applications grow in complexity, it's crucial that your backend infrastructure is able to evolve in a way that it doesn't become the bottleneck nor does it have developers build around it. With Nhost Run it is easy to extend and customize your backend according to your particular needs and requirements. It unlocks the power and flexibility to run custom and third party OSS solutions alongside our default Nhost Stack.
 
 ## Nhost Run
 
 Nhost Run works with the same tools you already use and love: Deployments with Git, CLI, and configuration file.
 
-Running your services is as simple as defining your service's configuration with the same toml file you already know. 
+Running your services is as simple as defining your service's configuration with a similar TOML file you already use. 
 
-1. Select the total amount of capacity you want to dedicate to your Nhost project.
-2. Distribute it amongst all services according to their needs.
-3. Save, wait a couple of minutes, and profit!
+1. Define your service configuration
 
-![Resource Slider](/images/blog/dedicated-compute/dashboard-slider.png)
+```toml
+name = 'mysvc'
+
+[image]
+image = 'dummy-value'
+
+[[ports]]
+port = 3000
+type = 'http'
+publish = true
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 62
+memory = 128
+```
+
+You can also use the dashboard (todo: locally?). 
+
+2. 
+3. Profit!
+
+![Resource Slider](/images/blog/run/dashboard-slider.png)
 
 Notes:
 
-- Dedicated Compute is available starting on the Pro plan.
-- When purchasing dedicated compute resources, they must adhere to a 1:2 ratio between CPU and RAM. For example, if you buy 3 vCPUs, you are also buying 6GiB of RAM.
+- Images cannot be built at the moment. Only running images is supported.
+- HTTP is the only port type that supports internet connection at the moment
 - The minimum you can buy is 1 vCPU, and as little as a fourth of a vCPU after that.
-- No downtime required with the exception of Postgres, which requires 1-2 minutes.
 
-You can refer to the docs [here](https://docs.nhost.io/platform/compute).
+You can refer to the docs [here](https://docs.nhost.io/platform/run/overview).
+
+## Benefits of Run
+
+- Close Proximity: All your services run in close proximity.
+
+- Seamless Scaling: Adjust your Compute Resources allocation as your apps grow, ensuring that you can support increased traffic and demand without compromising performance or user experience.
+
+- Cost Efficiency: Allocate resources precisely **where** and **when** they are needed, avoiding over-provisioning and reducing your monthly bill. You can increase and decrease compute at any time.
 
 ## Pricing
 
 The Pro plan remains priced at $25, and each dedicated vCPU/2GiB adds $50. For instance, if you purchase 2 vCPUs and 4GiB of RAM, the total cost will be $125.
 
-## Benefits of Run
-
-1. Close Proximity: All your services run in close proximity.
-
-2. Seamless Scaling: Adjust your Compute Resources allocation as your apps grow, ensuring that you can support increased traffic and demand without compromising performance or user experience.
-
-3. Cost Efficiency: Allocate resources precisely **where** and **when** they are needed, avoiding over-provisioning and reducing your monthly bill. You can increase and decrease compute at any time.
-
 ## What's Next?
 
-- Multiple Replicas for High Availability: we are already working on extending Dedicated Compute to allow for multiple replicas of the same service. I know, this is amazing!
-- Metrics around compute utilization for each of your services will be available very soon. This will allow you to allocate compute resources more precisely.
 - A new and shiny configuration file that will allow you to configure compute as part of your GitHub workflow.
+
+We're thrilled to see how you'll utilize Nhost Run to craft potent, personalized backend solutions. As always, we're here to assist you on your development journey. If you have any queries or need help, don't hesitate to get in touch.
 
 ## Conclusion
 
-I believe Nhost Run is the start of a new era for our company and I couldn't be more excited about what is to come. 
+Nhost Run is a game-changing solution for your backend services. By offering the flexibility of a PaaS with the convenience of a BaaS, it enables you to optimize the performance of each Nhost service while ensuring a seamless experience for your users. As your apps grow and evolve, Nhost Run ensures that you can scale along with your users' needs. Embrace it today and take your apps to the next level of growth!
