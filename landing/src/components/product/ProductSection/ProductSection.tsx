@@ -19,6 +19,7 @@ export interface ProductSectionProps extends ContainerProps {
     | 'auth'
     | 'storage'
     | 'functions'
+    | 'run'
 }
 
 export default function ProductSection({
@@ -35,7 +36,7 @@ export default function ProductSection({
     >
       {heading}
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid justify-center grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <ServiceCard
           icon={
             <Image
@@ -123,6 +124,24 @@ export default function ProductSection({
           href="/product/functions"
           disableLink={disabledLink === 'functions'}
         />
+        <div></div>
+
+        <ServiceCard
+          icon={
+            <Image
+              src="/products/play.svg"
+              width={24}
+              height={24}
+              alt="PLay icon"
+            />
+          }
+          title="Run"
+          description="Run custom services written in your favourite language."
+          className=" place-self-center"
+          href="/product/run"
+          disableLink={disabledLink === 'run'}
+        />
+        <div></div>
       </div>
     </Container>
   )

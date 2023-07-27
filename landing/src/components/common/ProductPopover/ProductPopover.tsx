@@ -44,9 +44,9 @@ export default function ProductPopover({ children }: PropsWithChildren) {
       >
         Product{' '}
         {open ? (
-          <ChevronUpIcon className="h-4 w-4" />
+          <ChevronUpIcon className="w-4 h-4" />
         ) : (
-          <ChevronDownIcon className="h-4 w-4" />
+          <ChevronDownIcon className="w-4 h-4" />
         )}
       </Popover.Button>
 
@@ -66,7 +66,7 @@ export default function ProductPopover({ children }: PropsWithChildren) {
           aria-hidden={!open}
         >
           <div
-            className="mt-3 w-52 transform rounded-md border border-white border-opacity-10 bg-black p-4"
+            className="p-4 mt-3 transform bg-black border border-white rounded-md w-52 border-opacity-10"
             onKeyDown={(event: KeyboardEvent) => {
               if (event.key !== 'Escape') {
                 return
@@ -88,7 +88,7 @@ export default function ProductPopover({ children }: PropsWithChildren) {
                     Database
                   </Button>
                 </li>
-                <li className="h-px w-full bg-white bg-opacity-10" />
+                <li className="w-full h-px bg-white bg-opacity-10" />
                 <li>
                   <Button
                     href="/product/graphql"
@@ -100,7 +100,7 @@ export default function ProductPopover({ children }: PropsWithChildren) {
                     GraphQL API
                   </Button>
                 </li>
-                <li className="h-px w-full bg-white bg-opacity-10" />
+                <li className="w-full h-px bg-white bg-opacity-10" />
                 <li>
                   <Button
                     href="/product/auth"
@@ -112,7 +112,7 @@ export default function ProductPopover({ children }: PropsWithChildren) {
                     Auth
                   </Button>
                 </li>
-                <li className="h-px w-full bg-white bg-opacity-10" />
+                <li className="w-full h-px bg-white bg-opacity-10" />
                 <li>
                   <Button
                     href="/product/storage"
@@ -124,7 +124,7 @@ export default function ProductPopover({ children }: PropsWithChildren) {
                     Storage
                   </Button>
                 </li>
-                <li className="h-px w-full bg-white bg-opacity-10" />
+                <li className="w-full h-px bg-white bg-opacity-10" />
                 <li>
                   <Button
                     href="/product/functions"
@@ -134,6 +134,19 @@ export default function ProductPopover({ children }: PropsWithChildren) {
                     onClick={() => setOpen(false)}
                   >
                     Functions
+                  </Button>
+                </li>
+
+                <li className="w-full h-px bg-white bg-opacity-10" />
+                <li>
+                  <Button
+                    href="/product/run"
+                    variant="borderless"
+                    size="xs"
+                    className="w-full text-opacity-65"
+                    onClick={() => setOpen(false)}
+                  >
+                    Run
                   </Button>
                 </li>
               </ul>
