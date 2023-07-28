@@ -23,7 +23,7 @@ To connect to your own service internally from another service, follow these ste
 
 1. Expose the desired port(s).
 
-Example for MySQL service:
+Example for Redis service:
 
 <Tabs groupId="package-manager">
   <TabItem value="dashboard" label="dashboard" default>
@@ -37,7 +37,7 @@ Example for MySQL service:
 ```
 [[ports]]
 type = "tcp"
-port = 3306
+port = 6379
 publish = false
 ```
 
@@ -47,7 +47,7 @@ publish = false
 
 2. Once the port is exposed, you can connect to the service using its name and the corresponding port.
 
-Example: `mysql://user@mysql:3306`
+Example: `redis://user:password@redis:6379`
 
 If needed, you can open internally more than one port by repeating the block for each one of them:
 
@@ -66,7 +66,7 @@ Example for a service exposing the ports tcp/3000 and udp/4000:
 ```
 [[ports]]
 type = "tcp"
-port = 3306
+port = 3000
 publish = false
 
 [[ports]]
