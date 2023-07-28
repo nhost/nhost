@@ -215,7 +215,8 @@ import (
 // Note: Negative tests that check for errors will fail, so only use this
 // when debugging, and run only one test at a time preferably.
 //
-// Note: RPC tests espeially fail, as they depend on getting the error from an Encode/Decode call.
+// Note: RPC tests depend on getting the error from an Encode/Decode call.
+// Consequently, they will always fail if debugging = true.
 const debugging = false
 
 const (
@@ -617,6 +618,10 @@ func (e *codecError) Cause() error {
 	return e.err
 }
 
+func (e *codecError) Unwrap() error {
+	return e.err
+}
+
 func (e *codecError) Error() string {
 	if e.encode {
 		return fmt.Sprintf("%s encode error: %v", e.name, e.err)
@@ -715,9 +720,10 @@ var SelfExt = &extFailWrapper{}
 // By definition, it is not allowed for a Selfer to directly call Encode or Decode on itself.
 // If that is done, Encode/Decode will rightfully fail with a Stack Overflow style error.
 // For example, the snippet below will cause such an error.
-//     type testSelferRecur struct{}
-//     func (s *testSelferRecur) CodecEncodeSelf(e *Encoder) { e.MustEncode(s) }
-//     func (s *testSelferRecur) CodecDecodeSelf(d *Decoder) { d.MustDecode(s) }
+//
+//	type testSelferRecur struct{}
+//	func (s *testSelferRecur) CodecEncodeSelf(e *Encoder) { e.MustEncode(s) }
+//	func (s *testSelferRecur) CodecDecodeSelf(d *Decoder) { d.MustDecode(s) }
 //
 // Note: *the first set of bytes of any value MUST NOT represent nil in the format*.
 // This is because, during each decode, we first check the the next set of bytes
@@ -761,13 +767,14 @@ type MissingFielder interface {
 // This affords storing a map in a specific sequence in the stream.
 //
 // Example usage:
-//    type T1 []string         // or []int or []Point or any other "slice" type
-//    func (_ T1) MapBySlice{} // T1 now implements MapBySlice, and will be encoded as a map
-//    type T2 struct { KeyValues T1 }
 //
-//    var kvs = []string{"one", "1", "two", "2", "three", "3"}
-//    var v2 = T2{ KeyValues: T1(kvs) }
-//    // v2 will be encoded like the map: {"KeyValues": {"one": "1", "two": "2", "three": "3"} }
+//	type T1 []string         // or []int or []Point or any other "slice" type
+//	func (_ T1) MapBySlice{} // T1 now implements MapBySlice, and will be encoded as a map
+//	type T2 struct { KeyValues T1 }
+//
+//	var kvs = []string{"one", "1", "two", "2", "three", "3"}
+//	var v2 = T2{ KeyValues: T1(kvs) }
+//	// v2 will be encoded like the map: {"KeyValues": {"one": "1", "two": "2", "three": "3"} }
 //
 // The support of MapBySlice affords the following:
 //   - A slice or array type which implements MapBySlice will be encoded as a map
@@ -969,6 +976,7 @@ func (x *basicHandleRuntimeState) setExt(rt reflect.Type, tag uint64, ext Ext) (
 
 // initHandle should be called only from codec.initHandle global function.
 // make it uninlineable, as it is called at most once for each handle.
+//
 //go:noinline
 func (x *BasicHandle) initHandle(hh Handle) {
 	handleInitMu.Lock()
@@ -1554,6 +1562,10 @@ func (z bigenHelper) writeUint16(w *encWr, v uint16) {
 }
 
 func (z bigenHelper) writeUint32(w *encWr, v uint32) {
+	// w.writeb((z.PutUint32(v))[:])
+	// x := z.PutUint32(v)
+	// w.writeb(x[:])
+	// w.writen4(x[0], x[1], x[2], x[3])
 	w.writen4(z.PutUint32(v))
 }
 
@@ -1731,7 +1743,7 @@ func (path *structFieldInfoPathNode) fieldAlloc(v reflect.Value) (rv2 reflect.Va
 		v = parent.fieldAlloc(v)
 		for j, k := uint8(0), parent.numderef; j < k; j++ {
 			if rvIsNil(v) {
-				rvSetDirect(v, reflect.New(rvType(v).Elem()))
+				rvSetDirect(v, reflect.New(v.Type().Elem()))
 			}
 			v = v.Elem()
 		}
@@ -1863,10 +1875,10 @@ type typeInfo struct {
 	keykind, elemkind uint8
 
 	flagHasPkgPath   bool // Type.PackagePath != ""
-	flagCustom       bool // does this have custom implementation?
 	flagComparable   bool
 	flagCanTransient bool
 
+	flagMarshalInterface  bool // does this have custom (un)marshal implementation?
 	flagSelferViaCodecgen bool
 
 	// custom implementation flags
@@ -2128,7 +2140,6 @@ func (x *TypeInfos) load(rt reflect.Type) (pti *typeInfo) {
 	bset := func(when bool, b *bool) {
 		if when {
 			*b = true
-			ti.flagCustom = true
 		}
 	}
 
@@ -2167,6 +2178,15 @@ func (x *TypeInfos) load(rt reflect.Type) (pti *typeInfo) {
 
 	b1, b2 = implIntf(rt, isSelferViaCodecgenerTyp)
 	ti.flagSelferViaCodecgen = b1 || b2
+
+	ti.flagMarshalInterface = ti.flagSelfer || ti.flagSelferPtr ||
+		ti.flagSelferViaCodecgen ||
+		ti.flagBinaryMarshaler || ti.flagBinaryMarshalerPtr ||
+		ti.flagBinaryUnmarshaler || ti.flagBinaryUnmarshalerPtr ||
+		ti.flagTextMarshaler || ti.flagTextMarshalerPtr ||
+		ti.flagTextUnmarshaler || ti.flagTextUnmarshalerPtr ||
+		ti.flagJsonMarshaler || ti.flagJsonMarshalerPtr ||
+		ti.flagJsonUnmarshaler || ti.flagJsonUnmarshalerPtr
 
 	b1 = rt.Comparable()
 	// bset(b1, &ti.flagComparable)
@@ -2443,6 +2463,14 @@ func implIntf(rt, iTyp reflect.Type) (base bool, indir bool) {
 	return
 }
 
+func bool2int(b bool) (v uint8) {
+	// MARKER: optimized to be a single instruction
+	if b {
+		v = 1
+	}
+	return
+}
+
 func isSliceBoundsError(s string) bool {
 	return strings.Contains(s, "index out of range") ||
 		strings.Contains(s, "slice bounds out of range")
@@ -2581,17 +2609,22 @@ func (checkOverflow) Uint2Int(v uint64, neg bool) (overflow bool) {
 
 func (checkOverflow) SignedInt(v uint64) (overflow bool) {
 	//e.g. -127 to 128 for int8
-	pos := (v >> 63) == 0
-	ui2 := v & 0x7fffffffffffffff
-	if pos {
-		if ui2 > math.MaxInt64 {
-			overflow = true
-		}
-	} else {
-		if ui2 > math.MaxInt64-1 {
-			overflow = true
-		}
-	}
+	// pos := (v >> 63) == 0
+	// ui2 := v & 0x7fffffffffffffff
+	// if pos {
+	// 	if ui2 > math.MaxInt64 {
+	// 		overflow = true
+	// 	}
+	// } else {
+	// 	if ui2 > math.MaxInt64-1 {
+	// 		overflow = true
+	// 	}
+	// }
+
+	// a signed integer has overflow if the sign (first) bit is 1 (negative)
+	// and the numbers after the sign bit is > maxint64 - 1
+	overflow = (v>>63) != 0 && v&0x7fffffffffffffff > math.MaxInt64-1
+
 	return
 }
 
@@ -2774,22 +2807,23 @@ func freelistCapacity(length int) (capacity int) {
 // without bounds checking is sufficient.
 //
 // Typical usage model:
-//   peek may go together with put, iff pop=true. peek gets largest byte slice temporarily.
-//   check is used to switch a []byte if necessary
-//   get/put go together
+//
+//	peek may go together with put, iff pop=true. peek gets largest byte slice temporarily.
+//	check is used to switch a []byte if necessary
+//	get/put go together
 //
 // Given that folks may get a []byte, and then append to it a lot which may re-allocate
 // a new []byte, we should try to return both (one received from blist and new one allocated).
 //
 // Typical usage model for get/put, when we don't know whether we may need more than requested
-//   v0 := blist.get()
-//   v1 := v0
-//   ... use v1 ...
-//   blist.put(v1)
-//   if byteSliceAddr(v0) != byteSliceAddr(v1) {
-//     blist.put(v0)
-//   }
 //
+//	v0 := blist.get()
+//	v1 := v0
+//	... use v1 ...
+//	blist.put(v1)
+//	if byteSliceAddr(v0) != byteSliceAddr(v1) {
+//	  blist.put(v0)
+//	}
 type bytesFreelist [][]byte
 
 // peek returns a slice of possibly non-zero'ed bytes, with len=0,

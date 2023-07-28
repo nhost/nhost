@@ -11,8 +11,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hasura/go-graphql-client/internal/jsonutil"
+	"github.com/hasura/go-graphql-client/pkg/jsonutil"
 )
+
+// Doer interface has the method required to use a type as custom http client.
+// The net/*http.Client type satisfies this interface.
+type Doer interface {
+	Do(*http.Request) (*http.Response, error)
+}
 
 // This function allows you to tweak the HTTP request. It might be useful to set authentication
 // headers  amongst other things
@@ -21,14 +27,14 @@ type RequestModifier func(*http.Request)
 // Client is a GraphQL client.
 type Client struct {
 	url             string // GraphQL server URL.
-	httpClient      *http.Client
+	httpClient      Doer
 	requestModifier RequestModifier
 	debug           bool
 }
 
 // NewClient creates a GraphQL client targeting the specified GraphQL server URL.
 // If httpClient is nil, then http.DefaultClient is used.
-func NewClient(url string, httpClient *http.Client) *Client {
+func NewClient(url string, httpClient Doer) *Client {
 	if httpClient == nil {
 		httpClient = http.DefaultClient
 	}
@@ -115,10 +121,7 @@ func (c *Client) buildAndRequest(ctx context.Context, op operationType, v interf
 
 // Request the common method that send graphql request
 func (c *Client) request(ctx context.Context, query string, variables map[string]interface{}, options ...Option) ([]byte, *http.Response, io.Reader, Errors) {
-	in := struct {
-		Query     string                 `json:"query"`
-		Variables map[string]interface{} `json:"variables,omitempty"`
-	}{
+	in := GraphQLRequestPayload{
 		Query:     query,
 		Variables: variables,
 	}
@@ -318,7 +321,7 @@ type Error struct {
 
 // Error implements error interface.
 func (e Error) Error() string {
-	return fmt.Sprintf("Message: %s, Locations: %+v", e.Message, e.Locations)
+	return fmt.Sprintf("Message: %s, Locations: %+v, Extensions: %+v", e.Message, e.Locations, e.Extensions)
 }
 
 // Error implements error interface.

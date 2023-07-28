@@ -18,6 +18,7 @@ linters:
       - structcheck   # deprecated
       - usestdlibvars # needs to be fixed
       - exhaustruct   # needs to be fixed
+      - depguard
 
 issues:
   exclude-rules:

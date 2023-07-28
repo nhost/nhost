@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-// Note: These custom types are kept for backwards compatability.  Native
+// Note: These custom types are kept for backwards compatibility.  Native
 // types for queries and responses are supported, with the exception of the ID.
 
 type (

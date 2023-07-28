@@ -39,8 +39,8 @@ const (
 	postgresMigrationsSourceFlag = "postgres-migrations-source"
 	fastlyServiceFlag            = "fastly-service"
 	fastlyKeyFlag                = "fastly-key"
-	corsAllowOriginsFlag				 = "cors-allow-origins"
-	corsAllowCredentialsFlag		 = "cors-allow-credentials"
+	corsAllowOriginsFlag         = "cors-allow-origins"
+	corsAllowCredentialsFlag     = "cors-allow-credentials" //nolint: gosec
 )
 
 func ginLogger(logger *logrus.Logger) gin.HandlerFunc {
@@ -111,7 +111,9 @@ func getGin(
 		middlewares = append(middlewares, fastly.New(fastlyService, viper.GetString(fastlyKeyFlag), logger))
 	}
 
-	return ctrl.SetupRouter(trustedProxies, apiRootPrefix, corsAllowOrigins, corsAllowCredentials, middlewares...) //nolint: wrapcheck
+	return ctrl.SetupRouter( //nolint: wrapcheck
+		trustedProxies, apiRootPrefix, corsAllowOrigins, corsAllowCredentials, middlewares...,
+	)
 }
 
 func getMetadataStorage(endpoint string) *metadata.Hasura {

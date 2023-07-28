@@ -151,7 +151,7 @@ func TestGetFileInformation(t *testing.T) {
 			expectedErr: &client.APIResponseError{
 				StatusCode: 400,
 				ErrorResponse: &controller.ErrorResponse{
-					Message: `Message: invalid input syntax for type uuid: "asdadasdads", Locations: []`,
+					Message: "Message: invalid input syntax for type uuid: \"asdadasdads\", Locations: [], Extensions: map[code:data-exception path:$]",
 				},
 				Response: nil,
 			},

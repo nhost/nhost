@@ -110,6 +110,22 @@ func New(
 	}
 }
 
+func corsConfig(allowedOrigins []string) cors.Config {
+	return cors.Config{
+		AllowOrigins: allowedOrigins,
+		AllowMethods: []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
+		AllowHeaders: []string{
+			"Authorization", "Origin", "if-match", "if-none-match", "if-modified-since", "if-unmodified-since",
+			"x-hasura-admin-secret", "x-nhost-bucket-id", "x-nhost-file-name", "x-nhost-file-id",
+			"x-hasura-role",
+		},
+		ExposeHeaders: []string{
+			"Content-Length", "Content-Type", "Cache-Control", "ETag", "Last-Modified", "X-Error",
+		},
+		MaxAge: 12 * time.Hour, //nolint: gomnd
+	}
+}
+
 func (ctrl *Controller) SetupRouter(
 	trustedProxies []string,
 	apiRootPrefix string,
@@ -130,20 +146,7 @@ func (ctrl *Controller) SetupRouter(
 		router.Use(mw)
 	}
 
-	corsConfig := cors.Config{
-		AllowOrigins: corsOrigins,
-		AllowMethods: []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
-		AllowHeaders: []string{
-			"Authorization", "Origin", "if-match", "if-none-match", "if-modified-since", "if-unmodified-since",
-			"x-hasura-admin-secret", "x-nhost-bucket-id", "x-nhost-file-name", "x-nhost-file-id",
-			"x-hasura-role",
-		},
-		ExposeHeaders: []string{
-			"Content-Length", "Content-Type", "Cache-Control", "ETag", "Last-Modified", "X-Error",
-		},
-		MaxAge: 12 * time.Hour, //nolint: gomnd
-	}
-
+	corsConfig := corsConfig(corsOrigins)
 	if corsAllowCredentials {
 		corsConfig.AllowCredentials = true
 	}

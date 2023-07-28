@@ -1,5 +1,7 @@
 package magic
 
+import "bytes"
+
 var (
 	// AVIF matches an AV1 Image File Format still or animated.
 	// Wikipedia page seems outdated listing image/avif-sequence for animations.
@@ -37,8 +39,6 @@ var (
 		// Nero Digital AAC Audio
 		[]byte("NDAS"),
 	)
-	// QuickTime matches a QuickTime File Format file.
-	QuickTime = ftyp([]byte("qt  "), []byte("moov"))
 	// Mqv matches a Sony / Mobile QuickTime  file.
 	Mqv = ftyp([]byte("mqt "))
 	// M4a matches an audio M4A file.
@@ -55,3 +55,34 @@ var (
 	HeifSequence = ftyp([]byte("msf1"), []byte("hevm"), []byte("hevs"), []byte("avcs"))
 	// TODO: add support for remaining video formats at ftyps.com.
 )
+
+// QuickTime matches a QuickTime File Format file.
+// https://www.loc.gov/preservation/digital/formats/fdd/fdd000052.shtml
+// https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap1/qtff1.html#//apple_ref/doc/uid/TP40000939-CH203-38190
+// https://github.com/apache/tika/blob/0f5570691133c75ac4472c3340354a6c4080b104/tika-core/src/main/resources/org/apache/tika/mime/tika-mimetypes.xml#L7758-L7777
+func QuickTime(raw []byte, _ uint32) bool {
+	if len(raw) < 12 {
+		return false
+	}
+	// First 4 bytes represent the size of the atom as unsigned int.
+	// Next 4 bytes are the type of the atom.
+	// For `ftyp` atoms check if first byte in size is 0, otherwise, a text file
+	// which happens to contain 'ftypqt  ' at index 4 will trigger a false positive.
+	if bytes.Equal(raw[4:12], []byte("ftypqt  ")) ||
+		bytes.Equal(raw[4:12], []byte("ftypmoov")) {
+		return raw[0] == 0x00
+	}
+	basicAtomTypes := [][]byte{
+		[]byte("moov\x00"),
+		[]byte("mdat\x00"),
+		[]byte("free\x00"),
+		[]byte("skip\x00"),
+		[]byte("pnot\x00"),
+	}
+	for _, a := range basicAtomTypes {
+		if bytes.Equal(raw[4:9], a) {
+			return true
+		}
+	}
+	return bytes.Equal(raw[:8], []byte("\x00\x00\x00\x08wide"))
+}

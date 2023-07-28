@@ -307,8 +307,10 @@ _usage() {
     
     cat <<EOF
 primary usage: $0 
-    -[tesow m n l d]   -> [t=tests (e=extra, s=short, o=cover, w=wait), m=make, n=inlining diagnostics, l=mid-stack inlining, d=race detector]
-    -v                   -> v=verbose
+    -t[esow]   -> t=tests [e=extra, s=short, o=cover, w=wait]
+    -[md]      -> [m=make, d=race detector]
+    -[n l i]   -> [n=inlining diagnostics, l=mid-stack inlining, i=check inlining for path (path)]
+    -v         -> v=verbose
 EOF
     if [[ "$(type -t _usage_run)" = "function" ]]; then _usage_run ; fi
 }
@@ -329,7 +331,7 @@ _main() {
     local gocmd=${MYGOCMD:-go}
     
     OPTIND=1
-    while getopts ":cetmnrgpfvldsowkxyzb:" flag
+    while getopts ":cetmnrgpfvldsowkxyzi" flag
     do
         case "x$flag" in
             'xo') zcover=1 ;;
@@ -341,7 +343,7 @@ _main() {
             'xl') zargs+=("-gcflags"); zargs+=("-l=4") ;;
             'xn') zargs+=("-gcflags"); zargs+=("-m=2") ;;
             'xd') zargs+=("-race") ;;
-            'xb') x='b'; zbenchflags=${OPTARG} ;;
+            # 'xi') x='i'; zbenchflags=${OPTARG} ;;
             x\?) _usage; return 1 ;;
             *) x=$flag ;;
         esac
@@ -359,7 +361,7 @@ _main() {
         'xy') _analyze_debug_types "$@" ;;
         'xz') _analyze_do_inlining_and_more "$@" ;;
         'xk') _go_compiler_validation_suite ;;
-        'xb') _bench "$@" ;;
+        'xi') _check_inlining_one "$@" ;;
     esac
     # unset zforce zargs zbenchflags
 }

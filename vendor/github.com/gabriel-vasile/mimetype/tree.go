@@ -18,13 +18,13 @@ import (
 var root = newMIME("application/octet-stream", "",
 	func([]byte, uint32) bool { return true },
 	xpm, sevenZ, zip, pdf, fdf, ole, ps, psd, p7s, ogg, png, jpg, jxl, jp2, jpx,
-	jpm, gif, webp, exe, elf, ar, tar, xar, bz2, fits, tiff, bmp, ico, mp3, flac,
+	jpm, jxs, gif, webp, exe, elf, ar, tar, xar, bz2, fits, tiff, bmp, ico, mp3, flac,
 	midi, ape, musePack, amr, wav, aiff, au, mpeg, quickTime, mqv, mp4, webM,
 	threeGP, threeG2, avi, flv, mkv, asf, aac, voc, aMp4, m4a, m3u, m4v, rmvb,
 	gzip, class, swf, crx, ttf, woff, woff2, otf, ttc, eot, wasm, shx, dbf, dcm, rar,
 	djvu, mobi, lit, bpg, sqlite3, dwg, nes, lnk, macho, qcp, icns, heic,
 	heicSeq, heif, heifSeq, hdr, mrc, mdb, accdb, zstd, cab, rpm, xz, lzip,
-	torrent, cpio, tzif, xcf, pat, gbr, glb, avif, cabIS,
+	torrent, cpio, tzif, xcf, pat, gbr, glb, avif, cabIS, jxr,
 	// Keep text last because it is the slowest check
 	text,
 )
@@ -34,7 +34,7 @@ var root = newMIME("application/octet-stream", "",
 // errMIME is same as root but it does not require locking.
 var errMIME = newMIME("application/octet-stream", "", func([]byte, uint32) bool { return false })
 
-// mu guards access to the root MIME tree. Access to root must be synchonized with this lock.
+// mu guards access to the root MIME tree. Access to root must be synchronized with this lock.
 var mu = &sync.RWMutex{}
 
 // The list of nodes appended to the root node.
@@ -122,6 +122,7 @@ var (
 	jpx     = newMIME("image/jpx", ".jpf", magic.Jpx)
 	jpm     = newMIME("image/jpm", ".jpm", magic.Jpm).
 		alias("video/jpm")
+	jxs  = newMIME("image/jxs", ".jxs", magic.Jxs)
 	xpm  = newMIME("image/x-xpixmap", ".xpm", magic.Xpm)
 	bpg  = newMIME("image/bpg", ".bpg", magic.Bpg)
 	gif  = newMIME("image/gif", ".gif", magic.Gif)
@@ -255,4 +256,5 @@ var (
 	gbr     = newMIME("image/x-gimp-gbr", ".gbr", magic.Gbr)
 	xfdf    = newMIME("application/vnd.adobe.xfdf", ".xfdf", magic.Xfdf)
 	glb     = newMIME("model/gltf-binary", ".glb", magic.Glb)
+	jxr     = newMIME("image/jxr", ".jxr", magic.Jxr).alias("image/vnd.ms-photo")
 )

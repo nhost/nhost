@@ -14,7 +14,7 @@ import (
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
-	"unsafe" //nolint: gci
+	"unsafe"
 )
 
 const (

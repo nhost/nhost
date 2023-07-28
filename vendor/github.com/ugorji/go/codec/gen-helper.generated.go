@@ -13,7 +13,7 @@ import (
 )
 
 // GenVersion is the current version of codecgen.
-const GenVersion = 25
+const GenVersion = 28
 
 // This file is used to generate helper code for codecgen.
 // The values here i.e. genHelper(En|De)coder are not to be used directly by
@@ -66,6 +66,11 @@ func (f genHelperEncoder) EncBasicHandle() *BasicHandle {
 }
 
 // FOR USE BY CODECGEN ONLY. IT *WILL* CHANGE WITHOUT NOTICE. *DO NOT USE*
+func (f genHelperEncoder) EncWr() *encWr {
+	return f.e.w()
+}
+
+// FOR USE BY CODECGEN ONLY. IT *WILL* CHANGE WITHOUT NOTICE. *DO NOT USE*
 func (f genHelperEncoder) EncBinary() bool {
 	return f.e.be // f.e.hh.isBinaryEncoding()
 }
@@ -113,11 +118,6 @@ func (f genHelperEncoder) EncExtension(v interface{}, xfFn *extTypeTagFn) {
 }
 
 // FOR USE BY CODECGEN ONLY. IT *WILL* CHANGE WITHOUT NOTICE. *DO NOT USE*
-func (f genHelperEncoder) WriteStr(s string) {
-	f.e.w().writestr(s)
-}
-
-// FOR USE BY CODECGEN ONLY. IT *WILL* CHANGE WITHOUT NOTICE. *DO NOT USE*
 func (f genHelperEncoder) EncWriteMapStart(length int) { f.e.mapStart(length) }
 
 // FOR USE BY CODECGEN ONLY. IT *WILL* CHANGE WITHOUT NOTICE. *DO NOT USE*
@@ -148,9 +148,19 @@ func (f genHelperEncoder) EncEncodeComplex128(v complex128) { f.e.encodeComplex1
 func (f genHelperEncoder) EncEncode(v interface{}) { f.e.encode(v) }
 
 // FOR USE BY CODECGEN ONLY. IT *WILL* CHANGE WITHOUT NOTICE. *DO NOT USE*
+func (f genHelperEncoder) EncFnGivenAddr(v interface{}) *codecFn {
+	return f.e.h.fn(reflect.TypeOf(v).Elem())
+}
+
+// FOR USE BY CODECGEN ONLY. IT *WILL* CHANGE WITHOUT NOTICE. *DO NOT USE*
+func (f genHelperEncoder) EncEncodeNumBoolStrKindGivenAddr(v interface{}, encFn *codecFn) {
+	f.e.encodeValueNonNil(reflect.ValueOf(v).Elem(), encFn)
+}
+
+// FOR USE BY CODECGEN ONLY. IT *WILL* CHANGE WITHOUT NOTICE. *DO NOT USE*
 func (f genHelperEncoder) EncEncodeMapNonNil(v interface{}) {
 	if skipFastpathTypeSwitchInDirectCall || !fastpathEncodeTypeSwitch(v, f.e) {
-		f.e.encodeValue(reflect.ValueOf(v), nil)
+		f.e.encodeValueNonNil(reflect.ValueOf(v), nil)
 	}
 }
 
@@ -268,10 +278,17 @@ func (f genHelperDecoder) DecReadMapElemValue() { f.d.mapElemValue() }
 func (f genHelperDecoder) DecDecodeFloat32() float32 { return f.d.decodeFloat32() }
 
 // FOR USE BY CODECGEN ONLY. IT *WILL* CHANGE WITHOUT NOTICE. *DO NOT USE*
-func (f genHelperDecoder) DecCheckBreak() bool { return f.d.checkBreak() }
-
-// FOR USE BY CODECGEN ONLY. IT *WILL* CHANGE WITHOUT NOTICE. *DO NOT USE*
 func (f genHelperDecoder) DecStringZC(v []byte) string { return f.d.stringZC(v) }
 
 // FOR USE BY CODECGEN ONLY. IT *WILL* CHANGE WITHOUT NOTICE. *DO NOT USE*
 func (f genHelperDecoder) DecodeBytesInto(v []byte) []byte { return f.d.decodeBytesInto(v) }
+
+// FOR USE BY CODECGEN ONLY. IT *WILL* CHANGE WITHOUT NOTICE. *DO NOT USE*
+func (f genHelperDecoder) DecContainerNext(j, containerLen int, hasLen bool) bool {
+	// return f.d.containerNext(j, containerLen, hasLen)
+	// rewriting so it can be inlined
+	if hasLen {
+		return j < containerLen
+	}
+	return !f.d.checkBreak()
+}

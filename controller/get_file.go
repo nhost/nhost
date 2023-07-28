@@ -37,7 +37,7 @@ func getQueryFloat(ctx *gin.Context, param string) (float64, *APIError) {
 	if !ok {
 		return 0, nil
 	}
-	x, err := strconv.ParseFloat(s, 32) //nolint: gomnd
+	x, err := strconv.ParseFloat(s, 32)
 	if err != nil {
 		return 0, BadDataError(err, fmt.Sprintf("query parameter %s must be an int", param))
 	}

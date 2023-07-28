@@ -686,21 +686,23 @@ func (e *Encoder) kMap(f *codecFnInfo, rv reflect.Value) {
 
 	var rvv = mapAddrLoopvarRV(f.ti.elem, vtypeKind)
 
-	if e.h.Canonical {
-		e.kMapCanonical(f.ti, rv, rvv, valFn)
-		e.mapEnd()
-		return
-	}
-
 	rtkey := f.ti.key
 	var keyTypeIsString = stringTypId == rt2id(rtkey) // rtkeyid
-	if !keyTypeIsString {
+	if keyTypeIsString {
+		keyFn = e.h.fn(rtkey)
+	} else {
 		for rtkey.Kind() == reflect.Ptr {
 			rtkey = rtkey.Elem()
 		}
 		if rtkey.Kind() != reflect.Interface {
 			keyFn = e.h.fn(rtkey)
 		}
+	}
+
+	if e.h.Canonical {
+		e.kMapCanonical(f.ti, rv, rvv, keyFn, valFn)
+		e.mapEnd()
+		return
 	}
 
 	var rvk = mapAddrLoopvarRV(f.ti.key, ktypeKind)
@@ -723,11 +725,14 @@ func (e *Encoder) kMap(f *codecFnInfo, rv reflect.Value) {
 	e.mapEnd()
 }
 
-func (e *Encoder) kMapCanonical(ti *typeInfo, rv, rvv reflect.Value, valFn *codecFn) {
-	// we previously did out-of-band if an extension was registered.
-	// This is not necessary, as the natural kind is sufficient for ordering.
-
+func (e *Encoder) kMapCanonical(ti *typeInfo, rv, rvv reflect.Value, keyFn, valFn *codecFn) {
+	// The base kind of the type of the map key is sufficient for ordering.
+	// We only do out of band if that kind is not ordered (number or string), bool or time.Time.
+	// If the key is a predeclared type, directly call methods on encDriver e.g. EncodeString
+	// but if not, call encodeValue, in case it has an extension registered or otherwise.
 	rtkey := ti.key
+	rtkeydecl := rtkey.PkgPath() == "" && rtkey.Name() != "" // key type is predeclared
+
 	mks := rv.MapKeys()
 	rtkeyKind := rtkey.Kind()
 	kfast := mapKeyFastKindFor(rtkeyKind)
@@ -736,18 +741,24 @@ func (e *Encoder) kMapCanonical(ti *typeInfo, rv, rvv reflect.Value, valFn *code
 
 	switch rtkeyKind {
 	case reflect.Bool:
-		mksv := make([]boolRv, len(mks))
-		for i, k := range mks {
-			v := &mksv[i]
-			v.r = k
-			v.v = k.Bool()
+		// though bool keys make no sense in a map, it *could* happen.
+		// in that case, we MUST support it in reflection mode,
+		// as that is the fallback for even codecgen and others.
+
+		// sort the keys so that false comes before true
+		// ie if 2 keys in order (true, false), then swap them
+		if len(mks) == 2 && mks[0].Bool() {
+			mks[0], mks[1] = mks[1], mks[0]
 		}
-		sort.Sort(boolRvSlice(mksv))
-		for i := range mksv {
+		for i := range mks {
 			e.mapElemKey()
-			e.e.EncodeBool(mksv[i].v)
+			if rtkeydecl {
+				e.e.EncodeBool(mks[i].Bool())
+			} else {
+				e.encodeValueNonNil(mks[i], keyFn)
+			}
 			e.mapElemValue()
-			e.encodeValue(mapGet(rv, mksv[i].r, rvv, kfast, visindirect, visref), valFn)
+			e.encodeValue(mapGet(rv, mks[i], rvv, kfast, visindirect, visref), valFn)
 		}
 	case reflect.String:
 		mksv := make([]stringRv, len(mks))
@@ -759,7 +770,11 @@ func (e *Encoder) kMapCanonical(ti *typeInfo, rv, rvv reflect.Value, valFn *code
 		sort.Sort(stringRvSlice(mksv))
 		for i := range mksv {
 			e.mapElemKey()
-			e.e.EncodeString(mksv[i].v)
+			if rtkeydecl {
+				e.e.EncodeString(mksv[i].v)
+			} else {
+				e.encodeValueNonNil(mksv[i].r, keyFn)
+			}
 			e.mapElemValue()
 			e.encodeValue(mapGet(rv, mksv[i].r, rvv, kfast, visindirect, visref), valFn)
 		}
@@ -773,7 +788,11 @@ func (e *Encoder) kMapCanonical(ti *typeInfo, rv, rvv reflect.Value, valFn *code
 		sort.Sort(uint64RvSlice(mksv))
 		for i := range mksv {
 			e.mapElemKey()
-			e.e.EncodeUint(mksv[i].v)
+			if rtkeydecl {
+				e.e.EncodeUint(mksv[i].v)
+			} else {
+				e.encodeValueNonNil(mksv[i].r, keyFn)
+			}
 			e.mapElemValue()
 			e.encodeValue(mapGet(rv, mksv[i].r, rvv, kfast, visindirect, visref), valFn)
 		}
@@ -787,7 +806,11 @@ func (e *Encoder) kMapCanonical(ti *typeInfo, rv, rvv reflect.Value, valFn *code
 		sort.Sort(int64RvSlice(mksv))
 		for i := range mksv {
 			e.mapElemKey()
-			e.e.EncodeInt(mksv[i].v)
+			if rtkeydecl {
+				e.e.EncodeInt(mksv[i].v)
+			} else {
+				e.encodeValueNonNil(mksv[i].r, keyFn)
+			}
 			e.mapElemValue()
 			e.encodeValue(mapGet(rv, mksv[i].r, rvv, kfast, visindirect, visref), valFn)
 		}
@@ -801,7 +824,11 @@ func (e *Encoder) kMapCanonical(ti *typeInfo, rv, rvv reflect.Value, valFn *code
 		sort.Sort(float64RvSlice(mksv))
 		for i := range mksv {
 			e.mapElemKey()
-			e.e.EncodeFloat32(float32(mksv[i].v))
+			if rtkeydecl {
+				e.e.EncodeFloat32(float32(mksv[i].v))
+			} else {
+				e.encodeValueNonNil(mksv[i].r, keyFn)
+			}
 			e.mapElemValue()
 			e.encodeValue(mapGet(rv, mksv[i].r, rvv, kfast, visindirect, visref), valFn)
 		}
@@ -815,11 +842,15 @@ func (e *Encoder) kMapCanonical(ti *typeInfo, rv, rvv reflect.Value, valFn *code
 		sort.Sort(float64RvSlice(mksv))
 		for i := range mksv {
 			e.mapElemKey()
-			e.e.EncodeFloat64(mksv[i].v)
+			if rtkeydecl {
+				e.e.EncodeFloat64(mksv[i].v)
+			} else {
+				e.encodeValueNonNil(mksv[i].r, keyFn)
+			}
 			e.mapElemValue()
 			e.encodeValue(mapGet(rv, mksv[i].r, rvv, kfast, visindirect, visref), valFn)
 		}
-	case reflect.Struct:
+	default:
 		if rtkey == timeTyp {
 			mksv := make([]timeRv, len(mks))
 			for i, k := range mks {
@@ -836,8 +867,7 @@ func (e *Encoder) kMapCanonical(ti *typeInfo, rv, rvv reflect.Value, valFn *code
 			}
 			break
 		}
-		fallthrough
-	default:
+
 		// out-of-band
 		// first encode each key to a []byte first, then sort them, then record
 		bs0 := e.blist.get(len(mks) * 16)
@@ -863,6 +893,7 @@ func (e *Encoder) kMapCanonical(ti *typeInfo, rv, rvv reflect.Value, valFn *code
 				v := &mksbv[i]
 				l := len(mksv)
 
+				e.c = containerMapKey
 				e.encodeValue(k, nil)
 				e.atEndOfEncode()
 				e.w().end()
@@ -1010,16 +1041,17 @@ func (e *Encoder) ResetBytes(out *[]byte) {
 // To set an option on all fields (e.g. omitempty on all fields), you
 // can create a field called _struct, and set flags on it. The options
 // which can be set on _struct are:
-//    - omitempty: so all fields are omitted if empty
-//    - toarray: so struct is encoded as an array
-//    - int: so struct key names are encoded as signed integers (instead of strings)
-//    - uint: so struct key names are encoded as unsigned integers (instead of strings)
-//    - float: so struct key names are encoded as floats (instead of strings)
+//   - omitempty: so all fields are omitted if empty
+//   - toarray: so struct is encoded as an array
+//   - int: so struct key names are encoded as signed integers (instead of strings)
+//   - uint: so struct key names are encoded as unsigned integers (instead of strings)
+//   - float: so struct key names are encoded as floats (instead of strings)
+//
 // More details on these below.
 //
 // Struct values "usually" encode as maps. Each exported struct field is encoded unless:
-//    - the field's tag is "-", OR
-//    - the field is empty (empty or the zero value) and its tag specifies the "omitempty" option.
+//   - the field's tag is "-", OR
+//   - the field is empty (empty or the zero value) and its tag specifies the "omitempty" option.
 //
 // When encoding as a map, the first string in the tag (before the comma)
 // is the map key string to use when encoding.
@@ -1032,8 +1064,9 @@ func (e *Encoder) ResetBytes(out *[]byte) {
 // This is done with the int,uint or float option on the _struct field (see above).
 //
 // However, struct values may encode as arrays. This happens when:
-//    - StructToArray Encode option is set, OR
-//    - the tag on the _struct field sets the "toarray" option
+//   - StructToArray Encode option is set, OR
+//   - the tag on the _struct field sets the "toarray" option
+//
 // Note that omitempty is ignored when encoding struct values as arrays,
 // as an entry must be encoded for each field, to maintain its position.
 //
@@ -1043,33 +1076,33 @@ func (e *Encoder) ResetBytes(out *[]byte) {
 // or interface value, and any array, slice, map, or string of length zero.
 //
 // Anonymous fields are encoded inline except:
-//    - the struct tag specifies a replacement name (first value)
-//    - the field is of an interface type
+//   - the struct tag specifies a replacement name (first value)
+//   - the field is of an interface type
 //
 // Examples:
 //
-//      // NOTE: 'json:' can be used as struct tag key, in place 'codec:' below.
-//      type MyStruct struct {
-//          _struct bool    `codec:",omitempty"`   //set omitempty for every field
-//          Field1 string   `codec:"-"`            //skip this field
-//          Field2 int      `codec:"myName"`       //Use key "myName" in encode stream
-//          Field3 int32    `codec:",omitempty"`   //use key "Field3". Omit if empty.
-//          Field4 bool     `codec:"f4,omitempty"` //use key "f4". Omit if empty.
-//          io.Reader                              //use key "Reader".
-//          MyStruct        `codec:"my1"           //use key "my1".
-//          MyStruct                               //inline it
-//          ...
-//      }
+//	// NOTE: 'json:' can be used as struct tag key, in place 'codec:' below.
+//	type MyStruct struct {
+//	    _struct bool    `codec:",omitempty"`   //set omitempty for every field
+//	    Field1 string   `codec:"-"`            //skip this field
+//	    Field2 int      `codec:"myName"`       //Use key "myName" in encode stream
+//	    Field3 int32    `codec:",omitempty"`   //use key "Field3". Omit if empty.
+//	    Field4 bool     `codec:"f4,omitempty"` //use key "f4". Omit if empty.
+//	    io.Reader                              //use key "Reader".
+//	    MyStruct        `codec:"my1"           //use key "my1".
+//	    MyStruct                               //inline it
+//	    ...
+//	}
 //
-//      type MyStruct struct {
-//          _struct bool    `codec:",toarray"`     //encode struct as an array
-//      }
+//	type MyStruct struct {
+//	    _struct bool    `codec:",toarray"`     //encode struct as an array
+//	}
 //
-//      type MyStruct struct {
-//          _struct bool    `codec:",uint"`        //encode struct with "unsigned integer" keys
-//          Field1 string   `codec:"1"`            //encode Field1 key using: EncodeInt(1)
-//          Field2 string   `codec:"2"`            //encode Field2 key using: EncodeInt(2)
-//      }
+//	type MyStruct struct {
+//	    _struct bool    `codec:",uint"`        //encode struct with "unsigned integer" keys
+//	    Field1 string   `codec:"1"`            //encode Field1 key using: EncodeInt(1)
+//	    Field2 string   `codec:"2"`            //encode Field2 key using: EncodeInt(2)
+//	}
 //
 // The mode of encoding is based on the type of the value. When a value is seen:
 //   - If a Selfer, call its CodecEncodeSelf method
@@ -1293,7 +1326,7 @@ TOP:
 	}
 
 	if fn == nil {
-		fn = e.h.fn(rvType(rv))
+		fn = e.h.fn(rv.Type())
 	}
 
 	if !fn.i.addrE { // typically, addrE = false, so check it first
@@ -1308,6 +1341,19 @@ TOP:
 	if sptr != nil { // remove sptr
 		e.ci = e.ci[:len(e.ci)-1]
 	}
+}
+
+// encodeValueNonNil can encode a number, bool, or string
+// OR non-nil values of kind map, slice and chan.
+func (e *Encoder) encodeValueNonNil(rv reflect.Value, fn *codecFn) {
+	if fn == nil {
+		fn = e.h.fn(rv.Type())
+	}
+
+	if fn.i.addrE { // typically, addrE = false, so check it first
+		rv = e.addrRV(rv, fn.i.ti.rt, fn.i.ti.ptr)
+	}
+	fn.fe(e, &fn.i, rv)
 }
 
 // addrRV returns a addressable value which may be readonly

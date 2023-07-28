@@ -74,13 +74,21 @@ func CRX(raw []byte, limit uint32) bool {
 }
 
 // Tar matches a (t)ape (ar)chive file.
-//
-// Signature source: https://www.nationalarchives.gov.uk/PRONOM/Format/proFormatSearch.aspx?status=detailReport&id=385&strPageToDisplay=signatures
 func Tar(raw []byte, _ uint32) bool {
+	// The "magic" header field for files in in UStar (POSIX IEEE P1003.1) archives
+	// has the prefix "ustar". The values of the remaining bytes in this field vary
+	// by archiver implementation.
+	if len(raw) >= 512 && bytes.HasPrefix(raw[257:], []byte{0x75, 0x73, 0x74, 0x61, 0x72}) {
+		return true
+	}
+
 	if len(raw) < 256 {
 		return false
 	}
 
+	// The older v7 format has no "magic" field, and therefore must be identified
+	// with heuristics based on legal ranges of values for other header fields:
+	// https://www.nationalarchives.gov.uk/PRONOM/Format/proFormatSearch.aspx?status=detailReport&id=385&strPageToDisplay=signatures
 	rules := []struct {
 		min, max uint8
 		i        int

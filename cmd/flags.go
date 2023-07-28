@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func addBoolFlag(flags *pflag.FlagSet, name string, defaultValue bool, help string) {
+func addBoolFlag(flags *pflag.FlagSet, name string, defaultValue bool, help string) { //nolint:unparam
 	flags.Bool(name, defaultValue, help)
 	if err := viper.BindPFlag(name, flags.Lookup(name)); err != nil {
 		cobra.CheckErr(err)

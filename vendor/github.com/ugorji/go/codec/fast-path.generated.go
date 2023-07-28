@@ -3019,7 +3019,7 @@ func (fastpathT) DecSliceIntfY(v []interface{}, d *Decoder) (v2 []interface{}, c
 		}
 	}
 	var j int
-	for j = 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j = 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j == 0 && len(v) == 0 { // means hasLen == false
 			xlen = decInferLen(containerLenS, d.h.MaxInitLen, 16)
 			v = make([]interface{}, uint(xlen))
@@ -3052,7 +3052,7 @@ func (fastpathT) DecSliceIntfN(v []interface{}, d *Decoder) {
 		return
 	}
 	hasLen := containerLenS > 0
-	for j := 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j >= len(v) {
 			slh.arrayCannotExpand(hasLen, len(v), j, containerLenS)
 			return
@@ -3118,7 +3118,7 @@ func (fastpathT) DecSliceStringY(v []string, d *Decoder) (v2 []string, changed b
 		}
 	}
 	var j int
-	for j = 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j = 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j == 0 && len(v) == 0 { // means hasLen == false
 			xlen = decInferLen(containerLenS, d.h.MaxInitLen, 16)
 			v = make([]string, uint(xlen))
@@ -3151,7 +3151,7 @@ func (fastpathT) DecSliceStringN(v []string, d *Decoder) {
 		return
 	}
 	hasLen := containerLenS > 0
-	for j := 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j >= len(v) {
 			slh.arrayCannotExpand(hasLen, len(v), j, containerLenS)
 			return
@@ -3217,7 +3217,7 @@ func (fastpathT) DecSliceBytesY(v [][]byte, d *Decoder) (v2 [][]byte, changed bo
 		}
 	}
 	var j int
-	for j = 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j = 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j == 0 && len(v) == 0 { // means hasLen == false
 			xlen = decInferLen(containerLenS, d.h.MaxInitLen, 24)
 			v = make([][]byte, uint(xlen))
@@ -3250,7 +3250,7 @@ func (fastpathT) DecSliceBytesN(v [][]byte, d *Decoder) {
 		return
 	}
 	hasLen := containerLenS > 0
-	for j := 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j >= len(v) {
 			slh.arrayCannotExpand(hasLen, len(v), j, containerLenS)
 			return
@@ -3316,7 +3316,7 @@ func (fastpathT) DecSliceFloat32Y(v []float32, d *Decoder) (v2 []float32, change
 		}
 	}
 	var j int
-	for j = 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j = 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j == 0 && len(v) == 0 { // means hasLen == false
 			xlen = decInferLen(containerLenS, d.h.MaxInitLen, 4)
 			v = make([]float32, uint(xlen))
@@ -3349,7 +3349,7 @@ func (fastpathT) DecSliceFloat32N(v []float32, d *Decoder) {
 		return
 	}
 	hasLen := containerLenS > 0
-	for j := 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j >= len(v) {
 			slh.arrayCannotExpand(hasLen, len(v), j, containerLenS)
 			return
@@ -3415,7 +3415,7 @@ func (fastpathT) DecSliceFloat64Y(v []float64, d *Decoder) (v2 []float64, change
 		}
 	}
 	var j int
-	for j = 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j = 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j == 0 && len(v) == 0 { // means hasLen == false
 			xlen = decInferLen(containerLenS, d.h.MaxInitLen, 8)
 			v = make([]float64, uint(xlen))
@@ -3448,7 +3448,7 @@ func (fastpathT) DecSliceFloat64N(v []float64, d *Decoder) {
 		return
 	}
 	hasLen := containerLenS > 0
-	for j := 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j >= len(v) {
 			slh.arrayCannotExpand(hasLen, len(v), j, containerLenS)
 			return
@@ -3522,7 +3522,7 @@ func (fastpathT) DecSliceUint8Y(v []uint8, d *Decoder) (v2 []uint8, changed bool
 		}
 	}
 	var j int
-	for j = 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j = 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j == 0 && len(v) == 0 { // means hasLen == false
 			xlen = decInferLen(containerLenS, d.h.MaxInitLen, 1)
 			v = make([]uint8, uint(xlen))
@@ -3565,7 +3565,7 @@ func (fastpathT) DecSliceUint8N(v []uint8, d *Decoder) {
 		return
 	}
 	hasLen := containerLenS > 0
-	for j := 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j >= len(v) {
 			slh.arrayCannotExpand(hasLen, len(v), j, containerLenS)
 			return
@@ -3631,7 +3631,7 @@ func (fastpathT) DecSliceUint64Y(v []uint64, d *Decoder) (v2 []uint64, changed b
 		}
 	}
 	var j int
-	for j = 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j = 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j == 0 && len(v) == 0 { // means hasLen == false
 			xlen = decInferLen(containerLenS, d.h.MaxInitLen, 8)
 			v = make([]uint64, uint(xlen))
@@ -3664,7 +3664,7 @@ func (fastpathT) DecSliceUint64N(v []uint64, d *Decoder) {
 		return
 	}
 	hasLen := containerLenS > 0
-	for j := 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j >= len(v) {
 			slh.arrayCannotExpand(hasLen, len(v), j, containerLenS)
 			return
@@ -3730,7 +3730,7 @@ func (fastpathT) DecSliceIntY(v []int, d *Decoder) (v2 []int, changed bool) {
 		}
 	}
 	var j int
-	for j = 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j = 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j == 0 && len(v) == 0 { // means hasLen == false
 			xlen = decInferLen(containerLenS, d.h.MaxInitLen, 8)
 			v = make([]int, uint(xlen))
@@ -3763,7 +3763,7 @@ func (fastpathT) DecSliceIntN(v []int, d *Decoder) {
 		return
 	}
 	hasLen := containerLenS > 0
-	for j := 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j >= len(v) {
 			slh.arrayCannotExpand(hasLen, len(v), j, containerLenS)
 			return
@@ -3829,7 +3829,7 @@ func (fastpathT) DecSliceInt32Y(v []int32, d *Decoder) (v2 []int32, changed bool
 		}
 	}
 	var j int
-	for j = 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j = 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j == 0 && len(v) == 0 { // means hasLen == false
 			xlen = decInferLen(containerLenS, d.h.MaxInitLen, 4)
 			v = make([]int32, uint(xlen))
@@ -3862,7 +3862,7 @@ func (fastpathT) DecSliceInt32N(v []int32, d *Decoder) {
 		return
 	}
 	hasLen := containerLenS > 0
-	for j := 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j >= len(v) {
 			slh.arrayCannotExpand(hasLen, len(v), j, containerLenS)
 			return
@@ -3928,7 +3928,7 @@ func (fastpathT) DecSliceInt64Y(v []int64, d *Decoder) (v2 []int64, changed bool
 		}
 	}
 	var j int
-	for j = 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j = 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j == 0 && len(v) == 0 { // means hasLen == false
 			xlen = decInferLen(containerLenS, d.h.MaxInitLen, 8)
 			v = make([]int64, uint(xlen))
@@ -3961,7 +3961,7 @@ func (fastpathT) DecSliceInt64N(v []int64, d *Decoder) {
 		return
 	}
 	hasLen := containerLenS > 0
-	for j := 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j >= len(v) {
 			slh.arrayCannotExpand(hasLen, len(v), j, containerLenS)
 			return
@@ -4027,7 +4027,7 @@ func (fastpathT) DecSliceBoolY(v []bool, d *Decoder) (v2 []bool, changed bool) {
 		}
 	}
 	var j int
-	for j = 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j = 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j == 0 && len(v) == 0 { // means hasLen == false
 			xlen = decInferLen(containerLenS, d.h.MaxInitLen, 1)
 			v = make([]bool, uint(xlen))
@@ -4060,7 +4060,7 @@ func (fastpathT) DecSliceBoolN(v []bool, d *Decoder) {
 		return
 	}
 	hasLen := containerLenS > 0
-	for j := 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j >= len(v) {
 			slh.arrayCannotExpand(hasLen, len(v), j, containerLenS)
 			return
@@ -4108,7 +4108,7 @@ func (fastpathT) DecMapStringIntfL(v map[string]interface{}, containerLen int, d
 	var mk string
 	var mv interface{}
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.stringZC(d.d.DecodeStringAsBytes())
 		d.mapElemValue()
@@ -4158,7 +4158,7 @@ func (fastpathT) DecMapStringStringL(v map[string]string, containerLen int, d *D
 	var mk string
 	var mv string
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.stringZC(d.d.DecodeStringAsBytes())
 		d.mapElemValue()
@@ -4204,7 +4204,7 @@ func (fastpathT) DecMapStringBytesL(v map[string][]byte, containerLen int, d *De
 	var mk string
 	var mv []byte
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.stringZC(d.d.DecodeStringAsBytes())
 		d.mapElemValue()
@@ -4254,7 +4254,7 @@ func (fastpathT) DecMapStringUint8L(v map[string]uint8, containerLen int, d *Dec
 	var mk string
 	var mv uint8
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.stringZC(d.d.DecodeStringAsBytes())
 		d.mapElemValue()
@@ -4299,7 +4299,7 @@ func (fastpathT) DecMapStringUint64L(v map[string]uint64, containerLen int, d *D
 	var mk string
 	var mv uint64
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.stringZC(d.d.DecodeStringAsBytes())
 		d.mapElemValue()
@@ -4344,7 +4344,7 @@ func (fastpathT) DecMapStringIntL(v map[string]int, containerLen int, d *Decoder
 	var mk string
 	var mv int
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.stringZC(d.d.DecodeStringAsBytes())
 		d.mapElemValue()
@@ -4389,7 +4389,7 @@ func (fastpathT) DecMapStringInt32L(v map[string]int32, containerLen int, d *Dec
 	var mk string
 	var mv int32
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.stringZC(d.d.DecodeStringAsBytes())
 		d.mapElemValue()
@@ -4434,7 +4434,7 @@ func (fastpathT) DecMapStringFloat64L(v map[string]float64, containerLen int, d 
 	var mk string
 	var mv float64
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.stringZC(d.d.DecodeStringAsBytes())
 		d.mapElemValue()
@@ -4479,7 +4479,7 @@ func (fastpathT) DecMapStringBoolL(v map[string]bool, containerLen int, d *Decod
 	var mk string
 	var mv bool
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.stringZC(d.d.DecodeStringAsBytes())
 		d.mapElemValue()
@@ -4525,7 +4525,7 @@ func (fastpathT) DecMapUint8IntfL(v map[uint8]interface{}, containerLen int, d *
 	var mk uint8
 	var mv interface{}
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = uint8(chkOvf.UintV(d.d.DecodeUint64(), 8))
 		d.mapElemValue()
@@ -4575,7 +4575,7 @@ func (fastpathT) DecMapUint8StringL(v map[uint8]string, containerLen int, d *Dec
 	var mk uint8
 	var mv string
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = uint8(chkOvf.UintV(d.d.DecodeUint64(), 8))
 		d.mapElemValue()
@@ -4621,7 +4621,7 @@ func (fastpathT) DecMapUint8BytesL(v map[uint8][]byte, containerLen int, d *Deco
 	var mk uint8
 	var mv []byte
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = uint8(chkOvf.UintV(d.d.DecodeUint64(), 8))
 		d.mapElemValue()
@@ -4671,7 +4671,7 @@ func (fastpathT) DecMapUint8Uint8L(v map[uint8]uint8, containerLen int, d *Decod
 	var mk uint8
 	var mv uint8
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = uint8(chkOvf.UintV(d.d.DecodeUint64(), 8))
 		d.mapElemValue()
@@ -4716,7 +4716,7 @@ func (fastpathT) DecMapUint8Uint64L(v map[uint8]uint64, containerLen int, d *Dec
 	var mk uint8
 	var mv uint64
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = uint8(chkOvf.UintV(d.d.DecodeUint64(), 8))
 		d.mapElemValue()
@@ -4761,7 +4761,7 @@ func (fastpathT) DecMapUint8IntL(v map[uint8]int, containerLen int, d *Decoder) 
 	var mk uint8
 	var mv int
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = uint8(chkOvf.UintV(d.d.DecodeUint64(), 8))
 		d.mapElemValue()
@@ -4806,7 +4806,7 @@ func (fastpathT) DecMapUint8Int32L(v map[uint8]int32, containerLen int, d *Decod
 	var mk uint8
 	var mv int32
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = uint8(chkOvf.UintV(d.d.DecodeUint64(), 8))
 		d.mapElemValue()
@@ -4851,7 +4851,7 @@ func (fastpathT) DecMapUint8Float64L(v map[uint8]float64, containerLen int, d *D
 	var mk uint8
 	var mv float64
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = uint8(chkOvf.UintV(d.d.DecodeUint64(), 8))
 		d.mapElemValue()
@@ -4896,7 +4896,7 @@ func (fastpathT) DecMapUint8BoolL(v map[uint8]bool, containerLen int, d *Decoder
 	var mk uint8
 	var mv bool
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = uint8(chkOvf.UintV(d.d.DecodeUint64(), 8))
 		d.mapElemValue()
@@ -4942,7 +4942,7 @@ func (fastpathT) DecMapUint64IntfL(v map[uint64]interface{}, containerLen int, d
 	var mk uint64
 	var mv interface{}
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.d.DecodeUint64()
 		d.mapElemValue()
@@ -4992,7 +4992,7 @@ func (fastpathT) DecMapUint64StringL(v map[uint64]string, containerLen int, d *D
 	var mk uint64
 	var mv string
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.d.DecodeUint64()
 		d.mapElemValue()
@@ -5038,7 +5038,7 @@ func (fastpathT) DecMapUint64BytesL(v map[uint64][]byte, containerLen int, d *De
 	var mk uint64
 	var mv []byte
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.d.DecodeUint64()
 		d.mapElemValue()
@@ -5088,7 +5088,7 @@ func (fastpathT) DecMapUint64Uint8L(v map[uint64]uint8, containerLen int, d *Dec
 	var mk uint64
 	var mv uint8
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.d.DecodeUint64()
 		d.mapElemValue()
@@ -5133,7 +5133,7 @@ func (fastpathT) DecMapUint64Uint64L(v map[uint64]uint64, containerLen int, d *D
 	var mk uint64
 	var mv uint64
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.d.DecodeUint64()
 		d.mapElemValue()
@@ -5178,7 +5178,7 @@ func (fastpathT) DecMapUint64IntL(v map[uint64]int, containerLen int, d *Decoder
 	var mk uint64
 	var mv int
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.d.DecodeUint64()
 		d.mapElemValue()
@@ -5223,7 +5223,7 @@ func (fastpathT) DecMapUint64Int32L(v map[uint64]int32, containerLen int, d *Dec
 	var mk uint64
 	var mv int32
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.d.DecodeUint64()
 		d.mapElemValue()
@@ -5268,7 +5268,7 @@ func (fastpathT) DecMapUint64Float64L(v map[uint64]float64, containerLen int, d 
 	var mk uint64
 	var mv float64
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.d.DecodeUint64()
 		d.mapElemValue()
@@ -5313,7 +5313,7 @@ func (fastpathT) DecMapUint64BoolL(v map[uint64]bool, containerLen int, d *Decod
 	var mk uint64
 	var mv bool
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = d.d.DecodeUint64()
 		d.mapElemValue()
@@ -5359,7 +5359,7 @@ func (fastpathT) DecMapIntIntfL(v map[int]interface{}, containerLen int, d *Deco
 	var mk int
 	var mv interface{}
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int(chkOvf.IntV(d.d.DecodeInt64(), intBitsize))
 		d.mapElemValue()
@@ -5409,7 +5409,7 @@ func (fastpathT) DecMapIntStringL(v map[int]string, containerLen int, d *Decoder
 	var mk int
 	var mv string
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int(chkOvf.IntV(d.d.DecodeInt64(), intBitsize))
 		d.mapElemValue()
@@ -5455,7 +5455,7 @@ func (fastpathT) DecMapIntBytesL(v map[int][]byte, containerLen int, d *Decoder)
 	var mk int
 	var mv []byte
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int(chkOvf.IntV(d.d.DecodeInt64(), intBitsize))
 		d.mapElemValue()
@@ -5505,7 +5505,7 @@ func (fastpathT) DecMapIntUint8L(v map[int]uint8, containerLen int, d *Decoder) 
 	var mk int
 	var mv uint8
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int(chkOvf.IntV(d.d.DecodeInt64(), intBitsize))
 		d.mapElemValue()
@@ -5550,7 +5550,7 @@ func (fastpathT) DecMapIntUint64L(v map[int]uint64, containerLen int, d *Decoder
 	var mk int
 	var mv uint64
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int(chkOvf.IntV(d.d.DecodeInt64(), intBitsize))
 		d.mapElemValue()
@@ -5595,7 +5595,7 @@ func (fastpathT) DecMapIntIntL(v map[int]int, containerLen int, d *Decoder) {
 	var mk int
 	var mv int
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int(chkOvf.IntV(d.d.DecodeInt64(), intBitsize))
 		d.mapElemValue()
@@ -5640,7 +5640,7 @@ func (fastpathT) DecMapIntInt32L(v map[int]int32, containerLen int, d *Decoder) 
 	var mk int
 	var mv int32
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int(chkOvf.IntV(d.d.DecodeInt64(), intBitsize))
 		d.mapElemValue()
@@ -5685,7 +5685,7 @@ func (fastpathT) DecMapIntFloat64L(v map[int]float64, containerLen int, d *Decod
 	var mk int
 	var mv float64
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int(chkOvf.IntV(d.d.DecodeInt64(), intBitsize))
 		d.mapElemValue()
@@ -5730,7 +5730,7 @@ func (fastpathT) DecMapIntBoolL(v map[int]bool, containerLen int, d *Decoder) {
 	var mk int
 	var mv bool
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int(chkOvf.IntV(d.d.DecodeInt64(), intBitsize))
 		d.mapElemValue()
@@ -5776,7 +5776,7 @@ func (fastpathT) DecMapInt32IntfL(v map[int32]interface{}, containerLen int, d *
 	var mk int32
 	var mv interface{}
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int32(chkOvf.IntV(d.d.DecodeInt64(), 32))
 		d.mapElemValue()
@@ -5826,7 +5826,7 @@ func (fastpathT) DecMapInt32StringL(v map[int32]string, containerLen int, d *Dec
 	var mk int32
 	var mv string
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int32(chkOvf.IntV(d.d.DecodeInt64(), 32))
 		d.mapElemValue()
@@ -5872,7 +5872,7 @@ func (fastpathT) DecMapInt32BytesL(v map[int32][]byte, containerLen int, d *Deco
 	var mk int32
 	var mv []byte
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int32(chkOvf.IntV(d.d.DecodeInt64(), 32))
 		d.mapElemValue()
@@ -5922,7 +5922,7 @@ func (fastpathT) DecMapInt32Uint8L(v map[int32]uint8, containerLen int, d *Decod
 	var mk int32
 	var mv uint8
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int32(chkOvf.IntV(d.d.DecodeInt64(), 32))
 		d.mapElemValue()
@@ -5967,7 +5967,7 @@ func (fastpathT) DecMapInt32Uint64L(v map[int32]uint64, containerLen int, d *Dec
 	var mk int32
 	var mv uint64
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int32(chkOvf.IntV(d.d.DecodeInt64(), 32))
 		d.mapElemValue()
@@ -6012,7 +6012,7 @@ func (fastpathT) DecMapInt32IntL(v map[int32]int, containerLen int, d *Decoder) 
 	var mk int32
 	var mv int
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int32(chkOvf.IntV(d.d.DecodeInt64(), 32))
 		d.mapElemValue()
@@ -6057,7 +6057,7 @@ func (fastpathT) DecMapInt32Int32L(v map[int32]int32, containerLen int, d *Decod
 	var mk int32
 	var mv int32
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int32(chkOvf.IntV(d.d.DecodeInt64(), 32))
 		d.mapElemValue()
@@ -6102,7 +6102,7 @@ func (fastpathT) DecMapInt32Float64L(v map[int32]float64, containerLen int, d *D
 	var mk int32
 	var mv float64
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int32(chkOvf.IntV(d.d.DecodeInt64(), 32))
 		d.mapElemValue()
@@ -6147,7 +6147,7 @@ func (fastpathT) DecMapInt32BoolL(v map[int32]bool, containerLen int, d *Decoder
 	var mk int32
 	var mv bool
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+	for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		mk = int32(chkOvf.IntV(d.d.DecodeInt64(), 32))
 		d.mapElemValue()

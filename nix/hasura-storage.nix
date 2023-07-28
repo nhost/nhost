@@ -72,11 +72,11 @@ let
         mkdir -p $out/bin
         mv hasura-storage-bin $out/bin/hasura-storage
 
-        # $out/bin/hasura-storage --version 
+        # $out/bin/hasura-storage --version
       '';
 
       strictDeps = true;
-      disallowedReferences = go;
+      disallowedReferences = [ go ];
 
       meta = {
         description = "Hasura Storage is awesome";

@@ -24,6 +24,7 @@ import (
 	"net/rpc"
 	"reflect"
 	"time"
+	"unicode/utf8"
 )
 
 const (
@@ -872,7 +873,11 @@ func (d *msgpackDecDriver) DecodeBytes(bs []byte) (bsOut []byte) {
 }
 
 func (d *msgpackDecDriver) DecodeStringAsBytes() (s []byte) {
-	return d.DecodeBytes(nil)
+	s = d.DecodeBytes(nil)
+	if d.h.ValidateUnicode && !utf8.Valid(s) {
+		d.d.errorf("DecodeStringAsBytes: invalid UTF-8: %s", s)
+	}
+	return
 }
 
 func (d *msgpackDecDriver) descBd() string {
@@ -1071,7 +1076,7 @@ func (d *msgpackDecDriver) decodeExtV(verifyTag bool, tag byte) (xbs []byte, xta
 
 //--------------------------------------------------
 
-//MsgpackHandle is a Handle for the Msgpack Schema-Free Encoding Format.
+// MsgpackHandle is a Handle for the Msgpack Schema-Free Encoding Format.
 type MsgpackHandle struct {
 	binaryEncodingType
 	BasicHandle

@@ -409,7 +409,7 @@ func (fastpathT) {{ .MethodNamePfx "Dec" false }}Y(v []{{ .Elem }}, d *Decoder) 
 		}
 	}
 	var j int
-	for j = 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+    for j = 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		if j == 0 && len(v) == 0 { // means hasLen == false
 			xlen = decInferLen(containerLenS, d.h.MaxInitLen, {{ .Size }}) {{/* xlen = decDefSliceCap */}}
 			v = make([]{{ .Elem }}, uint(xlen))
@@ -455,7 +455,7 @@ func (fastpathT) {{ .MethodNamePfx "Dec" false }}N(v []{{ .Elem }}, d *Decoder) 
 		return
 	}
 	hasLen := containerLenS > 0
-	for j := 0; (hasLen && j < containerLenS) || !(hasLen || d.checkBreak()); j++ {
+    for j := 0; d.containerNext(j, containerLenS, hasLen); j++ {
 		{{/* // if indefinite, etc, then expand the slice if necessary */ -}}
 		if j >= len(v) {
 			slh.arrayCannotExpand(hasLen, len(v), j, containerLenS)
@@ -531,7 +531,7 @@ func (fastpathT) {{ .MethodNamePfx "Dec" false }}L(v map[{{ .MapKey }}]{{ .Elem 
     var mk {{ .MapKey }}
 	var mv {{ .Elem }}
 	hasLen := containerLen > 0
-	for j := 0; (hasLen && j < containerLen) || !(hasLen || d.checkBreak()); j++ {
+    for j := 0; d.containerNext(j, containerLen, hasLen); j++ {
 		d.mapElemKey()
 		{{ if eq .MapKey "interface{}" }}mk = nil 
 		d.decode(&mk)

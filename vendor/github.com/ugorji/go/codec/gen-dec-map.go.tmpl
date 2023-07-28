@@ -19,7 +19,7 @@ if z.DecBasicHandle().MapValueReset {
 	{{end}} }
 if {{var "l"}} != 0 {
 	{{var "hl"}} := {{var "l"}} > 0 
-	for {{var "j"}} := 0; ({{var "hl"}} && {{var "j"}} < {{var "l"}}) || !({{var "hl"}} || z.DecCheckBreak()); {{var "j"}}++ {
+	for {{var "j"}} := 0; z.DecContainerNext({{var "j"}}, {{var "l"}}, {{var "hl"}}); {{var "j"}}++ {
 	z.DecReadMapElemKey()
 	{{ if eq .KTyp "string" -}}
 		{{ decLineVarK $mk -}}{{- /* decLineVarKStrZC $mk */ -}}

@@ -130,7 +130,7 @@ func TestInitializeFile(t *testing.T) {
 			headers:            getAuthHeader(),
 			expectedStatusCode: 400,
 			expectedPublicResponse: &controller.ErrorResponse{
-				Message: "Message: invalid input syntax for type uuid: \"asdsad\", Locations: []",
+				Message: "Message: invalid input syntax for type uuid: \"asdsad\", Locations: [], Extensions: map[code:data-exception path:$.selectionSet.insertFiles.args.objects]",
 			},
 		},
 		{
@@ -208,7 +208,7 @@ func TestPopulateMetadata(t *testing.T) {
 			headers:            getAuthHeader(),
 			expectedStatusCode: 400,
 			expectedPublicResponse: &controller.ErrorResponse{
-				Message: `Message: invalid input syntax for type uuid: "asdasdasd", Locations: []`,
+				Message: `Message: invalid input syntax for type uuid: "asdasdasd", Locations: [], Extensions: map[code:data-exception path:$]`,
 			},
 			expected: controller.FileMetadata{},
 		},
@@ -306,7 +306,7 @@ func TestGetFileByID(t *testing.T) {
 			headers:            getAuthHeader(),
 			expectedStatusCode: 400,
 			expectedPublicResponse: &controller.ErrorResponse{
-				Message: `Message: invalid input syntax for type uuid: "asdasdasd", Locations: []`,
+				Message: `Message: invalid input syntax for type uuid: "asdasdasd", Locations: [], Extensions: map[code:data-exception path:$]`,
 			},
 			expected: controller.FileMetadata{},
 		},
@@ -406,7 +406,7 @@ func TestSetIsUploaded(t *testing.T) {
 			headers:            getAuthHeader(),
 			expectedStatusCode: http.StatusBadRequest,
 			expectedPublicResponse: &controller.ErrorResponse{
-				Message: "Message: invalid input syntax for type uuid: \"\", Locations: []",
+				Message: "Message: invalid input syntax for type uuid: \"\", Locations: [], Extensions: map[code:data-exception path:$]",
 			},
 		},
 	}
@@ -483,7 +483,7 @@ func TestDeleteFileByID(t *testing.T) {
 			headers:            getAuthHeader(),
 			expectedStatusCode: http.StatusBadRequest,
 			expectedPublicResponse: &controller.ErrorResponse{
-				Message: "Message: invalid input syntax for type uuid: \"\", Locations: []",
+				Message: "Message: invalid input syntax for type uuid: \"\", Locations: [], Extensions: map[code:data-exception path:$]",
 			},
 		},
 	}

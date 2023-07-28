@@ -198,29 +198,31 @@ type goRpc struct{}
 // This ensures we use an adequate buffer during reading and writing.
 // If not configured, we will internally initialize and use a buffer during reads and writes.
 // This can be turned off via the RPCNoBuffer option on the Handle.
-//   var handle codec.JsonHandle
-//   handle.RPCNoBuffer = true // turns off attempt by rpc module to initialize a buffer
+//
+//	var handle codec.JsonHandle
+//	handle.RPCNoBuffer = true // turns off attempt by rpc module to initialize a buffer
 //
 // Example 1: one way of configuring buffering explicitly:
-//   var handle codec.JsonHandle // codec handle
-//   handle.ReaderBufferSize = 1024
-//   handle.WriterBufferSize = 1024
-//   var conn io.ReadWriteCloser // connection got from a socket
-//   var serverCodec = GoRpc.ServerCodec(conn, handle)
-//   var clientCodec = GoRpc.ClientCodec(conn, handle)
+//
+//	var handle codec.JsonHandle // codec handle
+//	handle.ReaderBufferSize = 1024
+//	handle.WriterBufferSize = 1024
+//	var conn io.ReadWriteCloser // connection got from a socket
+//	var serverCodec = GoRpc.ServerCodec(conn, handle)
+//	var clientCodec = GoRpc.ClientCodec(conn, handle)
 //
 // Example 2: you can also explicitly create a buffered connection yourself,
 // and not worry about configuring the buffer sizes in the Handle.
-//   var handle codec.Handle     // codec handle
-//   var conn io.ReadWriteCloser // connection got from a socket
-//   var bufconn = struct {      // bufconn here is a buffered io.ReadWriteCloser
-//       io.Closer
-//       *bufio.Reader
-//       *bufio.Writer
-//   }{conn, bufio.NewReader(conn), bufio.NewWriter(conn)}
-//   var serverCodec = GoRpc.ServerCodec(bufconn, handle)
-//   var clientCodec = GoRpc.ClientCodec(bufconn, handle)
 //
+//	var handle codec.Handle     // codec handle
+//	var conn io.ReadWriteCloser // connection got from a socket
+//	var bufconn = struct {      // bufconn here is a buffered io.ReadWriteCloser
+//	    io.Closer
+//	    *bufio.Reader
+//	    *bufio.Writer
+//	}{conn, bufio.NewReader(conn), bufio.NewWriter(conn)}
+//	var serverCodec = GoRpc.ServerCodec(bufconn, handle)
+//	var clientCodec = GoRpc.ClientCodec(bufconn, handle)
 var GoRpc goRpc
 
 func (x goRpc) ServerCodec(conn io.ReadWriteCloser, h Handle) rpc.ServerCodec {

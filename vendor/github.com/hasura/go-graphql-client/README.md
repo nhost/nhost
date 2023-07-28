@@ -11,8 +11,6 @@ Package `graphql` provides a GraphQL client implementation.
 
 For more information, see package [`github.com/shurcooL/githubv4`](https://github.com/shurcooL/githubv4), which is a specialized version targeting GitHub GraphQL API v4. That package is driving the feature development.
 
-**Status:** In active early research and development. The API will change when opportunities for improvement are discovered; it is not yet frozen.
-
 **Note**: Before v0.8.0, `QueryRaw`, `MutateRaw` and `Subscribe` methods return `*json.RawMessage`. This output type is redundant to be decoded. From v0.8.0, the output type is changed to `[]byte`.
 
 - [go-graphql-client](#go-graphql-client)
@@ -33,6 +31,8 @@ For more information, see package [`github.com/shurcooL/githubv4`](https://githu
 			- [Stop the subscription](#stop-the-subscription)
 			- [Authentication](#authentication-1)
 			- [Options](#options)
+			- [Subscription Protocols](#subscription-protocols)
+			- [Handle connection error](#handle-connection-error)
 			- [Events](#events)
 			- [Custom HTTP Client](#custom-http-client)
 			- [Custom WebSocket client](#custom-websocket-client)
@@ -82,7 +82,7 @@ func main() {
 
 ### Simple Query
 
-To make a GraphQL query, you need to define a corresponding Go type.
+To make a GraphQL query, you need to define a corresponding Go type. Variable names must be upper case, see [here](https://github.com/hasura/go-graphql-client/blob/master/README.md#specify-graphql-type-name)
 
 For example, to make the following GraphQL query:
 
@@ -185,6 +185,33 @@ if err != nil {
 	// Handle error.
 }
 ```
+
+Variables get encoded as normal json. So if you supply a struct for a variable and want to rename fields, you can do this like that:
+```Go
+type Dimensions struct {
+	Width int `json:"ship_width"`,
+	Height int `json:"ship_height"`
+}
+
+var myDimensions = Dimensions{
+	Width : 10,
+	Height : 6,
+}
+
+var mutation struct {
+  CreateDimensions struct {
+     ID string `graphql:"id"`
+  } `graphql:"create_dimensions(ship_dimensions: $ship_dimensions)"`
+} 
+
+variables := map[string]interface{}{
+	"ship_dimensions":  myDimensions,
+}
+
+err := client.Mutate(context.TODO(), &mutation, variables)
+
+```
+which will set `ship_dimensions` to an object with the properties `ship_width` and `ship_height`.
 
 ### Custom scalar tag
 
@@ -488,7 +515,8 @@ subscriptionId, err := client.Subscribe(&query, nil, func(dataValue []byte, errV
 		return nil
 	}
 	data := query{}
-	err := json.Unmarshal(dataValue, &data)
+	// use the github.com/hasura/go-graphql-client/pkg/jsonutil package
+	err := jsonutil.UnmarshalGraphQL(dataValue, &data)
 
 	fmt.Println(query.Me.Name)
 
@@ -530,9 +558,17 @@ client := graphql.NewSubscriptionClient("wss://example.com/graphql").
 		"headers": map[string]string{
 				"authentication": "...",
 		},
+	}).
+	// or lazy parameters with function 
+  WithConnectionParamsFn(func () map[string]interface{} {
+		return map[string]interface{} {
+			"headers": map[string]string{
+  				"authentication": "...",
+  		},
+		}
 	})
-
 ```
+
 
 #### Options
 
@@ -547,8 +583,40 @@ client.
 	// max size of response message
 	WithReadLimit(10*1024*1024).
 	// these operation event logs won't be printed
-	WithoutLogTypes(graphql.GQL_DATA, graphql.GQL_CONNECTION_KEEP_ALIVE)
+	WithoutLogTypes(graphql.GQLData, graphql.GQLConnectionKeepAlive).
+	// the client should exit when all subscriptions were closed, default true
+	WithExitWhenNoSubscription(false).
+	// WithRetryStatusCodes allow retry the subscription connection when receiving one of these codes
+	// the input parameter can be number string or range, e.g 4000-5000 
+	WithRetryStatusCodes("4000", "4000-4050")
+```
 
+#### Subscription Protocols
+
+The subscription client supports 2 protocols:
+- [subscriptions-transport-ws](https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md) (default)
+- [graphql-ws](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md)
+
+The protocol can be switchable by the `WithProtocol` function.
+
+```Go
+client.WithProtocol(graphql.GraphQLWS)
+```
+
+#### Handle connection error
+
+GraphQL servers can define custom WebSocket error codes in the 3000-4999 range. For example, in the `graphql-ws` protocol, the server sends the invalid message error with status [4400](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md#invalid-message). In this case, the subscription client should let the user handle the error through the `OnError` event.
+
+```go
+client := graphql.NewSubscriptionClient(serverEndpoint).
+  OnError(func(sc *graphql.SubscriptionClient, err error) error {
+  	if strings.Contains(err.Error(), "invalid x-hasura-admin-secret/x-hasura-access-key") {
+			// exit the subscription client due to unauthorized error
+  		return err
+  	}
+		// otherwise ignore the error and the client continues to run
+  	return nil
+  })
 ```
 
 #### Events
@@ -560,10 +628,16 @@ client.OnConnected(fn func())
 // OnDisconnected event is triggered when the websocket client was disconnected
 client.OnDisconnected(fn func())
 
-// OnConnected event is triggered when there is any connection error. This is bottom exception handler level
+// OnError event is triggered when there is any connection error. This is bottom exception handler level
 // If this function is empty, or returns nil, the error is ignored
 // If returns error, the websocket connection will be terminated
 client.OnError(onError func(sc *SubscriptionClient, err error) error)
+
+// OnConnectionAlive event is triggered when the websocket receive a connection alive message (differs per protocol)
+client.OnConnectionAlive(fn func())
+
+// OnSubscriptionComplete event is triggered when the subscription receives a terminated message from the server
+client.OnSubscriptionComplete(fn func(sub Subscription))
 ```
 
 #### Custom HTTP Client

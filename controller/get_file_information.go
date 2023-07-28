@@ -38,10 +38,10 @@ func (ctrl *Controller) getFileMetadata(
 }
 
 type getFileInformationHeaders struct {
-	IfMatch           []string `header:"if-match"`
-	IfNoneMatch       []string `header:"if-none-match"`
-	IfModifiedSince   string   `header:"if-modified-since"`
-	IfUnmodifiedSince string   `header:"if-unmodified-since"`
+	IfMatch           []string `header:"If-Match"`
+	IfNoneMatch       []string `header:"If-None-Match"`
+	IfModifiedSince   string   `header:"If-Modified-Since"`
+	IfUnmodifiedSince string   `header:"If-Unmodified-Since"`
 }
 
 type getFileRequest struct {

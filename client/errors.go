@@ -12,9 +12,9 @@ var (
 )
 
 type APIResponseError struct {
-	StatusCode int
+	StatusCode int `json:"statusCode"`
 	*controller.ErrorResponse
-	Response interface{}
+	Response interface{} `json:"response"`
 }
 
 func (err *APIResponseError) Error() string {

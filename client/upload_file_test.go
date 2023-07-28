@@ -96,11 +96,11 @@ func TestUploadFile(t *testing.T) {
 			expectedErr: &client.APIResponseError{
 				StatusCode: http.StatusBadRequest,
 				ErrorResponse: &controller.ErrorResponse{
-					Message: `Message: Uniqueness violation. duplicate key value violates unique constraint "files_pkey", Locations: []`,
+					Message: `Message: Uniqueness violation. duplicate key value violates unique constraint "files_pkey", Locations: [], Extensions: map[code:constraint-violation path:$.selectionSet.insertFiles.args.objects]`,
 					Data:    nil,
 				},
 				Response: &controller.UploadFileResponse{
-					Error: &controller.ErrorResponse{Message: "Message: Uniqueness violation. duplicate key value violates unique constraint \"files_pkey\", Locations: []"},
+					Error: &controller.ErrorResponse{Message: "Message: Uniqueness violation. duplicate key value violates unique constraint \"files_pkey\", Locations: [], Extensions: map[code:constraint-violation path:$.selectionSet.insertFiles.args.objects]"},
 				},
 			},
 		},

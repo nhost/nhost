@@ -51,11 +51,9 @@ import (
 //      - IsNil
 
 // MARKER: Some functions here will not be hit during code coverage runs due to optimizations, e.g.
-//   - rvCopySlice:      decode calls it if rvGrowSlice didn't set the new slice into the pointer to the orig slice.
-//                       however, helper_unsafe sets it, so there's no need to call rvCopySlice later
+//   - rvCopySlice:      called by decode if rvGrowSlice did not set new slice into pointer to orig slice.
+//                       however, helper_unsafe sets it, so no need to call rvCopySlice later
 //   - rvSlice:          same as above
-//   - rvGetArray4Bytes: only called within kArray for []byte, but that is now handled
-//                       within the fast-path directly
 
 const safeMode = false
 
@@ -177,6 +175,32 @@ func (encPerType) AddressableRO(v reflect.Value) reflect.Value {
 	return rvAddressableReadonly(v)
 }
 
+// byteAt returns the byte given an index which is guaranteed
+// to be within the bounds of the slice i.e. we defensively
+// already verified that the index is less than the length of the slice.
+func byteAt(b []byte, index uint) byte {
+	// return b[index]
+	return *(*byte)(unsafe.Pointer(uintptr((*unsafeSlice)(unsafe.Pointer(&b)).Data) + uintptr(index)))
+}
+
+func byteSliceOf(b []byte, start, end uint) []byte {
+	s := (*unsafeSlice)(unsafe.Pointer(&b))
+	s.Data = unsafe.Pointer(uintptr(s.Data) + uintptr(start))
+	s.Len = int(end - start)
+	s.Cap -= int(start)
+	return b
+}
+
+// func byteSliceWithLen(b []byte, length uint) []byte {
+// 	(*unsafeSlice)(unsafe.Pointer(&b)).Len = int(length)
+// 	return b
+// }
+
+func setByteAt(b []byte, index uint, val byte) {
+	// b[index] = val
+	*(*byte)(unsafe.Pointer(uintptr((*unsafeSlice)(unsafe.Pointer(&b)).Data) + uintptr(index))) = val
+}
+
 // stringView returns a view of the []byte as a string.
 // In unsafe mode, it doesn't incur allocation and copying caused by conversion.
 // In regular safe mode, it is an allocation and copy.
@@ -199,12 +223,15 @@ func byteSliceSameData(v1 []byte, v2 []byte) bool {
 }
 
 // MARKER: okBytesN functions will copy N bytes into the top slots of the return array.
-// These functions expect that the bounds are valid, and have been checked before this is called.
+// These functions expect that the bound check already occured and are are valid.
 // copy(...) does a number of checks which are unnecessary in this situation when in bounds.
 
-func okBytes3(b []byte) (v [4]byte) {
-	*(*[3]byte)(unsafe.Pointer(&v[1])) = *((*[3]byte)(((*unsafeSlice)(unsafe.Pointer(&b))).Data))
-	return
+func okBytes2(b []byte) [2]byte {
+	return *((*[2]byte)(((*unsafeSlice)(unsafe.Pointer(&b))).Data))
+}
+
+func okBytes3(b []byte) [3]byte {
+	return *((*[3]byte)(((*unsafeSlice)(unsafe.Pointer(&b))).Data))
 }
 
 func okBytes4(b []byte) [4]byte {
@@ -446,7 +473,7 @@ func isEmptyValueFallbackRecur(urv *unsafeReflectValue, v reflect.Value, tinfos 
 		}
 		ti := tinfos.find(uintptr(urv.typ))
 		if ti == nil {
-			ti = tinfos.load(rvType(v))
+			ti = tinfos.load(v.Type())
 		}
 		return unsafeCmpZero(urv.ptr, int(ti.size))
 	case reflect.Interface, reflect.Ptr:
@@ -463,7 +490,11 @@ func isEmptyValueFallbackRecur(urv *unsafeReflectValue, v reflect.Value, tinfos 
 	case reflect.Map:
 		return urv.ptr == nil || len_map(rvRefPtr(urv)) == 0
 	case reflect.Array:
-		return v.Len() == 0
+		return v.Len() == 0 ||
+			urv.ptr == nil ||
+			urv.typ == nil ||
+			rtsize2(urv.typ) == 0 ||
+			unsafeCmpZero(urv.ptr, int(rtsize2(urv.typ)))
 	}
 	return false
 }
@@ -858,7 +889,7 @@ func rvGetArray4Slice(rv reflect.Value) (v reflect.Value) {
 	//
 	// Consequently, we use rvLenSlice, not rvCapSlice.
 
-	t := reflectArrayOf(rvLenSlice(rv), rvType(rv).Elem())
+	t := reflectArrayOf(rvLenSlice(rv), rv.Type().Elem())
 	// v = rvZeroAddrK(t, reflect.Array)
 
 	uv := (*unsafeReflectValue)(unsafe.Pointer(&v))
@@ -995,6 +1026,32 @@ func rvLenMap(rv reflect.Value) int {
 
 	return len_map(rvRefPtr((*unsafeReflectValue)(unsafe.Pointer(&rv))))
 }
+
+// copy is an intrinsic, which may use asm if length is small,
+// or make a runtime call to runtime.memmove if length is large.
+// Performance suffers when you always call runtime.memmove function.
+//
+// Consequently, there's no value in a copybytes call - just call copy() directly
+
+// func copybytes(to, from []byte) (n int) {
+// 	n = (*unsafeSlice)(unsafe.Pointer(&from)).Len
+// 	memmove(
+// 		(*unsafeSlice)(unsafe.Pointer(&to)).Data,
+// 		(*unsafeSlice)(unsafe.Pointer(&from)).Data,
+// 		uintptr(n),
+// 	)
+// 	return
+// }
+
+// func copybytestr(to []byte, from string) (n int) {
+// 	n = (*unsafeSlice)(unsafe.Pointer(&from)).Len
+// 	memmove(
+// 		(*unsafeSlice)(unsafe.Pointer(&to)).Data,
+// 		(*unsafeSlice)(unsafe.Pointer(&from)).Data,
+// 		uintptr(n),
+// 	)
+// 	return
+// }
 
 // Note: it is hard to find len(...) of an array type,
 // as that is a field in the arrayType representing the array, and hard to introspect.
@@ -1159,7 +1216,10 @@ func (d *Decoder) zerocopystate() bool {
 }
 
 func (d *Decoder) stringZC(v []byte) (s string) {
-	if d.zerocopystate() {
+	// MARKER: inline zerocopystate directly so genHelper forwarding function fits within inlining cost
+
+	// if d.zerocopystate() {
+	if d.decByteState == decByteStateZerocopy && d.h.ZeroCopy {
 		return stringView(v)
 	}
 	return d.string(v)
@@ -1177,22 +1237,6 @@ func (d *Decoder) mapKeyString(callFnRvk *bool, kstrbs, kstr2bs *[]byte) string 
 }
 
 // ---------- DECODER optimized ---------------
-
-func (d *Decoder) checkBreak() bool {
-	// MARKER: jsonDecDriver.CheckBreak() costs over 80, and this isn't inlined.
-	// Consequently, there's no benefit in incurring the cost of this
-	// wrapping function checkBreak.
-	//
-	// It is faster to just call the interface method directly.
-
-	// if d.js {
-	// 	return d.jsondriver().CheckBreak()
-	// }
-	// if d.cbor {
-	// 	return d.cbordriver().CheckBreak()
-	// }
-	return d.d.CheckBreak()
-}
 
 func (d *Decoder) jsondriver() *jsonDecDriver {
 	return (*jsonDecDriver)((*unsafeIntf)(unsafe.Pointer(&d.d)).ptr)
@@ -1254,6 +1298,10 @@ func unsafeNew(typ unsafe.Pointer) unsafe.Pointer {
 // reflect.{unsafe_New, unsafe_NewArray} are not supported in gollvm,
 // failing with "error: undefined reference" error.
 // however, runtime.{mallocgc, newarray} are supported, so use that instead.
+
+//go:linkname memmove runtime.memmove
+//go:noescape
+func memmove(to, from unsafe.Pointer, n uintptr)
 
 //go:linkname mallocgc runtime.mallocgc
 //go:noescape

@@ -13,9 +13,10 @@ import (
 )
 
 // keep in sync with
-//    $GOROOT/src/cmd/compile/internal/gc/reflect.go: MAXKEYSIZE, MAXELEMSIZE
-//    $GOROOT/src/runtime/map.go: maxKeySize, maxElemSize
-//    $GOROOT/src/reflect/type.go: maxKeySize, maxElemSize
+//
+//	$GOROOT/src/cmd/compile/internal/gc/reflect.go: MAXKEYSIZE, MAXELEMSIZE
+//	$GOROOT/src/runtime/map.go: maxKeySize, maxElemSize
+//	$GOROOT/src/reflect/type.go: maxKeySize, maxElemSize
 //
 // We use these to determine whether the type is stored indirectly in the map or not.
 const (
@@ -27,9 +28,10 @@ func unsafeGrowslice(typ unsafe.Pointer, old unsafeSlice, cap, incr int) (v unsa
 	return growslice(typ, old, cap+incr)
 }
 
-func rvType(rv reflect.Value) reflect.Type {
-	return rvPtrToType(((*unsafeReflectValue)(unsafe.Pointer(&rv))).typ) // rv.Type()
-}
+// func rvType(rv reflect.Value) reflect.Type {
+// 	return rvPtrToType(((*unsafeReflectValue)(unsafe.Pointer(&rv))).typ)
+// 	// return rv.Type()
+// }
 
 // mapStoresElemIndirect tells if the element type is stored indirectly in the map.
 //
@@ -130,13 +132,9 @@ func mapGet(m, k, v reflect.Value, keyFastKind mapKeyFastKind, valIsIndirect, va
 //go:linkname unsafeZeroArr runtime.zeroVal
 var unsafeZeroArr [1024]byte
 
-//go:linkname rvPtrToType reflect.toType
-//go:noescape
-func rvPtrToType(typ unsafe.Pointer) reflect.Type
-
-//go:linkname growslice runtime.growslice
-//go:noescape
-func growslice(typ unsafe.Pointer, old unsafeSlice, cap int) unsafeSlice
+// //go:linkname rvPtrToType reflect.toType
+// //go:noescape
+// func rvPtrToType(typ unsafe.Pointer) reflect.Type
 
 //go:linkname mapassign_fast32 runtime.mapassign_fast32
 //go:noescape

@@ -6,7 +6,7 @@
 
 package codec
 
-import "reflect"
+// import "reflect"
 
 // This files contains safe versions of the code where the unsafe versions are not supported
 // in either gccgo or gollvm.
@@ -14,6 +14,8 @@ import "reflect"
 // - rvType:
 //   reflect.toType is not supported in gccgo, gollvm.
 
-func rvType(rv reflect.Value) reflect.Type {
-	return rv.Type()
-}
+// func rvType(rv reflect.Value) reflect.Type {
+// 	return rv.Type()
+// }
+
+var _ = 0

@@ -7,6 +7,7 @@ import (
 	"math"
 	"reflect"
 	"time"
+	"unicode/utf8"
 )
 
 // Symbol management:
@@ -555,7 +556,10 @@ func (d *bincDecDriver) decUint() (v uint64) {
 	case 1:
 		v = uint64(bigen.Uint16(d.d.decRd.readn2()))
 	case 2:
-		v = uint64(bigen.Uint32(d.d.decRd.readn3()))
+		b3 := d.d.decRd.readn3()
+		var b [4]byte
+		copy(b[1:], b3[:])
+		v = uint64(bigen.Uint32(b))
 	case 3:
 		v = uint64(bigen.Uint32(d.d.decRd.readn4()))
 	case 4, 5, 6:
@@ -789,6 +793,11 @@ func (d *bincDecDriver) DecodeStringAsBytes() (bs2 []byte) {
 	default:
 		d.d.errorf("string/bytes - %s %x-%x/%s", msgBadDesc, d.vd, d.vs, bincdesc(d.vd, d.vs))
 	}
+
+	if d.h.ValidateUnicode && !utf8.Valid(bs2) {
+		d.d.errorf("DecodeStringAsBytes: invalid UTF-8: %s", bs2)
+	}
+
 	d.bdRead = false
 	return
 }
@@ -1090,18 +1099,18 @@ func (d *bincDecDriver) nextValueBytesBdReadR(v0 []byte) (v []byte) {
 
 //------------------------------------
 
-//BincHandle is a Handle for the Binc Schema-Free Encoding Format
-//defined at https://github.com/ugorji/binc .
+// BincHandle is a Handle for the Binc Schema-Free Encoding Format
+// defined at https://github.com/ugorji/binc .
 //
-//BincHandle currently supports all Binc features with the following EXCEPTIONS:
-//  - only integers up to 64 bits of precision are supported.
-//    big integers are unsupported.
-//  - Only IEEE 754 binary32 and binary64 floats are supported (ie Go float32 and float64 types).
-//    extended precision and decimal IEEE 754 floats are unsupported.
-//  - Only UTF-8 strings supported.
-//    Unicode_Other Binc types (UTF16, UTF32) are currently unsupported.
+// BincHandle currently supports all Binc features with the following EXCEPTIONS:
+//   - only integers up to 64 bits of precision are supported.
+//     big integers are unsupported.
+//   - Only IEEE 754 binary32 and binary64 floats are supported (ie Go float32 and float64 types).
+//     extended precision and decimal IEEE 754 floats are unsupported.
+//   - Only UTF-8 strings supported.
+//     Unicode_Other Binc types (UTF16, UTF32) are currently unsupported.
 //
-//Note that these EXCEPTIONS are temporary and full support is possible and may happen soon.
+// Note that these EXCEPTIONS are temporary and full support is possible and may happen soon.
 type BincHandle struct {
 	BasicHandle
 	binaryEncodingType
@@ -1158,50 +1167,49 @@ func (h *BincHandle) newDecDriver() decDriver {
 //
 // Format Description
 //
-//   A timestamp is composed of 3 components:
+//	A timestamp is composed of 3 components:
 //
-//   - secs: signed integer representing seconds since unix epoch
-//   - nsces: unsigned integer representing fractional seconds as a
-//     nanosecond offset within secs, in the range 0 <= nsecs < 1e9
-//   - tz: signed integer representing timezone offset in minutes east of UTC,
-//     and a dst (daylight savings time) flag
+//	- secs: signed integer representing seconds since unix epoch
+//	- nsces: unsigned integer representing fractional seconds as a
+//	  nanosecond offset within secs, in the range 0 <= nsecs < 1e9
+//	- tz: signed integer representing timezone offset in minutes east of UTC,
+//	  and a dst (daylight savings time) flag
 //
-//   When encoding a timestamp, the first byte is the descriptor, which
-//   defines which components are encoded and how many bytes are used to
-//   encode secs and nsecs components. *If secs/nsecs is 0 or tz is UTC, it
-//   is not encoded in the byte array explicitly*.
+//	When encoding a timestamp, the first byte is the descriptor, which
+//	defines which components are encoded and how many bytes are used to
+//	encode secs and nsecs components. *If secs/nsecs is 0 or tz is UTC, it
+//	is not encoded in the byte array explicitly*.
 //
-//       Descriptor 8 bits are of the form `A B C DDD EE`:
-//           A:   Is secs component encoded? 1 = true
-//           B:   Is nsecs component encoded? 1 = true
-//           C:   Is tz component encoded? 1 = true
-//           DDD: Number of extra bytes for secs (range 0-7).
-//                If A = 1, secs encoded in DDD+1 bytes.
-//                    If A = 0, secs is not encoded, and is assumed to be 0.
-//                    If A = 1, then we need at least 1 byte to encode secs.
-//                    DDD says the number of extra bytes beyond that 1.
-//                    E.g. if DDD=0, then secs is represented in 1 byte.
-//                         if DDD=2, then secs is represented in 3 bytes.
-//           EE:  Number of extra bytes for nsecs (range 0-3).
-//                If B = 1, nsecs encoded in EE+1 bytes (similar to secs/DDD above)
+//	    Descriptor 8 bits are of the form `A B C DDD EE`:
+//	        A:   Is secs component encoded? 1 = true
+//	        B:   Is nsecs component encoded? 1 = true
+//	        C:   Is tz component encoded? 1 = true
+//	        DDD: Number of extra bytes for secs (range 0-7).
+//	             If A = 1, secs encoded in DDD+1 bytes.
+//	                 If A = 0, secs is not encoded, and is assumed to be 0.
+//	                 If A = 1, then we need at least 1 byte to encode secs.
+//	                 DDD says the number of extra bytes beyond that 1.
+//	                 E.g. if DDD=0, then secs is represented in 1 byte.
+//	                      if DDD=2, then secs is represented in 3 bytes.
+//	        EE:  Number of extra bytes for nsecs (range 0-3).
+//	             If B = 1, nsecs encoded in EE+1 bytes (similar to secs/DDD above)
 //
-//   Following the descriptor bytes, subsequent bytes are:
+//	Following the descriptor bytes, subsequent bytes are:
 //
-//       secs component encoded in `DDD + 1` bytes (if A == 1)
-//       nsecs component encoded in `EE + 1` bytes (if B == 1)
-//       tz component encoded in 2 bytes (if C == 1)
+//	    secs component encoded in `DDD + 1` bytes (if A == 1)
+//	    nsecs component encoded in `EE + 1` bytes (if B == 1)
+//	    tz component encoded in 2 bytes (if C == 1)
 //
-//   secs and nsecs components are integers encoded in a BigEndian
-//   2-complement encoding format.
+//	secs and nsecs components are integers encoded in a BigEndian
+//	2-complement encoding format.
 //
-//   tz component is encoded as 2 bytes (16 bits). Most significant bit 15 to
-//   Least significant bit 0 are described below:
+//	tz component is encoded as 2 bytes (16 bits). Most significant bit 15 to
+//	Least significant bit 0 are described below:
 //
-//       Timezone offset has a range of -12:00 to +14:00 (ie -720 to +840 minutes).
-//       Bit 15 = have\_dst: set to 1 if we set the dst flag.
-//       Bit 14 = dst\_on: set to 1 if dst is in effect at the time, or 0 if not.
-//       Bits 13..0 = timezone offset in minutes. It is a signed integer in Big Endian format.
-//
+//	    Timezone offset has a range of -12:00 to +14:00 (ie -720 to +840 minutes).
+//	    Bit 15 = have\_dst: set to 1 if we set the dst flag.
+//	    Bit 14 = dst\_on: set to 1 if dst is in effect at the time, or 0 if not.
+//	    Bits 13..0 = timezone offset in minutes. It is a signed integer in Big Endian format.
 func bincEncodeTime(t time.Time) []byte {
 	// t := rv2i(rv).(time.Time)
 	tsecs, tnsecs := t.Unix(), t.Nanosecond()
