@@ -97,12 +97,12 @@ export default function NhostRunPage() {
 
       <Container
         component="section"
-        className="grid grid-flow-row gap-16 mt-16 md:mt-32 md:gap-24"
+        className="mt-16 grid grid-flow-row gap-16 md:mt-32 md:gap-24"
         slotProps={{
           root: { className: 'overflow-hidden xl:overflow-visible' },
         }}
       >
-        <div className="grid grid-flow-row gap-8 justify-items-center">
+        <div className="grid grid-flow-row justify-items-center gap-8">
           <SectionHeading
             title="Extend your backend seamlessly"
             subtitle="Build and Run services written in your favourite language"
@@ -126,7 +126,7 @@ export default function NhostRunPage() {
           </Button>
         </div>
 
-        <div className="grid items-start grid-cols-1 gap-0 pb-12 justify-items-center xl:grid-cols-2 xl:justify-items-start xl:gap-6">
+        <div className="grid grid-cols-1 items-start justify-items-center gap-0 pb-12 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
           <div className="order-2 w-full xl:order-1">
             <CodeSnippet
               language={codeSnippets[selectedExample].lang}
@@ -138,7 +138,7 @@ export default function NhostRunPage() {
           </div>
 
           <div className="relative order-1 w-full max-w-3xl xl:order-2">
-            <div className="relative z-10 grid justify-around grid-flow-col xl:justify-evenly">
+            <div className="relative z-10 grid grid-flow-col justify-around xl:justify-evenly">
               <ExampleSelectorButton
                 active={selectedExample === 'nhost-service.toml'}
                 onClick={() => setSelectedExample('nhost-service.toml')}
@@ -166,7 +166,7 @@ export default function NhostRunPage() {
               alt="Dashed lines"
               width={608}
               height={97}
-              className="w-full h-auto"
+              className="h-auto w-full"
             />
 
             <Image
@@ -192,7 +192,7 @@ export default function NhostRunPage() {
           }}
         />
 
-        <div className="grid max-w-4xl grid-cols-1 gap-4 mx-auto mt-24 md:grid-cols-2">
+        <div className="mx-auto mt-24 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-2">
           <Card className="flex flex-col space-y-3">
             <Image
               src="/products/run-cloud.svg"
@@ -264,7 +264,7 @@ export default function NhostRunPage() {
           }}
         />
 
-        <div className="grid max-w-4xl grid-cols-1 gap-8 mx-auto mt-24 md:grid-cols-2">
+        <div className="mx-auto mt-24 grid max-w-4xl grid-cols-1 gap-8 md:grid-cols-2">
           <div className="flex flex-row items-start space-x-4">
             <Image
               src="/products/tick.svg"
@@ -341,7 +341,7 @@ export default function NhostRunPage() {
         </div>
       </Container>
 
-      <Container component="section" className="hidden mt-24 lg:mt-40">
+      <Container component="section" className="mt-24 hidden lg:mt-40">
         <SectionHeading
           title="Powerful permissions, made simple"
           subtitle="Storage permissions work like any other data in your database. Use Buckets to segment files."
@@ -353,7 +353,7 @@ export default function NhostRunPage() {
           }}
         />
 
-        <div className="flex items-center justify-center w-full max-w-5xl mx-auto mt-16 border h-52 rounded-xl border-divider bg-paper">
+        <div className="mx-auto mt-16 flex h-52 w-full max-w-5xl items-center justify-center rounded-xl border border-divider bg-paper">
           Video Placeholder
         </div>
       </Container>
@@ -361,10 +361,10 @@ export default function NhostRunPage() {
       <Container component="section" className="mt-24">
         <SectionHeading title="And more..." className="max-w-lg" />
 
-        <div className="grid content-start justify-start max-w-xs grid-cols-1 gap-6 mx-auto mt-16 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
-          <Card className="relative grid grid-flow-row gap-4 place-content-center place-items-center sm:row-span-15">
+        <div className="mx-auto mt-16 grid max-w-xs grid-cols-1 content-start justify-start gap-6 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
+          <Card className="relative grid grid-flow-row place-content-center place-items-center gap-4 sm:row-span-15">
             <div className="relative">
-              <LineGrid className="w-40 h-40 mx-auto -translate-x-1/2 -translate-y-1/2 object-top-left left-1/2 top-1/2" />
+              <LineGrid className="object-top-left left-1/2 top-1/2 mx-auto h-40 w-40 -translate-x-1/2 -translate-y-1/2" />
               <Glow />
               <Image
                 src="/common/logo-circle.svg"
@@ -385,7 +385,7 @@ export default function NhostRunPage() {
               Start building <ArrowRightIcon />
             </Button>
           </Card>
-          <Card className="grid grid-flow-row gap-4 text-center place-content-center place-items-center sm:row-span-8">
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
             <Image
               src="/products/globe.svg"
               width={24}
@@ -403,7 +403,7 @@ export default function NhostRunPage() {
               </p>
             </div>
           </Card>
-          <Card className="grid grid-flow-row gap-4 text-center place-content-center place-items-center sm:row-span-7">
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-7">
             <Image
               src="/products/code.svg"
               width={24}
@@ -419,7 +419,7 @@ export default function NhostRunPage() {
               </p>
             </div>
           </Card>
-          <Card className="grid grid-flow-row gap-4 text-center place-content-center place-items-center sm:row-span-8">
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8">
             <Image
               src="/products/maximize.svg"
               width={24}
@@ -437,9 +437,9 @@ export default function NhostRunPage() {
               </p>
             </div>
           </Card>
-          <Card className="grid grid-flow-row gap-4 text-center place-content-center place-items-center sm:row-span-8 lg:row-span-7">
+          <Card className="grid grid-flow-row place-content-center place-items-center gap-4 text-center sm:row-span-8 lg:row-span-7">
             <Image
-              src="/products/box.svg"
+              src="/products/arrows-clockwise.svg"
               width={24}
               height={24}
               alt="A box"
@@ -447,10 +447,10 @@ export default function NhostRunPage() {
             />
 
             <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Buckets</h3>
+              <h3 className="text-base font-bold">Integrated CI</h3>
 
               <p className="text-base text-white text-opacity-65">
-                {/* TODO */}
+                Coming soon
               </p>
             </div>
           </Card>
@@ -460,8 +460,8 @@ export default function NhostRunPage() {
       <ProductSection
         slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
         heading={
-          <div className="grid items-center grid-flow-row gap-4 justify-items-center">
-            <div className="p-px rounded-full gradient-background">
+          <div className="grid grid-flow-row items-center justify-items-center gap-4">
+            <div className="gradient-background rounded-full p-px">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
                 There is more
               </p>
