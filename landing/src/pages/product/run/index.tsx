@@ -17,75 +17,71 @@ import { ReactElement, useState } from 'react'
 const codeSnippets = {
   'nhost-service.toml': {
     snippet: `
-name = 'cat-generator'
+  name = 'cat-generator'
 
-[image]
-image = 'nhost/cat-generator'
-
-[[ports]]
-port = 8080
-type = 'http'
-publish = true
-
-[resources]
-replicas = 2
-
-[resources.compute]
-cpu = 2000
-memory = 4096
+  [image]
+  image = 'nhost/cat-generator:0.0.1'
+  
+  [[ports]]
+  port = 5000
+  type = 'http'
+  publish = true
+  
+  [resources]
+  replicas = 2
+  
+  [resources.compute]
+  cpu = 2000
+  memory = 4096
     `,
     lang: 'ini',
   },
   Dockerfile: {
     snippet: `
-# Use the official Python image as the base image
-FROM python:3.9
-
-# Set the working directory inside the container
-WORKDIR /app
-
-# Copy the Python requirements file to the container
-COPY requirements.txt .
-
-# Install the required dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the cat-generator.py and cat-generator-api.py files to the container
-COPY cat-generator.py .
-COPY cat-generator-api.py .
-
-# Expose the port that the Flask app is running on
-EXPOSE 5000
-
-# Command to run the Flask app when the container starts
-CMD ["python", "cat-generator-api.py"]
+  # Start with a base image containing Python runtime
+  FROM python:3.9-slim-buster
+  
+  # Set the working directory in the container
+  WORKDIR /app
+  
+  # Add the requirements file to the container
+  ADD requirements.txt .
+  
+  # Install any needed packages specified in requirements.txt
+  RUN pip install --no-cache-dir -r requirements.txt
+  
+  # Copy the current directory contents into the container at /app
+  COPY . /app
+  
+  # Make port 5000 available to the world outside this container
+  EXPOSE 5000
+  
+  # Run the application when the container launches
+  CMD ["python", "cat-generator.py"]
     `,
     lang: 'docker',
   },
   'cat-generator.py': {
     snippet: `
-from flask import Flask
-from art import text2art
+from flask import Flask, send_file
+import requests
+from io import BytesIO
 
 app = Flask(__name__)
 
-def generate_cat_art():
-    cat_text = """
-    /\_/\  
-    ( o.o ) 
-    > ^ <
-    """
-    cat_art = text2art(cat_text, font='block')
-    return cat_art
+@app.route('/cat')
+def generate_cat_picture():
+    response = requests.get('https://api.thecatapi.com/v1/images/search')
+    image_url = response.json()[0]['url']
 
-@app.route('/generate-cat', methods=['GET'])
-def get_cat_art():
-    cat_ascii_art = generate_cat_art()
-    return cat_ascii_art, 200, {'Content-Type': 'text/plain'}
+    # Get the image content
+    image_content = requests.get(image_url).content
 
-if __name__ == "__main__":
+    # Send the image file
+    return send_file(BytesIO(image_content), mimetype='image/jpeg')
+
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-
     `,
     lang: 'python',
   },
@@ -187,7 +183,7 @@ export default function NhostRunPage() {
       <Container component="section" className="mt-24 lg:mt-40">
         <SectionHeading
           title="Use cases"
-          subtitle="Nhost Run offers flexible possibilities for running additional functionalities alongside your project."
+          subtitle="Nhost Run allows you to expand and truly customize your backend in multiple ways"
           className="max-w-xl"
           slotProps={{
             subtitle: {
