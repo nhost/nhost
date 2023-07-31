@@ -16,49 +16,45 @@ import { ReactElement, useState } from 'react'
 
 const codeSnippets = {
   'nhost-service.toml': {
-    snippet: `
-  name = 'cat-generator'
+    snippet: `name = 'cat-generator'
 
-  [image]
-  image = 'nhost/cat-generator:0.0.1'
-  
-  [[ports]]
-  port = 5000
-  type = 'http'
-  publish = true
-  
-  [resources]
-  replicas = 2
-  
-  [resources.compute]
-  cpu = 2000
-  memory = 4096
-    `,
-    lang: 'ini',
+[image]
+image = 'nhost/cat-generator:0.0.1'
+
+[[ports]]
+port = 5000
+type = 'http'
+publish = true
+
+[resources]
+replicas = 2
+
+[resources.compute]
+cpu = 2000
+memory = 4096`,
+    lang: 'javascript',
   },
   Dockerfile: {
-    snippet: `
-  # Start with a base image containing Python runtime
-  FROM python:3.9-slim-buster
-  
-  # Set the working directory in the container
-  WORKDIR /app
-  
-  # Add the requirements file to the container
-  ADD requirements.txt .
-  
-  # Install any needed packages specified in requirements.txt
-  RUN pip install --no-cache-dir -r requirements.txt
-  
-  # Copy the current directory contents into the container at /app
-  COPY . /app
-  
-  # Make port 5000 available to the world outside this container
-  EXPOSE 5000
-  
-  # Run the application when the container launches
-  CMD ["python", "cat-generator.py"]
-    `,
+    snippet: `# Start with a base image containing Python runtime
+FROM python:3.9-slim-buster
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Add the requirements file to the container
+ADD requirements.txt .
+
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Make port 5000 available to the world outside this container
+EXPOSE 5000
+
+# Run the application when the container launches
+CMD ["python", "cat-generator.py"]`,
     lang: 'docker',
   },
   'cat-generator.py': {
@@ -81,8 +77,7 @@ def generate_cat_picture():
     return send_file(BytesIO(image_content), mimetype='image/jpeg')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
-    `,
+    app.run(host='0.0.0.0', port=5000)`,
     lang: 'python',
   },
 }
