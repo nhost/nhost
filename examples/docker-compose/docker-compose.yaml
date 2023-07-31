@@ -11,7 +11,21 @@ services:
     ports:
       - "1337:1337"
       - "9090:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik_https.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.traefik_https.entrypoints=websecure"
+      - "traefik.http.routers.traefik_https.tls.certResolver=le"
+      - "traefik.http.routers.traefik_https.service=api@internal"
+      - "traefik.http.routers.traefik_https.middlewares=traefik-auth"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$apr1$$iNdRs1II$$Qdw59WFY6y0Oaf0JaZTip0"
+      - "traefik.http.routers.http_traefik.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.http_traefik.entrypoints=web"
+      - "traefik.http.routers.http_traefik.middlewares=https_redirect"
+      - "traefik.http.middlewares.https_redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.https_redirect.redirectscheme.permanent=true"
     volumes:
+      - "./letsencrypt:/letsencrypt"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
   postgres:
     image: postgres
@@ -38,9 +52,15 @@ services:
       HASURA_GRAPHQL_LOG_LEVEL: debug
       HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.hasura.rule=Host(`localhost`) && PathPrefix(`/`)"
-      - "traefik.http.routers.hasura.entrypoints=web"
+      - traefik.enable=true
+      - traefik.http.middlewares.graphql_https.redirectscheme.scheme=https
+      - traefik.http.routers.graphql.entrypoints=web
+      - traefik.http.routers.graphql.rule=Host(`nhost.${DOMAIN}`) && PathPrefix(`/`)
+      - traefik.http.routers.graphql.middlewares=graphql_https@docker
+      - traefik.http.routers.graphql_https.rule=Host(`nhost.${DOMAIN}`) && PathPrefix(`/`)
+      - traefik.http.routers.graphql_https.tls.certresolver=le
+      - traefik.http.routers.graphql_https.entrypoints=websecure
+
   auth:
     image: nhost/hasura-auth:0.16.2
     depends_on:
@@ -64,11 +84,16 @@ services:
     expose: 
       - 4000
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.middlewares.strip-auth.stripprefix.prefixes=/v1/auth"
-      - "traefik.http.routers.auth.rule=Host(`localhost`) && PathPrefix(`/v1/auth`)"
-      - "traefik.http.routers.auth.middlewares=strip-auth@docker"
-      - "traefik.http.routers.auth.entrypoints=web"
+      - traefik.enable=true
+      - traefik.http.middlewares.strip-auth.stripprefix.prefixes=/v1/auth
+      - traefik.http.middlewares.auth_https.redirectscheme.scheme=https
+      - traefik.http.routers.auth_https.middlewares=strip-auth@docker
+      - traefik.http.routers.auth.entrypoints=web
+      - traefik.http.routers.auth.rule=Host(`nhost.${DOMAIN}`) && PathPrefix(`/v1/auth`)
+      - traefik.http.routers.auth.middlewares=auth_https@docker
+      - traefik.http.routers.auth_https.rule=Host(`nhost.${DOMAIN}`) && PathPrefix(`/v1/auth`)
+      - traefik.http.routers.auth_https.tls.certresolver=le
+      - traefik.http.routers.auth_https.entrypoints=websecure
   storage:
     image: nhost/hasura-storage:0.3.1
     depends_on:
@@ -90,22 +115,32 @@ services:
       POSTGRES_MIGRATIONS: 1
       POSTGRES_MIGRATIONS_SOURCE: postgres://postgres:${POSTGRES_PASSWORD:-secretpgpassword}@postgres:5432/postgres?sslmode=disable
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.storage.rule=Host(`localhost`) && PathPrefix(`/v1/storage`)"
-      - "traefik.http.routers.storage.entrypoints=web"
+      - traefik.enable=true
       # Rewrite the path so it matches with the new storage API path introduced in hasura-storage 0.2
-      - "traefik.http.middlewares.strip-suffix.replacepathregex.regex=^/v1/storage/(.*)"
-      - "traefik.http.middlewares.strip-suffix.replacepathregex.replacement=/v1/$$1"
-      - "traefik.http.routers.storage.middlewares=strip-suffix@docker"
+      - traefik.http.middlewares.strip-suffix.replacepathregex.replacement=/v1/$$1
+      - traefik.http.middlewares.strip-suffix.replacepathregex.regex=^/v1/storage/(.*)
+      - traefik.http.middlewares.storage_https.redirectscheme.scheme=https
+      - traefik.http.routers.storage_https.middlewares=strip-suffix@docker
+      - traefik.http.routers.storage.entrypoints=web
+      - traefik.http.routers.storage.rule=Host(`nhost.${DOMAIN}`) && PathPrefix(`/v1/storage`)
+      - traefik.http.routers.storage.middlewares=storage_https@docker
+      - traefik.http.routers.storage_https.rule=Host(`nhost.${DOMAIN}`) && PathPrefix(`/v1/storage`)
+      - traefik.http.routers.storage_https.tls.certresolver=le
+      - traefik.http.routers.storage_https.entrypoints=websecure
     command: serve
   functions:
     image: nhost/functions:0.1.8
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.middlewares.strip-functions.stripprefix.prefixes=/v1/functions"
-      - "traefik.http.routers.functions.rule=Host(`localhost`) && PathPrefix(`/v1/functions`)"
-      - "traefik.http.routers.functions.middlewares=strip-functions@docker"
-      - "traefik.http.routers.functions.entrypoints=web"
+      - traefik.enable=true
+      - traefik.http.middlewares.strip-functions.stripprefix.prefixes=/v1/functions
+      - traefik.http.routers.functions_https.middlewares=strip-functions@docker
+      - traefik.http.middlewares.functions_https.redirectscheme.scheme=https
+      - traefik.http.routers.functions.entrypoints=web
+      - traefik.http.routers.functions.rule=Host(`nhost.${DOMAIN}`) && PathPrefix(`/v1/functions`)
+      - traefik.http.routers.functions.middlewares=functions_https@docker
+      - traefik.http.routers.functions_https.rule=Host(`nhost.${DOMAIN}`) && PathPrefix(`/v1/functions`)
+      - traefik.http.routers.functions_https.tls.certresolver=le
+      - traefik.http.routers.functions_https.entrypoints=websecure
     restart: always
     expose: 
       - 3000
