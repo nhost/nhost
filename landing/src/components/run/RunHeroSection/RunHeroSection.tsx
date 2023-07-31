@@ -5,7 +5,6 @@ import { LineGrid } from '@/components/common/LineGrid'
 import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import Image from 'next/image'
-import Link from 'next/link'
 
 export default function RunHeroSection() {
   return (
@@ -75,25 +74,6 @@ export default function RunHeroSection() {
         >
           https://lyrrkocvcfbfmmnicyuv-cat-generator-5000.svc.eu-central-1.nhost.run/cat
         </CodeSnippet>
-      </div>
-
-      <div className="fixed left-0 right-14 bottom-4 z-50 flex items-center">
-        <Link
-          href="https://discord.com/invite/9V7Qb2U"
-          target="_blank"
-          rel="noreferrer noopener"
-          className="mx-auto flex space-x-4 rounded-full bg-brand-main px-4 py-2"
-        >
-          <Image
-            src="/brands/brand-discord.svg"
-            width={24}
-            height={18}
-            alt="Discord Logo"
-          />
-          <span className="font-mona text-base font-semibold">
-            Reach out on Discord to get early access
-          </span>
-        </Link>
       </div>
     </Container>
   )

@@ -12,6 +12,7 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { ProductSection } from '@/components/product/ProductSection'
 import { RunHeroSection } from '@/components/run/RunHeroSection'
 import Image from 'next/image'
+import Link from 'next/link'
 import { ReactElement, useState } from 'react'
 
 const codeSnippets = {
@@ -469,6 +470,27 @@ export default function NhostRunPage() {
       />
 
       <CTASection />
+
+      <div className="fixed inset-x-4 bottom-4 z-50 flex items-center">
+        <Link
+          href="https://discord.com/invite/9V7Qb2U"
+          target="_blank"
+          rel="noreferrer noopener"
+          className="mx-auto flex space-x-4 rounded-full bg-brand-main px-4 py-2"
+        >
+          <div className="grid w-10 place-content-center">
+            <Image
+              src="/brands/brand-discord.svg"
+              width={18}
+              height={18}
+              alt="Discord Logo"
+            />
+          </div>
+          <span className="font-mona text-base font-semibold">
+            Reach out on Discord to get early access
+          </span>
+        </Link>
+      </div>
     </>
   )
 }
