@@ -63,18 +63,11 @@ export default function ServicesList({
   };
 
   const viewService = async (service: RunService) => {
-    const {
-      image,
-      command,
-      ports,
-      resources: { compute, replicas, storage },
-    } = service.config;
-
     openDrawer({
       title: (
         <Box className="flex flex-row items-center space-x-2">
           <CubeIcon className="h-5 w-5" />
-          <Text>Edit {service.config.name}</Text>
+          <Text>Edit {service.config?.name ?? 'unset'}</Text>
         </Box>
       ),
       component: (
@@ -82,16 +75,19 @@ export default function ServicesList({
           serviceID={service.id}
           initialData={{
             ...service.config,
-            image: image.image,
-            command: command?.join(' '),
-            ports: ports.map((item) => ({
+            image: service.config?.image?.image,
+            command: service.config?.command?.join(' '),
+            ports: service.config?.ports.map((item) => ({
               port: item.port,
               type: item.type as PortTypes,
               publish: item.publish,
             })),
-            compute,
-            replicas,
-            storage,
+            compute: service.config?.resources.compute ?? {
+              cpu: 62,
+              memory: 128,
+            },
+            replicas: service.config?.resources.replicas,
+            storage: service.config?.resources.storage,
           }}
           onSubmit={() => onCreateOrUpdate()}
         />
@@ -146,7 +142,7 @@ export default function ServicesList({
               <CubeIcon className="h-5 w-5" />
               <div className="flex flex-col">
                 <Text variant="h4" className="font-semibold">
-                  {service.config.name}
+                  {service.config?.name ?? 'unset'}
                 </Text>
                 <Tooltip title={service.updatedAt}>
                   <span className="hidden cursor-pointer text-sm text-slate-500 xs+:flex">
