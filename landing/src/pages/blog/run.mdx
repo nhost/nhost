@@ -20,11 +20,11 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-Today we are releasing a feature that sets the stage for the next phase of Nhost as a product. We are making Nhost the first truly extensible Backend-as-a-Service platform by bringing custom and third party OSS services to run alongside your Nhost projects - With **Nhost Run**, you can bring your own services written in your favourite languages and create a truly customized backend infrastructure. 
+Today we are releasing a feature that sets the stage for Nhost's next product phase. We are making Nhost the first truly extensible Backend-as-a-Service platform by bringing custom and third-party OSS services to run alongside your Nhost projects - With **Nhost Run**, you can bring your own services written in your favorite languages and create a truly customized backend infrastructure.
 
 ## Background and Motivation
 
-Our users love the default stack that Nhost provides: PostgreSQL, Hasura, Auth, and Storage. But some of those users have specialized services running elsewhere (usually a PaaS provider like Render or Heroku) that they need to connect to. 
+Our users love the default Nhost stack: PostgreSQL, Hasura, Auth, and Storage. But some of those users have specialized services running elsewhere (usually a PaaS provider like Render or Heroku) that they need to connect to. 
 
 As applications grow in complexity, it's very important that your backend infrastructure is able to evolve and adapt to your application requirements. Nhost Run makes it easy to extend and customize the Nhost Stack according to users' particular needs. It unlocks the power and flexibility to run any custom and third-party OSS solutions, **all in the same place**.
 
@@ -50,7 +50,9 @@ Notes about the configuration:
 - After you define the service port, note the URL where the service will be available
 - Persistent volumes can be attached to a Run Service.
 
-After clicking on `Create`, the service will be provisioned and available after a couple of minutes. For the `cat-generator` we created, it is available [here](https://lyrrkocvcfbfmmnicyuv-cat-generator-5000.svc.eu-central-1.nhost.run/cat). Refreshing the page will return a different cat picture each time.
+And that is it! after clicking on `Create` and waiting for a couple of minutes, we have a Python+Flask HTTP API that retrieves cat pictures and runs alongside the rest of the Nhost stack. I think this is awesome!
+
+You can see the cute cat pictures [here](https://lyrrkocvcfbfmmnicyuv-cat-generator-5000.svc.eu-central-1.nhost.run/cat). Refreshing the page will return a different cat picture each time.
 
 ### Configuration File
 
@@ -114,10 +116,11 @@ You can refer to the full documentation [here](https://docs.nhost.io/platform/ru
 
 ## Benefits of Run
 
-- Very little latency because all services run in close proximity.
-- No egress costs. 
-- Improved reliability because your services can communicate without requiring internet connection.
-- Integrated operations under the same umbrela.
+- Flexibility and Customizability: Backend services can be extended beyond our standard stack of Postgres, Hasura, Auth, and Storage.
+- Minimal Latency: All services run in close proximity.
+- No Egress: No additional egress costs for transfering data between services.
+- Reliability: Services can communicate without requiring internet connection.
+- Integrated Operations: All workloads in the same place.
 
 ## Pricing
 
@@ -128,9 +131,9 @@ Nhost Run is available starting on the Pro plan and it is charged for the dedica
 - Ports of type `tcp` and `udp` cannot be exposed to the internet duo to a limitation in our infrastructure. We plan to address this soon.
 - Nhost Run supports running but not building images. We will release support for building JS/TS, Golang, and Python images soon. And more afterwards.
 - Support for Run Services on the CLI is lacking, and it is also coming soon.
-- CI
+- GitHub Integration support to be added.
 
 ## Conclusion
 
-Nhost Run is the missing puzzle piece that brigdes the gap between the convenience of turnkey solutions like Nhost with the extensibility and flexibiliy of platforms like Render and Heroku. As your apps grow and evolve, Run ensures that Nhost can scale along with you and your users' needs.
+Nhost Run is the missing puzzle piece that bridges the gap between the convenience of turnkey solutions like Nhost with the extensibility and flexibility of platforms like Render and Heroku. As your apps grow and evolve, Run ensures that Nhost can scale along with you and your users' needs.
 
