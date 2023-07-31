@@ -49,6 +49,7 @@ module.exports = {
           'translate-top-bottom 1.5s ease-in-out forwards',
         'slide-line-left-delay': 'slide-line-left 1s ease-in-out forwards 0.3s',
         'slide-line-up-delay': 'slide-line-up 1s ease-in-out forwards 0.3s',
+        'bounce-right-left': 'bounce-right-left 1.5s ease-in-out infinite',
       },
       keyframes: {
         'slide-line-left': {
@@ -79,6 +80,10 @@ module.exports = {
           '0%': { transform: 'translateX(-75%)', opacity: 0 },
           '50%': { opacity: 1 },
           '100%': { transform: 'translateX(0)' },
+        },
+        'bounce-right-left': {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '50%': { transform: 'translateX(10px)' },
         },
       },
       boxShadow: {

@@ -4,7 +4,9 @@ import { Glow } from '@/components/common/Glow'
 import { LineGrid } from '@/components/common/LineGrid'
 import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
+import { ArrowLeftIcon } from '@/components/common/icons/ArrowLeftIcon'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default function RunHeroSection() {
   return (
@@ -67,13 +69,19 @@ export default function RunHeroSection() {
           sizes="(max-width: 1024px) 50vw, 60vw"
         />
 
-        <CodeSnippet
-          disableGlow
-          disableLineGrid
-          className="absolute -right-12 -bottom-6 z-20 shadow-lg xl:-right-12 xl:-bottom-12"
-        >
-          https://lyrrkocvcfbfmmnicyuv-cat-generator-5000.svc.eu-central-1.nhost.run/cat
-        </CodeSnippet>
+        <div className="flex items-center justify-center space-x-2 rounded-xl bg-paper px-4 py-2">
+          <a
+            href="https://lyrrkocvcfbfmmnicyuv-cat-generator-5000.svc.eu-central-1.nhost.run/cat"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="z-50 hover:underline"
+          >
+            https://lyrrkocvcfbfmmnicyuv-cat-generator-5000.svc.eu-central-1.nhost.run/cat
+          </a>
+          <div className="flex h-12 w-12 items-center ">
+            <ArrowLeftIcon className="animate-bounce-right-left text-brand-main" />
+          </div>
+        </div>
       </div>
     </Container>
   )
