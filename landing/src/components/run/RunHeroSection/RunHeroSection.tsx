@@ -5,6 +5,7 @@ import { LineGrid } from '@/components/common/LineGrid'
 import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export default function RunHeroSection() {
   return (
@@ -13,7 +14,7 @@ export default function RunHeroSection() {
       slotProps={{ root: { className: 'overflow-visible' } }}
       className="relative flex flex-col space-y-14 md:flex-row md:space-x-14"
     >
-      <div className="relative z-10 grid content-center justify-start grid-flow-row gap-4 pt-16 justify-items-start md:w-1/3 md:pt-42 lg:px-20">
+      <div className="relative z-10 grid grid-flow-row content-center justify-start justify-items-start gap-4 pt-16 md:w-1/3 md:pt-42 lg:px-20">
         <ProductIcon>
           <Image
             src="/products/play.svg"
@@ -24,8 +25,20 @@ export default function RunHeroSection() {
           />
         </ProductIcon>
 
+        <div className="flex space-x-2">
+          <h2 className="font-mona text-3.5xl font-semibold md:text-4.5xl">
+            Run
+          </h2>
+          <div className="flex items-center self-end rounded-full bg-brand-dark">
+            <div className="grid h-8 w-8 place-content-center rounded-full bg-brand-main">
+              β
+            </div>
+            <span className="pl-3 pr-4 text-xs">Private Beta</span>
+          </div>
+        </div>
+
         <SectionHeading
-          title="Run"
+          title=""
           subtitle="Build, Push, and Run custom services alongside your Nhost Stack."
           className="text-left"
           slotProps={{
@@ -50,7 +63,7 @@ export default function RunHeroSection() {
           width={1920}
           height={991}
           alt="The Nhost Dashboard's storage page"
-          className="relative z-10 object-contain w-full h-auto mx-auto"
+          className="relative z-10 mx-auto h-auto w-full object-contain"
           priority
           sizes="(max-width: 1024px) 50vw, 60vw"
         />
@@ -58,10 +71,29 @@ export default function RunHeroSection() {
         <CodeSnippet
           disableGlow
           disableLineGrid
-          className="absolute z-20 shadow-lg -right-12 -bottom-6 xl:-right-12 xl:-bottom-12"
+          className="absolute -right-12 -bottom-6 z-20 shadow-lg xl:-right-12 xl:-bottom-12"
         >
           https://lyrrkocvcfbfmmnicyuv-cat-generator-5000.svc.eu-central-1.nhost.run/cat
         </CodeSnippet>
+      </div>
+
+      <div className="fixed left-0 right-14 bottom-4 z-50 flex items-center">
+        <Link
+          href="https://discord.com/invite/9V7Qb2U"
+          target="_blank"
+          rel="noreferrer noopener"
+          className="mx-auto flex space-x-4 rounded-full bg-brand-main px-4 py-2"
+        >
+          <Image
+            src="/brands/brand-discord.svg"
+            width={24}
+            height={18}
+            alt="Discord Logo"
+          />
+          <span className="font-mona text-base font-semibold">
+            Reach out on Discord to get early access
+          </span>
+        </Link>
       </div>
     </Container>
   )
