@@ -52,7 +52,8 @@ export default function StorageFormSection() {
             title={
               <span>
                 By default, services do not have persistent storage. You can add
-                SSD disks to the service here. Refer to{' '}
+                SSD disks to the service here. It is important to note that
+                capacity can not be decreased after creation, only expanded. Refer to{' '}
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
