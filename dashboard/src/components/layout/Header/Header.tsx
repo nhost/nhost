@@ -26,11 +26,8 @@ export interface HeaderProps
 export default function Header({ className, ...props }: HeaderProps) {
   const router = useRouter();
   const isPlatform = useIsPlatform();
-  const {
-    currentProject,
-    refetch: refetchProject,
-    currentWorkspace,
-  } = useCurrentWorkspaceAndProject();
+  const { currentProject, refetch: refetchProject } =
+    useCurrentWorkspaceAndProject();
   const isProjectUpdating =
     currentProject?.appStates[0]?.stateId === ApplicationStatus.Updating;
 
