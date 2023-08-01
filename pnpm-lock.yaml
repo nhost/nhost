@@ -254,6 +254,9 @@ importers:
       react-hot-toast:
         specifier: ^2.4.0
         version: 2.4.0(csstype@3.1.0)(react-dom@18.2.0)(react@18.2.0)
+      react-intersection-observer:
+        specifier: ^9.5.2
+        version: 9.5.2(react@18.2.0)
       react-is:
         specifier: 18.2.0
         version: 18.2.0
@@ -28220,6 +28223,14 @@ packages:
       prop-types: 15.8.1
       react: 18.2.0
     dev: true
+
+  /react-intersection-observer@9.5.2(react@18.2.0):
+    resolution: {integrity: sha512-EmoV66/yvksJcGa1rdW0nDNc4I1RifDWkT50gXSFnPLYQ4xUptuDD4V7k+Rj1OgVAlww628KLGcxPXFlOkkU/Q==}
+    peerDependencies:
+      react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 18.2.0
+    dev: false
 
   /react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
