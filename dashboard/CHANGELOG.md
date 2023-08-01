@@ -1,5 +1,14 @@
 # @nhost/dashboard
 
+## 0.20.3
+
+### Patch Changes
+
+- e643bd362: fix(services): fix errors when config is null
+- bcdab66bf: feat: add annoucement for nhost run
+- f967a2e59: added note about storage not being able to be downsized
+- 311c7756d: chore(services): consistent naming for compute
+
 ## 0.20.2
 
 ### Patch Changes

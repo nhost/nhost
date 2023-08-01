@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.5.0
+
+### Minor Changes
+
+- 960d815f6: added docs for Nhost Run
+
 ## 0.4.0
 
 ### Minor Changes
