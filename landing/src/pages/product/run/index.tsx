@@ -272,10 +272,8 @@ export default function NhostRunPage() {
             <div className="flex flex-col space-y-2">
               <h3 className="text-base font-bold">Minimal Latency</h3>
               <p className="text-base text-white text-opacity-65">
-                By running workloads alongside your project environment, Nhost
-                Run reduces latency between services. This means that the
-                communication and data exchange between different components of
-                your project can occur quickly and efficiently.
+                Communication and data exchange between different components of
+                your project occur quickly and efficiently.
               </p>
             </div>
           </div>
@@ -291,10 +289,8 @@ export default function NhostRunPage() {
             <div className="flex flex-col space-y-2">
               <h3 className="text-base font-bold">No Egress Costs</h3>
               <p className="text-base text-white text-opacity-65">
-                With Nhost Run, you won&apos;t incur additional egress costs for
-                transferring data between your project and the cloud
-                infrastructure. This cost-saving benefit allows you to manage
-                your expenses more effectively.
+                No additional egress costs for transferring data between
+                different components of your project.
               </p>
             </div>
           </div>
@@ -310,10 +306,8 @@ export default function NhostRunPage() {
             <div className="flex flex-col space-y-2">
               <h3 className="text-base font-bold">Improved Reliability</h3>
               <p className="text-base text-white text-opacity-65">
-                Nhost Run eliminates the dependency on external internet
-                connectivity. This increased reliability ensures that your
-                workloads continue to function even in scenarios where internet
-                access may be limited or disrupted.
+                Your workloads continue to function even in scenarios where
+                internet access may be limited or disrupted.
               </p>
             </div>
           </div>
@@ -327,10 +321,10 @@ export default function NhostRunPage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">Integrated operations</h3>
+              <h3 className="text-base font-bold">Integrated Operations</h3>
               <p className="text-base text-white text-opacity-65">
-                Develop, build, manage and scale your own workloads the same way
-                you can manage your Nhost Project.
+                Develop, build, manage, and scale your own workloads the same
+                way that you manage your Nhost Project.
               </p>
             </div>
           </div>
