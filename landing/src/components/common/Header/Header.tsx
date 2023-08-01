@@ -9,6 +9,9 @@ import { XIcon } from '../icons/XIcon'
 import { Link } from '../Link'
 import { MobileMenu } from '../MobileMenu'
 import { ProductPopover } from '../ProductPopover'
+import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
+import { useRouter } from 'next/router'
+import { Announcement } from '../Announcement'
 
 export interface HeaderProps extends ContainerProps {}
 
@@ -18,6 +21,8 @@ export default function Header({
   ...props
 }: HeaderProps) {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false)
+
+  const { pathname } = useRouter()
 
   useEffect(() => {
     if (mobileMenuVisible) {
@@ -29,6 +34,13 @@ export default function Header({
 
   return (
     <>
+      <Announcement href="/product/run">
+        <span className="">
+          Now you can bring custom and third-party OSS services to run alongside
+          your Nhost projects
+        </span>
+      </Announcement>
+
       <Transition
         show={mobileMenuVisible}
         as={Fragment}
