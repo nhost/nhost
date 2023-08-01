@@ -49,8 +49,8 @@ export default function Header({ className, ...props }: HeaderProps) {
   return (
     <div>
       <Announcement href="https://discord.com/invite/9V7Qb2U">
-        Now you can bring custom and third-party OSS services to run alongside
-        your Nhost projects
+        You can now run custom and third-party OSS services alongside your Nhost
+        projects, please reach out to us to get access to the private beta
       </Announcement>
 
       <Divider />
