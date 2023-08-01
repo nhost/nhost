@@ -3,10 +3,10 @@ schema:
       headers:
         x-hasura-admin-secret: nhost-admin-secret
 generates:
-  src/utils/__generated__/graphql.ts:
+  src/utils/__generated__/console-graphql.ts:
     documents:
-      - 'src/**/*.graphql'
-      - 'src/**/*.gql'
+      - 'src/gql/console/**/*.graphql'
+      - 'src/gql/console/**/*.gql'
     plugins:
       - 'typescript'
       - 'typescript-operations'
