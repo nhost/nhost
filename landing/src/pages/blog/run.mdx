@@ -4,9 +4,9 @@ import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 export const article = {
   title: 'My name is Run, Nhost Run',
   description:
-    'Run Custom Services',
+    'Extend your backend beyond Postgres, Hasura, Auth, and Storage.',
   image: '/images/blog/run/og-run.png',
-  date: '2023-07-29',
+  date: '2023-08-01',
   authors: [
     {
       name: 'Nuno Pato',
@@ -41,16 +41,6 @@ Run Services can be configured either by using the Nhost Dashboard or using a co
 In the Nhost Dashboard, you will find a new `Run` option on the main sidebar. Clicking on `Add Service` opens a dialog where we can define the configuration for the new service:
 
 ![New Run Service](/images/blog/run/run-new-service.png)
-
-Notes about the configuration:
-
-- The name of the service must be unique per project.
-- You can pull images from public registries and Nhost's [private registry](https://docs.nhost.io/run/registry). 
-- Run Services can be scaled using the same tools you already know and use: [Dedicated Compute](https://docs.nhost.io/platform/compute), [Service Replicas](https://docs.nhost.io/platform/service-replicas), and [Metrics](https://docs.nhost.io/platform/metrics).
-- Environment Variables are defined per-service and aren't available anywhere else.
-- Ports can be of type `http`, `tcp`, and `udp`. At the moment, only `http` ports can be exposed to the internet.
-- After you define the service port, note the URL where the service will be available
-- Persistent volumes can be attached to a Run Service.
 
 And that is it! after clicking on `Create` and waiting for a couple of minutes, we have a Python+Flask HTTP API that retrieves cat pictures and runs alongside the rest of the Nhost stack. How awesome is that?
 
@@ -140,8 +130,13 @@ Nhost Run is available starting on the Pro plan and it is charged for the dedica
 - Nhost Run supports running but not building images. We will release support for building JS/TS, Golang, and Python images soon. And more afterwards.
 - Support for Run Services on the CLI is lacking, and it is also coming soon.
 - GitHub Integration support to be added.
+- We plan to release custom domains by the end of August.
 
 ## Conclusion
 
 Nhost Run is the missing puzzle piece that bridges the gap between the convenience of turnkey solutions like Nhost with the extensibility and flexibility of platforms like Render and Heroku. As your apps grow and evolve, Run ensures that Nhost can scale along with you and your users' needs.
+
+## Next
+
+Give Nhost Run a try and let us know what you think! To learn more, please refer to the [product](https://nhost.io/product/run) and [documentation](https://docs.nhost.io/run) pages.
 
