@@ -1,10 +1,14 @@
 import Image from 'next/image'
-import { PropsWithChildren } from 'react'
+import { HTMLProps, PropsWithChildren } from 'react'
+import { twMerge } from 'tailwind-merge'
 
-export default function ProductIcon({ children }: PropsWithChildren<unknown>) {
+export default function ProductIcon({
+  children,
+  className,
+}: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
   return (
-    <div className="relative h-12 w-12">
-      <div className="absolute top-px right-px bottom-px left-px z-20 flex items-center justify-center rounded-full bg-black">
+    <div className={twMerge('relative h-12 w-12', className)}>
+      <div className="absolute inset-px z-20 flex items-center justify-center rounded-full bg-black">
         {children}
       </div>
 

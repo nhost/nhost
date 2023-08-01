@@ -1,6 +1,7 @@
 import rehypePrism from '@mapbox/rehype-prism'
 import nextMDX from '@next/mdx'
 import remarkGfm from 'remark-gfm'
+import { remarkCodeHike } from '@code-hike/mdx'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -34,7 +35,17 @@ const withMDX = nextMDX({
   extension: /\.mdx?$/,
   options: {
     providerImportSource: '@mdx-js/react',
-    remarkPlugins: [remarkGfm],
+    remarkPlugins: [
+      [
+        remarkCodeHike,
+        {
+          theme: 'github-dark',
+          lineNumbers: true,
+          showCopyButton: true,
+        },
+      ],
+      remarkGfm,
+    ],
     rehypePlugins: [rehypePrism],
   },
 })

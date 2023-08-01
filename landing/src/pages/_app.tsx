@@ -1,5 +1,6 @@
 import { AnnouncementProvider } from '@/providers/AnnouncementProvider'
 import '@/styles/globals.css'
+import '@code-hike/mdx/dist/index.css'
 import { baseUrl } from '@/utils/utils'
 import { NextPage } from 'next'
 import PlausibleProvider from 'next-plausible'
