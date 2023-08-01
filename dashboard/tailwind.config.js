@@ -18,6 +18,8 @@ module.exports = {
         github: '#24292E;',
         brown: '#382D22',
         copper: '#DD792D',
+        paper: '#171d26',
+        divider: '#2f363d',
       },
       boxShadow: {
         outline: 'inset 0 0 0 2px rgba(0, 82, 205, 0.6)',
