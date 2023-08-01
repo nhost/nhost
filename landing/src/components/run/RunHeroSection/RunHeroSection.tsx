@@ -13,9 +13,9 @@ export default function RunHeroSection() {
     <Container
       component="section"
       slotProps={{ root: { className: 'overflow-visible' } }}
-      className="relative flex flex-col space-y-14 md:flex-row md:space-x-14"
+      className="relative grid grid-cols-1 items-start gap-14 sm:gap-6 md:grid-cols-2"
     >
-      <div className="relative z-10 grid grid-flow-row content-center justify-start justify-items-start gap-4 pt-16 md:w-1/3 md:pt-42 lg:px-20">
+      <div className="relative z-10 grid grid-flow-row content-center justify-start justify-items-start gap-4 pt-16 md:pt-42 lg:px-20">
         <ProductIcon>
           <Image
             src="/products/play.svg"
@@ -54,7 +54,7 @@ export default function RunHeroSection() {
         />
       </div>
 
-      <div className="relative sm:pt-6 md:w-2/3 md:pt-24">
+      <div className="relative sm:pt-6 md:pt-24">
         <LineGrid className="md:-translate-x-11 md:-translate-y-11" priority />
 
         <Glow className="mx-auto h-[75%] w-[90%] opacity-40 blur-3xl" />

@@ -34,14 +34,12 @@ export default function Header({
 
   return (
     <>
-      {pathname !== '/product/run' && (
-        <Announcement href="/product/run">
-          <span className="">
-            Now you can bring custom and third-party OSS services to run
-            alongside your Nhost projects
-          </span>
-        </Announcement>
-      )}
+      <Announcement href="/product/run">
+        <span className="">
+          Now you can bring custom and third-party OSS services to run alongside
+          your Nhost projects
+        </span>
+      </Announcement>
 
       <Transition
         show={mobileMenuVisible}
