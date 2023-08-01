@@ -69,7 +69,7 @@ export default function RunHeroSection() {
           sizes="(max-width: 1024px) 50vw, 60vw"
         />
 
-        <div className="flex items-center justify-center space-x-2 rounded-xl bg-paper px-4 py-2">
+        <div className="flex items-center justify-center space-x-2 rounded-xl bg-paper py-2">
           <a
             href="https://lyrrkocvcfbfmmnicyuv-cat-generator-5000.svc.eu-central-1.nhost.run/cat"
             target="_blank"
@@ -78,7 +78,7 @@ export default function RunHeroSection() {
           >
             https://lyrrkocvcfbfmmnicyuv-cat-generator-5000.svc.eu-central-1.nhost.run/cat
           </a>
-          <div className="flex h-12 w-12 items-center ">
+          <div className="flex h-6 w-6 items-center ">
             <ArrowLeftIcon className="animate-bounce-right-left text-brand-main" />
           </div>
         </div>
