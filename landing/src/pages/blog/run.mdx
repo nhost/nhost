@@ -20,19 +20,19 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-Today we are releasing, in **private beta**, a feature that sets the stage for Nhost's next product phase. We are making Nhost the first truly extensible Backend-as-a-Service platform by bringing custom and third-party OSS services to run alongside your Nhost projects - With **Nhost Run**, you can bring your own services written in your favorite languages and create a truly customized backend infrastructure.
+Today we are very excited to release, in **private beta**, a feature that sets the stage for Nhost's next product phase. We are making Nhost the first truly extensible Backend-as-a-Service platform by bringing custom and third-party OSS services to run alongside your Nhost stack. With [Nhost Run](https://nhost.io/product/run), you can bring your own services written in your favorite languages and create a truly customized backend infrastructure.
 
 If you want to give Nhost Run a try, please reach out to us on Discord or send an email to support@nhost.io.
 
 ## Background and Motivation
 
-Our users love the default Nhost stack: PostgreSQL, Hasura, Auth, and Storage. But some of those users have specialized services running elsewhere (usually a PaaS provider like Render or Heroku) that they need to connect to. 
+Our users love the default Nhost stack: PostgreSQL, Hasura, Auth, and Storage. But some of those users have specialized services running elsewhere (usually a PaaS provider like Render or Heroku) that they need to interact with. 
 
 As applications grow in complexity, it's very important that your backend infrastructure is able to evolve and adapt to your application requirements. Nhost Run makes it easy to extend and customize the Nhost Stack according to users' particular needs. It unlocks the power and flexibility to run any custom and third-party OSS solutions, **all in the same place**.
 
 ## Nhost Run
 
-To ilustrate what Nhost Run is and how we can use it to extend the Nhost Stack, we will be running a small Python program that exposes an HTTP endpoint to retrieve pictures of...you guessed it... cats. For the sake of brevity, the image was already created by the Nhost team and pushed to our Docker Hub. You can find the Python program and Dockerfile in the following [repository](https://github.com/nhost/nhost-run-cat-generator). 
+To ilustrate what Nhost Run is and how we can use it to extend the Nhost Stack, we will be running a small Python program that exposes an HTTP endpoint to retrieve pictures of...you guessed it... cats. For the sake of brevity, the docker image was already created by the Nhost team and pushed to our Docker Hub. You can find the Python program and Dockerfile in the following [repository](https://github.com/nhost/nhost-run-cat-generator). 
 
 Run Services can be configured either by using the Nhost Dashboard or using a configuration file similar to [Nhost Config](https://nhost.io/blog/config). 
 
@@ -45,27 +45,29 @@ In the Nhost Dashboard, you will find a new `Run` option on the main sidebar. Cl
 Notes about the configuration:
 
 - The name of the service must be unique per project.
-- You can pull images from both public and private registries.
-- Run Services can be scaled using the same tools you already know and use: [Dedicated Compute](https://docs.nhost.io/platform/compute) and [Service Replicas](https://docs.nhost.io/platform/service-replicas).
-- You can define Environment Variables only available to this service.
+- You can pull images from public registries and Nhost's [private registry](https://docs.nhost.io/run/registry). 
+- Run Services can be scaled using the same tools you already know and use: [Dedicated Compute](https://docs.nhost.io/platform/compute), [Service Replicas](https://docs.nhost.io/platform/service-replicas), and [Metrics](https://docs.nhost.io/platform/metrics).
+- Environment Variables are defined per-service and aren't available anywhere else.
 - Ports can be of type `http`, `tcp`, and `udp`. At the moment, only `http` ports can be exposed to the internet.
 - After you define the service port, note the URL where the service will be available
 - Persistent volumes can be attached to a Run Service.
 
-And that is it! after clicking on `Create` and waiting for a couple of minutes, we have a Python+Flask HTTP API that retrieves cat pictures and runs alongside the rest of the Nhost stack. I think this is awesome!
+And that is it! after clicking on `Create` and waiting for a couple of minutes, we have a Python+Flask HTTP API that retrieves cat pictures and runs alongside the rest of the Nhost stack. How awesome is that?
 
 You can see the cute cat pictures [here](https://lyrrkocvcfbfmmnicyuv-cat-generator-5000.svc.eu-central-1.nhost.run/cat). Refreshing the page will return a different cat picture each time.
 
 ### Configuration File
 
-We can also use a configuration file to define Run Services as we already do for the default Nhost Stack with the `nhost.toml` file. Because we already created the service through the Dashboard, we will now use the Nhost CLI to pull the existing configuration and deploy a small change to it.
+We can also use a configuration file to define Run Services as we already to configure the main Nhost Stack using `nhost.toml`. Because we used the dashboard to create the service, we will now use the Nhost CLI to pull its configuration and deploy a small change to it.
 
 
 ```bash
-$ nhost run config-pull --service-id 8fa4048e-782f-445c-9a56-d583ecef1c76 --config nhost-service.toml
+$ nhost run config-pull \ 
+--service-id 8fa4048e-782f-445c-9a56-d583ecef1c76 \
+--config nhost-service.toml
 ```
 
-The service ID can be found on the list of services on the Run dashboard. The name of the config file is whatever you want (we use `nhost-service.toml`).  
+The service ID can be found in the dashboard and the name of the config file is up to you (we use `nhost-service.toml`).  
 
 The contents of `nhost-service.toml` should look like the following:
 
@@ -88,16 +90,18 @@ cpu = 62
 memory = 128
 ```
 
-We can now change the name of the service to `meow-generator`:
+We can now change the name of the service to something else:
 
 ```js
-name = 'cat-generator'
+name = 'meow-generator'
 ```
 
-and push those changes with:
+and push the change with:
 
 ```bash
-$ nhost run config-deploy --service-id 8fa4048e-782f-445c-9a56-d583ecef1c76 --config nhost-service.toml
+$ nhost run config-deploy \ 
+--service-id 8fa4048e-782f-445c-9a56-d583ecef1c76 \
+--config nhost-service.toml
 
 Getting secrets...
 Config is valid!
@@ -107,7 +111,9 @@ Service configuration replaced
 As with `nhost.toml`, we can check if a service configuration is valid with `nhost run config-validate`.
 
 ```bash
-$ nhost run config-validate --service-id 8fa4048e-782f-445c-9a56-d583ecef1c76 --config nhost-service.toml
+$ nhost run config-validate \ 
+--service-id 8fa4048e-782f-445c-9a56-d583ecef1c76 \
+--config nhost-service.toml
 
 Getting secrets...
 Config is valid!
