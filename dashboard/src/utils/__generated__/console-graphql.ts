@@ -20039,7 +20039,7 @@ export const ProjectFragmentDoc = gql`
   desiredState
   nhostBaseFolder
   providersUpdated
-  config(resolve: true) {
+  config(resolve: false) {
     observability {
       grafana {
         adminPassword

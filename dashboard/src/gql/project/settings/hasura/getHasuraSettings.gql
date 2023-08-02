@@ -1,5 +1,5 @@
 query GetHasuraSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     hasura {

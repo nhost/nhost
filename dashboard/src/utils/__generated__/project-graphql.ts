@@ -7703,7 +7703,7 @@ export type UpdateRunServiceConfigMutationResult = Apollo.MutationResult<UpdateR
 export type UpdateRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
 export const GetAuthenticationSettingsDocument = gql`
     query GetAuthenticationSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     auth {
@@ -7781,7 +7781,7 @@ export function refetchGetAuthenticationSettingsQuery(variables: GetAuthenticati
     }
 export const GetEnvironmentVariablesDocument = gql`
     query GetEnvironmentVariables($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     global {
@@ -7833,7 +7833,7 @@ export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVar
     }
 export const GetResourcesDocument = gql`
     query GetResources($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     ...ServiceResources
   }
 }
@@ -7871,7 +7871,7 @@ export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) 
     }
 export const GetStorageSettingsDocument = gql`
     query GetStorageSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     storage {
@@ -7913,7 +7913,7 @@ export function refetchGetStorageSettingsQuery(variables: GetStorageSettingsQuer
     }
 export const GetHasuraSettingsDocument = gql`
     query GetHasuraSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     hasura {
@@ -8046,7 +8046,7 @@ export type DeletePersonalAccessTokenMutationResult = Apollo.MutationResult<Dele
 export type DeletePersonalAccessTokenMutationOptions = Apollo.BaseMutationOptions<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>;
 export const GetRolesPermissionsDocument = gql`
     query GetRolesPermissions($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     auth {
@@ -8240,7 +8240,7 @@ export type UpdateSecretMutationResult = Apollo.MutationResult<UpdateSecretMutat
 export type UpdateSecretMutationOptions = Apollo.BaseMutationOptions<UpdateSecretMutation, UpdateSecretMutationVariables>;
 export const GetSignInMethodsDocument = gql`
     query GetSignInMethods($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     provider {
@@ -8404,7 +8404,7 @@ export function refetchGetSignInMethodsQuery(variables: GetSignInMethodsQueryVar
     }
 export const GetSmtpSettingsDocument = gql`
     query GetSmtpSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     provider {
