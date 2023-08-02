@@ -6,7 +6,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { EditRepositoryAndBranchSettings } from '@/features/projects/git/common/components/EditRepositoryAndBranchSettings';
 import type { EditRepositorySettingsFormData } from '@/features/projects/git/common/components/EditRepositorySettings';
-import { useUpdateApplicationMutation } from '@/generated/graphql';
+import { useUpdateApplicationMutation } from '@/generated/console-graphql';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 import { useFormContext } from 'react-hook-form';

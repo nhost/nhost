@@ -18,14 +18,14 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { CreateRoleForm } from '@/features/projects/roles/settings/components/CreateRoleForm';
 import { EditRoleForm } from '@/features/projects/roles/settings/components/EditRoleForm';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
-import type { Role } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import type { Role } from '@/types/application';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';

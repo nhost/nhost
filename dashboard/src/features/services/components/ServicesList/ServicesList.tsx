@@ -15,12 +15,12 @@ import {
   ServiceForm,
   type PortTypes,
 } from '@/features/services/components/ServiceForm';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { copy } from '@/utils/copy';
 import {
   useDeleteRunServiceConfigMutation,
   useDeleteRunServiceMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { copy } from '@/utils/copy';
 import type { ApolloError } from '@apollo/client';
 import { formatDistanceToNow } from 'date-fns';
 import type { RunService } from 'pages/[workspaceSlug]/[appSlug]/services';

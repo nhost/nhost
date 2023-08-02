@@ -1,4 +1,4 @@
-import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
+import { useGetBucketsQuery } from '@/generated/project-graphql';
 
 export default function useBuckets(
   props?: FlatArray<Parameters<typeof useGetBucketsQuery>, 1>,

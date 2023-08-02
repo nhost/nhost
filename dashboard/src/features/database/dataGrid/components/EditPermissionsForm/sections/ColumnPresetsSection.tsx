@@ -12,7 +12,7 @@ import type { RolePermissionEditorFormValues } from '@/features/database/dataGri
 import { useTableQuery } from '@/features/database/dataGrid/hooks/useTableQuery';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
+import { useGetRolesPermissionsQuery } from '@/generated/console-graphql';
 import { useTheme } from '@mui/material';
 import clsx from 'clsx';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';

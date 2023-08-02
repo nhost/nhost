@@ -21,14 +21,14 @@ import { EnvironmentFormSection } from '@/features/services/components/ServiceFo
 import { PortsFormSection } from '@/features/services/components/ServiceForm/components/PortsFormSection';
 import { ReplicasFormSection } from '@/features/services/components/ServiceForm/components/ReplicasFormSection';
 import { StorageFormSection } from '@/features/services/components/ServiceForm/components/StorageFormSection';
-import type { DialogFormProps } from '@/types/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   useInsertRunServiceConfigMutation,
   useInsertRunServiceMutation,
   useReplaceRunServiceConfigMutation,
   type ConfigRunServiceConfigInsertInput,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import type { DialogFormProps } from '@/types/common';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import type { ApolloError } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';

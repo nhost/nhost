@@ -8,7 +8,7 @@ import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
 import { BackupListItem } from '@/features/projects/backups/components/BackupListItem';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useGetApplicationBackupsQuery } from '@/utils/__generated__/graphql';
+import { useGetApplicationBackupsQuery } from '@/generated/console-graphql';
 
 export default function BackupList() {
   const { currentProject } = useCurrentWorkspaceAndProject();

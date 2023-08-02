@@ -7,7 +7,7 @@ import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -66,10 +66,12 @@ export default function WebAuthnSettings() {
         config: {
           auth: {
             method: {
-              webauthn: {...values,
-              relyingParty: {
-                name: currentProject.name,
-              }},
+              webauthn: {
+                ...values,
+                relyingParty: {
+                  name: currentProject.name,
+                },
+              },
             },
           },
         },

@@ -1,4 +1,4 @@
-import { useGetPlansQuery } from '@/utils/__generated__/graphql';
+import { useGetPlansQuery } from '@/generated/console-graphql';
 
 /**
  * Returns the Pro plan.

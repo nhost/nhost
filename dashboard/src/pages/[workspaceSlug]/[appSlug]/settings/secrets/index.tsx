@@ -18,13 +18,13 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { CreateSecretForm } from '@/features/projects/secrets/settings/components/CreateSecretForm';
 import { EditSecretForm } from '@/features/projects/secrets/settings/components/EditSecretForm';
-import type { Secret } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   GetSecretsDocument,
   useDeleteSecretMutation,
   useGetSecretsQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import type { Secret } from '@/types/application';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import type { ReactElement } from 'react';
 import { Fragment } from 'react';
 import { toast } from 'react-hot-toast';

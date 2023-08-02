@@ -11,7 +11,7 @@ import { HasuraPoolSizeSettings } from '@/features/hasura/settings/components/Ha
 import { HasuraRemoteSchemaPermissionsSettings } from '@/features/hasura/settings/components/HasuraRemoteSchemaPermissionsSettings';
 import { HasuraServiceVersionSettings } from '@/features/hasura/settings/components/HasuraServiceVersionSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
+import { useGetHasuraSettingsQuery } from '@/generated/console-graphql';
 import type { ReactElement } from 'react';
 
 export default function HasuraSettingsPage() {

@@ -1,4 +1,4 @@
-import type { JwtSecretFragment } from '@/utils/__generated__/graphql';
+import type { JwtSecretFragment } from '@/generated/console-graphql';
 import { test } from 'vitest';
 import getJwtSecretsWithoutFalsyValues from './getJwtSecretsWithoutFalsyValues';
 

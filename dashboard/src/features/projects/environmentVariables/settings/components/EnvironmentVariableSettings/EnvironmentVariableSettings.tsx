@@ -15,14 +15,14 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { CreateEnvironmentVariableForm } from '@/features/projects/environmentVariables/settings/components/CreateEnvironmentVariableForm';
 import { EditEnvironmentVariableForm } from '@/features/projects/environmentVariables/settings/components/EditEnvironmentVariableForm';
-import type { EnvironmentVariable } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
 import {
   GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import type { EnvironmentVariable } from '@/types/application';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';

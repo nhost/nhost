@@ -10,7 +10,7 @@ import { generateRandomDatabasePassword } from '@/features/database/common/utils
 import type { ResetDatabasePasswordFormValues } from '@/features/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { resetDatabasePasswordValidationSchema } from '@/features/database/settings/utils/resetDatabasePasswordValidationSchema';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useResetDatabasePasswordMutation } from '@/generated/graphql';
+import { useResetDatabasePasswordMutation } from '@/generated/console-graphql';
 import { useLeaveConfirm } from '@/hooks/useLeaveConfirm';
 import { copy } from '@/utils/copy';
 import { discordAnnounce } from '@/utils/discordAnnounce';

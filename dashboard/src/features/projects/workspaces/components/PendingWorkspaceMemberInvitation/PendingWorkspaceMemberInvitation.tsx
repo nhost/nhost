@@ -2,7 +2,7 @@ import { Avatar } from '@/components/ui/v1/Avatar';
 import { Chip } from '@/components/ui/v2/Chip';
 import { Text } from '@/components/ui/v2/Text';
 import { ManageWorkspaceMemberInviteMenu } from '@/features/projects/workspaces/components/ManageWorkspaceMemberInviteMenu';
-import type { GetWorkspaceMembersWorkspaceMemberInviteFragment } from '@/utils/__generated__/graphql';
+import type { GetWorkspaceMembersWorkspaceMemberInviteFragment } from '@/generated/console-graphql';
 
 export interface PendingWorkspaceMemberInvitationProps {
   workspaceMemberInvite: GetWorkspaceMembersWorkspaceMemberInviteFragment;

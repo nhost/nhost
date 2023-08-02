@@ -12,17 +12,17 @@ import { StagingMetadata } from '@/features/projects/common/components/StagingMe
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { getPreviousApplicationState } from '@/features/projects/common/utils/getPreviousApplicationState';
-import type { ApplicationState } from '@/types/application';
-import { ApplicationStatus } from '@/types/application';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getApplicationStatusString } from '@/utils/helpers';
-import { triggerToast } from '@/utils/toast';
 import {
   useDeleteApplicationMutation,
   useGetApplicationStateQuery,
   useInsertApplicationMutation,
   useUpdateApplicationMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import type { ApplicationState } from '@/types/application';
+import { ApplicationStatus } from '@/types/application';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { getApplicationStatusString } from '@/utils/helpers';
+import { triggerToast } from '@/utils/toast';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useState } from 'react';

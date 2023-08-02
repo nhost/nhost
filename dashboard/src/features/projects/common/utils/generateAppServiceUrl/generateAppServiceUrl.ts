@@ -1,3 +1,4 @@
+import type { ProjectFragment } from '@/generated/console-graphql';
 import {
   getAuthServiceUrl,
   getDatabaseServiceUrl,
@@ -7,7 +8,6 @@ import {
   getStorageServiceUrl,
   isPlatform,
 } from '@/utils/env';
-import type { ProjectFragment } from '@/utils/__generated__/graphql';
 
 export type NhostService =
   | 'auth'

@@ -1,8 +1,8 @@
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { GetWorkspaceAndProjectDocument } from '@/generated/console-graphql';
 import type { Project, Workspace } from '@/types/application';
 import { ApplicationStatus } from '@/types/application';
 import { getHasuraAdminSecret } from '@/utils/env';
-import { GetWorkspaceAndProjectDocument } from '@/utils/__generated__/graphql';
 import { useAuthenticationStatus, useNhostClient } from '@nhost/nextjs';
 import type { RefetchOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';

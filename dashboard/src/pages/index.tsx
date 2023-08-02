@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import { WorkspaceAndProjectList } from '@/features/projects/common/components/WorkspaceAndProjectList';
 import { WorkspaceSidebar } from '@/features/projects/common/components/WorkspaceSidebar';
-import { useGetAllWorkspacesAndProjectsQuery } from '@/utils/__generated__/graphql';
+import { useGetAllWorkspacesAndProjectsQuery } from '@/generated/console-graphql';
 import { darken } from '@mui/system';
 import { useUserData } from '@nhost/nextjs';
 import NavLink from 'next/link';

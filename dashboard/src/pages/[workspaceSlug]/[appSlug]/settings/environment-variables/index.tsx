@@ -4,7 +4,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { EnvironmentVariableSettings } from '@/features/projects/environmentVariables/settings/components/EnvironmentVariableSettings';
 import { SystemEnvironmentVariableSettings } from '@/features/projects/environmentVariables/settings/components/SystemEnvironmentVariableSettings';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
+import { useGetEnvironmentVariablesQuery } from '@/generated/console-graphql';
 import type { ReactElement } from 'react';
 
 export default function EnvironmentVariablesPage() {

@@ -3,9 +3,11 @@ import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import {
+  useRemoteAppGetUsersCustomQuery,
+  type RemoteAppGetUsersCustomQuery,
+} from '@/generated/project-graphql';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import type { RemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
-import { useRemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
 
 export interface UserSelectProps {
   /**

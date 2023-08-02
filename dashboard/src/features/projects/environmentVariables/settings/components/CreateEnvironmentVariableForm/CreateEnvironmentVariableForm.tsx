@@ -8,13 +8,13 @@ import {
   BaseEnvironmentVariableForm,
   baseEnvironmentVariableFormValidationSchema,
 } from '@/features/projects/environmentVariables/settings/components/BaseEnvironmentVariableForm';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
 import {
   GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';

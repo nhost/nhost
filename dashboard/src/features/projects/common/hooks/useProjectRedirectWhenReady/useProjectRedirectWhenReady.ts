@@ -1,13 +1,13 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { ApplicationStatus } from '@/types/application';
 import type {
   GetApplicationStateQuery,
   GetApplicationStateQueryVariables,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useGetApplicationStateQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import { ApplicationStatus } from '@/types/application';
 import type { QueryHookOptions } from '@apollo/client';
 import { useEffect } from 'react';
 

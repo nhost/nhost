@@ -16,21 +16,21 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
 import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
-import { useSubmitState } from '@/hooks/useSubmitState';
-import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getErrorMessage } from '@/utils/getErrorMessage';
 import type {
   PrefetchNewAppPlansFragment,
   PrefetchNewAppRegionsFragment,
   PrefetchNewAppWorkspaceFragment,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useGetFreeAndActiveProjectsQuery,
   useInsertApplicationMutation,
   usePrefetchNewAppQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import { useSubmitState } from '@/hooks/useSubmitState';
+import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getErrorMessage } from '@/utils/getErrorMessage';
 import type { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';

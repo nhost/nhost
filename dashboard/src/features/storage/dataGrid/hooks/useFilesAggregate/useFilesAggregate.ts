@@ -1,5 +1,7 @@
-import type { GetFilesAggregateQuery } from '@/utils/__generated__/graphql';
-import { useGetFilesAggregateQuery } from '@/utils/__generated__/graphql';
+import {
+  useGetFilesAggregateQuery,
+  type GetFilesAggregateQuery,
+} from '@/generated/project-graphql';
 import type { QueryHookOptions } from '@apollo/client';
 
 export type UseFilesAggregateOptions = {

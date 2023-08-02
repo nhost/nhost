@@ -13,7 +13,7 @@ import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
 import { getServerError } from '@/utils/getServerError';

@@ -6,7 +6,7 @@ import {
   GetAllWorkspacesAndProjectsDocument,
   GetWorkspaceMemberInvitesToManageDocument,
   useGetWorkspaceMemberInvitesToManageQuery,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { nhost } from '@/utils/nhost';
 import { triggerToast } from '@/utils/toast';

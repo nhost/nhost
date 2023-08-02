@@ -9,7 +9,7 @@ import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import {
   AUTH_GRAVATAR_DEFAULT,
   AUTH_GRAVATAR_RATING,

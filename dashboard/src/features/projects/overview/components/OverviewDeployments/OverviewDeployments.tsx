@@ -11,11 +11,11 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentListItem } from '@/features/projects/deployments/components/DeploymentListItem';
 import { useGitHubModal } from '@/features/projects/git/common/hooks/useGitHubModal';
-import { getLastLiveDeployment } from '@/utils/helpers';
 import {
   useGetDeploymentsSubSubscription,
   useScheduledOrPendingDeploymentsSubSubscription,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import { getLastLiveDeployment } from '@/utils/helpers';
 import NavLink from 'next/link';
 import { Fragment } from 'react';
 

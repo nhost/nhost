@@ -11,7 +11,7 @@ import { ColumnAutocomplete } from '@/features/database/dataGrid/components/Colu
 import type { HasuraOperator } from '@/features/database/dataGrid/types/dataBrowser';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
-import { useGetRolesPermissionsQuery } from '@/utils/__generated__/graphql';
+import { useGetRolesPermissionsQuery } from '@/generated/console-graphql';
 import { useController, useFormContext, useWatch } from 'react-hook-form';
 import useRuleGroupEditor from './useRuleGroupEditor';
 

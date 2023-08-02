@@ -22,8 +22,8 @@ import {
 } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { EditJwtSecretForm } from '@/features/projects/environmentVariables/settings/components/EditJwtSecretForm';
 import { getJwtSecretsWithoutFalsyValues } from '@/features/projects/environmentVariables/settings/utils/getJwtSecretsWithoutFalsyValues';
+import { useGetEnvironmentVariablesQuery } from '@/generated/console-graphql';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { Fragment, useState } from 'react';
 
 export default function SystemEnvironmentVariableSettings() {

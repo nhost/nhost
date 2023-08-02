@@ -19,7 +19,7 @@ import { WebAuthnSettings } from '@/features/authentication/settings/components/
 import { WindowsLiveProviderSettings } from '@/features/authentication/settings/components/WindowsLiveProviderSettings';
 import { WorkOsProviderSettings } from '@/features/authentication/settings/components/WorkOsProviderSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useGetSignInMethodsQuery } from '@/generated/graphql';
+import { useGetSignInMethodsQuery } from '@/generated/console-graphql';
 import type { ReactElement } from 'react';
 
 export default function SettingsSignInMethodsPage() {

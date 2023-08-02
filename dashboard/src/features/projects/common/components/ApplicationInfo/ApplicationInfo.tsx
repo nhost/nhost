@@ -6,7 +6,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteApplicationMutation,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
 import { getServerError } from '@/utils/getServerError';

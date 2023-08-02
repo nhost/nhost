@@ -4,11 +4,9 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { LogsBody } from '@/features/projects/logs/components/LogsBody';
 import { LogsHeader } from '@/features/projects/logs/components/LogsHeader';
 import { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
+import { GetLogsSubscriptionDocument } from '@/generated/bragi-graphql';
+import { useGetProjectLogsQuery } from '@/generated/console-graphql';
 import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
-import {
-  GetLogsSubscriptionDocument,
-  useGetProjectLogsQuery,
-} from '@/utils/__generated__/graphql';
 import { subMinutes } from 'date-fns';
 import type { ReactElement } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';

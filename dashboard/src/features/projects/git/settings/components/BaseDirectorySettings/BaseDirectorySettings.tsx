@@ -8,7 +8,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import {
   GetAllWorkspacesAndProjectsDocument,
   useUpdateApplicationMutation,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { getServerError } from '@/utils/getServerError';

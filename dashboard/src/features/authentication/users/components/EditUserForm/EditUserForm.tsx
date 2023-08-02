@@ -17,16 +17,16 @@ import { EditUserPasswordForm } from '@/features/authentication/users/components
 import { getReadableProviderName } from '@/features/authentication/users/utils/getReadableProviderName';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
+import { useGetRolesPermissionsQuery } from '@/generated/console-graphql';
+import {
+  RemoteAppGetUsersDocument,
+  useUpdateRemoteAppUserMutation,
+} from '@/generated/project-graphql';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
 import { getServerError } from '@/utils/getServerError';
-import {
-  RemoteAppGetUsersDocument,
-  useGetRolesPermissionsQuery,
-  useUpdateRemoteAppUserMutation,
-} from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
 import { format } from 'date-fns';

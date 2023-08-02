@@ -6,10 +6,9 @@ import { TableContainer } from '@/components/ui/v2/TableContainer';
 import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
-import type {
-  GetLogsSubscriptionSubscription,
-  GetProjectLogsQuery,
-} from '@/generated/graphql';
+import type { GetProjectLogsQuery } from '@/generated/console-graphql';
+
+import type { GetLogsSubscriptionSubscription } from '@/generated/bragi-graphql';
 import type { QueryResult, SubscriptionResult } from '@apollo/client';
 import {
   flexRender,

@@ -9,13 +9,13 @@ import {
   baseRoleFormValidationSchema,
 } from '@/features/projects/roles/settings/components/BaseRoleForm';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';

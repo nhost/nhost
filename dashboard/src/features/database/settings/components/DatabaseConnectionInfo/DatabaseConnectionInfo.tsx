@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
+import { useGetPostgresSettingsQuery } from '@/generated/console-graphql';
 import { copy } from '@/utils/copy';
-import { useGetPostgresSettingsQuery } from '@/utils/__generated__/graphql';
 
 export default function DatabaseConnectionInfo() {
   const { currentProject } = useCurrentWorkspaceAndProject();

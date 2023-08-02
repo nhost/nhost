@@ -1,5 +1,5 @@
+import type { DeploymentRowFragment } from '@/generated/console-graphql';
 import { ApplicationStatus } from '@/types/application';
-import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import slugify from 'slugify';
 
 export function getLastLiveDeployment(deployments?: DeploymentRowFragment[]) {

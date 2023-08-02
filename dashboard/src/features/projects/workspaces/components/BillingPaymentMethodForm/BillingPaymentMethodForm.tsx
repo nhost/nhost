@@ -7,7 +7,7 @@ import {
   refetchPrefetchNewAppQuery,
   useInsertNewPaymentMethodMutation,
   useUpdateWorkspaceMutation,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { nhost } from '@/utils/nhost';

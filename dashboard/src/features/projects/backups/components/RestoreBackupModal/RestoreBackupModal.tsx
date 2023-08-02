@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useRestoreApplicationDatabaseMutation } from '@/generated/console-graphql';
 import type { Backup } from '@/types/application';
 import { triggerToast } from '@/utils/toast';
-import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
 import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 

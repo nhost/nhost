@@ -3,7 +3,7 @@ import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { StorageServiceVersionSettings } from '@/features/storage/settings/components/HasuraServiceVersionSettings';
-import { useGetStorageSettingsQuery } from '@/utils/__generated__/graphql';
+import { useGetStorageSettingsQuery } from '@/generated/console-graphql';
 import type { ReactElement } from 'react';
 
 export default function StorageSettingsPage() {

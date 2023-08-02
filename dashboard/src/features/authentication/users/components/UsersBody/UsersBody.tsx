@@ -16,16 +16,16 @@ import type { EditUserFormValues } from '@/features/authentication/users/compone
 import { getReadableProviderName } from '@/features/authentication/users/utils/getReadableProviderName';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
-import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { useGetRolesPermissionsQuery } from '@/generated/console-graphql';
 import {
   useDeleteRemoteAppUserRolesMutation,
-  useGetRolesPermissionsQuery,
   useInsertRemoteAppUserRolesMutation,
   useRemoteAppDeleteUserMutation,
   useUpdateRemoteAppUserMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/project-graphql';
+import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { useTheme } from '@mui/material';
 import { formatDistance } from 'date-fns';
 import kebabCase from 'just-kebab-case';

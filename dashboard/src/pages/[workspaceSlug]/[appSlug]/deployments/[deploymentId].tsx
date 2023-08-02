@@ -9,7 +9,7 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
-import { useDeploymentSubSubscription } from '@/generated/graphql';
+import { useDeploymentSubSubscription } from '@/generated/console-graphql';
 import { format, formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';

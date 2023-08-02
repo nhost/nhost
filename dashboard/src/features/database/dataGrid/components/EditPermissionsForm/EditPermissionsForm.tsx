@@ -22,9 +22,9 @@ import type {
   HasuraMetadataPermission,
 } from '@/features/database/dataGrid/types/dataBrowser';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useGetRemoteAppRolesQuery } from '@/generated/project-graphql';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
-import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
 import NavLink from 'next/link';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';

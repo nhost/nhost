@@ -3,7 +3,7 @@ import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useGetApplicationStateQuery,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { ApplicationStatus } from '@/types/application';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { useCallback, useEffect, useState } from 'react';

@@ -14,18 +14,18 @@ import { TotalResourcesFormFragment } from '@/features/projects/resources/settin
 import { calculateBillableResources } from '@/features/projects/resources/settings/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import type { GetResourcesQuery } from '@/generated/console-graphql';
+import {
+  GetResourcesDocument,
+  useGetResourcesQuery,
+  useUpdateConfigMutation,
+} from '@/generated/console-graphql';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
 } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
-import type { GetResourcesQuery } from '@/utils/__generated__/graphql';
-import {
-  GetResourcesDocument,
-  useGetResourcesQuery,
-  useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';

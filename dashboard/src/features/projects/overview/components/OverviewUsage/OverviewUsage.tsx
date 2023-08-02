@@ -6,8 +6,10 @@ import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   useGetAppFunctionsMetadataQuery,
   useGetProjectMetricsQuery,
-  useGetRemoteAppMetricsQuery,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
+
+import { useGetRemoteAppMetricsQuery } from '@/generated/project-graphql';
+
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import { prettifySize } from '@/utils/prettifySize';
 

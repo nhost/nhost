@@ -3,13 +3,13 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';

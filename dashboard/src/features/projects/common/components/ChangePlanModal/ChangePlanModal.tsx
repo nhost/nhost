@@ -15,7 +15,7 @@ import {
   useGetAppPlanAndGlobalPlansQuery,
   useGetPaymentMethodsQuery,
   useUpdateApplicationMutation,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { ApplicationStatus } from '@/types/application';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';

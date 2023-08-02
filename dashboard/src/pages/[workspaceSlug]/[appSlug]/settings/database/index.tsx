@@ -5,7 +5,7 @@ import { DatabaseConnectionInfo } from '@/features/database/settings/components/
 import { DatabaseServiceVersionSettings } from '@/features/database/settings/components/DatabaseServiceVersionSettings';
 import { ResetDatabasePasswordSettings } from '@/features/database/settings/components/ResetDatabasePasswordSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useGetPostgresSettingsQuery } from '@/generated/graphql';
+import { useGetPostgresSettingsQuery } from '@/generated/console-graphql';
 import type { ReactElement } from 'react';
 
 export default function DatabaseSettingsPage() {

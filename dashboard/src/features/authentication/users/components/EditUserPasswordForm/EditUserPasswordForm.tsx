@@ -4,15 +4,15 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useGetSignInMethodsQuery } from '@/generated/console-graphql';
+import {
+  useUpdateRemoteAppUserMutation,
+  type RemoteAppGetUsersQuery,
+} from '@/generated/project-graphql';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
-import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
-import {
-  useGetSignInMethodsQuery,
-  useUpdateRemoteAppUserMutation,
-} from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import bcrypt from 'bcryptjs';
 import { useState } from 'react';

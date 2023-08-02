@@ -9,7 +9,7 @@ import {
   GetPostgresSettingsDocument,
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
 import { yupResolver } from '@hookform/resolvers/yup';

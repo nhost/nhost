@@ -10,13 +10,13 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
-import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
+import type { DeploymentRowFragment } from '@/generated/console-graphql';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useInsertDeploymentMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import type { MouseEvent } from 'react';
 import { toast } from 'react-hot-toast';

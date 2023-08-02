@@ -1,4 +1,4 @@
-import type { JwtSecretFragment } from '@/utils/__generated__/graphql';
+import type { JwtSecretFragment } from '@/generated/console-graphql';
 
 /**
  * Returns a new array of JWT secrets without the keys that had falsy values in

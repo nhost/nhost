@@ -12,7 +12,7 @@ import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { EditRepositorySettings } from '@/features/projects/git/common/components/EditRepositorySettings';
-import { useGetGithubRepositoriesQuery } from '@/generated/graphql';
+import { useGetGithubRepositoriesQuery } from '@/generated/console-graphql';
 import { Divider } from '@mui/material';
 import debounce from 'lodash.debounce';
 import type { ChangeEvent } from 'react';

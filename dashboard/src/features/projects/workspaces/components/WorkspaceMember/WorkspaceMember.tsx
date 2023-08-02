@@ -2,8 +2,8 @@ import { Avatar } from '@/components/ui/v1/Avatar';
 import { Chip } from '@/components/ui/v2/Chip';
 import { Text } from '@/components/ui/v2/Text';
 import { ManageWorkspaceMemberMenu } from '@/features/projects/workspaces/components/ManageWorkspaceMemberMenu';
+import type { GetWorkspaceMembersWorkspaceMemberFragment } from '@/generated/console-graphql';
 import { capitalize } from '@/utils/helpers';
-import type { GetWorkspaceMembersWorkspaceMemberFragment } from '@/utils/__generated__/graphql';
 import { useUserData } from '@nhost/nextjs';
 
 export interface WorkspaceMemberProps {

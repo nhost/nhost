@@ -16,7 +16,7 @@ import {
   GetAllWorkspacesAndProjectsDocument,
   useGetFreeAndActiveProjectsQuery,
   useUnpauseApplicationMutation,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import type { ApolloError } from '@apollo/client';

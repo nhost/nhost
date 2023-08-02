@@ -7,7 +7,7 @@ import type {
   ProjectFragment,
   SecretFragment,
   WorkspaceFragment,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
 
 /**
  * The current state of the application.

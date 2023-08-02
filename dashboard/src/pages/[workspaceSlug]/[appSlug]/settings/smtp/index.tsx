@@ -8,12 +8,12 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   GetSmtpSettingsDocument,
   useGetSmtpSettingsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { yupResolver } from '@hookform/resolvers/yup';
 import type { ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';

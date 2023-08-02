@@ -11,13 +11,13 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
-import type { GetPaymentMethodsFragment } from '@/generated/graphql';
+import type { GetPaymentMethodsFragment } from '@/generated/console-graphql';
 import {
   refetchGetPaymentMethodsQuery,
   useDeletePaymentMethodMutation,
   useGetPaymentMethodsQuery,
   useSetNewDefaultPaymentMethodMutation,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { triggerToast } from '@/utils/toast';
 import { useTheme } from '@mui/material';
 import { formatDistanceToNowStrict } from 'date-fns';

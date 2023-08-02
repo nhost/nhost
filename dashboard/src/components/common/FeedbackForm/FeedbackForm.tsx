@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useInsertFeedbackOneMutation } from '@/utils/__generated__/graphql';
+import { useInsertFeedbackOneMutation } from '@/generated/console-graphql';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import type { DetailedHTMLProps, HTMLProps } from 'react';

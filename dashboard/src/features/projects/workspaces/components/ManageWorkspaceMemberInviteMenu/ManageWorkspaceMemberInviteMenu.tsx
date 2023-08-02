@@ -4,12 +4,12 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { RemoveWorkspaceMemberInviteModal } from '@/features/projects/workspaces/components/RemoveWorkspaceMemberInviteModal';
-import type { GetWorkspaceMembersWorkspaceMemberInviteFragment } from '@/generated/graphql';
+import type { GetWorkspaceMembersWorkspaceMemberInviteFragment } from '@/generated/console-graphql';
 import {
   refetchGetWorkspaceMembersQuery,
   useDeleteWorkspaceMemberInvitesMutation,
   useUpdateWorkspaceMemberInviteMutation,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { capitalize } from '@/utils/helpers';
 import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';

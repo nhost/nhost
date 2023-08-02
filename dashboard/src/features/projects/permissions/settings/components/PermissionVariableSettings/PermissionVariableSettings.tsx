@@ -18,14 +18,14 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { CreatePermissionVariableForm } from '@/features/projects/permissions/settings/components/CreatePermissionVariableForm';
 import { EditPermissionVariableForm } from '@/features/projects/permissions/settings/components/EditPermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
-import type { PermissionVariable } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import type { PermissionVariable } from '@/types/application';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { Fragment } from 'react';
 import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';

@@ -14,7 +14,7 @@ import {
   useDeleteApplicationMutation,
   usePauseApplicationMutation,
   useUpdateApplicationMutation,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { getServerError } from '@/utils/getServerError';

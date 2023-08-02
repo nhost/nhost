@@ -1,6 +1,6 @@
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
-import { useGetCountriesQuery } from '@/utils/__generated__/graphql';
+import { useGetCountriesQuery } from '@/generated/console-graphql';
 
 export type CountrySelectorProps = {
   value: string;

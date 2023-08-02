@@ -6,14 +6,14 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { PendingWorkspaceMemberInvitation } from '@/features/projects/workspaces/components/PendingWorkspaceMemberInvitation';
 import { WorkspaceMember } from '@/features/projects/workspaces/components/WorkspaceMember';
-import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getErrorMessage } from '@/utils/getErrorMessage';
-import { triggerToast } from '@/utils/toast';
 import {
   refetchGetWorkspaceMembersQuery,
   useGetWorkspaceMembersQuery,
   useInsertWorkspaceMemberInviteMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import { discordAnnounce } from '@/utils/discordAnnounce';
+import { getErrorMessage } from '@/utils/getErrorMessage';
+import { triggerToast } from '@/utils/toast';
 import { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import validator from 'validator';

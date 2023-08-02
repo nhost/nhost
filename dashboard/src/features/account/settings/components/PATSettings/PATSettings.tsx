@@ -15,13 +15,13 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { CreatePATForm } from '@/features/account/settings/components/CreatePATForm';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
 import {
   GetPersonalAccessTokensDocument,
   useDeletePersonalAccessTokenMutation,
   useGetPersonalAccessTokensQuery,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
 import { Fragment } from 'react';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';

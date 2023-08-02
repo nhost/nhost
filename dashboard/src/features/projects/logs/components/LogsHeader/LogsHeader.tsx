@@ -10,7 +10,7 @@ import type { LogsCustomInterval } from '@/features/projects/logs/utils/constant
 import { LOGS_AVAILABLE_INTERVALS } from '@/features/projects/logs/utils/constants/intervals';
 import type { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
 import { LOGS_AVAILABLE_SERVICES } from '@/features/projects/logs/utils/constants/services';
-import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
+import { useGetRunServicesQuery } from '@/generated/console-graphql';
 import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';

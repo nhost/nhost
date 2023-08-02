@@ -2,15 +2,15 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import type { DialogFormProps } from '@/types/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
-import { slugifyString } from '@/utils/helpers';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useInsertWorkspaceMutation,
   useUpdateWorkspaceMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import type { DialogFormProps } from '@/types/common';
+import { getToastStyleProps } from '@/utils/constants/settings';
+import { getServerError } from '@/utils/getServerError';
+import { slugifyString } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';

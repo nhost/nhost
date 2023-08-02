@@ -10,7 +10,7 @@ import {
   useGetDeploymentsSubSubscription,
   useLatestLiveDeploymentSubSubscription,
   useScheduledOrPendingDeploymentsSubSubscription,
-} from '@/generated/graphql';
+} from '@/generated/console-graphql';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Fragment } from 'react';

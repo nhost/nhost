@@ -9,13 +9,13 @@ import {
   basePermissionVariableValidationSchema,
 } from '@/features/projects/permissions/settings/components/BasePermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
-import type { PermissionVariable } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
-} from '@/utils/__generated__/graphql';
+} from '@/generated/console-graphql';
+import type { PermissionVariable } from '@/types/application';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
