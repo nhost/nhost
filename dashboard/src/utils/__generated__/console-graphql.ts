@@ -765,6 +765,16 @@ export type ConfigRunServiceResourcesUpdateInput = {
   storage?: InputMaybe<Array<ConfigRunServiceResourcesStorageUpdateInput>>;
 };
 
+export type ConfigSecret = {
+  __typename?: 'ConfigSecret';
+  name: Scalars['String'];
+};
+
+export type ConfigSecretInsertInput = {
+  name: Scalars['String'];
+  value: Scalars['String'];
+};
+
 export type ConfigSms = {
   __typename?: 'ConfigSms';
   accountSid: Scalars['String'];
@@ -1076,7 +1086,7 @@ export type AppStateHistory_Variance_Order_By = {
 /** columns and relationships of "apps" */
 export type Apps = {
   __typename?: 'apps';
-  appSecrets: Array<ConfigEnvironmentVariable>;
+  appSecrets: Array<ConfigSecret>;
   /** An array relationship */
   appStates: Array<AppStateHistory>;
   /** An array relationship */
@@ -1136,12 +1146,6 @@ export type AppsBackupsArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Backups_Order_By>>;
   where?: InputMaybe<Backups_Bool_Exp>;
-};
-
-
-/** columns and relationships of "apps" */
-export type AppsConfigArgs = {
-  resolve: Scalars['Boolean'];
 };
 
 
@@ -3062,7 +3066,7 @@ export type Mutation_Root = {
   deleteRunServiceConfig?: Maybe<ConfigRunServiceConfig>;
   /** delete data from the table: "run_service" */
   deleteRunServices?: Maybe<Run_Service_Mutation_Response>;
-  deleteSecret?: Maybe<ConfigEnvironmentVariable>;
+  deleteSecret?: Maybe<ConfigSecret>;
   /** delete single row from the table: "workspaces" */
   deleteWorkspace?: Maybe<Workspaces>;
   /** delete single row from the table: "workspace_members" */
@@ -3104,7 +3108,7 @@ export type Mutation_Root = {
   insertRunServiceConfig: ConfigRunServiceConfig;
   /** insert data into the table: "run_service" */
   insertRunServices?: Maybe<Run_Service_Mutation_Response>;
-  insertSecret: ConfigEnvironmentVariable;
+  insertSecret: ConfigSecret;
   /** insert a single row into the table: "workspaces" */
   insertWorkspace?: Maybe<Workspaces>;
   /** insert a single row into the table: "workspace_members" */
@@ -3134,7 +3138,7 @@ export type Mutation_Root = {
   /** update data of the table: "payment_methods" */
   updatePaymentMethods?: Maybe<PaymentMethods_Mutation_Response>;
   updateRunServiceConfig: ConfigRunServiceConfig;
-  updateSecret: ConfigEnvironmentVariable;
+  updateSecret: ConfigSecret;
   /** update single row of the table: "workspaces" */
   updateWorkspace?: Maybe<Workspaces>;
   /** update single row of the table: "workspace_members" */
@@ -3388,7 +3392,7 @@ export type Mutation_RootInsertRunServicesArgs = {
 /** mutation root */
 export type Mutation_RootInsertSecretArgs = {
   appID: Scalars['uuid'];
-  secret: ConfigEnvironmentVariableInsertInput;
+  secret: ConfigSecretInsertInput;
 };
 
 
@@ -3516,7 +3520,7 @@ export type Mutation_RootUpdateRunServiceConfigArgs = {
 /** mutation root */
 export type Mutation_RootUpdateSecretArgs = {
   appID: Scalars['uuid'];
-  secret: ConfigEnvironmentVariableInsertInput;
+  secret: ConfigSecretInsertInput;
 };
 
 
@@ -3995,7 +3999,7 @@ export type Query_Root = {
   __typename?: 'query_root';
   /** fetch data from the table: "apps" using primary key columns */
   app?: Maybe<Apps>;
-  appSecrets: Array<ConfigEnvironmentVariable>;
+  appSecrets: Array<ConfigSecret>;
   /** fetch data from the table: "app_state_history" */
   appStateHistories: Array<AppStateHistory>;
   /** fetch data from the table: "app_state_history" using primary key columns */
@@ -4178,13 +4182,11 @@ export type Query_RootCliTokensArgs = {
 
 export type Query_RootConfigArgs = {
   appID: Scalars['uuid'];
-  resolve: Scalars['Boolean'];
 };
 
 
 export type Query_RootConfigRawJsonArgs = {
   appID: Scalars['uuid'];
-  resolve: Scalars['Boolean'];
 };
 
 
@@ -4412,14 +4414,12 @@ export type Query_RootRunServiceArgs = {
 
 export type Query_RootRunServiceConfigArgs = {
   appID: Scalars['uuid'];
-  resolve: Scalars['Boolean'];
   serviceID: Scalars['uuid'];
 };
 
 
 export type Query_RootRunServiceConfigRawJsonArgs = {
   appID: Scalars['uuid'];
-  resolve: Scalars['Boolean'];
   serviceID: Scalars['uuid'];
 };
 
@@ -4797,12 +4797,6 @@ export type Run_Service = {
   creatorUserId: Scalars['uuid'];
   id: Scalars['uuid'];
   updatedAt: Scalars['timestamptz'];
-};
-
-
-/** columns and relationships of "run_service" */
-export type Run_ServiceConfigArgs = {
-  resolve: Scalars['Boolean'];
 };
 
 /** aggregated selection of "run_service" */
@@ -6837,32 +6831,32 @@ export type DeleteSecretMutationVariables = Exact<{
 }>;
 
 
-export type DeleteSecretMutation = { __typename?: 'mutation_root', deleteSecret?: { __typename?: 'ConfigEnvironmentVariable', name: string } | null };
+export type DeleteSecretMutation = { __typename?: 'mutation_root', deleteSecret?: { __typename?: 'ConfigSecret', name: string } | null };
 
-export type SecretFragment = { __typename?: 'ConfigEnvironmentVariable', name: string };
+export type SecretFragment = { __typename?: 'ConfigSecret', name: string };
 
 export type GetSecretsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetSecretsQuery = { __typename?: 'query_root', appSecrets: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string }> };
+export type GetSecretsQuery = { __typename?: 'query_root', appSecrets: Array<{ __typename?: 'ConfigSecret', name: string }> };
 
 export type InsertSecretMutationVariables = Exact<{
   appId: Scalars['uuid'];
-  secret: ConfigEnvironmentVariableInsertInput;
+  secret: ConfigSecretInsertInput;
 }>;
 
 
-export type InsertSecretMutation = { __typename?: 'mutation_root', insertSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+export type InsertSecretMutation = { __typename?: 'mutation_root', insertSecret: { __typename?: 'ConfigSecret', name: string } };
 
 export type UpdateSecretMutationVariables = Exact<{
   appId: Scalars['uuid'];
-  secret: ConfigEnvironmentVariableInsertInput;
+  secret: ConfigSecretInsertInput;
 }>;
 
 
-export type UpdateSecretMutation = { __typename?: 'mutation_root', updateSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+export type UpdateSecretMutation = { __typename?: 'mutation_root', updateSecret: { __typename?: 'ConfigSecret', name: string } };
 
 export type DeleteRunServiceMutationVariables = Exact<{
   serviceID: Scalars['uuid'];
@@ -6881,7 +6875,6 @@ export type DeleteRunServiceConfigMutation = { __typename?: 'mutation_root', del
 
 export type GetRunServiceQueryVariables = Exact<{
   id: Scalars['uuid'];
-  resolve: Scalars['Boolean'];
 }>;
 
 
@@ -6889,7 +6882,6 @@ export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __t
 
 export type GetRunServicesQueryVariables = Exact<{
   appID: Scalars['uuid'];
-  resolve: Scalars['Boolean'];
   limit: Scalars['Int'];
   offset: Scalars['Int'];
 }>;
@@ -7208,7 +7200,7 @@ export const ProjectFragmentDoc = gql`
   desiredState
   nhostBaseFolder
   providersUpdated
-  config(resolve: true) {
+  config {
     observability {
       grafana {
         adminPassword
@@ -7322,7 +7314,7 @@ export const GetPaymentMethodsFragmentDoc = gql`
 }
     `;
 export const SecretFragmentDoc = gql`
-    fragment Secret on ConfigEnvironmentVariable {
+    fragment Secret on ConfigSecret {
   name
 }
     `;
@@ -8724,7 +8716,7 @@ export function refetchGetSecretsQuery(variables: GetSecretsQueryVariables) {
       return { query: GetSecretsDocument, variables: variables }
     }
 export const InsertSecretDocument = gql`
-    mutation InsertSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
+    mutation InsertSecret($appId: uuid!, $secret: ConfigSecretInsertInput!) {
   insertSecret(appID: $appId, secret: $secret) {
     name
   }
@@ -8758,7 +8750,7 @@ export type InsertSecretMutationHookResult = ReturnType<typeof useInsertSecretMu
 export type InsertSecretMutationResult = Apollo.MutationResult<InsertSecretMutation>;
 export type InsertSecretMutationOptions = Apollo.BaseMutationOptions<InsertSecretMutation, InsertSecretMutationVariables>;
 export const UpdateSecretDocument = gql`
-    mutation UpdateSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
+    mutation UpdateSecret($appId: uuid!, $secret: ConfigSecretInsertInput!) {
   updateSecret(appID: $appId, secret: $secret) {
     name
   }
@@ -8859,10 +8851,10 @@ export type DeleteRunServiceConfigMutationHookResult = ReturnType<typeof useDele
 export type DeleteRunServiceConfigMutationResult = Apollo.MutationResult<DeleteRunServiceConfigMutation>;
 export type DeleteRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>;
 export const GetRunServiceDocument = gql`
-    query getRunService($id: uuid!, $resolve: Boolean!) {
+    query getRunService($id: uuid!) {
   runService(id: $id) {
     id
-    config(resolve: $resolve) {
+    config {
       name
       image {
         image
@@ -8907,7 +8899,6 @@ export const GetRunServiceDocument = gql`
  * const { data, loading, error } = useGetRunServiceQuery({
  *   variables: {
  *      id: // value for 'id'
- *      resolve: // value for 'resolve'
  *   },
  * });
  */
@@ -8926,13 +8917,13 @@ export function refetchGetRunServiceQuery(variables: GetRunServiceQueryVariables
       return { query: GetRunServiceDocument, variables: variables }
     }
 export const GetRunServicesDocument = gql`
-    query getRunServices($appID: uuid!, $resolve: Boolean!, $limit: Int!, $offset: Int!) {
+    query getRunServices($appID: uuid!, $limit: Int!, $offset: Int!) {
   app(id: $appID) {
     runServices(limit: $limit, offset: $offset) {
       id
       createdAt
       updatedAt
-      config(resolve: $resolve) {
+      config {
         name
         image {
           image
@@ -8983,7 +8974,6 @@ export const GetRunServicesDocument = gql`
  * const { data, loading, error } = useGetRunServicesQuery({
  *   variables: {
  *      appID: // value for 'appID'
- *      resolve: // value for 'resolve'
  *      limit: // value for 'limit'
  *      offset: // value for 'offset'
  *   },
@@ -9144,7 +9134,7 @@ export type UpdateRunServiceConfigMutationResult = Apollo.MutationResult<UpdateR
 export type UpdateRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
 export const GetAuthenticationSettingsDocument = gql`
     query GetAuthenticationSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId) {
     id: __typename
     __typename
     auth {
@@ -9222,7 +9212,7 @@ export function refetchGetAuthenticationSettingsQuery(variables: GetAuthenticati
     }
 export const GetEnvironmentVariablesDocument = gql`
     query GetEnvironmentVariables($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId) {
     id: __typename
     __typename
     global {
@@ -9279,7 +9269,7 @@ export const GetPostgresSettingsDocument = gql`
       database
     }
   }
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId) {
     id: __typename
     __typename
     postgres {
@@ -9321,7 +9311,7 @@ export function refetchGetPostgresSettingsQuery(variables: GetPostgresSettingsQu
     }
 export const GetResourcesDocument = gql`
     query GetResources($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId) {
     ...ServiceResources
   }
 }
@@ -9359,7 +9349,7 @@ export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) 
     }
 export const GetStorageSettingsDocument = gql`
     query GetStorageSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId) {
     id: __typename
     __typename
     storage {
@@ -9401,7 +9391,7 @@ export function refetchGetStorageSettingsQuery(variables: GetStorageSettingsQuer
     }
 export const GetHasuraSettingsDocument = gql`
     query GetHasuraSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId) {
     id: __typename
     __typename
     hasura {
@@ -9489,7 +9479,7 @@ export type ResetDatabasePasswordMutationResult = Apollo.MutationResult<ResetDat
 export type ResetDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
 export const GetRolesPermissionsDocument = gql`
     query GetRolesPermissions($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId) {
     id: __typename
     __typename
     auth {
@@ -9543,7 +9533,7 @@ export function refetchGetRolesPermissionsQuery(variables: GetRolesPermissionsQu
     }
 export const GetSignInMethodsDocument = gql`
     query GetSignInMethods($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId) {
     id: __typename
     __typename
     provider {
@@ -9707,7 +9697,7 @@ export function refetchGetSignInMethodsQuery(variables: GetSignInMethodsQueryVar
     }
 export const GetSmtpSettingsDocument = gql`
     query GetSmtpSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId) {
     id: __typename
     __typename
     provider {

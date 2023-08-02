@@ -45,7 +45,6 @@ export default function ServicesPage() {
   } = useGetRunServicesQuery({
     variables: {
       appID: currentProject.id,
-      resolve: false,
       limit: limit.current,
       offset,
     },

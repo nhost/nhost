@@ -1,7 +1,7 @@
-query getRunService($id: uuid!, $resolve: Boolean!) {
+query getRunService($id: uuid!) {
   runService(id: $id) {
     id
-    config(resolve: $resolve) {
+    config {
       name
       image {
         image

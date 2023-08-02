@@ -78,7 +78,7 @@ export type ConfigAppConfig = {
 export type ConfigAppSecrets = {
   __typename?: 'ConfigAppSecrets';
   appID: Scalars['uuid'];
-  secrets: Array<ConfigEnvironmentVariable>;
+  secrets: Array<ConfigSecret>;
 };
 
 export type ConfigAppSystemConfig = {
@@ -1274,7 +1274,7 @@ export type ConfigHasuraUpdateInput = {
 export type ConfigInsertConfigResponse = {
   __typename?: 'ConfigInsertConfigResponse';
   config: ConfigConfig;
-  secrets: Array<ConfigEnvironmentVariable>;
+  secrets: Array<ConfigSecret>;
   systemConfig: ConfigSystemConfig;
 };
 
@@ -1664,6 +1664,18 @@ export type ConfigRunServiceResourcesUpdateInput = {
   compute?: InputMaybe<ConfigRunServiceResourcesComputeUpdateInput>;
   replicas?: InputMaybe<Scalars['ConfigUint8']>;
   storage?: InputMaybe<Array<ConfigRunServiceResourcesStorageUpdateInput>>;
+};
+
+export type ConfigSecret = {
+  __typename?: 'ConfigSecret';
+  name: Scalars['String'];
+  /** Value of the environment variable */
+  value: Scalars['String'];
+};
+
+export type ConfigSecretInsertInput = {
+  name: Scalars['String'];
+  value: Scalars['String'];
 };
 
 export type ConfigSms = {
@@ -2678,7 +2690,7 @@ export type AppStates_Variance_Fields = {
 /** columns and relationships of "apps" */
 export type Apps = {
   __typename?: 'apps';
-  appSecrets: Array<ConfigEnvironmentVariable>;
+  appSecrets: Array<ConfigSecret>;
   /** An array relationship */
   appStates: Array<AppStateHistory>;
   /** An aggregate relationship */
@@ -10432,7 +10444,7 @@ export type Mutation_Root = {
   deleteRunServiceConfig?: Maybe<ConfigRunServiceConfig>;
   /** delete data from the table: "run_service" */
   deleteRunServices?: Maybe<Run_Service_Mutation_Response>;
-  deleteSecret?: Maybe<ConfigEnvironmentVariable>;
+  deleteSecret?: Maybe<ConfigSecret>;
   /** delete single row from the table: "auth.users" */
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
@@ -10571,7 +10583,7 @@ export type Mutation_Root = {
   insertRunServiceConfig: ConfigRunServiceConfig;
   /** insert data into the table: "run_service" */
   insertRunServices?: Maybe<Run_Service_Mutation_Response>;
-  insertSecret: ConfigEnvironmentVariable;
+  insertSecret: ConfigSecret;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
@@ -10716,7 +10728,7 @@ export type Mutation_Root = {
   updateRunServiceConfig: ConfigRunServiceConfig;
   /** update data of the table: "run_service" */
   updateRunServices?: Maybe<Run_Service_Mutation_Response>;
-  updateSecret: ConfigEnvironmentVariable;
+  updateSecret: ConfigSecret;
   updateSystemConfig: ConfigSystemConfig;
   /** update single row of the table: "auth.users" */
   updateUser?: Maybe<Users>;
@@ -11542,7 +11554,7 @@ export type Mutation_RootInsertCliTokensArgs = {
 export type Mutation_RootInsertConfigArgs = {
   appID: Scalars['uuid'];
   config: ConfigConfigInsertInput;
-  secrets?: InputMaybe<Array<ConfigEnvironmentVariableInsertInput>>;
+  secrets?: InputMaybe<Array<ConfigSecretInsertInput>>;
   systemConfig: ConfigSystemConfigInsertInput;
 };
 
@@ -11712,7 +11724,7 @@ export type Mutation_RootInsertRunServicesArgs = {
 /** mutation root */
 export type Mutation_RootInsertSecretArgs = {
   appID: Scalars['uuid'];
-  secret: ConfigEnvironmentVariableInsertInput;
+  secret: ConfigSecretInsertInput;
 };
 
 
@@ -12310,7 +12322,7 @@ export type Mutation_RootUpdateRunServicesArgs = {
 /** mutation root */
 export type Mutation_RootUpdateSecretArgs = {
   appID: Scalars['uuid'];
-  secret: ConfigEnvironmentVariableInsertInput;
+  secret: ConfigSecretInsertInput;
 };
 
 
@@ -13777,7 +13789,7 @@ export type Query_Root = {
   __typename?: 'query_root';
   /** fetch data from the table: "apps" using primary key columns */
   app?: Maybe<Apps>;
-  appSecrets: Array<ConfigEnvironmentVariable>;
+  appSecrets: Array<ConfigSecret>;
   /** fetch data from the table: "app_states" using primary key columns */
   appState?: Maybe<AppStates>;
   /** fetch data from the table: "app_state_history" */

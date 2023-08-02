@@ -1,15 +1,10 @@
-query getRunServices(
-  $appID: uuid!
-  $resolve: Boolean!
-  $limit: Int!
-  $offset: Int!
-) {
+query getRunServices($appID: uuid!, $limit: Int!, $offset: Int!) {
   app(id: $appID) {
     runServices(limit: $limit, offset: $offset) {
       id
       createdAt
       updatedAt
-      config(resolve: $resolve) {
+      config {
         name
         image {
           image

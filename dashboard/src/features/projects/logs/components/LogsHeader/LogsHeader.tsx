@@ -143,7 +143,6 @@ export default function LogsHeader({
   const { data, loading } = useGetRunServicesQuery({
     variables: {
       appID: currentProject.id,
-      resolve: false,
       limit: 1000,
       offset: 0,
     },

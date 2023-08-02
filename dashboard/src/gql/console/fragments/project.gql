@@ -9,7 +9,7 @@ fragment Project on apps {
   desiredState
   nhostBaseFolder
   providersUpdated
-  config(resolve: true) {
+  config {
     observability {
       grafana {
         adminPassword
