@@ -4037,7 +4037,6 @@ export type AuthRefreshTokens = {
   id: Scalars['uuid'];
   metadata?: Maybe<Scalars['jsonb']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   type: AuthRefreshTokenTypes_Enum;
   /** An object relationship */
   user: Users;
@@ -4112,7 +4111,6 @@ export type AuthRefreshTokens_Bool_Exp = {
   id?: InputMaybe<Uuid_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
-  refresh_token?: InputMaybe<Uuid_Comparison_Exp>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
@@ -4146,7 +4144,6 @@ export type AuthRefreshTokens_Insert_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
@@ -4159,7 +4156,6 @@ export type AuthRefreshTokens_Max_Fields = {
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -4169,7 +4165,6 @@ export type AuthRefreshTokens_Max_Order_By = {
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -4180,7 +4175,6 @@ export type AuthRefreshTokens_Min_Fields = {
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -4190,7 +4184,6 @@ export type AuthRefreshTokens_Min_Order_By = {
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -4217,7 +4210,6 @@ export type AuthRefreshTokens_Order_By = {
   id?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userId?: InputMaybe<Order_By>;
@@ -4246,8 +4238,6 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   RefreshTokenHash = 'refreshTokenHash',
   /** column name */
-  RefreshToken = 'refresh_token',
-  /** column name */
   Type = 'type',
   /** column name */
   UserId = 'userId'
@@ -4260,7 +4250,6 @@ export type AuthRefreshTokens_Set_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -4280,7 +4269,6 @@ export type AuthRefreshTokens_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -4297,8 +4285,6 @@ export enum AuthRefreshTokens_Update_Column {
   Metadata = 'metadata',
   /** column name */
   RefreshTokenHash = 'refreshTokenHash',
-  /** column name */
-  RefreshToken = 'refresh_token',
   /** column name */
   Type = 'type',
   /** column name */
@@ -19779,67 +19765,32 @@ export type UpdateApplicationMutationVariables = Exact<{
 
 export type UpdateApplicationMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', name: string, id: any, slug: string } | null };
 
-export type BackupFragment = { __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null };
-
-export type GetApplicationBackupsQueryVariables = Exact<{
-  appId: Scalars['uuid'];
-}>;
-
-
-export type GetApplicationBackupsQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', backups: Array<{ __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null }> } | null };
-
-export type GetBackupPresignedUrlQueryVariables = Exact<{
-  appId: Scalars['String'];
-  backupId: Scalars['String'];
-  expireInMinutes?: InputMaybe<Scalars['Int']>;
-}>;
-
-
-export type GetBackupPresignedUrlQuery = { __typename?: 'query_root', getBackupPresignedUrl: { __typename?: 'BackupPresignedURL', url: string, expiresAt: any } };
-
 export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetCountriesQuery = { __typename?: 'query_root', countries: Array<{ __typename?: 'countries', code: any, name: string }> };
 
-export type DeploymentRowFragment = { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null };
+export type GetBucketsQueryVariables = Exact<{ [key: string]: never; }>;
 
-export type ScheduledOrPendingDeploymentsSubSubscriptionVariables = Exact<{
-  appId: Scalars['uuid'];
+
+export type GetBucketsQuery = { __typename?: 'query_root', buckets: Array<{ __typename?: 'buckets', id: string, maxUploadFileSize: number }> };
+
+export type GetFilesQueryVariables = Exact<{
+  where?: InputMaybe<Files_Bool_Exp>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Files_Order_By> | Files_Order_By>;
 }>;
 
 
-export type ScheduledOrPendingDeploymentsSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
+export type GetFilesQuery = { __typename?: 'query_root', files: Array<{ __typename?: 'files', id: any, bucketId: string, createdAt: any, updatedAt: any, name?: string | null, size?: number | null, mimeType?: string | null, etag?: string | null, isUploaded?: boolean | null, uploadedByUserId?: any | null }> };
 
-export type LatestLiveDeploymentSubSubscriptionVariables = Exact<{
-  appId: Scalars['uuid'];
+export type GetFilesAggregateQueryVariables = Exact<{
+  where?: InputMaybe<Files_Bool_Exp>;
 }>;
 
 
-export type LatestLiveDeploymentSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
-
-export type InsertDeploymentMutationVariables = Exact<{
-  object: Deployments_Insert_Input;
-}>;
-
-
-export type InsertDeploymentMutation = { __typename?: 'mutation_root', insertDeployment?: { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null } | null };
-
-export type GetDeploymentsSubSubscriptionVariables = Exact<{
-  id: Scalars['uuid'];
-  limit: Scalars['Int'];
-  offset: Scalars['Int'];
-}>;
-
-
-export type GetDeploymentsSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
-
-export type DeploymentSubSubscriptionVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type DeploymentSubSubscription = { __typename?: 'subscription_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> } | null };
+export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate: { __typename?: 'files_aggregate', aggregate?: { __typename?: 'files_aggregate_fields', count: number } | null } };
 
 export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any };
 
@@ -19847,12 +19798,24 @@ export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name
 
 export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
-export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
+export type GetProjectLogsQueryVariables = Exact<{
+  appID: Scalars['String'];
+  service?: InputMaybe<Scalars['String']>;
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+}>;
 
-export type GetGithubRepositoriesQueryVariables = Exact<{ [key: string]: never; }>;
+
+export type GetProjectLogsQuery = { __typename?: 'query_root', logs: Array<{ __typename?: 'Log', log: string, service: string, timestamp: any }> };
+
+export type GetLogsSubscriptionSubscriptionVariables = Exact<{
+  appID: Scalars['String'];
+  service?: InputMaybe<Scalars['String']>;
+  from?: InputMaybe<Scalars['Timestamp']>;
+}>;
 
 
-export type GetGithubRepositoriesQuery = { __typename?: 'query_root', githubRepositories: Array<{ __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } }>, githubAppInstallations: Array<{ __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null }> };
+export type GetLogsSubscriptionSubscription = { __typename?: 'subscription_root', logs: Array<{ __typename?: 'Log', log: string, service: string, timestamp: any }> };
 
 export type DeletePaymentMethodMutationVariables = Exact<{
   paymentMethodId: Scalars['uuid'];
@@ -19893,81 +19856,95 @@ export type GetPlansQueryVariables = Exact<{
 
 export type GetPlansQuery = { __typename?: 'query_root', plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number }> };
 
-export type DeleteRunServiceMutationVariables = Exact<{
-  serviceID: Scalars['uuid'];
+export type RestoreApplicationDatabaseMutationVariables = Exact<{
+  appId: Scalars['String'];
+  backupId: Scalars['String'];
 }>;
 
 
-export type DeleteRunServiceMutation = { __typename?: 'mutation_root', deleteRunService?: { __typename?: 'run_service', id: any } | null };
+export type RestoreApplicationDatabaseMutation = { __typename?: 'mutation_root', restoreApplicationDatabase: boolean };
 
-export type DeleteRunServiceConfigMutationVariables = Exact<{
-  appID: Scalars['uuid'];
-  serviceID: Scalars['uuid'];
-}>;
-
-
-export type DeleteRunServiceConfigMutation = { __typename?: 'mutation_root', deleteRunServiceConfig?: { __typename?: 'ConfigRunServiceConfig', name: string } | null };
-
-export type GetRunServiceQueryVariables = Exact<{
+export type RemoteAppDeleteUserMutationVariables = Exact<{
   id: Scalars['uuid'];
-  resolve: Scalars['Boolean'];
 }>;
 
 
-export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, config?: { __typename?: 'ConfigRunServiceConfig', name: string, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigRunServiceResourcesCompute', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: string, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
+export type RemoteAppDeleteUserMutation = { __typename?: 'mutation_root', deleteUser?: { __typename?: 'users', id: any } | null };
 
-export type GetRunServicesQueryVariables = Exact<{
-  appID: Scalars['uuid'];
-  resolve: Scalars['Boolean'];
+export type GetAppFunctionsMetadataQueryVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type GetAppFunctionsMetadataQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, metadataFunctions: any } | null };
+
+export type GetRemoteAppMetricsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetRemoteAppMetricsQuery = { __typename?: 'query_root', filesAggregate: { __typename?: 'files_aggregate', aggregate?: { __typename?: 'files_aggregate_fields', count: number, sum?: { __typename?: 'files_sum_fields', size?: number | null } | null } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+
+export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
+
+export type RemoteAppGetUsersQueryVariables = Exact<{
+  where: Users_Bool_Exp;
   limit: Scalars['Int'];
   offset: Scalars['Int'];
 }>;
 
 
-export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, config?: { __typename?: 'ConfigRunServiceConfig', name: string, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigRunServiceResourcesCompute', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: string, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
+export type RemoteAppGetUsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, filteredUsersAggreggate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
-export type InsertRunServiceMutationVariables = Exact<{
-  object: Run_Service_Insert_Input;
+export type RemoteAppGetUsersCustomQueryVariables = Exact<{
+  where: Users_Bool_Exp;
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
 }>;
 
 
-export type InsertRunServiceMutation = { __typename?: 'mutation_root', insertRunService?: { __typename?: 'run_service', id: any, appID: any } | null };
+export type RemoteAppGetUsersCustomQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, phoneNumber?: string | null, avatarUrl: string, email?: any | null, disabled: boolean, defaultRole: string, isAnonymous: boolean, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> };
 
-export type InsertRunServiceConfigMutationVariables = Exact<{
-  appID: Scalars['uuid'];
-  serviceID: Scalars['uuid'];
-  config: ConfigRunServiceConfigInsertInput;
+export type RemoteAppGetUsersWholeQueryVariables = Exact<{
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
 }>;
 
 
-export type InsertRunServiceConfigMutation = { __typename?: 'mutation_root', insertRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: string } };
+export type RemoteAppGetUsersWholeQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
-export type ReplaceRunServiceConfigMutationVariables = Exact<{
-  appID: Scalars['uuid'];
-  serviceID: Scalars['uuid'];
-  config: ConfigRunServiceConfigInsertInput;
+export type TotalUsersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type TotalUsersQuery = { __typename?: 'query_root', usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+
+export type TotalUsersByDateQueryVariables = Exact<{
+  where: Users_Bool_Exp;
 }>;
 
 
-export type ReplaceRunServiceConfigMutation = { __typename?: 'mutation_root', replaceRunServiceConfig: { __typename: 'ConfigRunServiceConfig' } };
+export type TotalUsersByDateQuery = { __typename?: 'query_root', usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
-export type UpdateRunServiceConfigMutationVariables = Exact<{
-  appID: Scalars['uuid'];
-  serviceID: Scalars['uuid'];
-  config: ConfigRunServiceConfigUpdateInput;
+export type UpdateRemoteAppUserMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  user: Users_Set_Input;
 }>;
 
 
-export type UpdateRunServiceConfigMutation = { __typename?: 'mutation_root', updateRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: string } };
+export type UpdateRemoteAppUserMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any } | null };
 
-export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null };
-
-export type GetResourcesQueryVariables = Exact<{
-  appId: Scalars['uuid'];
+export type InsertRemoteAppUserRolesMutationVariables = Exact<{
+  roles: Array<AuthUserRoles_Insert_Input> | AuthUserRoles_Insert_Input;
 }>;
 
 
-export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null } | null };
+export type InsertRemoteAppUserRolesMutation = { __typename?: 'mutation_root', insertAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
+
+export type DeleteRemoteAppUserRolesMutationVariables = Exact<{
+  userId: Scalars['uuid'];
+  roles: Array<Scalars['String']> | Scalars['String'];
+}>;
+
+
+export type DeleteRemoteAppUserRolesMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
 
 export type GetFreeAndActiveProjectsQueryVariables = Exact<{
   userId: Scalars['uuid'];
@@ -19982,83 +19959,6 @@ export type InsertFeedbackOneMutationVariables = Exact<{
 
 
 export type InsertFeedbackOneMutation = { __typename?: 'mutation_root', insertFeedbackOne?: { __typename?: 'feedback', id: number } | null };
-
-export type DeleteWorkspaceMemberInvitesMutationVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type DeleteWorkspaceMemberInvitesMutation = { __typename?: 'mutation_root', deleteWorkspaceMemberInvites?: { __typename?: 'workspaceMemberInvites_mutation_response', affected_rows: number } | null };
-
-export type GetWorkspaceMemberInvitesToManageQueryVariables = Exact<{
-  userId: Scalars['uuid'];
-}>;
-
-
-export type GetWorkspaceMemberInvitesToManageQuery = { __typename?: 'query_root', workspaceMemberInvites: Array<{ __typename?: 'workspaceMemberInvites', id: any, email: any, userByEmail?: { __typename?: 'users', id: any } | null, workspace: { __typename?: 'workspaces', id: any, name: string, slug: string } }> };
-
-export type InsertWorkspaceMemberInviteMutationVariables = Exact<{
-  workspaceMemberInvite: WorkspaceMemberInvites_Insert_Input;
-}>;
-
-
-export type InsertWorkspaceMemberInviteMutation = { __typename?: 'mutation_root', insertWorkspaceMemberInvite?: { __typename?: 'workspaceMemberInvites', id: any } | null };
-
-export type UpdateWorkspaceMemberInviteMutationVariables = Exact<{
-  id: Scalars['uuid'];
-  workspaceMemberInvite: WorkspaceMemberInvites_Set_Input;
-}>;
-
-
-export type UpdateWorkspaceMemberInviteMutation = { __typename?: 'mutation_root', updateWorkspaceMemberInvites?: { __typename?: 'workspaceMemberInvites_mutation_response', affected_rows: number } | null };
-
-export type DeleteWorkspaceMemberMutationVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type DeleteWorkspaceMemberMutation = { __typename?: 'mutation_root', deleteWorkspaceMember?: { __typename?: 'workspaceMembers', id: any } | null };
-
-export type GetWorkspaceMembersWorkspaceMemberFragment = { __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, email?: any | null } };
-
-export type GetWorkspaceMembersWorkspaceMemberInviteFragment = { __typename?: 'workspaceMemberInvites', id: any, email: any, memberType: string };
-
-export type GetWorkspaceMembersQueryVariables = Exact<{
-  workspaceId: Scalars['uuid'];
-}>;
-
-
-export type GetWorkspaceMembersQuery = { __typename?: 'query_root', workspace?: { __typename?: 'workspaces', id: any, creatorUser?: { __typename?: 'users', id: any } | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, displayName: string, avatarUrl: string, email?: any | null } }>, workspaceMemberInvites: Array<{ __typename?: 'workspaceMemberInvites', id: any, email: any, memberType: string }> } | null };
-
-export type UpdateWorkspaceMemberMutationVariables = Exact<{
-  id: Scalars['uuid'];
-  workspaceMember: WorkspaceMembers_Set_Input;
-}>;
-
-
-export type UpdateWorkspaceMemberMutation = { __typename?: 'mutation_root', updateWorkspaceMember?: { __typename?: 'workspaceMembers', id: any } | null };
-
-export type DeleteWorkspaceMutationVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type DeleteWorkspaceMutation = { __typename?: 'mutation_root', deleteWorkspace?: { __typename?: 'workspaces', id: any } | null };
-
-export type InsertWorkspaceMutationVariables = Exact<{
-  workspace: Workspaces_Insert_Input;
-}>;
-
-
-export type InsertWorkspaceMutation = { __typename?: 'mutation_root', insertWorkspace?: { __typename?: 'workspaces', name: string, id: any } | null };
-
-export type UpdateWorkspaceMutationVariables = Exact<{
-  id: Scalars['uuid'];
-  workspace: Workspaces_Set_Input;
-}>;
-
-
-export type UpdateWorkspaceMutation = { __typename?: 'mutation_root', updateWorkspace?: { __typename?: 'workspaces', id: any, name: string, email: string, companyName: string, addressLine1: string, addressLine2: string, addressPostalCode: string, addressCity: string, addressCountryCode?: string | null, slug: string, taxIdType: string, taxIdValue: string } | null };
 
 export const GetAppPlanAndGlobalPlansAppFragmentDoc = gql`
     fragment getAppPlanAndGlobalPlansApp on apps {
@@ -20116,26 +20016,6 @@ export const PrefetchNewAppWorkspaceFragmentDoc = gql`
   paymentMethods {
     id
   }
-}
-    `;
-export const BackupFragmentDoc = gql`
-    fragment Backup on backups {
-  id
-  size
-  createdAt
-  completedAt
-}
-    `;
-export const DeploymentRowFragmentDoc = gql`
-    fragment DeploymentRow on deployments {
-  id
-  commitSHA
-  deploymentStartedAt
-  deploymentEndedAt
-  deploymentStatus
-  commitUserName
-  commitUserAvatarUrl
-  commitMessage
 }
     `;
 export const AppStateHistoryFragmentDoc = gql`
@@ -20238,20 +20118,6 @@ export const WorkspaceFragmentDoc = gql`
   }
 }
     ${ProjectFragmentDoc}`;
-export const GithubRepositoryFragmentDoc = gql`
-    fragment GithubRepository on githubRepositories {
-  id
-  name
-  fullName
-  private
-  githubAppInstallation {
-    id
-    accountLogin
-    accountType
-    accountAvatarUrl
-  }
-}
-    `;
 export const GetPaymentMethodsFragmentDoc = gql`
     fragment getPaymentMethods on paymentMethods {
   id
@@ -20272,63 +20138,29 @@ export const GetPaymentMethodsFragmentDoc = gql`
   }
 }
     `;
-export const ServiceResourcesFragmentDoc = gql`
-    fragment ServiceResources on ConfigConfig {
-  auth {
-    resources {
-      compute {
-        cpu
-        memory
-      }
-      replicas
-    }
-  }
-  hasura {
-    resources {
-      compute {
-        cpu
-        memory
-      }
-      replicas
-    }
-  }
-  postgres {
-    resources {
-      compute {
-        cpu
-        memory
-      }
-      replicas
-    }
-  }
-  storage {
-    resources {
-      compute {
-        cpu
-        memory
-      }
-      replicas
-    }
-  }
-}
-    `;
-export const GetWorkspaceMembersWorkspaceMemberFragmentDoc = gql`
-    fragment getWorkspaceMembersWorkspaceMember on workspaceMembers {
+export const RemoteAppGetUsersFragmentDoc = gql`
+    fragment RemoteAppGetUsers on users {
   id
-  type
-  user {
-    id
-    displayName
-    avatarUrl
-    email
-  }
-}
-    `;
-export const GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc = gql`
-    fragment getWorkspaceMembersWorkspaceMemberInvite on workspaceMemberInvites {
-  id
+  createdAt
+  displayName
+  avatarUrl
   email
-  memberType
+  emailVerified
+  phoneNumber
+  phoneNumberVerified
+  disabled
+  defaultRole
+  lastSeen
+  locale
+  roles {
+    id
+    role
+  }
+  userProviders {
+    id
+    providerId
+  }
+  disabled
 }
     `;
 export const DeleteApplicationDocument = gql`
@@ -20863,91 +20695,6 @@ export function useUpdateApplicationMutation(baseOptions?: Apollo.MutationHookOp
 export type UpdateApplicationMutationHookResult = ReturnType<typeof useUpdateApplicationMutation>;
 export type UpdateApplicationMutationResult = Apollo.MutationResult<UpdateApplicationMutation>;
 export type UpdateApplicationMutationOptions = Apollo.BaseMutationOptions<UpdateApplicationMutation, UpdateApplicationMutationVariables>;
-export const GetApplicationBackupsDocument = gql`
-    query getApplicationBackups($appId: uuid!) {
-  app(id: $appId) {
-    backups(order_by: {createdAt: desc}) {
-      ...Backup
-    }
-  }
-}
-    ${BackupFragmentDoc}`;
-
-/**
- * __useGetApplicationBackupsQuery__
- *
- * To run a query within a React component, call `useGetApplicationBackupsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetApplicationBackupsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetApplicationBackupsQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useGetApplicationBackupsQuery(baseOptions: Apollo.QueryHookOptions<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>(GetApplicationBackupsDocument, options);
-      }
-export function useGetApplicationBackupsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>(GetApplicationBackupsDocument, options);
-        }
-export type GetApplicationBackupsQueryHookResult = ReturnType<typeof useGetApplicationBackupsQuery>;
-export type GetApplicationBackupsLazyQueryHookResult = ReturnType<typeof useGetApplicationBackupsLazyQuery>;
-export type GetApplicationBackupsQueryResult = Apollo.QueryResult<GetApplicationBackupsQuery, GetApplicationBackupsQueryVariables>;
-export function refetchGetApplicationBackupsQuery(variables: GetApplicationBackupsQueryVariables) {
-      return { query: GetApplicationBackupsDocument, variables: variables }
-    }
-export const GetBackupPresignedUrlDocument = gql`
-    query GetBackupPresignedUrl($appId: String!, $backupId: String!, $expireInMinutes: Int) {
-  getBackupPresignedUrl: getBackupPresignedURL(
-    appID: $appId
-    backupID: $backupId
-    expireInMinutes: $expireInMinutes
-  ) {
-    url
-    expiresAt: expires_at
-  }
-}
-    `;
-
-/**
- * __useGetBackupPresignedUrlQuery__
- *
- * To run a query within a React component, call `useGetBackupPresignedUrlQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetBackupPresignedUrlQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetBackupPresignedUrlQuery({
- *   variables: {
- *      appId: // value for 'appId'
- *      backupId: // value for 'backupId'
- *      expireInMinutes: // value for 'expireInMinutes'
- *   },
- * });
- */
-export function useGetBackupPresignedUrlQuery(baseOptions: Apollo.QueryHookOptions<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>(GetBackupPresignedUrlDocument, options);
-      }
-export function useGetBackupPresignedUrlLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>(GetBackupPresignedUrlDocument, options);
-        }
-export type GetBackupPresignedUrlQueryHookResult = ReturnType<typeof useGetBackupPresignedUrlQuery>;
-export type GetBackupPresignedUrlLazyQueryHookResult = ReturnType<typeof useGetBackupPresignedUrlLazyQuery>;
-export type GetBackupPresignedUrlQueryResult = Apollo.QueryResult<GetBackupPresignedUrlQuery, GetBackupPresignedUrlQueryVariables>;
-export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedUrlQueryVariables) {
-      return { query: GetBackupPresignedUrlDocument, variables: variables }
-    }
 export const GetCountriesDocument = gql`
     query getCountries {
   countries(order_by: {name: asc}) {
@@ -20986,237 +20733,211 @@ export type GetCountriesQueryResult = Apollo.QueryResult<GetCountriesQuery, GetC
 export function refetchGetCountriesQuery(variables?: GetCountriesQueryVariables) {
       return { query: GetCountriesDocument, variables: variables }
     }
-export const ScheduledOrPendingDeploymentsSubDocument = gql`
-    subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
-  deployments(
-    where: {deploymentStatus: {_in: ["SCHEDULED"]}, appId: {_eq: $appId}}
-  ) {
-    ...DeploymentRow
+export const GetBucketsDocument = gql`
+    query getBuckets {
+  buckets {
+    id
+    maxUploadFileSize
   }
 }
-    ${DeploymentRowFragmentDoc}`;
+    `;
 
 /**
- * __useScheduledOrPendingDeploymentsSubSubscription__
+ * __useGetBucketsQuery__
  *
- * To run a query within a React component, call `useScheduledOrPendingDeploymentsSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useScheduledOrPendingDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetBucketsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBucketsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useScheduledOrPendingDeploymentsSubSubscription({
+ * const { data, loading, error } = useGetBucketsQuery({
  *   variables: {
- *      appId: // value for 'appId'
  *   },
  * });
  */
-export function useScheduledOrPendingDeploymentsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<ScheduledOrPendingDeploymentsSubSubscription, ScheduledOrPendingDeploymentsSubSubscriptionVariables>) {
+export function useGetBucketsQuery(baseOptions?: Apollo.QueryHookOptions<GetBucketsQuery, GetBucketsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<ScheduledOrPendingDeploymentsSubSubscription, ScheduledOrPendingDeploymentsSubSubscriptionVariables>(ScheduledOrPendingDeploymentsSubDocument, options);
+        return Apollo.useQuery<GetBucketsQuery, GetBucketsQueryVariables>(GetBucketsDocument, options);
       }
-export type ScheduledOrPendingDeploymentsSubSubscriptionHookResult = ReturnType<typeof useScheduledOrPendingDeploymentsSubSubscription>;
-export type ScheduledOrPendingDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<ScheduledOrPendingDeploymentsSubSubscription>;
-export const LatestLiveDeploymentSubDocument = gql`
-    subscription LatestLiveDeploymentSub($appId: uuid!) {
-  deployments(
-    where: {deploymentStatus: {_eq: "DEPLOYED"}, appId: {_eq: $appId}}
-    order_by: {deploymentStartedAt: desc}
-    limit: 1
-    offset: 0
-  ) {
-    ...DeploymentRow
+export function useGetBucketsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBucketsQuery, GetBucketsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetBucketsQuery, GetBucketsQueryVariables>(GetBucketsDocument, options);
+        }
+export type GetBucketsQueryHookResult = ReturnType<typeof useGetBucketsQuery>;
+export type GetBucketsLazyQueryHookResult = ReturnType<typeof useGetBucketsLazyQuery>;
+export type GetBucketsQueryResult = Apollo.QueryResult<GetBucketsQuery, GetBucketsQueryVariables>;
+export function refetchGetBucketsQuery(variables?: GetBucketsQueryVariables) {
+      return { query: GetBucketsDocument, variables: variables }
+    }
+export const GetFilesDocument = gql`
+    query getFiles($where: files_bool_exp, $limit: Int, $offset: Int, $order_by: [files_order_by!]) {
+  files(where: $where, limit: $limit, offset: $offset, order_by: $order_by) {
+    id
+    bucketId
+    createdAt
+    updatedAt
+    name
+    size
+    mimeType
+    etag
+    isUploaded
+    uploadedByUserId
   }
 }
-    ${DeploymentRowFragmentDoc}`;
+    `;
 
 /**
- * __useLatestLiveDeploymentSubSubscription__
+ * __useGetFilesQuery__
  *
- * To run a query within a React component, call `useLatestLiveDeploymentSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useLatestLiveDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetFilesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFilesQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useLatestLiveDeploymentSubSubscription({
+ * const { data, loading, error } = useGetFilesQuery({
  *   variables: {
- *      appId: // value for 'appId'
- *   },
- * });
- */
-export function useLatestLiveDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<LatestLiveDeploymentSubSubscription, LatestLiveDeploymentSubSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<LatestLiveDeploymentSubSubscription, LatestLiveDeploymentSubSubscriptionVariables>(LatestLiveDeploymentSubDocument, options);
-      }
-export type LatestLiveDeploymentSubSubscriptionHookResult = ReturnType<typeof useLatestLiveDeploymentSubSubscription>;
-export type LatestLiveDeploymentSubSubscriptionResult = Apollo.SubscriptionResult<LatestLiveDeploymentSubSubscription>;
-export const InsertDeploymentDocument = gql`
-    mutation InsertDeployment($object: deployments_insert_input!) {
-  insertDeployment(object: $object) {
-    ...DeploymentRow
-  }
-}
-    ${DeploymentRowFragmentDoc}`;
-export type InsertDeploymentMutationFn = Apollo.MutationFunction<InsertDeploymentMutation, InsertDeploymentMutationVariables>;
-
-/**
- * __useInsertDeploymentMutation__
- *
- * To run a mutation, you first call `useInsertDeploymentMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertDeploymentMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertDeploymentMutation, { data, loading, error }] = useInsertDeploymentMutation({
- *   variables: {
- *      object: // value for 'object'
- *   },
- * });
- */
-export function useInsertDeploymentMutation(baseOptions?: Apollo.MutationHookOptions<InsertDeploymentMutation, InsertDeploymentMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertDeploymentMutation, InsertDeploymentMutationVariables>(InsertDeploymentDocument, options);
-      }
-export type InsertDeploymentMutationHookResult = ReturnType<typeof useInsertDeploymentMutation>;
-export type InsertDeploymentMutationResult = Apollo.MutationResult<InsertDeploymentMutation>;
-export type InsertDeploymentMutationOptions = Apollo.BaseMutationOptions<InsertDeploymentMutation, InsertDeploymentMutationVariables>;
-export const GetDeploymentsSubDocument = gql`
-    subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
-  deployments(
-    where: {appId: {_eq: $id}}
-    order_by: {deploymentStartedAt: desc}
-    limit: $limit
-    offset: $offset
-  ) {
-    ...DeploymentRow
-  }
-}
-    ${DeploymentRowFragmentDoc}`;
-
-/**
- * __useGetDeploymentsSubSubscription__
- *
- * To run a query within a React component, call `useGetDeploymentsSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useGetDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetDeploymentsSubSubscription({
- *   variables: {
- *      id: // value for 'id'
+ *      where: // value for 'where'
  *      limit: // value for 'limit'
  *      offset: // value for 'offset'
+ *      order_by: // value for 'order_by'
  *   },
  * });
  */
-export function useGetDeploymentsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetDeploymentsSubSubscription, GetDeploymentsSubSubscriptionVariables>) {
+export function useGetFilesQuery(baseOptions?: Apollo.QueryHookOptions<GetFilesQuery, GetFilesQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<GetDeploymentsSubSubscription, GetDeploymentsSubSubscriptionVariables>(GetDeploymentsSubDocument, options);
+        return Apollo.useQuery<GetFilesQuery, GetFilesQueryVariables>(GetFilesDocument, options);
       }
-export type GetDeploymentsSubSubscriptionHookResult = ReturnType<typeof useGetDeploymentsSubSubscription>;
-export type GetDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<GetDeploymentsSubSubscription>;
-export const DeploymentSubDocument = gql`
-    subscription deploymentSub($id: uuid!) {
-  deployment(id: $id) {
-    id
-    commitMessage
-    commitSHA
-    commitUserName
-    commitUserAvatarUrl
-    deploymentStartedAt
-    deploymentEndedAt
-    deploymentStatus
-    metadataStartedAt
-    metadataEndedAt
-    metadataStatus
-    migrationsStartedAt
-    migrationsEndedAt
-    migrationsStatus
-    functionsStartedAt
-    functionsEndedAt
-    functionsStatus
-    deploymentLogs(order_by: {createdAt: asc}) {
-      id
-      createdAt
-      message
+export function useGetFilesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFilesQuery, GetFilesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFilesQuery, GetFilesQueryVariables>(GetFilesDocument, options);
+        }
+export type GetFilesQueryHookResult = ReturnType<typeof useGetFilesQuery>;
+export type GetFilesLazyQueryHookResult = ReturnType<typeof useGetFilesLazyQuery>;
+export type GetFilesQueryResult = Apollo.QueryResult<GetFilesQuery, GetFilesQueryVariables>;
+export function refetchGetFilesQuery(variables?: GetFilesQueryVariables) {
+      return { query: GetFilesDocument, variables: variables }
+    }
+export const GetFilesAggregateDocument = gql`
+    query getFilesAggregate($where: files_bool_exp) {
+  filesAggregate(where: $where) {
+    aggregate {
+      count
     }
   }
 }
     `;
 
 /**
- * __useDeploymentSubSubscription__
+ * __useGetFilesAggregateQuery__
  *
- * To run a query within a React component, call `useDeploymentSubSubscription` and pass it any options that fit your needs.
- * When your component renders, `useDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useDeploymentSubSubscription({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<DeploymentSubSubscription, DeploymentSubSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<DeploymentSubSubscription, DeploymentSubSubscriptionVariables>(DeploymentSubDocument, options);
-      }
-export type DeploymentSubSubscriptionHookResult = ReturnType<typeof useDeploymentSubSubscription>;
-export type DeploymentSubSubscriptionResult = Apollo.SubscriptionResult<DeploymentSubSubscription>;
-export const GetGithubRepositoriesDocument = gql`
-    query getGithubRepositories {
-  githubRepositories {
-    ...GithubRepository
-  }
-  githubAppInstallations {
-    id
-    accountLogin
-    accountType
-    accountAvatarUrl
-  }
-}
-    ${GithubRepositoryFragmentDoc}`;
-
-/**
- * __useGetGithubRepositoriesQuery__
- *
- * To run a query within a React component, call `useGetGithubRepositoriesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetGithubRepositoriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetFilesAggregateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFilesAggregateQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetGithubRepositoriesQuery({
+ * const { data, loading, error } = useGetFilesAggregateQuery({
  *   variables: {
+ *      where: // value for 'where'
  *   },
  * });
  */
-export function useGetGithubRepositoriesQuery(baseOptions?: Apollo.QueryHookOptions<GetGithubRepositoriesQuery, GetGithubRepositoriesQueryVariables>) {
+export function useGetFilesAggregateQuery(baseOptions?: Apollo.QueryHookOptions<GetFilesAggregateQuery, GetFilesAggregateQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetGithubRepositoriesQuery, GetGithubRepositoriesQueryVariables>(GetGithubRepositoriesDocument, options);
+        return Apollo.useQuery<GetFilesAggregateQuery, GetFilesAggregateQueryVariables>(GetFilesAggregateDocument, options);
       }
-export function useGetGithubRepositoriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGithubRepositoriesQuery, GetGithubRepositoriesQueryVariables>) {
+export function useGetFilesAggregateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFilesAggregateQuery, GetFilesAggregateQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetGithubRepositoriesQuery, GetGithubRepositoriesQueryVariables>(GetGithubRepositoriesDocument, options);
+          return Apollo.useLazyQuery<GetFilesAggregateQuery, GetFilesAggregateQueryVariables>(GetFilesAggregateDocument, options);
         }
-export type GetGithubRepositoriesQueryHookResult = ReturnType<typeof useGetGithubRepositoriesQuery>;
-export type GetGithubRepositoriesLazyQueryHookResult = ReturnType<typeof useGetGithubRepositoriesLazyQuery>;
-export type GetGithubRepositoriesQueryResult = Apollo.QueryResult<GetGithubRepositoriesQuery, GetGithubRepositoriesQueryVariables>;
-export function refetchGetGithubRepositoriesQuery(variables?: GetGithubRepositoriesQueryVariables) {
-      return { query: GetGithubRepositoriesDocument, variables: variables }
+export type GetFilesAggregateQueryHookResult = ReturnType<typeof useGetFilesAggregateQuery>;
+export type GetFilesAggregateLazyQueryHookResult = ReturnType<typeof useGetFilesAggregateLazyQuery>;
+export type GetFilesAggregateQueryResult = Apollo.QueryResult<GetFilesAggregateQuery, GetFilesAggregateQueryVariables>;
+export function refetchGetFilesAggregateQuery(variables?: GetFilesAggregateQueryVariables) {
+      return { query: GetFilesAggregateDocument, variables: variables }
     }
+export const GetProjectLogsDocument = gql`
+    query getProjectLogs($appID: String!, $service: String, $from: Timestamp, $to: Timestamp) {
+  logs(appID: $appID, service: $service, from: $from, to: $to) {
+    log
+    service
+    timestamp
+  }
+}
+    `;
+
+/**
+ * __useGetProjectLogsQuery__
+ *
+ * To run a query within a React component, call `useGetProjectLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectLogsQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      service: // value for 'service'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *   },
+ * });
+ */
+export function useGetProjectLogsQuery(baseOptions: Apollo.QueryHookOptions<GetProjectLogsQuery, GetProjectLogsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProjectLogsQuery, GetProjectLogsQueryVariables>(GetProjectLogsDocument, options);
+      }
+export function useGetProjectLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectLogsQuery, GetProjectLogsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProjectLogsQuery, GetProjectLogsQueryVariables>(GetProjectLogsDocument, options);
+        }
+export type GetProjectLogsQueryHookResult = ReturnType<typeof useGetProjectLogsQuery>;
+export type GetProjectLogsLazyQueryHookResult = ReturnType<typeof useGetProjectLogsLazyQuery>;
+export type GetProjectLogsQueryResult = Apollo.QueryResult<GetProjectLogsQuery, GetProjectLogsQueryVariables>;
+export function refetchGetProjectLogsQuery(variables: GetProjectLogsQueryVariables) {
+      return { query: GetProjectLogsDocument, variables: variables }
+    }
+export const GetLogsSubscriptionDocument = gql`
+    subscription getLogsSubscription($appID: String!, $service: String, $from: Timestamp) {
+  logs(appID: $appID, service: $service, from: $from) {
+    log
+    service
+    timestamp
+  }
+}
+    `;
+
+/**
+ * __useGetLogsSubscriptionSubscription__
+ *
+ * To run a query within a React component, call `useGetLogsSubscriptionSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetLogsSubscriptionSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLogsSubscriptionSubscription({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      service: // value for 'service'
+ *      from: // value for 'from'
+ *   },
+ * });
+ */
+export function useGetLogsSubscriptionSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetLogsSubscriptionSubscription, GetLogsSubscriptionSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<GetLogsSubscriptionSubscription, GetLogsSubscriptionSubscriptionVariables>(GetLogsSubscriptionDocument, options);
+      }
+export type GetLogsSubscriptionSubscriptionHookResult = ReturnType<typeof useGetLogsSubscriptionSubscription>;
+export type GetLogsSubscriptionSubscriptionResult = Apollo.SubscriptionResult<GetLogsSubscriptionSubscription>;
 export const DeletePaymentMethodDocument = gql`
     mutation deletePaymentMethod($paymentMethodId: uuid!) {
   deletePaymentMethod(id: $paymentMethodId) {
@@ -21415,395 +21136,494 @@ export type GetPlansQueryResult = Apollo.QueryResult<GetPlansQuery, GetPlansQuer
 export function refetchGetPlansQuery(variables?: GetPlansQueryVariables) {
       return { query: GetPlansDocument, variables: variables }
     }
-export const DeleteRunServiceDocument = gql`
-    mutation deleteRunService($serviceID: uuid!) {
-  deleteRunService(id: $serviceID) {
-    id
-  }
+export const RestoreApplicationDatabaseDocument = gql`
+    mutation RestoreApplicationDatabase($appId: String!, $backupId: String!) {
+  restoreApplicationDatabase(appID: $appId, backupID: $backupId)
 }
     `;
-export type DeleteRunServiceMutationFn = Apollo.MutationFunction<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>;
+export type RestoreApplicationDatabaseMutationFn = Apollo.MutationFunction<RestoreApplicationDatabaseMutation, RestoreApplicationDatabaseMutationVariables>;
 
 /**
- * __useDeleteRunServiceMutation__
+ * __useRestoreApplicationDatabaseMutation__
  *
- * To run a mutation, you first call `useDeleteRunServiceMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteRunServiceMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useRestoreApplicationDatabaseMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRestoreApplicationDatabaseMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [deleteRunServiceMutation, { data, loading, error }] = useDeleteRunServiceMutation({
+ * const [restoreApplicationDatabaseMutation, { data, loading, error }] = useRestoreApplicationDatabaseMutation({
  *   variables: {
- *      serviceID: // value for 'serviceID'
+ *      appId: // value for 'appId'
+ *      backupId: // value for 'backupId'
  *   },
  * });
  */
-export function useDeleteRunServiceMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>) {
+export function useRestoreApplicationDatabaseMutation(baseOptions?: Apollo.MutationHookOptions<RestoreApplicationDatabaseMutation, RestoreApplicationDatabaseMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>(DeleteRunServiceDocument, options);
+        return Apollo.useMutation<RestoreApplicationDatabaseMutation, RestoreApplicationDatabaseMutationVariables>(RestoreApplicationDatabaseDocument, options);
       }
-export type DeleteRunServiceMutationHookResult = ReturnType<typeof useDeleteRunServiceMutation>;
-export type DeleteRunServiceMutationResult = Apollo.MutationResult<DeleteRunServiceMutation>;
-export type DeleteRunServiceMutationOptions = Apollo.BaseMutationOptions<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>;
-export const DeleteRunServiceConfigDocument = gql`
-    mutation deleteRunServiceConfig($appID: uuid!, $serviceID: uuid!) {
-  deleteRunServiceConfig(appID: $appID, serviceID: $serviceID) {
-    name
+export type RestoreApplicationDatabaseMutationHookResult = ReturnType<typeof useRestoreApplicationDatabaseMutation>;
+export type RestoreApplicationDatabaseMutationResult = Apollo.MutationResult<RestoreApplicationDatabaseMutation>;
+export type RestoreApplicationDatabaseMutationOptions = Apollo.BaseMutationOptions<RestoreApplicationDatabaseMutation, RestoreApplicationDatabaseMutationVariables>;
+export const RemoteAppDeleteUserDocument = gql`
+    mutation remoteAppDeleteUser($id: uuid!) {
+  deleteUser(id: $id) {
+    id
   }
 }
     `;
-export type DeleteRunServiceConfigMutationFn = Apollo.MutationFunction<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>;
+export type RemoteAppDeleteUserMutationFn = Apollo.MutationFunction<RemoteAppDeleteUserMutation, RemoteAppDeleteUserMutationVariables>;
 
 /**
- * __useDeleteRunServiceConfigMutation__
+ * __useRemoteAppDeleteUserMutation__
  *
- * To run a mutation, you first call `useDeleteRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteRunServiceConfigMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useRemoteAppDeleteUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoteAppDeleteUserMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [deleteRunServiceConfigMutation, { data, loading, error }] = useDeleteRunServiceConfigMutation({
- *   variables: {
- *      appID: // value for 'appID'
- *      serviceID: // value for 'serviceID'
- *   },
- * });
- */
-export function useDeleteRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>(DeleteRunServiceConfigDocument, options);
-      }
-export type DeleteRunServiceConfigMutationHookResult = ReturnType<typeof useDeleteRunServiceConfigMutation>;
-export type DeleteRunServiceConfigMutationResult = Apollo.MutationResult<DeleteRunServiceConfigMutation>;
-export type DeleteRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>;
-export const GetRunServiceDocument = gql`
-    query getRunService($id: uuid!, $resolve: Boolean!) {
-  runService(id: $id) {
-    id
-    config(resolve: $resolve) {
-      name
-      image {
-        image
-      }
-      command
-      resources {
-        compute {
-          cpu
-          memory
-        }
-        storage {
-          name
-          path
-          capacity
-        }
-        replicas
-      }
-      environment {
-        name
-        value
-      }
-      ports {
-        port
-        type
-        publish
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetRunServiceQuery__
- *
- * To run a query within a React component, call `useGetRunServiceQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetRunServiceQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetRunServiceQuery({
+ * const [remoteAppDeleteUserMutation, { data, loading, error }] = useRemoteAppDeleteUserMutation({
  *   variables: {
  *      id: // value for 'id'
- *      resolve: // value for 'resolve'
  *   },
  * });
  */
-export function useGetRunServiceQuery(baseOptions: Apollo.QueryHookOptions<GetRunServiceQuery, GetRunServiceQueryVariables>) {
+export function useRemoteAppDeleteUserMutation(baseOptions?: Apollo.MutationHookOptions<RemoteAppDeleteUserMutation, RemoteAppDeleteUserMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRunServiceQuery, GetRunServiceQueryVariables>(GetRunServiceDocument, options);
+        return Apollo.useMutation<RemoteAppDeleteUserMutation, RemoteAppDeleteUserMutationVariables>(RemoteAppDeleteUserDocument, options);
       }
-export function useGetRunServiceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServiceQuery, GetRunServiceQueryVariables>) {
+export type RemoteAppDeleteUserMutationHookResult = ReturnType<typeof useRemoteAppDeleteUserMutation>;
+export type RemoteAppDeleteUserMutationResult = Apollo.MutationResult<RemoteAppDeleteUserMutation>;
+export type RemoteAppDeleteUserMutationOptions = Apollo.BaseMutationOptions<RemoteAppDeleteUserMutation, RemoteAppDeleteUserMutationVariables>;
+export const GetAppFunctionsMetadataDocument = gql`
+    query getAppFunctionsMetadata($id: uuid!) {
+  app(id: $id) {
+    id
+    metadataFunctions
+  }
+}
+    `;
+
+/**
+ * __useGetAppFunctionsMetadataQuery__
+ *
+ * To run a query within a React component, call `useGetAppFunctionsMetadataQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAppFunctionsMetadataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAppFunctionsMetadataQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetAppFunctionsMetadataQuery(baseOptions: Apollo.QueryHookOptions<GetAppFunctionsMetadataQuery, GetAppFunctionsMetadataQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAppFunctionsMetadataQuery, GetAppFunctionsMetadataQueryVariables>(GetAppFunctionsMetadataDocument, options);
+      }
+export function useGetAppFunctionsMetadataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAppFunctionsMetadataQuery, GetAppFunctionsMetadataQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRunServiceQuery, GetRunServiceQueryVariables>(GetRunServiceDocument, options);
+          return Apollo.useLazyQuery<GetAppFunctionsMetadataQuery, GetAppFunctionsMetadataQueryVariables>(GetAppFunctionsMetadataDocument, options);
         }
-export type GetRunServiceQueryHookResult = ReturnType<typeof useGetRunServiceQuery>;
-export type GetRunServiceLazyQueryHookResult = ReturnType<typeof useGetRunServiceLazyQuery>;
-export type GetRunServiceQueryResult = Apollo.QueryResult<GetRunServiceQuery, GetRunServiceQueryVariables>;
-export function refetchGetRunServiceQuery(variables: GetRunServiceQueryVariables) {
-      return { query: GetRunServiceDocument, variables: variables }
+export type GetAppFunctionsMetadataQueryHookResult = ReturnType<typeof useGetAppFunctionsMetadataQuery>;
+export type GetAppFunctionsMetadataLazyQueryHookResult = ReturnType<typeof useGetAppFunctionsMetadataLazyQuery>;
+export type GetAppFunctionsMetadataQueryResult = Apollo.QueryResult<GetAppFunctionsMetadataQuery, GetAppFunctionsMetadataQueryVariables>;
+export function refetchGetAppFunctionsMetadataQuery(variables: GetAppFunctionsMetadataQueryVariables) {
+      return { query: GetAppFunctionsMetadataDocument, variables: variables }
     }
-export const GetRunServicesDocument = gql`
-    query getRunServices($appID: uuid!, $resolve: Boolean!, $limit: Int!, $offset: Int!) {
-  app(id: $appID) {
-    runServices(limit: $limit, offset: $offset) {
-      id
-      createdAt
-      updatedAt
-      config(resolve: $resolve) {
-        name
-        image {
-          image
-        }
-        command
-        resources {
-          compute {
-            cpu
-            memory
-          }
-          storage {
-            name
-            path
-            capacity
-          }
-          replicas
-        }
-        environment {
-          name
-          value
-        }
-        ports {
-          port
-          type
-          publish
-        }
+export const GetRemoteAppMetricsDocument = gql`
+    query getRemoteAppMetrics {
+  filesAggregate {
+    aggregate {
+      count
+      sum {
+        size
       }
     }
-    runServices_aggregate {
-      aggregate {
-        count
-      }
+  }
+  usersAggregate {
+    aggregate {
+      count
     }
   }
 }
     `;
 
 /**
- * __useGetRunServicesQuery__
+ * __useGetRemoteAppMetricsQuery__
  *
- * To run a query within a React component, call `useGetRunServicesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetRunServicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetRemoteAppMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRemoteAppMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetRunServicesQuery({
+ * const { data, loading, error } = useGetRemoteAppMetricsQuery({
  *   variables: {
- *      appID: // value for 'appID'
- *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetRemoteAppMetricsQuery(baseOptions?: Apollo.QueryHookOptions<GetRemoteAppMetricsQuery, GetRemoteAppMetricsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRemoteAppMetricsQuery, GetRemoteAppMetricsQueryVariables>(GetRemoteAppMetricsDocument, options);
+      }
+export function useGetRemoteAppMetricsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRemoteAppMetricsQuery, GetRemoteAppMetricsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRemoteAppMetricsQuery, GetRemoteAppMetricsQueryVariables>(GetRemoteAppMetricsDocument, options);
+        }
+export type GetRemoteAppMetricsQueryHookResult = ReturnType<typeof useGetRemoteAppMetricsQuery>;
+export type GetRemoteAppMetricsLazyQueryHookResult = ReturnType<typeof useGetRemoteAppMetricsLazyQuery>;
+export type GetRemoteAppMetricsQueryResult = Apollo.QueryResult<GetRemoteAppMetricsQuery, GetRemoteAppMetricsQueryVariables>;
+export function refetchGetRemoteAppMetricsQuery(variables?: GetRemoteAppMetricsQueryVariables) {
+      return { query: GetRemoteAppMetricsDocument, variables: variables }
+    }
+export const RemoteAppGetUsersDocument = gql`
+    query remoteAppGetUsers($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
+  users(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: {createdAt: desc}
+  ) {
+    ...RemoteAppGetUsers
+  }
+  filteredUsersAggreggate: usersAggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+  usersAggregate {
+    aggregate {
+      count
+    }
+  }
+}
+    ${RemoteAppGetUsersFragmentDoc}`;
+
+/**
+ * __useRemoteAppGetUsersQuery__
+ *
+ * To run a query within a React component, call `useRemoteAppGetUsersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRemoteAppGetUsersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRemoteAppGetUsersQuery({
+ *   variables: {
+ *      where: // value for 'where'
  *      limit: // value for 'limit'
  *      offset: // value for 'offset'
  *   },
  * });
  */
-export function useGetRunServicesQuery(baseOptions: Apollo.QueryHookOptions<GetRunServicesQuery, GetRunServicesQueryVariables>) {
+export function useRemoteAppGetUsersQuery(baseOptions: Apollo.QueryHookOptions<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetRunServicesQuery, GetRunServicesQueryVariables>(GetRunServicesDocument, options);
+        return Apollo.useQuery<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>(RemoteAppGetUsersDocument, options);
       }
-export function useGetRunServicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServicesQuery, GetRunServicesQueryVariables>) {
+export function useRemoteAppGetUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetRunServicesQuery, GetRunServicesQueryVariables>(GetRunServicesDocument, options);
+          return Apollo.useLazyQuery<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>(RemoteAppGetUsersDocument, options);
         }
-export type GetRunServicesQueryHookResult = ReturnType<typeof useGetRunServicesQuery>;
-export type GetRunServicesLazyQueryHookResult = ReturnType<typeof useGetRunServicesLazyQuery>;
-export type GetRunServicesQueryResult = Apollo.QueryResult<GetRunServicesQuery, GetRunServicesQueryVariables>;
-export function refetchGetRunServicesQuery(variables: GetRunServicesQueryVariables) {
-      return { query: GetRunServicesDocument, variables: variables }
+export type RemoteAppGetUsersQueryHookResult = ReturnType<typeof useRemoteAppGetUsersQuery>;
+export type RemoteAppGetUsersLazyQueryHookResult = ReturnType<typeof useRemoteAppGetUsersLazyQuery>;
+export type RemoteAppGetUsersQueryResult = Apollo.QueryResult<RemoteAppGetUsersQuery, RemoteAppGetUsersQueryVariables>;
+export function refetchRemoteAppGetUsersQuery(variables: RemoteAppGetUsersQueryVariables) {
+      return { query: RemoteAppGetUsersDocument, variables: variables }
     }
-export const InsertRunServiceDocument = gql`
-    mutation insertRunService($object: run_service_insert_input!) {
-  insertRunService(object: $object) {
+export const RemoteAppGetUsersCustomDocument = gql`
+    query remoteAppGetUsersCustom($where: users_bool_exp!, $limit: Int!, $offset: Int!) {
+  users(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: {createdAt: desc}
+  ) {
     id
-    appID
+    createdAt
+    displayName
+    phoneNumber
+    avatarUrl
+    email
+    disabled
+    defaultRole
+    roles(order_by: {role: asc}) {
+      role
+    }
+    isAnonymous
   }
 }
     `;
-export type InsertRunServiceMutationFn = Apollo.MutationFunction<InsertRunServiceMutation, InsertRunServiceMutationVariables>;
 
 /**
- * __useInsertRunServiceMutation__
+ * __useRemoteAppGetUsersCustomQuery__
  *
- * To run a mutation, you first call `useInsertRunServiceMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertRunServiceMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertRunServiceMutation, { data, loading, error }] = useInsertRunServiceMutation({
- *   variables: {
- *      object: // value for 'object'
- *   },
- * });
- */
-export function useInsertRunServiceMutation(baseOptions?: Apollo.MutationHookOptions<InsertRunServiceMutation, InsertRunServiceMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertRunServiceMutation, InsertRunServiceMutationVariables>(InsertRunServiceDocument, options);
-      }
-export type InsertRunServiceMutationHookResult = ReturnType<typeof useInsertRunServiceMutation>;
-export type InsertRunServiceMutationResult = Apollo.MutationResult<InsertRunServiceMutation>;
-export type InsertRunServiceMutationOptions = Apollo.BaseMutationOptions<InsertRunServiceMutation, InsertRunServiceMutationVariables>;
-export const InsertRunServiceConfigDocument = gql`
-    mutation insertRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
-  insertRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
-    name
-  }
-}
-    `;
-export type InsertRunServiceConfigMutationFn = Apollo.MutationFunction<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>;
-
-/**
- * __useInsertRunServiceConfigMutation__
- *
- * To run a mutation, you first call `useInsertRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertRunServiceConfigMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertRunServiceConfigMutation, { data, loading, error }] = useInsertRunServiceConfigMutation({
- *   variables: {
- *      appID: // value for 'appID'
- *      serviceID: // value for 'serviceID'
- *      config: // value for 'config'
- *   },
- * });
- */
-export function useInsertRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>(InsertRunServiceConfigDocument, options);
-      }
-export type InsertRunServiceConfigMutationHookResult = ReturnType<typeof useInsertRunServiceConfigMutation>;
-export type InsertRunServiceConfigMutationResult = Apollo.MutationResult<InsertRunServiceConfigMutation>;
-export type InsertRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>;
-export const ReplaceRunServiceConfigDocument = gql`
-    mutation replaceRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
-  replaceRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
-    __typename
-  }
-}
-    `;
-export type ReplaceRunServiceConfigMutationFn = Apollo.MutationFunction<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>;
-
-/**
- * __useReplaceRunServiceConfigMutation__
- *
- * To run a mutation, you first call `useReplaceRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useReplaceRunServiceConfigMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [replaceRunServiceConfigMutation, { data, loading, error }] = useReplaceRunServiceConfigMutation({
- *   variables: {
- *      appID: // value for 'appID'
- *      serviceID: // value for 'serviceID'
- *      config: // value for 'config'
- *   },
- * });
- */
-export function useReplaceRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>(ReplaceRunServiceConfigDocument, options);
-      }
-export type ReplaceRunServiceConfigMutationHookResult = ReturnType<typeof useReplaceRunServiceConfigMutation>;
-export type ReplaceRunServiceConfigMutationResult = Apollo.MutationResult<ReplaceRunServiceConfigMutation>;
-export type ReplaceRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>;
-export const UpdateRunServiceConfigDocument = gql`
-    mutation updateRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigUpdateInput!) {
-  updateRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
-    name
-  }
-}
-    `;
-export type UpdateRunServiceConfigMutationFn = Apollo.MutationFunction<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
-
-/**
- * __useUpdateRunServiceConfigMutation__
- *
- * To run a mutation, you first call `useUpdateRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateRunServiceConfigMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateRunServiceConfigMutation, { data, loading, error }] = useUpdateRunServiceConfigMutation({
- *   variables: {
- *      appID: // value for 'appID'
- *      serviceID: // value for 'serviceID'
- *      config: // value for 'config'
- *   },
- * });
- */
-export function useUpdateRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>(UpdateRunServiceConfigDocument, options);
-      }
-export type UpdateRunServiceConfigMutationHookResult = ReturnType<typeof useUpdateRunServiceConfigMutation>;
-export type UpdateRunServiceConfigMutationResult = Apollo.MutationResult<UpdateRunServiceConfigMutation>;
-export type UpdateRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
-export const GetResourcesDocument = gql`
-    query GetResources($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
-    ...ServiceResources
-  }
-}
-    ${ServiceResourcesFragmentDoc}`;
-
-/**
- * __useGetResourcesQuery__
- *
- * To run a query within a React component, call `useGetResourcesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetResourcesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useRemoteAppGetUsersCustomQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRemoteAppGetUsersCustomQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetResourcesQuery({
+ * const { data, loading, error } = useRemoteAppGetUsersCustomQuery({
  *   variables: {
- *      appId: // value for 'appId'
+ *      where: // value for 'where'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
  *   },
  * });
  */
-export function useGetResourcesQuery(baseOptions: Apollo.QueryHookOptions<GetResourcesQuery, GetResourcesQueryVariables>) {
+export function useRemoteAppGetUsersCustomQuery(baseOptions: Apollo.QueryHookOptions<RemoteAppGetUsersCustomQuery, RemoteAppGetUsersCustomQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetResourcesQuery, GetResourcesQueryVariables>(GetResourcesDocument, options);
+        return Apollo.useQuery<RemoteAppGetUsersCustomQuery, RemoteAppGetUsersCustomQueryVariables>(RemoteAppGetUsersCustomDocument, options);
       }
-export function useGetResourcesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetResourcesQuery, GetResourcesQueryVariables>) {
+export function useRemoteAppGetUsersCustomLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RemoteAppGetUsersCustomQuery, RemoteAppGetUsersCustomQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetResourcesQuery, GetResourcesQueryVariables>(GetResourcesDocument, options);
+          return Apollo.useLazyQuery<RemoteAppGetUsersCustomQuery, RemoteAppGetUsersCustomQueryVariables>(RemoteAppGetUsersCustomDocument, options);
         }
-export type GetResourcesQueryHookResult = ReturnType<typeof useGetResourcesQuery>;
-export type GetResourcesLazyQueryHookResult = ReturnType<typeof useGetResourcesLazyQuery>;
-export type GetResourcesQueryResult = Apollo.QueryResult<GetResourcesQuery, GetResourcesQueryVariables>;
-export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) {
-      return { query: GetResourcesDocument, variables: variables }
+export type RemoteAppGetUsersCustomQueryHookResult = ReturnType<typeof useRemoteAppGetUsersCustomQuery>;
+export type RemoteAppGetUsersCustomLazyQueryHookResult = ReturnType<typeof useRemoteAppGetUsersCustomLazyQuery>;
+export type RemoteAppGetUsersCustomQueryResult = Apollo.QueryResult<RemoteAppGetUsersCustomQuery, RemoteAppGetUsersCustomQueryVariables>;
+export function refetchRemoteAppGetUsersCustomQuery(variables: RemoteAppGetUsersCustomQueryVariables) {
+      return { query: RemoteAppGetUsersCustomDocument, variables: variables }
     }
+export const RemoteAppGetUsersWholeDocument = gql`
+    query remoteAppGetUsersWhole($limit: Int!, $offset: Int!) {
+  users(limit: $limit, offset: $offset) {
+    ...RemoteAppGetUsers
+  }
+  usersAggregate {
+    aggregate {
+      count
+    }
+  }
+}
+    ${RemoteAppGetUsersFragmentDoc}`;
+
+/**
+ * __useRemoteAppGetUsersWholeQuery__
+ *
+ * To run a query within a React component, call `useRemoteAppGetUsersWholeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRemoteAppGetUsersWholeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRemoteAppGetUsersWholeQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useRemoteAppGetUsersWholeQuery(baseOptions: Apollo.QueryHookOptions<RemoteAppGetUsersWholeQuery, RemoteAppGetUsersWholeQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RemoteAppGetUsersWholeQuery, RemoteAppGetUsersWholeQueryVariables>(RemoteAppGetUsersWholeDocument, options);
+      }
+export function useRemoteAppGetUsersWholeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RemoteAppGetUsersWholeQuery, RemoteAppGetUsersWholeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RemoteAppGetUsersWholeQuery, RemoteAppGetUsersWholeQueryVariables>(RemoteAppGetUsersWholeDocument, options);
+        }
+export type RemoteAppGetUsersWholeQueryHookResult = ReturnType<typeof useRemoteAppGetUsersWholeQuery>;
+export type RemoteAppGetUsersWholeLazyQueryHookResult = ReturnType<typeof useRemoteAppGetUsersWholeLazyQuery>;
+export type RemoteAppGetUsersWholeQueryResult = Apollo.QueryResult<RemoteAppGetUsersWholeQuery, RemoteAppGetUsersWholeQueryVariables>;
+export function refetchRemoteAppGetUsersWholeQuery(variables: RemoteAppGetUsersWholeQueryVariables) {
+      return { query: RemoteAppGetUsersWholeDocument, variables: variables }
+    }
+export const TotalUsersDocument = gql`
+    query totalUsers {
+  usersAggregate {
+    aggregate {
+      count
+    }
+  }
+}
+    `;
+
+/**
+ * __useTotalUsersQuery__
+ *
+ * To run a query within a React component, call `useTotalUsersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTotalUsersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTotalUsersQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useTotalUsersQuery(baseOptions?: Apollo.QueryHookOptions<TotalUsersQuery, TotalUsersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TotalUsersQuery, TotalUsersQueryVariables>(TotalUsersDocument, options);
+      }
+export function useTotalUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TotalUsersQuery, TotalUsersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TotalUsersQuery, TotalUsersQueryVariables>(TotalUsersDocument, options);
+        }
+export type TotalUsersQueryHookResult = ReturnType<typeof useTotalUsersQuery>;
+export type TotalUsersLazyQueryHookResult = ReturnType<typeof useTotalUsersLazyQuery>;
+export type TotalUsersQueryResult = Apollo.QueryResult<TotalUsersQuery, TotalUsersQueryVariables>;
+export function refetchTotalUsersQuery(variables?: TotalUsersQueryVariables) {
+      return { query: TotalUsersDocument, variables: variables }
+    }
+export const TotalUsersByDateDocument = gql`
+    query totalUsersByDate($where: users_bool_exp!) {
+  usersAggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+    `;
+
+/**
+ * __useTotalUsersByDateQuery__
+ *
+ * To run a query within a React component, call `useTotalUsersByDateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTotalUsersByDateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTotalUsersByDateQuery({
+ *   variables: {
+ *      where: // value for 'where'
+ *   },
+ * });
+ */
+export function useTotalUsersByDateQuery(baseOptions: Apollo.QueryHookOptions<TotalUsersByDateQuery, TotalUsersByDateQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TotalUsersByDateQuery, TotalUsersByDateQueryVariables>(TotalUsersByDateDocument, options);
+      }
+export function useTotalUsersByDateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TotalUsersByDateQuery, TotalUsersByDateQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TotalUsersByDateQuery, TotalUsersByDateQueryVariables>(TotalUsersByDateDocument, options);
+        }
+export type TotalUsersByDateQueryHookResult = ReturnType<typeof useTotalUsersByDateQuery>;
+export type TotalUsersByDateLazyQueryHookResult = ReturnType<typeof useTotalUsersByDateLazyQuery>;
+export type TotalUsersByDateQueryResult = Apollo.QueryResult<TotalUsersByDateQuery, TotalUsersByDateQueryVariables>;
+export function refetchTotalUsersByDateQuery(variables: TotalUsersByDateQueryVariables) {
+      return { query: TotalUsersByDateDocument, variables: variables }
+    }
+export const UpdateRemoteAppUserDocument = gql`
+    mutation updateRemoteAppUser($id: uuid!, $user: users_set_input!) {
+  updateUser(pk_columns: {id: $id}, _set: $user) {
+    id
+  }
+}
+    `;
+export type UpdateRemoteAppUserMutationFn = Apollo.MutationFunction<UpdateRemoteAppUserMutation, UpdateRemoteAppUserMutationVariables>;
+
+/**
+ * __useUpdateRemoteAppUserMutation__
+ *
+ * To run a mutation, you first call `useUpdateRemoteAppUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateRemoteAppUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateRemoteAppUserMutation, { data, loading, error }] = useUpdateRemoteAppUserMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      user: // value for 'user'
+ *   },
+ * });
+ */
+export function useUpdateRemoteAppUserMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRemoteAppUserMutation, UpdateRemoteAppUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateRemoteAppUserMutation, UpdateRemoteAppUserMutationVariables>(UpdateRemoteAppUserDocument, options);
+      }
+export type UpdateRemoteAppUserMutationHookResult = ReturnType<typeof useUpdateRemoteAppUserMutation>;
+export type UpdateRemoteAppUserMutationResult = Apollo.MutationResult<UpdateRemoteAppUserMutation>;
+export type UpdateRemoteAppUserMutationOptions = Apollo.BaseMutationOptions<UpdateRemoteAppUserMutation, UpdateRemoteAppUserMutationVariables>;
+export const InsertRemoteAppUserRolesDocument = gql`
+    mutation insertRemoteAppUserRoles($roles: [authUserRoles_insert_input!]!) {
+  insertAuthUserRoles(objects: $roles) {
+    affected_rows
+  }
+}
+    `;
+export type InsertRemoteAppUserRolesMutationFn = Apollo.MutationFunction<InsertRemoteAppUserRolesMutation, InsertRemoteAppUserRolesMutationVariables>;
+
+/**
+ * __useInsertRemoteAppUserRolesMutation__
+ *
+ * To run a mutation, you first call `useInsertRemoteAppUserRolesMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertRemoteAppUserRolesMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertRemoteAppUserRolesMutation, { data, loading, error }] = useInsertRemoteAppUserRolesMutation({
+ *   variables: {
+ *      roles: // value for 'roles'
+ *   },
+ * });
+ */
+export function useInsertRemoteAppUserRolesMutation(baseOptions?: Apollo.MutationHookOptions<InsertRemoteAppUserRolesMutation, InsertRemoteAppUserRolesMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertRemoteAppUserRolesMutation, InsertRemoteAppUserRolesMutationVariables>(InsertRemoteAppUserRolesDocument, options);
+      }
+export type InsertRemoteAppUserRolesMutationHookResult = ReturnType<typeof useInsertRemoteAppUserRolesMutation>;
+export type InsertRemoteAppUserRolesMutationResult = Apollo.MutationResult<InsertRemoteAppUserRolesMutation>;
+export type InsertRemoteAppUserRolesMutationOptions = Apollo.BaseMutationOptions<InsertRemoteAppUserRolesMutation, InsertRemoteAppUserRolesMutationVariables>;
+export const DeleteRemoteAppUserRolesDocument = gql`
+    mutation deleteRemoteAppUserRoles($userId: uuid!, $roles: [String!]!) {
+  deleteAuthUserRoles(
+    where: {_and: [{userId: {_eq: $userId}}, {role: {_in: $roles}}]}
+  ) {
+    affected_rows
+  }
+}
+    `;
+export type DeleteRemoteAppUserRolesMutationFn = Apollo.MutationFunction<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>;
+
+/**
+ * __useDeleteRemoteAppUserRolesMutation__
+ *
+ * To run a mutation, you first call `useDeleteRemoteAppUserRolesMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteRemoteAppUserRolesMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteRemoteAppUserRolesMutation, { data, loading, error }] = useDeleteRemoteAppUserRolesMutation({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *      roles: // value for 'roles'
+ *   },
+ * });
+ */
+export function useDeleteRemoteAppUserRolesMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>(DeleteRemoteAppUserRolesDocument, options);
+      }
+export type DeleteRemoteAppUserRolesMutationHookResult = ReturnType<typeof useDeleteRemoteAppUserRolesMutation>;
+export type DeleteRemoteAppUserRolesMutationResult = Apollo.MutationResult<DeleteRemoteAppUserRolesMutation>;
+export type DeleteRemoteAppUserRolesMutationOptions = Apollo.BaseMutationOptions<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>;
 export const GetFreeAndActiveProjectsDocument = gql`
     query GetFreeAndActiveProjects($userId: uuid!) {
   freeAndActiveProjects: apps(
@@ -21877,380 +21697,3 @@ export function useInsertFeedbackOneMutation(baseOptions?: Apollo.MutationHookOp
 export type InsertFeedbackOneMutationHookResult = ReturnType<typeof useInsertFeedbackOneMutation>;
 export type InsertFeedbackOneMutationResult = Apollo.MutationResult<InsertFeedbackOneMutation>;
 export type InsertFeedbackOneMutationOptions = Apollo.BaseMutationOptions<InsertFeedbackOneMutation, InsertFeedbackOneMutationVariables>;
-export const DeleteWorkspaceMemberInvitesDocument = gql`
-    mutation deleteWorkspaceMemberInvites($id: uuid!) {
-  deleteWorkspaceMemberInvites(where: {id: {_eq: $id}}) {
-    affected_rows
-  }
-}
-    `;
-export type DeleteWorkspaceMemberInvitesMutationFn = Apollo.MutationFunction<DeleteWorkspaceMemberInvitesMutation, DeleteWorkspaceMemberInvitesMutationVariables>;
-
-/**
- * __useDeleteWorkspaceMemberInvitesMutation__
- *
- * To run a mutation, you first call `useDeleteWorkspaceMemberInvitesMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteWorkspaceMemberInvitesMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteWorkspaceMemberInvitesMutation, { data, loading, error }] = useDeleteWorkspaceMemberInvitesMutation({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useDeleteWorkspaceMemberInvitesMutation(baseOptions?: Apollo.MutationHookOptions<DeleteWorkspaceMemberInvitesMutation, DeleteWorkspaceMemberInvitesMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteWorkspaceMemberInvitesMutation, DeleteWorkspaceMemberInvitesMutationVariables>(DeleteWorkspaceMemberInvitesDocument, options);
-      }
-export type DeleteWorkspaceMemberInvitesMutationHookResult = ReturnType<typeof useDeleteWorkspaceMemberInvitesMutation>;
-export type DeleteWorkspaceMemberInvitesMutationResult = Apollo.MutationResult<DeleteWorkspaceMemberInvitesMutation>;
-export type DeleteWorkspaceMemberInvitesMutationOptions = Apollo.BaseMutationOptions<DeleteWorkspaceMemberInvitesMutation, DeleteWorkspaceMemberInvitesMutationVariables>;
-export const GetWorkspaceMemberInvitesToManageDocument = gql`
-    query getWorkspaceMemberInvitesToManage($userId: uuid!) {
-  workspaceMemberInvites(where: {userByEmail: {id: {_eq: $userId}}}) {
-    id
-    email
-    userByEmail {
-      id
-    }
-    workspace {
-      id
-      name
-      slug
-    }
-  }
-}
-    `;
-
-/**
- * __useGetWorkspaceMemberInvitesToManageQuery__
- *
- * To run a query within a React component, call `useGetWorkspaceMemberInvitesToManageQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWorkspaceMemberInvitesToManageQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetWorkspaceMemberInvitesToManageQuery({
- *   variables: {
- *      userId: // value for 'userId'
- *   },
- * });
- */
-export function useGetWorkspaceMemberInvitesToManageQuery(baseOptions: Apollo.QueryHookOptions<GetWorkspaceMemberInvitesToManageQuery, GetWorkspaceMemberInvitesToManageQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetWorkspaceMemberInvitesToManageQuery, GetWorkspaceMemberInvitesToManageQueryVariables>(GetWorkspaceMemberInvitesToManageDocument, options);
-      }
-export function useGetWorkspaceMemberInvitesToManageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetWorkspaceMemberInvitesToManageQuery, GetWorkspaceMemberInvitesToManageQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetWorkspaceMemberInvitesToManageQuery, GetWorkspaceMemberInvitesToManageQueryVariables>(GetWorkspaceMemberInvitesToManageDocument, options);
-        }
-export type GetWorkspaceMemberInvitesToManageQueryHookResult = ReturnType<typeof useGetWorkspaceMemberInvitesToManageQuery>;
-export type GetWorkspaceMemberInvitesToManageLazyQueryHookResult = ReturnType<typeof useGetWorkspaceMemberInvitesToManageLazyQuery>;
-export type GetWorkspaceMemberInvitesToManageQueryResult = Apollo.QueryResult<GetWorkspaceMemberInvitesToManageQuery, GetWorkspaceMemberInvitesToManageQueryVariables>;
-export function refetchGetWorkspaceMemberInvitesToManageQuery(variables: GetWorkspaceMemberInvitesToManageQueryVariables) {
-      return { query: GetWorkspaceMemberInvitesToManageDocument, variables: variables }
-    }
-export const InsertWorkspaceMemberInviteDocument = gql`
-    mutation insertWorkspaceMemberInvite($workspaceMemberInvite: workspaceMemberInvites_insert_input!) {
-  insertWorkspaceMemberInvite(object: $workspaceMemberInvite) {
-    id
-  }
-}
-    `;
-export type InsertWorkspaceMemberInviteMutationFn = Apollo.MutationFunction<InsertWorkspaceMemberInviteMutation, InsertWorkspaceMemberInviteMutationVariables>;
-
-/**
- * __useInsertWorkspaceMemberInviteMutation__
- *
- * To run a mutation, you first call `useInsertWorkspaceMemberInviteMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertWorkspaceMemberInviteMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertWorkspaceMemberInviteMutation, { data, loading, error }] = useInsertWorkspaceMemberInviteMutation({
- *   variables: {
- *      workspaceMemberInvite: // value for 'workspaceMemberInvite'
- *   },
- * });
- */
-export function useInsertWorkspaceMemberInviteMutation(baseOptions?: Apollo.MutationHookOptions<InsertWorkspaceMemberInviteMutation, InsertWorkspaceMemberInviteMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertWorkspaceMemberInviteMutation, InsertWorkspaceMemberInviteMutationVariables>(InsertWorkspaceMemberInviteDocument, options);
-      }
-export type InsertWorkspaceMemberInviteMutationHookResult = ReturnType<typeof useInsertWorkspaceMemberInviteMutation>;
-export type InsertWorkspaceMemberInviteMutationResult = Apollo.MutationResult<InsertWorkspaceMemberInviteMutation>;
-export type InsertWorkspaceMemberInviteMutationOptions = Apollo.BaseMutationOptions<InsertWorkspaceMemberInviteMutation, InsertWorkspaceMemberInviteMutationVariables>;
-export const UpdateWorkspaceMemberInviteDocument = gql`
-    mutation updateWorkspaceMemberInvite($id: uuid!, $workspaceMemberInvite: workspaceMemberInvites_set_input!) {
-  updateWorkspaceMemberInvites(
-    _set: $workspaceMemberInvite
-    where: {id: {_eq: $id}}
-  ) {
-    affected_rows
-  }
-}
-    `;
-export type UpdateWorkspaceMemberInviteMutationFn = Apollo.MutationFunction<UpdateWorkspaceMemberInviteMutation, UpdateWorkspaceMemberInviteMutationVariables>;
-
-/**
- * __useUpdateWorkspaceMemberInviteMutation__
- *
- * To run a mutation, you first call `useUpdateWorkspaceMemberInviteMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateWorkspaceMemberInviteMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateWorkspaceMemberInviteMutation, { data, loading, error }] = useUpdateWorkspaceMemberInviteMutation({
- *   variables: {
- *      id: // value for 'id'
- *      workspaceMemberInvite: // value for 'workspaceMemberInvite'
- *   },
- * });
- */
-export function useUpdateWorkspaceMemberInviteMutation(baseOptions?: Apollo.MutationHookOptions<UpdateWorkspaceMemberInviteMutation, UpdateWorkspaceMemberInviteMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateWorkspaceMemberInviteMutation, UpdateWorkspaceMemberInviteMutationVariables>(UpdateWorkspaceMemberInviteDocument, options);
-      }
-export type UpdateWorkspaceMemberInviteMutationHookResult = ReturnType<typeof useUpdateWorkspaceMemberInviteMutation>;
-export type UpdateWorkspaceMemberInviteMutationResult = Apollo.MutationResult<UpdateWorkspaceMemberInviteMutation>;
-export type UpdateWorkspaceMemberInviteMutationOptions = Apollo.BaseMutationOptions<UpdateWorkspaceMemberInviteMutation, UpdateWorkspaceMemberInviteMutationVariables>;
-export const DeleteWorkspaceMemberDocument = gql`
-    mutation deleteWorkspaceMember($id: uuid!) {
-  deleteWorkspaceMember(id: $id) {
-    id
-  }
-}
-    `;
-export type DeleteWorkspaceMemberMutationFn = Apollo.MutationFunction<DeleteWorkspaceMemberMutation, DeleteWorkspaceMemberMutationVariables>;
-
-/**
- * __useDeleteWorkspaceMemberMutation__
- *
- * To run a mutation, you first call `useDeleteWorkspaceMemberMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteWorkspaceMemberMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteWorkspaceMemberMutation, { data, loading, error }] = useDeleteWorkspaceMemberMutation({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useDeleteWorkspaceMemberMutation(baseOptions?: Apollo.MutationHookOptions<DeleteWorkspaceMemberMutation, DeleteWorkspaceMemberMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteWorkspaceMemberMutation, DeleteWorkspaceMemberMutationVariables>(DeleteWorkspaceMemberDocument, options);
-      }
-export type DeleteWorkspaceMemberMutationHookResult = ReturnType<typeof useDeleteWorkspaceMemberMutation>;
-export type DeleteWorkspaceMemberMutationResult = Apollo.MutationResult<DeleteWorkspaceMemberMutation>;
-export type DeleteWorkspaceMemberMutationOptions = Apollo.BaseMutationOptions<DeleteWorkspaceMemberMutation, DeleteWorkspaceMemberMutationVariables>;
-export const GetWorkspaceMembersDocument = gql`
-    query getWorkspaceMembers($workspaceId: uuid!) {
-  workspace(id: $workspaceId) {
-    id
-    creatorUser {
-      id
-    }
-    workspaceMembers(order_by: {createdAt: asc}) {
-      ...getWorkspaceMembersWorkspaceMember
-    }
-    workspaceMemberInvites(order_by: {createdAt: asc}) {
-      ...getWorkspaceMembersWorkspaceMemberInvite
-    }
-  }
-}
-    ${GetWorkspaceMembersWorkspaceMemberFragmentDoc}
-${GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc}`;
-
-/**
- * __useGetWorkspaceMembersQuery__
- *
- * To run a query within a React component, call `useGetWorkspaceMembersQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWorkspaceMembersQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetWorkspaceMembersQuery({
- *   variables: {
- *      workspaceId: // value for 'workspaceId'
- *   },
- * });
- */
-export function useGetWorkspaceMembersQuery(baseOptions: Apollo.QueryHookOptions<GetWorkspaceMembersQuery, GetWorkspaceMembersQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetWorkspaceMembersQuery, GetWorkspaceMembersQueryVariables>(GetWorkspaceMembersDocument, options);
-      }
-export function useGetWorkspaceMembersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetWorkspaceMembersQuery, GetWorkspaceMembersQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetWorkspaceMembersQuery, GetWorkspaceMembersQueryVariables>(GetWorkspaceMembersDocument, options);
-        }
-export type GetWorkspaceMembersQueryHookResult = ReturnType<typeof useGetWorkspaceMembersQuery>;
-export type GetWorkspaceMembersLazyQueryHookResult = ReturnType<typeof useGetWorkspaceMembersLazyQuery>;
-export type GetWorkspaceMembersQueryResult = Apollo.QueryResult<GetWorkspaceMembersQuery, GetWorkspaceMembersQueryVariables>;
-export function refetchGetWorkspaceMembersQuery(variables: GetWorkspaceMembersQueryVariables) {
-      return { query: GetWorkspaceMembersDocument, variables: variables }
-    }
-export const UpdateWorkspaceMemberDocument = gql`
-    mutation updateWorkspaceMember($id: uuid!, $workspaceMember: workspaceMembers_set_input!) {
-  updateWorkspaceMember(_set: $workspaceMember, pk_columns: {id: $id}) {
-    id
-  }
-}
-    `;
-export type UpdateWorkspaceMemberMutationFn = Apollo.MutationFunction<UpdateWorkspaceMemberMutation, UpdateWorkspaceMemberMutationVariables>;
-
-/**
- * __useUpdateWorkspaceMemberMutation__
- *
- * To run a mutation, you first call `useUpdateWorkspaceMemberMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateWorkspaceMemberMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateWorkspaceMemberMutation, { data, loading, error }] = useUpdateWorkspaceMemberMutation({
- *   variables: {
- *      id: // value for 'id'
- *      workspaceMember: // value for 'workspaceMember'
- *   },
- * });
- */
-export function useUpdateWorkspaceMemberMutation(baseOptions?: Apollo.MutationHookOptions<UpdateWorkspaceMemberMutation, UpdateWorkspaceMemberMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateWorkspaceMemberMutation, UpdateWorkspaceMemberMutationVariables>(UpdateWorkspaceMemberDocument, options);
-      }
-export type UpdateWorkspaceMemberMutationHookResult = ReturnType<typeof useUpdateWorkspaceMemberMutation>;
-export type UpdateWorkspaceMemberMutationResult = Apollo.MutationResult<UpdateWorkspaceMemberMutation>;
-export type UpdateWorkspaceMemberMutationOptions = Apollo.BaseMutationOptions<UpdateWorkspaceMemberMutation, UpdateWorkspaceMemberMutationVariables>;
-export const DeleteWorkspaceDocument = gql`
-    mutation deleteWorkspace($id: uuid!) {
-  deleteWorkspace(id: $id) {
-    id
-  }
-}
-    `;
-export type DeleteWorkspaceMutationFn = Apollo.MutationFunction<DeleteWorkspaceMutation, DeleteWorkspaceMutationVariables>;
-
-/**
- * __useDeleteWorkspaceMutation__
- *
- * To run a mutation, you first call `useDeleteWorkspaceMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteWorkspaceMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteWorkspaceMutation, { data, loading, error }] = useDeleteWorkspaceMutation({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useDeleteWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<DeleteWorkspaceMutation, DeleteWorkspaceMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteWorkspaceMutation, DeleteWorkspaceMutationVariables>(DeleteWorkspaceDocument, options);
-      }
-export type DeleteWorkspaceMutationHookResult = ReturnType<typeof useDeleteWorkspaceMutation>;
-export type DeleteWorkspaceMutationResult = Apollo.MutationResult<DeleteWorkspaceMutation>;
-export type DeleteWorkspaceMutationOptions = Apollo.BaseMutationOptions<DeleteWorkspaceMutation, DeleteWorkspaceMutationVariables>;
-export const InsertWorkspaceDocument = gql`
-    mutation insertWorkspace($workspace: workspaces_insert_input!) {
-  insertWorkspace(object: $workspace) {
-    name
-    id
-  }
-}
-    `;
-export type InsertWorkspaceMutationFn = Apollo.MutationFunction<InsertWorkspaceMutation, InsertWorkspaceMutationVariables>;
-
-/**
- * __useInsertWorkspaceMutation__
- *
- * To run a mutation, you first call `useInsertWorkspaceMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertWorkspaceMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertWorkspaceMutation, { data, loading, error }] = useInsertWorkspaceMutation({
- *   variables: {
- *      workspace: // value for 'workspace'
- *   },
- * });
- */
-export function useInsertWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<InsertWorkspaceMutation, InsertWorkspaceMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertWorkspaceMutation, InsertWorkspaceMutationVariables>(InsertWorkspaceDocument, options);
-      }
-export type InsertWorkspaceMutationHookResult = ReturnType<typeof useInsertWorkspaceMutation>;
-export type InsertWorkspaceMutationResult = Apollo.MutationResult<InsertWorkspaceMutation>;
-export type InsertWorkspaceMutationOptions = Apollo.BaseMutationOptions<InsertWorkspaceMutation, InsertWorkspaceMutationVariables>;
-export const UpdateWorkspaceDocument = gql`
-    mutation updateWorkspace($id: uuid!, $workspace: workspaces_set_input!) {
-  updateWorkspace(pk_columns: {id: $id}, _set: $workspace) {
-    id
-    name
-    email
-    companyName
-    addressLine1
-    addressLine2
-    addressPostalCode
-    addressCity
-    addressCountryCode
-    slug
-    taxIdType
-    taxIdValue
-  }
-}
-    `;
-export type UpdateWorkspaceMutationFn = Apollo.MutationFunction<UpdateWorkspaceMutation, UpdateWorkspaceMutationVariables>;
-
-/**
- * __useUpdateWorkspaceMutation__
- *
- * To run a mutation, you first call `useUpdateWorkspaceMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateWorkspaceMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateWorkspaceMutation, { data, loading, error }] = useUpdateWorkspaceMutation({
- *   variables: {
- *      id: // value for 'id'
- *      workspace: // value for 'workspace'
- *   },
- * });
- */
-export function useUpdateWorkspaceMutation(baseOptions?: Apollo.MutationHookOptions<UpdateWorkspaceMutation, UpdateWorkspaceMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateWorkspaceMutation, UpdateWorkspaceMutationVariables>(UpdateWorkspaceDocument, options);
-      }
-export type UpdateWorkspaceMutationHookResult = ReturnType<typeof useUpdateWorkspaceMutation>;
-export type UpdateWorkspaceMutationResult = Apollo.MutationResult<UpdateWorkspaceMutation>;
-export type UpdateWorkspaceMutationOptions = Apollo.BaseMutationOptions<UpdateWorkspaceMutation, UpdateWorkspaceMutationVariables>;
