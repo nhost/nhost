@@ -19788,6 +19788,45 @@ export type GetCountriesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetCountriesQuery = { __typename?: 'query_root', countries: Array<{ __typename?: 'countries', code: any, name: string }> };
 
+export type DeploymentRowFragment = { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null };
+
+export type ScheduledOrPendingDeploymentsSubSubscriptionVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type ScheduledOrPendingDeploymentsSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
+
+export type LatestLiveDeploymentSubSubscriptionVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type LatestLiveDeploymentSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
+
+export type InsertDeploymentMutationVariables = Exact<{
+  object: Deployments_Insert_Input;
+}>;
+
+
+export type InsertDeploymentMutation = { __typename?: 'mutation_root', insertDeployment?: { __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null } | null };
+
+export type GetDeploymentsSubSubscriptionVariables = Exact<{
+  id: Scalars['uuid'];
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
+}>;
+
+
+export type GetDeploymentsSubSubscription = { __typename?: 'subscription_root', deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, commitUserName?: string | null, commitUserAvatarUrl?: string | null, commitMessage?: string | null }> };
+
+export type DeploymentSubSubscriptionVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type DeploymentSubSubscription = { __typename?: 'subscription_root', deployment?: { __typename?: 'deployments', id: any, commitMessage?: string | null, commitSHA: string, commitUserName?: string | null, commitUserAvatarUrl?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, deploymentStatus?: string | null, metadataStartedAt?: any | null, metadataEndedAt?: any | null, metadataStatus?: string | null, migrationsStartedAt?: any | null, migrationsEndedAt?: any | null, migrationsStatus?: string | null, functionsStartedAt?: any | null, functionsEndedAt?: any | null, functionsStatus?: string | null, deploymentLogs: Array<{ __typename?: 'deploymentLogs', id: any, createdAt: any, message: string }> } | null };
+
 export type GetBucketsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -19873,6 +19912,18 @@ export type SetNewDefaultPaymentMethodMutationVariables = Exact<{
 
 
 export type SetNewDefaultPaymentMethodMutation = { __typename?: 'mutation_root', setAllPaymentMethodToDefaultFalse?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null, updatePaymentMethods?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null };
+
+export type GetPersonalAccessTokensQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetPersonalAccessTokensQuery = { __typename?: 'query_root', personalAccessTokens: Array<{ __typename?: 'authRefreshTokens', id: any, metadata?: any | null, createdAt: any, expiresAt: any }> };
+
+export type DeletePersonalAccessTokenMutationVariables = Exact<{
+  patId: Scalars['uuid'];
+}>;
+
+
+export type DeletePersonalAccessTokenMutation = { __typename?: 'mutation_root', deletePersonalAccessToken?: { __typename?: 'authRefreshTokens', id: any, metadata?: any | null } | null };
 
 export type GetPlansQueryVariables = Exact<{
   where?: InputMaybe<Plans_Bool_Exp>;
@@ -19970,6 +20021,39 @@ export type DeleteRemoteAppUserRolesMutationVariables = Exact<{
 
 
 export type DeleteRemoteAppUserRolesMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
+
+export type DeleteSecretMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  name: Scalars['String'];
+}>;
+
+
+export type DeleteSecretMutation = { __typename?: 'mutation_root', deleteSecret?: { __typename?: 'ConfigEnvironmentVariable', name: string } | null };
+
+export type SecretFragment = { __typename?: 'ConfigEnvironmentVariable', name: string };
+
+export type GetSecretsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetSecretsQuery = { __typename?: 'query_root', appSecrets: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string }> };
+
+export type InsertSecretMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  secret: ConfigEnvironmentVariableInsertInput;
+}>;
+
+
+export type InsertSecretMutation = { __typename?: 'mutation_root', insertSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+
+export type UpdateSecretMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  secret: ConfigEnvironmentVariableInsertInput;
+}>;
+
+
+export type UpdateSecretMutation = { __typename?: 'mutation_root', updateSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
 
 export type DeleteRunServiceMutationVariables = Exact<{
   serviceID: Scalars['uuid'];
@@ -20195,6 +20279,18 @@ export const BackupFragmentDoc = gql`
   completedAt
 }
     `;
+export const DeploymentRowFragmentDoc = gql`
+    fragment DeploymentRow on deployments {
+  id
+  commitSHA
+  deploymentStartedAt
+  deploymentEndedAt
+  deploymentStatus
+  commitUserName
+  commitUserAvatarUrl
+  commitMessage
+}
+    `;
 export const AppStateHistoryFragmentDoc = gql`
     fragment AppStateHistory on appStateHistory {
   id
@@ -20352,6 +20448,11 @@ export const RemoteAppGetUsersFragmentDoc = gql`
     providerId
   }
   disabled
+}
+    `;
+export const SecretFragmentDoc = gql`
+    fragment Secret on ConfigEnvironmentVariable {
+  name
 }
     `;
 export const GetWorkspaceMembersWorkspaceMemberFragmentDoc = gql`
@@ -21028,6 +21129,194 @@ export type GetCountriesQueryResult = Apollo.QueryResult<GetCountriesQuery, GetC
 export function refetchGetCountriesQuery(variables?: GetCountriesQueryVariables) {
       return { query: GetCountriesDocument, variables: variables }
     }
+export const ScheduledOrPendingDeploymentsSubDocument = gql`
+    subscription ScheduledOrPendingDeploymentsSub($appId: uuid!) {
+  deployments(
+    where: {deploymentStatus: {_in: ["SCHEDULED"]}, appId: {_eq: $appId}}
+  ) {
+    ...DeploymentRow
+  }
+}
+    ${DeploymentRowFragmentDoc}`;
+
+/**
+ * __useScheduledOrPendingDeploymentsSubSubscription__
+ *
+ * To run a query within a React component, call `useScheduledOrPendingDeploymentsSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useScheduledOrPendingDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useScheduledOrPendingDeploymentsSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useScheduledOrPendingDeploymentsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<ScheduledOrPendingDeploymentsSubSubscription, ScheduledOrPendingDeploymentsSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<ScheduledOrPendingDeploymentsSubSubscription, ScheduledOrPendingDeploymentsSubSubscriptionVariables>(ScheduledOrPendingDeploymentsSubDocument, options);
+      }
+export type ScheduledOrPendingDeploymentsSubSubscriptionHookResult = ReturnType<typeof useScheduledOrPendingDeploymentsSubSubscription>;
+export type ScheduledOrPendingDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<ScheduledOrPendingDeploymentsSubSubscription>;
+export const LatestLiveDeploymentSubDocument = gql`
+    subscription LatestLiveDeploymentSub($appId: uuid!) {
+  deployments(
+    where: {deploymentStatus: {_eq: "DEPLOYED"}, appId: {_eq: $appId}}
+    order_by: {deploymentStartedAt: desc}
+    limit: 1
+    offset: 0
+  ) {
+    ...DeploymentRow
+  }
+}
+    ${DeploymentRowFragmentDoc}`;
+
+/**
+ * __useLatestLiveDeploymentSubSubscription__
+ *
+ * To run a query within a React component, call `useLatestLiveDeploymentSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useLatestLiveDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLatestLiveDeploymentSubSubscription({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useLatestLiveDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<LatestLiveDeploymentSubSubscription, LatestLiveDeploymentSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<LatestLiveDeploymentSubSubscription, LatestLiveDeploymentSubSubscriptionVariables>(LatestLiveDeploymentSubDocument, options);
+      }
+export type LatestLiveDeploymentSubSubscriptionHookResult = ReturnType<typeof useLatestLiveDeploymentSubSubscription>;
+export type LatestLiveDeploymentSubSubscriptionResult = Apollo.SubscriptionResult<LatestLiveDeploymentSubSubscription>;
+export const InsertDeploymentDocument = gql`
+    mutation InsertDeployment($object: deployments_insert_input!) {
+  insertDeployment(object: $object) {
+    ...DeploymentRow
+  }
+}
+    ${DeploymentRowFragmentDoc}`;
+export type InsertDeploymentMutationFn = Apollo.MutationFunction<InsertDeploymentMutation, InsertDeploymentMutationVariables>;
+
+/**
+ * __useInsertDeploymentMutation__
+ *
+ * To run a mutation, you first call `useInsertDeploymentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertDeploymentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertDeploymentMutation, { data, loading, error }] = useInsertDeploymentMutation({
+ *   variables: {
+ *      object: // value for 'object'
+ *   },
+ * });
+ */
+export function useInsertDeploymentMutation(baseOptions?: Apollo.MutationHookOptions<InsertDeploymentMutation, InsertDeploymentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertDeploymentMutation, InsertDeploymentMutationVariables>(InsertDeploymentDocument, options);
+      }
+export type InsertDeploymentMutationHookResult = ReturnType<typeof useInsertDeploymentMutation>;
+export type InsertDeploymentMutationResult = Apollo.MutationResult<InsertDeploymentMutation>;
+export type InsertDeploymentMutationOptions = Apollo.BaseMutationOptions<InsertDeploymentMutation, InsertDeploymentMutationVariables>;
+export const GetDeploymentsSubDocument = gql`
+    subscription getDeploymentsSub($id: uuid!, $limit: Int!, $offset: Int!) {
+  deployments(
+    where: {appId: {_eq: $id}}
+    order_by: {deploymentStartedAt: desc}
+    limit: $limit
+    offset: $offset
+  ) {
+    ...DeploymentRow
+  }
+}
+    ${DeploymentRowFragmentDoc}`;
+
+/**
+ * __useGetDeploymentsSubSubscription__
+ *
+ * To run a query within a React component, call `useGetDeploymentsSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetDeploymentsSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDeploymentsSubSubscription({
+ *   variables: {
+ *      id: // value for 'id'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useGetDeploymentsSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<GetDeploymentsSubSubscription, GetDeploymentsSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<GetDeploymentsSubSubscription, GetDeploymentsSubSubscriptionVariables>(GetDeploymentsSubDocument, options);
+      }
+export type GetDeploymentsSubSubscriptionHookResult = ReturnType<typeof useGetDeploymentsSubSubscription>;
+export type GetDeploymentsSubSubscriptionResult = Apollo.SubscriptionResult<GetDeploymentsSubSubscription>;
+export const DeploymentSubDocument = gql`
+    subscription deploymentSub($id: uuid!) {
+  deployment(id: $id) {
+    id
+    commitMessage
+    commitSHA
+    commitUserName
+    commitUserAvatarUrl
+    deploymentStartedAt
+    deploymentEndedAt
+    deploymentStatus
+    metadataStartedAt
+    metadataEndedAt
+    metadataStatus
+    migrationsStartedAt
+    migrationsEndedAt
+    migrationsStatus
+    functionsStartedAt
+    functionsEndedAt
+    functionsStatus
+    deploymentLogs(order_by: {createdAt: asc}) {
+      id
+      createdAt
+      message
+    }
+  }
+}
+    `;
+
+/**
+ * __useDeploymentSubSubscription__
+ *
+ * To run a query within a React component, call `useDeploymentSubSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useDeploymentSubSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDeploymentSubSubscription({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeploymentSubSubscription(baseOptions: Apollo.SubscriptionHookOptions<DeploymentSubSubscription, DeploymentSubSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<DeploymentSubSubscription, DeploymentSubSubscriptionVariables>(DeploymentSubDocument, options);
+      }
+export type DeploymentSubSubscriptionHookResult = ReturnType<typeof useDeploymentSubSubscription>;
+export type DeploymentSubSubscriptionResult = Apollo.SubscriptionResult<DeploymentSubSubscription>;
 export const GetBucketsDocument = gql`
     query getBuckets {
   buckets {
@@ -21433,6 +21722,83 @@ export function useSetNewDefaultPaymentMethodMutation(baseOptions?: Apollo.Mutat
 export type SetNewDefaultPaymentMethodMutationHookResult = ReturnType<typeof useSetNewDefaultPaymentMethodMutation>;
 export type SetNewDefaultPaymentMethodMutationResult = Apollo.MutationResult<SetNewDefaultPaymentMethodMutation>;
 export type SetNewDefaultPaymentMethodMutationOptions = Apollo.BaseMutationOptions<SetNewDefaultPaymentMethodMutation, SetNewDefaultPaymentMethodMutationVariables>;
+export const GetPersonalAccessTokensDocument = gql`
+    query GetPersonalAccessTokens {
+  personalAccessTokens: authRefreshTokens(
+    where: {type: {_eq: pat}}
+    order_by: {expiresAt: asc}
+  ) {
+    id
+    metadata
+    createdAt
+    expiresAt
+  }
+}
+    `;
+
+/**
+ * __useGetPersonalAccessTokensQuery__
+ *
+ * To run a query within a React component, call `useGetPersonalAccessTokensQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPersonalAccessTokensQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPersonalAccessTokensQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetPersonalAccessTokensQuery(baseOptions?: Apollo.QueryHookOptions<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>(GetPersonalAccessTokensDocument, options);
+      }
+export function useGetPersonalAccessTokensLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>(GetPersonalAccessTokensDocument, options);
+        }
+export type GetPersonalAccessTokensQueryHookResult = ReturnType<typeof useGetPersonalAccessTokensQuery>;
+export type GetPersonalAccessTokensLazyQueryHookResult = ReturnType<typeof useGetPersonalAccessTokensLazyQuery>;
+export type GetPersonalAccessTokensQueryResult = Apollo.QueryResult<GetPersonalAccessTokensQuery, GetPersonalAccessTokensQueryVariables>;
+export function refetchGetPersonalAccessTokensQuery(variables?: GetPersonalAccessTokensQueryVariables) {
+      return { query: GetPersonalAccessTokensDocument, variables: variables }
+    }
+export const DeletePersonalAccessTokenDocument = gql`
+    mutation DeletePersonalAccessToken($patId: uuid!) {
+  deletePersonalAccessToken: deleteAuthRefreshToken(id: $patId) {
+    id
+    metadata
+  }
+}
+    `;
+export type DeletePersonalAccessTokenMutationFn = Apollo.MutationFunction<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>;
+
+/**
+ * __useDeletePersonalAccessTokenMutation__
+ *
+ * To run a mutation, you first call `useDeletePersonalAccessTokenMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeletePersonalAccessTokenMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deletePersonalAccessTokenMutation, { data, loading, error }] = useDeletePersonalAccessTokenMutation({
+ *   variables: {
+ *      patId: // value for 'patId'
+ *   },
+ * });
+ */
+export function useDeletePersonalAccessTokenMutation(baseOptions?: Apollo.MutationHookOptions<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>(DeletePersonalAccessTokenDocument, options);
+      }
+export type DeletePersonalAccessTokenMutationHookResult = ReturnType<typeof useDeletePersonalAccessTokenMutation>;
+export type DeletePersonalAccessTokenMutationResult = Apollo.MutationResult<DeletePersonalAccessTokenMutation>;
+export type DeletePersonalAccessTokenMutationOptions = Apollo.BaseMutationOptions<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>;
 export const GetPlansDocument = gql`
     query GetPlans($where: plans_bool_exp) {
   plans(where: $where) {
@@ -21962,6 +22328,146 @@ export function useDeleteRemoteAppUserRolesMutation(baseOptions?: Apollo.Mutatio
 export type DeleteRemoteAppUserRolesMutationHookResult = ReturnType<typeof useDeleteRemoteAppUserRolesMutation>;
 export type DeleteRemoteAppUserRolesMutationResult = Apollo.MutationResult<DeleteRemoteAppUserRolesMutation>;
 export type DeleteRemoteAppUserRolesMutationOptions = Apollo.BaseMutationOptions<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>;
+export const DeleteSecretDocument = gql`
+    mutation DeleteSecret($appId: uuid!, $name: String!) {
+  deleteSecret(appID: $appId, key: $name) {
+    name
+  }
+}
+    `;
+export type DeleteSecretMutationFn = Apollo.MutationFunction<DeleteSecretMutation, DeleteSecretMutationVariables>;
+
+/**
+ * __useDeleteSecretMutation__
+ *
+ * To run a mutation, you first call `useDeleteSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteSecretMutation, { data, loading, error }] = useDeleteSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useDeleteSecretMutation(baseOptions?: Apollo.MutationHookOptions<DeleteSecretMutation, DeleteSecretMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteSecretMutation, DeleteSecretMutationVariables>(DeleteSecretDocument, options);
+      }
+export type DeleteSecretMutationHookResult = ReturnType<typeof useDeleteSecretMutation>;
+export type DeleteSecretMutationResult = Apollo.MutationResult<DeleteSecretMutation>;
+export type DeleteSecretMutationOptions = Apollo.BaseMutationOptions<DeleteSecretMutation, DeleteSecretMutationVariables>;
+export const GetSecretsDocument = gql`
+    query GetSecrets($appId: uuid!) {
+  appSecrets(appID: $appId) {
+    ...Secret
+  }
+}
+    ${SecretFragmentDoc}`;
+
+/**
+ * __useGetSecretsQuery__
+ *
+ * To run a query within a React component, call `useGetSecretsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSecretsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSecretsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetSecretsQuery(baseOptions: Apollo.QueryHookOptions<GetSecretsQuery, GetSecretsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSecretsQuery, GetSecretsQueryVariables>(GetSecretsDocument, options);
+      }
+export function useGetSecretsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSecretsQuery, GetSecretsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSecretsQuery, GetSecretsQueryVariables>(GetSecretsDocument, options);
+        }
+export type GetSecretsQueryHookResult = ReturnType<typeof useGetSecretsQuery>;
+export type GetSecretsLazyQueryHookResult = ReturnType<typeof useGetSecretsLazyQuery>;
+export type GetSecretsQueryResult = Apollo.QueryResult<GetSecretsQuery, GetSecretsQueryVariables>;
+export function refetchGetSecretsQuery(variables: GetSecretsQueryVariables) {
+      return { query: GetSecretsDocument, variables: variables }
+    }
+export const InsertSecretDocument = gql`
+    mutation InsertSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
+  insertSecret(appID: $appId, secret: $secret) {
+    name
+  }
+}
+    `;
+export type InsertSecretMutationFn = Apollo.MutationFunction<InsertSecretMutation, InsertSecretMutationVariables>;
+
+/**
+ * __useInsertSecretMutation__
+ *
+ * To run a mutation, you first call `useInsertSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertSecretMutation, { data, loading, error }] = useInsertSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      secret: // value for 'secret'
+ *   },
+ * });
+ */
+export function useInsertSecretMutation(baseOptions?: Apollo.MutationHookOptions<InsertSecretMutation, InsertSecretMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertSecretMutation, InsertSecretMutationVariables>(InsertSecretDocument, options);
+      }
+export type InsertSecretMutationHookResult = ReturnType<typeof useInsertSecretMutation>;
+export type InsertSecretMutationResult = Apollo.MutationResult<InsertSecretMutation>;
+export type InsertSecretMutationOptions = Apollo.BaseMutationOptions<InsertSecretMutation, InsertSecretMutationVariables>;
+export const UpdateSecretDocument = gql`
+    mutation UpdateSecret($appId: uuid!, $secret: ConfigEnvironmentVariableInsertInput!) {
+  updateSecret(appID: $appId, secret: $secret) {
+    name
+  }
+}
+    `;
+export type UpdateSecretMutationFn = Apollo.MutationFunction<UpdateSecretMutation, UpdateSecretMutationVariables>;
+
+/**
+ * __useUpdateSecretMutation__
+ *
+ * To run a mutation, you first call `useUpdateSecretMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSecretMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSecretMutation, { data, loading, error }] = useUpdateSecretMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      secret: // value for 'secret'
+ *   },
+ * });
+ */
+export function useUpdateSecretMutation(baseOptions?: Apollo.MutationHookOptions<UpdateSecretMutation, UpdateSecretMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateSecretMutation, UpdateSecretMutationVariables>(UpdateSecretDocument, options);
+      }
+export type UpdateSecretMutationHookResult = ReturnType<typeof useUpdateSecretMutation>;
+export type UpdateSecretMutationResult = Apollo.MutationResult<UpdateSecretMutation>;
+export type UpdateSecretMutationOptions = Apollo.BaseMutationOptions<UpdateSecretMutation, UpdateSecretMutationVariables>;
 export const DeleteRunServiceDocument = gql`
     mutation deleteRunService($serviceID: uuid!) {
   deleteRunService(id: $serviceID) {
