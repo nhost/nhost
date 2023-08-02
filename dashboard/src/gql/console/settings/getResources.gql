@@ -38,7 +38,7 @@ fragment ServiceResources on ConfigConfig {
 }
 
 query GetResources($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
+  config(appID: $appId, resolve: true) {
     ...ServiceResources
   }
 }

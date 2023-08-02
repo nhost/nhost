@@ -1,5 +1,5 @@
 query GetSmtpSettings($appId: uuid!) {
-  config(appID: $appId, resolve: false) {
+  config(appID: $appId, resolve: true) {
     id: __typename
     __typename
     provider {

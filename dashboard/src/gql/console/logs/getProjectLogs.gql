@@ -10,15 +10,3 @@ query getProjectLogs(
     timestamp
   }
 }
-
-subscription getLogsSubscription(
-  $appID: String!
-  $service: String
-  $from: Timestamp
-) {
-  logs(appID: $appID, service: $service, from: $from) {
-    log
-    service
-    timestamp
-  }
-}

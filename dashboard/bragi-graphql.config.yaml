@@ -1,0 +1,14 @@
+schema:
+  - http://localhost:8088/v1/graphql:
+      headers: {}
+generates:
+  src/utils/__generated__/bragi-graphql.ts:
+    documents:
+      - 'src/gql/bragi/**/*.graphql'
+      - 'src/gql/bragi/**/*.gql'
+    plugins:
+      - 'typescript'
+      - 'typescript-operations'
+      - 'typescript-react-apollo'
+    config:
+      withRefetchFn: true
