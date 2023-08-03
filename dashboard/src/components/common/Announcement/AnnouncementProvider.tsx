@@ -1,3 +1,4 @@
+import { Divider } from '@/components/ui/v2/Divider';
 import {
   createContext,
   useEffect,
@@ -35,7 +36,12 @@ export interface AnnouncementContextProps {
 }
 
 // Note: You can define the active announcement here.
-let announcement: AnnouncementType;
+const announcement: AnnouncementType = {
+  id: 'nhost-run',
+  href: 'https://discord.com/invite/9V7Qb2U',
+  content:
+    'Now you can bring custom and third-party OSS services to run alongside your Nhost projects',
+};
 
 export const AnnouncementContext = createContext<AnnouncementContextProps>({});
 
@@ -68,9 +74,16 @@ export default function AnnouncementProvider({ children }: PropsWithChildren) {
   return (
     <AnnouncementContext.Provider value={announcementValue}>
       {announcement && showAnnouncement && (
-        <Announcement ref={ref} href={announcement.href} onClose={handleClose}>
-          {announcement.content}
-        </Announcement>
+        <>
+          <Announcement
+            ref={ref}
+            href={announcement.href}
+            onClose={handleClose}
+          >
+            {announcement.content}
+          </Announcement>
+          <Divider />
+        </>
       )}
 
       {children}
