@@ -68,11 +68,15 @@ export default function ResourcesConfirmationDialog({
   const totalBillableVCPU = formValues.enabled ? billableResources.vcpu : 0;
   const totalBillableMemory = formValues.enabled ? billableResources.memory : 0;
 
-  const updatedPrice =
-    Math.max(
-      priceForTotalAvailableVCPU,
-      (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE,
-    ) + proPlan.price;
+  const { enabled } = formValues;
+
+  const updatedPrice = enabled
+    ? Math.max(
+        priceForTotalAvailableVCPU,
+        (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
+          RESOURCE_VCPU_PRICE,
+      ) + proPlan.price
+    : proPlan.price;
 
   if (!loading && !proPlan) {
     return (
@@ -86,18 +90,30 @@ export default function ResourcesConfirmationDialog({
     throw error;
   }
 
+  const databaseVCPU = enabled ? formValues.database.vcpu : 0;
+  const databaseMemory = enabled ? formValues.database.memory : 0;
+
+  const hasuraVCPU = enabled ? formValues.hasura.vcpu : 0;
+  const hasuraMemory = enabled ? formValues.hasura.memory : 0;
+
+  const authVCPU = enabled ? formValues.auth.vcpu : 0;
+  const authMemory = enabled ? formValues.auth.memory : 0;
+
+  const storageVCPU = enabled ? formValues.storage.vcpu : 0;
+  const storageMemory = enabled ? formValues.storage.memory : 0;
+
   const databaseResources = `${prettifyVCPU(
-    formValues.database.vcpu,
-  )} vCPU + ${prettifyMemory(formValues.database.memory)}`;
-  const hasuraResources = `${prettifyVCPU(
-    formValues.hasura.vcpu,
-  )} vCPU + ${prettifyMemory(formValues.hasura.memory)}`;
-  const authResources = `${prettifyVCPU(
-    formValues.auth.vcpu,
-  )} vCPU + ${prettifyMemory(formValues.auth.memory)}`;
+    databaseVCPU,
+  )} vCPU + ${prettifyMemory(databaseMemory)}`;
+  const hasuraResources = `${prettifyVCPU(hasuraVCPU)} vCPU + ${prettifyMemory(
+    hasuraMemory,
+  )}`;
+  const authResources = `${prettifyVCPU(authVCPU)} vCPU + ${prettifyMemory(
+    authMemory,
+  )}`;
   const storageResources = `${prettifyVCPU(
-    formValues.storage.vcpu,
-  )} vCPU + ${prettifyMemory(formValues.storage.memory)}`;
+    storageVCPU,
+  )} vCPU + ${prettifyMemory(storageMemory)}`;
 
   return (
     <div className="grid grid-flow-row gap-6 px-6 pb-6">
