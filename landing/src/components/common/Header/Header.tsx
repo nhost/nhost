@@ -4,14 +4,11 @@ import { Fragment, useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Button } from '../Button'
 import { Container, ContainerProps } from '../Container'
-import { MenuIcon } from '../icons/MenuIcon'
-import { XIcon } from '../icons/XIcon'
 import { Link } from '../Link'
 import { MobileMenu } from '../MobileMenu'
 import { ProductPopover } from '../ProductPopover'
-import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
-import { useRouter } from 'next/router'
-import { Announcement } from '../Announcement'
+import { MenuIcon } from '../icons/MenuIcon'
+import { XIcon } from '../icons/XIcon'
 
 export interface HeaderProps extends ContainerProps {}
 
@@ -21,8 +18,6 @@ export default function Header({
   ...props
 }: HeaderProps) {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false)
-
-  const { pathname } = useRouter()
 
   useEffect(() => {
     if (mobileMenuVisible) {
