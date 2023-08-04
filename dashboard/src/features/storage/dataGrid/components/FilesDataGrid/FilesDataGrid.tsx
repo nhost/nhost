@@ -7,7 +7,7 @@ import { DataGridPreviewCell } from '@/components/dataGrid/DataGridPreviewCell';
 import { DataGridTextCell } from '@/components/dataGrid/DataGridTextCell';
 import { FilePreviewIcon } from '@/components/ui/v2/icons/FilePreviewIcon';
 import { useAppClient } from '@/features/projects/common/hooks/useAppClient';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useHasuraAdminSecretMissingDialog } from '@/features/projects/common/hooks/useHasuraAdminSecretMissingDialog';
 import { FilesDataGridControls } from '@/features/storage/dataGrid/components/FilesDataGridControls';
 import { useBuckets } from '@/features/storage/dataGrid/hooks/useBuckets';
 import { useFiles } from '@/features/storage/dataGrid/hooks/useFiles';
@@ -15,6 +15,7 @@ import { useFilesAggregate } from '@/features/storage/dataGrid/hooks/useFilesAgg
 import { Order_By as OrderBy } from '@/generated/console-graphql';
 import type { Files } from '@/generated/project-graphql';
 import { getHasuraAdminSecret } from '@/utils/env';
+import { getHasuraAdminSecretFromLocalStorage } from '@/utils/helpers';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
 import debounce from 'lodash.debounce';
 import { useRouter } from 'next/router';
@@ -31,7 +32,6 @@ export type FilesDataGridProps = Partial<DataGridProps<StoredFile>>;
 
 export default function FilesDataGrid(props: FilesDataGridProps) {
   const router = useRouter();
-  const { currentProject } = useCurrentWorkspaceAndProject();
   const appClient = useAppClient();
   const [searchString, setSearchString] = useState<string | null>(null);
   const [currentOffset, setCurrentOffset] = useState<number | null>(
@@ -117,7 +117,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
           DataGridPreviewCell({
             ...cellProps,
             fallbackPreview: (
-              <FilePreviewIcon className="h-5 w-5 fill-current" />
+              <FilePreviewIcon className="w-5 h-5 fill-current" />
             ),
           }),
         minWidth: 80,
@@ -259,7 +259,7 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
         .setAdminSecret(
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : currentProject.config?.hasura.adminSecret,
+            : getHasuraAdminSecretFromLocalStorage(),
         )
         .upload({
           file,
@@ -301,9 +301,12 @@ export default function FilesDataGrid(props: FilesDataGridProps) {
     event.target.value = null;
   }
 
-  if (error) {
-    throw error;
-  }
+  // TODO filter out the Hasura admin secret key error
+  // if (error) {
+  //   throw error;
+  // }
+
+  useHasuraAdminSecretMissingDialog(error);
 
   const handleSort = useCallback((args: SortingRule<StoredFile>[]) => {
     setSortBy(args);

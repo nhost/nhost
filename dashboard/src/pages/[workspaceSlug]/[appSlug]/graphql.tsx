@@ -10,6 +10,7 @@ import { UserSelect } from '@/features/graphql/common/components/UserSelect';
 import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
+import { getHasuraAdminSecretFromLocalStorage } from '@/utils/helpers';
 import { triggerToast } from '@/utils/toast';
 import {
   DOC_EXPLORER_PLUGIN,
@@ -117,7 +118,7 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
   }
 
   return (
-    <header className="grid grid-flow-row items-end gap-2 p-2 md:grid-flow-col md:justify-between">
+    <header className="grid items-end grid-flow-row gap-2 p-2 md:grid-flow-col md:justify-between">
       <div className="grid grid-flow-row gap-2 md:grid-flow-col md:items-end">
         <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
           <UserSelect
@@ -272,9 +273,11 @@ export default function GraphQLPage() {
 
   const headers = {
     'content-type': 'application/json',
-    'x-hasura-admin-secret': currentProject.config?.hasura.adminSecret,
+    'x-hasura-admin-secret': getHasuraAdminSecretFromLocalStorage(),
     ...userHeaders,
   };
+
+  console.log({ headers });
 
   const fetcher = createGraphiQLFetcher({
     url: appUrl,
