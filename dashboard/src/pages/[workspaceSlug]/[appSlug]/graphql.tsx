@@ -277,8 +277,6 @@ export default function GraphQLPage() {
     ...userHeaders,
   };
 
-  console.log({ headers });
-
   const fetcher = createGraphiQLFetcher({
     url: appUrl,
     headers,
