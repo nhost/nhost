@@ -1,4 +1,3 @@
-import Announcement from '@/components/common/Announcement/Announcement';
 import { FeedbackForm } from '@/components/common/FeedbackForm';
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
@@ -8,7 +7,6 @@ import { MobileNav } from '@/components/layout/MobileNav';
 import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { Chip } from '@/components/ui/v2/Chip';
-import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
@@ -47,75 +45,66 @@ export default function Header({ className, ...props }: HeaderProps) {
   }, [isProjectUpdating, refetchProject]);
 
   return (
-    <div>
-      <Announcement href="https://discord.com/invite/9V7Qb2U">
-        You can now run custom and third-party OSS services alongside your Nhost
-        projects, please reach out to us to get access to the private beta
-      </Announcement>
+    <Box
+      component="header"
+      className={twMerge(
+        'z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-1 px-4 py-3',
+        className,
+      )}
+      sx={{ backgroundColor: 'background.paper' }}
+      {...props}
+    >
+      <div className="grid grid-flow-col items-center gap-3 ">
+        <NavLink href="/" className="w-12">
+          <Logo className="mx-auto cursor-pointer" />
+        </NavLink>
 
-      <Divider />
-
-      <Box
-        component="header"
-        className={twMerge(
-          'z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-1 px-4 py-3',
-          className,
+        {(router.query.workspaceSlug || router.query.appSlug) && (
+          <Breadcrumbs aria-label="Workspace breadcrumbs" />
         )}
-        sx={{ backgroundColor: 'background.paper' }}
-        {...props}
-      >
-        <div className="grid grid-flow-col items-center gap-3 ">
-          <NavLink href="/" className="w-12">
-            <Logo className="mx-auto cursor-pointer" />
-          </NavLink>
 
-          {(router.query.workspaceSlug || router.query.appSlug) && (
-            <Breadcrumbs aria-label="Workspace breadcrumbs" />
-          )}
+        {isProjectUpdating && (
+          <Chip size="small" label="Updating" color="warning" />
+        )}
+      </div>
 
-          {isProjectUpdating && (
-            <Chip size="small" label="Updating" color="warning" />
-          )}
-        </div>
+      <div className="hidden grid-flow-col items-center gap-2 sm:grid">
+        {isPlatform && (
+          <Dropdown.Root>
+            <Dropdown.Trigger
+              hideChevron
+              className="rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
+            >
+              Feedback
+            </Dropdown.Trigger>
 
-        <div className="hidden grid-flow-col items-center gap-2 sm:grid">
-          {isPlatform && (
-            <Dropdown.Root>
-              <Dropdown.Trigger
-                hideChevron
-                className="rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
-              >
-                Feedback
-              </Dropdown.Trigger>
+            <Dropdown.Content
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+              <FeedbackForm className="max-w-md" />
+            </Dropdown.Content>
+          </Dropdown.Root>
+        )}
 
-              <Dropdown.Content
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              >
-                <FeedbackForm className="max-w-md" />
-              </Dropdown.Content>
-            </Dropdown.Root>
-          )}
+        <NavLink
+          underline="none"
+          href="https://docs.nhost.io"
+          className="mr-2 rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
+          sx={{
+            color: 'text.primary',
+            '&:hover': { backgroundColor: 'grey.200' },
+          }}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Docs
+        </NavLink>
 
-          <NavLink
-            underline="none"
-            href="https://docs.nhost.io"
-            className="mr-2 rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
-            sx={{
-              color: 'text.primary',
-              '&:hover': { backgroundColor: 'grey.200' },
-            }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Docs
-          </NavLink>
+        {isPlatform ? <AccountMenu /> : <LocalAccountMenu />}
+      </div>
 
-          {isPlatform ? <AccountMenu /> : <LocalAccountMenu />}
-        </div>
-
-        <MobileNav className="sm:hidden" />
-      </Box>
-    </div>
+      <MobileNav className="sm:hidden" />
+    </Box>
   );
 }
