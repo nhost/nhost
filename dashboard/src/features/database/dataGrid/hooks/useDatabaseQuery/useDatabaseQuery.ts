@@ -1,6 +1,7 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
+import { getHasuraAdminSecretFromLocalStorage } from '@/utils/helpers';
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
@@ -30,7 +31,6 @@ export default function useDatabaseQuery(
   {
     dataSource: customDataSource,
     appUrl: customAppUrl,
-    adminSecret: customAdminSecret,
     queryOptions,
   }: UseDatabaseQueryOptions = {},
 ) {
@@ -53,7 +53,7 @@ export default function useDatabaseQuery(
         adminSecret:
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : customAdminSecret || currentProject?.config?.hasura.adminSecret,
+            : getHasuraAdminSecretFromLocalStorage(),
         dataSource: customDataSource || (dataSourceSlug as string),
       }),
     {
@@ -62,6 +62,10 @@ export default function useDatabaseQuery(
         currentProject?.config?.hasura.adminSecret && isReady
           ? queryOptions?.enabled
           : false,
+
+      // We set retry false here so we can quickly detect from the first failed request
+      // whether we have the Hasura Admin Secret or not
+      retry: false,
     },
   );
 

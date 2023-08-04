@@ -3,6 +3,7 @@ import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useHasuraAdminSecretMissingDialog } from '@/features/projects/common/hooks/useHasuraAdminSecretMissingDialog';
 import {
   useRemoteAppGetUsersCustomQuery,
   type RemoteAppGetUsersCustomQuery,
@@ -32,6 +33,8 @@ export default function UserSelect({
     skip: !currentProject,
   });
 
+  useHasuraAdminSecretMissingDialog(error as Error);
+
   if (loading) {
     return (
       <div className={props.className}>
@@ -40,9 +43,11 @@ export default function UserSelect({
     );
   }
 
-  if (error) {
-    throw error;
-  }
+  // TODO double check whether we should remove this or
+  // try to filter out only the Hasura Admin Secret Key Missing
+  // if (error) {
+  //   throw error;
+  // }
 
   return (
     <Select

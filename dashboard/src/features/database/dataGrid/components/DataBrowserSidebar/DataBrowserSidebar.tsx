@@ -29,6 +29,7 @@ import { useDatabaseQuery } from '@/features/database/dataGrid/hooks/useDatabase
 import { useDeleteTableWithToastMutation } from '@/features/database/dataGrid/hooks/useDeleteTableMutation';
 import { isSchemaLocked } from '@/features/database/dataGrid/utils/schemaHelpers';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useHasuraAdminSecretMissingDialog } from '@/features/projects/common/hooks/useHasuraAdminSecretMissingDialog';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
@@ -93,6 +94,11 @@ function DataBrowserSidebarContent({
   const { data, status, error, refetch } = useDatabaseQuery([
     dataSourceSlug as string,
   ]);
+
+  // This hook is responsible for showing a Dialog to the user to input
+  // the Hasura Admin Secret when it's missing from localStorage
+  useHasuraAdminSecretMissingDialog(error as Error);
+
   const { schemas, tables, metadata } = data || { schemas: [], tables: [] };
 
   const { mutateAsync: deleteTable } = useDeleteTableWithToastMutation();
@@ -137,9 +143,10 @@ function DataBrowserSidebarContent({
     );
   }
 
-  if (status === 'error') {
-    throw error || new Error('Unknown error occurred. Please try again later.');
-  }
+  // TODO double check what todo here
+  // if (status === 'error') {
+  //   throw error || new Error('Unknown error occurred. Please try again later.');
+  // }
 
   if (metadata?.databaseNotFound) {
     return null;
@@ -236,7 +243,7 @@ function DataBrowserSidebarContent({
   ) {
     openDrawer({
       title: (
-        <span className="inline-grid grid-flow-col items-center gap-2">
+        <span className="inline-grid items-center grid-flow-col gap-2">
           Permissions
           <InlineCode className="!text-sm+ font-normal">{table}</InlineCode>
           <Chip label="Preview" size="small" color="info" component="span" />
@@ -262,7 +269,7 @@ function DataBrowserSidebarContent({
       {schemas && schemas.length > 0 && (
         <Select
           renderValue={(option) => (
-            <span className="grid grid-flow-col items-center gap-1">
+            <span className="grid items-center grid-flow-col gap-1">
               {option?.label}
             </span>
           )}
@@ -275,7 +282,7 @@ function DataBrowserSidebarContent({
         >
           {schemas.map((schema) => (
             <Option
-              className="grid grid-flow-col items-center gap-1"
+              className="grid items-center grid-flow-col gap-1"
               value={schema.schema_name}
               key={schema.schema_name}
             >
@@ -289,7 +296,7 @@ function DataBrowserSidebarContent({
               </Text>
               {(isSchemaLocked(schema.schema_name) || isGitHubConnected) && (
                 <LockIcon
-                  className="h-3 w-3"
+                  className="w-3 h-3"
                   sx={{ color: 'text.secondary' }}
                 />
               )}
@@ -313,7 +320,7 @@ function DataBrowserSidebarContent({
             target="_blank"
             rel="noopener noreferrer"
             underline="hover"
-            className="grid grid-flow-col items-center justify-start gap-1"
+            className="grid items-center justify-start grid-flow-col gap-1"
           >
             Learn More <ArrowRightIcon />
           </Link>
@@ -324,7 +331,7 @@ function DataBrowserSidebarContent({
         <Button
           variant="borderless"
           endIcon={<PlusIcon />}
-          className="mt-1 w-full justify-between px-2"
+          className="justify-between w-full px-2 mt-1"
           onClick={() => {
             openDrawer({
               title: 'Create a New Table',
@@ -395,7 +402,7 @@ function DataBrowserSidebarContent({
                             }
                           >
                             <UsersIcon
-                              className="h-4 w-4"
+                              className="w-4 h-4"
                               sx={{ color: 'text.secondary' }}
                             />
 
@@ -426,7 +433,7 @@ function DataBrowserSidebarContent({
                                 }
                               >
                                 <PencilIcon
-                                  className="h-4 w-4"
+                                  className="w-4 h-4"
                                   sx={{ color: 'text.secondary' }}
                                 />
 
@@ -450,7 +457,7 @@ function DataBrowserSidebarContent({
                               }
                             >
                               <UsersIcon
-                                className="h-4 w-4"
+                                className="w-4 h-4"
                                 sx={{ color: 'text.secondary' }}
                               />
 
@@ -475,7 +482,7 @@ function DataBrowserSidebarContent({
                                 }
                               >
                                 <TrashIcon
-                                  className="h-4 w-4"
+                                  className="w-4 h-4"
                                   sx={{ color: 'error.main' }}
                                 />
 

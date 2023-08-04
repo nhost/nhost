@@ -1,6 +1,7 @@
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Option } from '@/components/ui/v2/Option';
 import { useTableQuery } from '@/features/database/dataGrid/hooks/useTableQuery';
+import { getHasuraAdminSecretFromLocalStorage } from '@/utils/helpers';
 import { useFormState, useWatch } from 'react-hook-form';
 
 export default function ReferencedColumnSelect() {
@@ -14,6 +15,7 @@ export default function ReferencedColumnSelect() {
     {
       schema: referencedSchema,
       table: referencedTable,
+      adminSecret: getHasuraAdminSecretFromLocalStorage(),
       queryOptions: { enabled: !!referencedSchema && !!referencedTable },
     },
   );

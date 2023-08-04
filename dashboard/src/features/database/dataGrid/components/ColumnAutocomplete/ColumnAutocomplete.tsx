@@ -14,6 +14,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { useMetadataQuery } from '@/features/database/dataGrid/hooks/useMetadataQuery';
 import { useTableQuery } from '@/features/database/dataGrid/hooks/useTableQuery';
 import { getTruncatedText } from '@/utils/getTruncatedText';
+import { getHasuraAdminSecretFromLocalStorage } from '@/utils/helpers';
 import type { AutocompleteGroupedOption } from '@mui/base/AutocompleteUnstyled';
 import { useAutocomplete } from '@mui/base/AutocompleteUnstyled';
 import type { AutocompleteRenderGroupParams } from '@mui/material/Autocomplete';
@@ -126,6 +127,7 @@ function ColumnAutocomplete(
     table: selectedTable,
     preventRowFetching: true,
     queryOptions: { refetchOnWindowFocus: false },
+    adminSecret: getHasuraAdminSecretFromLocalStorage(),
   });
 
   const {

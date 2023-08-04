@@ -28,6 +28,7 @@ import {
 } from '@/features/database/dataGrid/utils/postgresqlConstants';
 import { isSchemaLocked } from '@/features/database/dataGrid/utils/schemaHelpers';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useHasuraAdminSecretMissingDialog } from '@/features/projects/common/hooks/useHasuraAdminSecretMissingDialog';
 import { useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -68,10 +69,10 @@ export function createDataGridColumn(
 
   const defaultColumnConfiguration = {
     Header: () => (
-      <div className="grid grid-flow-col items-center justify-start gap-1 font-normal">
+      <div className="grid items-center justify-start grid-flow-col gap-1 font-normal">
         {column.is_primary && <KeyIcon className="text-sm" />}
 
-        <span className="truncate font-bold" title={column.column_name}>
+        <span className="font-bold truncate" title={column.column_name}>
           {column.column_name}
         </span>
 
@@ -199,6 +200,8 @@ export default function DataBrowserGrid({
         })) || [],
     },
   );
+
+  useHasuraAdminSecretMissingDialog(error as Error);
 
   const { columns, rows, numberOfRows, metadata } = data || {
     columns: [],
@@ -406,9 +409,10 @@ export default function DataBrowserGrid({
 
   // We need to display the header when columns are not available in the table,
   // so we are not throwing an error in this case
-  if (error && !metadata?.columnsNotFound) {
-    throw error || new Error('Unknown error occurred. Please try again later.');
-  }
+  // TODO double check whether to remove this completely or to just use a filter on the error
+  // if (error && !metadata?.columnsNotFound) {
+  //   throw error || new Error('Unknown error occurred. Please try again later.');
+  // }
 
   return (
     <DataGrid
