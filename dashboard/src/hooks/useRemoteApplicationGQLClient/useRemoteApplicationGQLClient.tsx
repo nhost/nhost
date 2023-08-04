@@ -1,6 +1,7 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
+import { getHasuraAdminSecretFromLocalStorage } from '@/utils/helpers';
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { useMemo } from 'react';
 
@@ -29,11 +30,11 @@ export default function useRemoteApplicationGQLClient() {
           'x-hasura-admin-secret':
             process.env.NEXT_PUBLIC_ENV === 'dev'
               ? getHasuraAdminSecret()
-              : currentProject?.config?.hasura.adminSecret,
+              : getHasuraAdminSecretFromLocalStorage(),
         },
       }),
     });
-  }, [loading, serviceUrl, currentProject?.config?.hasura.adminSecret]);
+  }, [loading, serviceUrl]);
 
   return userApplicationClient;
 }
