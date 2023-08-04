@@ -5,6 +5,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { FilesDataGrid } from '@/features/storage/dataGrid/components/FilesDataGrid';
 import { getHasuraAdminSecret } from '@/utils/env';
+import { getHasuraAdminSecretFromLocalStorage } from '@/utils/helpers';
 import { NhostApolloProvider } from '@nhost/react-apollo';
 import type { ReactElement } from 'react';
 
@@ -27,7 +28,7 @@ export default function StoragePage() {
         'x-hasura-admin-secret':
           process.env.NEXT_PUBLIC_ENV === 'dev'
             ? getHasuraAdminSecret()
-            : currentProject.config?.hasura.adminSecret,
+            : getHasuraAdminSecretFromLocalStorage(),
       }}
     >
       <div className="h-full pb-25 xs+:pb-[53px]">
