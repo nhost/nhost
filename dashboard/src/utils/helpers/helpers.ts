@@ -72,3 +72,12 @@ export function getRelativeDateByApplicationState(date: string) {
 
   return Math.floor(difference / 1000);
 }
+
+export function getHasuraAdminSecretFromLocalStorage(): string | null {
+  if (typeof window === 'undefined') {
+    // in SSR we don't have localStorage
+    return null;
+  }
+
+  return localStorage.getItem('x-hasura-admin-secret');
+}
