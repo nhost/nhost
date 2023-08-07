@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.20.4
+
+### Patch Changes
+
+- 3b75bfce2: fix: make announcement close properly
+- f49819075: fix: show correct values when dedicated resources are disabled
+
 ## 0.20.3
 
 ### Patch Changes
