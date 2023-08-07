@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.5
+
+### Patch Changes
+
+- 8d7f84b8d: fix: make announcement adapt to theme
+
 ## 0.20.4
 
 ### Patch Changes
