@@ -154,10 +154,12 @@ export default function LogsHeader({
       const services = data.app?.runServices ?? [];
 
       setRunServices(
-        services.map((s) => ({
-          label: s.config.name,
-          value: s.config.name,
-        })),
+        services
+          .filter((s) => !!s.config?.name)
+          .map((s) => ({
+            label: s.config.name,
+            value: `run-${s.config.name}`,
+          })),
       );
     }
   }, [loading, data]);
