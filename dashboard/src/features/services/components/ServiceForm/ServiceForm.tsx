@@ -10,6 +10,7 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import {
+  COST_PER_VCPU,
   MAX_SERVICES_CPU,
   MAX_SERVICES_MEM,
   MAX_SERVICE_REPLICAS,
@@ -36,6 +37,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { parse } from 'shell-quote';
 import * as Yup from 'yup';
+import { ServiceConfirmationDialog } from './components/ServiceConfirmationDialog';
 
 export enum PortTypes {
   HTTP = 'http',
@@ -106,7 +108,7 @@ export default function ServiceForm({
   onCancel,
   location,
 }: ServiceFormProps) {
-  const { onDirtyStateChange } = useDialog();
+  const { onDirtyStateChange, openDialog, closeDialog } = useDialog();
   const [insertRunService] = useInsertRunServiceMutation();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [insertRunServiceConfig] = useInsertRunServiceConfigMutation();
@@ -132,6 +134,8 @@ export default function ServiceForm({
     register,
     formState: { errors, isSubmitting, dirtyFields },
   } = form;
+
+  const formValues = watch();
 
   const serviceImage = watch('image');
 
@@ -246,10 +250,40 @@ export default function ServiceForm({
     }
   };
 
+  const handleConfirm = (values: ServiceFormValues) => {
+    openDialog({
+      title: 'Confirm Resources',
+      component: (
+        <ServiceConfirmationDialog
+          formValues={values}
+          onCancel={closeDialog}
+          onSubmit={async () => {
+            await handleSubmit(formValues);
+          }}
+        />
+      ),
+      // props: {
+      //   titleProps: { className: 'justify-center pb-1' },
+      // },
+    });
+  };
+
+  const pricingExplanation = () => {
+    const vCPUs = `${formValues.compute.cpu} vCPUs`;
+    const mem = `${formValues.compute.memory} Gib Mem`;
+    let details = `${vCPUs} + ${mem}`;
+
+    if (formValues.replicas > 1) {
+      details = `(${details}) x ${formValues.replicas} replicas`;
+    }
+
+    return `Approximate cost for ${details}`;
+  };
+
   return (
     <FormProvider {...form}>
       <Form
-        onSubmit={handleSubmit}
+        onSubmit={handleConfirm}
         className="grid grid-flow-row gap-4 px-6 pb-6"
       >
         <Input
@@ -345,6 +379,20 @@ export default function ServiceForm({
           fullWidth
           autoComplete="off"
         />
+
+        <Alert severity="info" className="flex justify-between">
+          <span>{pricingExplanation()}</span>
+          <span>
+            $
+            {parseFloat(
+              (
+                formValues.compute.cpu *
+                formValues.replicas *
+                COST_PER_VCPU
+              ).toFixed(2),
+            )}
+          </span>
+        </Alert>
 
         <ComputeFormSection />
 
