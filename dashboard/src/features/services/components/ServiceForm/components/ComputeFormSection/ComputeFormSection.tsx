@@ -48,7 +48,8 @@ export default function ComputeFormSection() {
     <Box className="space-y-4 rounded border-1 p-4">
       <Box className="flex flex-row items-center space-x-2">
         <Text variant="h4" className="font-semibold">
-          vCPUs: {formValues.compute.cpu} / Memory: {formValues.compute.memory}
+          vCPUs: {formValues.compute.cpu / 1000} / Memory:{' '}
+          {formValues.compute.memory}
         </Text>
 
         <Tooltip

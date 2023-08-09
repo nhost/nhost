@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { ServiceFormValues } from '@/features/services/components/ServiceForm';
+import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 
 export interface ServiceConfirmationDialogProps {
   /**
@@ -39,14 +40,14 @@ export default function ServiceConfirmationDialog({
             <Box className="grid grid-flow-row gap-0.5">
               <Text color="secondary">vCPUs</Text>
             </Box>
-            <Text>{formValues.compute.cpu}</Text>
+            <Text>{formValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER}</Text>
           </Box>
 
           <Box className="grid grid-flow-col items-center justify-between gap-2">
             <Box className="grid grid-flow-row gap-0.5">
               <Text color="secondary">Memory</Text>
             </Box>
-            <Text>{formValues.compute.memory} Gib</Text>
+            <Text>{formValues.compute.memory} MiB</Text>
           </Box>
 
           <Box className="grid grid-flow-col items-center justify-between gap-2">

@@ -23,6 +23,7 @@ import { PortsFormSection } from '@/features/services/components/ServiceForm/com
 import { ReplicasFormSection } from '@/features/services/components/ServiceForm/components/ReplicasFormSection';
 import { StorageFormSection } from '@/features/services/components/ServiceForm/components/StorageFormSection';
 import type { DialogFormProps } from '@/types/common';
+import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   useInsertRunServiceConfigMutation,
@@ -262,15 +263,12 @@ export default function ServiceForm({
           }}
         />
       ),
-      // props: {
-      //   titleProps: { className: 'justify-center pb-1' },
-      // },
     });
   };
 
   const pricingExplanation = () => {
-    const vCPUs = `${formValues.compute.cpu} vCPUs`;
-    const mem = `${formValues.compute.memory} Gib Mem`;
+    const vCPUs = `${formValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER} vCPUs`;
+    const mem = `${formValues.compute.memory} MiB Mem`;
     let details = `${vCPUs} + ${mem}`;
 
     if (formValues.replicas > 1) {
@@ -380,9 +378,12 @@ export default function ServiceForm({
           autoComplete="off"
         />
 
-        <Alert severity="info" className="flex justify-between">
+        <Alert
+          severity="info"
+          className="flex items-center justify-between space-x-2"
+        >
           <span>{pricingExplanation()}</span>
-          <span>
+          <b>
             $
             {parseFloat(
               (
@@ -391,7 +392,7 @@ export default function ServiceForm({
                 COST_PER_VCPU
               ).toFixed(2),
             )}
-          </span>
+          </b>
         </Alert>
 
         <ComputeFormSection />
