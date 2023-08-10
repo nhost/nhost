@@ -1,5 +1,14 @@
 # @nhost/dashboard
 
+## 0.20.6
+
+### Patch Changes
+
+- b20761e97: feat(services): add pricing info and confirmation dialog
+- 90df6d81d: fix(services): handle null values when editing a service
+- aa8508467: fix: query service logs correctly
+  feat: enable multiline support for environment value input
+
 ## 0.20.5
 
 ### Patch Changes
