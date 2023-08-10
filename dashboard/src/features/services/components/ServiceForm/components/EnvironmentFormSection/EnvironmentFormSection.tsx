@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { ServiceFormValues } from '@/features/services/components/ServiceForm';
+import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 export default function EnvironmentFormSection() {
@@ -14,6 +15,8 @@ export default function EnvironmentFormSection() {
     register,
     formState: { errors },
   } = useFormContext<ServiceFormValues>();
+
+  const [focusedInput, setFocusedInput] = useState<string>(null);
 
   const { fields, append, remove } = useFieldArray({
     name: 'environment',
@@ -49,42 +52,42 @@ export default function EnvironmentFormSection() {
 
       <Box className="flex flex-col space-y-4">
         {fields.map((field, index) => (
-          <Box
-            key={field.id}
-            className="flex w-full flex-col space-y-2 xs+:flex-row xs+:space-y-0 xs+:space-x-2"
-          >
-            <Input
-              {...register(`environment.${index}.name`)}
-              id={`${field.id}-name`}
-              label={!index && 'Name'}
-              placeholder={`Key ${index}`}
-              className="w-full"
-              hideEmptyHelperText
-              error={!!errors?.environment?.at(index)}
-              helperText={errors?.environment?.at(index)?.message}
-              fullWidth
-              autoComplete="off"
-            />
-            <Input
-              {...register(`environment.${index}.value`)}
-              id={`${field.id}-value`}
-              label={!index && 'Value'}
-              placeholder={`Value ${index}`}
-              className="w-full"
-              hideEmptyHelperText
-              error={!!errors?.environment?.at(index)}
-              helperText={errors?.environment?.at(index)?.message}
-              fullWidth
-              autoComplete="off"
-            />
-
+          <Box key={field.id} className="flex w-full items-center space-x-2">
+            <div className="flex w-full flex-col space-y-2">
+              <Input
+                {...register(`environment.${index}.name`)}
+                id={`${field.id}-name`}
+                placeholder={`Key ${index}`}
+                className="w-full"
+                hideEmptyHelperText
+                error={!!errors?.environment?.at(index)}
+                helperText={errors?.environment?.at(index)?.message}
+                fullWidth
+                autoComplete="off"
+              />
+              <Input
+                {...register(`environment.${index}.value`)}
+                id={`${field.id}-value`}
+                placeholder={`Value ${index}`}
+                className="w-full"
+                hideEmptyHelperText
+                error={!!errors?.environment?.at(index)}
+                helperText={errors?.environment?.at(index)?.message}
+                fullWidth
+                autoComplete="off"
+                multiline
+                maxRows={focusedInput === `${field.id}-value` ? 1000 : 1}
+                onFocusCapture={() => setFocusedInput(`${field.id}-value`)}
+                onBlurCapture={() => setFocusedInput(null)}
+              />
+            </div>
             <Button
               variant="borderless"
               className=""
               color="error"
               onClick={() => remove(index)}
             >
-              <TrashIcon className="h-4 w-4" />
+              <TrashIcon className="h-6 w-4" />
             </Button>
           </Box>
         ))}
