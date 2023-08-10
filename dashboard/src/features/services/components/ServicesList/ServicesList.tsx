@@ -77,17 +77,17 @@ export default function ServicesList({
             ...service.config,
             image: service.config?.image?.image,
             command: service.config?.command?.join(' '),
-            ports: service.config?.ports.map((item) => ({
+            ports: service.config?.ports?.map((item) => ({
               port: item.port,
               type: item.type as PortTypes,
               publish: item.publish,
             })),
-            compute: service.config?.resources.compute ?? {
+            compute: service.config?.resources?.compute ?? {
               cpu: 62,
               memory: 128,
             },
-            replicas: service.config?.resources.replicas,
-            storage: service.config?.resources.storage,
+            replicas: service.config?.resources?.replicas,
+            storage: service.config?.resources?.storage,
           }}
           onSubmit={() => onCreateOrUpdate()}
         />
