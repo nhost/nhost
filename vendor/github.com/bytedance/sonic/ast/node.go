@@ -82,9 +82,9 @@ func (self *Node) UnmarshalJSON(data []byte) (err error) {
 
 // Type returns json type represented by the node
 // It will be one of belows:
-//    V_NONE   = 0 (empty node)
+//    V_NONE   = 0 (empty node, key not exists)
 //    V_ERROR  = 1 (error node)
-//    V_NULL   = 2 (json value `null`)
+//    V_NULL   = 2 (json value `null`, key exists)
 //    V_TRUE   = 3 (json value `true`)
 //    V_FALSE  = 4 (json value `false`)
 //    V_ARRAY  = 5 (json value array)
@@ -102,7 +102,7 @@ func (self Node) itype() types.ValueType {
 
 // Exists returns false only if the self is nil or empty node V_NONE
 func (self *Node) Exists() bool {
-    return self != nil && self.t != _V_NONE
+    return self.Valid() && self.t != _V_NONE
 }
 
 // Valid reports if self is NOT V_ERROR or nil
@@ -114,7 +114,7 @@ func (self *Node) Valid() bool {
 }
 
 // Check checks if the node itself is valid, and return:
-//   - ErrNotFound If the node is nil
+//   - ErrNotExist If the node is nil
 //   - Its underlying error If the node is V_ERROR
 func (self *Node)  Check() error {
     if self == nil {
@@ -572,7 +572,7 @@ func (self *Node) SetAny(key string, val interface{}) (bool, error) {
     return self.Set(key, NewAny(val))
 }
 
-// Unset remove the node of given key under object parent, and reports if the key has existed.
+// Unset RESET the node of given key under object parent, and reports if the key has existed.
 // WARN: After conducting `UnsetXX()`, the node's length WON'T change
 func (self *Node) Unset(key string) (bool, error) {
     self.must(types.V_OBJECT, "an object")
@@ -619,6 +619,9 @@ func (self *Node) UnsetByIndex(index int) (bool, error) {
     if it == types.V_ARRAY {
         p = self.Index(index)
     }else if it == types.V_OBJECT {
+        if err := self.checkRaw(); err != nil {
+            return false, err
+        }
         pr := self.skipIndexPair(index)
         if pr == nil {
            return false, ErrNotExist
@@ -818,15 +821,15 @@ func (self *Node) MapUseNode() (map[string]Node, error) {
 // WARN: don't use it unless you know what you are doing
 //
 // Deprecated:  this API now returns copied nodes instead of directly reference, 
-func (self *Node) UnsafeMap() ([]Pair, error) {
-    if err := self.should(types.V_OBJECT, "an object"); err != nil {
-        return nil, err
-    }
-    if err := self.skipAllKey(); err != nil {
-        return nil, err
-    }
-    return self.toGenericObjectUsePair()
-}
+// func (self *Node) UnsafeMap() ([]Pair, error) {
+//     if err := self.should(types.V_OBJECT, "an object"); err != nil {
+//         return nil, err
+//     }
+//     if err := self.skipAllKey(); err != nil {
+//         return nil, err
+//     }
+//     return self.toGenericObjectUsePair()
+// }
 
 func (self *Node) unsafeMap() (*linkedPairs, error) {
     if err := self.should(types.V_OBJECT, "an object"); err != nil {
@@ -932,15 +935,15 @@ func (self *Node) ArrayUseNode() ([]Node, error) {
 //
 // Deprecated:  this API now returns copied nodes instead of directly reference, 
 // which has no difference with ArrayUseNode
-func (self *Node) UnsafeArray() ([]Node, error) {
-    if err := self.should(types.V_ARRAY, "an array"); err != nil {
-        return nil, err
-    }
-    if err := self.skipAllIndex(); err != nil {
-        return nil, err
-    }
-    return self.toGenericArrayUseNode()
-}
+// func (self *Node) UnsafeArray() ([]Node, error) {
+//     if err := self.should(types.V_ARRAY, "an array"); err != nil {
+//         return nil, err
+//     }
+//     if err := self.skipAllIndex(); err != nil {
+//         return nil, err
+//     }
+//     return self.toGenericArrayUseNode()
+// }
 
 func (self *Node) unsafeArray() (*linkedNodes, error) {
     if err := self.should(types.V_ARRAY, "an array"); err != nil {

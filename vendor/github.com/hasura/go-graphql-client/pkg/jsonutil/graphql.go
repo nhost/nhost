@@ -165,13 +165,15 @@ func (d *decoder) decode() error {
 				if v.Kind() == reflect.Slice {
 					// we want to append the template item copy
 					// so that all the inner structure gets preserved
-					copied, err := copyTemplate(v.Index(0))
-					if err != nil {
-						return fmt.Errorf("failed to copy template: %w", err)
+					if v.Len() != 0 {
+						copied, err := copyTemplate(v.Index(0))
+						if err != nil {
+							return fmt.Errorf("failed to copy template: %w", err)
+						}
+						v.Set(reflect.Append(v, copied)) // v = append(v, T).
+						f = v.Index(v.Len() - 1)
+						someSliceExist = true
 					}
-					v.Set(reflect.Append(v, copied)) // v = append(v, T).
-					f = v.Index(v.Len() - 1)
-					someSliceExist = true
 				}
 				d.vs[i] = append(d.vs[i], f)
 			}

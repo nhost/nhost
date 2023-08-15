@@ -1,5 +1,13 @@
 final: prev: rec {
-  go = final.go_1_20;
+  go = prev.go_1_20.overrideAttrs (finalAttrs: previousAttrs: rec {
+    version = "1.20.7";
+
+    src = final.fetchurl {
+      url = "https://go.dev/dl/go${version}.src.tar.gz";
+      sha256 = "sha256-LF7pyeweczsNu8K9/tP2IwblHYFyvzj09OVCsnUg9Zc=";
+    };
+
+  });
 
   golangci-lint = prev.golangci-lint.override rec {
     buildGoModule = args: prev.buildGoModule.override { go = go; } (args // rec {
@@ -10,6 +18,9 @@ final: prev: rec {
         rev = "v${version}";
         sha256 = "sha256-5qTWYmr82BFuyA+lS1HwCHqdrtWScI6tuu0noRbali8=";
       };
+
+      vendorHash = "sha256-MEfvBlecFIXqAet3V9qHRmeUzzcsSnkfM3HMTMlxss0=";
+
       ldflags = [
         "-s"
         "-w"

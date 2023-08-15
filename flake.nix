@@ -2,7 +2,7 @@
   description = "Nhost Hasura Storage";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/master";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nix-filter.url = "github:numtide/nix-filter";
     flake-utils.url = "github:numtide/flake-utils";
   };
@@ -62,10 +62,11 @@
               nixpkgs-fmt --check ${nix-src}
             '';
 
-          golangci-lint = pkgs.runCommand "golangci-lint"
+          linters = pkgs.runCommand "linters"
             {
               nativeBuildInputs = with pkgs; [
                 clang
+                govulncheck
                 golangci-lint
               ] ++ buildInputs ++ nativeBuildInputs;
             }
@@ -78,6 +79,8 @@
               cd $out
               cp -r ${go-src}/* .
 
+              govulncheck ./...
+
               golangci-lint run \
                 --build-tags=${tags} \
                 --timeout 300s
@@ -88,6 +91,7 @@
               nativeBuildInputs = with pkgs; [
                 docker-client
                 docker-compose
+                govulncheck
                 richgo
               ] ++ buildInputs ++ nativeBuildInputs;
             }
@@ -120,6 +124,7 @@
               docker-client
               docker-compose
               go-migrate
+              govulncheck
               gnumake
               gnused
               richgo

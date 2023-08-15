@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -105,26 +104,32 @@ func (c *Client) NamedMutateRaw(ctx context.Context, name string, m interface{},
 func (c *Client) buildAndRequest(ctx context.Context, op operationType, v interface{}, variables map[string]interface{}, options ...Option) ([]byte, *http.Response, io.Reader, Errors) {
 	var query string
 	var err error
+	var optionOutput *constructOptionsOutput
 	switch op {
 	case queryOperation:
-		query, err = ConstructQuery(v, variables, options...)
+		query, optionOutput, err = constructQuery(v, variables, options...)
 	case mutationOperation:
-		query, err = ConstructMutation(v, variables, options...)
+		query, optionOutput, err = constructMutation(v, variables, options...)
 	}
 
 	if err != nil {
 		return nil, nil, nil, Errors{newError(ErrGraphQLEncode, err)}
 	}
 
-	return c.request(ctx, query, variables, options...)
+	return c.request(ctx, query, variables, optionOutput)
 }
 
 // Request the common method that send graphql request
-func (c *Client) request(ctx context.Context, query string, variables map[string]interface{}, options ...Option) ([]byte, *http.Response, io.Reader, Errors) {
+func (c *Client) request(ctx context.Context, query string, variables map[string]interface{}, options *constructOptionsOutput) ([]byte, *http.Response, io.Reader, Errors) {
 	in := GraphQLRequestPayload{
 		Query:     query,
 		Variables: variables,
 	}
+
+	if options != nil {
+		in.OperationName = options.operationName
+	}
+
 	var buf bytes.Buffer
 	err := json.NewEncoder(&buf).Encode(in)
 	if err != nil {
@@ -173,7 +178,7 @@ func (c *Client) request(ctx context.Context, query string, variables map[string
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		err := newError(ErrRequestError, fmt.Errorf("%v; body: %q", resp.Status, body))
 
 		if c.debug {
@@ -190,7 +195,7 @@ func (c *Client) request(ctx context.Context, query string, variables map[string
 	// copy the response reader for debugging
 	var respReader *bytes.Reader
 	if c.debug {
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, nil, nil, Errors{newError(ErrJsonDecode, err)}
 		}
@@ -250,14 +255,24 @@ func (c *Client) do(ctx context.Context, op operationType, v interface{}, variab
 // Executes a pre-built query and unmarshals the response into v. Unlike the Query method you have to specify in the query the
 // fields that you want to receive as they are not inferred from v. This method is useful if you need to build the query dynamically.
 func (c *Client) Exec(ctx context.Context, query string, v interface{}, variables map[string]interface{}, options ...Option) error {
-	data, resp, respBuf, errs := c.request(ctx, query, variables, options...)
+	optionsOutput, err := constructOptions(options)
+	if err != nil {
+		return err
+	}
+
+	data, resp, respBuf, errs := c.request(ctx, query, variables, optionsOutput)
 	return c.processResponse(v, data, resp, respBuf, errs)
 }
 
 // Executes a pre-built query and returns the raw json message. Unlike the Query method you have to specify in the query the
 // fields that you want to receive as they are not inferred from the interface. This method is useful if you need to build the query dynamically.
 func (c *Client) ExecRaw(ctx context.Context, query string, variables map[string]interface{}, options ...Option) ([]byte, error) {
-	data, _, _, errs := c.request(ctx, query, variables, options...)
+	optionsOutput, err := constructOptions(options)
+	if err != nil {
+		return nil, err
+	}
+
+	data, _, _, errs := c.request(ctx, query, variables, optionsOutput)
 	if len(errs) > 0 {
 		return data, errs
 	}
@@ -356,7 +371,7 @@ func newError(code string, err error) Error {
 
 func (e Error) withRequest(req *http.Request, bodyReader io.Reader) Error {
 	internal := e.getInternalExtension()
-	bodyBytes, err := ioutil.ReadAll(bodyReader)
+	bodyBytes, err := io.ReadAll(bodyReader)
 	if err != nil {
 		internal["error"] = err
 	} else {
@@ -375,7 +390,7 @@ func (e Error) withRequest(req *http.Request, bodyReader io.Reader) Error {
 
 func (e Error) withResponse(res *http.Response, bodyReader io.Reader) Error {
 	internal := e.getInternalExtension()
-	bodyBytes, err := ioutil.ReadAll(bodyReader)
+	bodyBytes, err := io.ReadAll(bodyReader)
 	if err != nil {
 		internal["error"] = err
 	} else {

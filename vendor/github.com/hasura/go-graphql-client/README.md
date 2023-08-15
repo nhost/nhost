@@ -45,10 +45,12 @@ For more information, see package [`github.com/shurcooL/githubv4`](https://githu
 	- [Directories](#directories)
 	- [References](#references)
 	- [License](#license)
-  
+
 ## Installation
 
-`go-graphql-client` requires Go version 1.16 or later. For older Go versions, downgrade the library version below v0.7.1.
+`go-graphql-client` requires Go version 1.20 or later. For older Go versions: 
+- **>= 1.16 < 1.20**: downgrade the library to version v0.9.x
+- **< 1.16**: downgrade the library version below v0.7.1.
 
 ```bash
 go get -u github.com/hasura/go-graphql-client
@@ -202,7 +204,7 @@ var mutation struct {
   CreateDimensions struct {
      ID string `graphql:"id"`
   } `graphql:"create_dimensions(ship_dimensions: $ship_dimensions)"`
-} 
+}
 
 variables := map[string]interface{}{
 	"ship_dimensions":  myDimensions,
@@ -234,7 +236,7 @@ struct {
 //		 login
 //		 createdAt
 //		 databaseId
-//   }	
+//   }
 // }
 
 struct {
@@ -559,7 +561,7 @@ client := graphql.NewSubscriptionClient("wss://example.com/graphql").
 				"authentication": "...",
 		},
 	}).
-	// or lazy parameters with function 
+	// or lazy parameters with function
   WithConnectionParamsFn(func () map[string]interface{} {
 		return map[string]interface{} {
 			"headers": map[string]string{
@@ -575,7 +577,7 @@ client := graphql.NewSubscriptionClient("wss://example.com/graphql").
 ```Go
 client.
 	//  write timeout of websocket client
-	WithTimeout(time.Minute). 
+	WithTimeout(time.Minute).
 	// When the websocket server was stopped, the client will retry connecting every second until timeout
 	WithRetryTimeout(time.Minute).
 	// sets loging function to print out received messages. By default, nothing is printed
@@ -587,7 +589,7 @@ client.
 	// the client should exit when all subscriptions were closed, default true
 	WithExitWhenNoSubscription(false).
 	// WithRetryStatusCodes allow retry the subscription connection when receiving one of these codes
-	// the input parameter can be number string or range, e.g 4000-5000 
+	// the input parameter can be number string or range, e.g 4000-5000
 	WithRetryStatusCodes("4000", "4000-4050")
 ```
 
@@ -796,7 +798,7 @@ var res struct {
 	Somethings []Something `json:"something"`
 }
 
-raw, err := client.ExecRaw(ctx, query, map[string]any{}) 
+raw, err := client.ExecRaw(ctx, query, map[string]any{})
 if err != nil {
 	panic(err)
 }
@@ -914,11 +916,11 @@ func ConstructQuery(v interface{}, variables map[string]interface{}, options ...
 func ConstructMutation(v interface{}, variables map[string]interface{}, options ...Option) (string, error)
 
 // ConstructSubscription build GraphQL subscription string from struct and variables
-func ConstructSubscription(v interface{}, variables map[string]interface{}, options ...Option) (string, error) 
+func ConstructSubscription(v interface{}, variables map[string]interface{}, options ...Option) (string, error)
 
 // UnmarshalGraphQL parses the JSON-encoded GraphQL response data and stores
 // the result in the GraphQL query data structure pointed to by v.
-func UnmarshalGraphQL(data []byte, v interface{}) error 
+func UnmarshalGraphQL(data []byte, v interface{}) error
 ```
 
 Directories
