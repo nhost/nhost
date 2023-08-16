@@ -18,7 +18,7 @@ output=`curl $URL/ \
   -F "bucket-id=$BUCKET" \
   -F "metadata[]={};type=application/json" \
   -F "file[]=@client/testdata/alphabet.txt" \
-  -F "metadata[]={\"id\":\"7982873d-8e89-4321-ab86-00f80a168c5a\", \"name\":\"config.yaml\"};type=application/json" \
+  -F "metadata[]={\"id\":\"7982873d-8e89-4321-ab86-00f80a168c5a\", \"name\":\"config.yaml\",\"metadata\":{\"num\":123,\"list\":[1,2,3]}};type=application/json" \
   -F "file[]=@hasura-storage.yaml" \
   -F "metadata[]={\"id\":\"faa80d51-07c7-4268-942d-8f092c98c71a\", \"name\":\"docs.md\"};type=application/json" \
   -F "file[]=@README.md" \

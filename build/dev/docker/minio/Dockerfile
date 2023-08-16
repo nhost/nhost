@@ -1,6 +1,6 @@
-FROM minio/mc:latest as mc
+FROM minio/mc:RELEASE.2023-08-08T17-23-59Z as mc
 
-FROM minio/minio:RELEASE.2022-05-26T05-48-41Z.hotfix.15f13935a
+FROM minio/minio:RELEASE.2023-08-09T23-30-22Z
 
 COPY --from=mc /usr/bin/mc /usr/bin/mc
 

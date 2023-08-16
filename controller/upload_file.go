@@ -20,9 +20,10 @@ type UploadFileResponse struct {
 }
 
 type fileData struct {
-	Name   string `json:"name"`
-	ID     string `json:"id"`
-	header *multipart.FileHeader
+	Name     string         `json:"name"`
+	ID       string         `json:"id"`
+	Metadata map[string]any `json:"metadata"`
+	header   *multipart.FileHeader
 }
 
 type uploadFileRequest struct {
@@ -108,6 +109,7 @@ func (ctrl *Controller) upload(
 		metadata, apiErr := ctrl.metadataStorage.PopulateMetadata(
 			ctx,
 			file.ID, file.Name, file.header.Size, bucket.ID, etag, true, contentType,
+			file.Metadata,
 			http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
 		)
 		if apiErr != nil {

@@ -68,7 +68,15 @@ func TestUpdateFile(t *testing.T) {
 			logger.SetLevel(logrus.ErrorLevel)
 
 			file := fakeFile{
-				"some content", "", fakeFileMetadata{"a_file.txt", uuid.New().String()},
+				contents:    "some content",
+				contentType: "",
+				md: fakeFileMetadata{
+					Name: "a_file.txt",
+					ID:   uuid.New().String(),
+					Metadata: map[string]any{
+						"some": "metadata",
+					},
+				},
 			}
 
 			c := gomock.NewController(t)
@@ -130,6 +138,7 @@ func TestUpdateFile(t *testing.T) {
 				"some-etag",
 				true,
 				"text/plain; charset=utf-8",
+				file.md.Metadata,
 				gomock.Any(),
 			).Return(
 				controller.FileMetadata{
@@ -143,6 +152,7 @@ func TestUpdateFile(t *testing.T) {
 					IsUploaded:       true,
 					MimeType:         "text/plain; charset=utf-8",
 					UploadedByUserID: "some-valid-uuid",
+					Metadata:         map[string]any{"some": "metadata"},
 				},
 				nil)
 
@@ -180,6 +190,7 @@ func TestUpdateFile(t *testing.T) {
 					IsUploaded:       true,
 					MimeType:         "text/plain; charset=utf-8",
 					UploadedByUserID: "some-valid-uuid",
+					Metadata:         map[string]any{"some": "metadata"},
 				},
 				nil,
 			}, resp,

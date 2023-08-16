@@ -32,21 +32,17 @@ type BucketMetadata struct {
 }
 
 type FileMetadata struct {
-	ID               string `json:"id"`
-	Name             string `json:"name"`
-	Size             int64  `json:"size"`
-	BucketID         string `json:"bucketId"`
-	ETag             string `json:"etag"`
-	CreatedAt        string `json:"createdAt"`
-	UpdatedAt        string `json:"updatedAt"`
-	IsUploaded       bool   `json:"isUploaded"`
-	MimeType         string `json:"mimeType"`
-	UploadedByUserID string `json:"uploadedByUserId"`
-}
-
-type FileMetadataWithBucket struct {
-	FileMetadata
-	Bucket BucketMetadata
+	ID               string         `json:"id"`
+	Name             string         `json:"name"`
+	Size             int64          `json:"size"`
+	BucketID         string         `json:"bucketId"`
+	ETag             string         `json:"etag"`
+	CreatedAt        string         `json:"createdAt"`
+	UpdatedAt        string         `json:"updatedAt"`
+	IsUploaded       bool           `json:"isUploaded"`
+	MimeType         string         `json:"mimeType"`
+	UploadedByUserID string         `json:"uploadedByUserId"`
+	Metadata         map[string]any `json:"metadata"`
 }
 
 //go:generate mockgen --build_flags=--mod=mod -destination mock/metadata_storage.go -package mock . MetadataStorage
@@ -61,6 +57,7 @@ type MetadataStorage interface {
 	PopulateMetadata(
 		ctx context.Context,
 		id, name string, size int64, bucketID, etag string, IsUploaded bool, mimeType string,
+		metadata map[string]any,
 		headers http.Header) (FileMetadata, *APIError,
 	)
 	SetIsUploaded(ctx context.Context, fileID string, isUploaded bool, headers http.Header) *APIError

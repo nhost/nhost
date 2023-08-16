@@ -26,7 +26,9 @@ func updateFile(
 		t.Fatal(err)
 	}
 
-	fileToUpload := client.NewFile(path.Base(file.path), f, client.WithUUID(file.id))
+	fileToUpload := client.NewFile(
+		path.Base(file.path), f, client.WithUUID(file.id), client.WithMetadata(file.metadata),
+	)
 
 	return cl.UpdateFile(context.Background(), fileID, fileToUpload)
 }
@@ -58,7 +60,7 @@ func TestUpdateFile(t *testing.T) {
 			name:   "success",
 			fileID: id1,
 			file: fileHelper{
-				"testdata/rick.gif", id1,
+				"testdata/rick.gif", id1, map[string]any{"foo": "bar"},
 			},
 			expected: &controller.UpdateFileResponse{
 				FileMetadata: &controller.FileMetadata{
@@ -71,6 +73,7 @@ func TestUpdateFile(t *testing.T) {
 					UpdatedAt:  "2022-01-18T12:58:16.839344+00:00",
 					IsUploaded: true,
 					MimeType:   "image/gif",
+					Metadata:   map[string]any{"foo": "bar"},
 				},
 			},
 		},
@@ -78,12 +81,12 @@ func TestUpdateFile(t *testing.T) {
 			name:   "wrong id",
 			fileID: "asdadasdads",
 			file: fileHelper{
-				"testdata/rick.gif", id1,
+				"testdata/rick.gif", id1, nil,
 			},
 			expectedErr: &client.APIResponseError{
 				StatusCode: 400,
 				ErrorResponse: &controller.ErrorResponse{
-					Message: "Message: invalid input syntax for type uuid: \"asdadasdads\", Locations: [], Extensions: map[code:data-exception path:$]",
+					Message: `{"networkErrors":null,"graphqlErrors":[{"message":"invalid input syntax for type uuid: \"asdadasdads\"","extensions":{"code":"data-exception","path":"$"}}]}`,
 				},
 				Response: nil,
 			},
@@ -92,7 +95,7 @@ func TestUpdateFile(t *testing.T) {
 			name:   "not found",
 			fileID: "08c75a05-1b6a-42aa-b5ba-d9e1d5f3e8ca",
 			file: fileHelper{
-				"testdata/rick.gif", id1,
+				"testdata/rick.gif", id1, nil,
 			},
 			expectedErr: &client.APIResponseError{
 				StatusCode: 404,

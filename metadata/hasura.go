@@ -5,18 +5,18 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/hasura/go-graphql-client"
+	"github.com/Yamashou/gqlgenc/clientv2"
 	"github.com/nhost/hasura-storage/controller"
 )
 
-type (
-	uuid string
-)
+func ptr[T any](x T) *T {
+	return &x
+}
 
 func parseGraphqlError(err error) *controller.APIError {
-	var ghErr graphql.Errors
+	var ghErr *clientv2.ErrorResponse
 	if errors.As(err, &ghErr) {
-		code, ok := ghErr[0].Extensions["code"]
+		code, ok := (*ghErr.GqlErrors)[0].Extensions["code"]
 		if !ok {
 			return controller.InternalServerError(err)
 		}
@@ -33,118 +33,71 @@ func parseGraphqlError(err error) *controller.APIError {
 	return controller.InternalServerError(err)
 }
 
-type FileSummaryList []FileSummary
-
-func (md FileSummaryList) ToControllerType() []controller.FileSummary {
-	res := make([]controller.FileSummary, len(md))
-
-	for i, x := range md {
-		res[i] = x.ToControllerType()
-	}
-	return res
-}
-
-type FileSummary struct {
-	ID         graphql.String  `graphql:"id"`
-	Name       graphql.String  `graphql:"name"`
-	BucketID   graphql.String  `graphql:"bucketId"`
-	IsUploaded graphql.Boolean `graphql:"isUploaded"`
-}
-
-func (md FileSummary) ToControllerType() controller.FileSummary {
+func (md *FileMetadataSummaryFragment) ToControllerType() controller.FileSummary {
 	return controller.FileSummary{
-		ID:         string(md.ID),
-		Name:       string(md.Name),
-		BucketID:   string(md.BucketID),
-		IsUploaded: bool(md.IsUploaded),
+		ID:         md.GetID(),
+		Name:       *md.GetName(),
+		BucketID:   md.GetBucketID(),
+		IsUploaded: *md.GetIsUploaded(),
 	}
 }
 
-type BucketMetadata struct {
-	ID                   graphql.String  `graphql:"id"`
-	MinUploadFile        graphql.Int     `graphql:"minUploadFileSize"`
-	MaxUploadFile        graphql.Int     `graphql:"maxUploadFileSize"`
-	PresignedURLsEnabled graphql.Boolean `graphql:"presignedUrlsEnabled"`
-	DownloadExpiration   graphql.Int     `graphql:"downloadExpiration"`
-	CreatedAt            graphql.String  `graphql:"createdAt"`
-	UpdatedAt            graphql.String  `graphql:"updatedAt"`
-	CacheControl         graphql.String  `graphql:"cacheControl"`
-}
-
-func (md BucketMetadata) ToControllerType() controller.BucketMetadata {
+func (md *BucketMetadataFragment) ToControllerType() controller.BucketMetadata {
 	return controller.BucketMetadata{
-		ID:                   string(md.ID),
-		MinUploadFile:        int(md.MinUploadFile),
-		MaxUploadFile:        int(md.MaxUploadFile),
-		PresignedURLsEnabled: bool(md.PresignedURLsEnabled),
-		DownloadExpiration:   int(md.DownloadExpiration),
-		CreatedAt:            string(md.CreatedAt),
-		UpdatedAt:            string(md.UpdatedAt),
-		CacheControl:         string(md.CacheControl),
+		ID:                   md.GetID(),
+		MinUploadFile:        int(md.GetMinUploadFileSize()),
+		MaxUploadFile:        int(md.GetMaxUploadFileSize()),
+		PresignedURLsEnabled: md.GetPresignedUrlsEnabled(),
+		DownloadExpiration:   int(md.GetDownloadExpiration()),
+		CreatedAt:            md.GetCreatedAt(),
+		UpdatedAt:            md.GetUpdatedAt(),
+		CacheControl:         *md.GetCacheControl(),
 	}
 }
 
-type FileMetadata struct {
-	ID               graphql.String  `graphql:"id"`
-	Name             graphql.String  `graphql:"name"`
-	Size             graphql.Int     `graphql:"size"`
-	BucketID         graphql.String  `graphql:"bucketId"`
-	ETag             graphql.String  `graphql:"etag"`
-	CreatedAt        graphql.String  `graphql:"createdAt"`
-	UpdatedAt        graphql.String  `graphql:"updatedAt"`
-	IsUploaded       graphql.Boolean `graphql:"isUploaded"`
-	MimeType         graphql.String  `graphql:"mimeType"`
-	UploadedByUserID graphql.String  `graphql:"uploadedByUserId"`
-}
-
-func (md FileMetadata) ToControllerType() controller.FileMetadata {
+func (md *FileMetadataFragment) ToControllerType() controller.FileMetadata {
 	return controller.FileMetadata{
-		ID:               string(md.ID),
-		Name:             string(md.Name),
-		Size:             int64(md.Size),
-		BucketID:         string(md.BucketID),
-		ETag:             string(md.ETag),
-		CreatedAt:        string(md.CreatedAt),
-		UpdatedAt:        string(md.UpdatedAt),
-		IsUploaded:       bool(md.IsUploaded),
-		MimeType:         string(md.MimeType),
-		UploadedByUserID: string(md.UploadedByUserID),
+		ID:         md.GetID(),
+		Name:       *md.GetName(),
+		Size:       *md.GetSize(),
+		BucketID:   md.GetBucketID(),
+		ETag:       *md.GetEtag(),
+		CreatedAt:  md.GetCreatedAt(),
+		UpdatedAt:  md.GetUpdatedAt(),
+		IsUploaded: *md.GetIsUploaded(),
+		MimeType:   *md.GetMimeType(),
+		Metadata:   md.GetMetadata(),
 	}
 }
 
-type FileMetadataWithBucket struct {
-	FileMetadata
-	Bucket BucketMetadata `graphql:"bucket"`
-}
-
-func (md FileMetadataWithBucket) ToControllerType() controller.FileMetadataWithBucket {
-	return controller.FileMetadataWithBucket{
-		FileMetadata: md.FileMetadata.ToControllerType(),
-		Bucket:       md.Bucket.ToControllerType(),
-	}
-}
-
-type HasuraAuthorizer func(in http.Header) graphql.RequestModifier
-
-func ForWardHeadersAuthorizer(in http.Header) graphql.RequestModifier {
-	return func(out *http.Request) {
-		for k, v := range in {
+func WithHeaders(header http.Header) clientv2.RequestInterceptor {
+	return func(
+		ctx context.Context,
+		req *http.Request,
+		gqlInfo *clientv2.GQLRequestInfo,
+		res interface{},
+		next clientv2.RequestInterceptorFunc,
+	) error {
+		for k, v := range header {
 			for _, vv := range v {
-				out.Header.Add(k, vv)
+				req.Header.Add(k, vv)
 			}
 		}
+		return next(ctx, req, gqlInfo, res)
 	}
 }
 
 type Hasura struct {
-	client     *graphql.Client
-	authorizer HasuraAuthorizer
+	cl *Client
 }
 
-func NewHasura(endpoint string, authorizer HasuraAuthorizer) *Hasura {
+func NewHasura(endpoint string) *Hasura {
 	return &Hasura{
-		graphql.NewClient(endpoint, nil),
-		authorizer,
+		cl: NewClient(
+			&http.Client{},
+			endpoint,
+			&clientv2.Options{},
+		),
 	}
 }
 
@@ -153,26 +106,21 @@ func (h *Hasura) GetBucketByID(
 	bucketID string,
 	headers http.Header,
 ) (controller.BucketMetadata, *controller.APIError) {
-	var query struct {
-		StorageBucketsByPK BucketMetadata `graphql:"bucket(id: $id)"`
-	}
-
-	variables := map[string]interface{}{
-		"id": graphql.String(bucketID),
-	}
-
-	client := h.client.WithRequestModifier(h.authorizer(headers))
-	err := client.Query(ctx, &query, variables)
+	resp, err := h.cl.GetBucket(
+		ctx,
+		bucketID,
+		WithHeaders(headers),
+	)
 	if err != nil {
 		aerr := parseGraphqlError(err)
-		return controller.BucketMetadata{}, aerr.ExtendError("problem executing query")
+		return controller.BucketMetadata{}, aerr.ExtendError("problem getting bucket metadata")
 	}
 
-	if query.StorageBucketsByPK.ID == graphql.String("") {
+	if resp.Bucket == nil || resp.Bucket.ID == "" {
 		return controller.BucketMetadata{}, controller.ErrBucketNotFound
 	}
 
-	return query.StorageBucketsByPK.ToControllerType(), nil
+	return resp.Bucket.ToControllerType(), nil
 }
 
 func (h *Hasura) InitializeFile(
@@ -180,27 +128,18 @@ func (h *Hasura) InitializeFile(
 	fileID, name string, size int64, bucketID, mimeType string,
 	headers http.Header,
 ) *controller.APIError {
-	var result struct {
-		InsertFiles struct {
-			AffectedRows int `graphql:"affected_rows"`
-		} `graphql:"insertFiles"`
-	}
-
-	variables := map[string]interface{}{
-		"id":       uuid(fileID),
-		"bucketId": graphql.String(bucketID),
-		"mimeType": graphql.String(mimeType),
-		"name":     graphql.String(name),
-		"size":     graphql.Int(size),
-	}
-
-	client := h.client.WithRequestModifier(h.authorizer(headers))
-	if err := client.Exec(
+	_, err := h.cl.InsertFile(
 		ctx,
-		`mutation InitializeFile($id: uuid!, $name: String!, $bucketId: String!, $mimeType: String!, $size: Int!) {insertFiles(objects: {id: $id, bucketId: $bucketId, mimeType: $mimeType, name: $name, size: $size}) {affected_rows}}`, //nolint: lll
-		&result,
-		variables,
-	); err != nil {
+		FilesInsertInput{
+			BucketID: ptr(bucketID),
+			ID:       ptr(fileID),
+			MimeType: ptr(mimeType),
+			Name:     ptr(name),
+			Size:     ptr(size),
+		},
+		WithHeaders(headers),
+	)
+	if err != nil {
 		aerr := parseGraphqlError(err)
 		return aerr.ExtendError("problem initializing file metadata")
 	}
@@ -211,34 +150,33 @@ func (h *Hasura) InitializeFile(
 func (h *Hasura) PopulateMetadata(
 	ctx context.Context,
 	fileID, name string, size int64, bucketID, etag string, isUploaded bool, mimeType string,
+	metadata map[string]any,
 	headers http.Header,
 ) (controller.FileMetadata, *controller.APIError) {
-	var query struct {
-		UpdateStorageFile FileMetadata `graphql:"updateFile(pk_columns: {id: $id}, _set: {bucketId: $bucketId, etag: $etag, isUploaded: $isUploaded, mimeType: $mimeType, name: $name, size: $size})"` //nolint
-	}
-
-	variables := map[string]interface{}{
-		"id":         uuid(fileID),
-		"bucketId":   graphql.String(bucketID),
-		"etag":       graphql.String(etag),
-		"isUploaded": graphql.Boolean(isUploaded),
-		"mimeType":   graphql.String(mimeType),
-		"name":       graphql.String(name),
-		"size":       graphql.Int(size),
-	}
-
-	client := h.client.WithRequestModifier(h.authorizer(headers))
-	err := client.Mutate(ctx, &query, variables)
+	resp, err := h.cl.UpdateFile(
+		ctx,
+		fileID,
+		FilesSetInput{
+			BucketID:   ptr(bucketID),
+			Etag:       ptr(etag),
+			IsUploaded: ptr(isUploaded),
+			Metadata:   metadata,
+			MimeType:   ptr(mimeType),
+			Name:       ptr(name),
+			Size:       ptr(size),
+		},
+		WithHeaders(headers),
+	)
 	if err != nil {
 		aerr := parseGraphqlError(err)
 		return controller.FileMetadata{}, aerr.ExtendError("problem populating file metadata")
 	}
 
-	if query.UpdateStorageFile.ID == "" {
+	if resp.UpdateFile == nil || resp.UpdateFile.ID == "" {
 		return controller.FileMetadata{}, controller.ErrFileNotFound
 	}
 
-	return query.UpdateStorageFile.ToControllerType(), nil
+	return resp.UpdateFile.ToControllerType(), nil
 }
 
 func (h *Hasura) GetFileByID(
@@ -246,49 +184,40 @@ func (h *Hasura) GetFileByID(
 	fileID string,
 	headers http.Header,
 ) (controller.FileMetadata, *controller.APIError) {
-	var query struct {
-		StorageFilesByPK FileMetadata `graphql:"file(id: $id)"`
-	}
-
-	variables := map[string]interface{}{
-		"id": uuid(fileID),
-	}
-
-	client := h.client.WithRequestModifier(h.authorizer(headers))
-	err := client.Query(ctx, &query, variables)
+	resp, err := h.cl.GetFile(
+		ctx,
+		fileID,
+		WithHeaders(headers),
+	)
 	if err != nil {
 		aerr := parseGraphqlError(err)
-		return controller.FileMetadata{}, aerr.ExtendError("problem executing query")
+		return controller.FileMetadata{}, aerr.ExtendError("problem getting file metadata")
 	}
 
-	if query.StorageFilesByPK.ID == graphql.String("") {
+	if resp.File == nil || resp.File.ID == "" {
 		return controller.FileMetadata{}, controller.ErrFileNotFound
 	}
 
-	return query.StorageFilesByPK.ToControllerType(), nil
+	return resp.File.ToControllerType(), nil
 }
 
 func (h *Hasura) SetIsUploaded(
 	ctx context.Context, fileID string, isUploaded bool, headers http.Header,
 ) *controller.APIError {
-	var query struct {
-		UpdateStorageFile struct {
-			ID graphql.String `graphql:"id"`
-		} `graphql:"updateFile(pk_columns: {id: $id}, _set: {isUploaded: $isUploaded})"`
-	}
-
-	variables := map[string]interface{}{
-		"id":         uuid(fileID),
-		"isUploaded": graphql.Boolean(isUploaded),
-	}
-
-	client := h.client.WithRequestModifier(h.authorizer(headers))
-	err := client.Mutate(ctx, &query, variables)
+	resp, err := h.cl.UpdateFile(
+		ctx,
+		fileID,
+		FilesSetInput{
+			IsUploaded: ptr(isUploaded),
+		},
+		WithHeaders(headers),
+	)
 	if err != nil {
-		return parseGraphqlError(err)
+		aerr := parseGraphqlError(err)
+		return aerr.ExtendError("problem setting file as uploaded")
 	}
 
-	if query.UpdateStorageFile.ID == "" {
+	if resp.UpdateFile == nil || resp.UpdateFile.ID == "" {
 		return controller.ErrFileNotFound
 	}
 
@@ -296,24 +225,17 @@ func (h *Hasura) SetIsUploaded(
 }
 
 func (h *Hasura) DeleteFileByID(ctx context.Context, fileID string, headers http.Header) *controller.APIError {
-	var query struct {
-		StorageFileByPK struct {
-			ID graphql.String `graphql:"id"`
-		} `graphql:"deleteFile(id: $id)"`
-	}
-
-	variables := map[string]interface{}{
-		"id": uuid(fileID),
-	}
-
-	client := h.client.WithRequestModifier(h.authorizer(headers))
-	err := client.Mutate(ctx, &query, variables)
+	resp, err := h.cl.DeleteFile(
+		ctx,
+		fileID,
+		WithHeaders(headers),
+	)
 	if err != nil {
 		aerr := parseGraphqlError(err)
-		return aerr.ExtendError("problem executing query")
+		return aerr.ExtendError("problem deleting file")
 	}
 
-	if query.StorageFileByPK.ID == "" {
+	if resp.DeleteFile == nil || resp.DeleteFile.ID == "" {
 		return controller.ErrFileNotFound
 	}
 
@@ -321,18 +243,19 @@ func (h *Hasura) DeleteFileByID(ctx context.Context, fileID string, headers http
 }
 
 func (h *Hasura) ListFiles(ctx context.Context, headers http.Header) ([]controller.FileSummary, *controller.APIError) {
-	var query struct {
-		StorageFilesSummary FileSummaryList `graphql:"files"`
-	}
-
-	variables := map[string]interface{}{}
-
-	client := h.client.WithRequestModifier(h.authorizer(headers))
-	err := client.Query(ctx, &query, variables)
+	resp, err := h.cl.ListFilesSummary(
+		ctx,
+		WithHeaders(headers),
+	)
 	if err != nil {
 		aerr := parseGraphqlError(err)
-		return nil, aerr.ExtendError("problem executing query")
+		return nil, aerr.ExtendError("problem listing files")
 	}
 
-	return query.StorageFilesSummary.ToControllerType(), nil
+	files := make([]controller.FileSummary, len(resp.Files))
+	for i, f := range resp.Files {
+		files[i] = f.ToControllerType()
+	}
+
+	return files, nil
 }

@@ -18,8 +18,9 @@ import (
 )
 
 type fileHelper struct {
-	path string
-	id   string
+	path     string
+	id       string
+	metadata map[string]any
 }
 
 func uploadFiles(
@@ -35,7 +36,9 @@ func uploadFiles(
 			t.Fatal(err)
 		}
 
-		filesToUpload[i] = client.NewFile(path.Base(file.path), f, client.WithUUID(file.id))
+		filesToUpload[i] = client.NewFile(
+			path.Base(file.path), f, client.WithUUID(file.id), client.WithMetadata(file.metadata),
+		)
 	}
 
 	return cl.UploadFile(context.Background(), filesToUpload...)
@@ -57,8 +60,8 @@ func TestUploadFile(t *testing.T) {
 		{
 			name: "success",
 			files: []fileHelper{
-				{"testdata/alphabet.txt", id1},
-				{"testdata/greek.txt", id2},
+				{"testdata/alphabet.txt", id1, map[string]any{"foo": "bar"}},
+				{"testdata/greek.txt", id2, nil},
 			},
 			expected: &controller.UploadFileResponse{
 				ProcessedFiles: []controller.FileMetadata{
@@ -72,6 +75,9 @@ func TestUploadFile(t *testing.T) {
 						UpdatedAt:  "2022-01-18T12:58:16.839344+00:00",
 						IsUploaded: true,
 						MimeType:   "text/plain; charset=utf-8",
+						Metadata: map[string]any{
+							"foo": "bar",
+						},
 					},
 					{
 						ID:         id2,
@@ -90,17 +96,19 @@ func TestUploadFile(t *testing.T) {
 		{
 			name: "duplicated",
 			files: []fileHelper{
-				{"testdata/alphabet.txt", id1},
-				{"testdata/greek.txt", id2},
+				{"testdata/alphabet.txt", id1, map[string]any{"foo": "bar"}},
+				{"testdata/greek.txt", id2, nil},
 			},
 			expectedErr: &client.APIResponseError{
 				StatusCode: http.StatusBadRequest,
 				ErrorResponse: &controller.ErrorResponse{
-					Message: `Message: Uniqueness violation. duplicate key value violates unique constraint "files_pkey", Locations: [], Extensions: map[code:constraint-violation path:$.selectionSet.insertFiles.args.objects]`,
+					Message: `{"networkErrors":null,"graphqlErrors":[{"message":"Uniqueness violation. duplicate key value violates unique constraint \"files_pkey\"","extensions":{"code":"constraint-violation","path":"$.selectionSet.insertFile.args.object"}}]}`,
 					Data:    nil,
 				},
 				Response: &controller.UploadFileResponse{
-					Error: &controller.ErrorResponse{Message: "Message: Uniqueness violation. duplicate key value violates unique constraint \"files_pkey\", Locations: [], Extensions: map[code:constraint-violation path:$.selectionSet.insertFiles.args.objects]"},
+					Error: &controller.ErrorResponse{
+						Message: `{"networkErrors":null,"graphqlErrors":[{"message":"Uniqueness violation. duplicate key value violates unique constraint \"files_pkey\"","extensions":{"code":"constraint-violation","path":"$.selectionSet.insertFile.args.object"}}]}`,
+					},
 				},
 			},
 		},

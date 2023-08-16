@@ -117,7 +117,7 @@ func getGin(
 }
 
 func getMetadataStorage(endpoint string) *metadata.Hasura {
-	return metadata.NewHasura(endpoint, metadata.ForWardHeadersAuthorizer)
+	return metadata.NewHasura(endpoint)
 }
 
 func getContentStorage(

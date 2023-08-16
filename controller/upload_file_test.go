@@ -22,8 +22,9 @@ import (
 )
 
 type fakeFileMetadata struct {
-	Name string `json:"name"`
-	ID   string `json:"id"`
+	Name     string         `json:"name"`
+	ID       string         `json:"id"`
+	Metadata map[string]any `json:"metadata"`
 }
 
 func (f fakeFileMetadata) encode() string {
@@ -113,8 +114,24 @@ func TestUploadFile(t *testing.T) {
 			logger.SetLevel(logrus.ErrorLevel)
 
 			files := []fakeFile{
-				{"some content", "", fakeFileMetadata{"a_file.txt", uuid.New().String()}},
-				{"more content", "text/markdown", fakeFileMetadata{"another_file.md", uuid.New().String()}},
+				{
+					contents:    "some content",
+					contentType: "",
+					md: fakeFileMetadata{
+						Name:     "a_file.txt",
+						ID:       uuid.New().String(),
+						Metadata: map[string]any{},
+					},
+				},
+				{
+					contents:    "more content",
+					contentType: "text/markdown",
+					md: fakeFileMetadata{
+						Name:     "another_file.md",
+						ID:       uuid.New().String(),
+						Metadata: map[string]any{"some": "metadata"},
+					},
+				},
 			}
 
 			c := gomock.NewController(t)
@@ -135,7 +152,7 @@ func TestUploadFile(t *testing.T) {
 				UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
 			}, nil)
 
-			{ //nolint: dupl
+			{
 				// file 1
 				file := files[0]
 				metadataStorage.EXPECT().InitializeFile(
@@ -165,6 +182,7 @@ func TestUploadFile(t *testing.T) {
 					"some-etag",
 					true,
 					"text/plain; charset=utf-8",
+					file.md.Metadata,
 					gomock.Any(),
 				).Return(
 					controller.FileMetadata{
@@ -178,11 +196,12 @@ func TestUploadFile(t *testing.T) {
 						IsUploaded:       true,
 						MimeType:         "text/plain; charset=utf-8",
 						UploadedByUserID: "some-valid-uuid",
+						Metadata:         map[string]any{},
 					},
 					nil)
 			}
 
-			{ //nolint: dupl
+			{
 				// file 2
 				file := files[1]
 				metadataStorage.EXPECT().InitializeFile(
@@ -212,6 +231,7 @@ func TestUploadFile(t *testing.T) {
 					"some-etag",
 					true,
 					"text/markdown",
+					file.md.Metadata,
 					gomock.Any(),
 				).Return(
 					controller.FileMetadata{
@@ -225,6 +245,7 @@ func TestUploadFile(t *testing.T) {
 						IsUploaded:       true,
 						MimeType:         "text/markdown",
 						UploadedByUserID: "some-valid-uuid",
+						Metadata:         map[string]any{"some": "metadata"},
 					},
 					nil)
 			}
@@ -262,6 +283,7 @@ func TestUploadFile(t *testing.T) {
 						IsUploaded:       true,
 						MimeType:         "text/plain; charset=utf-8",
 						UploadedByUserID: "some-valid-uuid",
+						Metadata:         map[string]any{},
 					},
 					{
 						ID:               "d041c7c5-10e7-410e-a599-799409b5",
@@ -274,6 +296,7 @@ func TestUploadFile(t *testing.T) {
 						IsUploaded:       true,
 						MimeType:         "text/markdown",
 						UploadedByUserID: "some-valid-uuid",
+						Metadata:         map[string]any{"some": "metadata"},
 					},
 				},
 				Error: nil,

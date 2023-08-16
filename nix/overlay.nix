@@ -31,6 +31,20 @@ final: prev: rec {
     });
   };
 
+  gqlgenc = prev.gqlgenc.override rec {
+    buildGoModule = args: prev.buildGoModule.override { go = go; } (args // rec {
+      version = "0.14.0";
+      src = prev.fetchFromGitHub {
+        owner = "Yamashou";
+        repo = "gqlgenc";
+        rev = "v${version}";
+        sha256 = "sha256-0KUJlz8ey0kLmHO083ZPaJYIhInlKvO/a1oZYjPGopo=";
+      };
+
+      vendorHash = "sha256-Up7Wi6z0Cbp9RHKAsjj/kd50UqcXtsS+ETRYuxRfGuA=";
+    });
+  };
+
   vips = prev.vips.overrideAttrs (oldAttrs: rec {
     outputs = [ "bin" "out" "man" "dev" ];
     buildInputs = [

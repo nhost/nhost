@@ -77,7 +77,7 @@ func TestGetBucketByID(t *testing.T) {
 		},
 	}
 
-	hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
+	hasura := metadata.NewHasura(hasuraURL)
 
 	for _, tc := range cases {
 		tc := tc
@@ -130,7 +130,7 @@ func TestInitializeFile(t *testing.T) {
 			headers:            getAuthHeader(),
 			expectedStatusCode: 400,
 			expectedPublicResponse: &controller.ErrorResponse{
-				Message: "Message: invalid input syntax for type uuid: \"asdsad\", Locations: [], Extensions: map[code:data-exception path:$.selectionSet.insertFiles.args.objects]",
+				Message: `{"networkErrors":null,"graphqlErrors":[{"message":"invalid input syntax for type uuid: \"asdsad\"","extensions":{"code":"data-exception","path":"$.selectionSet.insertFile.args.object"}}]}`,
 			},
 		},
 		{
@@ -149,7 +149,7 @@ func TestInitializeFile(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
+			hasura := metadata.NewHasura(hasuraURL)
 
 			err := hasura.InitializeFile(context.Background(), tc.fileID, "name", 123, "default", "mimetype", tc.headers)
 
@@ -168,7 +168,7 @@ func TestInitializeFile(t *testing.T) {
 func TestPopulateMetadata(t *testing.T) {
 	t.Parallel()
 
-	hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
+	hasura := metadata.NewHasura(hasuraURL)
 
 	fileID := uuid.New().String()
 	if err := hasura.InitializeFile(context.Background(), fileID, "name", 123, "default", "mimetype", getAuthHeader()); err != nil {
@@ -208,7 +208,7 @@ func TestPopulateMetadata(t *testing.T) {
 			headers:            getAuthHeader(),
 			expectedStatusCode: 400,
 			expectedPublicResponse: &controller.ErrorResponse{
-				Message: `Message: invalid input syntax for type uuid: "asdasdasd", Locations: [], Extensions: map[code:data-exception path:$]`,
+				Message: `{"networkErrors":null,"graphqlErrors":[{"message":"invalid input syntax for type uuid: \"asdasdasd\"","extensions":{"code":"data-exception","path":"$"}}]}`,
 			},
 			expected: controller.FileMetadata{},
 		},
@@ -238,7 +238,7 @@ func TestPopulateMetadata(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			got, err := hasura.PopulateMetadata(context.Background(), tc.fileID, "name", 123, "default", "asdasd", true, "text", tc.headers)
+			got, err := hasura.PopulateMetadata(context.Background(), tc.fileID, "name", 123, "default", "asdasd", true, "text", nil, tc.headers)
 
 			if tc.expectedStatusCode != err.StatusCode() {
 				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
@@ -262,14 +262,14 @@ func TestPopulateMetadata(t *testing.T) {
 func TestGetFileByID(t *testing.T) {
 	t.Parallel()
 
-	hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
+	hasura := metadata.NewHasura(hasuraURL)
 
 	fileID := uuid.New().String()
 	if err := hasura.InitializeFile(context.Background(), fileID, "name", 123, "default", "mimetype", getAuthHeader()); err != nil {
 		panic(err)
 	}
 
-	if _, err := hasura.PopulateMetadata(context.Background(), fileID, "name", 123, "default", "asdasd", true, "text", getAuthHeader()); err != nil {
+	if _, err := hasura.PopulateMetadata(context.Background(), fileID, "name", 123, "default", "asdasd", true, "text", nil, getAuthHeader()); err != nil {
 		panic(err)
 	}
 
@@ -306,7 +306,7 @@ func TestGetFileByID(t *testing.T) {
 			headers:            getAuthHeader(),
 			expectedStatusCode: 400,
 			expectedPublicResponse: &controller.ErrorResponse{
-				Message: `Message: invalid input syntax for type uuid: "asdasdasd", Locations: [], Extensions: map[code:data-exception path:$]`,
+				Message: `{"networkErrors":null,"graphqlErrors":[{"message":"invalid input syntax for type uuid: \"asdasdasd\"","extensions":{"code":"data-exception","path":"$"}}]}`,
 			},
 			expected: controller.FileMetadata{},
 		},
@@ -361,7 +361,7 @@ func TestGetFileByID(t *testing.T) {
 func TestSetIsUploaded(t *testing.T) {
 	t.Parallel()
 
-	hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
+	hasura := metadata.NewHasura(hasuraURL)
 
 	fileID := uuid.New().String()
 	if err := hasura.InitializeFile(context.Background(), fileID, "name", 123, "default", "mimetype", getAuthHeader()); err != nil {
@@ -406,7 +406,7 @@ func TestSetIsUploaded(t *testing.T) {
 			headers:            getAuthHeader(),
 			expectedStatusCode: http.StatusBadRequest,
 			expectedPublicResponse: &controller.ErrorResponse{
-				Message: "Message: invalid input syntax for type uuid: \"\", Locations: [], Extensions: map[code:data-exception path:$]",
+				Message: `{"networkErrors":null,"graphqlErrors":[{"message":"invalid input syntax for type uuid: \"\"","extensions":{"code":"data-exception","path":"$"}}]}`,
 			},
 		},
 	}
@@ -434,14 +434,14 @@ func TestSetIsUploaded(t *testing.T) {
 func TestDeleteFileByID(t *testing.T) {
 	t.Parallel()
 
-	hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
+	hasura := metadata.NewHasura(hasuraURL)
 
 	fileID := uuid.New().String()
 	if err := hasura.InitializeFile(context.Background(), fileID, "name", 123, "default", "mimetype", getAuthHeader()); err != nil {
 		panic(err)
 	}
 
-	if _, err := hasura.PopulateMetadata(context.Background(), fileID, "name", 123, "default", "asdasd", true, "text", getAuthHeader()); err != nil {
+	if _, err := hasura.PopulateMetadata(context.Background(), fileID, "name", 123, "default", "asdasd", true, "text", nil, getAuthHeader()); err != nil {
 		panic(err)
 	}
 
@@ -483,7 +483,7 @@ func TestDeleteFileByID(t *testing.T) {
 			headers:            getAuthHeader(),
 			expectedStatusCode: http.StatusBadRequest,
 			expectedPublicResponse: &controller.ErrorResponse{
-				Message: "Message: invalid input syntax for type uuid: \"\", Locations: [], Extensions: map[code:data-exception path:$]",
+				Message: `{"networkErrors":null,"graphqlErrors":[{"message":"invalid input syntax for type uuid: \"\"","extensions":{"code":"data-exception","path":"$"}}]}`,
 			},
 		},
 	}
@@ -508,14 +508,14 @@ func TestDeleteFileByID(t *testing.T) {
 }
 
 func TestListFiles(t *testing.T) {
-	hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
+	hasura := metadata.NewHasura(hasuraURL)
 
 	fileID1 := uuid.New().String()
 	if err := hasura.InitializeFile(context.Background(), fileID1, "name", 123, "default", "mimetype", getAuthHeader()); err != nil {
 		panic(err)
 	}
 
-	if _, err := hasura.PopulateMetadata(context.Background(), fileID1, "name", 123, "default", "asdasd", true, "text", getAuthHeader()); err != nil {
+	if _, err := hasura.PopulateMetadata(context.Background(), fileID1, "name", 123, "default", "asdasd", true, "text", nil, getAuthHeader()); err != nil {
 		panic(err)
 	}
 
@@ -524,7 +524,7 @@ func TestListFiles(t *testing.T) {
 		panic(err)
 	}
 
-	if _, err := hasura.PopulateMetadata(context.Background(), fileID2, "asdads", 123, "default", "asdasd", true, "text", getAuthHeader()); err != nil {
+	if _, err := hasura.PopulateMetadata(context.Background(), fileID2, "asdads", 123, "default", "asdasd", true, "text", nil, getAuthHeader()); err != nil {
 		panic(err)
 	}
 

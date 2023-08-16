@@ -17,9 +17,16 @@ func WithUUID(id string) func(file *File) {
 	}
 }
 
+func WithMetadata(metdata map[string]any) func(file *File) {
+	return func(file *File) {
+		file.md.Metadata = metdata
+	}
+}
+
 type fileMetadata struct {
-	Name string `json:"name,omitempty"`
-	ID   string `json:"id,omitempty"`
+	Name     string         `json:"name,omitempty"`
+	ID       string         `json:"id,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 type File struct {
@@ -40,7 +47,7 @@ func NewFile(name string, r io.ReadSeeker, opts ...fileOptions) *File {
 	return file
 }
 
-func CreateMultiFormFile(writer *multipart.Writer, fieldName string, file *File) error {
+func CreateMultiFormFile(writer *multipart.Writer, fieldName string, file *File, multiple bool) error {
 	formWriter, err := writer.CreateFormFile(fieldName, file.md.Name)
 	if err != nil {
 		return fmt.Errorf("problem create part: %w", err)
@@ -52,7 +59,11 @@ func CreateMultiFormFile(writer *multipart.Writer, fieldName string, file *File)
 	}
 
 	h := make(textproto.MIMEHeader)
-	h.Set("Content-Disposition", `form-data; name="metadata[]"`)
+	if multiple {
+		h.Set("Content-Disposition", `form-data; name="metadata[]"`)
+	} else {
+		h.Set("Content-Disposition", `form-data; name="metadata"`)
+	}
 	h.Set("Content-Type", "application/json")
 
 	formWriter, err = writer.CreatePart(h)

@@ -130,6 +130,7 @@
               richgo
               ccls
               mockgen
+              gqlgenc
             ] ++ buildInputs ++ nativeBuildInputs;
           };
         };

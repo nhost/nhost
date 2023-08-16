@@ -34,11 +34,11 @@ check:   ## Run nix flake check
 
 .PHONY: integration-tests
 integration-tests: ## Run go test with integration flags
-	@HASURA_AUTH_BEARER=$(shell make dev-jwt) \
-	 TEST_S3_ACCESS_KEY=$(shell make dev-s3-access-key) \
-	 TEST_S3_SECRET_KEY=$(shell make dev-s3-secret-key) \
+	@HASURA_AUTH_BEARER=$(shell make -s dev-jwt) \
+	 TEST_S3_ACCESS_KEY=$(shell make -s dev-s3-access-key) \
+	 TEST_S3_SECRET_KEY=$(shell make -s dev-s3-secret-key) \
 	 GIN_MODE=release \
-		richgo test -tags=integration $(GOTEST_OPTIONS) ./...   # -run=TestGetFileByID
+		richgo test -tags=integration $(GOTEST_OPTIONS) ./... # -run=UpdateFile/success
 
 
 .PHONY: build

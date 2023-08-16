@@ -45,7 +45,7 @@ func TestDeleteFile(t *testing.T) {
 			expectedErr: &client.APIResponseError{
 				StatusCode: 400,
 				ErrorResponse: &controller.ErrorResponse{
-					Message: "Message: invalid input syntax for type uuid: \"asdadasdads\", Locations: [], Extensions: map[code:data-exception path:$]",
+					Message: `{"networkErrors":null,"graphqlErrors":[{"message":"invalid input syntax for type uuid: \"asdadasdads\"","extensions":{"code":"data-exception","path":"$"}}]}`,
 				},
 				Response: nil,
 			},

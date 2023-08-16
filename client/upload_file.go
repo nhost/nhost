@@ -27,7 +27,7 @@ func CreateUploadMultiForm(files ...*File) (io.Reader, string, error) {
 	}
 
 	for _, file := range files {
-		if err := CreateMultiFormFile(writer, "file[]", file); err != nil {
+		if err := CreateMultiFormFile(writer, "file[]", file, true); err != nil {
 			return nil, "", fmt.Errorf("problem creating form for file %s: %w", file.md.Name, err)
 		}
 	}

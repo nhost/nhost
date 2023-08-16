@@ -16,7 +16,7 @@ func CreateUpdateMultiForm(file *File) (io.Reader, string, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	if err := CreateMultiFormFile(writer, "file", file); err != nil {
+	if err := CreateMultiFormFile(writer, "file", file, false); err != nil {
 		return nil, "", fmt.Errorf("problem creating form for file %s: %w", file.md.Name, err)
 	}
 	writer.Close()

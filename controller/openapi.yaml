@@ -73,6 +73,9 @@ components:
           type: string
         uploadedByUserId:
           type: string
+        metadata:
+          type: object
+          additionalProperties: true
     UploadFileMetadata:
       type: object
       properties:
@@ -80,11 +83,17 @@ components:
           type: string
         name:
           type: string
+        metadata:
+          type: object
+          additionalProperties: true
     UpdateFileMetadata:
       type: object
       properties:
         name:
           type: string
+        metadata:
+          type: object
+          additionalProperties: true
     PresignedURLResponse:
       type: object
       properties:
@@ -519,7 +528,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /files/{id}/presigned:
+  /files/{id}/presignedurl:
     get:
       summary: Retrieve presigned URL to retrieve the file
       description: |
@@ -550,7 +559,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /files/{id}/presigned/contents:
+  /files/{id}/presignedurl/contents:
     get:
       summary: Retrieve contents of file
       description: Retrieve contents of file

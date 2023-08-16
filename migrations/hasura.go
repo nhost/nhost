@@ -214,6 +214,7 @@ func ApplyHasuraMetadata(url, hasuraSecret string) error { //nolint: funlen
 					"etag":                "etag",
 					"is_uploaded":         "isUploaded",
 					"uploaded_by_user_id": "uploadedByUserId",
+					"metadata":            "metadata",
 				},
 			},
 		},

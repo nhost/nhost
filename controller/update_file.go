@@ -9,7 +9,8 @@ import (
 )
 
 type updateFileMetadata struct {
-	Name string `json:"name"`
+	Name     string         `json:"name"`
+	Metadata map[string]any `json:"metadata"`
 }
 
 type UpdateFileResponse struct {
@@ -46,6 +47,7 @@ func updateFileParseRequest(ctx *gin.Context) (fileData, *APIError) {
 		}
 
 		res.Name = d.Name
+		res.Metadata = d.Metadata
 	} else {
 		fileName := ctx.Request.Header.Get("x-nhost-file-name")
 		if fileName == "" {
@@ -106,6 +108,7 @@ func (ctrl *Controller) updateFile(ctx *gin.Context) (FileMetadata, *APIError) {
 	newMetadata, apiErr := ctrl.metadataStorage.PopulateMetadata(
 		ctx,
 		file.ID, file.Name, file.header.Size, originalMetadata.BucketID, etag, true, contentType,
+		file.Metadata,
 		ctx.Request.Header,
 	)
 	if apiErr != nil {
