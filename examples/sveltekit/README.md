@@ -1,38 +1,44 @@
-# create-svelte
+# Nhost with SvelteKit Example
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+## Get Started
 
-## Creating a project
+1. Clone the repository
 
-If you're seeing this, you've probably already done this step. Congrats!
+   ```sh
+   git clone https://github.com/nhost/nhost
+   cd nhost
+   ```
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+2. Install and build dependencies
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+   ```sh
+   pnpm install
+   pnpm build
+   ```
 
-## Developing
+3. Go to the SvelteKit example folder
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+   ```sh
+   cd examples/sveltekit
+   ```
 
-```bash
-npm run dev
+4. Create a `.env` file and set the subdomain and region of your Nhost project. When running locally with the CLI, set the subdomain to `local`.
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+   ```sh
+   PUBLIC_NHOST_SUBDOMAIN=
+   PUBLIC_NHOST_REGION=
+   ```
 
-## Building
+5. Terminal 1: Start Nhost
 
-To create a production version of your app:
+   > Make sure you have the [Nhost CLI installed](https://docs.nhost.io/platform/cli).
 
-```bash
-npm run build
-```
+   ```sh
+   nhost up
+   ```
 
-You can preview the production build with `npm run preview`.
+6. Terminal 2: Start the SvelteKit dev server
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+   ```sh
+   pnpm dev
+   ```
