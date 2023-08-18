@@ -1,5 +1,5 @@
 import { invalidate } from '$app/navigation';
-import { PUBLIC_NHOST_REGION, PUBLIC_NHOST_SUBDOMAIN } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 import { NhostClient } from '@nhost/nhost-js';
 import Cookies from 'js-cookie';
 
@@ -40,8 +40,8 @@ export const getNhostLoadClient = async (session) => {
 	}
 
 	nhost = new NhostClient({
-		region: PUBLIC_NHOST_REGION,
-		subdomain: PUBLIC_NHOST_SUBDOMAIN,
+		region: env.PUBLIC_NHOST_REGION,
+		subdomain: env.PUBLIC_NHOST_SUBDOMAIN,
 		start: false
 	});
 
