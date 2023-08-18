@@ -128,6 +128,7 @@ enabled = true
 
 [auth.method.webauthn.relyingParty]
 name = 'apollo-example'
+origins = ['https://react-apollo.example.nhost.io']
 
 [auth.method.webauthn.attestation]
 timeout = 60000
