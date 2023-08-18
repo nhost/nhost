@@ -1,5 +1,5 @@
 {
-	"name": "svelte-auth-demo",
+	"name": "@nhost-examples/sveltekit",
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
