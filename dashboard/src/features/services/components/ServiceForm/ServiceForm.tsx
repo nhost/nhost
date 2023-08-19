@@ -176,7 +176,7 @@ export default function ServiceForm({
       })),
     };
 
-    if (initialData) {
+    if (serviceID) {
       // Update service config
       await replaceRunServiceConfig({
         variables: {
@@ -198,24 +198,6 @@ export default function ServiceForm({
           },
         },
       });
-
-      console.log(
-        JSON.stringify({
-          appID: currentProject.id,
-          serviceID: newServiceID,
-          config: {
-            ...config,
-            image: {
-              // If the image field left empty then we auto-populate following this format
-              // registry.<region>.<nhost_domain>/<service_id>
-              image:
-                values.image.length > 0
-                  ? values.image
-                  : `registry.${currentProject.region.awsName}.${currentProject.region.domain}/${newServiceID}`,
-            },
-          },
-        }),
-      );
 
       await insertRunServiceConfig({
         variables: {
@@ -446,7 +428,7 @@ export default function ServiceForm({
         )}
         <div className="grid grid-flow-row gap-2">
           <Button type="submit" disabled={isSubmitting}>
-            {initialData ? 'Update' : 'Create'}
+            {serviceID ? 'Update' : 'Create'}
           </Button>
 
           <Button variant="outlined" color="secondary" onClick={onCancel}>
