@@ -199,6 +199,24 @@ export default function ServiceForm({
         },
       });
 
+      console.log(
+        JSON.stringify({
+          appID: currentProject.id,
+          serviceID: newServiceID,
+          config: {
+            ...config,
+            image: {
+              // If the image field left empty then we auto-populate following this format
+              // registry.<region>.<nhost_domain>/<service_id>
+              image:
+                values.image.length > 0
+                  ? values.image
+                  : `registry.${currentProject.region.awsName}.${currentProject.region.domain}/${newServiceID}`,
+            },
+          },
+        }),
+      );
+
       await insertRunServiceConfig({
         variables: {
           appID: currentProject.id,
