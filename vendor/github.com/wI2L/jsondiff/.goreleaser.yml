@@ -1,0 +1,11 @@
+project_name: jsondiff
+builds:
+  - skip: true
+release:
+  github:
+    owner: wI2L
+    name: jsondiff
+  draft: true
+  prerelease: auto
+env_files:
+  github_token: ~/.goreleaser_github_token

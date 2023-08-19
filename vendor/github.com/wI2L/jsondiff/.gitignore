@@ -1,0 +1,56 @@
+# Linux
+*~
+.Trash-*
+
+# Mac OSX
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Folders
+_obj
+_test
+
+# Compiled Object files
+# Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+*.dll
+*.dylib
+
+# Executables
+*.exe
+*.exe~
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+# Cgo
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+# Go Tools
+*.test
+*.prof
+*.out
+_testmain.go
+
+# Dependency directories
+vendor/
+Godeps/
+
+#  markdown-spellcheck
+.spelling
+
+# CI/CD
+benchstats
+.benchruns
+coverage.txt
+dist/
+*.txt

@@ -18,6 +18,7 @@ key = '{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}'
 
 [hasura.settings]
 enableRemoteSchemaPermissions = false
+corsDomain = ['https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
 
 [functions]
 [functions.node]

@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 	"sort"
 
-	jsonpatch "github.com/mattbaird/jsonpatch"
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/clienv"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
+	"github.com/wI2L/jsondiff"
 )
 
 const (
@@ -81,7 +81,7 @@ func copyConfig(ce *clienv.CliEnv, dst, overlay string) error {
 	return nil
 }
 
-func toJSON(filepath string) ([]byte, error) {
+func readFile(filepath string) (any, error) {
 	f, err := os.Open(filepath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
@@ -98,26 +98,21 @@ func toJSON(filepath string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to unmarshal toml: %w", err)
 	}
 
-	b, err = json.Marshal(v)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal json: %w", err)
-	}
-
-	return b, nil
+	return v, nil
 }
 
 func generateJSONPatch(origfilepath, newfilepath, dst string) error {
-	origb, err := toJSON(origfilepath)
+	origo, err := readFile(origfilepath)
 	if err != nil {
 		return fmt.Errorf("failed to convert original toml to json: %w", err)
 	}
 
-	newb, err := toJSON(newfilepath)
+	newo, err := readFile(newfilepath)
 	if err != nil {
 		return fmt.Errorf("failed to convert new toml to json: %w", err)
 	}
 
-	patches, err := jsonpatch.CreatePatch(origb, newb)
+	patches, err := jsondiff.Compare(origo, newo)
 	if err != nil {
 		return fmt.Errorf("failed to generate json patch: %w", err)
 	}

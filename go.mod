@@ -9,10 +9,10 @@ require (
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/google/go-cmp v0.5.9
 	github.com/hashicorp/go-getter v1.7.1
-	github.com/mattbaird/jsonpatch v0.0.0-20230413205102-771768614e91
 	github.com/nhost/be v0.0.0-20230716092554-a6815011be18
 	github.com/pelletier/go-toml/v2 v2.0.8
 	github.com/urfave/cli/v2 v2.25.5
+	github.com/wI2L/jsondiff v0.4.0
 	golang.org/x/mod v0.10.0
 	golang.org/x/term v0.8.0
 	gopkg.in/evanphx/json-patch.v5 v5.6.0
@@ -37,7 +37,6 @@ require (
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/evanphx/json-patch v0.5.2 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.4.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
