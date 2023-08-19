@@ -1,0 +1,12 @@
+[
+  {
+    "op": "replace",
+    "path": "/auth/method/webauthn/relyingParty/origins/0",
+    "value": "http://localhost:3000"
+  },
+  {
+    "op": "replace",
+    "path": "/auth/redirections/clientUrl",
+    "value": "http://localhost:3000"
+  }
+]

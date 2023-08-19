@@ -94,13 +94,17 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.github]
-enabled = false
+enabled = true
+clientId = '{{ secrets.GITHUB_CLIENT_ID }}'
+clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
 
 [auth.method.oauth.gitlab]
 enabled = false
 
 [auth.method.oauth.google]
-enabled = false
+enabled = true
+clientId = '{{ secrets.GOOGLE_CLIENT_ID }}'
+clientSecret = '{{ secrets.GOOGLE_CLIENT_SECRET }}'
 
 [auth.method.oauth.linkedin]
 enabled = false
