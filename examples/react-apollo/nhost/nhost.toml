@@ -28,10 +28,10 @@ httpPoolSize = 100
 version = 16
 
 [auth]
-version = '0.20.2'
+version = '0.21.2'
 
 [auth.redirections]
-clientUrl = 'http://localhost:3000'
+clientUrl = 'https://react-apollo.example.nhost.io/'
 
 [auth.signUp]
 enabled = true
@@ -94,13 +94,17 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.github]
-enabled = false
+enabled = true
+clientId = '{{ secrets.GITHUB_CLIENT_ID }}'
+clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
 
 [auth.method.oauth.gitlab]
 enabled = false
 
 [auth.method.oauth.google]
-enabled = false
+enabled = true
+clientId = '{{ secrets.GOOGLE_CLIENT_ID }}'
+clientSecret = '{{ secrets.GOOGLE_CLIENT_SECRET }}'
 
 [auth.method.oauth.linkedin]
 enabled = false
@@ -124,7 +128,11 @@ enabled = false
 enabled = false
 
 [auth.method.webauthn]
-enabled = false
+enabled = true
+
+[auth.method.webauthn.relyingParty]
+name = 'apollo-example'
+origins = ['https://react-apollo.example.nhost.io']
 
 [auth.method.webauthn.attestation]
 timeout = 60000
