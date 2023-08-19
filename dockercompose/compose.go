@@ -250,7 +250,7 @@ func minio(dataFolder string) (*Service, error) {
 
 func dashboard(cfg *model.ConfigConfig, httpPort uint, useTLS bool) *Service {
 	return &Service{
-		Image:      "nhost/dashboard:0.20.3",
+		Image:      "nhost/dashboard:0.20.6",
 		DependsOn:  nil,
 		EntryPoint: nil,
 		Command:    nil,
