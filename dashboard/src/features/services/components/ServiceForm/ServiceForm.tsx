@@ -290,8 +290,6 @@ export default function ServiceForm({
   const copyConfig = () => {
     const config = getFormattedConfig(formValues);
 
-    config.image = null;
-
     copy(btoa(JSON.stringify(config)), 'Service Config');
   };
 
