@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useHostName } from '@/features/projects/common/hooks/useHostName';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import {
   COST_PER_VCPU,
@@ -112,6 +113,7 @@ export default function ServiceForm({
   onCancel,
   location,
 }: ServiceFormProps) {
+  const hostName = useHostName();
   const { onDirtyStateChange, openDialog, closeDialog } = useDialog();
   const [insertRunService] = useInsertRunServiceMutation();
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -290,7 +292,11 @@ export default function ServiceForm({
   const copyConfig = () => {
     const config = getFormattedConfig(formValues);
 
-    copy(btoa(JSON.stringify(config)), 'Service Config');
+    const base64Config = btoa(JSON.stringify(config));
+
+    const link = `${hostName}/run-one-click-install?config=${base64Config}`;
+
+    copy(link, 'Service Config');
   };
 
   return (
