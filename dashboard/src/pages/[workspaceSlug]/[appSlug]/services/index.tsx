@@ -104,7 +104,7 @@ export default function ServicesPage() {
                     memory: 128,
                   },
                   image: parsedConfig?.image?.image,
-                  command: parsedConfig?.command.join(' '),
+                  command: parsedConfig?.command?.join(' '),
                   ports: parsedConfig?.ports.map((item) => ({
                     port: item.port,
                     type: item.type as PortTypes,
@@ -129,7 +129,7 @@ export default function ServicesPage() {
         }
       }
     },
-    [router.query.config, openDrawer, refetchServices],
+    [router.query.config, openDrawer, refetchServices, openAlertDialog],
   );
 
   useEffect(() => {
