@@ -1,22 +1,26 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { useUI } from '@/components/common/UIProvider';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
+import { Input } from '@/components/ui/v2/Input';
+import { List } from '@/components/ui/v2/List';
+import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import {
   useGetAllWorkspacesAndProjectsQuery,
   type GetAllWorkspacesAndProjectsQuery,
 } from '@/utils/__generated__/graphql';
+import { Divider } from '@mui/material';
 import { useUserData } from '@nhost/nextjs';
+import debounce from 'lodash.debounce';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import type { FormEvent, ReactElement } from 'react';
-import { useState } from 'react';
+import type { ChangeEvent, ReactElement } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 
 type Workspace = Omit<
   GetAllWorkspacesAndProjectsQuery['workspaces'][0],
@@ -28,26 +32,40 @@ export default function SelectWorkspaceAndProject() {
   const router = useRouter();
   const { openAlertDialog } = useDialog();
 
-  const { maintenanceActive } = useUI();
-
   const { data, loading } = useGetAllWorkspacesAndProjectsQuery({
     skip: !user,
   });
 
   const workspaces: Workspace[] = data?.workspaces || [];
 
-  const preSelectedWorkspace = workspaces.length > 0 ? workspaces[0] : null;
+  const projects = workspaces.flatMap((workspace) =>
+    workspace.projects.map((project) => ({
+      workspaceName: workspace.name,
+      projectName: project.name,
+      value: `${workspace.slug}/${project.slug}`,
+      isFree: project.plan.isFree,
+    })),
+  );
 
-  const [selectedWorkspace, setSelectedWorkspace] =
-    useState(preSelectedWorkspace);
+  const [filter, setFilter] = useState('');
 
-  const [selectedProject, setSelectedProject] =
-    useState<typeof preSelectedWorkspace.projects[0]>(null);
+  const handleFilterChange = useMemo(
+    () =>
+      debounce((event: ChangeEvent<HTMLInputElement>) => {
+        setFilter(event.target.value);
+      }, 200),
+    [],
+  );
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
+  useEffect(() => () => handleFilterChange.cancel(), [handleFilterChange]);
 
-    if (!selectedWorkspace || !selectedProject) {
+  const goToServices = async (project: {
+    workspaceName: string;
+    projectName: string;
+    value: string;
+    isFree: boolean;
+  }) => {
+    if (!project) {
       openAlertDialog({
         title: 'Please select a workspace and a project',
         payload:
@@ -61,7 +79,7 @@ export default function SelectWorkspaceAndProject() {
       return;
     }
 
-    if (selectedProject.plan.isFree) {
+    if (project.isFree) {
       openAlertDialog({
         title: 'The project must have a pro plan',
         payload: 'Creating run services is only availabel for pro projects',
@@ -74,13 +92,18 @@ export default function SelectWorkspaceAndProject() {
       return;
     }
 
-    router.push({
-      pathname: `/${selectedWorkspace.slug}/${selectedProject.slug}/services`,
-
+    await router.push({
+      pathname: `/${project.value}/services`,
       // Keep the same query params that got us here
       query: router.query,
     });
-  }
+  };
+
+  const projectsToDisplay = filter
+    ? projects.filter((project) =>
+        project.projectName.toLowerCase().includes(filter.toLowerCase()),
+      )
+    : projects;
 
   if (loading) {
     return (
@@ -93,107 +116,71 @@ export default function SelectWorkspaceAndProject() {
 
   return (
     <Container>
-      <form onSubmit={handleSubmit}>
-        <div className="mx-auto grid max-w-[760px] grid-flow-row gap-4 py-6 sm:py-14">
-          <Text variant="h2" component="h1" className="">
-            New Run Service
-          </Text>
+      <div className="mx-auto grid max-w-[760px] grid-flow-row gap-4 py-6 sm:py-14">
+        <Text variant="h2" component="h1" className="">
+          New Run Service
+        </Text>
 
-          <InfoCard
-            title="Please select the workspace and the project where you want to create the service"
-            disableCopy
-            value=""
-          />
-          <div className="grid grid-flow-row gap-4">
-            <Select
-              id="workspace"
-              label="Workspace"
-              variant="inline"
-              hideEmptyHelperText
-              placeholder="Select Workspace"
-              slotProps={{
-                root: { className: 'grid grid-flow-col gap-1' },
-              }}
-              onChange={(_event, value) =>
-                setSelectedWorkspace(workspaces.find(({ id }) => id === value))
-              }
-              value={selectedWorkspace?.id ?? ''}
-              renderValue={(option) => (
-                <span className="inline-grid grid-flow-col items-center gap-2">
-                  {option?.label}
-                </span>
-              )}
-            >
-              {workspaces.map((option) => (
-                <Option
-                  value={option.id}
-                  key={option.id}
-                  className="grid grid-flow-col items-center gap-2"
-                >
-                  <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
-                    <Image
-                      src="/logos/new.svg"
-                      alt="Nhost Logo"
-                      width={24}
-                      height={24}
-                    />
-                  </span>
+        <InfoCard
+          title="Please select the workspace and the project where you want to create the service"
+          disableCopy
+          value=""
+        />
 
-                  {option.name}
-                </Option>
-              ))}
-            </Select>
-
-            <Select
-              id="project"
-              label="Project"
-              variant="inline"
-              hideEmptyHelperText
-              placeholder="Select Project"
-              disabled={selectedWorkspace?.projects.length === 0}
-              slotProps={{
-                root: { className: 'grid grid-flow-col gap-1' },
-              }}
-              onChange={(_event, value) =>
-                setSelectedProject(
-                  selectedWorkspace.projects.find(({ id }) => id === value),
-                )
-              }
-              value={selectedProject?.id ?? ''}
-              renderValue={(option) => (
-                <span className="inline-grid grid-flow-col items-center gap-2">
-                  {option?.label}
-                </span>
-              )}
-            >
-              {selectedWorkspace?.projects.map((project) => (
-                <Option
-                  value={project.id}
-                  key={project.id}
-                  className="grid grid-flow-col items-center gap-2"
-                >
-                  <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
-                    <Image
-                      src="/logos/new.svg"
-                      alt="Nhost Logo"
-                      width={24}
-                      height={24}
-                    />
-                  </span>
-
-                  {project.name}
-                </Option>
-              ))}
-            </Select>
+        <div>
+          <div className="mb-2 flex w-full">
+            <Input
+              placeholder="Search..."
+              onChange={handleFilterChange}
+              fullWidth
+              autoFocus
+            />
           </div>
+          <RetryableErrorBoundary>
+            {projectsToDisplay.length === 0 ? (
+              <Box className="h-import py-2">
+                <Text variant="subtitle2">No results found.</Text>
+              </Box>
+            ) : (
+              <List className="h-import overflow-y-auto">
+                {projectsToDisplay.map((project, index) => (
+                  <Fragment key={project.value}>
+                    <ListItem.Root
+                      className="grid grid-flow-col justify-start gap-2  py-2.5"
+                      secondaryAction={
+                        <Button
+                          variant="borderless"
+                          color="primary"
+                          onClick={() => goToServices(project)}
+                        >
+                          Proceed
+                        </Button>
+                      }
+                    >
+                      <ListItem.Avatar>
+                        <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
+                          <Image
+                            src="/logos/new.svg"
+                            alt="Nhost Logo"
+                            width={24}
+                            height={24}
+                          />
+                        </span>
+                      </ListItem.Avatar>
+                      <ListItem.Text
+                        primary={project.projectName}
+                        secondary={`${project.workspaceName} / ${project.projectName}`}
+                      />
+                    </ListItem.Root>
 
-          <div className="flex justify-end">
-            <Button type="submit" disabled={maintenanceActive} id="create-app">
-              Proceed
-            </Button>
-          </div>
+                    {index < projects.length - 1 && <Divider component="li" />}
+                  </Fragment>
+                ))}
+              </List>
+            )}
+          </RetryableErrorBoundary>
         </div>
-      </form>
+      </div>
     </Container>
   );
 }
