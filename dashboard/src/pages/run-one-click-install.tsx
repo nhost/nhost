@@ -20,7 +20,7 @@ import debounce from 'lodash.debounce';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 
 type Workspace = Omit<
   GetAllWorkspacesAndProjectsQuery['workspaces'][0],
@@ -58,6 +58,32 @@ export default function SelectWorkspaceAndProject() {
   );
 
   useEffect(() => () => handleFilterChange.cancel(), [handleFilterChange]);
+
+  const checkConfigFromQuery = useCallback(
+    (base64Config: string) => {
+      try {
+        JSON.parse(atob(base64Config));
+      } catch (error) {
+        openAlertDialog({
+          title: 'Configuration not set properly',
+          payload:
+            'Either the link is wrong or the configuration is not properly encoded',
+          props: {
+            primaryButtonText: 'Ok',
+            hideSecondaryAction: true,
+            onPrimaryAction: async () => {
+              await router.push('/');
+            },
+          },
+        });
+      }
+    },
+    [openAlertDialog, router],
+  );
+
+  useEffect(() => {
+    checkConfigFromQuery(router.query?.config as string);
+  }, [checkConfigFromQuery, router.query]);
 
   const goToServices = async (project: {
     workspaceName: string;
