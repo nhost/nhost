@@ -3,7 +3,9 @@ import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
+import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
@@ -25,6 +27,7 @@ import { StorageFormSection } from '@/features/services/components/ServiceForm/c
 import type { DialogFormProps } from '@/types/common';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
+import { copy } from '@/utils/copy';
 import {
   useInsertRunServiceConfigMutation,
   useInsertRunServiceMutation,
@@ -146,7 +149,7 @@ export default function ServiceForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  const createOrUpdateService = async (values: ServiceFormValues) => {
+  const getFormattedConfig = (values: ServiceFormValues) => {
     const config: ConfigRunServiceConfigInsertInput = {
       name: values.name,
       image: {
@@ -175,6 +178,12 @@ export default function ServiceForm({
         publish: item.publish,
       })),
     };
+
+    return config;
+  };
+
+  const createOrUpdateService = async (values: ServiceFormValues) => {
+    const config = getFormattedConfig(values);
 
     if (serviceID) {
       // Update service config
@@ -276,6 +285,14 @@ export default function ServiceForm({
     }
 
     return `Approximate cost for ${details}`;
+  };
+
+  const copyConfig = () => {
+    const config = getFormattedConfig(formValues);
+
+    config.image = null;
+
+    copy(btoa(JSON.stringify(config)), 'Service Config');
   };
 
   return (
@@ -427,9 +444,24 @@ export default function ServiceForm({
           </Alert>
         )}
         <div className="grid grid-flow-row gap-2">
-          <Button type="submit" disabled={isSubmitting}>
-            {serviceID ? 'Update' : 'Create'}
-          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              startIcon={<PlusIcon />}
+            >
+              {serviceID ? 'Update' : 'Create'}
+            </Button>
+            <Button
+              color="secondary"
+              variant="outlined"
+              disabled={isSubmitting}
+              onClick={copyConfig}
+              startIcon={<CopyIcon />}
+            >
+              Copy one-click install link
+            </Button>
+          </div>
 
           <Button variant="outlined" color="secondary" onClick={onCancel}>
             Cancel
