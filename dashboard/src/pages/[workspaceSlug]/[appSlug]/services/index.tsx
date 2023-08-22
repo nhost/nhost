@@ -13,20 +13,35 @@ import type { GetRunServicesQuery } from '@/utils/__generated__/graphql';
 import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
 
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
-import { ServiceForm } from '@/features/services/components/ServiceForm';
+import {
+  ServiceForm,
+  type PortTypes,
+} from '@/features/services/components/ServiceForm';
 import ServicesList from '@/features/services/components/ServicesList/ServicesList';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactElement,
+} from 'react';
 
 export type RunService = Omit<
   GetRunServicesQuery['app']['runServices'][0],
   '__typename'
 >;
 
+export type RunServiceConfig = Omit<
+  GetRunServicesQuery['app']['runServices'][0]['config'],
+  '__typename'
+>;
+
 export default function ServicesPage() {
   const limit = useRef(25);
   const router = useRouter();
-  const { openDrawer } = useDialog();
+  const { openDrawer, openAlertDialog } = useDialog();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const isPlanFree = currentProject.plan.isFree;
 
@@ -65,6 +80,63 @@ export default function ServicesPage() {
     () => data?.app?.runServices.map((service) => service) ?? [],
     [data],
   );
+
+  const checkConfigFromQuery = useCallback(
+    (base64Config: string) => {
+      if (router.query?.config) {
+        try {
+          const decodedConfig = atob(base64Config);
+          const parsedConfig: RunServiceConfig = JSON.parse(decodedConfig);
+
+          openDrawer({
+            title: (
+              <Box className="flex flex-row items-center space-x-2">
+                <CubeIcon className="h-5 w-5" />
+                <Text>Create a new run service</Text>
+              </Box>
+            ),
+            component: (
+              <ServiceForm
+                initialData={{
+                  ...parsedConfig,
+                  compute: parsedConfig?.resources?.compute ?? {
+                    cpu: 62,
+                    memory: 128,
+                  },
+                  image: parsedConfig?.image?.image,
+                  command: parsedConfig?.command?.join(' '),
+                  ports: parsedConfig?.ports.map((item) => ({
+                    port: item.port,
+                    type: item.type as PortTypes,
+                    publish: item.publish,
+                  })),
+                  replicas: parsedConfig?.resources?.replicas,
+                  storage: parsedConfig?.resources?.storage,
+                }}
+                onSubmit={refetchServices}
+              />
+            ),
+          });
+        } catch (error) {
+          openAlertDialog({
+            title: 'Configuration not set properly',
+            payload: 'The service configuration was not properly encoded',
+            props: {
+              primaryButtonText: 'Ok',
+              hideSecondaryAction: true,
+            },
+          });
+        }
+      }
+    },
+    [router.query.config, openDrawer, refetchServices, openAlertDialog],
+  );
+
+  useEffect(() => {
+    if (router.query?.config) {
+      checkConfigFromQuery(router.query?.config as string);
+    }
+  }, [checkConfigFromQuery, router.query]);
 
   const openCreateServiceDialog = () => {
     openDrawer({

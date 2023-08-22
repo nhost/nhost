@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { Text } from '@/components/ui/v2/Text';
-import Link from 'next/link';
 import { forwardRef, type ForwardedRef } from 'react';
 import { twMerge } from 'tailwind-merge';
 import AnnouncementContainer, {
@@ -28,7 +27,7 @@ function Announcement(
     <AnnouncementContainer
       {...props}
       ref={ref}
-      className="grid justify-between grid-flow-col gap-4"
+      className="grid grid-flow-col justify-between gap-4"
       slotProps={{
         root: {
           ...(slotProps?.root || {}),
@@ -39,12 +38,12 @@ function Announcement(
       <span />
 
       <div className="flex items-center self-center truncate">
-        <Link href={href}>
-          <Text className="truncate cursor-pointer hover:underline">
+        <a href={href}>
+          <Text className="cursor-pointer truncate hover:underline">
             {children}
           </Text>
-        </Link>
-        <ArrowRightIcon className="w-4 h-4 ml-1 text-white" />
+        </a>
+        <ArrowRightIcon className="ml-1 h-4 w-4 text-white" />
       </div>
 
       <Button
@@ -52,9 +51,9 @@ function Announcement(
         onClick={onClose}
         aria-label="Close announcement"
         size="small"
-        className="p-1 rounded-sm"
+        className="rounded-sm p-1"
       >
-        <XIcon className="w-4 h-4 opacity-65" />
+        <XIcon className="opacity-65 h-4 w-4" />
       </Button>
     </AnnouncementContainer>
   );
