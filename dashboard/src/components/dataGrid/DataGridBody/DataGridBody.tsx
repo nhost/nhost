@@ -178,6 +178,22 @@ export default function DataGridBody<T extends object>({
     }
   }
 
+  const getBackgroundCellColor = (
+    row: Row<T>,
+    column: DataBrowserGridColumn<T>,
+  ) => {
+    // Grey out files not uploaded
+    if (!row.values.isUploaded) {
+      return 'grey.200';
+    }
+
+    if (column.isDisabled) {
+      return 'grey.100';
+    }
+
+    return 'background.paper';
+  };
+
   return (
     <div {...getTableBodyProps()} ref={bodyRef} {...props}>
       {rows.length === 0 && !loading && (
@@ -260,9 +276,7 @@ export default function DataGridBody<T extends object>({
                     })}
                     cell={cell}
                     sx={{
-                      backgroundColor: column.isDisabled
-                        ? 'grey.100'
-                        : 'background.paper',
+                      backgroundColor: getBackgroundCellColor(row, column),
                       color: isCellDisabled ? 'text.secondary' : 'text.primary',
                     }}
                     className={twMerge(
