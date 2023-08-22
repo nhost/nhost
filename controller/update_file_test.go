@@ -84,6 +84,7 @@ func TestUpdateFile(t *testing.T) {
 
 			metadataStorage := mock.NewMockMetadataStorage(c)
 			contentStorage := mock.NewMockContentStorage(c)
+			av := mock.NewMockAntivirus(c)
 
 			metadataStorage.EXPECT().GetFileByID(
 				gomock.Any(), file.md.ID, gomock.Any(),
@@ -156,7 +157,18 @@ func TestUpdateFile(t *testing.T) {
 				},
 				nil)
 
-			ctrl := controller.New("http://asd", "/v1", "asdasd", metadataStorage, contentStorage, nil, logger)
+			av.EXPECT().ScanReader(gomock.Any()).Return(nil)
+
+			ctrl := controller.New(
+				"http://asd",
+				"/v1",
+				"asdasd",
+				metadataStorage,
+				contentStorage,
+				nil,
+				av,
+				logger,
+			)
 
 			router, _ := ctrl.SetupRouter(nil, "/v1", []string{"*"}, false, ginLogger(logger))
 

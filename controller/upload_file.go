@@ -62,6 +62,82 @@ func (ctrl *Controller) getMultipartFile(file fileData) (multipart.File, string,
 	return fileContent, mt.String(), nil
 }
 
+func (ctrl *Controller) scanAndReportVirus(
+	ctx context.Context,
+	fileContent multipart.File,
+	fileID string,
+	filename string,
+	headers http.Header,
+) *APIError {
+	if err := ctrl.av.ScanReader(fileContent); err != nil {
+		err.SetData("file", filename)
+
+		userSession := GetUserSession(headers)
+
+		if err := ctrl.metadataStorage.InsertVirus(
+			ctx, fileID, filename, err.GetDataString("virus"), userSession,
+			http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+		); err != nil {
+			err := err.ExtendError("problem inserting virus into database")
+			return err
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func (ctrl *Controller) processFile(
+	ctx context.Context,
+	file fileData,
+	bucket BucketMetadata,
+	headers http.Header,
+) (FileMetadata, *APIError) {
+	if err := checkFileSize(file.header, bucket.MinUploadFile, bucket.MaxUploadFile); err != nil {
+		return FileMetadata{}, InternalServerError(fmt.Errorf("problem checking file size %s: %w", file.Name, err))
+	}
+
+	fileContent, contentType, err := ctrl.getMultipartFile(file)
+	if err != nil {
+		return FileMetadata{}, err
+	}
+	defer fileContent.Close()
+
+	if err := ctrl.metadataStorage.InitializeFile(
+		ctx, file.ID, file.Name, file.header.Size, bucket.ID, contentType, headers,
+	); err != nil {
+		return FileMetadata{}, err
+	}
+
+	if err := ctrl.scanAndReportVirus(
+		ctx, fileContent, file.ID, file.Name, headers,
+	); err != nil {
+		return FileMetadata{}, err
+	}
+
+	etag, apiErr := ctrl.contentStorage.PutFile(fileContent, file.ID, contentType)
+	if apiErr != nil {
+		_ = ctrl.metadataStorage.DeleteFileByID(
+			ctx,
+			file.ID,
+			http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+		)
+		return FileMetadata{}, apiErr.ExtendError("problem uploading file to storage")
+	}
+
+	metadata, apiErr := ctrl.metadataStorage.PopulateMetadata(
+		ctx,
+		file.ID, file.Name, file.header.Size, bucket.ID, etag, true, contentType, file.Metadata,
+		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+	)
+	if apiErr != nil {
+		return FileMetadata{}, apiErr.ExtendError(fmt.Sprintf("problem populating file metadata for file %s", file.Name))
+	}
+
+	return metadata, nil
+}
+
 func (ctrl *Controller) upload(
 	ctx context.Context,
 	request uploadFileRequest,
@@ -78,42 +154,9 @@ func (ctrl *Controller) upload(
 	filesMetadata := make([]FileMetadata, 0, len(request.files))
 
 	for _, file := range request.files {
-		if err := checkFileSize(file.header, bucket.MinUploadFile, bucket.MaxUploadFile); err != nil {
-			return filesMetadata, InternalServerError(fmt.Errorf("problem checking file size %s: %w", file.Name, err))
-		}
-
-		fileContent, contentType, err := ctrl.getMultipartFile(file)
+		metadata, err := ctrl.processFile(ctx, file, bucket, request.headers)
 		if err != nil {
 			return filesMetadata, err
-		}
-		defer fileContent.Close()
-
-		apiErr := ctrl.metadataStorage.InitializeFile(
-			ctx,
-			file.ID, file.Name, file.header.Size, bucket.ID, contentType,
-			request.headers)
-		if apiErr != nil {
-			return filesMetadata, apiErr
-		}
-
-		etag, apiErr := ctrl.contentStorage.PutFile(fileContent, file.ID, contentType)
-		if apiErr != nil {
-			_ = ctrl.metadataStorage.DeleteFileByID(
-				ctx,
-				file.ID,
-				http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
-			)
-			return filesMetadata, apiErr.ExtendError("problem uploading file to storage")
-		}
-
-		metadata, apiErr := ctrl.metadataStorage.PopulateMetadata(
-			ctx,
-			file.ID, file.Name, file.header.Size, bucket.ID, etag, true, contentType,
-			file.Metadata,
-			http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
-		)
-		if apiErr != nil {
-			return filesMetadata, apiErr.ExtendError(fmt.Sprintf("problem populating file metadata for file %s", file.Name))
 		}
 
 		filesMetadata = append(filesMetadata, metadata)

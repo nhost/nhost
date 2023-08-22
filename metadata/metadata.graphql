@@ -65,3 +65,9 @@ mutation DeleteFile($id: uuid!) {
     id
   }
 }
+
+mutation InsertVirus($object: virus_insert_input!) {
+  insertVirus(object: $object) {
+    id
+  }
+}

@@ -97,6 +97,12 @@ func (ctrl *Controller) updateFile(ctx *gin.Context) (FileMetadata, *APIError) {
 	}
 	defer fileContent.Close()
 
+	if err := ctrl.scanAndReportVirus(
+		ctx, fileContent, file.ID, file.Name, ctx.Request.Header,
+	); err != nil {
+		return FileMetadata{}, err
+	}
+
 	etag, apiErr := ctrl.contentStorage.PutFile(fileContent, file.ID, contentType)
 	if apiErr != nil {
 		// let's revert the change to isUploaded

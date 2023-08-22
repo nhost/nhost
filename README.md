@@ -50,6 +50,7 @@ The main features of the service are:
 - create presigned URLs to grant temporary access
 - caching information to integrate with caches and CDNs (cache headers, etag, conditional headers, etc)
 - perform basic image manipulation on the fly
+- integration with clamav antivirus
 
 ## OpenAPI
 

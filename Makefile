@@ -38,7 +38,7 @@ integration-tests: ## Run go test with integration flags
 	 TEST_S3_ACCESS_KEY=$(shell make -s dev-s3-access-key) \
 	 TEST_S3_SECRET_KEY=$(shell make -s dev-s3-secret-key) \
 	 GIN_MODE=release \
-		richgo test -tags=integration $(GOTEST_OPTIONS) ./... # -run=UpdateFile/success
+		richgo test -tags=integration $(GOTEST_OPTIONS) ./... # -run=UploadFile/with_virus
 
 
 .PHONY: build
@@ -53,10 +53,31 @@ build-docker-image:  ## Build docker container for native architecture
 	./build/nix-docker-image.sh
 	docker tag hasura-storage:$(VERSION) hasura-storage:dev
 
+.PHONY: build-docker-image-clamav-dev
+build-docker-image-clamav-dev:  ## Build dev docker container for clamav
+	@echo $(VERSION) > VERSION
+	./build/nix-docker-image.sh clamavDockerImage
+	docker tag clamav:$(VERSION) clamav:dev
+
+.PHONY: build-docker-image-clamav
+build-docker-image-clamav:  ## Build docker container for clamav
+	@echo $(VERSION) > VERSION
+	./build/nix-docker-image.sh clamavDockerImage aarch64-linux
+	docker tag clamav:$(VERSION) nhost/clamav:$(VERSION)-aarch64
+	./build/nix-docker-image.sh clamavDockerImage x86_64-linux
+	docker tag clamav:$(VERSION) nhost/clamav:$(VERSION)-x86_64
+	docker push nhost/clamav:$(VERSION)-aarch64
+	docker push nhost/clamav:$(VERSION)-x86_64
+	docker manifest create \
+	  nhost/clamav:$(VERSION) \
+	    --amend nhost/clamav:$(VERSION)-aarch64 \
+	    --amend nhost/clamav:$(VERSION)-x86_64
+	docker manifest push nhost/clamav:$(VERSION)
+
 
 .PHONY: dev-env-up-short
 dev-env-up-short:  ## Starts development environment without hasura-storage
-	docker-compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d postgres graphql-engine minio
+	docker-compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d postgres graphql-engine minio clamd
 
 
 .PHONY: dev-env-up-hasura

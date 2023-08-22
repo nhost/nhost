@@ -259,3 +259,24 @@ func (h *Hasura) ListFiles(ctx context.Context, headers http.Header) ([]controll
 
 	return files, nil
 }
+
+func (h *Hasura) InsertVirus(
+	ctx context.Context, fileID, filename, virus string, userSession map[string]any, headers http.Header,
+) *controller.APIError {
+	_, err := h.cl.InsertVirus(
+		ctx,
+		VirusInsertInput{
+			FileID:      ptr(fileID),
+			Filename:    ptr(filename),
+			UserSession: userSession,
+			Virus:       ptr(virus),
+		},
+		WithHeaders(headers),
+	)
+	if err != nil {
+		aerr := parseGraphqlError(err)
+		return aerr.ExtendError("problem inserting virus")
+	}
+
+	return nil
+}

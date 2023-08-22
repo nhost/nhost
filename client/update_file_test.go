@@ -4,6 +4,7 @@
 package client_test
 
 import (
+	"net/http"
 	"os"
 	"path"
 	"testing"
@@ -103,6 +104,23 @@ func TestUpdateFile(t *testing.T) {
 					Message: "file not found",
 				},
 				Response: nil,
+			},
+		},
+		{
+			name:   "with virus",
+			fileID: id1,
+			file: fileHelper{
+				"testdata/eicarcom2.zip", id1, map[string]any{"foo": "bar"},
+			},
+			expectedErr: &client.APIResponseError{
+				StatusCode: http.StatusForbidden,
+				ErrorResponse: &controller.ErrorResponse{
+					Message: `virus found: Win.Test.EICAR_HDB-1`,
+					Data: map[string]any{
+						"file":  "eicarcom2.zip",
+						"virus": "Win.Test.EICAR_HDB-1",
+					},
+				},
 			},
 		},
 	}

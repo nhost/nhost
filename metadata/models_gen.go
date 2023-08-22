@@ -517,6 +517,13 @@ type FilesMutationResponse struct {
 	Returning []*Files `json:"returning"`
 }
 
+// input type for inserting object relation for remote table "storage.files"
+type FilesObjRelInsertInput struct {
+	Data FilesInsertInput `json:"data"`
+	// upsert condition
+	OnConflict *FilesOnConflict `json:"on_conflict,omitempty"`
+}
+
 // on_conflict condition type for table "storage.files"
 type FilesOnConflict struct {
 	Constraint    FilesConstraint     `json:"constraint"`
@@ -722,6 +729,14 @@ type SubscriptionRoot struct {
 	FilesAggregate FilesAggregate `json:"filesAggregate"`
 	// fetch data from the table in a streaming manner: "storage.files"
 	FilesStream []*Files `json:"files_stream"`
+	// fetch data from the table: "storage.virus" using primary key columns
+	Virus *Virus `json:"virus,omitempty"`
+	// fetch data from the table in a streaming manner: "storage.virus"
+	VirusStream []*Virus `json:"virus_stream"`
+	// fetch data from the table: "storage.virus"
+	Viruses []*Virus `json:"viruses"`
+	// fetch aggregated fields from the table: "storage.virus"
+	VirusesAggregate VirusAggregate `json:"virusesAggregate"`
 }
 
 // Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'.
@@ -748,6 +763,183 @@ type UUIDComparisonExp struct {
 	Lte    *string  `json:"_lte,omitempty"`
 	Neq    *string  `json:"_neq,omitempty"`
 	Nin    []string `json:"_nin,omitempty"`
+}
+
+// columns and relationships of "storage.virus"
+type Virus struct {
+	CreatedAt string `json:"createdAt"`
+	// An object relationship
+	File        Files                  `json:"file"`
+	FileID      string                 `json:"fileId"`
+	Filename    string                 `json:"filename"`
+	ID          string                 `json:"id"`
+	UpdatedAt   string                 `json:"updatedAt"`
+	UserSession map[string]interface{} `json:"userSession"`
+	Virus       string                 `json:"virus"`
+}
+
+// aggregated selection of "storage.virus"
+type VirusAggregate struct {
+	Aggregate *VirusAggregateFields `json:"aggregate,omitempty"`
+	Nodes     []*Virus              `json:"nodes"`
+}
+
+// aggregate fields of "storage.virus"
+type VirusAggregateFields struct {
+	Count int64           `json:"count"`
+	Max   *VirusMaxFields `json:"max,omitempty"`
+	Min   *VirusMinFields `json:"min,omitempty"`
+}
+
+// append existing jsonb value of filtered columns with new jsonb value
+type VirusAppendInput struct {
+	UserSession map[string]interface{} `json:"userSession,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "storage.virus". All fields are combined with a logical 'AND'.
+type VirusBoolExp struct {
+	And         []*VirusBoolExp           `json:"_and,omitempty"`
+	Not         *VirusBoolExp             `json:"_not,omitempty"`
+	Or          []*VirusBoolExp           `json:"_or,omitempty"`
+	CreatedAt   *TimestamptzComparisonExp `json:"createdAt,omitempty"`
+	File        *FilesBoolExp             `json:"file,omitempty"`
+	FileID      *UUIDComparisonExp        `json:"fileId,omitempty"`
+	Filename    *StringComparisonExp      `json:"filename,omitempty"`
+	ID          *UUIDComparisonExp        `json:"id,omitempty"`
+	UpdatedAt   *TimestamptzComparisonExp `json:"updatedAt,omitempty"`
+	UserSession *JsonbComparisonExp       `json:"userSession,omitempty"`
+	Virus       *StringComparisonExp      `json:"virus,omitempty"`
+}
+
+// delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+type VirusDeleteAtPathInput struct {
+	UserSession []string `json:"userSession,omitempty"`
+}
+
+// delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+type VirusDeleteElemInput struct {
+	UserSession *int64 `json:"userSession,omitempty"`
+}
+
+// delete key/value pair or string element. key/value pairs are matched based on their key value
+type VirusDeleteKeyInput struct {
+	UserSession *string `json:"userSession,omitempty"`
+}
+
+// input type for inserting data into table "storage.virus"
+type VirusInsertInput struct {
+	CreatedAt   *string                 `json:"createdAt,omitempty"`
+	File        *FilesObjRelInsertInput `json:"file,omitempty"`
+	FileID      *string                 `json:"fileId,omitempty"`
+	Filename    *string                 `json:"filename,omitempty"`
+	ID          *string                 `json:"id,omitempty"`
+	UpdatedAt   *string                 `json:"updatedAt,omitempty"`
+	UserSession map[string]interface{}  `json:"userSession,omitempty"`
+	Virus       *string                 `json:"virus,omitempty"`
+}
+
+// aggregate max on columns
+type VirusMaxFields struct {
+	CreatedAt *string `json:"createdAt,omitempty"`
+	FileID    *string `json:"fileId,omitempty"`
+	Filename  *string `json:"filename,omitempty"`
+	ID        *string `json:"id,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+	Virus     *string `json:"virus,omitempty"`
+}
+
+// aggregate min on columns
+type VirusMinFields struct {
+	CreatedAt *string `json:"createdAt,omitempty"`
+	FileID    *string `json:"fileId,omitempty"`
+	Filename  *string `json:"filename,omitempty"`
+	ID        *string `json:"id,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+	Virus     *string `json:"virus,omitempty"`
+}
+
+// response of any mutation on the table "storage.virus"
+type VirusMutationResponse struct {
+	// number of rows affected by the mutation
+	AffectedRows int64 `json:"affected_rows"`
+	// data from the rows affected by the mutation
+	Returning []*Virus `json:"returning"`
+}
+
+// on_conflict condition type for table "storage.virus"
+type VirusOnConflict struct {
+	Constraint    VirusConstraint     `json:"constraint"`
+	UpdateColumns []VirusUpdateColumn `json:"update_columns"`
+	Where         *VirusBoolExp       `json:"where,omitempty"`
+}
+
+// Ordering options when selecting data from "storage.virus".
+type VirusOrderBy struct {
+	CreatedAt   *OrderBy      `json:"createdAt,omitempty"`
+	File        *FilesOrderBy `json:"file,omitempty"`
+	FileID      *OrderBy      `json:"fileId,omitempty"`
+	Filename    *OrderBy      `json:"filename,omitempty"`
+	ID          *OrderBy      `json:"id,omitempty"`
+	UpdatedAt   *OrderBy      `json:"updatedAt,omitempty"`
+	UserSession *OrderBy      `json:"userSession,omitempty"`
+	Virus       *OrderBy      `json:"virus,omitempty"`
+}
+
+// primary key columns input for table: storage.virus
+type VirusPkColumnsInput struct {
+	ID string `json:"id"`
+}
+
+// prepend existing jsonb value of filtered columns with new jsonb value
+type VirusPrependInput struct {
+	UserSession map[string]interface{} `json:"userSession,omitempty"`
+}
+
+// input type for updating data in table "storage.virus"
+type VirusSetInput struct {
+	CreatedAt   *string                `json:"createdAt,omitempty"`
+	FileID      *string                `json:"fileId,omitempty"`
+	Filename    *string                `json:"filename,omitempty"`
+	ID          *string                `json:"id,omitempty"`
+	UpdatedAt   *string                `json:"updatedAt,omitempty"`
+	UserSession map[string]interface{} `json:"userSession,omitempty"`
+	Virus       *string                `json:"virus,omitempty"`
+}
+
+// Streaming cursor of the table "virus"
+type VirusStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue VirusStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type VirusStreamCursorValueInput struct {
+	CreatedAt   *string                `json:"createdAt,omitempty"`
+	FileID      *string                `json:"fileId,omitempty"`
+	Filename    *string                `json:"filename,omitempty"`
+	ID          *string                `json:"id,omitempty"`
+	UpdatedAt   *string                `json:"updatedAt,omitempty"`
+	UserSession map[string]interface{} `json:"userSession,omitempty"`
+	Virus       *string                `json:"virus,omitempty"`
+}
+
+type VirusUpdates struct {
+	// append existing jsonb value of filtered columns with new jsonb value
+	Append *VirusAppendInput `json:"_append,omitempty"`
+	// delete the field or element with specified path (for JSON arrays, negative integers count from the end)
+	DeleteAtPath *VirusDeleteAtPathInput `json:"_delete_at_path,omitempty"`
+	// delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array
+	DeleteElem *VirusDeleteElemInput `json:"_delete_elem,omitempty"`
+	// delete key/value pair or string element. key/value pairs are matched based on their key value
+	DeleteKey *VirusDeleteKeyInput `json:"_delete_key,omitempty"`
+	// prepend existing jsonb value of filtered columns with new jsonb value
+	Prepend *VirusPrependInput `json:"_prepend,omitempty"`
+	// sets the columns of the filtered rows to the given values
+	Set *VirusSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where VirusBoolExp `json:"where"`
 }
 
 // unique or primary key constraints on table "storage.buckets"
@@ -1277,5 +1469,164 @@ func (e *OrderBy) UnmarshalGQL(v interface{}) error {
 }
 
 func (e OrderBy) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// unique or primary key constraints on table "storage.virus"
+type VirusConstraint string
+
+const (
+	// unique or primary key constraint on columns "id"
+	VirusConstraintVirusPkey VirusConstraint = "virus_pkey"
+)
+
+var AllVirusConstraint = []VirusConstraint{
+	VirusConstraintVirusPkey,
+}
+
+func (e VirusConstraint) IsValid() bool {
+	switch e {
+	case VirusConstraintVirusPkey:
+		return true
+	}
+	return false
+}
+
+func (e VirusConstraint) String() string {
+	return string(e)
+}
+
+func (e *VirusConstraint) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = VirusConstraint(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid virus_constraint", str)
+	}
+	return nil
+}
+
+func (e VirusConstraint) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "storage.virus"
+type VirusSelectColumn string
+
+const (
+	// column name
+	VirusSelectColumnCreatedAt VirusSelectColumn = "createdAt"
+	// column name
+	VirusSelectColumnFileID VirusSelectColumn = "fileId"
+	// column name
+	VirusSelectColumnFilename VirusSelectColumn = "filename"
+	// column name
+	VirusSelectColumnID VirusSelectColumn = "id"
+	// column name
+	VirusSelectColumnUpdatedAt VirusSelectColumn = "updatedAt"
+	// column name
+	VirusSelectColumnUserSession VirusSelectColumn = "userSession"
+	// column name
+	VirusSelectColumnVirus VirusSelectColumn = "virus"
+)
+
+var AllVirusSelectColumn = []VirusSelectColumn{
+	VirusSelectColumnCreatedAt,
+	VirusSelectColumnFileID,
+	VirusSelectColumnFilename,
+	VirusSelectColumnID,
+	VirusSelectColumnUpdatedAt,
+	VirusSelectColumnUserSession,
+	VirusSelectColumnVirus,
+}
+
+func (e VirusSelectColumn) IsValid() bool {
+	switch e {
+	case VirusSelectColumnCreatedAt, VirusSelectColumnFileID, VirusSelectColumnFilename, VirusSelectColumnID, VirusSelectColumnUpdatedAt, VirusSelectColumnUserSession, VirusSelectColumnVirus:
+		return true
+	}
+	return false
+}
+
+func (e VirusSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *VirusSelectColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = VirusSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid virus_select_column", str)
+	}
+	return nil
+}
+
+func (e VirusSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// update columns of table "storage.virus"
+type VirusUpdateColumn string
+
+const (
+	// column name
+	VirusUpdateColumnCreatedAt VirusUpdateColumn = "createdAt"
+	// column name
+	VirusUpdateColumnFileID VirusUpdateColumn = "fileId"
+	// column name
+	VirusUpdateColumnFilename VirusUpdateColumn = "filename"
+	// column name
+	VirusUpdateColumnID VirusUpdateColumn = "id"
+	// column name
+	VirusUpdateColumnUpdatedAt VirusUpdateColumn = "updatedAt"
+	// column name
+	VirusUpdateColumnUserSession VirusUpdateColumn = "userSession"
+	// column name
+	VirusUpdateColumnVirus VirusUpdateColumn = "virus"
+)
+
+var AllVirusUpdateColumn = []VirusUpdateColumn{
+	VirusUpdateColumnCreatedAt,
+	VirusUpdateColumnFileID,
+	VirusUpdateColumnFilename,
+	VirusUpdateColumnID,
+	VirusUpdateColumnUpdatedAt,
+	VirusUpdateColumnUserSession,
+	VirusUpdateColumnVirus,
+}
+
+func (e VirusUpdateColumn) IsValid() bool {
+	switch e {
+	case VirusUpdateColumnCreatedAt, VirusUpdateColumnFileID, VirusUpdateColumnFilename, VirusUpdateColumnID, VirusUpdateColumnUpdatedAt, VirusUpdateColumnUserSession, VirusUpdateColumnVirus:
+		return true
+	}
+	return false
+}
+
+func (e VirusUpdateColumn) String() string {
+	return string(e)
+}
+
+func (e *VirusUpdateColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = VirusUpdateColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid virus_update_column", str)
+	}
+	return nil
+}
+
+func (e VirusUpdateColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

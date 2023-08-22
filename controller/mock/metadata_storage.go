@@ -94,6 +94,20 @@ func (mr *MockMetadataStorageMockRecorder) InitializeFile(arg0, arg1, arg2, arg3
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitializeFile", reflect.TypeOf((*MockMetadataStorage)(nil).InitializeFile), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
 }
 
+// InsertVirus mocks base method.
+func (m *MockMetadataStorage) InsertVirus(arg0 context.Context, arg1, arg2, arg3 string, arg4 map[string]interface{}, arg5 http.Header) *controller.APIError {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertVirus", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret0, _ := ret[0].(*controller.APIError)
+	return ret0
+}
+
+// InsertVirus indicates an expected call of InsertVirus.
+func (mr *MockMetadataStorageMockRecorder) InsertVirus(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertVirus", reflect.TypeOf((*MockMetadataStorage)(nil).InsertVirus), arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
 // ListFiles mocks base method.
 func (m *MockMetadataStorage) ListFiles(arg0 context.Context, arg1 http.Header) ([]controller.FileSummary, *controller.APIError) {
 	m.ctrl.T.Helper()

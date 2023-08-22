@@ -139,6 +139,7 @@ func TestUploadFile(t *testing.T) {
 
 			metadataStorage := mock.NewMockMetadataStorage(c)
 			contentStorage := mock.NewMockContentStorage(c)
+			av := mock.NewMockAntivirus(c)
 
 			metadataStorage.EXPECT().GetBucketByID(
 				gomock.Any(), "blah", gomock.Any(),
@@ -250,7 +251,19 @@ func TestUploadFile(t *testing.T) {
 					nil)
 			}
 
-			ctrl := controller.New("http://asd", "/v1", "asdasd", metadataStorage, contentStorage, nil, logger)
+			av.EXPECT().ScanReader(gomock.Any()).Return(nil)
+			av.EXPECT().ScanReader(gomock.Any()).Return(nil)
+
+			ctrl := controller.New(
+				"http://asd",
+				"/v1",
+				"asdasd",
+				metadataStorage,
+				contentStorage,
+				nil,
+				av,
+				logger,
+			)
 
 			router, _ := ctrl.SetupRouter(nil, "/v1", []string{"*"}, false, ginLogger(logger))
 

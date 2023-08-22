@@ -51,6 +51,10 @@ func TestUploadFile(t *testing.T) {
 	id1 := uuid.NewString()
 	id2 := uuid.NewString()
 
+	id3 := uuid.NewString()
+	id4 := uuid.NewString()
+	id5 := uuid.NewString()
+
 	cases := []struct {
 		name        string
 		files       []fileHelper
@@ -112,6 +116,58 @@ func TestUploadFile(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "with virus",
+			files: []fileHelper{
+				{"testdata/alphabet.txt", id3, nil},
+				{"testdata/greek.txt", id4, nil},
+				{"testdata/eicarcom2.zip", id5, map[string]any{"foo": "bar"}},
+			},
+			expected: nil,
+			expectedErr: &client.APIResponseError{
+				StatusCode: http.StatusForbidden,
+				ErrorResponse: &controller.ErrorResponse{
+					Message: `virus found: Win.Test.EICAR_HDB-1`,
+					Data: map[string]any{
+						"file":  "eicarcom2.zip",
+						"virus": "Win.Test.EICAR_HDB-1",
+					},
+				},
+				Response: &controller.UploadFileResponse{
+					ProcessedFiles: []controller.FileMetadata{
+						{
+							ID:         id3,
+							Name:       "alphabet.txt",
+							Size:       63,
+							BucketID:   "default",
+							ETag:       `"588be441fe7a59460850b0aa3e1c5a65"`,
+							CreatedAt:  "2023-08-16T11:21:08.976158+00:00",
+							UpdatedAt:  "2023-08-16T11:21:08.980238+00:00",
+							IsUploaded: true,
+							MimeType:   "text/plain; charset=utf-8",
+						},
+						{
+							ID:         id4,
+							Name:       "greek.txt",
+							Size:       103,
+							BucketID:   "default",
+							ETag:       `"d4b4575c5af8c28b4486acd1051ddf37"`,
+							CreatedAt:  "2023-08-16T11:21:08.983204+00:00",
+							UpdatedAt:  "2023-08-16T11:21:08.986171+00:00",
+							IsUploaded: true,
+							MimeType:   "text/plain; charset=utf-8",
+						},
+					},
+					Error: &controller.ErrorResponse{
+						Message: `virus found: Win.Test.EICAR_HDB-1`,
+						Data: map[string]any{
+							"file":  "eicarcom2.zip",
+							"virus": "Win.Test.EICAR_HDB-1",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -121,16 +177,16 @@ func TestUploadFile(t *testing.T) {
 
 			got, err := uploadFiles(t, cl, tc.files...)
 
-			if !cmp.Equal(err, tc.expectedErr) {
-				t.Error(cmp.Diff(err, tc.expectedErr))
-			}
-
 			opts := cmp.Options{
 				cmpopts.IgnoreFields(controller.FileMetadata{}, "CreatedAt", "UpdatedAt"),
 			}
 
-			if !cmp.Equal(got, tc.expected, opts...) {
-				t.Error(cmp.Diff(got, tc.expected, opts...))
+			if diff := cmp.Diff(err, tc.expectedErr, opts...); diff != "" {
+				t.Error(diff)
+			}
+
+			if diff := cmp.Diff(got, tc.expected, opts...); diff != "" {
+				t.Error(diff)
 			}
 		})
 	}

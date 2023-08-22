@@ -158,14 +158,54 @@
             };
           };
 
+          clamavDockerImage = pkgs.dockerTools.buildLayeredImage {
+            name = "clamav";
+            tag = version;
+            created = "now";
+
+            contents = with pkgs; [
+              (writeTextFile {
+                name = "tmp-file";
+                text = ''
+                  dummy file to generate tmpdir
+                '';
+                destination = "/tmp/tmp-file";
+              })
+              (writeTextFile {
+                name = "entrypoint.sh";
+                text = pkgs.lib.fileContents ./build/clamav/entrypoint.sh;
+                executable = true;
+                destination = "/usr/local/bin/entrypoint.sh";
+              })
+              (writeTextFile {
+                name = "freshclam.conf";
+                text = pkgs.lib.fileContents ./build/clamav/freshclam.conf.tmpl;
+                destination = "/etc/clamav/freshclam.conf.tmpl";
+              })
+              (writeTextFile {
+                name = "clamd.conf";
+                text = pkgs.lib.fileContents ./build/clamav/clamd.conf.tmpl;
+                destination = "/etc/clamav/clamd.conf.tmpl";
+              })
+              envsubst
+              clamav
+              fakeNss
+              dockerTools.caCertificates
+            ] ++ lib.optionals stdenv.isLinux [
+              busybox
+            ];
+            config = {
+              Env = [
+                "TMPDIR=/tmp"
+              ];
+              Entrypoint = [
+                "/usr/local/bin/entrypoint.sh"
+              ];
+            };
+          };
+
           default = hasuraStorage;
 
-        };
-
-        apps = flake-utils.lib.flattenTree {
-          hasuraStorage = self.packages.${system}.hasuraStorage;
-          golangci-lint = pkgs.golangci-lint;
-          default = self.packages.${system}.hasuraStorage;
         };
 
       }

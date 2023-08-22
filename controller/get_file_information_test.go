@@ -143,6 +143,7 @@ func TestGetFileInfo(t *testing.T) {
 				metadataStorage,
 				contentStorage,
 				image.NewTransformer(),
+				nil,
 				logger,
 			)
 

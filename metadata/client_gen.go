@@ -24,22 +24,32 @@ type QueryRoot struct {
 	File             *Files           "json:\"file,omitempty\" graphql:\"file\""
 	Files            []*Files         "json:\"files\" graphql:\"files\""
 	FilesAggregate   FilesAggregate   "json:\"filesAggregate\" graphql:\"filesAggregate\""
+	Virus            *Virus           "json:\"virus,omitempty\" graphql:\"virus\""
+	Viruses          []*Virus         "json:\"viruses\" graphql:\"viruses\""
+	VirusesAggregate VirusAggregate   "json:\"virusesAggregate\" graphql:\"virusesAggregate\""
 }
 type MutationRoot struct {
 	DeleteBucket      *Buckets                   "json:\"deleteBucket,omitempty\" graphql:\"deleteBucket\""
 	DeleteBuckets     *BucketsMutationResponse   "json:\"deleteBuckets,omitempty\" graphql:\"deleteBuckets\""
 	DeleteFile        *Files                     "json:\"deleteFile,omitempty\" graphql:\"deleteFile\""
 	DeleteFiles       *FilesMutationResponse     "json:\"deleteFiles,omitempty\" graphql:\"deleteFiles\""
+	DeleteVirus       *Virus                     "json:\"deleteVirus,omitempty\" graphql:\"deleteVirus\""
+	DeleteViruses     *VirusMutationResponse     "json:\"deleteViruses,omitempty\" graphql:\"deleteViruses\""
 	InsertBucket      *Buckets                   "json:\"insertBucket,omitempty\" graphql:\"insertBucket\""
 	InsertBuckets     *BucketsMutationResponse   "json:\"insertBuckets,omitempty\" graphql:\"insertBuckets\""
 	InsertFile        *Files                     "json:\"insertFile,omitempty\" graphql:\"insertFile\""
 	InsertFiles       *FilesMutationResponse     "json:\"insertFiles,omitempty\" graphql:\"insertFiles\""
+	InsertVirus       *Virus                     "json:\"insertVirus,omitempty\" graphql:\"insertVirus\""
+	InsertViruses     *VirusMutationResponse     "json:\"insertViruses,omitempty\" graphql:\"insertViruses\""
 	UpdateBucket      *Buckets                   "json:\"updateBucket,omitempty\" graphql:\"updateBucket\""
 	UpdateBuckets     *BucketsMutationResponse   "json:\"updateBuckets,omitempty\" graphql:\"updateBuckets\""
 	UpdateFile        *Files                     "json:\"updateFile,omitempty\" graphql:\"updateFile\""
 	UpdateFiles       *FilesMutationResponse     "json:\"updateFiles,omitempty\" graphql:\"updateFiles\""
+	UpdateVirus       *Virus                     "json:\"updateVirus,omitempty\" graphql:\"updateVirus\""
+	UpdateViruses     *VirusMutationResponse     "json:\"updateViruses,omitempty\" graphql:\"updateViruses\""
 	UpdateBucketsMany []*BucketsMutationResponse "json:\"update_buckets_many,omitempty\" graphql:\"update_buckets_many\""
 	UpdateFilesMany   []*FilesMutationResponse   "json:\"update_files_many,omitempty\" graphql:\"update_files_many\""
+	UpdateVirusMany   []*VirusMutationResponse   "json:\"update_virus_many,omitempty\" graphql:\"update_virus_many\""
 }
 type FileMetadataFragment struct {
 	ID               string                 "json:\"id\" graphql:\"id\""
@@ -236,6 +246,17 @@ func (t *DeleteFile_DeleteFile) GetID() string {
 	return t.ID
 }
 
+type InsertVirus_InsertVirus struct {
+	ID string "json:\"id\" graphql:\"id\""
+}
+
+func (t *InsertVirus_InsertVirus) GetID() string {
+	if t == nil {
+		t = &InsertVirus_InsertVirus{}
+	}
+	return t.ID
+}
+
 type GetBucket struct {
 	Bucket *BucketMetadataFragment "json:\"bucket,omitempty\" graphql:\"bucket\""
 }
@@ -300,6 +321,17 @@ func (t *DeleteFile) GetDeleteFile() *DeleteFile_DeleteFile {
 		t = &DeleteFile{}
 	}
 	return t.DeleteFile
+}
+
+type InsertVirus struct {
+	InsertVirus *InsertVirus_InsertVirus "json:\"insertVirus,omitempty\" graphql:\"insertVirus\""
+}
+
+func (t *InsertVirus) GetInsertVirus() *InsertVirus_InsertVirus {
+	if t == nil {
+		t = &InsertVirus{}
+	}
+	return t.InsertVirus
 }
 
 const GetBucketDocument = `query GetBucket ($id: String!) {
@@ -457,6 +489,26 @@ func (c *Client) DeleteFile(ctx context.Context, id string, interceptors ...clie
 
 	var res DeleteFile
 	if err := c.Client.Post(ctx, "DeleteFile", DeleteFileDocument, &res, vars, interceptors...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const InsertVirusDocument = `mutation InsertVirus ($object: virus_insert_input!) {
+	insertVirus(object: $object) {
+		id
+	}
+}
+`
+
+func (c *Client) InsertVirus(ctx context.Context, object VirusInsertInput, interceptors ...clientv2.RequestInterceptor) (*InsertVirus, error) {
+	vars := map[string]interface{}{
+		"object": object,
+	}
+
+	var res InsertVirus
+	if err := c.Client.Post(ctx, "InsertVirus", InsertVirusDocument, &res, vars, interceptors...); err != nil {
 		return nil, err
 	}
 

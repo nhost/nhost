@@ -224,6 +224,44 @@ func ApplyHasuraMetadata(url, hasuraSecret string) error { //nolint: funlen
 		return fmt.Errorf("problem adding metadata for the files table: %w", err)
 	}
 
+	virusTable := TrackTable{
+		Type: "pg_track_table",
+		Args: PgTrackTableArgs{
+			Source: "default",
+			Table: Table{
+				Schema: "storage",
+				Name:   "virus",
+			},
+			Configuration: Configuration{
+				CustomName: "virus",
+				CustomRootFields: CustomRootFields{
+					Select:          "viruses",
+					SelectByPk:      "virus",
+					SelectAggregate: "virusesAggregate",
+					Insert:          "insertViruses",
+					InsertOne:       "insertVirus",
+					Update:          "updateViruses",
+					UpdateByPk:      "updateVirus",
+					Delete:          "deleteViruses",
+					DeleteByPk:      "deleteVirus",
+				},
+				CustomColumnNames: map[string]string{
+					"id":           "id",
+					"created_at":   "createdAt",
+					"updated_at":   "updatedAt",
+					"file_id":      "fileId",
+					"filename":     "filename",
+					"virus":        "virus",
+					"user_session": "userSession",
+				},
+			},
+		},
+	}
+
+	if err := postMetadata(url, hasuraSecret, virusTable); err != nil {
+		return fmt.Errorf("problem adding metadata for the virus table: %w", err)
+	}
+
 	objRelationshipBuckets := CreateObjectRelationship{
 		Type: "pg_create_object_relationship",
 		Args: CreateObjectRelationshipArgs{
@@ -266,6 +304,25 @@ func ApplyHasuraMetadata(url, hasuraSecret string) error { //nolint: funlen
 
 	if err := postMetadata(url, hasuraSecret, arrRelationship); err != nil {
 		return fmt.Errorf("problem creating array relationships: %w", err)
+	}
+
+	objRelationshipVirusFile := CreateObjectRelationship{
+		Type: "pg_create_object_relationship",
+		Args: CreateObjectRelationshipArgs{
+			Table: Table{
+				Schema: "storage",
+				Name:   "virus",
+			},
+			Name:   "file",
+			Source: "default",
+			Using: CreateObjectRelationshipUsing{
+				ForeignKeyConstraintOn: []string{"file_id"},
+			},
+		},
+	}
+
+	if err := postMetadata(url, hasuraSecret, objRelationshipVirusFile); err != nil {
+		return fmt.Errorf("problem creaiing object relationship for buckets: %w", err)
 	}
 
 	return nil
