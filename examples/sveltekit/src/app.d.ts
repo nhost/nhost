@@ -1,7 +1,4 @@
 // See https://kit.svelte.dev/docs/types#app
-
-import type { NhostClient, NhostSession } from '@nhost/nhost-js';
-
 // for information about these interfaces
 declare global {
 	namespace App {
@@ -12,4 +9,5 @@ declare global {
 	}
 }
 
-export {};
+export { };
+

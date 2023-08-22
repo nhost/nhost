@@ -11,8 +11,7 @@
     "install-browsers": "pnpm dlx playwright@1.31.0 install --with-deps",
     "test": "pnpm install-browsers && pnpm install && pnpm dlx playwright@1.31.0 test",
     "test:unit": "vitest",
-    "lint": "prettier --plugin-search-dir . --check . && eslint .",
-    "format": "prettier --plugin-search-dir . --write .",
+    "lint": "eslint .",
     "postinstall": "pnpm add @nhost/nhost-js --ignore-workspace"
   },
   "devDependencies": {
