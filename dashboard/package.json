@@ -106,6 +106,7 @@
     "@testing-library/user-event": "^14.4.3",
     "@types/ace": "^0.0.48",
     "@types/bcryptjs": "^2.4.2",
+    "@types/jest": "^29.5.3",
     "@types/lodash.debounce": "^4.0.7",
     "@types/node": "^16.11.7",
     "@types/pluralize": "^0.0.30",

@@ -15,6 +15,7 @@
     "postinstall": "pnpm add @nhost/nhost-js --ignore-workspace"
   },
   "devDependencies": {
+    "@nhost/nhost-js": "^2.2.13",
     "@playwright/test": "^1.31.0",
     "@sveltejs/adapter-auto": "^2.0.0",
     "@sveltejs/kit": "^1.5.0",
@@ -35,7 +36,6 @@
   "type": "module",
   "dependencies": {
     "@apollo/client": "^3.8.1",
-    "@nhost/nhost-js": "^2.2.13",
     "graphql": "^16.7.1",
     "graphql-tag": "^2.12.6",
     "js-cookie": "^3.0.5",

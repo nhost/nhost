@@ -2,8 +2,9 @@ import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariab
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import { render, screen } from '@/tests/testUtils';
+import '@testing-library/jest-dom';
 import { setupServer } from 'msw/node';
-import { test, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, test, vi } from 'vitest';
 import ColumnAutocomplete from './ColumnAutocomplete';
 
 const server = setupServer(
