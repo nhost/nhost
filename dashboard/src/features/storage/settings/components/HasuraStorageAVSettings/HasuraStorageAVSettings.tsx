@@ -106,7 +106,6 @@ export default function HasuraStorageAVSettings() {
           }}
           switchId="enabled"
           docsTitle="enabling or disabling Antivirus"
-          // docsLink="https://hasura.io/learn/graphql/hasura-advanced/debugging/1-dev-mode/"
           showSwitch
           className="hidden"
         />
