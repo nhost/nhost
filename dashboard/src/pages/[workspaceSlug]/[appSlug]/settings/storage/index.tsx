@@ -3,6 +3,7 @@ import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { StorageServiceVersionSettings } from '@/features/storage/settings/components/HasuraServiceVersionSettings';
+import { HasuraStorageAVSettings } from '@/features/storage/settings/components/HasuraStorageAVSettings';
 import { useGetStorageSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
@@ -34,6 +35,7 @@ export default function StorageSettingsPage() {
       rootClassName="bg-transparent"
     >
       <StorageServiceVersionSettings />
+      <HasuraStorageAVSettings />
     </Container>
   );
 }
