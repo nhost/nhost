@@ -1,4 +1,4 @@
-import { test } from 'vitest';
+import { expect, test } from 'vitest';
 import getAllocatedResources from './getAllocatedResources';
 
 test('should return the total number of allocated resources', () => {

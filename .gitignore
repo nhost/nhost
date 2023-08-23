@@ -19,10 +19,8 @@ logs/
 coverage/
 dist/
 umd/
-lib/
 node_modules/
 tmp/
-.docz/
 .pnpm-store
 .turbo
 .env
@@ -32,7 +30,6 @@ out/
 # Custom
 *.min.js
 *.map
-todo.md
 
 # Config files that are not part of the repository root anymore. Should be removed in the future.
 /.eslintignore
