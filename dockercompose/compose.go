@@ -408,6 +408,14 @@ func mailhog(dataFolder string, useTLS bool) (*Service, error) {
 	}, nil
 }
 
+type ExposePorts struct {
+	Auth      uint
+	Storage   uint
+	Graphql   uint
+	Console   uint
+	Functions uint
+}
+
 func ComposeFileFromConfig( //nolint:funlen
 	cfg *model.ConfigConfig,
 	projectName string,
@@ -418,19 +426,19 @@ func ComposeFileFromConfig( //nolint:funlen
 	nhostFolder string,
 	dotNhostFolder string,
 	rootFolder string,
-	ports map[string]uint,
+	ports ExposePorts,
 ) (*ComposeFile, error) {
 	minio, err := minio(dataFolder)
 	if err != nil {
 		return nil, err
 	}
 
-	auth, err := auth(cfg, httpPort, useTLS, nhostFolder, ports["auth"])
+	auth, err := auth(cfg, httpPort, useTLS, nhostFolder, ports.Auth)
 	if err != nil {
 		return nil, err
 	}
 
-	storage, err := storage(cfg, useTLS, httpPort, ports["storage"])
+	storage, err := storage(cfg, useTLS, httpPort, ports.Storage)
 	if err != nil {
 		return nil, err
 	}
@@ -440,13 +448,13 @@ func ComposeFileFromConfig( //nolint:funlen
 		return nil, err
 	}
 
-	graphql, err := graphql(cfg, useTLS, httpPort, ports["graphql"])
+	graphql, err := graphql(cfg, useTLS, httpPort, ports.Graphql)
 	if err != nil {
 		return nil, err
 	}
 	jwtSecret := graphql.Environment["HASURA_GRAPHQL_JWT_SECRET"]
 
-	console, err := console(cfg, httpPort, useTLS, nhostFolder, ports["console"])
+	console, err := console(cfg, httpPort, useTLS, nhostFolder, ports.Console)
 	if err != nil {
 		return nil, err
 	}
@@ -473,7 +481,7 @@ func ComposeFileFromConfig( //nolint:funlen
 				useTLS,
 				rootFolder,
 				jwtSecret,
-				ports["functions"],
+				ports.Functions,
 			),
 			"graphql":  graphql,
 			"minio":    minio,

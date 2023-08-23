@@ -116,12 +116,12 @@ func commandUp(cCtx *cli.Context) error {
 		!cCtx.Bool(flagDisableTLS),
 		cCtx.Uint(flagPostgresPort),
 		applySeeds,
-		map[string]uint{
-			"auth":           cCtx.Uint(flagAuthPort),
-			"storage":        cCtx.Uint(flagStoragePort),
-			"hasura":         cCtx.Uint(flagsHasuraPort),
-			"hasura-console": cCtx.Uint(flagsHasuraConsolePort),
-			"functions":      cCtx.Uint(flagsFunctionsPort),
+		dockercompose.ExposePorts{
+			Auth:      cCtx.Uint(flagAuthPort),
+			Storage:   cCtx.Uint(flagStoragePort),
+			Graphql:   cCtx.Uint(flagsHasuraPort),
+			Console:   cCtx.Uint(flagsHasuraConsolePort),
+			Functions: cCtx.Uint(flagsFunctionsPort),
 		},
 	)
 }
@@ -179,7 +179,7 @@ func up( //nolint:funlen
 	useTLS bool,
 	postgresPort uint,
 	applySeeds bool,
-	ports map[string]uint,
+	ports dockercompose.ExposePorts,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -277,7 +277,7 @@ func Up(
 	useTLS bool,
 	postgresPort uint,
 	applySeeds bool,
-	ports map[string]uint,
+	ports dockercompose.ExposePorts,
 ) error {
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
