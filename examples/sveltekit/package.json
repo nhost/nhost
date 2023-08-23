@@ -9,10 +9,10 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
     "install-browsers": "pnpm dlx playwright@1.31.0 install --with-deps",
-    "test": "pnpm install-browsers && pnpm install && pnpm dlx playwright@1.31.0 test",
-    "test:unit": "vitest",
+    "add-nhost-js": "pnpm add @nhost/nhost-js --ignore-workspace",
+    "test": "pnpm install-browsers && pnpm add-nhost-js && pnpm dlx playwright@1.31.0 test",
     "lint": "eslint .",
-    "postinstall": "pnpm add @nhost/nhost-js --ignore-workspace"
+    "postinstall": "pnpm add-nhost-js"
   },
   "devDependencies": {
     "@nhost/nhost-js": "^2.2.13",

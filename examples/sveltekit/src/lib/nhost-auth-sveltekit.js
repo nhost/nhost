@@ -40,8 +40,8 @@ export const getNhostLoadClient = async (session) => {
 	}
 
 	nhost = new NhostClient({
+		subdomain: env.PUBLIC_NHOST_SUBDOMAIN || 'local',
 		region: env.PUBLIC_NHOST_REGION,
-		subdomain: env.PUBLIC_NHOST_SUBDOMAIN,
 		start: false
 	});
 
