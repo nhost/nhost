@@ -59,14 +59,20 @@ export default function HasuraStorageAVSettings() {
   }
 
   async function handleSubmit(formValues: HasuraStorageAVFormValues) {
+    let antivirus = null;
+
+    if (formValues.enabled) {
+      antivirus = {
+        server: 'tcp://run-clamav:3310',
+      };
+    }
+
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
         config: {
           storage: {
-            antivirus: {
-              server: formValues.enabled ? 'tcp://run-clamav:3310' : null,
-            },
+            antivirus,
           },
         },
       },
