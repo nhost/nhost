@@ -2385,16 +2385,22 @@ type ConfigStorage {
     Resources for the service
     """
     resources: ConfigResources
+    """
+
+    """
+    antivirus: ConfigStorageAntivirus
 }
 
 input ConfigStorageUpdateInput {
     version: String
     resources: ConfigResourcesUpdateInput
+    antivirus: ConfigStorageAntivirusUpdateInput
 }
 
 input ConfigStorageInsertInput {
     version: String
     resources: ConfigResourcesInsertInput
+    antivirus: ConfigStorageAntivirusInsertInput
 }
 
 input ConfigStorageComparisonExp {
@@ -2403,6 +2409,32 @@ input ConfigStorageComparisonExp {
     _or: [ConfigStorageComparisonExp!]
     version: ConfigStringComparisonExp
     resources: ConfigResourcesComparisonExp
+    antivirus: ConfigStorageAntivirusComparisonExp
+}
+
+"""
+
+"""
+type ConfigStorageAntivirus {
+    """
+
+    """
+    server: String
+}
+
+input ConfigStorageAntivirusUpdateInput {
+    server: String
+}
+
+input ConfigStorageAntivirusInsertInput {
+    server: String
+}
+
+input ConfigStorageAntivirusComparisonExp {
+    _and: [ConfigStorageAntivirusComparisonExp!]
+    _not: ConfigStorageAntivirusComparisonExp
+    _or: [ConfigStorageAntivirusComparisonExp!]
+    server: ConfigStringComparisonExp
 }
 
 """

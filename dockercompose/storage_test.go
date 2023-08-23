@@ -31,6 +31,7 @@ func expectedStorage() *Service {
 			"S3_REGION":                   "",
 			"S3_ROOT_FOLDER":              "",
 			"S3_SECRET_KEY":               "minioaccesskey123123",
+			"CLAMAV_SERVER":               "tcp://run-clamav:3310",
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway", "local.auth.nhost.run:host-gateway",

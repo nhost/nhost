@@ -284,6 +284,9 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 		},
 		Storage: &model.ConfigStorage{
 			Version: ptr("0.3.5"),
+			Antivirus: &model.ConfigStorageAntivirus{
+				Server: ptr("tcp://run-clamav:3310"),
+			},
 			Resources: &model.ConfigResources{
 				Compute: &model.ConfigResourcesCompute{
 					Cpu:    500,

@@ -29,7 +29,7 @@ func SecretsResolver[T any](
 
 	data, err = interpolateTemplate(data, vars)
 	if err != nil {
-		return nil, fmt.Errorf("failed to render config tempolate: %w", err)
+		return nil, fmt.Errorf("failed to render config template: %w", err)
 	}
 
 	cfg := new(T)

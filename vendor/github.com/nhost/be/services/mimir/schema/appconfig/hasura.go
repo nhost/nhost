@@ -19,6 +19,8 @@ func HasuraEnv( //nolint:funlen
 	region,
 	domain,
 	hasuraGraphqlDatabaseURL string,
+	useTLS bool,
+	httpPort uint,
 ) ([]EnvVar, error) {
 	jwtSecret, err := marshalJWT(config.GetHasura().GetJwtSecrets()[0])
 	if err != nil {
@@ -64,7 +66,7 @@ func HasuraEnv( //nolint:funlen
 		},
 		{
 			Name:  "NHOST_BACKEND_URL",
-			Value: "https://" + GetFQDNOld(subdomain, domain),
+			Value: GetFQDNOldURL(subdomain, domain, useTLS, httpPort),
 		},
 		{
 			Name:  "NHOST_SUBDOMAIN",
@@ -76,23 +78,35 @@ func HasuraEnv( //nolint:funlen
 		},
 		{
 			Name:  "NHOST_HASURA_URL",
-			Value: fmt.Sprintf("https://%s", GetFQDN(subdomain, "hasura", region, domain)),
+			Value: GetFQDNURL(subdomain, "hasura", region, domain, useTLS, httpPort),
 		},
 		{
-			Name:  "NHOST_GRAPHQL_URL",
-			Value: fmt.Sprintf("https://%s/v1", GetFQDN(subdomain, "graphql", region, domain)),
+			Name: "NHOST_GRAPHQL_URL",
+			Value: fmt.Sprintf(
+				"%s/v1",
+				GetFQDNURL(subdomain, "graphql", region, domain, useTLS, httpPort),
+			),
 		},
 		{
-			Name:  "NHOST_AUTH_URL",
-			Value: fmt.Sprintf("https://%s/v1", GetFQDN(subdomain, "auth", region, domain)),
+			Name: "NHOST_AUTH_URL",
+			Value: fmt.Sprintf(
+				"%s/v1",
+				GetFQDNURL(subdomain, "auth", region, domain, useTLS, httpPort),
+			),
 		},
 		{
-			Name:  "NHOST_STORAGE_URL",
-			Value: fmt.Sprintf("https://%s/v1", GetFQDN(subdomain, "storage", region, domain)),
+			Name: "NHOST_STORAGE_URL",
+			Value: fmt.Sprintf(
+				"%s/v1",
+				GetFQDNURL(subdomain, "storage", region, domain, useTLS, httpPort),
+			),
 		},
 		{
-			Name:  "NHOST_FUNCTIONS_URL",
-			Value: fmt.Sprintf("https://%s/v1", GetFQDN(subdomain, "functions", region, domain)),
+			Name: "NHOST_FUNCTIONS_URL",
+			Value: fmt.Sprintf(
+				"%s/v1",
+				GetFQDNURL(subdomain, "functions", region, domain, useTLS, httpPort),
+			),
 		},
 		{
 			Name: "HASURA_GRAPHQL_ENABLE_CONSOLE",

@@ -15069,6 +15069,8 @@ type ConfigStorage struct {
 	Version *string `json:"version" toml:"version"`
 	// Resources for the service
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
+
+	Antivirus *ConfigStorageAntivirus `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
 }
 
 func (o *ConfigStorage) MarshalJSON() ([]byte, error) {
@@ -15078,6 +15080,9 @@ func (o *ConfigStorage) MarshalJSON() ([]byte, error) {
 	}
 	if o.Resources != nil {
 		m["resources"] = o.Resources
+	}
+	if o.Antivirus != nil {
+		m["antivirus"] = o.Antivirus
 	}
 	return json.Marshal(m)
 }
@@ -15096,11 +15101,20 @@ func (o *ConfigStorage) GetResources() *ConfigResources {
 	return o.Resources
 }
 
+func (o *ConfigStorage) GetAntivirus() *ConfigStorageAntivirus {
+	if o == nil {
+		return nil
+	}
+	return o.Antivirus
+}
+
 type ConfigStorageUpdateInput struct {
-	Version        *string                     `json:"version,omitempty" toml:"version,omitempty"`
-	IsSetVersion   bool                        `json:"-"`
-	Resources      *ConfigResourcesUpdateInput `json:"resources,omitempty" toml:"resources,omitempty"`
-	IsSetResources bool                        `json:"-"`
+	Version        *string                            `json:"version,omitempty" toml:"version,omitempty"`
+	IsSetVersion   bool                               `json:"-"`
+	Resources      *ConfigResourcesUpdateInput        `json:"resources,omitempty" toml:"resources,omitempty"`
+	IsSetResources bool                               `json:"-"`
+	Antivirus      *ConfigStorageAntivirusUpdateInput `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	IsSetAntivirus bool                               `json:"-"`
 }
 
 func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -15135,6 +15149,16 @@ func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetResources = true
 	}
+	if x, ok := m["antivirus"]; ok {
+		if x != nil {
+			t := &ConfigStorageAntivirusUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Antivirus = t
+		}
+		o.IsSetAntivirus = true
+	}
 
 	return nil
 }
@@ -15160,6 +15184,13 @@ func (o *ConfigStorageUpdateInput) GetResources() *ConfigResourcesUpdateInput {
 	return o.Resources
 }
 
+func (o *ConfigStorageUpdateInput) GetAntivirus() *ConfigStorageAntivirusUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Antivirus
+}
+
 func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 	if v == nil {
 		return
@@ -15177,11 +15208,22 @@ func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 			s.Resources.Update(v.Resources)
 		}
 	}
+	if v.IsSetAntivirus || v.Antivirus != nil {
+		if v.Antivirus == nil {
+			s.Antivirus = nil
+		} else {
+			if s.Antivirus == nil {
+				s.Antivirus = &ConfigStorageAntivirus{}
+			}
+			s.Antivirus.Update(v.Antivirus)
+		}
+	}
 }
 
 type ConfigStorageInsertInput struct {
-	Version   *string                     `json:"version,omitempty" toml:"version,omitempty"`
-	Resources *ConfigResourcesInsertInput `json:"resources,omitempty" toml:"resources,omitempty"`
+	Version   *string                            `json:"version,omitempty" toml:"version,omitempty"`
+	Resources *ConfigResourcesInsertInput        `json:"resources,omitempty" toml:"resources,omitempty"`
+	Antivirus *ConfigStorageAntivirusInsertInput `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
 }
 
 func (o *ConfigStorageInsertInput) GetVersion() *string {
@@ -15198,6 +15240,13 @@ func (o *ConfigStorageInsertInput) GetResources() *ConfigResourcesInsertInput {
 	return o.Resources
 }
 
+func (o *ConfigStorageInsertInput) GetAntivirus() *ConfigStorageAntivirusInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Antivirus
+}
+
 func (s *ConfigStorage) Insert(v *ConfigStorageInsertInput) {
 	s.Version = v.Version
 	if v.Resources != nil {
@@ -15205,6 +15254,12 @@ func (s *ConfigStorage) Insert(v *ConfigStorageInsertInput) {
 			s.Resources = &ConfigResources{}
 		}
 		s.Resources.Insert(v.Resources)
+	}
+	if v.Antivirus != nil {
+		if s.Antivirus == nil {
+			s.Antivirus = &ConfigStorageAntivirus{}
+		}
+		s.Antivirus.Insert(v.Antivirus)
 	}
 }
 
@@ -15216,15 +15271,17 @@ func (s *ConfigStorage) Clone() *ConfigStorage {
 	v := &ConfigStorage{}
 	v.Version = s.Version
 	v.Resources = s.Resources.Clone()
+	v.Antivirus = s.Antivirus.Clone()
 	return v
 }
 
 type ConfigStorageComparisonExp struct {
-	And       []*ConfigStorageComparisonExp `json:"_and,omitempty"`
-	Not       *ConfigStorageComparisonExp   `json:"_not,omitempty"`
-	Or        []*ConfigStorageComparisonExp `json:"_or,omitempty"`
-	Version   *ConfigStringComparisonExp    `json:"version,omitempty"`
-	Resources *ConfigResourcesComparisonExp `json:"resources,omitempty"`
+	And       []*ConfigStorageComparisonExp        `json:"_and,omitempty"`
+	Not       *ConfigStorageComparisonExp          `json:"_not,omitempty"`
+	Or        []*ConfigStorageComparisonExp        `json:"_or,omitempty"`
+	Version   *ConfigStringComparisonExp           `json:"version,omitempty"`
+	Resources *ConfigResourcesComparisonExp        `json:"resources,omitempty"`
+	Antivirus *ConfigStorageAntivirusComparisonExp `json:"antivirus,omitempty"`
 }
 
 func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
@@ -15235,12 +15292,148 @@ func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
 	if o == nil {
 		o = &ConfigStorage{
 			Resources: &ConfigResources{},
+			Antivirus: &ConfigStorageAntivirus{},
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
 		return false
 	}
 	if !exp.Resources.Matches(o.Resources) {
+		return false
+	}
+	if !exp.Antivirus.Matches(o.Antivirus) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigStorageAntivirus struct {
+	Server *string `json:"server" toml:"server"`
+}
+
+func (o *ConfigStorageAntivirus) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Server != nil {
+		m["server"] = o.Server
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigStorageAntivirus) GetServer() *string {
+	if o == nil {
+		o = &ConfigStorageAntivirus{}
+	}
+	return o.Server
+}
+
+type ConfigStorageAntivirusUpdateInput struct {
+	Server      *string `json:"server,omitempty" toml:"server,omitempty"`
+	IsSetServer bool    `json:"-"`
+}
+
+func (o *ConfigStorageAntivirusUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["server"]; ok {
+		if v == nil {
+			o.Server = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Server = &x
+		}
+		o.IsSetServer = true
+	}
+
+	return nil
+}
+
+func (o *ConfigStorageAntivirusUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigStorageAntivirusUpdateInput) GetServer() *string {
+	if o == nil {
+		o = &ConfigStorageAntivirusUpdateInput{}
+	}
+	return o.Server
+}
+
+func (s *ConfigStorageAntivirus) Update(v *ConfigStorageAntivirusUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetServer || v.Server != nil {
+		s.Server = v.Server
+	}
+}
+
+type ConfigStorageAntivirusInsertInput struct {
+	Server *string `json:"server,omitempty" toml:"server,omitempty"`
+}
+
+func (o *ConfigStorageAntivirusInsertInput) GetServer() *string {
+	if o == nil {
+		o = &ConfigStorageAntivirusInsertInput{}
+	}
+	return o.Server
+}
+
+func (s *ConfigStorageAntivirus) Insert(v *ConfigStorageAntivirusInsertInput) {
+	s.Server = v.Server
+}
+
+func (s *ConfigStorageAntivirus) Clone() *ConfigStorageAntivirus {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigStorageAntivirus{}
+	v.Server = s.Server
+	return v
+}
+
+type ConfigStorageAntivirusComparisonExp struct {
+	And    []*ConfigStorageAntivirusComparisonExp `json:"_and,omitempty"`
+	Not    *ConfigStorageAntivirusComparisonExp   `json:"_not,omitempty"`
+	Or     []*ConfigStorageAntivirusComparisonExp `json:"_or,omitempty"`
+	Server *ConfigStringComparisonExp             `json:"server,omitempty"`
+}
+
+func (exp *ConfigStorageAntivirusComparisonExp) Matches(o *ConfigStorageAntivirus) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigStorageAntivirus{}
+	}
+	if o.Server != nil && !exp.Server.Matches(*o.Server) {
 		return false
 	}
 

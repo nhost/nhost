@@ -30,7 +30,8 @@ func HasuraStorageEnv( //nolint:funlen
 	s3Bucket,
 	s3RootFolder,
 	s3AccessKey,
-	s3SecretKey string,
+	s3SecretKey,
+	antivirusServer string,
 ) ([]EnvVar, error) {
 	env := []EnvVar{
 		{
@@ -93,6 +94,13 @@ func HasuraStorageEnv( //nolint:funlen
 			Name:  "PUBLIC_URL",
 			Value: publicURL,
 		},
+	}
+
+	if antivirusServer != "" {
+		env = append(env, EnvVar{ //nolint:exhaustruct
+			Name:  "CLAMAV_SERVER",
+			Value: antivirusServer,
+		})
 	}
 
 	return env, nil

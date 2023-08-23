@@ -29,8 +29,38 @@ func GetFQDN(subdomain, service, region, domain string) string {
 	return fmt.Sprintf("%s.%s.%s.%s", subdomain, service, region, domain)
 }
 
+func GetFQDNURL(subdomain, service, region, domain string, useTLS bool, port uint) string {
+	FQDN := GetFQDN(subdomain, service, region, domain)
+
+	if useTLS && port == 443 {
+		return fmt.Sprintf("https://%s", FQDN)
+	} else if !useTLS && port == 80 {
+		return fmt.Sprintf("http://%s", FQDN)
+	}
+
+	protocol := "http"
+	if useTLS {
+		protocol = "https"
+	}
+	return fmt.Sprintf("%s://%s:%d", protocol, FQDN, port)
+}
+
 func GetFQDNOld(subdomain, domain string) string {
 	return fmt.Sprintf("%s.%s", subdomain, domain)
+}
+
+func GetFQDNOldURL(subdomain, domain string, useTLS bool, port uint) string {
+	if useTLS && port == 443 {
+		return fmt.Sprintf("https://%s", GetFQDNOld(subdomain, domain))
+	} else if !useTLS && port == 80 {
+		return fmt.Sprintf("http://%s", GetFQDNOld(subdomain, domain))
+	}
+
+	protocol := "http"
+	if useTLS {
+		protocol = "https"
+	}
+	return fmt.Sprintf("%s://%s:%d", protocol, GetFQDNOld(subdomain, domain), port)
 }
 
 func Stringify(value any) string {

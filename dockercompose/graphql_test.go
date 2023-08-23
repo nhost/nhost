@@ -46,14 +46,14 @@ func expectedGraphql() *Service {
 			"HASURA_GRAPHQL_USE_PREPARED_STATEMENTS":                   "true",
 			"HASURA_GRAPHQL_WS_READ_COOKIE":                            "false",
 			"NHOST_ADMIN_SECRET":                                       "adminSecret",
-			"NHOST_AUTH_URL":                                           "https://local.auth.nhost.run/v1",
-			"NHOST_BACKEND_URL":                                        "https://local.nhost.run",
-			"NHOST_FUNCTIONS_URL":                                      "https://local.functions.nhost.run/v1",
-			"NHOST_GRAPHQL_URL":                                        "https://local.graphql.nhost.run/v1",
-			"NHOST_HASURA_URL":                                         "https://local.hasura.nhost.run",
+			"NHOST_AUTH_URL":                                           "http://local.auth.nhost.run:1337/v1",
+			"NHOST_BACKEND_URL":                                        "http://local.nhost.run:1337",
+			"NHOST_FUNCTIONS_URL":                                      "http://local.functions.nhost.run:1337/v1",
+			"NHOST_GRAPHQL_URL":                                        "http://local.graphql.nhost.run:1337/v1",
+			"NHOST_HASURA_URL":                                         "http://local.hasura.nhost.run:1337",
 			"NHOST_JWT_SECRET":                                         `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}`,
 			"NHOST_REGION":                                             "",
-			"NHOST_STORAGE_URL":                                        "https://local.storage.nhost.run/v1",
+			"NHOST_STORAGE_URL":                                        "http://local.storage.nhost.run:1337/v1",
 			"NHOST_SUBDOMAIN":                                          "local",
 			"NHOST_WEBHOOK_SECRET":                                     "webhookSecret",
 		},
@@ -117,7 +117,7 @@ func TestGraphql(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			got, err := graphql(tc.cfg(), tc.useTlS, 0)
+			got, err := graphql(tc.cfg(), tc.useTlS, 1337, 0)
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}

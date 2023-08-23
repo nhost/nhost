@@ -440,7 +440,7 @@ func ComposeFileFromConfig( //nolint:funlen
 		return nil, err
 	}
 
-	graphql, err := graphql(cfg, useTLS, ports["graphql"])
+	graphql, err := graphql(cfg, useTLS, httpPort, ports["graphql"])
 	if err != nil {
 		return nil, err
 	}

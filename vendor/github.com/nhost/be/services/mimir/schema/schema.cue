@@ -158,6 +158,10 @@ import (
 
 	// Resources for the service
 	resources?: #Resources
+
+    antivirus?: {
+        server: "tcp://run-clamav:3310"
+    }
 }
 
 // Configuration for functions service

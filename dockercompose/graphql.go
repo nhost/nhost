@@ -8,13 +8,19 @@ import (
 	"golang.org/x/mod/semver"
 )
 
-func graphql(cfg *model.ConfigConfig, useTLS bool, port uint) (*Service, error) { //nolint:funlen
+func graphql( //nolint:funlen
+	cfg *model.ConfigConfig,
+	useTLS bool,
+	httpPort, port uint,
+) (*Service, error) {
 	envars, err := appconfig.HasuraEnv(
 		cfg,
 		"local",
 		"",
 		"nhost.run",
 		"postgres://nhost_hasura@postgres:5432/local",
+		useTLS,
+		httpPort,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hasura env vars: %w", err)

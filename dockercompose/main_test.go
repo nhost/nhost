@@ -278,6 +278,9 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 				},
 				Replicas: 1,
 			},
+			Antivirus: &model.ConfigStorageAntivirus{
+				Server: ptr("tcp://run-clamav:3310"),
+			},
 			Version: ptr("0.2.5"),
 		},
 		Observability: &model.ConfigObservability{
