@@ -1805,6 +1805,7 @@ export type ConfigStandardOauthProviderWithScopeUpdateInput = {
 /** Configuration for storage service */
 export type ConfigStorage = {
   __typename?: 'ConfigStorage';
+  antivirus?: Maybe<ConfigStorageAntivirus>;
   /** Resources for the service */
   resources?: Maybe<ConfigResources>;
   /**
@@ -1818,20 +1819,43 @@ export type ConfigStorage = {
   version?: Maybe<Scalars['String']>;
 };
 
+export type ConfigStorageAntivirus = {
+  __typename?: 'ConfigStorageAntivirus';
+  server?: Maybe<Scalars['String']>;
+};
+
+export type ConfigStorageAntivirusComparisonExp = {
+  _and?: InputMaybe<Array<ConfigStorageAntivirusComparisonExp>>;
+  _not?: InputMaybe<ConfigStorageAntivirusComparisonExp>;
+  _or?: InputMaybe<Array<ConfigStorageAntivirusComparisonExp>>;
+  server?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigStorageAntivirusInsertInput = {
+  server?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigStorageAntivirusUpdateInput = {
+  server?: InputMaybe<Scalars['String']>;
+};
+
 export type ConfigStorageComparisonExp = {
   _and?: InputMaybe<Array<ConfigStorageComparisonExp>>;
   _not?: InputMaybe<ConfigStorageComparisonExp>;
   _or?: InputMaybe<Array<ConfigStorageComparisonExp>>;
+  antivirus?: InputMaybe<ConfigStorageAntivirusComparisonExp>;
   resources?: InputMaybe<ConfigResourcesComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigStorageInsertInput = {
+  antivirus?: InputMaybe<ConfigStorageAntivirusInsertInput>;
   resources?: InputMaybe<ConfigResourcesInsertInput>;
   version?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigStorageUpdateInput = {
+  antivirus?: InputMaybe<ConfigStorageAntivirusUpdateInput>;
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
 };
@@ -19750,7 +19774,7 @@ export type GetStorageSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetStorageSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', storage?: { __typename?: 'ConfigStorage', version?: string | null } | null } | null };
+export type GetStorageSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', storage?: { __typename?: 'ConfigStorage', version?: string | null, antivirus?: { __typename?: 'ConfigStorageAntivirus', server?: string | null } | null } | null } | null };
 
 export type DeleteApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -21063,6 +21087,9 @@ export const GetStorageSettingsDocument = gql`
     __typename
     storage {
       version
+      antivirus {
+        server
+      }
     }
   }
 }

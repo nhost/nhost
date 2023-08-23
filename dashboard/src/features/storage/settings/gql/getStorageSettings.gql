@@ -4,6 +4,9 @@ query GetStorageSettings($appId: uuid!) {
     __typename
     storage {
       version
+      antivirus {
+        server
+      }
     }
   }
 }
