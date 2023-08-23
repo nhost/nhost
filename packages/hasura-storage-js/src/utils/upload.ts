@@ -87,10 +87,14 @@ export const fetchUpload = async (
     xhr.responseType = 'json'
 
     xhr.onload = () => {
-      if (xhr.status < 200 && xhr.status >= 300) {
+      if (xhr.status < 200 || xhr.status >= 300) {
         return resolve({
           fileMetadata: null,
-          error: { error: xhr.statusText, message: xhr.statusText, status: xhr.status }
+          error: {
+            error: xhr.response?.error ?? xhr.response,
+            message: xhr.response?.error?.message ?? xhr.response,
+            status: xhr.status
+          }
         })
       }
       return resolve({ fileMetadata: xhr.response, error: null })
