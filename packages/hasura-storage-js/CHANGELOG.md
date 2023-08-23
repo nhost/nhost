@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.2.3
+
+### Patch Changes
+
+- 39de0063b: fix(hasura-storage-js): fix upload response status code check
+
 ## 2.2.2
 
 ### Patch Changes

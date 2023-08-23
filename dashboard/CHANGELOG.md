@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 0.20.7
+
+### Patch Changes
+
+- 4a7ede11e: fix: distinguish files that were not uploaded
+- 202b64723: feat(nhost-run): add support for one-click-install run services
+- 074a0fa11: feat(dashboard): add settings toggle to enable/disable antivirus
+  - @nhost/react-apollo@5.0.33
+  - @nhost/nextjs@1.13.35
+
 ## 0.20.6
 
 ### Patch Changes
