@@ -5,6 +5,7 @@ import { RemoveSecurityKeyMutation, SecurityKeysQuery } from 'src/generated'
 import { gql, useMutation } from '@apollo/client'
 import { ActionIcon, Button, Card, SimpleGrid, Table, TextInput, Title } from '@mantine/core'
 import { useInputState } from '@mantine/hooks'
+import { showNotification } from '@mantine/notifications'
 import { useAddSecurityKey, useUserId } from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
 
@@ -42,9 +43,14 @@ export const SecurityKeys: React.FC = () => {
 
   const addKey = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const { key, error } = await add(nickname)
-    if (error) {
+    const { key, isError, error } = await add(nickname)
+    if (isError) {
       console.log(error)
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: error?.message || null
+      })
     } else {
       setNickname('')
     }
