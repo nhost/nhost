@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.1.8
+
+### Patch Changes
+
+- 032c0bd21: fix: make sure errors are correctly thrown on non v8 browsers
+
 ## 2.1.7
 
 ### Patch Changes

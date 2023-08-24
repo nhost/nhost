@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-urql",
-  "version": "2.0.30",
+  "version": "2.0.31",
   "description": "Nhost React URQL client",
   "license": "MIT",
   "keywords": [
