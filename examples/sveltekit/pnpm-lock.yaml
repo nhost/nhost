@@ -11,7 +11,7 @@ dependencies:
 
 devDependencies:
   '@nhost/nhost-js':
-    specifier: ^2.2.13
+    specifier: 2.2.13
     version: 2.2.13(graphql@16.8.0)
 
 packages:

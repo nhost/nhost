@@ -1109,8 +1109,8 @@ importers:
         version: 9.0.0
     devDependencies:
       '@nhost/nhost-js':
-        specifier: ^2.2.13
-        version: link:../../packages/nhost-js
+        specifier: 2.2.13
+        version: 2.2.13(graphql@16.7.1)
       '@playwright/test':
         specifier: ^1.31.0
         version: 1.31.0
@@ -1481,7 +1481,7 @@ importers:
         version: 3.1.1(graphql@16.7.1)
       isomorphic-unfetch:
         specifier: ^3.1.0
-        version: 3.1.0(encoding@0.1.13)
+        version: 3.1.0
     devDependencies:
       '@nhost/docgen':
         specifier: workspace:*
@@ -1562,7 +1562,7 @@ importers:
         version: link:../react
       isomorphic-unfetch:
         specifier: ^3.1.0
-        version: 3.1.0(encoding@0.1.13)
+        version: 3.1.0
       js-cookie:
         specifier: ^3.0.1
         version: 3.0.1
@@ -1599,7 +1599,7 @@ importers:
         version: link:../hasura-storage-js
       isomorphic-unfetch:
         specifier: ^3.1.0
-        version: 3.1.0(encoding@0.1.13)
+        version: 3.1.0
     devDependencies:
       '@nhost/docgen':
         specifier: workspace:*
@@ -10140,6 +10140,54 @@ packages:
     dev: true
     optional: true
 
+  /@nhost/graphql-js@0.1.4(graphql@16.7.1):
+    resolution: {integrity: sha512-IPHuGOf4iQrFsxG7Rh5jCCZzPCN9JkvldFww4Fz1lCVi9ZQNEaGaawIP5gBuBHeYIuALeaK1wVYKPc7vJ/euCA==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+    dependencies:
+      '@graphql-typed-document-node/core': 3.2.0(graphql@16.7.1)
+      graphql: 16.7.1
+      isomorphic-unfetch: 3.1.0
+    transitivePeerDependencies:
+      - encoding
+    dev: true
+
+  /@nhost/hasura-auth-js@2.1.7:
+    resolution: {integrity: sha512-dbi8zrmuE3xSlA7WMNyrZzVPLKYSBUlKtUjob+axhts0+4TsqsB7NvdLXrhM0fYjRY5SFUtN2JLs+EWDGKAoLQ==}
+    dependencies:
+      '@simplewebauthn/browser': 6.0.0
+      fetch-ponyfill: 7.1.0
+      js-cookie: 3.0.5
+      jwt-decode: 3.1.2
+      xstate: 4.37.2
+    transitivePeerDependencies:
+      - encoding
+    dev: true
+
+  /@nhost/hasura-storage-js@2.2.2:
+    resolution: {integrity: sha512-GMeB1m6YKZMZDSO6UtmgXYWxsFUNlphIZH9JeiDX+6UTmbd62UlDmhBcmx2OGy/tvv57D+HbohpV6AY9S6QL4w==}
+    dependencies:
+      fetch-ponyfill: 7.1.0
+      form-data: 4.0.0
+      xstate: 4.37.2
+    transitivePeerDependencies:
+      - encoding
+    dev: true
+
+  /@nhost/nhost-js@2.2.13(graphql@16.7.1):
+    resolution: {integrity: sha512-HU9eOpkVBGGMHsRThGyl654Y9W8bksSEnyEvDojUg76+3ngOn2ebrasXR/94YoR206soEzq3v4b0OKmn/1jlnQ==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+    dependencies:
+      '@nhost/graphql-js': 0.1.4(graphql@16.7.1)
+      '@nhost/hasura-auth-js': 2.1.7
+      '@nhost/hasura-storage-js': 2.2.2
+      graphql: 16.7.1
+      isomorphic-unfetch: 3.1.0
+    transitivePeerDependencies:
+      - encoding
+    dev: true
+
   /@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1:
     resolution: {integrity: sha512-54/JRvkLIzzDWshCWfuhadfrfZVPiElY8Fcgmg1HroEly/EDSszzhBAsarCux+D/kOslTRquNzuyGSmUSTTHGg==}
     dependencies:
@@ -11141,7 +11189,6 @@ packages:
 
   /@simplewebauthn/browser@6.0.0:
     resolution: {integrity: sha512-gaXZmNfBPFawVZLhDPHkArCt0ttUbNSQSq24muyFmUi/QfJIhvQfQH7kfqIwlAXKqs79qpJ4RCYsRUjVj0Yl6w==}
-    dev: false
 
   /@simplewebauthn/typescript-types@6.0.0:
     resolution: {integrity: sha512-zBs5duUHwQ2CCnHckalMJycv8p2mfWGv+m9sI3WxnK3QR7Lw0/014zKkhC+Uygz5XSHuvPAxeMft6FbrP/OmtQ==}
@@ -21795,7 +21842,6 @@ packages:
       node-fetch: 2.6.7(encoding@0.1.13)
     transitivePeerDependencies:
       - encoding
-    dev: false
 
   /fetch-retry@5.0.3:
     resolution: {integrity: sha512-uJQyMrX5IJZkhoEUBQ3EjxkeiZkppBd5jS/fMTJmfZxLSiaQjv2zD0kTvuvkSH89uFvgSlB6ueGpjD3HWN7Bxw==}
@@ -24330,13 +24376,22 @@ packages:
       - encoding
     dev: true
 
-  /isomorphic-unfetch@3.1.0(encoding@0.1.13):
+  /isomorphic-unfetch@3.1.0:
     resolution: {integrity: sha512-geDJjpoZ8N0kWexiwkX8F9NkTsXhetLPVbZFQ+JTW239QNOwvB0gniuR1Wc6f0AMTn7/mFGyXvHTifrCp/GH8Q==}
     dependencies:
       node-fetch: 2.6.7(encoding@0.1.13)
       unfetch: 4.2.0
     transitivePeerDependencies:
       - encoding
+
+  /isomorphic-unfetch@3.1.0(encoding@0.1.13):
+    resolution: {integrity: sha512-geDJjpoZ8N0kWexiwkX8F9NkTsXhetLPVbZFQ+JTW239QNOwvB0gniuR1Wc6f0AMTn7/mFGyXvHTifrCp/GH8Q==}
+    dependencies:
+      node-fetch: 2.6.12(encoding@0.1.13)
+      unfetch: 4.2.0
+    transitivePeerDependencies:
+      - encoding
+    dev: true
 
   /isomorphic-ws@5.0.0(ws@8.12.1):
     resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
@@ -24589,7 +24644,6 @@ packages:
   /js-cookie@3.0.5:
     resolution: {integrity: sha512-cEiJEAEoIbWfCZYKWhVwFuvPX1gETRYPw6LlaTKoxD3s2AkXzkCjnp6h0V77ozyqj0jakteJ4YqDJT830+lVGw==}
     engines: {node: '>=14'}
-    dev: false
 
   /js-levenshtein@1.1.6:
     resolution: {integrity: sha512-X2BB11YZtrRqY4EnQcLX5Rh373zbK4alC1FW7D7MBhL2gtcC17cTnr6DmfHZeS0s2rTHjUTMMHfG7gO8SSdw+g==}
@@ -24921,7 +24975,6 @@ packages:
 
   /jwt-decode@3.1.2:
     resolution: {integrity: sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==}
-    dev: false
 
   /keyv@3.1.0:
     resolution: {integrity: sha512-9ykJ/46SN/9KPM/sichzQ7OvXyGDYKGTaDlKMGCAlg2UK8KRy4jb0d8sFc+0Tt0YYnThq8X2RZgCg74RPxgcVA==}
@@ -26442,7 +26495,6 @@ packages:
     dependencies:
       encoding: 0.1.13
       whatwg-url: 5.0.0
-    dev: false
 
   /node-fetch@2.6.7(encoding@0.1.13):
     resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
