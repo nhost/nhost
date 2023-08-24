@@ -1,5 +1,14 @@
 # @nhost-examples/react-apollo
 
+## 0.1.15
+
+### Patch Changes
+
+- dba71483d: chore: react-apollo-example: add profile to allowedUrls
+- e819903f1: chore: remove facebook login
+  - @nhost/react@2.0.30
+  - @nhost/react-apollo@5.0.34
+
 ## 0.1.14
 
 ### Patch Changes
