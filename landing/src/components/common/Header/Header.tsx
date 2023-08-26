@@ -107,25 +107,46 @@ export default function Header({
           </ul>
         </nav>
 
-        <div className="hidden grid-flow-col gap-4 lg:grid">
-          <Button
-            href="https://app.nhost.io/signin"
-            target="_blank"
-            rel="noopener noreferrer"
-            size="sm"
-            variant="borderless"
-          >
-            Sign in
-          </Button>
+        <div className="flex justify-between">
 
-          <Button
-            href="https://app.nhost.io/signup"
+          <a
+            className="text-base font-medium leading-snug flex flex-row items-center justify-center px-2.5 py-1.5 rounded opacity-50 hover:opacity-100 transition-all ease-in-out duration-200"
+            href="https://github.com/nhost/nhost"
             target="_blank"
-            rel="noopener noreferrer"
-            size="sm"
+            rel="noreferrer"
           >
-            Sign up
-          </Button>
+            <img
+              className="mr-2"
+              src="/images/github-mark-white.svg"
+              width={22}
+              height={22}
+              alt="Nhost on GitHub"
+            />
+            Star us on GitHub
+          </a>
+
+
+
+          <div className="hidden grid-flow-col gap-4 lg:grid">
+            <Button
+              href="https://app.nhost.io/signin"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="sm"
+              variant="borderless"
+            >
+              Sign in
+            </Button>
+
+            <Button
+              href="https://app.nhost.io/signup"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="sm"
+            >
+              Sign up
+            </Button>
+          </div>
         </div>
 
         <div className="block lg:hidden">
