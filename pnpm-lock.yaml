@@ -1062,7 +1062,7 @@ importers:
         specifier: ^2.13.13
         version: 2.13.13(graphql@16.7.1)
       '@nhost/stripe-graphql-js':
-        specifier: ^1.0.2
+        specifier: ^1.0.5
         version: link:../../integrations/stripe-graphql-js
       '@pothos/core':
         specifier: ^3.21.0
@@ -1481,7 +1481,7 @@ importers:
         version: 3.1.1(graphql@16.7.1)
       isomorphic-unfetch:
         specifier: ^3.1.0
-        version: 3.1.0
+        version: 3.1.0(encoding@0.1.13)
     devDependencies:
       '@nhost/docgen':
         specifier: workspace:*
@@ -1562,7 +1562,7 @@ importers:
         version: link:../react
       isomorphic-unfetch:
         specifier: ^3.1.0
-        version: 3.1.0
+        version: 3.1.0(encoding@0.1.13)
       js-cookie:
         specifier: ^3.0.1
         version: 3.0.1
@@ -1599,7 +1599,7 @@ importers:
         version: link:../hasura-storage-js
       isomorphic-unfetch:
         specifier: ^3.1.0
-        version: 3.1.0
+        version: 3.1.0(encoding@0.1.13)
     devDependencies:
       '@nhost/docgen':
         specifier: workspace:*
@@ -10147,7 +10147,7 @@ packages:
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.7.1)
       graphql: 16.7.1
-      isomorphic-unfetch: 3.1.0
+      isomorphic-unfetch: 3.1.0(encoding@0.1.13)
     transitivePeerDependencies:
       - encoding
     dev: true
@@ -10183,7 +10183,7 @@ packages:
       '@nhost/hasura-auth-js': 2.1.7
       '@nhost/hasura-storage-js': 2.2.2
       graphql: 16.7.1
-      isomorphic-unfetch: 3.1.0
+      isomorphic-unfetch: 3.1.0(encoding@0.1.13)
     transitivePeerDependencies:
       - encoding
     dev: true
@@ -24376,22 +24376,13 @@ packages:
       - encoding
     dev: true
 
-  /isomorphic-unfetch@3.1.0:
+  /isomorphic-unfetch@3.1.0(encoding@0.1.13):
     resolution: {integrity: sha512-geDJjpoZ8N0kWexiwkX8F9NkTsXhetLPVbZFQ+JTW239QNOwvB0gniuR1Wc6f0AMTn7/mFGyXvHTifrCp/GH8Q==}
     dependencies:
       node-fetch: 2.6.7(encoding@0.1.13)
       unfetch: 4.2.0
     transitivePeerDependencies:
       - encoding
-
-  /isomorphic-unfetch@3.1.0(encoding@0.1.13):
-    resolution: {integrity: sha512-geDJjpoZ8N0kWexiwkX8F9NkTsXhetLPVbZFQ+JTW239QNOwvB0gniuR1Wc6f0AMTn7/mFGyXvHTifrCp/GH8Q==}
-    dependencies:
-      node-fetch: 2.6.12(encoding@0.1.13)
-      unfetch: 4.2.0
-    transitivePeerDependencies:
-      - encoding
-    dev: true
 
   /isomorphic-ws@5.0.0(ws@8.12.1):
     resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
@@ -26495,6 +26486,7 @@ packages:
     dependencies:
       encoding: 0.1.13
       whatwg-url: 5.0.0
+    dev: false
 
   /node-fetch@2.6.7(encoding@0.1.13):
     resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
