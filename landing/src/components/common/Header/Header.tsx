@@ -108,14 +108,13 @@ export default function Header({
         </nav>
 
         <div className="flex justify-between">
-
           <a
-            className="text-base font-medium leading-snug flex flex-row items-center justify-center px-2.5 py-1.5 rounded opacity-50 hover:opacity-100 transition-all ease-in-out duration-200"
+            className="flex flex-row items-center justify-center rounded px-2.5 py-1.5 text-base font-medium leading-snug opacity-50 transition-all duration-200 ease-in-out hover:opacity-100"
             href="https://github.com/nhost/nhost"
             target="_blank"
             rel="noreferrer"
           >
-            <img
+            <Image
               className="mr-2"
               src="/images/github-mark-white.svg"
               width={22}
@@ -124,8 +123,6 @@ export default function Header({
             />
             Star us on GitHub
           </a>
-
-
 
           <div className="hidden grid-flow-col gap-4 lg:grid">
             <Button
