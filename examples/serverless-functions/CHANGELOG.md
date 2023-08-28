@@ -1,5 +1,13 @@
 # @nhost-examples/serverless-functions
 
+## 0.0.9
+
+### Patch Changes
+
+- 45759c4d4: fix(stripe-graphql-js): fix stripe GraphQL extension export issue in serverless functions
+- Updated dependencies [45759c4d4]
+  - @nhost/stripe-graphql-js@1.0.5
+
 ## 0.0.8
 
 ### Patch Changes
