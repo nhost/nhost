@@ -15,8 +15,6 @@ Docs:
 https://github.com/nhost/nhost/tree/main/integrations/stripe-graphql-js
 */
 
-import { createStripeGraphQLServer } from '@nhost/stripe-graphql-js'
+import { createStripeGraphQLServer } from '@nhost/stripe-graphql-js-dev/src/index'
 
-const server = createStripeGraphQLServer()
-
-export default server
+export default createStripeGraphQLServer()
