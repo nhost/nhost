@@ -2052,6 +2052,12 @@ export type Int_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['Int']>>;
 };
 
+export type InvoiceSummary = {
+  __typename?: 'InvoiceSummary';
+  AmountDue: Scalars['float64'];
+  PeriodEnd: Scalars['Timestamp'];
+};
+
 export type Log = {
   __typename?: 'Log';
   log: Scalars['String'];
@@ -10475,6 +10481,10 @@ export type Mutation_Root = {
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
   deleteUsers?: Maybe<Users_Mutation_Response>;
+  /** delete single row from the table: "users_usage" */
+  deleteUsersUsage?: Maybe<Users_Usage>;
+  /** delete data from the table: "users_usage" */
+  deleteUsersUsages?: Maybe<Users_Usage_Mutation_Response>;
   /** delete single row from the table: "workspaces" */
   deleteWorkspace?: Maybe<Workspaces>;
   /** delete single row from the table: "workspace_members" */
@@ -10614,6 +10624,10 @@ export type Mutation_Root = {
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
   insertUsers?: Maybe<Users_Mutation_Response>;
+  /** insert a single row into the table: "users_usage" */
+  insertUsersUsage?: Maybe<Users_Usage>;
+  /** insert data into the table: "users_usage" */
+  insertUsersUsages?: Maybe<Users_Usage_Mutation_Response>;
   /** insert a single row into the table: "workspaces" */
   insertWorkspace?: Maybe<Workspaces>;
   /** insert a single row into the table: "workspace_members" */
@@ -10760,6 +10774,10 @@ export type Mutation_Root = {
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
   updateUsers?: Maybe<Users_Mutation_Response>;
+  /** update single row of the table: "users_usage" */
+  updateUsersUsage?: Maybe<Users_Usage>;
+  /** update data of the table: "users_usage" */
+  updateUsersUsages?: Maybe<Users_Usage_Mutation_Response>;
   /** update single row of the table: "workspaces" */
   updateWorkspace?: Maybe<Workspaces>;
   /** update single row of the table: "workspace_members" */
@@ -10854,6 +10872,8 @@ export type Mutation_Root = {
   update_run_service_many?: Maybe<Array<Maybe<Run_Service_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
+  /** update multiples rows of table: "users_usage" */
+  update_users_usage_many?: Maybe<Array<Maybe<Users_Usage_Mutation_Response>>>;
   /** update multiples rows of table: "workspace_member_invites" */
   update_workspaceMemberInvites_many?: Maybe<Array<Maybe<WorkspaceMemberInvites_Mutation_Response>>>;
   /** update multiples rows of table: "workspace_members" */
@@ -11281,6 +11301,18 @@ export type Mutation_RootDeleteUserArgs = {
 /** mutation root */
 export type Mutation_RootDeleteUsersArgs = {
   where: Users_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteUsersUsageArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteUsersUsagesArgs = {
+  where: Users_Usage_Bool_Exp;
 };
 
 
@@ -11765,6 +11797,20 @@ export type Mutation_RootInsertUserArgs = {
 export type Mutation_RootInsertUsersArgs = {
   objects: Array<Users_Insert_Input>;
   on_conflict?: InputMaybe<Users_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertUsersUsageArgs = {
+  object: Users_Usage_Insert_Input;
+  on_conflict?: InputMaybe<Users_Usage_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertUsersUsagesArgs = {
+  objects: Array<Users_Usage_Insert_Input>;
+  on_conflict?: InputMaybe<Users_Usage_On_Conflict>;
 };
 
 
@@ -12384,6 +12430,20 @@ export type Mutation_RootUpdateUsersArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateUsersUsageArgs = {
+  _set?: InputMaybe<Users_Usage_Set_Input>;
+  pk_columns: Users_Usage_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateUsersUsagesArgs = {
+  _set?: InputMaybe<Users_Usage_Set_Input>;
+  where: Users_Usage_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateWorkspaceArgs = {
   _set?: InputMaybe<Workspaces_Set_Input>;
   pk_columns: Workspaces_Pk_Columns_Input;
@@ -12682,6 +12742,12 @@ export type Mutation_RootUpdate_Run_Service_ManyArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Users_ManyArgs = {
   updates: Array<Users_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Users_Usage_ManyArgs = {
+  updates: Array<Users_Usage_Updates>;
 };
 
 
@@ -13905,7 +13971,7 @@ export type Query_Root = {
   billingDedicatedComputeReportsAggregate: Billing_Dedicated_Compute_Reports_Aggregate;
   /** fetch data from the table: "billing.dedicated_compute" */
   billingDedicatedComputes: Array<Billing_Dedicated_Compute>;
-  billingDummy: Scalars['Boolean'];
+  billingGetNextInvoice?: Maybe<InvoiceSummary>;
   /** fetch data from the table: "billing.subscriptions" using primary key columns */
   billingSubscription?: Maybe<Billing_Subscriptions>;
   /** fetch data from the table: "billing.subscriptions" */
@@ -14048,6 +14114,12 @@ export type Query_Root = {
   users: Array<Users>;
   /** fetch aggregated fields from the table: "auth.users" */
   usersAggregate: Users_Aggregate;
+  /** fetch data from the table: "users_usage" using primary key columns */
+  usersUsage?: Maybe<Users_Usage>;
+  /** fetch data from the table: "users_usage" */
+  usersUsages: Array<Users_Usage>;
+  /** fetch aggregated fields from the table: "users_usage" */
+  usersUsagesAggregate: Users_Usage_Aggregate;
   /** fetch data from the table: "workspaces" using primary key columns */
   workspace?: Maybe<Workspaces>;
   /** fetch data from the table: "workspace_members" using primary key columns */
@@ -14416,6 +14488,11 @@ export type Query_RootBillingDedicatedComputesArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Billing_Dedicated_Compute_Order_By>>;
   where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
+};
+
+
+export type Query_RootBillingGetNextInvoiceArgs = {
+  appID: Scalars['uuid'];
 };
 
 
@@ -14970,6 +15047,29 @@ export type Query_RootUsersAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Users_Order_By>>;
   where?: InputMaybe<Users_Bool_Exp>;
+};
+
+
+export type Query_RootUsersUsageArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootUsersUsagesArgs = {
+  distinct_on?: InputMaybe<Array<Users_Usage_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Users_Usage_Order_By>>;
+  where?: InputMaybe<Users_Usage_Bool_Exp>;
+};
+
+
+export type Query_RootUsersUsagesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Users_Usage_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Users_Usage_Order_By>>;
+  where?: InputMaybe<Users_Usage_Bool_Exp>;
 };
 
 
@@ -16401,8 +16501,16 @@ export type Subscription_Root = {
   users: Array<Users>;
   /** fetch aggregated fields from the table: "auth.users" */
   usersAggregate: Users_Aggregate;
+  /** fetch data from the table: "users_usage" using primary key columns */
+  usersUsage?: Maybe<Users_Usage>;
+  /** fetch data from the table: "users_usage" */
+  usersUsages: Array<Users_Usage>;
+  /** fetch aggregated fields from the table: "users_usage" */
+  usersUsagesAggregate: Users_Usage_Aggregate;
   /** fetch data from the table in a streaming manner: "auth.users" */
   users_stream: Array<Users>;
+  /** fetch data from the table in a streaming manner: "users_usage" */
+  users_usage_stream: Array<Users_Usage>;
   /** fetch data from the table: "workspaces" using primary key columns */
   workspace?: Maybe<Workspaces>;
   /** fetch data from the table: "workspace_members" using primary key columns */
@@ -17450,10 +17558,40 @@ export type Subscription_RootUsersAggregateArgs = {
 };
 
 
+export type Subscription_RootUsersUsageArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootUsersUsagesArgs = {
+  distinct_on?: InputMaybe<Array<Users_Usage_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Users_Usage_Order_By>>;
+  where?: InputMaybe<Users_Usage_Bool_Exp>;
+};
+
+
+export type Subscription_RootUsersUsagesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Users_Usage_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Users_Usage_Order_By>>;
+  where?: InputMaybe<Users_Usage_Bool_Exp>;
+};
+
+
 export type Subscription_RootUsers_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Users_Stream_Cursor_Input>>;
   where?: InputMaybe<Users_Bool_Exp>;
+};
+
+
+export type Subscription_RootUsers_Usage_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Users_Usage_Stream_Cursor_Input>>;
+  where?: InputMaybe<Users_Usage_Bool_Exp>;
 };
 
 
@@ -18537,6 +18675,176 @@ export type Users_Updates = {
   _set?: InputMaybe<Users_Set_Input>;
   /** filter the rows which have to be updated */
   where: Users_Bool_Exp;
+};
+
+/** columns and relationships of "users_usage" */
+export type Users_Usage = {
+  __typename?: 'users_usage';
+  created_at: Scalars['timestamptz'];
+  free_allowance_exceeded: Scalars['Boolean'];
+  id: Scalars['uuid'];
+  updated_at: Scalars['timestamptz'];
+  user_id: Scalars['uuid'];
+};
+
+/** aggregated selection of "users_usage" */
+export type Users_Usage_Aggregate = {
+  __typename?: 'users_usage_aggregate';
+  aggregate?: Maybe<Users_Usage_Aggregate_Fields>;
+  nodes: Array<Users_Usage>;
+};
+
+/** aggregate fields of "users_usage" */
+export type Users_Usage_Aggregate_Fields = {
+  __typename?: 'users_usage_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Users_Usage_Max_Fields>;
+  min?: Maybe<Users_Usage_Min_Fields>;
+};
+
+
+/** aggregate fields of "users_usage" */
+export type Users_Usage_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Users_Usage_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "users_usage". All fields are combined with a logical 'AND'. */
+export type Users_Usage_Bool_Exp = {
+  _and?: InputMaybe<Array<Users_Usage_Bool_Exp>>;
+  _not?: InputMaybe<Users_Usage_Bool_Exp>;
+  _or?: InputMaybe<Array<Users_Usage_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  free_allowance_exceeded?: InputMaybe<Boolean_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user_id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "users_usage" */
+export enum Users_Usage_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  UsersUsagePkey = 'users_usage_pkey',
+  /** unique or primary key constraint on columns "user_id" */
+  UsersUsageUserIdKey = 'users_usage_user_id_key'
+}
+
+/** input type for inserting data into table "users_usage" */
+export type Users_Usage_Insert_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  free_allowance_exceeded?: InputMaybe<Scalars['Boolean']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Users_Usage_Max_Fields = {
+  __typename?: 'users_usage_max_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type Users_Usage_Min_Fields = {
+  __typename?: 'users_usage_min_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "users_usage" */
+export type Users_Usage_Mutation_Response = {
+  __typename?: 'users_usage_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Users_Usage>;
+};
+
+/** on_conflict condition type for table "users_usage" */
+export type Users_Usage_On_Conflict = {
+  constraint: Users_Usage_Constraint;
+  update_columns?: Array<Users_Usage_Update_Column>;
+  where?: InputMaybe<Users_Usage_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "users_usage". */
+export type Users_Usage_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  free_allowance_exceeded?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: users_usage */
+export type Users_Usage_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "users_usage" */
+export enum Users_Usage_Select_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  FreeAllowanceExceeded = 'free_allowance_exceeded',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  UserId = 'user_id'
+}
+
+/** input type for updating data in table "users_usage" */
+export type Users_Usage_Set_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  free_allowance_exceeded?: InputMaybe<Scalars['Boolean']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "users_usage" */
+export type Users_Usage_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Users_Usage_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Users_Usage_Stream_Cursor_Value_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  free_allowance_exceeded?: InputMaybe<Scalars['Boolean']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "users_usage" */
+export enum Users_Usage_Update_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  FreeAllowanceExceeded = 'free_allowance_exceeded',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  UserId = 'user_id'
+}
+
+export type Users_Usage_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Users_Usage_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Users_Usage_Bool_Exp;
 };
 
 /** Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'. */
@@ -19718,7 +20026,7 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } | null };
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null } | null } | null };
 
 export type GetPostgresSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -19814,6 +20122,13 @@ export type GetApplicationStateQueryVariables = Exact<{
 
 
 export type GetApplicationStateQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, name: string, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> } | null };
+
+export type GetProjectLocalesQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetProjectLocalesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', user?: { __typename?: 'ConfigAuthUser', locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null } | null } | null };
 
 export type GetProjectMetricsQueryVariables = Exact<{
   appId: Scalars['String'];
@@ -20785,6 +21100,10 @@ export const GetAuthenticationSettingsDocument = gql`
           default
           rating
         }
+        locale {
+          allowed
+          default
+        }
       }
       version
     }
@@ -21325,6 +21644,51 @@ export type GetApplicationStateLazyQueryHookResult = ReturnType<typeof useGetApp
 export type GetApplicationStateQueryResult = Apollo.QueryResult<GetApplicationStateQuery, GetApplicationStateQueryVariables>;
 export function refetchGetApplicationStateQuery(variables: GetApplicationStateQueryVariables) {
       return { query: GetApplicationStateDocument, variables: variables }
+    }
+export const GetProjectLocalesDocument = gql`
+    query getProjectLocales($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    auth {
+      user {
+        locale {
+          allowed
+          default
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetProjectLocalesQuery__
+ *
+ * To run a query within a React component, call `useGetProjectLocalesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectLocalesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectLocalesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetProjectLocalesQuery(baseOptions: Apollo.QueryHookOptions<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>(GetProjectLocalesDocument, options);
+      }
+export function useGetProjectLocalesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>(GetProjectLocalesDocument, options);
+        }
+export type GetProjectLocalesQueryHookResult = ReturnType<typeof useGetProjectLocalesQuery>;
+export type GetProjectLocalesLazyQueryHookResult = ReturnType<typeof useGetProjectLocalesLazyQuery>;
+export type GetProjectLocalesQueryResult = Apollo.QueryResult<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>;
+export function refetchGetProjectLocalesQuery(variables: GetProjectLocalesQueryVariables) {
+      return { query: GetProjectLocalesDocument, variables: variables }
     }
 export const GetProjectMetricsDocument = gql`
     query GetProjectMetrics($appId: String!, $subdomain: String!, $from: Timestamp, $to: Timestamp) {
