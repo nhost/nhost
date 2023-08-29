@@ -82,7 +82,11 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={['500 MB', 'Custom API requests', 'Event Triggers']}
+            subFeatures={[
+              '1 GB included',
+              'Custom API requests',
+              'Event Triggers',
+            ]}
           />
 
           <PricingFeature
@@ -130,13 +134,17 @@ export default function PricingPage() {
               <ProductIcon className="h-8 w-8">
                 <Image
                   src="/products/storage.svg"
-                  width={24}
-                  height={24}
+                  width={20}
+                  height={20}
                   alt="A file icon"
                 />
               </ProductIcon>
             }
-            subFeatures={['1 GB', 'Image transformation', 'Global CDN']}
+            subFeatures={[
+              '1 GB included',
+              'Image transformation',
+              'Global CDN',
+            ]}
           />
 
           <PricingFeature
@@ -156,6 +164,20 @@ export default function PricingPage() {
               '1 GB-hours Execution',
               '10 sec timeout',
             ]}
+          />
+          <PricingFeature
+            feature="Network Egress"
+            featureIcon={
+              <ProductIcon className="h-8 w-8">
+                <Image
+                  src="/products/egress.svg"
+                  width={20}
+                  height={20}
+                  alt="Egress icon"
+                />
+              </ProductIcon>
+            }
+            subFeatures={['5 GB included']}
           />
 
           {/* Plan details end */}
@@ -207,7 +229,11 @@ export default function PricingPage() {
                   />
                 </ProductIcon>
               }
-              subFeatures={['10 GB', '7 days Backups', 'Always available']}
+              subFeatures={[
+                '10 GB included, then $0.20 per GB',
+                '7 days Backups',
+                'Always available',
+              ]}
             />
             <PricingFeature
               feature="GraphQL"
@@ -252,13 +278,17 @@ export default function PricingPage() {
                 <ProductIcon className="h-8 w-8">
                   <Image
                     src="/products/storage.svg"
-                    width={24}
-                    height={24}
+                    width={20}
+                    height={20}
                     alt="A file icon"
                   />
                 </ProductIcon>
               }
-              subFeatures={['25 GB', 'Image transformation', 'Global CDN']}
+              subFeatures={[
+                '50 GB included, then $0.05 per GB',
+                'Image transformation',
+                'Global CDN',
+              ]}
             />
             <PricingFeature
               feature="Functions"
@@ -277,6 +307,20 @@ export default function PricingPage() {
                 '10 GB-hours Execution',
                 '60 sec timeout',
               ]}
+            />
+            <PricingFeature
+              feature="Network Egress"
+              featureIcon={
+                <ProductIcon className="h-8 w-8">
+                  <Image
+                    src="/products/egress.svg"
+                    width={20}
+                    height={20}
+                    alt="Egress icon"
+                  />
+                </ProductIcon>
+              }
+              subFeatures={['50 GB included, then $0.10 per GB']}
             />
           </div>
         </div>
@@ -320,7 +364,7 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={['Up to 5 TB', 'Extendable Storage', 'Custom Backups']}
+            subFeatures={['Unlimited', 'Extendable Storage', 'Custom Backups']}
           />
 
           <PricingFeature
@@ -368,13 +412,13 @@ export default function PricingPage() {
               <ProductIcon className="h-8 w-8">
                 <Image
                   src="/products/storage.svg"
-                  width={24}
-                  height={24}
+                  width={20}
+                  height={20}
                   alt="A file icon"
                 />
               </ProductIcon>
             }
-            subFeatures={['Custom', 'Image transformation', 'Global CDN']}
+            subFeatures={['Unlimited', 'Image transformation', 'Global CDN']}
           />
 
           <PricingFeature
@@ -389,7 +433,21 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={['Custom', 'Custom', '600 sec timeout']}
+            subFeatures={['Unlimited', 'Custom', '600 sec timeout']}
+          />
+          <PricingFeature
+            feature="Network Egress"
+            featureIcon={
+              <ProductIcon className="h-8 w-8">
+                <Image
+                  src="/products/egress.svg"
+                  width={20}
+                  height={20}
+                  alt="Egress icon"
+                />
+              </ProductIcon>
+            }
+            subFeatures={['unlimited']}
           />
         </div>
       </Container>
