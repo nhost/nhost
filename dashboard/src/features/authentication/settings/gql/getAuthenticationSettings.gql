@@ -38,6 +38,10 @@ query GetAuthenticationSettings($appId: uuid!) {
           default
           rating
         }
+        locale {
+          allowed
+          default
+        }
       }
       version
     }
