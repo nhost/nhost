@@ -2,6 +2,8 @@ import fetchPonyfill from 'fetch-ponyfill'
 import FormData from 'form-data'
 import { StorageErrorPayload, StorageUploadResponse } from './types'
 
+declare const EdgeRuntime: any
+
 /** Convert any string into ISO-8859-1 */
 export const toIso88591 = (fileName: string) => {
   try {
@@ -12,7 +14,11 @@ export const toIso88591 = (fileName: string) => {
   }
 }
 
-const { fetch } = fetchPonyfill()
+let fetch = globalThis.fetch
+
+if (typeof EdgeRuntime !== 'string') {
+  fetch = fetchPonyfill().fetch
+}
 
 export const fetchUpload = async (
   backendUrl: string,
