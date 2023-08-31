@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.20.9
+
+### Patch Changes
+
+- 5e1e80aa8: fix(dashboard): show correct locales in user details
+  - @nhost/react-apollo@5.0.35
+  - @nhost/nextjs@1.13.37
+
 ## 0.20.8
 
 ### Patch Changes
