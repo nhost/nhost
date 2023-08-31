@@ -1,6 +1,6 @@
 {
   "name": "@nhost/apollo",
-  "version": "5.2.17",
+  "version": "5.2.18",
   "description": "Nhost Apollo Client library",
   "license": "MIT",
   "keywords": [

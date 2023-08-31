@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "2.2.15",
+  "version": "2.2.16",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [

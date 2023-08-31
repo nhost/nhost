@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.2.4
+
+### Patch Changes
+
+- 83fee5446: fix(hasura-storage-js): swap fetch when running on edge runtime
+
 ## 2.2.3
 
 ### Patch Changes
