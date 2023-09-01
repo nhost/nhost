@@ -2109,6 +2109,15 @@ export type String_Comparison_Exp = {
   _similar?: InputMaybe<Scalars['String']>;
 };
 
+export type UsageSummary = {
+  __typename?: 'UsageSummary';
+  EgressBytes: Scalars['float64'];
+  EgressCDNBytes: Scalars['float64'];
+  EgressPgbouncerBytes: Scalars['float64'];
+  LambdaUsageSeconds: Scalars['float64'];
+  appID: Scalars['uuid'];
+};
+
 /** columns and relationships of "app_state_history" */
 export type AppStateHistory = {
   __typename?: 'appStateHistory';
@@ -6485,6 +6494,8 @@ export type Billing_Subscriptions = {
   app_id: Scalars['uuid'];
   created_at: Scalars['timestamptz'];
   dedicated_compute?: Maybe<Scalars['String']>;
+  egress?: Maybe<Scalars['String']>;
+  functions?: Maybe<Scalars['String']>;
   id: Scalars['uuid'];
   updated_at: Scalars['timestamptz'];
 };
@@ -6520,6 +6531,8 @@ export type Billing_Subscriptions_Bool_Exp = {
   app_id?: InputMaybe<Uuid_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   dedicated_compute?: InputMaybe<String_Comparison_Exp>;
+  egress?: InputMaybe<String_Comparison_Exp>;
+  functions?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -6530,6 +6543,10 @@ export enum Billing_Subscriptions_Constraint {
   SubscriptionsAppIdKey = 'subscriptions_app_id_key',
   /** unique or primary key constraint on columns "dedicated_compute" */
   SubscriptionsDedicatedComputeKey = 'subscriptions_dedicated_compute_key',
+  /** unique or primary key constraint on columns "egress" */
+  SubscriptionsEgressKey = 'subscriptions_egress_key',
+  /** unique or primary key constraint on columns "functions" */
+  SubscriptionsFunctionsKey = 'subscriptions_functions_key',
   /** unique or primary key constraint on columns "id" */
   SubscriptionsPkey = 'subscriptions_pkey'
 }
@@ -6540,6 +6557,8 @@ export type Billing_Subscriptions_Insert_Input = {
   app_id?: InputMaybe<Scalars['uuid']>;
   created_at?: InputMaybe<Scalars['timestamptz']>;
   dedicated_compute?: InputMaybe<Scalars['String']>;
+  egress?: InputMaybe<Scalars['String']>;
+  functions?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -6550,6 +6569,8 @@ export type Billing_Subscriptions_Max_Fields = {
   app_id?: Maybe<Scalars['uuid']>;
   created_at?: Maybe<Scalars['timestamptz']>;
   dedicated_compute?: Maybe<Scalars['String']>;
+  egress?: Maybe<Scalars['String']>;
+  functions?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   updated_at?: Maybe<Scalars['timestamptz']>;
 };
@@ -6560,6 +6581,8 @@ export type Billing_Subscriptions_Min_Fields = {
   app_id?: Maybe<Scalars['uuid']>;
   created_at?: Maybe<Scalars['timestamptz']>;
   dedicated_compute?: Maybe<Scalars['String']>;
+  egress?: Maybe<Scalars['String']>;
+  functions?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   updated_at?: Maybe<Scalars['timestamptz']>;
 };
@@ -6593,6 +6616,8 @@ export type Billing_Subscriptions_Order_By = {
   app_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   dedicated_compute?: InputMaybe<Order_By>;
+  egress?: InputMaybe<Order_By>;
+  functions?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -6611,6 +6636,10 @@ export enum Billing_Subscriptions_Select_Column {
   /** column name */
   DedicatedCompute = 'dedicated_compute',
   /** column name */
+  Egress = 'egress',
+  /** column name */
+  Functions = 'functions',
+  /** column name */
   Id = 'id',
   /** column name */
   UpdatedAt = 'updated_at'
@@ -6621,6 +6650,8 @@ export type Billing_Subscriptions_Set_Input = {
   app_id?: InputMaybe<Scalars['uuid']>;
   created_at?: InputMaybe<Scalars['timestamptz']>;
   dedicated_compute?: InputMaybe<Scalars['String']>;
+  egress?: InputMaybe<Scalars['String']>;
+  functions?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -6638,6 +6669,8 @@ export type Billing_Subscriptions_Stream_Cursor_Value_Input = {
   app_id?: InputMaybe<Scalars['uuid']>;
   created_at?: InputMaybe<Scalars['timestamptz']>;
   dedicated_compute?: InputMaybe<Scalars['String']>;
+  egress?: InputMaybe<Scalars['String']>;
+  functions?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   updated_at?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -6650,6 +6683,10 @@ export enum Billing_Subscriptions_Update_Column {
   CreatedAt = 'created_at',
   /** column name */
   DedicatedCompute = 'dedicated_compute',
+  /** column name */
+  Egress = 'egress',
+  /** column name */
+  Functions = 'functions',
   /** column name */
   Id = 'id',
   /** column name */
@@ -10660,6 +10697,7 @@ export type Mutation_Root = {
   insert_regions?: Maybe<Regions_Mutation_Response>;
   /** insert a single row into the table: "regions" */
   insert_regions_one?: Maybe<Regions>;
+  pauseAppsExceedUsage: Array<Scalars['String']>;
   pauseInactiveApps: Array<Scalars['String']>;
   replaceConfig: ConfigConfig;
   replaceRunServiceConfig: ConfigRunServiceConfig;
@@ -14038,11 +14076,13 @@ export type Query_Root = {
   getBackupPresignedURL: BackupPresignedUrl;
   getCPUSecondsUsage: Metrics;
   getEgressVolume: Metrics;
+  getFunctionsDuration: Metrics;
   getFunctionsInvocations: Metrics;
   getLogsVolume: Metrics;
   getPostgresVolumeCapacity: Metrics;
   getPostgresVolumeUsage: Metrics;
   getTotalRequests: Metrics;
+  getUsageAll: Array<UsageSummary>;
   /** fetch data from the table: "github_app_installations" using primary key columns */
   githubAppInstallation?: Maybe<GithubAppInstallations>;
   /** fetch data from the table: "github_app_installations" */
@@ -14766,6 +14806,13 @@ export type Query_RootGetEgressVolumeArgs = {
 };
 
 
+export type Query_RootGetFunctionsDurationArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
 export type Query_RootGetFunctionsInvocationsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
@@ -14796,6 +14843,12 @@ export type Query_RootGetTotalRequestsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetUsageAllArgs = {
+  from: Scalars['Timestamp'];
+  to: Scalars['Timestamp'];
 };
 
 
@@ -20138,7 +20191,7 @@ export type GetProjectMetricsQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
+export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, functionsDuration: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
 
 export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -21703,6 +21756,9 @@ export const GetProjectMetricsDocument = gql`
     from: $from
     to: $to
   ) {
+    value
+  }
+  functionsDuration: getFunctionsDuration(appID: $appId, from: $from, to: $to) {
     value
   }
   postgresVolumeCapacity: getPostgresVolumeCapacity(appID: $appId) {

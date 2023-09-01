@@ -105,6 +105,14 @@ export function OverviewUsageMetrics() {
   // metrics for functions
   const usedFunctions = functionsInfoData?.app.metadataFunctions.length || 0;
   const totalFunctions = currentProject?.plan?.isFree ? 10 : 50;
+  const functionsDuration = projectMetrics?.functionInvocations.value || 0;
+  const totalFunctionsDuration = currentProject?.plan?.isFree ? 1 : 10;
+
+  // metrics for egress
+  const usedEgressVolume = projectMetrics?.egressVolume.value || 0;
+  const totalEgressVolume = currentProject?.plan?.isFree
+    ? 5 * 1000 ** 3 // 5 GB
+    : 10 * 1000 ** 3; // 50 GB
 
   if (metricsLoading) {
     return (
@@ -112,7 +120,9 @@ export function OverviewUsageMetrics() {
         <UsageProgress label="Database" percentage={0} />
         <UsageProgress label="Storage" percentage={0} />
         <UsageProgress label="Users" percentage={0} />
-        <UsageProgress label="Functions" percentage={0} />
+        <UsageProgress label="Number of Functions" percentage={0} />
+        <UsageProgress label="Functions Execution" percentage={0} />
+        <UsageProgress label="Egress" percentage={0} />
       </div>
     );
   }
@@ -137,6 +147,18 @@ export function OverviewUsageMetrics() {
         <UsageProgress
           label="Functions"
           used={usedFunctions}
+          percentage={100}
+        />
+
+        <UsageProgress
+          label="Functions"
+          used={functionsDuration}
+          percentage={100}
+        />
+
+        <UsageProgress
+          label="Egress"
+          used={usedEgressVolume}
           percentage={100}
         />
       </div>
@@ -167,10 +189,24 @@ export function OverviewUsageMetrics() {
       />
 
       <UsageProgress
-        label="Functions"
+        label="Number of functions"
         used={usedFunctions}
         total={totalFunctions}
         percentage={(usedFunctions / totalFunctions) * 100}
+      />
+
+      <UsageProgress
+        label="Functions execution"
+        used={functionsDuration}
+        total={totalFunctionsDuration}
+        percentage={(functionsDuration / totalFunctionsDuration) * 100}
+      />
+
+      <UsageProgress
+        label="Egress Volume"
+        used={prettifySize(usedEgressVolume)}
+        total={prettifySize(totalEgressVolume)}
+        percentage={(usedEgressVolume / totalEgressVolume) * 100}
       />
     </div>
   );
