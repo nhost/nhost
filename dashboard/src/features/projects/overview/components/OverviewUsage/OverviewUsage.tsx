@@ -105,8 +105,10 @@ export function OverviewUsageMetrics() {
   // metrics for functions
   const usedFunctions = functionsInfoData?.app.metadataFunctions.length || 0;
   const totalFunctions = currentProject?.plan?.isFree ? 10 : 50;
-  const functionsDuration = projectMetrics?.functionInvocations.value || 0;
-  const totalFunctionsDuration = currentProject?.plan?.isFree ? 1 : 10;
+  const usedFunctionsDuration = projectMetrics?.functionInvocations.value || 0;
+  const totalFunctionsDuration = currentProject?.plan?.isFree
+    ? 3600 // 1 hour
+    : 3600 * 10; // 10 hours
 
   // metrics for egress
   const usedEgressVolume = projectMetrics?.egressVolume.value || 0;
@@ -121,8 +123,8 @@ export function OverviewUsageMetrics() {
         <UsageProgress label="Storage" percentage={0} />
         <UsageProgress label="Users" percentage={0} />
         <UsageProgress label="Number of Functions" percentage={0} />
-        <UsageProgress label="Functions Execution" percentage={0} />
-        <UsageProgress label="Egress" percentage={0} />
+        <UsageProgress label="Functions Execution Time" percentage={0} />
+        <UsageProgress label="Egress Volume" percentage={0} />
       </div>
     );
   }
@@ -152,7 +154,7 @@ export function OverviewUsageMetrics() {
 
         <UsageProgress
           label="Functions"
-          used={functionsDuration}
+          used={usedFunctionsDuration}
           percentage={100}
         />
 
@@ -189,17 +191,17 @@ export function OverviewUsageMetrics() {
       />
 
       <UsageProgress
-        label="Number of functions"
+        label="Number of Functions"
         used={usedFunctions}
         total={totalFunctions}
         percentage={(usedFunctions / totalFunctions) * 100}
       />
 
       <UsageProgress
-        label="Functions execution"
-        used={functionsDuration}
-        total={totalFunctionsDuration}
-        percentage={(functionsDuration / totalFunctionsDuration) * 100}
+        label="Functions Execution Time"
+        used={usedFunctionsDuration}
+        total={`${totalFunctionsDuration} seconds`}
+        percentage={(usedFunctionsDuration / totalFunctionsDuration) * 100}
       />
 
       <UsageProgress
