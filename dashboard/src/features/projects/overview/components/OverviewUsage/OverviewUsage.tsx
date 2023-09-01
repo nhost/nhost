@@ -96,7 +96,7 @@ export function OverviewUsageMetrics() {
     remoteAppMetricsData?.filesAggregate?.aggregate?.sum?.size || 0;
   const totalStorage = currentProject?.plan?.isFree
     ? 1 * 1000 ** 3 // 1 GB
-    : 10 * 1000 ** 3; // 10 GB
+    : 50 * 1000 ** 3; // 10 GB
 
   // metrics for users
   const usedUsers = remoteAppMetricsData?.usersAggregate?.aggregate?.count || 0;
