@@ -105,7 +105,7 @@ export function OverviewUsageMetrics() {
   // metrics for functions
   const usedFunctions = functionsInfoData?.app.metadataFunctions.length || 0;
   const totalFunctions = currentProject?.plan?.isFree ? 10 : 50;
-  const usedFunctionsDuration = projectMetrics?.functionInvocations.value || 0;
+  const usedFunctionsDuration = projectMetrics?.functionsDuration.value || 0;
   const totalFunctionsDuration = currentProject?.plan?.isFree
     ? 3600 // 1 hour
     : 3600 * 10; // 10 hours
