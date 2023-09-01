@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.10
+
+### Patch Changes
+
+- 666a75a23: feat(dashboard): add functions execution time and egress volume to usage stats
+
 ## 0.20.9
 
 ### Patch Changes
