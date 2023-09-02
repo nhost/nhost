@@ -199,7 +199,7 @@ export function OverviewUsageMetrics() {
 
       <UsageProgress
         label="Functions Execution Time"
-        used={usedFunctionsDuration}
+        used={Math.trunc(usedFunctionsDuration)}
         total={`${totalFunctionsDuration} seconds`}
         percentage={(usedFunctionsDuration / totalFunctionsDuration) * 100}
       />
