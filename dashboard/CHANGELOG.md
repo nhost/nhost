@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.11
+
+### Patch Changes
+
+- 8903e6abd: fix(dashboard): show correct egress limit in usage stats
+
 ## 0.20.10
 
 ### Patch Changes
