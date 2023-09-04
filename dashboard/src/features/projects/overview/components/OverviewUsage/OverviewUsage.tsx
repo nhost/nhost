@@ -114,7 +114,7 @@ export function OverviewUsageMetrics() {
   const usedEgressVolume = projectMetrics?.egressVolume.value || 0;
   const totalEgressVolume = currentProject?.plan?.isFree
     ? 5 * 1000 ** 3 // 5 GB
-    : 10 * 1000 ** 3; // 50 GB
+    : 50 * 1000 ** 3; // 50 GB
 
   if (metricsLoading) {
     return (
@@ -199,7 +199,7 @@ export function OverviewUsageMetrics() {
 
       <UsageProgress
         label="Functions Execution Time"
-        used={usedFunctionsDuration}
+        used={Math.trunc(usedFunctionsDuration)}
         total={`${totalFunctionsDuration} seconds`}
         percentage={(usedFunctionsDuration / totalFunctionsDuration) * 100}
       />
