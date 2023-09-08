@@ -25,7 +25,9 @@ export default function PricingFeature({
             key={String(index)}
             className="flex flex-row items-center space-x-4 text-brand-main"
           >
-            <TickIcon />
+            <div>
+              <TickIcon />
+            </div>
             <span className="font-normal text-white text-opacity-65">
               {subFeature}
             </span>
