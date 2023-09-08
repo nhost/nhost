@@ -160,8 +160,8 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              '10 functions',
-              '1 GB-hours Execution',
+              '10 included',
+              '1 hour of execution time included',
               '10 sec timeout',
             ]}
           />
@@ -303,8 +303,8 @@ export default function PricingPage() {
                 </ProductIcon>
               }
               subFeatures={[
-                '50 functions',
-                '10 GB-hours Execution',
+                '50 included, then $5 per additional 50',
+                '10 hours of execution time included, then $2 per additional hour (billed per second)',
                 '60 sec timeout',
               ]}
             />
@@ -399,7 +399,7 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              'Custom',
+              'Unlimited',
               'Email / Password',
               'Magic Link',
               'Social OAuth providers',
@@ -433,7 +433,7 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={['Unlimited', 'Custom', '600 sec timeout']}
+            subFeatures={['Unlimited', 'Unlimited', '600 sec timeout']}
           />
           <PricingFeature
             feature="Network Egress"
@@ -447,7 +447,7 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={['unlimited']}
+            subFeatures={['Unlimited']}
           />
         </div>
       </Container>
