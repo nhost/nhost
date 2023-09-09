@@ -44,7 +44,7 @@ export const signIn = async (formData: FormData) => {
   const { session, error } = await nhost.auth.signIn({ email, password })
 
   if (session) {
-    cookies().set(NHOST_SESSION_KEY, JSON.stringify(session), {
+    cookies().set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), {
       sameSite: 'strict'
     })
 
@@ -58,6 +58,63 @@ export const signIn = async (formData: FormData) => {
   }
 }
 
+export const signInWithGoogle = async () => {
+  const nhost = await getNhost()
+
+  const { providerUrl } = await nhost.auth.signIn({
+    provider: 'google',
+    options: {
+      redirectTo: `/oauth`
+    }
+  })
+
+  if (providerUrl) {
+    redirect(providerUrl)
+  }
+}
+
+export const signInWithApple = async () => {
+  const nhost = await getNhost()
+
+  const { providerUrl } = await nhost.auth.signIn({
+    provider: 'apple',
+    options: {
+      redirectTo: `/oauth`
+    }
+  })
+
+  if (providerUrl) {
+    redirect(providerUrl)
+  }
+}
+
+export const signInWithSecurityKey = async (formData: FormData) => {
+  const nhost = await getNhost()
+
+  const email = formData.get('email') as string
+
+  const { error, session } = await nhost.auth.signIn({
+    email: email,
+    securityKey: true
+  })
+
+  if (!session) {
+    // Something unexpected happened
+    console.log(error)
+    return {
+      error: error?.message
+    }
+  }
+
+  // Something unexpected happened, for instance, the user canceled the process
+  if (error) {
+    console.log(error)
+    return {
+      error: error?.message
+    }
+  }
+}
+
 export const signOut = async () => {
   const nhost = await getNhost()
 
@@ -65,5 +122,5 @@ export const signOut = async () => {
 
   cookies().delete(NHOST_SESSION_KEY)
 
-  redirect('/sign-in')
+  redirect('/auth/sign-in')
 }

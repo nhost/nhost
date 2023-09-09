@@ -1,10 +1,7 @@
-import { NHOST_REFRESH_TOKEN_KEY, NhostClient, NhostSession } from '@nhost/nhost-js'
+import { NhostClient, NhostClientConstructorParams, NhostSession } from '@nhost/nhost-js'
 import { cookies } from 'next/headers'
-
-// eslint-disable-next-line @next/next/no-server-import-in-page
 import { NextRequest } from 'next/server'
-import { StateFrom } from 'xstate/lib/types'
-
+import { type StateFrom } from 'xstate/lib/types'
 import { waitFor } from 'xstate/lib/waitFor'
 
 export const NHOST_SESSION_KEY = 'nhostSession'
@@ -12,30 +9,32 @@ export const NHOST_SESSION_KEY = 'nhostSession'
 export const getNhost = async (request?: NextRequest) => {
   const $cookies = request?.cookies || cookies()
 
-  const nhost = new NhostClient({
+  let config: NhostClientConstructorParams = {
     subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN || 'local',
     region: process.env.NEXT_PUBLIC_NHOST_REGION,
-    clientStorageType: 'custom',
-    clientStorage: {
-      getItem: (key) => $cookies.get(key),
-      setItem: (key, value) => $cookies.set(key, value),
-      removeItem: (key) => $cookies.delete(key)
-    },
-    start: false,
-    autoRefreshToken: false,
-    autoSignIn: true
-  })
+    start: false
+  }
 
-  const session: NhostSession = JSON.parse($cookies.get(NHOST_SESSION_KEY)?.value || 'null')
-  const refreshToken = $cookies.get(NHOST_REFRESH_TOKEN_KEY)?.value || null
-
-  nhost.auth.client.start({
-    initialSession: {
-      ...session,
-      refreshToken
+  if (request) {
+    config = {
+      ...config,
+      clientStorage: {
+        getItem: (key) => $cookies.get(key),
+        setItem: (key, value) => $cookies.set(key, value),
+        removeItem: (key) => $cookies.delete(key)
+      },
+      clientStorageType: 'custom'
     }
-  })
+  }
 
+  const nhost = new NhostClient(config)
+
+  const sessionCookieValue = $cookies.get(NHOST_SESSION_KEY)?.value || ''
+  const initialSession: NhostSession = JSON.parse(atob(sessionCookieValue) || 'null')
+
+  console.log(initialSession)
+
+  nhost.auth.client.start({ initialSession })
   await waitFor(nhost.auth.client.interpreter!, (state: StateFrom<any>) => !state.hasTag('loading'))
 
   return nhost

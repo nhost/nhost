@@ -1,6 +1,6 @@
 'use client'
 
-import { DetailedHTMLProps, HTMLProps, useState } from 'react'
+import { DetailedHTMLProps, HTMLProps } from 'react'
 // @ts-ignore
 import { experimental_useFormStatus as useFormStatus } from 'react-dom'
 
@@ -13,7 +13,6 @@ export default function Input({
   className,
   ...rest
 }: DetailedHTMLProps<HTMLProps<HTMLInputElement>, HTMLInputElement>) {
-  const [value, setValue] = useState('')
   const { pending } = useFormStatus()
 
   return (
@@ -27,9 +26,7 @@ export default function Input({
           type={type}
           name={name}
           required={required}
-          value={value}
           disabled={pending}
-          onChange={(e) => setValue(e.target.value)}
           className="block w-full p-3 border rounded-md border-slate-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           {...rest}
         />

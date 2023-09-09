@@ -31,7 +31,7 @@ version = 16
 version = '0.20.1'
 
 [auth.redirections]
-clientUrl = 'http://localhost:3000'
+clientUrl = 'http://localhost:3000/oauth'
 
 [auth.signUp]
 enabled = true
@@ -56,10 +56,10 @@ rating = 'g'
 
 [auth.session]
 [auth.session.accessToken]
-expiresIn = 900
+expiresIn = 30
 
 [auth.session.refreshToken]
-expiresIn = 43200
+expiresIn = 900
 
 [auth.method]
 [auth.method.anonymous]
@@ -100,7 +100,9 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.google]
-enabled = false
+enabled = true
+clientId = '{{ secrets.GOOGLE_CLIENT_ID }}'
+clientSecret = '{{ secrets.GOOGLE_CLIENT_SECRET }}'
 
 [auth.method.oauth.linkedin]
 enabled = false
@@ -124,7 +126,11 @@ enabled = false
 enabled = false
 
 [auth.method.webauthn]
-enabled = false
+enabled = true
+
+[auth.method.webauthn.relyingParty]
+name = 'nextjs-server-components'
+origins = ['http://localhost:3000']
 
 [auth.method.webauthn.attestation]
 timeout = 60000

@@ -2,11 +2,17 @@ import fetchPonyfill from 'fetch-ponyfill'
 import { NETWORK_ERROR_CODE } from '../errors'
 import { NullableErrorResponse } from '../types'
 
+declare const EdgeRuntime: any
+
 interface FetcResponse<T> extends NullableErrorResponse {
   data: T
 }
 
-const { fetch } = fetchPonyfill()
+let fetch = globalThis.fetch
+
+if (typeof EdgeRuntime !== 'string') {
+  fetch = fetchPonyfill().fetch
+}
 
 const fetchWrapper = async <T>(
   url: string,

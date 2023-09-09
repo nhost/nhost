@@ -41,13 +41,13 @@ export default async function Navigation() {
             ) : (
               <>
                 <Link
-                  href="/sign-in"
+                  href="/auth/sign-in"
                   className="inline-block px-4 py-2 text-base font-medium text-white bg-indigo-500 border border-transparent rounded-md hover:bg-opacity-75"
                 >
                   Sign in
                 </Link>
                 <Link
-                  href="/sign-up"
+                  href="/auth/sign-up"
                   className="inline-block px-4 py-2 text-base font-medium text-indigo-600 bg-white border border-transparent rounded-md hover:bg-indigo-50"
                 >
                   Sign up

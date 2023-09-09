@@ -25,7 +25,7 @@ export default async function Protected() {
   `)
 
   return (
-    <>
+    <div className="space-y-4">
       <Head>
         <title>Protected Page</title>
       </Head>
@@ -41,6 +41,6 @@ export default async function Protected() {
           <li key={file.id}>{file.name}</li>
         ))}
       </ul>
-    </>
+    </div>
   )
 }
