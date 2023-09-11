@@ -304,7 +304,7 @@ export default function PricingPage() {
               }
               subFeatures={[
                 '50 included, then $5 per additional 50',
-                '10 hours of execution time included, then $2 per additional hour (billed per second)',
+                '10 hours of execution time included, then $0.18 per additional hour (billed per second)',
                 '60 sec timeout',
               ]}
             />
