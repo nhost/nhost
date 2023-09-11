@@ -32,20 +32,20 @@ export default function PortsFormSection() {
     name: 'ports',
   });
 
-  const formValues = useWatch<ServiceFormValues>();
+  const formValues = useWatch<ServiceFormValues & { subdomain: string }>();
 
   const onChangePortType = (value: string | undefined, index: number) =>
     setValue(`ports.${index}.type`, value as PortTypes);
 
   const showURL = (index: number) =>
+    formValues.subdomain &&
     formValues.ports[index]?.type === PortTypes.HTTP &&
     formValues.ports[index]?.publish;
 
-  const getPortURL = (_port: string | number, _name: string) => {
+  const getPortURL = (_port: string | number, subdomain: string) => {
     const port = Number(_port) > 0 ? Number(_port) : '[port]';
-    const name = _name && _name.length > 0 ? _name : '[name]';
 
-    return `https://${currentProject?.subdomain}-${name}-${port}.svc.${currentProject?.region.awsName}.${currentProject?.region.domain}`;
+    return `https://${subdomain}-${port}.svc.${currentProject?.region.awsName}.${currentProject?.region.domain}`;
   };
 
   return (
@@ -144,7 +144,7 @@ export default function PortsFormSection() {
                 title="URL"
                 value={getPortURL(
                   formValues.ports[index]?.port,
-                  formValues.name,
+                  formValues.subdomain,
                 )}
               />
             )}

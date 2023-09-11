@@ -9,6 +9,7 @@ query getRunServices(
       id
       createdAt
       updatedAt
+      subdomain
       config(resolve: $resolve) {
         name
         image {

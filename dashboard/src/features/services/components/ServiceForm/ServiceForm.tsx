@@ -37,12 +37,13 @@ import {
 } from '@/utils/__generated__/graphql';
 import type { ApolloError } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { parse } from 'shell-quote';
 import * as Yup from 'yup';
 import { ServiceConfirmationDialog } from './components/ServiceConfirmationDialog';
+import { ServiceDetailsDialog } from './components/ServiceDetailsDialog';
 
 export enum PortTypes {
   HTTP = 'http',
@@ -94,7 +95,7 @@ export interface ServiceFormProps extends DialogFormProps {
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: ServiceFormValues;
+  initialData?: ServiceFormValues & { subdomain?: string }; // subdomain is only set on the backend
 
   /**
    * Function to be called when the operation is cancelled.
@@ -119,6 +120,7 @@ export default function ServiceForm({
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [insertRunServiceConfig] = useInsertRunServiceConfigMutation();
   const [replaceRunServiceConfig] = useReplaceRunServiceConfigMutation();
+  const [detailsServiceId, setDetailsServiceId] = useState('');
 
   const [createServiceFormError, setCreateServiceFormError] =
     useState<Error | null>(null);
@@ -184,8 +186,20 @@ export default function ServiceForm({
     return config;
   };
 
+  const openServiceDetailsDialog = useCallback(
+    (_serviceId: string) => {
+      openDialog({
+        title: 'Service Details',
+        component: <ServiceDetailsDialog serviceID={_serviceId} />,
+      });
+    },
+    [openDialog],
+  );
+
   const createOrUpdateService = async (values: ServiceFormValues) => {
     const config = getFormattedConfig(values);
+
+    let $serviceId = serviceID;
 
     if (serviceID) {
       // Update service config
@@ -210,6 +224,8 @@ export default function ServiceForm({
         },
       });
 
+      $serviceId = newServiceID as string;
+
       await insertRunServiceConfig({
         variables: {
           appID: currentProject.id,
@@ -228,6 +244,8 @@ export default function ServiceForm({
         },
       });
     }
+
+    setDetailsServiceId($serviceId);
   };
 
   const handleSubmit = async (values: ServiceFormValues) => {
@@ -254,8 +272,6 @@ export default function ServiceForm({
         getToastStyleProps(),
       );
 
-      // await refetchWorkspaceAndProject();
-      // refestch the services
       onSubmit?.();
     } catch {
       // Note: The toast will handle the error.
@@ -276,6 +292,17 @@ export default function ServiceForm({
       ),
     });
   };
+
+  useEffect(() => {
+    (async () => {
+      if (detailsServiceId) {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 1000);
+        });
+        openServiceDetailsDialog(detailsServiceId);
+      }
+    })();
+  }, [detailsServiceId, openServiceDetailsDialog]);
 
   const pricingExplanation = () => {
     const vCPUs = `${formValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER} vCPUs`;
