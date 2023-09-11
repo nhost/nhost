@@ -21,7 +21,7 @@ export const signUp = async (formData: FormData) => {
   })
 
   if (session) {
-    cookies().set(NHOST_SESSION_KEY, JSON.stringify(session), {
+    cookies().set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), {
       sameSite: 'strict'
     })
 

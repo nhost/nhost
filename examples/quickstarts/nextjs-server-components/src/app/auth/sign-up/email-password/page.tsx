@@ -5,7 +5,7 @@ import Input from '@components/input'
 import SubmitButton from '@components/submit-button'
 import { useState } from 'react'
 
-export default function SignUp() {
+export default function SignUpWithEmailAndPassword() {
   const [error, setError] = useState('')
 
   async function handleSignUp(formData: FormData) {

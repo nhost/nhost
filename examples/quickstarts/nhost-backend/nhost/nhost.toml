@@ -66,7 +66,7 @@ expiresIn = 900
 enabled = false
 
 [auth.method.emailPasswordless]
-enabled = false
+enabled = true
 
 [auth.method.emailPassword]
 hibpEnabled = false

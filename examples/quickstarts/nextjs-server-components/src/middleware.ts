@@ -7,8 +7,6 @@ export async function middleware(request: NextRequest) {
   const nhost = await getNhost(request)
   const session = nhost.auth.getSession()
 
-  console.log({ session })
-
   if (!session && protectedRoutes.includes(request.nextUrl.pathname)) {
     return NextResponse.redirect(new URL('/auth/sign-in', request.url))
   }

@@ -3,49 +3,40 @@
 import Input from '@components/input'
 import SubmitButton from '@components/submit-button'
 import { NhostClient } from '@nhost/nhost-js'
-import Cookies from 'js-cookie'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState, type FormEvent } from 'react'
-
-const NHOST_SESSION_KEY = 'nhostSession'
+import { useState, type FormEvent } from 'react'
 
 const nhost = new NhostClient({
   subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN,
   region: process.env.NEXT_PUBLIC_NHOST_REGION
 })
 
-export default function SignInWithSecurityKey() {
-  const router = useRouter()
-  const [error, setError] = useState('')
+export default function SignInMagickLink() {
   const [email, setEmail] = useState('')
-
-  useEffect(() => {
-    nhost.auth.onAuthStateChanged((event, session) => {
-      if (event === 'SIGNED_IN') {
-        Cookies.set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { sameSite: 'strict' })
-        router.push('/protected')
-      }
-    })
-  }, [])
+  const [error, setError] = useState('')
+  const [isSuccess, setIsSuccess] = useState(false)
 
   const handleSignIn = async (e: FormEvent) => {
     e.preventDefault()
 
-    const { error } = await nhost.auth.signIn({
-      email,
-      securityKey: true
-    })
+    const { error } = await nhost.auth.signIn({ email })
 
     if (error) {
       setError(error.message)
+    } else {
+      setIsSuccess(true)
     }
   }
 
   return (
     <div className="flex flex-col items-center">
-      <h1 className="text-2xl font-semibold text-center">Sign In</h1>
+      <h1 className="text-2xl font-semibold text-center">Sign in with a magick link</h1>
 
       {error && <p className="mt-3 font-semibold text-center text-red-500">{error}</p>}
+      {isSuccess && (
+        <p className="mt-3 font-semibold text-center text-green-500">
+          Click the link in the email to finish the sign in process
+        </p>
+      )}
 
       <form className="w-full max-w-lg space-y-5" onSubmit={handleSignIn}>
         <Input
