@@ -76,6 +76,7 @@ export default function ServicesList({
           initialData={{
             ...service.config,
             image: service.config?.image?.image,
+            subdomain: service.subdomain,
             command: service.config?.command?.join(' '),
             ports: service.config?.ports?.map((item) => ({
               port: item.port,

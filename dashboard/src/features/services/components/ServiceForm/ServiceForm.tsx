@@ -43,6 +43,7 @@ import { toast } from 'react-hot-toast';
 import { parse } from 'shell-quote';
 import * as Yup from 'yup';
 import { ServiceConfirmationDialog } from './components/ServiceConfirmationDialog';
+import { ServiceDetailsDialog } from './components/ServiceDetailsDialog';
 
 export enum PortTypes {
   HTTP = 'http',
@@ -94,7 +95,7 @@ export interface ServiceFormProps extends DialogFormProps {
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: ServiceFormValues;
+  initialData?: ServiceFormValues & { subdomain?: string }; // subdomain is only set on the backend
 
   /**
    * Function to be called when the operation is cancelled.
@@ -119,6 +120,10 @@ export default function ServiceForm({
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [insertRunServiceConfig] = useInsertRunServiceConfigMutation();
   const [replaceRunServiceConfig] = useReplaceRunServiceConfigMutation();
+  const [detailsServiceId, setDetailsServiceId] = useState('');
+  const [detailsServiceSubdomain, setDetailsServiceSubdomain] = useState(
+    initialData.subdomain,
+  );
 
   const [createServiceFormError, setCreateServiceFormError] =
     useState<Error | null>(null);
@@ -196,11 +201,13 @@ export default function ServiceForm({
           config,
         },
       });
+
+      setDetailsServiceId(serviceID);
     } else {
       // Insert service config
       const {
         data: {
-          insertRunService: { id: newServiceID },
+          insertRunService: { id: newServiceID, subdomain },
         },
       } = await insertRunService({
         variables: {
@@ -227,6 +234,9 @@ export default function ServiceForm({
           },
         },
       });
+
+      setDetailsServiceId(newServiceID);
+      setDetailsServiceSubdomain(subdomain);
     }
   };
 
@@ -254,8 +264,6 @@ export default function ServiceForm({
         getToastStyleProps(),
       );
 
-      // await refetchWorkspaceAndProject();
-      // refestch the services
       onSubmit?.();
     } catch {
       // Note: The toast will handle the error.
@@ -276,6 +284,29 @@ export default function ServiceForm({
       ),
     });
   };
+
+  useEffect(() => {
+    (async () => {
+      if (detailsServiceId) {
+        openDialog({
+          title: 'Service Details',
+          component: (
+            <ServiceDetailsDialog
+              serviceID={detailsServiceId}
+              image={formValues.image}
+              subdomain={detailsServiceSubdomain}
+              ports={formValues.ports}
+            />
+          ),
+          props: {
+            PaperProps: {
+              className: 'max-w-2xl',
+            },
+          },
+        });
+      }
+    })();
+  }, [detailsServiceId, detailsServiceSubdomain, formValues, openDialog]);
 
   const pricingExplanation = () => {
     const vCPUs = `${formValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER} vCPUs`;
