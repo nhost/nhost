@@ -19,7 +19,8 @@ export const signInPATPromise = (
         isError: true,
         error: USER_ALREADY_SIGNED_IN,
         user: null,
-        accessToken: null
+        accessToken: null,
+        refreshToken: null
       })
     }
 
@@ -27,6 +28,7 @@ export const signInPATPromise = (
       if (state.matches({ authentication: { signedOut: 'failed' } })) {
         return resolve({
           accessToken: null,
+          refreshToken: null,
           user: null,
           error: state.context.errors.authentication || null,
           isError: true,
@@ -37,6 +39,7 @@ export const signInPATPromise = (
       if (state.matches({ authentication: 'signedIn' })) {
         return resolve({
           accessToken: state.context.accessToken.value,
+          refreshToken: state.context.refreshToken.value,
           user: state.context.user,
           error: null,
           isError: false,
