@@ -37,7 +37,7 @@ import {
 } from '@/utils/__generated__/graphql';
 import type { ApolloError } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { parse } from 'shell-quote';
@@ -121,6 +121,9 @@ export default function ServiceForm({
   const [insertRunServiceConfig] = useInsertRunServiceConfigMutation();
   const [replaceRunServiceConfig] = useReplaceRunServiceConfigMutation();
   const [detailsServiceId, setDetailsServiceId] = useState('');
+  const [detailsServiceSubdomain, setDetailsServiceSubdomain] = useState(
+    initialData.subdomain,
+  );
 
   const [createServiceFormError, setCreateServiceFormError] =
     useState<Error | null>(null);
@@ -186,20 +189,8 @@ export default function ServiceForm({
     return config;
   };
 
-  const openServiceDetailsDialog = useCallback(
-    (_serviceId: string) => {
-      openDialog({
-        title: 'Service Details',
-        component: <ServiceDetailsDialog serviceID={_serviceId} />,
-      });
-    },
-    [openDialog],
-  );
-
   const createOrUpdateService = async (values: ServiceFormValues) => {
     const config = getFormattedConfig(values);
-
-    let $serviceId = serviceID;
 
     if (serviceID) {
       // Update service config
@@ -210,11 +201,13 @@ export default function ServiceForm({
           config,
         },
       });
+
+      setDetailsServiceId(serviceID);
     } else {
       // Insert service config
       const {
         data: {
-          insertRunService: { id: newServiceID },
+          insertRunService: { id: newServiceID, subdomain },
         },
       } = await insertRunService({
         variables: {
@@ -223,8 +216,6 @@ export default function ServiceForm({
           },
         },
       });
-
-      $serviceId = newServiceID as string;
 
       await insertRunServiceConfig({
         variables: {
@@ -243,9 +234,10 @@ export default function ServiceForm({
           },
         },
       });
-    }
 
-    setDetailsServiceId($serviceId);
+      setDetailsServiceId(newServiceID);
+      setDetailsServiceSubdomain(subdomain);
+    }
   };
 
   const handleSubmit = async (values: ServiceFormValues) => {
@@ -296,13 +288,25 @@ export default function ServiceForm({
   useEffect(() => {
     (async () => {
       if (detailsServiceId) {
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
+        openDialog({
+          title: 'Service Details',
+          component: (
+            <ServiceDetailsDialog
+              serviceID={detailsServiceId}
+              image={formValues.image}
+              subdomain={detailsServiceSubdomain}
+              ports={formValues.ports}
+            />
+          ),
+          props: {
+            PaperProps: {
+              className: 'max-w-2xl',
+            },
+          },
         });
-        openServiceDetailsDialog(detailsServiceId);
       }
     })();
-  }, [detailsServiceId, openServiceDetailsDialog]);
+  }, [detailsServiceId, detailsServiceSubdomain, formValues, openDialog]);
 
   const pricingExplanation = () => {
     const vCPUs = `${formValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER} vCPUs`;

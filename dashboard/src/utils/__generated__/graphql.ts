@@ -21490,7 +21490,7 @@ export type InsertRunServiceMutationVariables = Exact<{
 }>;
 
 
-export type InsertRunServiceMutation = { __typename?: 'mutation_root', insertRunService?: { __typename?: 'run_service', id: any, appID: any } | null };
+export type InsertRunServiceMutation = { __typename?: 'mutation_root', insertRunService?: { __typename?: 'run_service', id: any, subdomain: string } | null };
 
 export type InsertRunServiceConfigMutationVariables = Exact<{
   appID: Scalars['uuid'];
@@ -24854,7 +24854,7 @@ export const InsertRunServiceDocument = gql`
     mutation insertRunService($object: run_service_insert_input!) {
   insertRunService(object: $object) {
     id
-    appID
+    subdomain
   }
 }
     `;
