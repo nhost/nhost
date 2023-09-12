@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.12
+
+### Patch Changes
+
+- b7c799d62: feat(run): add dialog to copy registry and URLs
+
 ## 0.20.11
 
 ### Patch Changes
