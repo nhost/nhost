@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.13
+
+### Patch Changes
+
+- e84acf469: fix(run): handle subdomain undefined error when creating a new service
+
 ## 0.20.12
 
 ### Patch Changes
