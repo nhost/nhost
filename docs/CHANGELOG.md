@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.5.1
+
+### Patch Changes
+
+- 819e1e97d: update fqdn format for nhost run
+
 ## 0.5.0
 
 ### Minor Changes
