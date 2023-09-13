@@ -71,12 +71,12 @@ export default function RunHeroSection() {
 
         <div className="flex items-center justify-center space-x-2 rounded-xl bg-paper py-2">
           <a
-            href="https://lyrrkocvcfbfmmnicyuv-cat-generator-5000.svc.eu-central-1.nhost.run/cat"
+            href="https://tcspovfliddfqpzfloes-5000.svc.eu-central-1.nhost.run/cat"
             target="_blank"
             rel="noreferrer noopener"
             className="z-50 hover:underline"
           >
-            https://lyrrkocvcfbfmmnicyuv-cat-generator-5000.svc.eu-central-1.nhost.run/cat
+            https://tcspovfliddfqpzfloes-5000.svc.eu-central-1.nhost.run/cat
           </a>
           <div className="flex h-6 w-6 items-center ">
             <ArrowLeftIcon className="animate-bounce-right-left text-brand-main" />
