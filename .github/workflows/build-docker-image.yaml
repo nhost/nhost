@@ -47,7 +47,7 @@ jobs:
         name: hasura-storage
         authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-    - uses: docker/setup-qemu-action@v2
+    - uses: docker/setup-qemu-action@v3
 
     - name: Login to DockerHub
       uses: docker/login-action@v3
