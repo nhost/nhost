@@ -32,7 +32,6 @@ export const signUpEmailPasswordPromise = (
       return resolve({
         error: USER_ALREADY_SIGNED_IN,
         accessToken: context.accessToken.value,
-        refreshToken: context.refreshToken.value,
         isError: true,
         isSuccess: false,
         needsEmailVerification: false,
@@ -43,7 +42,6 @@ export const signUpEmailPasswordPromise = (
       if (state.matches('registration.incomplete.failed')) {
         resolve({
           accessToken: null,
-          refreshToken: null,
           error: state.context.errors.registration || null,
           isError: true,
           isSuccess: false,
@@ -58,7 +56,6 @@ export const signUpEmailPasswordPromise = (
       ) {
         resolve({
           accessToken: null,
-          refreshToken: null,
           error: null,
           isError: false,
           isSuccess: false,
@@ -68,7 +65,6 @@ export const signUpEmailPasswordPromise = (
       } else if (state.matches({ authentication: 'signedIn', registration: 'complete' })) {
         resolve({
           accessToken: state.context.accessToken.value,
-          refreshToken: context.refreshToken.value,
           error: null,
           isError: false,
           isSuccess: true,
