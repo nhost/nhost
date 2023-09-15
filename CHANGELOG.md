@@ -1,5 +1,11 @@
 ## Changelog
 
+## 0.21.3
+
+### Patch Changes
+
+- 4eff7f4: fix: send back refresh token upon sign-in with pat
+
 ## 0.21.2
 
 ### Patch Changes
