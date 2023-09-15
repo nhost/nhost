@@ -164,7 +164,7 @@ func expectedConsole() *Service {
 			"HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS":          "true",
 			"HASURA_GRAPHQL_ENABLE_TELEMETRY":                          "false",
 			"HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE":                     "100",
-			"HASURA_GRAPHQL_JWT_SECRET":                                `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}`,
+			"HASURA_GRAPHQL_JWT_SECRET":                                `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}`, //nolint:lll
 			"HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE":       "100",
 			"HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL": "1000",
 			"HASURA_GRAPHQL_LOG_LEVEL":                                 "info",
@@ -181,7 +181,7 @@ func expectedConsole() *Service {
 			"NHOST_FUNCTIONS_URL":                                      "http://local.functions.nhost.run:1337/v1",
 			"NHOST_GRAPHQL_URL":                                        "http://local.graphql.nhost.run:1337/v1",
 			"NHOST_HASURA_URL":                                         "http://local.hasura.nhost.run:1337",
-			"NHOST_JWT_SECRET":                                         `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}`,
+			"NHOST_JWT_SECRET":                                         `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}`, //nolint:lll
 			"NHOST_REGION":                                             "",
 			"NHOST_STORAGE_URL":                                        "http://local.storage.nhost.run:1337/v1",
 			"NHOST_SUBDOMAIN":                                          "local",

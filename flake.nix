@@ -55,6 +55,7 @@
 
         nativeBuildInputs = with pkgs; [
           go
+          clang
         ];
 
         tags = [ ];

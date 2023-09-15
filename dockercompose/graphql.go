@@ -138,7 +138,7 @@ func console( //nolint:funlen
 		DependsOn: map[string]DependsOn{
 			"graphql": {Condition: "service_healthy"},
 		},
-		EntryPoint: nil,
+		EntryPoint:  nil,
 		Environment: env,
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
