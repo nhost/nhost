@@ -37,10 +37,10 @@ export interface AnnouncementContextProps {
 
 // Note: You can define the active announcement here.
 const announcement: AnnouncementType = {
-  id: 'nhost-run',
-  href: 'https://discord.com/invite/9V7Qb2U',
+  id: 'node-18',
+  href: 'https://github.com/nhost/nhost/discussions/2239',
   content:
-    'Now you can bring custom and third-party OSS services to run alongside your Nhost projects',
+    "Starting October 1st, we're upgrading to Node.js 18 for improved performance, security, and stability. Learn more.",
 };
 
 export const AnnouncementContext = createContext<AnnouncementContextProps>({});
