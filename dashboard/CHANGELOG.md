@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.14
+
+### Patch Changes
+
+- 9fbea9787: feat: add node18 announcement
+
 ## 0.20.13
 
 ### Patch Changes
