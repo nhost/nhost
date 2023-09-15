@@ -99,6 +99,24 @@ func console( //nolint:funlen
 		scheme = "https"
 	}
 
+	envars, err := appconfig.HasuraEnv(
+		cfg,
+		"local",
+		"",
+		"nhost.run",
+		"postgres://nhost_hasura@postgres:5432/local",
+		useTLS,
+		httpPort,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get hasura env vars: %w", err)
+	}
+
+	env := make(map[string]string, len(envars))
+	for _, v := range envars {
+		env[v.Name] = v.Value
+	}
+
 	return &Service{
 		Image: fmt.Sprintf(
 			"nhost/graphql-engine:%s.cli-migrations-v3",
@@ -121,10 +139,7 @@ func console( //nolint:funlen
 			"graphql": {Condition: "service_healthy"},
 		},
 		EntryPoint: nil,
-		Environment: map[string]string{
-			"HASURA_GRAPHQL_ADMIN_SECRET": cfg.GetHasura().GetAdminSecret(),
-			"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_hasura@postgres:5432/local",
-		},
+		Environment: env,
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
 			"local.auth.nhost.run:host-gateway",
