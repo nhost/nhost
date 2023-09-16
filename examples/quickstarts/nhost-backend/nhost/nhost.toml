@@ -28,7 +28,7 @@ httpPoolSize = 100
 version = 16
 
 [auth]
-version = '0.20.1'
+version = '0.21.3'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000/oauth'
@@ -56,10 +56,10 @@ rating = 'g'
 
 [auth.session]
 [auth.session.accessToken]
-expiresIn = 30
+expiresIn = 900
 
 [auth.session.refreshToken]
-expiresIn = 900
+expiresIn = 43200
 
 [auth.method]
 [auth.method.anonymous]
