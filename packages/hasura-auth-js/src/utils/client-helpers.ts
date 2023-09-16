@@ -3,13 +3,7 @@ import { SessionActionHandlerResult } from '../promises'
 import { NhostSession, SignUpResponse } from '../types'
 
 export const getSession = (context?: AuthContext): NhostSession | null => {
-  if (
-    !context ||
-    !context.accessToken.value ||
-    !context.refreshToken.value ||
-    !context.accessToken.expiresAt ||
-    !context.user
-  ) {
+  if (!context || !context.accessToken.value || !context.accessToken.expiresAt || !context.user) {
     return null
   }
   return {
