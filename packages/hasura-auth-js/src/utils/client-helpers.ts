@@ -16,6 +16,7 @@ export const getSession = (context?: AuthContext): NhostSession | null => {
 
 export const getAuthenticationResult = ({
   accessToken,
+  refreshToken,
   isError,
   user,
   error
@@ -29,7 +30,7 @@ export const getAuthenticationResult = ({
   if (user && accessToken) {
     return {
       // TODO either return the refresh token or remove it from the session type
-      session: { accessToken, accessTokenExpiresIn: 0, refreshToken: '', user },
+      session: { accessToken, accessTokenExpiresIn: 0, refreshToken: refreshToken, user },
       error: null
     }
   }
