@@ -32,8 +32,6 @@ export const getNhost = async (request?: NextRequest) => {
   const sessionCookieValue = $cookies.get(NHOST_SESSION_KEY)?.value || ''
   const initialSession: NhostSession = JSON.parse(atob(sessionCookieValue) || 'null')
 
-  console.log(initialSession)
-
   nhost.auth.client.start({ initialSession })
   await waitFor(nhost.auth.client.interpreter!, (state: StateFrom<any>) => !state.hasTag('loading'))
 

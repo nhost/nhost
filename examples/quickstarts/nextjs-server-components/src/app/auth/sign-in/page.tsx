@@ -33,6 +33,13 @@ export default function SignIn() {
         </button>
 
         <button
+          className="inline-flex items-center justify-center w-full px-4 py-2 text-base font-medium text-white bg-indigo-600 border border-transparent rounded-lg shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:outline-none"
+          onClick={() => router.push('/auth/sign-in/pat')}
+        >
+          with a Personal Access Token
+        </button>
+
+        <button
           type="button"
           className="text-white w-full bg-[#4285F4] hover:bg-[#4285F4]/90 focus:ring-4 focus:outline-none focus:ring-[#4285F4]/50 font-medium rounded-lg px-5 py-2.5 text-center inline-flex items-center justify-between dark:focus:ring-[#4285F4]/55 mr-2 mb-2"
           onClick={() => signInWithGoogle()}

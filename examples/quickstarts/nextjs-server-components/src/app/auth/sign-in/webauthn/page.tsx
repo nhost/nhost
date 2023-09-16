@@ -5,7 +5,7 @@ import SubmitButton from '@components/submit-button'
 import { NhostClient } from '@nhost/nhost-js'
 import Cookies from 'js-cookie'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 
 const NHOST_SESSION_KEY = 'nhostSession'
 
@@ -19,25 +19,21 @@ export default function SignInWithSecurityKey() {
   const [error, setError] = useState('')
   const [email, setEmail] = useState('')
 
-  useEffect(() => {
-    nhost.auth.onAuthStateChanged((event, session) => {
-      if (event === 'SIGNED_IN') {
-        Cookies.set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { sameSite: 'strict' })
-        router.push('/protected')
-      }
-    })
-  }, [])
-
   const handleSignIn = async (e: FormEvent) => {
     e.preventDefault()
 
-    const { error } = await nhost.auth.signIn({
+    const { session, error } = await nhost.auth.signIn({
       email,
       securityKey: true
     })
 
     if (error) {
       setError(error.message)
+    }
+
+    if (session) {
+      Cookies.set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { sameSite: 'strict' })
+      router.push('/protected')
     }
   }
 

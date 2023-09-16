@@ -58,6 +58,28 @@ export const signIn = async (formData: FormData) => {
   }
 }
 
+export const signInWithPAT = async (formData: FormData) => {
+  const nhost = await getNhost()
+
+  const pat = formData.get('pat') as string
+
+  const { session, error } = await nhost.auth.signInPAT(pat)
+
+  if (session) {
+    cookies().set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), {
+      sameSite: 'strict'
+    })
+
+    redirect('/protected')
+  }
+
+  if (error) {
+    return {
+      error: error?.message
+    }
+  }
+}
+
 export const signInWithGoogle = async () => {
   const nhost = await getNhost()
 
