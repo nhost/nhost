@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.20.15
+
+### Patch Changes
+
+- ed16c8b5d: feat(run): add a confirmation dialog when deleting a run service
+- 216990888: fix(run): center loading indicator when selecting a project
+
 ## 0.20.14
 
 ### Patch Changes
