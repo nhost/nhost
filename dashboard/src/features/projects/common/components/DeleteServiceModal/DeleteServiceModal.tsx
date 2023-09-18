@@ -46,7 +46,7 @@ export default function DeleteServiceModal({
     await toast.promise(
       deleteServiceAndConfig(),
       {
-        loading: 'Deleteing the service...',
+        loading: 'Deleting the service...',
         success: `The service has been deleted successfully.`,
         error: (arg: ApolloError) => {
           // we need to get the internal error message from the GraphQL error
