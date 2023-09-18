@@ -133,10 +133,12 @@ export default function SelectWorkspaceAndProject() {
 
   if (loading) {
     return (
-      <ActivityIndicator
-        delay={500}
-        label="Loading workspaces and projects..."
-      />
+      <div className="flex w-full justify-center">
+        <ActivityIndicator
+          delay={500}
+          label="Loading workspaces and projects..."
+        />
+      </div>
     );
   }
 
