@@ -10,21 +10,14 @@ import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { DeleteServiceModal } from '@/features/projects/common/components/DeleteServiceModal';
 import {
   ServiceForm,
   type PortTypes,
 } from '@/features/services/components/ServiceForm';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
-import {
-  useDeleteRunServiceConfigMutation,
-  useDeleteRunServiceMutation,
-} from '@/utils/__generated__/graphql';
-import type { ApolloError } from '@apollo/client';
 import { formatDistanceToNow } from 'date-fns';
 import type { RunService } from 'pages/[workspaceSlug]/[appSlug]/services';
-import { toast } from 'react-hot-toast';
 
 interface ServicesListProps {
   /**
@@ -51,16 +44,7 @@ export default function ServicesList({
   onCreateOrUpdate,
   onDelete,
 }: ServicesListProps) {
-  const { openDrawer } = useDialog();
-  const [deleteRunService] = useDeleteRunServiceMutation();
-  const { currentProject } = useCurrentWorkspaceAndProject();
-  const [deleteRunServiceConfig] = useDeleteRunServiceConfigMutation();
-
-  const deleteServiceAndConfig = async (appID: string, serviceID: string) => {
-    await deleteRunService({ variables: { serviceID } });
-    await deleteRunServiceConfig({ variables: { appID, serviceID } });
-    await onDelete?.();
-  };
+  const { openDrawer, openDialog, closeDialog } = useDialog();
 
   const viewService = async (service: RunService) => {
     openDrawer({
@@ -96,28 +80,16 @@ export default function ServicesList({
     });
   };
 
-  const deleteService = async (serviceID: string) => {
-    await toast.promise(
-      deleteServiceAndConfig(currentProject.id, serviceID),
-      {
-        loading: 'Deleteing the service...',
-        success: `The service has been deleted successfully.`,
-        error: (arg: ApolloError) => {
-          // we need to get the internal error message from the GraphQL error
-          const { internal } = arg.graphQLErrors[0]?.extensions || {};
-          const { message } = (internal as Record<string, any>)?.error || {};
-
-          // we use the default Apollo error message if we can't find the
-          // internal error message
-          return (
-            message ||
-            arg.message ||
-            'An error occurred while deleting the service. Please try again.'
-          );
-        },
-      },
-      getToastStyleProps(),
-    );
+  const deleteService = async (service: RunService) => {
+    openDialog({
+      component: (
+        <DeleteServiceModal
+          service={service}
+          close={closeDialog}
+          onDelete={onDelete}
+        />
+      ),
+    });
   };
 
   return (
@@ -204,7 +176,7 @@ export default function ServicesList({
               <Dropdown.Item
                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                 sx={{ color: 'error.main' }}
-                onClick={() => deleteService(service.id)}
+                onClick={() => deleteService(service)}
               >
                 <TrashIcon className="h-4 w-4" />
                 <Text className="font-medium" color="error">
