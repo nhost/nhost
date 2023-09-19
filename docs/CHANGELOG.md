@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.6.0
+
+### Minor Changes
+
+- 9aaa407d2: Fix messaging around Run's private beta
+
 ## 0.5.1
 
 ### Patch Changes
