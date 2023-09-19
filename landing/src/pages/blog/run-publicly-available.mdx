@@ -1,0 +1,64 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Nhost Run enters Public Beta!',
+  description:
+    'Bake any application with Nhost Run.',
+  image: '/images/blog/run-publicly-available/og-run-bun.png',
+  date: '2023-08-01',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'Nhost Run'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Over the past few weeks, we've received invaluable feedback from Run's early adopters, and we're excited to announce that [Nhost Run](https://nhost.io/product/run) is now transitioning from private to public beta. We've seen its early adopters successfully extend their infrastructure backends with their own API services, from ML pipelines and complex automation workflows with off-the-shelf solutions, to deploying ClamAV alongside Nhost Storage. We've addressed all the edges we found during this time, and we're confident that Nhost Run is our most ambitious feature yet, ready for the spotlight! If you're new to this, please read the announcement [blog post](https://nhost.io/blog/run) where we delve deeper into what Run is and the problem it aims to solve.
+
+## My name is Bun, Nhost Bun
+
+When we first introduced Run in its private beta, we showcased how effortlessly one could extend Nhost with a custom service using Python+Flask to fetch pictures of cats. Today, we're unveiling an example that employs Bun! If you're unfamiliar, Bun is a dynamic all-in-one JavaScript toolkit that serves not just as a runtime but also as a package manager, test runner, and bundler. You can learn more about Bun [here](https://bun.sh). Kudos to the Bun team for reaching their 1.0 milestone just a few days ago!
+
+
+### One-Click Install Links
+
+Run now supports one-click install links. These are shareable links that map directly to a Run Service configuration, allowing users to deploy new services with minimal clicks and zero configuration hassle. This feature simplifies the deployment process, making it more user-friendly and efficient.
+
+To demonstrate, we'll deploy the Bun Bakery API using the provided [install link](https://app.nhost.io:/run-one-click-install?config=eyJuYW1lIjoiYnVuLWdlbmVyYXRvciIsImltYWdlIjp7ImltYWdlIjoibmhvc3QvYnVuLWdlbmVyYXRvcjowLjAuMyJ9LCJjb21tYW5kIjpbXSwicmVzb3VyY2VzIjp7ImNvbXB1dGUiOnsiY3B1Ijo2MiwibWVtb3J5IjoxMjh9LCJzdG9yYWdlIjpbXSwicmVwbGljYXMiOjF9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6IlBFWEVMU19BUElfS0VZIiwidmFsdWUiOiJbWU9VUi1BUEktS0VZXSJ9XSwicG9ydHMiOlt7InBvcnQiOjUwMDAsInR5cGUiOiJodHRwIiwicHVibGlzaCI6dHJ1ZX1dfQ==). (Note: Deploying it in your projects requires your own API key for the Pexels' API). When using the one-click install link, the form for a new run service is pre-filled with all necessary configuration:
+
+![New Run Service](/images/blog/run-publicly-available/run-service-install-link.png)
+
+After inputting the correct PEXELS_API_KEY and hitting "Create", voila! We have a Bun v1.0 application seamlessly integrated with Postgres, Hasura, Auth, and Storage. Freshly baked cakes just out of the oven can be found [here](https://uuetgevisbgbnvxpmmvl-5000.svc.eu-central-1.nhost.run/bun). As we like to say, it's truly "a piece of cake".
+
+The source code for the Bun program is available in this [repository](https://github.com/nhost/nhost-run-bun-generator).
+
+Other Examples of one-click install links:
+- [cat-generator](https://app.nhost.io:/run-one-click-install?config=eyJuYW1lIjoiY2F0LWdlbmVyYXRvciIsImltYWdlIjp7ImltYWdlIjoibmhvc3QvY2F0LWdlbmVyYXRvcjowLjAuMSJ9LCJjb21tYW5kIjpbXSwicmVzb3VyY2VzIjp7ImNvbXB1dGUiOnsiY3B1IjoxODcsIm1lbW9yeSI6Mzg0fSwic3RvcmFnZSI6W10sInJlcGxpY2FzIjoxfSwiZW52aXJvbm1lbnQiOltdLCJwb3J0cyI6W3sicG9ydCI6NTAwMCwidHlwZSI6Imh0dHAiLCJwdWJsaXNoIjp0cnVlfV19) from the previous blog post. No API key required.
+
+- Looking to enhance Postgres' full-text search? Deploy [Meilisearch](https://app.nhost.io:/run-one-click-install?config=eyJuYW1lIjoibWVpbGlzZWFyY2giLCJpbWFnZSI6eyJpbWFnZSI6ImdldG1laWxpL21laWxpc2VhcmNoOnYxLjMifSwiY29tbWFuZCI6W10sInJlc291cmNlcyI6eyJjb21wdXRlIjp7ImNwdSI6MTg3LCJtZW1vcnkiOjM4NH0sInN0b3JhZ2UiOlt7Im5hbWUiOiJtZWlsaS1kYXRhIiwicGF0aCI6Ii9tZWlsaS1kYXRhIiwiY2FwYWNpdHkiOjF9XSwicmVwbGljYXMiOjF9LCJlbnZpcm9ubWVudCI6W3sibmFtZSI6Ik1FSUxJX0VOViIsInZhbHVlIjoicHJvZHVjdGlvbiJ9LHsibmFtZSI6Ik1FSUxJX01BU1RFUl9LRVkiLCJ2YWx1ZSI6IjNweStMempEdkFuR3YrclJpcUYvSENKcnVheW5WUENjRDN0ZUhFMXJSa2E5ZnRveEVqMzJPQ25rMktEQjlSMWMifSx7Im5hbWUiOiJNRUlMSV9OT19BTkFMWVRJQ1MiLCJ2YWx1ZSI6InRydWUifV0sInBvcnRzIjpbeyJwb3J0Ijo3NzAwLCJ0eXBlIjoiaHR0cCIsInB1Ymxpc2giOnRydWV9XX0=) with a click. You can generate a new Master Key with `openssl rand -base64 48`.  
+
+These examples highlight the ease with which you can run services in your preferred language and runtime, be it Python, Bun, Rust, or Haskell. Stay tuned as we'll be sharing more handy install links for integrations tailored to your use-cases.
+
+## Benefits of Run
+
+- Flexibility and Customizability: Backend services can be extended beyond our standard stack of Postgres, Hasura, Auth, and Storage.
+- Minimal Latency: All services run in close proximity.
+- No Egress: No additional egress costs for transfering data between services.
+- Reliability: Services can communicate without requiring internet connection.
+- Integrated Operations: All workloads in the same place.
+
+## Conclusion
+
+Nhost Run is now accessible to everyone. We're eager to see how our users will augment Nhost, customizing their backends to their unique needs. With Run, you get the best of both worlds: the convenience of a pre-configured tech stack and the extensibility and control of platforms like Render or Heroku. We value your feedback and insights. As you explore Nhost Run in its public beta phase, please share your experiences and suggestions with us.
+
+## Next
+
+Give Nhost Run a try and let us know what you think! To learn more, please refer to the [product](https://nhost.io/product/run) and [documentation](https://docs.nhost.io/run) pages.
+
