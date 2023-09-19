@@ -1,4 +1,4 @@
-import { FeedbackForm } from '@/components/common/FeedbackForm';
+import { ContactUs } from '@/components/common/ContactUs';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v2/Button';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
@@ -99,7 +99,7 @@ export default function AppLoader({
             anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             transformOrigin={{ vertical: 'top', horizontal: 'center' }}
           >
-            <FeedbackForm />
+            <ContactUs />
           </Dropdown.Content>
         </Dropdown.Root>
       )}

@@ -1,4 +1,4 @@
-import { FeedbackForm } from '@/components/common/FeedbackForm';
+import { ContactUs } from '@/components/common/ContactUs';
 import { NavLink } from '@/components/common/NavLink';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import { Nav } from '@/components/presentational/Nav';
@@ -171,7 +171,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                       className="w-full"
                       role={undefined}
                     >
-                      <ListItem.Text>Feedback</ListItem.Text>
+                      <ListItem.Text>Contact us</ListItem.Text>
                     </ListItem.Button>
                   </ListItem.Root>
                 </Dropdown.Trigger>
@@ -180,7 +180,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
                   transformOrigin={{ vertical: 'top', horizontal: 'center' }}
                   anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                 >
-                  <FeedbackForm className="max-w-md" />
+                  <ContactUs className="max-w-md" />
                 </Dropdown.Content>
               </Dropdown.Root>
             )}

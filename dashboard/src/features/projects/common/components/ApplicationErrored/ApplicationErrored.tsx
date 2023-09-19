@@ -1,4 +1,4 @@
-import { FeedbackForm } from '@/components/common/FeedbackForm';
+import { ContactUs } from '@/components/common/ContactUs';
 import { Container } from '@/components/layout/Container';
 import { Modal } from '@/components/ui/v1/Modal';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -250,7 +250,7 @@ export default function ApplicationErrored() {
               anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
               transformOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
-              <FeedbackForm />
+              <ContactUs />
             </Dropdown.Content>
           </Dropdown.Root>
 
