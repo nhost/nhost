@@ -30,12 +30,6 @@ export default function RunHeroSection() {
           <h2 className="font-mona text-3.5xl font-semibold md:text-4.5xl">
             Run
           </h2>
-          <div className="flex items-center self-end rounded-full bg-brand-dark">
-            <div className="grid h-8 w-8 place-content-center rounded-full bg-brand-main">
-              β
-            </div>
-            <span className="pl-3 pr-4 text-xs">Private Beta</span>
-          </div>
         </div>
 
         <SectionHeading
