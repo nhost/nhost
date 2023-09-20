@@ -1271,26 +1271,6 @@ export type ConfigHasuraUpdateInput = {
   webhookSecret?: InputMaybe<Scalars['String']>;
 };
 
-export type ConfigIngress = {
-  __typename?: 'ConfigIngress';
-  fqdn?: Maybe<Array<Scalars['String']>>;
-};
-
-export type ConfigIngressComparisonExp = {
-  _and?: InputMaybe<Array<ConfigIngressComparisonExp>>;
-  _not?: InputMaybe<ConfigIngressComparisonExp>;
-  _or?: InputMaybe<Array<ConfigIngressComparisonExp>>;
-  fqdn?: InputMaybe<ConfigStringComparisonExp>;
-};
-
-export type ConfigIngressInsertInput = {
-  fqdn?: InputMaybe<Array<Scalars['String']>>;
-};
-
-export type ConfigIngressUpdateInput = {
-  fqdn?: InputMaybe<Array<Scalars['String']>>;
-};
-
 export type ConfigInsertConfigResponse = {
   __typename?: 'ConfigInsertConfigResponse';
   config: ConfigConfig;
@@ -1371,26 +1351,6 @@ export type ConfigLocaleComparisonExp = {
   _in?: InputMaybe<Array<Scalars['ConfigLocale']>>;
   _neq?: InputMaybe<Scalars['ConfigLocale']>;
   _nin?: InputMaybe<Array<Scalars['ConfigLocale']>>;
-};
-
-export type ConfigNetworking = {
-  __typename?: 'ConfigNetworking';
-  ingresses?: Maybe<Array<ConfigIngress>>;
-};
-
-export type ConfigNetworkingComparisonExp = {
-  _and?: InputMaybe<Array<ConfigNetworkingComparisonExp>>;
-  _not?: InputMaybe<ConfigNetworkingComparisonExp>;
-  _or?: InputMaybe<Array<ConfigNetworkingComparisonExp>>;
-  ingresses?: InputMaybe<ConfigIngressComparisonExp>;
-};
-
-export type ConfigNetworkingInsertInput = {
-  ingresses?: InputMaybe<Array<ConfigIngressInsertInput>>;
-};
-
-export type ConfigNetworkingUpdateInput = {
-  ingresses?: InputMaybe<Array<ConfigIngressUpdateInput>>;
 };
 
 export type ConfigObservability = {
@@ -1478,7 +1438,6 @@ export type ConfigProviderUpdateInput = {
 export type ConfigResources = {
   __typename?: 'ConfigResources';
   compute: ConfigResourcesCompute;
-  networking?: Maybe<ConfigNetworking>;
   /** Number of replicas for a service */
   replicas: Scalars['ConfigUint8'];
 };
@@ -1488,7 +1447,6 @@ export type ConfigResourcesComparisonExp = {
   _not?: InputMaybe<ConfigResourcesComparisonExp>;
   _or?: InputMaybe<Array<ConfigResourcesComparisonExp>>;
   compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
-  networking?: InputMaybe<ConfigNetworkingComparisonExp>;
   replicas?: InputMaybe<ConfigUint8ComparisonExp>;
 };
 
@@ -1520,13 +1478,11 @@ export type ConfigResourcesComputeUpdateInput = {
 
 export type ConfigResourcesInsertInput = {
   compute: ConfigResourcesComputeInsertInput;
-  networking?: InputMaybe<ConfigNetworkingInsertInput>;
   replicas: Scalars['ConfigUint8'];
 };
 
 export type ConfigResourcesUpdateInput = {
   compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
-  networking?: InputMaybe<ConfigNetworkingUpdateInput>;
   replicas?: InputMaybe<Scalars['ConfigUint8']>;
 };
 
@@ -1598,7 +1554,6 @@ export type ConfigRunServiceImageUpdateInput = {
 
 export type ConfigRunServicePort = {
   __typename?: 'ConfigRunServicePort';
-  ingress?: Maybe<ConfigIngress>;
   port: Scalars['ConfigPort'];
   publish?: Maybe<Scalars['Boolean']>;
   type: Scalars['String'];
@@ -1608,21 +1563,18 @@ export type ConfigRunServicePortComparisonExp = {
   _and?: InputMaybe<Array<ConfigRunServicePortComparisonExp>>;
   _not?: InputMaybe<ConfigRunServicePortComparisonExp>;
   _or?: InputMaybe<Array<ConfigRunServicePortComparisonExp>>;
-  ingress?: InputMaybe<ConfigIngressComparisonExp>;
   port?: InputMaybe<ConfigPortComparisonExp>;
   publish?: InputMaybe<ConfigBooleanComparisonExp>;
   type?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigRunServicePortInsertInput = {
-  ingress?: InputMaybe<ConfigIngressInsertInput>;
   port: Scalars['ConfigPort'];
   publish?: InputMaybe<Scalars['Boolean']>;
   type: Scalars['String'];
 };
 
 export type ConfigRunServicePortUpdateInput = {
-  ingress?: InputMaybe<ConfigIngressUpdateInput>;
   port?: InputMaybe<Scalars['ConfigPort']>;
   publish?: InputMaybe<Scalars['Boolean']>;
   type?: InputMaybe<Scalars['String']>;
@@ -1854,10 +1806,7 @@ export type ConfigStandardOauthProviderWithScopeUpdateInput = {
 export type ConfigStorage = {
   __typename?: 'ConfigStorage';
   antivirus?: Maybe<ConfigStorageAntivirus>;
-  /**
-   * Networking (custom domains at the moment) are not allowed as we need to do further
-   * configurations in the CDN. We will enable it again in the future.
-   */
+  /** Resources for the service */
   resources?: Maybe<ConfigResources>;
   /**
    * Version of storage service, you can see available versions in the URL below:
@@ -2796,6 +2745,7 @@ export type Apps = {
   /** An object relationship */
   creator?: Maybe<Users>;
   creatorUserId?: Maybe<Scalars['uuid']>;
+  currentState?: Maybe<Scalars['Int']>;
   /** An array relationship */
   deployments: Array<Deployments>;
   /** An aggregate relationship */
@@ -2833,6 +2783,7 @@ export type Apps = {
   /** An aggregate relationship */
   runServices_aggregate: Run_Service_Aggregate;
   slug: Scalars['String'];
+  stateMatch?: Maybe<Scalars['Boolean']>;
   stripeSubscriptionId?: Maybe<Scalars['String']>;
   subdomain: Scalars['String'];
   systemConfig?: Maybe<ConfigSystemConfig>;
@@ -3041,11 +2992,13 @@ export type Apps_Arr_Rel_Insert_Input = {
 /** aggregate avg on columns */
 export type Apps_Avg_Fields = {
   __typename?: 'apps_avg_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by avg() on columns of table "apps" */
 export type Apps_Avg_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
@@ -3065,6 +3018,7 @@ export type Apps_Bool_Exp = {
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   creator?: InputMaybe<Users_Bool_Exp>;
   creatorUserId?: InputMaybe<Uuid_Comparison_Exp>;
+  currentState?: InputMaybe<Int_Comparison_Exp>;
   deployments?: InputMaybe<Deployments_Bool_Exp>;
   deployments_aggregate?: InputMaybe<Deployments_Aggregate_Bool_Exp>;
   desiredAppState?: InputMaybe<AppStates_Bool_Exp>;
@@ -3091,6 +3045,7 @@ export type Apps_Bool_Exp = {
   runServices?: InputMaybe<Run_Service_Bool_Exp>;
   runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Bool_Exp>;
   slug?: InputMaybe<String_Comparison_Exp>;
+  stateMatch?: InputMaybe<Boolean_Comparison_Exp>;
   stripeSubscriptionId?: InputMaybe<String_Comparison_Exp>;
   subdomain?: InputMaybe<String_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -3125,6 +3080,7 @@ export type Apps_Delete_Key_Input = {
 
 /** input type for incrementing numeric columns in table "apps" */
 export type Apps_Inc_Input = {
+  currentState?: InputMaybe<Scalars['Int']>;
   desiredState?: InputMaybe<Scalars['Int']>;
 };
 
@@ -3139,6 +3095,7 @@ export type Apps_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creator?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   creatorUserId?: InputMaybe<Scalars['uuid']>;
+  currentState?: InputMaybe<Scalars['Int']>;
   deployments?: InputMaybe<Deployments_Arr_Rel_Insert_Input>;
   desiredAppState?: InputMaybe<AppStates_Obj_Rel_Insert_Input>;
   desiredState?: InputMaybe<Scalars['Int']>;
@@ -3175,6 +3132,7 @@ export type Apps_Max_Fields = {
   __typename?: 'apps_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   creatorUserId?: Maybe<Scalars['uuid']>;
+  currentState?: Maybe<Scalars['Int']>;
   desiredState?: Maybe<Scalars['Int']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
@@ -3197,6 +3155,7 @@ export type Apps_Max_Fields = {
 export type Apps_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   creatorUserId?: InputMaybe<Order_By>;
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -3220,6 +3179,7 @@ export type Apps_Min_Fields = {
   __typename?: 'apps_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   creatorUserId?: Maybe<Scalars['uuid']>;
+  currentState?: Maybe<Scalars['Int']>;
   desiredState?: Maybe<Scalars['Int']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
@@ -3242,6 +3202,7 @@ export type Apps_Min_Fields = {
 export type Apps_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   creatorUserId?: InputMaybe<Order_By>;
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -3294,6 +3255,7 @@ export type Apps_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   creator?: InputMaybe<Users_Order_By>;
   creatorUserId?: InputMaybe<Order_By>;
+  currentState?: InputMaybe<Order_By>;
   deployments_aggregate?: InputMaybe<Deployments_Aggregate_Order_By>;
   desiredAppState?: InputMaybe<AppStates_Order_By>;
   desiredState?: InputMaybe<Order_By>;
@@ -3317,6 +3279,7 @@ export type Apps_Order_By = {
   repositoryProductionBranch?: InputMaybe<Order_By>;
   runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Order_By>;
   slug?: InputMaybe<Order_By>;
+  stateMatch?: InputMaybe<Order_By>;
   stripeSubscriptionId?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
@@ -3342,6 +3305,8 @@ export enum Apps_Select_Column {
   CreatedAt = 'createdAt',
   /** column name */
   CreatorUserId = 'creatorUserId',
+  /** column name */
+  CurrentState = 'currentState',
   /** column name */
   DesiredState = 'desiredState',
   /** column name */
@@ -3375,6 +3340,8 @@ export enum Apps_Select_Column {
   /** column name */
   Slug = 'slug',
   /** column name */
+  StateMatch = 'stateMatch',
+  /** column name */
   StripeSubscriptionId = 'stripeSubscriptionId',
   /** column name */
   Subdomain = 'subdomain',
@@ -3393,7 +3360,9 @@ export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_And_Arguments_Column
   /** column name */
   Paused = 'paused',
   /** column name */
-  ProvidersUpdated = 'providersUpdated'
+  ProvidersUpdated = 'providersUpdated',
+  /** column name */
+  StateMatch = 'stateMatch'
 }
 
 /** select "apps_aggregate_bool_exp_bool_or_arguments_columns" columns of table "apps" */
@@ -3405,7 +3374,9 @@ export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns
   /** column name */
   Paused = 'paused',
   /** column name */
-  ProvidersUpdated = 'providersUpdated'
+  ProvidersUpdated = 'providersUpdated',
+  /** column name */
+  StateMatch = 'stateMatch'
 }
 
 /** input type for updating data in table "apps" */
@@ -3413,6 +3384,7 @@ export type Apps_Set_Input = {
   autoUpdate?: InputMaybe<Scalars['Boolean']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creatorUserId?: InputMaybe<Scalars['uuid']>;
+  currentState?: InputMaybe<Scalars['Int']>;
   desiredState?: InputMaybe<Scalars['Int']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
@@ -3439,33 +3411,39 @@ export type Apps_Set_Input = {
 /** aggregate stddev on columns */
 export type Apps_Stddev_Fields = {
   __typename?: 'apps_stddev_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by stddev() on columns of table "apps" */
 export type Apps_Stddev_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Apps_Stddev_Pop_Fields = {
   __typename?: 'apps_stddev_pop_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by stddev_pop() on columns of table "apps" */
 export type Apps_Stddev_Pop_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Apps_Stddev_Samp_Fields = {
   __typename?: 'apps_stddev_samp_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by stddev_samp() on columns of table "apps" */
 export type Apps_Stddev_Samp_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
@@ -3482,6 +3460,7 @@ export type Apps_Stream_Cursor_Value_Input = {
   autoUpdate?: InputMaybe<Scalars['Boolean']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creatorUserId?: InputMaybe<Scalars['uuid']>;
+  currentState?: InputMaybe<Scalars['Int']>;
   desiredState?: InputMaybe<Scalars['Int']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
@@ -3499,6 +3478,7 @@ export type Apps_Stream_Cursor_Value_Input = {
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
   slug?: InputMaybe<Scalars['String']>;
+  stateMatch?: InputMaybe<Scalars['Boolean']>;
   stripeSubscriptionId?: InputMaybe<Scalars['String']>;
   subdomain?: InputMaybe<Scalars['String']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
@@ -3508,11 +3488,13 @@ export type Apps_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Apps_Sum_Fields = {
   __typename?: 'apps_sum_fields';
+  currentState?: Maybe<Scalars['Int']>;
   desiredState?: Maybe<Scalars['Int']>;
 };
 
 /** order by sum() on columns of table "apps" */
 export type Apps_Sum_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
@@ -3524,6 +3506,8 @@ export enum Apps_Update_Column {
   CreatedAt = 'createdAt',
   /** column name */
   CreatorUserId = 'creatorUserId',
+  /** column name */
+  CurrentState = 'currentState',
   /** column name */
   DesiredState = 'desiredState',
   /** column name */
@@ -3588,33 +3572,39 @@ export type Apps_Updates = {
 /** aggregate var_pop on columns */
 export type Apps_Var_Pop_Fields = {
   __typename?: 'apps_var_pop_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by var_pop() on columns of table "apps" */
 export type Apps_Var_Pop_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Apps_Var_Samp_Fields = {
   __typename?: 'apps_var_samp_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by var_samp() on columns of table "apps" */
 export type Apps_Var_Samp_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Apps_Variance_Fields = {
   __typename?: 'apps_variance_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by variance() on columns of table "apps" */
 export type Apps_Variance_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
@@ -11164,6 +11154,14 @@ export type Mutation_Root = {
   /** delete data from the table: "run_service" */
   deleteRunServices?: Maybe<Run_Service_Mutation_Response>;
   deleteSecret?: Maybe<ConfigEnvironmentVariable>;
+  /** delete single row from the table: "software_type" */
+  deleteSoftwareType?: Maybe<Software_Type>;
+  /** delete data from the table: "software_type" */
+  deleteSoftwareTypes?: Maybe<Software_Type_Mutation_Response>;
+  /** delete single row from the table: "software_versions" */
+  deleteSoftwareVersion?: Maybe<Software_Versions>;
+  /** delete data from the table: "software_versions" */
+  deleteSoftwareVersions?: Maybe<Software_Versions_Mutation_Response>;
   /** delete single row from the table: "auth.users" */
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
@@ -11323,6 +11321,14 @@ export type Mutation_Root = {
   /** insert data into the table: "run_service" */
   insertRunServices?: Maybe<Run_Service_Mutation_Response>;
   insertSecret: ConfigEnvironmentVariable;
+  /** insert a single row into the table: "software_type" */
+  insertSoftwareType?: Maybe<Software_Type>;
+  /** insert data into the table: "software_type" */
+  insertSoftwareTypes?: Maybe<Software_Type_Mutation_Response>;
+  /** insert a single row into the table: "software_versions" */
+  insertSoftwareVersion?: Maybe<Software_Versions>;
+  /** insert data into the table: "software_versions" */
+  insertSoftwareVersions?: Maybe<Software_Versions_Mutation_Response>;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
@@ -11473,6 +11479,10 @@ export type Mutation_Root = {
   updateGithubRepository?: Maybe<GithubRepositories>;
   /** update multiples rows of table: "billing.reports" */
   updateManyBillingReports?: Maybe<Array<Maybe<Billing_Reports_Mutation_Response>>>;
+  /** update multiples rows of table: "software_type" */
+  updateManySoftwareType?: Maybe<Array<Maybe<Software_Type_Mutation_Response>>>;
+  /** update multiples rows of table: "software_versions" */
+  updateManySoftwareVersions?: Maybe<Array<Maybe<Software_Versions_Mutation_Response>>>;
   /** update single row of the table: "payment_methods" */
   updatePaymentMethod?: Maybe<PaymentMethods>;
   /** update data of the table: "payment_methods" */
@@ -11491,6 +11501,14 @@ export type Mutation_Root = {
   /** update data of the table: "run_service" */
   updateRunServices?: Maybe<Run_Service_Mutation_Response>;
   updateSecret: ConfigEnvironmentVariable;
+  /** update single row of the table: "software_type" */
+  updateSoftwareType?: Maybe<Software_Type>;
+  /** update data of the table: "software_type" */
+  updateSoftwareTypes?: Maybe<Software_Type_Mutation_Response>;
+  /** update single row of the table: "software_versions" */
+  updateSoftwareVersion?: Maybe<Software_Versions>;
+  /** update data of the table: "software_versions" */
+  updateSoftwareVersions?: Maybe<Software_Versions_Mutation_Response>;
   updateSystemConfig: ConfigSystemConfig;
   /** update single row of the table: "auth.users" */
   updateUser?: Maybe<Users>;
@@ -12023,6 +12041,30 @@ export type Mutation_RootDeleteRunServicesArgs = {
 export type Mutation_RootDeleteSecretArgs = {
   appID: Scalars['uuid'];
   key: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteSoftwareTypeArgs = {
+  type: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteSoftwareTypesArgs = {
+  where: Software_Type_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteSoftwareVersionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteSoftwareVersionsArgs = {
+  where: Software_Versions_Bool_Exp;
 };
 
 
@@ -12571,6 +12613,34 @@ export type Mutation_RootInsertRunServicesArgs = {
 export type Mutation_RootInsertSecretArgs = {
   appID: Scalars['uuid'];
   secret: ConfigEnvironmentVariableInsertInput;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertSoftwareTypeArgs = {
+  object: Software_Type_Insert_Input;
+  on_conflict?: InputMaybe<Software_Type_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertSoftwareTypesArgs = {
+  objects: Array<Software_Type_Insert_Input>;
+  on_conflict?: InputMaybe<Software_Type_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertSoftwareVersionArgs = {
+  object: Software_Versions_Insert_Input;
+  on_conflict?: InputMaybe<Software_Versions_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertSoftwareVersionsArgs = {
+  objects: Array<Software_Versions_Insert_Input>;
+  on_conflict?: InputMaybe<Software_Versions_On_Conflict>;
 };
 
 
@@ -13178,6 +13248,18 @@ export type Mutation_RootUpdateManyBillingReportsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateManySoftwareTypeArgs = {
+  updates: Array<Software_Type_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateManySoftwareVersionsArgs = {
+  updates: Array<Software_Versions_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdatePaymentMethodArgs = {
   _inc?: InputMaybe<PaymentMethods_Inc_Input>;
   _set?: InputMaybe<PaymentMethods_Set_Input>;
@@ -13249,6 +13331,34 @@ export type Mutation_RootUpdateRunServicesArgs = {
 export type Mutation_RootUpdateSecretArgs = {
   appID: Scalars['uuid'];
   secret: ConfigEnvironmentVariableInsertInput;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateSoftwareTypeArgs = {
+  _set?: InputMaybe<Software_Type_Set_Input>;
+  pk_columns: Software_Type_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateSoftwareTypesArgs = {
+  _set?: InputMaybe<Software_Type_Set_Input>;
+  where: Software_Type_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateSoftwareVersionArgs = {
+  _set?: InputMaybe<Software_Versions_Set_Input>;
+  pk_columns: Software_Versions_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateSoftwareVersionsArgs = {
+  _set?: InputMaybe<Software_Versions_Set_Input>;
+  where: Software_Versions_Bool_Exp;
 };
 
 
@@ -14905,6 +15015,18 @@ export type Query_Root = {
   selectRegionsAllowedWorkspaces: Array<Regions_Allowed_Workspace>;
   /** fetch aggregated fields from the table: "regions_allowed_workspace" */
   selectRegionsAllowedWorkspacesAggregate: Regions_Allowed_Workspace_Aggregate;
+  /** fetch data from the table: "software_type" using primary key columns */
+  softwareType?: Maybe<Software_Type>;
+  /** fetch data from the table: "software_type" */
+  softwareTypes: Array<Software_Type>;
+  /** fetch aggregated fields from the table: "software_type" */
+  softwareTypesAggregate: Software_Type_Aggregate;
+  /** fetch data from the table: "software_versions" using primary key columns */
+  softwareVersion?: Maybe<Software_Versions>;
+  /** fetch data from the table: "software_versions" */
+  softwareVersions: Array<Software_Versions>;
+  /** fetch aggregated fields from the table: "software_versions" */
+  softwareVersionsAggregate: Software_Versions_Aggregate;
   /**
    * Returns lists of apps that have some live traffic in the give time range.
    * From defaults to 24 hours ago and to defaults to now.
@@ -15873,6 +15995,52 @@ export type Query_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+};
+
+
+export type Query_RootSoftwareTypeArgs = {
+  type: Scalars['String'];
+};
+
+
+export type Query_RootSoftwareTypesArgs = {
+  distinct_on?: InputMaybe<Array<Software_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Type_Order_By>>;
+  where?: InputMaybe<Software_Type_Bool_Exp>;
+};
+
+
+export type Query_RootSoftwareTypesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Software_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Type_Order_By>>;
+  where?: InputMaybe<Software_Type_Bool_Exp>;
+};
+
+
+export type Query_RootSoftwareVersionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootSoftwareVersionsArgs = {
+  distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+
+export type Query_RootSoftwareVersionsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
 };
 
 
@@ -17105,6 +17273,381 @@ export type Smallint_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['smallint']>>;
 };
 
+/** Software type: hasura, postgres, hasura-auth ... */
+export type Software_Type = {
+  __typename?: 'software_type';
+  comment: Scalars['String'];
+  /** An array relationship */
+  software_versions: Array<Software_Versions>;
+  /** An aggregate relationship */
+  software_versions_aggregate: Software_Versions_Aggregate;
+  type: Scalars['String'];
+};
+
+
+/** Software type: hasura, postgres, hasura-auth ... */
+export type Software_TypeSoftware_VersionsArgs = {
+  distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+
+/** Software type: hasura, postgres, hasura-auth ... */
+export type Software_TypeSoftware_Versions_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+/** aggregated selection of "software_type" */
+export type Software_Type_Aggregate = {
+  __typename?: 'software_type_aggregate';
+  aggregate?: Maybe<Software_Type_Aggregate_Fields>;
+  nodes: Array<Software_Type>;
+};
+
+/** aggregate fields of "software_type" */
+export type Software_Type_Aggregate_Fields = {
+  __typename?: 'software_type_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Software_Type_Max_Fields>;
+  min?: Maybe<Software_Type_Min_Fields>;
+};
+
+
+/** aggregate fields of "software_type" */
+export type Software_Type_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Software_Type_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "software_type". All fields are combined with a logical 'AND'. */
+export type Software_Type_Bool_Exp = {
+  _and?: InputMaybe<Array<Software_Type_Bool_Exp>>;
+  _not?: InputMaybe<Software_Type_Bool_Exp>;
+  _or?: InputMaybe<Array<Software_Type_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  software_versions?: InputMaybe<Software_Versions_Bool_Exp>;
+  software_versions_aggregate?: InputMaybe<Software_Versions_Aggregate_Bool_Exp>;
+  type?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "software_type" */
+export enum Software_Type_Constraint {
+  /** unique or primary key constraint on columns "type" */
+  SoftwareTypePkey = 'software_type_pkey'
+}
+
+export enum Software_Type_Enum {
+  /** Hasura Auth */
+  Auth = 'Auth',
+  /** Hasura GraphQL Engine */
+  Hasura = 'Hasura',
+  /** PostgreSQL Database */
+  PostgreSql = 'PostgreSQL',
+  /** Hasura Storage */
+  Storage = 'Storage'
+}
+
+/** Boolean expression to compare columns of type "software_type_enum". All fields are combined with logical 'AND'. */
+export type Software_Type_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Software_Type_Enum>;
+  _in?: InputMaybe<Array<Software_Type_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<Software_Type_Enum>;
+  _nin?: InputMaybe<Array<Software_Type_Enum>>;
+};
+
+/** input type for inserting data into table "software_type" */
+export type Software_Type_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  software_versions?: InputMaybe<Software_Versions_Arr_Rel_Insert_Input>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Software_Type_Max_Fields = {
+  __typename?: 'software_type_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  type?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type Software_Type_Min_Fields = {
+  __typename?: 'software_type_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  type?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "software_type" */
+export type Software_Type_Mutation_Response = {
+  __typename?: 'software_type_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Software_Type>;
+};
+
+/** input type for inserting object relation for remote table "software_type" */
+export type Software_Type_Obj_Rel_Insert_Input = {
+  data: Software_Type_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Software_Type_On_Conflict>;
+};
+
+/** on_conflict condition type for table "software_type" */
+export type Software_Type_On_Conflict = {
+  constraint: Software_Type_Constraint;
+  update_columns?: Array<Software_Type_Update_Column>;
+  where?: InputMaybe<Software_Type_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "software_type". */
+export type Software_Type_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  software_versions_aggregate?: InputMaybe<Software_Versions_Aggregate_Order_By>;
+  type?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: software_type */
+export type Software_Type_Pk_Columns_Input = {
+  type: Scalars['String'];
+};
+
+/** select columns of table "software_type" */
+export enum Software_Type_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Type = 'type'
+}
+
+/** input type for updating data in table "software_type" */
+export type Software_Type_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "software_type" */
+export type Software_Type_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Software_Type_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Software_Type_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "software_type" */
+export enum Software_Type_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Type = 'type'
+}
+
+export type Software_Type_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Software_Type_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Software_Type_Bool_Exp;
+};
+
+/** columns and relationships of "software_versions" */
+export type Software_Versions = {
+  __typename?: 'software_versions';
+  id: Scalars['uuid'];
+  software: Software_Type_Enum;
+  /** An object relationship */
+  softwareType: Software_Type;
+  version: Scalars['String'];
+};
+
+/** aggregated selection of "software_versions" */
+export type Software_Versions_Aggregate = {
+  __typename?: 'software_versions_aggregate';
+  aggregate?: Maybe<Software_Versions_Aggregate_Fields>;
+  nodes: Array<Software_Versions>;
+};
+
+export type Software_Versions_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Software_Versions_Aggregate_Bool_Exp_Count>;
+};
+
+export type Software_Versions_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Software_Versions_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "software_versions" */
+export type Software_Versions_Aggregate_Fields = {
+  __typename?: 'software_versions_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Software_Versions_Max_Fields>;
+  min?: Maybe<Software_Versions_Min_Fields>;
+};
+
+
+/** aggregate fields of "software_versions" */
+export type Software_Versions_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "software_versions" */
+export type Software_Versions_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Software_Versions_Max_Order_By>;
+  min?: InputMaybe<Software_Versions_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "software_versions" */
+export type Software_Versions_Arr_Rel_Insert_Input = {
+  data: Array<Software_Versions_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Software_Versions_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "software_versions". All fields are combined with a logical 'AND'. */
+export type Software_Versions_Bool_Exp = {
+  _and?: InputMaybe<Array<Software_Versions_Bool_Exp>>;
+  _not?: InputMaybe<Software_Versions_Bool_Exp>;
+  _or?: InputMaybe<Array<Software_Versions_Bool_Exp>>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  software?: InputMaybe<Software_Type_Enum_Comparison_Exp>;
+  softwareType?: InputMaybe<Software_Type_Bool_Exp>;
+  version?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "software_versions" */
+export enum Software_Versions_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  SoftwareVersionsPkey = 'software_versions_pkey'
+}
+
+/** input type for inserting data into table "software_versions" */
+export type Software_Versions_Insert_Input = {
+  id?: InputMaybe<Scalars['uuid']>;
+  software?: InputMaybe<Software_Type_Enum>;
+  softwareType?: InputMaybe<Software_Type_Obj_Rel_Insert_Input>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Software_Versions_Max_Fields = {
+  __typename?: 'software_versions_max_fields';
+  id?: Maybe<Scalars['uuid']>;
+  version?: Maybe<Scalars['String']>;
+};
+
+/** order by max() on columns of table "software_versions" */
+export type Software_Versions_Max_Order_By = {
+  id?: InputMaybe<Order_By>;
+  version?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Software_Versions_Min_Fields = {
+  __typename?: 'software_versions_min_fields';
+  id?: Maybe<Scalars['uuid']>;
+  version?: Maybe<Scalars['String']>;
+};
+
+/** order by min() on columns of table "software_versions" */
+export type Software_Versions_Min_Order_By = {
+  id?: InputMaybe<Order_By>;
+  version?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "software_versions" */
+export type Software_Versions_Mutation_Response = {
+  __typename?: 'software_versions_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Software_Versions>;
+};
+
+/** on_conflict condition type for table "software_versions" */
+export type Software_Versions_On_Conflict = {
+  constraint: Software_Versions_Constraint;
+  update_columns?: Array<Software_Versions_Update_Column>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "software_versions". */
+export type Software_Versions_Order_By = {
+  id?: InputMaybe<Order_By>;
+  software?: InputMaybe<Order_By>;
+  softwareType?: InputMaybe<Software_Type_Order_By>;
+  version?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: software_versions */
+export type Software_Versions_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "software_versions" */
+export enum Software_Versions_Select_Column {
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Software = 'software',
+  /** column name */
+  Version = 'version'
+}
+
+/** input type for updating data in table "software_versions" */
+export type Software_Versions_Set_Input = {
+  id?: InputMaybe<Scalars['uuid']>;
+  software?: InputMaybe<Software_Type_Enum>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "software_versions" */
+export type Software_Versions_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Software_Versions_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Software_Versions_Stream_Cursor_Value_Input = {
+  id?: InputMaybe<Scalars['uuid']>;
+  software?: InputMaybe<Software_Type_Enum>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "software_versions" */
+export enum Software_Versions_Update_Column {
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Software = 'software',
+  /** column name */
+  Version = 'version'
+}
+
+export type Software_Versions_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Software_Versions_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Software_Versions_Bool_Exp;
+};
+
 export type Subscription_Root = {
   __typename?: 'subscription_root';
   /** fetch data from the table: "apps" using primary key columns */
@@ -17392,6 +17935,22 @@ export type Subscription_Root = {
   selectRegionsAllowedWorkspaces: Array<Regions_Allowed_Workspace>;
   /** fetch aggregated fields from the table: "regions_allowed_workspace" */
   selectRegionsAllowedWorkspacesAggregate: Regions_Allowed_Workspace_Aggregate;
+  /** fetch data from the table: "software_type" using primary key columns */
+  softwareType?: Maybe<Software_Type>;
+  /** fetch data from the table: "software_type" */
+  softwareTypes: Array<Software_Type>;
+  /** fetch aggregated fields from the table: "software_type" */
+  softwareTypesAggregate: Software_Type_Aggregate;
+  /** fetch data from the table in a streaming manner: "software_type" */
+  softwareTypesStream: Array<Software_Type>;
+  /** fetch data from the table: "software_versions" using primary key columns */
+  softwareVersion?: Maybe<Software_Versions>;
+  /** fetch data from the table: "software_versions" */
+  softwareVersions: Array<Software_Versions>;
+  /** fetch aggregated fields from the table: "software_versions" */
+  softwareVersionsAggregate: Software_Versions_Aggregate;
+  /** fetch data from the table in a streaming manner: "software_versions" */
+  softwareVersionsStream: Array<Software_Versions>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -18489,6 +19048,66 @@ export type Subscription_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+};
+
+
+export type Subscription_RootSoftwareTypeArgs = {
+  type: Scalars['String'];
+};
+
+
+export type Subscription_RootSoftwareTypesArgs = {
+  distinct_on?: InputMaybe<Array<Software_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Type_Order_By>>;
+  where?: InputMaybe<Software_Type_Bool_Exp>;
+};
+
+
+export type Subscription_RootSoftwareTypesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Software_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Type_Order_By>>;
+  where?: InputMaybe<Software_Type_Bool_Exp>;
+};
+
+
+export type Subscription_RootSoftwareTypesStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Software_Type_Stream_Cursor_Input>>;
+  where?: InputMaybe<Software_Type_Bool_Exp>;
+};
+
+
+export type Subscription_RootSoftwareVersionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootSoftwareVersionsArgs = {
+  distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+
+export type Subscription_RootSoftwareVersionsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+
+export type Subscription_RootSoftwareVersionsStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Software_Versions_Stream_Cursor_Input>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
 };
 
 
@@ -21362,6 +21981,13 @@ export type GetPlansQueryVariables = Exact<{
 
 export type GetPlansQuery = { __typename?: 'query_root', plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number }> };
 
+export type GetSoftwareVersionsQueryVariables = Exact<{
+  software: Software_Type_Enum;
+}>;
+
+
+export type GetSoftwareVersionsQuery = { __typename?: 'query_root', softwareVersions: Array<{ __typename?: 'software_versions', version: string, software: Software_Type_Enum }> };
+
 export type RestoreApplicationDatabaseMutationVariables = Exact<{
   appId: Scalars['String'];
   backupId: Scalars['String'];
@@ -24147,6 +24773,45 @@ export type GetPlansLazyQueryHookResult = ReturnType<typeof useGetPlansLazyQuery
 export type GetPlansQueryResult = Apollo.QueryResult<GetPlansQuery, GetPlansQueryVariables>;
 export function refetchGetPlansQuery(variables?: GetPlansQueryVariables) {
       return { query: GetPlansDocument, variables: variables }
+    }
+export const GetSoftwareVersionsDocument = gql`
+    query getSoftwareVersions($software: software_type_enum!) {
+  softwareVersions(where: {software: {_eq: $software}}, order_by: {version: desc}) {
+    version
+    software
+  }
+}
+    `;
+
+/**
+ * __useGetSoftwareVersionsQuery__
+ *
+ * To run a query within a React component, call `useGetSoftwareVersionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSoftwareVersionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSoftwareVersionsQuery({
+ *   variables: {
+ *      software: // value for 'software'
+ *   },
+ * });
+ */
+export function useGetSoftwareVersionsQuery(baseOptions: Apollo.QueryHookOptions<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>(GetSoftwareVersionsDocument, options);
+      }
+export function useGetSoftwareVersionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>(GetSoftwareVersionsDocument, options);
+        }
+export type GetSoftwareVersionsQueryHookResult = ReturnType<typeof useGetSoftwareVersionsQuery>;
+export type GetSoftwareVersionsLazyQueryHookResult = ReturnType<typeof useGetSoftwareVersionsLazyQuery>;
+export type GetSoftwareVersionsQueryResult = Apollo.QueryResult<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>;
+export function refetchGetSoftwareVersionsQuery(variables: GetSoftwareVersionsQueryVariables) {
+      return { query: GetSoftwareVersionsDocument, variables: variables }
     }
 export const RestoreApplicationDatabaseDocument = gql`
     mutation RestoreApplicationDatabase($appId: String!, $backupId: String!) {
