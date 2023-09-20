@@ -1,4 +1,4 @@
-import { FeedbackForm } from '@/components/common/FeedbackForm';
+import { ContactUs } from '@/components/common/ContactUs';
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
@@ -75,14 +75,14 @@ export default function Header({ className, ...props }: HeaderProps) {
               hideChevron
               className="rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
             >
-              Feedback
+              Contact us
             </Dropdown.Trigger>
 
             <Dropdown.Content
               transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-              <FeedbackForm className="max-w-md" />
+              <ContactUs className="max-w-md" />
             </Dropdown.Content>
           </Dropdown.Root>
         )}
