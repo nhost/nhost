@@ -7,7 +7,9 @@ import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetAuthenticationSettingsDocument,
+  Software_Type_Enum,
   useGetAuthenticationSettingsQuery,
+  useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -28,15 +30,6 @@ export type AuthServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
-const AVAILABLE_AUTH_VERSIONS = [
-  '0.21.2',
-  '0.20.1',
-  '0.20.0',
-  '0.19.3',
-  '0.19.2',
-  '0.19.1',
-];
-
 export default function AuthServiceVersionSettings() {
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -49,9 +42,16 @@ export default function AuthServiceVersionSettings() {
     fetchPolicy: 'cache-only',
   });
 
+  const { data: authVersionsData } = useGetSoftwareVersionsQuery({
+    variables: {
+      software: Software_Type_Enum.Auth,
+    },
+  });
+
   const { version } = data?.config?.auth || {};
+  const versions = authVersionsData?.softwareVersions || [];
   const availableVersions = Array.from(
-    new Set(AVAILABLE_AUTH_VERSIONS).add(version),
+    new Set(versions.map((el) => el.version)).add(version),
   )
     .sort()
     .reverse()
