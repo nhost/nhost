@@ -14,7 +14,6 @@ import type { SvgIconProps } from '@/components/ui/v2/icons/SvgIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { useHypertune } from '@/hooks/useHypertune';
 import type { ReactElement } from 'react';
 
 export interface ProjectRoute {
@@ -58,26 +57,8 @@ export interface ProjectRoute {
 export default function useProjectRoutes() {
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
-  const {
-    currentWorkspace,
-    currentProject,
-    loading: currentProjectLoading,
-  } = useCurrentWorkspaceAndProject();
-
-  const hypertune = useHypertune();
-
-  const enableServices =
-    currentWorkspace &&
-    hypertune
-      .root({
-        context: {
-          workSpace: {
-            id: currentWorkspace.id,
-          },
-        },
-      })
-      .enableServices({})
-      .get(false);
+  const { currentProject, loading: currentProjectLoading } =
+    useCurrentWorkspaceAndProject();
 
   const nhostRoutes: ProjectRoute[] = [
     {
@@ -118,7 +99,7 @@ export default function useProjectRoutes() {
     },
   ];
 
-  let allRoutes: ProjectRoute[] = [
+  const allRoutes: ProjectRoute[] = [
     {
       relativePath: '/',
       exact: true,
@@ -156,18 +137,14 @@ export default function useProjectRoutes() {
       label: 'Storage',
       icon: <StorageIcon />,
     },
-  ];
-
-  if (enableServices) {
-    allRoutes.push({
+    {
       relativePath: '/services',
       exact: false,
       label: 'Run',
       icon: <ServicesIcon />,
-    });
-  }
-
-  allRoutes = [...allRoutes, ...nhostRoutes];
+    },
+    ...nhostRoutes,
+  ];
 
   return {
     nhostRoutes,
