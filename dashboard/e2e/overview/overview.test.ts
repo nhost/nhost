@@ -30,7 +30,7 @@ test('should show a sidebar with menu items', async () => {
   const navLocator = page.getByRole('navigation', { name: /main navigation/i });
   await expect(navLocator).toBeVisible();
   await expect(navLocator.getByRole('list').getByRole('listitem')).toHaveCount(
-    11,
+    12,
   );
   await expect(
     navLocator.getByRole('link', { name: /overview/i }),
