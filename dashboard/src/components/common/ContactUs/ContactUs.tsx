@@ -53,10 +53,7 @@ export default function FeedbackForm({ className, ...props }: ContactUsProps) {
         >
           Discord
         </Link>
-        .
-      </Text>
-      <Text>
-        Alternatively, if you prefer, you can also open a{' '}
+        . Alternatively, if you prefer, you can also open a{' '}
         <Link
           href="https://github.com/nhost/nhost/discussions/new/choose"
           target="_blank"
@@ -65,8 +62,9 @@ export default function FeedbackForm({ className, ...props }: ContactUsProps) {
         >
           GitHub discussion
         </Link>
-        . We&apos;re here to help, so don&apos;t hesitate to reach out!
+        .
       </Text>
+      <Text>We&apos;re here to help, so don&apos;t hesitate to reach out!</Text>
     </div>
   );
 }
