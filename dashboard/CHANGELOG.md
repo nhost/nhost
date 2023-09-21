@@ -1,5 +1,14 @@
 # @nhost/dashboard
 
+## 0.20.16
+
+### Patch Changes
+
+- df5b4302c: chore(dashboard): remove run feature flag
+- bf4a1f6c2: feat(dashboard): fetch auth, postgres, hasura and storage versions from dashboard
+- 34fc08ca7: fix(dashboard/run): show correct private registry in service details
+- 885d10620: chore(dashboard): change feedback to contact us
+
 ## 0.20.15
 
 ### Patch Changes
