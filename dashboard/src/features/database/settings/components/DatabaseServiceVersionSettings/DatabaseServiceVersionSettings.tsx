@@ -7,7 +7,9 @@ import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetPostgresSettingsDocument,
+  Software_Type_Enum,
   useGetPostgresSettingsQuery,
+  useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -30,15 +32,6 @@ export type DatabaseServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
-const AVAILABLE_POSTGRES_VERSIONS = [
-  '14.6-20230705-1',
-  '14.6-20230613-1',
-  '14.6-20230525',
-  '14.6-20230406-2',
-  '14.6-20230406-1',
-  '14.6-20230404',
-];
-
 export default function DatabaseServiceVersionSettings() {
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -51,9 +44,16 @@ export default function DatabaseServiceVersionSettings() {
     fetchPolicy: 'cache-only',
   });
 
+  const { data: databaseVersionsData } = useGetSoftwareVersionsQuery({
+    variables: {
+      software: Software_Type_Enum.PostgreSql,
+    },
+  });
+
   const { version } = data?.config?.postgres || {};
+  const databaseVersions = databaseVersionsData?.softwareVersions || [];
   const availableVersions = Array.from(
-    new Set(AVAILABLE_POSTGRES_VERSIONS).add(version),
+    new Set(databaseVersions.map((el) => el.version)).add(version),
   )
     .sort()
     .reverse()

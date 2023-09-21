@@ -7,6 +7,8 @@ import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetStorageSettingsDocument,
+  Software_Type_Enum,
+  useGetSoftwareVersionsQuery,
   useGetStorageSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -30,8 +32,6 @@ export type StorageServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
-const AVAILABLE_STORAGE_VERSIONS = ['0.3.5', '0.3.4', '0.3.3', '0.3.2'];
-
 export default function StorageServiceVersionSettings() {
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -44,9 +44,16 @@ export default function StorageServiceVersionSettings() {
     fetchPolicy: 'cache-only',
   });
 
+  const { data: storageVersionsData } = useGetSoftwareVersionsQuery({
+    variables: {
+      software: Software_Type_Enum.Storage,
+    },
+  });
+
   const { version } = data?.config?.storage || {};
+  const versions = storageVersionsData?.softwareVersions || [];
   const availableVersions = Array.from(
-    new Set(AVAILABLE_STORAGE_VERSIONS).add(version),
+    new Set(versions.map((el) => el.version)).add(version),
   )
     .sort()
     .reverse()
