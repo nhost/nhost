@@ -17,12 +17,7 @@ export interface ServiceDetailsDialogProps {
   subdomain: string;
 
   /**
-   * The image of the service
-   */
-  image: string;
-
-  /**
-   * The image of the service
+   * The service ports
    * We use partial here because `port` is set as required in ConfigRunServicePort
    */
   ports: Partial<ConfigRunServicePort>[];
@@ -31,7 +26,6 @@ export interface ServiceDetailsDialogProps {
 export default function ServiceDetailsDialog({
   serviceID,
   subdomain,
-  image,
   ports,
 }: ServiceDetailsDialogProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
