@@ -50,10 +50,7 @@ export default function ServiceDetailsDialog({
         <Text color="secondary">Private registry</Text>
         <InfoCard
           title=""
-          value={
-            image ||
-            `registry.${currentProject.region.awsName}.${currentProject.region.domain}/${serviceID}`
-          }
+          value={`registry.${currentProject.region.awsName}.${currentProject.region.domain}/${serviceID}`}
         />
       </div>
 
