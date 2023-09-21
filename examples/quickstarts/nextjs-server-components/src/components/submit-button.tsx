@@ -1,6 +1,7 @@
 'use client'
 
 import { ButtonHTMLAttributes, DetailedHTMLProps } from 'react'
+// @ts-ignore
 import { experimental_useFormStatus as useFormStatus } from 'react-dom'
 import { twMerge } from 'tailwind-merge'
 

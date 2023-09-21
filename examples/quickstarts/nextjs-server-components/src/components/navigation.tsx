@@ -13,7 +13,7 @@ export default async function Navigation() {
       name: 'Home'
     },
     {
-      href: '/protected',
+      href: '/protected/todos',
       name: `${user ? '🔓' : '🔒'} Protected`
     }
   ]

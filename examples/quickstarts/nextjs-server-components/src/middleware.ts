@@ -1,13 +1,12 @@
 import { NHOST_SESSION_KEY, getNhost } from '@utils/nhost'
 import { NextRequest, NextResponse } from 'next/server'
 
-const protectedRoutes = ['/protected']
-
 export async function middleware(request: NextRequest) {
   const nhost = await getNhost(request)
   const session = nhost.auth.getSession()
 
-  if (!session && protectedRoutes.includes(request.nextUrl.pathname)) {
+  // TODO rethink how we match protected routes
+  if (!session && request.nextUrl.pathname.includes('protected')) {
     return NextResponse.redirect(new URL('/auth/sign-in', request.url))
   }
 
@@ -24,7 +23,7 @@ export async function middleware(request: NextRequest) {
       }
 
       // overwrite the session cookie with the new session
-      return NextResponse.redirect(new URL('/protected', request.url), {
+      return NextResponse.redirect(new URL('/protected/todos', request.url), {
         headers: { 'Set-Cookie': `${NHOST_SESSION_KEY}=${btoa(JSON.stringify(newSession))}` }
       })
     }

@@ -17,20 +17,20 @@ export default function Input({
 
   return (
     <div className={className}>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
-      <div className="mt-1">
-        <input
-          id={id}
-          type={type}
-          name={name}
-          required={required}
-          disabled={pending}
-          className="block w-full p-3 border rounded-md border-slate-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          {...rest}
-        />
-      </div>
+      {label && (
+        <label htmlFor={id} className="block mb-1 text-sm font-medium text-gray-700">
+          {label}
+        </label>
+      )}
+      <input
+        id={id}
+        type={type}
+        name={name}
+        required={required}
+        disabled={pending}
+        className="block w-full p-3 border rounded-md border-slate-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        {...rest}
+      />
     </div>
   )
 }

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const { session } = await nhost.auth.refreshSession(refreshToken)
 
     if (session) {
-      return NextResponse.redirect(new URL('/protected', request.url), {
+      return NextResponse.redirect(new URL('/protected/todos', request.url), {
         headers: { 'Set-Cookie': `${NHOST_SESSION_KEY}=${btoa(JSON.stringify(session))}` }
       })
     }

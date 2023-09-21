@@ -38,7 +38,7 @@ export default function SignUpWebAuthn() {
 
     if (session) {
       Cookies.set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { sameSite: 'strict' })
-      router.push('/protected')
+      router.push('/protected/todos')
     }
   }
 

@@ -113,6 +113,13 @@ array_relationships:
         table:
           name: user_security_keys
           schema: auth
+  - name: todos
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: todos
+          schema: public
   - name: userProviders
     using:
       foreign_key_constraint_on:

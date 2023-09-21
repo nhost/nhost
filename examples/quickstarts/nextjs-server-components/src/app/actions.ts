@@ -1,6 +1,8 @@
 'use server'
 
+import { gql } from '@apollo/client'
 import { NHOST_SESSION_KEY, getNhost } from '@utils/nhost'
+import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
@@ -25,7 +27,7 @@ export const signUp = async (formData: FormData) => {
       sameSite: 'strict'
     })
 
-    redirect('/protected')
+    redirect('/protected/todos')
   }
 
   if (error) {
@@ -48,7 +50,7 @@ export const signIn = async (formData: FormData) => {
       sameSite: 'strict'
     })
 
-    redirect('/protected')
+    redirect('/protected/todos')
   }
 
   if (error) {
@@ -70,7 +72,7 @@ export const signInWithPAT = async (formData: FormData) => {
       sameSite: 'strict'
     })
 
-    redirect('/protected')
+    redirect('/protected/todos')
   }
 
   if (error) {
@@ -122,7 +124,6 @@ export const signInWithSecurityKey = async (formData: FormData) => {
 
   if (!session) {
     // Something unexpected happened
-    console.log(error)
     return {
       error: error?.message
     }
@@ -130,7 +131,6 @@ export const signInWithSecurityKey = async (formData: FormData) => {
 
   // Something unexpected happened, for instance, the user canceled the process
   if (error) {
-    console.log(error)
     return {
       error: error?.message
     }
@@ -145,4 +145,65 @@ export const signOut = async () => {
   cookies().delete(NHOST_SESSION_KEY)
 
   redirect('/auth/sign-in')
+}
+
+export const createTodo = async (formData: FormData) => {
+  const nhost = await getNhost()
+
+  const title = formData.get('title') as string
+
+  await nhost.graphql.request(
+    gql`
+      mutation insertTodo($title: String!) {
+        insert_todos_one(object: { title: $title }) {
+          id
+          title
+        }
+      }
+    `,
+    { title }
+  )
+
+  revalidatePath('/protected/todos')
+}
+
+export const updateTodo = async (id: string, done: boolean) => {
+  const nhost = await getNhost()
+
+  await nhost.graphql.request(
+    gql`
+      mutation updateTodo($id: uuid!, $done: Boolean!) {
+        update_todos_by_pk(pk_columns: { id: $id }, _set: { done: $done }) {
+          id
+          title
+          done
+        }
+      }
+    `,
+    {
+      id,
+      done
+    }
+  )
+
+  revalidatePath('/protected/todos')
+}
+
+export const deleteTodo = async (id: string) => {
+  const nhost = await getNhost()
+
+  await nhost.graphql.request(
+    gql`
+      mutation deleteTodo($id: uuid!) {
+        delete_todos_by_pk(id: $id) {
+          id
+        }
+      }
+    `,
+    {
+      id
+    }
+  )
+
+  revalidatePath('/protected/todos')
 }
