@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.17
+
+### Patch Changes
+
+- ae324f67f: fix(dashboard): remove unused graphql fields
+
 ## 0.20.16
 
 ### Patch Changes
