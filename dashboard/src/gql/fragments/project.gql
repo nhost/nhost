@@ -4,7 +4,6 @@ fragment Project on apps {
   name
   repositoryProductionBranch
   subdomain
-  isProvisioned
   createdAt
   desiredState
   nhostBaseFolder

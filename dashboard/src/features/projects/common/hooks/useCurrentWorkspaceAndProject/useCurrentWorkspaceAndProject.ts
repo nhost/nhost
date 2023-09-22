@@ -111,7 +111,6 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
         awsName: null,
         domain: null,
       },
-      isProvisioned: true,
       createdAt: new Date().toISOString(),
       desiredState: ApplicationStatus.Live,
       featureFlags: [],
