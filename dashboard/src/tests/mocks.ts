@@ -48,7 +48,6 @@ export const mockApplication: Project = {
   slug: 'test-application',
   appStates: [],
   subdomain: '',
-  isProvisioned: true,
   region: {
     awsName: 'us-east-1',
     city: 'New York',
