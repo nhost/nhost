@@ -82,7 +82,7 @@ func expectedGraphql() *Service {
 			"traefik.http.routers.graphql.service":                                  "graphql",
 			"traefik.http.routers.graphql.tls":                                      "false",
 			"traefik.http.routers.hasura.entrypoints":                               "web",
-			"traefik.http.routers.hasura.rule":                                      "( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/console/assets`) ) && Host(`local.hasura.nhost.run`)",
+			"traefik.http.routers.hasura.rule":                                      "( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api`) || PathPrefix(`/console/assets`) ) && Host(`local.hasura.nhost.run`)",
 			"traefik.http.routers.hasura.service":                                   "hasura",
 			"traefik.http.routers.hasura.tls":                                       "false",
 			"traefik.http.services.graphql.loadbalancer.server.port":                "8080",

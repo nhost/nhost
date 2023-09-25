@@ -68,7 +68,7 @@ func graphql( //nolint:funlen
 			{
 				Name:    "hasura",
 				TLS:     useTLS,
-				Rule:    "( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/console/assets`) ) && Host(`local.hasura.nhost.run`)", //nolint:lll
+				Rule:    "( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api`) || PathPrefix(`/console/assets`) ) && Host(`local.hasura.nhost.run`)", //nolint:lll
 				Port:    hasuraPort,
 				Rewrite: nil,
 			},
