@@ -199,7 +199,7 @@ func deploy(
 		return fmt.Errorf("failed to create postgres migration: %w", err)
 	}
 
-	ce.Infoln("Downloading metadata")
+	ce.Infoln("Downloading metadata...")
 	if err := docker.HasuraWrapper(
 		ctx, ce.Path.NhostFolder(),
 		*cfg.Hasura.Version,

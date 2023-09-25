@@ -238,7 +238,7 @@ func up( //nolint:funlen
 	}
 
 	docker := dockercompose.NewDocker()
-	ce.Infoln("Downloading metadata")
+	ce.Infoln("Downloading metadata...")
 	if err := docker.HasuraWrapper(
 		ctx, ce.Path.NhostFolder(),
 		*cfg.Hasura.Version,
