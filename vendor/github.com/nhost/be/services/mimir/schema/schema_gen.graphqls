@@ -1637,6 +1637,10 @@ type ConfigHasuraSettings {
     HASURA_GRAPHQL_ENABLED_APIS
     """
     enabledAPIs: [ConfigHasuraAPIs!]
+    """
+    HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
+    """
+    liveQueriesMultiplexedRefetchInterval: ConfigUint32
 }
 
 input ConfigHasuraSettingsUpdateInput {
@@ -1646,6 +1650,7 @@ input ConfigHasuraSettingsUpdateInput {
     enableConsole: Boolean
     enableRemoteSchemaPermissions: Boolean
         enabledAPIs: [ConfigHasuraAPIs!]
+    liveQueriesMultiplexedRefetchInterval: ConfigUint32
 }
 
 input ConfigHasuraSettingsInsertInput {
@@ -1655,6 +1660,7 @@ input ConfigHasuraSettingsInsertInput {
     enableConsole: Boolean
     enableRemoteSchemaPermissions: Boolean
         enabledAPIs: [ConfigHasuraAPIs!]
+    liveQueriesMultiplexedRefetchInterval: ConfigUint32
 }
 
 input ConfigHasuraSettingsComparisonExp {
@@ -1667,6 +1673,7 @@ input ConfigHasuraSettingsComparisonExp {
     enableConsole: ConfigBooleanComparisonExp
     enableRemoteSchemaPermissions: ConfigBooleanComparisonExp
     enabledAPIs: ConfigHasuraAPIsComparisonExp
+    liveQueriesMultiplexedRefetchInterval: ConfigUint32ComparisonExp
 }
 
 """
@@ -1820,16 +1827,22 @@ type ConfigPostgres {
     Resources for the service
     """
     resources: ConfigResources
+    """
+
+    """
+    settings: ConfigPostgresSettings
 }
 
 input ConfigPostgresUpdateInput {
     version: String
     resources: ConfigResourcesUpdateInput
+    settings: ConfigPostgresSettingsUpdateInput
 }
 
 input ConfigPostgresInsertInput {
     version: String
     resources: ConfigResourcesInsertInput
+    settings: ConfigPostgresSettingsInsertInput
 }
 
 input ConfigPostgresComparisonExp {
@@ -1838,6 +1851,144 @@ input ConfigPostgresComparisonExp {
     _or: [ConfigPostgresComparisonExp!]
     version: ConfigStringComparisonExp
     resources: ConfigResourcesComparisonExp
+    settings: ConfigPostgresSettingsComparisonExp
+}
+
+"""
+
+"""
+type ConfigPostgresSettings {
+    """
+
+    """
+    maxConnections: ConfigInt32
+    """
+
+    """
+    sharedBuffers: String
+    """
+
+    """
+    effectiveCacheSize: String
+    """
+
+    """
+    maintenanceWorkMem: String
+    """
+
+    """
+    checkpointCompletionTarget: Float
+    """
+
+    """
+    walBuffers: ConfigInt32
+    """
+
+    """
+    defaultStatisticsTarget: ConfigInt32
+    """
+
+    """
+    randomPageCost: Float
+    """
+
+    """
+    effectiveIOConcurrency: ConfigInt32
+    """
+
+    """
+    workMem: String
+    """
+
+    """
+    hugePages: String
+    """
+
+    """
+    minWalSize: String
+    """
+
+    """
+    maxWalSize: String
+    """
+
+    """
+    maxWorkerProcesses: ConfigInt32
+    """
+
+    """
+    maxParallelWorkersPerGather: ConfigInt32
+    """
+
+    """
+    maxParallelWorkers: ConfigInt32
+    """
+
+    """
+    maxParallelMaintenanceWorkers: ConfigInt32
+}
+
+input ConfigPostgresSettingsUpdateInput {
+    maxConnections: ConfigInt32
+    sharedBuffers: String
+    effectiveCacheSize: String
+    maintenanceWorkMem: String
+    checkpointCompletionTarget: Float
+    walBuffers: ConfigInt32
+    defaultStatisticsTarget: ConfigInt32
+    randomPageCost: Float
+    effectiveIOConcurrency: ConfigInt32
+    workMem: String
+    hugePages: String
+    minWalSize: String
+    maxWalSize: String
+    maxWorkerProcesses: ConfigInt32
+    maxParallelWorkersPerGather: ConfigInt32
+    maxParallelWorkers: ConfigInt32
+    maxParallelMaintenanceWorkers: ConfigInt32
+}
+
+input ConfigPostgresSettingsInsertInput {
+    maxConnections: ConfigInt32
+    sharedBuffers: String
+    effectiveCacheSize: String
+    maintenanceWorkMem: String
+    checkpointCompletionTarget: Float
+    walBuffers: ConfigInt32
+    defaultStatisticsTarget: ConfigInt32
+    randomPageCost: Float
+    effectiveIOConcurrency: ConfigInt32
+    workMem: String
+    hugePages: String
+    minWalSize: String
+    maxWalSize: String
+    maxWorkerProcesses: ConfigInt32
+    maxParallelWorkersPerGather: ConfigInt32
+    maxParallelWorkers: ConfigInt32
+    maxParallelMaintenanceWorkers: ConfigInt32
+}
+
+input ConfigPostgresSettingsComparisonExp {
+    _and: [ConfigPostgresSettingsComparisonExp!]
+    _not: ConfigPostgresSettingsComparisonExp
+    _or: [ConfigPostgresSettingsComparisonExp!]
+    maxConnections: ConfigInt32ComparisonExp
+    sharedBuffers: ConfigStringComparisonExp
+    effectiveCacheSize: ConfigStringComparisonExp
+    maintenanceWorkMem: ConfigStringComparisonExp
+    checkpointCompletionTarget: ConfigFloatComparisonExp
+    walBuffers: ConfigInt32ComparisonExp
+    defaultStatisticsTarget: ConfigInt32ComparisonExp
+    randomPageCost: ConfigFloatComparisonExp
+    effectiveIOConcurrency: ConfigInt32ComparisonExp
+    workMem: ConfigStringComparisonExp
+    hugePages: ConfigStringComparisonExp
+    minWalSize: ConfigStringComparisonExp
+    maxWalSize: ConfigStringComparisonExp
+    maxWorkerProcesses: ConfigInt32ComparisonExp
+    maxParallelWorkersPerGather: ConfigInt32ComparisonExp
+    maxParallelWorkers: ConfigInt32ComparisonExp
+    maxParallelMaintenanceWorkers: ConfigInt32ComparisonExp
 }
 
 """
@@ -1943,7 +2094,7 @@ type ConfigRunServiceConfig {
     """
 
     """
-    name: String!
+    name: ConfigRunServiceName!
     """
 
     """
@@ -1967,7 +2118,7 @@ type ConfigRunServiceConfig {
 }
 
 input ConfigRunServiceConfigUpdateInput {
-    name: String
+    name: ConfigRunServiceName
     image: ConfigRunServiceImageUpdateInput
         command: [String!]
         environment: [ConfigEnvironmentVariableUpdateInput!]
@@ -1976,7 +2127,7 @@ input ConfigRunServiceConfigUpdateInput {
 }
 
 input ConfigRunServiceConfigInsertInput {
-    name: String!
+    name: ConfigRunServiceName!
     image: ConfigRunServiceImageInsertInput!
         command: [String!]
         environment: [ConfigEnvironmentVariableInsertInput!]
@@ -1988,7 +2139,7 @@ input ConfigRunServiceConfigComparisonExp {
     _and: [ConfigRunServiceConfigComparisonExp!]
     _not: ConfigRunServiceConfigComparisonExp
     _or: [ConfigRunServiceConfigComparisonExp!]
-    name: ConfigStringComparisonExp
+    name: ConfigRunServiceNameComparisonExp
     image: ConfigRunServiceImageComparisonExp
     command: ConfigStringComparisonExp
     environment: ConfigEnvironmentVariableComparisonExp
@@ -2019,6 +2170,15 @@ input ConfigRunServiceImageComparisonExp {
     _not: ConfigRunServiceImageComparisonExp
     _or: [ConfigRunServiceImageComparisonExp!]
     image: ConfigStringComparisonExp
+}
+
+scalar ConfigRunServiceName
+
+input ConfigRunServiceNameComparisonExp {
+    _eq: ConfigRunServiceName
+    _neq: ConfigRunServiceName
+    _in: [ConfigRunServiceName!]
+    _nin: [ConfigRunServiceName!]
 }
 
 """
@@ -2138,7 +2298,7 @@ type ConfigRunServiceResourcesStorage {
     """
     name of the volume, changing it will cause data loss
     """
-    name: String!
+    name: ConfigRunServiceName!
     """
     GiB
     """
@@ -2150,13 +2310,13 @@ type ConfigRunServiceResourcesStorage {
 }
 
 input ConfigRunServiceResourcesStorageUpdateInput {
-    name: String
+    name: ConfigRunServiceName
     capacity: ConfigUint32
     path: String
 }
 
 input ConfigRunServiceResourcesStorageInsertInput {
-    name: String!
+    name: ConfigRunServiceName!
     capacity: ConfigUint32!
     path: String!
 }
@@ -2165,7 +2325,7 @@ input ConfigRunServiceResourcesStorageComparisonExp {
     _and: [ConfigRunServiceResourcesStorageComparisonExp!]
     _not: ConfigRunServiceResourcesStorageComparisonExp
     _or: [ConfigRunServiceResourcesStorageComparisonExp!]
-    name: ConfigStringComparisonExp
+    name: ConfigRunServiceNameComparisonExp
     capacity: ConfigUint32ComparisonExp
     path: ConfigStringComparisonExp
 }

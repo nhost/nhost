@@ -163,8 +163,10 @@ func HasuraEnv( //nolint:funlen
 			Value: "true",
 		},
 		{
-			Name:  "HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL",
-			Value: "1000",
+			Name: "HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL",
+			Value: Stringify(
+				*config.GetHasura().GetSettings().LiveQueriesMultiplexedRefetchInterval,
+			),
 		},
 		{
 			Name:  "HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE",
@@ -178,7 +180,7 @@ func HasuraEnv( //nolint:funlen
 		},
 		{
 			Name:  "HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS",
-			Value: "true",
+			Value: Stringify(*config.GetHasura().GetSettings().GetEnableRemoteSchemaPermissions()),
 		},
 		{
 			Name:  "HASURA_GRAPHQL_PG_CONNECTIONS",

@@ -19,6 +19,7 @@ key = '{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}'
 [hasura.settings]
 enableRemoteSchemaPermissions = false
 corsDomain = ['https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
+liveQueriesMultiplexedRefetchInterval = 3000
 
 [functions]
 [functions.node]
@@ -130,12 +131,31 @@ timeout = 60000
 enabled = false
 
 [postgres]
-version = '14.6-20230705-1'
+version = '14.6-20230925-1'
+
+[postgres.settings]
+maxConnections = 100
+sharedBuffers = '256MB'
+effectiveCacheSize = '768MB'
+maintenanceWorkMem = '64MB'
+checkpointCompletionTarget = 0.9
+walBuffers = -1
+defaultStatisticsTarget = 100
+randomPageCost = 1.1
+effectiveIOConcurrency = 200
+workMem = '1310kB'
+hugePages = 'off'
+minWalSize = '80MB'
+maxWalSize = '1GB'
+maxWorkerProcesses = 8
+maxParallelWorkersPerGather = 2
+maxParallelWorkers = 8
+maxParallelMaintenanceWorkers = 2
 
 [provider]
 
 [storage]
-version = '0.3.4'
+version = '0.4.0'
 
 [observability]
 [observability.grafana]

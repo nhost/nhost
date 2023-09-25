@@ -9999,6 +9999,8 @@ type ConfigHasuraSettings struct {
 	EnableRemoteSchemaPermissions *bool `json:"enableRemoteSchemaPermissions" toml:"enableRemoteSchemaPermissions"`
 	// HASURA_GRAPHQL_ENABLED_APIS
 	EnabledAPIs []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
+	// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
+	LiveQueriesMultiplexedRefetchInterval *uint32 `json:"liveQueriesMultiplexedRefetchInterval" toml:"liveQueriesMultiplexedRefetchInterval"`
 }
 
 func (o *ConfigHasuraSettings) MarshalJSON() ([]byte, error) {
@@ -10020,6 +10022,9 @@ func (o *ConfigHasuraSettings) MarshalJSON() ([]byte, error) {
 	}
 	if o.EnabledAPIs != nil {
 		m["enabledAPIs"] = o.EnabledAPIs
+	}
+	if o.LiveQueriesMultiplexedRefetchInterval != nil {
+		m["liveQueriesMultiplexedRefetchInterval"] = o.LiveQueriesMultiplexedRefetchInterval
 	}
 	return json.Marshal(m)
 }
@@ -10066,19 +10071,28 @@ func (o *ConfigHasuraSettings) GetEnabledAPIs() []string {
 	return o.EnabledAPIs
 }
 
+func (o *ConfigHasuraSettings) GetLiveQueriesMultiplexedRefetchInterval() *uint32 {
+	if o == nil {
+		o = &ConfigHasuraSettings{}
+	}
+	return o.LiveQueriesMultiplexedRefetchInterval
+}
+
 type ConfigHasuraSettingsUpdateInput struct {
-	CorsDomain                         []string `json:"corsDomain,omitempty" toml:"corsDomain,omitempty"`
-	IsSetCorsDomain                    bool     `json:"-"`
-	DevMode                            *bool    `json:"devMode,omitempty" toml:"devMode,omitempty"`
-	IsSetDevMode                       bool     `json:"-"`
-	EnableAllowList                    *bool    `json:"enableAllowList,omitempty" toml:"enableAllowList,omitempty"`
-	IsSetEnableAllowList               bool     `json:"-"`
-	EnableConsole                      *bool    `json:"enableConsole,omitempty" toml:"enableConsole,omitempty"`
-	IsSetEnableConsole                 bool     `json:"-"`
-	EnableRemoteSchemaPermissions      *bool    `json:"enableRemoteSchemaPermissions,omitempty" toml:"enableRemoteSchemaPermissions,omitempty"`
-	IsSetEnableRemoteSchemaPermissions bool     `json:"-"`
-	EnabledAPIs                        []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
-	IsSetEnabledAPIs                   bool     `json:"-"`
+	CorsDomain                                 []string `json:"corsDomain,omitempty" toml:"corsDomain,omitempty"`
+	IsSetCorsDomain                            bool     `json:"-"`
+	DevMode                                    *bool    `json:"devMode,omitempty" toml:"devMode,omitempty"`
+	IsSetDevMode                               bool     `json:"-"`
+	EnableAllowList                            *bool    `json:"enableAllowList,omitempty" toml:"enableAllowList,omitempty"`
+	IsSetEnableAllowList                       bool     `json:"-"`
+	EnableConsole                              *bool    `json:"enableConsole,omitempty" toml:"enableConsole,omitempty"`
+	IsSetEnableConsole                         bool     `json:"-"`
+	EnableRemoteSchemaPermissions              *bool    `json:"enableRemoteSchemaPermissions,omitempty" toml:"enableRemoteSchemaPermissions,omitempty"`
+	IsSetEnableRemoteSchemaPermissions         bool     `json:"-"`
+	EnabledAPIs                                []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
+	IsSetEnabledAPIs                           bool     `json:"-"`
+	LiveQueriesMultiplexedRefetchInterval      *uint32  `json:"liveQueriesMultiplexedRefetchInterval,omitempty" toml:"liveQueriesMultiplexedRefetchInterval,omitempty"`
+	IsSetLiveQueriesMultiplexedRefetchInterval bool     `json:"-"`
 }
 
 func (o *ConfigHasuraSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -10184,6 +10198,23 @@ func (o *ConfigHasuraSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetEnabledAPIs = true
 	}
+	if v, ok := m["liveQueriesMultiplexedRefetchInterval"]; ok {
+		if v == nil {
+			o.LiveQueriesMultiplexedRefetchInterval = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.LiveQueriesMultiplexedRefetchInterval = &x
+		}
+		o.IsSetLiveQueriesMultiplexedRefetchInterval = true
+	}
 
 	return nil
 }
@@ -10237,6 +10268,13 @@ func (o *ConfigHasuraSettingsUpdateInput) GetEnabledAPIs() []string {
 	return o.EnabledAPIs
 }
 
+func (o *ConfigHasuraSettingsUpdateInput) GetLiveQueriesMultiplexedRefetchInterval() *uint32 {
+	if o == nil {
+		o = &ConfigHasuraSettingsUpdateInput{}
+	}
+	return o.LiveQueriesMultiplexedRefetchInterval
+}
+
 func (s *ConfigHasuraSettings) Update(v *ConfigHasuraSettingsUpdateInput) {
 	if v == nil {
 		return
@@ -10273,15 +10311,19 @@ func (s *ConfigHasuraSettings) Update(v *ConfigHasuraSettingsUpdateInput) {
 			}
 		}
 	}
+	if v.IsSetLiveQueriesMultiplexedRefetchInterval || v.LiveQueriesMultiplexedRefetchInterval != nil {
+		s.LiveQueriesMultiplexedRefetchInterval = v.LiveQueriesMultiplexedRefetchInterval
+	}
 }
 
 type ConfigHasuraSettingsInsertInput struct {
-	CorsDomain                    []string `json:"corsDomain,omitempty" toml:"corsDomain,omitempty"`
-	DevMode                       *bool    `json:"devMode,omitempty" toml:"devMode,omitempty"`
-	EnableAllowList               *bool    `json:"enableAllowList,omitempty" toml:"enableAllowList,omitempty"`
-	EnableConsole                 *bool    `json:"enableConsole,omitempty" toml:"enableConsole,omitempty"`
-	EnableRemoteSchemaPermissions *bool    `json:"enableRemoteSchemaPermissions,omitempty" toml:"enableRemoteSchemaPermissions,omitempty"`
-	EnabledAPIs                   []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
+	CorsDomain                            []string `json:"corsDomain,omitempty" toml:"corsDomain,omitempty"`
+	DevMode                               *bool    `json:"devMode,omitempty" toml:"devMode,omitempty"`
+	EnableAllowList                       *bool    `json:"enableAllowList,omitempty" toml:"enableAllowList,omitempty"`
+	EnableConsole                         *bool    `json:"enableConsole,omitempty" toml:"enableConsole,omitempty"`
+	EnableRemoteSchemaPermissions         *bool    `json:"enableRemoteSchemaPermissions,omitempty" toml:"enableRemoteSchemaPermissions,omitempty"`
+	EnabledAPIs                           []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
+	LiveQueriesMultiplexedRefetchInterval *uint32  `json:"liveQueriesMultiplexedRefetchInterval,omitempty" toml:"liveQueriesMultiplexedRefetchInterval,omitempty"`
 }
 
 func (o *ConfigHasuraSettingsInsertInput) GetCorsDomain() []string {
@@ -10326,6 +10368,13 @@ func (o *ConfigHasuraSettingsInsertInput) GetEnabledAPIs() []string {
 	return o.EnabledAPIs
 }
 
+func (o *ConfigHasuraSettingsInsertInput) GetLiveQueriesMultiplexedRefetchInterval() *uint32 {
+	if o == nil {
+		o = &ConfigHasuraSettingsInsertInput{}
+	}
+	return o.LiveQueriesMultiplexedRefetchInterval
+}
+
 func (s *ConfigHasuraSettings) Insert(v *ConfigHasuraSettingsInsertInput) {
 	if v.CorsDomain != nil {
 		s.CorsDomain = make([]string, len(v.CorsDomain))
@@ -10343,6 +10392,7 @@ func (s *ConfigHasuraSettings) Insert(v *ConfigHasuraSettingsInsertInput) {
 			s.EnabledAPIs[i] = e
 		}
 	}
+	s.LiveQueriesMultiplexedRefetchInterval = v.LiveQueriesMultiplexedRefetchInterval
 }
 
 func (s *ConfigHasuraSettings) Clone() *ConfigHasuraSettings {
@@ -10363,19 +10413,21 @@ func (s *ConfigHasuraSettings) Clone() *ConfigHasuraSettings {
 		v.EnabledAPIs = make([]string, len(s.EnabledAPIs))
 		copy(v.EnabledAPIs, s.EnabledAPIs)
 	}
+	v.LiveQueriesMultiplexedRefetchInterval = s.LiveQueriesMultiplexedRefetchInterval
 	return v
 }
 
 type ConfigHasuraSettingsComparisonExp struct {
-	And                           []*ConfigHasuraSettingsComparisonExp `json:"_and,omitempty"`
-	Not                           *ConfigHasuraSettingsComparisonExp   `json:"_not,omitempty"`
-	Or                            []*ConfigHasuraSettingsComparisonExp `json:"_or,omitempty"`
-	CorsDomain                    *ConfigUrlComparisonExp              `json:"corsDomain,omitempty"`
-	DevMode                       *ConfigBooleanComparisonExp          `json:"devMode,omitempty"`
-	EnableAllowList               *ConfigBooleanComparisonExp          `json:"enableAllowList,omitempty"`
-	EnableConsole                 *ConfigBooleanComparisonExp          `json:"enableConsole,omitempty"`
-	EnableRemoteSchemaPermissions *ConfigBooleanComparisonExp          `json:"enableRemoteSchemaPermissions,omitempty"`
-	EnabledAPIs                   *ConfigHasuraAPIsComparisonExp       `json:"enabledAPIs,omitempty"`
+	And                                   []*ConfigHasuraSettingsComparisonExp `json:"_and,omitempty"`
+	Not                                   *ConfigHasuraSettingsComparisonExp   `json:"_not,omitempty"`
+	Or                                    []*ConfigHasuraSettingsComparisonExp `json:"_or,omitempty"`
+	CorsDomain                            *ConfigUrlComparisonExp              `json:"corsDomain,omitempty"`
+	DevMode                               *ConfigBooleanComparisonExp          `json:"devMode,omitempty"`
+	EnableAllowList                       *ConfigBooleanComparisonExp          `json:"enableAllowList,omitempty"`
+	EnableConsole                         *ConfigBooleanComparisonExp          `json:"enableConsole,omitempty"`
+	EnableRemoteSchemaPermissions         *ConfigBooleanComparisonExp          `json:"enableRemoteSchemaPermissions,omitempty"`
+	EnabledAPIs                           *ConfigHasuraAPIsComparisonExp       `json:"enabledAPIs,omitempty"`
+	LiveQueriesMultiplexedRefetchInterval *ConfigUint32ComparisonExp           `json:"liveQueriesMultiplexedRefetchInterval,omitempty"`
 }
 
 func (exp *ConfigHasuraSettingsComparisonExp) Matches(o *ConfigHasuraSettings) bool {
@@ -10424,6 +10476,9 @@ func (exp *ConfigHasuraSettingsComparisonExp) Matches(o *ConfigHasuraSettings) b
 		if !found && exp.EnabledAPIs != nil {
 			return false
 		}
+	}
+	if o.LiveQueriesMultiplexedRefetchInterval != nil && !exp.LiveQueriesMultiplexedRefetchInterval.Matches(*o.LiveQueriesMultiplexedRefetchInterval) {
+		return false
 	}
 
 	if exp.And != nil && !all(exp.And, o) {
@@ -11366,6 +11421,8 @@ type ConfigPostgres struct {
 	Version *string `json:"version" toml:"version"`
 	// Resources for the service
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
+
+	Settings *ConfigPostgresSettings `json:"settings,omitempty" toml:"settings,omitempty"`
 }
 
 func (o *ConfigPostgres) MarshalJSON() ([]byte, error) {
@@ -11375,6 +11432,9 @@ func (o *ConfigPostgres) MarshalJSON() ([]byte, error) {
 	}
 	if o.Resources != nil {
 		m["resources"] = o.Resources
+	}
+	if o.Settings != nil {
+		m["settings"] = o.Settings
 	}
 	return json.Marshal(m)
 }
@@ -11393,11 +11453,20 @@ func (o *ConfigPostgres) GetResources() *ConfigResources {
 	return o.Resources
 }
 
+func (o *ConfigPostgres) GetSettings() *ConfigPostgresSettings {
+	if o == nil {
+		return nil
+	}
+	return o.Settings
+}
+
 type ConfigPostgresUpdateInput struct {
-	Version        *string                     `json:"version,omitempty" toml:"version,omitempty"`
-	IsSetVersion   bool                        `json:"-"`
-	Resources      *ConfigResourcesUpdateInput `json:"resources,omitempty" toml:"resources,omitempty"`
-	IsSetResources bool                        `json:"-"`
+	Version        *string                            `json:"version,omitempty" toml:"version,omitempty"`
+	IsSetVersion   bool                               `json:"-"`
+	Resources      *ConfigResourcesUpdateInput        `json:"resources,omitempty" toml:"resources,omitempty"`
+	IsSetResources bool                               `json:"-"`
+	Settings       *ConfigPostgresSettingsUpdateInput `json:"settings,omitempty" toml:"settings,omitempty"`
+	IsSetSettings  bool                               `json:"-"`
 }
 
 func (o *ConfigPostgresUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -11432,6 +11501,16 @@ func (o *ConfigPostgresUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetResources = true
 	}
+	if x, ok := m["settings"]; ok {
+		if x != nil {
+			t := &ConfigPostgresSettingsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Settings = t
+		}
+		o.IsSetSettings = true
+	}
 
 	return nil
 }
@@ -11457,6 +11536,13 @@ func (o *ConfigPostgresUpdateInput) GetResources() *ConfigResourcesUpdateInput {
 	return o.Resources
 }
 
+func (o *ConfigPostgresUpdateInput) GetSettings() *ConfigPostgresSettingsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Settings
+}
+
 func (s *ConfigPostgres) Update(v *ConfigPostgresUpdateInput) {
 	if v == nil {
 		return
@@ -11474,11 +11560,22 @@ func (s *ConfigPostgres) Update(v *ConfigPostgresUpdateInput) {
 			s.Resources.Update(v.Resources)
 		}
 	}
+	if v.IsSetSettings || v.Settings != nil {
+		if v.Settings == nil {
+			s.Settings = nil
+		} else {
+			if s.Settings == nil {
+				s.Settings = &ConfigPostgresSettings{}
+			}
+			s.Settings.Update(v.Settings)
+		}
+	}
 }
 
 type ConfigPostgresInsertInput struct {
-	Version   *string                     `json:"version,omitempty" toml:"version,omitempty"`
-	Resources *ConfigResourcesInsertInput `json:"resources,omitempty" toml:"resources,omitempty"`
+	Version   *string                            `json:"version,omitempty" toml:"version,omitempty"`
+	Resources *ConfigResourcesInsertInput        `json:"resources,omitempty" toml:"resources,omitempty"`
+	Settings  *ConfigPostgresSettingsInsertInput `json:"settings,omitempty" toml:"settings,omitempty"`
 }
 
 func (o *ConfigPostgresInsertInput) GetVersion() *string {
@@ -11495,6 +11592,13 @@ func (o *ConfigPostgresInsertInput) GetResources() *ConfigResourcesInsertInput {
 	return o.Resources
 }
 
+func (o *ConfigPostgresInsertInput) GetSettings() *ConfigPostgresSettingsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Settings
+}
+
 func (s *ConfigPostgres) Insert(v *ConfigPostgresInsertInput) {
 	s.Version = v.Version
 	if v.Resources != nil {
@@ -11502,6 +11606,12 @@ func (s *ConfigPostgres) Insert(v *ConfigPostgresInsertInput) {
 			s.Resources = &ConfigResources{}
 		}
 		s.Resources.Insert(v.Resources)
+	}
+	if v.Settings != nil {
+		if s.Settings == nil {
+			s.Settings = &ConfigPostgresSettings{}
+		}
+		s.Settings.Insert(v.Settings)
 	}
 }
 
@@ -11513,15 +11623,17 @@ func (s *ConfigPostgres) Clone() *ConfigPostgres {
 	v := &ConfigPostgres{}
 	v.Version = s.Version
 	v.Resources = s.Resources.Clone()
+	v.Settings = s.Settings.Clone()
 	return v
 }
 
 type ConfigPostgresComparisonExp struct {
-	And       []*ConfigPostgresComparisonExp `json:"_and,omitempty"`
-	Not       *ConfigPostgresComparisonExp   `json:"_not,omitempty"`
-	Or        []*ConfigPostgresComparisonExp `json:"_or,omitempty"`
-	Version   *ConfigStringComparisonExp     `json:"version,omitempty"`
-	Resources *ConfigResourcesComparisonExp  `json:"resources,omitempty"`
+	And       []*ConfigPostgresComparisonExp       `json:"_and,omitempty"`
+	Not       *ConfigPostgresComparisonExp         `json:"_not,omitempty"`
+	Or        []*ConfigPostgresComparisonExp       `json:"_or,omitempty"`
+	Version   *ConfigStringComparisonExp           `json:"version,omitempty"`
+	Resources *ConfigResourcesComparisonExp        `json:"resources,omitempty"`
+	Settings  *ConfigPostgresSettingsComparisonExp `json:"settings,omitempty"`
 }
 
 func (exp *ConfigPostgresComparisonExp) Matches(o *ConfigPostgres) bool {
@@ -11532,12 +11644,1028 @@ func (exp *ConfigPostgresComparisonExp) Matches(o *ConfigPostgres) bool {
 	if o == nil {
 		o = &ConfigPostgres{
 			Resources: &ConfigResources{},
+			Settings:  &ConfigPostgresSettings{},
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
 		return false
 	}
 	if !exp.Resources.Matches(o.Resources) {
+		return false
+	}
+	if !exp.Settings.Matches(o.Settings) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigPostgresSettings struct {
+	MaxConnections *int32 `json:"maxConnections" toml:"maxConnections"`
+
+	SharedBuffers *string `json:"sharedBuffers" toml:"sharedBuffers"`
+
+	EffectiveCacheSize *string `json:"effectiveCacheSize" toml:"effectiveCacheSize"`
+
+	MaintenanceWorkMem *string `json:"maintenanceWorkMem" toml:"maintenanceWorkMem"`
+
+	CheckpointCompletionTarget *float64 `json:"checkpointCompletionTarget" toml:"checkpointCompletionTarget"`
+
+	WalBuffers *int32 `json:"walBuffers" toml:"walBuffers"`
+
+	DefaultStatisticsTarget *int32 `json:"defaultStatisticsTarget" toml:"defaultStatisticsTarget"`
+
+	RandomPageCost *float64 `json:"randomPageCost" toml:"randomPageCost"`
+
+	EffectiveIOConcurrency *int32 `json:"effectiveIOConcurrency" toml:"effectiveIOConcurrency"`
+
+	WorkMem *string `json:"workMem" toml:"workMem"`
+
+	HugePages *string `json:"hugePages" toml:"hugePages"`
+
+	MinWalSize *string `json:"minWalSize" toml:"minWalSize"`
+
+	MaxWalSize *string `json:"maxWalSize" toml:"maxWalSize"`
+
+	MaxWorkerProcesses *int32 `json:"maxWorkerProcesses" toml:"maxWorkerProcesses"`
+
+	MaxParallelWorkersPerGather *int32 `json:"maxParallelWorkersPerGather" toml:"maxParallelWorkersPerGather"`
+
+	MaxParallelWorkers *int32 `json:"maxParallelWorkers" toml:"maxParallelWorkers"`
+
+	MaxParallelMaintenanceWorkers *int32 `json:"maxParallelMaintenanceWorkers" toml:"maxParallelMaintenanceWorkers"`
+}
+
+func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.MaxConnections != nil {
+		m["maxConnections"] = o.MaxConnections
+	}
+	if o.SharedBuffers != nil {
+		m["sharedBuffers"] = o.SharedBuffers
+	}
+	if o.EffectiveCacheSize != nil {
+		m["effectiveCacheSize"] = o.EffectiveCacheSize
+	}
+	if o.MaintenanceWorkMem != nil {
+		m["maintenanceWorkMem"] = o.MaintenanceWorkMem
+	}
+	if o.CheckpointCompletionTarget != nil {
+		m["checkpointCompletionTarget"] = o.CheckpointCompletionTarget
+	}
+	if o.WalBuffers != nil {
+		m["walBuffers"] = o.WalBuffers
+	}
+	if o.DefaultStatisticsTarget != nil {
+		m["defaultStatisticsTarget"] = o.DefaultStatisticsTarget
+	}
+	if o.RandomPageCost != nil {
+		m["randomPageCost"] = o.RandomPageCost
+	}
+	if o.EffectiveIOConcurrency != nil {
+		m["effectiveIOConcurrency"] = o.EffectiveIOConcurrency
+	}
+	if o.WorkMem != nil {
+		m["workMem"] = o.WorkMem
+	}
+	if o.HugePages != nil {
+		m["hugePages"] = o.HugePages
+	}
+	if o.MinWalSize != nil {
+		m["minWalSize"] = o.MinWalSize
+	}
+	if o.MaxWalSize != nil {
+		m["maxWalSize"] = o.MaxWalSize
+	}
+	if o.MaxWorkerProcesses != nil {
+		m["maxWorkerProcesses"] = o.MaxWorkerProcesses
+	}
+	if o.MaxParallelWorkersPerGather != nil {
+		m["maxParallelWorkersPerGather"] = o.MaxParallelWorkersPerGather
+	}
+	if o.MaxParallelWorkers != nil {
+		m["maxParallelWorkers"] = o.MaxParallelWorkers
+	}
+	if o.MaxParallelMaintenanceWorkers != nil {
+		m["maxParallelMaintenanceWorkers"] = o.MaxParallelMaintenanceWorkers
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigPostgresSettings) GetMaxConnections() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.MaxConnections
+}
+
+func (o *ConfigPostgresSettings) GetSharedBuffers() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.SharedBuffers
+}
+
+func (o *ConfigPostgresSettings) GetEffectiveCacheSize() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.EffectiveCacheSize
+}
+
+func (o *ConfigPostgresSettings) GetMaintenanceWorkMem() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.MaintenanceWorkMem
+}
+
+func (o *ConfigPostgresSettings) GetCheckpointCompletionTarget() *float64 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.CheckpointCompletionTarget
+}
+
+func (o *ConfigPostgresSettings) GetWalBuffers() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.WalBuffers
+}
+
+func (o *ConfigPostgresSettings) GetDefaultStatisticsTarget() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.DefaultStatisticsTarget
+}
+
+func (o *ConfigPostgresSettings) GetRandomPageCost() *float64 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.RandomPageCost
+}
+
+func (o *ConfigPostgresSettings) GetEffectiveIOConcurrency() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.EffectiveIOConcurrency
+}
+
+func (o *ConfigPostgresSettings) GetWorkMem() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.WorkMem
+}
+
+func (o *ConfigPostgresSettings) GetHugePages() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.HugePages
+}
+
+func (o *ConfigPostgresSettings) GetMinWalSize() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.MinWalSize
+}
+
+func (o *ConfigPostgresSettings) GetMaxWalSize() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.MaxWalSize
+}
+
+func (o *ConfigPostgresSettings) GetMaxWorkerProcesses() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.MaxWorkerProcesses
+}
+
+func (o *ConfigPostgresSettings) GetMaxParallelWorkersPerGather() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.MaxParallelWorkersPerGather
+}
+
+func (o *ConfigPostgresSettings) GetMaxParallelWorkers() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.MaxParallelWorkers
+}
+
+func (o *ConfigPostgresSettings) GetMaxParallelMaintenanceWorkers() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.MaxParallelMaintenanceWorkers
+}
+
+type ConfigPostgresSettingsUpdateInput struct {
+	MaxConnections                     *int32   `json:"maxConnections,omitempty" toml:"maxConnections,omitempty"`
+	IsSetMaxConnections                bool     `json:"-"`
+	SharedBuffers                      *string  `json:"sharedBuffers,omitempty" toml:"sharedBuffers,omitempty"`
+	IsSetSharedBuffers                 bool     `json:"-"`
+	EffectiveCacheSize                 *string  `json:"effectiveCacheSize,omitempty" toml:"effectiveCacheSize,omitempty"`
+	IsSetEffectiveCacheSize            bool     `json:"-"`
+	MaintenanceWorkMem                 *string  `json:"maintenanceWorkMem,omitempty" toml:"maintenanceWorkMem,omitempty"`
+	IsSetMaintenanceWorkMem            bool     `json:"-"`
+	CheckpointCompletionTarget         *float64 `json:"checkpointCompletionTarget,omitempty" toml:"checkpointCompletionTarget,omitempty"`
+	IsSetCheckpointCompletionTarget    bool     `json:"-"`
+	WalBuffers                         *int32   `json:"walBuffers,omitempty" toml:"walBuffers,omitempty"`
+	IsSetWalBuffers                    bool     `json:"-"`
+	DefaultStatisticsTarget            *int32   `json:"defaultStatisticsTarget,omitempty" toml:"defaultStatisticsTarget,omitempty"`
+	IsSetDefaultStatisticsTarget       bool     `json:"-"`
+	RandomPageCost                     *float64 `json:"randomPageCost,omitempty" toml:"randomPageCost,omitempty"`
+	IsSetRandomPageCost                bool     `json:"-"`
+	EffectiveIOConcurrency             *int32   `json:"effectiveIOConcurrency,omitempty" toml:"effectiveIOConcurrency,omitempty"`
+	IsSetEffectiveIOConcurrency        bool     `json:"-"`
+	WorkMem                            *string  `json:"workMem,omitempty" toml:"workMem,omitempty"`
+	IsSetWorkMem                       bool     `json:"-"`
+	HugePages                          *string  `json:"hugePages,omitempty" toml:"hugePages,omitempty"`
+	IsSetHugePages                     bool     `json:"-"`
+	MinWalSize                         *string  `json:"minWalSize,omitempty" toml:"minWalSize,omitempty"`
+	IsSetMinWalSize                    bool     `json:"-"`
+	MaxWalSize                         *string  `json:"maxWalSize,omitempty" toml:"maxWalSize,omitempty"`
+	IsSetMaxWalSize                    bool     `json:"-"`
+	MaxWorkerProcesses                 *int32   `json:"maxWorkerProcesses,omitempty" toml:"maxWorkerProcesses,omitempty"`
+	IsSetMaxWorkerProcesses            bool     `json:"-"`
+	MaxParallelWorkersPerGather        *int32   `json:"maxParallelWorkersPerGather,omitempty" toml:"maxParallelWorkersPerGather,omitempty"`
+	IsSetMaxParallelWorkersPerGather   bool     `json:"-"`
+	MaxParallelWorkers                 *int32   `json:"maxParallelWorkers,omitempty" toml:"maxParallelWorkers,omitempty"`
+	IsSetMaxParallelWorkers            bool     `json:"-"`
+	MaxParallelMaintenanceWorkers      *int32   `json:"maxParallelMaintenanceWorkers,omitempty" toml:"maxParallelMaintenanceWorkers,omitempty"`
+	IsSetMaxParallelMaintenanceWorkers bool     `json:"-"`
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["maxConnections"]; ok {
+		if v == nil {
+			o.MaxConnections = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxConnections = &x
+		}
+		o.IsSetMaxConnections = true
+	}
+	if v, ok := m["sharedBuffers"]; ok {
+		if v == nil {
+			o.SharedBuffers = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.SharedBuffers = &x
+		}
+		o.IsSetSharedBuffers = true
+	}
+	if v, ok := m["effectiveCacheSize"]; ok {
+		if v == nil {
+			o.EffectiveCacheSize = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.EffectiveCacheSize = &x
+		}
+		o.IsSetEffectiveCacheSize = true
+	}
+	if v, ok := m["maintenanceWorkMem"]; ok {
+		if v == nil {
+			o.MaintenanceWorkMem = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaintenanceWorkMem = &x
+		}
+		o.IsSetMaintenanceWorkMem = true
+	}
+	if v, ok := m["checkpointCompletionTarget"]; ok {
+		if v == nil {
+			o.CheckpointCompletionTarget = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x float64
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.CheckpointCompletionTarget = &x
+		}
+		o.IsSetCheckpointCompletionTarget = true
+	}
+	if v, ok := m["walBuffers"]; ok {
+		if v == nil {
+			o.WalBuffers = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.WalBuffers = &x
+		}
+		o.IsSetWalBuffers = true
+	}
+	if v, ok := m["defaultStatisticsTarget"]; ok {
+		if v == nil {
+			o.DefaultStatisticsTarget = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.DefaultStatisticsTarget = &x
+		}
+		o.IsSetDefaultStatisticsTarget = true
+	}
+	if v, ok := m["randomPageCost"]; ok {
+		if v == nil {
+			o.RandomPageCost = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x float64
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.RandomPageCost = &x
+		}
+		o.IsSetRandomPageCost = true
+	}
+	if v, ok := m["effectiveIOConcurrency"]; ok {
+		if v == nil {
+			o.EffectiveIOConcurrency = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.EffectiveIOConcurrency = &x
+		}
+		o.IsSetEffectiveIOConcurrency = true
+	}
+	if v, ok := m["workMem"]; ok {
+		if v == nil {
+			o.WorkMem = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.WorkMem = &x
+		}
+		o.IsSetWorkMem = true
+	}
+	if v, ok := m["hugePages"]; ok {
+		if v == nil {
+			o.HugePages = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.HugePages = &x
+		}
+		o.IsSetHugePages = true
+	}
+	if v, ok := m["minWalSize"]; ok {
+		if v == nil {
+			o.MinWalSize = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MinWalSize = &x
+		}
+		o.IsSetMinWalSize = true
+	}
+	if v, ok := m["maxWalSize"]; ok {
+		if v == nil {
+			o.MaxWalSize = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxWalSize = &x
+		}
+		o.IsSetMaxWalSize = true
+	}
+	if v, ok := m["maxWorkerProcesses"]; ok {
+		if v == nil {
+			o.MaxWorkerProcesses = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxWorkerProcesses = &x
+		}
+		o.IsSetMaxWorkerProcesses = true
+	}
+	if v, ok := m["maxParallelWorkersPerGather"]; ok {
+		if v == nil {
+			o.MaxParallelWorkersPerGather = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxParallelWorkersPerGather = &x
+		}
+		o.IsSetMaxParallelWorkersPerGather = true
+	}
+	if v, ok := m["maxParallelWorkers"]; ok {
+		if v == nil {
+			o.MaxParallelWorkers = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxParallelWorkers = &x
+		}
+		o.IsSetMaxParallelWorkers = true
+	}
+	if v, ok := m["maxParallelMaintenanceWorkers"]; ok {
+		if v == nil {
+			o.MaxParallelMaintenanceWorkers = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxParallelMaintenanceWorkers = &x
+		}
+		o.IsSetMaxParallelMaintenanceWorkers = true
+	}
+
+	return nil
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetMaxConnections() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.MaxConnections
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetSharedBuffers() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.SharedBuffers
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetEffectiveCacheSize() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.EffectiveCacheSize
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetMaintenanceWorkMem() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.MaintenanceWorkMem
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetCheckpointCompletionTarget() *float64 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.CheckpointCompletionTarget
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetWalBuffers() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.WalBuffers
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetDefaultStatisticsTarget() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.DefaultStatisticsTarget
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetRandomPageCost() *float64 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.RandomPageCost
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetEffectiveIOConcurrency() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.EffectiveIOConcurrency
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetWorkMem() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.WorkMem
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetHugePages() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.HugePages
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetMinWalSize() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.MinWalSize
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetMaxWalSize() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.MaxWalSize
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetMaxWorkerProcesses() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.MaxWorkerProcesses
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetMaxParallelWorkersPerGather() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.MaxParallelWorkersPerGather
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetMaxParallelWorkers() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.MaxParallelWorkers
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetMaxParallelMaintenanceWorkers() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.MaxParallelMaintenanceWorkers
+}
+
+func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetMaxConnections || v.MaxConnections != nil {
+		s.MaxConnections = v.MaxConnections
+	}
+	if v.IsSetSharedBuffers || v.SharedBuffers != nil {
+		s.SharedBuffers = v.SharedBuffers
+	}
+	if v.IsSetEffectiveCacheSize || v.EffectiveCacheSize != nil {
+		s.EffectiveCacheSize = v.EffectiveCacheSize
+	}
+	if v.IsSetMaintenanceWorkMem || v.MaintenanceWorkMem != nil {
+		s.MaintenanceWorkMem = v.MaintenanceWorkMem
+	}
+	if v.IsSetCheckpointCompletionTarget || v.CheckpointCompletionTarget != nil {
+		s.CheckpointCompletionTarget = v.CheckpointCompletionTarget
+	}
+	if v.IsSetWalBuffers || v.WalBuffers != nil {
+		s.WalBuffers = v.WalBuffers
+	}
+	if v.IsSetDefaultStatisticsTarget || v.DefaultStatisticsTarget != nil {
+		s.DefaultStatisticsTarget = v.DefaultStatisticsTarget
+	}
+	if v.IsSetRandomPageCost || v.RandomPageCost != nil {
+		s.RandomPageCost = v.RandomPageCost
+	}
+	if v.IsSetEffectiveIOConcurrency || v.EffectiveIOConcurrency != nil {
+		s.EffectiveIOConcurrency = v.EffectiveIOConcurrency
+	}
+	if v.IsSetWorkMem || v.WorkMem != nil {
+		s.WorkMem = v.WorkMem
+	}
+	if v.IsSetHugePages || v.HugePages != nil {
+		s.HugePages = v.HugePages
+	}
+	if v.IsSetMinWalSize || v.MinWalSize != nil {
+		s.MinWalSize = v.MinWalSize
+	}
+	if v.IsSetMaxWalSize || v.MaxWalSize != nil {
+		s.MaxWalSize = v.MaxWalSize
+	}
+	if v.IsSetMaxWorkerProcesses || v.MaxWorkerProcesses != nil {
+		s.MaxWorkerProcesses = v.MaxWorkerProcesses
+	}
+	if v.IsSetMaxParallelWorkersPerGather || v.MaxParallelWorkersPerGather != nil {
+		s.MaxParallelWorkersPerGather = v.MaxParallelWorkersPerGather
+	}
+	if v.IsSetMaxParallelWorkers || v.MaxParallelWorkers != nil {
+		s.MaxParallelWorkers = v.MaxParallelWorkers
+	}
+	if v.IsSetMaxParallelMaintenanceWorkers || v.MaxParallelMaintenanceWorkers != nil {
+		s.MaxParallelMaintenanceWorkers = v.MaxParallelMaintenanceWorkers
+	}
+}
+
+type ConfigPostgresSettingsInsertInput struct {
+	MaxConnections                *int32   `json:"maxConnections,omitempty" toml:"maxConnections,omitempty"`
+	SharedBuffers                 *string  `json:"sharedBuffers,omitempty" toml:"sharedBuffers,omitempty"`
+	EffectiveCacheSize            *string  `json:"effectiveCacheSize,omitempty" toml:"effectiveCacheSize,omitempty"`
+	MaintenanceWorkMem            *string  `json:"maintenanceWorkMem,omitempty" toml:"maintenanceWorkMem,omitempty"`
+	CheckpointCompletionTarget    *float64 `json:"checkpointCompletionTarget,omitempty" toml:"checkpointCompletionTarget,omitempty"`
+	WalBuffers                    *int32   `json:"walBuffers,omitempty" toml:"walBuffers,omitempty"`
+	DefaultStatisticsTarget       *int32   `json:"defaultStatisticsTarget,omitempty" toml:"defaultStatisticsTarget,omitempty"`
+	RandomPageCost                *float64 `json:"randomPageCost,omitempty" toml:"randomPageCost,omitempty"`
+	EffectiveIOConcurrency        *int32   `json:"effectiveIOConcurrency,omitempty" toml:"effectiveIOConcurrency,omitempty"`
+	WorkMem                       *string  `json:"workMem,omitempty" toml:"workMem,omitempty"`
+	HugePages                     *string  `json:"hugePages,omitempty" toml:"hugePages,omitempty"`
+	MinWalSize                    *string  `json:"minWalSize,omitempty" toml:"minWalSize,omitempty"`
+	MaxWalSize                    *string  `json:"maxWalSize,omitempty" toml:"maxWalSize,omitempty"`
+	MaxWorkerProcesses            *int32   `json:"maxWorkerProcesses,omitempty" toml:"maxWorkerProcesses,omitempty"`
+	MaxParallelWorkersPerGather   *int32   `json:"maxParallelWorkersPerGather,omitempty" toml:"maxParallelWorkersPerGather,omitempty"`
+	MaxParallelWorkers            *int32   `json:"maxParallelWorkers,omitempty" toml:"maxParallelWorkers,omitempty"`
+	MaxParallelMaintenanceWorkers *int32   `json:"maxParallelMaintenanceWorkers,omitempty" toml:"maxParallelMaintenanceWorkers,omitempty"`
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetMaxConnections() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.MaxConnections
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetSharedBuffers() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.SharedBuffers
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetEffectiveCacheSize() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.EffectiveCacheSize
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetMaintenanceWorkMem() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.MaintenanceWorkMem
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetCheckpointCompletionTarget() *float64 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.CheckpointCompletionTarget
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetWalBuffers() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.WalBuffers
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetDefaultStatisticsTarget() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.DefaultStatisticsTarget
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetRandomPageCost() *float64 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.RandomPageCost
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetEffectiveIOConcurrency() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.EffectiveIOConcurrency
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetWorkMem() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.WorkMem
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetHugePages() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.HugePages
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetMinWalSize() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.MinWalSize
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetMaxWalSize() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.MaxWalSize
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetMaxWorkerProcesses() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.MaxWorkerProcesses
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetMaxParallelWorkersPerGather() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.MaxParallelWorkersPerGather
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetMaxParallelWorkers() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.MaxParallelWorkers
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetMaxParallelMaintenanceWorkers() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.MaxParallelMaintenanceWorkers
+}
+
+func (s *ConfigPostgresSettings) Insert(v *ConfigPostgresSettingsInsertInput) {
+	s.MaxConnections = v.MaxConnections
+	s.SharedBuffers = v.SharedBuffers
+	s.EffectiveCacheSize = v.EffectiveCacheSize
+	s.MaintenanceWorkMem = v.MaintenanceWorkMem
+	s.CheckpointCompletionTarget = v.CheckpointCompletionTarget
+	s.WalBuffers = v.WalBuffers
+	s.DefaultStatisticsTarget = v.DefaultStatisticsTarget
+	s.RandomPageCost = v.RandomPageCost
+	s.EffectiveIOConcurrency = v.EffectiveIOConcurrency
+	s.WorkMem = v.WorkMem
+	s.HugePages = v.HugePages
+	s.MinWalSize = v.MinWalSize
+	s.MaxWalSize = v.MaxWalSize
+	s.MaxWorkerProcesses = v.MaxWorkerProcesses
+	s.MaxParallelWorkersPerGather = v.MaxParallelWorkersPerGather
+	s.MaxParallelWorkers = v.MaxParallelWorkers
+	s.MaxParallelMaintenanceWorkers = v.MaxParallelMaintenanceWorkers
+}
+
+func (s *ConfigPostgresSettings) Clone() *ConfigPostgresSettings {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigPostgresSettings{}
+	v.MaxConnections = s.MaxConnections
+	v.SharedBuffers = s.SharedBuffers
+	v.EffectiveCacheSize = s.EffectiveCacheSize
+	v.MaintenanceWorkMem = s.MaintenanceWorkMem
+	v.CheckpointCompletionTarget = s.CheckpointCompletionTarget
+	v.WalBuffers = s.WalBuffers
+	v.DefaultStatisticsTarget = s.DefaultStatisticsTarget
+	v.RandomPageCost = s.RandomPageCost
+	v.EffectiveIOConcurrency = s.EffectiveIOConcurrency
+	v.WorkMem = s.WorkMem
+	v.HugePages = s.HugePages
+	v.MinWalSize = s.MinWalSize
+	v.MaxWalSize = s.MaxWalSize
+	v.MaxWorkerProcesses = s.MaxWorkerProcesses
+	v.MaxParallelWorkersPerGather = s.MaxParallelWorkersPerGather
+	v.MaxParallelWorkers = s.MaxParallelWorkers
+	v.MaxParallelMaintenanceWorkers = s.MaxParallelMaintenanceWorkers
+	return v
+}
+
+type ConfigPostgresSettingsComparisonExp struct {
+	And                           []*ConfigPostgresSettingsComparisonExp `json:"_and,omitempty"`
+	Not                           *ConfigPostgresSettingsComparisonExp   `json:"_not,omitempty"`
+	Or                            []*ConfigPostgresSettingsComparisonExp `json:"_or,omitempty"`
+	MaxConnections                *ConfigInt32ComparisonExp              `json:"maxConnections,omitempty"`
+	SharedBuffers                 *ConfigStringComparisonExp             `json:"sharedBuffers,omitempty"`
+	EffectiveCacheSize            *ConfigStringComparisonExp             `json:"effectiveCacheSize,omitempty"`
+	MaintenanceWorkMem            *ConfigStringComparisonExp             `json:"maintenanceWorkMem,omitempty"`
+	CheckpointCompletionTarget    *ConfigFloatComparisonExp              `json:"checkpointCompletionTarget,omitempty"`
+	WalBuffers                    *ConfigInt32ComparisonExp              `json:"walBuffers,omitempty"`
+	DefaultStatisticsTarget       *ConfigInt32ComparisonExp              `json:"defaultStatisticsTarget,omitempty"`
+	RandomPageCost                *ConfigFloatComparisonExp              `json:"randomPageCost,omitempty"`
+	EffectiveIOConcurrency        *ConfigInt32ComparisonExp              `json:"effectiveIOConcurrency,omitempty"`
+	WorkMem                       *ConfigStringComparisonExp             `json:"workMem,omitempty"`
+	HugePages                     *ConfigStringComparisonExp             `json:"hugePages,omitempty"`
+	MinWalSize                    *ConfigStringComparisonExp             `json:"minWalSize,omitempty"`
+	MaxWalSize                    *ConfigStringComparisonExp             `json:"maxWalSize,omitempty"`
+	MaxWorkerProcesses            *ConfigInt32ComparisonExp              `json:"maxWorkerProcesses,omitempty"`
+	MaxParallelWorkersPerGather   *ConfigInt32ComparisonExp              `json:"maxParallelWorkersPerGather,omitempty"`
+	MaxParallelWorkers            *ConfigInt32ComparisonExp              `json:"maxParallelWorkers,omitempty"`
+	MaxParallelMaintenanceWorkers *ConfigInt32ComparisonExp              `json:"maxParallelMaintenanceWorkers,omitempty"`
+}
+
+func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSettings) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	if o.MaxConnections != nil && !exp.MaxConnections.Matches(*o.MaxConnections) {
+		return false
+	}
+	if o.SharedBuffers != nil && !exp.SharedBuffers.Matches(*o.SharedBuffers) {
+		return false
+	}
+	if o.EffectiveCacheSize != nil && !exp.EffectiveCacheSize.Matches(*o.EffectiveCacheSize) {
+		return false
+	}
+	if o.MaintenanceWorkMem != nil && !exp.MaintenanceWorkMem.Matches(*o.MaintenanceWorkMem) {
+		return false
+	}
+	if o.CheckpointCompletionTarget != nil && !exp.CheckpointCompletionTarget.Matches(*o.CheckpointCompletionTarget) {
+		return false
+	}
+	if o.WalBuffers != nil && !exp.WalBuffers.Matches(*o.WalBuffers) {
+		return false
+	}
+	if o.DefaultStatisticsTarget != nil && !exp.DefaultStatisticsTarget.Matches(*o.DefaultStatisticsTarget) {
+		return false
+	}
+	if o.RandomPageCost != nil && !exp.RandomPageCost.Matches(*o.RandomPageCost) {
+		return false
+	}
+	if o.EffectiveIOConcurrency != nil && !exp.EffectiveIOConcurrency.Matches(*o.EffectiveIOConcurrency) {
+		return false
+	}
+	if o.WorkMem != nil && !exp.WorkMem.Matches(*o.WorkMem) {
+		return false
+	}
+	if o.HugePages != nil && !exp.HugePages.Matches(*o.HugePages) {
+		return false
+	}
+	if o.MinWalSize != nil && !exp.MinWalSize.Matches(*o.MinWalSize) {
+		return false
+	}
+	if o.MaxWalSize != nil && !exp.MaxWalSize.Matches(*o.MaxWalSize) {
+		return false
+	}
+	if o.MaxWorkerProcesses != nil && !exp.MaxWorkerProcesses.Matches(*o.MaxWorkerProcesses) {
+		return false
+	}
+	if o.MaxParallelWorkersPerGather != nil && !exp.MaxParallelWorkersPerGather.Matches(*o.MaxParallelWorkersPerGather) {
+		return false
+	}
+	if o.MaxParallelWorkers != nil && !exp.MaxParallelWorkers.Matches(*o.MaxParallelWorkers) {
+		return false
+	}
+	if o.MaxParallelMaintenanceWorkers != nil && !exp.MaxParallelMaintenanceWorkers.Matches(*o.MaxParallelMaintenanceWorkers) {
 		return false
 	}
 
@@ -12565,7 +13693,7 @@ type ConfigRunServiceConfigComparisonExp struct {
 	And         []*ConfigRunServiceConfigComparisonExp  `json:"_and,omitempty"`
 	Not         *ConfigRunServiceConfigComparisonExp    `json:"_not,omitempty"`
 	Or          []*ConfigRunServiceConfigComparisonExp  `json:"_or,omitempty"`
-	Name        *ConfigStringComparisonExp              `json:"name,omitempty"`
+	Name        *ConfigRunServiceNameComparisonExp      `json:"name,omitempty"`
 	Image       *ConfigRunServiceImageComparisonExp     `json:"image,omitempty"`
 	Command     *ConfigStringComparisonExp              `json:"command,omitempty"`
 	Environment *ConfigEnvironmentVariableComparisonExp `json:"environment,omitempty"`
@@ -12774,6 +13902,37 @@ func (exp *ConfigRunServiceImageComparisonExp) Matches(o *ConfigRunServiceImage)
 	}
 
 	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigRunServiceNameComparisonExp struct {
+	Eq  *string  `json:"_eq,omitempty"`
+	Neq *string  `json:"_neq,omitempty"`
+	In  []string `json:"_in,omitempty"`
+	Nin []string `json:"_nin,omitempty"`
+}
+
+func (exp *ConfigRunServiceNameComparisonExp) Matches(o string) bool {
+	if exp == nil {
+		return true
+	}
+
+	if exp.Eq != nil && *exp.Eq != o {
+		return false
+	}
+
+	if exp.Neq != nil && *exp.Neq == o {
+		return false
+	}
+
+	if exp.In != nil && !contains(exp.In, o) {
+		return false
+	}
+
+	if exp.Nin != nil && contains(exp.Nin, o) {
 		return false
 	}
 
@@ -13698,7 +14857,7 @@ type ConfigRunServiceResourcesStorageComparisonExp struct {
 	And      []*ConfigRunServiceResourcesStorageComparisonExp `json:"_and,omitempty"`
 	Not      *ConfigRunServiceResourcesStorageComparisonExp   `json:"_not,omitempty"`
 	Or       []*ConfigRunServiceResourcesStorageComparisonExp `json:"_or,omitempty"`
-	Name     *ConfigStringComparisonExp                       `json:"name,omitempty"`
+	Name     *ConfigRunServiceNameComparisonExp               `json:"name,omitempty"`
 	Capacity *ConfigUint32ComparisonExp                       `json:"capacity,omitempty"`
 	Path     *ConfigStringComparisonExp                       `json:"path,omitempty"`
 }

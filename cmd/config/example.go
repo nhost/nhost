@@ -54,6 +54,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				EnabledAPIs: []string{
 					"metadata",
 				},
+				LiveQueriesMultiplexedRefetchInterval: ptr(uint32(1000)),
 			},
 			Logs: &model.ConfigHasuraLogs{
 				Level: ptr("warn"),
@@ -263,6 +264,25 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 					Memory: 4096,
 				},
 				Replicas: 1,
+			},
+			Settings: &model.ConfigPostgresSettings{
+				MaxConnections:                ptr(int32(100)),
+				SharedBuffers:                 ptr("128MB"),
+				EffectiveCacheSize:            ptr("4GB"),
+				MaintenanceWorkMem:            ptr("64MB"),
+				CheckpointCompletionTarget:    ptr(float64(0.9)),
+				WalBuffers:                    ptr(int32(-1)),
+				DefaultStatisticsTarget:       ptr(int32(100)),
+				RandomPageCost:                ptr(float64(4)),
+				EffectiveIOConcurrency:        ptr(int32(1)),
+				WorkMem:                       ptr("4MB"),
+				HugePages:                     ptr("try"),
+				MinWalSize:                    ptr("80MB"),
+				MaxWalSize:                    ptr("1GB"),
+				MaxWorkerProcesses:            ptr(int32(8)),
+				MaxParallelWorkersPerGather:   ptr(int32(2)),
+				MaxParallelWorkers:            ptr(int32(8)),
+				MaxParallelMaintenanceWorkers: ptr(int32(2)),
 			},
 		},
 		Provider: &model.ConfigProvider{

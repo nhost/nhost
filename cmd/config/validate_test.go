@@ -46,6 +46,7 @@ func expectedConfig() *model.ConfigConfig {
 					"pgdump",
 					"config",
 				},
+				LiveQueriesMultiplexedRefetchInterval: ptr(uint32(1000)),
 			},
 			Logs:   &model.ConfigHasuraLogs{Level: ptr("warn")},
 			Events: &model.ConfigHasuraEvents{HttpPoolSize: ptr(uint32(100))},

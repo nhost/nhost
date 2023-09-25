@@ -1,8 +1,8 @@
 package schema
 
 import (
-    "list"
-    "math"
+	"list"
+	"math"
 	"net"
 	"strings"
 )
@@ -101,7 +101,7 @@ import (
 #Hasura: {
 	// Version of hasura, you can see available versions in the URL below:
 	// https://hub.docker.com/r/hasura/graphql-engine/tags
-	version: string | *"v2.25.1-ce"
+	version: string | *"v2.33.4-ce"
 
 	// JWT Secrets configuration
 	jwtSecrets: [#JWTSecret]
@@ -127,6 +127,9 @@ import (
 		enableRemoteSchemaPermissions: bool | *false
 		// HASURA_GRAPHQL_ENABLED_APIS
 		enabledAPIs: [...#HasuraAPIs] | *["metadata", "graphql", "pgdump", "config"]
+
+		// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
+		liveQueriesMultiplexedRefetchInterval: uint32 | *1000
 	}
 
 	logs: {
@@ -154,14 +157,14 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.3.5"
+	version: string | *"0.4.0"
 
 	// Resources for the service
 	resources?: #Resources
 
-    antivirus?: {
-        server: "tcp://run-clamav:3310"
-    }
+	antivirus?: {
+		server: "tcp://run-clamav:3310"
+	}
 }
 
 // Configuration for functions service
@@ -175,11 +178,31 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.6-20230406-2"
+	version: string | *"14.6-20230705-1"
 
 	// Resources for the service
 	resources?: #Resources & {
 		replicas: 1
+	}
+
+	settings?: {
+		maxConnections:                int32 | *100
+		sharedBuffers:                 string | *"128MB"
+		effectiveCacheSize:            string | *"4GB"
+		maintenanceWorkMem:            string | *"64MB"
+		checkpointCompletionTarget:    number | *0.9
+		walBuffers:                    int32 | *-1
+		defaultStatisticsTarget:       int32 | *100
+		randomPageCost:                number | *4.0
+		effectiveIOConcurrency:        int32 | *1
+		workMem:                       string | *"4MB"
+		hugePages:                     string | *"try"
+		minWalSize:                    string | *"80MB"
+		maxWalSize:                    string | *"1GB"
+		maxWorkerProcesses:            int32 | *8
+		maxParallelWorkersPerGather:   int32 | *2
+		maxParallelWorkers:            int32 | *8
+		maxParallelMaintenanceWorkers: int32 | *2
 	}
 }
 
@@ -193,7 +216,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.20.1"
+	version: string | *"0.21.2"
 
 	// Resources for the service
 	resources?: #Resources
@@ -501,32 +524,34 @@ import (
 						publish == false || type == "http" ) & true @cuegraph(skip)
 }
 
+#RunServiceName: =~"^[a-z]([-a-z0-9]*[a-z0-9])?$" & strings.MinRunes(1) & strings.MaxRunes(12)
+
 // Resource configuration for a service
 #RunServiceResources: {
 	compute: {
 		// milicpus, 1000 milicpus = 1 cpu
-		cpu: uint32 & >=62 & <=7000
+		cpu: uint32 & >=62 & <=14000
 		// MiB: 128MiB to 30GiB
-		memory: uint32 & >=128 & <=14360
+		memory: uint32 & >=128 & <=28720
 
 		// validate memory steps of 128 MiB
 		_validateMemorySteps128: (mod(memory, 128) == 0) & true @cuegraph(skip)
 	}
 
 	storage: [...{
-        name:     string // name of the volume, changing it will cause data loss
+		name:     #RunServiceName       // name of the volume, changing it will cause data loss
 		capacity: uint32 & >=1 & <=1000 // GiB
 		path:     string
 	}] | *[]
-    _storage_name_must_be_unique: list.UniqueItems([for s in storage {s.name}]) & true @cuegraph(skip)
-    _storage_path_must_be_unique: list.UniqueItems([for s in storage {s.path}]) & true @cuegraph(skip)
+	_storage_name_must_be_unique: list.UniqueItems([ for s in storage {s.name}]) & true @cuegraph(skip)
+	_storage_path_must_be_unique: list.UniqueItems([ for s in storage {s.path}]) & true @cuegraph(skip)
 
 	// Number of replicas for a service
 	replicas: uint8 & <=10
 
-    _replcas_cant_be_greater_than_1_when_using_storage: (len(storage) == 0 | (len(storage) > 0 & replicas <= 1)) & true @cuegraph(skip)
+	_replcas_cant_be_greater_than_1_when_using_storage: (len(storage) == 0 | (len(storage) > 0 & replicas <= 1)) & true @cuegraph(skip)
 
-	_validate_cpu_memory_ratio_must_be_1_for_2:(math.Abs(compute.memory - compute.cpu*2.048) <= 1.024) & true @cuegraph(skip)
+	_validate_cpu_memory_ratio_must_be_1_for_2: (math.Abs(compute.memory-compute.cpu*2.048) <= 1.024) & true @cuegraph(skip)
 }
 
 #RunServiceImage: {
@@ -534,7 +559,7 @@ import (
 }
 
 #RunServiceConfig: {
-	name:  string & strings.MinRunes(1)
+	name:  #RunServiceName
 	image: #RunServiceImage
 	command: [...string]
 	environment: [...#EnvironmentVariable] | *[]
