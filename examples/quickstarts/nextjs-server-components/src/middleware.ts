@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   const nhost = await getNhost(request)
+
   const session = nhost.auth.getSession()
 
   // TODO rethink how we match protected routes
@@ -24,7 +25,9 @@ export async function middleware(request: NextRequest) {
 
       // overwrite the session cookie with the new session
       return NextResponse.redirect(new URL('/protected/todos', request.url), {
-        headers: { 'Set-Cookie': `${NHOST_SESSION_KEY}=${btoa(JSON.stringify(newSession))}` }
+        headers: {
+          'Set-Cookie': `${NHOST_SESSION_KEY}=${btoa(JSON.stringify(newSession))}; Path=/`
+        }
       })
     }
   }

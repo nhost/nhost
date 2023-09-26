@@ -23,10 +23,7 @@ export const signUp = async (formData: FormData) => {
   })
 
   if (session) {
-    cookies().set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), {
-      sameSite: 'strict'
-    })
-
+    cookies().set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { path: '/' })
     redirect('/protected/todos')
   }
 
@@ -46,14 +43,7 @@ export const signIn = async (formData: FormData) => {
   const { session, error } = await nhost.auth.signIn({ email, password })
 
   if (session) {
-    const now = new Date()
-    const expires = new Date(now.getTime() + session.accessTokenExpiresIn + 3600 * 1000)
-
-    cookies().set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), {
-      sameSite: 'strict',
-      expires
-    })
-
+    cookies().set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { path: '/' })
     redirect('/protected/todos')
   }
 
@@ -72,10 +62,7 @@ export const signInWithPAT = async (formData: FormData) => {
   const { session, error } = await nhost.auth.signInPAT(pat)
 
   if (session) {
-    cookies().set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), {
-      sameSite: 'strict'
-    })
-
+    cookies().set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { path: '/' })
     redirect('/protected/todos')
   }
 
