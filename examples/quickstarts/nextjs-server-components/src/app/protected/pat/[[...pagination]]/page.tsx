@@ -13,15 +13,31 @@ export default async function PAT({
   const nhost = await getNhost()
 
   const {
-    data: { authRefreshTokens }
+    data: {
+      authRefreshTokens,
+      authRefreshTokensAggregate: {
+        aggregate: { count }
+      }
+    }
   } = await nhost.graphql.request(
     gql`
       query getPersonalAccessTokens($offset: Int, $limit: Int) {
-        authRefreshTokens(where: { type: { _eq: pat } }, offset: $offset, limit: $limit) {
+        authRefreshTokens(
+          offset: $offset
+          limit: $limit
+          order_by: { createdAt: desc }
+          where: { type: { _eq: pat } }
+        ) {
           id
-          type
           metadata
+          type
           expiresAt
+        }
+
+        authRefreshTokensAggregate(where: { type: { _eq: pat } }) {
+          aggregate {
+            count
+          }
         }
       }
     `,
@@ -38,7 +54,7 @@ export default async function PAT({
       </Head>
 
       <div className="flex items-center justify-between w-full">
-        <h2 className="text-xl">Personal Access Tokens</h2>
+        <h2 className="text-xl">Personal Access Tokens ({count})</h2>
 
         <Link
           href={`/protected/pat/new`}
@@ -55,6 +71,28 @@ export default async function PAT({
           </li>
         ))}
       </ul>
+
+      {count > 10 && (
+        <div className="flex justify-center space-x-2">
+          {page > 0 && (
+            <Link
+              href={`/protected/pat/${page - 1}`}
+              className="px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+            >
+              Previous
+            </Link>
+          )}
+
+          {page + 1 < Math.ceil(count / 10) && (
+            <Link
+              href={`/protected/pat/${page + 1}`}
+              className="px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+            >
+              Next
+            </Link>
+          )}
+        </div>
+      )}
     </div>
   )
 }
