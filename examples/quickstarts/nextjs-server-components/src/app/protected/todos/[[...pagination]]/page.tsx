@@ -1,12 +1,9 @@
 import { gql } from '@apollo/client'
-import TodoForm from '@components/todo-form'
 import TodoItem, { type Todo } from '@components/todo-item'
 
 import { getNhost } from '@utils/nhost'
 import Head from 'next/head'
 import Link from 'next/link'
-
-export const dynamic = 'force-dynamic'
 
 export default async function Todos({
   params
@@ -31,6 +28,9 @@ export default async function Todos({
           id
           title
           done
+          attachment {
+            id
+          }
         }
 
         todos_aggregate {
@@ -52,10 +52,15 @@ export default async function Todos({
         <title>Protected Page</title>
       </Head>
 
-      <div className="w-full space-y-2">
-        <p className="text-xl">Todos ({count})</p>
+      <div className="flex items-center justify-between w-full">
+        <h2 className="text-xl">Todos ({count})</h2>
 
-        <TodoForm />
+        <Link
+          href={`/protected/todos/new`}
+          className="px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+        >
+          Add Todo
+        </Link>
       </div>
 
       <ul className="space-y-1">

@@ -2,19 +2,11 @@
 
 import { createTodo } from '@actions'
 import Input from '@components/input'
-import { useRef } from 'react'
 import SubmitButton from './submit-button'
 
 export default function TodoForm() {
-  const formRef = useRef<HTMLFormElement>(null)
-
-  const handleCreateTodo = async (formData: FormData) => {
-    formRef.current?.reset()
-    await createTodo(formData)
-  }
-
   return (
-    <form ref={formRef} action={handleCreateTodo} className="flex space-x-2">
+    <form action={createTodo} className="flex flex-col space-y-2">
       <Input
         id="title"
         name="title"
@@ -22,6 +14,9 @@ export default function TodoForm() {
         placeholder="What needs to be done"
         className="w-full"
       />
+
+      <Input id="file" name="file" type="file" className="w-full" accept="image/*" />
+
       <SubmitButton>Add</SubmitButton>
     </form>
   )

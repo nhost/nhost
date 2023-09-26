@@ -1,4 +1,10 @@
-import FormData from 'form-data'
+import FallbackFormData from 'form-data'
+
+let FormData
+
+if (typeof FormData === 'undefined') {
+  FormData = FallbackFormData
+}
 
 // TODO shared with other packages
 export type StorageErrorPayload = {

@@ -14,7 +14,15 @@ export default async function Navigation() {
     },
     {
       href: '/protected/todos',
-      name: `${user ? '🔓' : '🔒'} Protected`
+      name: `${user ? '🔓' : '🔒'} Todos`
+    },
+    {
+      href: '/protected/echo',
+      name: `${user ? '🔓' : '🔒'} Echo`
+    },
+    {
+      href: '/protected/pat',
+      name: `${user ? '🔓' : '🔒'} PAT`
     }
   ]
 

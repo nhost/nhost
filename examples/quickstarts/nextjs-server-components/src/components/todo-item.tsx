@@ -1,13 +1,23 @@
 'use client'
 
 import { deleteTodo, updateTodo } from '@actions'
+import { NhostClient } from '@nhost/nhost-js'
+import Link from 'next/link'
 import { useState } from 'react'
 import { twMerge } from 'tailwind-merge'
+
+const nhost = new NhostClient({
+  subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN,
+  region: process.env.NEXT_PUBLIC_NHOST_REGION
+})
 
 export interface Todo {
   id: string
   title: string
   done: boolean
+  attachment: {
+    id: string
+  }
 }
 
 const TodoItem = ({ todo }: { todo: Todo }) => {
@@ -15,20 +25,17 @@ const TodoItem = ({ todo }: { todo: Todo }) => {
 
   const handleCheckboxChange = async () => {
     setCompleted(!completed)
-
-    // This a server action
     await updateTodo(todo.id, !completed)
   }
 
   const handleDeleteTodo = async () => {
-    console.log('delete')
     await deleteTodo(todo.id)
   }
 
   return (
     <div
       className={twMerge(
-        'group flex flex-row items-center p-2 bg-slate-100',
+        'flex flex-row items-center p-2 bg-slate-100',
         completed && 'line-through bg-slate-200'
       )}
     >
@@ -43,11 +50,33 @@ const TodoItem = ({ todo }: { todo: Todo }) => {
         <span>{todo.title}</span>
       </label>
 
-      <button onClick={handleDeleteTodo} className="hidden w-5 h-5 text-red-500 group-hover:flex">
-        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 0 30 30">
+      {todo.attachment && (
+        <Link
+          className="w-6 h-6"
+          target="_blank"
+          href={nhost.storage.getPublicUrl({ fileId: todo.attachment.id })}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            strokeWidth={1.5}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13"
+            />
+          </svg>
+        </Link>
+      )}
+
+      <button onClick={handleDeleteTodo} className="w-6 h-6">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" strokeWidth={1.5} stroke="currentColor">
           <path
-            fill="currentColor"
-            d="M 13 3 A 1.0001 1.0001 0 0 0 11.986328 4 L 6 4 A 1.0001 1.0001 0 1 0 6 6 L 24 6 A 1.0001 1.0001 0 1 0 24 4 L 18.013672 4 A 1.0001 1.0001 0 0 0 17 3 L 13 3 z M 6 8 L 6 24 C 6 25.105 6.895 26 8 26 L 22 26 C 23.105 26 24 25.105 24 24 L 24 8 L 6 8 z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
           />
         </svg>
       </button>

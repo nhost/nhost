@@ -2,6 +2,9 @@ table:
   name: todos
   schema: public
 object_relationships:
+  - name: attachment
+    using:
+      foreign_key_constraint_on: file_id
   - name: user
     using:
       foreign_key_constraint_on: user_id
@@ -12,9 +15,10 @@ insert_permissions:
       set:
         user_id: X-Hasura-User-Id
       columns:
+        - done
+        - file_id
         - id
         - title
-        - done
 select_permissions:
   - role: user
     permission:

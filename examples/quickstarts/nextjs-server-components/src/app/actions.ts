@@ -46,8 +46,12 @@ export const signIn = async (formData: FormData) => {
   const { session, error } = await nhost.auth.signIn({ email, password })
 
   if (session) {
+    const now = new Date()
+    const expires = new Date(now.getTime() + session.accessTokenExpiresIn + 3600 * 1000)
+
     cookies().set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), {
-      sameSite: 'strict'
+      sameSite: 'strict',
+      expires
     })
 
     redirect('/protected/todos')
@@ -151,20 +155,39 @@ export const createTodo = async (formData: FormData) => {
   const nhost = await getNhost()
 
   const title = formData.get('title') as string
+  const file = formData.get('file') as File
 
-  await nhost.graphql.request(
+  let payload: {
+    title: string
+    file_id?: string
+  } = {
+    title
+  }
+
+  if (file) {
+    const { error, fileMetadata } = await nhost.storage.upload({
+      formData
+    })
+
+    payload.file_id = fileMetadata?.processedFiles[0]?.id
+  }
+
+  const { error } = await nhost.graphql.request(
     gql`
-      mutation insertTodo($title: String!) {
-        insert_todos_one(object: { title: $title }) {
+      mutation insertTodo($title: String!, $file_id: uuid) {
+        insert_todos_one(object: { title: $title, file_id: $file_id }) {
           id
-          title
         }
       }
     `,
-    { title }
+    payload
   )
 
-  revalidatePath('/protected/todos')
+  if (error) {
+    // TODO firgure out where to redirect when there's an error coming from the graphql api
+  }
+
+  redirect('/protected/todos')
 }
 
 export const updateTodo = async (id: string, done: boolean) => {

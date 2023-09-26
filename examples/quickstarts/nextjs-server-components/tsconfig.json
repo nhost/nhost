@@ -22,6 +22,7 @@
       "@components/*": ["./src/components/*"],
       "@utils/*": ["./src/utils/*"],
       "@actions": ["./src/app/actions"],
+      "@server-actions/*": ["./src/app/server-actions/*"],
       "@types": ["./src/types"],
     }
   },
