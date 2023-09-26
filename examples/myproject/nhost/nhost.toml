@@ -8,7 +8,7 @@ name = 'GREET_TYPE'
 value = '{{ secrets.GREET_TYPE }}'
 
 [hasura]
-version = 'v2.25.0-ce'
+version = 'v2.33.4-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
@@ -18,7 +18,7 @@ key = '{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}'
 
 [hasura.settings]
 enableRemoteSchemaPermissions = false
-corsDomain = ['https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
+corsDomain = ['https://app.nhost.io', 'https://staging.apps.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
 liveQueriesMultiplexedRefetchInterval = 3000
 
 [functions]
@@ -26,7 +26,7 @@ liveQueriesMultiplexedRefetchInterval = 3000
 version = 16
 
 [auth]
-version = '0.20.1'
+version = '0.21.2'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
