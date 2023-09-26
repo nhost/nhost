@@ -1,18 +1,8 @@
 import fetchPonyfill from 'fetch-ponyfill'
-import FallbackFormData from 'form-data'
+import LegacyFormData from 'form-data'
 import { StorageErrorPayload, StorageUploadResponse } from './types'
 
-let FormData
-
-if (typeof FormData === 'undefined') {
-  FormData = FallbackFormData
-}
-
 let fetch = globalThis.fetch
-
-if (typeof fetch === 'undefined') {
-  fetch = fetchPonyfill().fetch
-}
 
 /** Convert any string into ISO-8859-1 */
 export const toIso88591 = (fileName: string) => {
@@ -26,7 +16,7 @@ export const toIso88591 = (fileName: string) => {
 
 export const fetchUpload = async (
   backendUrl: string,
-  data: FormData,
+  data: FormData | LegacyFormData,
   {
     accessToken,
     name,
@@ -62,6 +52,10 @@ export const fetchUpload = async (
   if (typeof XMLHttpRequest === 'undefined') {
     // * Non-browser environment: XMLHttpRequest is not available
     try {
+      if (data instanceof LegacyFormData) {
+        fetch = fetchPonyfill().fetch
+      }
+
       const response = await fetch(url, {
         method: 'POST',
         headers,

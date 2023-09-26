@@ -1,10 +1,4 @@
-import FallbackFormData from 'form-data'
-
-let FormData
-
-if (typeof FormData === 'undefined') {
-  FormData = FallbackFormData
-}
+import LegacyFormData from 'form-data'
 
 // TODO shared with other packages
 export type StorageErrorPayload = {
@@ -41,7 +35,7 @@ export interface StorageUploadFileParams {
 
 // works in browser and server
 export interface StorageUploadFormDataParams {
-  formData: FormData
+  formData: FormData | LegacyFormData
   bucketId?: string
   headers?: Record<string, string>
 }
