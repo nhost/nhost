@@ -12,7 +12,9 @@ export async function GET(request: NextRequest) {
 
     if (session) {
       return NextResponse.redirect(new URL('/protected/todos', request.url), {
-        headers: { 'Set-Cookie': `${NHOST_SESSION_KEY}=${btoa(JSON.stringify(session))}` }
+        headers: {
+          'Set-Cookie': `${NHOST_SESSION_KEY}=${btoa(JSON.stringify(session))}; Path=/`
+        }
       })
     }
   }
