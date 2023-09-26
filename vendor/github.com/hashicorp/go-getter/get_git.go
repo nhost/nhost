@@ -329,9 +329,9 @@ func setupGitEnv(cmd *exec.Cmd, sshKeyFile string) {
 			sshKeyFile = strings.Replace(sshKeyFile, `\`, `/`, -1)
 		}
 		sshCmd = append(sshCmd, "-i", sshKeyFile)
+		env = append(env, strings.Join(sshCmd, " "))
 	}
 
-	env = append(env, strings.Join(sshCmd, " "))
 	cmd.Env = env
 }
 

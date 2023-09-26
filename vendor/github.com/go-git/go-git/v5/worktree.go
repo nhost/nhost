@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	stdioutil "io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -290,7 +289,7 @@ func (w *Worktree) ResetSparsely(opts *ResetOptions, dirs []string) error {
 		return nil
 	}
 
-	t, err := w.getTreeFromCommitHash(opts.Commit)
+	t, err := w.r.getTreeFromCommitHash(opts.Commit)
 	if err != nil {
 		return err
 	}
@@ -369,7 +368,7 @@ func (w *Worktree) resetIndex(t *object.Tree, dirs []string) error {
 }
 
 func (w *Worktree) resetWorktree(t *object.Tree) error {
-	changes, err := w.diffStagingWithWorktree(true)
+	changes, err := w.diffStagingWithWorktree(true, false)
 	if err != nil {
 		return err
 	}
@@ -421,7 +420,7 @@ func (w *Worktree) checkoutChange(ch merkletrie.Change, t *object.Tree, idx *ind
 }
 
 func (w *Worktree) containsUnstagedChanges() (bool, error) {
-	ch, err := w.diffStagingWithWorktree(false)
+	ch, err := w.diffStagingWithWorktree(false, true)
 	if err != nil {
 		return false, err
 	}
@@ -569,7 +568,7 @@ func (w *Worktree) checkoutFileSymlink(f *object.File) (err error) {
 
 	defer ioutil.CheckClose(from, &err)
 
-	bytes, err := stdioutil.ReadAll(from)
+	bytes, err := io.ReadAll(from)
 	if err != nil {
 		return
 	}
@@ -633,8 +632,8 @@ func (w *Worktree) addIndexFromFile(name string, h plumbing.Hash, idx *indexBuil
 	return nil
 }
 
-func (w *Worktree) getTreeFromCommitHash(commit plumbing.Hash) (*object.Tree, error) {
-	c, err := w.r.CommitObject(commit)
+func (r *Repository) getTreeFromCommitHash(commit plumbing.Hash) (*object.Tree, error) {
+	c, err := r.CommitObject(commit)
 	if err != nil {
 		return nil, err
 	}
@@ -718,7 +717,7 @@ func (w *Worktree) readGitmodulesFile() (*config.Modules, error) {
 	}
 
 	defer f.Close()
-	input, err := stdioutil.ReadAll(f)
+	input, err := io.ReadAll(f)
 	if err != nil {
 		return nil, err
 	}
@@ -802,9 +801,9 @@ func (gr GrepResult) String() string {
 	return fmt.Sprintf("%s:%s:%d:%s", gr.TreeName, gr.FileName, gr.LineNumber, gr.Content)
 }
 
-// Grep performs grep on a worktree.
-func (w *Worktree) Grep(opts *GrepOptions) ([]GrepResult, error) {
-	if err := opts.Validate(w); err != nil {
+// Grep performs grep on a repository.
+func (r *Repository) Grep(opts *GrepOptions) ([]GrepResult, error) {
+	if err := opts.validate(r); err != nil {
 		return nil, err
 	}
 
@@ -814,7 +813,7 @@ func (w *Worktree) Grep(opts *GrepOptions) ([]GrepResult, error) {
 	var treeName string
 
 	if opts.ReferenceName != "" {
-		ref, err := w.r.Reference(opts.ReferenceName, true)
+		ref, err := r.Reference(opts.ReferenceName, true)
 		if err != nil {
 			return nil, err
 		}
@@ -827,13 +826,18 @@ func (w *Worktree) Grep(opts *GrepOptions) ([]GrepResult, error) {
 
 	// Obtain a tree from the commit hash and get a tracked files iterator from
 	// the tree.
-	tree, err := w.getTreeFromCommitHash(commitHash)
+	tree, err := r.getTreeFromCommitHash(commitHash)
 	if err != nil {
 		return nil, err
 	}
 	fileiter := tree.Files()
 
 	return findMatchInFiles(fileiter, treeName, opts)
+}
+
+// Grep performs grep on a worktree.
+func (w *Worktree) Grep(opts *GrepOptions) ([]GrepResult, error) {
+	return w.r.Grep(opts)
 }
 
 // findMatchInFiles takes a FileIter, worktree name and GrepOptions, and

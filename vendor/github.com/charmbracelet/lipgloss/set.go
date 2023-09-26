@@ -14,7 +14,14 @@ func (s *Style) set(key propKey, value interface{}) {
 
 	switch v := value.(type) {
 	case int:
-		// We don't allow negative integers on any of our values, so just keep
+		// TabWidth is the only property that may have a negative value (and
+		// that negative value can be no less than -1).
+		if key == tabWidthKey {
+			s.rules[key] = v
+			break
+		}
+
+		// We don't allow negative integers on any of our other values, so just keep
 		// them at zero or above. We could use uints instead, but the
 		// conversions are a little tedious, so we're sticking with ints for
 		// sake of usability.
@@ -126,7 +133,7 @@ func (s Style) AlignHorizontal(p Position) Style {
 	return s
 }
 
-// AlignVertical sets a text alignment rule.
+// AlignVertical sets a vertical text alignment rule.
 func (s Style) AlignVertical(p Position) Style {
 	s.set(alignVerticalKey, p)
 	return s
@@ -497,11 +504,28 @@ func (s Style) MaxWidth(n int) Style {
 // styles.
 //
 // Because this in intended to be used at the time of render, this method will
-// not mutate the style and instead return a copy.
+// not mutate the style and instead returns a copy.
 func (s Style) MaxHeight(n int) Style {
 	o := s.Copy()
 	o.set(maxHeightKey, n)
 	return o
+}
+
+// NoTabConversion can be passed to [Style.TabWidth] to disable the replacement
+// of tabs with spaces at render time.
+const NoTabConversion = -1
+
+// TabWidth sets the number of spaces that a tab (/t) should be rendered as.
+// When set to 0, tabs will be removed. To disable the replacement of tabs with
+// spaces entirely, set this to [NoTabConversion].
+//
+// By default, tabs will be replaced with 4 spaces.
+func (s Style) TabWidth(n int) Style {
+	if n <= -1 {
+		n = -1
+	}
+	s.set(tabWidthKey, n)
+	return s
 }
 
 // UnderlineSpaces determines whether to underline spaces between words. By
@@ -545,19 +569,19 @@ func whichSidesInt(i ...int) (top, right, bottom, left int, ok bool) {
 		left = i[0]
 		right = i[0]
 		ok = true
-	case 2:
+	case 2: //nolint:gomnd
 		top = i[0]
 		bottom = i[0]
 		left = i[1]
 		right = i[1]
 		ok = true
-	case 3:
+	case 3: //nolint:gomnd
 		top = i[0]
 		left = i[1]
 		right = i[1]
 		bottom = i[2]
 		ok = true
-	case 4:
+	case 4: //nolint:gomnd
 		top = i[0]
 		right = i[1]
 		bottom = i[2]
@@ -578,19 +602,19 @@ func whichSidesBool(i ...bool) (top, right, bottom, left bool, ok bool) {
 		left = i[0]
 		right = i[0]
 		ok = true
-	case 2:
+	case 2: //nolint:gomnd
 		top = i[0]
 		bottom = i[0]
 		left = i[1]
 		right = i[1]
 		ok = true
-	case 3:
+	case 3: //nolint:gomnd
 		top = i[0]
 		left = i[1]
 		right = i[1]
 		bottom = i[2]
 		ok = true
-	case 4:
+	case 4: //nolint:gomnd
 		top = i[0]
 		right = i[1]
 		bottom = i[2]
@@ -611,19 +635,19 @@ func whichSidesColor(i ...TerminalColor) (top, right, bottom, left TerminalColor
 		left = i[0]
 		right = i[0]
 		ok = true
-	case 2:
+	case 2: //nolint:gomnd
 		top = i[0]
 		bottom = i[0]
 		left = i[1]
 		right = i[1]
 		ok = true
-	case 3:
+	case 3: //nolint:gomnd
 		top = i[0]
 		left = i[1]
 		right = i[1]
 		bottom = i[2]
 		ok = true
-	case 4:
+	case 4: //nolint:gomnd
 		top = i[0]
 		right = i[1]
 		bottom = i[2]

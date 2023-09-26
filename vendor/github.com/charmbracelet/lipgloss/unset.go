@@ -30,7 +30,7 @@ func (s Style) UnsetReverse() Style {
 	return s
 }
 
-// UnsetBlink removes the bold style rule, if set.
+// UnsetBlink removes the blink style rule, if set.
 func (s Style) UnsetBlink() Style {
 	delete(s.rules, blinkKey)
 	return s
@@ -112,7 +112,7 @@ func (s Style) UnsetPaddingTop() Style {
 	return s
 }
 
-// UnsetPaddingBottom removes the bottom style rule, if set.
+// UnsetPaddingBottom removes the bottom padding style rule, if set.
 func (s Style) UnsetPaddingBottom() Style {
 	delete(s.rules, paddingBottomKey)
 	return s
@@ -284,6 +284,12 @@ func (s Style) UnsetMaxWidth() Style {
 // UnsetMaxHeight removes the max height style rule, if set.
 func (s Style) UnsetMaxHeight() Style {
 	delete(s.rules, maxHeightKey)
+	return s
+}
+
+// UnsetMaxHeight removes the max height style rule, if set.
+func (s Style) UnsetTabWidth() Style {
+	delete(s.rules, tabWidthKey)
 	return s
 }
 

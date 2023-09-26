@@ -29,6 +29,12 @@ test:
 	@echo "running against `git version`"; \
 	$(GOTEST) -race ./...
 
+TEMP_REPO := $(shell mktemp)
+test-sha256:
+	$(GOCMD) run -tags sha256 _examples/sha256/main.go $(TEMP_REPO)
+	cd $(TEMP_REPO) && git fsck
+	rm -rf $(TEMP_REPO)
+
 test-coverage:
 	@echo "running against `git version`"; \
 	echo "" > $(COVERAGE_REPORT); \

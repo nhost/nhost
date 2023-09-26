@@ -39,7 +39,7 @@ type Config struct {
 	// and password-encrypted data.
 	// If nil, the default configuration is used
 	S2KConfig *s2k.Config
-	// Iteration count for Iterated S2K (String to Key). 
+	// Iteration count for Iterated S2K (String to Key).
 	// Only used if sk2.Mode is nil.
 	// This value is duplicated here from s2k.Config for backwards compatibility.
 	// It determines the strength of the passphrase stretching when
@@ -135,9 +135,9 @@ func (c *Config) Cipher() CipherFunction {
 
 func (c *Config) Now() time.Time {
 	if c == nil || c.Time == nil {
-		return time.Now()
+		return time.Now().Truncate(time.Second)
 	}
-	return c.Time()
+	return c.Time().Truncate(time.Second)
 }
 
 // KeyLifetime returns the validity period of the key.
@@ -198,7 +198,7 @@ func (c *Config) S2K() *s2k.Config {
 	}
 	// for backwards compatibility
 	if c != nil && c.S2KCount > 0 && c.S2KConfig == nil {
-		return &s2k.Config {
+		return &s2k.Config{
 			S2KCount: c.S2KCount,
 		}
 	}

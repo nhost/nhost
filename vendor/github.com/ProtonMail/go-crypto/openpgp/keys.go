@@ -252,6 +252,44 @@ func (e *Entity) Revoked(now time.Time) bool {
 	return revoked(e.Revocations, now)
 }
 
+// EncryptPrivateKeys encrypts all non-encrypted keys in the entity with the same key
+// derived from the provided passphrase. Public keys and dummy keys are ignored,
+// and don't cause an error to be returned.
+func (e *Entity) EncryptPrivateKeys(passphrase []byte, config *packet.Config) error {
+	var keysToEncrypt []*packet.PrivateKey
+	// Add entity private key to encrypt.
+	if e.PrivateKey != nil && !e.PrivateKey.Dummy() && !e.PrivateKey.Encrypted {
+		keysToEncrypt = append(keysToEncrypt,  e.PrivateKey)
+	}
+
+	// Add subkeys to encrypt.
+	for _, sub := range e.Subkeys {
+		if sub.PrivateKey != nil && !sub.PrivateKey.Dummy() && !sub.PrivateKey.Encrypted {
+			keysToEncrypt = append(keysToEncrypt, sub.PrivateKey)
+		}
+	}
+	return packet.EncryptPrivateKeys(keysToEncrypt, passphrase, config)
+}
+
+// DecryptPrivateKeys decrypts all encrypted keys in the entitiy with the given passphrase.
+// Avoids recomputation of similar s2k key derivations. Public keys and dummy keys are ignored,
+// and don't cause an error to be returned.
+func (e *Entity) DecryptPrivateKeys(passphrase []byte) error {
+	var keysToDecrypt []*packet.PrivateKey
+	// Add entity private key to decrypt.
+	if e.PrivateKey != nil && !e.PrivateKey.Dummy() && e.PrivateKey.Encrypted {
+		keysToDecrypt = append(keysToDecrypt, e.PrivateKey)
+	}
+
+	// Add subkeys to decrypt.
+	for _, sub := range e.Subkeys {
+		if sub.PrivateKey != nil && !sub.PrivateKey.Dummy() && sub.PrivateKey.Encrypted {
+			keysToDecrypt = append(keysToDecrypt,  sub.PrivateKey)
+		}
+	}
+	return packet.DecryptPrivateKeys(keysToDecrypt, passphrase)
+}
+
 // Revoked returns whether the identity has been revoked by a self-signature.
 // Note that third-party revocation signatures are not supported.
 func (i *Identity) Revoked(now time.Time) bool {
@@ -466,7 +504,7 @@ EachPacket:
 			// Else, ignoring the signature as it does not follow anything
 			// we would know to attach it to.
 		case *packet.PrivateKey:
-			if pkt.IsSubkey == false {
+			if !pkt.IsSubkey {
 				packets.Unread(p)
 				break EachPacket
 			}
@@ -475,7 +513,7 @@ EachPacket:
 				return nil, err
 			}
 		case *packet.PublicKey:
-			if pkt.IsSubkey == false {
+			if !pkt.IsSubkey {
 				packets.Unread(p)
 				break EachPacket
 			}

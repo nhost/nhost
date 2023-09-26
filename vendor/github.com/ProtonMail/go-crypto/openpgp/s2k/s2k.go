@@ -25,10 +25,10 @@ type Mode uint8
 //	0 (simple), 1(salted), 3(iterated), 4(argon2)
 const (
 	SimpleS2K         Mode = 0
-	SaltedS2K              = 1
-	IteratedSaltedS2K      = 3
-	Argon2S2K              = 4
-	GnuS2K                 = 101
+	SaltedS2K         Mode = 1
+	IteratedSaltedS2K Mode = 3
+	Argon2S2K         Mode = 4
+	GnuS2K            Mode = 101
 )
 
 const Argon2SaltSize int = 16
@@ -42,7 +42,7 @@ type Params struct {
 	// hashId is the ID of the hash function used in any of the modes
 	hashId byte
 	// salt is a byte array to use as a salt in hashing process or argon2
-	salt []byte
+	saltBytes [Argon2SaltSize]byte
 	// countByte is used to determine how many rounds of hashing are to
 	// be performed in s2k mode 3. See RFC 4880 Section 3.7.1.3.
 	countByte byte
@@ -183,31 +183,40 @@ func Argon2(out []byte, in []byte, salt []byte, passes uint8, paralellism uint8,
 // It will enforce the Iterated and Salted or Argon2 S2K method.
 func Generate(rand io.Reader, c *Config) (*Params, error) {
 	var params *Params
-	if c != nil && c.S2KMode == Argon2S2K {
+	if c != nil && c.Mode() == Argon2S2K {
 		// handle Argon2 case
 		argonConfig := c.Argon2()
 		params = &Params{
 			mode:        Argon2S2K,
-			salt:        make([]byte, Argon2SaltSize),
 			passes:      argonConfig.Passes(),
 			parallelism: argonConfig.Parallelism(),
 			memoryExp:   argonConfig.EncodedMemory(),
 		}
-	} else {
-		// handle IteratedSaltedS2K case
+	} else if c != nil && c.PassphraseIsHighEntropy && c.Mode() == SaltedS2K { // Allow SaltedS2K if PassphraseIsHighEntropy
 		hashId, ok := algorithm.HashToHashId(c.hash())
 		if !ok {
 			return nil, errors.UnsupportedError("no such hash")
 		}
 
 		params = &Params{
-			mode:      IteratedSaltedS2K, // Enforce iterared + salted method if not Argon 2
+			mode:      SaltedS2K,
 			hashId:    hashId,
-			salt:      make([]byte, 8),
+		}
+	} else { // Enforce IteratedSaltedS2K method otherwise
+		hashId, ok := algorithm.HashToHashId(c.hash())
+		if !ok {
+			return nil, errors.UnsupportedError("no such hash")
+		}
+		if c != nil {
+			c.S2KMode = IteratedSaltedS2K
+		}
+		params = &Params{
+			mode:      IteratedSaltedS2K, 
+			hashId:    hashId,
 			countByte: c.EncodedCount(),
 		}
 	}
-	if _, err := io.ReadFull(rand, params.salt); err != nil {
+	if _, err := io.ReadFull(rand, params.salt()); err != nil {
 		return nil, err
 	}
 	return params, nil
@@ -254,7 +263,7 @@ func ParseIntoParams(r io.Reader) (params *Params, err error) {
 			return nil, err
 		}
 		params.hashId = buf[0]
-		params.salt = buf[1:9]
+		copy(params.salt(), buf[1:9])
 		return params, nil
 	case IteratedSaltedS2K:
 		_, err = io.ReadFull(r, buf[:10])
@@ -262,7 +271,7 @@ func ParseIntoParams(r io.Reader) (params *Params, err error) {
 			return nil, err
 		}
 		params.hashId = buf[0]
-		params.salt = buf[1:9]
+		copy(params.salt(), buf[1:9])
 		params.countByte = buf[9]
 		return params, nil
 	case Argon2S2K:
@@ -270,7 +279,7 @@ func ParseIntoParams(r io.Reader) (params *Params, err error) {
 		if err != nil {
 			return nil, err
 		}
-		params.salt = buf[:Argon2SaltSize]
+		copy(params.salt(), buf[:Argon2SaltSize])
 		params.passes = buf[Argon2SaltSize]
 		params.parallelism = buf[Argon2SaltSize+1]
 		params.memoryExp = buf[Argon2SaltSize+2]
@@ -293,6 +302,14 @@ func ParseIntoParams(r io.Reader) (params *Params, err error) {
 
 func (params *Params) Dummy() bool {
 	return params != nil && params.mode == GnuS2K
+}
+
+func (params *Params) salt() []byte {
+	switch params.mode {
+		case SaltedS2K, IteratedSaltedS2K: return params.saltBytes[:8]
+		case Argon2S2K: return params.saltBytes[:Argon2SaltSize]
+		default: return nil
+	}
 }
 
 func (params *Params) Function() (f func(out, in []byte), err error) {
@@ -320,19 +337,19 @@ func (params *Params) Function() (f func(out, in []byte), err error) {
 		return f, nil
 	case SaltedS2K:
 		f := func(out, in []byte) {
-			Salted(out, hashObj.New(), in, params.salt)
+			Salted(out, hashObj.New(), in, params.salt())
 		}
 
 		return f, nil
 	case IteratedSaltedS2K:
 		f := func(out, in []byte) {
-			Iterated(out, hashObj.New(), in, params.salt, decodeCount(params.countByte))
+			Iterated(out, hashObj.New(), in, params.salt(), decodeCount(params.countByte))
 		}
 
 		return f, nil
 	case Argon2S2K:
 		f := func(out, in []byte) {
-			Argon2(out, in, params.salt, params.passes, params.parallelism, params.memoryExp)
+			Argon2(out, in, params.salt(), params.passes, params.parallelism, params.memoryExp)
 		}
 		return f, nil
 	}
@@ -354,7 +371,7 @@ func (params *Params) Serialize(w io.Writer) (err error) {
 		return
 	}
 	if params.mode > 0 {
-		if _, err = w.Write(params.salt); err != nil {
+		if _, err = w.Write(params.salt()); err != nil {
 			return
 		}
 		if params.mode == IteratedSaltedS2K {

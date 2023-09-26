@@ -7,8 +7,9 @@ import "crypto"
 // values.
 type Config struct {
 	// S2K (String to Key) mode, used for key derivation in the context of secret key encryption
-	// and password-encrypted data. Either s2k.Argon2S2K or s2k.IteratedSaltedS2K has to be selected
-	// weaker options are not allowed.
+	// and passphrase-encrypted data. Either s2k.Argon2S2K or s2k.IteratedSaltedS2K may be used.
+	// If the passphrase is a high-entropy key, indicated by setting PassphraseIsHighEntropy to true,
+	// s2k.SaltedS2K can also be used.
 	// Note: Argon2 is the strongest option but not all OpenPGP implementations are compatible with it
 	//(pending standardisation).
 	// 0 (simple), 1(salted), 3(iterated), 4(argon2)
@@ -35,6 +36,13 @@ type Config struct {
 	// use a value that is at least 65536. See RFC 4880 Section
 	// 3.7.1.3.
 	S2KCount int
+	// Indicates whether the passphrase passed by the application is a
+	// high-entropy key (e.g. it's randomly generated or derived from
+	// another passphrase using a strong key derivation function).
+	// When true, allows the S2KMode to be s2k.SaltedS2K.
+	// When the passphrase is not a high-entropy key, using SaltedS2K is
+	// insecure, and not allowed by draft-ietf-openpgp-crypto-refresh-08.
+	PassphraseIsHighEntropy bool
 }
 
 // Argon2Config stores the Argon2 parameters
