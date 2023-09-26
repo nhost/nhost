@@ -59,8 +59,10 @@ const TodoItem = ({ todo }: { todo: Todo }) => {
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
+            viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
+            className="w-6 h-6"
           >
             <path
               strokeLinecap="round"
@@ -72,7 +74,14 @@ const TodoItem = ({ todo }: { todo: Todo }) => {
       )}
 
       <button onClick={handleDeleteTodo} className="w-6 h-6">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" strokeWidth={1.5} stroke="currentColor">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
