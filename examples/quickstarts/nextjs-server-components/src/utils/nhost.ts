@@ -15,18 +15,6 @@ export const getNhost = async (request?: NextRequest) => {
     start: false
   }
 
-  if (request) {
-    config = {
-      ...config,
-      clientStorage: {
-        getItem: (key) => $cookies.get(key),
-        setItem: (key, value) => $cookies.set(key, value),
-        removeItem: (key) => $cookies.delete(key)
-      },
-      clientStorageType: 'custom'
-    }
-  }
-
   const nhost = new NhostClient(config)
 
   const sessionCookieValue = $cookies.get(NHOST_SESSION_KEY)?.value || ''

@@ -12,9 +12,7 @@ export const createPAT = async (formData: FormData) => {
   const expiration = formData.get('expiration') as string
   const expirationDate = new Date(expiration)
 
-  await nhost.auth.createPAT(expirationDate, {
-    name: name
-  })
+  await nhost.auth.createPAT(expirationDate, { name })
 
   redirect('/protected/pat')
 }

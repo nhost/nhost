@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client'
 import PatItem, { type PAT } from '@components/pat-item'
-import { getNhost } from '@utils/nhost'
 import Head from 'next/head'
 import Link from 'next/link'
+import { getNhost } from '../../../../utils/nhost'
 
 export default async function PAT({
   params

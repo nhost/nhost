@@ -1,6 +1,6 @@
 import { signOut } from '@actions'
-import { getNhost } from '@utils/nhost'
 import Link from 'next/link'
+import { getNhost } from '../utils/nhost'
 import SignOut from './sign-out'
 
 export default async function Navigation() {

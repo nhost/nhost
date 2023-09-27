@@ -1,4 +1,4 @@
-import { getNhost } from '@utils/nhost'
+import { getNhost } from '../../../utils/nhost'
 
 export default async function Echo() {
   const nhost = await getNhost()

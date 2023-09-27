@@ -7,7 +7,7 @@ import { useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 const nhost = new NhostClient({
-  subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN,
+  subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN || 'local',
   region: process.env.NEXT_PUBLIC_NHOST_REGION
 })
 

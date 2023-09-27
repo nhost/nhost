@@ -1,9 +1,9 @@
 import { gql } from '@apollo/client'
 import TodoItem, { type Todo } from '@components/todo-item'
 
-import { getNhost } from '@utils/nhost'
 import Head from 'next/head'
 import Link from 'next/link'
+import { getNhost } from '../../../../utils/nhost'
 
 export default async function Todos({
   params
