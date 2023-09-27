@@ -1,0 +1,57 @@
+---
+title: "Example: CRM System"
+sidebar_label: "Example: CRM System"
+sidebar_position: 3
+---
+
+Let's say you want to build a CRM system and you want to store files for customers. This is one way how you could do that.
+
+Start with, you would have two tables:
+
+1. `customers` - Customer data.
+2. `customer_files` - What file belongs to what customer
+
+```text
+- customers
+  - id
+  - name
+  - address
+
+customer_files
+  - id
+  - customer_id (Foreign Key to `customers.id`)
+  - file_id (Foreign Key to `storage.files.id`)
+```
+
+You would also create a [Hasura Relationship](https://hasura.io/docs/latest/graphql/core/databases/postgres/schema/table-relationships/index/) (GraphQL relationship) between between `customers` and `customer_files` and between `customer_files` and `storage.files`.
+
+With the two tables and GraphQL relationships in place, you can query customers and the customer's files like this:
+
+```graphql
+query {
+  customers {
+    # customers table
+    id
+    name
+    customer_files {
+      # customer_files table
+      id
+      file {
+        # storage.files table
+        id
+        name
+        size
+        mimeType
+      }
+    }
+  }
+}
+```
+
+The file upload process would be as follows:
+
+1. Upload a file.
+2. Get the returned file id.
+3. Insert (GraphQL Mutation) the file `id` and the customer's `id` into the `customer_files` table.
+
+This would allow you to upload and download files belonging to specific customers in your CRM system.
