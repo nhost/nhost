@@ -26,6 +26,10 @@ const config = {
   favicon: 'img/favicon.png',
   organizationName: 'nhost',
   projectName: 'docs',
+  markdown: {
+    mermaid: true
+  },
+  themes: ['@docusaurus/theme-mermaid'],
   scripts: [
     { src: 'https://plausible.io/js/script.js', defer: true, 'data-domain': 'docs.nhost.io' }
   ],
@@ -44,7 +48,6 @@ const config = {
           routeBasePath: '/',
           breadcrumbs: false,
           sidebarPath: require.resolve('./sidebars.js'),
-          remarkPlugins: [require('mdx-mermaid')],
           editUrl: 'https://github.com/nhost/nhost/edit/main/docs/'
         },
         theme: {
