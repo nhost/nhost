@@ -1,4 +1,0 @@
--- Could not auto-generate a down migration
--- Please write an appropriate down migration for the SQL below:
--- ALTER TABLE public.todos ADD "createdAt" timestamptz DEFAULT now() NOT NULL;
--- ALTER TABLE public.todos ADD "updatedAt" timestamptz DEFAULT now() NOT NULL;

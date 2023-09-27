@@ -1,1 +1,0 @@
-CREATE TABLE public.todos (id uuid DEFAULT gen_random_uuid() NOT NULL, title text NOT NULL, done bool DEFAULT 'false' NOT NULL, user_id uuid NOT NULL, PRIMARY KEY (id), FOREIGN KEY (user_id) REFERENCES auth.users (id) ON UPDATE CASCADE ON DELETE CASCADE);
