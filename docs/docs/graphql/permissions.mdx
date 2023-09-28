@@ -144,6 +144,14 @@ One of the most common permission requirements is that authenticated users shoul
 1. Select the **columns** you want the user to be able to read. In our case, we'll allow the user to read all columns.
 1. Click **Save**.
 
+## Known issues
+
+### Permissions are slow
+
+Under some circumstances checking permissions can be very slow. This issue is easy to identify by comparing the execution time of a graphql query as an admin and the execution time of the same query as a user. In this cases, [disabling the jit](database/settings) in postgres can help.
+
+[Github issue](https://github.com/hasura/graphql-engine/issues/3672)
+
 ## Next Steps
 
 Hasura has more in-depth documentation related to permissions that you can learn from:
