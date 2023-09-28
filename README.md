@@ -50,7 +50,28 @@ The main features of the service are:
 - create presigned URLs to grant temporary access
 - caching information to integrate with caches and CDNs (cache headers, etag, conditional headers, etc)
 - perform basic image manipulation on the fly
-- integration with clamav antivirus
+- integration with [clamav](https://www.clamav.net) antivirus
+
+## Antivirus
+
+Integration with [clamav](https://www.clamav.net) antivirus relies on an external [clamd](https://docs.clamav.net/manual/Usage/Scanning.html#clamd) service. When a file is uploaded `hasura-storage` will create the file metadata first and then check if the file is clean with `clamd` via its TCP socket. If the file is clean the rest of the process will continue as usual. If a virus is found details about the virus will be added to the `virus` table and the rest of the process will be aborted.
+
+``` mermaid
+sequenceDiagram
+    actor User
+    User ->> storage: upload file
+    storage ->>clamav: check for virus
+    alt virus found
+        storage-->s3: abort upload
+        storage->>graphql: insert row in virus table
+    else virus not found
+        storage->>s3: upload
+        storage->>graphql: update metadata
+    end
+
+```
+
+This feature can be enabled with the flag `--clamav-server string`, where `string` is the tcp address for the clamd service.
 
 ## OpenAPI
 
