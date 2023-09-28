@@ -22,6 +22,7 @@ Below you can find the official schema (cue) and an example to configure your po
 
     // postgres settings of the same name in camelCase, optional
 	settings?: {
+        jit:                           "off" | "on" | *"on"
 		maxConnections:                int32 | *100
 		sharedBuffers:                 string | *"128MB"
 		effectiveCacheSize:            string | *"4GB"
@@ -54,6 +55,7 @@ cpu = 1000
 memory = 2048
 
 [postgres.settings]
+jit = "off"
 maxConnections = 100
 sharedBuffers = '256MB'
 effectiveCacheSize = '768MB'
