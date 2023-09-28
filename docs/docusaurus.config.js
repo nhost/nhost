@@ -180,6 +180,7 @@ const config = {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
         defaultLanguage: 'javascript',
+        additionalLanguages: ['cue', 'toml'],
         magicComments: [
           {
             className: 'code-block-error-line',

@@ -1,0 +1,147 @@
+---
+title: 'Extensions'
+sidebar_position: 4
+---
+
+## postgis
+
+PostGIS extends the capabilities of the PostgreSQL relational database by adding support storing, indexing and querying geographic data.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```
+SET ROLE postgres;
+CREATE EXTENSION postgis;
+```
+
+To uninstall it, you can use the following migration:
+
+```
+SET ROLE postgres;
+DROP EXTENSION postgis;
+```
+
+### Resources
+
+* [Official website](https://postgis.net)
+
+## pgvector
+
+Open-source vector similarity search for Postgres. Store your vectors with the rest of your data. Supports:
+
+* exact and approximate nearest neighbor search
+* L2 distance, inner product, and cosine distance
+* any language with a Postgres client
+
+Plus ACID compliance, point-in-time recovery, JOINs, and all of the other great features of Postgres
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```
+SET ROLE postgres;
+CREATE EXTENSION vector;
+```
+
+To uninstall it, you can use the following migration:
+
+```
+SET ROLE postgres;
+DROP EXTENSION vector;
+```
+
+### Resources
+
+* [GitHub](https://github.com/pgvector/pgvector)
+
+## pg_cron
+
+pg_cron is a simple cron-based job scheduler for PostgreSQL (10 or higher) that runs inside the database as an extension. It uses the same syntax as regular cron, but it allows you to schedule PostgreSQL commands directly from the database. You can also use '[1-59] seconds' to schedule a job based on an interval.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```
+SET ROLE postgres;
+CREATE EXTENSION pg_cron;
+```
+
+To uninstall it, you can use the following migration:
+
+```
+SET ROLE postgres;
+DROP EXTENSION pg_cron;
+```
+
+### Resources
+
+* [GitHub](https://github.com/citusdata/pg_cron)
+
+## hypopg
+
+HypoPG is a PostgreSQL extension adding support for hypothetical indexes.
+
+An hypothetical -- or virtual -- index is an index that doesn't really exists, and thus doesn't cost CPU, disk or any resource to create. They're useful to know if specific indexes can increase performance for problematic queries, since you can know if PostgreSQL will use these indexes or not without having to spend resources to create them.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```
+SET ROLE postgres;
+CREATE EXTENSION hypopg;
+```
+
+To uninstall it, you can use the following migration:
+
+```
+SET ROLE postgres;
+DROP EXTENSION hypopg;
+```
+
+### Resources
+
+* [GitHub](https://github.com/HypoPG/hypopg)
+* [Documentation](https://hypopg.readthedocs.io)
+
+## timescaledb
+
+TimescaleDB is an open-source database designed to make SQL scalable for time-series data. It is engineered up from PostgreSQL and packaged as a PostgreSQL extension, providing automatic partitioning across time and space (partitioning key), as well as full SQL support.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```
+SET ROLE postgres;
+CREATE EXTENSION timescaledb;
+```
+
+To uninstall it, you can use the following migration:
+
+```
+SET ROLE postgres;
+DROP EXTENSION timescaledb;
+```
+
+### Resources
+
+* [GitHub](https://github.com/timescale/timescaledb)
+* [Documentation](https://docs.timescale.com)
+* [Website](https://www.timescale.com)
+
+## pg_stat_statements
+
+The pg_stat_statements module provides a means for tracking planning and execution statistics of all SQL statements executed by a server.
+
+### Managing
+
+Enabled by default.
+
+### Resources
+
+* [Documentation](https://www.postgresql.org/docs/14/pgstatstatements.html)
