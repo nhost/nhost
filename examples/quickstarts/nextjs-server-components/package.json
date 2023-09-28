@@ -1,5 +1,5 @@
 {
-  "name": "@nhost-examples/nextjs-react-server-components",
+  "name": "@nhost-examples/nextjs-server-components",
   "version": "0.1.0",
   "private": true,
   "scripts": {
