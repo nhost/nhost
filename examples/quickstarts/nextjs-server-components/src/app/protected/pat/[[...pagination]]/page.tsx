@@ -1,14 +1,17 @@
 import { gql } from '@apollo/client'
 import PatItem, { type PAT } from '@components/pat-item'
+import withAuth from '@utils/auth-guard'
+import { getNhost } from '@utils/nhost'
 import Head from 'next/head'
 import Link from 'next/link'
-import { getNhost } from '../../../../utils/nhost'
 
-export default async function PAT({
+const PAT = async ({
   params
 }: {
-  params: { [key: string]: string | string[] | undefined }
-}) {
+  params: {
+    [key: string]: string | string[] | undefined
+  }
+}) => {
   const page = parseInt(params.pagination?.at(0) || '0')
   const nhost = await getNhost()
 
@@ -96,3 +99,5 @@ export default async function PAT({
     </div>
   )
 }
+
+export default withAuth(PAT)

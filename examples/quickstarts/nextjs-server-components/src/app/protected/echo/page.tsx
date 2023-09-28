@@ -1,13 +1,13 @@
-import { getNhost } from '../../../utils/nhost'
+import withAuth from '@utils/auth-guard'
+import { getNhost } from '@utils/nhost'
 
-export default async function Echo() {
+type EchoResponse = {
+  headers: Record<string, string>
+}
+
+const Echo = async () => {
   const nhost = await getNhost()
-
-  const { res } = await nhost.functions.call<{
-    headers: unknown
-    query: unknown
-    node: string
-  }>('echo')
+  const { res } = await nhost.functions.call<EchoResponse>('echo')
 
   return (
     <div>
@@ -15,3 +15,5 @@ export default async function Echo() {
     </div>
   )
 }
+
+export default withAuth(Echo)

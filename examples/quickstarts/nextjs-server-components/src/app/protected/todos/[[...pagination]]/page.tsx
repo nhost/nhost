@@ -1,15 +1,12 @@
 import { gql } from '@apollo/client'
 import TodoItem, { type Todo } from '@components/todo-item'
+import withAuth from '@utils/auth-guard'
+import { getNhost } from '@utils/nhost'
 
 import Head from 'next/head'
 import Link from 'next/link'
-import { getNhost } from '../../../../utils/nhost'
 
-export default async function Todos({
-  params
-}: {
-  params: { [key: string]: string | string[] | undefined }
-}) {
+const Todos = async ({ params }: { params: { [key: string]: string | string[] | undefined } }) => {
   const page = parseInt(params.pagination?.at(0) || '0')
 
   const nhost = await getNhost()
@@ -95,3 +92,5 @@ export default async function Todos({
     </div>
   )
 }
+
+export default withAuth(Todos)
