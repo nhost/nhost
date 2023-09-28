@@ -31,7 +31,7 @@ version = 16
 version = '0.21.3'
 
 [auth.redirections]
-clientUrl = 'http://localhost:3000/oauth'
+clientUrl = 'http://localhost:3000'
 
 [auth.signUp]
 enabled = true

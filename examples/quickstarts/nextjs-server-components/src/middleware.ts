@@ -3,33 +3,32 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   const nhost = await getNhost(request)
-
   const session = nhost.auth.getSession()
 
-  // TODO rethink how we match protected routes
-  if (!session && request.nextUrl.pathname.includes('protected')) {
-    return NextResponse.redirect(new URL('/auth/sign-in', request.url))
-  }
+  const url = new URL(request.url)
+  const refreshToken = url.searchParams.get('refreshToken') || undefined
 
-  if (session) {
-    const currentTime = Math.floor(Date.now() / 1000)
-    const tokenExpirationTime = nhost.auth.getDecodedAccessToken()?.exp
+  const currentTime = Math.floor(Date.now() / 1000)
+  const tokenExpirationTime = nhost.auth.getDecodedAccessToken()?.exp
+  const accessTokenExpired = session && tokenExpirationTime && currentTime > tokenExpirationTime
 
-    if (tokenExpirationTime && currentTime > tokenExpirationTime) {
-      const { session: newSession, error } = await nhost.auth.refreshSession()
+  if (accessTokenExpired || refreshToken) {
+    const { session: newSession, error } = await nhost.auth.refreshSession(refreshToken)
 
-      if (error) {
-        // refresh token has expired or invalid
-        return NextResponse.redirect(new URL('/auth/sign-in', request.url))
-      }
-
-      // overwrite the session cookie with the new session
-      return NextResponse.redirect(new URL('/protected/todos', request.url), {
-        headers: {
-          'Set-Cookie': `${NHOST_SESSION_KEY}=${btoa(JSON.stringify(newSession))}; Path=/`
-        }
-      })
+    if (error) {
+      // refresh token has expired or invalid
+      return NextResponse.redirect(new URL('/auth/sign-in', request.url))
     }
+
+    // remove the refreshToken from the url
+    url.searchParams.delete('refreshToken')
+
+    // overwrite the session cookie with the new session
+    return NextResponse.redirect(url, {
+      headers: {
+        'Set-Cookie': `${NHOST_SESSION_KEY}=${btoa(JSON.stringify(newSession))}; Path=/`
+      }
+    })
   }
 
   return NextResponse.next()
