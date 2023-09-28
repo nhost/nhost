@@ -1,8 +1,8 @@
 'use client'
 
-import { signInWithPAT } from '@actions'
 import Input from '@components/input'
 import SubmitButton from '@components/submit-button'
+import { signInWithPAT } from '@server-actions/auth'
 import { useState } from 'react'
 
 export default function SignInWithPAT() {

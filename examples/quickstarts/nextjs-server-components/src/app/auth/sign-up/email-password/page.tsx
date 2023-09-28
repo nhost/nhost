@@ -1,8 +1,8 @@
 'use client'
 
-import { signUp } from '@actions'
 import Input from '@components/input'
 import SubmitButton from '@components/submit-button'
+import { signUp } from '@server-actions/auth'
 import { useState } from 'react'
 
 export default function SignUpWithEmailAndPassword() {

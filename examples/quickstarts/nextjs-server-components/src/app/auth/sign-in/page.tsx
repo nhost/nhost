@@ -1,6 +1,6 @@
 'use client'
 
-import { signInWithGoogle } from '@actions'
+import { signInWithGoogle } from '@server-actions/auth'
 import { useRouter } from 'next/navigation'
 
 export default function SignIn() {

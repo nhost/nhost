@@ -1,4 +1,4 @@
-import { signOut } from '@actions'
+import { signOut } from '@server-actions/auth'
 import Link from 'next/link'
 import { getNhost } from '../utils/nhost'
 import SignOut from './sign-out'

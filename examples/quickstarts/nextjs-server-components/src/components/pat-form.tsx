@@ -1,8 +1,8 @@
 'use client'
 
 import Input from '@components/input'
+import SubmitButton from '@components/submit-button'
 import { createPAT } from '@server-actions/pat'
-import SubmitButton from './submit-button'
 
 export default function PATForm() {
   return (

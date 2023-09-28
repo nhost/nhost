@@ -1,7 +1,7 @@
 'use client'
 
-import { deleteTodo, updateTodo } from '@actions'
 import { NhostClient } from '@nhost/nhost-js'
+import { deleteTodo, updateTodo } from '@server-actions/todos'
 import Link from 'next/link'
 import { useState } from 'react'
 import { twMerge } from 'tailwind-merge'
