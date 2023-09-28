@@ -11683,7 +11683,7 @@ type ConfigPostgresSettings struct {
 
 	CheckpointCompletionTarget *float64 `json:"checkpointCompletionTarget" toml:"checkpointCompletionTarget"`
 
-	WalBuffers *int32 `json:"walBuffers" toml:"walBuffers"`
+	WalBuffers *string `json:"walBuffers" toml:"walBuffers"`
 
 	DefaultStatisticsTarget *int32 `json:"defaultStatisticsTarget" toml:"defaultStatisticsTarget"`
 
@@ -11799,7 +11799,7 @@ func (o *ConfigPostgresSettings) GetCheckpointCompletionTarget() *float64 {
 	return o.CheckpointCompletionTarget
 }
 
-func (o *ConfigPostgresSettings) GetWalBuffers() *int32 {
+func (o *ConfigPostgresSettings) GetWalBuffers() *string {
 	if o == nil {
 		o = &ConfigPostgresSettings{}
 	}
@@ -11894,7 +11894,7 @@ type ConfigPostgresSettingsUpdateInput struct {
 	IsSetMaintenanceWorkMem            bool     `json:"-"`
 	CheckpointCompletionTarget         *float64 `json:"checkpointCompletionTarget,omitempty" toml:"checkpointCompletionTarget,omitempty"`
 	IsSetCheckpointCompletionTarget    bool     `json:"-"`
-	WalBuffers                         *int32   `json:"walBuffers,omitempty" toml:"walBuffers,omitempty"`
+	WalBuffers                         *string  `json:"walBuffers,omitempty" toml:"walBuffers,omitempty"`
 	IsSetWalBuffers                    bool     `json:"-"`
 	DefaultStatisticsTarget            *int32   `json:"defaultStatisticsTarget,omitempty" toml:"defaultStatisticsTarget,omitempty"`
 	IsSetDefaultStatisticsTarget       bool     `json:"-"`
@@ -12019,7 +12019,7 @@ func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 			if err != nil {
 				return err
 			}
-			var x int32
+			var x string
 			if err := json.Unmarshal(b, &x); err != nil {
 				return err
 			}
@@ -12260,7 +12260,7 @@ func (o *ConfigPostgresSettingsUpdateInput) GetCheckpointCompletionTarget() *flo
 	return o.CheckpointCompletionTarget
 }
 
-func (o *ConfigPostgresSettingsUpdateInput) GetWalBuffers() *int32 {
+func (o *ConfigPostgresSettingsUpdateInput) GetWalBuffers() *string {
 	if o == nil {
 		o = &ConfigPostgresSettingsUpdateInput{}
 	}
@@ -12407,7 +12407,7 @@ type ConfigPostgresSettingsInsertInput struct {
 	EffectiveCacheSize            *string  `json:"effectiveCacheSize,omitempty" toml:"effectiveCacheSize,omitempty"`
 	MaintenanceWorkMem            *string  `json:"maintenanceWorkMem,omitempty" toml:"maintenanceWorkMem,omitempty"`
 	CheckpointCompletionTarget    *float64 `json:"checkpointCompletionTarget,omitempty" toml:"checkpointCompletionTarget,omitempty"`
-	WalBuffers                    *int32   `json:"walBuffers,omitempty" toml:"walBuffers,omitempty"`
+	WalBuffers                    *string  `json:"walBuffers,omitempty" toml:"walBuffers,omitempty"`
 	DefaultStatisticsTarget       *int32   `json:"defaultStatisticsTarget,omitempty" toml:"defaultStatisticsTarget,omitempty"`
 	RandomPageCost                *float64 `json:"randomPageCost,omitempty" toml:"randomPageCost,omitempty"`
 	EffectiveIOConcurrency        *int32   `json:"effectiveIOConcurrency,omitempty" toml:"effectiveIOConcurrency,omitempty"`
@@ -12456,7 +12456,7 @@ func (o *ConfigPostgresSettingsInsertInput) GetCheckpointCompletionTarget() *flo
 	return o.CheckpointCompletionTarget
 }
 
-func (o *ConfigPostgresSettingsInsertInput) GetWalBuffers() *int32 {
+func (o *ConfigPostgresSettingsInsertInput) GetWalBuffers() *string {
 	if o == nil {
 		o = &ConfigPostgresSettingsInsertInput{}
 	}
@@ -12595,7 +12595,7 @@ type ConfigPostgresSettingsComparisonExp struct {
 	EffectiveCacheSize            *ConfigStringComparisonExp             `json:"effectiveCacheSize,omitempty"`
 	MaintenanceWorkMem            *ConfigStringComparisonExp             `json:"maintenanceWorkMem,omitempty"`
 	CheckpointCompletionTarget    *ConfigFloatComparisonExp              `json:"checkpointCompletionTarget,omitempty"`
-	WalBuffers                    *ConfigInt32ComparisonExp              `json:"walBuffers,omitempty"`
+	WalBuffers                    *ConfigStringComparisonExp             `json:"walBuffers,omitempty"`
 	DefaultStatisticsTarget       *ConfigInt32ComparisonExp              `json:"defaultStatisticsTarget,omitempty"`
 	RandomPageCost                *ConfigFloatComparisonExp              `json:"randomPageCost,omitempty"`
 	EffectiveIOConcurrency        *ConfigInt32ComparisonExp              `json:"effectiveIOConcurrency,omitempty"`

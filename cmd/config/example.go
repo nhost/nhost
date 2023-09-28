@@ -271,7 +271,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				EffectiveCacheSize:            ptr("4GB"),
 				MaintenanceWorkMem:            ptr("64MB"),
 				CheckpointCompletionTarget:    ptr(float64(0.9)),
-				WalBuffers:                    ptr(int32(-1)),
+				WalBuffers:                    ptr("-1"),
 				DefaultStatisticsTarget:       ptr(int32(100)),
 				RandomPageCost:                ptr(float64(4)),
 				EffectiveIOConcurrency:        ptr(int32(1)),

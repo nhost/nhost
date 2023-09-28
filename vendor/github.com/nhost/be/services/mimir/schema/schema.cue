@@ -170,7 +170,7 @@ import (
 // Configuration for functions service
 #Functions: {
 	node: {
-		version: 16
+		version: 16|*18
 	}
 }
 
@@ -178,7 +178,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.6-20230705-1"
+	version: string | *"14.6-20230927-1"
 
 	// Resources for the service
 	resources?: #Resources & {
@@ -191,7 +191,7 @@ import (
 		effectiveCacheSize:            string | *"4GB"
 		maintenanceWorkMem:            string | *"64MB"
 		checkpointCompletionTarget:    number | *0.9
-		walBuffers:                    int32 | *-1
+		walBuffers:                    string | *"-1"
 		defaultStatisticsTarget:       int32 | *100
 		randomPageCost:                number | *4.0
 		effectiveIOConcurrency:        int32 | *1
