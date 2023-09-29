@@ -680,7 +680,7 @@ export const createAuthMachine = ({
 
       guards: {
         isAnonymous: (ctx, e) => !!ctx.user?.isAnonymous,
-        isSignedIn: (ctx) => !!ctx.user && !!ctx.refreshToken.value && !!ctx.accessToken.value,
+        isSignedIn: (ctx) => !!ctx.user && !!ctx.accessToken.value,
         noToken: (ctx) => !ctx.refreshToken.value,
         isRefreshTokenPAT: (ctx) => !!ctx.refreshToken?.isPAT,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,

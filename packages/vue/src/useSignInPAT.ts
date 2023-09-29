@@ -38,6 +38,8 @@ export const useSignInPAT = (): SignInPATResult => {
 
   const accessToken = useSelector(service.value, (state) => state.context.accessToken.value)
 
+  const refreshToken = useSelector(service.value, (state) => state.context.refreshToken.value)
+
   const error = useSelector(
     service.value,
     (state) => state.context.errors.authentication || null,
@@ -62,6 +64,7 @@ export const useSignInPAT = (): SignInPATResult => {
 
   return {
     accessToken,
+    refreshToken,
     error,
     isError,
     isLoading,

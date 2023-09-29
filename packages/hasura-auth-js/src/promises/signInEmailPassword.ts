@@ -33,6 +33,7 @@ export const signInEmailPasswordPromise = (
     if (!changed) {
       return resolve({
         accessToken: context.accessToken.value,
+        refreshToken: context.refreshToken.value,
         error: USER_ALREADY_SIGNED_IN,
         isError: true,
         isSuccess: false,
@@ -51,6 +52,7 @@ export const signInEmailPasswordPromise = (
       ) {
         resolve({
           accessToken: null,
+          refreshToken: null,
           error: null,
           isError: false,
           isSuccess: false,
@@ -62,6 +64,7 @@ export const signInEmailPasswordPromise = (
       } else if (state.matches({ authentication: { signedOut: 'needsMfa' } })) {
         resolve({
           accessToken: null,
+          refreshToken: null,
           error: null,
           isError: false,
           isSuccess: false,
@@ -73,6 +76,7 @@ export const signInEmailPasswordPromise = (
       } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
         resolve({
           accessToken: null,
+          refreshToken: null,
           error: state.context.errors.authentication || null,
           isError: true,
           isSuccess: false,
@@ -84,6 +88,7 @@ export const signInEmailPasswordPromise = (
       } else if (state.matches({ authentication: 'signedIn' })) {
         resolve({
           accessToken: state.context.accessToken.value,
+          refreshToken: state.context.refreshToken.value,
           error: null,
           isError: false,
           isSuccess: true,

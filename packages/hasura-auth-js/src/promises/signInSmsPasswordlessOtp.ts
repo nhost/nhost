@@ -21,7 +21,8 @@ export const signInSmsPasswordlessOtpPromise = (
         isError: true,
         isSuccess: false,
         user: null,
-        accessToken: null
+        accessToken: null,
+        refreshToken: null
       })
     }
     interpreter.onTransition((state) => {
@@ -31,7 +32,8 @@ export const signInSmsPasswordlessOtpPromise = (
           isError: false,
           isSuccess: true,
           user: state.context.user,
-          accessToken: state.context.accessToken.value
+          accessToken: state.context.accessToken.value,
+          refreshToken: state.context.refreshToken.value
         })
       } else if (state.matches({ registration: { incomplete: 'failed' } })) {
         resolve({
@@ -39,7 +41,8 @@ export const signInSmsPasswordlessOtpPromise = (
           isError: true,
           isSuccess: false,
           user: null,
-          accessToken: null
+          accessToken: null,
+          refreshToken: null
         })
       }
     })

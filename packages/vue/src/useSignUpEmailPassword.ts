@@ -65,7 +65,10 @@ export const useSignUpEmailPassword = (
   const needsEmailVerification = useSelector(service.value, (state) =>
     state.matches('registration.incomplete.needsEmailVerification')
   )
+
   const accessToken = useAccessToken()
+  const refreshToken = useSelector(service.value, (state) => state.context.refreshToken.value)
+
   const user = useUserData()
   const signUpEmailPassword = (
     email: RefOrValue<string>,
@@ -85,6 +88,7 @@ export const useSignUpEmailPassword = (
     error,
     needsEmailVerification,
     accessToken,
+    refreshToken,
     user
   }
 }

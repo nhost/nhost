@@ -56,6 +56,8 @@ export const useSignInEmailPassword = (): SignInEmailPasswordResult => {
 
   const accessToken = useSelector(service.value, (state) => state.context.accessToken.value)
 
+  const refreshToken = useSelector(service.value, (state) => state.context.refreshToken.value)
+
   const error = useError('authentication')
 
   const isSuccess = useAuthenticated()
@@ -91,6 +93,7 @@ export const useSignInEmailPassword = (): SignInEmailPasswordResult => {
 
   return {
     accessToken,
+    refreshToken,
     error,
     isError,
     isLoading,

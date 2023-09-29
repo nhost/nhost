@@ -48,6 +48,9 @@ export const useSignInEmailSecurityKey: SignInSecurityKeyPasswordlessHook = () =
     (a, b) => a?.id === b?.id
   )
   const accessToken = useSelector(service, (state) => state.context.accessToken.value)
+
+  const refreshToken = useSelector(service, (state) => state.context.refreshToken.value)
+
   const error = useSelector(
     service,
     (state) => state.context.errors.authentication || null,
@@ -80,6 +83,7 @@ export const useSignInEmailSecurityKey: SignInSecurityKeyPasswordlessHook = () =
 
   return {
     accessToken,
+    refreshToken,
     error,
     isError,
     isLoading,
