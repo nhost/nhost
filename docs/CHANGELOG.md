@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.6.2
+
+### Patch Changes
+
+- 4fe4a1696: return `refreshToken` immediately after signIn and signUp
+
 ## 0.6.1
 
 ### Patch Changes

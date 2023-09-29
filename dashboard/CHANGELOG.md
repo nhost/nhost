@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.20.20
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.36
+- @nhost/nextjs@1.13.38
+
 ## 0.20.19
 
 ### Patch Changes
