@@ -62,6 +62,32 @@ jobs:
     uses: ./.github/workflows/dashboard.yaml
     secrets: inherit
 
+  publish-vercel:
+    name: Publish to Vercel
+    runs-on: ubuntu-latest
+    needs:
+      - publish-docker
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      - name: Setup Vercel CLI
+        run: pnpm add -g vercel
+      - name: Trigger a Vercel deployment
+        env:
+          VERCEL_ORG_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+
   publish-docker:
     name: Publish to Docker Hub
     runs-on: ubuntu-latest
@@ -123,32 +149,6 @@ jobs:
       - name: Remove tag on failure
         if: failure()
         run: git push --delete origin ${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
-
-  publish-vercel:
-    name: Publish to Vercel
-    runs-on: ubuntu-latest
-    needs:
-      - publish-docker
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
-        with:
-          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ env.TURBO_TEAM }}
-      - name: Setup Vercel CLI
-        run: pnpm add -g vercel
-      - name: Trigger a Vercel deployment
-        env:
-          VERCEL_ORG_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_VERCEL_PROJECT_ID }}
-        run: |
-          vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-          vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-          vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
 
   bump-cli:
     name: Bump Dashboard version in the Nhost CLI
