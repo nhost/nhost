@@ -42,7 +42,7 @@ jobs:
           commit: 'chore: update versions'
           title: 'chore: update versions'
           publish: pnpm run release
-          createGithubReleases: true
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
