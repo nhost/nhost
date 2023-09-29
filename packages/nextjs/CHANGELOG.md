@@ -1,5 +1,12 @@
 # @nhost/nextjs
 
+## 1.13.38
+
+### Patch Changes
+
+- Updated dependencies [4fe4a1696]
+  - @nhost/react@2.0.32
+
 ## 1.13.37
 
 ### Patch Changes

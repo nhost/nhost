@@ -1,5 +1,12 @@
 # @nhost/react
 
+## 2.0.32
+
+### Patch Changes
+
+- 4fe4a1696: return `refreshToken` immediately after signIn and signUp
+  - @nhost/nhost-js@2.2.17
+
 ## 2.0.31
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.1.9
+
+### Patch Changes
+
+- 4fe4a1696: return `refreshToken` immediately after signIn and signUp
+
 ## 2.1.8
 
 ### Patch Changes

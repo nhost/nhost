@@ -1,5 +1,12 @@
 # @nhost/vue
 
+## 1.13.37
+
+### Patch Changes
+
+- 4fe4a1696: return `refreshToken` immediately after signIn and signUp
+  - @nhost/nhost-js@2.2.17
+
 ## 1.13.36
 
 ### Patch Changes
