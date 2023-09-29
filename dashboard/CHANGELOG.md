@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.18
+
+### Patch Changes
+
+- 425d485f8: fix(dashboard): make sure dedicated resources pricing follows total resources
+
 ## 0.20.17
 
 ### Patch Changes
