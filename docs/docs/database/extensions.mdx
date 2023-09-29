@@ -140,7 +140,19 @@ The pg_stat_statements module provides a means for tracking planning and executi
 
 ### Managing
 
-Enabled by default.
+To install the extension you can create a migration with the following contents:
+
+```
+SET ROLE postgres;
+CREATE EXTENSION pg_stat_statements;
+```
+
+To uninstall it, you can use the following migration:
+
+```
+SET ROLE postgres;
+DROP EXTENSION pg_stat_statements;
+```
 
 ### Resources
 
