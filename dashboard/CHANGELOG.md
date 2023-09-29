@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.19
+
+### Patch Changes
+
+- 75c4c8ae3: feat(dashboard): make env value input multiline
+
 ## 0.20.18
 
 ### Patch Changes
