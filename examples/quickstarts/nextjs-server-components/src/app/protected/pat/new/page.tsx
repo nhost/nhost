@@ -1,5 +1,5 @@
 import PATForm from '@components/pat-form'
-import withAuth from '@utils/auth-guard'
+import withAuthAsync from '@utils/auth-guard'
 
 const NewPat = async () => {
   return (
@@ -10,4 +10,4 @@ const NewPat = async () => {
   )
 }
 
-export default withAuth(NewPat)
+export default withAuthAsync(NewPat)

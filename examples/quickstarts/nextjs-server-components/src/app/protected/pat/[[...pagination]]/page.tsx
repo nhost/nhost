@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client'
 import PatItem, { type PAT } from '@components/pat-item'
-import withAuth from '@utils/auth-guard'
+import withAuthAsync from '@utils/auth-guard'
 import { getNhost } from '@utils/nhost'
 import Head from 'next/head'
 import Link from 'next/link'
@@ -100,4 +100,4 @@ const PAT = async ({
   )
 }
 
-export default withAuth(PAT)
+export default withAuthAsync(PAT)

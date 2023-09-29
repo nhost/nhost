@@ -1,5 +1,5 @@
 import TodoForm from '@components/todo-form'
-import withAuth from '@utils/auth-guard'
+import withAuthAsync from '@utils/auth-guard'
 
 const NewTodo = async () => {
   return (
@@ -10,4 +10,4 @@ const NewTodo = async () => {
   )
 }
 
-export default withAuth(NewTodo)
+export default withAuthAsync(NewTodo)

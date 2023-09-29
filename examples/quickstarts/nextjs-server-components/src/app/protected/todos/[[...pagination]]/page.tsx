@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client'
 import TodoItem, { type Todo } from '@components/todo-item'
-import withAuth from '@utils/auth-guard'
+import withAuthAsync from '@utils/auth-guard'
 import { getNhost } from '@utils/nhost'
 
 import Head from 'next/head'
@@ -93,4 +93,4 @@ const Todos = async ({ params }: { params: { [key: string]: string | string[] | 
   )
 }
 
-export default withAuth(Todos)
+export default withAuthAsync(Todos)
