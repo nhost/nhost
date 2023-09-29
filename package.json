@@ -47,6 +47,7 @@
     "packages/*",
     "integrations/*",
     "examples/*",
+    "examples/quickstarts/*",
     "docs",
     "dashboard"
   ],
