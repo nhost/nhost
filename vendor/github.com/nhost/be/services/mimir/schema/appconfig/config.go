@@ -19,7 +19,11 @@ func SecretsResolver[T any](
 ) (*T, error) {
 	vars := map[string]any{}
 	for _, e := range secrets {
-		vars["secrets."+e.Name] = strings.ReplaceAll(e.Value, `"`, `\"`)
+		vars["secrets."+e.Name] = strings.ReplaceAll(
+			strings.ReplaceAll(e.Value, `"`, `\"`),
+			"\n",
+			"\\n",
+		)
 	}
 
 	data, err := json.Marshal(conf)

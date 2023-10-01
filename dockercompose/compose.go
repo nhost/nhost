@@ -297,7 +297,6 @@ func functions( //nolint:funlen
 	rootFolder string,
 	jwtSecret string,
 	port uint,
-	useNode18 bool,
 ) *Service {
 	envVars := map[string]string{
 		"HASURA_GRAPHQL_ADMIN_SECRET": cfg.Hasura.AdminSecret,
@@ -319,13 +318,8 @@ func functions( //nolint:funlen
 		envVars[envVar.GetName()] = envVar.GetValue()
 	}
 
-	image := "nhost/functions:0.1.9"
-	if useNode18 {
-		image = "nhost/functions:1.0.0"
-	}
-
 	return &Service{
-		Image:       image,
+		Image:       "nhost/functions:1.0.0",
 		DependsOn:   nil,
 		EntryPoint:  nil,
 		Command:     nil,
@@ -434,7 +428,6 @@ func ComposeFileFromConfig( //nolint:funlen
 	dotNhostFolder string,
 	rootFolder string,
 	ports ExposePorts,
-	useNode18 bool,
 ) (*ComposeFile, error) {
 	minio, err := minio(dataFolder)
 	if err != nil {
@@ -490,7 +483,6 @@ func ComposeFileFromConfig( //nolint:funlen
 				rootFolder,
 				jwtSecret,
 				ports.Functions,
-				useNode18,
 			),
 			"graphql":  graphql,
 			"minio":    minio,

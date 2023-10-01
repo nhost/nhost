@@ -25,7 +25,6 @@ const (
 	flagsFunctionsPort     = "functions-port"
 	flagsHasuraPort        = "hasura-port"
 	flagsHasuraConsolePort = "hasura-console-port"
-	flagsNode18            = "node18"
 )
 
 const (
@@ -33,7 +32,7 @@ const (
 	defaultPostgresPort = 5432
 )
 
-func CommandUp() *cli.Command { //nolint:funlen
+func CommandUp() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "up",
 		Aliases: []string{},
@@ -89,11 +88,6 @@ func CommandUp() *cli.Command { //nolint:funlen
 				Usage: "If specified, expose hasura console on this port. Not recommended",
 				Value: 0,
 			},
-			&cli.BoolFlag{ //nolint:exhaustruct
-				Name:  flagsNode18,
-				Usage: "Use node 18. Defaults to node 16",
-				Value: false,
-			},
 		},
 	}
 }
@@ -129,7 +123,6 @@ func commandUp(cCtx *cli.Context) error {
 			Console:   cCtx.Uint(flagsHasuraConsolePort),
 			Functions: cCtx.Uint(flagsFunctionsPort),
 		},
-		cCtx.Bool(flagsNode18),
 	)
 }
 
@@ -187,7 +180,6 @@ func up( //nolint:funlen
 	postgresPort uint,
 	applySeeds bool,
 	ports dockercompose.ExposePorts,
-	useNode18 bool,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -215,7 +207,6 @@ func up( //nolint:funlen
 		ce.Path.DotNhostFolder(),
 		ce.Path.Root(),
 		ports,
-		useNode18,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to generate docker-compose.yaml: %w", err)
@@ -287,12 +278,11 @@ func Up(
 	postgresPort uint,
 	applySeeds bool,
 	ports dockercompose.ExposePorts,
-	useNode18 bool,
 ) error {
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
 	if err := up(
-		ctx, ce, dc, httpPort, useTLS, postgresPort, applySeeds, ports, useNode18,
+		ctx, ce, dc, httpPort, useTLS, postgresPort, applySeeds, ports,
 	); err != nil {
 		ce.Warnln(err.Error())
 

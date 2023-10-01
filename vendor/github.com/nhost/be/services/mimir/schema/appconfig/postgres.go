@@ -39,6 +39,10 @@ func PostgresEnv( //nolint:funlen
 	if config.GetPostgres().GetSettings() != nil {
 		env = append(env, []EnvVar{
 			{
+				Name:  "JIT",
+				Value: Stringify(*config.GetPostgres().GetSettings().GetJit()),
+			},
+			{
 				Name:  "MAX_CONNECTIONS",
 				Value: Stringify(*config.GetPostgres().GetSettings().GetMaxConnections()),
 			},

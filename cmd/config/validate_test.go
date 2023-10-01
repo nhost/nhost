@@ -51,7 +51,7 @@ func expectedConfig() *model.ConfigConfig {
 			Logs:   &model.ConfigHasuraLogs{Level: ptr("warn")},
 			Events: &model.ConfigHasuraEvents{HttpPoolSize: ptr(uint32(100))},
 		},
-		Functions: &model.ConfigFunctions{Node: &model.ConfigFunctionsNode{Version: ptr(16)}},
+		Functions: &model.ConfigFunctions{Node: &model.ConfigFunctionsNode{Version: ptr(18)}},
 		Auth: &model.ConfigAuth{
 			Version: ptr("0.20.0"),
 			Redirections: &model.ConfigAuthRedirections{

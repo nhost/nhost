@@ -11673,6 +11673,8 @@ func (exp *ConfigPostgresComparisonExp) Matches(o *ConfigPostgres) bool {
 }
 
 type ConfigPostgresSettings struct {
+	Jit *string `json:"jit" toml:"jit"`
+
 	MaxConnections *int32 `json:"maxConnections" toml:"maxConnections"`
 
 	SharedBuffers *string `json:"sharedBuffers" toml:"sharedBuffers"`
@@ -11710,6 +11712,9 @@ type ConfigPostgresSettings struct {
 
 func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
+	if o.Jit != nil {
+		m["jit"] = o.Jit
+	}
 	if o.MaxConnections != nil {
 		m["maxConnections"] = o.MaxConnections
 	}
@@ -11762,6 +11767,13 @@ func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
 		m["maxParallelMaintenanceWorkers"] = o.MaxParallelMaintenanceWorkers
 	}
 	return json.Marshal(m)
+}
+
+func (o *ConfigPostgresSettings) GetJit() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.Jit
 }
 
 func (o *ConfigPostgresSettings) GetMaxConnections() *int32 {
@@ -11884,6 +11896,8 @@ func (o *ConfigPostgresSettings) GetMaxParallelMaintenanceWorkers() *int32 {
 }
 
 type ConfigPostgresSettingsUpdateInput struct {
+	Jit                                *string  `json:"jit,omitempty" toml:"jit,omitempty"`
+	IsSetJit                           bool     `json:"-"`
 	MaxConnections                     *int32   `json:"maxConnections,omitempty" toml:"maxConnections,omitempty"`
 	IsSetMaxConnections                bool     `json:"-"`
 	SharedBuffers                      *string  `json:"sharedBuffers,omitempty" toml:"sharedBuffers,omitempty"`
@@ -11924,6 +11938,23 @@ func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 	m, ok := v.(map[string]any)
 	if !ok {
 		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["jit"]; ok {
+		if v == nil {
+			o.Jit = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Jit = &x
+		}
+		o.IsSetJit = true
 	}
 	if v, ok := m["maxConnections"]; ok {
 		if v == nil {
@@ -12225,6 +12256,13 @@ func (o *ConfigPostgresSettingsUpdateInput) MarshalGQL(w io.Writer) {
 	}
 }
 
+func (o *ConfigPostgresSettingsUpdateInput) GetJit() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.Jit
+}
+
 func (o *ConfigPostgresSettingsUpdateInput) GetMaxConnections() *int32 {
 	if o == nil {
 		o = &ConfigPostgresSettingsUpdateInput{}
@@ -12348,6 +12386,9 @@ func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
 	if v == nil {
 		return
 	}
+	if v.IsSetJit || v.Jit != nil {
+		s.Jit = v.Jit
+	}
 	if v.IsSetMaxConnections || v.MaxConnections != nil {
 		s.MaxConnections = v.MaxConnections
 	}
@@ -12402,6 +12443,7 @@ func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
 }
 
 type ConfigPostgresSettingsInsertInput struct {
+	Jit                           *string  `json:"jit,omitempty" toml:"jit,omitempty"`
 	MaxConnections                *int32   `json:"maxConnections,omitempty" toml:"maxConnections,omitempty"`
 	SharedBuffers                 *string  `json:"sharedBuffers,omitempty" toml:"sharedBuffers,omitempty"`
 	EffectiveCacheSize            *string  `json:"effectiveCacheSize,omitempty" toml:"effectiveCacheSize,omitempty"`
@@ -12419,6 +12461,13 @@ type ConfigPostgresSettingsInsertInput struct {
 	MaxParallelWorkersPerGather   *int32   `json:"maxParallelWorkersPerGather,omitempty" toml:"maxParallelWorkersPerGather,omitempty"`
 	MaxParallelWorkers            *int32   `json:"maxParallelWorkers,omitempty" toml:"maxParallelWorkers,omitempty"`
 	MaxParallelMaintenanceWorkers *int32   `json:"maxParallelMaintenanceWorkers,omitempty" toml:"maxParallelMaintenanceWorkers,omitempty"`
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetJit() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.Jit
 }
 
 func (o *ConfigPostgresSettingsInsertInput) GetMaxConnections() *int32 {
@@ -12541,6 +12590,7 @@ func (o *ConfigPostgresSettingsInsertInput) GetMaxParallelMaintenanceWorkers() *
 }
 
 func (s *ConfigPostgresSettings) Insert(v *ConfigPostgresSettingsInsertInput) {
+	s.Jit = v.Jit
 	s.MaxConnections = v.MaxConnections
 	s.SharedBuffers = v.SharedBuffers
 	s.EffectiveCacheSize = v.EffectiveCacheSize
@@ -12566,6 +12616,7 @@ func (s *ConfigPostgresSettings) Clone() *ConfigPostgresSettings {
 	}
 
 	v := &ConfigPostgresSettings{}
+	v.Jit = s.Jit
 	v.MaxConnections = s.MaxConnections
 	v.SharedBuffers = s.SharedBuffers
 	v.EffectiveCacheSize = s.EffectiveCacheSize
@@ -12590,6 +12641,7 @@ type ConfigPostgresSettingsComparisonExp struct {
 	And                           []*ConfigPostgresSettingsComparisonExp `json:"_and,omitempty"`
 	Not                           *ConfigPostgresSettingsComparisonExp   `json:"_not,omitempty"`
 	Or                            []*ConfigPostgresSettingsComparisonExp `json:"_or,omitempty"`
+	Jit                           *ConfigStringComparisonExp             `json:"jit,omitempty"`
 	MaxConnections                *ConfigInt32ComparisonExp              `json:"maxConnections,omitempty"`
 	SharedBuffers                 *ConfigStringComparisonExp             `json:"sharedBuffers,omitempty"`
 	EffectiveCacheSize            *ConfigStringComparisonExp             `json:"effectiveCacheSize,omitempty"`
@@ -12616,6 +12668,9 @@ func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSetting
 
 	if o == nil {
 		o = &ConfigPostgresSettings{}
+	}
+	if o.Jit != nil && !exp.Jit.Matches(*o.Jit) {
+		return false
 	}
 	if o.MaxConnections != nil && !exp.MaxConnections.Matches(*o.MaxConnections) {
 		return false

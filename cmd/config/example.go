@@ -72,7 +72,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 		},
 		Functions: &model.ConfigFunctions{
 			Node: &model.ConfigFunctionsNode{
-				Version: ptr(int(16)),
+				Version: ptr(int(18)),
 			},
 		},
 		Auth: &model.ConfigAuth{
@@ -266,6 +266,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				Replicas: 1,
 			},
 			Settings: &model.ConfigPostgresSettings{
+				Jit:                           ptr("off"),
 				MaxConnections:                ptr(int32(100)),
 				SharedBuffers:                 ptr("128MB"),
 				EffectiveCacheSize:            ptr("4GB"),

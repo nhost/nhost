@@ -197,7 +197,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 		},
 		Functions: &model.ConfigFunctions{
 			Node: &model.ConfigFunctionsNode{
-				Version: ptr(16),
+				Version: ptr(18),
 			},
 		},
 		Hasura: &model.ConfigHasura{

@@ -1861,6 +1861,10 @@ type ConfigPostgresSettings {
     """
 
     """
+    jit: String
+    """
+
+    """
     maxConnections: ConfigInt32
     """
 
@@ -1929,6 +1933,7 @@ type ConfigPostgresSettings {
 }
 
 input ConfigPostgresSettingsUpdateInput {
+    jit: String
     maxConnections: ConfigInt32
     sharedBuffers: String
     effectiveCacheSize: String
@@ -1949,6 +1954,7 @@ input ConfigPostgresSettingsUpdateInput {
 }
 
 input ConfigPostgresSettingsInsertInput {
+    jit: String
     maxConnections: ConfigInt32
     sharedBuffers: String
     effectiveCacheSize: String
@@ -1972,6 +1978,7 @@ input ConfigPostgresSettingsComparisonExp {
     _and: [ConfigPostgresSettingsComparisonExp!]
     _not: ConfigPostgresSettingsComparisonExp
     _or: [ConfigPostgresSettingsComparisonExp!]
+    jit: ConfigStringComparisonExp
     maxConnections: ConfigInt32ComparisonExp
     sharedBuffers: ConfigStringComparisonExp
     effectiveCacheSize: ConfigStringComparisonExp

@@ -170,7 +170,7 @@ import (
 // Configuration for functions service
 #Functions: {
 	node: {
-		version: 16|*18
+		version: 18
 	}
 }
 
@@ -186,6 +186,7 @@ import (
 	}
 
 	settings?: {
+		jit:                           "off" | "on" | *"on"
 		maxConnections:                int32 | *100
 		sharedBuffers:                 string | *"128MB"
 		effectiveCacheSize:            string | *"4GB"
