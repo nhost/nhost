@@ -38,7 +38,7 @@ export interface AnnouncementContextProps {
 // Note: You can define the active announcement here.
 const announcement: AnnouncementType = {
   id: 'node-18',
-  href: 'https://github.com/nhost/nhost/discussions/2239',
+  href: 'https://github.com/nhost/nhost/discussions/2288',
   content:
     "Starting October 1st, we're upgrading to Node.js 18 for improved performance, security, and stability. Learn more.",
 };
