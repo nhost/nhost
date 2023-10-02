@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.21
+
+### Patch Changes
+
+- 3e46d3873: chore: update link to node18 announcement
+
 ## 0.20.20
 
 ### Patch Changes

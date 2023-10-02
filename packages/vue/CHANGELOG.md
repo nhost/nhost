@@ -1,5 +1,11 @@
 # @nhost/vue
 
+## 1.13.38
+
+### Patch Changes
+
+- 7214d47cc: fix(vue-sdk): correctly unref arrays
+
 ## 1.13.37
 
 ### Patch Changes
