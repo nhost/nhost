@@ -38,7 +38,7 @@ function Announcement(
       <span />
 
       <div className="flex items-center self-center truncate">
-        <a href={href}>
+        <a href={href} target="_blank" rel="noopener noreferrer">
           <Text className="cursor-pointer truncate hover:underline">
             {children}
           </Text>
