@@ -29,7 +29,7 @@ jobs:
           aws-region: eu-central-1
 
       - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       - run: |
           export VERSION=$(make get-version)
