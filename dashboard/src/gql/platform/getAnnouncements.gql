@@ -3,5 +3,6 @@ query getAnnouncements($limit: Int) {
     id
     href
     content
+    createdAt
   }
 }

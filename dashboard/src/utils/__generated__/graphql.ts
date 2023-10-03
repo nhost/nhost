@@ -22441,7 +22441,7 @@ export type GetAnnouncementsQueryVariables = Exact<{
 }>;
 
 
-export type GetAnnouncementsQuery = { __typename?: 'query_root', announcements: Array<{ __typename?: 'announcements', id: any, href: string, content: string }> };
+export type GetAnnouncementsQuery = { __typename?: 'query_root', announcements: Array<{ __typename?: 'announcements', id: any, href: string, content: string, createdAt: any }> };
 
 export type GetPlansQueryVariables = Exact<{
   where?: InputMaybe<Plans_Bool_Exp>;
@@ -25207,6 +25207,7 @@ export const GetAnnouncementsDocument = gql`
     id
     href
     content
+    createdAt
   }
 }
     `;
