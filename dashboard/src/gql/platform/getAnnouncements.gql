@@ -1,0 +1,7 @@
+query getAnnouncements($limit: Int) {
+  announcements(order_by: { createdAt: desc }, limit: $limit) {
+    id
+    href
+    content
+  }
+}

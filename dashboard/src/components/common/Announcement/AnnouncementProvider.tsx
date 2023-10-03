@@ -1,6 +1,8 @@
 import { Divider } from '@/components/ui/v2/Divider';
+import { useGetAnnouncementsQuery } from '@/utils/__generated__/graphql';
 import {
   createContext,
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -36,12 +38,12 @@ export interface AnnouncementContextProps {
 }
 
 // Note: You can define the active announcement here.
-const announcement: AnnouncementType = {
-  id: 'node-18',
-  href: 'https://github.com/nhost/nhost/discussions/2288',
-  content:
-    "Starting October 1st, we're upgrading to Node.js 18 for improved performance, security, and stability. Learn more.",
-};
+// const announcement: AnnouncementType = {
+//   id: 'node-18',
+//   href: 'https://github.com/nhost/nhost/discussions/2288',
+//   content:
+//     "Starting October 1st, we're upgrading to Node.js 18 for improved performance, security, and stability. Learn more.",
+// };
 
 export const AnnouncementContext = createContext<AnnouncementContextProps>({});
 
@@ -49,38 +51,46 @@ export default function AnnouncementProvider({ children }: PropsWithChildren) {
   const { ref, inView } = useInView();
   const [showAnnouncement, setShowAnnouncement] = useState(false);
 
+  const { data } = useGetAnnouncementsQuery({
+    variables: {
+      limit: 1,
+    },
+  });
+
+  const latestAnnouncement = data?.announcements?.[0];
+
   useEffect(() => {
     if (
       typeof window === 'undefined' ||
-      !announcement ||
-      window.localStorage.getItem(announcement.id) === '1'
+      !latestAnnouncement ||
+      window.localStorage.getItem(latestAnnouncement.id) === '1'
     ) {
       return;
     }
 
     setShowAnnouncement(true);
-  }, []);
+  }, [latestAnnouncement]);
 
-  function handleClose() {
+  const handleClose = useCallback(() => {
     setShowAnnouncement(false);
-    window.localStorage.setItem(announcement?.id, '1');
-  }
+    window.localStorage.setItem(latestAnnouncement?.id, '1');
+  }, [latestAnnouncement]);
 
   const announcementValue = useMemo(
-    () => ({ showAnnouncement, announcement, handleClose, inView }),
-    [inView, showAnnouncement],
+    () => ({ showAnnouncement, latestAnnouncement, handleClose, inView }),
+    [inView, showAnnouncement, handleClose, latestAnnouncement],
   );
 
   return (
     <AnnouncementContext.Provider value={announcementValue}>
-      {announcement && showAnnouncement && (
+      {latestAnnouncement && showAnnouncement && (
         <>
           <Announcement
             ref={ref}
-            href={announcement.href}
+            href={latestAnnouncement.href}
             onClose={handleClose}
           >
-            {announcement.content}
+            {latestAnnouncement.content}
           </Announcement>
           <Divider />
         </>
