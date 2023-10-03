@@ -11,8 +11,8 @@ dependencies:
 
 devDependencies:
   '@nhost/nhost-js':
-    specifier: 2.2.13
-    version: 2.2.13(graphql@16.8.0)
+    specifier: 2.2.17
+    version: 2.2.17(graphql@16.8.0)
 
 packages:
 
@@ -36,8 +36,8 @@ packages:
       - encoding
     dev: true
 
-  /@nhost/hasura-auth-js@2.1.7:
-    resolution: {integrity: sha512-dbi8zrmuE3xSlA7WMNyrZzVPLKYSBUlKtUjob+axhts0+4TsqsB7NvdLXrhM0fYjRY5SFUtN2JLs+EWDGKAoLQ==}
+  /@nhost/hasura-auth-js@2.1.9:
+    resolution: {integrity: sha512-tZl6iArGBIuzaD9ZMCR4NUNxXneIj87c15nG0RWqzqScMAklQ0l9J52CLeE8NDPNFWFuwNLm2FBpnEz4YGJLVw==}
     dependencies:
       '@simplewebauthn/browser': 6.2.2
       fetch-ponyfill: 7.1.0
@@ -48,8 +48,8 @@ packages:
       - encoding
     dev: true
 
-  /@nhost/hasura-storage-js@2.2.2:
-    resolution: {integrity: sha512-GMeB1m6YKZMZDSO6UtmgXYWxsFUNlphIZH9JeiDX+6UTmbd62UlDmhBcmx2OGy/tvv57D+HbohpV6AY9S6QL4w==}
+  /@nhost/hasura-storage-js@2.2.5:
+    resolution: {integrity: sha512-IW0IwHlvuo9PxVQTXoQUE8LOpuOnjp+XlqgAKeatg1rY0MjJokcm4Xd0yLInAXfYBkK0r9pdKz7+RW+GDiYQ5g==}
     dependencies:
       fetch-ponyfill: 7.1.0
       form-data: 4.0.0
@@ -58,14 +58,14 @@ packages:
       - encoding
     dev: true
 
-  /@nhost/nhost-js@2.2.13(graphql@16.8.0):
-    resolution: {integrity: sha512-HU9eOpkVBGGMHsRThGyl654Y9W8bksSEnyEvDojUg76+3ngOn2ebrasXR/94YoR206soEzq3v4b0OKmn/1jlnQ==}
+  /@nhost/nhost-js@2.2.17(graphql@16.8.0):
+    resolution: {integrity: sha512-6KRzhqmx7JcOmbp91/YZaBavGKdyGdx7kDrzRLoP1RYYOAIMpdMhHzeIju9LQfujY/8nFARRq97vFpPSbpnhSg==}
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
       '@nhost/graphql-js': 0.1.4(graphql@16.8.0)
-      '@nhost/hasura-auth-js': 2.1.7
-      '@nhost/hasura-storage-js': 2.2.2
+      '@nhost/hasura-auth-js': 2.1.9
+      '@nhost/hasura-storage-js': 2.2.5
       graphql: 16.8.0
       isomorphic-unfetch: 3.1.0
     transitivePeerDependencies:
