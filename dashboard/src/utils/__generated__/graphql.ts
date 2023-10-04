@@ -15,6 +15,7 @@ export type Scalars = {
   Float: number;
   ConfigEmail: any;
   ConfigHasuraAPIs: any;
+  ConfigInt32: any;
   ConfigLocale: any;
   ConfigPort: any;
   ConfigRunServiceName: any;
@@ -1030,6 +1031,13 @@ export type ConfigEnvironmentVariableUpdateInput = {
   value?: InputMaybe<Scalars['String']>;
 };
 
+export type ConfigFloatComparisonExp = {
+  _eq?: InputMaybe<Scalars['Float']>;
+  _in?: InputMaybe<Array<Scalars['Float']>>;
+  _neq?: InputMaybe<Scalars['Float']>;
+  _nin?: InputMaybe<Array<Scalars['Float']>>;
+};
+
 /** Configuration for functions service */
 export type ConfigFunctions = {
   __typename?: 'ConfigFunctions';
@@ -1229,6 +1237,8 @@ export type ConfigHasuraSettings = {
   enableRemoteSchemaPermissions?: Maybe<Scalars['Boolean']>;
   /** HASURA_GRAPHQL_ENABLED_APIS */
   enabledAPIs?: Maybe<Array<Scalars['ConfigHasuraAPIs']>>;
+  /** HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL */
+  liveQueriesMultiplexedRefetchInterval?: Maybe<Scalars['ConfigUint32']>;
 };
 
 export type ConfigHasuraSettingsComparisonExp = {
@@ -1241,6 +1251,7 @@ export type ConfigHasuraSettingsComparisonExp = {
   enableConsole?: InputMaybe<ConfigBooleanComparisonExp>;
   enableRemoteSchemaPermissions?: InputMaybe<ConfigBooleanComparisonExp>;
   enabledAPIs?: InputMaybe<ConfigHasuraApIsComparisonExp>;
+  liveQueriesMultiplexedRefetchInterval?: InputMaybe<ConfigUint32ComparisonExp>;
 };
 
 export type ConfigHasuraSettingsInsertInput = {
@@ -1250,6 +1261,7 @@ export type ConfigHasuraSettingsInsertInput = {
   enableConsole?: InputMaybe<Scalars['Boolean']>;
   enableRemoteSchemaPermissions?: InputMaybe<Scalars['Boolean']>;
   enabledAPIs?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
+  liveQueriesMultiplexedRefetchInterval?: InputMaybe<Scalars['ConfigUint32']>;
 };
 
 export type ConfigHasuraSettingsUpdateInput = {
@@ -1259,6 +1271,7 @@ export type ConfigHasuraSettingsUpdateInput = {
   enableConsole?: InputMaybe<Scalars['Boolean']>;
   enableRemoteSchemaPermissions?: InputMaybe<Scalars['Boolean']>;
   enabledAPIs?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
+  liveQueriesMultiplexedRefetchInterval?: InputMaybe<Scalars['ConfigUint32']>;
 };
 
 export type ConfigHasuraUpdateInput = {
@@ -1277,6 +1290,13 @@ export type ConfigInsertConfigResponse = {
   config: ConfigConfig;
   secrets: Array<ConfigEnvironmentVariable>;
   systemConfig: ConfigSystemConfig;
+};
+
+export type ConfigInt32ComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigInt32']>;
+  _in?: InputMaybe<Array<Scalars['ConfigInt32']>>;
+  _neq?: InputMaybe<Scalars['ConfigInt32']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigInt32']>>;
 };
 
 export type ConfigIntComparisonExp = {
@@ -1386,6 +1406,7 @@ export type ConfigPostgres = {
   __typename?: 'ConfigPostgres';
   /** Resources for the service */
   resources?: Maybe<ConfigResources>;
+  settings?: Maybe<ConfigPostgresSettings>;
   /**
    * Version of postgres, you can see available versions in the URL below:
    * https://hub.docker.com/r/nhost/postgres/tags
@@ -1398,16 +1419,107 @@ export type ConfigPostgresComparisonExp = {
   _not?: InputMaybe<ConfigPostgresComparisonExp>;
   _or?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
   resources?: InputMaybe<ConfigResourcesComparisonExp>;
+  settings?: InputMaybe<ConfigPostgresSettingsComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigPostgresInsertInput = {
   resources?: InputMaybe<ConfigResourcesInsertInput>;
+  settings?: InputMaybe<ConfigPostgresSettingsInsertInput>;
   version?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigPostgresSettings = {
+  __typename?: 'ConfigPostgresSettings';
+  checkpointCompletionTarget?: Maybe<Scalars['Float']>;
+  defaultStatisticsTarget?: Maybe<Scalars['ConfigInt32']>;
+  effectiveCacheSize?: Maybe<Scalars['String']>;
+  effectiveIOConcurrency?: Maybe<Scalars['ConfigInt32']>;
+  hugePages?: Maybe<Scalars['String']>;
+  jit?: Maybe<Scalars['String']>;
+  maintenanceWorkMem?: Maybe<Scalars['String']>;
+  maxConnections?: Maybe<Scalars['ConfigInt32']>;
+  maxParallelMaintenanceWorkers?: Maybe<Scalars['ConfigInt32']>;
+  maxParallelWorkers?: Maybe<Scalars['ConfigInt32']>;
+  maxParallelWorkersPerGather?: Maybe<Scalars['ConfigInt32']>;
+  maxWalSize?: Maybe<Scalars['String']>;
+  maxWorkerProcesses?: Maybe<Scalars['ConfigInt32']>;
+  minWalSize?: Maybe<Scalars['String']>;
+  randomPageCost?: Maybe<Scalars['Float']>;
+  sharedBuffers?: Maybe<Scalars['String']>;
+  walBuffers?: Maybe<Scalars['String']>;
+  workMem?: Maybe<Scalars['String']>;
+};
+
+export type ConfigPostgresSettingsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigPostgresSettingsComparisonExp>>;
+  _not?: InputMaybe<ConfigPostgresSettingsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigPostgresSettingsComparisonExp>>;
+  checkpointCompletionTarget?: InputMaybe<ConfigFloatComparisonExp>;
+  defaultStatisticsTarget?: InputMaybe<ConfigInt32ComparisonExp>;
+  effectiveCacheSize?: InputMaybe<ConfigStringComparisonExp>;
+  effectiveIOConcurrency?: InputMaybe<ConfigInt32ComparisonExp>;
+  hugePages?: InputMaybe<ConfigStringComparisonExp>;
+  jit?: InputMaybe<ConfigStringComparisonExp>;
+  maintenanceWorkMem?: InputMaybe<ConfigStringComparisonExp>;
+  maxConnections?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxParallelMaintenanceWorkers?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxParallelWorkers?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxParallelWorkersPerGather?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxWalSize?: InputMaybe<ConfigStringComparisonExp>;
+  maxWorkerProcesses?: InputMaybe<ConfigInt32ComparisonExp>;
+  minWalSize?: InputMaybe<ConfigStringComparisonExp>;
+  randomPageCost?: InputMaybe<ConfigFloatComparisonExp>;
+  sharedBuffers?: InputMaybe<ConfigStringComparisonExp>;
+  walBuffers?: InputMaybe<ConfigStringComparisonExp>;
+  workMem?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigPostgresSettingsInsertInput = {
+  checkpointCompletionTarget?: InputMaybe<Scalars['Float']>;
+  defaultStatisticsTarget?: InputMaybe<Scalars['ConfigInt32']>;
+  effectiveCacheSize?: InputMaybe<Scalars['String']>;
+  effectiveIOConcurrency?: InputMaybe<Scalars['ConfigInt32']>;
+  hugePages?: InputMaybe<Scalars['String']>;
+  jit?: InputMaybe<Scalars['String']>;
+  maintenanceWorkMem?: InputMaybe<Scalars['String']>;
+  maxConnections?: InputMaybe<Scalars['ConfigInt32']>;
+  maxParallelMaintenanceWorkers?: InputMaybe<Scalars['ConfigInt32']>;
+  maxParallelWorkers?: InputMaybe<Scalars['ConfigInt32']>;
+  maxParallelWorkersPerGather?: InputMaybe<Scalars['ConfigInt32']>;
+  maxWalSize?: InputMaybe<Scalars['String']>;
+  maxWorkerProcesses?: InputMaybe<Scalars['ConfigInt32']>;
+  minWalSize?: InputMaybe<Scalars['String']>;
+  randomPageCost?: InputMaybe<Scalars['Float']>;
+  sharedBuffers?: InputMaybe<Scalars['String']>;
+  walBuffers?: InputMaybe<Scalars['String']>;
+  workMem?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigPostgresSettingsUpdateInput = {
+  checkpointCompletionTarget?: InputMaybe<Scalars['Float']>;
+  defaultStatisticsTarget?: InputMaybe<Scalars['ConfigInt32']>;
+  effectiveCacheSize?: InputMaybe<Scalars['String']>;
+  effectiveIOConcurrency?: InputMaybe<Scalars['ConfigInt32']>;
+  hugePages?: InputMaybe<Scalars['String']>;
+  jit?: InputMaybe<Scalars['String']>;
+  maintenanceWorkMem?: InputMaybe<Scalars['String']>;
+  maxConnections?: InputMaybe<Scalars['ConfigInt32']>;
+  maxParallelMaintenanceWorkers?: InputMaybe<Scalars['ConfigInt32']>;
+  maxParallelWorkers?: InputMaybe<Scalars['ConfigInt32']>;
+  maxParallelWorkersPerGather?: InputMaybe<Scalars['ConfigInt32']>;
+  maxWalSize?: InputMaybe<Scalars['String']>;
+  maxWorkerProcesses?: InputMaybe<Scalars['ConfigInt32']>;
+  minWalSize?: InputMaybe<Scalars['String']>;
+  randomPageCost?: InputMaybe<Scalars['Float']>;
+  sharedBuffers?: InputMaybe<Scalars['String']>;
+  walBuffers?: InputMaybe<Scalars['String']>;
+  workMem?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigPostgresUpdateInput = {
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
+  settings?: InputMaybe<ConfigPostgresSettingsUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
 };
 
@@ -2133,6 +2245,188 @@ export type UsageSummary = {
   appID: Scalars['uuid'];
 };
 
+/** columns and relationships of "announcements" */
+export type Announcements = {
+  __typename?: 'announcements';
+  content: Scalars['String'];
+  createdAt: Scalars['timestamptz'];
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  href: Scalars['String'];
+  id: Scalars['uuid'];
+  updatedAt: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "announcements" */
+export type Announcements_Aggregate = {
+  __typename?: 'announcements_aggregate';
+  aggregate?: Maybe<Announcements_Aggregate_Fields>;
+  nodes: Array<Announcements>;
+};
+
+/** aggregate fields of "announcements" */
+export type Announcements_Aggregate_Fields = {
+  __typename?: 'announcements_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Announcements_Max_Fields>;
+  min?: Maybe<Announcements_Min_Fields>;
+};
+
+
+/** aggregate fields of "announcements" */
+export type Announcements_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Announcements_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "announcements". All fields are combined with a logical 'AND'. */
+export type Announcements_Bool_Exp = {
+  _and?: InputMaybe<Array<Announcements_Bool_Exp>>;
+  _not?: InputMaybe<Announcements_Bool_Exp>;
+  _or?: InputMaybe<Array<Announcements_Bool_Exp>>;
+  content?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  href?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "announcements" */
+export enum Announcements_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  AnnouncementsPkey = 'announcements_pkey'
+}
+
+/** input type for inserting data into table "announcements" */
+export type Announcements_Insert_Input = {
+  content?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  href?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Announcements_Max_Fields = {
+  __typename?: 'announcements_max_fields';
+  content?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  href?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type Announcements_Min_Fields = {
+  __typename?: 'announcements_min_fields';
+  content?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  href?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "announcements" */
+export type Announcements_Mutation_Response = {
+  __typename?: 'announcements_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Announcements>;
+};
+
+/** on_conflict condition type for table "announcements" */
+export type Announcements_On_Conflict = {
+  constraint: Announcements_Constraint;
+  update_columns?: Array<Announcements_Update_Column>;
+  where?: InputMaybe<Announcements_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "announcements". */
+export type Announcements_Order_By = {
+  content?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  href?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: announcements */
+export type Announcements_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "announcements" */
+export enum Announcements_Select_Column {
+  /** column name */
+  Content = 'content',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Href = 'href',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "announcements" */
+export type Announcements_Set_Input = {
+  content?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  href?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "announcements" */
+export type Announcements_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Announcements_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Announcements_Stream_Cursor_Value_Input = {
+  content?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  href?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "announcements" */
+export enum Announcements_Update_Column {
+  /** column name */
+  Content = 'content',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Href = 'href',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type Announcements_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Announcements_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Announcements_Bool_Exp;
+};
+
 /** columns and relationships of "app_state_history" */
 export type AppStateHistory = {
   __typename?: 'appStateHistory';
@@ -2737,7 +3031,6 @@ export type Apps = {
   appStates: Array<AppStateHistory>;
   /** An aggregate relationship */
   appStates_aggregate: AppStateHistory_Aggregate;
-  autoUpdate: Scalars['Boolean'];
   /** An array relationship */
   backups: Array<Backups>;
   /** An aggregate relationship */
@@ -2769,15 +3062,14 @@ export type Apps = {
   githubRepository?: Maybe<GithubRepositories>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id: Scalars['uuid'];
-  isProvisioned: Scalars['Boolean'];
+  isLocked?: Maybe<Scalars['Boolean']>;
+  isLockedReason?: Maybe<Scalars['String']>;
   metadataFunctions: Scalars['jsonb'];
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
   mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name: Scalars['String'];
   nhostBaseFolder: Scalars['String'];
-  /** whether or not this app is paused */
-  paused: Scalars['Boolean'];
   /** An object relationship */
   plan: Plans;
   planId: Scalars['uuid'];
@@ -3017,7 +3309,6 @@ export type Apps_Bool_Exp = {
   _or?: InputMaybe<Array<Apps_Bool_Exp>>;
   appStates?: InputMaybe<AppStateHistory_Bool_Exp>;
   appStates_aggregate?: InputMaybe<AppStateHistory_Aggregate_Bool_Exp>;
-  autoUpdate?: InputMaybe<Boolean_Comparison_Exp>;
   backups?: InputMaybe<Backups_Bool_Exp>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Bool_Exp>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
@@ -3036,14 +3327,14 @@ export type Apps_Bool_Exp = {
   githubRepository?: InputMaybe<GithubRepositories_Bool_Exp>;
   githubRepositoryId?: InputMaybe<Uuid_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
-  isProvisioned?: InputMaybe<Boolean_Comparison_Exp>;
+  isLocked?: InputMaybe<Boolean_Comparison_Exp>;
+  isLockedReason?: InputMaybe<String_Comparison_Exp>;
   metadataFunctions?: InputMaybe<Jsonb_Comparison_Exp>;
   mimirConfigEnc?: InputMaybe<String_Comparison_Exp>;
   mimirSecretsEnc?: InputMaybe<String_Comparison_Exp>;
   mimirSystemConfigEnc?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   nhostBaseFolder?: InputMaybe<String_Comparison_Exp>;
-  paused?: InputMaybe<Boolean_Comparison_Exp>;
   plan?: InputMaybe<Plans_Bool_Exp>;
   planId?: InputMaybe<Uuid_Comparison_Exp>;
   providersUpdated?: InputMaybe<Boolean_Comparison_Exp>;
@@ -3095,7 +3386,6 @@ export type Apps_Inc_Input = {
 /** input type for inserting data into table "apps" */
 export type Apps_Insert_Input = {
   appStates?: InputMaybe<AppStateHistory_Arr_Rel_Insert_Input>;
-  autoUpdate?: InputMaybe<Scalars['Boolean']>;
   backups?: InputMaybe<Backups_Arr_Rel_Insert_Input>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Obj_Rel_Insert_Input>;
   billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Obj_Rel_Insert_Input>;
@@ -3111,15 +3401,14 @@ export type Apps_Insert_Input = {
   githubRepository?: InputMaybe<GithubRepositories_Obj_Rel_Insert_Input>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
-  isProvisioned?: InputMaybe<Scalars['Boolean']>;
+  isLocked?: InputMaybe<Scalars['Boolean']>;
+  isLockedReason?: InputMaybe<Scalars['String']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   mimirSecretsEnc?: InputMaybe<Scalars['String']>;
   mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
-  /** whether or not this app is paused */
-  paused?: InputMaybe<Scalars['Boolean']>;
   plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
   planId?: InputMaybe<Scalars['uuid']>;
   providersUpdated?: InputMaybe<Scalars['Boolean']>;
@@ -3144,6 +3433,7 @@ export type Apps_Max_Fields = {
   desiredState?: Maybe<Scalars['Int']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
+  isLockedReason?: Maybe<Scalars['String']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
   mimirSystemConfigEnc?: Maybe<Scalars['String']>;
@@ -3167,6 +3457,7 @@ export type Apps_Max_Order_By = {
   desiredState?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  isLockedReason?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
@@ -3191,6 +3482,7 @@ export type Apps_Min_Fields = {
   desiredState?: Maybe<Scalars['Int']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
+  isLockedReason?: Maybe<Scalars['String']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
   mimirSystemConfigEnc?: Maybe<Scalars['String']>;
@@ -3214,6 +3506,7 @@ export type Apps_Min_Order_By = {
   desiredState?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  isLockedReason?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
@@ -3255,7 +3548,6 @@ export type Apps_On_Conflict = {
 /** Ordering options when selecting data from "apps". */
 export type Apps_Order_By = {
   appStates_aggregate?: InputMaybe<AppStateHistory_Aggregate_Order_By>;
-  autoUpdate?: InputMaybe<Order_By>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Order_By>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Order_By>;
   billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Order_By>;
@@ -3271,14 +3563,14 @@ export type Apps_Order_By = {
   githubRepository?: InputMaybe<GithubRepositories_Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  isProvisioned?: InputMaybe<Order_By>;
+  isLocked?: InputMaybe<Order_By>;
+  isLockedReason?: InputMaybe<Order_By>;
   metadataFunctions?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
-  paused?: InputMaybe<Order_By>;
   plan?: InputMaybe<Plans_Order_By>;
   planId?: InputMaybe<Order_By>;
   providersUpdated?: InputMaybe<Order_By>;
@@ -3308,8 +3600,6 @@ export type Apps_Prepend_Input = {
 /** select columns of table "apps" */
 export enum Apps_Select_Column {
   /** column name */
-  AutoUpdate = 'autoUpdate',
-  /** column name */
   CreatedAt = 'createdAt',
   /** column name */
   CreatorUserId = 'creatorUserId',
@@ -3322,7 +3612,9 @@ export enum Apps_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  IsProvisioned = 'isProvisioned',
+  IsLocked = 'isLocked',
+  /** column name */
+  IsLockedReason = 'isLockedReason',
   /** column name */
   MetadataFunctions = 'metadataFunctions',
   /** column name */
@@ -3335,8 +3627,6 @@ export enum Apps_Select_Column {
   Name = 'name',
   /** column name */
   NhostBaseFolder = 'nhostBaseFolder',
-  /** column name */
-  Paused = 'paused',
   /** column name */
   PlanId = 'planId',
   /** column name */
@@ -3362,11 +3652,7 @@ export enum Apps_Select_Column {
 /** select "apps_aggregate_bool_exp_bool_and_arguments_columns" columns of table "apps" */
 export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
   /** column name */
-  AutoUpdate = 'autoUpdate',
-  /** column name */
-  IsProvisioned = 'isProvisioned',
-  /** column name */
-  Paused = 'paused',
+  IsLocked = 'isLocked',
   /** column name */
   ProvidersUpdated = 'providersUpdated',
   /** column name */
@@ -3376,11 +3662,7 @@ export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_And_Arguments_Column
 /** select "apps_aggregate_bool_exp_bool_or_arguments_columns" columns of table "apps" */
 export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
-  AutoUpdate = 'autoUpdate',
-  /** column name */
-  IsProvisioned = 'isProvisioned',
-  /** column name */
-  Paused = 'paused',
+  IsLocked = 'isLocked',
   /** column name */
   ProvidersUpdated = 'providersUpdated',
   /** column name */
@@ -3389,22 +3671,20 @@ export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns
 
 /** input type for updating data in table "apps" */
 export type Apps_Set_Input = {
-  autoUpdate?: InputMaybe<Scalars['Boolean']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creatorUserId?: InputMaybe<Scalars['uuid']>;
   currentState?: InputMaybe<Scalars['Int']>;
   desiredState?: InputMaybe<Scalars['Int']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
-  isProvisioned?: InputMaybe<Scalars['Boolean']>;
+  isLocked?: InputMaybe<Scalars['Boolean']>;
+  isLockedReason?: InputMaybe<Scalars['String']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   mimirSecretsEnc?: InputMaybe<Scalars['String']>;
   mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
-  /** whether or not this app is paused */
-  paused?: InputMaybe<Scalars['Boolean']>;
   planId?: InputMaybe<Scalars['uuid']>;
   providersUpdated?: InputMaybe<Scalars['Boolean']>;
   regionId?: InputMaybe<Scalars['uuid']>;
@@ -3465,22 +3745,20 @@ export type Apps_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Apps_Stream_Cursor_Value_Input = {
-  autoUpdate?: InputMaybe<Scalars['Boolean']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creatorUserId?: InputMaybe<Scalars['uuid']>;
   currentState?: InputMaybe<Scalars['Int']>;
   desiredState?: InputMaybe<Scalars['Int']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
-  isProvisioned?: InputMaybe<Scalars['Boolean']>;
+  isLocked?: InputMaybe<Scalars['Boolean']>;
+  isLockedReason?: InputMaybe<Scalars['String']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   mimirSecretsEnc?: InputMaybe<Scalars['String']>;
   mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
-  /** whether or not this app is paused */
-  paused?: InputMaybe<Scalars['Boolean']>;
   planId?: InputMaybe<Scalars['uuid']>;
   providersUpdated?: InputMaybe<Scalars['Boolean']>;
   regionId?: InputMaybe<Scalars['uuid']>;
@@ -3509,8 +3787,6 @@ export type Apps_Sum_Order_By = {
 /** update columns of table "apps" */
 export enum Apps_Update_Column {
   /** column name */
-  AutoUpdate = 'autoUpdate',
-  /** column name */
   CreatedAt = 'createdAt',
   /** column name */
   CreatorUserId = 'creatorUserId',
@@ -3523,7 +3799,9 @@ export enum Apps_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  IsProvisioned = 'isProvisioned',
+  IsLocked = 'isLocked',
+  /** column name */
+  IsLockedReason = 'isLockedReason',
   /** column name */
   MetadataFunctions = 'metadataFunctions',
   /** column name */
@@ -3536,8 +3814,6 @@ export enum Apps_Update_Column {
   Name = 'name',
   /** column name */
   NhostBaseFolder = 'nhostBaseFolder',
-  /** column name */
-  Paused = 'paused',
   /** column name */
   PlanId = 'planId',
   /** column name */
@@ -4132,7 +4408,6 @@ export type AuthRefreshTokens = {
   id: Scalars['uuid'];
   metadata?: Maybe<Scalars['jsonb']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   type: AuthRefreshTokenTypes_Enum;
   /** An object relationship */
   user: Users;
@@ -4207,7 +4482,6 @@ export type AuthRefreshTokens_Bool_Exp = {
   id?: InputMaybe<Uuid_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
-  refresh_token?: InputMaybe<Uuid_Comparison_Exp>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
@@ -4241,7 +4515,6 @@ export type AuthRefreshTokens_Insert_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
@@ -4254,7 +4527,6 @@ export type AuthRefreshTokens_Max_Fields = {
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -4264,7 +4536,6 @@ export type AuthRefreshTokens_Max_Order_By = {
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -4275,7 +4546,6 @@ export type AuthRefreshTokens_Min_Fields = {
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -4285,7 +4555,6 @@ export type AuthRefreshTokens_Min_Order_By = {
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -4312,7 +4581,6 @@ export type AuthRefreshTokens_Order_By = {
   id?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userId?: InputMaybe<Order_By>;
@@ -4341,8 +4609,6 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   RefreshTokenHash = 'refreshTokenHash',
   /** column name */
-  RefreshToken = 'refresh_token',
-  /** column name */
   Type = 'type',
   /** column name */
   UserId = 'userId'
@@ -4355,7 +4621,6 @@ export type AuthRefreshTokens_Set_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -4375,7 +4640,6 @@ export type AuthRefreshTokens_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -4392,8 +4656,6 @@ export enum AuthRefreshTokens_Update_Column {
   Metadata = 'metadata',
   /** column name */
   RefreshTokenHash = 'refreshTokenHash',
-  /** column name */
-  RefreshToken = 'refresh_token',
   /** column name */
   Type = 'type',
   /** column name */
@@ -11190,6 +11452,10 @@ export type Mutation_Root = {
   deleteWorkspaceMembers?: Maybe<WorkspaceMembers_Mutation_Response>;
   /** delete data from the table: "workspaces" */
   deleteWorkspaces?: Maybe<Workspaces_Mutation_Response>;
+  /** delete data from the table: "announcements" */
+  delete_announcements?: Maybe<Announcements_Mutation_Response>;
+  /** delete single row from the table: "announcements" */
+  delete_announcements_by_pk?: Maybe<Announcements>;
   /** delete data from the table: "auth.migrations" */
   delete_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
   /** delete single row from the table: "auth.migrations" */
@@ -11357,6 +11623,10 @@ export type Mutation_Root = {
   insertWorkspaceMembers?: Maybe<WorkspaceMembers_Mutation_Response>;
   /** insert data into the table: "workspaces" */
   insertWorkspaces?: Maybe<Workspaces_Mutation_Response>;
+  /** insert data into the table: "announcements" */
+  insert_announcements?: Maybe<Announcements_Mutation_Response>;
+  /** insert a single row into the table: "announcements" */
+  insert_announcements_one?: Maybe<Announcements>;
   /** insert data into the table: "auth.migrations" */
   insert_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
   /** insert a single row into the table: "auth.migrations" */
@@ -11538,6 +11808,12 @@ export type Mutation_Root = {
   updateWorkspaceMembers?: Maybe<WorkspaceMembers_Mutation_Response>;
   /** update data of the table: "workspaces" */
   updateWorkspaces?: Maybe<Workspaces_Mutation_Response>;
+  /** update data of the table: "announcements" */
+  update_announcements?: Maybe<Announcements_Mutation_Response>;
+  /** update single row of the table: "announcements" */
+  update_announcements_by_pk?: Maybe<Announcements>;
+  /** update multiples rows of table: "announcements" */
+  update_announcements_many?: Maybe<Array<Maybe<Announcements_Mutation_Response>>>;
   /** update multiples rows of table: "app_state_history" */
   update_appStateHistory_many?: Maybe<Array<Maybe<AppStateHistory_Mutation_Response>>>;
   /** update multiples rows of table: "app_states" */
@@ -12137,6 +12413,18 @@ export type Mutation_RootDeleteWorkspacesArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDelete_AnnouncementsArgs = {
+  where: Announcements_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Announcements_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
 export type Mutation_RootDelete_Auth_MigrationsArgs = {
   where: Auth_Migrations_Bool_Exp;
 };
@@ -12719,6 +13007,20 @@ export type Mutation_RootInsertWorkspaceMembersArgs = {
 export type Mutation_RootInsertWorkspacesArgs = {
   objects: Array<Workspaces_Insert_Input>;
   on_conflict?: InputMaybe<Workspaces_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_AnnouncementsArgs = {
+  objects: Array<Announcements_Insert_Input>;
+  on_conflict?: InputMaybe<Announcements_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Announcements_OneArgs = {
+  object: Announcements_Insert_Input;
+  on_conflict?: InputMaybe<Announcements_On_Conflict>;
 };
 
 
@@ -13454,6 +13756,26 @@ export type Mutation_RootUpdateWorkspaceMembersArgs = {
 export type Mutation_RootUpdateWorkspacesArgs = {
   _set?: InputMaybe<Workspaces_Set_Input>;
   where: Workspaces_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_AnnouncementsArgs = {
+  _set?: InputMaybe<Announcements_Set_Input>;
+  where: Announcements_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Announcements_By_PkArgs = {
+  _set?: InputMaybe<Announcements_Set_Input>;
+  pk_columns: Announcements_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Announcements_ManyArgs = {
+  updates: Array<Announcements_Updates>;
 };
 
 
@@ -14789,6 +15111,12 @@ export type Plans_Variance_Fields = {
 
 export type Query_Root = {
   __typename?: 'query_root';
+  /** fetch data from the table: "announcements" */
+  announcements: Array<Announcements>;
+  /** fetch aggregated fields from the table: "announcements" */
+  announcements_aggregate: Announcements_Aggregate;
+  /** fetch data from the table: "announcements" using primary key columns */
+  announcements_by_pk?: Maybe<Announcements>;
   /** fetch data from the table: "apps" using primary key columns */
   app?: Maybe<Apps>;
   appSecrets: Array<ConfigEnvironmentVariable>;
@@ -15074,6 +15402,29 @@ export type Query_Root = {
   workspaces: Array<Workspaces>;
   /** fetch aggregated fields from the table: "workspaces" */
   workspacesAggregate: Workspaces_Aggregate;
+};
+
+
+export type Query_RootAnnouncementsArgs = {
+  distinct_on?: InputMaybe<Array<Announcements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Announcements_Order_By>>;
+  where?: InputMaybe<Announcements_Bool_Exp>;
+};
+
+
+export type Query_RootAnnouncements_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Announcements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Announcements_Order_By>>;
+  where?: InputMaybe<Announcements_Bool_Exp>;
+};
+
+
+export type Query_RootAnnouncements_By_PkArgs = {
+  id: Scalars['uuid'];
 };
 
 
@@ -17658,6 +18009,14 @@ export type Software_Versions_Updates = {
 
 export type Subscription_Root = {
   __typename?: 'subscription_root';
+  /** fetch data from the table: "announcements" */
+  announcements: Array<Announcements>;
+  /** fetch aggregated fields from the table: "announcements" */
+  announcements_aggregate: Announcements_Aggregate;
+  /** fetch data from the table: "announcements" using primary key columns */
+  announcements_by_pk?: Maybe<Announcements>;
+  /** fetch data from the table in a streaming manner: "announcements" */
+  announcements_stream: Array<Announcements>;
   /** fetch data from the table: "apps" using primary key columns */
   app?: Maybe<Apps>;
   /** fetch data from the table: "app_states" using primary key columns */
@@ -17999,6 +18358,36 @@ export type Subscription_Root = {
   workspacesAggregate: Workspaces_Aggregate;
   /** fetch data from the table in a streaming manner: "workspaces" */
   workspaces_stream: Array<Workspaces>;
+};
+
+
+export type Subscription_RootAnnouncementsArgs = {
+  distinct_on?: InputMaybe<Array<Announcements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Announcements_Order_By>>;
+  where?: InputMaybe<Announcements_Bool_Exp>;
+};
+
+
+export type Subscription_RootAnnouncements_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Announcements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Announcements_Order_By>>;
+  where?: InputMaybe<Announcements_Bool_Exp>;
+};
+
+
+export type Subscription_RootAnnouncements_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootAnnouncements_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Announcements_Stream_Cursor_Input>>;
+  where?: InputMaybe<Announcements_Bool_Exp>;
 };
 
 
@@ -21982,6 +22371,13 @@ export type SetNewDefaultPaymentMethodMutationVariables = Exact<{
 
 export type SetNewDefaultPaymentMethodMutation = { __typename?: 'mutation_root', setAllPaymentMethodToDefaultFalse?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null, updatePaymentMethods?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null };
 
+export type GetAnnouncementsQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']>;
+}>;
+
+
+export type GetAnnouncementsQuery = { __typename?: 'query_root', announcements: Array<{ __typename?: 'announcements', id: any, href: string, content: string, createdAt: any }> };
+
 export type GetPlansQueryVariables = Exact<{
   where?: InputMaybe<Plans_Bool_Exp>;
 }>;
@@ -24740,6 +25136,51 @@ export function useSetNewDefaultPaymentMethodMutation(baseOptions?: Apollo.Mutat
 export type SetNewDefaultPaymentMethodMutationHookResult = ReturnType<typeof useSetNewDefaultPaymentMethodMutation>;
 export type SetNewDefaultPaymentMethodMutationResult = Apollo.MutationResult<SetNewDefaultPaymentMethodMutation>;
 export type SetNewDefaultPaymentMethodMutationOptions = Apollo.BaseMutationOptions<SetNewDefaultPaymentMethodMutation, SetNewDefaultPaymentMethodMutationVariables>;
+export const GetAnnouncementsDocument = gql`
+    query getAnnouncements($limit: Int) {
+  announcements(
+    order_by: {createdAt: desc}
+    limit: $limit
+    where: {_or: [{expiresAt: {_is_null: true}}, {expiresAt: {_gt: now}}]}
+  ) {
+    id
+    href
+    content
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetAnnouncementsQuery__
+ *
+ * To run a query within a React component, call `useGetAnnouncementsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAnnouncementsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAnnouncementsQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useGetAnnouncementsQuery(baseOptions?: Apollo.QueryHookOptions<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>(GetAnnouncementsDocument, options);
+      }
+export function useGetAnnouncementsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>(GetAnnouncementsDocument, options);
+        }
+export type GetAnnouncementsQueryHookResult = ReturnType<typeof useGetAnnouncementsQuery>;
+export type GetAnnouncementsLazyQueryHookResult = ReturnType<typeof useGetAnnouncementsLazyQuery>;
+export type GetAnnouncementsQueryResult = Apollo.QueryResult<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>;
+export function refetchGetAnnouncementsQuery(variables?: GetAnnouncementsQueryVariables) {
+      return { query: GetAnnouncementsDocument, variables: variables }
+    }
 export const GetPlansDocument = gql`
     query GetPlans($where: plans_bool_exp) {
   plans(where: $where) {

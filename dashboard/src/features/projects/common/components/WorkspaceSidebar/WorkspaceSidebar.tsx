@@ -8,6 +8,7 @@ import { PlusCircleIcon } from '@/components/ui/v2/icons/PlusCircleIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import { Announcements } from '@/features/projects/common/components/Announcements';
 import { EditWorkspaceNameForm } from '@/features/projects/workspaces/components/EditWorkspaceNameForm';
 import type { Workspace } from '@/types/application';
 import Image from 'next/image';
@@ -38,6 +39,8 @@ export default function WorkspaceSidebar({
       )}
       {...props}
     >
+      <Announcements />
+
       <section className="grid grid-flow-row gap-2">
         <Text color="secondary">My Workspaces</Text>
 

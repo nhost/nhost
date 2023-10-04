@@ -1,4 +1,3 @@
-import AnnouncementProvider from '@/components/common/Announcement/AnnouncementProvider';
 import { DialogProvider } from '@/components/common/DialogProvider';
 import { UIProvider } from '@/components/common/UIProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -106,9 +105,7 @@ function MyApp({
               >
                 <RetryableErrorBoundary>
                   <DialogProvider>
-                    <AnnouncementProvider>
-                      {getLayout(<Component {...pageProps} />)}
-                    </AnnouncementProvider>
+                    {getLayout(<Component {...pageProps} />)}
                   </DialogProvider>
                 </RetryableErrorBoundary>
               </ThemeProvider>
