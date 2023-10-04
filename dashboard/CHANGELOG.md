@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.22
+
+### Patch Changes
+
+- c3efb7ec8: feat(dashboard): query latest announcement from platform
+
 ## 0.20.21
 
 ### Patch Changes
