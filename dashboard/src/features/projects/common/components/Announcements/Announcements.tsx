@@ -1,3 +1,5 @@
+import { List } from '@/components/ui/v2/List';
+import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useGetAnnouncementsQuery } from '@/utils/__generated__/graphql';
 import formatDistance from 'date-fns/formatDistance';
@@ -17,29 +19,29 @@ export default function Announcements() {
         Latest announcements
       </Text>
 
-      <ul className="relative space-y-4 border-l border-gray-200 dark:border-gray-700">
+      <List className="relative space-y-4 border-l border-gray-200 dark:border-gray-700">
         {announcements.map((item) => (
-          <li className="ml-4">
-            <div className="absolute -left-1.5 mt-0.5 h-3 w-3 rounded-full border border-white bg-gray-200 dark:border-gray-900 dark:bg-gray-700" />
-
+          <ListItem.Root key={item.id} className="ml-4">
             <div className="flex flex-col">
               <time className="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
                 {formatDistance(new Date(item.createdAt), new Date(), {
                   addSuffix: true,
                 })}
               </time>
-              <a
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="cursor-pointer text-base font-normal text-gray-500 hover:underline dark:text-gray-400"
-              >
-                {item.content}
+              <a href={item.href} target="_blank" rel="noopener noreferrer">
+                <ListItem.Button
+                  dense
+                  aria-label={`View ${item.content}`}
+                  className="!p-1"
+                >
+                  <p className="text-sm">{item.content}</p>
+                </ListItem.Button>
               </a>
             </div>
-          </li>
+            <div className="absolute top-[0.15rem] -ml-[1.4rem] h-3 w-3 rounded-full border border-white bg-gray-200 dark:border-gray-900 dark:bg-gray-700" />
+          </ListItem.Root>
         ))}
-      </ul>
+      </List>
     </section>
   );
 }

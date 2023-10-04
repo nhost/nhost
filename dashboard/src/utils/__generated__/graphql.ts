@@ -1285,26 +1285,6 @@ export type ConfigHasuraUpdateInput = {
   webhookSecret?: InputMaybe<Scalars['String']>;
 };
 
-export type ConfigIngress = {
-  __typename?: 'ConfigIngress';
-  fqdn?: Maybe<Array<Scalars['String']>>;
-};
-
-export type ConfigIngressComparisonExp = {
-  _and?: InputMaybe<Array<ConfigIngressComparisonExp>>;
-  _not?: InputMaybe<ConfigIngressComparisonExp>;
-  _or?: InputMaybe<Array<ConfigIngressComparisonExp>>;
-  fqdn?: InputMaybe<ConfigStringComparisonExp>;
-};
-
-export type ConfigIngressInsertInput = {
-  fqdn?: InputMaybe<Array<Scalars['String']>>;
-};
-
-export type ConfigIngressUpdateInput = {
-  fqdn?: InputMaybe<Array<Scalars['String']>>;
-};
-
 export type ConfigInsertConfigResponse = {
   __typename?: 'ConfigInsertConfigResponse';
   config: ConfigConfig;
@@ -1392,26 +1372,6 @@ export type ConfigLocaleComparisonExp = {
   _in?: InputMaybe<Array<Scalars['ConfigLocale']>>;
   _neq?: InputMaybe<Scalars['ConfigLocale']>;
   _nin?: InputMaybe<Array<Scalars['ConfigLocale']>>;
-};
-
-export type ConfigNetworking = {
-  __typename?: 'ConfigNetworking';
-  ingresses?: Maybe<Array<ConfigIngress>>;
-};
-
-export type ConfigNetworkingComparisonExp = {
-  _and?: InputMaybe<Array<ConfigNetworkingComparisonExp>>;
-  _not?: InputMaybe<ConfigNetworkingComparisonExp>;
-  _or?: InputMaybe<Array<ConfigNetworkingComparisonExp>>;
-  ingresses?: InputMaybe<ConfigIngressComparisonExp>;
-};
-
-export type ConfigNetworkingInsertInput = {
-  ingresses?: InputMaybe<Array<ConfigIngressInsertInput>>;
-};
-
-export type ConfigNetworkingUpdateInput = {
-  ingresses?: InputMaybe<Array<ConfigIngressUpdateInput>>;
 };
 
 export type ConfigObservability = {
@@ -1591,7 +1551,6 @@ export type ConfigProviderUpdateInput = {
 export type ConfigResources = {
   __typename?: 'ConfigResources';
   compute: ConfigResourcesCompute;
-  networking?: Maybe<ConfigNetworking>;
   /** Number of replicas for a service */
   replicas: Scalars['ConfigUint8'];
 };
@@ -1601,7 +1560,6 @@ export type ConfigResourcesComparisonExp = {
   _not?: InputMaybe<ConfigResourcesComparisonExp>;
   _or?: InputMaybe<Array<ConfigResourcesComparisonExp>>;
   compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
-  networking?: InputMaybe<ConfigNetworkingComparisonExp>;
   replicas?: InputMaybe<ConfigUint8ComparisonExp>;
 };
 
@@ -1633,13 +1591,11 @@ export type ConfigResourcesComputeUpdateInput = {
 
 export type ConfigResourcesInsertInput = {
   compute: ConfigResourcesComputeInsertInput;
-  networking?: InputMaybe<ConfigNetworkingInsertInput>;
   replicas: Scalars['ConfigUint8'];
 };
 
 export type ConfigResourcesUpdateInput = {
   compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
-  networking?: InputMaybe<ConfigNetworkingUpdateInput>;
   replicas?: InputMaybe<Scalars['ConfigUint8']>;
 };
 
@@ -1718,7 +1674,6 @@ export type ConfigRunServiceNameComparisonExp = {
 
 export type ConfigRunServicePort = {
   __typename?: 'ConfigRunServicePort';
-  ingress?: Maybe<ConfigIngress>;
   port: Scalars['ConfigPort'];
   publish?: Maybe<Scalars['Boolean']>;
   type: Scalars['String'];
@@ -1728,21 +1683,18 @@ export type ConfigRunServicePortComparisonExp = {
   _and?: InputMaybe<Array<ConfigRunServicePortComparisonExp>>;
   _not?: InputMaybe<ConfigRunServicePortComparisonExp>;
   _or?: InputMaybe<Array<ConfigRunServicePortComparisonExp>>;
-  ingress?: InputMaybe<ConfigIngressComparisonExp>;
   port?: InputMaybe<ConfigPortComparisonExp>;
   publish?: InputMaybe<ConfigBooleanComparisonExp>;
   type?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigRunServicePortInsertInput = {
-  ingress?: InputMaybe<ConfigIngressInsertInput>;
   port: Scalars['ConfigPort'];
   publish?: InputMaybe<Scalars['Boolean']>;
   type: Scalars['String'];
 };
 
 export type ConfigRunServicePortUpdateInput = {
-  ingress?: InputMaybe<ConfigIngressUpdateInput>;
   port?: InputMaybe<Scalars['ConfigPort']>;
   publish?: InputMaybe<Scalars['Boolean']>;
   type?: InputMaybe<Scalars['String']>;
@@ -1974,10 +1926,7 @@ export type ConfigStandardOauthProviderWithScopeUpdateInput = {
 export type ConfigStorage = {
   __typename?: 'ConfigStorage';
   antivirus?: Maybe<ConfigStorageAntivirus>;
-  /**
-   * Networking (custom domains at the moment) are not allowed as we need to do further
-   * configurations in the CDN. We will enable it again in the future.
-   */
+  /** Resources for the service */
   resources?: Maybe<ConfigResources>;
   /**
    * Version of storage service, you can see available versions in the URL below:
@@ -4459,7 +4408,6 @@ export type AuthRefreshTokens = {
   id: Scalars['uuid'];
   metadata?: Maybe<Scalars['jsonb']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   type: AuthRefreshTokenTypes_Enum;
   /** An object relationship */
   user: Users;
@@ -4534,7 +4482,6 @@ export type AuthRefreshTokens_Bool_Exp = {
   id?: InputMaybe<Uuid_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
-  refresh_token?: InputMaybe<Uuid_Comparison_Exp>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
@@ -4568,7 +4515,6 @@ export type AuthRefreshTokens_Insert_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
@@ -4581,7 +4527,6 @@ export type AuthRefreshTokens_Max_Fields = {
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -4591,7 +4536,6 @@ export type AuthRefreshTokens_Max_Order_By = {
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -4602,7 +4546,6 @@ export type AuthRefreshTokens_Min_Fields = {
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -4612,7 +4555,6 @@ export type AuthRefreshTokens_Min_Order_By = {
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -4639,7 +4581,6 @@ export type AuthRefreshTokens_Order_By = {
   id?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userId?: InputMaybe<Order_By>;
@@ -4668,8 +4609,6 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   RefreshTokenHash = 'refreshTokenHash',
   /** column name */
-  RefreshToken = 'refresh_token',
-  /** column name */
   Type = 'type',
   /** column name */
   UserId = 'userId'
@@ -4682,7 +4621,6 @@ export type AuthRefreshTokens_Set_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -4702,7 +4640,6 @@ export type AuthRefreshTokens_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -4719,8 +4656,6 @@ export enum AuthRefreshTokens_Update_Column {
   Metadata = 'metadata',
   /** column name */
   RefreshTokenHash = 'refreshTokenHash',
-  /** column name */
-  RefreshToken = 'refresh_token',
   /** column name */
   Type = 'type',
   /** column name */
@@ -25203,7 +25138,11 @@ export type SetNewDefaultPaymentMethodMutationResult = Apollo.MutationResult<Set
 export type SetNewDefaultPaymentMethodMutationOptions = Apollo.BaseMutationOptions<SetNewDefaultPaymentMethodMutation, SetNewDefaultPaymentMethodMutationVariables>;
 export const GetAnnouncementsDocument = gql`
     query getAnnouncements($limit: Int) {
-  announcements(order_by: {createdAt: desc}, limit: $limit) {
+  announcements(
+    order_by: {createdAt: desc}
+    limit: $limit
+    where: {_or: [{expiresAt: {_is_null: true}}, {expiresAt: {_gt: now}}]}
+  ) {
     id
     href
     content
