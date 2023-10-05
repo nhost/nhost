@@ -1,14 +1,11 @@
 <script>
+	import TodoItem from '$lib/components/todo-item.svelte'
 
 	/** @type {import('./$types').PageData} */
 	export let data;
 
 	const { todos, count, page } = data
 </script>
-
-<h1 class="text-2xl font-semibold text-center">
-	Hi! You are registered with email: {data.user?.email}.
-</h1>
 
 <svelte:head>
 	<title>Todos - Protected</title>
@@ -29,7 +26,7 @@
 	<ul class="space-y-1">
 		{#each todos as todo}
 			<li>
-				<span>{todo.title}</span>
+				<TodoItem todo={todo} />
 			</li>
 		{/each}
 	</ul>
@@ -38,7 +35,8 @@
 		<div class="flex justify-center space-x-2">
 			{#if page > 0}
 				<a
-					href={`/protected/todos/${page - 1}`}
+					href={`/protected/todos?page=${page - 1}`}
+					data-sveltekit-reload
 					class="px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
 				>
 					Previous
@@ -47,7 +45,8 @@
 
 			{#if page + 1 < Math.ceil(count / 10)}
 				<a
-					href={`/protected/todos/${page + 1}`}
+					href={`/protected/todos?page=${page + 1}`}
+					data-sveltekit-reload
 					class="px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
 				>
 					Next

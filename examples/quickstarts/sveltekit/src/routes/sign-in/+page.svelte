@@ -16,7 +16,7 @@
 	<p class="mt-3 font-semibold text-center text-red-500">{form?.error}</p>
 {/if}
 
-<form class="space-y-5" method='POST'>
+<form class="max-w-xl mx-auto space-y-5" method='POST'>
 	<Input label="Email" id="email" name="email" type="email" required />
 
 	<Input

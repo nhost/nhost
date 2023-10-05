@@ -6,6 +6,7 @@ export const NHOST_SESSION_KEY = 'nhostSession';
 
 /** @param {import('@sveltejs/kit').Cookies} cookies */
 export const getNhost = async (cookies) => {
+
 	const nhost = new NhostClient({
     subdomain: env.PUBLIC_NHOST_SUBDOMAIN || 'local',
 		region: env.PUBLIC_NHOST_REGION,
@@ -16,8 +17,6 @@ export const getNhost = async (cookies) => {
 	
 	/** @type {import('@nhost/nhost-js').NhostSession} */
   const initialSession = JSON.parse(atob(sessionCookieValue) || 'null')
-
-	// TODO handle accessToken expired
 
   nhost.auth.client.start({ initialSession })
 

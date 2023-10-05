@@ -1,5 +1,5 @@
 /**
- * @typedef {Object} Attachement
+ * @typedef {Object} Attachment
  * @property {String} id
  */
 
@@ -8,7 +8,7 @@
  * @property {String} id
  * @property {String} title
  * @property {boolean} done
- * @property {Attachement} attachement
+ * @property {Attachment} attachment
  */
 
 export const Types = {}

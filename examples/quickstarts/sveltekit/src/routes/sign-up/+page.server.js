@@ -5,13 +5,11 @@ import { redirect } from '@sveltejs/kit'
 export const actions = {
   default: async (event) => {
     const { request, cookies } = event
-
     const nhost = await getNhost(cookies)
-    const formData = await request.formData()
 
+    const formData = await request.formData()
     const email = String(formData.get('email'))
     const password = String(formData.get('password'))
-
     const firstName = String(formData.get('firstName'))
     const lastName = String(formData.get('lastName'))
 
