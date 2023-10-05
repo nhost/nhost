@@ -4,8 +4,8 @@
 	/** @type {string} */
 	export let id;
 
-	/** @type {string} */
-	export let label;
+	/** @type {string | null} */
+	export let label = null;
 
 	export let type = 'text';
 
@@ -23,14 +23,17 @@
 </script>
 
 <div class={$$props.class}>
-	<label for={id} class="block text-sm font-medium text-gray-700">
-		{label}
-	</label>
+	{#if label}
+		<label for={id} class="block text-sm font-medium text-gray-700">
+			{label}
+		</label>
+	{/if}
+	
 	<div class="mt-1">
 		<input
 			use:setType
-			{name}
 			{id}
+			{name}
 			{required}
 			bind:value
 			bind:this={inputRef}

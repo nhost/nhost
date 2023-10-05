@@ -15,6 +15,6 @@ export async function load({ cookies, route }) {
 
   // pass the session to all pages
   return {
-    session
+    user: session?.user
   }
 }

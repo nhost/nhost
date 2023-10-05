@@ -16,7 +16,7 @@ export const actions = {
 
     if (session) {
       cookies.set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { path: '/' })
-      throw redirect(303, '/protected')
+      throw redirect(303, '/protected/todos')
     }
 
     if (error) {

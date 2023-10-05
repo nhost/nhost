@@ -1,6 +1,4 @@
 <script>
-	import { createEventDispatcher } from 'svelte';
-
 	/** @type {import('@nhost/nhost-js').User | undefined} */
 	export let user;
 
@@ -10,20 +8,18 @@
 			name: 'Home'
 		},
 		{
-			href: '/protected',
-			name: `${user ? '🔓' : '🔒'} Protected`
+			href: '/protected/todos',
+			name: `${user ? '🔓' : '🔒'} Todos`
+		},
+		{
+			href: '/protected/echo',
+			name: `${user ? '🔓' : '🔒'} Echo`
+		},
+		{
+			href: '/protected/pat',
+			name: `${user ? '🔓' : '🔒'} PAT`
 		}
 	];
-
-	const dispatch = createEventDispatcher();
-
-	const handleSignOut = () => {
-		user = undefined;
-
-		dispatch('signout', {
-			signout: true
-		});
-	};
 </script>
 
 <header class="bg-indigo-600">
@@ -40,12 +36,13 @@
 			</div>
 			<div class="ml-10 space-x-4">
 				{#if user}
-					<button
-						on:click={handleSignOut}
-						class="inline-block px-4 py-2 text-base font-medium text-white bg-indigo-500 border border-transparent rounded-md hover:bg-opacity-75"
-					>
-						Sign out
-					</button>
+					<form action='/sign-out' method='post'>
+						<button
+							class="inline-block px-4 py-2 text-base font-medium text-white bg-indigo-500 border border-transparent rounded-md hover:bg-opacity-75"
+						>
+							Sign out
+						</button>
+					</form>
 				{:else}
 					<a
 						href="/sign-in"
