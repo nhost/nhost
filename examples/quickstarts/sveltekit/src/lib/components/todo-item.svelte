@@ -1,4 +1,3 @@
-
 <script>
   import { env } from '$env/dynamic/public'
   import { NhostClient } from '@nhost/nhost-js'
@@ -12,17 +11,21 @@
     region: env.PUBLIC_NHOST_REGION
   })
 
-  $: containerStyles = `flex flex-row items-center p-2 bg-slate-100 ${todo.done ? 'bg-slate-200' : ''}`
-  $: labelStyles = `block w-full space-x-2 rounded  select-none justify-center ${todo.done ? 'line-through bg-slate-200': ''}`
+  const handleChange = async () => {
+    return fetch('/protected/todos/update', {
+      method: 'POST',
+      body: JSON.stringify({ id: todo.id, done })
+    })
+  }
 </script>
 
-<div class={containerStyles}>
+<div class={`flex flex-row items-center p-2 bg-slate-100 ${done ? 'bg-slate-200' : ''}`}>
   <label
     for={todo.id}
-    class={labelStyles}
+    class={`flex items-start justify-start w-full space-x-2 rounded  select-none ${done ? 'bg-slate-200': ''}`}
   >
-    <input type="checkbox" id={todo.id} checked={done} />
-    <span>{todo.title}</span>
+    <input type="checkbox" id={todo.id} bind:checked={done} on:change={handleChange} />
+    <span class={done ? 'line-through' : ''}>{todo.title}</span>
   </label>
 
   {#if todo.attachment}

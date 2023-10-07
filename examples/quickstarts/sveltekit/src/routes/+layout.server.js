@@ -1,6 +1,12 @@
 import { getNhost } from '$lib/nhost'
 import { redirect } from '@sveltejs/kit'
-const unProtectedRoutes = ['/', '/sign-in', '/sign-up']
+const unProtectedRoutes = [
+  '/',
+  '/auth/sign-in',
+  '/auth/sign-in/email-password',
+  '/auth/sign-in/magick-link',
+  '/auth/sign-up'
+]
 
 /** @type {import('./$types').LayoutServerLoad} */
 export async function load({ cookies, route }) {
@@ -9,7 +15,7 @@ export async function load({ cookies, route }) {
 
   if (!unProtectedRoutes.includes(route.id ?? '')) {
     if (!session) {
-      throw redirect(303, '/sign-in')
+      throw redirect(303, '/auth/sign-in')
     }
   }
 

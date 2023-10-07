@@ -36,22 +36,23 @@
 			</div>
 			<div class="ml-10 space-x-4">
 				{#if user}
-					<form action='/sign-out' method='post'>
-						<button
-							class="inline-block px-4 py-2 text-base font-medium text-white bg-indigo-500 border border-transparent rounded-md hover:bg-opacity-75"
-						>
-							Sign out
-						</button>
-					</form>
+				<form action=/auth/sign-out method=post>
+					<button
+						type='submit'
+						class="inline-block px-4 py-2 text-base font-medium text-white bg-indigo-500 border border-transparent rounded-md hover:bg-opacity-75"
+					>
+						Sign out
+					</button>
+				</form>
 				{:else}
 					<a
-						href="/sign-in"
+						href="/auth/sign-in"
 						class="inline-block px-4 py-2 text-base font-medium text-white bg-indigo-500 border border-transparent rounded-md hover:bg-opacity-75"
 					>
 						Sign in
 					</a>
 					<a
-						href="/sign-up"
+						href="/auth/sign-up"
 						class="inline-block px-4 py-2 text-base font-medium text-indigo-600 bg-white border border-transparent rounded-md hover:bg-indigo-50"
 					>
 						Sign up

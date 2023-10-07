@@ -1,5 +1,6 @@
 import { env } from '$env/dynamic/public';
 import { NhostClient } from '@nhost/nhost-js';
+import { redirect } from '@sveltejs/kit';
 import { waitFor } from 'xstate/lib/waitFor';
 
 export const NHOST_SESSION_KEY = 'nhostSession';
@@ -26,4 +27,37 @@ export const getNhost = async (cookies) => {
 	}
 
   return nhost
+}
+
+/**
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {*} onError
+ */
+export const manageAuthSession = async (
+	event,
+	onError
+) => {
+	const nhost = await getNhost(event.cookies)
+  const session = nhost.auth.getSession()
+
+  const refreshToken = event.url.searchParams.get('refreshToken') || undefined
+
+  const currentTime = Math.floor(Date.now() / 1000)
+  const tokenExpirationTime = nhost.auth.getDecodedAccessToken()?.exp
+  const accessTokenExpired = session && tokenExpirationTime && currentTime > tokenExpirationTime
+
+  if (accessTokenExpired || refreshToken) {
+    const { session: newSession, error } = await nhost.auth.refreshSession(refreshToken)
+
+    if (error) {
+      return onError?.(error)
+    }
+
+    event.cookies.set(NHOST_SESSION_KEY, btoa(JSON.stringify(newSession)), { path: '/' })
+		
+		if (refreshToken) {
+			event.url.searchParams.delete('refreshToken')
+			throw redirect(303, event.url.pathname)
+		}
+  }
 }

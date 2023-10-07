@@ -4,12 +4,11 @@ import { redirect } from '@sveltejs/kit'
 /** @type {import('./$types').Actions} */
 export const actions = {
   default: async (event) => {
-    const { cookies } = event
-    const nhost = await getNhost(cookies)
+    const nhost = await getNhost(event.cookies)
 
     await nhost.auth.signOut()
-    cookies.delete(NHOST_SESSION_KEY)
+    event.cookies.set(NHOST_SESSION_KEY, '', { httpOnly: true, path: '/', maxAge: 0 })
 
-    throw redirect(303, '/sign-in')
+    throw redirect(303, '/auth/sign-in')
   }
 }
