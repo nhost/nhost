@@ -1,7 +1,8 @@
 <script>
   /** @type {import('../types').PersonalAccessToken}*/
   export let pat
-  const handleDeletePAT = () => fetch('/protected/pat/delete', { method: 'POST', body: `{ id: ${pat.id} }`})
+  const handleDeletePAT = () => fetch(`/protected/pat/${pat.id}`, { method: 'DELETE' })
+      .then(() => window.location.reload())
 </script>
 
 <div class="flex flex-row items-center justify-between p-2 bg-slate-100">
