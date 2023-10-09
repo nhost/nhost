@@ -1,3 +1,4 @@
+import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { DataBrowserEmptyState } from '@/features/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserLayout } from '@/features/database/dataGrid/components/DataBrowserLayout';
@@ -35,5 +36,10 @@ export default function DataBrowserDatabaseDetailsPage() {
 DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
   page: ReactElement,
 ) {
-  return <DataBrowserLayout>{page}</DataBrowserLayout>;
+  return (
+    <DataBrowserLayout>
+      <DepricationNotice />
+      {page}
+    </DataBrowserLayout>
+  );
 };

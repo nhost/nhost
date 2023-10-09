@@ -1,3 +1,4 @@
+import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
@@ -390,6 +391,7 @@ export default function UsersPage() {
 UsersPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <ProjectLayout contentContainerProps={{ className: 'h-full' }}>
+      <DepricationNotice />
       {page}
     </ProjectLayout>
   );

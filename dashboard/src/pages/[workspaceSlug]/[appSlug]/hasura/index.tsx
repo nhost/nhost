@@ -1,3 +1,4 @@
+import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
@@ -114,5 +115,10 @@ export default function HasuraPage() {
 }
 
 HasuraPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <ProjectLayout>
+      <DepricationNotice />
+      {page}
+    </ProjectLayout>
+  );
 };

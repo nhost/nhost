@@ -1,3 +1,4 @@
+import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -67,5 +68,10 @@ export default function BackupsPage() {
 }
 
 BackupsPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <ProjectLayout>
+      <DepricationNotice />
+      {page}
+    </ProjectLayout>
+  );
 };

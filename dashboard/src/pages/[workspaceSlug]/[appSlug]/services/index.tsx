@@ -12,6 +12,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import type { GetRunServicesQuery } from '@/utils/__generated__/graphql';
 import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
 
+import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import {
   ServiceForm,
@@ -258,5 +259,10 @@ export default function ServicesPage() {
 }
 
 ServicesPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <ProjectLayout>
+      <DepricationNotice />
+      {page}
+    </ProjectLayout>
+  );
 };
