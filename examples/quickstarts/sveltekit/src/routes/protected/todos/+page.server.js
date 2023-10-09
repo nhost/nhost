@@ -4,7 +4,6 @@ import { gql } from '@apollo/client'
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ url, cookies }) => {
   const nhost = await getNhost(cookies)
-
   const page = parseInt(url.searchParams.get('page') || '0')
 
   const {

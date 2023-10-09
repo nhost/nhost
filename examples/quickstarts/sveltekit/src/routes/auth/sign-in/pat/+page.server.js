@@ -5,25 +5,17 @@ import { redirect } from '@sveltejs/kit'
 export const actions = {
   default: async (event) => {
     const { request, cookies } = event
-    const nhost = await getNhost(cookies)
 
     const formData = await request.formData()
-    const email = String(formData.get('email'))
-    const password = String(formData.get('password'))
-    const firstName = String(formData.get('firstName'))
-    const lastName = String(formData.get('lastName'))
+    const nhost = await getNhost(cookies)
 
-    const { session, error } = await nhost.auth.signUp({
-      email,
-      password,
-      options: {
-        displayName: `${firstName} ${lastName}`
-      }
-    })
+    const pat = String(formData.get('pat'))
+
+    const { session, error } = await nhost.auth.signInPAT(pat)
 
     if (session) {
       cookies.set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { path: '/' })
-      throw redirect(303, '/protected')
+      throw redirect(303, '/protected/todos')
     }
 
     if (error) {
