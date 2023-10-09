@@ -6,8 +6,10 @@ import { Header } from '@/components/layout/Header';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsHealthy } from '@/features/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useAuthenticationStatus } from '@nhost/nextjs';
@@ -37,6 +39,7 @@ export default function AuthenticatedLayout({
 }: AuthenticatedLayoutProps) {
   const router = useRouter();
   const isPlatform = useIsPlatform();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
   const isHealthy = useIsHealthy();
 
@@ -78,7 +81,7 @@ export default function AuthenticatedLayout({
 
         <Container
           rootClassName="h-full"
-          className="my-12 grid max-w-md grid-flow-row justify-center gap-2 text-center"
+          className="grid justify-center max-w-md grid-flow-row gap-2 my-12 text-center"
         >
           <div className="mx-auto">
             <Image
@@ -115,8 +118,28 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <BaseLayout className="flex h-full flex-col" {...props}>
+    <BaseLayout className="flex flex-col h-full" {...props}>
       <Header className="flex max-h-[59px] flex-auto" />
+
+      {!currentProject.providersUpdated && (
+        <Alert severity="warning" className="grid place-content-center">
+          <Text color="warning" className="max-w-3xl text-sm">
+            On December 1st the old backend domain will cease to work. You need
+            to make sure your client is instantiated using the subdomain and
+            region and update your oauth2 settings. You can find more
+            information{' '}
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+              href="https://github.com/nhost/nhost/discussions/2303"
+            >
+              here
+            </a>
+            .
+          </Text>
+        </Alert>
+      )}
 
       <InviteNotification />
 
