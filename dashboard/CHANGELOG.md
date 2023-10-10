@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.20.23
+
+### Patch Changes
+
+- c01568a7d: chore(dashboard): show alert to update oauth providers
+
 ## 0.20.22
 
 ### Patch Changes
