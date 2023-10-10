@@ -1,3 +1,4 @@
+import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
@@ -105,7 +106,7 @@ export default function DeploymentDetailsPage() {
             <Text color="secondary">{relativeDateOfDeployment}</Text>
           </div>
         </div>
-        <div className=" flex items-center">
+        <div className="flex items-center ">
           <Link
             className="self-center font-mono font-medium"
             target="_blank"
@@ -139,7 +140,7 @@ export default function DeploymentDetailsPage() {
 
           {deployment.deploymentLogs.map((log) => (
             <div key={log.id} className="flex font-mono">
-              <div className=" mr-2 flex-shrink-0">
+              <div className="mr-2 flex-shrink-0 ">
                 {format(parseISO(log.createdAt), 'HH:mm:ss')}:
               </div>
               <div className="break-all">{log.message}</div>
@@ -152,5 +153,10 @@ export default function DeploymentDetailsPage() {
 }
 
 DeploymentDetailsPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <ProjectLayout>
+      <DepricationNotice />
+      {page}
+    </ProjectLayout>
+  );
 };

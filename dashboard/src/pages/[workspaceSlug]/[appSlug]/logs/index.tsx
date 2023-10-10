@@ -1,3 +1,4 @@
+import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -134,5 +135,10 @@ export default function LogsPage() {
 }
 
 LogsPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <ProjectLayout>
+      <DepricationNotice />
+      {page}
+    </ProjectLayout>
+  );
 };

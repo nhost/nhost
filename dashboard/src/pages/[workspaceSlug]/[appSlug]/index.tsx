@@ -1,3 +1,4 @@
+import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { ApplicationErrored } from '@/features/projects/common/components/ApplicationErrored';
 import { ApplicationLive } from '@/features/projects/common/components/ApplicationLive';
@@ -49,5 +50,10 @@ export default function AppIndexPage() {
 }
 
 AppIndexPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <ProjectLayout>
+      <DepricationNotice />
+      {page}
+    </ProjectLayout>
+  );
 };
