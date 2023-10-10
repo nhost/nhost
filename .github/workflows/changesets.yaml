@@ -141,16 +141,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
-      - name: Create GitHub Release
-        uses: taiki-e/create-gh-release-action@v1
-        with:
-          changelog: dashboard/CHANGELOG.md
-          token: ${{ secrets.GITHUB_TOKEN }}
-          prefix: ${{ env.DASHBOARD_PACKAGE }}@
-          ref: refs/tags/${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
-      - name: Remove tag on failure
-        if: failure()
-        run: git push --delete origin ${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
 
   bump-cli:
     name: Bump Dashboard version in the Nhost CLI
