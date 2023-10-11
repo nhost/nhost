@@ -142,6 +142,7 @@ export default function useProjectRoutes() {
       exact: false,
       label: 'Run',
       icon: <ServicesIcon />,
+      disabled: !isPlatform,
     },
     ...nhostRoutes,
   ];

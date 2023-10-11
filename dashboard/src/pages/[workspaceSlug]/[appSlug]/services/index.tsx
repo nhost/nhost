@@ -44,7 +44,7 @@ export default function ServicesPage() {
   const router = useRouter();
   const { openDrawer, openAlertDialog } = useDialog();
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const isPlanFree = currentProject.plan.isFree;
+  const isPlanFree = currentProject?.plan?.isFree;
 
   const [currentPage, setCurrentPage] = useState(
     parseInt(router.query.page as string, 10) || 1,
