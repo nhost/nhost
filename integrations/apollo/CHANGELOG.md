@@ -1,5 +1,11 @@
 # @nhost/apollo
 
+## 5.2.20
+
+### Patch Changes
+
+- 7459a9413: fix: apollo-integration: reset accessToken to null after sign-out
+
 ## 5.2.19
 
 ### Patch Changes

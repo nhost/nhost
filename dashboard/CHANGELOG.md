@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.20.24
+
+### Patch Changes
+
+- e10389ecf: fix(dashboard): disable run tab when developing locally
+  - @nhost/react-apollo@5.0.37
+
 ## 0.20.23
 
 ### Patch Changes
