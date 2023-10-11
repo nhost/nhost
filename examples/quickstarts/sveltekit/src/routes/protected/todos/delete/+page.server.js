@@ -1,6 +1,6 @@
 import { getNhost } from '$lib/nhost'
-import { gql } from '@apollo/client'
 import { redirect } from '@sveltejs/kit'
+import gql from 'graphql-tag'
 
 /** @type {import('./$types').Actions} */
 export const actions = {

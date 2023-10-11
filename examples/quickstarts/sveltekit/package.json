@@ -36,7 +36,6 @@
   },
   "type": "module",
   "dependencies": {
-    "@apollo/client": "^3.8.1",
     "graphql": "^16.7.1",
     "graphql-tag": "^2.12.6",
     "js-cookie": "^3.0.5",
