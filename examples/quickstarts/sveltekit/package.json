@@ -18,6 +18,7 @@
     "@nhost/nhost-js": "2.2.17",
     "@playwright/test": "^1.31.0",
     "@sveltejs/adapter-auto": "^2.0.0",
+    "@sveltejs/adapter-vercel": "^3.0.3",
     "@sveltejs/kit": "^1.5.0",
     "@types/js-cookie": "^3.0.2",
     "autoprefixer": "^10.4.14",
