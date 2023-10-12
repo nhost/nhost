@@ -189,7 +189,7 @@ export const createApolloClient = ({
     if (['SIGNOUT', 'SIGNED_IN', 'TOKEN_CHANGED'].includes(event.type)) {
       if (
         event.type === 'SIGNOUT' ||
-        (event.type === 'TOKEN_CHANGED' && state.context.accessToken === null)
+        (event.type === 'TOKEN_CHANGED' && state.context.accessToken.value === null)
       ) {
         accessToken = null
 
