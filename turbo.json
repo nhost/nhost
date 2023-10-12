@@ -4,7 +4,7 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "umd/**", "build/**", ".next/**", ".svelte-kit/**", ".vercel/**"]
+      "outputs": ["dist/**", "umd/**", "build/**", ".next/**"]
     },
     "@nhost-examples/react-apollo#build": {
       "dependsOn": ["^build"],
@@ -29,6 +29,10 @@
         "NEXT_PUBLIC_NHOST_HASURA_URL",
         "NEXT_PUBLIC_ENV"
       ]
+    },
+    "@nhost-examples/sveltekit#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".svelte-kit/**", ".vercel/**"]
     },
     "@nhost/sync-versions#start": {
       "cache": false
