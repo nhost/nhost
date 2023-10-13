@@ -22,6 +22,10 @@ const (
 	DefaultNhostWebhookSecret       = "nhost-webhook-secret" //nolint:gosec
 )
 
+const (
+	flagYes = "yes"
+)
+
 func CommandPull() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "pull",
@@ -34,6 +38,11 @@ func CommandPull() *cli.Command {
 				Usage:   "Pull this subdomain's configuration. Defaults to linked project",
 				EnvVars: []string{"NHOST_SUBDOMAIN"},
 			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:    flagYes,
+				Usage:   "Skip confirmation",
+				EnvVars: []string{"NHOST_YES"},
+			},
 		},
 	}
 }
@@ -41,13 +50,19 @@ func CommandPull() *cli.Command {
 func commandPull(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
-	if err := verifyFile(ce, ce.Path.NhostToml()); err != nil {
-		return err
+	skipConfirmation := cCtx.Bool(flagYes)
+
+	if !skipConfirmation {
+		if err := verifyFile(ce, ce.Path.NhostToml()); err != nil {
+			return err
+		}
 	}
 
 	writeSecrets := true
-	if err := verifyFile(ce, ce.Path.Secrets()); err != nil {
-		writeSecrets = false
+	if !skipConfirmation {
+		if err := verifyFile(ce, ce.Path.Secrets()); err != nil {
+			writeSecrets = false
+		}
 	}
 
 	proj, err := ce.GetAppInfo(cCtx.Context, cCtx.String(flagSubdomain))
