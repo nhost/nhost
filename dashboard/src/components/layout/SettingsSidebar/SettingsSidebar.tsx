@@ -200,6 +200,14 @@ export default function SettingsSidebar({
             >
               Secrets
             </SettingsNavLink>
+
+            <SettingsNavLink
+              href="/custom-domains"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Custom domains
+            </SettingsNavLink>
           </List>
         </nav>
       </Box>
