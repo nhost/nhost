@@ -11,7 +11,7 @@ import (
 )
 
 func sanitizeName(name string) string {
-	re := regexp.MustCompile(`[^a-z0-9_-]`)
+	re := regexp.MustCompile(`[^a-zA-Z0-9_-]`)
 	return strings.ToLower(re.ReplaceAllString(name, ""))
 }
 
