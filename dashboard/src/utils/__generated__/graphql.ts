@@ -1,5 +1,5 @@
-import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
+import { gql } from '@apollo/client';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -22213,7 +22213,7 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null } | null } | null };
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null } | null } | null };
 
 export type GetPostgresSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -22364,6 +22364,13 @@ export type PrefetchNewAppQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }> };
+
+export type DnsLookupCnameQueryVariables = Exact<{
+  hostname: Scalars['String'];
+}>;
+
+
+export type DnsLookupCnameQuery = { __typename?: 'query_root', dnsLookupCNAME: string };
 
 export type EnvironmentVariableFragment = { __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string };
 
@@ -23287,6 +23294,13 @@ export const GetAuthenticationSettingsDocument = gql`
           expiresIn
         }
       }
+      resources {
+        networking {
+          ingresses {
+            fqdn
+          }
+        }
+      }
       user {
         email {
           allowed
@@ -24160,6 +24174,42 @@ export type PrefetchNewAppLazyQueryHookResult = ReturnType<typeof usePrefetchNew
 export type PrefetchNewAppQueryResult = Apollo.QueryResult<PrefetchNewAppQuery, PrefetchNewAppQueryVariables>;
 export function refetchPrefetchNewAppQuery(variables?: PrefetchNewAppQueryVariables) {
       return { query: PrefetchNewAppDocument, variables: variables }
+    }
+export const DnsLookupCnameDocument = gql`
+    query dnsLookupCNAME($hostname: String!) {
+  dnsLookupCNAME(hostname: $hostname)
+}
+    `;
+
+/**
+ * __useDnsLookupCnameQuery__
+ *
+ * To run a query within a React component, call `useDnsLookupCnameQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDnsLookupCnameQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDnsLookupCnameQuery({
+ *   variables: {
+ *      hostname: // value for 'hostname'
+ *   },
+ * });
+ */
+export function useDnsLookupCnameQuery(baseOptions: Apollo.QueryHookOptions<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>(DnsLookupCnameDocument, options);
+      }
+export function useDnsLookupCnameLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>(DnsLookupCnameDocument, options);
+        }
+export type DnsLookupCnameQueryHookResult = ReturnType<typeof useDnsLookupCnameQuery>;
+export type DnsLookupCnameLazyQueryHookResult = ReturnType<typeof useDnsLookupCnameLazyQuery>;
+export type DnsLookupCnameQueryResult = Apollo.QueryResult<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>;
+export function refetchDnsLookupCnameQuery(variables: DnsLookupCnameQueryVariables) {
+      return { query: DnsLookupCnameDocument, variables: variables }
     }
 export const GetEnvironmentVariablesDocument = gql`
     query GetEnvironmentVariables($appId: uuid!) {
