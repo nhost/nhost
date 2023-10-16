@@ -18,6 +18,13 @@ query GetHasuraSettings($appId: uuid!) {
       events {
         httpPoolSize
       }
+      resources {
+        networking {
+          ingresses {
+            fqdn
+          }
+        }
+      }
     }
   }
 }
