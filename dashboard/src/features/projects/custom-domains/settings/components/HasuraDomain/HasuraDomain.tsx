@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { VerifyDomain } from '@/features/projects/custom-domains/settings/components/VerifyDomain';
 import {
-  useGetAuthenticationSettingsQuery,
+  useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -18,12 +18,12 @@ import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  auth_fqdn: Yup.string().required(),
+  hasura_fqdn: Yup.string().required(),
 });
 
-export type AuthDomainFormValues = Yup.InferType<typeof validationSchema>;
+export type HasuraDomainFormValues = Yup.InferType<typeof validationSchema>;
 
-export default function AuthDomain() {
+export default function HasuraDomain() {
   const { maintenanceActive } = useUI();
   const [isVerified, setIsVerified] = useState(false);
   const { currentProject, refetch: refetchWorkspaceAndProject } =
@@ -31,13 +31,13 @@ export default function AuthDomain() {
 
   const [updateConfig] = useUpdateConfigMutation();
 
-  const form = useForm<{ auth_fqdn: string }>({
+  const form = useForm<{ hasura_fqdn: string }>({
     reValidateMode: 'onSubmit',
-    defaultValues: { auth_fqdn: null },
+    defaultValues: { hasura_fqdn: null },
     resolver: yupResolver(validationSchema),
   });
 
-  const { data, loading, error } = useGetAuthenticationSettingsQuery({
+  const { data, loading, error } = useGetHasuraSettingsQuery({
     variables: {
       appId: currentProject.id,
     },
@@ -45,17 +45,17 @@ export default function AuthDomain() {
 
   useEffect(() => {
     if (!loading && data) {
-      const { networking } = data.config.auth.resources;
-      const fqdn = networking.ingresses?.[0].fqdn?.[0] || undefined;
-      form.reset({ auth_fqdn: fqdn });
+      const networking = data?.config?.hasura?.resources?.networking;
+      const fqdn = networking?.ingresses?.[0].fqdn?.[0] || undefined;
+      form.reset({ hasura_fqdn: fqdn });
     }
   }, [data, loading, form]);
 
   if (loading) {
     return (
       <ActivityIndicator
-        delay={1000}
-        label="Loading Auth Domain Settings..."
+        delay={0}
+        label="Loading Hasura Domain..."
         className="justify-center"
       />
     );
@@ -68,9 +68,9 @@ export default function AuthDomain() {
   const { formState, register, watch } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
-  const auth_fqdn = watch('auth_fqdn');
+  const hasura_fqdn = watch('hasura_fqdn');
 
-  async function handleSubmit(formValues: AuthDomainFormValues) {
+  async function handleSubmit(formValues: HasuraDomainFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -80,7 +80,7 @@ export default function AuthDomain() {
               networking: {
                 ingresses: [
                   {
-                    fqdn: [formValues.auth_fqdn],
+                    fqdn: [formValues.hasura_fqdn],
                   },
                 ],
               },
@@ -94,10 +94,10 @@ export default function AuthDomain() {
       await toast.promise(
         updateConfigPromise,
         {
-          loading: `Auth domain is being updated...`,
-          success: `Auth domain has been updated successfully.`,
+          loading: `Hasura domain is being updated...`,
+          success: `Hasura domain has been updated successfully.`,
           error: getServerError(
-            `An error occurred while trying to update the auth domain.`,
+            `An error occurred while trying to update the Hasura domain.`,
           ),
         },
         getToastStyleProps(),
@@ -114,7 +114,7 @@ export default function AuthDomain() {
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
-          title="Auth Domain"
+          title="Hasura Domain"
           description="It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
           docsLink="https://docs.nhost.io/"
           slotProps={{
@@ -126,23 +126,23 @@ export default function AuthDomain() {
           className="grid grid-flow-row gap-y-4 gap-x-4 px-4 lg:grid-cols-5"
         >
           <Input
-            {...register('auth_fqdn')}
-            id="auth_fqdn"
-            name="auth_fqdn"
+            {...register('hasura_fqdn')}
+            id="hasura_fqdn"
+            name="hasura_fqdn"
             type="string"
             fullWidth
             className="lg:col-span-2"
             placeholder="auth.mydomain.dev"
-            error={Boolean(formState.errors.auth_fqdn?.message)}
-            helperText={formState.errors.auth_fqdn?.message}
+            error={Boolean(formState.errors.hasura_fqdn?.message)}
+            helperText={formState.errors.hasura_fqdn?.message}
             slotProps={{ inputRoot: { min: 1, max: 100 } }}
           />
           {/* TODO we need to check if the FQDN is valid or not */}
-          {isDirty && !isVerified && auth_fqdn.length > 0 && (
+          {isDirty && !isVerified && hasura_fqdn.length > 0 && (
             <div className="col-span-5 row-start-2">
               <VerifyDomain
                 recordType="CNAME"
-                hostname={auth_fqdn}
+                hostname={hasura_fqdn}
                 value={`${currentProject.subdomain}.auth.${currentProject.region.domain}.nhost.run.`}
                 onHostNameVerified={() => setIsVerified(true)}
               />
