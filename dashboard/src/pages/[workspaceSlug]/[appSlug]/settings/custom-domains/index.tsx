@@ -66,10 +66,6 @@ export default function CustomDomains() {
   );
 }
 
-// This hould a project exporeted from the main settings page
-// And for now this is really important
-// CustomDomains
-
 CustomDomains.getLayout = function getLayout(page: ReactElement) {
   return <SettingsLayout>{page}</SettingsLayout>;
 };
