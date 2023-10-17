@@ -23,9 +23,10 @@ export default function VerifyDomain({
   value,
   onHostNameVerified,
 }: VerifyDomainProps) {
-  const [isVerified, setIsVerified] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [verificationFailed, setVerificationFailed] = useState(false);
+  const [verificationSucceeded, setVerificationSucceeded] = useState(false);
 
+  const [loading, setLoading] = useState(false);
   const [fireLookupCNAME] = useDnsLookupCnameLazyQuery();
 
   const handleVerifyDomain = async () => {
@@ -45,13 +46,15 @@ export default function VerifyDomain({
         {
           loading: `Verifying ${hostname} ...`,
           success: () => {
-            setIsVerified(true);
+            setVerificationFailed(false);
+            setVerificationSucceeded(true);
             setLoading(false);
             onHostNameVerified?.();
             return `${hostname} has been verified.`;
           },
           error: (arg: Error | ApolloError) => {
-            setIsVerified(false);
+            setVerificationFailed(true);
+            setVerificationSucceeded(false);
             setLoading(false);
 
             if (arg instanceof ApolloError) {
@@ -81,17 +84,44 @@ export default function VerifyDomain({
 
   return (
     <Box
-      sx={{ backgroundColor: 'primary.light' }}
+      sx={[
+        { backgroundColor: 'primary.light' },
+        verificationFailed && {
+          backgroundColor: 'error.light',
+          color: 'error.main',
+        },
+        verificationSucceeded && {
+          backgroundColor: 'success.light',
+          color: 'success.dark',
+        },
+      ]}
       className="flex flex-col space-y-4 rounded-md p-4"
     >
       <div className="flex flex-row items-center justify-between">
-        <p>Add the record below in your DNS provider to verify {hostname}</p>
-        <Button disabled={isVerified || loading} onClick={handleVerifyDomain}>
-          Verify
-        </Button>
+        {!verificationFailed && !verificationSucceeded && (
+          <Text>
+            Add the record below in your DNS provider to verify {hostname}
+          </Text>
+        )}
+
+        {verificationSucceeded && (
+          <Text>
+            <span className="font-semibold">{hostname}</span> was verified
+            successfully. Hit save to apply.
+          </Text>
+        )}
+
+        {verificationFailed && (
+          <Text>
+            An error occurred while trying to verify{' '}
+            <span className="font-semibold">{hostname}</span>. Make sure you
+            correctly added the <span className="font-semibold">CNAME</span> and
+            try again.
+          </Text>
+        )}
       </div>
 
-      <div className="flex flex-col text-slate-500">
+      <div className="relative flex flex-col text-slate-500">
         <div className="flex space-x-2">
           <Text>Record type: </Text>
           <Text className="font-bold">{recordType}</Text>
@@ -112,6 +142,13 @@ export default function VerifyDomain({
             <CopyIcon className="h-4 w-4" />
           </IconButton>
         </div>
+        <Button
+          disabled={loading || !hostname}
+          onClick={handleVerifyDomain}
+          className="absolute bottom-0 right-0"
+        >
+          Verify
+        </Button>
       </div>
     </Box>
   );

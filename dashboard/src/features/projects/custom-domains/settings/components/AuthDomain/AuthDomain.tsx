@@ -115,15 +115,11 @@ export default function AuthDomain() {
       <Form onSubmit={handleSubmit}>
         <SettingsContainer
           title="Auth Domain"
-          description="It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
-          docsLink="https://docs.nhost.io/"
+          description="Enter below your custom domain for the authentication service."
           slotProps={{
             submitButton: {
               disabled: !isDirty || maintenanceActive || !isVerified,
               loading: formState.isSubmitting,
-            },
-            footer: {
-              className: 'hidden',
             },
           }}
           className="grid grid-flow-row gap-y-4 gap-x-4 px-4 lg:grid-cols-5"

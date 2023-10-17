@@ -62,9 +62,8 @@ export default function RunServiceDomains() {
                 </Link>
               </div>
             }
-            description="It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
+            description="Enter below your custom domain for the published ports."
             docsTitle={service.config?.name ?? 'unset'}
-            docsLink="https://docs.nhost.io/"
             slotProps={{
               submitButton: {
                 hidden: true,

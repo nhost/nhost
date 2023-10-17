@@ -19,8 +19,7 @@ export default function DatabaseDomain() {
   return (
     <SettingsContainer
       title="Database Domain"
-      description="It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
-      docsLink="https://docs.nhost.io/"
+      description="Enter below your custom domain for the PostgreSQL database."
       slotProps={{
         submitButton: {
           hidden: true,
