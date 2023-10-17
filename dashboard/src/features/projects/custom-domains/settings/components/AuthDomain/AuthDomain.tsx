@@ -137,16 +137,14 @@ export default function AuthDomain() {
             helperText={formState.errors.auth_fqdn?.message}
             slotProps={{ inputRoot: { min: 1, max: 100 } }}
           />
-          {isDirty && !isVerified && auth_fqdn.length > 0 && (
-            <div className="col-span-5 row-start-2">
-              <VerifyDomain
-                recordType="CNAME"
-                hostname={auth_fqdn}
-                value={`lb.${currentProject.region.domain}.nhost.run.`}
-                onHostNameVerified={() => setIsVerified(true)}
-              />
-            </div>
-          )}
+          <div className="col-span-5 row-start-2">
+            <VerifyDomain
+              recordType="CNAME"
+              hostname={auth_fqdn}
+              value={`lb.${currentProject.region.domain}.nhost.run.`}
+              onHostNameVerified={() => setIsVerified(true)}
+            />
+          </div>
         </SettingsContainer>
       </Form>
     </FormProvider>

@@ -12,7 +12,6 @@ const validationSchema = Yup.object({
 export type DatabaseDomainFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function DatabaseDomain() {
-  const [isVerified, setIsVerified] = useState(false);
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const [dbFQDN, setDbFQDN] = useState('');
@@ -38,20 +37,17 @@ export default function DatabaseDomain() {
         placeholder="db.mydomain.dev"
         onChange={(e) => {
           setDbFQDN(e.target.value);
-          setIsVerified(false);
         }}
         slotProps={{ inputRoot: { min: 1, max: 100 } }}
       />
-      {!isVerified && dbFQDN.length > 0 && (
-        <div className="col-span-5 row-start-2">
-          <VerifyDomain
-            recordType="CNAME"
-            hostname={dbFQDN}
-            value={`${currentProject.subdomain}.db.${currentProject.region.domain}.`}
-            onHostNameVerified={() => setIsVerified(true)}
-          />
-        </div>
-      )}
+      <div className="col-span-5 row-start-2">
+        <VerifyDomain
+          recordType="CNAME"
+          hostname={dbFQDN}
+          value={`${currentProject.subdomain}.db.${currentProject.region.domain}.`}
+          // onHostNameVerified={() => setIsVerified(true)}
+        />
+      </div>
     </SettingsContainer>
   );
 }

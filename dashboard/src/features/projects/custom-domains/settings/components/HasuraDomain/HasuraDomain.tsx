@@ -119,7 +119,7 @@ export default function HasuraDomain() {
           docsLink="https://docs.nhost.io/"
           slotProps={{
             submitButton: {
-              disabled: !isDirty || maintenanceActive, // || !isVerified,
+              disabled: !isDirty || maintenanceActive || !isVerified,
               loading: formState.isSubmitting,
             },
           }}
@@ -137,17 +137,14 @@ export default function HasuraDomain() {
             helperText={formState.errors.hasura_fqdn?.message}
             slotProps={{ inputRoot: { min: 1, max: 100 } }}
           />
-          {/* TODO we need to check if the FQDN is valid or not */}
-          {isDirty && !isVerified && hasura_fqdn.length > 0 && (
-            <div className="col-span-5 row-start-2">
-              <VerifyDomain
-                recordType="CNAME"
-                hostname={hasura_fqdn}
-                value={`lb.${currentProject.region.domain}.nhost.run.`}
-                onHostNameVerified={() => setIsVerified(true)}
-              />
-            </div>
-          )}
+          <div className="col-span-5 row-start-2">
+            <VerifyDomain
+              recordType="CNAME"
+              hostname={hasura_fqdn}
+              value={`lb.${currentProject.region.domain}.nhost.run.`}
+              onHostNameVerified={() => setIsVerified(true)}
+            />
+          </div>
         </SettingsContainer>
       </Form>
     </FormProvider>

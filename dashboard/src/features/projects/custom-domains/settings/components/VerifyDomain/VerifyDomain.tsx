@@ -14,7 +14,7 @@ interface VerifyDomainProps {
   recordType: string;
   hostname: string;
   value: string;
-  onHostNameVerified: () => void;
+  onHostNameVerified?: () => void;
 }
 
 export default function VerifyDomain({
@@ -47,7 +47,7 @@ export default function VerifyDomain({
           success: () => {
             setIsVerified(true);
             setLoading(false);
-            onHostNameVerified();
+            onHostNameVerified?.();
             return `${hostname} has been verified.`;
           },
           error: (arg: Error | ApolloError) => {

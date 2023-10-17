@@ -48,7 +48,6 @@ export default function RunServicePortDomain({
   });
 
   const { formState, register, watch } = form;
-  const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const runServicePortFQDN = watch('runServicePortFQDN');
 
@@ -135,16 +134,15 @@ export default function RunServicePortDomain({
             </Button>
           </div>
         </div>
-        {isDirty && !isVerified && runServicePortFQDN.length > 0 && (
-          <div className="col-span-5 row-start-2 mt-4">
-            <VerifyDomain
-              recordType="CNAME"
-              hostname={runServicePortFQDN}
-              value={`lb.${currentProject.region.domain}.`}
-              onHostNameVerified={() => setIsVerified(true)}
-            />
-          </div>
-        )}
+
+        <div className="col-span-5 row-start-2 mt-4">
+          <VerifyDomain
+            recordType="CNAME"
+            hostname={runServicePortFQDN}
+            value={`lb.${currentProject.region.domain}.`}
+            onHostNameVerified={() => setIsVerified(true)}
+          />
+        </div>
       </Form>
     </FormProvider>
   );
