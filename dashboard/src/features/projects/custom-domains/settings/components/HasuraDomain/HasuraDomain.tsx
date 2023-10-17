@@ -122,6 +122,9 @@ export default function HasuraDomain() {
               disabled: !isDirty || maintenanceActive || !isVerified,
               loading: formState.isSubmitting,
             },
+            footer: {
+              className: 'hidden',
+            },
           }}
           className="grid grid-flow-row gap-y-4 gap-x-4 px-4 lg:grid-cols-5"
         >

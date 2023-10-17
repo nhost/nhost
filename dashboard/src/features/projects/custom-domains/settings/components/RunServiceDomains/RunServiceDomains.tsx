@@ -69,6 +69,9 @@ export default function RunServiceDomains() {
               submitButton: {
                 hidden: true,
               },
+              footer: {
+                className: 'hidden',
+              },
             }}
             className="grid gap-y-4 gap-x-4 px-4"
           >

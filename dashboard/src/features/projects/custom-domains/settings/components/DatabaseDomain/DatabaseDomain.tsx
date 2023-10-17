@@ -25,6 +25,9 @@ export default function DatabaseDomain() {
         submitButton: {
           hidden: true,
         },
+        footer: {
+          className: 'hidden',
+        },
       }}
       className="grid grid-flow-row gap-y-4 gap-x-4 px-4 lg:grid-cols-5"
     >
@@ -45,7 +48,6 @@ export default function DatabaseDomain() {
           recordType="CNAME"
           hostname={dbFQDN}
           value={`${currentProject.subdomain}.db.${currentProject.region.domain}.`}
-          // onHostNameVerified={() => setIsVerified(true)}
         />
       </div>
     </SettingsContainer>
