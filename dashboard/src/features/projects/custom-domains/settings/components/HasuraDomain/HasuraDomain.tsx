@@ -143,7 +143,7 @@ export default function HasuraDomain() {
               <VerifyDomain
                 recordType="CNAME"
                 hostname={hasura_fqdn}
-                value={`${currentProject.subdomain}.hasura.${currentProject.region.domain}.`}
+                value={`lb.${currentProject.region.domain}.nhost.run.`}
                 onHostNameVerified={() => setIsVerified(true)}
               />
             </div>

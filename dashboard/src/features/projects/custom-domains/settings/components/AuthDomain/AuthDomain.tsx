@@ -119,7 +119,7 @@ export default function AuthDomain() {
           docsLink="https://docs.nhost.io/"
           slotProps={{
             submitButton: {
-              disabled: !isDirty || maintenanceActive, // || !isVerified,
+              disabled: !isDirty || maintenanceActive || !isVerified,
               loading: formState.isSubmitting,
             },
           }}
@@ -137,13 +137,12 @@ export default function AuthDomain() {
             helperText={formState.errors.auth_fqdn?.message}
             slotProps={{ inputRoot: { min: 1, max: 100 } }}
           />
-          {/* TODO we need to check if the FQDN is valid or not */}
           {isDirty && !isVerified && auth_fqdn.length > 0 && (
             <div className="col-span-5 row-start-2">
               <VerifyDomain
                 recordType="CNAME"
                 hostname={auth_fqdn}
-                value={`${currentProject.subdomain}.auth.${currentProject.region.domain}.nhost.run.`}
+                value={`lb.${currentProject.region.domain}.nhost.run.`}
                 onHostNameVerified={() => setIsVerified(true)}
               />
             </div>

@@ -1,25 +1,17 @@
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { AuthDomain } from '@/features/projects/custom-domains/settings/components/AuthDomain';
 import { DatabaseDomain } from '@/features/projects/custom-domains/settings/components/DatabaseDomain';
 import { HasuraDomain } from '@/features/projects/custom-domains/settings/components/HasuraDomain';
-import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
+import { RunServiceDomains } from '@/features/projects/custom-domains/settings/components/RunServiceDomains';
 import { type ReactElement } from 'react';
 
 export default function CustomDomains() {
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const { loading, error } = useGetEnvironmentVariablesQuery({
-    variables: { appId: currentProject?.id },
-  });
-
-  if (loading) {
-    return <ActivityIndicator delay={1000} label="Loading custom domains..." />;
-  }
 
   if (currentProject.plan.isFree) {
     return (
@@ -35,10 +27,6 @@ export default function CustomDomains() {
         />
       </Container>
     );
-  }
-
-  if (error) {
-    throw error;
   }
 
   return (
@@ -59,6 +47,8 @@ export default function CustomDomains() {
       <AuthDomain />
       <HasuraDomain />
       <DatabaseDomain />
+
+      <RunServiceDomains />
     </Container>
   );
 }

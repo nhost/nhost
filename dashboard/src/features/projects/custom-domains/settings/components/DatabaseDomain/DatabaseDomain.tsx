@@ -42,7 +42,6 @@ export default function DatabaseDomain() {
         }}
         slotProps={{ inputRoot: { min: 1, max: 100 } }}
       />
-      {/* TODO we need to check if the FQDN is valid or not */}
       {!isVerified && dbFQDN.length > 0 && (
         <div className="col-span-5 row-start-2">
           <VerifyDomain
