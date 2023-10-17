@@ -45,8 +45,8 @@ export default function HasuraDomain() {
 
   useEffect(() => {
     if (!loading && data) {
-      const networking = data?.config?.hasura?.resources?.networking;
-      const fqdn = networking?.ingresses?.[0].fqdn?.[0] || undefined;
+      const { networking } = data?.config?.hasura?.resources || {};
+      const fqdn = networking?.ingresses?.[0]?.fqdn?.[0];
       form.reset({ hasura_fqdn: fqdn });
     }
   }, [data, loading, form]);
@@ -75,7 +75,7 @@ export default function HasuraDomain() {
       variables: {
         appId: currentProject.id,
         config: {
-          auth: {
+          hasura: {
             resources: {
               networking: {
                 ingresses: [
@@ -143,7 +143,7 @@ export default function HasuraDomain() {
               <VerifyDomain
                 recordType="CNAME"
                 hostname={hasura_fqdn}
-                value={`${currentProject.subdomain}.auth.${currentProject.region.domain}.nhost.run.`}
+                value={`${currentProject.subdomain}.hasura.${currentProject.region.domain}.`}
                 onHostNameVerified={() => setIsVerified(true)}
               />
             </div>

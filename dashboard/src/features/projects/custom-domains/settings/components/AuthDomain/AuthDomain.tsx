@@ -45,8 +45,8 @@ export default function AuthDomain() {
 
   useEffect(() => {
     if (!loading && data) {
-      const { networking } = data.config.auth.resources;
-      const fqdn = networking.ingresses?.[0].fqdn?.[0] || undefined;
+      const { networking } = data?.config?.auth?.resources || {};
+      const fqdn = networking?.ingresses?.[0]?.fqdn?.[0];
       form.reset({ auth_fqdn: fqdn });
     }
   }, [data, loading, form]);
