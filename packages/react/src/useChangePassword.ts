@@ -1,5 +1,6 @@
 import {
   ActionErrorState,
+  ActionLoadingState,
   ActionSuccessState,
   ChangePasswordHandlerResult,
   changePasswordPromise,
@@ -13,7 +14,7 @@ interface ChangePasswordHandler {
   (password: string): Promise<ChangePasswordHandlerResult>
 }
 
-export interface ChangePasswordHookResult extends ActionErrorState, ActionSuccessState {
+export interface ChangePasswordHookResult extends ActionErrorState, ActionLoadingState, ActionSuccessState {
   /** Requests the password change. Returns a promise with the current context */
   changePassword: ChangePasswordHandler
 }
