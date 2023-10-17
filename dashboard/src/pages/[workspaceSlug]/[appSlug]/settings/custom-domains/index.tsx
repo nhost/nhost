@@ -6,6 +6,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { AuthDomain } from '@/features/projects/custom-domains/settings/components/AuthDomain';
+import { DatabaseDomain } from '@/features/projects/custom-domains/settings/components/DatabaseDomain';
 import { HasuraDomain } from '@/features/projects/custom-domains/settings/components/HasuraDomain';
 import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { type ReactElement } from 'react';
@@ -57,6 +58,7 @@ export default function CustomDomains() {
 
       <AuthDomain />
       <HasuraDomain />
+      <DatabaseDomain />
     </Container>
   );
 }

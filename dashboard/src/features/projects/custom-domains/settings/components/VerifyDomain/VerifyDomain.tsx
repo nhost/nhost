@@ -48,7 +48,7 @@ export default function VerifyDomain({
             setIsVerified(true);
             setLoading(false);
             onHostNameVerified();
-            return `${hostname} has been verified. Now click on save to apply.`;
+            return `${hostname} has been verified.`;
           },
           error: (arg: Error | ApolloError) => {
             setIsVerified(false);
