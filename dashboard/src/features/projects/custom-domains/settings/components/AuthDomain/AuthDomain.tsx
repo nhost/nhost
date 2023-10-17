@@ -144,7 +144,7 @@ export default function AuthDomain() {
             <VerifyDomain
               recordType="CNAME"
               hostname={auth_fqdn}
-              value={`lb.${currentProject.region.domain}.nhost.run.`}
+              value={`lb.${currentProject.region.domain}.`}
               onHostNameVerified={() => setIsVerified(true)}
             />
           </div>
