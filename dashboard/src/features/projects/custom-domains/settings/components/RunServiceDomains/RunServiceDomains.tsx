@@ -41,44 +41,46 @@ export default function RunServiceDomains() {
 
   return (
     <div className="flex flex-col gap-6">
-      {services.map((service) => (
-        <SettingsContainer
-          key={service.id}
-          title={
-            <div className="flex flex-row">
-              <Text className="text-lg font-semibold">
-                {service.config?.name ?? 'unset'}
-              </Text>
-              <Link
-                href={`/${currentWorkspace.slug}/${currentProject.slug}/services`}
-                target="_blank"
-                rel="noopener noreferrer"
-                underline="hover"
-                className="font-medium"
-              >
-                <ArrowSquareOutIcon className="m-1 mt-0 h-4 w-4" />
-              </Link>
-            </div>
-          }
-          description="It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
-          docsTitle={service.config?.name ?? 'unset'}
-          docsLink="https://docs.nhost.io/"
-          slotProps={{
-            submitButton: {
-              hidden: true,
-            },
-          }}
-          className="grid gap-y-4 gap-x-4 px-4"
-        >
-          {service.config?.ports?.map((port) => (
-            <RunServicePortDomain
-              key={String(port.port)}
-              service={service}
-              port={port.port}
-            />
-          ))}
-        </SettingsContainer>
-      ))}
+      {services
+        .filter((service) => service.config?.ports?.length > 0)
+        .map((service) => (
+          <SettingsContainer
+            key={service.id}
+            title={
+              <div className="flex flex-row">
+                <Text className="text-lg font-semibold">
+                  {service.config?.name ?? 'unset'}
+                </Text>
+                <Link
+                  href={`/${currentWorkspace.slug}/${currentProject.slug}/services`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  underline="hover"
+                  className="font-medium"
+                >
+                  <ArrowSquareOutIcon className="m-1 mt-0 h-4 w-4" />
+                </Link>
+              </div>
+            }
+            description="It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
+            docsTitle={service.config?.name ?? 'unset'}
+            docsLink="https://docs.nhost.io/"
+            slotProps={{
+              submitButton: {
+                hidden: true,
+              },
+            }}
+            className="grid gap-y-4 gap-x-4 px-4"
+          >
+            {service.config?.ports?.map((port) => (
+              <RunServicePortDomain
+                key={String(port.port)}
+                service={service}
+                port={port.port}
+              />
+            ))}
+          </SettingsContainer>
+        ))}
     </div>
   );
 }
