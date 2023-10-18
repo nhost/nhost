@@ -41,10 +41,10 @@ export default function CustomDomains() {
           <Text className="text-lg font-semibold">Custom domains</Text>
 
           <Text color="secondary">
-            Add a custom domain to to Auth, Hasura, Run and even the database
+            Add a custom domain to Auth, Hasura, Run and even the database
             service for only a $10 flat fee 🚀 <br /> Learn more about
             <Link
-              href="https://docs.nhost.io/"
+              href="https://docs.nhost.io/custom-services"
               target="_blank"
               rel="noopener noreferrer"
               underline="hover"

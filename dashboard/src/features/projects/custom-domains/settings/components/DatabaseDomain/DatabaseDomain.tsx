@@ -19,7 +19,7 @@ export default function DatabaseDomain() {
   return (
     <SettingsContainer
       title="Database Domain"
-      description="Enter below your custom domain for the PostgreSQL database."
+      description="Enter below your custom domain for the PostgreSQL database to verify. Once verified there is no need to save this value as no configuration on our end is required."
       slotProps={{
         submitButton: {
           hidden: true,
