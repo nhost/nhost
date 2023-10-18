@@ -26,8 +26,7 @@ export type AuthDomainFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AuthDomain() {
   const { maintenanceActive } = useUI();
-  const { currentProject, refetch: refetchWorkspaceAndProject } =
-    useCurrentWorkspaceAndProject();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const {
     data,
@@ -123,7 +122,7 @@ export default function AuthDomain() {
           className="flex flex-col"
         >
           {currentProject.plan.isFree && (
-            <UpgradeNotification message="Unlock Compute settings by upgrading your project to the Pro plan." />
+            <UpgradeNotification message="Unlock by upgrading your project to the Pro plan." />
           )}
           <Box className="grid grid-flow-row lg:grid-cols-5">
             <Input
