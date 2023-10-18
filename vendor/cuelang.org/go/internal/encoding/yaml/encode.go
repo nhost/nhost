@@ -28,7 +28,6 @@ import (
 	"cuelang.org/go/cue/errors"
 	"cuelang.org/go/cue/literal"
 	"cuelang.org/go/cue/token"
-	"cuelang.org/go/internal"
 	"cuelang.org/go/internal/astinternal"
 )
 
@@ -36,16 +35,15 @@ import (
 //
 // The given file must only contain values that can be directly supported by
 // YAML:
+//    Type          Restrictions
+//    BasicLit
+//    File          no imports, aliases, or definitions
+//    StructLit     no embeddings, aliases, or definitions
+//    List
+//    Field         must be regular; label must be a BasicLit or Ident
+//    CommentGroup
 //
-//	Type          Restrictions
-//	BasicLit
-//	File          no imports, aliases, or definitions
-//	StructLit     no embeddings, aliases, or definitions
-//	List
-//	Field         must be regular; label must be a BasicLit or Ident
-//	CommentGroup
-//
-// TODO: support anchors through Ident.
+//    TODO: support anchors through Ident.
 func Encode(n ast.Node) (b []byte, err error) {
 	y, err := encode(n)
 	if err != nil {
@@ -261,7 +259,7 @@ func encodeDecls(decls []ast.Decl) (n *yaml.Node, err error) {
 			continue
 
 		case *ast.Field:
-			if internal.IsDefinition(x.Label) {
+			if x.Token == token.ISA {
 				return nil, errors.Newf(x.TokenPos, "yaml: definition not allowed")
 			}
 			if x.Optional != token.NoPos {
@@ -366,7 +364,9 @@ func addDocs(n ast.Node, h, f *yaml.Node) {
 // that comments with empty lines get properly converted.
 func docToYAML(c *ast.CommentGroup) string {
 	s := c.Text()
-	s = strings.TrimSuffix(s, "\n") // always trims
+	if strings.HasSuffix(s, "\n") { // always true
+		s = s[:len(s)-1]
+	}
 	lines := strings.Split(s, "\n")
 	for i, l := range lines {
 		if l == "" {

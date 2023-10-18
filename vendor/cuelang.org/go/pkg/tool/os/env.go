@@ -14,6 +14,9 @@
 
 package os
 
+//go:generate go run gen.go
+//go:generate gofmt -s -w .
+
 import (
 	"os"
 	"strings"

@@ -98,9 +98,6 @@ func (v *validator) validate(x *adt.Vertex) {
 	}
 
 	for _, a := range x.Arcs {
-		if a.Label.IsLet() {
-			continue
-		}
 		if !v.AllErrors && v.err != nil {
 			break
 		}

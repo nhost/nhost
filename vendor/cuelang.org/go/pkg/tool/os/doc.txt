@@ -1,3 +1,0 @@
-// Package os defines tasks for retrieving os-related information.
-//
-// CUE definitions:

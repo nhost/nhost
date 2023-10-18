@@ -29,10 +29,6 @@ func (r *Runtime) StringToIndex(s string) int64 {
 	return getKey(s)
 }
 
-func (r *Runtime) NextUniqueID() uint64 {
-	return r.index.getNextUniqueID()
-}
-
 func (r *Runtime) LabelStr(l adt.Feature) string {
 	return l.IdentString(r)
 }

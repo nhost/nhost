@@ -33,13 +33,13 @@ func Resolve(ctx *OpContext, c Conjunct) *Vertex {
 
 	var v Value
 
-	expr := c.Elem() // TODO: why is this not Expr?
+	expr := c.Elem()
 	switch x := expr.(type) {
 	case Value:
 		v = x
 
 	case Resolver:
-		r, err := ctx.resolveState(c, x, Finalized)
+		r, err := ctx.Resolve(env, x)
 		if err != nil {
 			v = err
 			break
@@ -108,7 +108,7 @@ type Evaluator interface {
 
 	// evaluate evaluates the underlying expression. If the expression
 	// is incomplete, it may record the error in ctx and return nil.
-	evaluate(ctx *OpContext, state VertexStatus) Value
+	evaluate(ctx *OpContext) Value
 }
 
 // A Resolver represents a reference somewhere else within a tree that resolves
@@ -123,7 +123,7 @@ type YieldFunc func(env *Environment)
 // A Yielder represents 0 or more labeled values of structs or lists.
 type Yielder interface {
 	Node
-	yield(s *compState)
+	yield(ctx *OpContext, fn YieldFunc)
 }
 
 // A Validator validates a Value. All Validators are Values.
@@ -236,8 +236,6 @@ func (*Field) declNode()                {}
 func (x *Field) expr() Expr             { return x.Value }
 func (*OptionalField) declNode()        {}
 func (x *OptionalField) expr() Expr     { return x.Value }
-func (*LetField) declNode()             {}
-func (x *LetField) expr() Expr          { return x.Value }
 func (*BulkOptionalField) declNode()    {}
 func (x *BulkOptionalField) expr() Expr { return x.Value }
 func (*DynamicField) declNode()         {}
@@ -372,7 +370,6 @@ func (*CallExpr) node()          {}
 func (*DisjunctionExpr) node()   {}
 func (*Field) node()             {}
 func (*OptionalField) node()     {}
-func (*LetField) node()          {}
 func (*BulkOptionalField) node() {}
 func (*DynamicField) node()      {}
 func (*Ellipsis) node()          {}
@@ -380,3 +377,4 @@ func (*Comprehension) node()     {}
 func (*ForClause) node()         {}
 func (*IfClause) node()          {}
 func (*LetClause) node()         {}
+func (*ValueClause) node()       {}

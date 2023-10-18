@@ -212,6 +212,7 @@ const (
 // Precedence returns the operator precedence of the binary
 // operator op. If op is not a binary operator, the result
 // is LowestPrecedence.
+//
 func (tok Token) Precedence() int {
 	switch tok {
 	case OR:
@@ -242,6 +243,7 @@ func init() {
 }
 
 // Lookup maps an identifier to its keyword token or IDENT (if not a keyword).
+//
 func Lookup(ident string) Token {
 	if tok, isKeyword := keywords[ident]; isKeyword {
 		return tok

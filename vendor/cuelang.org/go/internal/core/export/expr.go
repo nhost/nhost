@@ -47,26 +47,7 @@ import (
 // a common root and prefixing that to the reference. This is now possible
 // with the Environment construct and could be done later.
 
-var empty *adt.Vertex
-
-func init() {
-	// TODO: Consider setting a non-nil BaseValue.
-	empty = &adt.Vertex{}
-	empty.UpdateStatus(adt.Finalized)
-}
-
-// innerExpr is like expr, but prohibits inlining in certain cases.
-func (e *exporter) innerExpr(env *adt.Environment, v adt.Elem) (result ast.Expr) {
-	e.inExpression++
-	r := e.expr(env, v)
-	e.inExpression--
-	return r
-}
-
-// expr converts an ADT expression to an AST expression.
-// The env is used for resolution and does not need to be given if v is known
-// to not contain any references.
-func (e *exporter) expr(env *adt.Environment, v adt.Elem) (result ast.Expr) {
+func (e *exporter) expr(v adt.Elem) (result ast.Expr) {
 	switch x := v.(type) {
 	case nil:
 		return nil
@@ -79,23 +60,20 @@ func (e *exporter) expr(env *adt.Environment, v adt.Elem) (result ast.Expr) {
 
 		a := []conjunct{}
 		for _, c := range x.Conjuncts {
-			if c, ok := c.Elem().(*adt.Comprehension); ok && !c.DidResolve() {
-				continue
-			}
 			a = append(a, conjunct{c, 0})
 		}
 
 		return e.mergeValues(adt.InvalidLabel, x, a, x.Conjuncts...)
 
 	case *adt.StructLit:
-		c := adt.MakeRootConjunct(env, x)
+		c := adt.MakeRootConjunct(nil, x)
 		return e.mergeValues(adt.InvalidLabel, nil, []conjunct{{c: c, up: 0}}, c)
 
 	case adt.Value:
 		return e.value(x) // Use conjuncts.
 
 	default:
-		return e.adt(env, v)
+		return e.adt(v, nil)
 	}
 }
 
@@ -113,7 +91,7 @@ func (x *exporter) mergeValues(label adt.Feature, src *adt.Vertex, a []conjunct,
 		attrs:    []*ast.Attribute{},
 	}
 
-	s, saved := e.pushFrame(src, orig)
+	s, saved := e.pushFrame(orig)
 	defer e.popFrame(saved)
 
 	// Handle value aliases and lets
@@ -229,9 +207,6 @@ func (x *exporter) mergeValues(label adt.Feature, src *adt.Vertex, a []conjunct,
 	}
 
 	for _, f := range fields {
-		if f.IsLet() {
-			continue
-		}
 		field := e.fields[f]
 		c := field.conjuncts
 
@@ -270,7 +245,7 @@ func (x *exporter) mergeValues(label adt.Feature, src *adt.Vertex, a []conjunct,
 		}
 		if x.cfg.ShowAttributes {
 			for _, c := range a {
-				d.Attrs = extractFieldAttrs(d.Attrs, c.Field())
+				d.Attrs = extractFieldAttrs(d.Attrs, c)
 			}
 		}
 		s.Elts = append(s.Elts, d)
@@ -359,16 +334,14 @@ func (e *conjuncts) addExpr(env *adt.Environment, src *adt.Vertex, x adt.Elem, i
 
 		// Only add if it only has no bulk fields or elipsis.
 		if isComplexStruct(x) {
-			_, saved := e.pushFrame(src, nil)
-			e.embed = append(e.embed, e.adt(env, x))
+			_, saved := e.pushFrame(nil)
+			e.embed = append(e.embed, e.adt(x, nil))
 			e.top().upCount-- // not necessary, but for proper form
 			e.popFrame(saved)
 			return
 		}
 		// Used for sorting.
 		e.structs = append(e.structs, &adt.StructInfo{StructLit: x, Env: env})
-
-		env = &adt.Environment{Up: env, Vertex: e.node()}
 
 		for _, d := range x.Decls {
 			var label adt.Feature
@@ -378,8 +351,6 @@ func (e *conjuncts) addExpr(env *adt.Environment, src *adt.Vertex, x adt.Elem, i
 			case *adt.OptionalField:
 				// TODO: mark optional here.
 				label = f.Label
-			case *adt.LetField:
-				continue
 			case *adt.Ellipsis:
 				e.hasEllipsis = true
 				continue
@@ -426,10 +397,6 @@ func (e *conjuncts) addExpr(env *adt.Environment, src *adt.Vertex, x adt.Elem, i
 				for _, a := range v.Arcs {
 					a.Finalize(e.ctx) // TODO: should we do this?
 
-					if !a.IsDefined(e.ctx) {
-						continue
-					}
-
 					e.addConjunct(a.Label, env, a)
 				}
 			}
@@ -444,9 +411,9 @@ func (e *conjuncts) addExpr(env *adt.Environment, src *adt.Vertex, x adt.Elem, i
 			e.addValueConjunct(src, env, x)
 		default:
 			if isEmbed {
-				e.embed = append(e.embed, e.expr(env, x))
+				e.embed = append(e.embed, e.expr(x))
 			} else {
-				e.conjuncts = append(e.conjuncts, e.expr(env, x))
+				e.conjuncts = append(e.conjuncts, e.expr(x))
 			}
 		}
 
@@ -455,11 +422,9 @@ func (e *conjuncts) addExpr(env *adt.Environment, src *adt.Vertex, x adt.Elem, i
 		case isSelfContained(x):
 			e.addValueConjunct(src, env, x)
 		case isEmbed:
-			e.embed = append(e.embed, e.expr(env, x))
+			e.embed = append(e.embed, e.expr(x))
 		default:
-			if x := e.expr(env, x); x != dummyTop {
-				e.conjuncts = append(e.conjuncts, x)
-			}
+			e.conjuncts = append(e.conjuncts, e.expr(x))
 		}
 	}
 }
@@ -515,8 +480,6 @@ func isComplexStruct(s *adt.StructLit) bool {
 					return ok
 				}
 			}
-
-		case *adt.LetField:
 
 		case adt.Expr:
 

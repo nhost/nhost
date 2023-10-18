@@ -21,7 +21,6 @@ import (
 	"cuelang.org/go/cue/ast/astutil"
 	"cuelang.org/go/cue/build"
 	"cuelang.org/go/cue/errors"
-	"cuelang.org/go/cue/stats"
 	"cuelang.org/go/cue/token"
 	"cuelang.org/go/internal"
 	"cuelang.org/go/internal/core/adt"
@@ -32,8 +31,6 @@ type Config struct {
 	Runtime    *Runtime
 	Filename   string
 	ImportPath string
-
-	Counts *stats.Counts
 
 	compile.Config
 }

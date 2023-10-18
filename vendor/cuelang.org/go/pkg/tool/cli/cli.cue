@@ -27,7 +27,7 @@ Print: {
 // Example:
 //     task: ask: cli.Ask({
 //         prompt:   "Are you okay?"
-//         response: bool
+//         repsonse: bool
 //     })
 Ask: {
 	$id: "tool/cli.Ask"

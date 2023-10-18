@@ -79,8 +79,6 @@ const (
 	TopKind     Kind = (allKinds - 1) // all kinds, but not references
 	ScalarKinds      = NullKind | BoolKind |
 		IntKind | FloatKind | StringKind | BytesKind
-
-	CompositKind = StructKind | ListKind
 )
 
 func kind(v Value) Kind {

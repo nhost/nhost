@@ -20,10 +20,7 @@
 
 package strconv
 
-import (
-	"math/big"
-	"strconv"
-)
+import "strconv"
 
 // ParseBool returns the boolean value represented by the string.
 // It accepts 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False.
@@ -153,19 +150,17 @@ func FormatFloat(f float64, fmt byte, prec, bitSize int) string {
 }
 
 // FormatUint returns the string representation of i in the given base,
-// for 2 <= base <= 62. The result uses:
-// For 10 <= digit values <= 35, the lower-case letters 'a' to 'z'
-// For 36 <= digit values <= 61, the upper-case letters 'A' to 'Z'
-func FormatUint(i *big.Int, base int) string {
-	return i.Text(base)
+// for 2 <= base <= 36. The result uses the lower-case letters 'a' to 'z'
+// for digit values >= 10.
+func FormatUint(i uint64, base int) string {
+	return strconv.FormatUint(i, base)
 }
 
 // FormatInt returns the string representation of i in the given base,
-// for 2 <= base <= 62. The result uses:
-// For 10 <= digit values <= 35, the lower-case letters 'a' to 'z'
-// For 36 <= digit values <= 61, the upper-case letters 'A' to 'Z'
-func FormatInt(i *big.Int, base int) string {
-	return i.Text(base)
+// for 2 <= base <= 36. The result uses the lower-case letters 'a' to 'z'
+// for digit values >= 10.
+func FormatInt(i int64, base int) string {
+	return strconv.FormatInt(i, base)
 }
 
 // Quote returns a double-quoted Go string literal representing s. The

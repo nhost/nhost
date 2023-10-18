@@ -24,7 +24,6 @@ import (
 	"cuelang.org/go/cue/literal"
 	"cuelang.org/go/cue/scanner"
 	"cuelang.org/go/cue/token"
-	"cuelang.org/go/internal"
 	"cuelang.org/go/internal/astinternal"
 )
 
@@ -394,12 +393,8 @@ func (p *parser) next() {
 // assertV0 indicates the last version at which a certain feature was
 // supported.
 func (p *parser) assertV0(pos token.Pos, minor, patch int, name string) {
-	v := internal.Version(minor, patch)
-	base := p.version
-	if base == 0 {
-		base = internal.APIVersionSupported
-	}
-	if base > v {
+	v := version0(minor, patch)
+	if p.version != 0 && p.version > v {
 		p.errors = errors.Append(p.errors,
 			errors.Wrapf(&DeprecationError{v}, pos,
 				"use of deprecated %s (deprecated as of v0.%d.%d)", name, minor, patch+1))

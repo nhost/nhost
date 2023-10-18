@@ -12,6 +12,7 @@ func Command() *cli.Command {
 			CommandConfigEditImage(),
 			CommandConfigPull(),
 			CommandConfigValidate(),
+			CommandConfigExample(),
 		},
 	}
 }

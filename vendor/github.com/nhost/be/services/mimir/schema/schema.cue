@@ -55,10 +55,12 @@ import (
 		postgres.resources.compute.cpu) >= 1000 & true @cuegraph(skip)
 
 	_validateAllResourcesAreSetOrNot: (
-						(hasura.resources == _|_) ==
-		(auth.resources == _|_) ==
-		(storage.resources == _|_) ==
-		(postgres.resources == _|_) ) & true @cuegraph(skip)
+						(hasura.resources.compute == _|_) ==
+		(auth.resources.compute == _|_) ==
+		(storage.resources.compute == _|_) ==
+		(postgres.resources.compute == _|_) ) & true @cuegraph(skip)
+
+	_validateNetworkingMustBeNullOrNotSet: !storage.resources.networking | storage.resources.networking == null @cuegraph(skip)
 }
 
 // Global configuration that applies to all services
@@ -74,9 +76,17 @@ import (
 	value: string
 }
 
+#Networking: {
+	ingresses: [#Ingress] | *[]
+}
+
+#Ingress: {
+	fqdn: [string & net.FQDN & strings.MinRunes(1) & strings.MaxRunes(63)]
+}
+
 // Resource configuration for a service
 #Resources: {
-	compute: {
+	compute?: {
 		// milicpus, 1000 milicpus = 1 cpu
 		cpu: uint32 & >=250 & <=15000
 		// MiB: 128MiB to 30GiB
@@ -90,11 +100,13 @@ import (
 	}
 
 	// Number of replicas for a service
-	replicas: uint8 & >=1 & <=10
+	replicas?: uint8 & >=1 & <=10 | *1
 
 	_validateMultipleReplicasRatioMustBe1For2: (
 							replicas == 1 |
 		(compute.cpu*2.048 == compute.memory)) & true @cuegraph(skip)
+
+	networking?: #Networking | null
 }
 
 // Configuration for hasura service
@@ -159,8 +171,9 @@ import (
 	// https://github.com/nhost/hasura-storage/releases
 	version: string | *"0.4.0"
 
-	// Resources for the service
-	resources?: #Resources
+	// Networking (custom domains at the moment) are not allowed as we need to do further
+	// configurations in the CDN. We will enable it again in the future.
+	resources?: #Resources & {networking?: null}
 
 	antivirus?: {
 		server: "tcp://run-clamav:3310"
@@ -178,11 +191,17 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.6-20230927-1"
+	version: string | *"14.6-20231018-1"
 
 	// Resources for the service
-	resources?: #Resources & {
-		replicas: 1
+	resources?: {
+		#Resources
+		storage: {
+			capacity: uint32 & >=10 & <=1000 | *10 // GiB
+		}
+	} & {
+		replicas:    1
+		networking?: null
 	}
 
 	settings?: {
@@ -521,11 +540,12 @@ import (
 	port:                              #Port
 	type:                              "http" | "tcp" | "udp"
 	publish:                           bool | *false
+	ingresses:                         [#Ingress] | *[]
 	_publish_supported_only_over_http: (
 						publish == false || type == "http" ) & true @cuegraph(skip)
 }
 
-#RunServiceName: =~"^[a-z]([-a-z0-9]*[a-z0-9])?$" & strings.MinRunes(1) & strings.MaxRunes(12)
+#RunServiceName: =~"^[a-z]([-a-z0-9]*[a-z0-9])?$" & strings.MinRunes(1) & strings.MaxRunes(30)
 
 // Resource configuration for a service
 #RunServiceResources: {

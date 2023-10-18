@@ -40,7 +40,7 @@ import (
 
 // ErrorCode indicates the type of error. The type of error may influence
 // control flow. No other aspects of an error may influence control flow.
-type ErrorCode int8
+type ErrorCode int
 
 const (
 	// An EvalError is a fatal evaluation error.
@@ -89,15 +89,10 @@ type Bottom struct {
 	Src ast.Node
 	Err errors.Error
 
-	Code ErrorCode
-	// Permanent indicates whether an incomplete error can be
-	// resolved later without making the configuration more specific.
-	// This may happen when an arc isn't fully resolved yet.
-	Permanent    bool
+	Code         ErrorCode
 	HasRecursive bool
 	ChildError   bool // Err is the error of the child
 	NotExists    bool // This error originated from a failed lookup.
-	ForCycle     bool // this is a for cycle
 	// Value holds the computed value so far in case
 	Value Value
 }
@@ -145,6 +140,7 @@ func isIncomplete(v *Vertex) bool {
 //
 // If x is not already an error, the value is recorded in the error for
 // reference.
+//
 func (v *Vertex) AddChildError(recursive *Bottom) {
 	v.ChildErrors = CombineErrors(nil, v.ChildErrors, recursive)
 	if recursive.IsIncomplete() {

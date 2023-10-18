@@ -12,7 +12,8 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 					Cpu:    1000,
 					Memory: 300,
 				},
-				Replicas: 3,
+				Replicas:   ptr(uint8(3)),
+				Networking: nil,
 			},
 			Method: &model.ConfigAuthMethod{
 				Anonymous: &model.ConfigAuthMethodAnonymous{
@@ -206,7 +207,8 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 					Cpu:    1000,
 					Memory: 700,
 				},
-				Replicas: 3,
+				Replicas:   ptr(uint8(3)),
+				Networking: nil,
 			},
 			AdminSecret: "adminSecret",
 			JwtSecrets: []*model.ConfigJWTSecret{
@@ -246,12 +248,14 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 		},
 		Postgres: &model.ConfigPostgres{
 			Version: ptr("14.5-20220831-1"),
-			Resources: &model.ConfigResources{
+			Resources: &model.ConfigPostgresResources{
 				Compute: &model.ConfigResourcesCompute{
 					Cpu:    2000,
 					Memory: 500,
 				},
-				Replicas: 1,
+				Replicas:   ptr(uint8(1)),
+				Networking: nil,
+				Storage:    nil,
 			},
 			Settings: nil,
 		},
@@ -278,7 +282,8 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 					Cpu:    500,
 					Memory: 50,
 				},
-				Replicas: 1,
+				Replicas:   ptr(uint8(1)),
+				Networking: nil,
 			},
 			Antivirus: &model.ConfigStorageAntivirus{
 				Server: ptr("tcp://run-clamav:3310"),

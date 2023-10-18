@@ -15,7 +15,6 @@
 package eval
 
 import (
-	"cuelang.org/go/cue/stats"
 	"cuelang.org/go/internal/core/adt"
 	"cuelang.org/go/internal/core/debug"
 )
@@ -44,7 +43,7 @@ func (e *Unifier) Unify(ctx *adt.OpContext, v *adt.Vertex, state adt.VertexStatu
 	e.e.Unify(v, state)
 }
 
-func (e *Unifier) Stats() *stats.Counts {
+func (e *Unifier) Stats() *adt.Stats {
 	return e.e.Stats()
 }
 

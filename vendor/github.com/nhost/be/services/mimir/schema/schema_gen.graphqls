@@ -1677,6 +1677,31 @@ input ConfigHasuraSettingsComparisonExp {
 }
 
 """
+
+"""
+type ConfigIngress {
+    """
+
+    """
+    fqdn: [String!]
+}
+
+input ConfigIngressUpdateInput {
+        fqdn: [String!]
+}
+
+input ConfigIngressInsertInput {
+        fqdn: [String!]
+}
+
+input ConfigIngressComparisonExp {
+    _and: [ConfigIngressComparisonExp!]
+    _not: ConfigIngressComparisonExp
+    _or: [ConfigIngressComparisonExp!]
+    fqdn: ConfigStringComparisonExp
+}
+
+"""
 See https://hasura.io/docs/latest/auth/authentication/jwt/
 """
 type ConfigJWTSecret {
@@ -1783,6 +1808,31 @@ input ConfigLocaleComparisonExp {
 """
 
 """
+type ConfigNetworking {
+    """
+
+    """
+    ingresses: [ConfigIngress!]
+}
+
+input ConfigNetworkingUpdateInput {
+        ingresses: [ConfigIngressUpdateInput!]
+}
+
+input ConfigNetworkingInsertInput {
+        ingresses: [ConfigIngressInsertInput!]
+}
+
+input ConfigNetworkingComparisonExp {
+    _and: [ConfigNetworkingComparisonExp!]
+    _not: ConfigNetworkingComparisonExp
+    _or: [ConfigNetworkingComparisonExp!]
+    ingresses: ConfigIngressComparisonExp
+}
+
+"""
+
+"""
 type ConfigObservability {
     """
 
@@ -1826,7 +1876,7 @@ type ConfigPostgres {
     """
     Resources for the service
     """
-    resources: ConfigResources
+    resources: ConfigPostgresResources
     """
 
     """
@@ -1835,13 +1885,13 @@ type ConfigPostgres {
 
 input ConfigPostgresUpdateInput {
     version: String
-    resources: ConfigResourcesUpdateInput
+    resources: ConfigPostgresResourcesUpdateInput
     settings: ConfigPostgresSettingsUpdateInput
 }
 
 input ConfigPostgresInsertInput {
     version: String
-    resources: ConfigResourcesInsertInput
+    resources: ConfigPostgresResourcesInsertInput
     settings: ConfigPostgresSettingsInsertInput
 }
 
@@ -1850,8 +1900,54 @@ input ConfigPostgresComparisonExp {
     _not: ConfigPostgresComparisonExp
     _or: [ConfigPostgresComparisonExp!]
     version: ConfigStringComparisonExp
-    resources: ConfigResourcesComparisonExp
+    resources: ConfigPostgresResourcesComparisonExp
     settings: ConfigPostgresSettingsComparisonExp
+}
+
+"""
+Resources for the service
+"""
+type ConfigPostgresResources {
+    """
+
+    """
+    compute: ConfigResourcesCompute
+    """
+    Number of replicas for a service
+    """
+    replicas: ConfigUint8
+    """
+
+    """
+    networking: ConfigNetworking
+    """
+
+    """
+    storage: ConfigPostgresStorage!
+}
+
+input ConfigPostgresResourcesUpdateInput {
+    compute: ConfigResourcesComputeUpdateInput
+    replicas: ConfigUint8
+    networking: ConfigNetworkingUpdateInput
+    storage: ConfigPostgresStorageUpdateInput
+}
+
+input ConfigPostgresResourcesInsertInput {
+    compute: ConfigResourcesComputeInsertInput
+    replicas: ConfigUint8
+    networking: ConfigNetworkingInsertInput
+    storage: ConfigPostgresStorageInsertInput!
+}
+
+input ConfigPostgresResourcesComparisonExp {
+    _and: [ConfigPostgresResourcesComparisonExp!]
+    _not: ConfigPostgresResourcesComparisonExp
+    _or: [ConfigPostgresResourcesComparisonExp!]
+    compute: ConfigResourcesComputeComparisonExp
+    replicas: ConfigUint8ComparisonExp
+    networking: ConfigNetworkingComparisonExp
+    storage: ConfigPostgresStorageComparisonExp
 }
 
 """
@@ -2001,6 +2097,31 @@ input ConfigPostgresSettingsComparisonExp {
 """
 
 """
+type ConfigPostgresStorage {
+    """
+    GiB
+    """
+    capacity: ConfigUint32!
+}
+
+input ConfigPostgresStorageUpdateInput {
+    capacity: ConfigUint32
+}
+
+input ConfigPostgresStorageInsertInput {
+    capacity: ConfigUint32!
+}
+
+input ConfigPostgresStorageComparisonExp {
+    _and: [ConfigPostgresStorageComparisonExp!]
+    _not: ConfigPostgresStorageComparisonExp
+    _or: [ConfigPostgresStorageComparisonExp!]
+    capacity: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
 type ConfigProvider {
     """
 
@@ -2037,21 +2158,27 @@ type ConfigResources {
     """
 
     """
-    compute: ConfigResourcesCompute!
+    compute: ConfigResourcesCompute
     """
     Number of replicas for a service
     """
-    replicas: ConfigUint8!
+    replicas: ConfigUint8
+    """
+
+    """
+    networking: ConfigNetworking
 }
 
 input ConfigResourcesUpdateInput {
     compute: ConfigResourcesComputeUpdateInput
     replicas: ConfigUint8
+    networking: ConfigNetworkingUpdateInput
 }
 
 input ConfigResourcesInsertInput {
-    compute: ConfigResourcesComputeInsertInput!
-    replicas: ConfigUint8!
+    compute: ConfigResourcesComputeInsertInput
+    replicas: ConfigUint8
+    networking: ConfigNetworkingInsertInput
 }
 
 input ConfigResourcesComparisonExp {
@@ -2060,6 +2187,7 @@ input ConfigResourcesComparisonExp {
     _or: [ConfigResourcesComparisonExp!]
     compute: ConfigResourcesComputeComparisonExp
     replicas: ConfigUint8ComparisonExp
+    networking: ConfigNetworkingComparisonExp
 }
 
 """
@@ -2204,18 +2332,24 @@ type ConfigRunServicePort {
 
     """
     publish: Boolean
+    """
+
+    """
+    ingresses: [ConfigIngress!]
 }
 
 input ConfigRunServicePortUpdateInput {
     port: ConfigPort
     type: String
     publish: Boolean
+        ingresses: [ConfigIngressUpdateInput!]
 }
 
 input ConfigRunServicePortInsertInput {
     port: ConfigPort!
     type: String!
     publish: Boolean
+        ingresses: [ConfigIngressInsertInput!]
 }
 
 input ConfigRunServicePortComparisonExp {
@@ -2225,6 +2359,7 @@ input ConfigRunServicePortComparisonExp {
     port: ConfigPortComparisonExp
     type: ConfigStringComparisonExp
     publish: ConfigBooleanComparisonExp
+    ingresses: ConfigIngressComparisonExp
 }
 
 """
@@ -2549,7 +2684,8 @@ type ConfigStorage {
     """
     version: String
     """
-    Resources for the service
+    Networking (custom domains at the moment) are not allowed as we need to do further
+    configurations in the CDN. We will enable it again in the future.
     """
     resources: ConfigResources
     """
