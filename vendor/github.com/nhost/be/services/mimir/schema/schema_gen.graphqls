@@ -1923,7 +1923,7 @@ type ConfigPostgresResources {
     """
 
     """
-    storage: ConfigPostgresStorage!
+    storage: ConfigPostgresStorage
 }
 
 input ConfigPostgresResourcesUpdateInput {
@@ -1937,7 +1937,7 @@ input ConfigPostgresResourcesInsertInput {
     compute: ConfigResourcesComputeInsertInput
     replicas: ConfigUint8
     networking: ConfigNetworkingInsertInput
-    storage: ConfigPostgresStorageInsertInput!
+    storage: ConfigPostgresStorageInsertInput
 }
 
 input ConfigPostgresResourcesComparisonExp {

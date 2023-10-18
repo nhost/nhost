@@ -196,7 +196,7 @@ import (
 	// Resources for the service
 	resources?: {
 		#Resources
-		storage: {
+		storage?: {
 			capacity: uint32 & >=10 & <=1000 | *10 // GiB
 		}
 	} & {
