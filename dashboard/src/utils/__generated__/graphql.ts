@@ -1,5 +1,5 @@
-import * as Apollo from '@apollo/client';
 import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -1476,7 +1476,7 @@ export type ConfigPostgresResources = {
   networking?: Maybe<ConfigNetworking>;
   /** Number of replicas for a service */
   replicas?: Maybe<Scalars['ConfigUint8']>;
-  storage: ConfigPostgresStorage;
+  storage?: Maybe<ConfigPostgresStorage>;
 };
 
 export type ConfigPostgresResourcesComparisonExp = {
@@ -1493,7 +1493,7 @@ export type ConfigPostgresResourcesInsertInput = {
   compute?: InputMaybe<ConfigResourcesComputeInsertInput>;
   networking?: InputMaybe<ConfigNetworkingInsertInput>;
   replicas?: InputMaybe<Scalars['ConfigUint8']>;
-  storage: ConfigPostgresStorageInsertInput;
+  storage?: InputMaybe<ConfigPostgresStorageInsertInput>;
 };
 
 export type ConfigPostgresResourcesUpdateInput = {
@@ -22220,7 +22220,7 @@ export type GetPostgresSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', version?: string | null, resources?: { __typename?: 'ConfigPostgresResources', storage: { __typename?: 'ConfigPostgresStorage', capacity: any } } | null } | null } | null };
+export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', version?: string | null, resources?: { __typename?: 'ConfigPostgresResources', storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null } | null };
 
 export type ResetDatabasePasswordMutationVariables = Exact<{
   appId: Scalars['String'];
@@ -22445,7 +22445,7 @@ export type UpdateConfigMutationVariables = Exact<{
 }>;
 
 
-export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', storage: { __typename?: 'ConfigPostgresStorage', capacity: any } } | null } | null } };
+export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null } };
 
 export type UnpauseApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
