@@ -38,13 +38,13 @@ export default function CustomDomains() {
     >
       <Box className="flex flex-row items-center gap-4 overflow-hidden rounded-lg border-1 p-4">
         <div className="flex flex-col space-y-2">
-          <Text className="text-lg font-semibold">Custom domains</Text>
+          <Text className="text-lg font-semibold">Custom Domains</Text>
 
           <Text color="secondary">
             Add a custom domain to Auth, Hasura, PostgreSQL, and your Run 
             services for only a $10 flat fee 🚀 <br /> Learn more about
             <Link
-              href="https://docs.nhost.io/custom-services"
+              href="https://docs.nhost.io/platform/custom-domains"
               target="_blank"
               rel="noopener noreferrer"
               underline="hover"

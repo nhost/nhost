@@ -206,7 +206,7 @@ export default function SettingsSidebar({
               exact={false}
               onClick={handleSelect}
             >
-              Custom domains
+              Custom Domains
             </SettingsNavLink>
           </List>
         </nav>
