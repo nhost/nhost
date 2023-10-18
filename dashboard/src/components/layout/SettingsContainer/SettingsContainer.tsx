@@ -128,7 +128,11 @@ export default function SettingsContainer({
             icon}
 
           <div className="grid grid-flow-row gap-1">
-            <Text className="text-lg font-semibold">{title}</Text>
+            {typeof title === 'string' ? (
+              <Text className="text-lg font-semibold">{title}</Text>
+            ) : (
+              title
+            )}
 
             {description && <Text color="secondary">{description}</Text>}
           </div>

@@ -36,10 +36,12 @@ query getRunServices(
           port
           type
           publish
+          ingresses {
+            fqdn
+          }
         }
       }
     }
-
     runServices_aggregate {
       aggregate {
         count

@@ -24,6 +24,13 @@ query GetAuthenticationSettings($appId: uuid!) {
           expiresIn
         }
       }
+      resources {
+        networking {
+          ingresses {
+            fqdn
+          }
+        }
+      }
       user {
         email {
           allowed
