@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.20.26
+
+### Patch Changes
+
+- 331ba0376: feat(dashboard): add postgres storage capacity modifier in the settings
+- b7f801874: feat(dashboard): add new settings page for custom domains
+
 ## 0.20.25
 
 ### Patch Changes
