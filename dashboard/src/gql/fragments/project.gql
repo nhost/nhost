@@ -46,6 +46,7 @@ fragment Project on apps {
     name
     price
     isFree
+    featureMaxDbSize
   }
   githubRepository {
     fullName
