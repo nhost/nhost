@@ -4,20 +4,28 @@ sidebar_position: 10
 image: /img/og/platform/metrics.png
 ---
 
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
 Custom domains empower you to offer a tailored and branded experience for your users. Available only as an add-on for projects on the pro and enterprise plans, custom domains not only enhance your brand's visibility but also provide a more professional appearance compared to using Nhost's default domain.
 
-You can configure Custom Domains for Auth, Hasura (Console and GraphQL API), PostgreSQL, and your own Run services.
+You can configure Custom Domains for Auth, Hasura, PostgreSQL, and your own Run services using both the Nhost Dashboard or the Config file.
 
-### Configure a Custom Domain using the Nhost Dashboard
+The following examples assume we are configuring custom domains at `*.nhost.app`.
 
-The example assumes we are configuring custom domains at `*.nhost.app`. Follow the instructions in the **Custom Domain** section of your project's settings:
+
+<Tabs groupId="package-manager">
+  <TabItem value="dashboard" label="dashboard" default>
+
+Follow the instructions in the **Custom Domain** section of your project's settings:
 
 1. Add a CNAME record in your DNS provider for each of the services you want a custom domain for,  and click "Verify". The verification might take a few seconds to succeed.
 2. Once the verification succeeds, click "Save" to update your project.
 
 ![exposing a port](/img/custom-domains/custom-domains.png)
 
-### Configure a Custom Domain using the Config file
+  </TabItem>
+  <TabItem value="toml" label="toml">
 
 For Hasura, Auth, and PostgreSQL, custom domains are defined in the default `./nhost/config.toml` as follows: 
 
@@ -58,4 +66,6 @@ publish = true
 fqdn = ['my-service.nhost.app']
 ```
 
+  </TabItem>
+</Tabs>
 
