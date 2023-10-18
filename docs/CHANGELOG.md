@@ -1,5 +1,15 @@
 # @nhost/docs
 
+## 0.7.0
+
+### Minor Changes
+
+- 5764f46d9: Add docs for Custom Domains
+
+### Patch Changes
+
+- cc8cc8d45: database: added extension http
+
 ## 0.6.2
 
 ### Patch Changes
