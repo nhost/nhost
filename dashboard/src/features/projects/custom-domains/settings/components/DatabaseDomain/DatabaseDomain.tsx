@@ -1,6 +1,7 @@
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { VerifyDomain } from '@/features/projects/custom-domains/settings/components/VerifyDomain';
 import { useState } from 'react';
 import * as Yup from 'yup';
@@ -15,6 +16,12 @@ export default function DatabaseDomain() {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const [dbFQDN, setDbFQDN] = useState('');
+
+  const postgresHost = generateAppServiceUrl(
+    currentProject.subdomain,
+    currentProject.region,
+    'db',
+  ).replace('https://', '');
 
   return (
     <SettingsContainer
@@ -46,7 +53,7 @@ export default function DatabaseDomain() {
         <VerifyDomain
           recordType="CNAME"
           hostname={dbFQDN}
-          value={`${currentProject.subdomain}.db.${currentProject.region.domain}.`}
+          value={`${postgresHost}.`}
         />
       </div>
     </SettingsContainer>
