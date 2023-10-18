@@ -47,7 +47,7 @@ export default function RunServiceDomains() {
           <SettingsContainer
             key={service.id}
             title={
-              <div className="flex flex-row">
+              <div className="flex flex-row items-center">
                 <Text className="text-lg font-semibold">
                   {service.config?.name ?? 'unset'}
                 </Text>
@@ -58,7 +58,7 @@ export default function RunServiceDomains() {
                   underline="hover"
                   className="font-medium"
                 >
-                  <ArrowSquareOutIcon className="m-1 mt-0 h-4 w-4" />
+                  <ArrowSquareOutIcon className="mb-1 ml-1 h-4 w-4" />
                 </Link>
               </div>
             }
