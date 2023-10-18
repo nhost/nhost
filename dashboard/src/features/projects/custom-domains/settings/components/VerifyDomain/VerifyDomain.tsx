@@ -95,7 +95,7 @@ export default function VerifyDomain({
           color: 'success.dark',
         },
       ]}
-      className="flex flex-col space-y-4 rounded-md p-4"
+      className="flex flex-col p-4 space-y-4 rounded-md"
     >
       <div className="flex flex-row items-center justify-between">
         {!verificationFailed && !verificationSucceeded && (
@@ -139,13 +139,13 @@ export default function VerifyDomain({
             color="secondary"
             onClick={() => copy(value, 'CNAME Value')}
           >
-            <CopyIcon className="h-4 w-4" />
+            <CopyIcon className="w-4 h-4" />
           </IconButton>
         </div>
         <Button
           disabled={loading || !hostname}
           onClick={handleVerifyDomain}
-          className="absolute bottom-0 right-0"
+          className="mt-4 sm:absolute sm:bottom-0 sm:right-0 sm:mt-0"
         >
           Verify
         </Button>

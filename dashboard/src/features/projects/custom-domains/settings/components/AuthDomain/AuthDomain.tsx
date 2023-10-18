@@ -122,7 +122,7 @@ export default function AuthDomain() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row gap-y-4 gap-x-4 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row px-4 gap-y-4 gap-x-4 lg:grid-cols-5"
         >
           <Input
             {...register('auth_fqdn')}
@@ -130,7 +130,7 @@ export default function AuthDomain() {
             name="auth_fqdn"
             type="string"
             fullWidth
-            className="lg:col-span-2"
+            className="col-span-5 lg:col-span-2"
             placeholder="auth.mydomain.dev"
             error={Boolean(formState.errors.auth_fqdn?.message)}
             helperText={formState.errors.auth_fqdn?.message}

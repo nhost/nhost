@@ -35,14 +35,14 @@ export default function DatabaseDomain() {
           className: 'hidden',
         },
       }}
-      className="grid grid-flow-row gap-y-4 gap-x-4 px-4 lg:grid-cols-5"
+      className="grid grid-flow-row px-4 gap-y-4 gap-x-4 lg:grid-cols-5"
     >
       <Input
         id="database_fqdn"
         name="database_fqdn"
         type="string"
         fullWidth
-        className="lg:col-span-2"
+        className="col-span-5 lg:col-span-2"
         placeholder="db.mydomain.dev"
         onChange={(e) => {
           setDbFQDN(e.target.value);
