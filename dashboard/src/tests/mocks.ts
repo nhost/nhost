@@ -68,6 +68,7 @@ export const mockApplication: Project = {
     name: 'Starter',
     isFree: true,
     price: 0,
+    featureMaxDbSize: 1,
   },
   config: {
     observability: {

@@ -9,6 +9,11 @@ query GetPostgresSettings($appId: uuid!) {
     __typename
     postgres {
       version
+      resources {
+        storage {
+          capacity
+        }
+      }
     }
   }
 }

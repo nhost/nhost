@@ -1,5 +1,12 @@
 mutation UpdateConfig($appId: uuid!, $config: ConfigConfigUpdateInput!) {
   updateConfig(appID: $appId, config: $config) {
     id: __typename
+    postgres {
+      resources {
+        storage {
+          capacity
+        }
+      }
+    }
   }
 }
