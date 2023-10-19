@@ -3,6 +3,7 @@ import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { ArrowsClockwise } from '@/components/ui/v2/icons/ArrowsClockwise';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
@@ -344,7 +345,7 @@ export default function ServiceForm({
               <Tooltip title="Name of the service, must be unique per project.">
                 <InfoIcon
                   aria-label="Info"
-                  className="h-4 w-4"
+                  className="w-4 h-4"
                   color="primary"
                 />
               </Tooltip>
@@ -384,7 +385,7 @@ export default function ServiceForm({
               >
                 <InfoIcon
                   aria-label="Info"
-                  className="h-4 w-4"
+                  className="w-4 h-4"
                   color="primary"
                 />
               </Tooltip>
@@ -415,7 +416,7 @@ export default function ServiceForm({
               <Tooltip title="Command to run when to start the service. This is optional as the image may already have a baked-in command.">
                 <InfoIcon
                   aria-label="Info"
-                  className="h-4 w-4"
+                  className="w-4 h-4"
                   color="primary"
                 />
               </Tooltip>
@@ -459,7 +460,7 @@ export default function ServiceForm({
         {createServiceFormError && (
           <Alert
             severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            className="grid items-center justify-between grid-flow-col px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {createServiceFormError.message}
@@ -482,7 +483,7 @@ export default function ServiceForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              startIcon={<PlusIcon />}
+              startIcon={serviceID ? <ArrowsClockwise /> : <PlusIcon />}
             >
               {serviceID ? 'Update' : 'Create'}
             </Button>
