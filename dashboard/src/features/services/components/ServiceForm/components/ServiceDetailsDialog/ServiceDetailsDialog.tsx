@@ -55,7 +55,8 @@ export default function ServiceDetailsDialog({
             .filter((port) => port.publish)
             .map((port) => (
               <InfoCard
-                title={`${port.type}:${port.port}`}
+                key={String(port.port)}
+                title={`${port.type} <--> ${port.port}`}
                 value={getPortURL(port.port)}
               />
             ))}
