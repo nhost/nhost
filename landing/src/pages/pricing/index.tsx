@@ -83,9 +83,15 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              '1 GB included',
-              'Custom API requests',
-              'Event Triggers',
+              {
+                title: '1 GB included',
+              },
+              {
+                title: 'Custom API requests',
+              },
+              {
+                title: 'Event Triggers',
+              },
             ]}
           />
 
@@ -102,9 +108,15 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              'Hasura',
-              'Role based authorization',
-              'Realtime subscriptions',
+              {
+                title: 'Hasura',
+              },
+              {
+                title: 'Role based authorization',
+              },
+              {
+                title: 'Realtime subscriptions',
+              },
             ]}
           />
 
@@ -121,10 +133,18 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              '10,000 users',
-              'Email / Password',
-              'Magic Link',
-              'Social OAuth providers',
+              {
+                title: '10,000 users',
+              },
+              {
+                title: 'Email / Password',
+              },
+              {
+                title: 'Magic Link',
+              },
+              {
+                title: 'Social OAuth providers',
+              },
             ]}
           />
 
@@ -141,9 +161,15 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              '1 GB included',
-              'Image transformation',
-              'Global CDN',
+              {
+                title: '1 GB included',
+              },
+              {
+                title: 'Image transformation',
+              },
+              {
+                title: 'Global CDN',
+              },
             ]}
           />
 
@@ -160,11 +186,18 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              '10 included',
-              '1 hour of execution time included',
-              '10 sec timeout',
+              {
+                title: '10 included',
+              },
+              {
+                title: '1 hour of execution time included',
+              },
+              {
+                title: '10 sec timeout',
+              },
             ]}
           />
+
           <PricingFeature
             feature="Network Egress"
             featureIcon={
@@ -177,7 +210,22 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={['5 GB included']}
+            subFeatures={[{ title: '5 GB included' }]}
+          />
+
+          <PricingFeature
+            feature="Platform"
+            featureIcon={
+              <ProductIcon className="h-8 w-8">
+                <Image
+                  src="/products/platform.svg"
+                  width={20}
+                  height={20}
+                  alt="Egress icon"
+                />
+              </ProductIcon>
+            }
+            subFeatures={[{ title: 'Custom domains', enabled: false }]}
           />
 
           {/* Plan details end */}
@@ -230,9 +278,15 @@ export default function PricingPage() {
                 </ProductIcon>
               }
               subFeatures={[
-                '10 GB included, then $0.20 per GB',
-                '7 days Backups',
-                'Always available',
+                {
+                  title: '10 GB included, then $0.20 per GB',
+                },
+                {
+                  title: '7 days Backups',
+                },
+                {
+                  title: 'Always available',
+                },
               ]}
             />
             <PricingFeature
@@ -248,9 +302,15 @@ export default function PricingPage() {
                 </ProductIcon>
               }
               subFeatures={[
-                'Hasura',
-                'Role based authorization',
-                'Realtime subscriptions',
+                {
+                  title: 'Hasura',
+                },
+                {
+                  title: 'Role based authorization',
+                },
+                {
+                  title: 'Realtime subscriptions',
+                },
               ]}
             />
             <PricingFeature
@@ -266,10 +326,18 @@ export default function PricingPage() {
                 </ProductIcon>
               }
               subFeatures={[
-                '100,000 users',
-                'Email / Password',
-                'Magic Link',
-                'Social OAuth providers',
+                {
+                  title: '100,000 users',
+                },
+                {
+                  title: 'Email / Password',
+                },
+                {
+                  title: 'Magic Link',
+                },
+                {
+                  title: 'Social OAuth providers',
+                },
               ]}
             />
             <PricingFeature
@@ -285,9 +353,15 @@ export default function PricingPage() {
                 </ProductIcon>
               }
               subFeatures={[
-                '50 GB included, then $0.05 per GB',
-                'Image transformation',
-                'Global CDN',
+                {
+                  title: '50 GB included, then $0.05 per GB',
+                },
+                {
+                  title: 'Image transformation',
+                },
+                {
+                  title: 'Global CDN',
+                },
               ]}
             />
             <PricingFeature
@@ -303,11 +377,19 @@ export default function PricingPage() {
                 </ProductIcon>
               }
               subFeatures={[
-                '50 included, then $5 per additional 50',
-                '10 hours of execution time included, then $0.18 per additional hour (billed per second)',
-                '60 sec timeout',
+                {
+                  title: '50 included, then $5 per additional 50',
+                },
+                {
+                  title:
+                    '10 hours of execution time included, then $0.18 per additional hour (billed per second)',
+                },
+                {
+                  title: '60 sec timeout',
+                },
               ]}
             />
+
             <PricingFeature
               feature="Network Egress"
               featureIcon={
@@ -320,7 +402,30 @@ export default function PricingPage() {
                   />
                 </ProductIcon>
               }
-              subFeatures={['50 GB included, then $0.10 per GB']}
+              subFeatures={[
+                {
+                  title: '50 GB included, then $0.10 per GB',
+                },
+              ]}
+            />
+
+            <PricingFeature
+              feature="Platform"
+              featureIcon={
+                <ProductIcon className="h-8 w-8">
+                  <Image
+                    src="/products/platform.svg"
+                    width={20}
+                    height={20}
+                    alt="Egress icon"
+                  />
+                </ProductIcon>
+              }
+              subFeatures={[
+                {
+                  title: 'Custom domains ($10 add-on)',
+                },
+              ]}
             />
           </div>
         </div>
@@ -364,7 +469,11 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={['Unlimited', 'Extendable Storage', 'Custom Backups']}
+            subFeatures={[
+              { title: 'Unlimited' },
+              { title: 'Extendable Storage' },
+              { title: 'Custom Backups' },
+            ]}
           />
 
           <PricingFeature
@@ -380,9 +489,9 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              'Hasura',
-              'Role based authorization',
-              'Realtime subscriptions',
+              { title: 'Hasura' },
+              { title: 'Role based authorization' },
+              { title: 'Realtime subscriptions' },
             ]}
           />
 
@@ -399,10 +508,10 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              'Unlimited',
-              'Email / Password',
-              'Magic Link',
-              'Social OAuth providers',
+              { title: 'Unlimited' },
+              { title: 'Email / Password' },
+              { title: 'Magic Link' },
+              { title: 'Social OAuth providers' },
             ]}
           />
 
@@ -418,7 +527,11 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={['Unlimited', 'Image transformation', 'Global CDN']}
+            subFeatures={[
+              { title: 'Unlimited' },
+              { title: 'Image transformation' },
+              { title: 'Global CDN' },
+            ]}
           />
 
           <PricingFeature
@@ -433,8 +546,13 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={['Unlimited', 'Unlimited', '600 sec timeout']}
+            subFeatures={[
+              { title: 'Unlimited' },
+              { title: 'Unlimited' },
+              { title: '600 sec timeout' },
+            ]}
           />
+
           <PricingFeature
             feature="Network Egress"
             featureIcon={
@@ -447,7 +565,22 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={['Unlimited']}
+            subFeatures={[{ title: 'Unlimited' }]}
+          />
+
+          <PricingFeature
+            feature="Platform"
+            featureIcon={
+              <ProductIcon className="h-8 w-8">
+                <Image
+                  src="/products/platform.svg"
+                  width={20}
+                  height={20}
+                  alt="Egress icon"
+                />
+              </ProductIcon>
+            }
+            subFeatures={[{ title: 'Custom domains' }]}
           />
         </div>
       </Container>
