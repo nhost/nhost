@@ -77,7 +77,7 @@ func postgres( //nolint:funlen
 			{
 				Type:   "bind",
 				Source: fmt.Sprintf("%s/db/pgdata", dataFolder),
-				Target: "/var/lib/postgresql/data/pgdata",
+				Target: "/var/lib/postgresql/data/pgdata:Z",
 			},
 			{
 				Type:   "bind",

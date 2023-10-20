@@ -43,7 +43,7 @@ func expectedPostgres(tmpdir string) *Service {
 			{
 				Type:   "bind",
 				Source: filepath.Join(tmpdir, "db/pgdata"),
-				Target: "/var/lib/postgresql/data/pgdata",
+				Target: "/var/lib/postgresql/data/pgdata:Z",
 			},
 			{
 				Type:   "bind",
