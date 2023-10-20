@@ -8,6 +8,7 @@ import { VerifyDomain } from '@/features/projects/custom-domains/settings/compon
 import {
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
+  type ConfigIngressUpdateInput,
 } from '@/generated/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
@@ -18,7 +19,7 @@ import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  hasura_fqdn: Yup.string().required(),
+  hasura_fqdn: Yup.string(),
 });
 
 export type HasuraDomainFormValues = Yup.InferType<typeof validationSchema>;
@@ -43,13 +44,14 @@ export default function HasuraDomain() {
     },
   });
 
+  const { networking } = data?.config?.hasura?.resources || {};
+  const initialValue = networking?.ingresses?.[0]?.fqdn?.[0];
+
   useEffect(() => {
     if (!loading && data) {
-      const { networking } = data?.config?.hasura?.resources || {};
-      const fqdn = networking?.ingresses?.[0]?.fqdn?.[0];
-      form.reset({ hasura_fqdn: fqdn });
+      form.reset({ hasura_fqdn: initialValue });
     }
-  }, [data, loading, form]);
+  }, [data, loading, form, initialValue]);
 
   if (loading) {
     return (
@@ -71,6 +73,11 @@ export default function HasuraDomain() {
   const hasura_fqdn = watch('hasura_fqdn');
 
   async function handleSubmit(formValues: HasuraDomainFormValues) {
+    const ingresses: ConfigIngressUpdateInput[] =
+      formValues.hasura_fqdn.length > 0
+        ? [{ fqdn: [formValues.hasura_fqdn] }]
+        : [];
+
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -78,11 +85,7 @@ export default function HasuraDomain() {
           hasura: {
             resources: {
               networking: {
-                ingresses: [
-                  {
-                    fqdn: [formValues.hasura_fqdn],
-                  },
-                ],
+                ingresses,
               },
             },
           },
@@ -118,7 +121,8 @@ export default function HasuraDomain() {
           description="Enter below your custom domain for the Hasura/GraphQL service."
           slotProps={{
             submitButton: {
-              disabled: !isDirty || maintenanceActive || !isVerified,
+              disabled:
+                !isDirty || maintenanceActive || (!isVerified && !initialValue),
               loading: formState.isSubmitting,
             },
           }}

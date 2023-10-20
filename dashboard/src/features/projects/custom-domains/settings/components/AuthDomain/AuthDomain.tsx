@@ -8,6 +8,7 @@ import { VerifyDomain } from '@/features/projects/custom-domains/settings/compon
 import {
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
+  type ConfigIngressUpdateInput,
 } from '@/generated/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
@@ -18,7 +19,7 @@ import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  auth_fqdn: Yup.string().required(),
+  auth_fqdn: Yup.string(),
 });
 
 export type AuthDomainFormValues = Yup.InferType<typeof validationSchema>;
@@ -43,13 +44,14 @@ export default function AuthDomain() {
     },
   });
 
+  const { networking } = data?.config?.auth?.resources || {};
+  const initialValue = networking?.ingresses?.[0]?.fqdn?.[0];
+
   useEffect(() => {
     if (!loading && data) {
-      const { networking } = data?.config?.auth?.resources || {};
-      const fqdn = networking?.ingresses?.[0]?.fqdn?.[0];
-      form.reset({ auth_fqdn: fqdn });
+      form.reset({ auth_fqdn: initialValue });
     }
-  }, [data, loading, form]);
+  }, [data, loading, form, initialValue]);
 
   if (loading) {
     return (
@@ -71,6 +73,9 @@ export default function AuthDomain() {
   const auth_fqdn = watch('auth_fqdn');
 
   async function handleSubmit(formValues: AuthDomainFormValues) {
+    const ingresses: ConfigIngressUpdateInput[] =
+      formValues.auth_fqdn.length > 0 ? [{ fqdn: [formValues.auth_fqdn] }] : [];
+
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -78,11 +83,7 @@ export default function AuthDomain() {
           auth: {
             resources: {
               networking: {
-                ingresses: [
-                  {
-                    fqdn: [formValues.auth_fqdn],
-                  },
-                ],
+                ingresses,
               },
             },
           },
@@ -118,7 +119,8 @@ export default function AuthDomain() {
           description="Enter below your custom domain for the authentication service."
           slotProps={{
             submitButton: {
-              disabled: !isDirty || maintenanceActive || !isVerified,
+              disabled:
+                !isDirty || maintenanceActive || (!isVerified && !initialValue),
               loading: formState.isSubmitting,
             },
           }}

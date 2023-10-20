@@ -21,7 +21,7 @@ interface RunServicePortProps {
 }
 
 const validationSchema = Yup.object({
-  runServicePortFQDN: Yup.string().required(),
+  runServicePortFQDN: Yup.string(),
 });
 
 export type RunServicePortFormValues = Yup.InferType<typeof validationSchema>;
@@ -38,16 +38,18 @@ export default function RunServicePortDomain({
   const [updateRunServiceConfig] = useUpdateRunServiceConfigMutation();
 
   const runServicePort = service.config.ports.find((p) => p.port === port);
+  const initialValue = runServicePort?.ingresses?.[0]?.fqdn?.[0];
 
   const form = useForm<{ runServicePortFQDN: string }>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      runServicePortFQDN: runServicePort?.ingresses?.[0].fqdn?.[0],
+      runServicePortFQDN: initialValue,
     },
     resolver: yupResolver(validationSchema),
   });
 
   const { formState, register, watch } = form;
+  const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   const runServicePortFQDN = watch('runServicePortFQDN');
 
@@ -68,7 +70,10 @@ export default function RunServicePortDomain({
                 if (rest.port === port) {
                   return {
                     ...rest,
-                    ingresses: [{ fqdn: [formValues.runServicePortFQDN] }],
+                    ingresses:
+                      formValues.runServicePortFQDN.length > 0
+                        ? [{ fqdn: [formValues.runServicePortFQDN] }]
+                        : [],
                   };
                 }
 
@@ -128,7 +133,12 @@ export default function RunServicePortDomain({
             <Button
               variant="outlined"
               type="submit"
-              disabled={loading || !isVerified || maintenanceActive}
+              disabled={
+                loading ||
+                !isDirty ||
+                maintenanceActive ||
+                (!isVerified && !initialValue)
+              }
             >
               Save
             </Button>
