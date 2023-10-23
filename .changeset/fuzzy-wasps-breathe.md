@@ -3,4 +3,4 @@
 '@nhost/vue': patch
 ---
 
-fix(docs): update changeEmail usage referance
+fix(docs): update changeEmail usage reference
