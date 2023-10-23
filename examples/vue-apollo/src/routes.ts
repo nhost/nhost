@@ -13,6 +13,7 @@ import SignUpEmailPasword from './pages/sign-up/EmailPassword.vue'
 import SignUpEmailPaswordless from './pages/sign-up/EmailPasswordless.vue'
 import SignUp from './pages/sign-up/IndexPage.vue'
 import Signout from './pages/SignoutPage.vue'
+import StoragePage from './pages/StoragePage.vue'
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', component: Index, meta: { auth: true } },
@@ -50,5 +51,6 @@ export const routes: RouteRecordRaw[] = [
       }
     ]
   },
-  { path: '/apollo', component: ApolloPage, meta: { auth: true } }
+  { path: '/apollo', component: ApolloPage, meta: { auth: true } },
+  { path: '/storage', component: StoragePage, meta: { auth: true } }
 ]

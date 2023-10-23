@@ -8,10 +8,11 @@ import {
   uploadFilePromise
 } from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/vue'
+import { ToRefs } from 'vue'
 import { InterpreterFrom } from 'xstate'
 import { useNhostClient } from './useNhostClient'
 
-export interface FileUploadComposableResult extends FileUploadState {
+export interface FileUploadComposableResult extends ToRefs<FileUploadState> {
   /**
    * Add the file without uploading it.
    */
@@ -88,14 +89,14 @@ export const useFileUploadItem = (
     ref.send('DESTROY')
   }
 
-  const isUploading = useSelector(ref, (state) => state.matches('uploading')).value
-  const isUploaded = useSelector(ref, (state) => state.matches('uploaded')).value
-  const isError = useSelector(ref, (state) => state.matches('error')).value
-  const error = useSelector(ref, (state) => state.context.error || null).value
-  const progress = useSelector(ref, (state) => state.context.progress).value
-  const id = useSelector(ref, (state) => state.context.id).value
+  const isUploading = useSelector(ref, (state) => state.matches('uploading'))
+  const isUploaded = useSelector(ref, (state) => state.matches('uploaded'))
+  const isError = useSelector(ref, (state) => state.matches('error'))
+  const error = useSelector(ref, (state) => state.context.error || null)
+  const progress = useSelector(ref, (state) => state.context.progress)
+  const id = useSelector(ref, (state) => state.context.id)
   const bucketId = useSelector(ref, (state) => state.context.bucketId).value
-  const name = useSelector(ref, (state) => state.context.file?.name).value
+  const name = useSelector(ref, (state) => state.context.file?.name)
 
   return {
     add,
@@ -117,7 +118,7 @@ export const useFileUploadItem = (
  * Use the composable `useFileUpload` to upload a file.
  *
  * @example
- * ```tsx
+ * ```ts
  * const {  add,
  *  upload,
  *  cancel,

@@ -48,7 +48,7 @@ export interface MultipleFilesUploadComposableResult extends MultipleFilesUpload
  *   upload()
  * }
  * ```
- * @docs https://docs.nhost.io/reference/react/use-multiple-files-upload
+ * @docs https://docs.nhost.io/reference/vue/use-multiple-files-upload
  */
 export const useMultipleFilesUpload = (): MultipleFilesUploadComposableResult => {
   const { nhost } = useNhostClient()
