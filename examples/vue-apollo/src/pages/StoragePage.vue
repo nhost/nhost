@@ -34,9 +34,9 @@ import FileUpload from '../components/FileUpload.vue'
 const { upload, isUploaded, isUploading, isError } = useFileUpload()
 
 console.log({
-  isUploaded,
-  isUploading,
-  isError
+  isUploaded: isUploaded.value,
+  isUploading: isUploading.value,
+  isError: isError.value
 })
 
 // const {

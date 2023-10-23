@@ -42,7 +42,7 @@ export type { FileItemRef }
  * It has the same signature as `useFileUpload`.
  *
  * @example
- * ```tsx
+ * ```ts
  * const Item = ({itemRef}) => {
  *    const { name, progress} = useFileUploadItem(itemRef)
  *    return <li>{name} {progress}</li>
@@ -66,7 +66,7 @@ export const useFileUploadItem = (
     ref.send({
       type: 'ADD',
       file: params.file,
-      bucketId: params.bucketId || bucketId
+      bucketId: params.bucketId || bucketId.value
     })
   }
 
@@ -95,7 +95,7 @@ export const useFileUploadItem = (
   const error = useSelector(ref, (state) => state.context.error || null)
   const progress = useSelector(ref, (state) => state.context.progress)
   const id = useSelector(ref, (state) => state.context.id)
-  const bucketId = useSelector(ref, (state) => state.context.bucketId).value
+  const bucketId = useSelector(ref, (state) => state.context.bucketId)
   const name = useSelector(ref, (state) => state.context.file?.name)
 
   return {
