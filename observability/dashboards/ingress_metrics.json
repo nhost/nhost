@@ -62,7 +62,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "description": "Number of requests by ingress/method",
       "fieldConfig": {
@@ -140,7 +140,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "prometheus"
           },
           "editorMode": "code",
           "expr": "sum by(ingress,method) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval]))",
@@ -155,7 +155,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "description": "Number of requests by status",
       "fieldConfig": {
@@ -233,7 +233,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "prometheus"
           },
           "editorMode": "code",
           "expr": "sum by (status) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval]))",
@@ -248,7 +248,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "description": "",
       "fieldConfig": {
@@ -327,7 +327,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "prometheus"
           },
           "editorMode": "code",
           "expr": "sum by(ingress, method) (increase(nginx_ingress_controller_response_size_sum{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval])) / sum by(ingress, method) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval]))",
@@ -342,7 +342,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "description": "",
       "fieldConfig": {
@@ -421,7 +421,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "prometheus"
           },
           "editorMode": "code",
           "expr": "sum by(ingress, method) (increase(nginx_ingress_controller_request_size_sum{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval])) / sum by(ingress, method) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval]))",
@@ -436,7 +436,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "description": "Number of unsuccessful requests divided by the total of requests",
       "fieldConfig": {
@@ -515,7 +515,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
+            "uid": "prometheus"
           },
           "editorMode": "code",
           "expr": "sum by(ingress,method) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\",status=~\"^[4-5].*\"}[$__rate_interval])) / sum by(ingress, method) (increase(nginx_ingress_controller_requests[$__rate_interval]))",
