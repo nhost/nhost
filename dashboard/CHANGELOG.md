@@ -1,5 +1,14 @@
 # @nhost/dashboard
 
+## 0.20.27
+
+### Patch Changes
+
+- fa79b7709: chore(dashboard): tweaks and fixes to the service form and dialog
+- 8df84d782: fix(dashboard): allow resetting custom domains
+  - @nhost/react-apollo@6.0.0
+  - @nhost/nextjs@1.13.39
+
 ## 0.20.26
 
 ### Patch Changes
