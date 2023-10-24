@@ -30,9 +30,7 @@ export interface ChangeEmailHookResult extends ChangeEmailState {
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();
  *
- *   await changeEmail({
- *     email: 'new@example.com',
- *   })
+ *   await changeEmail('new@example.com')
  * }
  * ```
  *
