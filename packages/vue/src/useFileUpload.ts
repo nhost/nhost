@@ -39,21 +39,39 @@ export type { FileItemRef }
 /**
  * Use the composable `useFileUploadItem` to control the file upload of a file in a multiple file upload.
  *
- * It has the same signature as `useFileUpload`.
  *
  * @example
- * ```ts
- * const Item = ({itemRef}) => {
- *    const { name, progress} = useFileUploadItem(itemRef)
- *    return <li>{name} {progress}</li>
- * }
+ * ```vue
+ * // Parent component or page
+ * <script lang="ts" setup>
+ * const { files } = useMultipleFilesUpload()
+ * <script lang="ts" setup>
  *
- * const List = () => {
- *    const { list } = useMultipleFilesUpload()
- *    return <ul>
- *            {list.map((itemRef) => <Item key={item.id} itemRef={item} />)}
- *           </ul>
- * }
+ * <template>
+ *  <div v-for="(file, index) of files" :key="index">
+ *    <FileUploadItem :file="file" />
+ *  </div>
+ * </template>
+ *
+ *
+ * // FileUploadItem component
+ * <script lang="ts" setup>
+ * import { FileItemRef } from '@nhost/nhost-js'
+ * import { useFileUploadItem } from '@nhost/vue'
+ *
+ * const { file } = defineProps<{ file: FileItemRef }>()
+ *
+ * const { name, progress } = useFileUploadItem(file)
+ * </script>
+ *
+ * <template>
+ * <div>
+ *  <span>{{ name }}</span>
+ *    <v-progress-linear v-model="progress">
+ *      {{ progress }}
+ *    </v-progress-linear>
+ *  </div>
+ * </template>
  *
  * ```
  */

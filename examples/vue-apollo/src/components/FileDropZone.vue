@@ -25,21 +25,11 @@ function onDrop(acceptFiles: File[], rejectReasons: FileRejectReason[]) {
 
   emit('onDrop', toRaw(unref(files)))
 }
-
-function handleClickDeleteFile(index: number) {
-  files.value.splice(index, 1)
-}
 </script>
 
 <template>
   <div>
-    <div v-if="files.length > 0" class="files">
-      <div class="file-item" v-for="(file, index) in files" :key="index">
-        <span>{{ file.name }}</span>
-        <span class="delete-file" @click="handleClickDeleteFile(index)"> Delete </span>
-      </div>
-    </div>
-    <div v-else class="dropzone" v-bind="getRootProps()">
+    <div class="dropzone" v-bind="getRootProps()">
       <div
         class="border"
         :class="{
@@ -58,7 +48,6 @@ function handleClickDeleteFile(index: number) {
 .dropzone,
 .files {
   width: 100%;
-  max-width: 300px;
   margin: 0 auto;
   padding: 10px;
   border-radius: 8px;

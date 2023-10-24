@@ -7,10 +7,10 @@ import {
   uploadMultipleFilesPromise
 } from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/vue'
-import { Ref, ref } from 'vue'
+import { Ref, ref, ToRefs } from 'vue'
 import { useNhostClient } from './useNhostClient'
 
-export interface MultipleFilesUploadComposableResult extends MultipleFilesUploadState {
+export interface MultipleFilesUploadComposableResult extends ToRefs<MultipleFilesUploadState> {
   /**
    * Add one or multiple files to add to the list of files to upload.
    */
@@ -91,12 +91,12 @@ export const useMultipleFilesUpload = (): MultipleFilesUploadComposableResult =>
     service.send('CLEAR')
   }
 
-  const isUploading = useSelector(service, (state) => state.matches('uploading')).value
-  const isUploaded = useSelector(service, (state) => state.matches('uploaded')).value
-  const isError = useSelector(service, (state) => state.matches('error')).value
+  const isUploading = useSelector(service, (state) => state.matches('uploading'))
+  const isUploaded = useSelector(service, (state) => state.matches('uploaded'))
+  const isError = useSelector(service, (state) => state.matches('error'))
 
-  const progress = useSelector(service, (state) => state.context.progress).value
-  const files = useSelector(service, (state) => state.context.files).value
+  const progress = useSelector(service, (state) => state.context.progress)
+  const files = useSelector(service, (state) => state.context.files)
 
   return {
     upload,
@@ -108,6 +108,6 @@ export const useMultipleFilesUpload = (): MultipleFilesUploadComposableResult =>
     isUploading,
     files,
     isError,
-    errors: errors.value
+    errors
   }
 }
