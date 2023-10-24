@@ -1,5 +1,11 @@
 # @nhost/vue
 
+## 1.13.39
+
+### Patch Changes
+
+- 00c363f80: fix(docs): update changeEmail usage reference
+
 ## 1.13.38
 
 ### Patch Changes

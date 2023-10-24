@@ -1,5 +1,15 @@
 # @nhost/react
 
+## 2.1.0
+
+### Minor Changes
+
+- 66c3193bc: Update useChangePassword hook interface to include ActionLoadingState
+
+### Patch Changes
+
+- 00c363f80: fix(docs): update changeEmail usage reference
+
 ## 2.0.32
 
 ### Patch Changes

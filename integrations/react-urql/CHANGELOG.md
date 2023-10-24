@@ -1,5 +1,13 @@
 # @nhost/react-urql
 
+## 3.0.0
+
+### Patch Changes
+
+- Updated dependencies [00c363f80]
+- Updated dependencies [66c3193bc]
+  - @nhost/react@2.1.0
+
 ## 2.0.33
 
 ### Patch Changes
