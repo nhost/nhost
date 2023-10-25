@@ -1,5 +1,13 @@
 # @nhost-examples/vue-apollo
 
+## 0.0.9
+
+### Patch Changes
+
+- 0c49e757c: feat: add new Storage page to demonstrate how to use the composables `useMultipleFilesUpload` together with `useFileUploadItem`
+- Updated dependencies [0c49e757c]
+  - @nhost/vue@1.14.0
+
 ## 0.0.8
 
 ### Patch Changes

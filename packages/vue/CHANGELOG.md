@@ -1,5 +1,11 @@
 # @nhost/vue
 
+## 1.14.0
+
+### Minor Changes
+
+- 0c49e757c: feat: add new composable `useMultipleFilesUpload`
+
 ## 1.13.39
 
 ### Patch Changes
