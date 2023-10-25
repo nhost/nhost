@@ -8,10 +8,11 @@ import {
   uploadFilePromise
 } from '@nhost/nhost-js'
 import { useInterpret, useSelector } from '@xstate/vue'
+import { ToRefs } from 'vue'
 import { InterpreterFrom } from 'xstate'
 import { useNhostClient } from './useNhostClient'
 
-export interface FileUploadComposableResult extends FileUploadState {
+export interface FileUploadComposableResult extends ToRefs<FileUploadState> {
   /**
    * Add the file without uploading it.
    */
@@ -38,21 +39,41 @@ export type { FileItemRef }
 /**
  * Use the composable `useFileUploadItem` to control the file upload of a file in a multiple file upload.
  *
- * It has the same signature as `useFileUpload`.
  *
  * @example
- * ```tsx
- * const Item = ({itemRef}) => {
- *    const { name, progress} = useFileUploadItem(itemRef)
- *    return <li>{name} {progress}</li>
- * }
+ * ```vue
+ * <!-- Parent component or page -->
  *
- * const List = () => {
- *    const { list } = useMultipleFilesUpload()
- *    return <ul>
- *            {list.map((itemRef) => <Item key={item.id} itemRef={item} />)}
- *           </ul>
- * }
+ * <script lang="ts" setup>
+ * const { files } = useMultipleFilesUpload()
+ * <script lang="ts" setup>
+ *
+ * <template>
+ *  <div v-for="(file, index) of files" :key="index">
+ *    <FileUploadItem :file="file" />
+ *  </div>
+ * </template>
+ *
+ *
+ * <!-- FileUploadItem component -->
+ *
+ * <script lang="ts" setup>
+ * import { FileItemRef } from '@nhost/nhost-js'
+ * import { useFileUploadItem } from '@nhost/vue'
+ *
+ * const { file } = defineProps<{ file: FileItemRef }>()
+ *
+ * const { name, progress } = useFileUploadItem(file)
+ * </script>
+ *
+ * <template>
+ * <div>
+ *  <span>{{ name }}</span>
+ *    <v-progress-linear v-model="progress">
+ *      {{ progress }}
+ *    </v-progress-linear>
+ *  </div>
+ * </template>
  *
  * ```
  */
@@ -65,7 +86,7 @@ export const useFileUploadItem = (
     ref.send({
       type: 'ADD',
       file: params.file,
-      bucketId: params.bucketId || bucketId
+      bucketId: params.bucketId || bucketId.value
     })
   }
 
@@ -88,14 +109,14 @@ export const useFileUploadItem = (
     ref.send('DESTROY')
   }
 
-  const isUploading = useSelector(ref, (state) => state.matches('uploading')).value
-  const isUploaded = useSelector(ref, (state) => state.matches('uploaded')).value
-  const isError = useSelector(ref, (state) => state.matches('error')).value
-  const error = useSelector(ref, (state) => state.context.error || null).value
-  const progress = useSelector(ref, (state) => state.context.progress).value
-  const id = useSelector(ref, (state) => state.context.id).value
-  const bucketId = useSelector(ref, (state) => state.context.bucketId).value
-  const name = useSelector(ref, (state) => state.context.file?.name).value
+  const isUploading = useSelector(ref, (state) => state.matches('uploading'))
+  const isUploaded = useSelector(ref, (state) => state.matches('uploaded'))
+  const isError = useSelector(ref, (state) => state.matches('error'))
+  const error = useSelector(ref, (state) => state.context.error || null)
+  const progress = useSelector(ref, (state) => state.context.progress)
+  const id = useSelector(ref, (state) => state.context.id)
+  const bucketId = useSelector(ref, (state) => state.context.bucketId)
+  const name = useSelector(ref, (state) => state.context.file?.name)
 
   return {
     add,
@@ -117,7 +138,7 @@ export const useFileUploadItem = (
  * Use the composable `useFileUpload` to upload a file.
  *
  * @example
- * ```tsx
+ * ```ts
  * const {  add,
  *  upload,
  *  cancel,
