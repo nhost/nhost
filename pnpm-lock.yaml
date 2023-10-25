@@ -1101,6 +1101,9 @@ importers:
       '@nhost/apollo':
         specifier: '*'
         version: link:../../integrations/apollo
+      '@nhost/nhost-js':
+        specifier: ^2.2.17
+        version: link:../../packages/nhost-js
       '@nhost/vue':
         specifier: '*'
         version: link:../../packages/vue
