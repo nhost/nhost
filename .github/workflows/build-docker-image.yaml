@@ -29,9 +29,9 @@ jobs:
       with:
         fetch-depth: 0
 
-    - uses: nixbuild/nix-quick-install-action@v25
+    - uses: nixbuild/nix-quick-install-action@v26
       with:
-        nix_version: 2.4
+        nix_version: 2.16.2
         nix_conf: |
           experimental-features = nix-command flakes
           sandbox = false

@@ -11,9 +11,9 @@ func (*Field) isSelection()          {}
 func (*FragmentSpread) isSelection() {}
 func (*InlineFragment) isSelection() {}
 
-func (s *Field) GetPosition() *Position          { return s.Position }
+func (f *Field) GetPosition() *Position          { return f.Position }
 func (s *FragmentSpread) GetPosition() *Position { return s.Position }
-func (s *InlineFragment) GetPosition() *Position { return s.Position }
+func (f *InlineFragment) GetPosition() *Position { return f.Position }
 
 type Field struct {
 	Alias        string
@@ -36,6 +36,6 @@ type Argument struct {
 	Comment  *CommentGroup
 }
 
-func (s *Field) ArgumentMap(vars map[string]interface{}) map[string]interface{} {
-	return arg2map(s.Definition.Arguments, s.Arguments, vars)
+func (f *Field) ArgumentMap(vars map[string]interface{}) map[string]interface{} {
+	return arg2map(f.Definition.Arguments, f.Arguments, vars)
 }

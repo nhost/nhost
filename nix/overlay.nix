@@ -1,13 +1,14 @@
 final: prev: rec {
-  go = prev.go_1_20.overrideAttrs (finalAttrs: previousAttrs: rec {
-    version = "1.20.7";
+  go = prev.go_1_21.overrideAttrs
+    (finalAttrs: previousAttrs: rec {
+      version = "1.21.3";
 
-    src = final.fetchurl {
-      url = "https://go.dev/dl/go${version}.src.tar.gz";
-      sha256 = "sha256-LF7pyeweczsNu8K9/tP2IwblHYFyvzj09OVCsnUg9Zc=";
-    };
+      src = final.fetchurl {
+        url = "https://go.dev/dl/go${version}.src.tar.gz";
+        sha256 = "sha256-GG8rb4yLcE5paCGwmrIEGlwe4T3LwxVqE63PdZMe5Ig=";
+      };
 
-  });
+    });
 
   golangci-lint = prev.golangci-lint.override rec {
     buildGoModule = args: prev.buildGoModule.override { go = go; } (args // rec {
@@ -29,6 +30,10 @@ final: prev: rec {
         "-X main.date=19700101-00:00:00"
       ];
     });
+  };
+
+  govulncheck = prev.govulncheck.override rec {
+    buildGoModule = args: prev.buildGoModule.override { go = go; } (args // rec { });
   };
 
   gqlgenc = prev.gqlgenc.override rec {

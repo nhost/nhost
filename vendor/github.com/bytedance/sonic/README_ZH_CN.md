@@ -6,7 +6,7 @@
 
 ## 依赖
 
-- Go 1.16~1.20
+- Go 1.16~1.21
 - Linux / MacOS / Windows（需要 Go1.17 以上）
 - Amd64 架构
 
@@ -89,7 +89,7 @@ BenchmarkLoadNode_Parallel/Interface()-16              10330 ns/op        1260.7
 - [大型](https://github.com/bytedance/sonic/blob/main/testdata/twitter.json) (635kB, 10000+ 个键, 6 层)
 ![large benchmarks](./docs/imgs/bench-large.png)
 
-要查看基准测试代码，请参阅 [bench.sh](https://github.com/bytedance/sonic/blob/main/bench.sh) 。
+要查看基准测试代码，请参阅 [bench.sh](https://github.com/bytedance/sonic/blob/main/scripts/bench.sh) 。
 
 ## 工作原理
 
