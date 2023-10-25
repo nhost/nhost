@@ -37,18 +37,21 @@ export interface MultipleFilesUploadComposableResult extends ToRefs<MultipleFile
  *
  * @example
  * ```ts
- * const { upload, add, clear, progress, isUploaded, isUploading, files, isError, cancel } = useMultipleFilesUpload()
+ * const {
+ *   add,
+ *   upload
+ * } = useMultipleFilesUpload()
  *
- * const addFile = async (files: File | File[] | FileList) => {
- *   add({ files })
+ * const addFiles = async (files) => {
+ *   add({files})
  * }
  *
  * const handleSubmit = async (e) => {
- *   e.preventDefault();
- *   upload()
+ *   e.preventDefault()
+ *   await upload()
  * }
  * ```
- * @docs https://docs.nhost.io/reference/vue/use-multiple-files-upload
+ *
  */
 export const useMultipleFilesUpload = (): MultipleFilesUploadComposableResult => {
   const { nhost } = useNhostClient()
