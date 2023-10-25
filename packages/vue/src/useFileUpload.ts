@@ -42,7 +42,8 @@ export type { FileItemRef }
  *
  * @example
  * ```vue
- * // Parent component or page
+ * <!-- Parent component or page -->
+ *
  * <script lang="ts" setup>
  * const { files } = useMultipleFilesUpload()
  * <script lang="ts" setup>
@@ -54,7 +55,8 @@ export type { FileItemRef }
  * </template>
  *
  *
- * // FileUploadItem component
+ * <!-- FileUploadItem component -->
+ *
  * <script lang="ts" setup>
  * import { FileItemRef } from '@nhost/nhost-js'
  * import { useFileUploadItem } from '@nhost/vue'
