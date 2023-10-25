@@ -60,11 +60,24 @@
   "liveNow": false,
   "panels": [
     {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 6,
+      "panels": [],
+      "title": "General",
+      "type": "row"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Number of requests by ingress/method",
+      "description": "Number of requests by method/function",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -121,7 +134,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 0
+        "y": 1
       },
       "id": 2,
       "options": {
@@ -143,8 +156,10 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by(ingress,method) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval]))",
-          "legendFormat": "{{ingress}} {{method}}",
+          "expr": "sum by(method, route) (increase(nginx_ingress_controller_requests{method=~\"$method\",ingress=~\"$ingress\"}[$__rate_interval]))",
+          "format": "time_series",
+          "interval": "2m",
+          "legendFormat": "{{method}} {{route}}",
           "range": true,
           "refId": "A"
         }
@@ -157,7 +172,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Number of requests by status",
+      "description": "Number of requests by status response",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -214,9 +229,9 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 0
+        "y": 1
       },
-      "id": 5,
+      "id": 21,
       "options": {
         "legend": {
           "calcs": [],
@@ -236,13 +251,15 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (status) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval]))",
-          "legendFormat": "__auto",
+          "expr": "sum by(status) (increase(nginx_ingress_controller_requests{method=~\"$method\",ingress=~\"$ingress\"}[$__rate_interval]))",
+          "format": "time_series",
+          "interval": "2m",
+          "legendFormat": "{{status}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Response status",
+      "title": "Response Status",
       "type": "timeseries"
     },
     {
@@ -308,9 +325,9 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 9
       },
-      "id": 4,
+      "id": 8,
       "options": {
         "legend": {
           "calcs": [],
@@ -331,13 +348,114 @@
           },
           "editorMode": "code",
           "expr": "sum by(ingress, method) (increase(nginx_ingress_controller_response_size_sum{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval])) / sum by(ingress, method) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval]))",
-          "legendFormat": "{{ingress}} {{method}}",
+          "interval": "2m",
+          "legendFormat": "{{ method }} - {{ route }}",
           "range": true,
           "refId": "A"
         }
       ],
       "title": "Average Response Size",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 183
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "footer": {
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Value"
+          }
+        ]
+      },
+      "pluginVersion": "9.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "ceil(sum by(ingress, method) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\"}[$__range])))",
+          "format": "table",
+          "instant": true,
+          "interval": "2m",
+          "legendFormat": "{{ingress}} {{method}}",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Requests",
+      "transformations": [],
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 26,
+      "panels": [],
+      "title": "Response Times",
+      "type": "row"
     },
     {
       "datasource": {
@@ -394,17 +512,17 @@
               }
             ]
           },
-          "unit": "bytes"
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
+        "w": 24,
+        "x": 0,
+        "y": 18
       },
-      "id": 7,
+      "id": 11,
       "options": {
         "legend": {
           "calcs": [],
@@ -424,21 +542,35 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by(ingress, method) (increase(nginx_ingress_controller_request_size_sum{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval])) / sum by(ingress, method) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval]))",
-          "legendFormat": "{{ingress}} {{method}}",
+          "expr": "sum by(method, ingress) (increase(nginx_ingress_controller_response_duration_seconds_sum{method=~\"$method\", ingress=~\"$ingress\"}[$__rate_interval])) / sum by(method, ingress) (increase(nginx_ingress_controller_response_duration_seconds_count{method=~\"$method\", ingress=~\"$ingress\"}[$__rate_interval]))",
+          "interval": "2m",
+          "legendFormat": "{{ ingress }} - {{ method }}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Average Request Size",
+      "title": "Average Response Time",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "id": 19,
+      "panels": [],
+      "title": "Errors",
+      "type": "row"
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Number of unsuccessful requests divided by the total of requests",
+      "description": "Number of requests that failed divided by the total number of requests",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -488,7 +620,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "percentunit"
         },
         "overrides": []
       },
@@ -496,9 +628,9 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 27
       },
-      "id": 6,
+      "id": 20,
       "options": {
         "legend": {
           "calcs": [],
@@ -519,13 +651,102 @@
           },
           "editorMode": "code",
           "expr": "sum by(ingress,method) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\",status=~\"^[4-5].*\"}[$__rate_interval])) / sum by(ingress, method) (increase(nginx_ingress_controller_requests[$__rate_interval]))",
-          "legendFormat": "{{ingress}} {{method}}",
+          "format": "time_series",
+          "interval": "2m",
+          "legendFormat": "{{method}} {{ route }}",
           "range": true,
           "refId": "A"
         }
       ],
       "title": "Error Rate",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": true,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 183
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 27
+      },
+      "id": 10,
+      "options": {
+        "footer": {
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Value"
+          }
+        ]
+      },
+      "pluginVersion": "9.2.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "ceil(sum by(ingress, method,status) (increase(nginx_ingress_controller_requests{method=~\"$method\",ingress=~\"$ingress\",status=~\"^[4-5].*\"}[$__range])))",
+          "format": "table",
+          "instant": true,
+          "interval": "2m",
+          "legendFormat": "{{ingress}} {{method}}",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Total Errors",
+      "transformations": [],
+      "type": "table"
     }
   ],
   "schemaVersion": 37,
@@ -577,7 +798,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Ingress tenant",
+  "title": "Ingress Metrics",
   "uid": "WOWEHb7Sz",
   "version": 16,
   "weekStart": ""
