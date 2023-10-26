@@ -156,10 +156,10 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by(method, route) (increase(nginx_ingress_controller_requests{method=~\"$method\",ingress=~\"$ingress\"}[$__rate_interval]))",
+          "expr": "sum by(method, ingress) (increase(nginx_ingress_controller_requests{method=~\"$method\",ingress=~\"$ingress\"}[$__rate_interval]))",
           "format": "time_series",
           "interval": "2m",
-          "legendFormat": "{{method}} {{route}}",
+          "legendFormat": "{{method}} {{ingress}}",
           "range": true,
           "refId": "A"
         }
@@ -349,7 +349,7 @@
           "editorMode": "code",
           "expr": "sum by(ingress, method) (increase(nginx_ingress_controller_response_size_sum{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval])) / sum by(ingress, method) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\"}[$__rate_interval]))",
           "interval": "2m",
-          "legendFormat": "{{ method }} - {{ route }}",
+          "legendFormat": "{{ method }} - {{ ingress }}",
           "range": true,
           "refId": "A"
         }
@@ -653,7 +653,7 @@
           "expr": "sum by(ingress,method) (increase(nginx_ingress_controller_requests{ingress=~\"$ingress\",method=~\"$method\",status=~\"^[4-5].*\"}[$__rate_interval])) / sum by(ingress, method) (increase(nginx_ingress_controller_requests[$__rate_interval]))",
           "format": "time_series",
           "interval": "2m",
-          "legendFormat": "{{method}} {{ route }}",
+          "legendFormat": "{{method}} {{ ingress }}",
           "range": true,
           "refId": "A"
         }
