@@ -11,6 +11,7 @@ import (
 
 const (
 	flagDomain         = "domain"
+	flagBranch         = "branch"
 	flagProjectName    = "project-name"
 	flagRootFolder     = "root-folder"
 	flagDataFolder     = "data-folder"
@@ -35,15 +36,17 @@ func getGitBranchName() string {
 	return head.Name().Short()
 }
 
-func Flags() ([]cli.Flag, error) {
+func Flags() ([]cli.Flag, error) { //nolint:funlen
 	fullWorkingDir, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get working directory: %w", err)
 	}
 
+	branch := getGitBranchName()
+
 	workingDir := "."
 	dotNhostFolder := filepath.Join(workingDir, ".nhost")
-	dataFolder := filepath.Join(dotNhostFolder, "data", getGitBranchName())
+	dataFolder := filepath.Join(dotNhostFolder, "data", branch)
 	nhostFolder := filepath.Join(workingDir, "nhost")
 
 	return []cli.Flag{
@@ -52,6 +55,13 @@ func Flags() ([]cli.Flag, error) {
 			Usage:   "Nhost domain",
 			EnvVars: []string{"NHOST_DOMAIN"},
 			Value:   "nhost.run",
+			Hidden:  true,
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:    flagBranch,
+			Usage:   "Git branch name",
+			EnvVars: []string{"BRANCH"},
+			Value:   branch,
 			Hidden:  true,
 		},
 		&cli.StringFlag{ //nolint:exhaustruct

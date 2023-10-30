@@ -67,7 +67,7 @@ func (dc *DockerCompose) Start(ctx context.Context) error {
 	return nil
 }
 
-func (dc *DockerCompose) Stop(ctx context.Context) error {
+func (dc *DockerCompose) Stop(ctx context.Context, volumes bool) error {
 	cmd := exec.CommandContext( //nolint:gosec
 		ctx,
 		"docker", "compose",
@@ -76,6 +76,9 @@ func (dc *DockerCompose) Stop(ctx context.Context) error {
 		"-p", dc.projectName,
 		"down",
 	)
+	if volumes {
+		cmd.Args = append(cmd.Args, "--volumes")
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 

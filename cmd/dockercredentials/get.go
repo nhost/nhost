@@ -39,6 +39,7 @@ func getToken(ctx context.Context, domain string) (string, error) {
 		&clienv.PathStructure{},
 		domain,
 		"unneeded",
+		"unneeded",
 	)
 	session, err := ce.LoadSession(ctx)
 	if err != nil {

@@ -41,9 +41,9 @@ func expectedPostgres(tmpdir string) *Service {
 		Restart: "always",
 		Volumes: []Volume{
 			{
-				Type:   "bind",
-				Source: filepath.Join(tmpdir, "db/pgdata"),
-				Target: "/var/lib/postgresql/data/pgdata:Z",
+				Type:   "volume",
+				Source: "pgdate_test",
+				Target: "/var/lib/postgresql/data/pgdata",
 			},
 			{
 				Type:   "bind",
@@ -77,7 +77,7 @@ func TestPostgres(t *testing.T) {
 			tc := tc
 
 			tmpdir := filepath.Join(os.TempDir(), "data")
-			got, err := postgres(tc.cfg(), 5432, tmpdir)
+			got, err := postgres(tc.cfg(), 5432, tmpdir, "pgdate_test")
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}

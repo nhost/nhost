@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/ssl"
@@ -417,6 +419,11 @@ type ExposePorts struct {
 	Functions uint
 }
 
+func sanitizeBranch(name string) string {
+	re := regexp.MustCompile(`[^a-zA-Z0-9_-]`)
+	return strings.ToLower(re.ReplaceAllString(name, ""))
+}
+
 func ComposeFileFromConfig( //nolint:funlen
 	cfg *model.ConfigConfig,
 	projectName string,
@@ -428,6 +435,7 @@ func ComposeFileFromConfig( //nolint:funlen
 	dotNhostFolder string,
 	rootFolder string,
 	ports ExposePorts,
+	branch string,
 ) (*ComposeFile, error) {
 	minio, err := minio(dataFolder)
 	if err != nil {
@@ -444,7 +452,8 @@ func ComposeFileFromConfig( //nolint:funlen
 		return nil, err
 	}
 
-	postgres, err := postgres(cfg, postgresPort, dataFolder)
+	pgVolumeName := fmt.Sprintf("pgdata_%s", sanitizeBranch(branch))
+	postgres, err := postgres(cfg, postgresPort, dataFolder, pgVolumeName)
 	if err != nil {
 		return nil, err
 	}
@@ -494,6 +503,7 @@ func ComposeFileFromConfig( //nolint:funlen
 		Volumes: map[string]struct{}{
 			"functions_node_modules": {},
 			"root_node_modules":      {},
+			pgVolumeName:             {},
 		},
 	}
 	return c, nil

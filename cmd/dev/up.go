@@ -207,6 +207,7 @@ func up( //nolint:funlen
 		ce.Path.DotNhostFolder(),
 		ce.Path.Root(),
 		ports,
+		ce.Branch(),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to generate docker-compose.yaml: %w", err)
@@ -300,7 +301,7 @@ func Up(
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
 
-		if err := dc.Stop(ctx); err != nil { //nolint:contextcheck
+		if err := dc.Stop(ctx, false); err != nil { //nolint:contextcheck
 			ce.Warnln("failed to stop Nhost development environment: %s", err)
 		}
 

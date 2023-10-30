@@ -12,6 +12,7 @@ func postgres( //nolint:funlen
 	cfg *model.ConfigConfig,
 	port uint,
 	dataFolder string,
+	volumeName string,
 ) (*Service, error) {
 	if err := os.MkdirAll(fmt.Sprintf("%s/db/pgdata", dataFolder), 0o755); err != nil { //nolint:gomnd
 		return nil, fmt.Errorf("failed to create postgres data folder: %w", err)
@@ -75,9 +76,9 @@ func postgres( //nolint:funlen
 		Restart: "always",
 		Volumes: []Volume{
 			{
-				Type:   "bind",
-				Source: fmt.Sprintf("%s/db/pgdata", dataFolder),
-				Target: "/var/lib/postgresql/data/pgdata:Z",
+				Type:   "volume",
+				Source: volumeName,
+				Target: "/var/lib/postgresql/data/pgdata",
 			},
 			{
 				Type:   "bind",
