@@ -7,6 +7,8 @@ import { httpLogger, logger, uncaughtErrorLogger } from './logger';
 import { authMiddleware } from './middleware/auth';
 import { addOpenApiRoute } from './openapi';
 import router from './routes';
+import { ENV } from './utils/env';
+
 
 const app = express();
 
@@ -19,7 +21,7 @@ addOpenApiRoute(app);
 app.use(httpLogger);
 app.use(helmet(), json(), cors());
 app.use(authMiddleware);
-app.use(router);
+app.use(ENV.AUTH_API_PREFIX, router);
 app.use(uncaughtErrorLogger, serverErrors);
 
 process.on('unhandledRejection', (reason) => {

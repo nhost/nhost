@@ -34,6 +34,9 @@ export const ENV = {
   get AUTH_SERVER_URL() {
     return castStringEnv('AUTH_SERVER_URL');
   },
+  get AUTH_API_PREFIX() {
+    return castStringEnv('AUTH_API_PREFIX', '/');
+  },
 
   // SMTP
   get AUTH_SMTP_PASS() {
