@@ -7,8 +7,6 @@ import AuthLink from './AuthLink'
 export default function OauthLinks() {
   const { github, google, apple } = useProviderLink({ redirectTo: window.location.origin })
 
-  console.log({ apple })
-
   return (
     <>
       <AuthLink leftIcon={<FaGithub />} link={github} color="#333">
