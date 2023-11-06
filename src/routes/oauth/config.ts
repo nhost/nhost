@@ -5,6 +5,7 @@ import { GrantProvider, GrantResponse } from 'grant';
 import jwt from 'jsonwebtoken';
 import { NormalisedProfile } from './utils';
 export const OAUTH_ROUTE = '/signin/provider';
+import { logger } from '@/logger';
 
 const azureBaseUrl = 'https://login.microsoftonline.com';
 const workosBaseUrl = 'https://api.workos.com/sso';
@@ -51,12 +52,28 @@ export const PROVIDERS_CONFIG: Record<
         response_mode: 'form_post',
       },
     },
-    profile: ({ jwt }) => {
+    profile: ({ jwt, profile }) => {
       const payload = jwt?.id_token?.payload;
-      // * See https://developer.apple.com/forums/thread/118209
-      const displayName = payload?.name
-        ? `${payload.name.firstName} ${payload.name.lastName}`
-        : payload.email;
+
+      let displayName;
+
+      if (profile) {
+        try {
+          const userProfile = JSON.parse(profile);
+
+          displayName = userProfile.name
+            ? `${userProfile.name.firstName} ${userProfile.name.lastName}`
+            : displayName;
+        } catch (error) {
+          logger.warn(
+            `Problem trying to parse user data from Apple's response: ${error}. Using the user's email as a fallback.`
+          );
+
+          // use the user's email as fallback
+          displayName = payload.email;
+        }
+      }
+
       return {
         id: payload.sub,
         displayName,
