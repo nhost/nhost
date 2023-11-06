@@ -1,5 +1,12 @@
 ## Changelog
 
+## 0.21.4
+
+### Patch Changes
+
+- 2aa0d6d: fix(oauth): correctly parse user profile during Sign-In with Apple
+- 59e588a: added codeql
+
 ## 0.21.3
 
 ### Patch Changes
