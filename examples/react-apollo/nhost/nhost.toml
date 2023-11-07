@@ -80,10 +80,10 @@ enabled = false
 [auth.method.oauth]
 [auth.method.oauth.apple]
 enabled = true
-clientId = '{{ secrets.AUTH_PROVIDER_APPLE_CLIENT_ID }}'
-keyId = '{{ secrets.AUTH_PROVIDER_APPLE_KEY_ID }}'
-teamId = '{{ secrets.AUTH_PROVIDER_APPLE_TEAM_ID }}'
-privateKey = '{{ secrets.AUTH_PROVIDER_APPLE_PRIVATE_KEY }}'
+clientId = '{{ secrets.APPLE_SERVICE_IDENTIFIER }}'
+keyId = '{{ secrets.APPLE_KEY_ID }}'
+teamId = '{{ secrets.APPLE_TEAM_ID }}'
+privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
 
 [auth.method.oauth.azuread]
 tenant = 'common'
