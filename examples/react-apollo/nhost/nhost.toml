@@ -28,11 +28,11 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.21.2'
+version = '0.21.4'
 
 [auth.redirections]
 clientUrl = 'https://react-apollo.example.nhost.io/'
-allowedUrls = ['https://react-apollo.example.nhost.io/profile']
+allowedUrls = ['https://react-apollo.example.nhost.io/profile', 'http://localhost:30000']
 
 [auth.signUp]
 enabled = true
@@ -79,7 +79,11 @@ enabled = false
 
 [auth.method.oauth]
 [auth.method.oauth.apple]
-enabled = false
+enabled = true
+clientId = '{{ secrets.AUTH_PROVIDER_APPLE_CLIENT_ID }}'
+keyId = '{{ secrets.AUTH_PROVIDER_APPLE_KEY_ID }}'
+teamId = '{{ secrets.AUTH_PROVIDER_APPLE_TEAM_ID }}'
+privateKey = '{{ secrets.AUTH_PROVIDER_APPLE_PRIVATE_KEY }}'
 
 [auth.method.oauth.azuread]
 tenant = 'common'
