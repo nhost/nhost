@@ -82,8 +82,8 @@ jobs:
         run: |
           echo "docker_tags<<EOF" >> $GITHUB_OUTPUT
           echo "type=sha" >> $GITHUB_OUTPUT
-          echo "type=raw,value=latest,enable=true" >> $GITHUB_OUTPUT
           if [ "${{ needs.version.outputs.version }}" != "false" ]; then
+            GIT_TAG="v${{ needs.version.outputs.version }}"
             echo "type=semver,pattern={{version}},value=$GIT_TAG" >> $GITHUB_OUTPUT
             echo "type=semver,pattern={{major}}.{{minor}},value=$GIT_TAG" >> $GITHUB_OUTPUT
             echo "type=semver,pattern={{major}},value=$GIT_TAG" >> $GITHUB_OUTPUT
