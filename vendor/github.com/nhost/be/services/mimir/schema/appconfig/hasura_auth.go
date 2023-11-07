@@ -120,6 +120,10 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			Value: "0.0.0.0",
 		},
 		{
+			Name:  "AUTH_API_PREFIX",
+			Value: "/v1",
+		},
+		{
 			Name: "AUTH_ANONYMOUS_USERS_ENABLED",
 			Value: Stringify(
 				unptr(

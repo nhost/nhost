@@ -10,7 +10,7 @@ import (
 func expectedAuth() *Service {
 	//nolint:lll
 	return &Service{
-		Image:   "nhost/hasura-auth:0.13.1",
+		Image:   "nhost/hasura-auth:0.22.0",
 		Command: nil,
 		DependsOn: map[string]DependsOn{
 			"graphql":  {Condition: "service_healthy"},
@@ -25,6 +25,7 @@ func expectedAuth() *Service {
 			"AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS": "qwe.com",
 			"AUTH_ACCESS_TOKEN_EXPIRES_IN":              "900",
 			"AUTH_ANONYMOUS_USERS_ENABLED":              "true",
+			"AUTH_API_PREFIX":                           "/v1",
 			"AUTH_CLIENT_URL":                           "http://localhost:3000",
 			"AUTH_DISABLE_NEW_USERS":                    "false",
 			"AUTH_EMAIL_PASSWORDLESS_ENABLED":           "true",
@@ -140,15 +141,12 @@ func expectedAuth() *Service {
 			StartPeriod: "60s",
 		},
 		Labels: map[string]string{
-			"traefik.enable": "true",
-			"traefik.http.middlewares.replace-auth.replacepathregex.regex":       "/v1(/|$$)(.*)",
-			"traefik.http.middlewares.replace-auth.replacepathregex.replacement": "/$$2",
-			"traefik.http.routers.auth.entrypoints":                              "web",
-			"traefik.http.routers.auth.middlewares":                              "replace-auth",
-			"traefik.http.routers.auth.rule":                                     "Host(`local.auth.nhost.run`) && PathPrefix(`/v1`)",
-			"traefik.http.routers.auth.service":                                  "auth",
-			"traefik.http.routers.auth.tls":                                      "false",
-			"traefik.http.services.auth.loadbalancer.server.port":                "4000",
+			"traefik.enable":                                      "true",
+			"traefik.http.routers.auth.entrypoints":               "web",
+			"traefik.http.routers.auth.rule":                      "Host(`local.auth.nhost.run`)",
+			"traefik.http.routers.auth.service":                   "auth",
+			"traefik.http.routers.auth.tls":                       "false",
+			"traefik.http.services.auth.loadbalancer.server.port": "4000",
 		},
 		Ports:   nil,
 		Restart: "always",
@@ -169,9 +167,28 @@ func TestAuth(t *testing.T) {
 		expected func() *Service
 	}{
 		{
-			name:     "success",
+			name:     "default",
 			cfg:      getConfig,
 			expected: expectedAuth,
+		},
+		{
+			name: "pre-0.22.0",
+			cfg: func() *model.ConfigConfig {
+				cfg := getConfig()
+				cfg.Auth.Version = ptr("0.21.3")
+				return cfg
+			},
+			expected: func() *Service {
+				svc := expectedAuth()
+				svc.Image = "nhost/hasura-auth:0.21.3"
+
+				svc.Labels["traefik.http.middlewares.replace-auth.replacepathregex.regex"] = "/v1(/|$$)(.*)"
+				svc.Labels["traefik.http.middlewares.replace-auth.replacepathregex.replacement"] = "/$$2"
+				svc.Labels["traefik.http.routers.auth.middlewares"] = "replace-auth"
+				svc.Labels["traefik.http.routers.auth.rule"] = "Host(`local.auth.nhost.run`) && PathPrefix(`/v1`)"
+
+				return svc
+			},
 		},
 	}
 

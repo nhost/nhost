@@ -7,6 +7,23 @@ import (
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 )
 
+func authPatch022(svc Service, useTLS bool) *Service {
+	svc.Labels = Ingresses{
+		{
+			Name: "auth",
+			TLS:  useTLS,
+			Rule: "Host(`local.auth.nhost.run`) && PathPrefix(`/v1`)",
+			Port: authPort,
+			Rewrite: &Rewrite{
+				Regex:       "/v1(/|$$)(.*)",
+				Replacement: "/$$2",
+			},
+		},
+	}.Labels()
+
+	return &svc
+}
+
 func auth( //nolint:funlen
 	cfg *model.ConfigConfig,
 	httpPort uint,
@@ -37,7 +54,7 @@ func auth( //nolint:funlen
 	for _, v := range envars {
 		env[v.Name] = v.Value
 	}
-	return &Service{
+	svc := &Service{
 		Image: fmt.Sprintf("nhost/hasura-auth:%s", *cfg.Auth.Version),
 		DependsOn: map[string]DependsOn{
 			"graphql": {
@@ -61,12 +78,8 @@ func auth( //nolint:funlen
 			{
 				Name: "auth",
 				TLS:  useTLS,
-				Rule: "Host(`local.auth.nhost.run`) && PathPrefix(`/v1`)",
+				Rule: "Host(`local.auth.nhost.run`)",
 				Port: authPort,
-				Rewrite: &Rewrite{
-					Regex:       "/v1(/|$$)(.*)",
-					Replacement: "/$$2",
-				},
 			},
 		}.Labels(),
 		Ports:   ports(port, authPort),
@@ -79,5 +92,11 @@ func auth( //nolint:funlen
 			},
 		},
 		WorkingDir: nil,
-	}, nil
+	}
+
+	if appconfig.CompareVersions(*cfg.Auth.Version, "0.21.999999999") <= 0 {
+		svc = authPatch022(*svc, useTLS)
+	}
+
+	return svc, nil
 }

@@ -182,7 +182,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 					Allowed: []string{"user", "admin"},
 				},
 			},
-			Version: ptr("0.13.1"),
+			Version: ptr("0.22.0"),
 		},
 		Global: &model.ConfigGlobal{
 			Environment: []*model.ConfigEnvironmentVariable{
