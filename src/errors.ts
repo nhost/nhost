@@ -26,6 +26,10 @@ const asErrors = <T>(et: {
 }) => et;
 
 export const ERRORS = asErrors({
+  'bad-request': {
+    status: StatusCodes.BAD_REQUEST,
+    message: 'Bad Request',
+  },
   'route-not-found': {
     status: StatusCodes.NOT_FOUND,
     message: 'Route not found',

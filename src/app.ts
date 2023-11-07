@@ -1,3 +1,5 @@
+import { sendError } from '@/errors';
+import { ReasonPhrases } from 'http-status-codes';
 import { json } from 'body-parser';
 import cors from 'cors';
 import express from 'express';
@@ -44,6 +46,18 @@ process.on('uncaughtException', (err, origin) => {
     origin,
   });
   process.exit(1);
+});
+
+/**
+ * GET /healthz
+ * @summary Check if the server is up and running
+ * @return 200 - Success - application/json
+ * @tags General
+ */
+app.get('/healthz', (_req, res) => res.json(ReasonPhrases.OK));
+
+app.use('/', (_req, res) => {
+  return sendError(res,  'bad-request');
 });
 
 export { app };

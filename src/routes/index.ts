@@ -1,6 +1,5 @@
 import { sendError } from '@/errors';
 import * as express from 'express';
-import { ReasonPhrases } from 'http-status-codes';
 import nocache from 'nocache';
 import env from './env';
 import { mfaRouter } from './mfa';
@@ -15,14 +14,6 @@ import { verifyRouter } from './verify';
 
 const router = express.Router();
 router.use(nocache());
-
-/**
- * GET /healthz
- * @summary Check if the server is up and running
- * @return 200 - Success - application/json
- * @tags General
- */
-router.get('/healthz', (_req, res) => res.json(ReasonPhrases.OK));
 
 /**
  * GET /version

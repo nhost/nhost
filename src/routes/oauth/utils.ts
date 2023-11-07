@@ -139,7 +139,7 @@ export const createGrantConfig = (): GrantConfig =>
     {
       defaults: {
         origin: ENV.AUTH_SERVER_URL,
-        prefix: OAUTH_ROUTE,
+        prefix: `${ENV.AUTH_API_PREFIX}${OAUTH_ROUTE}`,
         transport: 'session',
         scope: ['email', 'profile'],
         response: ['tokens', 'email', 'profile', 'jwt'],
