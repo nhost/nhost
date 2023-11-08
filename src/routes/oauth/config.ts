@@ -51,6 +51,7 @@ export const PROVIDERS_CONFIG: Record<
         response_type: 'code id_token',
         response_mode: 'form_post',
       },
+      dynamic: [],
     },
     profile: ({ jwt, profile }) => {
       const payload = jwt?.id_token?.payload;
@@ -93,6 +94,7 @@ export const PROVIDERS_CONFIG: Record<
       access_url: `${azureBaseUrl}/[subdomain]/oauth2/token`,
       profile_url: `${azureBaseUrl}/[subdomain]/openid/userinfo`,
       subdomain: process.env.AUTH_PROVIDER_AZUREAD_TENANT || 'common',
+      dynamic: [],
     },
     profile: ({ jwt }) => {
       const payload = jwt?.id_token?.payload;
@@ -109,6 +111,7 @@ export const PROVIDERS_CONFIG: Record<
       client_id: process.env.AUTH_PROVIDER_BITBUCKET_CLIENT_ID,
       client_secret: process.env.AUTH_PROVIDER_BITBUCKET_CLIENT_SECRET,
       scope: ['account'],
+      dynamic: [],
     },
     profile: async ({ profile, access_token }) => {
       const {
@@ -135,6 +138,7 @@ export const PROVIDERS_CONFIG: Record<
       client_id: process.env.AUTH_PROVIDER_DISCORD_CLIENT_ID,
       client_secret: process.env.AUTH_PROVIDER_DISCORD_CLIENT_SECRET,
       scope: ['identify', 'email'],
+      dynamic: [],
     },
     profile: ({ profile }) => ({
       id: profile.id,
@@ -152,6 +156,7 @@ export const PROVIDERS_CONFIG: Record<
       client_secret: process.env.AUTH_PROVIDER_FACEBOOK_CLIENT_SECRET,
       scope: ['email'],
       profile_url: 'https://graph.facebook.com/me?fields=id,name,email,picture',
+      dynamic: [],
     },
     profile: ({ profile }) => ({
       id: profile.id,
@@ -166,6 +171,7 @@ export const PROVIDERS_CONFIG: Record<
       client_id: process.env.AUTH_PROVIDER_GITHUB_CLIENT_ID,
       client_secret: process.env.AUTH_PROVIDER_GITHUB_CLIENT_SECRET,
       scope: ['user:email'],
+      dynamic: [],
     },
     profile: async ({ profile, access_token }) => {
       // * The email is not returned by default, so we need to make a separate request
@@ -191,6 +197,7 @@ export const PROVIDERS_CONFIG: Record<
       client_id: process.env.AUTH_PROVIDER_GITLAB_CLIENT_ID,
       client_secret: process.env.AUTH_PROVIDER_GITLAB_CLIENT_SECRET,
       scope: ['read_user'],
+      dynamic: [],
     },
     profile: ({ profile }) => ({
       id: profile.id && String(profile.id),
@@ -209,6 +216,7 @@ export const PROVIDERS_CONFIG: Record<
         prompt: 'consent',
         access_type: 'offline',
       },
+      dynamic: [],
     },
     profile: ({
       profile: { sub, name, picture, email, email_verified, locale },
@@ -229,6 +237,7 @@ export const PROVIDERS_CONFIG: Record<
       scope: ['r_emailaddress', 'r_liteprofile'],
       profile_url:
         'https://api.linkedin.com/v2/me?projection=(id,localizedFirstName,localizedLastName,profilePicture(displayImage~:playableStreams))',
+      dynamic: [],
     },
     profile: async ({ profile, access_token }) => {
       const {
@@ -277,6 +286,7 @@ export const PROVIDERS_CONFIG: Record<
       client_id: process.env.AUTH_PROVIDER_SPOTIFY_CLIENT_ID,
       client_secret: process.env.AUTH_PROVIDER_SPOTIFY_CLIENT_SECRET,
       scope: ['user-read-email', 'user-read-private'],
+      dynamic: [],
     },
     profile: ({ profile }) => ({
       id: profile.id,
@@ -291,6 +301,7 @@ export const PROVIDERS_CONFIG: Record<
       client_id: process.env.AUTH_PROVIDER_STRAVA_CLIENT_ID,
       client_secret: process.env.AUTH_PROVIDER_STRAVA_CLIENT_SECRET,
       scope: ['profile:read_all'],
+      dynamic: [],
     },
     // ! It is not possible to get the user's email address from Strava
     profile: ({ profile }) => {
@@ -307,6 +318,7 @@ export const PROVIDERS_CONFIG: Record<
       client_id: process.env.AUTH_PROVIDER_TWITCH_CLIENT_ID,
       client_secret: process.env.AUTH_PROVIDER_TWITCH_CLIENT_SECRET,
       scope: ['user:read:email'],
+      dynamic: [],
     },
     profile: ({ profile: { data } }) => {
       if (!Array.isArray(data)) {
@@ -336,6 +348,7 @@ export const PROVIDERS_CONFIG: Record<
       response: ['tokens', 'profile', 'raw'],
       profile_url:
         'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
+      dynamic: [],
     },
     profile: ({ profile }) => ({
       id: profile.id_str || (profile.id && String(profile.id)),
@@ -355,6 +368,7 @@ export const PROVIDERS_CONFIG: Record<
       client_id: process.env.AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_ID,
       client_secret: process.env.AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_SECRET,
       scope: ['wl.basic', 'wl.emails'],
+      dynamic: [],
     },
     profile: ({ profile }) => ({
       // ? Could be improved in fetching the user's profile picture - but the apis.live.net/v5.0 API is deprecated
