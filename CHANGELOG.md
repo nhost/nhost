@@ -1,5 +1,16 @@
 ## Changelog
 
+## 0.22.0
+
+### Minor Changes
+
+- 024258c: feat: set oauth origin dynamically based on host header
+- 5663eec: feat: allow configuring api prefix
+
+### Patch Changes
+
+- 044ed00: fix: mount oauth and healthz routes correctly when specifying AUTH_API_PREFIX
+
 ## 0.21.4
 
 ### Patch Changes
