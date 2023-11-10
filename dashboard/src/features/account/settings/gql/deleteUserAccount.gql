@@ -1,0 +1,5 @@
+mutation deleteUserAccount($id: uuid!) {
+  deleteUser(id: $id) {
+    __typename
+  }
+}
