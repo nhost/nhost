@@ -22196,6 +22196,13 @@ export type Workspaces_Updates = {
   where: Workspaces_Bool_Exp;
 };
 
+export type DeleteUserAccountMutationVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type DeleteUserAccountMutation = { __typename?: 'mutation_root', deleteUser?: { __typename: 'users' } | null };
+
 export type GetPersonalAccessTokensQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -23190,6 +23197,39 @@ export const GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc = gql`
   memberType
 }
     `;
+export const DeleteUserAccountDocument = gql`
+    mutation deleteUserAccount($id: uuid!) {
+  deleteUser(id: $id) {
+    __typename
+  }
+}
+    `;
+export type DeleteUserAccountMutationFn = Apollo.MutationFunction<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>;
+
+/**
+ * __useDeleteUserAccountMutation__
+ *
+ * To run a mutation, you first call `useDeleteUserAccountMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteUserAccountMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteUserAccountMutation, { data, loading, error }] = useDeleteUserAccountMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteUserAccountMutation(baseOptions?: Apollo.MutationHookOptions<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>(DeleteUserAccountDocument, options);
+      }
+export type DeleteUserAccountMutationHookResult = ReturnType<typeof useDeleteUserAccountMutation>;
+export type DeleteUserAccountMutationResult = Apollo.MutationResult<DeleteUserAccountMutation>;
+export type DeleteUserAccountMutationOptions = Apollo.BaseMutationOptions<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>;
 export const GetPersonalAccessTokensDocument = gql`
     query GetPersonalAccessTokens {
   personalAccessTokens: authRefreshTokens(

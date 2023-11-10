@@ -1,6 +1,7 @@
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { AccountSettingsLayout } from '@/features/account/settings/components/AccountSettingsLayout';
+import { DeleteAccount } from '@/features/account/settings/components/DeleteAccount';
 import { PasswordSettings } from '@/features/account/settings/components/PasswordSettings';
 import { PATSettings } from '@/features/account/settings/components/PATSettings';
 import type { ReactElement } from 'react';
@@ -18,6 +19,8 @@ export default function AccountSettingsPage() {
       <RetryableErrorBoundary>
         <PATSettings />
       </RetryableErrorBoundary>
+
+      <DeleteAccount />
     </Container>
   );
 }
