@@ -5,9 +5,9 @@ export const LOCALHOST_REGEX =
   /^((?<protocol>http[s]?):\/\/)?(?<host>(localhost|local))(:(?<port>(\d+|__\w+__)))?$/
 
 /**
- * `backendUrl` should now be used only when self-hosting
- * `subdomain` and `region` should be used instead when using the Nhost platform
- * `
+ * \`backendUrl\` should now be used only when self-hosting
+ * \`subdomain\` and `region` should be used instead when using the Nhost platform
+ *
  * @param backendOrSubdomain
  * @param service
  * @returns
