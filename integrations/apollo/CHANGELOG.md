@@ -1,5 +1,12 @@
 # @nhost/apollo
 
+## 5.2.22
+
+### Patch Changes
+
+- Updated dependencies [8b127fbb6]
+  - @nhost/nhost-js@2.2.18
+
 ## 5.2.21
 
 ### Patch Changes
