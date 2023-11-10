@@ -1,5 +1,13 @@
 # @nhost-examples/react-apollo
 
+## 0.1.16
+
+### Patch Changes
+
+- 6e61dce29: feat: add SignIn with Apple
+  - @nhost/react@2.1.1
+  - @nhost/react-apollo@6.0.1
+
 ## 0.1.15
 
 ### Patch Changes

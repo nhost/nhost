@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.7.1
+
+### Patch Changes
+
+- 1ee021b4a: remove custom domains from roadmap
+
 ## 0.7.0
 
 ### Minor Changes

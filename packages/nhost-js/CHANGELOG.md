@@ -1,5 +1,11 @@
 # @nhost/nhost-js
 
+## 2.2.18
+
+### Patch Changes
+
+- 8b127fbb6: feat: export `urlFromSubdomain` helper
+
 ## 2.2.17
 
 ### Patch Changes

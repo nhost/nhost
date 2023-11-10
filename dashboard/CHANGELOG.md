@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 0.20.28
+
+### Patch Changes
+
+- 7c2c31082: feat: add support for users to delete their account
+  - @nhost/react-apollo@6.0.1
+  - @nhost/nextjs@1.13.40
+
 ## 0.20.27
 
 ### Patch Changes
