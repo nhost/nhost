@@ -1,10 +1,14 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useDeleteUserAccountMutation } from '@/utils/__generated__/graphql';
+import {
+  useDeleteUserAccountMutation,
+  useGetAllWorkspacesAndProjectsQuery,
+} from '@/utils/__generated__/graphql';
 import { type ApolloError } from '@apollo/client';
 import { useSignOut, useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
@@ -21,6 +25,15 @@ function ConfirmDeleteAccountModal({
 }) {
   const [remove, setRemove] = useState(false);
   const [loadingRemove, setLoadingRemove] = useState(false);
+
+  const user = useUserData();
+
+  const { data, loading } = useGetAllWorkspacesAndProjectsQuery({
+    skip: !user,
+  });
+
+  const userHasProjects =
+    !loading && data?.workspaces.some((workspace) => workspace.projects.length);
 
   const userData = useUserData();
 
@@ -61,20 +74,19 @@ function ConfirmDeleteAccountModal({
     <Box className={twMerge('w-full rounded-lg p-6 text-left')}>
       <div className="grid grid-flow-row gap-1">
         <Text variant="h3" component="h2">
-          Delete Account
+          Delete Account?
         </Text>
 
-        <Text variant="subtitle2">
-          Are you sure you want to delete your account?
-        </Text>
-
-        <Text
-          variant="subtitle2"
-          className="font-bold"
-          sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
-        >
-          This cannot be undone.
-        </Text>
+        {userHasProjects && (
+          <Text
+            variant="subtitle2"
+            className="font-bold"
+            sx={{ color: (theme) => `${theme.palette.error.main} !important` }}
+          >
+            You still have active projects. Please delete your projects before
+            proceeding with the account deletion.
+          </Text>
+        )}
 
         <Box className="my-4">
           <Checkbox
@@ -91,7 +103,7 @@ function ConfirmDeleteAccountModal({
           <Button
             color="error"
             onClick={onClickConfirm}
-            disabled={!remove}
+            disabled={userHasProjects}
             loading={loadingRemove}
           >
             Delete
@@ -126,8 +138,24 @@ export default function DeleteAccount() {
   };
 
   return (
-    <Button color="error" onClick={confirmDeleteAccount}>
-      Delete account
-    </Button>
+    <SettingsContainer
+      title="Delete Account"
+      description="Please proceed with caution as the removal of your Personal Account and its contents from the Nhost platform is irreversible. This action will permanently delete your account and all associated data."
+      className="px-0"
+      slotProps={{
+        submitButton: { className: 'hidden' },
+        footer: { className: 'hidden' },
+      }}
+    >
+      <Box className="grid grid-flow-row border-t-1">
+        <Button
+          color="error"
+          className="mx-4 mt-4 justify-self-end"
+          onClick={confirmDeleteAccount}
+        >
+          Delete Personal Account
+        </Button>
+      </Box>
+    </SettingsContainer>
   );
 }
