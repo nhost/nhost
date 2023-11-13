@@ -5,6 +5,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { Alert } from '@/components/ui/v2/Alert';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
@@ -144,15 +145,9 @@ export default function AuthDomain() {
             />
           </Box>
           {!currentProject.plan.isFree && (
-            <Box
-              className="grid items-center grid-flow-col gap-1 p-3 rounded-lg shadow-sm place-content-between"
-              sx={{ backgroundColor: 'grey.200' }}
-            >
-              <Text>
-                ⚠️ Please note that once you increase the storage, it cannot be
-                reduced.
-              </Text>
-            </Box>
+              <Alert severity="info" className="col-span-6 text-left">
+              Note that volumes can only be increased (not decreased). Also, due to an AWS limitation, the same volume can only be increased once every 6 hours.
+              </Alert>
           )}
         </SettingsContainer>
       </Form>
