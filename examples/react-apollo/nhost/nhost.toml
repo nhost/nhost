@@ -28,7 +28,7 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.21.4'
+version = '0.22.1'
 
 [auth.redirections]
 clientUrl = 'https://react-apollo.example.nhost.io/'
@@ -112,7 +112,9 @@ clientId = '{{ secrets.GOOGLE_CLIENT_ID }}'
 clientSecret = '{{ secrets.GOOGLE_CLIENT_SECRET }}'
 
 [auth.method.oauth.linkedin]
-enabled = false
+enabled = true
+clientId='{{ secrets.LINKEDIN_CLIENT_ID }}'
+clientSecret='{{ secrets.LINKEDIN_CLIENT_SECRET }}'
 
 [auth.method.oauth.spotify]
 enabled = false
