@@ -2,4 +2,4 @@
 '@nhost/dashboard': minor
 ---
 
-Update alert message on increasing postgre's volume capacity
+Update alert message on increasing PostgreSQL's volume capacity

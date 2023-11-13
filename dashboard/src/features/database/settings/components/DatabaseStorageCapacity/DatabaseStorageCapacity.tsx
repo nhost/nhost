@@ -146,7 +146,7 @@ export default function AuthDomain() {
           </Box>
           {!currentProject.plan.isFree && (
               <Alert severity="info" className="col-span-6 text-left">
-              Note that volumes can only be increased (not decreased). Also, duo to an AWS limitation, the same volume can only be increased once every 6 hours.
+              Note that volumes can only be increased (not decreased). Also, due to an AWS limitation, the same volume can only be increased once every 6 hours.
               </Alert>
           )}
         </SettingsContainer>
