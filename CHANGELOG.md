@@ -1,5 +1,11 @@
 ## Changelog
 
+## 0.22.1
+
+### Patch Changes
+
+- b727ab9: fix: update sign-in with Linked-In to use OpenId
+
 ## 0.22.0
 
 ### Minor Changes
