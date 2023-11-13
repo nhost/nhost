@@ -234,49 +234,22 @@ export const PROVIDERS_CONFIG: Record<
     grant: {
       client_id: process.env.AUTH_PROVIDER_LINKEDIN_CLIENT_ID,
       client_secret: process.env.AUTH_PROVIDER_LINKEDIN_CLIENT_SECRET,
-      scope: ['r_emailaddress', 'r_liteprofile'],
-      profile_url:
-        'https://api.linkedin.com/v2/me?projection=(id,localizedFirstName,localizedLastName,profilePicture(displayImage~:playableStreams))',
+      scope: ['openid', 'profile', 'email'],
+      profile_url: 'https://api.linkedin.com/v2/userinfo',
       dynamic: [],
     },
-    profile: async ({ profile, access_token }) => {
-      const {
-        data: {
-          elements: [
-            {
-              'handle~': { emailAddress: email },
-            },
-          ],
-        },
-      } = await axios.get<{
-        elements: {
-          'handle~': {
-            emailAddress: string;
-          };
-        }[];
-      }>(
-        'https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))',
-        {
-          headers: { Authorization: `Bearer ${access_token}` },
-        }
-      );
-
-      const locale = profile.firstName?.preferredLocale?.language?.slice(0, 2);
-      const displayName = `${profile.localizedFirstName} ${profile.localizedLastName}`;
-
-      const avatarUrl = profile.profilePicture?.[
-        'displayImage~'
-      ]?.elements?.find(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (e: any) => e.authorizationMethod === 'PUBLIC'
-      )?.identifiers?.[0]?.identifier;
+    profile: async ({ profile }) => {
+      const displayName =
+        profile && profile.given_name && profile.family_name
+          ? `${profile.given_name} ${profile.family_name}`
+          : profile.email;
 
       return {
-        id: profile.id,
+        id: profile.sub,
         displayName,
-        avatarUrl,
-        locale,
-        email,
+        avatarUrl: profile.picture,
+        locale: profile.locale,
+        email: profile.email,
       };
     },
   },
