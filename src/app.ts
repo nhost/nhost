@@ -56,8 +56,9 @@ process.on('uncaughtException', (err, origin) => {
  */
 app.get('/healthz', (_req, res) => res.json(ReasonPhrases.OK));
 
-app.use('/', (_req, res) => {
-  return sendError(res,  'bad-request');
+// all other routes should throw 404 not found
+app.use('*', (_req, res) => {
+  return sendError(res, 'route-not-found');
 });
 
 export { app };

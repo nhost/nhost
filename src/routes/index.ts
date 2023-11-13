@@ -1,4 +1,3 @@
-import { sendError } from '@/errors';
 import * as express from 'express';
 import nocache from 'nocache';
 import env from './env';
@@ -39,10 +38,5 @@ router.use(verifyRouter);
 env(router);
 
 router.use(oauthProviders);
-
-// all other routes should throw 404 not found
-router.use('*', (rwq, res) => {
-  return sendError(res, 'route-not-found');
-});
 
 export default router;
