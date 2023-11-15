@@ -32,6 +32,7 @@ version = '0.22.1'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
+allowedUrls = ['https://example-nextjs-server-components.nhost.io', 'https://example-sveltekit.nhost.io']
 
 [auth.signUp]
 enabled = true
