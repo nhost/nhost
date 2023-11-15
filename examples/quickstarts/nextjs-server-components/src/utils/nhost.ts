@@ -1,5 +1,7 @@
 import { AuthErrorPayload, NhostClient, NhostSession } from '@nhost/nhost-js'
 import { cookies } from 'next/headers'
+
+// eslint-disable-next-line @next/next/no-server-import-in-page
 import { NextRequest, NextResponse } from 'next/server'
 import { type StateFrom } from 'xstate/lib/types'
 import { waitFor } from 'xstate/lib/waitFor'

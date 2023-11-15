@@ -54,6 +54,7 @@ const TodoItem = ({ todo }: { todo: Todo }) => {
         <Link
           className="w-6 h-6"
           target="_blank"
+          passHref
           href={nhost.storage.getPublicUrl({ fileId: todo.attachment.id })}
         >
           <svg

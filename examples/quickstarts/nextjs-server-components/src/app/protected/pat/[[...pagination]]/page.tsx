@@ -5,7 +5,7 @@ import { getNhost } from '@utils/nhost'
 import Head from 'next/head'
 import Link from 'next/link'
 
-const PAT = async ({
+const PATs = async ({
   params
 }: {
   params: {
@@ -100,4 +100,4 @@ const PAT = async ({
   )
 }
 
-export default withAuthAsync(PAT)
+export default withAuthAsync(PATs)
