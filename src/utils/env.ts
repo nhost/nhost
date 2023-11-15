@@ -229,6 +229,10 @@ export const ENV = {
     return castBooleanEnv('AUTH_SHOW_LOG_QUERY_PARAMS', false);
   },
 
+  get AUTH_DISABLE_SIGNUP() {
+    return castBooleanEnv('AUTH_DISABLE_SIGNUP', false);
+  },
+
   // * See ../server.ts
   // get AUTH_SKIP_INIT() {
   //   return castBooleanEnv('AUTH_SKIP_INIT', false);

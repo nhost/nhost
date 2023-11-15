@@ -199,4 +199,17 @@ describe('webauthn', () => {
       .send({ email, credential })
       .expect(StatusCodes.BAD_REQUEST);
   });
+
+  it('should fail if signup is disabled', async () => {
+    const email = faker.internet.email();
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_SIGNUP: true,
+    });
+
+    await request
+      .post('/signup/webauthn')
+      .send({ email })
+      .expect(StatusCodes.FORBIDDEN);
+  });
 });

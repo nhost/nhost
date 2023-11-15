@@ -54,4 +54,20 @@ describe('passwordless sms', () => {
       })
       .expect(StatusCodes.INTERNAL_SERVER_ERROR);
   });
+
+  it('should fail when signup is disabled', async () => {
+    const phoneNumber = `+3598${faker.phone.phoneNumber('########')}`;
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_SIGNUP: true,
+      AUTH_SMS_TEST_PHONE_NUMBERS: phoneNumber,
+    });
+
+    await request
+      .post('/signin/passwordless/sms')
+      .send({
+        phoneNumber,
+      })
+      .expect(StatusCodes.FORBIDDEN);
+  });
 });

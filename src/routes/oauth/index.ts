@@ -148,8 +148,10 @@ export const oauthProviders = Router()
    * @see {@link file://./config/index.ts}
    */
   .use((req, res, next) => {
-    res.locals.grant = {dynamic: {
-        origin: `${req.protocol}://${req.headers.host}`},
+    res.locals.grant = {
+      dynamic: {
+        origin: `${req.protocol}://${req.headers.host}`,
+      },
     };
     next();
   })
@@ -274,7 +276,11 @@ export const oauthProviders = Router()
         }
       } else {
         // * No user found with this email. Create a new user
-        // TODO feature: check if registration is enabled
+
+        if (ENV.AUTH_DISABLE_SIGNUP) {
+          return sendError(res, 'signup-disabled');
+        }
+
         const userInput = await transformOauthProfile(profile, options);
         user = await insertUser({
           ...userInput,

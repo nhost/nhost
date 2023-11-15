@@ -24,6 +24,10 @@ export const signUpEmailPasswordHandler: RequestHandler<
   const { body } = req;
   const { email, password, options } = body;
 
+  if (ENV.AUTH_DISABLE_SIGNUP) {
+    return sendError(res, 'signup-disabled');
+  }
+
   // check if email already in use by some other user
   if (await getUserByEmail(email)) {
     return sendError(res, 'email-already-in-use');

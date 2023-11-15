@@ -151,6 +151,10 @@ export const ERRORS = asErrors({
     status: StatusCodes.INTERNAL_SERVER_ERROR,
     message: 'Invalid OAuth configuration',
   },
+  'signup-disabled': {
+    status: StatusCodes.FORBIDDEN,
+    message: 'Sign up is disabled.',
+  },
 });
 
 export const sendError = (

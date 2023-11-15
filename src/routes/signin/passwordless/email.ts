@@ -53,6 +53,10 @@ export const signInPasswordlessEmailHandler: RequestHandler<
 
   // if no user exists, create the user
   if (!user) {
+    if (ENV.AUTH_DISABLE_SIGNUP) {
+      return sendError(res, 'signup-disabled');
+    }
+
     user = await insertUser({
       displayName: displayName ?? email,
       locale,

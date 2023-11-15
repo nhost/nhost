@@ -11,7 +11,6 @@ import { addOpenApiRoute } from './openapi';
 import router from './routes';
 import { ENV } from './utils/env';
 
-
 const app = express();
 
 if (process.env.NODE_ENV === 'production') {

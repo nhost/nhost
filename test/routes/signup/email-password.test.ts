@@ -215,4 +215,23 @@ describe('email-password', () => {
       'The value of "options.redirectTo" is not allowed.'
     );
   });
+
+  it('should return an unauthorized error when signup is disabled', async () => {
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_SIGNUP: true,
+    });
+
+    const { body } = await request
+      .post('/signup/email-password')
+      .send({
+        email,
+        password,
+      })
+      .expect(StatusCodes.FORBIDDEN);
+
+    expect(body.message).toEqual('Sign up is disabled.');
+  });
 });

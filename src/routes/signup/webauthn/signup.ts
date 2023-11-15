@@ -34,6 +34,10 @@ export const signUpWebauthnHandler: RequestHandler<
     return sendError(res, 'disabled-endpoint');
   }
 
+  if (ENV.AUTH_DISABLE_SIGNUP) {
+    return sendError(res, 'signup-disabled');
+  }
+
   // check if email already in use by some other user
   if (await getUserByEmail(email)) {
     return sendError(res, 'email-already-in-use');

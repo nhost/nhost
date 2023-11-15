@@ -47,6 +47,10 @@ export const signInPasswordlessSmsHandler: RequestHandler<
 
   // if no user exists, create the user
   if (!userExists) {
+    if (ENV.AUTH_DISABLE_SIGNUP) {
+      return sendError(res, 'signup-disabled');
+    }
+
     user = await insertUser({
       disabled: ENV.AUTH_DISABLE_NEW_USERS,
       displayName,

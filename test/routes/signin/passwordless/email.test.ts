@@ -205,4 +205,17 @@ describe('passwordless email (magic link)', () => {
         error: 'invalid-request',
       });
   });
+
+  it('should not be possible to signin in when signup is disabled', async () => {
+    await request.post('/change-env').send({
+      AUTH_DISABLE_SIGNUP: true,
+    });
+
+    await request
+      .post('/signin/passwordless/email')
+      .send({
+        email: faker.internet.email(),
+      })
+      .expect(StatusCodes.FORBIDDEN);
+  });
 });
