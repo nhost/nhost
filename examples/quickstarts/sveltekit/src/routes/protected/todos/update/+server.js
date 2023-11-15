@@ -1,7 +1,6 @@
 import { getNhost } from '$lib/nhost'
-import pkg from '@apollo/client'
+import { gql } from '@apollo/client'
 import { json } from '@sveltejs/kit'
-const { gql } = pkg
 
 /** @type {import('./$types').RequestHandler} */
 export async function POST({ request, cookies }) {

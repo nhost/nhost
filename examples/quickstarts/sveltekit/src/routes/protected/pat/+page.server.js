@@ -1,6 +1,5 @@
 import { getNhost } from '$lib/nhost'
-import pkg from '@apollo/client'
-const { gql } = pkg
+import { gql } from '@apollo/client'
 
 /** @type {import('./$types').PageServerLoad} */
 export const load = async ({ url, cookies }) => {
