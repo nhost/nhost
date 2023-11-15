@@ -11,8 +11,8 @@ dependencies:
 
 devDependencies:
   '@nhost/nhost-js':
-    specifier: 2.2.17
-    version: 2.2.17(graphql@16.8.0)
+    specifier: 2.2.18
+    version: 2.2.18(graphql@16.8.0)
 
 packages:
 
@@ -58,8 +58,8 @@ packages:
       - encoding
     dev: true
 
-  /@nhost/nhost-js@2.2.17(graphql@16.8.0):
-    resolution: {integrity: sha512-6KRzhqmx7JcOmbp91/YZaBavGKdyGdx7kDrzRLoP1RYYOAIMpdMhHzeIju9LQfujY/8nFARRq97vFpPSbpnhSg==}
+  /@nhost/nhost-js@2.2.18(graphql@16.8.0):
+    resolution: {integrity: sha512-aHn6p75fuG7SEUyB/yfX5TXtVTqwCT88zdN9Mmgo/8hnFOGV1XM7B4fxuGpNQCz18tG6kjM24tWx8EGXAEZ1sw==}
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
