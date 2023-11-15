@@ -2,10 +2,9 @@ import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
-import { Alert } from '@/components/ui/v2/Alert';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
@@ -145,9 +144,11 @@ export default function AuthDomain() {
             />
           </Box>
           {!currentProject.plan.isFree && (
-              <Alert severity="info" className="col-span-6 text-left">
-              Note that volumes can only be increased (not decreased). Also, due to an AWS limitation, the same volume can only be increased once every 6 hours.
-              </Alert>
+            <Alert severity="info" className="col-span-6 text-left">
+              Note that volumes can only be increased (not decreased). Also, due
+              to an AWS limitation, the same volume can only be increased once
+              every 6 hours.
+            </Alert>
           )}
         </SettingsContainer>
       </Form>

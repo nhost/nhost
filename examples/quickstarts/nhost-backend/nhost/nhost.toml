@@ -28,10 +28,11 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.21.3'
+version = '0.22.1'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
+allowedUrls = ['https://example-nextjs-server-components.nhost.io', 'https://example-sveltekit.nhost.io']
 
 [auth.signUp]
 enabled = true

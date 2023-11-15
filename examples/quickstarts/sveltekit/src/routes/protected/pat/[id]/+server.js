@@ -1,6 +1,6 @@
 import { getNhost } from '$lib/nhost.js'
-import { gql } from '@apollo/client'
 import { json, redirect } from '@sveltejs/kit'
+import gql from 'graphql-tag'
 
 export const DELETE = async ({ cookies, params }) => {
   const nhost = await getNhost(cookies)
