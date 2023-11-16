@@ -105,7 +105,8 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				},
 			},
 			SignUp: &model.ConfigAuthSignUp{
-				Enabled: ptr(true),
+				Enabled:         ptr(true),
+				DisableNewUsers: ptr(false),
 			},
 			User: &model.ConfigAuthUser{
 				Roles: &model.ConfigAuthUserRoles{

@@ -58,7 +58,10 @@ func expectedConfig() *model.ConfigConfig {
 				ClientUrl:   ptr("http://localhost:3000"),
 				AllowedUrls: []string{},
 			},
-			SignUp: &model.ConfigAuthSignUp{Enabled: ptr(true)},
+			SignUp: &model.ConfigAuthSignUp{
+				Enabled:         ptr(true),
+				DisableNewUsers: ptr(false),
+			},
 			User: &model.ConfigAuthUser{
 				Roles: &model.ConfigAuthUserRoles{
 					Default: ptr("user"),

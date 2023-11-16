@@ -908,17 +908,23 @@ input ConfigAuthSessionRefreshTokenComparisonExp {
 """
 type ConfigAuthSignUp {
     """
-    Inverse of AUTH_DISABLE_NEW_USERS
+    Inverse of AUTH_DISABLE_SIGNUP
     """
     enabled: Boolean
+    """
+    AUTH_DISABLE_NEW_USERS
+    """
+    disableNewUsers: Boolean
 }
 
 input ConfigAuthSignUpUpdateInput {
     enabled: Boolean
+    disableNewUsers: Boolean
 }
 
 input ConfigAuthSignUpInsertInput {
     enabled: Boolean
+    disableNewUsers: Boolean
 }
 
 input ConfigAuthSignUpComparisonExp {
@@ -926,6 +932,7 @@ input ConfigAuthSignUpComparisonExp {
     _not: ConfigAuthSignUpComparisonExp
     _or: [ConfigAuthSignUpComparisonExp!]
     enabled: ConfigBooleanComparisonExp
+    disableNewUsers: ConfigBooleanComparisonExp
 }
 
 """

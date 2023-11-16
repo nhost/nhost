@@ -153,7 +153,8 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 				},
 			},
 			SignUp: &model.ConfigAuthSignUp{
-				Enabled: ptr(true),
+				Enabled:         ptr(true),
+				DisableNewUsers: ptr(false),
 			},
 			Totp: &model.ConfigAuthTotp{
 				Enabled: ptr(true),

@@ -249,8 +249,11 @@ import (
 	}
 
 	signUp: {
-		// Inverse of AUTH_DISABLE_NEW_USERS
+		// Inverse of AUTH_DISABLE_SIGNUP
 		enabled: bool | *true
+
+        // AUTH_DISABLE_NEW_USERS
+        disableNewUsers: bool | *false
 	}
 
 	user: {

@@ -224,8 +224,15 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			),
 		},
 		{
-			Name:  "AUTH_DISABLE_NEW_USERS",
-			Value: Stringify(!*config.GetAuth().GetSignUp().GetEnabled()),
+			Name:  "AUTH_DISABLE_SIGNUP",
+			Value: Stringify(!unptr(config.GetAuth().GetSignUp().GetEnabled())),
+		},
+		{
+			Name: "AUTH_DISABLE_NEW_USERS",
+			Value: Stringify(
+				!unptr(config.GetAuth().GetSignUp().GetEnabled()) ||
+					unptr(config.GetAuth().GetSignUp().GetDisableNewUsers()),
+			),
 		},
 	}
 

@@ -5427,14 +5427,19 @@ func (exp *ConfigAuthSessionRefreshTokenComparisonExp) Matches(o *ConfigAuthSess
 }
 
 type ConfigAuthSignUp struct {
-	// Inverse of AUTH_DISABLE_NEW_USERS
+	// Inverse of AUTH_DISABLE_SIGNUP
 	Enabled *bool `json:"enabled" toml:"enabled"`
+	// AUTH_DISABLE_NEW_USERS
+	DisableNewUsers *bool `json:"disableNewUsers" toml:"disableNewUsers"`
 }
 
 func (o *ConfigAuthSignUp) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	if o.Enabled != nil {
 		m["enabled"] = o.Enabled
+	}
+	if o.DisableNewUsers != nil {
+		m["disableNewUsers"] = o.DisableNewUsers
 	}
 	return json.Marshal(m)
 }
@@ -5446,9 +5451,18 @@ func (o *ConfigAuthSignUp) GetEnabled() *bool {
 	return o.Enabled
 }
 
+func (o *ConfigAuthSignUp) GetDisableNewUsers() *bool {
+	if o == nil {
+		o = &ConfigAuthSignUp{}
+	}
+	return o.DisableNewUsers
+}
+
 type ConfigAuthSignUpUpdateInput struct {
-	Enabled      *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
-	IsSetEnabled bool  `json:"-"`
+	Enabled              *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled         bool  `json:"-"`
+	DisableNewUsers      *bool `json:"disableNewUsers,omitempty" toml:"disableNewUsers,omitempty"`
+	IsSetDisableNewUsers bool  `json:"-"`
 }
 
 func (o *ConfigAuthSignUpUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -5473,6 +5487,23 @@ func (o *ConfigAuthSignUpUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetEnabled = true
 	}
+	if v, ok := m["disableNewUsers"]; ok {
+		if v == nil {
+			o.DisableNewUsers = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.DisableNewUsers = &x
+		}
+		o.IsSetDisableNewUsers = true
+	}
 
 	return nil
 }
@@ -5491,6 +5522,13 @@ func (o *ConfigAuthSignUpUpdateInput) GetEnabled() *bool {
 	return o.Enabled
 }
 
+func (o *ConfigAuthSignUpUpdateInput) GetDisableNewUsers() *bool {
+	if o == nil {
+		o = &ConfigAuthSignUpUpdateInput{}
+	}
+	return o.DisableNewUsers
+}
+
 func (s *ConfigAuthSignUp) Update(v *ConfigAuthSignUpUpdateInput) {
 	if v == nil {
 		return
@@ -5498,10 +5536,14 @@ func (s *ConfigAuthSignUp) Update(v *ConfigAuthSignUpUpdateInput) {
 	if v.IsSetEnabled || v.Enabled != nil {
 		s.Enabled = v.Enabled
 	}
+	if v.IsSetDisableNewUsers || v.DisableNewUsers != nil {
+		s.DisableNewUsers = v.DisableNewUsers
+	}
 }
 
 type ConfigAuthSignUpInsertInput struct {
-	Enabled *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	Enabled         *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	DisableNewUsers *bool `json:"disableNewUsers,omitempty" toml:"disableNewUsers,omitempty"`
 }
 
 func (o *ConfigAuthSignUpInsertInput) GetEnabled() *bool {
@@ -5511,8 +5553,16 @@ func (o *ConfigAuthSignUpInsertInput) GetEnabled() *bool {
 	return o.Enabled
 }
 
+func (o *ConfigAuthSignUpInsertInput) GetDisableNewUsers() *bool {
+	if o == nil {
+		o = &ConfigAuthSignUpInsertInput{}
+	}
+	return o.DisableNewUsers
+}
+
 func (s *ConfigAuthSignUp) Insert(v *ConfigAuthSignUpInsertInput) {
 	s.Enabled = v.Enabled
+	s.DisableNewUsers = v.DisableNewUsers
 }
 
 func (s *ConfigAuthSignUp) Clone() *ConfigAuthSignUp {
@@ -5522,14 +5572,16 @@ func (s *ConfigAuthSignUp) Clone() *ConfigAuthSignUp {
 
 	v := &ConfigAuthSignUp{}
 	v.Enabled = s.Enabled
+	v.DisableNewUsers = s.DisableNewUsers
 	return v
 }
 
 type ConfigAuthSignUpComparisonExp struct {
-	And     []*ConfigAuthSignUpComparisonExp `json:"_and,omitempty"`
-	Not     *ConfigAuthSignUpComparisonExp   `json:"_not,omitempty"`
-	Or      []*ConfigAuthSignUpComparisonExp `json:"_or,omitempty"`
-	Enabled *ConfigBooleanComparisonExp      `json:"enabled,omitempty"`
+	And             []*ConfigAuthSignUpComparisonExp `json:"_and,omitempty"`
+	Not             *ConfigAuthSignUpComparisonExp   `json:"_not,omitempty"`
+	Or              []*ConfigAuthSignUpComparisonExp `json:"_or,omitempty"`
+	Enabled         *ConfigBooleanComparisonExp      `json:"enabled,omitempty"`
+	DisableNewUsers *ConfigBooleanComparisonExp      `json:"disableNewUsers,omitempty"`
 }
 
 func (exp *ConfigAuthSignUpComparisonExp) Matches(o *ConfigAuthSignUp) bool {
@@ -5541,6 +5593,9 @@ func (exp *ConfigAuthSignUpComparisonExp) Matches(o *ConfigAuthSignUp) bool {
 		o = &ConfigAuthSignUp{}
 	}
 	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+	if o.DisableNewUsers != nil && !exp.DisableNewUsers.Matches(*o.DisableNewUsers) {
 		return false
 	}
 
