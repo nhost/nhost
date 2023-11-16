@@ -1,5 +1,17 @@
 ## Changelog
 
+## 0.23.0
+
+### Minor Changes
+
+- cd8c786: feat: add option to disable user sign-up through `AUTH_DISABLE_SIGNUP`
+
+### Patch Changes
+
+- 003cfd6: fix: make sure existing modified permissions are not overwritten
+- 15459a9: fix: use empty as AUTH_API_PREFIX default value
+- ffba7d8: fix: move catch-all route-not-found handler to root
+
 ## 0.22.1
 
 ### Patch Changes
