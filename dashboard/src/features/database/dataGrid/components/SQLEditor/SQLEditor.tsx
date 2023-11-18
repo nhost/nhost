@@ -4,15 +4,25 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { PlayIcon } from '@/components/ui/v2/icons/PlayIcon';
 import { Switch } from '@/components/ui/v2/Switch';
+import { Table } from '@/components/ui/v2/Table';
+import { TableBody } from '@/components/ui/v2/TableBody';
+import { TableCell } from '@/components/ui/v2/TableCell';
+import { TableHead } from '@/components/ui/v2/TableHead';
+import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
+import { useTheme } from '@mui/material';
+import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { useCallback, useState } from 'react';
+import { useResizable } from 'react-resizable-layout';
 
 export default function SQLEditor() {
+  const theme = useTheme();
+
   const [loading, setLoading] = useState(false);
   const [sqlCode, setSQLCode] = useState('');
 
@@ -34,7 +44,15 @@ export default function SQLEditor() {
   const [columns, setColumns] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([[]]);
 
+  const [commandOk, setCommandOk] = useState(false);
   const [error, setError] = useState('');
+
+  const { position, separatorProps } = useResizable({
+    axis: 'y',
+    initial: 400,
+    min: 50,
+    reverse: true,
+  });
 
   const appUrl = generateAppServiceUrl(
     currentProject?.subdomain,
@@ -49,6 +67,7 @@ export default function SQLEditor() {
 
   const sendSQLToHasura = async () => {
     setLoading(true);
+    setCommandOk(false);
     setError('');
 
     const response: {
@@ -75,122 +94,156 @@ export default function SQLEditor() {
         }
         return res.json();
       })
-      .catch((err) => console.log({ error: err }))
+      .catch(() => {
+        // TODO figure out how to show network request errors
+        // console.log({ error: err });
+      })
       .finally(() => setLoading(false));
 
     if (response?.result_type === 'TuplesOk') {
       setColumns(response.result.at(0));
       setRows(response.result.slice(1));
     }
+
+    if (response?.result_type === 'CommandOk') {
+      // Command ran successfully but no rows have been returned
+      setColumns([]);
+      setRows([]);
+      setCommandOk(true);
+    }
   };
 
   return (
-    <Box className="flex flex-1 flex-col bg-white">
-      <Box className="flex flex-col space-y-2 border-b p-4 md:flex-row md:items-center md:justify-between">
+    <Box className="flex flex-1 flex-col justify-center overflow-hidden">
+      <Box className="flex flex-col space-y-2 border-b p-4 lg:flex-row lg:items-center lg:justify-between">
         <Text className="font-semibold">Raw SQL</Text>
-        <Box className="flex flex-col md:flex-row md:space-x-2">
-          <Switch
-            label={
-              <Text variant="subtitle1" component="span">
-                Track this
-              </Text>
-            }
-            checked={track}
-            onChange={(event) => setTrack(event.currentTarget.checked)}
-          />
-          <Switch
-            label={
-              <Text variant="subtitle1" component="span">
-                Cascade metadata
-              </Text>
-            }
-            checked={cascade}
-            onChange={(e) => setCascade(e.target.checked)}
-          />
-          <Switch
-            label={
-              <Text variant="subtitle1" component="span">
-                Read only
-              </Text>
-            }
-            checked={readOnly}
-            onChange={(e) => setReadOnly(e.target.checked)}
-          />
-          <Box>
-            <Button
-              disabled={loading}
-              variant="contained"
-              startIcon={<PlayIcon />}
-              onClick={sendSQLToHasura}
-            >
-              Run
-            </Button>
+        <Box className="flex flex-col justify-between space-y-2 lg:flex-row lg:space-y-0 lg:space-x-4">
+          <Box className="flex flex-col space-y-2 md:flex-row md:space-x-4 md:space-y-0">
+            <Switch
+              label={
+                <Text variant="subtitle1" component="span">
+                  Track this
+                </Text>
+              }
+              checked={track}
+              onChange={(event) => setTrack(event.currentTarget.checked)}
+            />
+            <Switch
+              label={
+                <Text variant="subtitle1" component="span">
+                  Cascade metadata
+                </Text>
+              }
+              checked={cascade}
+              onChange={(e) => setCascade(e.target.checked)}
+            />
+            <Switch
+              label={
+                <Text variant="subtitle1" component="span">
+                  Read only
+                </Text>
+              }
+              checked={readOnly}
+              onChange={(e) => setReadOnly(e.target.checked)}
+            />
           </Box>
+          <Button
+            disabled={loading}
+            variant="contained"
+            className="self-start"
+            startIcon={<PlayIcon />}
+            onClick={sendSQLToHasura}
+          >
+            Run
+          </Button>
         </Box>
       </Box>
 
-      <Box className="border-b">
-        {/* TODO Change the theme on dark mode */}
-        <CodeMirror
-          value={sqlCode}
-          height="20rem"
-          extensions={[sql({ dialect: PostgreSQL })]}
-          onChange={onChange}
-        />
-      </Box>
-      <div className="flex flex-1 items-start overflow-auto bg-gray-50 p-4">
+      {/* TODO Change the theme on dark mode */}
+      <CodeMirror
+        value={sqlCode}
+        height="100%"
+        className="flex-grow"
+        theme={theme.palette.mode === 'light' ? githubLight : githubDark}
+        extensions={[sql({ dialect: PostgreSQL })]}
+        onChange={onChange}
+      />
+
+      <Box
+        className="h-2 border-t hover:cursor-row-resize"
+        sx={{
+          background: theme.palette.background.default,
+        }}
+        {...separatorProps}
+      />
+
+      <Box
+        className="flex items-start overflow-auto p-4"
+        style={{ height: position }}
+      >
+        {loading && (
+          <ActivityIndicator
+            className="mx-auto self-center"
+            circularProgressProps={{
+              className: 'w-5 h-5',
+            }}
+          />
+        )}
         {error && (
           <Alert
             severity="error"
-            className="grid grid-flow-row place-content-center gap-2"
+            className="mx-auto grid grid-flow-row place-content-center gap-2 self-center"
           >
-            <Text color="warning" className="text-sm">
-              <code>{error}</code>
-            </Text>
+            <code>{error}</code>
           </Alert>
         )}
-        {loading && (
-          <ActivityIndicator circularProgressProps={{ className: 'w-5 h-5' }} />
+
+        {!loading && !error && commandOk && (
+          <Alert
+            severity="success"
+            className="mx-auto grid grid-flow-row place-content-center gap-2 self-center"
+          >
+            <code>Success, no rows returned</code>
+          </Alert>
         )}
         {!loading && !error && (
-          <table className="table-auto text-left text-sm text-gray-500 rtl:text-right dark:text-gray-400">
-            <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
-              <tr>
+          <Table>
+            <TableHead>
+              <TableRow>
                 {columns.map((header) => (
-                  <th
+                  <TableCell
                     key={header}
                     scope="col"
                     className="whitespace-nowrap border px-6 py-3"
                   >
                     {header}
-                  </th>
+                  </TableCell>
                 ))}
-              </tr>
-            </thead>
+              </TableRow>
+            </TableHead>
 
-            <tbody>
+            <TableBody>
               {rows.map((row, rowIndex) => (
-                <tr
+                <TableRow
                   // eslint-disable-next-line react/no-array-index-key
                   key={String(rowIndex)}
-                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                  // className="px-6 py-4 border whitespace-nowrap"
                 >
-                  {/* eslint-disable-next-line react/no-array-index-key */}
                   {row.map((value, valueIndex) => (
-                    <td
+                    <TableCell
                       // eslint-disable-next-line react/no-array-index-key
                       key={`${value}-${valueIndex}`}
                       className="whitespace-nowrap border px-6 py-4"
                     >
                       {value}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
-      </div>
+      </Box>
     </Box>
   );
 }

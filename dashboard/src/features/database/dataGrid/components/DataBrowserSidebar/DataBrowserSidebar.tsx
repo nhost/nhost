@@ -513,7 +513,7 @@ function DataBrowserSidebarContent({
         </nav>
       </div>
 
-      <div className="border-t">
+      <Box className="border-t">
         <ListItem.Button
           dense
           selected={asPath === sqlEditorHref}
@@ -526,7 +526,7 @@ function DataBrowserSidebarContent({
             <span className="flex">SQL Editor</span>
           </div>
         </ListItem.Button>
-      </div>
+      </Box>
     </div>
   );
 }
