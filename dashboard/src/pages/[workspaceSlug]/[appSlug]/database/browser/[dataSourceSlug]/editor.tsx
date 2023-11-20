@@ -8,7 +8,6 @@ import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import type { ReactElement } from 'react';
 
 export default function Editor() {
-  // SQL editor should support migrations only if launched locally with the cli
   const isPlatform = useIsPlatform();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
@@ -18,7 +17,6 @@ export default function Editor() {
 
   return (
     <RetryableErrorBoundary>
-      {/* <DataBrowserGrid sortBy={sortBy} onSort={handleSortByChange} /> */}
       <SQLEditor />
     </RetryableErrorBoundary>
   );

@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
+import { extractEntitiesFromSQL } from '@/utils/helpers';
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
@@ -82,6 +83,8 @@ export default function SQLEditor() {
         args: {
           source: 'default',
           sql: sqlCode,
+          cascade,
+          read_only: readOnly,
         },
         type: 'run_sql',
       }),
@@ -99,6 +102,29 @@ export default function SQLEditor() {
         // console.log({ error: err });
       })
       .finally(() => setLoading(false));
+
+    const entities = extractEntitiesFromSQL(sqlCode);
+
+    if (track && entities.length > 0) {
+      await fetch(`${appUrl}/v1/metadata`, {
+        method: 'POST',
+        headers: {
+          'x-hasura-admin-secret': adminSecret,
+        },
+        body: JSON.stringify({
+          type: 'pg_track_tables',
+          args: {
+            tables: entities.map((entity) => ({
+              source: 'default',
+              table: entity.name,
+              schema: entity.schema,
+            })),
+          },
+        }),
+      });
+
+      // TODO catch the errors for the metadataApiResponse
+    }
 
     if (response?.result_type === 'TuplesOk') {
       setColumns(response.result.at(0));
@@ -119,6 +145,7 @@ export default function SQLEditor() {
         <Text className="font-semibold">Raw SQL</Text>
         <Box className="flex flex-col justify-between space-y-2 lg:flex-row lg:space-y-0 lg:space-x-4">
           <Box className="flex flex-col space-y-2 md:flex-row md:space-x-4 md:space-y-0">
+            {/* TODO a toggle for the migration piece and add an input to hold the name */}
             <Switch
               label={
                 <Text variant="subtitle1" component="span">
@@ -159,7 +186,6 @@ export default function SQLEditor() {
         </Box>
       </Box>
 
-      {/* TODO Change the theme on dark mode */}
       <CodeMirror
         value={sqlCode}
         height="100%"
@@ -207,14 +233,23 @@ export default function SQLEditor() {
           </Alert>
         )}
         {!loading && !error && (
-          <Table>
-            <TableHead>
+          <Table
+            style={{
+              tableLayout: 'auto',
+            }}
+            className="w-auto"
+          >
+            <TableHead
+              sx={{
+                background: theme.palette.background.default,
+              }}
+            >
               <TableRow>
                 {columns.map((header) => (
                   <TableCell
                     key={header}
                     scope="col"
-                    className="whitespace-nowrap border px-6 py-3"
+                    className="whitespace-nowrap border px-6 py-3 font-bold"
                   >
                     {header}
                   </TableCell>

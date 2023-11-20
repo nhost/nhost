@@ -263,8 +263,8 @@ function DataBrowserSidebarContent({
   }
 
   return (
-    <div className="flex h-full flex-col justify-between gap-1">
-      <div>
+    <Box className="flex h-full flex-col justify-between">
+      <Box className="flex flex-col px-2">
         {schemas && schemas.length > 0 && (
           <Select
             renderValue={(option) => (
@@ -511,7 +511,7 @@ function DataBrowserSidebarContent({
             </List>
           )}
         </nav>
-      </div>
+      </Box>
 
       <Box className="border-t">
         <ListItem.Button
@@ -527,7 +527,7 @@ function DataBrowserSidebarContent({
           </div>
         </ListItem.Button>
       </Box>
-    </div>
+    </Box>
   );
 }
 
