@@ -31,6 +31,9 @@
             (inDirectory "cmd/config/testdata")
             isDirectory
             (nix-filter.lib.matchExt "go")
+            "get_access_token.sh"
+            "gqlgenc.yaml"
+            (inDirectory "nhostclient/graphql/query/")
           ];
         };
 
@@ -42,12 +45,15 @@
         };
 
         goCheckDeps = with pkgs; [
+          curl
+          jq
           golangci-lint
           gofumpt
           golines
           gqlgenc
           govulncheck
           richgo
+          cacert
         ];
 
         buildInputs = with pkgs; [
@@ -88,6 +94,9 @@
               export GOPATH="$TMPDIR/.cache/gopath"
 
               echo "➜ Source: ${src}"
+
+              echo "➜ Getting access token"
+              export NHOST_ACCESS_TOKEN=$(bash ${src}/get_access_token.sh)
 
               echo "➜ Running go generate ./... and checking sha1sum of all files"
               mkdir -p $TMPDIR/generate

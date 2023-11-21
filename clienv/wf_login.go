@@ -38,6 +38,7 @@ func (ce *CliEnv) Login(
 
 	if pat != "" {
 		session := credentials.Credentials{
+			ID:                  "",
 			PersonalAccessToken: pat,
 		}
 		if err := savePAT(ce, session); err != nil {

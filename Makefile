@@ -12,6 +12,7 @@ endif
 
 .PHONY: check
 check:  ## Run nix flake check
+	sed -i 's/$$NHOST_PAT/$(NHOST_PAT)/' get_access_token.sh
 	nix build \
 		--print-build-logs \
 		.\#checks.$(ARCH)-$(OS).go

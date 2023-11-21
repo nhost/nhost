@@ -9,6 +9,8 @@ on:
 jobs:
   tests:
     uses: ./.github/workflows/wf_check.yaml
+    secrets:
+      NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   build_artifacts:
     uses: ./.github/workflows/wf_build_artifacts.yaml
@@ -17,4 +19,3 @@ jobs:
     secrets:
       CERT_FULL_CHAIN: ${{ secrets.CERT_FULL_CHAIN }}
       CERT_PRIV_KEY: ${{ secrets.CERT_PRIV_KEY }}
-

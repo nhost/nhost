@@ -5,6 +5,9 @@ on:
       GIT_REF:
         type: string
         required: false
+    secrets:
+      NHOST_PAT:
+        required: true
 
 jobs:
   tests:
@@ -36,4 +39,6 @@ jobs:
         key: nix-${{ runner.os }}-${{ hashFiles('flake.nix', 'flake.lock', '**.nix') }}
 
     - name: "Run checks"
-      run: make check
+      run: |
+        export NHOST_PAT=${{ secrets.NHOST_PAT }}
+        make check

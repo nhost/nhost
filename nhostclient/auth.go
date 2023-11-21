@@ -119,13 +119,13 @@ func (n *Client) CreatePAT(
 	return resp, nil
 }
 
-func (n *Client) Logout(ctx context.Context, refreshToken string, accessToken string) error {
+func (n *Client) Logout(ctx context.Context, refreshTokenID string, accessToken string) error {
 	if _, err := n.DeleteRefreshToken(
 		ctx,
 		//nolint:exhaustruct
 		graphql.AuthRefreshTokensBoolExp{
-			RefreshToken: &graphql.UUIDComparisonExp{
-				Eq: &refreshToken,
+			ID: &graphql.UUIDComparisonExp{
+				Eq: &refreshTokenID,
 			},
 		},
 		graphql.WithAccessToken(accessToken),
