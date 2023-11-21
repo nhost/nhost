@@ -46,7 +46,7 @@ export default function SQLEditor() {
   // TODO maybe reftech the tables after running a sql query against Hasura
 
   const [commandOk, setCommandOk] = useState(false);
-  const [error, setError] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [columns, setColumns] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([[]]);
 
@@ -217,7 +217,7 @@ export default function SQLEditor() {
   const runSQL = async () => {
     setLoading(true);
     setCommandOk(false);
-    setError('');
+    setErrorMessage('');
 
     if (isMigration) {
       await createMigration(sqlCode, migrationName, cascade);
@@ -235,11 +235,11 @@ export default function SQLEditor() {
       setCommandOk(result_type === 'CommandOk');
       setColumns($columns);
       setRows($rows);
-      setError($error);
+      setErrorMessage($error);
 
       // If running the sql against Hasura fails then we should not update the metadata
       // it will also fail because none of the tables were created
-      if (track && !error) {
+      if (track && !$error) {
         await updateMetadata(sqlCode);
       }
     }
@@ -348,16 +348,16 @@ export default function SQLEditor() {
           />
         )}
 
-        {error && (
+        {errorMessage && (
           <Alert
             severity="error"
             className="mx-auto grid grid-flow-row place-content-center gap-2 self-center"
           >
-            <code>{error}</code>
+            <code>{errorMessage}</code>
           </Alert>
         )}
 
-        {!loading && !error && commandOk && (
+        {!loading && !errorMessage && commandOk && (
           <Alert
             severity="success"
             className="mx-auto grid grid-flow-row place-content-center gap-2 self-center"
@@ -366,7 +366,7 @@ export default function SQLEditor() {
           </Alert>
         )}
 
-        {!loading && !error && (
+        {!loading && !errorMessage && (
           <Table
             style={{
               tableLayout: 'auto',
