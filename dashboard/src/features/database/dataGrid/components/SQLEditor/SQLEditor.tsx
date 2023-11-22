@@ -15,7 +15,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
-import { extractEntitiesFromSQL } from '@/utils/helpers';
+import { parseIdentifiersFromSQL } from '@/utils/sql';
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
@@ -42,7 +42,6 @@ export default function SQLEditor() {
 
   // TODO convert to form
   // TODO inlude a tooltip for info about the checkboxes
-  // TODO add this and figure out how to show the input to write the migration name
   // TODO maybe reftech the tables after running a sql query against Hasura
 
   const [commandOk, setCommandOk] = useState(false);
@@ -134,36 +133,58 @@ export default function SQLEditor() {
   };
 
   const updateMetadata = async (inputSQL: string) => {
-    const entities = extractEntitiesFromSQL(inputSQL);
+    const entities = parseIdentifiersFromSQL(inputSQL);
 
-    // TODO add proper typing to this
-    let metadataApiResponse: any;
+    const tablesOrViewEntities = entities.filter(
+      (entity) => entity.type !== 'function',
+    );
+    const functionEntities = entities.filter(
+      (entity) => entity.type === 'function',
+    );
 
-    if (entities.length > 0) {
-      try {
-        metadataApiResponse = await fetch(`${appUrl}/v1/metadata`, {
+    const trackTablesOrViews = tablesOrViewEntities.map(({ name, schema }) => ({
+      type: 'pg_track_table',
+      args: {
+        source: 'default',
+        table: {
+          name,
+          schema,
+        },
+      },
+    }));
+
+    const trackFunctions = functionEntities.map(({ name, schema }) => ({
+      type: 'pg_track_function',
+      args: {
+        source: 'default',
+        function: {
+          name,
+          schema,
+          configuration: {},
+        },
+      },
+    }));
+
+    const metaDataPayload = {
+      source: 'default',
+      type: 'bulk',
+      args: [...trackTablesOrViews, ...trackFunctions],
+    };
+
+    try {
+      if (entities.length > 0) {
+        const metadataApiResponse = await fetch(`${appUrl}/v1/metadata`, {
           method: 'POST',
           headers: { 'x-hasura-admin-secret': adminSecret },
-          body: JSON.stringify({
-            type: 'pg_track_tables',
-            args: {
-              tables: entities.map((entity) => ({
-                source: 'default',
-                table: entity.name,
-                schema: entity.schema,
-              })),
-            },
-          }),
-        }).then((res) => res.json());
-      } catch (metadataApiError) {
-        // TODO handle this
-        console.log(metadataApiError);
-      }
+          body: JSON.stringify(metaDataPayload),
+        });
 
-      // TODO catch the errors for the metadataApiResponse
-      console.log({
-        metadataApiResponse,
-      });
+        if (!metadataApiResponse.ok) {
+          throw new Error('Metadata API call failed');
+        }
+      }
+    } catch (error) {
+      console.error('Error in metadata API:', error);
     }
   };
 
@@ -321,7 +342,7 @@ export default function SQLEditor() {
       <CodeMirror
         value={sqlCode}
         height="100%"
-        className="flex-grow"
+        className="flex-1 overflow-y-auto"
         theme={theme.palette.mode === 'light' ? githubLight : githubDark}
         extensions={[sql({ dialect: PostgreSQL })]}
         onChange={onChange}
