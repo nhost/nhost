@@ -2,6 +2,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlayIcon } from '@/components/ui/v2/icons/PlayIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Switch } from '@/components/ui/v2/Switch';
@@ -11,9 +12,11 @@ import { TableCell } from '@/components/ui/v2/TableCell';
 import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { parseIdentifiersFromSQL } from '@/utils/sql';
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
@@ -21,6 +24,7 @@ import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { useCallback, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useResizable } from 'react-resizable-layout';
 
 export default function SQLEditor() {
@@ -39,10 +43,6 @@ export default function SQLEditor() {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const onChange = useCallback((value: string) => setSQLCode(value), []);
-
-  // TODO convert to form
-  // TODO inlude a tooltip for info about the checkboxes
-  // TODO maybe reftech the tables after running a sql query against Hasura
 
   const [commandOk, setCommandOk] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -67,20 +67,24 @@ export default function SQLEditor() {
       ? getHasuraAdminSecret()
       : currentProject?.config?.hasura.adminSecret;
 
+  const toastStyle = getToastStyleProps();
+
   const sendSQLToHasura = async (
     inputSQL: string,
     isCascade: boolean,
-    IsReadOnly: boolean,
+    isReadOnly: boolean,
   ) => {
-    let queryApiError: string = '';
-    let $columns: string[];
-    let $rows: string[][];
-
     try {
-      const response: {
-        result: string[][];
-        result_type: string;
-      } = await fetch(`${appUrl}/v2/query`, {
+      if (!inputSQL) {
+        return {
+          result_type: 'error',
+          columns: [],
+          rows: [],
+          queryApiError: 'No SQL provided',
+        };
+      }
+
+      const response = await fetch(`${appUrl}/v2/query`, {
         method: 'POST',
         headers: { 'x-hasura-admin-secret': adminSecret },
         body: JSON.stringify({
@@ -89,45 +93,56 @@ export default function SQLEditor() {
             source: 'default',
             sql: inputSQL,
             cascade: isCascade,
-            read_only: IsReadOnly,
+            read_only: isReadOnly,
           },
         }),
-      }).then(async (res) => {
-        if (!res.ok) {
-          const e = await res.json();
-          queryApiError = e?.internal?.error?.message;
-          return null;
-        }
-
-        return res.json();
       });
 
-      if (response?.result_type === 'TuplesOk') {
-        $columns = response.result.at(0);
-        $rows = response.result.slice(1);
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        const queryApiError =
+          errorResponse?.internal?.error?.message || 'Unknown error';
+        return {
+          result_type: 'error',
+          columns: [],
+          rows: [],
+          error: queryApiError,
+        };
       }
 
-      if (response?.result_type === 'CommandOk') {
-        // Command ran successfully but no rows have been returned
-        $columns = [];
-        $rows = [];
+      const responseBody = await response.json();
+
+      if (responseBody?.result_type === 'TuplesOk') {
+        return {
+          result_type: 'TuplesOk',
+          columns: responseBody.result[0],
+          rows: responseBody.result.slice(1),
+          error: '',
+        };
       }
 
-      return {
-        result_type: response?.result_type,
-        error: queryApiError,
-        columns: $columns,
-        rows: $rows,
-      };
-    } catch (err) {
-      // TODO figure out how to show network request errors
-      console.error({ sendSQLToHasuraError: err });
+      if (responseBody?.result_type === 'CommandOk') {
+        return {
+          result_type: 'CommandOk',
+          columns: [],
+          rows: [],
+          error: '',
+        };
+      }
 
+      // If the result_type is neither TuplesOk nor CommandOk
       return {
         result_type: 'error',
-        cols: [],
+        columns: [],
         rows: [],
-        queryApiError: err.message,
+        error: 'Unknown response type',
+      };
+    } catch (error) {
+      return {
+        result_type: 'error',
+        columns: [],
+        rows: [],
+        error: error.message || 'Unknown error',
       };
     }
   };
@@ -184,7 +199,10 @@ export default function SQLEditor() {
         }
       }
     } catch (error) {
-      console.error('Error in metadata API:', error);
+      toast.error('An error happened when calling the metadata API', {
+        style: toastStyle.style,
+        ...toastStyle.error,
+      });
     }
   };
 
@@ -193,11 +211,8 @@ export default function SQLEditor() {
     migration: string,
     isCascade: boolean,
   ) => {
-    // TODO add proper typing to this
-    let migrationApiResponse: { name: string };
-
     try {
-      migrationApiResponse = await fetch(`${appUrl}/apis/migrate`, {
+      const migrationApiResponse = await fetch(`${appUrl}/apis/migrate`, {
         method: 'POST',
         headers: { 'x-hasura-admin-secret': adminSecret },
         body: JSON.stringify({
@@ -226,13 +241,25 @@ export default function SQLEditor() {
             },
           ],
         }),
-      }).then((res) => res.json());
-    } catch (createMigrationError) {
-      // TODO typing
-      console.log({ createMigrationError });
-    }
+      });
 
-    console.log({ migrationApiResponse });
+      if (!migrationApiResponse.ok) {
+        throw new Error('Migration API call failed');
+      }
+
+      return {
+        error: null,
+      };
+    } catch (createMigrationError) {
+      toast.error('An error happened when calling the migration API', {
+        style: toastStyle.style,
+        ...toastStyle.error,
+      });
+
+      return {
+        error: createMigrationError,
+      };
+    }
   };
 
   const runSQL = async () => {
@@ -241,8 +268,20 @@ export default function SQLEditor() {
     setErrorMessage('');
 
     if (isMigration) {
-      await createMigration(sqlCode, migrationName, cascade);
-      if (track) {
+      const { error: createMigrationError } = await createMigration(
+        sqlCode,
+        migrationName,
+        cascade,
+      );
+
+      setCommandOk(!createMigrationError);
+
+      if (createMigrationError) {
+        setErrorMessage('An unknown error occurred');
+      }
+
+      // if running the migration fails then we don't update the metadata
+      if (track && !createMigrationError) {
         await updateMetadata(sqlCode);
       }
     } else {
@@ -258,14 +297,12 @@ export default function SQLEditor() {
       setRows($rows);
       setErrorMessage($error);
 
-      // If running the sql against Hasura fails then we should not update the metadata
-      // it will also fail because none of the tables were created
+      // if running the sql fails then we don't update the metadata
       if (track && !$error) {
         await updateMetadata(sqlCode);
       }
     }
 
-    // Figure out if the loading indicator should at the end of which network request
     setLoading(false);
   };
 
@@ -275,44 +312,86 @@ export default function SQLEditor() {
         <Text className="font-semibold">Raw SQL</Text>
         <Box className="flex flex-col justify-between space-y-2 lg:flex-row lg:space-y-0 lg:space-x-4">
           <Box className="flex w-full flex-col space-y-2 lg:flex-row lg:space-x-4 lg:space-y-0 xl:h-10">
-            <Switch
-              label={
-                <Text variant="subtitle1" component="span">
-                  Track this
-                </Text>
-              }
-              checked={track}
-              onChange={(event) => setTrack(event.currentTarget.checked)}
-            />
-            <Switch
-              label={
-                <Text variant="subtitle1" component="span">
-                  Cascade metadata
-                </Text>
-              }
-              checked={cascade}
-              onChange={(e) => setCascade(e.target.checked)}
-            />
-            <Switch
-              label={
-                <Text variant="subtitle1" component="span">
-                  Read only
-                </Text>
-              }
-              checked={readOnly}
-              onChange={(e) => setReadOnly(e.target.checked)}
-            />
+            <Box className="flex items-center space-x-2">
+              <Switch
+                label={
+                  <Text variant="subtitle1" component="span">
+                    Track this
+                  </Text>
+                }
+                checked={track}
+                onChange={(event) => setTrack(event.currentTarget.checked)}
+              />
+              <Tooltip title="If you are creating tables, views or functions, checking this will also expose them over the GraphQL API as top level fields. Functions only intended to be used as computed fields should not be tracked.">
+                <InfoIcon
+                  aria-label="Info"
+                  className="h-4 w-4"
+                  color="primary"
+                />
+              </Tooltip>
+            </Box>
+
+            <Box className="flex items-center space-x-2">
+              <Switch
+                label={
+                  <Text variant="subtitle1" component="span">
+                    Cascade metadata
+                  </Text>
+                }
+                checked={cascade}
+                onChange={(e) => setCascade(e.target.checked)}
+              />
+
+              <Tooltip title="Cascade actions on all dependent metadata references, like relationships and permissions">
+                <InfoIcon
+                  aria-label="Info"
+                  className="h-4 w-4"
+                  color="primary"
+                />
+              </Tooltip>
+            </Box>
+
+            <Box className="flex items-center space-x-2">
+              <Switch
+                label={
+                  <Text variant="subtitle1" component="span">
+                    Read only
+                  </Text>
+                }
+                checked={readOnly}
+                onChange={(e) => setReadOnly(e.target.checked)}
+              />
+
+              <Tooltip title="When set to true, the request will be run in READ ONLY transaction access mode which means only select queries will be successful. This flag ensures that the GraphQL schema is not modified and is hence highly performant.">
+                <InfoIcon
+                  aria-label="Info"
+                  className="h-4 w-4"
+                  color="primary"
+                />
+              </Tooltip>
+            </Box>
+
             {!isPlatform && (
               <Box className="flex flex-col space-x-0 space-y-2 xl:flex-row xl:space-x-4 xl:space-y-0">
-                <Switch
-                  label={
-                    <Text variant="subtitle1" component="span">
-                      This is a migration
-                    </Text>
-                  }
-                  checked={isMigration}
-                  onChange={(e) => setIsMigration(e.target.checked)}
-                />
+                <Box className="flex items-center space-x-2">
+                  <Switch
+                    label={
+                      <Text variant="subtitle1" component="span">
+                        This is a migration
+                      </Text>
+                    }
+                    checked={isMigration}
+                    onChange={(e) => setIsMigration(e.target.checked)}
+                  />
+                  <Tooltip title="Create a migration file with the SQL statement">
+                    <InfoIcon
+                      aria-label="Info"
+                      className="h-4 w-4"
+                      color="primary"
+                    />
+                  </Tooltip>
+                </Box>
+
                 {isMigration && (
                   <Input
                     name="isMigration"
@@ -328,7 +407,7 @@ export default function SQLEditor() {
             )}
           </Box>
           <Button
-            disabled={loading}
+            disabled={loading || !sqlCode.trim()}
             variant="contained"
             className="self-start"
             startIcon={<PlayIcon />}
