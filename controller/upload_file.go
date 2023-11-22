@@ -116,7 +116,7 @@ func (ctrl *Controller) processFile(
 		return FileMetadata{}, err
 	}
 
-	etag, apiErr := ctrl.contentStorage.PutFile(fileContent, file.ID, contentType)
+	etag, apiErr := ctrl.contentStorage.PutFile(ctx, fileContent, file.ID, contentType)
 	if apiErr != nil {
 		_ = ctrl.metadataStorage.DeleteFileByID(
 			ctx,

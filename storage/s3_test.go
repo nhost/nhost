@@ -12,8 +12,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/nhost/hasura-storage/controller"
@@ -22,32 +24,36 @@ import (
 )
 
 func getS3() *storage.S3 {
-	config := &aws.Config{ //nolint: exhaustivestruct
-		Credentials: credentials.NewStaticCredentials(
-			os.Getenv("TEST_S3_ACCESS_KEY"),
-			os.Getenv("TEST_S3_SECRET_KEY"),
-			"",
-		),
-		Endpoint:         aws.String("http://localhost:9000"),
-		Region:           aws.String("eu-central-1"),
-		DisableSSL:       aws.Bool(true),
-		S3ForcePathStyle: aws.Bool(true),
-	}
-
 	logger := logrus.New()
-
-	url := "http://localhost:9000"
-	st, err := storage.NewS3(config, "default", "f215cf48-7458-4596-9aa5-2159fc6a3caf", url, logger)
+	ctx := context.Background()
+	config, err := config.LoadDefaultConfig(ctx,
+		config.WithRegion("eu-central-1"),
+		config.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(
+				os.Getenv("TEST_S3_ACCESS_KEY"),
+				os.Getenv("TEST_S3_SECRET_KEY"),
+				"",
+			),
+		),
+	)
 	if err != nil {
-		panic(err)
+		logger.Error(err)
 	}
+	url := "http://localhost:9000"
+	client := s3.NewFromConfig(config,
+		func(o *s3.Options) {
+			o.BaseEndpoint = aws.String(url)
+			o.UsePathStyle = true
+			o.EndpointOptions.DisableHTTPS = true
+		})
+	st := storage.NewS3(client, "default", "f215cf48-7458-4596-9aa5-2159fc6a3caf", url, true, logger)
 	return st
 }
 
 func findFile(t *testing.T, s3 *storage.S3, filename string) bool {
 	t.Helper()
 
-	ff, err := s3.ListFiles()
+	ff, err := s3.ListFiles(context.TODO())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +78,7 @@ func TestDeleteFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, apiErr := s3.PutFile(f, "s3_test.go", "text")
+	_, apiErr := s3.PutFile(context.TODO(), f, "s3_test.go", "text")
 	if apiErr != nil {
 		t.Fatal(apiErr)
 	}
@@ -100,7 +106,7 @@ func TestDeleteFile(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			tc := tc
-			err := s3.DeleteFile(tc.filepath)
+			err := s3.DeleteFile(context.TODO(), tc.filepath)
 			if err != nil {
 				t.Error(err)
 			}
@@ -125,7 +131,7 @@ func TestListFiles(t *testing.T) {
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := s3.ListFiles()
+			got, err := s3.ListFiles(context.TODO())
 			if err != nil {
 				t.Error(err)
 			}
@@ -153,7 +159,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, apiErr := s3.PutFile(f, "sample.txt", "text")
+	_, apiErr := s3.PutFile(context.TODO(), f, "sample.txt", "text")
 	if apiErr != nil {
 		t.Fatal(apiErr)
 	}
@@ -228,7 +234,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			tc := tc
-			signature, apiErr := s3.CreatePresignedURL(tc.filepath, time.Second)
+			signature, apiErr := s3.CreatePresignedURL(context.TODO(), tc.filepath, time.Second)
 			if apiErr != nil {
 				t.Error(apiErr)
 			}

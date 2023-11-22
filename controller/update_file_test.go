@@ -123,6 +123,7 @@ func TestUpdateFile(t *testing.T) {
 			).Return(nil)
 
 			contentStorage.EXPECT().PutFile(
+				gomock.Any(),
 				ReaderMatcher(
 					file.contents,
 				),

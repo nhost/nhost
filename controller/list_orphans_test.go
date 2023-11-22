@@ -63,7 +63,7 @@ func TestListOrphans(t *testing.T) {
 				}, nil,
 			)
 
-			contentStorage.EXPECT().ListFiles().Return(
+			contentStorage.EXPECT().ListFiles(gomock.Any()).Return(
 				[]string{
 					"app_id/b3b4e653-ca59-412c-a165-92d251c3fe86",
 					"app_id/7dc0b0d0-b100-4667-89f1-0434942d9c15",

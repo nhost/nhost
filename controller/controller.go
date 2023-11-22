@@ -73,14 +73,14 @@ type MetadataStorage interface {
 
 //go:generate mockgen --build_flags=--mod=mod -destination mock/content_storage.go -package mock . ContentStorage
 type ContentStorage interface {
-	PutFile(content io.ReadSeeker, filepath, contentType string) (string, *APIError)
-	GetFile(filepath string, headers http.Header) (*File, *APIError)
-	CreatePresignedURL(filepath string, expire time.Duration) (string, *APIError)
+	PutFile(ctx context.Context, content io.ReadSeeker, filepath, contentType string) (string, *APIError)
+	GetFile(ctx context.Context, filepath string, headers http.Header) (*File, *APIError)
+	CreatePresignedURL(ctx context.Context, filepath string, expire time.Duration) (string, *APIError)
 	GetFileWithPresignedURL(
 		ctx context.Context, filepath, signature string, headers http.Header,
 	) (*File, *APIError)
-	DeleteFile(filepath string) *APIError
-	ListFiles() ([]string, *APIError)
+	DeleteFile(ctx context.Context, filepath string) *APIError
+	ListFiles(ctx context.Context) ([]string, *APIError)
 }
 
 //go:generate mockgen --build_flags=--mod=mod -destination mock/antivirus.go -package mock . Antivirus

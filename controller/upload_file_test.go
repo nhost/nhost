@@ -167,6 +167,7 @@ func TestUploadFile(t *testing.T) {
 				).Return(nil)
 
 				contentStorage.EXPECT().PutFile(
+					gomock.Any(),
 					ReaderMatcher(
 						file.contents,
 					),
@@ -216,6 +217,7 @@ func TestUploadFile(t *testing.T) {
 				).Return(nil)
 
 				contentStorage.EXPECT().PutFile(
+					gomock.Any(),
 					ReaderMatcher(
 						file.contents,
 					),

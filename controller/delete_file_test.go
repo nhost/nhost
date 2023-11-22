@@ -46,6 +46,7 @@ func TestDeleteFile(t *testing.T) {
 			).Return(nil)
 
 			contentStorage.EXPECT().DeleteFile(
+				gomock.Any(),
 				"55af1e60-0f28-454e-885e-ea6aab2bb288",
 			).Return(
 				nil,

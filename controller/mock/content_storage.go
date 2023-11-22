@@ -39,47 +39,47 @@ func (m *MockContentStorage) EXPECT() *MockContentStorageMockRecorder {
 }
 
 // CreatePresignedURL mocks base method.
-func (m *MockContentStorage) CreatePresignedURL(arg0 string, arg1 time.Duration) (string, *controller.APIError) {
+func (m *MockContentStorage) CreatePresignedURL(arg0 context.Context, arg1 string, arg2 time.Duration) (string, *controller.APIError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreatePresignedURL", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreatePresignedURL", arg0, arg1, arg2)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(*controller.APIError)
 	return ret0, ret1
 }
 
 // CreatePresignedURL indicates an expected call of CreatePresignedURL.
-func (mr *MockContentStorageMockRecorder) CreatePresignedURL(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockContentStorageMockRecorder) CreatePresignedURL(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePresignedURL", reflect.TypeOf((*MockContentStorage)(nil).CreatePresignedURL), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePresignedURL", reflect.TypeOf((*MockContentStorage)(nil).CreatePresignedURL), arg0, arg1, arg2)
 }
 
 // DeleteFile mocks base method.
-func (m *MockContentStorage) DeleteFile(arg0 string) *controller.APIError {
+func (m *MockContentStorage) DeleteFile(arg0 context.Context, arg1 string) *controller.APIError {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteFile", arg0)
+	ret := m.ctrl.Call(m, "DeleteFile", arg0, arg1)
 	ret0, _ := ret[0].(*controller.APIError)
 	return ret0
 }
 
 // DeleteFile indicates an expected call of DeleteFile.
-func (mr *MockContentStorageMockRecorder) DeleteFile(arg0 interface{}) *gomock.Call {
+func (mr *MockContentStorageMockRecorder) DeleteFile(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFile", reflect.TypeOf((*MockContentStorage)(nil).DeleteFile), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFile", reflect.TypeOf((*MockContentStorage)(nil).DeleteFile), arg0, arg1)
 }
 
 // GetFile mocks base method.
-func (m *MockContentStorage) GetFile(arg0 string, arg1 http.Header) (*controller.File, *controller.APIError) {
+func (m *MockContentStorage) GetFile(arg0 context.Context, arg1 string, arg2 http.Header) (*controller.File, *controller.APIError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFile", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetFile", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*controller.File)
 	ret1, _ := ret[1].(*controller.APIError)
 	return ret0, ret1
 }
 
 // GetFile indicates an expected call of GetFile.
-func (mr *MockContentStorageMockRecorder) GetFile(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockContentStorageMockRecorder) GetFile(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockContentStorage)(nil).GetFile), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockContentStorage)(nil).GetFile), arg0, arg1, arg2)
 }
 
 // GetFileWithPresignedURL mocks base method.
@@ -98,31 +98,31 @@ func (mr *MockContentStorageMockRecorder) GetFileWithPresignedURL(arg0, arg1, ar
 }
 
 // ListFiles mocks base method.
-func (m *MockContentStorage) ListFiles() ([]string, *controller.APIError) {
+func (m *MockContentStorage) ListFiles(arg0 context.Context) ([]string, *controller.APIError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListFiles")
+	ret := m.ctrl.Call(m, "ListFiles", arg0)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(*controller.APIError)
 	return ret0, ret1
 }
 
 // ListFiles indicates an expected call of ListFiles.
-func (mr *MockContentStorageMockRecorder) ListFiles() *gomock.Call {
+func (mr *MockContentStorageMockRecorder) ListFiles(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFiles", reflect.TypeOf((*MockContentStorage)(nil).ListFiles))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFiles", reflect.TypeOf((*MockContentStorage)(nil).ListFiles), arg0)
 }
 
 // PutFile mocks base method.
-func (m *MockContentStorage) PutFile(arg0 io.ReadSeeker, arg1, arg2 string) (string, *controller.APIError) {
+func (m *MockContentStorage) PutFile(arg0 context.Context, arg1 io.ReadSeeker, arg2, arg3 string) (string, *controller.APIError) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PutFile", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "PutFile", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(*controller.APIError)
 	return ret0, ret1
 }
 
 // PutFile indicates an expected call of PutFile.
-func (mr *MockContentStorageMockRecorder) PutFile(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockContentStorageMockRecorder) PutFile(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutFile", reflect.TypeOf((*MockContentStorage)(nil).PutFile), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutFile", reflect.TypeOf((*MockContentStorage)(nil).PutFile), arg0, arg1, arg2, arg3)
 }

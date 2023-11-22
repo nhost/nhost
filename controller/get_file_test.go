@@ -63,6 +63,7 @@ func TestGetFile(t *testing.T) {
 			}, nil)
 
 			contentStorage.EXPECT().GetFile(
+				gomock.Any(),
 				"55af1e60-0f28-454e-885e-ea6aab2bb288",
 				gomock.Any(),
 			).Return(

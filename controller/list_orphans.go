@@ -18,7 +18,7 @@ func (ctrl *Controller) listOrphans(ctx *gin.Context) ([]string, *APIError) {
 		return nil, apiErr
 	}
 
-	filesInS3, apiErr := ctrl.contentStorage.ListFiles()
+	filesInS3, apiErr := ctrl.contentStorage.ListFiles(ctx)
 	if apiErr != nil {
 		return nil, apiErr
 	}

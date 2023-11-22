@@ -88,7 +88,7 @@ func TestDeleteBrokenMetadata(t *testing.T) {
 				}, nil,
 			)
 
-			contentStorage.EXPECT().ListFiles().Return(
+			contentStorage.EXPECT().ListFiles(gomock.Any()).Return(
 				[]string{
 					"default/7dc0b0d0-b100-4667-89f1-0434942d9c15",
 				}, nil,

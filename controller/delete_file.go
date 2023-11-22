@@ -15,7 +15,7 @@ func (ctrl *Controller) deleteFile(ctx *gin.Context) *APIError {
 		return apiErr
 	}
 
-	if apiErr := ctrl.contentStorage.DeleteFile(id); apiErr != nil {
+	if apiErr := ctrl.contentStorage.DeleteFile(ctx, id); apiErr != nil {
 		return apiErr
 	}
 

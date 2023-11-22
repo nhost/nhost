@@ -1,13 +1,16 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/hasura-storage/controller"
 	"github.com/nhost/hasura-storage/image"
@@ -35,6 +38,7 @@ const (
 	s3RegionFlag                 = "s3-region"
 	s3BucketFlag                 = "s3-bucket"
 	s3RootFolderFlag             = "s3-root-folder"
+	s3DisableHTTPS               = "s3-disable-http"
 	postgresMigrationsFlag       = "postgres-migrations"
 	postgresMigrationsSourceFlag = "postgres-migrations-source"
 	fastlyServiceFlag            = "fastly-service"
@@ -135,20 +139,33 @@ func getMetadataStorage(endpoint string) *metadata.Hasura {
 }
 
 func getContentStorage(
-	s3Endpoint, region, s3AccessKey, s3SecretKey, bucket, rootFolder string, logger *logrus.Logger,
+	ctx context.Context,
+	s3Endpoint, region, s3AccessKey, s3SecretKey, bucket, rootFolder string, disableHTTPS bool, logger *logrus.Logger,
 ) *storage.S3 {
-	config := &aws.Config{ //nolint: exhaustivestruct
-		Credentials:      credentials.NewStaticCredentials(s3AccessKey, s3SecretKey, ""),
-		Endpoint:         aws.String(s3Endpoint),
-		Region:           aws.String(region),
-		DisableSSL:       aws.Bool(true),
-		S3ForcePathStyle: aws.Bool(true),
+	var cfg aws.Config
+	var err error
+	if s3AccessKey != "" && s3SecretKey != "" {
+		logger.Info("Using static aws credentials")
+		cfg, err = config.LoadDefaultConfig(ctx,
+			config.WithRegion(region),
+			config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(s3AccessKey, s3SecretKey, "")),
+		)
+	} else {
+		logger.Info("Using default configuration for aws credentials")
+		cfg, err = config.LoadDefaultConfig(ctx, config.WithRegion(region))
 	}
-
-	st, err := storage.NewS3(config, bucket, rootFolder, s3Endpoint, logger)
 	if err != nil {
 		panic(err)
 	}
+	client := s3.NewFromConfig(
+		cfg,
+		func(o *s3.Options) {
+			o.BaseEndpoint = aws.String(s3Endpoint)
+			o.UsePathStyle = true
+			o.EndpointOptions.DisableHTTPS = disableHTTPS
+		},
+	)
+	st := storage.NewS3(client, bucket, rootFolder, s3Endpoint, disableHTTPS, logger)
 
 	return st
 }
@@ -249,7 +266,7 @@ func init() {
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Starts hasura-storage server",
-	Run: func(_ *cobra.Command, _ []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		logger := getLogger()
 
 		logger.Info("storage version ", controller.Version())
@@ -283,12 +300,14 @@ var serveCmd = &cobra.Command{
 		).Debug("parameters")
 
 		contentStorage := getContentStorage(
+			cmd.Context(),
 			viper.GetString(s3EndpointFlag),
 			viper.GetString(s3RegionFlag),
 			viper.GetString(s3AccessKeyFlag),
 			viper.GetString(s3SecretKeyFlag),
 			viper.GetString(s3BucketFlag),
 			viper.GetString(s3RootFolderFlag),
+			viper.GetBool(s3DisableHTTPS),
 			logger,
 		)
 

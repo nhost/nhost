@@ -14,7 +14,7 @@ func (ctrl *Controller) deleteOrphans(ctx *gin.Context) ([]string, *APIError) {
 	}
 
 	for _, f := range toDelete {
-		if apiErr := ctrl.contentStorage.DeleteFile(f); apiErr != nil {
+		if apiErr := ctrl.contentStorage.DeleteFile(ctx, f); apiErr != nil {
 			return nil, apiErr
 		}
 	}

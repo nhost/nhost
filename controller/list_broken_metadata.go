@@ -18,7 +18,7 @@ func (ctrl *Controller) listBrokenMetadata(ctx *gin.Context) ([]FileSummary, *AP
 		return nil, apiErr
 	}
 
-	filesInS3, apiErr := ctrl.contentStorage.ListFiles()
+	filesInS3, apiErr := ctrl.contentStorage.ListFiles(ctx)
 	if apiErr != nil {
 		return nil, apiErr
 	}

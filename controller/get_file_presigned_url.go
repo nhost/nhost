@@ -41,6 +41,7 @@ func (ctrl *Controller) getFilePresignedURL(ctx *gin.Context) (GetFilePresignedU
 	}
 
 	signature, apiErr := ctrl.contentStorage.CreatePresignedURL(
+		ctx,
 		fileMetadata.ID,
 		time.Duration(bucketMetadata.DownloadExpiration)*time.Second,
 	)

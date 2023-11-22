@@ -148,7 +148,7 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 	}
 
 	if !opts.IsEmpty() {
-		download, apiErr := ctrl.contentStorage.GetFile(fileMetadata.ID, ctx.Request.Header)
+		download, apiErr := ctrl.contentStorage.GetFile(ctx, fileMetadata.ID, ctx.Request.Header)
 		if apiErr != nil {
 			return nil, apiErr
 		}
