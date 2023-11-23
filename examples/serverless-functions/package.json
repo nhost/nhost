@@ -14,5 +14,8 @@
     "nodemailer": "^6.8.0",
     "slugify": "^1.6.5",
     "stripe": "^11.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
