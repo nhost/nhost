@@ -166,7 +166,7 @@ export default function SQLEditor() {
       <CodeMirror
         value={sqlCode}
         height="100%"
-        className="flex-1 overflow-y-auto"
+        className="min-h-[100px] flex-1 overflow-y-auto"
         theme={theme.palette.mode === 'light' ? githubLight : githubDark}
         extensions={[sql({ dialect: PostgreSQL })]}
         onChange={onChange}
