@@ -25,6 +25,7 @@ const (
 	flagsFunctionsPort     = "functions-port"
 	flagsHasuraPort        = "hasura-port"
 	flagsHasuraConsolePort = "hasura-console-port"
+	flagDashboardVersion   = "dashboard-version"
 )
 
 const (
@@ -32,7 +33,7 @@ const (
 	defaultPostgresPort = 5432
 )
 
-func CommandUp() *cli.Command {
+func CommandUp() *cli.Command { //nolint:funlen
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "up",
 		Aliases: []string{},
@@ -88,6 +89,12 @@ func CommandUp() *cli.Command {
 				Usage: "If specified, expose hasura console on this port. Not recommended",
 				Value: 0,
 			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagDashboardVersion,
+				Usage:   "Dashboard version to use",
+				Value:   "nhost/dashboard:0.20.28",
+				EnvVars: []string{"NHOST_DASHBOARD_VERSION"},
+			},
 		},
 	}
 }
@@ -123,6 +130,7 @@ func commandUp(cCtx *cli.Context) error {
 			Console:   cCtx.Uint(flagsHasuraConsolePort),
 			Functions: cCtx.Uint(flagsFunctionsPort),
 		},
+		cCtx.String(flagDashboardVersion),
 	)
 }
 
@@ -180,6 +188,7 @@ func up( //nolint:funlen
 	postgresPort uint,
 	applySeeds bool,
 	ports dockercompose.ExposePorts,
+	dashboardVersion string,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -208,6 +217,7 @@ func up( //nolint:funlen
 		ce.Path.Root(),
 		ports,
 		ce.Branch(),
+		dashboardVersion,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to generate docker-compose.yaml: %w", err)
@@ -279,11 +289,12 @@ func Up(
 	postgresPort uint,
 	applySeeds bool,
 	ports dockercompose.ExposePorts,
+	dashboardVersion string,
 ) error {
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
 	if err := up(
-		ctx, ce, dc, httpPort, useTLS, postgresPort, applySeeds, ports,
+		ctx, ce, dc, httpPort, useTLS, postgresPort, applySeeds, ports, dashboardVersion,
 	); err != nil {
 		ce.Warnln(err.Error())
 

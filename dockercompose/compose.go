@@ -250,9 +250,14 @@ func minio(dataFolder string) (*Service, error) {
 	}, nil
 }
 
-func dashboard(cfg *model.ConfigConfig, httpPort uint, useTLS bool) *Service {
+func dashboard(
+	cfg *model.ConfigConfig,
+	dashboardVersion string,
+	httpPort uint,
+	useTLS bool,
+) *Service {
 	return &Service{
-		Image:      "nhost/dashboard:0.20.28",
+		Image:      dashboardVersion,
 		DependsOn:  nil,
 		EntryPoint: nil,
 		Command:    nil,
@@ -436,6 +441,7 @@ func ComposeFileFromConfig( //nolint:funlen
 	rootFolder string,
 	ports ExposePorts,
 	branch string,
+	dashboardVersion string,
 ) (*ComposeFile, error) {
 	minio, err := minio(dataFolder)
 	if err != nil {
@@ -484,7 +490,7 @@ func ComposeFileFromConfig( //nolint:funlen
 		Services: map[string]*Service{
 			"auth":      auth,
 			"console":   console,
-			"dashboard": dashboard(cfg, httpPort, useTLS),
+			"dashboard": dashboard(cfg, dashboardVersion, httpPort, useTLS),
 			"functions": functions(
 				cfg,
 				httpPort,

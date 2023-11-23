@@ -422,7 +422,8 @@ type ConfigEnvironmentVariableUpdateInput struct {
 }
 
 type ConfigFunctions struct {
-	Node *ConfigFunctionsNode `json:"node,omitempty"`
+	Node      *ConfigFunctionsNode      `json:"node,omitempty"`
+	Resources *ConfigFunctionsResources `json:"resources,omitempty"`
 }
 
 type ConfigFunctionsNode struct {
@@ -433,8 +434,17 @@ type ConfigFunctionsNodeUpdateInput struct {
 	Version *int64 `json:"version,omitempty"`
 }
 
+type ConfigFunctionsResources struct {
+	Networking *ConfigNetworking `json:"networking,omitempty"`
+}
+
+type ConfigFunctionsResourcesUpdateInput struct {
+	Networking *ConfigNetworkingUpdateInput `json:"networking,omitempty"`
+}
+
 type ConfigFunctionsUpdateInput struct {
-	Node *ConfigFunctionsNodeUpdateInput `json:"node,omitempty"`
+	Node      *ConfigFunctionsNodeUpdateInput      `json:"node,omitempty"`
+	Resources *ConfigFunctionsResourcesUpdateInput `json:"resources,omitempty"`
 }
 
 type ConfigGlobal struct {
