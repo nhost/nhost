@@ -4,23 +4,18 @@ export interface ParsedSQLEntity {
   schema: string;
 }
 
-const createSQLRegex =
-  /create\s*(?:|or\s*replace)\s*(?<type>view|table|function)\s*(?:\s*if*\s*not\s*exists\s*)?((?<schema>\"?\w+\"?)\.(?<nameWithSchema>\"?\w+\"?)|(?<name>\"?\w+\"?))\s*(?<partition>partition\s*of)?/gim; // eslint-disable-line
+const sanitizeValue = (value: string) => {
+  let val = value;
 
-const getSQLValue = (value: string) => {
-  const quotedStringRegex = /^".*"$/;
-
-  let sqlValue = value;
-  if (!quotedStringRegex.test(value)) {
-    sqlValue = value?.toLowerCase() ?? '';
+  if (!/^".*"$/.test(value)) {
+    val = value?.toLowerCase() ?? '';
   }
 
-  return sqlValue.replace(/['"]+/g, '');
+  return val.replace(/['"]+/g, '');
 };
 
-const removeCommentsSQL = (sql: string) => {
-  const commentsSQLRegex = /(--[^\r\n]*)|(\/\*[\w\W]*?(?=\*\/)\*\/)/; // eslint-disable-line
-  const regExp = commentsSQLRegex;
+const stripComments = (sql: string) => {
+  const regExp = /(--[^\r\n]*)|(\/\*[\w\W]*?(?=\*\/)\*\/)/; // eslint-disable-line
   const comments = sql.match(new RegExp(regExp, 'gmi'));
 
   if (!comments?.length) {
@@ -35,9 +30,10 @@ const removeCommentsSQL = (sql: string) => {
 
 export const parseIdentifiersFromSQL = (sql: string): ParsedSQLEntity[] => {
   const objects: ParsedSQLEntity[] = [];
-  const sanitizedSql = removeCommentsSQL(sql);
+  const sanitizedSql = stripComments(sql);
 
-  const regExp = createSQLRegex;
+  const regExp =
+    /create\s*(?:|or\s*replace)\s*(?<type>view|table|function)\s*(?:\s*if*\s*not\s*exists\s*)?((?<schema>\"?\w+\"?)\.(?<nameWithSchema>\"?\w+\"?)|(?<name>\"?\w+\"?))\s*(?<partition>partition\s*of)?/gim; // eslint-disable-line
 
   Array.from(sanitizedSql.matchAll(regExp)).forEach((result) => {
     const { type, schema, name, nameWithSchema } = result.groups ?? {};
@@ -45,8 +41,8 @@ export const parseIdentifiersFromSQL = (sql: string): ParsedSQLEntity[] => {
     if (type && (name || nameWithSchema)) {
       objects.push({
         type: type.toLowerCase(),
-        schema: getSQLValue(schema || 'public'),
-        name: getSQLValue(name || nameWithSchema),
+        schema: sanitizeValue(schema || 'public'),
+        name: sanitizeValue(name || nameWithSchema),
       });
     }
   });
