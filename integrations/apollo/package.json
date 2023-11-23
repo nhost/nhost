@@ -70,5 +70,8 @@
   "devDependencies": {
     "@apollo/client": "^3.7.10",
     "@nhost/nhost-js": "workspace:*"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

@@ -4,5 +4,8 @@
   "version": "0.0.4",
   "scripts": {
     "seed-storage": "./seed-storage.sh"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

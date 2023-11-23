@@ -43,5 +43,8 @@
   "eslintConfig": {
     "root": true,
     "extends": "../../config/.eslintrc.vue.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
