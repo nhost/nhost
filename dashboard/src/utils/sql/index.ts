@@ -1,3 +1,5 @@
+// The parsing was inspired by code from the hasura/graphql-engine repo
+
 export interface ParsedSQLEntity {
   type: string;
   name: string;
