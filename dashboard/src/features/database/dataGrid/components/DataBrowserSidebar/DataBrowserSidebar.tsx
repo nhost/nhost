@@ -17,6 +17,7 @@ import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon'
 import { LockIcon } from '@/components/ui/v2/icons/LockIcon';
 import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
+import { TerminalIcon } from '@/components/ui/v2/icons/TerminalIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UsersIcon } from '@/components/ui/v2/icons/UsersIcon';
 import { Link } from '@/components/ui/v2/Link';
@@ -86,7 +87,9 @@ function DataBrowserSidebarContent({
   const isGitHubConnected = !!currentProject?.githubRepository;
 
   const router = useRouter();
+
   const {
+    asPath,
     query: { workspaceSlug, appSlug, dataSourceSlug, schemaSlug, tableSlug },
   } = router;
 
@@ -107,6 +110,8 @@ function DataBrowserSidebarContent({
    * Table for which the table management dropdown was opened.
    */
   const [sidebarMenuTable, setSidebarMenuTable] = useState<string>();
+
+  const sqlEditorHref = `/${workspaceSlug}/${appSlug}/database/browser/default/editor`;
 
   useEffect(() => {
     if (selectedSchema) {
@@ -258,194 +263,135 @@ function DataBrowserSidebarContent({
   }
 
   return (
-    <div className="grid gap-1">
-      {schemas && schemas.length > 0 && (
-        <Select
-          renderValue={(option) => (
-            <span className="grid grid-flow-col items-center gap-1">
-              {option?.label}
-            </span>
-          )}
-          slotProps={{
-            listbox: { className: 'max-w-[220px] min-w-[initial] w-full' },
-            popper: { className: 'max-w-[220px] min-w-[initial] w-full' },
-          }}
-          value={selectedSchema}
-          onChange={(_event, value) => setSelectedSchema(value as string)}
-        >
-          {schemas.map((schema) => (
-            <Option
-              className="grid grid-flow-col items-center gap-1"
-              value={schema.schema_name}
-              key={schema.schema_name}
-            >
-              <Text className="text-sm">
-                <Text component="span" color="disabled">
-                  schema.
-                </Text>
-                <Text component="span" className="font-medium">
-                  {schema.schema_name}
-                </Text>
-              </Text>
-              {(isSchemaLocked(schema.schema_name) || isGitHubConnected) && (
-                <LockIcon
-                  className="h-3 w-3"
-                  sx={{ color: 'text.secondary' }}
-                />
-              )}
-            </Option>
-          ))}
-        </Select>
-      )}
-
-      {isGitHubConnected && (
-        <Box
-          className="mt-1.5 grid grid-flow-row justify-items-start gap-2 rounded-md p-2"
-          sx={{ backgroundColor: 'grey.200' }}
-        >
-          <Text>
-            Your project is connected to GitHub. Please use the CLI to make
-            schema changes.
-          </Text>
-
-          <Link
-            href="https://docs.nhost.io/platform/github-integration"
-            target="_blank"
-            rel="noopener noreferrer"
-            underline="hover"
-            className="grid grid-flow-col items-center justify-start gap-1"
+    <Box className="flex h-full flex-col justify-between">
+      <Box className="flex flex-col px-2">
+        {schemas && schemas.length > 0 && (
+          <Select
+            renderValue={(option) => (
+              <span className="grid grid-flow-col items-center gap-1">
+                {option?.label}
+              </span>
+            )}
+            slotProps={{
+              listbox: { className: 'max-w-[220px] min-w-[initial] w-full' },
+              popper: { className: 'max-w-[220px] min-w-[initial] w-full' },
+            }}
+            value={selectedSchema}
+            onChange={(_event, value) => setSelectedSchema(value as string)}
           >
-            Learn More <ArrowRightIcon />
-          </Link>
-        </Box>
-      )}
-
-      {!isSelectedSchemaLocked && (
-        <Button
-          variant="borderless"
-          endIcon={<PlusIcon />}
-          className="mt-1 w-full justify-between px-2"
-          onClick={() => {
-            openDrawer({
-              title: 'Create a New Table',
-              component: (
-                <CreateTableForm onSubmit={refetch} schema={selectedSchema} />
-              ),
-            });
-
-            onSidebarItemClick();
-          }}
-          disabled={isGitHubConnected}
-        >
-          New Table
-        </Button>
-      )}
-
-      {schemas && schemas.length > 0 && tablesInSelectedSchema.length === 0 && (
-        <Text className="py-1.5 px-2 text-xs" color="disabled">
-          No tables found.
-        </Text>
-      )}
-
-      <nav aria-label="Database navigation">
-        {tablesInSelectedSchema.length > 0 && (
-          <List className="grid gap-1 pb-6">
-            {tablesInSelectedSchema.map((table) => {
-              const tablePath = `${table.table_schema}.${table.table_name}`;
-              const isSelected = `${schemaSlug}.${tableSlug}` === tablePath;
-              const isSidebarMenuOpen = sidebarMenuTable === tablePath;
-
-              return (
-                <ListItem.Root
-                  className="group"
-                  key={tablePath}
-                  secondaryAction={
-                    <Dropdown.Root
-                      id="table-management-menu"
-                      onOpen={() => setSidebarMenuTable(tablePath)}
-                      onClose={() => setSidebarMenuTable(undefined)}
-                    >
-                      <Dropdown.Trigger
-                        asChild
-                        hideChevron
-                        disabled={tablePath === removableTable}
+            {schemas.map((schema) => (
+              <Option
+                className="grid grid-flow-col items-center gap-1"
+                value={schema.schema_name}
+                key={schema.schema_name}
+              >
+                <Text className="text-sm">
+                  <Text component="span" color="disabled">
+                    schema.
+                  </Text>
+                  <Text component="span" className="font-medium">
+                    {schema.schema_name}
+                  </Text>
+                </Text>
+                {(isSchemaLocked(schema.schema_name) || isGitHubConnected) && (
+                  <LockIcon
+                    className="h-3 w-3"
+                    sx={{ color: 'text.secondary' }}
+                  />
+                )}
+              </Option>
+            ))}
+          </Select>
+        )}
+        {isGitHubConnected && (
+          <Box
+            className="mt-1.5 grid grid-flow-row justify-items-start gap-2 rounded-md p-2"
+            sx={{ backgroundColor: 'grey.200' }}
+          >
+            <Text>
+              Your project is connected to GitHub. Please use the CLI to make
+              schema changes.
+            </Text>
+            <Link
+              href="https://docs.nhost.io/platform/github-integration"
+              target="_blank"
+              rel="noopener noreferrer"
+              underline="hover"
+              className="grid grid-flow-col items-center justify-start gap-1"
+            >
+              Learn More <ArrowRightIcon />
+            </Link>
+          </Box>
+        )}
+        {!isSelectedSchemaLocked && (
+          <Button
+            variant="borderless"
+            endIcon={<PlusIcon />}
+            className="mt-1 w-full justify-between px-2"
+            onClick={() => {
+              openDrawer({
+                title: 'Create a New Table',
+                component: (
+                  <CreateTableForm onSubmit={refetch} schema={selectedSchema} />
+                ),
+              });
+              onSidebarItemClick();
+            }}
+            disabled={isGitHubConnected}
+          >
+            New Table
+          </Button>
+        )}
+        {schemas && schemas.length > 0 && tablesInSelectedSchema.length === 0 && (
+          <Text className="py-1.5 px-2 text-xs" color="disabled">
+            No tables found.
+          </Text>
+        )}
+        <nav aria-label="Database navigation">
+          {tablesInSelectedSchema.length > 0 && (
+            <List className="grid gap-1 pb-6">
+              {tablesInSelectedSchema.map((table) => {
+                const tablePath = `${table.table_schema}.${table.table_name}`;
+                const isSelected = `${schemaSlug}.${tableSlug}` === tablePath;
+                const isSidebarMenuOpen = sidebarMenuTable === tablePath;
+                return (
+                  <ListItem.Root
+                    className="group"
+                    key={tablePath}
+                    secondaryAction={
+                      <Dropdown.Root
+                        id="table-management-menu"
+                        onOpen={() => setSidebarMenuTable(tablePath)}
+                        onClose={() => setSidebarMenuTable(undefined)}
                       >
-                        <IconButton
-                          variant="borderless"
-                          color={isSelected ? 'primary' : 'secondary'}
-                          className={twMerge(
-                            !isSelected &&
-                              'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
-                          )}
+                        <Dropdown.Trigger
+                          asChild
+                          hideChevron
+                          disabled={tablePath === removableTable}
                         >
-                          <DotsHorizontalIcon />
-                        </IconButton>
-                      </Dropdown.Trigger>
-
-                      <Dropdown.Content menu PaperProps={{ className: 'w-52' }}>
-                        {isGitHubConnected ? (
-                          <Dropdown.Item
-                            className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                            onClick={() =>
-                              handleEditPermissionClick(
-                                table.table_schema,
-                                table.table_name,
-                                true,
-                              )
-                            }
+                          <IconButton
+                            variant="borderless"
+                            color={isSelected ? 'primary' : 'secondary'}
+                            className={twMerge(
+                              !isSelected &&
+                                'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 group-active:opacity-100',
+                            )}
                           >
-                            <UsersIcon
-                              className="h-4 w-4"
-                              sx={{ color: 'text.secondary' }}
-                            />
-
-                            <span>View Permissions</span>
-                          </Dropdown.Item>
-                        ) : (
-                          [
-                            !isSelectedSchemaLocked && (
-                              <Dropdown.Item
-                                key="edit-table"
-                                className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                                onClick={() =>
-                                  openDrawer({
-                                    title: 'Edit Table',
-                                    component: (
-                                      <EditTableForm
-                                        onSubmit={async () => {
-                                          await queryClient.refetchQueries([
-                                            `${dataSourceSlug}.${table.table_schema}.${table.table_name}`,
-                                          ]);
-                                          await refetch();
-                                        }}
-                                        schema={table.table_schema}
-                                        table={table}
-                                      />
-                                    ),
-                                  })
-                                }
-                              >
-                                <PencilIcon
-                                  className="h-4 w-4"
-                                  sx={{ color: 'text.secondary' }}
-                                />
-
-                                <span>Edit Table</span>
-                              </Dropdown.Item>
-                            ),
-                            !isSelectedSchemaLocked && (
-                              <Divider
-                                key="edit-table-separator"
-                                component="li"
-                              />
-                            ),
+                            <DotsHorizontalIcon />
+                          </IconButton>
+                        </Dropdown.Trigger>
+                        <Dropdown.Content
+                          menu
+                          PaperProps={{ className: 'w-52' }}
+                        >
+                          {isGitHubConnected ? (
                             <Dropdown.Item
-                              key="edit-permissions"
                               className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                               onClick={() =>
                                 handleEditPermissionClick(
                                   table.table_schema,
                                   table.table_name,
+                                  true,
                                 )
                               }
                             >
@@ -453,68 +399,135 @@ function DataBrowserSidebarContent({
                                 className="h-4 w-4"
                                 sx={{ color: 'text.secondary' }}
                               />
-
-                              <span>Edit Permissions</span>
-                            </Dropdown.Item>,
-                            !isSelectedSchemaLocked && (
-                              <Divider
-                                key="edit-permissions-separator"
-                                component="li"
-                              />
-                            ),
-                            !isSelectedSchemaLocked && (
+                              <span>View Permissions</span>
+                            </Dropdown.Item>
+                          ) : (
+                            [
+                              !isSelectedSchemaLocked && (
+                                <Dropdown.Item
+                                  key="edit-table"
+                                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                  onClick={() =>
+                                    openDrawer({
+                                      title: 'Edit Table',
+                                      component: (
+                                        <EditTableForm
+                                          onSubmit={async () => {
+                                            await queryClient.refetchQueries([
+                                              `${dataSourceSlug}.${table.table_schema}.${table.table_name}`,
+                                            ]);
+                                            await refetch();
+                                          }}
+                                          schema={table.table_schema}
+                                          table={table}
+                                        />
+                                      ),
+                                    })
+                                  }
+                                >
+                                  <PencilIcon
+                                    className="h-4 w-4"
+                                    sx={{ color: 'text.secondary' }}
+                                  />
+                                  <span>Edit Table</span>
+                                </Dropdown.Item>
+                              ),
+                              !isSelectedSchemaLocked && (
+                                <Divider
+                                  key="edit-table-separator"
+                                  component="li"
+                                />
+                              ),
                               <Dropdown.Item
-                                key="delete-table"
+                                key="edit-permissions"
                                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
-                                sx={{ color: 'error.main' }}
                                 onClick={() =>
-                                  handleDeleteTableClick(
+                                  handleEditPermissionClick(
                                     table.table_schema,
                                     table.table_name,
                                   )
                                 }
                               >
-                                <TrashIcon
+                                <UsersIcon
                                   className="h-4 w-4"
-                                  sx={{ color: 'error.main' }}
+                                  sx={{ color: 'text.secondary' }}
                                 />
-
-                                <span>Delete Table</span>
-                              </Dropdown.Item>
-                            ),
-                          ]
-                        )}
-                      </Dropdown.Content>
-                    </Dropdown.Root>
-                  }
-                >
-                  <ListItem.Button
-                    dense
-                    selected={isSelected}
-                    disabled={tablePath === removableTable}
-                    className="group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
-                    sx={{
-                      paddingRight:
-                        (isSelected || isSidebarMenuOpen) &&
-                        '2.25rem !important',
-                    }}
-                    component={NavLink}
-                    href={`/${workspaceSlug}/${appSlug}/database/browser/default/${table.table_schema}/${table.table_name}`}
-                    onClick={() => {
-                      if (onSidebarItemClick) {
-                        onSidebarItemClick(`default.${tablePath}`);
-                      }
-                    }}
+                                <span>Edit Permissions</span>
+                              </Dropdown.Item>,
+                              !isSelectedSchemaLocked && (
+                                <Divider
+                                  key="edit-permissions-separator"
+                                  component="li"
+                                />
+                              ),
+                              !isSelectedSchemaLocked && (
+                                <Dropdown.Item
+                                  key="delete-table"
+                                  className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
+                                  sx={{ color: 'error.main' }}
+                                  onClick={() =>
+                                    handleDeleteTableClick(
+                                      table.table_schema,
+                                      table.table_name,
+                                    )
+                                  }
+                                >
+                                  <TrashIcon
+                                    className="h-4 w-4"
+                                    sx={{ color: 'error.main' }}
+                                  />
+                                  <span>Delete Table</span>
+                                </Dropdown.Item>
+                              ),
+                            ]
+                          )}
+                        </Dropdown.Content>
+                      </Dropdown.Root>
+                    }
                   >
-                    <ListItem.Text>{table.table_name}</ListItem.Text>
-                  </ListItem.Button>
-                </ListItem.Root>
-              );
-            })}
-          </List>
-        )}
-      </nav>
-    </div>
+                    <ListItem.Button
+                      dense
+                      selected={isSelected}
+                      disabled={tablePath === removableTable}
+                      className="group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
+                      sx={{
+                        paddingRight:
+                          (isSelected || isSidebarMenuOpen) &&
+                          '2.25rem !important',
+                      }}
+                      component={NavLink}
+                      href={`/${workspaceSlug}/${appSlug}/database/browser/default/${table.table_schema}/${table.table_name}`}
+                      onClick={() => {
+                        if (onSidebarItemClick) {
+                          onSidebarItemClick(`default.${tablePath}`);
+                        }
+                      }}
+                    >
+                      <ListItem.Text>{table.table_name}</ListItem.Text>
+                    </ListItem.Button>
+                  </ListItem.Root>
+                );
+              })}
+            </List>
+          )}
+        </nav>
+      </Box>
+
+      <Box className="border-t">
+        <ListItem.Button
+          dense
+          selected={asPath === sqlEditorHref}
+          className="flex border group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
+          component={NavLink}
+          href={sqlEditorHref}
+        >
+          <div className="flex w-full flex-row items-center justify-center space-x-4">
+            <TerminalIcon />
+            <span className="flex">SQL Editor</span>
+          </div>
+        </ListItem.Button>
+      </Box>
+    </Box>
   );
 }
 
@@ -580,7 +593,7 @@ export default function DataBrowserSidebar({
       <Box
         component="aside"
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 px-2 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:py-2.5 sm:transition-none',
+          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 pt-2 pb-17 motion-safe:transition-transform sm:relative sm:z-0 sm:h-full sm:pt-2.5 sm:pb-0 sm:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full sm:translate-x-0',
           className,
         )}
