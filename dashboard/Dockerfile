@@ -1,4 +1,4 @@
-FROM node:16-alpine AS pruner
+FROM node:18-alpine AS pruner
 RUN apk add --no-cache libc6-compat
 RUN apk update
 WORKDIR /app
@@ -7,7 +7,7 @@ RUN yarn global add turbo@1.10.11
 COPY . .
 RUN turbo prune --scope="@nhost/dashboard" --docker
 
-FROM node:16-alpine AS builder
+FROM node:18-alpine AS builder
 ARG TURBO_TOKEN
 ARG TURBO_TEAM
 
@@ -40,7 +40,7 @@ COPY turbo.json turbo.json
 COPY config/ config/
 RUN pnpm build:dashboard
 
-FROM node:16-alpine AS runner
+FROM node:18-alpine AS runner
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs
