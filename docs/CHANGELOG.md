@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.7.2
+
+### Patch Changes
+
+- 138bf9eb5: fix: add instructions for enabling Sign In with LinkedIn using OpenID Connect
+
 ## 0.7.1
 
 ### Patch Changes

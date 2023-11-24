@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 0.21.0
+
+### Minor Changes
+
+- ed1a8d458: Update alert message on increasing PostgreSQL's volume capacity
+- 2e2248fd4: feat(dashboard): add SQL editor
+
 ## 0.20.28
 
 ### Patch Changes
