@@ -1,5 +1,11 @@
 # @nhost-examples/react-apollo
 
+## 0.1.17
+
+### Patch Changes
+
+- 67b2c044b: feat: add sign-in with Linked-In
+
 ## 0.1.16
 
 ### Patch Changes
