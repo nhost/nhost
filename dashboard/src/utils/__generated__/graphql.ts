@@ -23068,7 +23068,7 @@ export const ProjectFragmentDoc = gql`
   desiredState
   nhostBaseFolder
   providersUpdated
-  config(resolve: false) {
+  config(resolve: true) {
     observability {
       grafana {
         adminPassword
