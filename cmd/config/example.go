@@ -81,6 +81,15 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 			Node: &model.ConfigFunctionsNode{
 				Version: ptr(int(18)),
 			},
+			Resources: &model.ConfigFunctionsResources{
+				Networking: &model.ConfigNetworking{
+					Ingresses: []*model.ConfigIngress{
+						{
+							Fqdn: []string{"hasura.example.com"},
+						},
+					},
+				},
+			},
 		},
 		Auth: &model.ConfigAuth{
 			Version: new(string),
@@ -256,6 +265,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				Webauthn: &model.ConfigAuthMethodWebauthn{
 					Enabled: ptr(true),
 					RelyingParty: &model.ConfigAuthMethodWebauthnRelyingParty{
+						Id:   ptr("example.com"),
 						Name: ptr("name"),
 						Origins: []string{
 							"https://example.com",

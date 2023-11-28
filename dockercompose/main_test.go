@@ -129,6 +129,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 						Timeout: ptr(uint32(60000)),
 					},
 					RelyingParty: &model.ConfigAuthMethodWebauthnRelyingParty{
+						Id:      ptr("webauthnRelyingPartyId"),
 						Name:    ptr("webauthnRelyingPartyName"),
 						Origins: []string{"http://localhost:3000"},
 					},
@@ -200,6 +201,15 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 		Functions: &model.ConfigFunctions{
 			Node: &model.ConfigFunctionsNode{
 				Version: ptr(18),
+			},
+			Resources: &model.ConfigFunctionsResources{
+				Networking: &model.ConfigNetworking{
+					Ingresses: []*model.ConfigIngress{
+						{
+							Fqdn: []string{"hasura.example.com"},
+						},
+					},
+				},
 			},
 		},
 		Hasura: &model.ConfigHasura{

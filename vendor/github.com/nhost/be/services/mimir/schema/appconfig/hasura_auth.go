@@ -292,6 +292,17 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 				),
 			},
 			{
+				Name: "AUTH_WEBAUTHN_RP_ID",
+				Value: unptr(
+					config.
+						GetAuth().
+						GetMethod().
+						GetWebauthn().
+						GetRelyingParty().
+						GetId(),
+				),
+			},
+			{
 				Name: "AUTH_WEBAUTHN_RP_NAME",
 				Value: unptr(
 					config.

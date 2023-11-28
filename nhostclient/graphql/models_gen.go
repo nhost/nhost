@@ -208,11 +208,13 @@ type ConfigAuthMethodWebauthnAttestationUpdateInput struct {
 }
 
 type ConfigAuthMethodWebauthnRelyingParty struct {
+	ID      *string  `json:"id,omitempty"`
 	Name    *string  `json:"name,omitempty"`
 	Origins []string `json:"origins,omitempty"`
 }
 
 type ConfigAuthMethodWebauthnRelyingPartyUpdateInput struct {
+	ID      *string  `json:"id,omitempty"`
 	Name    *string  `json:"name,omitempty"`
 	Origins []string `json:"origins,omitempty"`
 }

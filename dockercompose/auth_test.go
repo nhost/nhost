@@ -120,6 +120,7 @@ func expectedAuth() *Service {
 			"AUTH_USER_DEFAULT_ROLE":                    "user",
 			"AUTH_WEBAUTHN_ATTESTATION_TIMEOUT":         "60000",
 			"AUTH_WEBAUTHN_ENABLED":                     "true",
+			"AUTH_WEBAUTHN_RP_ID":                       "webauthnRelyingPartyId",
 			"AUTH_WEBAUTHN_RP_NAME":                     "webauthnRelyingPartyName",
 			"AUTH_WEBAUTHN_RP_ORIGINS":                  "http://localhost:3000",
 			"ENV1":                                      "VALUE1",

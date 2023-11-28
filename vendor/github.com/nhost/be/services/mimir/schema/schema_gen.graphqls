@@ -757,6 +757,10 @@ type ConfigAuthMethodWebauthnRelyingParty {
     """
 
     """
+    id: String
+    """
+
+    """
     name: String
     """
 
@@ -765,11 +769,13 @@ type ConfigAuthMethodWebauthnRelyingParty {
 }
 
 input ConfigAuthMethodWebauthnRelyingPartyUpdateInput {
+    id: String
     name: String
         origins: [ConfigUrl!]
 }
 
 input ConfigAuthMethodWebauthnRelyingPartyInsertInput {
+    id: String
     name: String
         origins: [ConfigUrl!]
 }
@@ -778,6 +784,7 @@ input ConfigAuthMethodWebauthnRelyingPartyComparisonExp {
     _and: [ConfigAuthMethodWebauthnRelyingPartyComparisonExp!]
     _not: ConfigAuthMethodWebauthnRelyingPartyComparisonExp
     _or: [ConfigAuthMethodWebauthnRelyingPartyComparisonExp!]
+    id: ConfigStringComparisonExp
     name: ConfigStringComparisonExp
     origins: ConfigUrlComparisonExp
 }
@@ -1388,14 +1395,20 @@ type ConfigFunctions {
 
     """
     node: ConfigFunctionsNode
+    """
+
+    """
+    resources: ConfigFunctionsResources
 }
 
 input ConfigFunctionsUpdateInput {
     node: ConfigFunctionsNodeUpdateInput
+    resources: ConfigFunctionsResourcesUpdateInput
 }
 
 input ConfigFunctionsInsertInput {
     node: ConfigFunctionsNodeInsertInput
+    resources: ConfigFunctionsResourcesInsertInput
 }
 
 input ConfigFunctionsComparisonExp {
@@ -1403,6 +1416,7 @@ input ConfigFunctionsComparisonExp {
     _not: ConfigFunctionsComparisonExp
     _or: [ConfigFunctionsComparisonExp!]
     node: ConfigFunctionsNodeComparisonExp
+    resources: ConfigFunctionsResourcesComparisonExp
 }
 
 """
@@ -1428,6 +1442,31 @@ input ConfigFunctionsNodeComparisonExp {
     _not: ConfigFunctionsNodeComparisonExp
     _or: [ConfigFunctionsNodeComparisonExp!]
     version: ConfigIntComparisonExp
+}
+
+"""
+
+"""
+type ConfigFunctionsResources {
+    """
+
+    """
+    networking: ConfigNetworking
+}
+
+input ConfigFunctionsResourcesUpdateInput {
+    networking: ConfigNetworkingUpdateInput
+}
+
+input ConfigFunctionsResourcesInsertInput {
+    networking: ConfigNetworkingInsertInput
+}
+
+input ConfigFunctionsResourcesComparisonExp {
+    _and: [ConfigFunctionsResourcesComparisonExp!]
+    _not: ConfigFunctionsResourcesComparisonExp
+    _or: [ConfigFunctionsResourcesComparisonExp!]
+    networking: ConfigNetworkingComparisonExp
 }
 
 """

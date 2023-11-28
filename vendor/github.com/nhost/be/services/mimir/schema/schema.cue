@@ -185,6 +185,10 @@ import (
 	node: {
 		version: 18
 	}
+	
+	resources?: {
+		networking?: #Networking
+	}
 }
 
 // Configuration for postgres service
@@ -386,12 +390,14 @@ import (
 			enabled: bool | *false
 			if enabled {
 				relyingParty: {
+					id: 		 string | *""
 					name:    string
 					origins: [...#Url] | *[redirections.clientUrl]
 				}
 			}
 			if !enabled {
 				relyingParty?: {
+					id: 		 string | *""
 					name?:    string
 					origins?: [...#Url] | *[redirections.clientUrl]
 				}

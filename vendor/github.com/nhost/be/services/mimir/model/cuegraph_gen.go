@@ -4449,6 +4449,8 @@ func (exp *ConfigAuthMethodWebauthnAttestationComparisonExp) Matches(o *ConfigAu
 }
 
 type ConfigAuthMethodWebauthnRelyingParty struct {
+	Id *string `json:"id" toml:"id"`
+
 	Name *string `json:"name" toml:"name"`
 
 	Origins []string `json:"origins,omitempty" toml:"origins,omitempty"`
@@ -4456,6 +4458,9 @@ type ConfigAuthMethodWebauthnRelyingParty struct {
 
 func (o *ConfigAuthMethodWebauthnRelyingParty) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
+	if o.Id != nil {
+		m["id"] = o.Id
+	}
 	if o.Name != nil {
 		m["name"] = o.Name
 	}
@@ -4463,6 +4468,13 @@ func (o *ConfigAuthMethodWebauthnRelyingParty) MarshalJSON() ([]byte, error) {
 		m["origins"] = o.Origins
 	}
 	return json.Marshal(m)
+}
+
+func (o *ConfigAuthMethodWebauthnRelyingParty) GetId() *string {
+	if o == nil {
+		o = &ConfigAuthMethodWebauthnRelyingParty{}
+	}
+	return o.Id
 }
 
 func (o *ConfigAuthMethodWebauthnRelyingParty) GetName() *string {
@@ -4480,6 +4492,8 @@ func (o *ConfigAuthMethodWebauthnRelyingParty) GetOrigins() []string {
 }
 
 type ConfigAuthMethodWebauthnRelyingPartyUpdateInput struct {
+	Id           *string  `json:"id,omitempty" toml:"id,omitempty"`
+	IsSetId      bool     `json:"-"`
 	Name         *string  `json:"name,omitempty" toml:"name,omitempty"`
 	IsSetName    bool     `json:"-"`
 	Origins      []string `json:"origins,omitempty" toml:"origins,omitempty"`
@@ -4490,6 +4504,23 @@ func (o *ConfigAuthMethodWebauthnRelyingPartyUpdateInput) UnmarshalGQL(v interfa
 	m, ok := v.(map[string]any)
 	if !ok {
 		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["id"]; ok {
+		if v == nil {
+			o.Id = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Id = &x
+		}
+		o.IsSetId = true
 	}
 	if v, ok := m["name"]; ok {
 		if v == nil {
@@ -4534,6 +4565,13 @@ func (o *ConfigAuthMethodWebauthnRelyingPartyUpdateInput) MarshalGQL(w io.Writer
 	}
 }
 
+func (o *ConfigAuthMethodWebauthnRelyingPartyUpdateInput) GetId() *string {
+	if o == nil {
+		o = &ConfigAuthMethodWebauthnRelyingPartyUpdateInput{}
+	}
+	return o.Id
+}
+
 func (o *ConfigAuthMethodWebauthnRelyingPartyUpdateInput) GetName() *string {
 	if o == nil {
 		o = &ConfigAuthMethodWebauthnRelyingPartyUpdateInput{}
@@ -4552,6 +4590,9 @@ func (s *ConfigAuthMethodWebauthnRelyingParty) Update(v *ConfigAuthMethodWebauth
 	if v == nil {
 		return
 	}
+	if v.IsSetId || v.Id != nil {
+		s.Id = v.Id
+	}
 	if v.IsSetName || v.Name != nil {
 		s.Name = v.Name
 	}
@@ -4568,8 +4609,16 @@ func (s *ConfigAuthMethodWebauthnRelyingParty) Update(v *ConfigAuthMethodWebauth
 }
 
 type ConfigAuthMethodWebauthnRelyingPartyInsertInput struct {
+	Id      *string  `json:"id,omitempty" toml:"id,omitempty"`
 	Name    *string  `json:"name,omitempty" toml:"name,omitempty"`
 	Origins []string `json:"origins,omitempty" toml:"origins,omitempty"`
+}
+
+func (o *ConfigAuthMethodWebauthnRelyingPartyInsertInput) GetId() *string {
+	if o == nil {
+		o = &ConfigAuthMethodWebauthnRelyingPartyInsertInput{}
+	}
+	return o.Id
 }
 
 func (o *ConfigAuthMethodWebauthnRelyingPartyInsertInput) GetName() *string {
@@ -4587,6 +4636,7 @@ func (o *ConfigAuthMethodWebauthnRelyingPartyInsertInput) GetOrigins() []string 
 }
 
 func (s *ConfigAuthMethodWebauthnRelyingParty) Insert(v *ConfigAuthMethodWebauthnRelyingPartyInsertInput) {
+	s.Id = v.Id
 	s.Name = v.Name
 	if v.Origins != nil {
 		s.Origins = make([]string, len(v.Origins))
@@ -4602,6 +4652,7 @@ func (s *ConfigAuthMethodWebauthnRelyingParty) Clone() *ConfigAuthMethodWebauthn
 	}
 
 	v := &ConfigAuthMethodWebauthnRelyingParty{}
+	v.Id = s.Id
 	v.Name = s.Name
 	if s.Origins != nil {
 		v.Origins = make([]string, len(s.Origins))
@@ -4614,6 +4665,7 @@ type ConfigAuthMethodWebauthnRelyingPartyComparisonExp struct {
 	And     []*ConfigAuthMethodWebauthnRelyingPartyComparisonExp `json:"_and,omitempty"`
 	Not     *ConfigAuthMethodWebauthnRelyingPartyComparisonExp   `json:"_not,omitempty"`
 	Or      []*ConfigAuthMethodWebauthnRelyingPartyComparisonExp `json:"_or,omitempty"`
+	Id      *ConfigStringComparisonExp                           `json:"id,omitempty"`
 	Name    *ConfigStringComparisonExp                           `json:"name,omitempty"`
 	Origins *ConfigUrlComparisonExp                              `json:"origins,omitempty"`
 }
@@ -4627,6 +4679,9 @@ func (exp *ConfigAuthMethodWebauthnRelyingPartyComparisonExp) Matches(o *ConfigA
 		o = &ConfigAuthMethodWebauthnRelyingParty{
 			Origins: []string{},
 		}
+	}
+	if o.Id != nil && !exp.Id.Matches(*o.Id) {
+		return false
 	}
 	if o.Name != nil && !exp.Name.Matches(*o.Name) {
 		return false
@@ -8595,12 +8650,17 @@ func (exp *ConfigEnvironmentVariableComparisonExp) Matches(o *ConfigEnvironmentV
 // Configuration for functions service
 type ConfigFunctions struct {
 	Node *ConfigFunctionsNode `json:"node,omitempty" toml:"node,omitempty"`
+
+	Resources *ConfigFunctionsResources `json:"resources,omitempty" toml:"resources,omitempty"`
 }
 
 func (o *ConfigFunctions) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	if o.Node != nil {
 		m["node"] = o.Node
+	}
+	if o.Resources != nil {
+		m["resources"] = o.Resources
 	}
 	return json.Marshal(m)
 }
@@ -8612,9 +8672,18 @@ func (o *ConfigFunctions) GetNode() *ConfigFunctionsNode {
 	return o.Node
 }
 
+func (o *ConfigFunctions) GetResources() *ConfigFunctionsResources {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
+}
+
 type ConfigFunctionsUpdateInput struct {
-	Node      *ConfigFunctionsNodeUpdateInput `json:"node,omitempty" toml:"node,omitempty"`
-	IsSetNode bool                            `json:"-"`
+	Node           *ConfigFunctionsNodeUpdateInput      `json:"node,omitempty" toml:"node,omitempty"`
+	IsSetNode      bool                                 `json:"-"`
+	Resources      *ConfigFunctionsResourcesUpdateInput `json:"resources,omitempty" toml:"resources,omitempty"`
+	IsSetResources bool                                 `json:"-"`
 }
 
 func (o *ConfigFunctionsUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -8631,6 +8700,16 @@ func (o *ConfigFunctionsUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Node = t
 		}
 		o.IsSetNode = true
+	}
+	if x, ok := m["resources"]; ok {
+		if x != nil {
+			t := &ConfigFunctionsResourcesUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Resources = t
+		}
+		o.IsSetResources = true
 	}
 
 	return nil
@@ -8650,6 +8729,13 @@ func (o *ConfigFunctionsUpdateInput) GetNode() *ConfigFunctionsNodeUpdateInput {
 	return o.Node
 }
 
+func (o *ConfigFunctionsUpdateInput) GetResources() *ConfigFunctionsResourcesUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
+}
+
 func (s *ConfigFunctions) Update(v *ConfigFunctionsUpdateInput) {
 	if v == nil {
 		return
@@ -8664,10 +8750,21 @@ func (s *ConfigFunctions) Update(v *ConfigFunctionsUpdateInput) {
 			s.Node.Update(v.Node)
 		}
 	}
+	if v.IsSetResources || v.Resources != nil {
+		if v.Resources == nil {
+			s.Resources = nil
+		} else {
+			if s.Resources == nil {
+				s.Resources = &ConfigFunctionsResources{}
+			}
+			s.Resources.Update(v.Resources)
+		}
+	}
 }
 
 type ConfigFunctionsInsertInput struct {
-	Node *ConfigFunctionsNodeInsertInput `json:"node,omitempty" toml:"node,omitempty"`
+	Node      *ConfigFunctionsNodeInsertInput      `json:"node,omitempty" toml:"node,omitempty"`
+	Resources *ConfigFunctionsResourcesInsertInput `json:"resources,omitempty" toml:"resources,omitempty"`
 }
 
 func (o *ConfigFunctionsInsertInput) GetNode() *ConfigFunctionsNodeInsertInput {
@@ -8677,12 +8774,25 @@ func (o *ConfigFunctionsInsertInput) GetNode() *ConfigFunctionsNodeInsertInput {
 	return o.Node
 }
 
+func (o *ConfigFunctionsInsertInput) GetResources() *ConfigFunctionsResourcesInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
+}
+
 func (s *ConfigFunctions) Insert(v *ConfigFunctionsInsertInput) {
 	if v.Node != nil {
 		if s.Node == nil {
 			s.Node = &ConfigFunctionsNode{}
 		}
 		s.Node.Insert(v.Node)
+	}
+	if v.Resources != nil {
+		if s.Resources == nil {
+			s.Resources = &ConfigFunctionsResources{}
+		}
+		s.Resources.Insert(v.Resources)
 	}
 }
 
@@ -8693,14 +8803,16 @@ func (s *ConfigFunctions) Clone() *ConfigFunctions {
 
 	v := &ConfigFunctions{}
 	v.Node = s.Node.Clone()
+	v.Resources = s.Resources.Clone()
 	return v
 }
 
 type ConfigFunctionsComparisonExp struct {
-	And  []*ConfigFunctionsComparisonExp   `json:"_and,omitempty"`
-	Not  *ConfigFunctionsComparisonExp     `json:"_not,omitempty"`
-	Or   []*ConfigFunctionsComparisonExp   `json:"_or,omitempty"`
-	Node *ConfigFunctionsNodeComparisonExp `json:"node,omitempty"`
+	And       []*ConfigFunctionsComparisonExp        `json:"_and,omitempty"`
+	Not       *ConfigFunctionsComparisonExp          `json:"_not,omitempty"`
+	Or        []*ConfigFunctionsComparisonExp        `json:"_or,omitempty"`
+	Node      *ConfigFunctionsNodeComparisonExp      `json:"node,omitempty"`
+	Resources *ConfigFunctionsResourcesComparisonExp `json:"resources,omitempty"`
 }
 
 func (exp *ConfigFunctionsComparisonExp) Matches(o *ConfigFunctions) bool {
@@ -8710,10 +8822,14 @@ func (exp *ConfigFunctionsComparisonExp) Matches(o *ConfigFunctions) bool {
 
 	if o == nil {
 		o = &ConfigFunctions{
-			Node: &ConfigFunctionsNode{},
+			Node:      &ConfigFunctionsNode{},
+			Resources: &ConfigFunctionsResources{},
 		}
 	}
 	if !exp.Node.Matches(o.Node) {
+		return false
+	}
+	if !exp.Resources.Matches(o.Resources) {
 		return false
 	}
 
@@ -8846,6 +8962,145 @@ func (exp *ConfigFunctionsNodeComparisonExp) Matches(o *ConfigFunctionsNode) boo
 		o = &ConfigFunctionsNode{}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigFunctionsResources struct {
+	Networking *ConfigNetworking `json:"networking,omitempty" toml:"networking,omitempty"`
+}
+
+func (o *ConfigFunctionsResources) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Networking != nil {
+		m["networking"] = o.Networking
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigFunctionsResources) GetNetworking() *ConfigNetworking {
+	if o == nil {
+		return nil
+	}
+	return o.Networking
+}
+
+type ConfigFunctionsResourcesUpdateInput struct {
+	Networking      *ConfigNetworkingUpdateInput `json:"networking,omitempty" toml:"networking,omitempty"`
+	IsSetNetworking bool                         `json:"-"`
+}
+
+func (o *ConfigFunctionsResourcesUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["networking"]; ok {
+		if x != nil {
+			t := &ConfigNetworkingUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Networking = t
+		}
+		o.IsSetNetworking = true
+	}
+
+	return nil
+}
+
+func (o *ConfigFunctionsResourcesUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigFunctionsResourcesUpdateInput) GetNetworking() *ConfigNetworkingUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Networking
+}
+
+func (s *ConfigFunctionsResources) Update(v *ConfigFunctionsResourcesUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetNetworking || v.Networking != nil {
+		if v.Networking == nil {
+			s.Networking = nil
+		} else {
+			if s.Networking == nil {
+				s.Networking = &ConfigNetworking{}
+			}
+			s.Networking.Update(v.Networking)
+		}
+	}
+}
+
+type ConfigFunctionsResourcesInsertInput struct {
+	Networking *ConfigNetworkingInsertInput `json:"networking,omitempty" toml:"networking,omitempty"`
+}
+
+func (o *ConfigFunctionsResourcesInsertInput) GetNetworking() *ConfigNetworkingInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Networking
+}
+
+func (s *ConfigFunctionsResources) Insert(v *ConfigFunctionsResourcesInsertInput) {
+	if v.Networking != nil {
+		if s.Networking == nil {
+			s.Networking = &ConfigNetworking{}
+		}
+		s.Networking.Insert(v.Networking)
+	}
+}
+
+func (s *ConfigFunctionsResources) Clone() *ConfigFunctionsResources {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigFunctionsResources{}
+	v.Networking = s.Networking.Clone()
+	return v
+}
+
+type ConfigFunctionsResourcesComparisonExp struct {
+	And        []*ConfigFunctionsResourcesComparisonExp `json:"_and,omitempty"`
+	Not        *ConfigFunctionsResourcesComparisonExp   `json:"_not,omitempty"`
+	Or         []*ConfigFunctionsResourcesComparisonExp `json:"_or,omitempty"`
+	Networking *ConfigNetworkingComparisonExp           `json:"networking,omitempty"`
+}
+
+func (exp *ConfigFunctionsResourcesComparisonExp) Matches(o *ConfigFunctionsResources) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigFunctionsResources{
+			Networking: &ConfigNetworking{},
+		}
+	}
+	if !exp.Networking.Matches(o.Networking) {
 		return false
 	}
 
