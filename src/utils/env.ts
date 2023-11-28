@@ -107,6 +107,9 @@ export const ENV = {
   get AUTH_WEBAUTHN_RP_NAME() {
     return castStringEnv('AUTH_WEBAUTHN_RP_NAME', '');
   },
+  get AUTH_WEBAUTHN_RP_ID() {
+    return castStringEnv('AUTH_WEBAUTHN_RP_ID', '');
+  },
   get AUTH_WEBAUTHN_RP_ORIGINS() {
     const origins = castStringArrayEnv('AUTH_WEBAUTHN_RP_ORIGINS', []);
     const clientUrl = ENV.AUTH_CLIENT_URL;

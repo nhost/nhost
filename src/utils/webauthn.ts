@@ -9,8 +9,13 @@ import { ENV } from './env';
 import { gqlSdk } from './gql-sdk';
 import { AuthUserSecurityKeys_Insert_Input } from './__generated__/graphql-request';
 
-export const getWebAuthnRelyingParty = () =>
-  ENV.AUTH_CLIENT_URL && new URL(ENV.AUTH_CLIENT_URL).hostname;
+export const getWebAuthnRelyingParty = () => {
+  if (ENV.AUTH_WEBAUTHN_RP_ID) {
+    return ENV.AUTH_WEBAUTHN_RP_ID;
+  }
+
+  return ENV.AUTH_CLIENT_URL && new URL(ENV.AUTH_CLIENT_URL).hostname;
+};
 
 export const getCurrentChallenge = async (id: string) => {
   const { user } = await gqlSdk.getUserChallenge({ id });

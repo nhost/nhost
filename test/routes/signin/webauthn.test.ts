@@ -119,6 +119,40 @@ describe('webauthn', () => {
     });
   });
 
+  it('should return authentication options with rpId set in the environement variables', async () => {
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+
+    const record = await insertDbUser(client, email, password, true, false);
+    expect(record.rowCount).toEqual(1);
+
+    const userRecord = await client.query(`SELECT id FROM auth.users LIMIT 1;`);
+    expect(userRecord.rows).toBeArrayOfSize(1);
+    expect(userRecord.rows[0]).toHaveProperty('id');
+
+    const rpId = 'example.io';
+
+    await request.post('/change-env').send({
+      AUTH_WEBAUTHN_RP_ID: rpId,
+    });
+
+    const { body } = await request
+      .post('/signin/webauthn')
+      .send({ email })
+      .expect(StatusCodes.OK);
+
+    // checking its persist and remove it as cannot compare
+    expect(body).toHaveProperty('challenge');
+    delete body.challenge;
+
+    expect(body).toEqual({
+      allowCredentials: [],
+      rpId,
+      timeout: 60000,
+      userVerification: 'preferred',
+    });
+  });
+
   it('should fail verify user is webauth is not enabled', async () => {
     const email = faker.internet.email();
 
