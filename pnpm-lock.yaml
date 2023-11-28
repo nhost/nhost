@@ -908,7 +908,7 @@ importers:
         specifier: ^3.8.2
         version: 3.8.6(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/nhost-js':
-        specifier: workspace:^
+        specifier: 2.2.18
         version: link:../../../packages/nhost-js
       autoprefixer:
         specifier: 10.4.15
@@ -925,6 +925,9 @@ importers:
       form-data:
         specifier: ^4.0.0
         version: 4.0.0
+      graphql:
+        specifier: 16.7.1
+        version: 16.7.1
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5

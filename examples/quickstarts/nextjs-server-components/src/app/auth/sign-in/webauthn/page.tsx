@@ -7,7 +7,7 @@ import Cookies from 'js-cookie'
 import { useRouter } from 'next/navigation'
 import { useState, type FormEvent } from 'react'
 
-export const NHOST_SESSION_KEY = 'nhostSession'
+const NHOST_SESSION_KEY = 'nhostSession'
 
 const nhost = new NhostClient({
   subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN,
