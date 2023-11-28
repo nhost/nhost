@@ -1,5 +1,15 @@
 ## Changelog
 
+## 0.24.0
+
+### Minor Changes
+
+- 634f2bf: feat: add `AUTH_WEBAUTHN_RP_ID` environment variable
+
+### Patch Changes
+
+- 2e3096c: fix: conceal error if AUTH_CONCEAL_ERRORS is set
+
 ## 0.23.0
 
 ### Minor Changes

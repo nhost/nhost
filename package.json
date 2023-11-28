@@ -5,7 +5,7 @@
     "url": "git://github.com/nhost/hasura-auth.git",
     "type": "git"
   },
-  "version": "0.23.0",
+  "version": "0.24.0",
   "main": "dist/start.js",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
