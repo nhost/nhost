@@ -7,7 +7,7 @@ import Cookies from 'js-cookie'
 import { useRouter } from 'next/navigation'
 import { useState, type FormEvent } from 'react'
 
-const NHOST_SESSION_KEY = 'nhostSession'
+export const NHOST_SESSION_KEY = 'nhostSession'
 
 const nhost = new NhostClient({
   subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN,
@@ -32,7 +32,7 @@ export default function SignInWithSecurityKey() {
     }
 
     if (session) {
-      Cookies.set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { sameSite: 'strict' })
+      Cookies.set(NHOST_SESSION_KEY, btoa(JSON.stringify(session)), { path: '/' })
       router.push('/protected/todos')
     }
   }

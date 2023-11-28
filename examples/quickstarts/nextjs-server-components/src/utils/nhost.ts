@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { type StateFrom } from 'xstate/lib/types'
 import { waitFor } from 'xstate/lib/waitFor'
 
-export const NHOST_SESSION_KEY = 'nhost-session'
+export const NHOST_SESSION_KEY = 'nhostSession'
 
 export const getNhost = async (request?: NextRequest) => {
   const $cookies = request?.cookies || cookies()
