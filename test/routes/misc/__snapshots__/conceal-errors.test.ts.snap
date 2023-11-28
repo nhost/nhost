@@ -2,7 +2,7 @@
 
 exports[`conceal error messages should conceal errors 1`] = `
 Object {
-  "error": "invalid-email-password",
+  "error": "invalid-request",
   "message": "The request payload is incorrect",
   "status": 400,
 }

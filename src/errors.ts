@@ -169,17 +169,18 @@ export const sendError = (
   const isSensitive = ENV.AUTH_CONCEAL_ERRORS && !!ERRORS[code].sensitive;
   const error = isSensitive ? ERRORS['invalid-request'] : ERRORS[code];
   const message = (isSensitive ? null : customMessage) ?? error.message;
+  const errorCode = isSensitive ? 'invalid-request' : code;
   const status = error.status;
 
   if (forwardRedirection && redirectTo) {
     const redirectUrl = generateRedirectUrl(redirectTo, {
-      error: code,
+      error: errorCode,
       errorDescription: message,
     });
     return res.redirect(redirectUrl);
   }
 
-  return res.status(status).send({ status, message, error: code });
+  return res.status(status).send({ status, message, error: errorCode });
 };
 
 /**
