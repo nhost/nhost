@@ -1,0 +1,211 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Documentation",
+  "openapi": ["./api-reference/openapi-auth.yaml", "./api-reference/openapi-storage.yaml"],
+  "api": {
+    "playground": {
+      "mode": "simple"
+    }
+  },
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#3787ff",
+    "light": "#569aff",
+    "dark": "#1874ff",
+    "anchors": {
+      "from": "#1874ff",
+      "to": "#569aff"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@nhost.io"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://app.nhost.io"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    },
+    {
+      "name": "Guides",
+      "url": "guides"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Documentation",
+      "icon": "book-open-cover",
+      "url": "/introduction"
+    },
+    {
+      "name": "Community",
+      "icon": "discord",
+      "url": "https://discord.com/nhost"
+    },
+    {
+      "name": "Blog",
+      "icon": "newspaper",
+      "url": "https://nhost.io/blog"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Overview",
+      "pages": ["introduction", "development"]
+    },
+    {
+      "group": "Product",
+      "pages": ["product/database", "product/graphql", "product/authentication", "product/storage", "product/functions", "product/run"]
+    },
+    {
+      "group": "Platform",
+      "pages": [
+        "platform/compute-resources", 
+        "platform/service-replicas", 
+        {
+          "group": "Monitoring",
+          "pages": ["platform/metrics", "platform/logs"]
+        },
+        "platform/environment-variables", 
+        "platform/secrets", 
+        "platform/deployments", 
+        "platform/custom-domains"
+      ]
+    },
+    {
+      "group": "Development & CLI",
+      "pages": ["/development/cli/overview", "/development/cli/getting-started", "/development/cli/commands", "/development/cli/recommended-workflow"]
+    },
+    {
+      "group": "Howtos",
+      "pages": ["Multiple Environments"]
+    },
+    {
+      "group": "API Documentation",
+      "pages": ["api-reference/introduction"]
+    },
+    {
+      "group": "Frameworks",
+      "pages": ["guides/overview", "guides/react", "guides/nextjs"]
+    },
+    {
+      "group": "Database",
+      "pages": ["guides/database/configuring-postgres", "guides/database/extensions", "guides/database/performance"]
+    },
+    {
+      "group": "Authentication",
+      "pages": [
+        { 
+          "group": "Social Sign In", 
+          "pages": [
+            "guides/auth/social/signin-apple", 
+            "guides/auth/social/signin-discord", 
+            "guides/auth/social/signin-facebook", 
+            "guides/auth/social/signin-github", 
+            "guides/auth/social/signin-google", 
+            "guides/auth/social/signin-linkedin", 
+            "guides/auth/social/signin-spotify", 
+            "guides/auth/social/signin-twitch", 
+            "guides/auth/social/signin-workos"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "API / Hasura",
+      "pages": ["guides/api/configuring-hasura", "guides/api/permissions"]
+    },
+    {
+      "group": "auth",
+      "pages": [
+        {
+          "group": "Email and Password", 
+          "pages": [
+            "api-reference/auth/sign-up-email-and-password",
+            "api-reference/auth/sign-in-email-and-password"
+          ]
+        },
+        {
+          "group": "Passwordless", 
+          "pages": [
+            "api-reference/auth/sign-in-email-passwordless",
+            "api-reference/auth/sign-in-sms-passwordless",
+            "api-reference/auth/sign-in-sms-passwordless-otp"
+          ]
+        },
+        {
+          "group": "OAuth", 
+          "pages": [
+            "api-reference/auth/sign-in-oauth-provider",
+            "api-reference/auth/oauth-callback-url-that-will-be-used-by-the-oauth-provider-to-redirect-to-the-client-application-attention:-all-providers-are-using-a-get-operation-except-apple-and-azure-ad-that-use-post"
+          ]
+        },
+        {
+          "group": "WebAuthn", 
+          "pages": [
+            "api-reference/auth/sign-up-using-email-via-fido2-webauthn-authentication",
+            "api-reference/auth/verfiy-fido2-webauthn-authentication-and-complete-signup",
+            "api-reference/auth/sign-in-using-email-via-fido2-webauthn-authentication",
+            "api-reference/auth/verfiy-fido2-webauthn-authentication-using-public-key-cryptography"
+          ]
+        },
+        {
+          "group": "Anonymous", 
+          "pages": [
+            "api-reference/auth/sign-in-anonymous",
+            "api-reference/auth/deanonymize-an-anonymous-user-in-adding-missing-email-or-email+password-depending-on-the-chosen-authentication-method-will-send-a-confirmation-email-if-the-server-is-configured-to-do-so"
+          ]
+        },
+        {
+          "group": "MFA", 
+          "pages": [
+            "api-reference/auth/generate-a-secret-to-request-the-activation-of-time-based-one-time-password-totp-multi-factor-authentication",
+            "api-reference/auth/sign-in-totp",
+            "api-reference/auth/activatedeactivate-multi-factor-authentication"
+          ]
+        },
+        {
+          "group": "User", 
+          "pages": [
+            "api-reference/auth/change-the-current-users-email",
+            "api-reference/auth/send-an-email-asking-the-user-to-reset-their-password",
+            "api-reference/auth/send-an-email-to-verify-the-account",
+            "api-reference/auth/set-a-new-password",
+            "api-reference/auth/get-user-information",
+            "api-reference/auth/refresh-the-oauth-access-tokens-of-a-given-user-you-must-be-an-admin-to-perform-this-operation",
+            "api-reference/auth/initialize-adding-of-a-new-webauthn-security-key-device-browser",
+            "api-reference/auth/verfiy-adding-of-a-new-webauth-security-key-device-browser"
+          ]
+        },
+        "api-reference/auth/sign-out"
+      ]
+    },
+    {                  
+      "group": "storage",
+      "pages": [
+        "api-reference/storage/storage/upload-files",
+        "api-reference/storage/storage/replace-file",
+        "api-reference/storage/storage/delete-a-file",
+        "api-reference/storage/storage/retrieve-contents-of-file",
+        "api-reference/storage/storage/retrieve-information-about-a-file",
+        "api-reference/storage/storage/retrieve-presigned-url-to-retrieve-the-file",
+        "api-reference/storage/storage/retrieve-contents-of-file-1"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "twitter": "https://twitter.com/nhost",
+    "github": "https://github.com/nhost",
+    "linkedin": "https://www.linkedin.com/company/nhost"
+  }
+}

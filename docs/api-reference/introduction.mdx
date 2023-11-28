@@ -1,0 +1,34 @@
+---
+title: 'Introduction'
+description: ''
+---
+
+## API Playground
+
+The playground in next sections allow you learn and test the API against a real Nhost instance.
+
+
+To learn how to start a local Nhost instance head to [local development](/local-development)
+
+```bash
+> nhost up
+
+Nhost development environment started.
+URLs:
+- Postgres:             postgres://postgres:postgres@localhost:5432/local
+- Hasura:               https://local.hasura.nhost.run
+- GraphQL:              https://local.graphql.nhost.run
+- Auth:                 https://local.auth.nhost.run
+- Storage:              https://local.storage.nhost.run
+- Functions:            https://local.functions.nhost.run
+- Dashboard:            https://local.dashboard.nhost.run
+- Mailhog:              https://local.mailhog.nhost.run
+
+SDK Configuration:
+ Subdomain:             local
+ Region:                (empty)
+
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
+```
