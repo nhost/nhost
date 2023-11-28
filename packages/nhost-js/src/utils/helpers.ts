@@ -13,14 +13,10 @@ export const LOCALHOST_REGEX =
  * @returns
  */
 export function urlFromSubdomain(
-  backendOrSubdomain: Pick<NhostClientConstructorParams, 'region' | 'subdomain' | 'backendUrl'>,
+  backendOrSubdomain: Pick<NhostClientConstructorParams, 'region' | 'subdomain'>,
   service: string
 ): string {
-  const { backendUrl, subdomain, region } = backendOrSubdomain
-
-  if (backendUrl) {
-    return `${backendUrl}/v1/${service}`
-  }
+  const { subdomain, region } = backendOrSubdomain
 
   if (!subdomain) {
     throw new Error('Either `backendUrl` or `subdomain` must be set.')

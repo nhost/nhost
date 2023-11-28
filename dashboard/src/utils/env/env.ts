@@ -6,16 +6,6 @@ export function isPlatform() {
 }
 
 /**
- * Backend URL for the locally running instance. This is only used when running
- * the Nhost Dashboard locally.
- */
-export function getLocalBackendUrl() {
-  return `http://localhost:${
-    process.env.NEXT_PUBLIC_NHOST_LOCAL_SERVICES_PORT || '1337'
-  }`;
-}
-
-/**
  * Admin secret for Hasura.
  */
 export function getHasuraAdminSecret() {
