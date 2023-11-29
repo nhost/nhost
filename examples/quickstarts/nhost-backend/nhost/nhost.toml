@@ -28,7 +28,7 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.22.1'
+version = '0.24.0'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
@@ -130,8 +130,9 @@ enabled = false
 enabled = true
 
 [auth.method.webauthn.relyingParty]
-name = 'nextjs-server-components'
-origins = ['http://localhost:3000']
+name = 'quickstarts'
+id = 'examples.nhost.io'
+origins = ['https://sveltekit.examples.nhost.io', 'https://nextjs-server-components.examples.nhost.io']
 
 [auth.method.webauthn.attestation]
 timeout = 60000

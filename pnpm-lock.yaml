@@ -934,6 +934,9 @@ importers:
       form-data:
         specifier: ^4.0.0
         version: 4.0.0
+      graphql:
+        specifier: 16.7.1
+        version: 16.7.1
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
