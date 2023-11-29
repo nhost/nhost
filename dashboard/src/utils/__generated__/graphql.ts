@@ -655,7 +655,9 @@ export type ConfigAuthSessionUpdateInput = {
 
 export type ConfigAuthSignUp = {
   __typename?: 'ConfigAuthSignUp';
-  /** Inverse of AUTH_DISABLE_NEW_USERS */
+  /** AUTH_DISABLE_NEW_USERS */
+  disableNewUsers?: Maybe<Scalars['Boolean']>;
+  /** Inverse of AUTH_DISABLE_SIGNUP */
   enabled?: Maybe<Scalars['Boolean']>;
 };
 
@@ -663,14 +665,17 @@ export type ConfigAuthSignUpComparisonExp = {
   _and?: InputMaybe<Array<ConfigAuthSignUpComparisonExp>>;
   _not?: InputMaybe<ConfigAuthSignUpComparisonExp>;
   _or?: InputMaybe<Array<ConfigAuthSignUpComparisonExp>>;
+  disableNewUsers?: InputMaybe<ConfigBooleanComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
 };
 
 export type ConfigAuthSignUpInsertInput = {
+  disableNewUsers?: InputMaybe<Scalars['Boolean']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type ConfigAuthSignUpUpdateInput = {
+  disableNewUsers?: InputMaybe<Scalars['Boolean']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
 };
 
@@ -1042,6 +1047,7 @@ export type ConfigFloatComparisonExp = {
 export type ConfigFunctions = {
   __typename?: 'ConfigFunctions';
   node?: Maybe<ConfigFunctionsNode>;
+  resources?: Maybe<ConfigFunctionsResources>;
 };
 
 export type ConfigFunctionsComparisonExp = {
@@ -1049,10 +1055,12 @@ export type ConfigFunctionsComparisonExp = {
   _not?: InputMaybe<ConfigFunctionsComparisonExp>;
   _or?: InputMaybe<Array<ConfigFunctionsComparisonExp>>;
   node?: InputMaybe<ConfigFunctionsNodeComparisonExp>;
+  resources?: InputMaybe<ConfigFunctionsResourcesComparisonExp>;
 };
 
 export type ConfigFunctionsInsertInput = {
   node?: InputMaybe<ConfigFunctionsNodeInsertInput>;
+  resources?: InputMaybe<ConfigFunctionsResourcesInsertInput>;
 };
 
 export type ConfigFunctionsNode = {
@@ -1075,8 +1083,29 @@ export type ConfigFunctionsNodeUpdateInput = {
   version?: InputMaybe<Scalars['Int']>;
 };
 
+export type ConfigFunctionsResources = {
+  __typename?: 'ConfigFunctionsResources';
+  networking?: Maybe<ConfigNetworking>;
+};
+
+export type ConfigFunctionsResourcesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigFunctionsResourcesComparisonExp>>;
+  _not?: InputMaybe<ConfigFunctionsResourcesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigFunctionsResourcesComparisonExp>>;
+  networking?: InputMaybe<ConfigNetworkingComparisonExp>;
+};
+
+export type ConfigFunctionsResourcesInsertInput = {
+  networking?: InputMaybe<ConfigNetworkingInsertInput>;
+};
+
+export type ConfigFunctionsResourcesUpdateInput = {
+  networking?: InputMaybe<ConfigNetworkingUpdateInput>;
+};
+
 export type ConfigFunctionsUpdateInput = {
   node?: InputMaybe<ConfigFunctionsNodeUpdateInput>;
+  resources?: InputMaybe<ConfigFunctionsResourcesUpdateInput>;
 };
 
 /** Global configuration that applies to all services */
@@ -23309,7 +23338,7 @@ export type DeletePersonalAccessTokenMutationResult = Apollo.MutationResult<Dele
 export type DeletePersonalAccessTokenMutationOptions = Apollo.BaseMutationOptions<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>;
 export const GetAuthenticationSettingsDocument = gql`
     query GetAuthenticationSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     auth {
@@ -23403,7 +23432,7 @@ export const GetPostgresSettingsDocument = gql`
       database
     }
   }
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     postgres {
@@ -23482,7 +23511,7 @@ export type ResetDatabasePasswordMutationResult = Apollo.MutationResult<ResetDat
 export type ResetDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
 export const GetHasuraSettingsDocument = gql`
     query GetHasuraSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     hasura {
@@ -23630,7 +23659,7 @@ export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedU
     }
 export const GetResourcesDocument = gql`
     query GetResources($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     ...ServiceResources
   }
 }
@@ -23668,7 +23697,7 @@ export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) 
     }
 export const GetStorageSettingsDocument = gql`
     query GetStorageSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     storage {
@@ -23914,7 +23943,7 @@ export function refetchGetApplicationStateQuery(variables: GetApplicationStateQu
     }
 export const GetProjectLocalesDocument = gql`
     query getProjectLocales($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     auth {
       user {
         locale {
@@ -24260,7 +24289,7 @@ export function refetchDnsLookupCnameQuery(variables: DnsLookupCnameQueryVariabl
     }
 export const GetEnvironmentVariablesDocument = gql`
     query GetEnvironmentVariables($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     global {
@@ -24312,7 +24341,7 @@ export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVar
     }
 export const GetRolesPermissionsDocument = gql`
     query GetRolesPermissions($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     auth {
@@ -24506,7 +24535,7 @@ export type UpdateSecretMutationResult = Apollo.MutationResult<UpdateSecretMutat
 export type UpdateSecretMutationOptions = Apollo.BaseMutationOptions<UpdateSecretMutation, UpdateSecretMutationVariables>;
 export const GetSignInMethodsDocument = gql`
     query GetSignInMethods($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     provider {
@@ -24670,7 +24699,7 @@ export function refetchGetSignInMethodsQuery(variables: GetSignInMethodsQueryVar
     }
 export const GetSmtpSettingsDocument = gql`
     query GetSmtpSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     provider {
