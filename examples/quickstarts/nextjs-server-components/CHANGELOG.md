@@ -1,5 +1,11 @@
 # @nhost-examples/nextjs-server-components
 
+## 0.1.2
+
+### Patch Changes
+
+- e469628eb: fix: resolve issue with WebAuthn authentication
+
 ## 0.1.1
 
 ### Patch Changes

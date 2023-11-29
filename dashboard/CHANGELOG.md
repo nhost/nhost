@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 0.21.1
+
+### Patch Changes
+
+- 97ced73a3: fix(dashboard): prevent dashboard from resolving secrets
+
 ## 0.21.0
 
 ### Minor Changes
