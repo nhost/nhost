@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.7.3
+
+### Patch Changes
+
+- 3ffb60f0a: fixed typo in Run deploy example script
+
 ## 0.7.2
 
 ### Patch Changes
