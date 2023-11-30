@@ -62,7 +62,6 @@ export default function generateAppServiceUrl(
   subdomain: string,
   region: ProjectFragment['region'],
   service: NhostService,
-  localBackendSlugs = defaultLocalBackendSlugs,
   remoteBackendSlugs = defaultRemoteBackendSlugs,
 ) {
   const IS_PLATFORM = isPlatform();
@@ -85,12 +84,6 @@ export default function generateAppServiceUrl(
     }
 
     return serviceUrls[service];
-  }
-
-  // This is only used when running the dashboard locally against its own
-  // backend.
-  if (process.env.NEXT_PUBLIC_ENV === 'dev') {
-    return `${process.env.NEXT_PUBLIC_NHOST_BACKEND_URL}${localBackendSlugs[service]}`;
   }
 
   const constructedDomain = [
