@@ -528,6 +528,7 @@ export type ConfigAuthMethodWebauthnInsertInput = {
 
 export type ConfigAuthMethodWebauthnRelyingParty = {
   __typename?: 'ConfigAuthMethodWebauthnRelyingParty';
+  id?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   origins?: Maybe<Array<Scalars['ConfigUrl']>>;
 };
@@ -536,16 +537,19 @@ export type ConfigAuthMethodWebauthnRelyingPartyComparisonExp = {
   _and?: InputMaybe<Array<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>>;
   _not?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>;
   _or?: InputMaybe<Array<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>>;
+  id?: InputMaybe<ConfigStringComparisonExp>;
   name?: InputMaybe<ConfigStringComparisonExp>;
   origins?: InputMaybe<ConfigUrlComparisonExp>;
 };
 
 export type ConfigAuthMethodWebauthnRelyingPartyInsertInput = {
+  id?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   origins?: InputMaybe<Array<Scalars['ConfigUrl']>>;
 };
 
 export type ConfigAuthMethodWebauthnRelyingPartyUpdateInput = {
+  id?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   origins?: InputMaybe<Array<Scalars['ConfigUrl']>>;
 };
@@ -12116,6 +12120,7 @@ export type Mutation_RootBackupApplicationDatabaseArgs = {
 export type Mutation_RootBillingFinishSubscriptionArgs = {
   appID: Scalars['uuid'];
   appName: Scalars['String'];
+  planID: Scalars['uuid'];
   subdomain: Scalars['String'];
   subscriptionID: Scalars['String'];
 };
@@ -22300,6 +22305,13 @@ export type GetResourcesQueryVariables = Exact<{
 
 export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null } | null };
 
+export type GetServerlessFunctionsSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetServerlessFunctionsSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', functions?: { __typename?: 'ConfigFunctions', resources?: { __typename?: 'ConfigFunctionsResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } | null } | null };
+
 export type GetStorageSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -23694,6 +23706,52 @@ export type GetResourcesLazyQueryHookResult = ReturnType<typeof useGetResourcesL
 export type GetResourcesQueryResult = Apollo.QueryResult<GetResourcesQuery, GetResourcesQueryVariables>;
 export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) {
       return { query: GetResourcesDocument, variables: variables }
+    }
+export const GetServerlessFunctionsSettingsDocument = gql`
+    query GetServerlessFunctionsSettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    functions {
+      resources {
+        networking {
+          ingresses {
+            fqdn
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetServerlessFunctionsSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetServerlessFunctionsSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServerlessFunctionsSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServerlessFunctionsSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetServerlessFunctionsSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>(GetServerlessFunctionsSettingsDocument, options);
+      }
+export function useGetServerlessFunctionsSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>(GetServerlessFunctionsSettingsDocument, options);
+        }
+export type GetServerlessFunctionsSettingsQueryHookResult = ReturnType<typeof useGetServerlessFunctionsSettingsQuery>;
+export type GetServerlessFunctionsSettingsLazyQueryHookResult = ReturnType<typeof useGetServerlessFunctionsSettingsLazyQuery>;
+export type GetServerlessFunctionsSettingsQueryResult = Apollo.QueryResult<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>;
+export function refetchGetServerlessFunctionsSettingsQuery(variables: GetServerlessFunctionsSettingsQueryVariables) {
+      return { query: GetServerlessFunctionsSettingsDocument, variables: variables }
     }
 export const GetStorageSettingsDocument = gql`
     query GetStorageSettings($appId: uuid!) {

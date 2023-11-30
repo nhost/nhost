@@ -10,6 +10,7 @@ import { AuthDomain } from '@/features/projects/custom-domains/settings/componen
 import { DatabaseDomain } from '@/features/projects/custom-domains/settings/components/DatabaseDomain';
 import { HasuraDomain } from '@/features/projects/custom-domains/settings/components/HasuraDomain';
 import { RunServiceDomains } from '@/features/projects/custom-domains/settings/components/RunServiceDomains';
+import { ServerlessFunctionsDomain } from '@/features/projects/custom-domains/settings/components/ServerlessFunctionsDomain';
 import { type ReactElement } from 'react';
 
 export default function CustomDomains() {
@@ -36,12 +37,12 @@ export default function CustomDomains() {
       className="grid max-w-5xl grid-flow-row gap-6 bg-transparent"
       rootClassName="bg-transparent"
     >
-      <Box className="flex flex-row items-center gap-4 overflow-hidden rounded-lg border-1 p-4">
+      <Box className="flex flex-row items-center gap-4 p-4 overflow-hidden rounded-lg border-1">
         <div className="flex flex-col space-y-2">
           <Text className="text-lg font-semibold">Custom Domains</Text>
 
           <Text color="secondary">
-            Add a custom domain to Auth, Hasura, PostgreSQL, and your Run 
+            Add a custom domain to Auth, Hasura, PostgreSQL, and your Run
             services for only a $10 flat fee 🚀 <br /> Learn more about
             <Link
               href="https://docs.nhost.io/platform/custom-domains"
@@ -51,7 +52,7 @@ export default function CustomDomains() {
               className="ml-1 font-medium"
             >
               Custom Domains
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+              <ArrowSquareOutIcon className="w-4 h-4 ml-1" />
             </Link>
           </Text>
         </div>
@@ -61,6 +62,7 @@ export default function CustomDomains() {
       <HasuraDomain />
       <DatabaseDomain />
 
+      <ServerlessFunctionsDomain />
       <RunServiceDomains />
     </Container>
   );
