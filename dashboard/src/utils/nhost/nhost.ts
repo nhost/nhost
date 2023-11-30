@@ -2,6 +2,7 @@ import {
   getAuthServiceUrl,
   getFunctionsServiceUrl,
   getGraphqlServiceUrl,
+  getStorageServiceUrl,
   isPlatform,
 } from '@/utils/env';
 import { NhostClient } from '@nhost/nextjs';
@@ -12,6 +13,7 @@ const nhost = isPlatform()
       authUrl: getAuthServiceUrl(),
       graphqlUrl: getGraphqlServiceUrl(),
       functionsUrl: getFunctionsServiceUrl(),
+      storageUrl: getStorageServiceUrl(),
     })
   : new NhostClient({ subdomain: 'local' });
 
