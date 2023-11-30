@@ -95,8 +95,12 @@
       "pages": ["api-reference/introduction"]
     },
     {
-      "group": "Frameworks",
-      "pages": ["guides/overview", "guides/react", "guides/nextjs"]
+      "group": "Quickstarts",
+      "pages": ["guides/quickstarts/react"]
+    },
+    {
+      "group": "Tutorials",
+      "pages": ["guides/tutorials/react", "guides/tutorials/nextjs"]
     },
     {
       "group": "Database",
@@ -108,17 +112,22 @@
         { 
           "group": "Social Sign In", 
           "pages": [
-            "guides/auth/social/signin-apple", 
-            "guides/auth/social/signin-discord", 
-            "guides/auth/social/signin-facebook", 
-            "guides/auth/social/signin-github", 
-            "guides/auth/social/signin-google", 
-            "guides/auth/social/signin-linkedin", 
-            "guides/auth/social/signin-spotify", 
-            "guides/auth/social/signin-twitch", 
-            "guides/auth/social/signin-workos"
+            "guides/auth/social/sign-in-apple", 
+            "guides/auth/social/sign-in-discord", 
+            "guides/auth/social/sign-in-facebook", 
+            "guides/auth/social/sign-in-github", 
+            "guides/auth/social/sign-in-google", 
+            "guides/auth/social/sign-in-linkedin", 
+            "guides/auth/social/sign-in-spotify", 
+            "guides/auth/social/sign-in-twitch", 
+            "guides/auth/social/sign-in-workos"
           ]
-        }
+        }, 
+        "guides/auth/sign-in-email-password",
+        "guides/auth/sign-in-magic-link",
+        "guides/auth/sign-in-phone-number",
+        "guides/auth/sign-in-webauthn",
+        "guides/auth/email-templates"
       ]
     },
     {
