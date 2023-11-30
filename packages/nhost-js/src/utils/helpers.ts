@@ -5,21 +5,20 @@ export const LOCALHOST_REGEX =
   /^((?<protocol>http[s]?):\/\/)?(?<host>(localhost|local))(:(?<port>(\d+|__\w+__)))?$/
 
 /**
- * \`backendUrl\` should now be used only when self-hosting
- * \`subdomain\` and `region` should be used instead when using the Nhost platform
+ * \`subdomain\` and `region` should be used when running the Nhost platform
  *
- * @param backendOrSubdomain
+ * @param subdomainAndRegion
  * @param service
  * @returns
  */
 export function urlFromSubdomain(
-  backendOrSubdomain: Pick<NhostClientConstructorParams, 'region' | 'subdomain'>,
+  subdomainAndRegion: Pick<NhostClientConstructorParams, 'region' | 'subdomain'>,
   service: string
 ): string {
-  const { subdomain, region } = backendOrSubdomain
+  const { subdomain, region } = subdomainAndRegion
 
   if (!subdomain) {
-    throw new Error('Either `backendUrl` or `subdomain` must be set.')
+    throw new Error('A `subdomain` must be set.')
   }
 
   // check if subdomain is [http[s]://]localhost[:port] or [http[s]://]local[:port]
