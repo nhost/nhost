@@ -119,11 +119,10 @@ function TbaDayDelayed({ date }: { date: Date }) {
 }
 
 function PostDay({ date, post }: { date: Date; post: Post }) {
-  const { image, title, description, link } = post
+  const { image, title, description } = post
 
   return (
-    <Link
-      href={link}
+    <div
       className="font-display text-greyscaleDark mx-auto flex w-full overflow-hidden rounded-lg border border-gray-900 sm:grid-cols-5"
     >
       <div
@@ -158,7 +157,7 @@ function PostDay({ date, post }: { date: Date; post: Post }) {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }
 
@@ -209,7 +208,6 @@ export default function Page() {
             title: 'Coming soon',
             description:
               '',
-            link: '/blog/dark-mode',
           }}
         />
         <PostDay
@@ -219,7 +217,6 @@ export default function Page() {
             title: 'Coming soon',
             description:
               "",
-            link: '/blog/new-branding-and-website',
           }}
         />
         <PostDay
@@ -229,7 +226,6 @@ export default function Page() {
             title: 'Coming soon',
             description:
               "",
-            link: '/blog/nextjs-stripe-starter-template',
           }}
         />
         <PostDay
@@ -249,7 +245,6 @@ export default function Page() {
             title: 'Coming soon',
             description:
               '',
-            link: '/blog/dark-mode',
           }}
         />
         {/* <TbaDayDelayed date={new Date('2023-02-22T16:00:00.000+02:00')} /> */}
