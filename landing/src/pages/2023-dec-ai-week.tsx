@@ -166,14 +166,14 @@ export default function Page() {
   return (
     <Layout>
       <NextSeo
-        title="Launch Month"
-        description="Nhost Launch Month (February 2023) is a month-long event where we will be launching one new release every week for a month."
+        title="AI Week"
+        description="Nhost AI Week (December 2023) is a week-long event where we will be announcing and demoing one new feature every day for a week."
         openGraph={{
           type: 'website',
           images: [
             {
               url: `${baseUrl()}/blog/2023-01-18-launch-month-february-2023/banner.png`,
-              alt: 'Nhost Launch Month',
+              alt: 'Nhost AI Week',
             },
           ],
         }}
@@ -189,8 +189,8 @@ export default function Page() {
         <div className="text-white ">
           <div className="max-w-container mx-auto py-16">
             <SectionHeading
-              title={<>Nhost Launch Month</>}
-              subtitle={<>February, 2023</>}
+              title={<>Nhost AI Week</>}
+              subtitle={<>December 18-22, 2023</>}
               slotProps={{
                 title: {
                   component: 'h1',
@@ -203,33 +203,53 @@ export default function Page() {
       </div>
       <div className="mx-auto grid max-w-7xl grid-flow-row gap-12 px-4 py-16">
         <PostDay
-          date={new Date('2023-02-01T16:00:00.000+02:00')}
+          date={new Date('2023-12-18T16:00:00.000+02:00')}
           post={{
             image: '/images/blog/dark-mode/banner.png',
             title: 'Coming soon',
             description:
-              'You can put away your sunglasses, because today we are bringing Dark Mode to the Nhost Dashboard.',
+              '',
             link: '/blog/dark-mode',
           }}
         />
         <PostDay
-          date={new Date('2023-02-08T16:00:00.000+02:00')}
+          date={new Date('2023-12-19T16:00:00.000+02:00')}
           post={{
             image: '/images/blog/new-branding-and-website/banner.png',
             title: 'Coming soon',
             description:
-              "Today we're launching our new branding and website. Nedless to say, we like dark mode!",
+              "",
             link: '/blog/new-branding-and-website',
           }}
         />
         <PostDay
-          date={new Date('2023-02-15T16:00:00.000+02:00')}
+          date={new Date('2023-12-20T16:00:00.000+02:00')}
           post={{
             image: '/images/blog/nextjs-stripe-starter-template/banner.png',
             title: 'Coming soon',
             description:
-              "Save time and hassle building your next SaaS project with Nhost's fully-configured Next.js Stripe starter template, designed to get your subscription payments set up and running quickly.",
+              "",
             link: '/blog/nextjs-stripe-starter-template',
+          }}
+        />
+        <PostDay
+          date={new Date('2023-12-21T16:00:00.000+02:00')}
+          post={{
+            image: '/images/blog/dark-mode/banner.png',
+            title: 'Coming soon',
+            description:
+              '',
+            link: '/blog/dark-mode',
+          }}
+        />
+        <PostDay
+          date={new Date('2023-12-22T16:00:00.000+02:00')}
+          post={{
+            image: '/images/blog/dark-mode/banner.png',
+            title: 'Coming soon',
+            description:
+              '',
+            link: '/blog/dark-mode',
           }}
         />
         {/* <TbaDayDelayed date={new Date('2023-02-22T16:00:00.000+02:00')} /> */}
