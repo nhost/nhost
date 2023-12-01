@@ -3,7 +3,6 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { baseUrl } from '@/utils/utils'
 import { format, intervalToDuration } from 'date-fns'
 import { NextSeo } from 'next-seo'
-import Link from 'next/link'
 import { ReactNode, useEffect, useState } from 'react'
 import ContentLoader from 'react-content-loader'
 
@@ -20,7 +19,6 @@ interface Post {
   image: string
   title: string
   description: string
-  link: string
 }
 
 function TbaDay({ date }: { date: Date }) {
@@ -235,7 +233,6 @@ export default function Page() {
             title: 'Coming soon',
             description:
               '',
-            link: '/blog/dark-mode',
           }}
         />
         <PostDay
