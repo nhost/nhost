@@ -47,7 +47,7 @@ services:
       - "traefik.http.routers.hasura.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/`)"
       - "traefik.http.routers.hasura.entrypoints=web"
   auth:
-    image: nhost/hasura-auth:0.21.2
+    image: nhost/hasura-auth:0.24
     depends_on:
       - postgres
       - graphql-engine
@@ -145,17 +145,16 @@ services:
     volumes:
       - ./data/mailhog:/maildir
   dashboard:
-    image: nhost/dashboard:0.20
+    image: nhost/dashboard:latest
     env_file: .env
     expose:
-      - 3000
+     - 3000
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nhost.rule=Host(`${NHOST_HOST}`)"
-      - "traefik.http.routers.nhost.entrypoints=web"
-      # If you would like to protect your dashboard with a username and password if it is publicly-facing, comment the above line and uncomment and fill in the following lines below according to the documentation at https://doc.traefik.io/traefik/middlewares/http/basicauth/
-      # - "traefik.http.routers.nhost.entrypoints=admin"
-      # - "traefik.http.routers.nhost.middlewares=auth"
-      # - "traefik.http.middlewares.auth.basicauth.users=
+      - "traefik.http.routers.nhost.entrypoints=admin"
+      # If you would like to protect your dashboard with a username and password if it is publicly-facing, uncomment and fill in the following lines below according to the documentation at https://doc.traefik.io/traefik/middlewares/http/basicauth/
+      #- "traefik.http.routers.nhost.middlewares=auth"
+      #- "traefik.http.middlewares.auth.basicauth.users=
 volumes:
   functions_node_modules:
