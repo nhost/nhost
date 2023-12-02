@@ -15,6 +15,6 @@ const nhost = isPlatform()
       functionsUrl: getFunctionsServiceUrl(),
       storageUrl: getStorageServiceUrl(),
     })
-  : new NhostClient({ subdomain: 'noogjghvxjvuyoqyjgjo' });
+  : new NhostClient({ subdomain: 'local' });
 
 export default nhost;
