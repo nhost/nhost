@@ -25,10 +25,12 @@ The following endpoints are now exposed:
 
 ## Running the Nhost dashboard locally
 
-In order to use the Nhost dashboard, you need to run the [Hasura console locally from the Hasura CLI](https://hasura.io/docs/latest/hasura-cli/commands/hasura_console/):
+In order for you to be able to make edits to the database from the Nhost dashboard, you need to run the [Hasura console locally from the Hasura CLI](https://hasura.io/docs/latest/hasura-cli/commands/hasura_console/):
 
 ```sh
 hasura console
 ```
 
-The Nhost Dashboard also requires the Hasura admin secret to `nhost-admin-secret`. This will change in the future. If you can't wait, don't hesitate to contribute.
+The Nhost Dashboard uses the [Hasura migrations API](https://hasura.io/docs/latest/hasura-cli/commands/hasura_console/#options) in order to make edits to the database. It runs over port 9693 and is only accessible through running the Hasura console from the CLI. It is not accessible from the Hasura Docker image yet. That is why you need to run it locally. See https://github.com/nhost/nhost/issues/1220.
+
+The Nhost Dashboard also requires the Hasura admin secret to `nhost-admin-secret` specified in the `.env` file.
