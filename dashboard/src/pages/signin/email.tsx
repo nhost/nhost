@@ -141,7 +141,7 @@ export default function EmailSignUpPage() {
       </Box>
 
       <Text color="secondary" className="text-center text-base lg:text-lg">
-        Don&apos;t have an account?{' '}
+        Don&apos;t have an account? test
         <NavLink href="/signup" color="white">
           Sign Up
         </NavLink>
