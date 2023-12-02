@@ -17,7 +17,8 @@ export function getHasuraAdminSecret() {
  */
 export function getAuthServiceUrl() {
   return (
-    process.env.NEXT_PUBLIC_NHOST_AUTH_URL || 'https://local.auth.nhost.run/v1'
+    process.env.NEXT_PUBLIC_NHOST_AUTH_URL ||
+    'https://staging.nhost.run/v1/auth'
   );
 }
 
