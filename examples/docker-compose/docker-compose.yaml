@@ -44,7 +44,7 @@ services:
       HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.hasura.rule=Host(`${HASURA_HOST}`, `localhost`) && PathPrefix(`/`)"
+      - "traefik.http.routers.hasura.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/`)"
       - "traefik.http.routers.hasura.entrypoints=web"
   auth:
     image: nhost/hasura-auth:0.21.2
@@ -71,7 +71,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.strip-auth.stripprefix.prefixes=/v1/auth"
-      - "traefik.http.routers.auth.rule=Host(`${HASURA_HOST}`, `localhost`) && PathPrefix(`/v1/auth`)"
+      - "traefik.http.routers.auth.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/v1/auth`)"
       - "traefik.http.routers.auth.middlewares=strip-auth@docker"
       - "traefik.http.routers.auth.entrypoints=web"
   storage:
@@ -84,7 +84,7 @@ services:
     expose:
       - 8000
     environment:
-      PUBLIC_URL: ${HASURA_URL}
+      PUBLIC_URL: ${PROXY_URL}
       HASURA_METADATA: 1
       HASURA_ENDPOINT: http://graphql-engine:8080/v1
       HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
@@ -96,7 +96,7 @@ services:
       POSTGRES_MIGRATIONS_SOURCE: postgres://postgres:${POSTGRES_PASSWORD:-secretpgpassword}@postgres:5432/postgres?sslmode=disable
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.storage.rule=Host(`${HASURA_HOST}`, `localhost`) && PathPrefix(`/v1/storage`)"
+      - "traefik.http.routers.storage.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/v1/storage`)"
       - "traefik.http.routers.storage.entrypoints=web"
       # Rewrite the path so it matches with the new storage API path introduced in hasura-storage 0.2
       - "traefik.http.middlewares.strip-suffix.replacepathregex.regex=^/v1/storage/(.*)"
@@ -108,7 +108,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.strip-functions.stripprefix.prefixes=/v1/functions"
-      - "traefik.http.routers.functions.rule=Host(`${HASURA_HOST}`, `localhost`) && PathPrefix(`/v1/functions`)"
+      - "traefik.http.routers.functions.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/v1/functions`)"
       - "traefik.http.routers.functions.middlewares=strip-functions@docker"
       - "traefik.http.routers.functions.entrypoints=web"
     restart: always
