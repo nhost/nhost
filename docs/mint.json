@@ -84,11 +84,7 @@
     },
     {
       "group": "Development & CLI",
-      "pages": ["/development/cli/overview", "/development/cli/getting-started", "/development/cli/commands", "/development/cli/recommended-workflow"]
-    },
-    {
-      "group": "Howtos",
-      "pages": ["Multiple Environments"]
+      "pages": ["/development/cli/overview", "/development/cli/getting-started", "/development/cli/commands"]
     },
     {
       "group": "API Documentation",
@@ -96,7 +92,7 @@
     },
     {
       "group": "Quickstarts",
-      "pages": ["guides/quickstarts/react"]
+      "pages": ["guides/quickstarts/react", "guides/quickstarts/nextjs", "guides/quickstarts/vue"]
     },
     {
       "group": "Tutorials",
