@@ -29,7 +29,7 @@ Follow the instructions in the **Custom Domain** section of your project's setti
 
 The first step is to add a CNAME record in your DNS provider for each of the services you want a custom domain for. You can find the instructions in the **dashboard** tab.
 
-For Hasura, Auth, and PostgreSQL, custom domains are defined in the default `./nhost/config.toml` as follows:
+For Hasura, Auth, Functions, and PostgreSQL, custom domains are defined in the default `./nhost/config.toml` as follows:
 
 ```
 [[hasura.resources.networking.ingresses]]
