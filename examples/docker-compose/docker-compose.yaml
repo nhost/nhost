@@ -145,7 +145,7 @@ services:
     volumes:
       - ./data/mailhog:/maildir
   dashboard:
-    image: nhost/dashboard:latest
+    image: nhost/dashboard:0.21.1
     env_file: .env
     expose:
      - 3000
