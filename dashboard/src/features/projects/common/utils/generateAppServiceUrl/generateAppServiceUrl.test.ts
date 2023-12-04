@@ -1,7 +1,6 @@
 import type { ProjectFragment } from '@/utils/__generated__/graphql';
 import { test, vi } from 'vitest';
 import generateAppServiceUrl, {
-  defaultLocalBackendSlugs,
   defaultRemoteBackendSlugs,
 } from './generateAppServiceUrl';
 
@@ -138,7 +137,7 @@ test('should be able to override the default remote backend slugs', () => {
   process.env.NEXT_PUBLIC_ENV = 'production';
 
   expect(
-    generateAppServiceUrl('test', region, 'hasura', defaultLocalBackendSlugs, {
+    generateAppServiceUrl('test', region, 'hasura', {
       ...defaultRemoteBackendSlugs,
       hasura: '/lorem-ipsum',
     }),
@@ -185,26 +184,5 @@ test('should construct service URLs based on environment variables', () => {
 
   expect(generateAppServiceUrl('test', region, 'functions')).toBe(
     'https://localdev4.nhost.run/v1/functions',
-  );
-});
-
-test('should generate a basic subdomain with a custom port if provided', () => {
-  process.env.NEXT_PUBLIC_NHOST_BACKEND_URL = `http://localhost:1338`;
-  process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
-
-  expect(generateAppServiceUrl('test', region, 'auth')).toBe(
-    `http://localhost:1338/v1/auth`,
-  );
-
-  expect(generateAppServiceUrl('test', region, 'storage')).toBe(
-    `http://localhost:1338/v1/files`,
-  );
-
-  expect(generateAppServiceUrl('test', region, 'graphql')).toBe(
-    `http://localhost:1338/v1/graphql`,
-  );
-
-  expect(generateAppServiceUrl('test', region, 'functions')).toBe(
-    `http://localhost:1338/v1/functions`,
   );
 });

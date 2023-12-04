@@ -32,14 +32,6 @@ export interface ActionSuccessState {
   isSuccess: boolean
 }
 
-export type BackendUrl = {
-  /**
-   * Nhost backend URL
-   * Will be deprecated in a future release. Please look at 'subdomain' and 'region' instead.
-   */
-  backendUrl: string
-}
-
 export type Subdomain = {
   /**
    * Project subdomain (e.g. `ieingiwnginwnfnegqwvdqwdwq`)
@@ -66,11 +58,8 @@ export type ServiceUrls = {
   functionsUrl?: string
 }
 
-export type BackendOrSubdomain = BackendUrl | Subdomain
-
 export interface NhostClientConstructorParams
-  extends Partial<BackendUrl>,
-    Partial<Subdomain>,
+  extends Partial<Subdomain>,
     Partial<ServiceUrls>,
     Omit<NhostAuthConstructorParams, 'url'> {
   /**
