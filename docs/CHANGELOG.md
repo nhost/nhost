@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.7.4
+
+### Patch Changes
+
+- 2a04bc9e5: added functions to custom domains documentation
+
 ## 0.7.3
 
 ### Patch Changes

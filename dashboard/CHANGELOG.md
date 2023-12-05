@@ -1,5 +1,17 @@
 # @nhost/dashboard
 
+## 1.0.0
+
+### Major Changes
+
+- bc9eff6e4: chore: remove support for using backendUrl when instantiating the Nhost client
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/nextjs@2.0.0
+  - @nhost/react-apollo@7.0.0
+
 ## 0.21.1
 
 ### Patch Changes

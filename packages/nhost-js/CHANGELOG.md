@@ -1,5 +1,11 @@
 # @nhost/nhost-js
 
+## 3.0.0
+
+### Major Changes
+
+- bc9eff6e4: chore: remove support for using backendUrl when instantiating the Nhost client
+
 ## 2.2.18
 
 ### Patch Changes
