@@ -7,7 +7,8 @@ on:
       - 'assets/**'
       - '**.md'
       - 'LICENSE'
-  pull_request_target:
+  pull_request:
+    types: [opened, synchronize]
     paths-ignore:
       - 'assets/**'
       - '**.md'
@@ -33,7 +34,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
       # * Install Node and dependencies. Package downloads will be cached for the next jobs.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
@@ -72,8 +72,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
@@ -99,8 +97,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
