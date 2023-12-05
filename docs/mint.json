@@ -96,7 +96,7 @@
     },
     {
       "group": "Tutorials",
-      "pages": ["guides/tutorials/react", "guides/tutorials/nextjs"]
+      "pages": ["guides/tutorials/react", "guides/tutorials/nextjs", "guides/tutorials/vue"]
     },
     {
       "group": "Database",
@@ -131,7 +131,7 @@
       "pages": ["guides/api/configuring-hasura", "guides/api/permissions"]
     },
     {
-      "group": "auth",
+      "group": "Authentication",
       "pages": [
         {
           "group": "Email and Password", 
@@ -196,7 +196,7 @@
       ]
     },
     {                  
-      "group": "storage",
+      "group": "Storage",
       "pages": [
         "api-reference/storage/storage/upload-files",
         "api-reference/storage/storage/replace-file",
@@ -205,6 +205,12 @@
         "api-reference/storage/storage/retrieve-information-about-a-file",
         "api-reference/storage/storage/retrieve-presigned-url-to-retrieve-the-file",
         "api-reference/storage/storage/retrieve-contents-of-file-1"
+      ]
+    },
+    {                  
+      "group": "Client Libraries",
+      "pages": [
+        "api-reference/sdks/nhostjs"
       ]
     }
   ],

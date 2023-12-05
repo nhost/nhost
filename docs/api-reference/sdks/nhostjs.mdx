@@ -1,0 +1,80 @@
+---
+title: 'JavaScript'
+description: ''
+sidebarTitle: JavaScript
+---
+
+The Nhost JavaScript client is the primary way of interacting with your Nhost project. It exposes a standard interface for each of the following services:
+
+- [Authentication](/reference/javascript/auth)
+- [Storage](/reference/javascript/storage)
+- [Functions](/reference/javascript/nhost-js/functions)
+- [GraphQL](/reference/javascript/graphql)
+
+## Installation
+
+Install the Nhost client together with GraphQL:
+
+<Tabs>
+  <Tab title="npm">
+   ```bash
+   npm install @nhost/nhost-js
+   ```
+  </Tab>
+
+  <Tab title="yarn">
+  ```bash
+  yarn add @nhost/nhost-js
+   ```
+  </Tab>
+</Tabs>
+
+## Initializing
+
+Initialize a single `nhost` instance using your Nhost `subdomain` and `region`:
+
+```js ./src/lib/nhost.js
+import { NhostClient } from '@nhost/nhost-js';
+
+export const nhost = new NhostClient({
+  subdomain: '<your-subdomain>',
+  region: '<your-region>'
+});
+```
+
+## Custom Service Endpoints
+
+There are cases where you might want to use a custom endpoint for one or more of the
+services (e.g. when you are self-hosting or you are running services on custom
+ports). You can do this by passing in the custom URLs when initializing the
+Nhost client:
+
+```js ./src/lib/nhost.js
+import { NhostClient } from '@nhost/nhost-js'
+
+export const nhost = new NhostClient({
+  authUrl: 'https://auth.mydomain.com/v1',
+  storageUrl: 'https://storage.mydomain.com/v1',
+  graphqlUrl: 'https://graphql.mydomain.com/v1',
+  functionsUrl: 'https://functions.mydomain.com/v1'
+})
+```
+
+## GraphQL Support
+
+The Nhost client has a small GraphQL client built-in which is great to use server-side or with simple frontend apps. For advanced features like integrating with frontend frameworks or built-in cache, we recommend using an alternative GraphQL client such as:
+
+- [Apollo Client](https://www.apollographql.com/docs/react/)
+- [URQL](https://formidable.com/open-source/urql/)
+- [React Query](https://react-query.tanstack.com/graphql)
+- [SWR](https://swr.vercel.app/docs/data-fetching#graphql)
+
+## Tokens and Permissions
+
+The Nhost client manages refresh tokens and access tokens automatically. The correct authorization headers are set if the user is signed in. Both access tokens and refresh tokens are automatically refreshed in the background.
+
+If the user is not signed in no authorization header is set. If no authorization header is set, requests to GraphQL and Storage resolve permissions using the `public` role.
+
+## TypeScript Support
+
+The Nhost JavaScript client is written in TypeScript and has full TypeScript support.
