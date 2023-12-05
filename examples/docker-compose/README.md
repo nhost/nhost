@@ -31,6 +31,6 @@ In order for you to be able to make edits to the database from the Nhost dashboa
 hasura console
 ```
 
-The Nhost Dashboard [uses](https://github.com/nhost/nhost/discussions/2398) the [Hasura migrations API](https://hasura.io/docs/latest/hasura-cli/commands/hasura_console/#options) in order to make edits to the database. It runs over port 9693 and is only accessible through running the Hasura console from the CLI. Because Nhost still uses the basic Hasura Docker image that does not include the CLI, that is why you need to run it locally. See https://github.com/nhost/nhost/issues/1220. Users are welcome to contibute a Docker configuration that includes the CLI to resolve this.
+The Nhost Dashboard [uses](https://github.com/nhost/nhost/discussions/2398) the [Hasura migrations API](https://hasura.io/docs/latest/hasura-cli/commands/hasura_console/#options) in order to make edits to the database. It runs over port 9693 and is only accessible through running the Hasura console from the CLI. Because the Docker compose still only uses the graphql-engine Hasura Docker image and does not include the CLI image, that is why you need to run it locally. See https://github.com/nhost/nhost/issues/1220. Users are welcome to contibute a Docker compose that includes the CLI image to resolve this.
 
 The Nhost Dashboard also requires the Hasura admin secret to `nhost-admin-secret` specified in the `.env` file.
