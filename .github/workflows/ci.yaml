@@ -72,6 +72,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
@@ -97,6 +99,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
