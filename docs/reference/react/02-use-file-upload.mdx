@@ -1,0 +1,27 @@
+---
+title: useFileUpload()
+sidebarTitle: useFileUpload()
+---
+
+Use the hook `useFileUpload` to upload a file.
+
+```tsx
+const {
+  add,
+  upload,
+  cancel,
+  isUploaded,
+  isUploading,
+  isError,
+  progress,
+  id,
+  bucketId,
+  name
+} = useFileUpload()
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await upload({ file })
+}
+```

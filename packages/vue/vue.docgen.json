@@ -1,8 +1,8 @@
 {
   "title": "Vue",
   "path": "./.docgen/vue.json",
-  "output": "../../docs/docs/reference/docgen/vue",
-  "root": "reference/docgen/vue",
+  "output": "../../docs/reference/vue",
+  "root": "reference/vue",
   "slug": "/reference/vue",
   "sidebarConfig": "referenceSidebar",
   "baseEditUrl": "https://github.com/nhost/nhost/edit/main/packages",

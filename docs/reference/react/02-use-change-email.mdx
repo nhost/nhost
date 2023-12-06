@@ -1,0 +1,27 @@
+---
+title: useChangeEmail()
+sidebarTitle: useChangeEmail()
+---
+
+Use the hook `useChangeEmail` to change email for the user.
+
+```tsx
+const { changeEmail, isLoading, needsEmailVerification, isError, error } =
+  useChangeEmail()
+
+console.log({ isLoading, needsEmailVerification, isError, error })
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await changeEmail('new@example.com')
+}
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">options</span>** <span className="optional-status">optional</span> <code>ChangeEmailOptions</code>
+
+---

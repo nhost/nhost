@@ -1,8 +1,8 @@
 {
   "title": "React",
   "path": "./.docgen/react.json",
-  "output": "../../docs/docs/reference/docgen/react",
-  "root": "reference/docgen/react",
+  "output": "../../docs/reference/react",
+  "root": "reference/react",
   "slug": "/reference/react",
   "sidebarConfig": "referenceSidebar",
   "baseEditUrl": "https://github.com/nhost/nhost/edit/main/packages",

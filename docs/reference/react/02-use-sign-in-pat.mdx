@@ -1,0 +1,18 @@
+---
+title: useSignInPAT()
+sidebarTitle: useSignInPAT()
+---
+
+Use the hook `useSignInPAT` to sign in a user using a personal access token.
+
+```tsx
+const { signInPAT, isLoading, isSuccess, isError, error } = useSignInPAT()
+
+console.log({ isLoading, isSuccess, isError, error })
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await signInPAT('8c5402d1-b05d-4825-a3ae-52d26402b89b')
+}
+```

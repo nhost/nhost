@@ -1,0 +1,71 @@
+---
+title: NhostAuthConstructorParams
+sidebarTitle: NhostAuthConstructorParams
+description: No description provided.
+---
+
+# `NhostAuthConstructorParams`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">url</span>** <span className="optional-status">required</span> <code>string</code>
+
+---
+
+**<span className="parameter-name">start</span>** <span className="optional-status">optional</span> <code>boolean</code>
+
+---
+
+**<span className="parameter-name">refreshIntervalTime</span>** <span className="optional-status">optional</span> <code>number</code>
+
+Time interval until token refreshes, in seconds
+
+---
+
+**<span className="parameter-name">clientStorageType</span>** <span className="optional-status">optional</span> <code>ClientStorageType</code>
+
+Define a way to get information about the refresh token and its exipration date.
+
+**`@default`**
+
+`web`
+
+---
+
+**<span className="parameter-name">clientStorage</span>** <span className="optional-status">optional</span> <code>ClientStorage</code>
+
+Object where the refresh token will be persisted and read locally.
+
+Recommended values:
+
+- `'web'` and `'cookies'`: no value is required
+- `'react-native'`: `import Storage from @react-native-async-storage/async-storage`
+- `'cookies'`: `localStorage`
+- `'custom'`: an object that defines the following methods:
+  - `setItem` or `setItemAsync`
+  - `getItem` or `getItemAsync`
+  - `removeItem`
+- `'capacitor'`: `import { Storage } from @capacitor/storage`
+- `'expo-secure-store'`: `import * as SecureStore from 'expo-secure-store'`
+
+---
+
+**<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> <code>boolean</code>
+
+When set to true, will automatically refresh token before it expires
+
+---
+
+**<span className="parameter-name">autoSignIn</span>** <span className="optional-status">optional</span> <code>boolean</code>
+
+When set to true, will parse the url on startup to check if it contains a refresh token to start the session with
+
+---
+
+**<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> <code>boolean</code>
+
+Activate devTools e.g. the ability to connect to the xstate inspector
+
+---

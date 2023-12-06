@@ -1,0 +1,49 @@
+---
+title: SendVerificationEmailHookResult
+sidebarTitle: SendVerificationEmailHookResult
+description: No description provided.
+---
+
+# `SendVerificationEmailHookResult`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">isSent</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+Returns `true` when a new verification email has been sent
+
+---
+
+**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+**`@returns`**
+
+`true` if an error occurred
+
+**`@depreacted`**
+
+use `!isSuccess` or `!!error` instead
+
+---
+
+**<span className="parameter-name">error</span>** <span className="optional-status">required</span> <code>null &#124; AuthErrorPayload</code>
+
+Provides details about the error
+
+---
+
+**<span className="parameter-name">isLoading</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+**`@returns`**
+
+`true` when the action is executing, `false` when it finished its execution.
+
+---
+
+**<span className="parameter-name">sendEmail</span>** <span className="optional-status">required</span> <code>SendVerificationEmailHandler</code>
+
+Resend the verification email. Returns a promise with the current context
+
+---
