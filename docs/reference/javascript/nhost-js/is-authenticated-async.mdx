@@ -1,0 +1,17 @@
+---
+title: isAuthenticatedAsync()
+sidebarTitle: isAuthenticatedAsync()
+---
+
+Use `nhost.auth.isAuthenticatedAsync` to wait (await) for any internal authentication network requests to finish and then return the authentication status.
+
+The promise won't resolve until the authentication status is known.
+Attention: when using auto-signin and a refresh token is present in the client storage, the promise won't resolve if the server can't be reached (e.g. offline) or if it returns an internal error.
+
+```ts
+const isAuthenticated = await nhost.auth.isAuthenticatedAsync()
+
+if (isAuthenticated) {
+  console.log('User is authenticated')
+}
+```

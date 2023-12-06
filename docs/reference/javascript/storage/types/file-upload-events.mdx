@@ -1,0 +1,29 @@
+---
+title: FileUploadEvents
+sidebarTitle: FileUploadEvents
+description: No description provided.
+---
+
+# `FileUploadEvents`
+
+```ts
+type FileUploadEvents =
+  | { type: 'ADD'; file: File; id: string; bucketId: string; name: string }
+  | ({
+      type: 'UPLOAD'
+      file: File
+      id: string
+      name: string
+      bucketId: string
+    } & FileUploadConfig)
+  | {
+      type: 'UPLOAD_PROGRESS'
+      progress: number
+      loaded: number
+      additions: number
+    }
+  | { type: 'UPLOAD_DONE'; id: string; bucketId: string }
+  | { type: 'UPLOAD_ERROR'; error: StorageErrorPayload }
+  | { type: 'CANCEL' }
+  | { type: 'DESTROY' }
+```

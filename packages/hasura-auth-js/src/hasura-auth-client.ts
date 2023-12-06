@@ -603,7 +603,6 @@ export class HasuraAuthClient {
    * const decodedAccessToken = nhost.auth.getDecodedAccessToken();
    * ```
    *
-   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
    * @docs https://docs.nhost.io/reference/javascript/auth/get-decoded-access-token
    */
   public getDecodedAccessToken(): JWTClaims | null {
@@ -620,7 +619,6 @@ export class HasuraAuthClient {
    * const hasuraClaims = nhost.auth.getHasuraClaims();
    * ```
    *
-   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
    * @docs https://docs.nhost.io/reference/javascript/auth/get-hasura-claims
    */
   public getHasuraClaims(): JWTHasuraClaims | null {
@@ -638,7 +636,6 @@ export class HasuraAuthClient {
    *
    * @param name Name of the variable. You don't have to specify `x-hasura-`.
    *
-   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
    * @docs https://docs.nhost.io/reference/javascript/auth/get-hasura-claim
    */
   public getHasuraClaim(name: string): string | string[] | null {

@@ -1,0 +1,44 @@
+---
+title: request()
+sidebarTitle: request()
+---
+
+# `request()`
+
+## Overload 1 of 2
+
+Use `nhost.graphql.request` to send a GraphQL request. For more serious GraphQL usage we recommend using a GraphQL client such as Apollo Client (https://www.apollographql.com/docs/react).
+
+```ts
+const CUSTOMERS = gql`
+  query {
+    customers {
+      id
+      name
+    }
+  }
+`
+const { data, error } = await nhost.graphql.request(CUSTOMERS)
+```
+
+### Parameters
+
+---
+
+**<span className="parameter-name">document</span>** <span className="optional-status">required</span> <code>RequestDocument &#124; TypedDocumentNode&lt;T, V&gt;</code>
+
+---
+
+**<span className="parameter-name">variablesAndRequestHeaders</span>** <span className="optional-status">required</span> <code></code>
+
+---
+
+## Overload 2 of 2
+
+### Parameters
+
+---
+
+**<span className="parameter-name">options</span>** <span className="optional-status">required</span> <code>RequestOptions&lt;V, T&gt;</code>
+
+---

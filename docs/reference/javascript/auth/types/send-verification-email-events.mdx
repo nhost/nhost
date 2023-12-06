@@ -1,0 +1,14 @@
+---
+title: SendVerificationEmailEvents
+sidebarTitle: SendVerificationEmailEvents
+description: No description provided.
+---
+
+# `SendVerificationEmailEvents`
+
+```ts
+type SendVerificationEmailEvents =
+  | { type: 'REQUEST'; email: string; options: SendVerificationEmailOptions }
+  | { type: 'SUCCESS' }
+  | { type: 'ERROR'; error: AuthErrorPayload | null }
+```

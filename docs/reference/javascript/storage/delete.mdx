@@ -1,0 +1,22 @@
+---
+title: delete()
+sidebarTitle: delete()
+---
+
+Use `nhost.storage.delete` to delete a file. To delete a file the user must have permissions to delete the file in the `storage.files` table. Deleting the file using `nhost.storage.delete()` will delete both the file and its metadata.
+
+```ts
+const { error } = await nhost.storage.delete({ fileId: 'uuid' })
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`StorageDeleteParams`](/reference/javascript/storage/types/storage-delete-params)
+
+| Property                                                                                  | Type                | Required | Notes |
+| :---------------------------------------------------------------------------------------- | :------------------ | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">params.</span>fileId</span> | <code>string</code> |    ✔️    |       |
+
+---

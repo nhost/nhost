@@ -1,0 +1,37 @@
+---
+title: ChangeEmailHandlerResult
+sidebarTitle: ChangeEmailHandlerResult
+description: No description provided.
+---
+
+# `ChangeEmailHandlerResult`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+**`@returns`**
+
+`true` if an error occurred
+
+**`@depreacted`**
+
+use `!isSuccess` or `!!error` instead
+
+---
+
+**<span className="parameter-name">error</span>** <span className="optional-status">required</span> <code>null &#124; [`AuthErrorPayload`](/reference/javascript/auth/types/auth-error-payload)</code>
+
+Provides details about the error
+
+---
+
+**<span className="parameter-name">needsEmailVerification</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+**`@returns`**
+
+`true` if an email is required to complete the action, and that a verification email has been sent to complete the action.
+
+---

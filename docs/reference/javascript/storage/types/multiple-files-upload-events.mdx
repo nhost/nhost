@@ -1,0 +1,23 @@
+---
+title: MultipleFilesUploadEvents
+sidebarTitle: MultipleFilesUploadEvents
+description: No description provided.
+---
+
+# `MultipleFilesUploadEvents`
+
+```ts
+type MultipleFilesUploadEvents =
+  | { type: 'ADD'; files: AnyFileList; bucketId: string }
+  | ({
+      type: 'UPLOAD'
+      files: AnyFileList
+      bucketId: string
+    } & FileUploadConfig)
+  | { type: 'UPLOAD_PROGRESS'; additions: number }
+  | { type: 'UPLOAD_DONE' }
+  | { type: 'UPLOAD_ERROR' }
+  | { type: 'CANCEL' }
+  | { type: 'REMOVE' }
+  | { type: 'CLEAR' }
+```

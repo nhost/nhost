@@ -6,7 +6,6 @@ import {
 import { Signature } from '../types'
 import CommentFragment from './CommentFragment'
 import CommentTagFragment from './CommentTagFragment'
-import DeprecationNoteFragment from './DeprecationNoteFragment'
 import ParameterFragment from './ParameterFragment'
 import ParameterTableFragment from './ParameterTableFragment'
 
@@ -48,7 +47,6 @@ export const FunctionFragment = (
         getNestedParametersFromParameter(parameter, originalDocument)
       )
     : []
-  const deprecationTag = signature.comment?.tags?.find(({ tag }) => tag === 'deprecated')
 
   const firstExample = examples.length
     ? {
@@ -58,7 +56,6 @@ export const FunctionFragment = (
     : undefined
 
   return `
-${numberOfOverloads === 1 && !isConstructor ? `# \`${signature.name}()\`` : ``}
 
 ${
   numberOfOverloads > 1 && index !== undefined
@@ -69,19 +66,6 @@ ${
 }
 
 ${signature.comment ? CommentFragment(signature.comment) : ''}
-
-${
-  deprecationTag
-    ? DeprecationNoteFragment(
-        deprecationTag,
-        isConstructor
-          ? 'This constructor is deprecated.'
-          : numberOfOverloads > 1
-          ? 'This overload is deprecated.'
-          : 'This function is deprecated.'
-      )
-    : ``
-}
 
 ${firstExample ? CommentTagFragment(firstExample) : ``}
 

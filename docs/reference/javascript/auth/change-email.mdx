@@ -1,0 +1,23 @@
+---
+title: changeEmail()
+sidebarTitle: changeEmail()
+---
+
+Use `nhost.auth.changeEmail` to change a user's email. This will send a confirm-email-change link in an email to the new email. Once the user clicks on the confirm-email-change link the email will be change to the new email.
+
+```ts
+nhost.auth.changeEmail({ newEmail: 'doe@example.com' })
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">\_\_namedParameters</span>** <span className="optional-status">required</span> [`ChangeEmailParams`](/reference/javascript/auth/types/change-email-params)
+
+| Property                                                                                                 | Type                                                                 | Required | Notes |
+| :------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>newEmail</span> | <code>string</code>                                                  |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>options</span>  | [`RedirectOption`](/reference/javascript/auth/types/redirect-option) |          |       |
+
+---
