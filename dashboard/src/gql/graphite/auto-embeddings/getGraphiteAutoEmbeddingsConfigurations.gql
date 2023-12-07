@@ -1,0 +1,19 @@
+query getGraphiteAutoEmbeddingsConfigurations($limit: Int!, $offset: Int!) {
+  graphiteAutoEmbeddingsConfigurations(limit: $limit, offset: $offset) {
+    id
+    name
+    schemaName
+    tableName
+    columnName
+    query
+    mutation
+    createdAt
+    updatedAt
+  }
+
+  graphiteAutoEmbeddingsConfigurationAggregate {
+    aggregate {
+      count
+    }
+  }
+}
