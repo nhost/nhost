@@ -137,7 +137,7 @@ export default function AutoEmbeddingsList({
             </Dropdown.Trigger>
             <Dropdown.Content
               menu
-              PaperProps={{ className: 'w-52' }}
+              PaperProps={{ className: 'w-auto' }}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
               transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >

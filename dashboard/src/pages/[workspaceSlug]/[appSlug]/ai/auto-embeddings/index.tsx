@@ -106,7 +106,7 @@ export default function AutoEmbeddingsPage() {
           <EmbeddingsIcon className="h-10 w-10" />
           <div className="flex flex-col space-y-1">
             <Text className="text-center font-medium" variant="h3">
-              No Auto-Enbeddings are available
+              No Auto-Embeddings are configured
             </Text>
             <Text variant="subtitle1" className="text-center">
               All your configurations will be listed here.
@@ -148,7 +148,7 @@ export default function AutoEmbeddingsPage() {
         />
 
         <Pagination
-          className="px-2 pt-6"
+          className="px-2 py-4"
           totalNrOfPages={nrOfPages}
           currentPageNumber={currentPage}
           totalNrOfElements={
