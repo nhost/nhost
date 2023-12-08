@@ -426,7 +426,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `nhost.auth.addSecurityKey to add a security key to the user, using the WebAuthn API.
+   * Use `nhost.auth.addSecurityKey` to add a security key to the user, using the WebAuthn API.
    * @param nickname optional human-readable nickname for the security key
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/add-security-key

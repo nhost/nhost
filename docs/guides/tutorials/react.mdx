@@ -4,7 +4,9 @@ description: Learn how to use Nhost with React
 sidebarTitle: React
 ---
 
-In this tutorial, you will build a simple **Todo Manager** with React and Nhost. The Todo Manager will allow users to sign in using a Magic Link and manage their own Todos with attachments.
+In this tutorial, you will build a simple **Todo Manager** application with Nhost and React. Along the way you will interact with services like Database, Authentication, and Storage.
+
+The Todo Manager will allow users to sign in using a Magic Link and manage their own Todos with attachments.
 
 <CardGroup cols={3}>
 <Card title="Database">
@@ -37,17 +39,19 @@ Enter the details for your project and wait a couple of minutes while Nhost prov
 - Authentication for managing your users
 - Storage for handling files
 
-### Create table todos
+### Create table `todos`
 
-On your new project, navigate to **Database** and create a new table called `todos`.
+On the project's dashboard, navigate to **Database** and create a new table called `todos`.
 
 ![Database](/images/guides/todos-react-database.png)
 
-You can either copy and paste the following SQL into the SQL Editor, **Database -> SQL Editor** (bottom left), or manually create the table by clicking on **New Table**.
+You can either copy and paste the following SQL into the SQL Editor, **Database -> SQL Editor**, or manually create the table by clicking on **New Table**.
 
 <Tabs>
   <Tab title="SQL Editor">
     Copy and paste the following SQL into the SQL Editor and press **Run**. 
+
+    <Note>Please make sure to enable **Track this** so that the new table `todos` is available through the auto-generated APIs</Note>
 
     ```sql SQL
     CREATE TABLE public.todos (
@@ -63,8 +67,6 @@ You can either copy and paste the following SQL into the SQL Editor, **Database 
       FOREIGN KEY (user_id) REFERENCES auth.users (id) ON UPDATE SET NULL ON DELETE SET NULL 
     ); 
     ```
-
-    <Note>Make sure to track the `todos` table by ensuring **Track this** is on</Note>
     
   </Tab>
   <Tab title="UI">
@@ -75,75 +77,13 @@ You can either copy and paste the following SQL into the SQL Editor, **Database 
   </Tab>
 </Tabs>
 
-You should now see a new table called `todos` on the left panel, above **New Table**.
+You should now see a new table called `todos` on the left panel, below **New Table**.
 
-### Set permissions for todos
-
-It's now time to set permission rules for the table you just created. With the table `todos` selected, click on **...**, followed by **Edit Permissions**. 
-
-You will set permissions for the `user` role and actions `insert`, `select`, `update`, and `delete`. 
-
-<Tabs>
-<Tab title="insert">
-Click on the right cell for the `user` role and action `insert` and set permissions as follows:
-![User Insert](/images/guides/todos-react-permissions-insert.png)
-</Tab>
-<Tab title="select">
-Click on the right cell for the `user` role and action `select` and set permissions as follows:
-![User Select](/images/guides/todos-react-permissions-select.png)
-</Tab>
-<Tab title="update">
-Click on the right cell for the `user` role and action `update` and set permissions as follows:
-![User Select](/images/guides/todos-react-permissions-update.png)
-</Tab>
-<Tab title="delete">
-Click on the right cell for the `user` role and action `delete` and set permissions as follows:
-![User Delete](/images/guides/todos-react-permissions-delete.png)
-</Tab>
-</Tabs>
-
-### Set permissions for files
-
-The `files` table is managed by Nhost and is defined on the `storage` schema. Click on the dropdown right next to `schema.public` and choose `schema.storage`.
-
-With the `files` table selected, click on **...**, followed by **Edit Permissions**.
-
-As before, we want to set permissions for the `user` role and actions `insert`, `select`, `delete`. 
-
-<Tabs>
-<Tab title="insert">
-Click on the right cell for the `user` role and action `insert` and set permissions as follows:
-![User Insert](/images/guides/todos-react-permissions-files-insert.png)
-</Tab>
-<Tab title="select">
-Click on the right cell for the `user` role and action `select` and set permissions as follows:
-![User Select](/images/guides/todos-react-permissions-files-select.png)
-</Tab>
-<Tab title="delete">
-Click on the right cell for the `user` role and action `delete` and set permissions as follows:
-![User Delete](/images/guides/todos-react-permissions-files-delete.png)
-</Tab>
-</Tabs>
 
 ### Enable Sign In with Magic Link 
 
-By default, Nhost has sign in with Magic Link disabled. To enable it, head to your project's **Settings -> Sign-In Methods**, toggle Magic Link and save.
+To enable Magic Links, navigate to your project's **Settings -> Sign-In Methods**, toggle Magic Link, and save.
 
-### Recap
-
-<Steps>
-<Step title="Nhost project created">
-</Step>
-
-<Step title="Database todos created">
-</Step>
-
-<Step title="Permissions set for todos and files">
-</Step>
-
-<Step title="Magic Link enabled">
-</Step>
-</Steps>
 
 
 ## Setup React Application
@@ -168,31 +108,24 @@ cd todos-react && npm install @nhost/react
 
 #### Configure the Nhost Client
 
-Create a new file, `./src/lib/nhost.js`, with the following code to create a client that will be used to interact with the Nhost backend.
+Create a new file `./src/lib/nhost.js` with the following code to create a Nhost client. Replace `<subdomain>` and `<region>` with the values for the project you created earlier. 
 
 ```ts ./src/lib/nhost.ts
 import { NhostClient } from "@nhost/react";
 
 export const nhost = new NhostClient({
-  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN,
-  region: import.meta.env.VITE_NHOST_REGION,
+  subdomain: "<SUBDOMAIN>",
+  region: "<REGION>"
 });
 ```
 
-The client requires the `subdomain` and `region` of the new project. Please create a new `.env.local` file with the right configuration for your project.
-
-```bash .env
-VITE_NHOST_SUBDOMAIN=<subdomain>
-VITE_NHOST_REGION=<region>
-```
-
-You can find the `subdomain` and `region` in the project's homepage in the Nhost Dashboard.
+<Info>The project's `subdomain` and `region` can be found in the Nhost Dashboard under **Project Info**</Info>
 
 ### Setup Sign In Component
 
-It is time to setup a new React component to handle the login functionality. Your users will be able to sign in using a Magic Link and without a password.
+It is time to setup a new React component to handle the login functionality. Users will be able to sign in using a Magic Link.
 
-Create a new file `./src/signin.jsx` for the Sign In component with the following content:
+Create a new file `./src/signin.jsx` with the following content:
 
 ```js ./src/signin.jsx
 import { useState } from 'react'
@@ -245,9 +178,53 @@ export default function SignIn() {
 }
 ```
 
-### Setup Todos Component
+And update `./src/App.jsx` to render the new `SignIn` component:
 
-Now that users can sign in, go ahead and create the authenticated page that lists a user's todos and has a form for managing todos with attachments.
+
+```js ./src/App.jsx
+import "./App.css";
+import { NhostProvider } from "@nhost/react";
+import { nhost } from "./lib/nhost.js";
+import SignIn from "./signin";
+import { useEffect, useState } from "react";
+
+function App() {
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    setSession(nhost.auth.getSession());
+
+    nhost.auth.onAuthStateChanged((_, session) => {
+      setSession(session);
+    });
+  }, []);
+
+  return (
+    <NhostProvider nhost={nhost}>
+      {session ? <div>coming soon...</div> : <SignIn />}
+    </NhostProvider>
+  );
+}
+
+export default App;
+```
+
+At this point you should be able to create and sign in users using a magic link. Run the following `npm` command to start the **Todo Manager** application:
+
+```bash Terminal
+npm run dev -- --open --port 3000
+```
+
+Enter your email and click on **Send me a Magic Link!**.
+
+Clicking on the Magic Link received via email, should redirected you back to the **Todos Manager** with a "coming soon..." message. 
+
+<Tip>Great, the **Todos Manager** is now able to Sign In users!</Tip>
+
+
+### Setup Todos Component and Todo Permissions
+
+Now that users can sign in, let's move on and create the authenticated page that lists a user's todos and has a form for managing todos with attachments.
 
 ```js ./src/todos.jsx
 import { useState, useEffect } from 'react'
@@ -459,8 +436,7 @@ export default function Todos() {
 }
 ```
 
-
-Finally, with all components in place, the only thing missing is to update `./src/App.jsx` to use the new components:
+The `todos` component isn't being rendered anywhere, go ahead and update `./src/App.jsx` again to include the `todos` component when there is a valid session.
 
 ```js ./src/App.jsx
 import './App.css'
@@ -491,13 +467,77 @@ function App() {
 export default App
 ```
 
+Refreshing the page should now render a form for creating and managing todos with a "Loading..." message. 
+
+Opening your browser's developer tools, should show you the message `"field 'todos' not found in type: 'query_root'"`. This means the `user` role has no permissions to access the `todos` table. 
+
+
+### Set permissions for todos
+
+It's now time to set permission rules for the table you just created. With the table `todos` selected, click on **...**, followed by **Edit Permissions**. 
+
+You will set permissions for the `user` role and actions `insert`, `select`, `update`, and `delete`. 
+
+<Tabs>
+<Tab title="insert">
+Click on the right cell for the `user` role and action `insert` and set permissions as follows:
+![User Insert](/images/guides/todos-react-permissions-insert.png)
+</Tab>
+<Tab title="select">
+Click on the right cell for the `user` role and action `select` and set permissions as follows:
+![User Select](/images/guides/todos-react-permissions-select.png)
+</Tab>
+<Tab title="update">
+Click on the right cell for the `user` role and action `update` and set permissions as follows:
+![User Select](/images/guides/todos-react-permissions-update.png)
+</Tab>
+<Tab title="delete">
+Click on the right cell for the `user` role and action `delete` and set permissions as follows:
+![User Delete](/images/guides/todos-react-permissions-delete.png)
+</Tab>
+</Tabs>
+
+### Set permissions for files
+
+The `files` table is managed by Nhost and is defined on the `storage` schema. Click on the dropdown right next to `schema.public` and choose `schema.storage`.
+
+With the `files` table selected, click on **...**, followed by **Edit Permissions**.
+
+As before, we want to set permissions for the `user` role and actions `insert`, `select`, `delete`. 
+
+<Tabs>
+<Tab title="insert">
+Click on the right cell for the `user` role and action `insert` and set permissions as follows:
+![User Insert](/images/guides/todos-react-permissions-files-insert.png)
+</Tab>
+<Tab title="select">
+Click on the right cell for the `user` role and action `select` and set permissions as follows:
+![User Select](/images/guides/todos-react-permissions-files-select.png)
+</Tab>
+<Tab title="delete">
+Click on the right cell for the `user` role and action `delete` and set permissions as follows:
+![User Delete](/images/guides/todos-react-permissions-files-delete.png)
+</Tab>
+</Tabs>
+
+You should now be able to to create new todos with file attachments.
+
 ## The End
 
-Run the Todo Manager with:
+Congratulations! You have accomplished the following:
 
-```bash Terminal
-npm run dev -- --open --port 3000
-```
+<Steps>
+<Step title="Setup Nhost project">
+You have created a Nhost project, a table to store users' `todos`, and learned how to enable Magic Link.
+</Step>
 
-Open your browser on [localhost:3000](localhost:3000) to see your new application in action.
+<Step title="Setup React application">
+You have created a React Application and added the `@nhost/react` package to create a client that is used to communicate with the Nhost Backend. 
+</Step>
+
+<Step title="Setup Permissions">
+You have learned how to setup permissions for new tables
+</Step>
+
+</Steps>
 
