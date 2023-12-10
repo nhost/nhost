@@ -2,11 +2,6 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "Documentation",
   "openapi": ["./reference/openapi-auth.yaml", "./reference/openapi-storage.yaml"],
-  "api": {
-    "playground": {
-      "mode": "simple"
-    }
-  },
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
@@ -61,7 +56,7 @@
   "navigation": [
     {
       "group": "Overview",
-      "pages": ["introduction", "development"]
+      "pages": ["introduction"]
     },
     {
       "group": "Product",
@@ -88,7 +83,7 @@
     },
     {
       "group": "API Documentation",
-      "pages": ["reference/introduction"]
+      "pages": ["reference/overview"]
     },
     {
       "group": "Quickstarts",
@@ -131,80 +126,86 @@
       "pages": ["guides/api/configuring-hasura", "guides/api/permissions"]
     },
     {
-      "group": "Authentication",
+      "group": "Backend Services",
       "pages": [
+
         {
-          "group": "Email and Password", 
+          "group": "Authentication",
           "pages": [
-            "reference/auth/sign-up-email-and-password",
-            "reference/auth/sign-in-email-and-password"
+            {
+              "group": "Email and Password", 
+              "pages": [
+                "reference/auth/sign-up-email-and-password",
+                "reference/auth/sign-in-email-and-password"
+              ]
+            },
+            {
+              "group": "Passwordless", 
+              "pages": [
+                "reference/auth/sign-in-email-passwordless",
+                "reference/auth/sign-in-sms-passwordless",
+                "reference/auth/sign-in-sms-passwordless-otp"
+              ]
+            },
+            {
+              "group": "OAuth", 
+              "pages": [
+                "reference/auth/sign-in-oauth-provider",
+                "reference/auth/oauth-callback-url-that-will-be-used-by-the-oauth-provider-to-redirect-to-the-client-application-attention:-all-providers-are-using-a-get-operation-except-apple-and-azure-ad-that-use-post"
+              ]
+            },
+            {
+              "group": "WebAuthn", 
+              "pages": [
+                "reference/auth/sign-up-using-email-via-fido2-webauthn-authentication",
+                "reference/auth/verfiy-fido2-webauthn-authentication-and-complete-signup",
+                "reference/auth/sign-in-using-email-via-fido2-webauthn-authentication",
+                "reference/auth/verfiy-fido2-webauthn-authentication-using-public-key-cryptography"
+              ]
+            },
+            {
+              "group": "Anonymous", 
+              "pages": [
+                "reference/auth/sign-in-anonymous",
+                "reference/auth/deanonymize-an-anonymous-user-in-adding-missing-email-or-email+password-depending-on-the-chosen-authentication-method-will-send-a-confirmation-email-if-the-server-is-configured-to-do-so"
+              ]
+            },
+            {
+              "group": "MFA", 
+              "pages": [
+                "reference/auth/generate-a-secret-to-request-the-activation-of-time-based-one-time-password-totp-multi-factor-authentication",
+                "reference/auth/sign-in-totp",
+                "reference/auth/activatedeactivate-multi-factor-authentication"
+              ]
+            },
+            {
+              "group": "User", 
+              "pages": [
+                "reference/auth/change-the-current-users-email",
+                "reference/auth/send-an-email-asking-the-user-to-reset-their-password",
+                "reference/auth/send-an-email-to-verify-the-account",
+                "reference/auth/set-a-new-password",
+                "reference/auth/get-user-information",
+                "reference/auth/refresh-the-oauth-access-tokens-of-a-given-user-you-must-be-an-admin-to-perform-this-operation",
+                "reference/auth/initialize-adding-of-a-new-webauthn-security-key-device-browser",
+                "reference/auth/verfiy-adding-of-a-new-webauth-security-key-device-browser"
+              ]
+            },
+            "reference/auth/sign-out"
           ]
         },
-        {
-          "group": "Passwordless", 
+        {                  
+          "group": "Storage",
           "pages": [
-            "reference/auth/sign-in-email-passwordless",
-            "reference/auth/sign-in-sms-passwordless",
-            "reference/auth/sign-in-sms-passwordless-otp"
+            "reference/storage/storage/upload-files",
+            "reference/storage/storage/replace-file",
+            "reference/storage/storage/delete-a-file",
+            "reference/storage/storage/retrieve-contents-of-file",
+            "reference/storage/storage/retrieve-information-about-a-file",
+            "reference/storage/storage/retrieve-presigned-url-to-retrieve-the-file",
+            "reference/storage/storage/retrieve-contents-of-file-1"
           ]
-        },
-        {
-          "group": "OAuth", 
-          "pages": [
-            "reference/auth/sign-in-oauth-provider",
-            "reference/auth/oauth-callback-url-that-will-be-used-by-the-oauth-provider-to-redirect-to-the-client-application-attention:-all-providers-are-using-a-get-operation-except-apple-and-azure-ad-that-use-post"
-          ]
-        },
-        {
-          "group": "WebAuthn", 
-          "pages": [
-            "reference/auth/sign-up-using-email-via-fido2-webauthn-authentication",
-            "reference/auth/verfiy-fido2-webauthn-authentication-and-complete-signup",
-            "reference/auth/sign-in-using-email-via-fido2-webauthn-authentication",
-            "reference/auth/verfiy-fido2-webauthn-authentication-using-public-key-cryptography"
-          ]
-        },
-        {
-          "group": "Anonymous", 
-          "pages": [
-            "reference/auth/sign-in-anonymous",
-            "reference/auth/deanonymize-an-anonymous-user-in-adding-missing-email-or-email+password-depending-on-the-chosen-authentication-method-will-send-a-confirmation-email-if-the-server-is-configured-to-do-so"
-          ]
-        },
-        {
-          "group": "MFA", 
-          "pages": [
-            "reference/auth/generate-a-secret-to-request-the-activation-of-time-based-one-time-password-totp-multi-factor-authentication",
-            "reference/auth/sign-in-totp",
-            "reference/auth/activatedeactivate-multi-factor-authentication"
-          ]
-        },
-        {
-          "group": "User", 
-          "pages": [
-            "reference/auth/change-the-current-users-email",
-            "reference/auth/send-an-email-asking-the-user-to-reset-their-password",
-            "reference/auth/send-an-email-to-verify-the-account",
-            "reference/auth/set-a-new-password",
-            "reference/auth/get-user-information",
-            "reference/auth/refresh-the-oauth-access-tokens-of-a-given-user-you-must-be-an-admin-to-perform-this-operation",
-            "reference/auth/initialize-adding-of-a-new-webauthn-security-key-device-browser",
-            "reference/auth/verfiy-adding-of-a-new-webauth-security-key-device-browser"
-          ]
-        },
-        "reference/auth/sign-out"
-      ]
-    },
-    {                  
-      "group": "Storage",
-      "pages": [
-        "reference/storage/storage/upload-files",
-        "reference/storage/storage/replace-file",
-        "reference/storage/storage/delete-a-file",
-        "reference/storage/storage/retrieve-contents-of-file",
-        "reference/storage/storage/retrieve-information-about-a-file",
-        "reference/storage/storage/retrieve-presigned-url-to-retrieve-the-file",
-        "reference/storage/storage/retrieve-contents-of-file-1"
+        }
       ]
     },
     {                  
@@ -216,6 +217,7 @@
             {
               "group": "Auth",
               "pages": [
+                "reference/javascript/auth/hasura-auth-client",
                 "reference/javascript/auth/add-security-key",
                 "reference/javascript/auth/change-email",
                 "reference/javascript/auth/change-password",
@@ -244,10 +246,10 @@
             {
               "group": "Storage",
               "pages": [
+                "reference/javascript/storage/hasura-storage-client",
                 "reference/javascript/storage/delete",
                 "reference/javascript/storage/get-presigned-url",
                 "reference/javascript/storage/get-public-url",
-                "reference/javascript/storage/hasura-storage-client",
                 "reference/javascript/storage/set-access-token",
                 "reference/javascript/storage/set-admin-secret",
                 "reference/javascript/storage/upload"
@@ -267,126 +269,126 @@
         {
           "group": "React",
           "pages": [
-            "reference/react/02-use-sign-in-email-password",
-            "reference/react/02-use-change-email",
-            "reference/react/02-use-sign-in-pat",
-            "reference/react/02-use-user-locale",
-            "reference/react/02-use-user-id",
-            "reference/react/02-use-access-token",
-            "reference/react/02-signed-out",
             "reference/react/nhost-client",
-            "reference/react/02-use-hasura-claim",
-            "reference/react/02-use-file-upload",
-            "reference/react/02-use-hasura-claims",
-            "reference/react/02-use-multiple-files-upload",
-            "reference/react/02-signed-in",
-            "reference/react/02-use-user-default-role",
-            "reference/react/02-use-decoded-access-token",
-            "reference/react/02-use-sign-up-email-security-key-email",
-            "reference/react/02-use-user-email",
-            "reference/react/02-use-sign-in-email-security-key",
-            "reference/react/02-use-user-avatar-url",
-            "reference/react/02-use-add-security-key",
-            "reference/react/02-use-sign-up-email-password",
-            "reference/react/02-use-authentication-status",
-            "reference/react/02-use-user-roles",
-            "reference/react/02-use-sign-out",
-            "reference/react/02-use-sign-in-sms-passwordless",
-            "reference/react/02-use-reset-password",
-            "reference/react/02-use-send-verification-email",
-            "reference/react/02-use-authenticated",
-            "reference/react/02-use-sign-in-anonymous",
-            "reference/react/02-use-change-password",
-            "reference/react/02-use-provider-link",
-            "reference/react/02-use-sign-in-email-passwordless",
-            "reference/react/02-use-user-data",
-            "reference/react/02-use-user-display-name",
-            "reference/react/02-use-file-upload-item",
-            "reference/react/02-use-nhost-client",
-            "reference/react/02-use-user-is-anonymous",
-            "reference/react/02-use-config-mfa"
+            "reference/react/signed-in",
+            "reference/react/signed-out",
+            "reference/react/use-access-token",
+            "reference/react/use-add-security-key",
+            "reference/react/use-authenticated",
+            "reference/react/use-authentication-status",
+            "reference/react/use-change-email",
+            "reference/react/use-change-password",
+            "reference/react/use-config-mfa",
+            "reference/react/use-decoded-access-token",
+            "reference/react/use-file-upload",
+            "reference/react/use-file-upload-item",
+            "reference/react/use-hasura-claim",
+            "reference/react/use-hasura-claims",
+            "reference/react/use-multiple-files-upload",
+            "reference/react/use-nhost-client",
+            "reference/react/use-provider-link",
+            "reference/react/use-reset-password",
+            "reference/react/use-send-verification-email",
+            "reference/react/use-sign-in-anonymous",
+            "reference/react/use-sign-in-email-password",
+            "reference/react/use-sign-in-email-passwordless",
+            "reference/react/use-sign-in-email-security-key",
+            "reference/react/use-sign-in-pat",
+            "reference/react/use-sign-in-sms-passwordless",
+            "reference/react/use-sign-out",
+            "reference/react/use-sign-up-email-password",
+            "reference/react/use-sign-up-email-security-key-email",
+            "reference/react/use-user-avatar-url",
+            "reference/react/use-user-data",
+            "reference/react/use-user-default-role",
+            "reference/react/use-user-display-name",
+            "reference/react/use-user-email",
+            "reference/react/use-user-id",
+            "reference/react/use-user-is-anonymous",
+            "reference/react/use-user-locale",
+            "reference/react/use-user-roles"
           ]
         },
         {
           "group": "Next.js",
           "pages": [
-            "reference/nextjs/02-use-sign-in-email-password",
-            "reference/nextjs/02-use-change-email",
-            "reference/nextjs/02-use-sign-in-pat",
-            "reference/nextjs/02-use-user-locale",
-            "reference/nextjs/02-use-user-id",
-            "reference/nextjs/02-use-access-token",
-            "reference/nextjs/02-signed-out",
             "reference/nextjs/nhost-client",
-            "reference/nextjs/02-use-hasura-claim",
-            "reference/nextjs/02-get-nhost-session",
-            "reference/nextjs/02-use-file-upload",
-            "reference/nextjs/02-use-hasura-claims",
-            "reference/nextjs/02-use-multiple-files-upload",
-            "reference/nextjs/02-signed-in",
-            "reference/nextjs/02-use-user-default-role",
-            "reference/nextjs/02-use-decoded-access-token",
-            "reference/nextjs/02-use-sign-up-email-security-key-email",
-            "reference/nextjs/02-use-user-email",
-            "reference/nextjs/02-use-sign-in-email-security-key",
-            "reference/nextjs/02-use-user-avatar-url",
-            "reference/nextjs/02-use-add-security-key",
-            "reference/nextjs/02-use-sign-up-email-password",
-            "reference/nextjs/02-create-server-side-client",
-            "reference/nextjs/02-use-authentication-status",
-            "reference/nextjs/02-use-user-roles",
-            "reference/nextjs/02-use-sign-out",
-            "reference/nextjs/02-use-sign-in-sms-passwordless",
-            "reference/nextjs/02-use-reset-password",
-            "reference/nextjs/02-use-send-verification-email",
-            "reference/nextjs/02-use-authenticated",
-            "reference/nextjs/02-use-sign-in-anonymous",
-            "reference/nextjs/02-use-change-password",
-            "reference/nextjs/02-use-provider-link",
-            "reference/nextjs/02-use-sign-in-email-passwordless",
-            "reference/nextjs/02-use-user-data",
-            "reference/nextjs/02-use-user-display-name",
-            "reference/nextjs/02-use-file-upload-item",
-            "reference/nextjs/02-use-nhost-client",
-            "reference/nextjs/02-use-user-is-anonymous",
-            "reference/nextjs/02-use-config-mfa"
+            "reference/nextjs/signed-in",
+            "reference/nextjs/signed-out",
+            "reference/nextjs/create-server-side-client",
+            "reference/nextjs/get-nhost-session",
+            "reference/nextjs/use-access-token",
+            "reference/nextjs/use-add-security-key",
+            "reference/nextjs/use-authenticated",
+            "reference/nextjs/use-authentication-status",
+            "reference/nextjs/use-change-email",
+            "reference/nextjs/use-change-password",
+            "reference/nextjs/use-config-mfa",
+            "reference/nextjs/use-decoded-access-token",
+            "reference/nextjs/use-file-upload",
+            "reference/nextjs/use-file-upload-item",
+            "reference/nextjs/use-hasura-claim",
+            "reference/nextjs/use-hasura-claims",
+            "reference/nextjs/use-multiple-files-upload",
+            "reference/nextjs/use-nhost-client",
+            "reference/nextjs/use-provider-link",
+            "reference/nextjs/use-reset-password",
+            "reference/nextjs/use-send-verification-email",
+            "reference/nextjs/use-sign-in-anonymous",
+            "reference/nextjs/use-sign-in-email-password",
+            "reference/nextjs/use-sign-in-email-passwordless",
+            "reference/nextjs/use-sign-in-email-security-key",
+            "reference/nextjs/use-sign-in-pat",
+            "reference/nextjs/use-sign-in-sms-passwordless",
+            "reference/nextjs/use-sign-out",
+            "reference/nextjs/use-sign-up-email-password",
+            "reference/nextjs/use-sign-up-email-security-key-email",
+            "reference/nextjs/use-user-avatar-url",
+            "reference/nextjs/use-user-data",
+            "reference/nextjs/use-user-default-role",
+            "reference/nextjs/use-user-display-name",
+            "reference/nextjs/use-user-email",
+            "reference/nextjs/use-user-id",
+            "reference/nextjs/use-user-is-anonymous",
+            "reference/nextjs/use-user-locale",
+            "reference/nextjs/use-user-roles"
           ]
         },
         {
           "group": "Vue",
           "pages": [
-            "reference/vue/02-use-sign-in-email-password",
-            "reference/vue/02-use-change-email",
-            "reference/vue/02-use-sign-in-pat",
-            "reference/vue/02-use-user-locale",
-            "reference/vue/02-use-user-id",
-            "reference/vue/02-use-access-token",
             "reference/vue/nhost-client",
-            "reference/vue/02-use-hasura-claim",
-            "reference/vue/02-use-file-upload",
-            "reference/vue/02-use-hasura-claims",
-            "reference/vue/02-use-multiple-files-upload",
-            "reference/vue/02-use-user-default-role",
-            "reference/vue/02-use-decoded-access-token",
-            "reference/vue/02-use-user-email",
-            "reference/vue/02-use-user-avatar-url",
-            "reference/vue/02-use-sign-up-email-password",
-            "reference/vue/02-use-authentication-status",
-            "reference/vue/02-use-user-roles",
-            "reference/vue/02-use-sign-out",
-            "reference/vue/02-use-sign-in-sms-passwordless",
-            "reference/vue/02-use-reset-password",
-            "reference/vue/02-use-send-verification-email",
-            "reference/vue/02-use-authenticated",
-            "reference/vue/02-use-sign-in-anonymous",
-            "reference/vue/02-use-change-password",
-            "reference/vue/02-use-provider-link",
-            "reference/vue/02-use-sign-in-email-passwordless",
-            "reference/vue/02-use-user-data",
-            "reference/vue/02-use-user-display-name",
-            "reference/vue/02-use-file-upload-item",
-            "reference/vue/02-use-nhost-client",
-            "reference/vue/02-use-user-is-anonymous"
+            "reference/vue/use-access-token",
+            "reference/vue/use-authenticated",
+            "reference/vue/use-authentication-status",
+            "reference/vue/use-change-email",
+            "reference/vue/use-change-password",
+            "reference/vue/use-decoded-access-token",
+            "reference/vue/use-file-upload",
+            "reference/vue/use-file-upload-item",
+            "reference/vue/use-hasura-claim",
+            "reference/vue/use-hasura-claims",
+            "reference/vue/use-multiple-files-upload",
+            "reference/vue/use-nhost-client",
+            "reference/vue/use-provider-link",
+            "reference/vue/use-reset-password",
+            "reference/vue/use-send-verification-email",
+            "reference/vue/use-sign-in-anonymous",
+            "reference/vue/use-sign-in-email-password",
+            "reference/vue/use-sign-in-email-passwordless",
+            "reference/vue/use-sign-in-pat",
+            "reference/vue/use-sign-in-sms-passwordless",
+            "reference/vue/use-sign-out",
+            "reference/vue/use-sign-up-email-password",
+            "reference/vue/use-user-avatar-url",
+            "reference/vue/use-user-data",
+            "reference/vue/use-user-default-role",
+            "reference/vue/use-user-display-name",
+            "reference/vue/use-user-email",
+            "reference/vue/use-user-id",
+            "reference/vue/use-user-is-anonymous",
+            "reference/vue/use-user-locale",
+            "reference/vue/use-user-roles"
           ]
         }
       ]

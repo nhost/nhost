@@ -4,9 +4,9 @@ description: Learn how to use Nhost with React
 sidebarTitle: React
 ---
 
-In this tutorial, you will build a simple **Todo Manager** application with Nhost and React. Along the way you will interact with services like Database, Authentication, and Storage.
+In this tutorial, you will build a simple **Todo Manager** application with Nhost and React. Along the way you will interact with the Database, Authentication, and Storage services.
 
-The Todo Manager will allow users to sign in using a Magic Link and manage their own Todos with attachments.
+The Todo Manager will allow users to see public `todos` and sign in using a Magic Link to manage their own `todos` with attachments.
 
 <CardGroup cols={3}>
 <Card title="Database">
@@ -57,15 +57,15 @@ You can either copy and paste the following SQL into the SQL Editor, **Database 
     CREATE TABLE public.todos (
       id uuid DEFAULT gen_random_uuid() NOT NULL,
       created_at timestamptz DEFAULT now() NOT NULL,
-      updated_at timestamptz DEFAULT now() NOT NULL, 
+      updated_at timestamptz DEFAULT now() NOT NULL,
       title text NOT NULL,
       completed bool DEFAULT 'false' NOT NULL,
-      file_id uuid,
-      user_id uuid NOT NULL,
-      PRIMARY KEY (id),
-      FOREIGN KEY (file_id) REFERENCES storage.files (id) ON UPDATE SET NULL ON DELETE SET NULL,
-      FOREIGN KEY (user_id) REFERENCES auth.users (id) ON UPDATE SET NULL ON DELETE SET NULL 
-    ); 
+      PRIMARY KEY (id)
+    );
+
+    INSERT INTO public.todos (title) VALUES ('Call the plumber');
+    INSERT INTO public.todos (title) VALUES ('Plan weekend trip');
+    INSERT INTO public.todos (title, completed) VALUES ('Read a book', true);
     ```
     
   </Tab>
@@ -222,7 +222,7 @@ Clicking on the Magic Link received via email, should redirected you back to the
 <Tip>Great, the **Todos Manager** is now able to Sign In users!</Tip>
 
 
-### Setup Todos Component and Todo Permissions
+### Setup `Todos` Component
 
 Now that users can sign in, let's move on and create the authenticated page that lists a user's todos and has a form for managing todos with attachments.
 
@@ -472,7 +472,7 @@ Refreshing the page should now render a form for creating and managing todos wit
 Opening your browser's developer tools, should show you the message `"field 'todos' not found in type: 'query_root'"`. This means the `user` role has no permissions to access the `todos` table. 
 
 
-### Set permissions for todos
+#### Set permissions for todos
 
 It's now time to set permission rules for the table you just created. With the table `todos` selected, click on **...**, followed by **Edit Permissions**. 
 

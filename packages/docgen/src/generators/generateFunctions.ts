@@ -49,7 +49,7 @@ export async function generateFunctions(
   const results = await Promise.allSettled(
     functions.map(async ({ name, content }) => {
       const fileName = `${kebabCase(name)}.mdx`
-      const fileOutput = `${outputPath}/${!classSlug ? '02-' + fileName : fileName}`
+      const fileOutput = `${outputPath}/${fileName}`
 
       // we are creating the folder for functions
       try {

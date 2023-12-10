@@ -7,12 +7,25 @@ Run the Nhost Stack on your computer with `nhost init` and `nhost start`. The Nh
 
 Manage configuration, database migrations, API schema changes, and more, with ease. 
 
-### Resources
+```bash
+> nhost up
 
-<CardGroup cols={2}>
-  <Card title="Nhost CLI" icon="square-1">
-  </Card>
-  <Card title="Nhost Deployments" icon="square-2">
-  </Card>
-</CardGroup>
+Nhost development environment started.
+URLs:
+- Postgres:             postgres://postgres:postgres@localhost:5432/local
+- Hasura:               https://local.hasura.nhost.run
+- GraphQL:              https://local.graphql.nhost.run
+- Auth:                 https://local.auth.nhost.run
+- Storage:              https://local.storage.nhost.run
+- Functions:            https://local.functions.nhost.run
+- Dashboard:            https://local.dashboard.nhost.run
+- Mailhog:              https://local.mailhog.nhost.run
 
+SDK Configuration:
+ Subdomain:             local
+ Region:                (empty)
+
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
+```
