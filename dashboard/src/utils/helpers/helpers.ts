@@ -72,3 +72,15 @@ export function getRelativeDateByApplicationState(date: string) {
 
   return Math.floor(difference / 1000);
 }
+
+/**
+ * Creates a type where all properties and nested properties are marked as required deeply, including arrays.
+ * @template T The type to make all properties required.
+ */
+export type DeepRequired<T> = {
+  [K in keyof T]-?: T[K] extends object
+    ? T[K] extends Array<infer U>
+      ? Array<DeepRequired<U>>
+      : DeepRequired<T[K]>
+    : T[K];
+};

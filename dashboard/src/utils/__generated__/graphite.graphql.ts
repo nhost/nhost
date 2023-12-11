@@ -7090,6 +7090,33 @@ export type Virus_Updates = {
   where: Virus_Bool_Exp;
 };
 
+export type DeleteAssistantMutationVariables = Exact<{
+  id: Scalars['String'];
+}>;
+
+
+export type DeleteAssistantMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', deleteAssistant: boolean } | null };
+
+export type GetAssistantsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAssistantsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', assistants: Array<{ __typename?: 'graphiteAssistant', assistantID: string, name: string, description: string, model: string, instructions: string, dataSources?: { __typename?: 'graphiteAssistantDataSources', graphql?: Array<{ __typename?: 'graphiteAssistantDataSourcesGraphQL', query: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantDataSourcesArgument', name: string, type: string, description: string, required: boolean }> }> | null, webhooks?: Array<{ __typename?: 'graphiteAssistantDataSourcesWebhook', name: string, URL: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantDataSourcesArgument', name: string, type: string, description: string, required: boolean }> }> | null } | null }> } | null };
+
+export type InsertAssistantMutationVariables = Exact<{
+  data: GraphiteAssistantInput;
+}>;
+
+
+export type InsertAssistantMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', insertAssistant: { __typename?: 'graphiteAssistant', assistantID: string } } | null };
+
+export type UpdateAssistantMutationVariables = Exact<{
+  id: Scalars['String'];
+  data: GraphiteAssistantInput;
+}>;
+
+
+export type UpdateAssistantMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', updateAssistant: { __typename?: 'graphiteAssistant', assistantID: string } } | null };
+
 export type DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
@@ -7131,6 +7158,176 @@ export type UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
 export type UpdateGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: 'mutation_root', updateGraphiteAutoEmbeddingsConfiguration?: { __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null } | null };
 
 
+export const DeleteAssistantDocument = gql`
+    mutation deleteAssistant($id: String!) {
+  graphite {
+    deleteAssistant(assistantID: $id)
+  }
+}
+    `;
+export type DeleteAssistantMutationFn = Apollo.MutationFunction<DeleteAssistantMutation, DeleteAssistantMutationVariables>;
+
+/**
+ * __useDeleteAssistantMutation__
+ *
+ * To run a mutation, you first call `useDeleteAssistantMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteAssistantMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteAssistantMutation, { data, loading, error }] = useDeleteAssistantMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteAssistantMutation(baseOptions?: Apollo.MutationHookOptions<DeleteAssistantMutation, DeleteAssistantMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteAssistantMutation, DeleteAssistantMutationVariables>(DeleteAssistantDocument, options);
+      }
+export type DeleteAssistantMutationHookResult = ReturnType<typeof useDeleteAssistantMutation>;
+export type DeleteAssistantMutationResult = Apollo.MutationResult<DeleteAssistantMutation>;
+export type DeleteAssistantMutationOptions = Apollo.BaseMutationOptions<DeleteAssistantMutation, DeleteAssistantMutationVariables>;
+export const GetAssistantsDocument = gql`
+    query getAssistants {
+  graphite {
+    assistants {
+      assistantID
+      name
+      description
+      model
+      instructions
+      dataSources {
+        graphql {
+          query
+          description
+          arguments {
+            name
+            type
+            description
+            required
+          }
+        }
+        webhooks {
+          name
+          URL
+          description
+          arguments {
+            name
+            type
+            description
+            required
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAssistantsQuery__
+ *
+ * To run a query within a React component, call `useGetAssistantsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAssistantsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAssistantsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAssistantsQuery(baseOptions?: Apollo.QueryHookOptions<GetAssistantsQuery, GetAssistantsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAssistantsQuery, GetAssistantsQueryVariables>(GetAssistantsDocument, options);
+      }
+export function useGetAssistantsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAssistantsQuery, GetAssistantsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAssistantsQuery, GetAssistantsQueryVariables>(GetAssistantsDocument, options);
+        }
+export type GetAssistantsQueryHookResult = ReturnType<typeof useGetAssistantsQuery>;
+export type GetAssistantsLazyQueryHookResult = ReturnType<typeof useGetAssistantsLazyQuery>;
+export type GetAssistantsQueryResult = Apollo.QueryResult<GetAssistantsQuery, GetAssistantsQueryVariables>;
+export function refetchGetAssistantsQuery(variables?: GetAssistantsQueryVariables) {
+      return { query: GetAssistantsDocument, variables: variables }
+    }
+export const InsertAssistantDocument = gql`
+    mutation insertAssistant($data: graphiteAssistantInput!) {
+  graphite {
+    insertAssistant(object: $data) {
+      assistantID
+    }
+  }
+}
+    `;
+export type InsertAssistantMutationFn = Apollo.MutationFunction<InsertAssistantMutation, InsertAssistantMutationVariables>;
+
+/**
+ * __useInsertAssistantMutation__
+ *
+ * To run a mutation, you first call `useInsertAssistantMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertAssistantMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertAssistantMutation, { data, loading, error }] = useInsertAssistantMutation({
+ *   variables: {
+ *      data: // value for 'data'
+ *   },
+ * });
+ */
+export function useInsertAssistantMutation(baseOptions?: Apollo.MutationHookOptions<InsertAssistantMutation, InsertAssistantMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertAssistantMutation, InsertAssistantMutationVariables>(InsertAssistantDocument, options);
+      }
+export type InsertAssistantMutationHookResult = ReturnType<typeof useInsertAssistantMutation>;
+export type InsertAssistantMutationResult = Apollo.MutationResult<InsertAssistantMutation>;
+export type InsertAssistantMutationOptions = Apollo.BaseMutationOptions<InsertAssistantMutation, InsertAssistantMutationVariables>;
+export const UpdateAssistantDocument = gql`
+    mutation updateAssistant($id: String!, $data: graphiteAssistantInput!) {
+  graphite {
+    updateAssistant(assistantID: $id, object: $data) {
+      assistantID
+    }
+  }
+}
+    `;
+export type UpdateAssistantMutationFn = Apollo.MutationFunction<UpdateAssistantMutation, UpdateAssistantMutationVariables>;
+
+/**
+ * __useUpdateAssistantMutation__
+ *
+ * To run a mutation, you first call `useUpdateAssistantMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAssistantMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAssistantMutation, { data, loading, error }] = useUpdateAssistantMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      data: // value for 'data'
+ *   },
+ * });
+ */
+export function useUpdateAssistantMutation(baseOptions?: Apollo.MutationHookOptions<UpdateAssistantMutation, UpdateAssistantMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateAssistantMutation, UpdateAssistantMutationVariables>(UpdateAssistantDocument, options);
+      }
+export type UpdateAssistantMutationHookResult = ReturnType<typeof useUpdateAssistantMutation>;
+export type UpdateAssistantMutationResult = Apollo.MutationResult<UpdateAssistantMutation>;
+export type UpdateAssistantMutationOptions = Apollo.BaseMutationOptions<UpdateAssistantMutation, UpdateAssistantMutationVariables>;
 export const DeleteGraphiteAutoEmbeddingsConfigurationDocument = gql`
     mutation deleteGraphiteAutoEmbeddingsConfiguration($id: uuid!) {
   deleteGraphiteAutoEmbeddingsConfiguration(id: $id) {
