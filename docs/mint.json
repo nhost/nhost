@@ -197,13 +197,13 @@
         {                  
           "group": "Storage",
           "pages": [
-            "reference/storage/storage/upload-files",
-            "reference/storage/storage/replace-file",
-            "reference/storage/storage/delete-a-file",
-            "reference/storage/storage/retrieve-contents-of-file",
-            "reference/storage/storage/retrieve-information-about-a-file",
-            "reference/storage/storage/retrieve-presigned-url-to-retrieve-the-file",
-            "reference/storage/storage/retrieve-contents-of-file-1"
+            "reference/storage/upload-file",
+            "reference/storage/replace-file",
+            "reference/storage/delete-file",
+            "reference/storage/download-file",
+            "reference/storage/download-file-metadata",
+            "reference/storage/presigned-url",
+            "reference/storage/get-file-content"
           ]
         }
       ]
