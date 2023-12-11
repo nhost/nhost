@@ -633,7 +633,7 @@ export class HasuraAuthClient {
    * @example
    * ```ts
    * // if `x-hasura-company-id` exists as a custom claim
-   * const companyId = nhost.auth.getHsauraClaim('company-id')
+   * const companyId = nhost.auth.getHasuraClaim('company-id')
    * ```
    *
    * @param name Name of the variable. You don't have to specify `x-hasura-`.
