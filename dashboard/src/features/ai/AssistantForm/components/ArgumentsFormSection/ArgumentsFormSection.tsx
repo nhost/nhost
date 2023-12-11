@@ -124,12 +124,12 @@ export default function ArgumentsFormSection({
                     }}
                   >
                     {[
-                      'String',
-                      'Number',
-                      'Integer',
-                      'Object',
-                      'Array',
-                      'Boolean',
+                      'string',
+                      'number',
+                      'integer',
+                      'object',
+                      'array',
+                      'boolean',
                     ]?.map((argumentType) => (
                       <Option key={argumentType} value={argumentType}>
                         {argumentType}

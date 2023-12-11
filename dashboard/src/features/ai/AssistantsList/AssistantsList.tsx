@@ -3,13 +3,11 @@ import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { CubeIcon } from '@/components/ui/v2/icons/CubeIcon';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { EmbeddingsIcon } from '@/components/ui/v2/icons/EmbeddingsIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { AutoEmbeddingsForm } from '@/features/ai/AutoEmbeddingsForm';
+import AssistantForm from '@/features/ai/AssistantForm/AssistantForm';
 import { DeleteAssistantModal } from '@/features/ai/DeleteAssistantModal';
 import { type Assistant } from 'pages/[workspaceSlug]/[appSlug]/ai/assistants';
 
@@ -44,13 +42,13 @@ export default function AssistantsList({
     openDrawer({
       title: (
         <Box className="flex flex-row items-center space-x-2">
-          <CubeIcon className="w-5 h-5" />
+          <span className="text-2xl">🤖</span>
           <Text>Edit {assistant?.name ?? 'unset'}</Text>
         </Box>
       ),
       component: (
-        <AutoEmbeddingsForm
-          autoEmbeddingsId={assistant.assistantID}
+        <AssistantForm
+          assistantId={assistant.assistantID}
           initialData={{
             ...assistant,
           }}
@@ -90,11 +88,14 @@ export default function AssistantsList({
             sx={{ backgroundColor: 'transparent' }}
           >
             <div className="flex flex-row items-center flex-1 space-x-4">
-              <EmbeddingsIcon className="w-5 h-5" />
+              <span className="text-3xl">🤖</span>
               <div className="flex flex-col">
                 <Text variant="h4" className="font-semibold">
                   {assistant?.name ?? 'unset'}
                 </Text>
+                <span className="test-sm text-slate-500">
+                  {assistant.description}
+                </span>
               </div>
             </div>
           </Box>

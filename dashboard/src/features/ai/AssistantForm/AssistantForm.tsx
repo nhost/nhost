@@ -70,9 +70,7 @@ export const validationSchema = Yup.object({
   }),
 });
 
-export type AssistantFormValues = DeepRequired<
-  Yup.InferType<typeof validationSchema>
->;
+export type AssistantFormValues = Yup.InferType<typeof validationSchema>;
 
 export interface AssistantFormProps extends DialogFormProps {
   /**
@@ -148,10 +146,18 @@ export default function AssistantForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  const createOrUpdateAutoEmbeddings = async (values: AssistantFormValues) => {
-    console.log({
-      values,
-    });
+  const createOrUpdateAutoEmbeddings = async (
+    values: DeepRequired<AssistantFormValues>,
+  ) => {
+    const payload = { ...values };
+
+    if (values.dataSources.webhooks.length === 0) {
+      delete payload.dataSources.webhooks;
+    }
+
+    if (values.dataSources.graphql.length === 0) {
+      delete payload.dataSources.graphql;
+    }
 
     // If the assistantId is set then we do an update
     if (assistantId) {
@@ -178,7 +184,7 @@ export default function AssistantForm({
     });
   };
 
-  const handleSubmit = async (values: AssistantFormValues) => {
+  const handleSubmit = async (values: DeepRequired<AssistantFormValues>) => {
     try {
       await toast.promise(
         createOrUpdateAutoEmbeddings(values),
