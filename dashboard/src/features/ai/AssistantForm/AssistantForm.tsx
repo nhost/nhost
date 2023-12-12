@@ -105,8 +105,6 @@ export default function AssistantForm({
 
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  console.log({ initialData });
-
   const serviceUrl = generateAppServiceUrl(
     currentProject?.subdomain,
     currentProject?.region,
