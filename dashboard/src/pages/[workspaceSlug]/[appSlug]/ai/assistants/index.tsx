@@ -4,8 +4,8 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
-import AssistantForm from '@/features/ai/AssistantForm/AssistantForm';
-import AssistantsList from '@/features/ai/AssistantsList/AssistantsList';
+import { AssistantForm } from '@/features/ai/AssistantForm';
+import { AssistantsList } from '@/features/ai/AssistantsList';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
@@ -56,11 +56,7 @@ export default function AssistantsPage() {
 
   const openCreateAssistantForm = () => {
     openDrawer({
-      title: (
-        <Box className="flex flex-row items-center space-x-2">
-          <Text>Create a new Assistant</Text>
-        </Box>
-      ),
+      title: 'Create a new Assistant',
       component: <AssistantForm onSubmit={refetch} />,
     });
   };

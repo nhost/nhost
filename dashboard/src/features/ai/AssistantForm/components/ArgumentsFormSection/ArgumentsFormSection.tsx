@@ -103,6 +103,10 @@ export default function ArgumentsFormSection({
                 }
                 fullWidth
                 autoComplete="off"
+                multiline
+                inputProps={{
+                  className: 'resize-y min-h-[22px]',
+                }}
               />
 
               <div className="flex flex-row space-x-2">

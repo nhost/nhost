@@ -15,7 +15,7 @@ import { generateAppServiceUrl } from '@/features/projects/common/utils/generate
 import type { DialogFormProps } from '@/types/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getHasuraAdminSecret } from '@/utils/env';
-import { type DeepRequired } from '@/utils/helpers';
+import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
@@ -34,8 +34,9 @@ import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name is required.'),
-  description: Yup.string().required(),
+  description: Yup.string(),
   instructions: Yup.string().required('The instructions are required'),
+  model: Yup.string().required('The model is required'),
   dataSources: Yup.object().shape({
     graphql: Yup.array().of(
       Yup.object().shape({
@@ -104,6 +105,8 @@ export default function AssistantForm({
 
   const { currentProject } = useCurrentWorkspaceAndProject();
 
+  console.log({ initialData });
+
   const serviceUrl = generateAppServiceUrl(
     currentProject?.subdomain,
     currentProject?.region,
@@ -147,9 +150,10 @@ export default function AssistantForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   const createOrUpdateAutoEmbeddings = async (
-    values: DeepRequired<AssistantFormValues>,
+    values: DeepRequired<AssistantFormValues> & { assistantID: string },
   ) => {
-    const payload = { ...values };
+    // remove any __typename from the form values
+    const payload = removeTypename(values);
 
     if (values.dataSources.webhooks.length === 0) {
       delete payload.dataSources.webhooks;
@@ -159,15 +163,15 @@ export default function AssistantForm({
       delete payload.dataSources.graphql;
     }
 
+    // remove assistantId because the update mutation fails otherwise
+    delete payload.assistantID;
+
     // If the assistantId is set then we do an update
     if (assistantId) {
       await updateAssistantMutation({
         variables: {
           id: assistantId,
-          data: {
-            model: 'gpt-3.5-turbo-1106', // TODO check if this is ok to hardcode for now
-            ...values,
-          },
+          data: payload,
         },
       });
 
@@ -177,14 +181,15 @@ export default function AssistantForm({
     await insertAssistantMutation({
       variables: {
         data: {
-          model: 'gpt-3.5-turbo-1106', // TODO check if this is ok to hardcode for now
           ...values,
         },
       },
     });
   };
 
-  const handleSubmit = async (values: DeepRequired<AssistantFormValues>) => {
+  const handleSubmit = async (
+    values: DeepRequired<AssistantFormValues> & { assistantID: string },
+  ) => {
     try {
       await toast.promise(
         createOrUpdateAutoEmbeddings(values),
@@ -218,9 +223,9 @@ export default function AssistantForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-col h-full gap-4 overflow-hidden"
+        className="flex flex-col h-full overflow-hidden border-t"
       >
-        <div className="flex flex-col flex-1 px-6 space-y-4 overflow-auto">
+        <div className="flex flex-col flex-1 p-4 space-y-4 overflow-auto">
           <Input
             {...register('name')}
             id="name"
@@ -244,6 +249,7 @@ export default function AssistantForm({
             autoComplete="off"
             autoFocus
           />
+
           <Input
             {...register('description')}
             id="description"
@@ -265,7 +271,12 @@ export default function AssistantForm({
             helperText={errors?.description?.message}
             fullWidth
             autoComplete="off"
+            multiline
+            inputProps={{
+              className: 'resize-y min-h-[22px]',
+            }}
           />
+
           <Input
             {...register('instructions')}
             id="instructions"
@@ -288,13 +299,39 @@ export default function AssistantForm({
             fullWidth
             autoComplete="off"
             multiline
-            rows={2}
+            inputProps={{
+              className: 'resize-y min-h-[22px]',
+            }}
+          />
+
+          <Input
+            {...register('model')}
+            id="model"
+            label={
+              <Box className="flex flex-row items-center space-x-2">
+                <Text>Model</Text>
+                <Tooltip title="The model">
+                  <InfoIcon
+                    aria-label="Info"
+                    className="w-4 h-4"
+                    color="primary"
+                  />
+                </Tooltip>
+              </Box>
+            }
+            placeholder=""
+            hideEmptyHelperText
+            error={!!errors.model}
+            helperText={errors?.model?.message}
+            fullWidth
+            autoComplete="off"
+            autoFocus
           />
           <GraphqlDataSourcesFormSection />
           <WebhooksDataSourcesFormSection />
         </div>
 
-        <Box className="flex flex-row justify-between w-full px-6 py-4 border-t rounded shadow">
+        <Box className="flex flex-row justify-between w-full p-4 border-t rounded">
           <Button variant="outlined" color="secondary" onClick={onCancel}>
             Cancel
           </Button>

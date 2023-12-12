@@ -72,6 +72,10 @@ export default function GraphqlDataSourcesFormSection() {
                 }
                 fullWidth
                 autoComplete="off"
+                multiline
+                inputProps={{
+                  className: 'resize-y min-h-[22px]',
+                }}
               />
 
               <Input
@@ -88,7 +92,9 @@ export default function GraphqlDataSourcesFormSection() {
                 fullWidth
                 autoComplete="off"
                 multiline
-                rows={4}
+                inputProps={{
+                  className: 'resize-y min-h-[22px]',
+                }}
               />
 
               <ArgumentsFormSection nestedField="graphql" nestIndex={index} />

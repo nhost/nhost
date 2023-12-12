@@ -7,7 +7,7 @@ import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon'
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
-import AssistantForm from '@/features/ai/AssistantForm/AssistantForm';
+import { AssistantForm } from '@/features/ai/AssistantForm';
 import { DeleteAssistantModal } from '@/features/ai/DeleteAssistantModal';
 import { type Assistant } from 'pages/[workspaceSlug]/[appSlug]/ai/assistants';
 
@@ -40,12 +40,7 @@ export default function AssistantsList({
 
   const viewAssistant = async (assistant: Assistant) => {
     openDrawer({
-      title: (
-        <Box className="flex flex-row items-center space-x-2">
-          <span className="text-2xl">🤖</span>
-          <Text>Edit {assistant?.name ?? 'unset'}</Text>
-        </Box>
-      ),
+      title: `Edit ${assistant?.name ?? 'unset'}`,
       component: (
         <AssistantForm
           assistantId={assistant.assistantID}

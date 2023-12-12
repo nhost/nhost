@@ -45,7 +45,7 @@ export default function WebhooksDataSourcesFormSection() {
       <Box className="flex flex-col space-y-4">
         {fields.map((field, index) => (
           <Box key={field.id} className="flex flex-col space-y-4">
-            <Box className="flex flex-col w-full p-4 pt-0 space-y-2">
+            <Box className="flex flex-col w-full p-4 pt-0 space-y-4">
               <Input
                 {...register(`dataSources.webhooks.${index}.name`)}
                 id={`${field.id}-name`}
@@ -72,6 +72,10 @@ export default function WebhooksDataSourcesFormSection() {
                 }
                 fullWidth
                 autoComplete="off"
+                multiline
+                inputProps={{
+                  className: 'resize-y min-h-[22px]',
+                }}
               />
 
               <Input
@@ -87,6 +91,10 @@ export default function WebhooksDataSourcesFormSection() {
                 }
                 fullWidth
                 autoComplete="off"
+                multiline
+                inputProps={{
+                  className: 'resize-y min-h-[22px]',
+                }}
               />
 
               <ArgumentsFormSection nestedField="webhooks" nestIndex={index} />
