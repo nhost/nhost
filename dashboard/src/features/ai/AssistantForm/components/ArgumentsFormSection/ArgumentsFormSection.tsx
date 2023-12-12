@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-// import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { type AssistantFormValues } from '@/features/ai/AssistantForm/AssistantForm';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
