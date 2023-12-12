@@ -8,6 +8,7 @@ query getAssistants {
       instructions
       dataSources {
         graphql {
+          name
           query
           description
           arguments {

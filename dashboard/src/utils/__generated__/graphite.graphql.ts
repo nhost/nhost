@@ -7100,7 +7100,7 @@ export type DeleteAssistantMutation = { __typename?: 'mutation_root', graphite?:
 export type GetAssistantsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAssistantsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', assistants: Array<{ __typename?: 'graphiteAssistant', assistantID: string, name: string, description: string, model: string, instructions: string, dataSources?: { __typename?: 'graphiteAssistantDataSources', graphql?: Array<{ __typename?: 'graphiteAssistantDataSourcesGraphQL', query: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantDataSourcesArgument', name: string, type: string, description: string, required: boolean }> }> | null, webhooks?: Array<{ __typename?: 'graphiteAssistantDataSourcesWebhook', name: string, URL: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantDataSourcesArgument', name: string, type: string, description: string, required: boolean }> }> | null } | null }> } | null };
+export type GetAssistantsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', assistants: Array<{ __typename?: 'graphiteAssistant', assistantID: string, name: string, description: string, model: string, instructions: string, dataSources?: { __typename?: 'graphiteAssistantDataSources', graphql?: Array<{ __typename?: 'graphiteAssistantDataSourcesGraphQL', name: string, query: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantDataSourcesArgument', name: string, type: string, description: string, required: boolean }> }> | null, webhooks?: Array<{ __typename?: 'graphiteAssistantDataSourcesWebhook', name: string, URL: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantDataSourcesArgument', name: string, type: string, description: string, required: boolean }> }> | null } | null }> } | null };
 
 export type InsertAssistantMutationVariables = Exact<{
   data: GraphiteAssistantInput;
@@ -7202,6 +7202,7 @@ export const GetAssistantsDocument = gql`
       instructions
       dataSources {
         graphql {
+          name
           query
           description
           arguments {
