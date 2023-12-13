@@ -1,0 +1,150 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Superpowers with Auto-Embeddings & pgvector',
+  description:
+    'Learn how to leverage Auto-Embeddings in your applications',
+  image: '/images/blog/auto-embeddings/hackers-embedding.png',
+  date: '2023-12-18',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'AI', 'Embeddings', 'pgvector'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Welcome to **Nhost's AI Week** and the forefront of application development! As we strive to integrate cutting-edge AI capabilities into your applications and businesses, we are excited to unveil two new features today: **Auto-Embeddings** & **pgvector**.
+
+## Better search and operations with pgvector
+
+**pgvector** is an extension for PostgreSQL designed to support efficient searching and operations on high-dimensional vectors, particularly useful in machine learning and similar applications where you often need to work with large datasets of vectors representing complex entities like images, text, or audio. 
+
+Key features of pgvector include:
+
+- **Vector Indexing** to allow for the creation of indexes on vector columns, which can significantly speed up nearest neighbor searches
+- **High-Dimensional Data**
+- Various Distance Metrics usually used in the vector space (L2 distance, cosine similarity, etc)
+- Ease of use, specially for those of you already familiar with PostgreSQL
+
+pgvector is now available starting in Nhost's Postgres version **14.6-20230525**. You can install it today with:
+
+```psql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+## Simplifying Data Embedding with Auto-Embeddings
+
+**Auto-Embeddings**, leveraging pgvector, is our latest addition to the Nhost Stack. It simplifies embedding your data in near real-time. Define your data and how it should be embedded, and our AI service, Graphite, ensures your embeddings are always up-to-date and stored alongside your data.
+
+### Transforming Data into Actionable Insights
+
+Imagine effortlessly querying your data using **natural language** or finding similar objects in your database through a similarity search. Auto-Embeddings turns this into reality, empowering your applications with limitless functionality.
+
+Integrated with our GraphQL API, Auto-Embeddings offers a seamless and user-friendly experience.
+
+### How It Works
+
+Consider a **movies** table in your database with the following columns: 
+
+- **id** (uuid)
+- **name** (text)
+- **genre** (text)
+- **overview** (text)
+- **embeddings** (vector)
+- **outdated** (boolean)
+
+We want to generate and store embeddings for the **name**, **genre**, and **overview** columns, with **embeddings** holding the data and **outdated** indicating the need for regenerating embeddings.
+
+All we have to do is tell Nhost AI how to fetch outdated movies (GraphQL query), how to update embeddings (GraphQL mutation), and where embeddings should be stored (schema -> table -> column). 
+
+![Configuring Auto-Embeddings](/images/blog/auto-embeddings/auto-embeddings-dashboard.png)
+
+#### GraphQL Query: Fetch outdated movies
+
+The first step is to identify which movie records need their embeddings updated. This is done through a GraphQL query that Graphite will use. Our example query retrieves movies that either haven't had their embeddings generated (`embeddings: {_is_null: true}`), or have been marked as **outdated**. This ensures that our AI service updates only the necessary records.
+
+```graphql
+query GetOutdatedMovies {
+  movies(where: {_or: [{embeddings: {_is_null: true}}, {outdated: {_eq: true}}]}) {
+    id
+    name
+    genre
+    overview
+  }
+}
+```
+
+Note that this is context dependent and the important bit to understand here is that Graphite needs to know how to get the relevant rows and data to update.
+
+#### GraphQL Mutation: Update movies 
+
+Once a movie is found to have outdated embeddings, Graphite will regenerate them and update the **movies** table through a GraphQL mutation. The mutation takes the ID of the movie and the new embeddings vector as inputs and updates the **embeddings** column in the **movies** table with this new data. This process ensures that the movie's embeddings are current and accurate.
+
+```graphql
+mutation UpdateEmbeddingsMovie($id: uuid!, $embeddings: vector) {
+  updateMovie(pk_columns: {id: $id}, _set: {embeddings: $embeddings}) {
+    __typename
+  }
+}
+```
+
+A query and a mutation is all that it takes to configure Auto-Embeddings. All the magic happens within the realm of Graphite. 
+
+#### The Superpowers
+
+Once an Auto-Embedding is configured, the following queries will be available:
+
+- **graphiteSearchMovies**
+- **graphiteSearchMoviesAggregate**
+- **graphiteSimilarMovies**
+- **graphiteSimilarMoviesAggregate**
+
+These queries will work similar to the standard **movies** and **moviesAggregate** queries provided by Hasura and will respect the exact **same permissions**, seamlessly. 
+
+You can now use natural language to interact with the movies database, for instance:
+
+![Movies on Space Comedy](/images/blog/auto-embeddings/auto-embeddings-search.png)
+
+Pretty cool, right?
+
+### Invalidating Embeddings
+
+Every 60 seconds (by default) Graphite queries your data to understand if embeddings should be created or updated, depending on the query you specify. This mechanism can be whatever makes sense in your use-case.
+
+With that in mind, we could create a simple trigger and function to set the column `outdated` to `true` everytime one of the relevant columns is updated:
+
+```sql
+-- Add the "outdated" column of type "boolean" with a default value of true
+ALTER TABLE "movies" ADD COLUMN "outdated" boolean DEFAULT true;
+
+-- Create a trigger that sets "outdated" to true if the columns
+-- "name", "genre" or "overview" are updated
+CREATE OR REPLACE FUNCTION set_outdated_trigger()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.name <> OLD.name OR NEW.genre <> OLD.genre OR NEW.overview <> OLD.overview THEN
+        NEW.outdated := true;
+    ELSEIF NEW.embeddings IS NOT NULL THEN
+        NEW.outdated := false;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Attach the trigger to the table
+CREATE TRIGGER set_outdated
+BEFORE UPDATE ON "movies"
+FOR EACH ROW
+EXECUTE FUNCTION set_outdated_trigger();
+```
+
+## Conclusion
+
+Auto-Embeddings work by transforming traditional data into a vector space model, automatically and without requiring manual updates. Integrated with our GraphQL API, it offers a seamless and user-friendly experience.
