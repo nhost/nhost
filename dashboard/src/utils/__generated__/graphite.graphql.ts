@@ -7157,6 +7157,20 @@ export type UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
 
 export type UpdateGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: 'mutation_root', updateGraphiteAutoEmbeddingsConfiguration?: { __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null } | null };
 
+export type SendDevMessageMutationVariables = Exact<{
+  sessionId: Scalars['String'];
+  prevMessageID: Scalars['String'];
+  message: Scalars['String'];
+}>;
+
+
+export type SendDevMessageMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', sendDevMessage: { __typename?: 'graphiteMessageResponse', messages: Array<{ __typename?: 'graphiteMessage', id: string, role: string, message: string, createdAt: any }> } } | null };
+
+export type StartDevSessionMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type StartDevSessionMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', startDevSession: { __typename?: 'graphiteSession', sessionID: string } } | null };
+
 
 export const DeleteAssistantDocument = gql`
     mutation deleteAssistant($id: String!) {
@@ -7502,3 +7516,83 @@ export function useUpdateGraphiteAutoEmbeddingsConfigurationMutation(baseOptions
 export type UpdateGraphiteAutoEmbeddingsConfigurationMutationHookResult = ReturnType<typeof useUpdateGraphiteAutoEmbeddingsConfigurationMutation>;
 export type UpdateGraphiteAutoEmbeddingsConfigurationMutationResult = Apollo.MutationResult<UpdateGraphiteAutoEmbeddingsConfigurationMutation>;
 export type UpdateGraphiteAutoEmbeddingsConfigurationMutationOptions = Apollo.BaseMutationOptions<UpdateGraphiteAutoEmbeddingsConfigurationMutation, UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables>;
+export const SendDevMessageDocument = gql`
+    mutation sendDevMessage($sessionId: String!, $prevMessageID: String!, $message: String!) {
+  graphite {
+    sendDevMessage(
+      sesionID: $sessionId
+      prevMessageID: $prevMessageID
+      message: $message
+    ) {
+      messages {
+        id
+        role
+        message
+        createdAt
+      }
+    }
+  }
+}
+    `;
+export type SendDevMessageMutationFn = Apollo.MutationFunction<SendDevMessageMutation, SendDevMessageMutationVariables>;
+
+/**
+ * __useSendDevMessageMutation__
+ *
+ * To run a mutation, you first call `useSendDevMessageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSendDevMessageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sendDevMessageMutation, { data, loading, error }] = useSendDevMessageMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *      prevMessageID: // value for 'prevMessageID'
+ *      message: // value for 'message'
+ *   },
+ * });
+ */
+export function useSendDevMessageMutation(baseOptions?: Apollo.MutationHookOptions<SendDevMessageMutation, SendDevMessageMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SendDevMessageMutation, SendDevMessageMutationVariables>(SendDevMessageDocument, options);
+      }
+export type SendDevMessageMutationHookResult = ReturnType<typeof useSendDevMessageMutation>;
+export type SendDevMessageMutationResult = Apollo.MutationResult<SendDevMessageMutation>;
+export type SendDevMessageMutationOptions = Apollo.BaseMutationOptions<SendDevMessageMutation, SendDevMessageMutationVariables>;
+export const StartDevSessionDocument = gql`
+    mutation startDevSession {
+  graphite {
+    startDevSession {
+      sessionID
+    }
+  }
+}
+    `;
+export type StartDevSessionMutationFn = Apollo.MutationFunction<StartDevSessionMutation, StartDevSessionMutationVariables>;
+
+/**
+ * __useStartDevSessionMutation__
+ *
+ * To run a mutation, you first call `useStartDevSessionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useStartDevSessionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [startDevSessionMutation, { data, loading, error }] = useStartDevSessionMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useStartDevSessionMutation(baseOptions?: Apollo.MutationHookOptions<StartDevSessionMutation, StartDevSessionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<StartDevSessionMutation, StartDevSessionMutationVariables>(StartDevSessionDocument, options);
+      }
+export type StartDevSessionMutationHookResult = ReturnType<typeof useStartDevSessionMutation>;
+export type StartDevSessionMutationResult = Apollo.MutationResult<StartDevSessionMutation>;
+export type StartDevSessionMutationOptions = Apollo.BaseMutationOptions<StartDevSessionMutation, StartDevSessionMutationVariables>;
