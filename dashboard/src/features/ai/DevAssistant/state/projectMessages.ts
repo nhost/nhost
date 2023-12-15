@@ -11,8 +11,6 @@ const projectMessagesState = selectorFamily<ProjectMessage[], string>({
     ({ get }) => {
       const messages = get(messagesState);
 
-      console.log(messages);
-
       return messages.filter(
         (message) =>
           message.projectId === projectId || message.projectId === undefined,
