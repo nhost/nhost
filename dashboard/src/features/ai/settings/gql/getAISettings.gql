@@ -1,0 +1,9 @@
+query GetAISettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    ai {
+      openai {
+        apiKey
+      }
+    }
+  }
+}

@@ -20,6 +20,17 @@ fragment Project on apps {
         enableConsole
       }
     }
+    ai {
+      openai {
+        apiKey
+      }
+      resources {
+        compute {
+          cpu
+          memory
+        }
+      }
+    }
   }
   featureFlags {
     description
