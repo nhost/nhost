@@ -185,7 +185,7 @@ import (
 	node: {
 		version: 18
 	}
-	
+
 	resources?: {
 		networking?: #Networking
 	}
@@ -256,8 +256,8 @@ import (
 		// Inverse of AUTH_DISABLE_SIGNUP
 		enabled: bool | *true
 
-        // AUTH_DISABLE_NEW_USERS
-        disableNewUsers: bool | *false
+		// AUTH_DISABLE_NEW_USERS
+		disableNewUsers: bool | *false
 	}
 
 	user: {
@@ -390,14 +390,14 @@ import (
 			enabled: bool | *false
 			if enabled {
 				relyingParty: {
-					id: 		 string | *""
+					id:      string | *""
 					name:    string
 					origins: [...#Url] | *[redirections.clientUrl]
 				}
 			}
 			if !enabled {
 				relyingParty?: {
-					id: 		 string | *""
+					id:       string | *""
 					name?:    string
 					origins?: [...#Url] | *[redirections.clientUrl]
 				}
@@ -588,11 +588,18 @@ import (
 	image: string
 }
 
+#HealthCheck: {
+	port:    #Port
+	initialDelaySeconds: int | *30
+	probePeriodSeconds:  int | *10
+}
+
 #RunServiceConfig: {
 	name:  #RunServiceName
 	image: #RunServiceImage
 	command: [...string]
-	environment: [...#EnvironmentVariable] | *[]
-	ports?:      [...#RunServicePort] | *[]
-	resources:   #RunServiceResources
+	environment:  [...#EnvironmentVariable] | *[]
+	ports?:       [...#RunServicePort] | *[]
+	resources:    #RunServiceResources
+	healthCheck?: #HealthCheck
 }

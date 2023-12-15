@@ -72,6 +72,11 @@ func commandConfigExample(cCtx *cli.Context) error { //nolint:funlen
 			},
 			Replicas: 1,
 		},
+		HealthCheck: &model.ConfigHealthCheck{
+			Port:                8080,
+			InitialDelaySeconds: ptr(10),
+			ProbePeriodSeconds:  ptr(20),
+		},
 	}
 
 	sch, err := schema.New()

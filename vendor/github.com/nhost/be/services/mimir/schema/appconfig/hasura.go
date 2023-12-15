@@ -65,10 +65,6 @@ func HasuraEnv( //nolint:funlen
 			IsSecret:   true,
 		},
 		{
-			Name:  "NHOST_BACKEND_URL",
-			Value: GetFQDNOldURL(subdomain, domain, useTLS, httpPort),
-		},
-		{
 			Name:  "NHOST_SUBDOMAIN",
 			Value: subdomain,
 		},

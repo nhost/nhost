@@ -1725,6 +1725,45 @@ input ConfigHasuraSettingsComparisonExp {
 """
 
 """
+type ConfigHealthCheck {
+    """
+
+    """
+    port: ConfigPort!
+    """
+
+    """
+    initialDelaySeconds: Int
+    """
+
+    """
+    probePeriodSeconds: Int
+}
+
+input ConfigHealthCheckUpdateInput {
+    port: ConfigPort
+    initialDelaySeconds: Int
+    probePeriodSeconds: Int
+}
+
+input ConfigHealthCheckInsertInput {
+    port: ConfigPort!
+    initialDelaySeconds: Int
+    probePeriodSeconds: Int
+}
+
+input ConfigHealthCheckComparisonExp {
+    _and: [ConfigHealthCheckComparisonExp!]
+    _not: ConfigHealthCheckComparisonExp
+    _or: [ConfigHealthCheckComparisonExp!]
+    port: ConfigPortComparisonExp
+    initialDelaySeconds: ConfigIntComparisonExp
+    probePeriodSeconds: ConfigIntComparisonExp
+}
+
+"""
+
+"""
 type ConfigIngress {
     """
 
@@ -2296,6 +2335,10 @@ type ConfigRunServiceConfig {
 
     """
     resources: ConfigRunServiceResources!
+    """
+
+    """
+    healthCheck: ConfigHealthCheck
 }
 
 input ConfigRunServiceConfigUpdateInput {
@@ -2305,6 +2348,7 @@ input ConfigRunServiceConfigUpdateInput {
         environment: [ConfigEnvironmentVariableUpdateInput!]
         ports: [ConfigRunServicePortUpdateInput!]
     resources: ConfigRunServiceResourcesUpdateInput
+    healthCheck: ConfigHealthCheckUpdateInput
 }
 
 input ConfigRunServiceConfigInsertInput {
@@ -2314,6 +2358,7 @@ input ConfigRunServiceConfigInsertInput {
         environment: [ConfigEnvironmentVariableInsertInput!]
         ports: [ConfigRunServicePortInsertInput!]
     resources: ConfigRunServiceResourcesInsertInput!
+    healthCheck: ConfigHealthCheckInsertInput
 }
 
 input ConfigRunServiceConfigComparisonExp {
@@ -2326,6 +2371,7 @@ input ConfigRunServiceConfigComparisonExp {
     environment: ConfigEnvironmentVariableComparisonExp
     ports: ConfigRunServicePortComparisonExp
     resources: ConfigRunServiceResourcesComparisonExp
+    healthCheck: ConfigHealthCheckComparisonExp
 }
 
 """

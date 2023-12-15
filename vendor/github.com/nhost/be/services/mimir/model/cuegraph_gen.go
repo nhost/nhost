@@ -10806,6 +10806,248 @@ func (exp *ConfigHasuraSettingsComparisonExp) Matches(o *ConfigHasuraSettings) b
 	return true
 }
 
+type ConfigHealthCheck struct {
+	Port uint16 `json:"port" toml:"port"`
+
+	InitialDelaySeconds *int `json:"initialDelaySeconds" toml:"initialDelaySeconds"`
+
+	ProbePeriodSeconds *int `json:"probePeriodSeconds" toml:"probePeriodSeconds"`
+}
+
+func (o *ConfigHealthCheck) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["port"] = o.Port
+	if o.InitialDelaySeconds != nil {
+		m["initialDelaySeconds"] = o.InitialDelaySeconds
+	}
+	if o.ProbePeriodSeconds != nil {
+		m["probePeriodSeconds"] = o.ProbePeriodSeconds
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigHealthCheck) GetPort() uint16 {
+	if o == nil {
+		o = &ConfigHealthCheck{}
+	}
+	return o.Port
+}
+
+func (o *ConfigHealthCheck) GetInitialDelaySeconds() *int {
+	if o == nil {
+		o = &ConfigHealthCheck{}
+	}
+	return o.InitialDelaySeconds
+}
+
+func (o *ConfigHealthCheck) GetProbePeriodSeconds() *int {
+	if o == nil {
+		o = &ConfigHealthCheck{}
+	}
+	return o.ProbePeriodSeconds
+}
+
+type ConfigHealthCheckUpdateInput struct {
+	Port                     *uint16 `json:"port,omitempty" toml:"port,omitempty"`
+	IsSetPort                bool    `json:"-"`
+	InitialDelaySeconds      *int    `json:"initialDelaySeconds,omitempty" toml:"initialDelaySeconds,omitempty"`
+	IsSetInitialDelaySeconds bool    `json:"-"`
+	ProbePeriodSeconds       *int    `json:"probePeriodSeconds,omitempty" toml:"probePeriodSeconds,omitempty"`
+	IsSetProbePeriodSeconds  bool    `json:"-"`
+}
+
+func (o *ConfigHealthCheckUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["port"]; ok {
+		if v == nil {
+			o.Port = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint16
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Port = &x
+		}
+		o.IsSetPort = true
+	}
+	if v, ok := m["initialDelaySeconds"]; ok {
+		if v == nil {
+			o.InitialDelaySeconds = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.InitialDelaySeconds = &x
+		}
+		o.IsSetInitialDelaySeconds = true
+	}
+	if v, ok := m["probePeriodSeconds"]; ok {
+		if v == nil {
+			o.ProbePeriodSeconds = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ProbePeriodSeconds = &x
+		}
+		o.IsSetProbePeriodSeconds = true
+	}
+
+	return nil
+}
+
+func (o *ConfigHealthCheckUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigHealthCheckUpdateInput) GetPort() *uint16 {
+	if o == nil {
+		o = &ConfigHealthCheckUpdateInput{}
+	}
+	return o.Port
+}
+
+func (o *ConfigHealthCheckUpdateInput) GetInitialDelaySeconds() *int {
+	if o == nil {
+		o = &ConfigHealthCheckUpdateInput{}
+	}
+	return o.InitialDelaySeconds
+}
+
+func (o *ConfigHealthCheckUpdateInput) GetProbePeriodSeconds() *int {
+	if o == nil {
+		o = &ConfigHealthCheckUpdateInput{}
+	}
+	return o.ProbePeriodSeconds
+}
+
+func (s *ConfigHealthCheck) Update(v *ConfigHealthCheckUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetPort || v.Port != nil {
+		if v.Port != nil {
+			s.Port = *v.Port
+		}
+	}
+	if v.IsSetInitialDelaySeconds || v.InitialDelaySeconds != nil {
+		s.InitialDelaySeconds = v.InitialDelaySeconds
+	}
+	if v.IsSetProbePeriodSeconds || v.ProbePeriodSeconds != nil {
+		s.ProbePeriodSeconds = v.ProbePeriodSeconds
+	}
+}
+
+type ConfigHealthCheckInsertInput struct {
+	Port                uint16 `json:"port,omitempty" toml:"port,omitempty"`
+	InitialDelaySeconds *int   `json:"initialDelaySeconds,omitempty" toml:"initialDelaySeconds,omitempty"`
+	ProbePeriodSeconds  *int   `json:"probePeriodSeconds,omitempty" toml:"probePeriodSeconds,omitempty"`
+}
+
+func (o *ConfigHealthCheckInsertInput) GetPort() uint16 {
+	if o == nil {
+		o = &ConfigHealthCheckInsertInput{}
+	}
+	return o.Port
+}
+
+func (o *ConfigHealthCheckInsertInput) GetInitialDelaySeconds() *int {
+	if o == nil {
+		o = &ConfigHealthCheckInsertInput{}
+	}
+	return o.InitialDelaySeconds
+}
+
+func (o *ConfigHealthCheckInsertInput) GetProbePeriodSeconds() *int {
+	if o == nil {
+		o = &ConfigHealthCheckInsertInput{}
+	}
+	return o.ProbePeriodSeconds
+}
+
+func (s *ConfigHealthCheck) Insert(v *ConfigHealthCheckInsertInput) {
+	s.Port = v.Port
+	s.InitialDelaySeconds = v.InitialDelaySeconds
+	s.ProbePeriodSeconds = v.ProbePeriodSeconds
+}
+
+func (s *ConfigHealthCheck) Clone() *ConfigHealthCheck {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigHealthCheck{}
+	v.Port = s.Port
+	v.InitialDelaySeconds = s.InitialDelaySeconds
+	v.ProbePeriodSeconds = s.ProbePeriodSeconds
+	return v
+}
+
+type ConfigHealthCheckComparisonExp struct {
+	And                 []*ConfigHealthCheckComparisonExp `json:"_and,omitempty"`
+	Not                 *ConfigHealthCheckComparisonExp   `json:"_not,omitempty"`
+	Or                  []*ConfigHealthCheckComparisonExp `json:"_or,omitempty"`
+	Port                *ConfigPortComparisonExp          `json:"port,omitempty"`
+	InitialDelaySeconds *ConfigIntComparisonExp           `json:"initialDelaySeconds,omitempty"`
+	ProbePeriodSeconds  *ConfigIntComparisonExp           `json:"probePeriodSeconds,omitempty"`
+}
+
+func (exp *ConfigHealthCheckComparisonExp) Matches(o *ConfigHealthCheck) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigHealthCheck{}
+	}
+	if !exp.Port.Matches(o.Port) {
+		return false
+	}
+	if o.InitialDelaySeconds != nil && !exp.InitialDelaySeconds.Matches(*o.InitialDelaySeconds) {
+		return false
+	}
+	if o.ProbePeriodSeconds != nil && !exp.ProbePeriodSeconds.Matches(*o.ProbePeriodSeconds) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
 type ConfigIngress struct {
 	Fqdn []string `json:"fqdn,omitempty" toml:"fqdn,omitempty"`
 }
@@ -14477,6 +14719,8 @@ type ConfigRunServiceConfig struct {
 	Ports []*ConfigRunServicePort `json:"ports,omitempty" toml:"ports,omitempty"`
 
 	Resources *ConfigRunServiceResources `json:"resources,omitempty" toml:"resources,omitempty"`
+
+	HealthCheck *ConfigHealthCheck `json:"healthCheck,omitempty" toml:"healthCheck,omitempty"`
 }
 
 func (o *ConfigRunServiceConfig) MarshalJSON() ([]byte, error) {
@@ -14496,6 +14740,9 @@ func (o *ConfigRunServiceConfig) MarshalJSON() ([]byte, error) {
 	}
 	if o.Resources != nil {
 		m["resources"] = o.Resources
+	}
+	if o.HealthCheck != nil {
+		m["healthCheck"] = o.HealthCheck
 	}
 	return json.Marshal(m)
 }
@@ -14542,6 +14789,13 @@ func (o *ConfigRunServiceConfig) GetResources() *ConfigRunServiceResources {
 	return o.Resources
 }
 
+func (o *ConfigRunServiceConfig) GetHealthCheck() *ConfigHealthCheck {
+	if o == nil {
+		return nil
+	}
+	return o.HealthCheck
+}
+
 type ConfigRunServiceConfigUpdateInput struct {
 	Name             *string                                 `json:"name,omitempty" toml:"name,omitempty"`
 	IsSetName        bool                                    `json:"-"`
@@ -14555,6 +14809,8 @@ type ConfigRunServiceConfigUpdateInput struct {
 	IsSetPorts       bool                                    `json:"-"`
 	Resources        *ConfigRunServiceResourcesUpdateInput   `json:"resources,omitempty" toml:"resources,omitempty"`
 	IsSetResources   bool                                    `json:"-"`
+	HealthCheck      *ConfigHealthCheckUpdateInput           `json:"healthCheck,omitempty" toml:"healthCheck,omitempty"`
+	IsSetHealthCheck bool                                    `json:"-"`
 }
 
 func (o *ConfigRunServiceConfigUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -14652,6 +14908,16 @@ func (o *ConfigRunServiceConfigUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetResources = true
 	}
+	if x, ok := m["healthCheck"]; ok {
+		if x != nil {
+			t := &ConfigHealthCheckUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.HealthCheck = t
+		}
+		o.IsSetHealthCheck = true
+	}
 
 	return nil
 }
@@ -14703,6 +14969,13 @@ func (o *ConfigRunServiceConfigUpdateInput) GetResources() *ConfigRunServiceReso
 		return nil
 	}
 	return o.Resources
+}
+
+func (o *ConfigRunServiceConfigUpdateInput) GetHealthCheck() *ConfigHealthCheckUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.HealthCheck
 }
 
 func (s *ConfigRunServiceConfig) Update(v *ConfigRunServiceConfigUpdateInput) {
@@ -14768,6 +15041,16 @@ func (s *ConfigRunServiceConfig) Update(v *ConfigRunServiceConfigUpdateInput) {
 			s.Resources.Update(v.Resources)
 		}
 	}
+	if v.IsSetHealthCheck || v.HealthCheck != nil {
+		if v.HealthCheck == nil {
+			s.HealthCheck = nil
+		} else {
+			if s.HealthCheck == nil {
+				s.HealthCheck = &ConfigHealthCheck{}
+			}
+			s.HealthCheck.Update(v.HealthCheck)
+		}
+	}
 }
 
 type ConfigRunServiceConfigInsertInput struct {
@@ -14777,6 +15060,7 @@ type ConfigRunServiceConfigInsertInput struct {
 	Environment []*ConfigEnvironmentVariableInsertInput `json:"environment,omitempty" toml:"environment,omitempty"`
 	Ports       []*ConfigRunServicePortInsertInput      `json:"ports,omitempty" toml:"ports,omitempty"`
 	Resources   *ConfigRunServiceResourcesInsertInput   `json:"resources,omitempty" toml:"resources,omitempty"`
+	HealthCheck *ConfigHealthCheckInsertInput           `json:"healthCheck,omitempty" toml:"healthCheck,omitempty"`
 }
 
 func (o *ConfigRunServiceConfigInsertInput) GetName() string {
@@ -14821,6 +15105,13 @@ func (o *ConfigRunServiceConfigInsertInput) GetResources() *ConfigRunServiceReso
 	return o.Resources
 }
 
+func (o *ConfigRunServiceConfigInsertInput) GetHealthCheck() *ConfigHealthCheckInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.HealthCheck
+}
+
 func (s *ConfigRunServiceConfig) Insert(v *ConfigRunServiceConfigInsertInput) {
 	s.Name = v.Name
 	if v.Image != nil {
@@ -14857,6 +15148,12 @@ func (s *ConfigRunServiceConfig) Insert(v *ConfigRunServiceConfigInsertInput) {
 		}
 		s.Resources.Insert(v.Resources)
 	}
+	if v.HealthCheck != nil {
+		if s.HealthCheck == nil {
+			s.HealthCheck = &ConfigHealthCheck{}
+		}
+		s.HealthCheck.Insert(v.HealthCheck)
+	}
 }
 
 func (s *ConfigRunServiceConfig) Clone() *ConfigRunServiceConfig {
@@ -14884,6 +15181,7 @@ func (s *ConfigRunServiceConfig) Clone() *ConfigRunServiceConfig {
 		}
 	}
 	v.Resources = s.Resources.Clone()
+	v.HealthCheck = s.HealthCheck.Clone()
 	return v
 }
 
@@ -14897,6 +15195,7 @@ type ConfigRunServiceConfigComparisonExp struct {
 	Environment *ConfigEnvironmentVariableComparisonExp `json:"environment,omitempty"`
 	Ports       *ConfigRunServicePortComparisonExp      `json:"ports,omitempty"`
 	Resources   *ConfigRunServiceResourcesComparisonExp `json:"resources,omitempty"`
+	HealthCheck *ConfigHealthCheckComparisonExp         `json:"healthCheck,omitempty"`
 }
 
 func (exp *ConfigRunServiceConfigComparisonExp) Matches(o *ConfigRunServiceConfig) bool {
@@ -14911,6 +15210,7 @@ func (exp *ConfigRunServiceConfigComparisonExp) Matches(o *ConfigRunServiceConfi
 			Environment: []*ConfigEnvironmentVariable{},
 			Ports:       []*ConfigRunServicePort{},
 			Resources:   &ConfigRunServiceResources{},
+			HealthCheck: &ConfigHealthCheck{},
 		}
 	}
 	if !exp.Name.Matches(o.Name) {
@@ -14956,6 +15256,9 @@ func (exp *ConfigRunServiceConfigComparisonExp) Matches(o *ConfigRunServiceConfi
 		}
 	}
 	if !exp.Resources.Matches(o.Resources) {
+		return false
+	}
+	if !exp.HealthCheck.Matches(o.HealthCheck) {
 		return false
 	}
 

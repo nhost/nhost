@@ -12,6 +12,9 @@ port = 3000
 type = 'http'
 publish = true
 
+[[ports.ingresses]]
+fqdn = [ "mysvc.mydomain.com" ]
+
 [resources]
 replicas = 1
 
@@ -23,3 +26,8 @@ memory = 128
 name = 'storage1'
 capacity = 1
 path = '/var/lib/storage1'
+
+[healthCheck]
+port = 3000
+initialDelaySeconds = 10
+probePeriodSeconds = 20

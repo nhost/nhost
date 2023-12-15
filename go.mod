@@ -11,7 +11,7 @@ require (
 	github.com/go-git/go-git/v5 v5.9.0
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/go-getter v1.7.3
-	github.com/nhost/be v0.0.0-20231128101806-7cfa5d2ea979
+	github.com/nhost/be v0.0.0-20231212111642-5f7196d94824
 	github.com/pelletier/go-toml/v2 v2.1.0
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/wI2L/jsondiff v0.4.0
