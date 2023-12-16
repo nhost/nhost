@@ -1,3 +1,4 @@
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
@@ -47,7 +48,7 @@ function CodeComponent(
   const { children, className, node, ...rest } = props;
 
   return (
-    <code {...rest} className={twMerge(className, 'whitespace-normal')}>
+    <code {...rest} className={twMerge(className, 'max-w-full')}>
       {children}
     </code>
   );
@@ -229,6 +230,17 @@ export default function DevAssistant() {
       }
     }
   };
+
+  if (currentProject.plan.isFree) {
+    return (
+      <Box className="p-4">
+        <UpgradeToProBanner
+          title="Upgrade to Nhost Pro to access the Assistant."
+          description=""
+        />
+      </Box>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col overflow-auto">
