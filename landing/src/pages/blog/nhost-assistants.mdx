@@ -2,7 +2,7 @@ import Image from 'next/image'
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
-  title: 'Nhost Assistants, a better LLM',
+  title: 'Introducing Nhost Assistants, your Personal LLMs',
   description:
     'Nhost Assistants',
   image: '/images/blog/run-publicly-available/og-run-bun.png',
@@ -15,7 +15,7 @@ export const article = {
       url: 'https://twitter.com/nunopato',
     },
   ],
-  tags: ['Product', 'AI Week', 'AI Assistants'],
+  tags: ['Product', 'AI Week', 'LLM', 'AI Assistants'],
 }
 
 export default (props) => <BlogPostLayout article={article} {...props} />
@@ -48,11 +48,11 @@ For that reason, Nhost Assistants can see their base model extended with data fr
  
 Assistants can also leverage your custom built tools through the use of webhooks. Need an assistant to buy a flight ticket or send an email? 
 
-You can write a small function or Run service and ask the assistant to "buy me an airplane ticket, one way, to Bali, on the 20th of January.". 
+You can write a small function or Run service and ask the assistant to "buy me an airplane ticket, one way, to Bali, on the 20th of January". 
 
-Custom Tools are really powerful because you can automate lots of useful workflows. 
+Custom Tools are really powerful and only limited by your imagination as you can automate lots of useful workflows. 
 
-### Example Conversation
+### Assistants in Action
 
 Here is an example of an actual session with the **Flight Booking Assistant** with access to multiple tools:
 
