@@ -73,28 +73,48 @@ export type Boolean_Comparison_Exp = {
 
 export type ConfigAi = {
   __typename?: 'ConfigAI';
+  autoEmbeddings?: Maybe<ConfigAiAutoEmbeddings>;
   openai: ConfigAiOpenai;
   resources: ConfigAiResources;
-  synchPeriodMinutes?: Maybe<Scalars['ConfigUint32']>;
   version?: Maybe<Scalars['String']>;
   webhookSecret: Scalars['String'];
+};
+
+export type ConfigAiAutoEmbeddings = {
+  __typename?: 'ConfigAIAutoEmbeddings';
+  synchPeriodMinutes?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAiAutoEmbeddingsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAiAutoEmbeddingsComparisonExp>>;
+  _not?: InputMaybe<ConfigAiAutoEmbeddingsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAiAutoEmbeddingsComparisonExp>>;
+  synchPeriodMinutes?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigAiAutoEmbeddingsInsertInput = {
+  synchPeriodMinutes?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAiAutoEmbeddingsUpdateInput = {
+  synchPeriodMinutes?: InputMaybe<Scalars['ConfigUint32']>;
 };
 
 export type ConfigAiComparisonExp = {
   _and?: InputMaybe<Array<ConfigAiComparisonExp>>;
   _not?: InputMaybe<ConfigAiComparisonExp>;
   _or?: InputMaybe<Array<ConfigAiComparisonExp>>;
+  autoEmbeddings?: InputMaybe<ConfigAiAutoEmbeddingsComparisonExp>;
   openai?: InputMaybe<ConfigAiOpenaiComparisonExp>;
   resources?: InputMaybe<ConfigAiResourcesComparisonExp>;
-  synchPeriodMinutes?: InputMaybe<ConfigUint32ComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
   webhookSecret?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigAiInsertInput = {
+  autoEmbeddings?: InputMaybe<ConfigAiAutoEmbeddingsInsertInput>;
   openai: ConfigAiOpenaiInsertInput;
   resources: ConfigAiResourcesInsertInput;
-  synchPeriodMinutes?: InputMaybe<Scalars['ConfigUint32']>;
   version?: InputMaybe<Scalars['String']>;
   webhookSecret: Scalars['String'];
 };
@@ -144,9 +164,9 @@ export type ConfigAiResourcesUpdateInput = {
 };
 
 export type ConfigAiUpdateInput = {
+  autoEmbeddings?: InputMaybe<ConfigAiAutoEmbeddingsUpdateInput>;
   openai?: InputMaybe<ConfigAiOpenaiUpdateInput>;
   resources?: InputMaybe<ConfigAiResourcesUpdateInput>;
-  synchPeriodMinutes?: InputMaybe<Scalars['ConfigUint32']>;
   version?: InputMaybe<Scalars['String']>;
   webhookSecret?: InputMaybe<Scalars['String']>;
 };
@@ -22374,7 +22394,7 @@ export type GetAiSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetAiSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', ai?: { __typename?: 'ConfigAI', openai: { __typename?: 'ConfigAIOpenai', apiKey: string } } | null } | null };
+export type GetAiSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } | null };
 
 export type GetAuthenticationSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -22456,7 +22476,7 @@ export type DeleteApplicationMutation = { __typename?: 'mutation_root', deleteAp
 export type GetAllWorkspacesAndProjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', openai: { __typename?: 'ConfigAIOpenai', apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
 
 export type GetAppPlanAndGlobalPlansAppFragment = { __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }, plan: { __typename?: 'plans', id: any, name: string } };
 
@@ -22513,7 +22533,7 @@ export type GetWorkspaceAndProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', openai: { __typename?: 'ConfigAIOpenai', apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
 
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
@@ -22705,9 +22725,9 @@ export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate
 
 export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any };
 
-export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', openai: { __typename?: 'ConfigAIOpenai', apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
+export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
-export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', openai: { __typename?: 'ConfigAIOpenai', apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
@@ -23219,17 +23239,6 @@ export const ProjectFragmentDoc = gql`
         enableConsole
       }
     }
-    ai {
-      openai {
-        apiKey
-      }
-      resources {
-        compute {
-          cpu
-          memory
-        }
-      }
-    }
   }
   featureFlags {
     description
@@ -23490,8 +23499,19 @@ export const GetAiSettingsDocument = gql`
     query GetAISettings($appId: uuid!) {
   config(appID: $appId, resolve: false) {
     ai {
+      version
+      webhookSecret
+      autoEmbeddings {
+        synchPeriodMinutes
+      }
       openai {
         apiKey
+      }
+      resources {
+        compute {
+          cpu
+          memory
+        }
       }
     }
   }
