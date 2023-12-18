@@ -20,12 +20,14 @@ import {
   useStartDevSessionMutation,
   type SendDevMessageMutation,
 } from '@/utils/__generated__/graphite.graphql';
+import { useTheme } from '@mui/material';
 import { useUserData } from '@nhost/nextjs';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import Markdown from 'react-markdown';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import rehypeHighlight from 'rehype-highlight';
+import { twMerge } from 'tailwind-merge';
 
 const MAX_THREAD_LENGTH = 50;
 
@@ -37,6 +39,7 @@ export type Message = Omit<
 function MessageBox({ message }: { message: Message }) {
   const user = useUserData();
   const isUserMessage = message.role === 'user';
+  const theme = useTheme();
 
   return (
     <Box
@@ -67,7 +70,13 @@ function MessageBox({ message }: { message: Message }) {
         )}
       </div>
 
-      <Markdown className="prose" rehypePlugins={[rehypeHighlight]}>
+      <Markdown
+        className={twMerge(
+          'prose',
+          theme.palette.mode === 'dark' && 'prose-invert',
+        )}
+        rehypePlugins={[rehypeHighlight]}
+      >
         {message.message}
       </Markdown>
     </Box>
