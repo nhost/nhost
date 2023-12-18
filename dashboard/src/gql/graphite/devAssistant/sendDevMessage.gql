@@ -5,7 +5,7 @@ mutation sendDevMessage(
 ) {
   graphite {
     sendDevMessage(
-      sesionID: $sessionId
+      sessionID: $sessionId
       prevMessageID: $prevMessageID
       message: $message
     ) {

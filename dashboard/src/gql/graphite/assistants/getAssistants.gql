@@ -6,28 +6,26 @@ query getAssistants {
       description
       model
       instructions
-      dataSources {
-        graphql {
+      graphql {
+        name
+        query
+        description
+        arguments {
           name
-          query
+          type
           description
-          arguments {
-            name
-            type
-            description
-            required
-          }
+          required
         }
-        webhooks {
+      }
+      webhooks {
+        name
+        URL
+        description
+        arguments {
           name
-          URL
+          type
           description
-          arguments {
-            name
-            type
-            description
-            required
-          }
+          required
         }
       }
     }

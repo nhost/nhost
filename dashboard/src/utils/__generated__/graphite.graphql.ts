@@ -259,7 +259,7 @@ export type _GraphiteAssistants_Updates = {
 /** columns and relationships of "graphite.sessions" */
 export type _GraphiteSessions = {
   __typename?: '_graphiteSessions';
-  assistantID: Scalars['String'];
+  assistantID?: Maybe<Scalars['String']>;
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   sessionID?: Maybe<Scalars['String']>;
@@ -3117,75 +3117,113 @@ export type Files_Variance_Order_By = {
 
 export type GraphiteAssistant = {
   __typename?: 'graphiteAssistant';
+  /** ID of the assistant */
   assistantID: Scalars['String'];
-  dataSources?: Maybe<GraphiteAssistantDataSources>;
+  /** Description of the assistant */
   description: Scalars['String'];
+  /** GraphQL data sources and tools. Run against the project's GraphQL API */
+  graphql?: Maybe<Array<GraphiteAssistantToolGraphQl>>;
+  /**
+   * Instructions for the assistant. This is used to instruct the AI assistant
+   * on how to behave and respond to the user
+   */
   instructions: Scalars['String'];
+  /** Model to use for the assistant. */
   model: Scalars['String'];
+  /** Name of the assistant */
   name: Scalars['String'];
-};
-
-export type GraphiteAssistantDataSources = {
-  __typename?: 'graphiteAssistantDataSources';
-  graphql?: Maybe<Array<GraphiteAssistantDataSourcesGraphQl>>;
-  webhooks?: Maybe<Array<GraphiteAssistantDataSourcesWebhook>>;
-};
-
-export type GraphiteAssistantDataSourcesArgument = {
-  __typename?: 'graphiteAssistantDataSourcesArgument';
-  description: Scalars['String'];
-  name: Scalars['String'];
-  required: Scalars['Boolean'];
-  type: Scalars['String'];
-};
-
-export type GraphiteAssistantDataSourcesArgumentInput = {
-  description: Scalars['String'];
-  name: Scalars['String'];
-  required: Scalars['Boolean'];
-  type: Scalars['String'];
-};
-
-export type GraphiteAssistantDataSourcesGraphQl = {
-  __typename?: 'graphiteAssistantDataSourcesGraphQL';
-  arguments: Array<GraphiteAssistantDataSourcesArgument>;
-  description: Scalars['String'];
-  name: Scalars['String'];
-  query: Scalars['String'];
-};
-
-export type GraphiteAssistantDataSourcesGraphQlInput = {
-  arguments: Array<GraphiteAssistantDataSourcesArgumentInput>;
-  description: Scalars['String'];
-  name: Scalars['String'];
-  query: Scalars['String'];
-};
-
-export type GraphiteAssistantDataSourcesInput = {
-  graphql?: InputMaybe<Array<GraphiteAssistantDataSourcesGraphQlInput>>;
-  webhooks?: InputMaybe<Array<GraphiteAssistantDataSourcesWebhookInput>>;
-};
-
-export type GraphiteAssistantDataSourcesWebhook = {
-  __typename?: 'graphiteAssistantDataSourcesWebhook';
-  URL: Scalars['String'];
-  arguments: Array<GraphiteAssistantDataSourcesArgument>;
-  description: Scalars['String'];
-  name: Scalars['String'];
-};
-
-export type GraphiteAssistantDataSourcesWebhookInput = {
-  URL: Scalars['String'];
-  arguments: Array<GraphiteAssistantDataSourcesArgumentInput>;
-  description: Scalars['String'];
-  name: Scalars['String'];
+  /** Webhook data sources and tools */
+  webhooks?: Maybe<Array<GraphiteAssistantToolWebhook>>;
 };
 
 export type GraphiteAssistantInput = {
-  dataSources?: InputMaybe<GraphiteAssistantDataSourcesInput>;
+  /** Description of the assistant */
   description: Scalars['String'];
+  /** GraphQL data sources. Run against the project's GraphQL API */
+  graphql?: InputMaybe<Array<InputMaybe<GraphiteAssistantToolGraphQlInput>>>;
+  /**
+   * Instructions for the assistant. This is used to instruct the AI assistant
+   * on how to behave and respond to the user
+   */
   instructions: Scalars['String'];
+  /** Model to use for the assistant. */
   model: Scalars['String'];
+  /** Name of the assistant */
+  name: Scalars['String'];
+  /** Webhook data sources */
+  webhooks?: InputMaybe<Array<InputMaybe<GraphiteAssistantToolWebhookInput>>>;
+};
+
+export type GraphiteAssistantToolArgument = {
+  __typename?: 'graphiteAssistantToolArgument';
+  description: Scalars['String'];
+  name: Scalars['String'];
+  required: Scalars['Boolean'];
+  type: Scalars['String'];
+};
+
+export type GraphiteAssistantToolArgumentInput = {
+  /** Description of the argument. Be as clear and concise as possible. */
+  description: Scalars['String'];
+  /** Name of the argument */
+  name: Scalars['String'];
+  /** Whether or not the argument is required */
+  required: Scalars['Boolean'];
+  /** Type of the argument */
+  type: Scalars['String'];
+};
+
+export type GraphiteAssistantToolGraphQl = {
+  __typename?: 'graphiteAssistantToolGraphQL';
+  /** Arguments to pass to the GraphQL query */
+  arguments: Array<GraphiteAssistantToolArgument>;
+  /** Description of the data source */
+  description: Scalars['String'];
+  /** Name of the data source */
+  name: Scalars['String'];
+  /** GraphQL query to run against the project's GraphQL API. */
+  query: Scalars['String'];
+};
+
+export type GraphiteAssistantToolGraphQlInput = {
+  /** Arguments to pass to the GraphQL query */
+  arguments: Array<GraphiteAssistantToolArgumentInput>;
+  /**
+   * Description of the data source. Be as clear and concise as possible.
+   * This is used to help the AI assistant understand when and how
+   * external data sources should be used.
+   */
+  description: Scalars['String'];
+  /** Name of the data source. Use a descriptive name */
+  name: Scalars['String'];
+  /** GraphQL query to run against the project's GraphQL API. */
+  query: Scalars['String'];
+};
+
+export type GraphiteAssistantToolWebhook = {
+  __typename?: 'graphiteAssistantToolWebhook';
+  /** URL of the webhook */
+  URL: Scalars['String'];
+  /** Arguments to pass to the webhook */
+  arguments: Array<GraphiteAssistantToolArgument>;
+  /** Description of the data source */
+  description: Scalars['String'];
+  /** Name of the data source */
+  name: Scalars['String'];
+};
+
+export type GraphiteAssistantToolWebhookInput = {
+  /** URL of the webhook */
+  URL: Scalars['String'];
+  /** Arguments to pass to the webhook */
+  arguments: Array<GraphiteAssistantToolArgumentInput>;
+  /**
+   * Description of the data source. Be as clear and concise as possible.
+   * This is used to help the AI assistant understand when and how
+   * external data sources should be used.
+   */
+  description: Scalars['String'];
+  /** Name of the data source. Use a descriptive name */
   name: Scalars['String'];
 };
 
@@ -3425,27 +3463,115 @@ export type GraphiteAutoEmbeddingsConfiguration_Updates = {
 
 export type GraphiteMessage = {
   __typename?: 'graphiteMessage';
+  /** Timestamp of when the message was sent */
   createdAt: Scalars['graphitetimestampz'];
+  /** ID of the message */
   id: Scalars['String'];
+  /** Message content */
   message: Scalars['String'];
+  /** Role of the message. Either "user" or "assistant" */
   role: Scalars['String'];
 };
 
 export type GraphiteMessageResponse = {
   __typename?: 'graphiteMessageResponse';
+  /** Messages in this session */
   messages: Array<GraphiteMessage>;
+  /** ID of the session */
   sessionID: Scalars['String'];
 };
 
 export type GraphiteMutation = {
   __typename?: 'graphiteMutation';
+  /**
+   * Update an assistant
+   *
+   * #### Permissions needed
+   *
+   * select (assistants):
+   * - assistant_id
+   * delete (assistants):
+   */
   deleteAssistant: Scalars['Boolean'];
+  /**
+   * Delete a session
+   *
+   * #### Permissions needed
+   *
+   * select (sessions):
+   * - assistant_id
+   * delete (sessions):
+   */
   deleteSession: Scalars['Boolean'];
+  /**
+   * Create an assistant
+   *
+   * #### Permissions needed
+   *
+   * select (assistants):
+   * - id
+   * insert (assistants):
+   * - user_id
+   */
   insertAssistant: GraphiteAssistant;
+  /**
+   * Send a message to a developer session.
+   * If prevMessageID is "", return all messages in the session.
+   * If prevMessageID is not "", return all messages after prevMessageID.
+   *
+   * #### Permissions needed
+   *
+   * Permissions are not enforced for developer sessions
+   * we recommend enforcing permissions via remote schema permissions
+   * and allow only admins to perform this mutation
+   */
   sendDevMessage: GraphiteMessageResponse;
+  /**
+   * Send a message to a session.
+   * If prevMessageID is "", return all messages in the session.
+   * If prevMessageID is not "", return all messages after prevMessageID.
+   *
+   * #### Permissions needed
+   *
+   * select (sessions):
+   * - id
+   * - session_id
+   * update (sessions):
+   * - update_at
+   */
   sendMessage: GraphiteMessageResponse;
+  /**
+   * Create a developer session
+   *
+   * #### Permissions needed
+   *
+   * Permissions are not enforced for developer sessions
+   * we recommend enforcing permissions via remote schema permissions
+   * and allow only admins to perform this mutation
+   */
   startDevSession: GraphiteSession;
+  /**
+   * Create a session with a given assistant
+   *
+   * #### Permissions needed
+   *
+   * select (sessions):
+   * - id
+   * insert (sessions):
+   * - user_id
+   * - assistant_id
+   */
   startSession: GraphiteSession;
+  /**
+   * Update an assistant
+   *
+   * #### Permissions needed
+   *
+   * select (assistants):
+   * - assistant_id
+   * update (assistants):
+   * - update_at
+   */
   updateAssistant: GraphiteAssistant;
 };
 
@@ -3468,14 +3594,14 @@ export type GraphiteMutationInsertAssistantArgs = {
 export type GraphiteMutationSendDevMessageArgs = {
   message: Scalars['String'];
   prevMessageID: Scalars['String'];
-  sesionID: Scalars['String'];
+  sessionID: Scalars['String'];
 };
 
 
 export type GraphiteMutationSendMessageArgs = {
   message: Scalars['String'];
   prevMessageID: Scalars['String'];
-  sesionID: Scalars['String'];
+  sessionID: Scalars['String'];
 };
 
 
@@ -3491,10 +3617,61 @@ export type GraphiteMutationUpdateAssistantArgs = {
 
 export type GraphiteQuery = {
   __typename?: 'graphiteQuery';
+  /**
+   * Retrieve an assistant
+   *
+   * #### Permissions needed
+   *
+   * select (assistants):
+   * - id
+   * - assistantID
+   */
   assistant?: Maybe<GraphiteAssistant>;
+  /**
+   * Retrieve all assistants
+   *
+   * #### Permissions needed
+   *
+   * select (assistants):
+   * - id
+   * - assistant_id
+   */
   assistants: Array<GraphiteAssistant>;
+  /**
+   * Retrieve a session
+   *
+   * #### Permissions needed
+   *
+   * select (sessions):
+   * - id
+   * - assistant_id
+   * - session_id
+   * - user_id
+   */
   session?: Maybe<GraphiteSession>;
+  /**
+   * Retrieve all messages for a session
+   *
+   * #### Permissions needed
+   *
+   * select (sessions):
+   * - id
+   * - assistant_id
+   * - session_id
+   * - user_id
+   */
   sessionMessages?: Maybe<GraphiteMessageResponse>;
+  /**
+   * Retrieve all sessions
+   *
+   * #### Permissions needed
+   *
+   * select (sessions):
+   * - id
+   * - assistant_id
+   * - session_id
+   * - user_id
+   */
   sessions: Array<GraphiteSession>;
 };
 
@@ -3515,9 +3692,13 @@ export type GraphiteQuerySessionMessagesArgs = {
 
 export type GraphiteSession = {
   __typename?: 'graphiteSession';
+  /** ID of the assistant used in this session */
   assistantID: Scalars['String'];
+  /** Messages in this session */
   createdAt: Scalars['graphitetimestampz'];
+  /** ID of the session */
   sessionID: Scalars['String'];
+  /** ID of the user who started this session */
   userID: Scalars['graphiteuuid'];
 };
 
@@ -7100,7 +7281,7 @@ export type DeleteAssistantMutation = { __typename?: 'mutation_root', graphite?:
 export type GetAssistantsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAssistantsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', assistants: Array<{ __typename?: 'graphiteAssistant', assistantID: string, name: string, description: string, model: string, instructions: string, dataSources?: { __typename?: 'graphiteAssistantDataSources', graphql?: Array<{ __typename?: 'graphiteAssistantDataSourcesGraphQL', name: string, query: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantDataSourcesArgument', name: string, type: string, description: string, required: boolean }> }> | null, webhooks?: Array<{ __typename?: 'graphiteAssistantDataSourcesWebhook', name: string, URL: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantDataSourcesArgument', name: string, type: string, description: string, required: boolean }> }> | null } | null }> } | null };
+export type GetAssistantsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', assistants: Array<{ __typename?: 'graphiteAssistant', assistantID: string, name: string, description: string, model: string, instructions: string, graphql?: Array<{ __typename?: 'graphiteAssistantToolGraphQL', name: string, query: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null, webhooks?: Array<{ __typename?: 'graphiteAssistantToolWebhook', name: string, URL: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null }> } | null };
 
 export type InsertAssistantMutationVariables = Exact<{
   data: GraphiteAssistantInput;
@@ -7214,28 +7395,26 @@ export const GetAssistantsDocument = gql`
       description
       model
       instructions
-      dataSources {
-        graphql {
+      graphql {
+        name
+        query
+        description
+        arguments {
           name
-          query
+          type
           description
-          arguments {
-            name
-            type
-            description
-            required
-          }
+          required
         }
-        webhooks {
+      }
+      webhooks {
+        name
+        URL
+        description
+        arguments {
           name
-          URL
+          type
           description
-          arguments {
-            name
-            type
-            description
-            required
-          }
+          required
         }
       }
     }
@@ -7520,7 +7699,7 @@ export const SendDevMessageDocument = gql`
     mutation sendDevMessage($sessionId: String!, $prevMessageID: String!, $message: String!) {
   graphite {
     sendDevMessage(
-      sesionID: $sessionId
+      sessionID: $sessionId
       prevMessageID: $prevMessageID
       message: $message
     ) {
