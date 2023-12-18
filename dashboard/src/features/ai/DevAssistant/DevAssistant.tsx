@@ -21,17 +21,11 @@ import {
   type SendDevMessageMutation,
 } from '@/utils/__generated__/graphite.graphql';
 import { useUserData } from '@nhost/nextjs';
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ClassAttributes,
-  type HTMLAttributes,
-} from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import Markdown, { type ExtraProps } from 'react-markdown';
+import Markdown from 'react-markdown';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { twMerge } from 'tailwind-merge';
+import rehypeHighlight from 'rehype-highlight';
 
 const MAX_THREAD_LENGTH = 50;
 
@@ -39,20 +33,6 @@ export type Message = Omit<
   SendDevMessageMutation['graphite']['sendDevMessage']['messages'][0],
   '__typename'
 >;
-
-function CodeComponent(
-  props: ClassAttributes<HTMLElement> &
-    HTMLAttributes<HTMLElement> &
-    ExtraProps,
-) {
-  const { children, className, node, ...rest } = props;
-
-  return (
-    <code {...rest} className={twMerge(className, 'max-w-full')}>
-      {children}
-    </code>
-  );
-}
 
 function MessageBox({ message }: { message: Message }) {
   const user = useUserData();
@@ -87,11 +67,7 @@ function MessageBox({ message }: { message: Message }) {
         )}
       </div>
 
-      <Markdown
-        components={{
-          code: CodeComponent,
-        }}
-      >
+      <Markdown className="prose" rehypePlugins={[rehypeHighlight]}>
         {message.message}
       </Markdown>
     </Box>

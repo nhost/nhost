@@ -4,6 +4,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import '@/styles/fonts.css';
+import '@/styles/github-dark.css';
 import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
