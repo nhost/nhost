@@ -5,6 +5,7 @@ import { format, intervalToDuration } from 'date-fns'
 import { NextSeo } from 'next-seo'
 import { ReactNode, useEffect, useState } from 'react'
 import ContentLoader from 'react-content-loader'
+import Link from 'next/link'
 
 function Unit({ value, unit }: { value: ReactNode; unit: string }) {
   return (
@@ -159,6 +160,61 @@ function PostDay({ date, post }: { date: Date; post: Post }) {
   )
 }
 
+function AvailablePostDay({ date, post }: { date: Date; post: Post }) {
+  const { image, title, description, link } = post
+
+  return (
+    <Link
+      href={link}
+      className="font-display text-greyscaleDark mx-auto grid w-full overflow-hidden rounded-lg border border-gray-900 sm:grid-cols-5"
+    >
+      <div
+        className="col-span-2 h-80 bg-gray-400 "
+        style={{
+          background: `url(${image})`,
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
+        {/* <img src={image} className="h-full" alt={title} /> */}
+      </div>
+
+      <div className="grid h-full w-full grid-flow-row justify-between gap-3 p-6 sm:col-span-3 sm:gap-0">
+        <div className="grid w-full content-start gap-2">
+          <div className="text-greyscaleDarkGrey text-sm">
+            {format(date, 'MMMM d, yyyy')}
+          </div>
+
+          <div className="text-3xl font-semibold">{title}</div>
+          <div className="text-greyscaleDarkGrey my-4 text-lg">
+            {description}
+          </div>
+        </div>
+        <div>
+          <span className="text-blueHero flex align-bottom text-lg font-medium">
+            Read more{' '}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="ml-2 h-4 w-4 self-center"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+              />
+            </svg>
+          </span>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
 export default function Page() {
   return (
     <Layout>
@@ -199,13 +255,13 @@ export default function Page() {
         </div>
       </div>
       <div className="mx-auto grid max-w-7xl grid-flow-row gap-12 px-4 py-16">
-        <PostDay
+        <AvailablePostDay
           date={new Date('2023-12-18T16:00:00.000+02:00')}
           post={{
-            image: '/images/blog/dark-mode/banner.png',
-            title: 'Coming soon',
-            description:
-              '',
+            image: '/images/blog/auto-embeddings/auto-embeddings.png',
+            title: 'Nhost Postgres Vector & Auto-Embeddings',
+            description: 'Store and Search through Embeddings with Nhost Postgres and Auto-Embeddings.',
+            link: '/blog/auto-embeddings',
           }}
         />
         <PostDay
