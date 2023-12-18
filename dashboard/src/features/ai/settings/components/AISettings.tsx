@@ -22,7 +22,10 @@ export interface AISettingsFormValues {
   /**
    * The git branch to deploy from.
    */
-  version: string;
+  version: {
+    label: string;
+    value: string;
+  };
   webhookSecret: string;
   synchPeriodMinutes: number;
   apiKey: string;
@@ -46,7 +49,7 @@ export default function AISettings() {
   const form = useForm<AISettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      version: '',
+      version: null,
       webhookSecret: '',
       synchPeriodMinutes: 5,
       apiKey: '',
@@ -57,11 +60,16 @@ export default function AISettings() {
     },
   });
 
-  const { register, formState, reset } = form;
+  const { register, formState, reset, setValue } = form;
 
   useEffect(() => {
     reset({
-      version: ai?.version ?? '',
+      version: ai?.version
+        ? {
+            label: ai?.version,
+            value: ai?.version,
+          }
+        : null,
       webhookSecret: ai?.webhookSecret ?? '',
       synchPeriodMinutes: ai?.autoEmbeddings?.synchPeriodMinutes ?? 5,
       apiKey: ai?.openai?.apiKey ?? '',
@@ -80,7 +88,7 @@ export default function AISettings() {
             appId: currentProject.id,
             config: {
               ai: {
-                version: formValues.version,
+                version: formValues.version.value,
                 webhookSecret: formValues.webhookSecret,
                 autoEmbeddings: {
                   synchPeriodMinutes: Number(formValues.synchPeriodMinutes),
