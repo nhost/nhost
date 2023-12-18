@@ -60,21 +60,21 @@
     },
     {
       "group": "Product",
-      "pages": ["product/database", "product/graphql", "product/authentication", "product/storage", "product/functions", "product/run"]
+      "pages": ["product/database", "product/graphql", "product/authentication", "product/storage", "product/functions", "product/run", "product/ai"]
     },
     {
       "group": "Platform",
       "pages": [
-        "platform/compute-resources", 
-        "platform/service-replicas", 
+        "platform/compute-resources",
+        "platform/service-replicas",
         {
           "group": "Monitoring",
           "icon": "monitor-waveform",
           "pages": ["platform/metrics", "platform/logs"]
         },
-        "platform/environment-variables", 
-        "platform/secrets", 
-        "platform/deployments", 
+        "platform/environment-variables",
+        "platform/secrets",
+        "platform/deployments",
         "platform/custom-domains"
       ]
     },
@@ -99,23 +99,32 @@
       "pages": ["guides/database/configuring-postgres", "guides/database/extensions", "guides/database/performance"]
     },
     {
+        "group": "AI",
+        "pages": [
+            "guides/ai/enabling-service",
+            "guides/ai/auto-embeddings",
+            "guides/ai/assistants",
+            "guides/ai/dev-assistant"
+        ]
+    },
+    {
       "group": "Authentication",
       "pages": [
         { 
           "group": "Social Sign In", 
           "icon": "at",
           "pages": [
-            "guides/auth/social/sign-in-apple", 
-            "guides/auth/social/sign-in-discord", 
-            "guides/auth/social/sign-in-facebook", 
-            "guides/auth/social/sign-in-github", 
-            "guides/auth/social/sign-in-google", 
-            "guides/auth/social/sign-in-linkedin", 
-            "guides/auth/social/sign-in-spotify", 
-            "guides/auth/social/sign-in-twitch", 
+            "guides/auth/social/sign-in-apple",
+            "guides/auth/social/sign-in-discord",
+            "guides/auth/social/sign-in-facebook",
+            "guides/auth/social/sign-in-github",
+            "guides/auth/social/sign-in-google",
+            "guides/auth/social/sign-in-linkedin",
+            "guides/auth/social/sign-in-spotify",
+            "guides/auth/social/sign-in-twitch",
             "guides/auth/social/sign-in-workos"
           ]
-        }, 
+        },
         "guides/auth/sign-in-email-password",
         "guides/auth/sign-in-magic-link",
         "guides/auth/sign-in-phone-number",
@@ -216,7 +225,7 @@
             "reference/auth/sign-out"
           ]
         },
-        {                  
+        {
           "group": "Storage",
           "icon": "file",
           "pages": [
@@ -231,7 +240,41 @@
         }
       ]
     },
-    {                  
+    {
+        "group": "GraphQL",
+        "pages": [
+            {
+                "group": "AI",
+                "pages": [
+                    {
+                        "group": "Query",
+                        "pages": [
+                            "reference/graphql/ai/query/assistant",
+                            "reference/graphql/ai/query/assistants",
+                            "reference/graphql/ai/query/session",
+                            "reference/graphql/ai/query/sessionMessages",
+                            "reference/graphql/ai/query/sessions"
+                        ]
+                    },
+                    {
+                        "group": "Mutation",
+                        "pages": [
+                            "reference/graphql/ai/mutation/insertAssistant",
+                            "reference/graphql/ai/mutation/updateAssistant",
+                            "reference/graphql/ai/mutation/deleteAssistant",
+                            "reference/graphql/ai/mutation/startSession",
+                            "reference/graphql/ai/mutation/deletSession",
+                            "reference/graphql/ai/mutation/sendMessage",
+                            "reference/graphql/ai/mutation/startDevSession",
+                            "reference/graphql/ai/mutation/sendDevMesssage"
+                        ]
+                    }
+                ]
+            }
+
+        ]
+    },
+    {
       "group": "Client Libraries",
       "pages": [
         {
