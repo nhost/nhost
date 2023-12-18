@@ -18120,6 +18120,8 @@ export enum Software_Type_Constraint {
 export enum Software_Type_Enum {
   /** Hasura Auth */
   Auth = 'Auth',
+  /** Graphite */
+  Graphite = 'Graphite',
   /** Hasura GraphQL Engine */
   Hasura = 'Hasura',
   /** PostgreSQL Database */

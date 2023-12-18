@@ -2,6 +2,7 @@ import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
@@ -9,76 +10,101 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { ComputeFormSection } from '@/features/services/components/ServiceForm/components/ComputeFormSection';
 import {
+  Software_Type_Enum,
   useGetAiSettingsQuery,
+  useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import * as Yup from 'yup';
 
-export interface AISettingsFormValues {
-  /**
-   * The git branch to deploy from.
-   */
-  version: {
-    label: string;
-    value: string;
-  };
-  webhookSecret: string;
-  synchPeriodMinutes: number;
-  apiKey: string;
-  compute: {
-    cpu: 62;
-    memory: 128;
-  };
-}
+const validationSchema = Yup.object({
+  version: Yup.object({
+    label: Yup.string().required(),
+    value: Yup.string().required(),
+  }),
+  webhookSecret: Yup.string(),
+  synchPeriodMinutes: Yup.number(),
+  apiKey: Yup.string().required(),
+  compute: Yup.object({
+    cpu: Yup.number().required(),
+    memory: Yup.number().required(),
+  }),
+});
+
+export type AISettingsFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AISettings() {
   const { maintenanceActive } = useUI();
   const [updateConfig] = useUpdateConfigMutation();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const { data: { config: { ai } = {} } = {} } = useGetAiSettingsQuery({
+  const {
+    data: { config: { ai } = {} } = {},
+    loading: loadingAiSettings,
+    error: errorGettingAiSettings,
+  } = useGetAiSettingsQuery({
     variables: {
       appId: currentProject.id,
     },
   });
 
-  const form = useForm<AISettingsFormValues>({
-    reValidateMode: 'onSubmit',
-    defaultValues: {
-      version: null,
-      webhookSecret: '',
-      synchPeriodMinutes: 5,
-      apiKey: '',
-      compute: {
-        cpu: 62,
-        memory: 128,
-      },
+  const { data: graphiteVersionsData } = useGetSoftwareVersionsQuery({
+    variables: {
+      software: Software_Type_Enum.Graphite,
     },
   });
 
-  const { register, formState, reset, setValue } = form;
+  const graphiteVersions = graphiteVersionsData?.softwareVersions || [];
+
+  const availableVersions = Array.from(
+    new Set(graphiteVersions.map((el) => el.version)).add(ai?.version),
+  )
+    .sort()
+    .reverse()
+    .map((availableVersion) => ({
+      label: availableVersion,
+      value: availableVersion,
+    }));
+
+  const form = useForm<AISettingsFormValues>({
+    reValidateMode: 'onSubmit',
+    resolver: yupResolver(validationSchema),
+  });
+
+  const { register, formState, reset } = form;
 
   useEffect(() => {
     reset({
-      version: ai?.version
-        ? {
-            label: ai?.version,
-            value: ai?.version,
-          }
-        : null,
-      webhookSecret: ai?.webhookSecret ?? '',
-      synchPeriodMinutes: ai?.autoEmbeddings?.synchPeriodMinutes ?? 5,
-      apiKey: ai?.openai?.apiKey ?? '',
+      version: { label: ai?.version, value: ai?.version },
+      webhookSecret: ai?.webhookSecret,
+      synchPeriodMinutes: ai?.autoEmbeddings?.synchPeriodMinutes,
+      apiKey: ai?.openai?.apiKey,
       compute: {
         cpu: ai?.resources?.compute?.cpu ?? 62,
-        memory: ai?.resources?.compute?.memory || 128,
+        memory: ai?.resources?.compute?.memory ?? 128,
       },
     });
   }, [ai, reset]);
+
+  if (loadingAiSettings) {
+    return (
+      <ActivityIndicator
+        delay={1000}
+        label="Loading Postgres version..."
+        className="justify-center"
+      />
+    );
+  }
+
+  if (errorGettingAiSettings) {
+    throw errorGettingAiSettings;
+  }
 
   async function handleSubmit(formValues: AISettingsFormValues) {
     try {
@@ -98,8 +124,8 @@ export default function AISettings() {
                 },
                 resources: {
                   compute: {
-                    cpu: formValues.compute.cpu,
-                    memory: formValues.compute.memory,
+                    cpu: formValues?.compute?.cpu,
+                    memory: formValues?.compute?.memory,
                   },
                 },
               },
@@ -146,16 +172,12 @@ export default function AISettings() {
                   if (state.inputValue === ai?.version) {
                     return options;
                   }
+
                   return filterOptions(options, state);
                 }}
                 fullWidth
                 className="lg:col-span-2"
-                options={[
-                  {
-                    label: '0.1.0-beta4',
-                    value: '0.1.0-beta4',
-                  },
-                ]}
+                options={availableVersions}
                 error={!!formState.errors?.version?.message}
                 helperText={formState.errors?.version?.message}
                 showCustomOption="auto"
@@ -208,6 +230,8 @@ export default function AISettings() {
                 className="col-span-3"
                 fullWidth
                 hideEmptyHelperText
+                error={Boolean(formState.errors.apiKey?.message)}
+                helperText={formState.errors.apiKey?.message}
               />
             </Box>
 
