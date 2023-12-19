@@ -2,10 +2,10 @@ import Image from 'next/image'
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
-  title: 'AI Superpowers with pgvector & Auto-Embeddings',
+  title: 'AI Superpowers with Nhost Postgres & Auto-Embeddings',
   description:
-    'Learn how to leverage Auto-Embeddings in your applications',
-  image: '/images/blog/auto-embeddings/hackers-embedding.png',
+    'Store and Search through Embeddings with Nhost Postgres and Auto-Embeddings',
+  image: '/images/blog/auto-embeddings/auto-embeddings.png',
   date: '2023-12-18',
   authors: [
     {
@@ -22,32 +22,37 @@ export default (props) => <BlogPostLayout article={article} {...props} />
 
 Welcome to **Nhost's AI Week!** 
 
-As we strive to integrate cutting-edge AI capabilities into your applications and businesses, we are excited to unveil two new features today: **pgvector** & **Auto-Embeddings**.
+This week we're releasing our **AI toolkit**, a new set of tools to simplify and enhance the development of AI-driven applications. 
+
+Between today and Thursday we will unveil new AI capabilities through blog posts, while Friday will be dedicated to releasing all features alongside a new AI service, **graphite**, for all of you to enjoy. 
+
+As we strive to integrate cutting-edge AI capabilities into your applications and businesses, we are excited to unveil two new features today: **Nhost Postgres as a Vector Database** & **Auto-Embeddings**.
 
 ## Nhost Postgres, your Vector Database
 
 We're in the midst of the AI revolution and efficient data processing has become crucial for applications that involve large language models and semantic search. 
 
-Duo to their efficiency and scalability, **Vector Databases** have become a cornerstone of the AI revolution. A Vector Database is a specialized type of database that can store high-dimensional vectors allowing AI applications to efficiently search through data with a query vector and retrieve the closest matching database records. 
+Due to their efficiency, **vector databases** have become a cornerstone of the AI revolution. A Vector Database is a specialized type of database that can store high-dimensional vectors, and allow AI applications to efficiently search through data and retrieve the closest matching database records. 
 
-Nhost Postgres is now a vector database and you can use it to store vectors and embeddings to unlock a hole new set of applications around:
+You can now use Nhost Postgres as a vector database to store embeddings and unlock a whole new set of applications around: 
 
-- search
-- classification
-- clustering
-- recommendation
-- etc
+- Semantic Search 
+- Data Clustering  
+- Text Classification 
+- Product Recommendation
 
-Nhost leverages **pgvector**, an extension for Postgres designed to support efficient searching and operations on high-dimensional vectors required by AI applications working and searching through complex entities like images, documents, text, or videos.
+### pgvector
+
+Nhost leverages **pgvector**, an extension for Postgres designed to support efficient storage and search on high-dimensional vectors required by applications searching through complex entities like images, documents, text, or videos.
 
 Key features of pgvector include:
 
-- **Vector Indexing** to allow for the creation of indexes on vector columns, which can significantly speed up nearest neighbor searches
-- Support for **High-Dimensional Data**
-- Various Distance Metrics usually used in the vector space (L2 distance, cosine similarity, etc)
-- **Ease of use**, specially for those of you already familiar with PostgreSQL
+- Vector Indexing to allow for the creation of indexes on vector columns, which can significantly speed up nearest neighbor searches.
+- Support for High-Dimensional Data.
+- Various Distance Metrics usually used in the vector space (L2 distance, cosine similarity, etc).
+- Ease of use, specially for those already familiar with PostgreSQL.
 
-Turning your Nhost Postgres instance into a Vector Database is possible today starting with Nhost Postgres version **14.6-20230525**. You can install it with:
+You can start using pgvector today, just make sure you are running on the latest version of Nhost Postgres and install it with:
 
 ```psql
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -55,48 +60,46 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 ## Simplifying Embeddings
 
-**Auto-Embeddings**, leveraging pgvector, is our secret sauce to make creating and updating embeddings and vectors as easy and straightforward as it can be. 
+**Auto-Embeddings**, leveraging pgvector, is our secret sauce that makes creating and updating embeddings as easy and straightforward as it can be. 
 
-With just a few configurations, our AI service, **Graphite**, is capable of ensuring that your embeddings are always up-to-date and stored alongside your data.
+With just a few configurations, our AI service, **graphite**, is capable of ensuring that your embeddings are always up-to-date and stored alongside your data.
 
-Consider a **movies** table in your database with a column **embeddings** of type `vector`, all we have to do is tell our AI overloard how to fetch and update outdated embeddings. 
+### Auto-Embeddings in practice
+
+Consider a database of movies with a table **movies** and a column **embeddings** of type `vector`. All we have to do is tell our AI overlord how to fetch and update outdated embeddings:
 
 ![Configuring Auto-Embeddings](/images/blog/auto-embeddings/auto-embeddings-dashboard.png)
 
-And that is it, really! After clicking on "Create", embeddings will be generated and kept up-to-date, without you having to do anything. Graphite does the hard work for you, how awesome is that?
+A query and a mutation is all we need! 
+
+All embeddings will be generated and kept up-to-date, without us having to do anything. It's that easy.
 
 ![Graphite in action](/images/blog/auto-embeddings/graphite-dark.png)
 
-### Transforming Data into Actionable Insights
+#### Semantic Search
 
-Imagine effortlessly querying your data using **natural language** or finding similar objects in your database through a similarity search. Auto-Embeddings turns this into reality, empowering your applications with limitless functionality.
+Imagine effortlessly querying your data using **natural language**. Auto-Embeddings turns this a reality by integrating with your GraphQL API and offering a seamless and user-friendly experience.
 
-#### The Superpowers
+![Movies on Space Comedy](/images/blog/auto-embeddings/auto-embeddings-search.png)
 
-Integrated with our GraphQL API, Auto-Embeddings offers a seamless and user-friendly experience.
-
-Once the **movies** Auto-Embedding is configured, the following queries (graphiteSearchXXX and graphiteSimilarXXX) will be available:
+Once the **movies** Auto-Embedding is configured, the following queries are made available:
 
 - **graphiteSearchMovies**
 - **graphiteSearchMoviesAggregate**
 - **graphiteSimilarMovies**
 - **graphiteSimilarMoviesAggregate**
 
-These queries will work similar to the standard **movies** and **moviesAggregate** queries provided by Hasura and will respect the exact **same permissions**, seamlessly. 
-
-You can now use natural language to interact with the movies database, for instance:
-
-![Movies on Space Comedy](/images/blog/auto-embeddings/auto-embeddings-search.png)
+These queries will work similar to the standard **movies** and **moviesAggregate** queries provided by Hasura and will respect **permissions** the same way. 
 
 Pretty cool, right?
 
 ## What's Next?
 
-We will release this functionality and example demos this Friday the 22th, alongside all the other features we will unveil during this week.
+Although you can use pgvector already today, Auto-Embeddings will only be released on Friday, the 22nd, when we release graphite, our new AI service. 
 
-We can't wait to see what you will build.
+## Wrap up
 
-## Conclusion
+Vector Databases and Embeddings are a cornerstone of the AI revolution and we're excited to be part of it in any way we can. 
 
-Vector Databases and Embeddings are a cornerstone of the AI revolution and we at Nhost are very excited to be part of it in any way we can. Empowering developers like you to build great AI products and companies is what makes us tick. 
+This week marks the beginning of our AI journey to offer our users the best tooling to build great AI products and companies. Stay tuned!
 
