@@ -5,9 +5,11 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { Box } from '@/components/ui/v2/Box';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { ComputeFormSection } from '@/features/services/components/ServiceForm/components/ComputeFormSection';
 import {
@@ -224,7 +226,16 @@ export default function AISettings() {
             >
               <Box className="space-y-4">
                 <Box className="space-y-2">
-                  <Text className="text-lg font-semibold">Version</Text>
+                  <Box className="flex flex-row items-center space-x-2">
+                    <Text className="text-lg font-semibold">Version</Text>
+                    <Tooltip title="Version of the service to use.">
+                      <InfoIcon
+                        aria-label="Info"
+                        className="h-4 w-4"
+                        color="primary"
+                      />
+                    </Tooltip>
+                  </Box>
                   <ControlledAutocomplete
                     id="version"
                     name="version"
@@ -234,6 +245,7 @@ export default function AISettings() {
                       }
                       return filterOptions(options, state);
                     }}
+                    label
                     fullWidth
                     className="col-span-4"
                     options={availableVersions}
@@ -247,7 +259,18 @@ export default function AISettings() {
                 </Box>
 
                 <Box className="space-y-2">
-                  <Text className="text-lg font-semibold">Webhook Secret</Text>
+                  <Box className="flex flex-row items-center space-x-2">
+                    <Text className="text-lg font-semibold">
+                      Webhook Secret
+                    </Text>
+                    <Tooltip title="Used to validate requests between postgres and the AI service. The AI service will also include the header X-Graphite-Webhook-Secret with this value set when calling external webhooks so the source of the request can be validated.">
+                      <InfoIcon
+                        aria-label="Info"
+                        className="h-4 w-4"
+                        color="primary"
+                      />
+                    </Tooltip>
+                  </Box>
                   <Input
                     {...register('webhookSecret')}
                     id="webhookSecret"
@@ -262,7 +285,16 @@ export default function AISettings() {
                 </Box>
 
                 <Box className="space-y-2">
-                  <Text className="text-lg font-semibold">Resources</Text>
+                  <Box className="flex flex-row items-center space-x-2">
+                    <Text className="text-lg font-semibold">Resources</Text>
+                    <Tooltip title="Dedicated resources allocated for the service.">
+                      <InfoIcon
+                        aria-label="Info"
+                        className="h-4 w-4"
+                        color="primary"
+                      />
+                    </Tooltip>
+                  </Box>
                   <ComputeFormSection />
                 </Box>
 
@@ -270,9 +302,45 @@ export default function AISettings() {
                   <Text className="text-lg font-semibold">OpenAI</Text>
 
                   <Input
+                    {...register('apiKey')}
+                    name="apiKey"
+                    placeholder="Api Key"
+                    id="apiKey"
+                    label={
+                      <Box className="flex flex-row items-center space-x-2">
+                        <Text>OpenAI API key</Text>
+                        <Tooltip title="Key to use for authenticating API requests to OpenAI">
+                          <InfoIcon
+                            aria-label="Info"
+                            className="h-4 w-4"
+                            color="primary"
+                          />
+                        </Tooltip>
+                      </Box>
+                    }
+                    className="col-span-3"
+                    fullWidth
+                    hideEmptyHelperText
+                    error={Boolean(formState.errors.apiKey?.message)}
+                    helperText={formState.errors.apiKey?.message}
+                  />
+
+                  <Input
                     {...register('organization')}
                     id="organization"
                     name="organization"
+                    label={
+                      <Box className="flex flex-row items-center space-x-2">
+                        <Text>OpenAI Organization</Text>
+                        <Tooltip title="Optional. OpenAI organization to use.">
+                          <InfoIcon
+                            aria-label="Info"
+                            className="h-4 w-4"
+                            color="primary"
+                          />
+                        </Tooltip>
+                      </Box>
+                    }
                     placeholder="Organization"
                     className="col-span-3"
                     fullWidth
@@ -280,29 +348,27 @@ export default function AISettings() {
                     error={Boolean(formState.errors.organization?.message)}
                     helperText={formState.errors.organization?.message}
                   />
-
-                  <Input
-                    {...register('apiKey')}
-                    name="apiKey"
-                    placeholder="Api Key"
-                    id="apiKey"
-                    className="col-span-3"
-                    fullWidth
-                    hideEmptyHelperText
-                    error={Boolean(formState.errors.apiKey?.message)}
-                    helperText={formState.errors.apiKey?.message}
-                  />
                 </Box>
 
                 <Box className="space-y-2">
-                  <Text className="text-lg font-semibold">
-                    Synch Period Minutes
-                  </Text>
+                  <Text className="text-lg font-semibold">Auto-Embeddings</Text>
                   <Input
                     {...register('synchPeriodMinutes')}
                     id="synchPeriodMinutes"
                     name="synchPeriodMinutes"
                     type="number"
+                    label={
+                      <Box className="flex flex-row items-center space-x-2">
+                        <Text>Synch Period Minutes</Text>
+                        <Tooltip title="How often to run the job that keeps embeddings up to date.">
+                          <InfoIcon
+                            aria-label="Info"
+                            className="h-4 w-4"
+                            color="primary"
+                          />
+                        </Tooltip>
+                      </Box>
+                    }
                     placeholder="Synch Period Minutes"
                     fullWidth
                     className="lg:col-span-2"
