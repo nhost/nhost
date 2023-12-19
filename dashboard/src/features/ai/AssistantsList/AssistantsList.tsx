@@ -79,10 +79,10 @@ export default function AssistantsList({
         >
           <Box
             onClick={() => viewAssistant(assistant)}
-            className="flex flex-row justify-between w-full"
+            className="flex w-full flex-row justify-between"
             sx={{ backgroundColor: 'transparent' }}
           >
-            <div className="flex flex-row items-center flex-1 space-x-4">
+            <div className="flex flex-1 flex-row items-center space-x-4">
               <span className="text-3xl">🤖</span>
               <div className="flex flex-col">
                 <Text variant="h4" className="font-semibold">
@@ -120,10 +120,8 @@ export default function AssistantsList({
                 onClick={() => viewAssistant(assistant)}
                 className="z-50 grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
               >
-                <UserIcon className="w-4 h-4" />
-                <Text className="font-medium">
-                  View Assistant configuration
-                </Text>
+                <UserIcon className="h-4 w-4" />
+                <Text className="font-medium">View {assistant?.name}</Text>
               </Dropdown.Item>
               <Divider component="li" />
               <Dropdown.Item
@@ -131,9 +129,9 @@ export default function AssistantsList({
                 sx={{ color: 'error.main' }}
                 onClick={() => deleteAssistant(assistant)}
               >
-                <TrashIcon className="w-4 h-4" />
+                <TrashIcon className="h-4 w-4" />
                 <Text className="font-medium" color="error">
-                  Delete Assistant configuration
+                  Delete {assistant?.name}
                 </Text>
               </Dropdown.Item>
             </Dropdown.Content>

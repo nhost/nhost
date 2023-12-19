@@ -3,7 +3,6 @@ import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-// import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { CubeIcon } from '@/components/ui/v2/icons/CubeIcon';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
 import { EmbeddingsIcon } from '@/components/ui/v2/icons/EmbeddingsIcon';
@@ -11,7 +10,6 @@ import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-// import { DeleteServiceModal } from '@/features/projects/common/components/DeleteServiceModal';
 import { AutoEmbeddingsForm } from '@/features/ai/AutoEmbeddingsForm';
 import { DeleteAutoEmbeddingsModal } from '@/features/ai/DeleteAutoEmbeddingsModal';
 import { formatDistanceToNow } from 'date-fns';
@@ -149,7 +147,7 @@ export default function AutoEmbeddingsList({
               >
                 <UserIcon className="h-4 w-4" />
                 <Text className="font-medium">
-                  View Auto-Embeddings Configuration
+                  View {autoEmbeddingsConfiguration?.name}
                 </Text>
               </Dropdown.Item>
               <Divider component="li" />
@@ -162,7 +160,7 @@ export default function AutoEmbeddingsList({
               >
                 <TrashIcon className="h-4 w-4" />
                 <Text className="font-medium" color="error">
-                  Delete Auto-Embeddings Configuration
+                  Delete {autoEmbeddingsConfiguration?.name}
                 </Text>
               </Dropdown.Item>
             </Dropdown.Content>
