@@ -3,170 +3,267 @@ title: "Assistants"
 description: "Deploy your customized AI assistants"
 ---
 
-You can customize and tweak the configuration of the Hasura GraphQL Engine using your project's configuration file.
+AI Assistants leverages ChatGPT and allows you to define different AI assistants with pre-defined tools and accesses to your data. This pre-defined access is expressed as GraphQL queries and/or webhooks and are unique to each AI assistant, meaning you can create different AI assistant with access to different type of data. In addition, AI assistants are fully integrated with Nhost permissions which means only data the user has access to will be made available to each AI assistant session.
 
-Below, you will find the official `CUE` schema and an example on how to configure your GraphQL service.
+## Demo
 
-## Available Settings
+To demonstrate how to configure Auto-Embeddings we will use a sample project located in the [graphite repo](https://github.com/nhost/graphite) you can use to follow along.
 
-```cue Schema
-// Configuration for hasura service
-#Hasura: {
-	// Version of hasura, you can see available versions in the URL below:
-	// https://hub.docker.com/r/hasura/graphql-engine/tags
-	version: string | *"v2.33.4-ce"
+If you decide to follow along you will need:
 
-	// JWT Secrets configuration
-	jwtSecrets: [#JWTSecret]
+1. Docker
+2. Latest [Nhost CLI](https://github.com/nhost/cli)
+3. An [OpenAI](https://openai.com) API key.
 
-	// Admin secret
-	adminSecret: string
+To start the demo project first edit the file `build/demo-movies/.secrets` and add:
 
-	// Webhook secret
-	webhookSecret: string
+```toml
+GRAFANA_ADMIN_PASSWORD = 'grafana-admin-password'
+HASURA_GRAPHQL_ADMIN_SECRET = 'nhost-admin-secret'
+HASURA_GRAPHQL_JWT_SECRET = '0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db'
+NHOST_WEBHOOK_SECRET = 'nhost-webhook-secret'
 
-	// Configuration for hasura services
-	// Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
-	settings: {
-		// HASURA_GRAPHQL_CORS_DOMAIN
-		corsDomain: [...#Url] | *["*"]
-		// HASURA_GRAPHQL_DEV_MODE
-		devMode: bool | *true
-		// HASURA_GRAPHQL_ENABLE_ALLOWLIST
-		enableAllowList: bool | *false
-		// HASURA_GRAPHQL_ENABLE_CONSOLE
-		enableConsole: bool | *true
-		// HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
-		enableRemoteSchemaPermissions: bool | *false
-		// HASURA_GRAPHQL_ENABLED_APIS
-		enabledAPIs: [...#HasuraAPIs] | *["metadata", "graphql", "pgdump", "config"]
+GRAPHITE_WEBHOOK_SECRET = 'graphite-secret'
+OPEANAI_API_KEY = 'HERE_GOES_YOUR_OPENAI_KEY'
+```
 
-		// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
-		liveQueriesMultiplexedRefetchInterval: uint32 | *1000
-	}
+Then run the following command in the root of the project:
 
-	logs: {
-		// HASURA_GRAPHQL_LOG_LEVEL
-		level: "debug" | "info" | "error" | *"warn"
-	}
+```
+make quickstart-movies-up
+```
 
-	events: {
-		// HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
-		httpPoolSize: uint32 & >=1 & <=100 | *100
-	}
+## Creating AI Assistants
 
-	// Resources for the service
-	resources?: #Resources
+You can create an AI assistant by utilizing the `insertAssistant` mutation. For instance (notice that graphite's remote schema queries and mutations are all inside the `graphite` namespace):
+
+```graphql
+mutation {
+  graphite {
+    insertAssistant(object: {
+      name: "awesome-assistant-for-my-users",
+      description: "My Awesome assistant for my users",
+      instructions: "You are a useful assistant for this demo application. You are an expert on movies. You also know a bit about deep questions.",
+      model: "gpt-3.5-turbo-1106",
+      graphql: [
+        {
+        	description: "get movies with higher score than the input"
+          name: "GetMoviesWithScoreHigherThan",
+        	query: "query ($score: numeric!) {  movies(where: {score: {_gt: $score}}) {    name    overview    score }}",
+          arguments: [
+            {
+              name: "score",
+              description: "score to compare against",
+              type: "number",
+              required: true,
+            }
+          ]
+
+        },
+      ],
+      webhooks: [
+        {
+          name: "answer_deep_questions",
+          description: "Answers deep questions about life, the universe and everything",
+          URL: "https://local.functions.nhost.run/v1/meaning",
+          arguments: [
+            {
+              name: "question",
+              description: "question that needs answer",
+              type: "string",
+              required: true,
+            }
+          ],
+        }
+      ]
+    }) {
+      assistantID
+    }
+  }
 }
 ```
 
-## Example Configuration
+Which should give you a response similar to:
 
-To configure your GraphQL instance, simply set the relevant settings under `[hasura]` in your project's configuration file.
-
-```toml nhost.toml
-[hasura]
-version = ''
-adminSecret = 'adminsecret'
-webhookSecret = 'webhooksecret'
-
-[[hasura.jwtSecrets]]
-type = 'HS256'
-key = 'secret'
-
-[hasura.settings]
-corsDomain = ['*']
-devMode = false
-enableAllowList = true
-enableConsole = true
-enableRemoteSchemaPermissions = true
-enabledAPIs = ['metadata']
-liveQueriesMultiplexedRefetchInterval = 1000
-
-[hasura.logs]
-level = 'warn'
-
-[hasura.events]
-httpPoolSize = 10
-
-[hasura.resources]
-replicas = 1
-
-[hasura.resources.compute]
-cpu = 500
-memory = 1024
-```
-
-### JWT Secret
-
-Zooming in on `JWTSecret`.
-
-```cue Schema
-#JWTSecret:
-	({
-		type: "HS384" | "HS512" | "RS256" | "RS384" | "RS512" | "Ed25519" | *"HS256"
-		key:  string
-	} |
-	{
-		jwk_url: #Url | *null
-	}) &
-	{
-		claims_format?: "stringified_json" | *"json"
-		audience?:      string
-		issuer?:        string
-		allowed_skew?:  uint32
-		header?:        string
-	} & {
-		claims_map?: [...#ClaimMap]
-
-	} &
-	({
-		claims_namespace: string | *"https://hasura.io/jwt/claims"
-	} |
-	{
-		claims_namespace_path: string
-	} | *{})
-
-#ClaimMap: {
-	claim: string
-	{
-		value: string
-	} | {
-		path:     string
-		default?: string
-	}
-} & {
+```json
+{
+  "data": {
+    "graphite": {
+      "insertAssistant": {
+        "assistantID": "asst_xolmq2yeBBRi8CKGc5YWXGaA"
+      }
+    }
+  }
 }
 ```
 
-## Example Configuration
+### Data-Sources
 
-```toml nhost.toml
-# example 1
-[[hasura.jwtSecrets]]
-type = 'HS256'
-key = 'secret'
+In the example above we created two data-sources:
 
-# example 2
-[[hasura.jwtSecrets]]
-jwk_url = 'https:/....'
+- The GraphQL query `GetMoviesWithScoreHigherThan`
+- The webhook `answer_deep_questions`
 
-# example 3
-[[hasura.jwtSecrets]]
-jwk_url = "https://......"
-issuer = "https://my-auth-server.com"
+With a good name and description, the AI Assistant will know that certain information can be made available through external data-sources and that graphite can provide the information if requested. We will more in detail how this works a bit later but for now suffice to say that:
 
-[[hasura.jwtSecrets.claims_map]]
-claim = "x-some-claim"
-value = "some-value"
+- ChatGPT doesn't actually query the data, it tells graphite to make the queries on its behalf and provide the result.
+- graphite will respect the user session when performing GraphQL queries or calling the webhook so permissions are respected.
+- The GraphQL query is performed against the project's GraphQL endpoint
+- For webhooks you can specify any URL you want and graphite will perform a POST with a JSON object as body
 
-[[hasura.jwtSecrets.claims_map]]
-claim = "x-other-claim"
-path = "$.user.claim.id"
-default = "default-value"
+## Starting a session
+
+To start a session you can use the mutation `startSession` and pass the id of the assistant you want to use. For instance, to start a session using the assistant we created in the previous section:
+
+```graphql
+mutation {
+  graphite {
+	startSession(assistantID:"asst_xolmq2yeBBRi8CKGc5YWXGaA") {
+      sessionID
+    }
+  }
+}
 ```
 
-<Tip>
-  Read how [Authentication Using
-  JWTs](https://hasura.io/docs/latest/auth/authentication/jwt) works in Hasura
-</Tip>
+You should receive a response similar to:
+
+```json
+{
+  "data": {
+    "graphite": {
+      "startSession": {
+        "sessionID": "thread_dxHHNpQryFpJ8wXXD9Q2fQJg"
+      }
+    }
+  }
+}
+```
+
+## Interacting with the Assistant
+
+Now that you have started a session you can send your first message:
+
+```graphql
+mutation {
+  graphite {
+	sendMessage(
+      sessionID:"thread_dxHHNpQryFpJ8wXXD9Q2fQJg",
+      message: "what is the meaning of life?"
+      prevMessageID: "",
+    ) {
+      sessionID
+      messages {
+        id
+        createdAt
+        role
+        message
+      }
+    }
+  }
+}
+```
+
+The field `prevMessageID` is used to only return messages after this one. As this is the beginning of the conversation we send an empty string to get all messages back. After executing that mutation we should receive a response like:
+
+
+```json
+{
+  "data": {
+    "graphite": {
+      "sendMessage": {
+        "sessionID": "thread_dxHHNpQryFpJ8wXXD9Q2fQJg",
+        "messages": [
+          {
+            "id": "msg_5LQa4sWH2QaN0xi5ezxHQUK1",
+            "createdAt": "2023-12-08T09:33:12Z",
+            "role": "user",
+            "message": ""
+          },
+          {
+            "id": "msg_Xv6XvZrTrgBOzviLeILkm7d3",
+            "createdAt": "2023-12-08T09:33:36Z",
+            "role": "user",
+            "message": "what is the meaning of life?"
+          },
+          {
+            "id": "msg_kTZonuiwZDxnipDADXk4bgFd",
+            "createdAt": "2023-12-08T09:33:41Z",
+            "role": "assistant",
+            "message": "The answer to the meaning of life is 42. It's a deep philosophical concept from \"The Hitchhiker's Guide to the Galaxy\" by Douglas Adams."
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+Something to note is that ChatGPT detected that this was a "deep question" that could be answered with the webhook `answer_deep_questions` so this is roughly what happened:
+
+![answer deep questions sequence of events](/images/guides/ai/assistants/answer_deep_questions.png)
+
+We can continue the conversation by performing from mutations. Notice this time we can ask graphite to only return new message by specifying `prevMessageID`:
+
+```graphql
+mutation {
+  graphite {
+	sendMessage(
+      sessionID:"thread_dxHHNpQryFpJ8wXXD9Q2fQJg",
+      message: "recommend a comedy movie for a rainy day with score higher than 80"
+      prevMessageID: "msg_kTZonuiwZDxnipDADXk4bgFd",
+    ) {
+      sessionID
+      messages {
+        id
+        createdAt
+        role
+        message
+      }
+    }
+  }
+}
+```
+
+Which should return something like:
+
+```json
+{
+  "data": {
+    "graphite": {
+      "sendMessage": {
+        "sessionID": "thread_dxHHNpQryFpJ8wXXD9Q2fQJg",
+        "messages": [
+          {
+            "id": "msg_xfq0nauRLEAAvelve2M48wlR",
+            "createdAt": "2023-12-08T09:37:07Z",
+            "role": "user",
+            "message": "recommend a comedy movie for a rainy day with score higher than 80"
+          },
+          {
+            "id": "msg_FbLWDnN9zPlsFtcQJYEpTnRY",
+            "createdAt": "2023-12-08T09:37:22Z",
+            "role": "assistant",
+            "message": "Here are a few comedy movies with a score higher than 80 that you might enjoy on a rainy day:\n\n1. Saint Frances\n   Overview: A comedy-drama film that follows a struggling 34-year-old woman as she becomes the nanny for a six-year-old girl and navigates life's ups and downs.\n   Score: 86\n\n2. My Life as a Zucchini\n   Overview: After losing his mother, a young boy is sent to a foster home filled with other orphans, and he seeks to find love, laughter, and family amidst the challenges.\n   Score: 84\n\n3. Paddington\n   Overview: The movie follows the misadventures of a young bear from Peru who finds himself in London and is taken in by a London family.\n   Score: 86\n\n4. In the Heights\n   Overview: A musical-comedy drama set in the neighborhood of Washington Heights in New York City, where a bodega owner dreams of a better life.\n   Score: 83\n\n5. The Grand Budapest Hotel\n   Overview: This comedic adventure film takes place in a renowned European hotel and follows the escapades of its quirky characters, including a concierge and a lobby boy.\n   Score: 86\n\nThese movies offer humor and heartwarming stories that are perfect for a cozy movie night. Enjoy watching!"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+In this case ChatGPT detected some of the information needed to formulate the answer could be retrieved with the GraphQL query `GetMoviesWithScoreHigherThan` so it requested graphite to run the query and return the data. This is what happened:
+
+![GetMoviesWithScoreHigherThan sequence of events](/images/guides/ai/assistants/GetMoviesWithScoreHigherThan.png)
+
+### User session
+
+Interacting with graphite requires a user session (either an Authorization header or the admin secret). When interacting with the GraphQL endpoint or the webhook, graphite will re-use this session, which means that the webhook can use these headers to authorize the request. It also means that the GraphQL query will be performed as the user, so the user will have to have permissions to perform the query and will only get data the user has access to.
+
+## Other GraphQL queries/mutation
+
+In addition to the queries/mutations shown in this document there are other mutations for listing, deleting and updating assistants, sessions, etc. We recommend you to check the GraphQL schema to see what's available.
+
+## Metadata and Permissions
+
+For each assistant and session managed by graphite, a row in the tables `graphite.assistants` and `graphite.sessions` will be made available. The purpose of this metadata is to allow you set permissions as with any other object in your project. For details on which permissions are needed for each specific query and mutation refer to the GraphQL documentation.

@@ -2,170 +2,64 @@
 title: "Enabling Service"
 ---
 
-You can customize and tweak the configuration of the Hasura GraphQL Engine using your project's configuration file.
+You can enable the AI service with the following steps:
 
-Below, you will find the official `CUE` schema and an example on how to configure your GraphQL service.
+<Steps>
+  <Step title="First Step">
+    Check your project's settings and make sure the database version is at least `14.6-20231018-1`. If it isn't upgrade your database version (latest available version is recommended).
+  </Step>
+  <Step title="Second Step">
+    Create a migration with the following SQL code (if you aren't working with migrations you can apply the SQL directly in the database tab):
+    ```sql
+    -- AI service data will be stored in this schema
+    CREATE SCHEMA IF NOT EXISTS graphite;
+    SET ROLE postgres;
+    -- We need this extension to store and work with embeddings
+    CREATE EXTENSION IF NOT EXISTS vector;
+    -- This extension is used to be able to call the AI service to
+    -- generate embeddings directly from a postgres function
+    CREATE EXTENSION IF NOT EXISTS http;
+    ```
+  </Step>
+  <Step title="Third Step">
+    Get an OpenAI API key from their [customer portal](https://platform.openai.com/account/api-keys).
+  </Step>
+  <Step title="Fourth Step">
+    Finally, you can head to your project's settings -> AI section and enable the service or, alternatively, use your TOML configuration file to enable the service (you need to use the TOML to enable it for use in the local CLI):
+    <Tabs>
+      <Tab title="Dashboard">
+        ![ai configuration screenshot](/images/guides/ai/configuration.png)
+      </Tab>
 
-## Available Settings
+      <Tab title="toml">
+        ```toml
+        [ai]
+        # Version of the service to use.
+        version = '0.1.0'
 
-```cue Schema
-// Configuration for hasura service
-#Hasura: {
-	// Version of hasura, you can see available versions in the URL below:
-	// https://hub.docker.com/r/hasura/graphql-engine/tags
-	version: string | *"v2.33.4-ce"
+        # Used to validate requests between postgres and the AI service.
+        # The AI service will also include the header X-Graphite-Webhook-Secret
+        # with this value set when calling external webhooks so the source of
+        # the request can be validated.
+        webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
 
-	// JWT Secrets configuration
-	jwtSecrets: [#JWTSecret]
+        [ai.autoEmbeddings]
+        # How often to run the job that keeps embeddings up to date
+        synchPeriodMinutes = 5
 
-	// Admin secret
-	adminSecret: string
+        [ai.openai]
+        # Key to use for authenticating API requests to OpenAI.
+        apiKey = '{{ secrets.OPEANAI_API_KEY }}'
+        # OpenAI organization to use.
+        organization = 'my-org'
 
-	// Webhook secret
-	webhookSecret: string
+        [ai.resources.compute]
+        # Dedicated resources allocated for the service
+        cpu = 125
+        memory = 256
+        ```
+      </Tab>
 
-	// Configuration for hasura services
-	// Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
-	settings: {
-		// HASURA_GRAPHQL_CORS_DOMAIN
-		corsDomain: [...#Url] | *["*"]
-		// HASURA_GRAPHQL_DEV_MODE
-		devMode: bool | *true
-		// HASURA_GRAPHQL_ENABLE_ALLOWLIST
-		enableAllowList: bool | *false
-		// HASURA_GRAPHQL_ENABLE_CONSOLE
-		enableConsole: bool | *true
-		// HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
-		enableRemoteSchemaPermissions: bool | *false
-		// HASURA_GRAPHQL_ENABLED_APIS
-		enabledAPIs: [...#HasuraAPIs] | *["metadata", "graphql", "pgdump", "config"]
-
-		// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
-		liveQueriesMultiplexedRefetchInterval: uint32 | *1000
-	}
-
-	logs: {
-		// HASURA_GRAPHQL_LOG_LEVEL
-		level: "debug" | "info" | "error" | *"warn"
-	}
-
-	events: {
-		// HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
-		httpPoolSize: uint32 & >=1 & <=100 | *100
-	}
-
-	// Resources for the service
-	resources?: #Resources
-}
-```
-
-## Example Configuration
-
-To configure your GraphQL instance, simply set the relevant settings under `[hasura]` in your project's configuration file.
-
-```toml nhost.toml
-[hasura]
-version = ''
-adminSecret = 'adminsecret'
-webhookSecret = 'webhooksecret'
-
-[[hasura.jwtSecrets]]
-type = 'HS256'
-key = 'secret'
-
-[hasura.settings]
-corsDomain = ['*']
-devMode = false
-enableAllowList = true
-enableConsole = true
-enableRemoteSchemaPermissions = true
-enabledAPIs = ['metadata']
-liveQueriesMultiplexedRefetchInterval = 1000
-
-[hasura.logs]
-level = 'warn'
-
-[hasura.events]
-httpPoolSize = 10
-
-[hasura.resources]
-replicas = 1
-
-[hasura.resources.compute]
-cpu = 500
-memory = 1024
-```
-
-### JWT Secret
-
-Zooming in on `JWTSecret`.
-
-```cue Schema
-#JWTSecret:
-	({
-		type: "HS384" | "HS512" | "RS256" | "RS384" | "RS512" | "Ed25519" | *"HS256"
-		key:  string
-	} |
-	{
-		jwk_url: #Url | *null
-	}) &
-	{
-		claims_format?: "stringified_json" | *"json"
-		audience?:      string
-		issuer?:        string
-		allowed_skew?:  uint32
-		header?:        string
-	} & {
-		claims_map?: [...#ClaimMap]
-
-	} &
-	({
-		claims_namespace: string | *"https://hasura.io/jwt/claims"
-	} |
-	{
-		claims_namespace_path: string
-	} | *{})
-
-#ClaimMap: {
-	claim: string
-	{
-		value: string
-	} | {
-		path:     string
-		default?: string
-	}
-} & {
-}
-```
-
-## Example Configuration
-
-```toml nhost.toml
-# example 1
-[[hasura.jwtSecrets]]
-type = 'HS256'
-key = 'secret'
-
-# example 2
-[[hasura.jwtSecrets]]
-jwk_url = 'https:/....'
-
-# example 3
-[[hasura.jwtSecrets]]
-jwk_url = "https://......"
-issuer = "https://my-auth-server.com"
-
-[[hasura.jwtSecrets.claims_map]]
-claim = "x-some-claim"
-value = "some-value"
-
-[[hasura.jwtSecrets.claims_map]]
-claim = "x-other-claim"
-path = "$.user.claim.id"
-default = "default-value"
-```
-
-<Tip>
-  Read how [Authentication Using
-  JWTs](https://hasura.io/docs/latest/auth/authentication/jwt) works in Hasura
-</Tip>
+    </Tabs>
+  </Step>
+</Steps>

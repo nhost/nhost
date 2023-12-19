@@ -10,7 +10,7 @@ insertAssistant {
 
 Create an assistant
 
-#### Permissions needed
+## Permissions needed
 
 select (assistants):
 - id
@@ -50,14 +50,7 @@ on how to behave and respond to the user
     </ParamField>
     
     
-    <ParamField body="dataSources" type="AssistantDataSourcesInput" >
-    Data sources for the assistant
-    </ParamField>
-    <Expandable title="properties">
-    
-    
-    
-    <ParamField body="graphql" type="[AssistantDataSourcesGraphQLInput]" >
+    <ParamField body="graphql" type="[AssistantToolGraphQLInput]" >
     GraphQL data sources. Run against the project's GraphQL API
     </ParamField>
     <Expandable title="properties">
@@ -81,7 +74,7 @@ external data sources should be used.
     </ParamField>
     
     
-    <ParamField body="arguments" type="[AssistantDataSourcesArgumentInput!]!" required>
+    <ParamField body="arguments" type="[AssistantToolArgumentInput!]!" required>
     Arguments to pass to the GraphQL query
     </ParamField>
     <Expandable title="properties">
@@ -114,7 +107,7 @@ external data sources should be used.
     
     
     
-    <ParamField body="webhooks" type="[AssistantDataSourcesWebhookInput]" >
+    <ParamField body="webhooks" type="[AssistantToolWebhookInput]" >
     Webhook data sources
     </ParamField>
     <Expandable title="properties">
@@ -138,7 +131,7 @@ external data sources should be used.
     </ParamField>
     
     
-    <ParamField body="arguments" type="[AssistantDataSourcesArgumentInput!]!" required>
+    <ParamField body="arguments" type="[AssistantToolArgumentInput!]!" required>
     Arguments to pass to the webhook
     </ParamField>
     <Expandable title="properties">
@@ -163,9 +156,6 @@ external data sources should be used.
     <ParamField body="required" type="Boolean!" required>
     Whether or not the argument is required
     </ParamField>
-    
-    </Expandable>
-    
     
     </Expandable>
     
@@ -208,14 +198,8 @@ on how to behave and respond to the user
     Model to use for the assistant.
     </ResponseField>
     
-    <ResponseField name="dataSources" type="AssistantDataSources">
-    Data sources for the assistant
-    </ResponseField>
-    <Expandable title="properties">
-    
-    
-    <ResponseField name="graphql" type="[AssistantDataSourcesGraphQL!]">
-    GraphQL data sources. Run against the project's GraphQL API
+    <ResponseField name="graphql" type="[AssistantToolGraphQL!]">
+    GraphQL data sources and tools. Run against the project's GraphQL API
     </ResponseField>
     <Expandable title="properties">
     
@@ -232,7 +216,7 @@ on how to behave and respond to the user
     GraphQL query to run against the project's GraphQL API.
     </ResponseField>
     
-    <ResponseField name="arguments" type="[AssistantDataSourcesArgument!]!">
+    <ResponseField name="arguments" type="[AssistantToolArgument!]!">
     Arguments to pass to the GraphQL query
     </ResponseField>
     <Expandable title="properties">
@@ -260,8 +244,8 @@ on how to behave and respond to the user
     </Expandable>
     
     
-    <ResponseField name="webhooks" type="[AssistantDataSourcesWebhook!]">
-    Webhook data sources
+    <ResponseField name="webhooks" type="[AssistantToolWebhook!]">
+    Webhook data sources and tools
     </ResponseField>
     <Expandable title="properties">
     
@@ -278,7 +262,7 @@ on how to behave and respond to the user
     URL of the webhook
     </ResponseField>
     
-    <ResponseField name="arguments" type="[AssistantDataSourcesArgument!]!">
+    <ResponseField name="arguments" type="[AssistantToolArgument!]!">
     Arguments to pass to the webhook
     </ResponseField>
     <Expandable title="properties">
@@ -306,9 +290,6 @@ on how to behave and respond to the user
     </Expandable>
     
     
-    </Expandable>
-    
-    
 
 
 
@@ -326,28 +307,26 @@ query insertAssistant (
       description
       instructions
       model
-      dataSources {
-        graphql {
+      graphql {
+        name
+        description
+        query
+        arguments {
           name
           description
-          query
-          arguments {
-            name
-            description
-            type
-            required
-            }
+          type
+          required
           }
-        webhooks {
+        }
+      webhooks {
+        name
+        description
+        URL
+        arguments {
           name
           description
-          URL
-          arguments {
-            name
-            description
-            type
-            required
-            }
+          type
+          required
           }
         }
     }
@@ -358,42 +337,40 @@ query insertAssistant (
 ```json variables
 {
   "object": {
-    "dataSources": {
-      "graphql": [
-        {
-          "arguments": [
-            {
-              "description": "string",
-              "name": "string",
-              "required": true,
-              "type": "string"
-            }
-          ],
-          "description": "string",
-          "name": "string",
-          "query": "string"
-        }
-      ],
-      "webhooks": [
-        {
-          "URL": "string",
-          "arguments": [
-            {
-              "description": "string",
-              "name": "string",
-              "required": true,
-              "type": "string"
-            }
-          ],
-          "description": "string",
-          "name": "string"
-        }
-      ]
-    },
     "description": "string",
+    "graphql": [
+      {
+        "arguments": [
+          {
+            "description": "string",
+            "name": "string",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "description": "string",
+        "name": "string",
+        "query": "string"
+      }
+    ],
     "instructions": "string",
     "model": "string",
-    "name": "string"
+    "name": "string",
+    "webhooks": [
+      {
+        "URL": "string",
+        "arguments": [
+          {
+            "description": "string",
+            "name": "string",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "description": "string",
+        "name": "string"
+      }
+    ]
   }
 }
 ```
@@ -406,42 +383,40 @@ query insertAssistant (
     "graphite": {
       "insertAssistant": {
         "assistantID": "string",
-        "dataSources": {
-          "graphql": [
-            {
-              "arguments": [
-                {
-                  "description": "string",
-                  "name": "string",
-                  "required": true,
-                  "type": "string"
-                }
-              ],
-              "description": "string",
-              "name": "string",
-              "query": "string"
-            }
-          ],
-          "webhooks": [
-            {
-              "URL": "string",
-              "arguments": [
-                {
-                  "description": "string",
-                  "name": "string",
-                  "required": true,
-                  "type": "string"
-                }
-              ],
-              "description": "string",
-              "name": "string"
-            }
-          ]
-        },
         "description": "string",
+        "graphql": [
+          {
+            "arguments": [
+              {
+                "description": "string",
+                "name": "string",
+                "required": true,
+                "type": "string"
+              }
+            ],
+            "description": "string",
+            "name": "string",
+            "query": "string"
+          }
+        ],
         "instructions": "string",
         "model": "string",
-        "name": "string"
+        "name": "string",
+        "webhooks": [
+          {
+            "URL": "string",
+            "arguments": [
+              {
+                "description": "string",
+                "name": "string",
+                "required": true,
+                "type": "string"
+              }
+            ],
+            "description": "string",
+            "name": "string"
+          }
+        ]
       }
     }
   }

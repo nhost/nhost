@@ -4,7 +4,7 @@ title: sendMessage
 
 ```graphql
 sendMessage {
-   sesionID: String!  message: String!  prevMessageID: String! 
+   sessionID: String!  message: String!  prevMessageID: String! 
 }: MessageResponse!
 ```
 
@@ -12,7 +12,7 @@ Send a message to a session.
 If prevMessageID is "", return all messages in the session.
 If prevMessageID is not "", return all messages after prevMessageID.
 
-#### Permissions needed
+## Permissions needed
 
 select (sessions):
 - id
@@ -25,7 +25,7 @@ update (sessions):
 
 
 
-    <ParamField body="sesionID" type="String!" required>
+    <ParamField body="sessionID" type="String!" required>
     Session to send the message to
     </ParamField>
 
@@ -85,11 +85,11 @@ Type: `MessageResponse!`
 <RequestExample>
 ```graphql query
 query sendMessage (
-  $sesionID: String!$message: String!$prevMessageID: String!
+  $sessionID: String!$message: String!$prevMessageID: String!
 ) {
   graphite {
     sendMessage (
-      sesionID: $sesionIDmessage: $messageprevMessageID: $prevMessageID
+      sessionID: $sessionIDmessage: $messageprevMessageID: $prevMessageID
     ) {
       sessionID
       messages {
@@ -107,7 +107,7 @@ query sendMessage (
 {
   "message": "string",
   "prevMessageID": "string",
-  "sesionID": "string"
+  "sessionID": "string"
 }
 ```
 </RequestExample>

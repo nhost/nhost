@@ -246,6 +246,7 @@
             {
                 "group": "AI",
                 "pages": [
+                    "reference/graphql/ai/overview",
                     {
                         "group": "Query",
                         "pages": [
@@ -263,10 +264,10 @@
                             "reference/graphql/ai/mutation/updateAssistant",
                             "reference/graphql/ai/mutation/deleteAssistant",
                             "reference/graphql/ai/mutation/startSession",
-                            "reference/graphql/ai/mutation/deletSession",
+                            "reference/graphql/ai/mutation/deleteSession",
                             "reference/graphql/ai/mutation/sendMessage",
                             "reference/graphql/ai/mutation/startDevSession",
-                            "reference/graphql/ai/mutation/sendDevMesssage"
+                            "reference/graphql/ai/mutation/sendDevMessage"
                         ]
                     }
                 ]

@@ -4,15 +4,15 @@ title: sendDevMessage
 
 ```graphql
 sendDevMessage {
-   sesionID: String!  message: String!  prevMessageID: String! 
+   sessionID: String!  message: String!  prevMessageID: String! 
 }: MessageResponse!
 ```
 
 Send a message to a developer session.
-If prevMessageID is "", return all messages in the session.
-If prevMessageID is not "", return all messages after prevMessageID.
+If prevMessageID is `""`, return all messages in the session.
+If prevMessageID is not `""`, return all messages after prevMessageID.
 
-#### Permissions needed
+## Permissions needed
 
 Permissions are not enforced for developer sessions
 we recommend enforcing permissions via remote schema permissions
@@ -23,7 +23,7 @@ and allow only admins to perform this mutation
 
 
 
-    <ParamField body="sesionID" type="String!" required>
+    <ParamField body="sessionID" type="String!" required>
     Session to send the message to
     </ParamField>
 
@@ -83,11 +83,11 @@ Type: `MessageResponse!`
 <RequestExample>
 ```graphql query
 query sendDevMessage (
-  $sesionID: String!$message: String!$prevMessageID: String!
+  $sessionID: String!$message: String!$prevMessageID: String!
 ) {
   graphite {
     sendDevMessage (
-      sesionID: $sesionIDmessage: $messageprevMessageID: $prevMessageID
+      sessionID: $sessionIDmessage: $messageprevMessageID: $prevMessageID
     ) {
       sessionID
       messages {
@@ -105,7 +105,7 @@ query sendDevMessage (
 {
   "message": "string",
   "prevMessageID": "string",
-  "sesionID": "string"
+  "sessionID": "string"
 }
 ```
 </RequestExample>
