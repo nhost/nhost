@@ -1,0 +1,47 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'graphite is also your developer assistant',
+  description:
+    'Dev Assistant',
+  image: '/images/blog/auto-embeddings/auto-embeddings.png',
+  date: '2023-12-20',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'AI', 'Dev Assistant'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+In the world of software development, tools that simplify and assist the development process are increasingly valuable. Developer assistants can help us go from idea to production faster, and with less errors. 
+
+Nhost’s new **Dev Assistant** is integrated into the Dashboard and it is designed to support you with both SQL and GraphQL.
+
+### Database and GraphQL API
+
+The Nhost Dev Assistant understands both the Postgres database schema and the GraphQL API schema. This allows it to provide tailored, context-aware suggestions and solutions.
+
+#### Example Interactions
+
+User: "How do I create a new user in my database?"
+
+Assistant: "To create a new user, you can use this SQL command: `INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com');`. This command inserts a new user into your 'users' table."
+
+User: "Can you show me how to fetch user details using GraphQL?"
+
+Assistant: "Sure! You can use the following GraphQL query: `{ user(id: 1) { name, email } }`. This query retrieves the name and email of the user with an ID of 1."
+
+## What's Next?
+
+The Nhost Dev Assistant is a constantly evolving tool. We are committed to enhancing its capabilities, ensuring it stays up-to-date with the latest technologies and best practices. Future updates may include more advanced AI-driven code suggestions, deeper integration with other development tools, and improved natural language processing for even more intuitive interactions. User feedback is invaluable in this journey; we encourage our community to share their experiences and suggestions to help us shape the future of the Dev Assistant.
+
+## Wrap up
+
+The Nhost Dev Assistant is more than just a coding tool; it is a partner in the app development process. Its ability to adapt to individual project needs, coupled with its deep understanding of database and API schemas, makes it an indispensable asset for developers. As we continue to refine and expand its capabilities, we look forward to seeing how it will further empower our users to build better, more efficient apps.
