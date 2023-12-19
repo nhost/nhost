@@ -1,8 +1,10 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import AILayout from '@/components/layout/AILayout/AILayout';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
+import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AssistantForm } from '@/features/ai/AssistantForm';
 import { AssistantsList } from '@/features/ai/AssistantsList';
@@ -24,7 +26,7 @@ export type Assistant = Omit<
 export default function AssistantsPage() {
   const { openDrawer } = useDialog();
 
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const adminSecret = currentProject?.config?.hasura?.adminSecret;
 
   const serviceUrl = generateAppServiceUrl(
@@ -61,26 +63,51 @@ export default function AssistantsPage() {
     });
   };
 
+  if (currentProject.plan.isFree) {
+    return (
+      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
+        <UpgradeToProBanner
+          title="Upgrade to Nhost Pro to access the Assistants."
+          description={
+            <Text>
+              After upgrading your porject to Pro, make sure to enable this
+              feature in the{' '}
+              <Link
+                href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/ai`}
+                target="_blank"
+                rel="noopener noreferrer"
+                underline="hover"
+              >
+                settings page
+              </Link>
+              .
+            </Text>
+          }
+        />
+      </Box>
+    );
+  }
+
   if (data?.graphite?.assistants.length === 0 && !loading) {
     return (
       <Box className="p-6" sx={{ backgroundColor: 'background.default' }}>
-        <Box className="flex flex-col items-center justify-center px-48 py-12 space-y-5 border rounded-lg shadow-sm">
+        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <span className="text-6xl">🤖</span>
           <div className="flex flex-col space-y-1">
-            <Text className="font-medium text-center" variant="h3">
+            <Text className="text-center font-medium" variant="h3">
               No Assistants are configured
             </Text>
             <Text variant="subtitle1" className="text-center">
               All your assistants will be listed here.
             </Text>
           </div>
-          <div className="flex flex-row rounded-lg place-content-between ">
+          <div className="flex flex-row place-content-between rounded-lg ">
             <Button
               variant="contained"
               color="primary"
               className="w-full"
               onClick={openCreateAssistantForm}
-              startIcon={<PlusIcon className="w-4 h-4" />}
+              startIcon={<PlusIcon className="h-4 w-4" />}
             >
               Create a new assistant
             </Button>
@@ -92,12 +119,12 @@ export default function AssistantsPage() {
 
   return (
     <Box className="flex flex-col overflow-hidden">
-      <Box className="flex flex-row p-4 place-content-end border-b-1">
+      <Box className="flex flex-row place-content-end border-b-1 p-4">
         <Button
           variant="contained"
           color="primary"
           onClick={openCreateAssistantForm}
-          startIcon={<PlusIcon className="w-4 h-4" />}
+          startIcon={<PlusIcon className="h-4 w-4" />}
         >
           New
         </Button>

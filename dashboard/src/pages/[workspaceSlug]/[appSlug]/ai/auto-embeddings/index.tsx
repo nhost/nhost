@@ -1,10 +1,12 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import AILayout from '@/components/layout/AILayout/AILayout';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { EmbeddingsIcon } from '@/components/ui/v2/icons/EmbeddingsIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
+import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AutoEmbeddingsForm } from '@/features/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/ai/AutoEmbeddingsList';
@@ -29,7 +31,7 @@ export default function AutoEmbeddingsPage() {
   const router = useRouter();
   const { openDrawer } = useDialog();
 
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const adminSecret = currentProject?.config?.hasura?.adminSecret;
 
   const serviceUrl = generateAppServiceUrl(
@@ -98,6 +100,31 @@ export default function AutoEmbeddingsPage() {
       component: <AutoEmbeddingsForm onSubmit={refetch} />,
     });
   };
+
+  if (currentProject.plan.isFree) {
+    return (
+      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
+        <UpgradeToProBanner
+          title="Upgrade to Nhost Pro to access the Auto-Embeddings."
+          description={
+            <Text>
+              After upgrading your porject to Pro, make sure to enable this
+              feature in the{' '}
+              <Link
+                href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/ai`}
+                target="_blank"
+                rel="noopener noreferrer"
+                underline="hover"
+              >
+                settings page
+              </Link>
+              .
+            </Text>
+          }
+        />
+      </Box>
+    );
+  }
 
   if (data?.graphiteAutoEmbeddingsConfigurations.length === 0 && !loading) {
     return (

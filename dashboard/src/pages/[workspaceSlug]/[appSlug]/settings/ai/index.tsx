@@ -1,18 +1,25 @@
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Box } from '@/components/ui/v2/Box';
 import { AISettings } from '@/features/ai/settings/components';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useGetStorageSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
 export default function StorageSettingsPage() {
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { currentProject, loading, error } = useCurrentWorkspaceAndProject();
 
-  const { loading, error } = useGetStorageSettingsQuery({
-    variables: { appId: currentProject?.id },
-    skip: !currentProject,
-  });
+  if (currentProject.plan.isFree) {
+    return (
+      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
+        <UpgradeToProBanner
+          title="Graphite is an addon to the Pro plan. To unlock it, please upgrade to Pro first."
+          description=""
+        />
+      </Box>
+    );
+  }
 
   if (loading) {
     return (
