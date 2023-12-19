@@ -175,7 +175,9 @@ export default function DevAssistant() {
         variables: {
           message: userMessage,
           sessionId: sessionID || '',
-          prevMessageID: !hasBeenAnHourSinceLastMessage ? lastMessage?.id : '',
+          prevMessageID: !hasBeenAnHourSinceLastMessage
+            ? lastMessage?.id || ''
+            : '',
         },
       });
 
