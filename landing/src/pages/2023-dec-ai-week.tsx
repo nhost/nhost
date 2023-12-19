@@ -265,13 +265,13 @@ export default function Page() {
             link: '/blog/auto-embeddings',
           }}
         />
-        <PostDay
+        <AvailablePostDay
           date={new Date('2023-12-19T16:00:00.000+02:00')}
           post={{
-            image: '/images/blog/new-branding-and-website/banner.png',
-            title: 'Coming soon',
-            description: "",
-            link: ''
+            image: '/images/blog/assistants/assistants.png',
+            title: 'Nhost Assistants',
+            description: "LLMs tailored to your needs.",
+            link: '/blog/nhost-assistants'
           }}
         />
         <PostDay
