@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/schema.json",
   "name": "Documentation",
-  "openapi": ["./reference/openapi-auth.yaml", "./reference/openapi-storage.yaml"],
+  "openapi": ["reference/openapi-auth.yaml", "reference/openapi-storage.yaml"],
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
@@ -40,7 +40,7 @@
     {
       "name": "Documentation",
       "icon": "book-open-cover",
-      "url": "/introduction"
+      "url": "introduction"
     },
     {
       "name": "Community",
@@ -79,7 +79,7 @@
     },
     {
       "group": "Development & CLI",
-      "pages": ["/development/cli/overview", "/development/cli/getting-started", "/development/cli/commands"]
+      "pages": ["development/cli/overview", "development/cli/getting-started", "development/cli/commands"]
     },
     {
       "group": "API Documentation",
@@ -222,7 +222,6 @@
                 "reference/javascript/auth/change-email",
                 "reference/javascript/auth/change-password",
                 "reference/javascript/auth/create-pat",
-                "reference/javascript/auth/deanonymize-some",
                 "reference/javascript/auth/get-access-token",
                 "reference/javascript/auth/get-authentication-status",
                 "reference/javascript/auth/get-decoded-access-token",
