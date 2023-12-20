@@ -1709,12 +1709,15 @@ export type ConfigPostgresSettings = {
   maxParallelMaintenanceWorkers?: Maybe<Scalars['ConfigInt32']>;
   maxParallelWorkers?: Maybe<Scalars['ConfigInt32']>;
   maxParallelWorkersPerGather?: Maybe<Scalars['ConfigInt32']>;
+  maxReplicationSlots?: Maybe<Scalars['ConfigInt32']>;
+  maxWalSenders?: Maybe<Scalars['ConfigInt32']>;
   maxWalSize?: Maybe<Scalars['String']>;
   maxWorkerProcesses?: Maybe<Scalars['ConfigInt32']>;
   minWalSize?: Maybe<Scalars['String']>;
   randomPageCost?: Maybe<Scalars['Float']>;
   sharedBuffers?: Maybe<Scalars['String']>;
   walBuffers?: Maybe<Scalars['String']>;
+  walLevel?: Maybe<Scalars['String']>;
   workMem?: Maybe<Scalars['String']>;
 };
 
@@ -1733,12 +1736,15 @@ export type ConfigPostgresSettingsComparisonExp = {
   maxParallelMaintenanceWorkers?: InputMaybe<ConfigInt32ComparisonExp>;
   maxParallelWorkers?: InputMaybe<ConfigInt32ComparisonExp>;
   maxParallelWorkersPerGather?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxReplicationSlots?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxWalSenders?: InputMaybe<ConfigInt32ComparisonExp>;
   maxWalSize?: InputMaybe<ConfigStringComparisonExp>;
   maxWorkerProcesses?: InputMaybe<ConfigInt32ComparisonExp>;
   minWalSize?: InputMaybe<ConfigStringComparisonExp>;
   randomPageCost?: InputMaybe<ConfigFloatComparisonExp>;
   sharedBuffers?: InputMaybe<ConfigStringComparisonExp>;
   walBuffers?: InputMaybe<ConfigStringComparisonExp>;
+  walLevel?: InputMaybe<ConfigStringComparisonExp>;
   workMem?: InputMaybe<ConfigStringComparisonExp>;
 };
 
@@ -1754,12 +1760,15 @@ export type ConfigPostgresSettingsInsertInput = {
   maxParallelMaintenanceWorkers?: InputMaybe<Scalars['ConfigInt32']>;
   maxParallelWorkers?: InputMaybe<Scalars['ConfigInt32']>;
   maxParallelWorkersPerGather?: InputMaybe<Scalars['ConfigInt32']>;
+  maxReplicationSlots?: InputMaybe<Scalars['ConfigInt32']>;
+  maxWalSenders?: InputMaybe<Scalars['ConfigInt32']>;
   maxWalSize?: InputMaybe<Scalars['String']>;
   maxWorkerProcesses?: InputMaybe<Scalars['ConfigInt32']>;
   minWalSize?: InputMaybe<Scalars['String']>;
   randomPageCost?: InputMaybe<Scalars['Float']>;
   sharedBuffers?: InputMaybe<Scalars['String']>;
   walBuffers?: InputMaybe<Scalars['String']>;
+  walLevel?: InputMaybe<Scalars['String']>;
   workMem?: InputMaybe<Scalars['String']>;
 };
 
@@ -1775,12 +1784,15 @@ export type ConfigPostgresSettingsUpdateInput = {
   maxParallelMaintenanceWorkers?: InputMaybe<Scalars['ConfigInt32']>;
   maxParallelWorkers?: InputMaybe<Scalars['ConfigInt32']>;
   maxParallelWorkersPerGather?: InputMaybe<Scalars['ConfigInt32']>;
+  maxReplicationSlots?: InputMaybe<Scalars['ConfigInt32']>;
+  maxWalSenders?: InputMaybe<Scalars['ConfigInt32']>;
   maxWalSize?: InputMaybe<Scalars['String']>;
   maxWorkerProcesses?: InputMaybe<Scalars['ConfigInt32']>;
   minWalSize?: InputMaybe<Scalars['String']>;
   randomPageCost?: InputMaybe<Scalars['Float']>;
   sharedBuffers?: InputMaybe<Scalars['String']>;
   walBuffers?: InputMaybe<Scalars['String']>;
+  walLevel?: InputMaybe<Scalars['String']>;
   workMem?: InputMaybe<Scalars['String']>;
 };
 
@@ -22396,7 +22408,7 @@ export type GetAiSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetAiSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } | null };
+export type GetAiSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', apiKey: string, organization?: string | null }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } | null };
 
 export type GetAuthenticationSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -22642,7 +22654,7 @@ export type UpdateConfigMutationVariables = Exact<{
 }>;
 
 
-export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null } };
+export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null, ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', organization?: string | null, apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } };
 
 export type UnpauseApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -23508,6 +23520,7 @@ export const GetAiSettingsDocument = gql`
       }
       openai {
         apiKey
+        organization
       }
       resources {
         compute {
@@ -25016,6 +25029,23 @@ export const UpdateConfigDocument = gql`
       resources {
         storage {
           capacity
+        }
+      }
+    }
+    ai {
+      version
+      webhookSecret
+      autoEmbeddings {
+        synchPeriodMinutes
+      }
+      openai {
+        organization
+        apiKey
+      }
+      resources {
+        compute {
+          cpu
+          memory
         }
       }
     }

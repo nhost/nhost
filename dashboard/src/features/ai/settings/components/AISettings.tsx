@@ -21,7 +21,7 @@ import {
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
@@ -48,7 +48,7 @@ export default function AISettings() {
   const [updateConfig] = useUpdateConfigMutation();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const [aiServiceEnabled, setAiServiceEnabled] = useState(true);
+  const [aiServiceEnabled, setAIServiceEnabled] = useState(true);
 
   const {
     data: { config: { ai } = {} } = {},
@@ -113,7 +113,7 @@ export default function AISettings() {
         webhookSecret: ai?.webhookSecret,
         synchPeriodMinutes: ai?.autoEmbeddings?.synchPeriodMinutes,
         apiKey: ai?.openai?.apiKey,
-
+        organization: ai?.openai?.organization,
         compute: {
           cpu: ai?.resources?.compute?.cpu ?? 62,
           memory: ai?.resources?.compute?.memory ?? 128,
@@ -121,27 +121,23 @@ export default function AISettings() {
       });
     }
 
-    setAiServiceEnabled(!!ai);
+    setAIServiceEnabled(!!ai);
   }, [ai, reset]);
 
-  const disableAiSercice = useCallback(async () => {
-    await updateConfig({
-      variables: {
-        appId: currentProject.id,
-        config: {
-          ai: null,
-        },
-      },
-    });
-  }, [updateConfig, currentProject.id]);
+  const toggleAIService = async (enabled: boolean) => {
+    setAIServiceEnabled(enabled);
 
-  useEffect(() => {
-    (async () => {
-      if (!aiServiceEnabled) {
-        await disableAiSercice();
-      }
-    })();
-  }, [aiServiceEnabled, disableAiSercice]);
+    if (!enabled) {
+      await updateConfig({
+        variables: {
+          appId: currentProject.id,
+          config: {
+            ai: null,
+          },
+        },
+      });
+    }
+  };
 
   if (loadingAiSettings || loadingGraphiteVersionsData) {
     return (
@@ -206,7 +202,7 @@ export default function AISettings() {
         <Text className="text-lg font-semibold">Enable AI service</Text>
         <Switch
           checked={aiServiceEnabled}
-          onChange={(e) => setAiServiceEnabled(e.target.checked)}
+          onChange={(e) => toggleAIService(e.target.checked)}
           className="self-center"
         />
       </Box>
@@ -245,7 +241,6 @@ export default function AISettings() {
                       }
                       return filterOptions(options, state);
                     }}
-                    label
                     fullWidth
                     className="col-span-4"
                     options={availableVersions}
@@ -304,7 +299,7 @@ export default function AISettings() {
                   <Input
                     {...register('apiKey')}
                     name="apiKey"
-                    placeholder="Api Key"
+                    placeholder="API Key"
                     id="apiKey"
                     label={
                       <Box className="flex flex-row items-center space-x-2">

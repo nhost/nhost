@@ -7,8 +7,8 @@ query GetAISettings($appId: uuid!) {
         synchPeriodMinutes
       }
       openai {
-        organization
         apiKey
+        organization
       }
       resources {
         compute {
