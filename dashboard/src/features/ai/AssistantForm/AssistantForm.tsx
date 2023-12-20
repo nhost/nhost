@@ -37,38 +37,36 @@ export const validationSchema = Yup.object({
   description: Yup.string(),
   instructions: Yup.string().required('The instructions are required'),
   model: Yup.string().required('The model is required'),
-  dataSources: Yup.object().shape({
-    graphql: Yup.array().of(
-      Yup.object().shape({
-        name: Yup.string().required(),
-        description: Yup.string().required(),
-        query: Yup.string().required(),
-        arguments: Yup.array().of(
-          Yup.object().shape({
-            name: Yup.string().required(),
-            description: Yup.string().required(),
-            type: Yup.string().required(),
-            required: Yup.bool().required(),
-          }),
-        ),
-      }),
-    ),
-    webhooks: Yup.array().of(
-      Yup.object().shape({
-        name: Yup.string().required(),
-        description: Yup.string().required(),
-        URL: Yup.string().required(),
-        arguments: Yup.array().of(
-          Yup.object().shape({
-            name: Yup.string().required(),
-            description: Yup.string().required(),
-            type: Yup.string().required(),
-            required: Yup.bool().required(),
-          }),
-        ),
-      }),
-    ),
-  }),
+  graphql: Yup.array().of(
+    Yup.object().shape({
+      name: Yup.string().required(),
+      description: Yup.string().required(),
+      query: Yup.string().required(),
+      arguments: Yup.array().of(
+        Yup.object().shape({
+          name: Yup.string().required(),
+          description: Yup.string().required(),
+          type: Yup.string().required(),
+          required: Yup.bool().required(),
+        }),
+      ),
+    }),
+  ),
+  webhooks: Yup.array().of(
+    Yup.object().shape({
+      name: Yup.string().required(),
+      description: Yup.string().required(),
+      URL: Yup.string().required(),
+      arguments: Yup.array().of(
+        Yup.object().shape({
+          name: Yup.string().required(),
+          description: Yup.string().required(),
+          type: Yup.string().required(),
+          required: Yup.bool().required(),
+        }),
+      ),
+    }),
+  ),
 });
 
 export type AssistantFormValues = Yup.InferType<typeof validationSchema>;
@@ -153,12 +151,12 @@ export default function AssistantForm({
     // remove any __typename from the form values
     const payload = removeTypename(values);
 
-    if (values.dataSources.webhooks.length === 0) {
-      delete payload.dataSources.webhooks;
+    if (values.webhooks.length === 0) {
+      delete payload.webhooks;
     }
 
-    if (values.dataSources.graphql.length === 0) {
-      delete payload.dataSources.graphql;
+    if (values.graphql.length === 0) {
+      delete payload.graphql;
     }
 
     // remove assistantId because the update mutation fails otherwise
@@ -221,9 +219,9 @@ export default function AssistantForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-col h-full overflow-hidden border-t"
+        className="flex h-full flex-col overflow-hidden border-t"
       >
-        <div className="flex flex-col flex-1 p-4 space-y-4 overflow-auto">
+        <div className="flex flex-1 flex-col space-y-4 overflow-auto p-4">
           <Input
             {...register('name')}
             id="name"
@@ -233,7 +231,7 @@ export default function AssistantForm({
                 <Tooltip title="Name of the Assistant">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -257,7 +255,7 @@ export default function AssistantForm({
                 <Tooltip title={<span>Description</span>}>
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -284,7 +282,7 @@ export default function AssistantForm({
                 <Tooltip title="Instructions">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -311,7 +309,7 @@ export default function AssistantForm({
                 <Tooltip title="The model">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -329,7 +327,7 @@ export default function AssistantForm({
           <WebhooksDataSourcesFormSection />
         </div>
 
-        <Box className="flex flex-row justify-between w-full p-4 border-t rounded">
+        <Box className="flex w-full flex-row justify-between rounded border-t p-4">
           <Button variant="outlined" color="secondary" onClick={onCancel}>
             Cancel
           </Button>

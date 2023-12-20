@@ -29,7 +29,7 @@ export default function ArgumentsFormSection({
   } = form;
 
   const { fields, append, remove } = useFieldArray({
-    name: `dataSources.${nestedField}.${nestIndex}.arguments`,
+    name: `${nestedField}.${nestIndex}.arguments`,
   });
 
   return (
@@ -40,11 +40,11 @@ export default function ArgumentsFormSection({
             Arguments
           </Text>
           <Tooltip title={<span>Arguments</span>}>
-            <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
+            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
           </Tooltip>
         </div>
         <Button variant="borderless" onClick={() => append({})}>
-          <PlusIcon className="w-5 h-5" />
+          <PlusIcon className="h-5 w-5" />
         </Button>
       </div>
 
@@ -52,30 +52,27 @@ export default function ArgumentsFormSection({
         {fields.map((field, index) => (
           <Box
             key={field.id}
-            className="flex flex-col p-4 space-y-20 rounded border-1"
+            className="flex flex-col space-y-20 rounded border-1 p-4"
             sx={{ backgroundColor: 'grey.200' }}
           >
-            <div className="flex flex-col w-full space-y-4">
+            <div className="flex w-full flex-col space-y-4">
               <Input
                 // We're putting ts-ignore here so we could use the same components for both graphql and webhooks
                 // by passing the nestedField = 'graphql' or nestedField = 'webhooks'
                 {...register(
                   // @ts-ignore
-                  `dataSources.${nestedField}.${nestIndex}.arguments.${index}.name`,
+                  `${nestedField}.${nestIndex}.arguments.${index}.name`,
                 )}
                 id={`${field.id}-name`}
                 placeholder="Name"
                 className="w-full"
                 hideEmptyHelperText
                 error={
-                  !!errors?.dataSources?.[nestedField][nestIndex]?.arguments[
-                    index
-                  ].name
+                  !!errors?.[nestedField]?.[nestIndex]?.arguments[index].name
                 }
                 helperText={
-                  errors?.dataSources?.[nestedField][nestIndex]?.arguments[
-                    index
-                  ]?.name?.message
+                  errors?.[nestedField]?.[nestIndex]?.arguments[index]?.name
+                    ?.message
                 }
                 fullWidth
                 autoComplete="off"
@@ -84,21 +81,19 @@ export default function ArgumentsFormSection({
               <Input
                 {...register(
                   // @ts-ignore
-                  `dataSources.${nestedField}.${nestIndex}.arguments.${index}.description`,
+                  `${nestedField}.${nestIndex}.arguments.${index}.description`,
                 )}
                 id={`${field.id}-description`}
                 placeholder="Description"
                 className="w-full"
                 hideEmptyHelperText
                 error={
-                  !!errors?.dataSources?.[nestedField][nestIndex]?.arguments[
-                    index
-                  ].description
+                  !!errors?.[nestedField]?.[nestIndex]?.arguments[index]
+                    .description
                 }
                 helperText={
-                  errors?.dataSources?.[nestedField][nestIndex]?.arguments[
-                    index
-                  ]?.description?.message
+                  errors?.[nestedField]?.[nestIndex]?.arguments[index]
+                    ?.description?.message
                 }
                 fullWidth
                 autoComplete="off"
@@ -114,7 +109,7 @@ export default function ArgumentsFormSection({
                     fullWidth
                     {...register(
                       // @ts-ignore
-                      `dataSources.${nestedField}.${nestIndex}.arguments.${index}.type`,
+                      `${nestedField}.${nestIndex}.arguments.${index}.type`,
                     )}
                     id={`${field.id}-type`}
                     placeholder="Select argument type"
@@ -143,7 +138,7 @@ export default function ArgumentsFormSection({
                 <ControlledSwitch
                   {...register(
                     // @ts-ignore
-                    `dataSources.${nestedField}.${nestIndex}.arguments.${index}.required`,
+                    `${nestedField}.${nestIndex}.arguments.${index}.required`,
                   )}
                   disabled={false}
                   label={
@@ -155,11 +150,11 @@ export default function ArgumentsFormSection({
               </div>
               <Button
                 variant="borderless"
-                className="self-end h-10"
+                className="h-10 self-end"
                 color="error"
                 onClick={() => remove(index)}
               >
-                <TrashIcon className="w-4 h-4" />
+                <TrashIcon className="h-4 w-4" />
               </Button>
             </div>
           </Box>

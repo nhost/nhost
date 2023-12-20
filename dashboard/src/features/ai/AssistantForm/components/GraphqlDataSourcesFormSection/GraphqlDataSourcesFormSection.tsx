@@ -18,7 +18,7 @@ export default function GraphqlDataSourcesFormSection() {
   } = form;
 
   const { fields, append, remove } = useFieldArray({
-    name: 'dataSources.graphql',
+    name: 'graphql',
   });
 
   return (
@@ -38,38 +38,36 @@ export default function GraphqlDataSourcesFormSection() {
             })
           }
         >
-          <PlusIcon className="w-5 h-5" />
+          <PlusIcon className="h-5 w-5" />
         </Button>
       </Box>
 
       <Box className="flex flex-col space-y-4">
         {fields.map((field, index) => (
           <Box key={field.id} className="flex flex-col space-y-4">
-            <Box className="flex flex-col w-full p-4 pt-0 space-y-4">
+            <Box className="flex w-full flex-col space-y-4 p-4 pt-0">
               <Input
-                {...register(`dataSources.graphql.${index}.name`)}
+                {...register(`graphql.${index}.name`)}
                 id={`${field.id}-name`}
                 label="Name"
                 placeholder="Name"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.dataSources?.graphql?.at(index)?.name}
-                helperText={errors?.dataSources?.graphql?.at(index)?.message}
+                error={!!errors?.graphql?.at(index)?.name}
+                helperText={errors?.graphql?.at(index)?.message}
                 fullWidth
                 autoComplete="off"
               />
 
               <Input
-                {...register(`dataSources.graphql.${index}.description`)}
+                {...register(`graphql.${index}.description`)}
                 id={`${field.id}-description`}
                 label="Description"
                 placeholder="Description"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.dataSources?.graphql?.at(index)?.description}
-                helperText={
-                  errors?.dataSources?.graphql?.at(index)?.description?.message
-                }
+                error={!!errors?.graphql?.at(index)?.description}
+                helperText={errors?.graphql?.at(index)?.description?.message}
                 fullWidth
                 autoComplete="off"
                 multiline
@@ -79,16 +77,14 @@ export default function GraphqlDataSourcesFormSection() {
               />
 
               <Input
-                {...register(`dataSources.graphql.${index}.query`)}
+                {...register(`graphql.${index}.query`)}
                 id={`${field.id}-query`}
                 label="Query"
                 placeholder="Query"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.dataSources?.graphql?.at(index)?.query}
-                helperText={
-                  errors?.dataSources?.graphql?.at(index)?.query?.message
-                }
+                error={!!errors?.graphql?.at(index)?.query}
+                helperText={errors?.graphql?.at(index)?.query?.message}
                 fullWidth
                 autoComplete="off"
                 multiline
@@ -101,11 +97,11 @@ export default function GraphqlDataSourcesFormSection() {
 
               <Button
                 variant="borderless"
-                className="self-end h-10"
+                className="h-10 self-end"
                 color="error"
                 onClick={() => remove(index)}
               >
-                <TrashIcon className="w-4 h-4" />
+                <TrashIcon className="h-4 w-4" />
               </Button>
             </Box>
 

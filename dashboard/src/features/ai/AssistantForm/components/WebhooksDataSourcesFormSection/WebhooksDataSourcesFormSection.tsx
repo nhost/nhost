@@ -18,7 +18,7 @@ export default function WebhooksDataSourcesFormSection() {
   } = form;
 
   const { fields, append, remove } = useFieldArray({
-    name: 'dataSources.webhooks',
+    name: 'webhooks',
   });
 
   return (
@@ -38,38 +38,36 @@ export default function WebhooksDataSourcesFormSection() {
             })
           }
         >
-          <PlusIcon className="w-5 h-5" />
+          <PlusIcon className="h-5 w-5" />
         </Button>
       </Box>
 
       <Box className="flex flex-col space-y-4">
         {fields.map((field, index) => (
           <Box key={field.id} className="flex flex-col space-y-4">
-            <Box className="flex flex-col w-full p-4 pt-0 space-y-4">
+            <Box className="flex w-full flex-col space-y-4 p-4 pt-0">
               <Input
-                {...register(`dataSources.webhooks.${index}.name`)}
+                {...register(`webhooks.${index}.name`)}
                 id={`${field.id}-name`}
                 label="Name"
                 placeholder="Name"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.dataSources?.webhooks?.at(index)?.name}
-                helperText={errors?.dataSources?.webhooks?.at(index)?.message}
+                error={!!errors?.webhooks?.at(index)?.name}
+                helperText={errors?.webhooks?.at(index)?.message}
                 fullWidth
                 autoComplete="off"
               />
 
               <Input
-                {...register(`dataSources.webhooks.${index}.description`)}
+                {...register(`webhooks.${index}.description`)}
                 id={`${field.id}-description`}
                 label="Description"
                 placeholder="Description"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.dataSources?.webhooks?.at(index)?.description}
-                helperText={
-                  errors?.dataSources?.webhooks?.at(index)?.description?.message
-                }
+                error={!!errors?.webhooks?.at(index)?.description}
+                helperText={errors?.webhooks?.at(index)?.description?.message}
                 fullWidth
                 autoComplete="off"
                 multiline
@@ -79,16 +77,14 @@ export default function WebhooksDataSourcesFormSection() {
               />
 
               <Input
-                {...register(`dataSources.webhooks.${index}.URL`)}
+                {...register(`webhooks.${index}.URL`)}
                 id={`${field.id}-URL`}
                 label="URL"
                 placeholder="URL"
                 className="w-full"
                 hideEmptyHelperText
-                error={!!errors?.dataSources?.webhooks?.at(index)?.URL}
-                helperText={
-                  errors?.dataSources?.webhooks?.at(index)?.URL?.message
-                }
+                error={!!errors?.webhooks?.at(index)?.URL}
+                helperText={errors?.webhooks?.at(index)?.URL?.message}
                 fullWidth
                 autoComplete="off"
                 multiline
@@ -101,11 +97,11 @@ export default function WebhooksDataSourcesFormSection() {
 
               <Button
                 variant="borderless"
-                className="self-end h-10"
+                className="h-10 self-end"
                 color="error"
                 onClick={() => remove(index)}
               >
-                <TrashIcon className="w-4 h-4" />
+                <TrashIcon className="h-4 w-4" />
               </Button>
             </Box>
 
