@@ -3,6 +3,7 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
 import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { Box } from '@/components/ui/v2/Box';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
@@ -11,6 +12,7 @@ import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { ComputeFormSection } from '@/features/services/components/ServiceForm/components/ComputeFormSection';
 import {
   Software_Type_Enum,
@@ -18,6 +20,7 @@ import {
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getServerError } from '@/utils/getServerError';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -104,7 +107,7 @@ export default function AISettings() {
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState, reset } = form;
+  const { register, formState, reset, watch } = form;
 
   useEffect(() => {
     if (ai) {
@@ -195,6 +198,18 @@ export default function AISettings() {
       // Note: The toast will handle the error.
     }
   }
+
+  const aiSettingsFormValues = watch();
+
+  const getAIResourcesCost = () => {
+    const vCPUs = `${
+      aiSettingsFormValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER
+    } vCPUs`;
+    const mem = `${aiSettingsFormValues.compute.memory} MiB Mem`;
+    const details = `${vCPUs} + ${mem}`;
+
+    return `Approximate cost for ${details}`;
+  };
 
   return (
     <Box className="space-y-4" sx={{ backgroundColor: 'background.default' }}>
@@ -290,6 +305,22 @@ export default function AISettings() {
                       />
                     </Tooltip>
                   </Box>
+
+                  <Alert
+                    severity="info"
+                    className="flex items-center justify-between space-x-2"
+                  >
+                    <span>{getAIResourcesCost()}</span>
+                    <b>
+                      $
+                      {parseFloat(
+                        (
+                          aiSettingsFormValues.compute.cpu * COST_PER_VCPU
+                        ).toFixed(2),
+                      )}
+                    </b>
+                  </Alert>
+
                   <ComputeFormSection />
                 </Box>
 
