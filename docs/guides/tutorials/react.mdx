@@ -24,7 +24,6 @@ To store attachments
 </CardGroup>
 
 
-
 ## Setup Nhost Backend
 
 In this section, you will create and setup your first Nhost project.
@@ -48,6 +47,7 @@ On the project's dashboard, navigate to **Database** and create a new table call
 
 You can either copy and paste the following SQL into the SQL Editor, **Database -> SQL Editor**, or manually create the table by clicking on **New Table**.
 
+
 <Tabs>
   <Tab title="SQL Editor">
     Copy and paste the following SQL into the SQL Editor and press **Run**. 
@@ -58,17 +58,16 @@ You can either copy and paste the following SQL into the SQL Editor, **Database 
     CREATE TABLE public.todos (
       id uuid DEFAULT gen_random_uuid() NOT NULL,
       created_at timestamptz DEFAULT now() NOT NULL,
-      updated_at timestamptz DEFAULT now() NOT NULL,
+      updated_at timestamptz DEFAULT now() NOT NULL, 
       title text NOT NULL,
       completed bool DEFAULT 'false' NOT NULL,
-      PRIMARY KEY (id)
-    );
-
-    INSERT INTO public.todos (title) VALUES ('Call the plumber');
-    INSERT INTO public.todos (title) VALUES ('Plan weekend trip');
-    INSERT INTO public.todos (title, completed) VALUES ('Read a book', true);
+      file_id uuid,
+      user_id uuid NOT NULL,
+      PRIMARY KEY (id),
+      FOREIGN KEY (file_id) REFERENCES storage.files (id) ON UPDATE SET NULL ON DELETE SET NULL,
+      FOREIGN KEY (user_id) REFERENCES auth.users (id) ON UPDATE SET NULL ON DELETE SET NULL 
+    ); 
     ```
-    
   </Tab>
   <Tab title="UI">
     Click on **New Table** and fill in the details for the `todos` table as shown.
@@ -80,12 +79,73 @@ You can either copy and paste the following SQL into the SQL Editor, **Database 
 
 You should now see a new table called `todos` on the left panel, below **New Table**.
 
+### Set permissions for todos
+
+It's now time to set permission rules for the table you just created. With the table `todos` selected, click on **...**, followed by **Edit Permissions**. 
+
+You will set permissions for the `user` role and actions `insert`, `select`, `update`, and `delete`. 
+
+<Tabs>
+<Tab title="insert">
+Click on the right cell for the `user` role and action `insert` and set permissions as follows:
+![User Insert](/images/guides/todos-react-permissions-insert.png)
+</Tab>
+<Tab title="select">
+Click on the right cell for the `user` role and action `select` and set permissions as follows:
+![User Select](/images/guides/todos-react-permissions-select.png)
+</Tab>
+<Tab title="update">
+Click on the right cell for the `user` role and action `update` and set permissions as follows:
+![User Select](/images/guides/todos-react-permissions-update.png)
+</Tab>
+<Tab title="delete">
+Click on the right cell for the `user` role and action `delete` and set permissions as follows:
+![User Delete](/images/guides/todos-react-permissions-delete.png)
+</Tab>
+</Tabs>
+
+### Set permissions for files
+
+The `files` table is managed by Nhost and is defined on the `storage` schema. Click on the dropdown right next to `schema.public` and choose `schema.storage`.
+
+With the `files` table selected, click on **...**, followed by **Edit Permissions**.
+
+As before, we want to set permissions for the `user` role and actions `insert`, `select`, `delete`. 
+
+<Tabs>
+<Tab title="insert">
+Click on the right cell for the `user` role and action `insert` and set permissions as follows:
+![User Insert](/images/guides/todos-react-permissions-files-insert.png)
+</Tab>
+<Tab title="select">
+Click on the right cell for the `user` role and action `select` and set permissions as follows:
+![User Select](/images/guides/todos-react-permissions-files-select.png)
+</Tab>
+<Tab title="delete">
+Click on the right cell for the `user` role and action `delete` and set permissions as follows:
+![User Delete](/images/guides/todos-react-permissions-files-delete.png)
+</Tab>
+</Tabs>
 
 ### Enable Sign In with Magic Link 
 
 To enable Magic Links, navigate to your project's **Settings -> Sign-In Methods**, toggle Magic Link, and save.
 
+### Recap
 
+<Steps>
+<Step title="Nhost project created">
+</Step>
+
+<Step title="Database todos created">
+</Step>
+
+<Step title="Permissions set for todos and files">
+</Step>
+
+<Step title="Magic Link enabled">
+</Step>
+</Steps>
 
 ## Setup React Application
 
@@ -96,7 +156,7 @@ Now that we have Nhost configured, let's move on to setup the React application 
 Run the following command in your terminal to create a React application using Vite.
 
 ```bash Terminal
-npm create vite@latest todos-react -- --template react
+npm create vite@latest nhost-react -- --template react
 ```
 
 ### Install Nhost React package
@@ -104,12 +164,12 @@ npm create vite@latest todos-react -- --template react
 To install Nhost's React package, run the following command.
 
 ```bash Terminal
-cd todos-react && npm install @nhost/react
+cd nhost-react && npm install @nhost/react
 ```
 
 #### Configure the Nhost Client
 
-Create a new file `./src/lib/nhost.js` with the following code to create a Nhost client. Replace `<subdomain>` and `<region>` with the values for the project you created earlier. 
+Create a new file, `./src/lib/nhost.js`, with the following code to create a Nhost client. Replace `<SUBDOMAIN>` and `<REGION>` with the values from the project created earlier. 
 
 ```ts ./src/lib/nhost.ts
 import { NhostClient } from "@nhost/react";
@@ -178,50 +238,6 @@ export default function SignIn() {
   )
 }
 ```
-
-And update `./src/App.jsx` to render the new `SignIn` component:
-
-
-```js ./src/App.jsx
-import "./App.css";
-import { NhostProvider } from "@nhost/react";
-import { nhost } from "./lib/nhost.js";
-import SignIn from "./signin";
-import { useEffect, useState } from "react";
-
-function App() {
-  const [session, setSession] = useState(null);
-
-  useEffect(() => {
-    setSession(nhost.auth.getSession());
-
-    nhost.auth.onAuthStateChanged((_, session) => {
-      setSession(session);
-    });
-  }, []);
-
-  return (
-    <NhostProvider nhost={nhost}>
-      {session ? <div>coming soon...</div> : <SignIn />}
-    </NhostProvider>
-  );
-}
-
-export default App;
-```
-
-At this point you should be able to create and sign in users using a magic link. Run the following `npm` command to start the **Todo Manager** application:
-
-```bash Terminal
-npm run dev -- --open --port 3000
-```
-
-Enter your email and click on **Send me a Magic Link!**.
-
-Clicking on the Magic Link received via email, should redirected you back to the **Todos Manager** with a "coming soon..." message. 
-
-<Tip>Great, the **Todos Manager** is now able to Sign In users!</Tip>
-
 
 ### Setup `Todos` Component
 
@@ -437,7 +453,7 @@ export default function Todos() {
 }
 ```
 
-The `todos` component isn't being rendered anywhere, go ahead and update `./src/App.jsx` again to include the `todos` component when there is a valid session.
+With both `SignIn` and `Todos` in place, update `./src/App.jsx` to use the new components:
 
 ```js ./src/App.jsx
 import './App.css'
@@ -468,77 +484,14 @@ function App() {
 export default App
 ```
 
-Refreshing the page should now render a form for creating and managing todos with a "Loading..." message. 
-
-Opening your browser's developer tools, should show you the message `"field 'todos' not found in type: 'query_root'"`. This means the `user` role has no permissions to access the `todos` table. 
-
-
-#### Set permissions for todos
-
-It's now time to set permission rules for the table you just created. With the table `todos` selected, click on **...**, followed by **Edit Permissions**. 
-
-You will set permissions for the `user` role and actions `insert`, `select`, `update`, and `delete`. 
-
-<Tabs>
-<Tab title="insert">
-Click on the right cell for the `user` role and action `insert` and set permissions as follows:
-![User Insert](/images/guides/todos-react-permissions-insert.png)
-</Tab>
-<Tab title="select">
-Click on the right cell for the `user` role and action `select` and set permissions as follows:
-![User Select](/images/guides/todos-react-permissions-select.png)
-</Tab>
-<Tab title="update">
-Click on the right cell for the `user` role and action `update` and set permissions as follows:
-![User Select](/images/guides/todos-react-permissions-update.png)
-</Tab>
-<Tab title="delete">
-Click on the right cell for the `user` role and action `delete` and set permissions as follows:
-![User Delete](/images/guides/todos-react-permissions-delete.png)
-</Tab>
-</Tabs>
-
-### Set permissions for files
-
-The `files` table is managed by Nhost and is defined on the `storage` schema. Click on the dropdown right next to `schema.public` and choose `schema.storage`.
-
-With the `files` table selected, click on **...**, followed by **Edit Permissions**.
-
-As before, we want to set permissions for the `user` role and actions `insert`, `select`, `delete`. 
-
-<Tabs>
-<Tab title="insert">
-Click on the right cell for the `user` role and action `insert` and set permissions as follows:
-![User Insert](/images/guides/todos-react-permissions-files-insert.png)
-</Tab>
-<Tab title="select">
-Click on the right cell for the `user` role and action `select` and set permissions as follows:
-![User Select](/images/guides/todos-react-permissions-files-select.png)
-</Tab>
-<Tab title="delete">
-Click on the right cell for the `user` role and action `delete` and set permissions as follows:
-![User Delete](/images/guides/todos-react-permissions-files-delete.png)
-</Tab>
-</Tabs>
-
-You should now be able to to create new todos with file attachments.
 
 ## The End
 
-Congratulations! You have accomplished the following:
+Run the Todo Manager with:
 
-<Steps>
-<Step title="Setup Nhost project">
-You have created a Nhost project, a table to store users' `todos`, and learned how to enable Magic Link.
-</Step>
+```bash Terminal
+npm run dev -- --open --port 3000
+```
 
-<Step title="Setup React application">
-You have created a React Application and added the `@nhost/react` package to create a client that is used to communicate with the Nhost Backend. 
-</Step>
-
-<Step title="Setup Permissions">
-You have learned how to setup permissions for new tables
-</Step>
-
-</Steps>
+Open your browser on [localhost:3000](localhost:3000) to see your new application in action.
 

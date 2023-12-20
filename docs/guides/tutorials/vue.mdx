@@ -40,15 +40,17 @@ Enter the details for your project and wait a couple of minutes while Nhost prov
 
 ### Create table todos
 
-On your new project, navigate to **Database** and create a new table called `todos`.
+On the project's dashboard, navigate to **Database** and create a new table called `todos`.
 
-![Database](/images/guides/todos-react-database.png)
+![Database](/images/guides/todos-database.png)
 
-You can either copy and paste the following SQL into the SQL Editor, **Database -> SQL Editor** (bottom left), or manually create the table by clicking on **New Table**.
+You can either copy and paste the following SQL into the SQL Editor, **Database -> SQL Editor**, or manually create the table by clicking on **New Table**.
 
 <Tabs>
   <Tab title="SQL Editor">
     Copy and paste the following SQL into the SQL Editor and press **Run**. 
+
+    <Note>Please make sure to enable **Track this** so that the new table `todos` is available through the auto-generated APIs</Note>
 
     ```sql SQL
     CREATE TABLE public.todos (
@@ -64,9 +66,6 @@ You can either copy and paste the following SQL into the SQL Editor, **Database 
       FOREIGN KEY (user_id) REFERENCES auth.users (id) ON UPDATE SET NULL ON DELETE SET NULL 
     ); 
     ```
-
-    <Note>Make sure to track the `todos` table by ensuring **Track this** is on</Note>
-    
   </Tab>
   <Tab title="UI">
     Click on **New Table** and fill in the details for the `todos` table as shown.
@@ -128,7 +127,7 @@ Click on the right cell for the `user` role and action `delete` and set permissi
 
 ### Enable Sign In with Magic Link 
 
-By default, Nhost has sign in with Magic Link disabled. To enable it, head to your project's **Settings -> Sign-In Methods**, toggle Magic Link and save.
+To enable Magic Links, navigate to your project's **Settings -> Sign-In Methods**, toggle Magic Link, and save.
 
 ### Recap
 
@@ -169,25 +168,18 @@ cd nhost-vue && npm install @nhost/vue
 
 #### Configure the Nhost Client
 
-Create a new file, `./src/lib/nhost.js`, with the following code to create a client that will be used to interact with the Nhost backend.
+Create a new file `./src/lib/nhost.js` with the following code to create a Nhost client. Replace `<subdomain>` and `<region>` with the values for the project you created earlier. 
 
 ```js ./src/lib/nhost.js
 import { NhostClient } from "@nhost/vue";
 
 export const nhost = new NhostClient({
-  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN,
-  region: import.meta.env.VITE_NHOST_REGION,
+  subdomain: "<SUBDOMAIN>",
+  region: "<REGION>"
 });
 ```
 
-The client requires the `subdomain` and `region` of the new project. Please create a new `.env.local` file with the right configuration for your project.
-
-```bash .env
-VITE_NHOST_SUBDOMAIN=<subdomain>
-VITE_NHOST_REGION=<region>
-```
-
-You can find the `subdomain` and `region` in the project's homepage in the Nhost Dashboard.
+<Info>The project's `subdomain` and `region` can be found in the Nhost Dashboard under **Project Info**</Info>
 
 ### Setup Sign In Component
 
