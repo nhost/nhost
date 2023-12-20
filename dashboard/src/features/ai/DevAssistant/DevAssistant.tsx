@@ -29,6 +29,7 @@ import { toast } from 'react-hot-toast';
 import Markdown from 'react-markdown';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import rehypeHighlight from 'rehype-highlight';
+import remarkGFM from 'remark-gfm';
 import { twMerge } from 'tailwind-merge';
 
 const MAX_THREAD_LENGTH = 50;
@@ -78,6 +79,7 @@ function MessageBox({ message }: { message: Message }) {
           theme.palette.mode === 'dark' && 'prose-invert',
         )}
         rehypePlugins={[rehypeHighlight]}
+        remarkPlugins={[remarkGFM]}
       >
         {message.message}
       </Markdown>

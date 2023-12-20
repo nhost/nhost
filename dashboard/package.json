@@ -79,6 +79,7 @@
     "recoil": "^0.7.7",
     "recoil-persist": "^5.1.0",
     "rehype-highlight": "^7.0.0",
+    "remark-gfm": "^4.0.0",
     "shell-quote": "^1.8.1",
     "slugify": "^1.6.5",
     "stripe": "^10.17.0",
