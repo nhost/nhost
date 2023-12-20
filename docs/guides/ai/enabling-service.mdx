@@ -2,11 +2,13 @@
 title: "Enabling Service"
 ---
 
-You can enable the AI service with the following steps:
+You can enable Graphite, Nhost's AI service, with the following steps:
 
 <Steps>
   <Step title="First Step">
     Check your project's settings and make sure the database version is at least `14.6-20231018-1`. If it isn't upgrade your database version (latest available version is recommended).
+
+    ![database settings](/images/guides/ai/enabling/database.png)
   </Step>
   <Step title="Second Step">
     Create a migration with the following SQL code (if you aren't working with migrations you can apply the SQL directly in the database tab):
@@ -20,21 +22,25 @@ You can enable the AI service with the following steps:
     -- generate embeddings directly from a postgres function
     CREATE EXTENSION IF NOT EXISTS http;
     ```
+
+    ![database migration](/images/guides/ai/enabling/migration.png)
   </Step>
   <Step title="Third Step">
     Get an OpenAI API key from their [customer portal](https://platform.openai.com/account/api-keys).
+
+    ![openai dashboard](/images/guides/ai/enabling/openai.png)
   </Step>
   <Step title="Fourth Step">
-    Finally, you can head to your project's settings -> AI section and enable the service or, alternatively, use your TOML configuration file to enable the service (you need to use the TOML to enable it for use in the local CLI):
+    Finally, you can head to your project's settings -> AI section and enable the service or, alternatively, use your TOML configuration file to enable the service:
     <Tabs>
       <Tab title="Dashboard">
-        ![ai configuration screenshot](/images/guides/ai/configuration.png)
+        ![ai configuration screenshot](/images/guides/ai/enabling/settings.png)
       </Tab>
 
       <Tab title="toml">
         ```toml
         [ai]
-        # Version of the service to use.
+        # Version of the service to use. Check the settings page for available versions
         version = '0.1.0'
 
         # Used to validate requests between postgres and the AI service.
