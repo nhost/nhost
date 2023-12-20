@@ -1,11 +1,13 @@
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import {
   messagesState,
@@ -119,7 +121,7 @@ function LoadingAssistantMessage({ userMessage }: { userMessage: string }) {
 }
 
 export default function DevAssistant() {
-  const { currentProject } = useCurrentWorkspaceAndProject();
+  const { currentProject, currentWorkspace } = useCurrentWorkspaceAndProject();
 
   const bottomElement = useRef(null);
   const [loading, setLoading] = useState(false);
@@ -222,9 +224,37 @@ export default function DevAssistant() {
     return (
       <Box className="p-4">
         <UpgradeToProBanner
-          title="Upgrade to Nhost Pro to access the Assistant."
-          description=""
+          title="Upgrade to Nhost Pro."
+          description={
+            <Text>
+              Graphite is an addon to the Pro plan. To unlock it, please upgrade
+              to Pro first.
+            </Text>
+          }
         />
+      </Box>
+    );
+  }
+
+  if (!currentProject.plan.isFree && !currentProject.config?.ai) {
+    return (
+      <Box className="p-4">
+        <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
+          <Text className="grid grid-flow-row justify-items-start gap-0.5">
+            <Text component="span">
+              To enable graphite, configure the service first in{' '}
+              <Link
+                href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/ai`}
+                target="_blank"
+                rel="noopener noreferrer"
+                underline="hover"
+              >
+                AI Settings
+              </Link>
+              .
+            </Text>
+          </Text>
+        </Alert>
       </Box>
     );
   }

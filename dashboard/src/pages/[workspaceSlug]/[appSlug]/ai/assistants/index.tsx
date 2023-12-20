@@ -1,6 +1,7 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import AILayout from '@/components/layout/AILayout/AILayout';
+import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
@@ -67,23 +68,37 @@ export default function AssistantsPage() {
     return (
       <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
         <UpgradeToProBanner
-          title="Upgrade to Nhost Pro to access the Assistants."
+          title="Upgrade to Nhost Pro."
           description={
             <Text>
-              After upgrading your porject to Pro, make sure to enable this
-              feature in the{' '}
+              Graphite is an addon to the Pro plan. To unlock it, please upgrade
+              to Pro first.
+            </Text>
+          }
+        />
+      </Box>
+    );
+  }
+
+  if (!currentProject.plan.isFree && !currentProject.config?.ai) {
+    return (
+      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
+        <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
+          <Text className="grid grid-flow-row justify-items-start gap-0.5">
+            <Text component="span">
+              To enable graphite, configure the service first in{' '}
               <Link
                 href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/ai`}
                 target="_blank"
                 rel="noopener noreferrer"
                 underline="hover"
               >
-                settings page
+                AI Settings
               </Link>
               .
             </Text>
-          }
-        />
+          </Text>
+        </Alert>
       </Box>
     );
   }
