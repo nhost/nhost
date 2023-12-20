@@ -35,10 +35,9 @@ export interface AnnouncementContextProps {
 
 // Note: You can define the active announcement here.
 const announcement: Announcement = {
-  id: 'nhost-run',
-  href: '/product/run',
-  content:
-    'Now you can bring custom and third-party OSS services to run alongside your Nhost projects',
+  id: '2023-dec-ai-week',
+  href: 'https://nhost.io/2023-dec-ai-week',
+  content: 'Nhost AI Week 🧠 Dec 18-22!',
 }
 
 export const AnnouncementContext = createContext<AnnouncementContextProps>({})
