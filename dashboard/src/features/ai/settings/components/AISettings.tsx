@@ -1,3 +1,4 @@
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
@@ -28,6 +29,7 @@ import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
+import { DisableAIServiceConfirmationDialog } from './DisableAIServiceConfirmationDialog';
 
 const validationSchema = Yup.object({
   version: Yup.object({
@@ -48,6 +50,7 @@ export type AISettingsFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AISettings() {
   const { maintenanceActive } = useUI();
+  const { openDialog } = useDialog();
   const [updateConfig] = useUpdateConfigMutation();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
@@ -131,13 +134,14 @@ export default function AISettings() {
     setAIServiceEnabled(enabled);
 
     if (!enabled) {
-      await updateConfig({
-        variables: {
-          appId: currentProject.id,
-          config: {
-            ai: null,
-          },
-        },
+      openDialog({
+        title: 'Confirm Disabling the AI service',
+        component: (
+          <DisableAIServiceConfirmationDialog
+            onCancel={() => setAIServiceEnabled(true)}
+            onServiceDisabled={() => setAIServiceEnabled(false)}
+          />
+        ),
       });
     }
   };
