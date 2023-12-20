@@ -5,6 +5,7 @@ import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
+import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Link } from '@/components/ui/v2/Link';
@@ -17,6 +18,7 @@ import {
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
+import { copy } from '@/utils/copy';
 import {
   useSendDevMessageMutation,
   useStartDevSessionMutation,
@@ -24,9 +26,16 @@ import {
 } from '@/utils/__generated__/graphite.graphql';
 import { useTheme } from '@mui/material';
 import { useUserData } from '@nhost/nextjs';
-import { useEffect, useRef, useState } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ClassAttributes,
+  type HTMLAttributes,
+} from 'react';
+import { onlyText } from 'react-children-utilities';
 import { toast } from 'react-hot-toast';
-import Markdown from 'react-markdown';
+import Markdown, { type ExtraProps } from 'react-markdown';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGFM from 'remark-gfm';
@@ -38,6 +47,36 @@ export type Message = Omit<
   SendDevMessageMutation['graphite']['sendDevMessage']['messages'][0],
   '__typename'
 >;
+
+function PreComponent(
+  props: ClassAttributes<HTMLElement> &
+    HTMLAttributes<HTMLElement> &
+    ExtraProps,
+) {
+  const { children } = props;
+
+  return (
+    <div className="group relative">
+      <pre>{children}</pre>
+      <IconButton
+        sx={{
+          minWidth: 0,
+          padding: 0.5,
+          backgroundColor: 'grey.100',
+        }}
+        color="warning"
+        variant="contained"
+        className="absolute top-2 right-2 hidden group-hover:flex"
+        onClick={(e) => {
+          e.stopPropagation();
+          copy(onlyText(children), 'Snippet');
+        }}
+      >
+        <CopyIcon className="h-5 w-5" />
+      </IconButton>
+    </div>
+  );
+}
 
 function MessageBox({ message }: { message: Message }) {
   const user = useUserData();
@@ -80,6 +119,9 @@ function MessageBox({ message }: { message: Message }) {
         )}
         rehypePlugins={[rehypeHighlight]}
         remarkPlugins={[remarkGFM]}
+        components={{
+          pre: PreComponent,
+        }}
       >
         {message.message}
       </Markdown>

@@ -248,6 +248,9 @@ importers:
       react:
         specifier: 18.2.0
         version: 18.2.0
+      react-children-utilities:
+        specifier: ^2.9.0
+        version: 2.9.0(react@18.2.0)
       react-dom:
         specifier: 18.2.0
         version: 18.2.0(react@18.2.0)
@@ -30366,6 +30369,14 @@ packages:
       lodash.curry: 4.1.1
       lodash.flow: 3.5.0
       pure-color: 1.3.0
+    dev: false
+
+  /react-children-utilities@2.9.0(react@18.2.0):
+    resolution: {integrity: sha512-B3enhwcibIziobkMVccLd+6uIRoiCC9OZ1nR2B5sFCTnUYoGOCqgPOWUL+IC4S8IYaaN5AeF+SS0X1wernPdZA==}
+    peerDependencies:
+      react: 18 || 17 || 16 || 15
+    dependencies:
+      react: 18.2.0
     dev: false
 
   /react-date-fns-hooks@0.9.4(date-fns@2.29.3)(react-dom@18.2.0)(react@18.2.0):
