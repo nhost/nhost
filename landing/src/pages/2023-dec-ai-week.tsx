@@ -280,7 +280,7 @@ export default function Page() {
             image: '/images/blog/dev-assistant/dev-assistant.png',
             title: 'Graphite, your Developer Assistant',
             description: "Go from idea to production faster",
-            link: '',
+            link: '/blog/dev-assistant',
           }}
         />
         <PostDay
