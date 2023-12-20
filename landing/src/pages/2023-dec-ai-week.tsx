@@ -274,12 +274,12 @@ export default function Page() {
             link: '/blog/nhost-assistants'
           }}
         />
-        <PostDay
+        <AvailablePostDay
           date={new Date('2023-12-20T16:00:00.000+02:00')}
           post={{
-            image: '/images/blog/nextjs-stripe-starter-template/banner.png',
-            title: 'Coming soon',
-            description: "",
+            image: '/images/blog/dev-assistant/dev-assistant.png',
+            title: 'Graphite, your Developer Assistant',
+            description: "Go from idea to production faster",
             link: '',
           }}
         />

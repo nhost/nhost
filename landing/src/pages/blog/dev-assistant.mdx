@@ -2,9 +2,9 @@ import Image from 'next/image'
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
-  title: 'Graphite is also your developer companion',
+  title: 'Graphite is also your Developer Assistant',
   description:
-    'Dev Assistant',
+    'Go from idea to production faster',
   image: '/images/blog/dev-assistant/dev-assistant.png',
   date: '2023-12-20',
   authors: [
@@ -15,26 +15,24 @@ export const article = {
       url: 'https://twitter.com/nunopato',
     },
   ],
-  tags: ['Product', 'AI', 'Dev Assistant'],
+  tags: ['Product', 'AI', 'Dev Assistant', 'graphite'],
 }
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
 In the world of software development, tools designed to increase developer productivity are increasingly valuable. Developer assistants can help us go from idea to production faster, and with less errors. 
 
-Say hi to graphite, a new **Developer Assistant** and coding partner integrated into the Dashboard designed to support you with SQL and GraphQL coding tasks.
+Say hi to Graphite, a new **Developer Assistant** and coding partner integrated into the Dashboard designed to support you with SQL and GraphQL coding tasks.
 
 ### Developer Companion
 
 Graphite knows about your project's database and GraphQL schemas. It is able to provide you with tailored, context-aware suggestions and solutions for things related to your database and GraphQL API.
 
-#### Generating SQL
-
-It is great at generating both SQL code and GraphQL queries and mutations. 
+It is great at generating both SQL code and GraphQL queries and mutations:
 
 <video width="99%" autoPlay loop muted controls>
   <source
-    src="/videos/output.webm"
+    src="/videos/dev-assistant.mp4"
     type="video/mp4"
   />
 </video>
@@ -44,7 +42,9 @@ Notice that it was able to infer the existing movies table and produce the right
 
 ## Wrap up
 
-This is the very first iteration of the Developer Assistant, and we have many ideas to improve it. In future versions we want to make the assistant more integrated with specific sections of the UI and support workflows such as executing the code from the assistant for more intuitive interactions. We also have plans to integrate the assistant with other tools such as Functions and Run.
+This is the very first iteration of the Developer Assistant, and we have a few ideas to improve it. 
 
-User feedback is important in this journey; so please share your experiences and suggestions to help us shape the future of the Dev Assistant.
+In future versions we want to make Graphite more integrated with specific sections of the UI and support workflows such as "accepting" code snippets from Graphite for smoother interactions. We also have plans to integrate it with other tools such as Functions and Run.
+
+User feedback is important in this journey; so please share your experiences and suggestions to help us shape the future of Graphite.
 
