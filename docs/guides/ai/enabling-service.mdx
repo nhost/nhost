@@ -5,12 +5,12 @@ title: "Enabling Service"
 You can enable Graphite, Nhost's AI service, with the following steps:
 
 <Steps>
-  <Step title="First Step">
+  <Step title="Check your database version">
     Check your project's settings and make sure the database version is at least `14.6-20231018-1`. If it isn't upgrade your database version (latest available version is recommended).
 
     ![database settings](/images/guides/ai/enabling/database.png)
   </Step>
-  <Step title="Second Step">
+  <Step title="Prepare your database">
     Create a migration with the following SQL code (if you aren't working with migrations you can apply the SQL directly in the database tab):
     ```sql
     -- AI service data will be stored in this schema
@@ -25,12 +25,12 @@ You can enable Graphite, Nhost's AI service, with the following steps:
 
     ![database migration](/images/guides/ai/enabling/migration.png)
   </Step>
-  <Step title="Third Step">
+  <Step title="Get an OpenAPI key">
     Get an OpenAI API key from their [customer portal](https://platform.openai.com/account/api-keys).
 
     ![openai dashboard](/images/guides/ai/enabling/openai.png)
   </Step>
-  <Step title="Fourth Step">
+  <Step title="Configure the service">
     Finally, you can head to your project's settings -> AI section and enable the service or, alternatively, use your TOML configuration file to enable the service:
     <Tabs>
       <Tab title="Dashboard">
