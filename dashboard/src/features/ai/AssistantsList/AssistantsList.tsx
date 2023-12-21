@@ -3,12 +3,14 @@ import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
+import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { AssistantForm } from '@/features/ai/AssistantForm';
 import { DeleteAssistantModal } from '@/features/ai/DeleteAssistantModal';
+import { copy } from '@/utils/copy';
 import { type Assistant } from 'pages/[workspaceSlug]/[appSlug]/ai/assistants';
 
 interface AssistantsListProps {
@@ -88,9 +90,22 @@ export default function AssistantsList({
                 <Text variant="h4" className="font-semibold">
                   {assistant?.name ?? 'unset'}
                 </Text>
-                <span className="test-sm text-slate-500">
-                  {assistant.description}
-                </span>
+                <div className="hidden flex-row items-center space-x-2 md:flex">
+                  <Text variant="subtitle1" className="font-mono text-xs">
+                    {assistant.assistantID}
+                  </Text>
+                  <IconButton
+                    variant="borderless"
+                    color="secondary"
+                    onClick={(event) => {
+                      copy(assistant.assistantID, 'Assistant Id');
+                      event.stopPropagation();
+                    }}
+                    aria-label="Service Id"
+                  >
+                    <CopyIcon className="h-4 w-4" />
+                  </IconButton>
+                </div>
               </div>
             </div>
           </Box>
