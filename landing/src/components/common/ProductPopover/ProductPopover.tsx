@@ -149,6 +149,20 @@ export default function ProductPopover({ children }: PropsWithChildren) {
                     Run
                   </Button>
                 </li>
+
+                <li className="w-full h-px bg-white bg-opacity-10" />
+
+                <li>
+                  <Button
+                    href="/product/graphite"
+                    variant="borderless"
+                    size="xs"
+                    className="w-full text-opacity-65"
+                    onClick={() => setOpen(false)}
+                  >
+                    Graphite
+                  </Button>
+                </li>
               </ul>
             </nav>
           </div>
