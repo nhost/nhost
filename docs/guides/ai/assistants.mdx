@@ -3,18 +3,22 @@ title: "Assistants"
 description: "Deploy your customized AI assistants"
 ---
 
-AI Assistants leverages ChatGPT and allows you to define different AI assistants with pre-defined tools and accesses to your data. This pre-defined access is expressed as GraphQL queries and/or webhooks and are unique to each AI assistant, meaning you can create different AI assistant with access to different type of data. In addition, AI assistants are fully integrated with Nhost permissions which means only data the user has access to will be made available to each AI assistant session.
+AI Assistants leverages ChatGPT and allows you to define different AI assistants with pre-defined tools and accesses to your data. This pre-defined access is expressed as GraphQL queries or mutations and/or webhooks and are unique to each AI assistant, meaning you can create different AI assistants with access to different type of data. In addition, AI assistants are fully integrated with Nhost permissions which means only data the user has access to will be made available to each AI assistant session.
 
 ## Demo
 
-To demonstrate how to configure and use this feature we are going to be using a sample project with a database full of movies.
+To demonstrate how to configure and use AI Assistants we are going to be using a sample project with a database full of movies.
 
 ## Creating AI Assistants
 
-You can create an AI assistant by utilizing the `insertAssistant` mutation. For instance (notice that graphite's remote schema queries and mutations are all inside the `graphite` namespace):
+The first step is to create an AI assistant. You can create an AI assistant by utilizing the `insertAssistant` mutation or by using the dashboard. For instance:
 
 <Tabs>
-    <Tab title="graphql">
+  <Tab title="dashboard">
+![dashboard](/images/guides/ai/assistants/dashboard.png)
+  </Tab>
+  <Tab title="graphql">
+
 ```graphql
 mutation {
   graphite {
@@ -38,6 +42,19 @@ mutation {
           ]
         },
         {
+          description: "search movies using natural language",
+          name: "SearchMovies",
+          query: "query GraphiteSearchMovies($query: String!) { graphiteSearchMovies(args: {query: $query, amount: 5}) { id name overview genre } }",
+          arguments: [
+            {
+              name: "query",
+              description: "Text to search",
+              type: "string",
+              required: true,
+            }
+          ]
+        }
+        {
           description: "insert a movie into the database",
           name: "InsertMovie",
           query: "mutation InsertMovie($name: String, $overview: String, $genre: String, $crew: String, $budget: bigint, $revenue: bigint, $country: String, $score: numeric) { insertMovie(object: {name: $name, overview: $overview, score: $score, genre: $genre, crew: $crew, budget: $budget, revenue: $revenue, country: $country}) {id}}",
@@ -57,13 +74,13 @@ mutation {
            {
               name: "genre",
               description: "Genre of the movie",
-              type: "number",
+              type: "string",
               required: true,
             },
            {
               name: "crew",
               description: "Crew of the movie",
-              type: "number",
+              type: "string",
               required: true,
             },
            {
@@ -81,7 +98,7 @@ mutation {
            {
               name: "country",
               description: "Country of origin for the movie",
-              type: "number",
+              type: "string",
               required: true,
             },
            {
@@ -114,35 +131,25 @@ mutation {
   }
 }
 ```
-    </Tab>
+
+  </Tab>
 </Tabs>
 
-Which should give you a response similar to:
+### Tools
 
-```json
-{
-  "data": {
-    "graphite": {
-      "insertAssistant": {
-        "assistantID": "asst_xolmq2yeBBRi8CKGc5YWXGaA"
-      }
-    }
-  }
-}
-```
+In order to enhance our AI assistants we are leveraging tools. Tools can be either queries or mutations performed against your project's GraphQL engine or they can also be any arbitrary endpoint you choose. Using the example above, we added 4 different tools to our AI Assistant:
 
-### Data-Sources
 
-In the example above we created two data-sources:
+- The GraphQL query `GetMoviesWithScoreHigherThan`, which will allow the AI Assistant to query movies based on their score.
+- The GraphQL query `SearchMovies`, which leverages [auto-embeddings](auto-embeddings) and will allow the AI Assistant to query movies using natural language.
+- The GraphQL mutation `InsertMovie`, which will let the AI Assistant to insert new movies directly into the database.
+- The webhook `answer_deep_questions`, which is a serverless function that can respond to deep questions about life and the universe.
 
-- The GraphQL query `GetMoviesWithScoreHigherThan`
-- The webhook `answer_deep_questions`
+With a good name and description, the AI Assistant will know that certain information can be made available or that certain actions are at its disposal via these tools. We will see more in detail how this works a bit later but for now suffices to say that:
 
-With a good name and description, the AI Assistant will know that certain information can be made available through external data-sources and that graphite can provide the information if requested. We will more in detail how this works a bit later but for now suffice to say that:
-
-- ChatGPT doesn't actually query the data, it tells graphite to make the queries on its behalf and provide the result.
-- graphite will respect the user session when performing GraphQL queries or calling the webhook so permissions are respected.
-- The GraphQL query is performed against the project's GraphQL endpoint
+- ChatGPT doesn't actually query the data or perform any action, it tells graphite to execute the tools on its behalf and provide the result.
+- graphite will respect the user session when calling tools so permissions are respected.
+- GraphQL queries and mutations are performed against the project's GraphQL endpoint
 - For webhooks you can specify any URL you want and graphite will perform a POST with a JSON object as body
 
 ## Starting a session
@@ -290,7 +297,90 @@ In this case ChatGPT detected some of the information needed to formulate the an
 
 ![GetMoviesWithScoreHigherThan sequence of events](/images/guides/ai/assistants/GetMoviesWithScoreHigherThan.png)
 
-### User session
+## Implementing workflows
+
+Interactions are not limited to just one tool or to simply query data. Tools can be combined and they can perform any action you wish. For instance, let's take a look to the following session:
+
+
+```json
+{
+  "data": {
+    "graphite": {
+      "sendDevMessage": {
+        "sessionID": "thread_kxgdq2wPDwdWETwGsC68psGw",
+        "messages": [
+          {
+            "id": "msg_KvVwu3ypYgIdwJhOU57NYoFh",
+            "role": "user",
+            "createdAt": "2023-12-21T08:16:03Z",
+            "message": ""
+          },
+          {
+            "id": "msg_orBzaQTulaWtFLe2VhgjX0op",
+            "role": "user",
+            "createdAt": "2023-12-21T08:16:18Z",
+            "message": "Are there any good comedies in space?"
+          },
+          {
+            "id": "msg_WatLEqiP8IyZYkImBsgJPtm0",
+            "role": "assistant",
+            "createdAt": "2023-12-21T08:16:29Z",
+            "message": "Here are some good comedies set in space:\n\n1. Linoleum - When the host of a failing children’s science show tries to fulfill his childhood dream of becoming an astronaut by building a rocket ship in his garage, a series of bizarre events occur that cause him to question his own reality.\n\n2. Spaceballs - When the nefarious Dark Helmet hatches a plan to snatch Princess Vespa and steal her planet's air, space-bum-for-hire Lone Starr and his clueless sidekick fly to the rescue. Along the way, they meet Yogurt, who puts Lone Starr wise to the power of \"The Schwartz.\" Can he master it in time to save the day?\n\nThese are great choices for a space comedy!"
+          },
+          {
+            "id": "msg_Jq8iO0EXHtb2x9Z9CLFgxzhT",
+            "role": "user",
+            "createdAt": "2023-12-21T08:17:09Z",
+            "message": "Spaceballs sounds like fun. Could you imagine a sequel?"
+          },
+          {
+            "id": "msg_2landwp0CiGuzhTuyInUjRFN",
+            "role": "assistant",
+            "createdAt": "2023-12-21T08:17:15Z",
+            "message": "Absolutely, a sequel to Spaceballs could be a lot of fun! In the original movie, the characters encounter the nefarious Dark Helmet and his diabolical plans. A sequel could explore new adventures, new villains, and wacky space escapades. It could also offer a fresh take on space-themed parodies and comedic twists. Fans of the original movie would surely be excited to see what new mischief Lone Starr, Princess Vespa, and the rest of the gang get into in a sequel."
+          },
+          {
+            "id": "msg_hVjfo6H0uJu3kX43zNhFMizl",
+            "role": "user",
+            "createdAt": "2023-12-21T08:18:36Z",
+            "message": "Now come up with a title and an overview and add it to the database and let me know the id returned"
+          },
+          {
+            "id": "msg_B75oj7QFtR8pubkBdp1rAI4a",
+            "role": "assistant",
+            "createdAt": "2023-12-21T08:18:54Z",
+            "message": "The movie \"Spaceballs 2: The Search for More Money\" has been successfully added to the database. The ID returned for the movie is \"1e2f9f95-34f0-4865-94fc-4f85bc93dd1a\". Get ready for a cosmic adventure that's twice the fun and twice the lunacy!"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+In this session the following happened:
+
+1. We asked about comedies in space, which prompted the AI Assistant to leverage tool `SearchMovies`, which leverages auto-embeddings to perform searches using natural language.
+2. Then we asked the Assistant to imagine a sequel and insert it in the database, which prompted the AI assistant to leverage the tool `InsertMovie` to add it to the database.
+
+True, to its word, the movie was added to the database successfully:
+
+```json
+{
+  "data": {
+    "movie": {
+      "id": "1e2f9f95-34f0-4865-94fc-4f85bc93dd1a",
+      "name": "Spaceballs 2: The Search for More Money",
+      "overview": "After successfully thwarting Dark Helmet's plans, Lone Starr and his crew find themselves in need of more cash. They embark on a hilarious and outrageous quest to find the elusive currency of the galaxy: spacebucks. Along the way, they encounter new foes, old friends, and a lot of absurdity. Get ready for a cosmic adventure that's twice the fun and twice the lunacy!",
+      "genre": "Comedy, Science Fiction"
+    }
+  }
+}
+```
+
+And remember, this is just a tiny example of what tools can do. Tools can do anything you want; from working with data in your project to booking flights or selling your products to your users.
+
+## User session
 
 Interacting with graphite requires a user session (either an Authorization header or the admin secret). When interacting with the GraphQL endpoint or the webhook, graphite will re-use this session, which means that the webhook can use these headers to authorize the request. It also means that the GraphQL query will be performed as the user, so the user will have to have permissions to perform the query and will only get data the user has access to.
 
@@ -300,4 +390,4 @@ In addition to the queries/mutations shown in this document there are other muta
 
 ## Metadata and Permissions
 
-For each assistant and session managed by graphite, a row in the tables `graphite.assistants` and `graphite.sessions` will be made available. The purpose of this metadata is to allow you set permissions as with any other object in your project. For details on which permissions are needed for each specific query and mutation refer to the GraphQL documentation.
+For each assistant and session managed by graphite, a row in the tables `graphite.assistants` and `graphite.sessions` will be made available. The purpose of this metadata is to allow you to set permissions as with any other object in your project. For details on which permissions are needed for each specific query and mutation refer to the GraphQL documentation in the [reference](/reference/graphql/ai/overview) section.
