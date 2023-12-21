@@ -1,15 +1,13 @@
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
-import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { MessagesList } from '@/features/ai/DevAssistant/components/MessagesList';
 import {
   messagesState,
   projectMessagesState,
@@ -18,28 +16,14 @@ import {
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { copy } from '@/utils/copy';
 import {
   useSendDevMessageMutation,
   useStartDevSessionMutation,
   type SendDevMessageMutation,
 } from '@/utils/__generated__/graphite.graphql';
-import { useTheme } from '@mui/material';
-import { useUserData } from '@nhost/nextjs';
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ClassAttributes,
-  type HTMLAttributes,
-} from 'react';
-import { onlyText } from 'react-children-utilities';
+import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import Markdown, { type ExtraProps } from 'react-markdown';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import rehypeHighlight from 'rehype-highlight';
-import remarkGFM from 'remark-gfm';
-import { twMerge } from 'tailwind-merge';
 
 const MAX_THREAD_LENGTH = 50;
 
@@ -48,129 +32,11 @@ export type Message = Omit<
   '__typename'
 >;
 
-function PreComponent(
-  props: ClassAttributes<HTMLElement> &
-    HTMLAttributes<HTMLElement> &
-    ExtraProps,
-) {
-  const { children } = props;
-
-  return (
-    <div className="group relative">
-      <pre>{children}</pre>
-      <IconButton
-        sx={{
-          minWidth: 0,
-          padding: 0.5,
-          backgroundColor: 'grey.100',
-        }}
-        color="warning"
-        variant="contained"
-        className="absolute top-2 right-2 hidden group-hover:flex"
-        onClick={(e) => {
-          e.stopPropagation();
-          copy(onlyText(children), 'Snippet');
-        }}
-      >
-        <CopyIcon className="h-5 w-5" />
-      </IconButton>
-    </div>
-  );
-}
-
-function MessageBox({ message }: { message: Message }) {
-  const user = useUserData();
-  const isUserMessage = message.role === 'user';
-  const theme = useTheme();
-
-  return (
-    <Box
-      className="flex flex-col space-y-4 border-t p-4 first:border-t-0"
-      sx={{
-        backgroundColor: isUserMessage && 'background.default',
-      }}
-    >
-      <div className="flex items-center space-x-2">
-        {message.role === 'assistant' ? (
-          <>
-            <GraphiteIcon />
-            <Text className="font-bold">Assistant</Text>
-          </>
-        ) : (
-          <>
-            <Avatar
-              className="h-7 w-7 rounded-full"
-              alt={user?.displayName}
-              src={user?.avatarUrl}
-            >
-              {user?.displayName || 'local'}
-            </Avatar>
-            <Text className="font-bold">
-              {user?.displayName || 'local'} (You)
-            </Text>
-          </>
-        )}
-      </div>
-
-      <Markdown
-        className={twMerge(
-          'prose',
-          theme.palette.mode === 'dark' && 'prose-invert',
-        )}
-        rehypePlugins={[rehypeHighlight]}
-        remarkPlugins={[remarkGFM]}
-        components={{
-          pre: PreComponent,
-        }}
-      >
-        {message.message}
-      </Markdown>
-    </Box>
-  );
-}
-
-function LoadingAssistantMessage({ userMessage }: { userMessage: string }) {
-  return (
-    <Box className="flex grow flex-col border-t">
-      <MessageBox
-        message={{
-          id: String(new Date().getTime()),
-          createdAt: new Date(),
-          role: 'user',
-          message: userMessage,
-        }}
-      />
-      <Box className="flex flex-col space-y-4 border-t p-4">
-        <div className="flex items-center space-x-2">
-          <GraphiteIcon />
-          <Text className="font-bold">Assistant</Text>
-        </div>
-        <div className="flex space-x-1">
-          <Box
-            className="h-1.5 w-1.5 animate-blinking rounded-full"
-            sx={{ backgroundColor: 'grey.600' }}
-          />
-          <Box
-            className="h-1.5 w-1.5 animate-blinking rounded-full animate-delay-150"
-            sx={{ backgroundColor: 'grey.600' }}
-          />
-          <Box
-            className="h-1.5 w-1.5 animate-blinking rounded-full animate-delay-300"
-            sx={{ backgroundColor: 'grey.600' }}
-          />
-        </div>
-      </Box>
-    </Box>
-  );
-}
-
 export default function DevAssistant() {
   const { currentProject, currentWorkspace } = useCurrentWorkspaceAndProject();
 
-  const bottomElement = useRef(null);
   const [loading, setLoading] = useState(false);
   const [userInput, setUserInput] = useState('');
-  const [userMessage, setUserMessage] = useState('');
   const setMessages = useSetRecoilState(messagesState);
   const messages = useRecoilValue(projectMessagesState(currentProject.id));
   const [storedSessionID, setStoredSessionID] = useRecoilState(sessionIDState);
@@ -178,13 +44,6 @@ export default function DevAssistant() {
   const { adminClient } = useAdminApolloClient();
   const [startDevSession] = useStartDevSessionMutation({ client: adminClient });
   const [sendDevMessage] = useSendDevMessageMutation({ client: adminClient });
-
-  const scrollToBottom = () =>
-    bottomElement?.current?.scrollIntoView({ behavior: 'instant' });
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -203,6 +62,19 @@ export default function DevAssistant() {
           60 * 60 * 1000;
       }
 
+      const $messages = [
+        ...messages,
+        {
+          id: String(new Date().getTime()),
+          message: userInput,
+          createdAt: null,
+          role: 'user',
+          projectId: currentProject.id,
+        },
+      ];
+
+      setMessages($messages);
+
       if (!sessionID || hasBeenAnHourSinceLastMessage) {
         const sessionRes = await startDevSession({ client: adminClient });
         sessionID = sessionRes?.data?.graphite?.startDevSession?.sessionID;
@@ -219,7 +91,7 @@ export default function DevAssistant() {
         } = {},
       } = await sendDevMessage({
         variables: {
-          message: userMessage,
+          message: userInput,
           sessionId: sessionID || '',
           prevMessageID: !hasBeenAnHourSinceLastMessage
             ? lastMessage?.id || ''
@@ -228,10 +100,15 @@ export default function DevAssistant() {
       });
 
       let thread = [
-        ...messages,
+        // remove the temp messages of the user input while we wait for the dev assistant to respond
+        ...$messages.filter((item) => item.createdAt),
         ...newMessages
-          .filter((item) => item.message) // remove empty messages
-          .map((item) => ({ ...item, projectId: currentProject.id })), // add the currentProject.id to the new messages
+
+          // remove empty messages
+          .filter((item) => item.message)
+
+          // add the currentProject.id to the new messages
+          .map((item) => ({ ...item, projectId: currentProject.id })),
       ];
 
       if (thread.length > MAX_THREAD_LENGTH) {
@@ -305,15 +182,7 @@ export default function DevAssistant() {
 
   return (
     <div className="flex h-full flex-col overflow-auto">
-      <Box className="flex grow flex-col overflow-auto border-y">
-        {messages.map((message) => (
-          <MessageBox key={message.id} message={message} />
-        ))}
-        {loading && userMessage && (
-          <LoadingAssistantMessage userMessage={userMessage} />
-        )}
-        <div ref={bottomElement} />
-      </Box>
+      <MessagesList loading={loading} />
 
       <form onSubmit={handleSubmit}>
         <Box className="relative flex w-full flex-row justify-between p-2">
@@ -322,7 +191,6 @@ export default function DevAssistant() {
             onChange={(event) => {
               const { value } = event.target;
               setUserInput(value);
-              setUserMessage(value);
             }}
             onKeyPress={handleKeyPress}
             placeholder="Ask graphite anything!"

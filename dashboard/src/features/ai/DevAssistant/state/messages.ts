@@ -13,8 +13,8 @@ const messagesState = atom<ProjectMessage[]>({
       id: '0',
       message:
         "Hi, I'm your personal Nhost AI assistant. I'm here to help answer questions, assist with tasks, provide information, or just have a conversation about GraphQL!",
-      createdAt: null,
       role: 'assistant',
+      createdAt: new Date().toISOString(),
     },
   ],
   effects: [persistAtom],
