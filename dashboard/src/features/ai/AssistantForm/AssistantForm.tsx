@@ -228,7 +228,7 @@ export default function AssistantForm({
             label={
               <Box className="flex flex-row items-center space-x-2">
                 <Text>Name</Text>
-                <Tooltip title="Name of the Assistant">
+                <Tooltip title="Name of the assistant">
                   <InfoIcon
                     aria-label="Info"
                     className="h-4 w-4"
@@ -252,7 +252,7 @@ export default function AssistantForm({
             label={
               <Box className="flex flex-row items-center space-x-2">
                 <Text>Description</Text>
-                <Tooltip title={<span>Description</span>}>
+                <Tooltip title={<span>Description of the assistant</span>}>
                   <InfoIcon
                     aria-label="Info"
                     className="h-4 w-4"
@@ -279,7 +279,7 @@ export default function AssistantForm({
             label={
               <Box className="flex flex-row items-center space-x-2">
                 <Text>Instructions</Text>
-                <Tooltip title="Instructions">
+                <Tooltip title="Instructions for the assistant. This is used to instruct the AI assistant on how to behave and respond to the user">
                   <InfoIcon
                     aria-label="Info"
                     className="h-4 w-4"
@@ -306,7 +306,7 @@ export default function AssistantForm({
             label={
               <Box className="flex flex-row items-center space-x-2">
                 <Text>Model</Text>
-                <Tooltip title="The model">
+                <Tooltip title="Model to use for the assistant.">
                   <InfoIcon
                     aria-label="Info"
                     className="h-4 w-4"

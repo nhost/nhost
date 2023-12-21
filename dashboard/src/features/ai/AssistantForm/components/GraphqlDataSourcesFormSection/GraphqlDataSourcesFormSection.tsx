@@ -1,10 +1,12 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { type AssistantFormValues } from '@/features/ai/AssistantForm/AssistantForm';
 import { ArgumentsFormSection } from '@/features/ai/AssistantForm/components/ArgumentsFormSection';
 import { useFieldArray, useFormContext } from 'react-hook-form';
@@ -24,9 +26,14 @@ export default function GraphqlDataSourcesFormSection() {
   return (
     <Box className="space-y-4 rounded border-1">
       <Box className="flex flex-row items-center justify-between p-4 pb-0">
-        <Text variant="h4" className="font-semibold">
-          GraphQL
-        </Text>
+        <Box className="flex flex-row items-center space-x-2">
+          <Text variant="h4" className="font-semibold">
+            GraphQL
+          </Text>
+          <Tooltip title="GraphQL data sources and tools. Run against the project's GraphQL API">
+            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+          </Tooltip>
+        </Box>
         <Button
           variant="borderless"
           onClick={() =>
