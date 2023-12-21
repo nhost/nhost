@@ -20,6 +20,7 @@ export interface ProductSectionProps extends ContainerProps {
     | 'storage'
     | 'functions'
     | 'run'
+    | 'graphite'
 }
 
 export default function ProductSection({
@@ -124,7 +125,6 @@ export default function ProductSection({
           href="/product/functions"
           disableLink={disabledLink === 'functions'}
         />
-        <div></div>
 
         <ServiceCard
           icon={
@@ -137,11 +137,26 @@ export default function ProductSection({
           }
           title="Run"
           description="Run custom services written in your favourite language."
-          className=" place-self-center"
+          className="place-self-center"
           href="/product/run"
           disableLink={disabledLink === 'run'}
         />
-        <div></div>
+        <ServiceCard
+          icon={
+            <Image
+              src="/products/graphite-logo.svg"
+              width={20}
+              height={20}
+              alt="Graphite icon"
+              priority
+            />
+          }
+          title="Graphite"
+          description="Run AI workloads easily alongside your Nhost stack"
+          className="place-self-center"
+          href="/product/graphite"
+          disableLink={disabledLink === 'graphite'}
+        />
       </div>
     </Container>
   )

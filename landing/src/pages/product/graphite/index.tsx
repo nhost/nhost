@@ -222,7 +222,7 @@ export default function GraphitePage() {
       <Container component="section" className="mt-24 lg:mt-40">
         <SectionHeading
           title="Advantages"
-          subtitle="Nhost Run offers several key advantages by running workloads alongside your project"
+          subtitle="Graphite offers several key advantages by running alongside your Nhost stack"
           className="max-w-xl"
           slotProps={{
             subtitle: {
@@ -241,10 +241,11 @@ export default function GraphitePage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">Minimal Latency</h3>
+              <h3 className="text-base font-bold">
+                Integrates with your project permissions{' '}
+              </h3>
               <p className="text-base text-white text-opacity-65">
-                Communication and data exchange between different components of
-                your project occur quickly and efficiently.
+                Fully integrated with your project&rsquo;s permissions scheme
               </p>
             </div>
           </div>
@@ -258,10 +259,11 @@ export default function GraphitePage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">No Egress Costs</h3>
+              <h3 className="text-base font-bold">
+                Automatically updated embeddings
+              </h3>
               <p className="text-base text-white text-opacity-65">
-                No additional egress costs for transferring data between
-                different components of your project.
+                Generate embeddings and keep them up to date automatically
               </p>
             </div>
           </div>
@@ -275,10 +277,9 @@ export default function GraphitePage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">Improved Reliability</h3>
+              <h3 className="text-base font-bold">Workflow</h3>
               <p className="text-base text-white text-opacity-65">
-                Your workloads continue to function even in scenarios where
-                internet access may be limited or disrupted.
+                Implement AI-powered workflows with no hassle
               </p>
             </div>
           </div>
@@ -292,10 +293,10 @@ export default function GraphitePage() {
               alt="Check"
             />
             <div className="flex flex-col space-y-2">
-              <h3 className="text-base font-bold">Integrated Operations</h3>
+              <h3 className="text-base font-bold">Developer assistant</h3>
               <p className="text-base text-white text-opacity-65">
-                Develop, build, manage, and scale your own workloads the same
-                way that you manage your Nhost Project.
+                Accelerate development speed with help of the Developer
+                Assistant
               </p>
             </div>
           </div>
@@ -319,107 +320,8 @@ export default function GraphitePage() {
         </div>
       </Container>
 
-      <Container component="section" className="mt-24">
-        <SectionHeading title="And more..." className="max-w-lg" />
-
-        <div className="grid content-start justify-start max-w-xs grid-cols-1 gap-6 mx-auto mt-16 sm:max-w-2xl sm:auto-rows-fr sm:grid-cols-2 lg:max-w-5xl lg:grid-cols-3">
-          <Card className="relative grid grid-flow-row gap-4 place-content-center place-items-center sm:row-span-15">
-            <div className="relative">
-              <LineGrid className="w-40 h-40 mx-auto -translate-x-1/2 -translate-y-1/2 object-top-left left-1/2 top-1/2" />
-              <Glow />
-              <Image
-                src="/common/logo-circle.svg"
-                width={100}
-                height={100}
-                alt="Nhost Logo in a dark circle"
-                className="relative z-10 h-26 w-26"
-              />
-            </div>
-
-            <SectionHeading
-              title="Nhost"
-              subtitle="Build apps users love"
-              slotProps={{ title: { component: 'h3' } }}
-            />
-
-            <Button href="https://app.nhost.io/uploadFile" className="mt-6">
-              Start building <ArrowRightIcon />
-            </Button>
-          </Card>
-          <Card className="grid grid-flow-row gap-4 text-center place-content-center place-items-center sm:row-span-8">
-            <Image
-              src="/products/globe.svg"
-              width={24}
-              height={24}
-              alt="Globe"
-              className="mx-auto"
-            />
-
-            <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Private Registry</h3>
-
-              <p className="text-base text-white text-opacity-65">
-                Push your service images to our private registry with
-                deployments or using our CLI
-              </p>
-            </div>
-          </Card>
-          <Card className="grid grid-flow-row gap-4 text-center place-content-center place-items-center sm:row-span-7">
-            <Image
-              src="/products/code.svg"
-              width={24}
-              height={24}
-              alt="Resize icon"
-              className="mx-auto"
-            />
-            <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Your Favourite Languages</h3>
-
-              <p className="text-base text-white text-opacity-65">
-                Run services written in JS/TS, Go, Python, etc
-              </p>
-            </div>
-          </Card>
-          <Card className="grid grid-flow-row gap-4 text-center place-content-center place-items-center sm:row-span-8">
-            <Image
-              src="/products/maximize.svg"
-              width={24}
-              height={24}
-              alt="Full screen icon"
-              className="mx-auto"
-            />
-
-            <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">High Scalability</h3>
-
-              <p className="text-base text-white text-opacity-65">
-                Use Dedicated Compute and Service Replicas to scale your custom
-                Services.
-              </p>
-            </div>
-          </Card>
-          <Card className="grid grid-flow-row gap-4 text-center place-content-center place-items-center sm:row-span-8 lg:row-span-7">
-            <Image
-              src="/products/arrows-clockwise.svg"
-              width={24}
-              height={24}
-              alt="A box"
-              className="mx-auto"
-            />
-
-            <div className="grid grid-flow-row gap-2.5">
-              <h3 className="text-base font-bold">Integrated CI</h3>
-
-              <p className="text-base text-white text-opacity-65">
-                Coming soon
-              </p>
-            </div>
-          </Card>
-        </div>
-      </Container>
-
       <ProductSection
-        slotProps={{ root: { className: 'mt-24 lg:mt-40' } }}
+        slotProps={{ root: { className: 'mt-24 lg:mt-20' } }}
         heading={
           <div className="grid items-center grid-flow-row gap-4 justify-items-center">
             <div className="p-px rounded-full gradient-background">
@@ -431,7 +333,7 @@ export default function GraphitePage() {
             <SectionHeading title="Other features" />
           </div>
         }
-        disabledLink="run"
+        disabledLink="graphite"
       />
 
       <CTASection />

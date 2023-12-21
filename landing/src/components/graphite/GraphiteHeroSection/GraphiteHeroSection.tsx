@@ -67,7 +67,7 @@ export default function GraphiteHeroSection() {
 
         <Image
           src="/products/graphite-hero.png"
-          alt="Auth page in the Nhost Dashboard"
+          alt="Auto-Embeddings page in the Nhost Dashboard"
           width={2880}
           height={1800}
           className="relative z-10 w-full h-auto"
