@@ -201,6 +201,10 @@ func HasuraEnv( //nolint:funlen
 				*config.GetHasura().GetEvents().HttpPoolSize,
 			),
 		},
+		{
+			Name:  "GRAPHITE_WEBHOOK_SECRET",
+			Value: config.GetAi().GetWebhookSecret(),
+		},
 	}
 
 	for _, e := range config.GetGlobal().GetEnvironment() {

@@ -116,6 +116,24 @@ func PostgresEnv( //nolint:funlen
 					*config.GetPostgres().GetSettings().GetMaxParallelMaintenanceWorkers(),
 				),
 			},
+			{
+				Name: "WAL_LEVEL",
+				Value: Stringify(
+					*config.GetPostgres().GetSettings().GetWalLevel(),
+				),
+			},
+			{
+				Name: "MAX_WAL_SENDERS",
+				Value: Stringify(
+					*config.GetPostgres().GetSettings().GetMaxWalSenders(),
+				),
+			},
+			{
+				Name: "MAX_REPLICATION_SLOTS",
+				Value: Stringify(
+					*config.GetPostgres().GetSettings().GetMaxReplicationSlots(),
+				),
+			},
 		}...)
 	}
 

@@ -30,6 +30,9 @@ import (
 	// Configuration for storage service
 	storage: #Storage
 
+    // Configuration for graphite service
+    ai?: #AI
+
 	// Configuration for observability service
 	observability: #Observability
 
@@ -195,7 +198,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.6-20231018-1"
+	version: string | *"14.6-20231218-1"
 
 	// Resources for the service
 	resources?: {
@@ -227,6 +230,9 @@ import (
 		maxParallelWorkersPerGather:   int32 | *2
 		maxParallelWorkers:            int32 | *8
 		maxParallelMaintenanceWorkers: int32 | *2
+		walLevel:											 string | *"replica"
+		maxWalSenders:                 int32 | *10
+		maxReplicationSlots:           int32 | *10
 	}
 }
 
@@ -537,6 +543,24 @@ import (
 	}
 }
 
+#AI: {
+    version: string | *"0.1.0"
+	resources: {
+        compute: #ComputeResources
+    }
+
+    openai: {
+        organization?: string
+        apiKey: string
+    }
+
+    autoEmbeddings: {
+        synchPeriodMinutes: uint32 | *5
+    }
+
+    webhookSecret: string
+}
+
 #Observability: {
 	grafana: #Grafana
 }
@@ -556,17 +580,22 @@ import (
 
 #RunServiceName: =~"^[a-z]([-a-z0-9]*[a-z0-9])?$" & strings.MinRunes(1) & strings.MaxRunes(30)
 
+
+// Resource configuration for a service
+#ComputeResources: {
+    // milicpus, 1000 milicpus = 1 cpu
+    cpu: uint32 & >=62 & <=14000
+    // MiB: 128MiB to 30GiB
+    memory: uint32 & >=128 & <=28720
+
+    // validate memory steps of 128 MiB
+    _validateMemorySteps128: (mod(memory, 128) == 0) & true @cuegraph(skip)
+}
+
+
 // Resource configuration for a service
 #RunServiceResources: {
-	compute: {
-		// milicpus, 1000 milicpus = 1 cpu
-		cpu: uint32 & >=62 & <=14000
-		// MiB: 128MiB to 30GiB
-		memory: uint32 & >=128 & <=28720
-
-		// validate memory steps of 128 MiB
-		_validateMemorySteps128: (mod(memory, 128) == 0) & true @cuegraph(skip)
-	}
+	compute: #ComputeResources
 
 	storage: [...{
 		name:     #RunServiceName       // name of the volume, changing it will cause data loss

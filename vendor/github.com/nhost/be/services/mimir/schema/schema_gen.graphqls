@@ -110,6 +110,141 @@ input ConfigBooleanComparisonExp {
 }
 
 """
+
+"""
+type ConfigAI {
+    """
+
+    """
+    version: String
+    """
+
+    """
+    resources: ConfigAIResources!
+    """
+
+    """
+    openai: ConfigAIOpenai!
+    """
+
+    """
+    autoEmbeddings: ConfigAIAutoEmbeddings
+    """
+
+    """
+    webhookSecret: String!
+}
+
+input ConfigAIUpdateInput {
+    version: String
+    resources: ConfigAIResourcesUpdateInput
+    openai: ConfigAIOpenaiUpdateInput
+    autoEmbeddings: ConfigAIAutoEmbeddingsUpdateInput
+    webhookSecret: String
+}
+
+input ConfigAIInsertInput {
+    version: String
+    resources: ConfigAIResourcesInsertInput!
+    openai: ConfigAIOpenaiInsertInput!
+    autoEmbeddings: ConfigAIAutoEmbeddingsInsertInput
+    webhookSecret: String!
+}
+
+input ConfigAIComparisonExp {
+    _and: [ConfigAIComparisonExp!]
+    _not: ConfigAIComparisonExp
+    _or: [ConfigAIComparisonExp!]
+    version: ConfigStringComparisonExp
+    resources: ConfigAIResourcesComparisonExp
+    openai: ConfigAIOpenaiComparisonExp
+    autoEmbeddings: ConfigAIAutoEmbeddingsComparisonExp
+    webhookSecret: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAIAutoEmbeddings {
+    """
+
+    """
+    synchPeriodMinutes: ConfigUint32
+}
+
+input ConfigAIAutoEmbeddingsUpdateInput {
+    synchPeriodMinutes: ConfigUint32
+}
+
+input ConfigAIAutoEmbeddingsInsertInput {
+    synchPeriodMinutes: ConfigUint32
+}
+
+input ConfigAIAutoEmbeddingsComparisonExp {
+    _and: [ConfigAIAutoEmbeddingsComparisonExp!]
+    _not: ConfigAIAutoEmbeddingsComparisonExp
+    _or: [ConfigAIAutoEmbeddingsComparisonExp!]
+    synchPeriodMinutes: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
+type ConfigAIOpenai {
+    """
+
+    """
+    organization: String
+    """
+
+    """
+    apiKey: String!
+}
+
+input ConfigAIOpenaiUpdateInput {
+    organization: String
+    apiKey: String
+}
+
+input ConfigAIOpenaiInsertInput {
+    organization: String
+    apiKey: String!
+}
+
+input ConfigAIOpenaiComparisonExp {
+    _and: [ConfigAIOpenaiComparisonExp!]
+    _not: ConfigAIOpenaiComparisonExp
+    _or: [ConfigAIOpenaiComparisonExp!]
+    organization: ConfigStringComparisonExp
+    apiKey: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAIResources {
+    """
+
+    """
+    compute: ConfigComputeResources!
+}
+
+input ConfigAIResourcesUpdateInput {
+    compute: ConfigComputeResourcesUpdateInput
+}
+
+input ConfigAIResourcesInsertInput {
+    compute: ConfigComputeResourcesInsertInput!
+}
+
+input ConfigAIResourcesComparisonExp {
+    _and: [ConfigAIResourcesComparisonExp!]
+    _not: ConfigAIResourcesComparisonExp
+    _or: [ConfigAIResourcesComparisonExp!]
+    compute: ConfigComputeResourcesComparisonExp
+}
+
+"""
 Configuration for auth service
 You can find more information about the configuration here:
 https://github.com/nhost/hasura-auth/blob/main/docs/environment-variables.md
@@ -1273,6 +1408,38 @@ input ConfigClaimMapComparisonExp {
 }
 
 """
+Resource configuration for a service
+"""
+type ConfigComputeResources {
+    """
+    milicpus, 1000 milicpus = 1 cpu
+    """
+    cpu: ConfigUint32!
+    """
+    MiB: 128MiB to 30GiB
+    """
+    memory: ConfigUint32!
+}
+
+input ConfigComputeResourcesUpdateInput {
+    cpu: ConfigUint32
+    memory: ConfigUint32
+}
+
+input ConfigComputeResourcesInsertInput {
+    cpu: ConfigUint32!
+    memory: ConfigUint32!
+}
+
+input ConfigComputeResourcesComparisonExp {
+    _and: [ConfigComputeResourcesComparisonExp!]
+    _not: ConfigComputeResourcesComparisonExp
+    _or: [ConfigComputeResourcesComparisonExp!]
+    cpu: ConfigUint32ComparisonExp
+    memory: ConfigUint32ComparisonExp
+}
+
+"""
 main entrypoint to the configuration
 """
 type ConfigConfig {
@@ -1305,6 +1472,10 @@ type ConfigConfig {
     """
     storage: ConfigStorage
     """
+    Configuration for graphite service
+    """
+    ai: ConfigAI
+    """
     Configuration for observability service
     """
     observability: ConfigObservability!
@@ -1318,6 +1489,7 @@ input ConfigConfigUpdateInput {
     postgres: ConfigPostgresUpdateInput
     provider: ConfigProviderUpdateInput
     storage: ConfigStorageUpdateInput
+    ai: ConfigAIUpdateInput
     observability: ConfigObservabilityUpdateInput
 }
 
@@ -1329,6 +1501,7 @@ input ConfigConfigInsertInput {
     postgres: ConfigPostgresInsertInput
     provider: ConfigProviderInsertInput
     storage: ConfigStorageInsertInput
+    ai: ConfigAIInsertInput
     observability: ConfigObservabilityInsertInput!
 }
 
@@ -1343,6 +1516,7 @@ input ConfigConfigComparisonExp {
     postgres: ConfigPostgresComparisonExp
     provider: ConfigProviderComparisonExp
     storage: ConfigStorageComparisonExp
+    ai: ConfigAIComparisonExp
     observability: ConfigObservabilityComparisonExp
 }
 
@@ -2111,6 +2285,18 @@ type ConfigPostgresSettings {
 
     """
     maxParallelMaintenanceWorkers: ConfigInt32
+    """
+
+    """
+    walLevel: String
+    """
+
+    """
+    maxWalSenders: ConfigInt32
+    """
+
+    """
+    maxReplicationSlots: ConfigInt32
 }
 
 input ConfigPostgresSettingsUpdateInput {
@@ -2132,6 +2318,9 @@ input ConfigPostgresSettingsUpdateInput {
     maxParallelWorkersPerGather: ConfigInt32
     maxParallelWorkers: ConfigInt32
     maxParallelMaintenanceWorkers: ConfigInt32
+    walLevel: String
+    maxWalSenders: ConfigInt32
+    maxReplicationSlots: ConfigInt32
 }
 
 input ConfigPostgresSettingsInsertInput {
@@ -2153,6 +2342,9 @@ input ConfigPostgresSettingsInsertInput {
     maxParallelWorkersPerGather: ConfigInt32
     maxParallelWorkers: ConfigInt32
     maxParallelMaintenanceWorkers: ConfigInt32
+    walLevel: String
+    maxWalSenders: ConfigInt32
+    maxReplicationSlots: ConfigInt32
 }
 
 input ConfigPostgresSettingsComparisonExp {
@@ -2177,6 +2369,9 @@ input ConfigPostgresSettingsComparisonExp {
     maxParallelWorkersPerGather: ConfigInt32ComparisonExp
     maxParallelWorkers: ConfigInt32ComparisonExp
     maxParallelMaintenanceWorkers: ConfigInt32ComparisonExp
+    walLevel: ConfigStringComparisonExp
+    maxWalSenders: ConfigInt32ComparisonExp
+    maxReplicationSlots: ConfigInt32ComparisonExp
 }
 
 """
@@ -2461,7 +2656,7 @@ type ConfigRunServiceResources {
     """
 
     """
-    compute: ConfigRunServiceResourcesCompute!
+    compute: ConfigComputeResources!
     """
 
     """
@@ -2473,13 +2668,13 @@ type ConfigRunServiceResources {
 }
 
 input ConfigRunServiceResourcesUpdateInput {
-    compute: ConfigRunServiceResourcesComputeUpdateInput
+    compute: ConfigComputeResourcesUpdateInput
         storage: [ConfigRunServiceResourcesStorageUpdateInput!]
     replicas: ConfigUint8
 }
 
 input ConfigRunServiceResourcesInsertInput {
-    compute: ConfigRunServiceResourcesComputeInsertInput!
+    compute: ConfigComputeResourcesInsertInput!
         storage: [ConfigRunServiceResourcesStorageInsertInput!]
     replicas: ConfigUint8!
 }
@@ -2488,41 +2683,9 @@ input ConfigRunServiceResourcesComparisonExp {
     _and: [ConfigRunServiceResourcesComparisonExp!]
     _not: ConfigRunServiceResourcesComparisonExp
     _or: [ConfigRunServiceResourcesComparisonExp!]
-    compute: ConfigRunServiceResourcesComputeComparisonExp
+    compute: ConfigComputeResourcesComparisonExp
     storage: ConfigRunServiceResourcesStorageComparisonExp
     replicas: ConfigUint8ComparisonExp
-}
-
-"""
-
-"""
-type ConfigRunServiceResourcesCompute {
-    """
-    milicpus, 1000 milicpus = 1 cpu
-    """
-    cpu: ConfigUint32!
-    """
-    MiB: 128MiB to 30GiB
-    """
-    memory: ConfigUint32!
-}
-
-input ConfigRunServiceResourcesComputeUpdateInput {
-    cpu: ConfigUint32
-    memory: ConfigUint32
-}
-
-input ConfigRunServiceResourcesComputeInsertInput {
-    cpu: ConfigUint32!
-    memory: ConfigUint32!
-}
-
-input ConfigRunServiceResourcesComputeComparisonExp {
-    _and: [ConfigRunServiceResourcesComputeComparisonExp!]
-    _not: ConfigRunServiceResourcesComputeComparisonExp
-    _or: [ConfigRunServiceResourcesComputeComparisonExp!]
-    cpu: ConfigUint32ComparisonExp
-    memory: ConfigUint32ComparisonExp
 }
 
 """

@@ -33,11 +33,19 @@ type BooleanComparisonExp struct {
 }
 
 type ConfigAi struct {
-	Openai             ConfigAIOpenai    `json:"openai"`
-	Resources          ConfigAIResources `json:"resources"`
-	SynchPeriodMinutes *uint32           `json:"synchPeriodMinutes,omitempty"`
-	Version            *string           `json:"version,omitempty"`
-	WebhookSecret      string            `json:"webhookSecret"`
+	AutoEmbeddings *ConfigAIAutoEmbeddings `json:"autoEmbeddings,omitempty"`
+	Openai         ConfigAIOpenai          `json:"openai"`
+	Resources      ConfigAIResources       `json:"resources"`
+	Version        *string                 `json:"version,omitempty"`
+	WebhookSecret  string                  `json:"webhookSecret"`
+}
+
+type ConfigAIAutoEmbeddings struct {
+	SynchPeriodMinutes *uint32 `json:"synchPeriodMinutes,omitempty"`
+}
+
+type ConfigAIAutoEmbeddingsUpdateInput struct {
+	SynchPeriodMinutes *uint32 `json:"synchPeriodMinutes,omitempty"`
 }
 
 type ConfigAIOpenai struct {
@@ -59,11 +67,11 @@ type ConfigAIResourcesUpdateInput struct {
 }
 
 type ConfigAIUpdateInput struct {
-	Openai             *ConfigAIOpenaiUpdateInput    `json:"openai,omitempty"`
-	Resources          *ConfigAIResourcesUpdateInput `json:"resources,omitempty"`
-	SynchPeriodMinutes *uint32                       `json:"synchPeriodMinutes,omitempty"`
-	Version            *string                       `json:"version,omitempty"`
-	WebhookSecret      *string                       `json:"webhookSecret,omitempty"`
+	AutoEmbeddings *ConfigAIAutoEmbeddingsUpdateInput `json:"autoEmbeddings,omitempty"`
+	Openai         *ConfigAIOpenaiUpdateInput         `json:"openai,omitempty"`
+	Resources      *ConfigAIResourcesUpdateInput      `json:"resources,omitempty"`
+	Version        *string                            `json:"version,omitempty"`
+	WebhookSecret  *string                            `json:"webhookSecret,omitempty"`
 }
 
 type ConfigAuth struct {
@@ -680,12 +688,15 @@ type ConfigPostgresSettings struct {
 	MaxParallelMaintenanceWorkers *string  `json:"maxParallelMaintenanceWorkers,omitempty"`
 	MaxParallelWorkers            *string  `json:"maxParallelWorkers,omitempty"`
 	MaxParallelWorkersPerGather   *string  `json:"maxParallelWorkersPerGather,omitempty"`
+	MaxReplicationSlots           *string  `json:"maxReplicationSlots,omitempty"`
+	MaxWalSenders                 *string  `json:"maxWalSenders,omitempty"`
 	MaxWalSize                    *string  `json:"maxWalSize,omitempty"`
 	MaxWorkerProcesses            *string  `json:"maxWorkerProcesses,omitempty"`
 	MinWalSize                    *string  `json:"minWalSize,omitempty"`
 	RandomPageCost                *float64 `json:"randomPageCost,omitempty"`
 	SharedBuffers                 *string  `json:"sharedBuffers,omitempty"`
 	WalBuffers                    *string  `json:"walBuffers,omitempty"`
+	WalLevel                      *string  `json:"walLevel,omitempty"`
 	WorkMem                       *string  `json:"workMem,omitempty"`
 }
 
@@ -701,12 +712,15 @@ type ConfigPostgresSettingsUpdateInput struct {
 	MaxParallelMaintenanceWorkers *string  `json:"maxParallelMaintenanceWorkers,omitempty"`
 	MaxParallelWorkers            *string  `json:"maxParallelWorkers,omitempty"`
 	MaxParallelWorkersPerGather   *string  `json:"maxParallelWorkersPerGather,omitempty"`
+	MaxReplicationSlots           *string  `json:"maxReplicationSlots,omitempty"`
+	MaxWalSenders                 *string  `json:"maxWalSenders,omitempty"`
 	MaxWalSize                    *string  `json:"maxWalSize,omitempty"`
 	MaxWorkerProcesses            *string  `json:"maxWorkerProcesses,omitempty"`
 	MinWalSize                    *string  `json:"minWalSize,omitempty"`
 	RandomPageCost                *float64 `json:"randomPageCost,omitempty"`
 	SharedBuffers                 *string  `json:"sharedBuffers,omitempty"`
 	WalBuffers                    *string  `json:"walBuffers,omitempty"`
+	WalLevel                      *string  `json:"walLevel,omitempty"`
 	WorkMem                       *string  `json:"workMem,omitempty"`
 }
 
@@ -5974,6 +5988,8 @@ type SoftwareTypeEnum string
 const (
 	// Hasura Auth
 	SoftwareTypeEnumAuth SoftwareTypeEnum = "Auth"
+	// Graphite
+	SoftwareTypeEnumGraphite SoftwareTypeEnum = "Graphite"
 	// Hasura GraphQL Engine
 	SoftwareTypeEnumHasura SoftwareTypeEnum = "Hasura"
 	// PostgreSQL Database
@@ -5984,6 +6000,7 @@ const (
 
 var AllSoftwareTypeEnum = []SoftwareTypeEnum{
 	SoftwareTypeEnumAuth,
+	SoftwareTypeEnumGraphite,
 	SoftwareTypeEnumHasura,
 	SoftwareTypeEnumPostgreSQL,
 	SoftwareTypeEnumStorage,
@@ -5991,7 +6008,7 @@ var AllSoftwareTypeEnum = []SoftwareTypeEnum{
 
 func (e SoftwareTypeEnum) IsValid() bool {
 	switch e {
-	case SoftwareTypeEnumAuth, SoftwareTypeEnumHasura, SoftwareTypeEnumPostgreSQL, SoftwareTypeEnumStorage:
+	case SoftwareTypeEnumAuth, SoftwareTypeEnumGraphite, SoftwareTypeEnumHasura, SoftwareTypeEnumPostgreSQL, SoftwareTypeEnumStorage:
 		return true
 	}
 	return false

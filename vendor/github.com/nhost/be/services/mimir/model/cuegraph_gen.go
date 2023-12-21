@@ -90,35 +90,863 @@ type ConfigStringComparisonExp = GenericComparisonExp[string]
 
 type ConfigBooleanComparisonExp = GenericComparisonExp[bool]
 
-type (
-	ConfigFloatComparisonExp = GenericComparisonExp[float64]
-	// Configuration for auth service
-	// You can find more information about the configuration here:
-	// https://github.com/nhost/hasura-auth/blob/main/docs/environment-variables.md
-	ConfigAuth struct {
-		// Version of auth, you can see available versions in the URL below:
-		// https://hub.docker.com/r/nhost/hasura-auth/tags
-		//
-		// Releases:
-		//
-		// https://github.com/nhost/hasura-auth/releases
-		Version *string `json:"version" toml:"version"`
-		// Resources for the service
-		Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
+type ConfigFloatComparisonExp = GenericComparisonExp[float64]
 
-		Redirections *ConfigAuthRedirections `json:"redirections,omitempty" toml:"redirections,omitempty"`
+type ConfigAI struct {
+	Version *string `json:"version" toml:"version"`
 
-		SignUp *ConfigAuthSignUp `json:"signUp,omitempty" toml:"signUp,omitempty"`
+	Resources *ConfigAIResources `json:"resources,omitempty" toml:"resources,omitempty"`
 
-		User *ConfigAuthUser `json:"user,omitempty" toml:"user,omitempty"`
+	Openai *ConfigAIOpenai `json:"openai,omitempty" toml:"openai,omitempty"`
 
-		Session *ConfigAuthSession `json:"session,omitempty" toml:"session,omitempty"`
+	AutoEmbeddings *ConfigAIAutoEmbeddings `json:"autoEmbeddings,omitempty" toml:"autoEmbeddings,omitempty"`
 
-		Method *ConfigAuthMethod `json:"method,omitempty" toml:"method,omitempty"`
+	WebhookSecret string `json:"webhookSecret" toml:"webhookSecret"`
+}
 
-		Totp *ConfigAuthTotp `json:"totp,omitempty" toml:"totp,omitempty"`
+func (o *ConfigAI) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Version != nil {
+		m["version"] = o.Version
 	}
-)
+	if o.Resources != nil {
+		m["resources"] = o.Resources
+	}
+	if o.Openai != nil {
+		m["openai"] = o.Openai
+	}
+	if o.AutoEmbeddings != nil {
+		m["autoEmbeddings"] = o.AutoEmbeddings
+	}
+	m["webhookSecret"] = o.WebhookSecret
+	return json.Marshal(m)
+}
+
+func (o *ConfigAI) GetVersion() *string {
+	if o == nil {
+		o = &ConfigAI{}
+	}
+	return o.Version
+}
+
+func (o *ConfigAI) GetResources() *ConfigAIResources {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
+}
+
+func (o *ConfigAI) GetOpenai() *ConfigAIOpenai {
+	if o == nil {
+		return nil
+	}
+	return o.Openai
+}
+
+func (o *ConfigAI) GetAutoEmbeddings() *ConfigAIAutoEmbeddings {
+	if o == nil {
+		return nil
+	}
+	return o.AutoEmbeddings
+}
+
+func (o *ConfigAI) GetWebhookSecret() string {
+	if o == nil {
+		o = &ConfigAI{}
+	}
+	return o.WebhookSecret
+}
+
+type ConfigAIUpdateInput struct {
+	Version             *string                            `json:"version,omitempty" toml:"version,omitempty"`
+	IsSetVersion        bool                               `json:"-"`
+	Resources           *ConfigAIResourcesUpdateInput      `json:"resources,omitempty" toml:"resources,omitempty"`
+	IsSetResources      bool                               `json:"-"`
+	Openai              *ConfigAIOpenaiUpdateInput         `json:"openai,omitempty" toml:"openai,omitempty"`
+	IsSetOpenai         bool                               `json:"-"`
+	AutoEmbeddings      *ConfigAIAutoEmbeddingsUpdateInput `json:"autoEmbeddings,omitempty" toml:"autoEmbeddings,omitempty"`
+	IsSetAutoEmbeddings bool                               `json:"-"`
+	WebhookSecret       *string                            `json:"webhookSecret,omitempty" toml:"webhookSecret,omitempty"`
+	IsSetWebhookSecret  bool                               `json:"-"`
+}
+
+func (o *ConfigAIUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["version"]; ok {
+		if v == nil {
+			o.Version = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Version = &x
+		}
+		o.IsSetVersion = true
+	}
+	if x, ok := m["resources"]; ok {
+		if x != nil {
+			t := &ConfigAIResourcesUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Resources = t
+		}
+		o.IsSetResources = true
+	}
+	if x, ok := m["openai"]; ok {
+		if x != nil {
+			t := &ConfigAIOpenaiUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Openai = t
+		}
+		o.IsSetOpenai = true
+	}
+	if x, ok := m["autoEmbeddings"]; ok {
+		if x != nil {
+			t := &ConfigAIAutoEmbeddingsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.AutoEmbeddings = t
+		}
+		o.IsSetAutoEmbeddings = true
+	}
+	if v, ok := m["webhookSecret"]; ok {
+		if v == nil {
+			o.WebhookSecret = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.WebhookSecret = &x
+		}
+		o.IsSetWebhookSecret = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAIUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAIUpdateInput) GetVersion() *string {
+	if o == nil {
+		o = &ConfigAIUpdateInput{}
+	}
+	return o.Version
+}
+
+func (o *ConfigAIUpdateInput) GetResources() *ConfigAIResourcesUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
+}
+
+func (o *ConfigAIUpdateInput) GetOpenai() *ConfigAIOpenaiUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Openai
+}
+
+func (o *ConfigAIUpdateInput) GetAutoEmbeddings() *ConfigAIAutoEmbeddingsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.AutoEmbeddings
+}
+
+func (o *ConfigAIUpdateInput) GetWebhookSecret() *string {
+	if o == nil {
+		o = &ConfigAIUpdateInput{}
+	}
+	return o.WebhookSecret
+}
+
+func (s *ConfigAI) Update(v *ConfigAIUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetVersion || v.Version != nil {
+		s.Version = v.Version
+	}
+	if v.IsSetResources || v.Resources != nil {
+		if v.Resources == nil {
+			s.Resources = nil
+		} else {
+			if s.Resources == nil {
+				s.Resources = &ConfigAIResources{}
+			}
+			s.Resources.Update(v.Resources)
+		}
+	}
+	if v.IsSetOpenai || v.Openai != nil {
+		if v.Openai == nil {
+			s.Openai = nil
+		} else {
+			if s.Openai == nil {
+				s.Openai = &ConfigAIOpenai{}
+			}
+			s.Openai.Update(v.Openai)
+		}
+	}
+	if v.IsSetAutoEmbeddings || v.AutoEmbeddings != nil {
+		if v.AutoEmbeddings == nil {
+			s.AutoEmbeddings = nil
+		} else {
+			if s.AutoEmbeddings == nil {
+				s.AutoEmbeddings = &ConfigAIAutoEmbeddings{}
+			}
+			s.AutoEmbeddings.Update(v.AutoEmbeddings)
+		}
+	}
+	if v.IsSetWebhookSecret || v.WebhookSecret != nil {
+		if v.WebhookSecret != nil {
+			s.WebhookSecret = *v.WebhookSecret
+		}
+	}
+}
+
+type ConfigAIInsertInput struct {
+	Version        *string                            `json:"version,omitempty" toml:"version,omitempty"`
+	Resources      *ConfigAIResourcesInsertInput      `json:"resources,omitempty" toml:"resources,omitempty"`
+	Openai         *ConfigAIOpenaiInsertInput         `json:"openai,omitempty" toml:"openai,omitempty"`
+	AutoEmbeddings *ConfigAIAutoEmbeddingsInsertInput `json:"autoEmbeddings,omitempty" toml:"autoEmbeddings,omitempty"`
+	WebhookSecret  string                             `json:"webhookSecret,omitempty" toml:"webhookSecret,omitempty"`
+}
+
+func (o *ConfigAIInsertInput) GetVersion() *string {
+	if o == nil {
+		o = &ConfigAIInsertInput{}
+	}
+	return o.Version
+}
+
+func (o *ConfigAIInsertInput) GetResources() *ConfigAIResourcesInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Resources
+}
+
+func (o *ConfigAIInsertInput) GetOpenai() *ConfigAIOpenaiInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Openai
+}
+
+func (o *ConfigAIInsertInput) GetAutoEmbeddings() *ConfigAIAutoEmbeddingsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.AutoEmbeddings
+}
+
+func (o *ConfigAIInsertInput) GetWebhookSecret() string {
+	if o == nil {
+		o = &ConfigAIInsertInput{}
+	}
+	return o.WebhookSecret
+}
+
+func (s *ConfigAI) Insert(v *ConfigAIInsertInput) {
+	s.Version = v.Version
+	if v.Resources != nil {
+		if s.Resources == nil {
+			s.Resources = &ConfigAIResources{}
+		}
+		s.Resources.Insert(v.Resources)
+	}
+	if v.Openai != nil {
+		if s.Openai == nil {
+			s.Openai = &ConfigAIOpenai{}
+		}
+		s.Openai.Insert(v.Openai)
+	}
+	if v.AutoEmbeddings != nil {
+		if s.AutoEmbeddings == nil {
+			s.AutoEmbeddings = &ConfigAIAutoEmbeddings{}
+		}
+		s.AutoEmbeddings.Insert(v.AutoEmbeddings)
+	}
+	s.WebhookSecret = v.WebhookSecret
+}
+
+func (s *ConfigAI) Clone() *ConfigAI {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAI{}
+	v.Version = s.Version
+	v.Resources = s.Resources.Clone()
+	v.Openai = s.Openai.Clone()
+	v.AutoEmbeddings = s.AutoEmbeddings.Clone()
+	v.WebhookSecret = s.WebhookSecret
+	return v
+}
+
+type ConfigAIComparisonExp struct {
+	And            []*ConfigAIComparisonExp             `json:"_and,omitempty"`
+	Not            *ConfigAIComparisonExp               `json:"_not,omitempty"`
+	Or             []*ConfigAIComparisonExp             `json:"_or,omitempty"`
+	Version        *ConfigStringComparisonExp           `json:"version,omitempty"`
+	Resources      *ConfigAIResourcesComparisonExp      `json:"resources,omitempty"`
+	Openai         *ConfigAIOpenaiComparisonExp         `json:"openai,omitempty"`
+	AutoEmbeddings *ConfigAIAutoEmbeddingsComparisonExp `json:"autoEmbeddings,omitempty"`
+	WebhookSecret  *ConfigStringComparisonExp           `json:"webhookSecret,omitempty"`
+}
+
+func (exp *ConfigAIComparisonExp) Matches(o *ConfigAI) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAI{
+			Resources:      &ConfigAIResources{},
+			Openai:         &ConfigAIOpenai{},
+			AutoEmbeddings: &ConfigAIAutoEmbeddings{},
+		}
+	}
+	if o.Version != nil && !exp.Version.Matches(*o.Version) {
+		return false
+	}
+	if !exp.Resources.Matches(o.Resources) {
+		return false
+	}
+	if !exp.Openai.Matches(o.Openai) {
+		return false
+	}
+	if !exp.AutoEmbeddings.Matches(o.AutoEmbeddings) {
+		return false
+	}
+	if !exp.WebhookSecret.Matches(o.WebhookSecret) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAIAutoEmbeddings struct {
+	SynchPeriodMinutes *uint32 `json:"synchPeriodMinutes" toml:"synchPeriodMinutes"`
+}
+
+func (o *ConfigAIAutoEmbeddings) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.SynchPeriodMinutes != nil {
+		m["synchPeriodMinutes"] = o.SynchPeriodMinutes
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAIAutoEmbeddings) GetSynchPeriodMinutes() *uint32 {
+	if o == nil {
+		o = &ConfigAIAutoEmbeddings{}
+	}
+	return o.SynchPeriodMinutes
+}
+
+type ConfigAIAutoEmbeddingsUpdateInput struct {
+	SynchPeriodMinutes      *uint32 `json:"synchPeriodMinutes,omitempty" toml:"synchPeriodMinutes,omitempty"`
+	IsSetSynchPeriodMinutes bool    `json:"-"`
+}
+
+func (o *ConfigAIAutoEmbeddingsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["synchPeriodMinutes"]; ok {
+		if v == nil {
+			o.SynchPeriodMinutes = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.SynchPeriodMinutes = &x
+		}
+		o.IsSetSynchPeriodMinutes = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAIAutoEmbeddingsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAIAutoEmbeddingsUpdateInput) GetSynchPeriodMinutes() *uint32 {
+	if o == nil {
+		o = &ConfigAIAutoEmbeddingsUpdateInput{}
+	}
+	return o.SynchPeriodMinutes
+}
+
+func (s *ConfigAIAutoEmbeddings) Update(v *ConfigAIAutoEmbeddingsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetSynchPeriodMinutes || v.SynchPeriodMinutes != nil {
+		s.SynchPeriodMinutes = v.SynchPeriodMinutes
+	}
+}
+
+type ConfigAIAutoEmbeddingsInsertInput struct {
+	SynchPeriodMinutes *uint32 `json:"synchPeriodMinutes,omitempty" toml:"synchPeriodMinutes,omitempty"`
+}
+
+func (o *ConfigAIAutoEmbeddingsInsertInput) GetSynchPeriodMinutes() *uint32 {
+	if o == nil {
+		o = &ConfigAIAutoEmbeddingsInsertInput{}
+	}
+	return o.SynchPeriodMinutes
+}
+
+func (s *ConfigAIAutoEmbeddings) Insert(v *ConfigAIAutoEmbeddingsInsertInput) {
+	s.SynchPeriodMinutes = v.SynchPeriodMinutes
+}
+
+func (s *ConfigAIAutoEmbeddings) Clone() *ConfigAIAutoEmbeddings {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAIAutoEmbeddings{}
+	v.SynchPeriodMinutes = s.SynchPeriodMinutes
+	return v
+}
+
+type ConfigAIAutoEmbeddingsComparisonExp struct {
+	And                []*ConfigAIAutoEmbeddingsComparisonExp `json:"_and,omitempty"`
+	Not                *ConfigAIAutoEmbeddingsComparisonExp   `json:"_not,omitempty"`
+	Or                 []*ConfigAIAutoEmbeddingsComparisonExp `json:"_or,omitempty"`
+	SynchPeriodMinutes *ConfigUint32ComparisonExp             `json:"synchPeriodMinutes,omitempty"`
+}
+
+func (exp *ConfigAIAutoEmbeddingsComparisonExp) Matches(o *ConfigAIAutoEmbeddings) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAIAutoEmbeddings{}
+	}
+	if o.SynchPeriodMinutes != nil && !exp.SynchPeriodMinutes.Matches(*o.SynchPeriodMinutes) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAIOpenai struct {
+	Organization *string `json:"organization" toml:"organization"`
+
+	ApiKey string `json:"apiKey" toml:"apiKey"`
+}
+
+func (o *ConfigAIOpenai) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Organization != nil {
+		m["organization"] = o.Organization
+	}
+	m["apiKey"] = o.ApiKey
+	return json.Marshal(m)
+}
+
+func (o *ConfigAIOpenai) GetOrganization() *string {
+	if o == nil {
+		o = &ConfigAIOpenai{}
+	}
+	return o.Organization
+}
+
+func (o *ConfigAIOpenai) GetApiKey() string {
+	if o == nil {
+		o = &ConfigAIOpenai{}
+	}
+	return o.ApiKey
+}
+
+type ConfigAIOpenaiUpdateInput struct {
+	Organization      *string `json:"organization,omitempty" toml:"organization,omitempty"`
+	IsSetOrganization bool    `json:"-"`
+	ApiKey            *string `json:"apiKey,omitempty" toml:"apiKey,omitempty"`
+	IsSetApiKey       bool    `json:"-"`
+}
+
+func (o *ConfigAIOpenaiUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["organization"]; ok {
+		if v == nil {
+			o.Organization = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Organization = &x
+		}
+		o.IsSetOrganization = true
+	}
+	if v, ok := m["apiKey"]; ok {
+		if v == nil {
+			o.ApiKey = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ApiKey = &x
+		}
+		o.IsSetApiKey = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAIOpenaiUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAIOpenaiUpdateInput) GetOrganization() *string {
+	if o == nil {
+		o = &ConfigAIOpenaiUpdateInput{}
+	}
+	return o.Organization
+}
+
+func (o *ConfigAIOpenaiUpdateInput) GetApiKey() *string {
+	if o == nil {
+		o = &ConfigAIOpenaiUpdateInput{}
+	}
+	return o.ApiKey
+}
+
+func (s *ConfigAIOpenai) Update(v *ConfigAIOpenaiUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetOrganization || v.Organization != nil {
+		s.Organization = v.Organization
+	}
+	if v.IsSetApiKey || v.ApiKey != nil {
+		if v.ApiKey != nil {
+			s.ApiKey = *v.ApiKey
+		}
+	}
+}
+
+type ConfigAIOpenaiInsertInput struct {
+	Organization *string `json:"organization,omitempty" toml:"organization,omitempty"`
+	ApiKey       string  `json:"apiKey,omitempty" toml:"apiKey,omitempty"`
+}
+
+func (o *ConfigAIOpenaiInsertInput) GetOrganization() *string {
+	if o == nil {
+		o = &ConfigAIOpenaiInsertInput{}
+	}
+	return o.Organization
+}
+
+func (o *ConfigAIOpenaiInsertInput) GetApiKey() string {
+	if o == nil {
+		o = &ConfigAIOpenaiInsertInput{}
+	}
+	return o.ApiKey
+}
+
+func (s *ConfigAIOpenai) Insert(v *ConfigAIOpenaiInsertInput) {
+	s.Organization = v.Organization
+	s.ApiKey = v.ApiKey
+}
+
+func (s *ConfigAIOpenai) Clone() *ConfigAIOpenai {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAIOpenai{}
+	v.Organization = s.Organization
+	v.ApiKey = s.ApiKey
+	return v
+}
+
+type ConfigAIOpenaiComparisonExp struct {
+	And          []*ConfigAIOpenaiComparisonExp `json:"_and,omitempty"`
+	Not          *ConfigAIOpenaiComparisonExp   `json:"_not,omitempty"`
+	Or           []*ConfigAIOpenaiComparisonExp `json:"_or,omitempty"`
+	Organization *ConfigStringComparisonExp     `json:"organization,omitempty"`
+	ApiKey       *ConfigStringComparisonExp     `json:"apiKey,omitempty"`
+}
+
+func (exp *ConfigAIOpenaiComparisonExp) Matches(o *ConfigAIOpenai) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAIOpenai{}
+	}
+	if o.Organization != nil && !exp.Organization.Matches(*o.Organization) {
+		return false
+	}
+	if !exp.ApiKey.Matches(o.ApiKey) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAIResources struct {
+	Compute *ConfigComputeResources `json:"compute,omitempty" toml:"compute,omitempty"`
+}
+
+func (o *ConfigAIResources) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Compute != nil {
+		m["compute"] = o.Compute
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAIResources) GetCompute() *ConfigComputeResources {
+	if o == nil {
+		return nil
+	}
+	return o.Compute
+}
+
+type ConfigAIResourcesUpdateInput struct {
+	Compute      *ConfigComputeResourcesUpdateInput `json:"compute,omitempty" toml:"compute,omitempty"`
+	IsSetCompute bool                               `json:"-"`
+}
+
+func (o *ConfigAIResourcesUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["compute"]; ok {
+		if x != nil {
+			t := &ConfigComputeResourcesUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Compute = t
+		}
+		o.IsSetCompute = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAIResourcesUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAIResourcesUpdateInput) GetCompute() *ConfigComputeResourcesUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Compute
+}
+
+func (s *ConfigAIResources) Update(v *ConfigAIResourcesUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetCompute || v.Compute != nil {
+		if v.Compute == nil {
+			s.Compute = nil
+		} else {
+			if s.Compute == nil {
+				s.Compute = &ConfigComputeResources{}
+			}
+			s.Compute.Update(v.Compute)
+		}
+	}
+}
+
+type ConfigAIResourcesInsertInput struct {
+	Compute *ConfigComputeResourcesInsertInput `json:"compute,omitempty" toml:"compute,omitempty"`
+}
+
+func (o *ConfigAIResourcesInsertInput) GetCompute() *ConfigComputeResourcesInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Compute
+}
+
+func (s *ConfigAIResources) Insert(v *ConfigAIResourcesInsertInput) {
+	if v.Compute != nil {
+		if s.Compute == nil {
+			s.Compute = &ConfigComputeResources{}
+		}
+		s.Compute.Insert(v.Compute)
+	}
+}
+
+func (s *ConfigAIResources) Clone() *ConfigAIResources {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAIResources{}
+	v.Compute = s.Compute.Clone()
+	return v
+}
+
+type ConfigAIResourcesComparisonExp struct {
+	And     []*ConfigAIResourcesComparisonExp    `json:"_and,omitempty"`
+	Not     *ConfigAIResourcesComparisonExp      `json:"_not,omitempty"`
+	Or      []*ConfigAIResourcesComparisonExp    `json:"_or,omitempty"`
+	Compute *ConfigComputeResourcesComparisonExp `json:"compute,omitempty"`
+}
+
+func (exp *ConfigAIResourcesComparisonExp) Matches(o *ConfigAIResources) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAIResources{
+			Compute: &ConfigComputeResources{},
+		}
+	}
+	if !exp.Compute.Matches(o.Compute) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+// Configuration for auth service
+// You can find more information about the configuration here:
+// https://github.com/nhost/hasura-auth/blob/main/docs/environment-variables.md
+type ConfigAuth struct {
+	// Version of auth, you can see available versions in the URL below:
+	// https://hub.docker.com/r/nhost/hasura-auth/tags
+	//
+	// Releases:
+	//
+	// https://github.com/nhost/hasura-auth/releases
+	Version *string `json:"version" toml:"version"`
+	// Resources for the service
+	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
+
+	Redirections *ConfigAuthRedirections `json:"redirections,omitempty" toml:"redirections,omitempty"`
+
+	SignUp *ConfigAuthSignUp `json:"signUp,omitempty" toml:"signUp,omitempty"`
+
+	User *ConfigAuthUser `json:"user,omitempty" toml:"user,omitempty"`
+
+	Session *ConfigAuthSession `json:"session,omitempty" toml:"session,omitempty"`
+
+	Method *ConfigAuthMethod `json:"method,omitempty" toml:"method,omitempty"`
+
+	Totp *ConfigAuthTotp `json:"totp,omitempty" toml:"totp,omitempty"`
+}
 
 func (o *ConfigAuth) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
@@ -7861,6 +8689,195 @@ func (exp *ConfigClaimMapComparisonExp) Matches(o *ConfigClaimMap) bool {
 	return true
 }
 
+// Resource configuration for a service
+type ConfigComputeResources struct {
+	// milicpus, 1000 milicpus = 1 cpu
+	Cpu uint32 `json:"cpu" toml:"cpu"`
+	// MiB: 128MiB to 30GiB
+	Memory uint32 `json:"memory" toml:"memory"`
+}
+
+func (o *ConfigComputeResources) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["cpu"] = o.Cpu
+	m["memory"] = o.Memory
+	return json.Marshal(m)
+}
+
+func (o *ConfigComputeResources) GetCpu() uint32 {
+	if o == nil {
+		o = &ConfigComputeResources{}
+	}
+	return o.Cpu
+}
+
+func (o *ConfigComputeResources) GetMemory() uint32 {
+	if o == nil {
+		o = &ConfigComputeResources{}
+	}
+	return o.Memory
+}
+
+type ConfigComputeResourcesUpdateInput struct {
+	Cpu         *uint32 `json:"cpu,omitempty" toml:"cpu,omitempty"`
+	IsSetCpu    bool    `json:"-"`
+	Memory      *uint32 `json:"memory,omitempty" toml:"memory,omitempty"`
+	IsSetMemory bool    `json:"-"`
+}
+
+func (o *ConfigComputeResourcesUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["cpu"]; ok {
+		if v == nil {
+			o.Cpu = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Cpu = &x
+		}
+		o.IsSetCpu = true
+	}
+	if v, ok := m["memory"]; ok {
+		if v == nil {
+			o.Memory = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Memory = &x
+		}
+		o.IsSetMemory = true
+	}
+
+	return nil
+}
+
+func (o *ConfigComputeResourcesUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigComputeResourcesUpdateInput) GetCpu() *uint32 {
+	if o == nil {
+		o = &ConfigComputeResourcesUpdateInput{}
+	}
+	return o.Cpu
+}
+
+func (o *ConfigComputeResourcesUpdateInput) GetMemory() *uint32 {
+	if o == nil {
+		o = &ConfigComputeResourcesUpdateInput{}
+	}
+	return o.Memory
+}
+
+func (s *ConfigComputeResources) Update(v *ConfigComputeResourcesUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetCpu || v.Cpu != nil {
+		if v.Cpu != nil {
+			s.Cpu = *v.Cpu
+		}
+	}
+	if v.IsSetMemory || v.Memory != nil {
+		if v.Memory != nil {
+			s.Memory = *v.Memory
+		}
+	}
+}
+
+type ConfigComputeResourcesInsertInput struct {
+	Cpu    uint32 `json:"cpu,omitempty" toml:"cpu,omitempty"`
+	Memory uint32 `json:"memory,omitempty" toml:"memory,omitempty"`
+}
+
+func (o *ConfigComputeResourcesInsertInput) GetCpu() uint32 {
+	if o == nil {
+		o = &ConfigComputeResourcesInsertInput{}
+	}
+	return o.Cpu
+}
+
+func (o *ConfigComputeResourcesInsertInput) GetMemory() uint32 {
+	if o == nil {
+		o = &ConfigComputeResourcesInsertInput{}
+	}
+	return o.Memory
+}
+
+func (s *ConfigComputeResources) Insert(v *ConfigComputeResourcesInsertInput) {
+	s.Cpu = v.Cpu
+	s.Memory = v.Memory
+}
+
+func (s *ConfigComputeResources) Clone() *ConfigComputeResources {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigComputeResources{}
+	v.Cpu = s.Cpu
+	v.Memory = s.Memory
+	return v
+}
+
+type ConfigComputeResourcesComparisonExp struct {
+	And    []*ConfigComputeResourcesComparisonExp `json:"_and,omitempty"`
+	Not    *ConfigComputeResourcesComparisonExp   `json:"_not,omitempty"`
+	Or     []*ConfigComputeResourcesComparisonExp `json:"_or,omitempty"`
+	Cpu    *ConfigUint32ComparisonExp             `json:"cpu,omitempty"`
+	Memory *ConfigUint32ComparisonExp             `json:"memory,omitempty"`
+}
+
+func (exp *ConfigComputeResourcesComparisonExp) Matches(o *ConfigComputeResources) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigComputeResources{}
+	}
+	if !exp.Cpu.Matches(o.Cpu) {
+		return false
+	}
+	if !exp.Memory.Matches(o.Memory) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
 // main entrypoint to the configuration
 type ConfigConfig struct {
 	// Global configuration that applies to all services
@@ -7877,6 +8894,8 @@ type ConfigConfig struct {
 	Provider *ConfigProvider `json:"provider,omitempty" toml:"provider,omitempty"`
 	// Configuration for storage service
 	Storage *ConfigStorage `json:"storage,omitempty" toml:"storage,omitempty"`
+	// Configuration for graphite service
+	Ai *ConfigAI `json:"ai,omitempty" toml:"ai,omitempty"`
 	// Configuration for observability service
 	Observability *ConfigObservability `json:"observability,omitempty" toml:"observability,omitempty"`
 }
@@ -7903,6 +8922,9 @@ func (o *ConfigConfig) MarshalJSON() ([]byte, error) {
 	}
 	if o.Storage != nil {
 		m["storage"] = o.Storage
+	}
+	if o.Ai != nil {
+		m["ai"] = o.Ai
 	}
 	if o.Observability != nil {
 		m["observability"] = o.Observability
@@ -7959,6 +8981,13 @@ func (o *ConfigConfig) GetStorage() *ConfigStorage {
 	return o.Storage
 }
 
+func (o *ConfigConfig) GetAi() *ConfigAI {
+	if o == nil {
+		return nil
+	}
+	return o.Ai
+}
+
 func (o *ConfigConfig) GetObservability() *ConfigObservability {
 	if o == nil {
 		return nil
@@ -7981,6 +9010,8 @@ type ConfigConfigUpdateInput struct {
 	IsSetProvider      bool                            `json:"-"`
 	Storage            *ConfigStorageUpdateInput       `json:"storage,omitempty" toml:"storage,omitempty"`
 	IsSetStorage       bool                            `json:"-"`
+	Ai                 *ConfigAIUpdateInput            `json:"ai,omitempty" toml:"ai,omitempty"`
+	IsSetAi            bool                            `json:"-"`
 	Observability      *ConfigObservabilityUpdateInput `json:"observability,omitempty" toml:"observability,omitempty"`
 	IsSetObservability bool                            `json:"-"`
 }
@@ -8060,6 +9091,16 @@ func (o *ConfigConfigUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetStorage = true
 	}
+	if x, ok := m["ai"]; ok {
+		if x != nil {
+			t := &ConfigAIUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Ai = t
+		}
+		o.IsSetAi = true
+	}
 	if x, ok := m["observability"]; ok {
 		if x != nil {
 			t := &ConfigObservabilityUpdateInput{}
@@ -8128,6 +9169,13 @@ func (o *ConfigConfigUpdateInput) GetStorage() *ConfigStorageUpdateInput {
 		return nil
 	}
 	return o.Storage
+}
+
+func (o *ConfigConfigUpdateInput) GetAi() *ConfigAIUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Ai
 }
 
 func (o *ConfigConfigUpdateInput) GetObservability() *ConfigObservabilityUpdateInput {
@@ -8211,6 +9259,16 @@ func (s *ConfigConfig) Update(v *ConfigConfigUpdateInput) {
 			s.Storage.Update(v.Storage)
 		}
 	}
+	if v.IsSetAi || v.Ai != nil {
+		if v.Ai == nil {
+			s.Ai = nil
+		} else {
+			if s.Ai == nil {
+				s.Ai = &ConfigAI{}
+			}
+			s.Ai.Update(v.Ai)
+		}
+	}
 	if v.IsSetObservability || v.Observability != nil {
 		if v.Observability == nil {
 			s.Observability = nil
@@ -8231,6 +9289,7 @@ type ConfigConfigInsertInput struct {
 	Postgres      *ConfigPostgresInsertInput      `json:"postgres,omitempty" toml:"postgres,omitempty"`
 	Provider      *ConfigProviderInsertInput      `json:"provider,omitempty" toml:"provider,omitempty"`
 	Storage       *ConfigStorageInsertInput       `json:"storage,omitempty" toml:"storage,omitempty"`
+	Ai            *ConfigAIInsertInput            `json:"ai,omitempty" toml:"ai,omitempty"`
 	Observability *ConfigObservabilityInsertInput `json:"observability,omitempty" toml:"observability,omitempty"`
 }
 
@@ -8283,6 +9342,13 @@ func (o *ConfigConfigInsertInput) GetStorage() *ConfigStorageInsertInput {
 	return o.Storage
 }
 
+func (o *ConfigConfigInsertInput) GetAi() *ConfigAIInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Ai
+}
+
 func (o *ConfigConfigInsertInput) GetObservability() *ConfigObservabilityInsertInput {
 	if o == nil {
 		return nil
@@ -8333,6 +9399,12 @@ func (s *ConfigConfig) Insert(v *ConfigConfigInsertInput) {
 		}
 		s.Storage.Insert(v.Storage)
 	}
+	if v.Ai != nil {
+		if s.Ai == nil {
+			s.Ai = &ConfigAI{}
+		}
+		s.Ai.Insert(v.Ai)
+	}
 	if v.Observability != nil {
 		if s.Observability == nil {
 			s.Observability = &ConfigObservability{}
@@ -8354,6 +9426,7 @@ func (s *ConfigConfig) Clone() *ConfigConfig {
 	v.Postgres = s.Postgres.Clone()
 	v.Provider = s.Provider.Clone()
 	v.Storage = s.Storage.Clone()
+	v.Ai = s.Ai.Clone()
 	v.Observability = s.Observability.Clone()
 	return v
 }
@@ -8369,6 +9442,7 @@ type ConfigConfigComparisonExp struct {
 	Postgres      *ConfigPostgresComparisonExp      `json:"postgres,omitempty"`
 	Provider      *ConfigProviderComparisonExp      `json:"provider,omitempty"`
 	Storage       *ConfigStorageComparisonExp       `json:"storage,omitempty"`
+	Ai            *ConfigAIComparisonExp            `json:"ai,omitempty"`
 	Observability *ConfigObservabilityComparisonExp `json:"observability,omitempty"`
 }
 
@@ -8386,6 +9460,7 @@ func (exp *ConfigConfigComparisonExp) Matches(o *ConfigConfig) bool {
 			Postgres:      &ConfigPostgres{},
 			Provider:      &ConfigProvider{},
 			Storage:       &ConfigStorage{},
+			Ai:            &ConfigAI{},
 			Observability: &ConfigObservability{},
 		}
 	}
@@ -8408,6 +9483,9 @@ func (exp *ConfigConfigComparisonExp) Matches(o *ConfigConfig) bool {
 		return false
 	}
 	if !exp.Storage.Matches(o.Storage) {
+		return false
+	}
+	if !exp.Ai.Matches(o.Ai) {
 		return false
 	}
 	if !exp.Observability.Matches(o.Observability) {
@@ -12899,6 +13977,12 @@ type ConfigPostgresSettings struct {
 	MaxParallelWorkers *int32 `json:"maxParallelWorkers" toml:"maxParallelWorkers"`
 
 	MaxParallelMaintenanceWorkers *int32 `json:"maxParallelMaintenanceWorkers" toml:"maxParallelMaintenanceWorkers"`
+
+	WalLevel *string `json:"walLevel" toml:"walLevel"`
+
+	MaxWalSenders *int32 `json:"maxWalSenders" toml:"maxWalSenders"`
+
+	MaxReplicationSlots *int32 `json:"maxReplicationSlots" toml:"maxReplicationSlots"`
 }
 
 func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
@@ -12956,6 +14040,15 @@ func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
 	}
 	if o.MaxParallelMaintenanceWorkers != nil {
 		m["maxParallelMaintenanceWorkers"] = o.MaxParallelMaintenanceWorkers
+	}
+	if o.WalLevel != nil {
+		m["walLevel"] = o.WalLevel
+	}
+	if o.MaxWalSenders != nil {
+		m["maxWalSenders"] = o.MaxWalSenders
+	}
+	if o.MaxReplicationSlots != nil {
+		m["maxReplicationSlots"] = o.MaxReplicationSlots
 	}
 	return json.Marshal(m)
 }
@@ -13086,6 +14179,27 @@ func (o *ConfigPostgresSettings) GetMaxParallelMaintenanceWorkers() *int32 {
 	return o.MaxParallelMaintenanceWorkers
 }
 
+func (o *ConfigPostgresSettings) GetWalLevel() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.WalLevel
+}
+
+func (o *ConfigPostgresSettings) GetMaxWalSenders() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.MaxWalSenders
+}
+
+func (o *ConfigPostgresSettings) GetMaxReplicationSlots() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.MaxReplicationSlots
+}
+
 type ConfigPostgresSettingsUpdateInput struct {
 	Jit                                *string  `json:"jit,omitempty" toml:"jit,omitempty"`
 	IsSetJit                           bool     `json:"-"`
@@ -13123,6 +14237,12 @@ type ConfigPostgresSettingsUpdateInput struct {
 	IsSetMaxParallelWorkers            bool     `json:"-"`
 	MaxParallelMaintenanceWorkers      *int32   `json:"maxParallelMaintenanceWorkers,omitempty" toml:"maxParallelMaintenanceWorkers,omitempty"`
 	IsSetMaxParallelMaintenanceWorkers bool     `json:"-"`
+	WalLevel                           *string  `json:"walLevel,omitempty" toml:"walLevel,omitempty"`
+	IsSetWalLevel                      bool     `json:"-"`
+	MaxWalSenders                      *int32   `json:"maxWalSenders,omitempty" toml:"maxWalSenders,omitempty"`
+	IsSetMaxWalSenders                 bool     `json:"-"`
+	MaxReplicationSlots                *int32   `json:"maxReplicationSlots,omitempty" toml:"maxReplicationSlots,omitempty"`
+	IsSetMaxReplicationSlots           bool     `json:"-"`
 }
 
 func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -13436,6 +14556,57 @@ func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetMaxParallelMaintenanceWorkers = true
 	}
+	if v, ok := m["walLevel"]; ok {
+		if v == nil {
+			o.WalLevel = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.WalLevel = &x
+		}
+		o.IsSetWalLevel = true
+	}
+	if v, ok := m["maxWalSenders"]; ok {
+		if v == nil {
+			o.MaxWalSenders = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxWalSenders = &x
+		}
+		o.IsSetMaxWalSenders = true
+	}
+	if v, ok := m["maxReplicationSlots"]; ok {
+		if v == nil {
+			o.MaxReplicationSlots = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxReplicationSlots = &x
+		}
+		o.IsSetMaxReplicationSlots = true
+	}
 
 	return nil
 }
@@ -13573,6 +14744,27 @@ func (o *ConfigPostgresSettingsUpdateInput) GetMaxParallelMaintenanceWorkers() *
 	return o.MaxParallelMaintenanceWorkers
 }
 
+func (o *ConfigPostgresSettingsUpdateInput) GetWalLevel() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.WalLevel
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetMaxWalSenders() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.MaxWalSenders
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetMaxReplicationSlots() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.MaxReplicationSlots
+}
+
 func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
 	if v == nil {
 		return
@@ -13631,6 +14823,15 @@ func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
 	if v.IsSetMaxParallelMaintenanceWorkers || v.MaxParallelMaintenanceWorkers != nil {
 		s.MaxParallelMaintenanceWorkers = v.MaxParallelMaintenanceWorkers
 	}
+	if v.IsSetWalLevel || v.WalLevel != nil {
+		s.WalLevel = v.WalLevel
+	}
+	if v.IsSetMaxWalSenders || v.MaxWalSenders != nil {
+		s.MaxWalSenders = v.MaxWalSenders
+	}
+	if v.IsSetMaxReplicationSlots || v.MaxReplicationSlots != nil {
+		s.MaxReplicationSlots = v.MaxReplicationSlots
+	}
 }
 
 type ConfigPostgresSettingsInsertInput struct {
@@ -13652,6 +14853,9 @@ type ConfigPostgresSettingsInsertInput struct {
 	MaxParallelWorkersPerGather   *int32   `json:"maxParallelWorkersPerGather,omitempty" toml:"maxParallelWorkersPerGather,omitempty"`
 	MaxParallelWorkers            *int32   `json:"maxParallelWorkers,omitempty" toml:"maxParallelWorkers,omitempty"`
 	MaxParallelMaintenanceWorkers *int32   `json:"maxParallelMaintenanceWorkers,omitempty" toml:"maxParallelMaintenanceWorkers,omitempty"`
+	WalLevel                      *string  `json:"walLevel,omitempty" toml:"walLevel,omitempty"`
+	MaxWalSenders                 *int32   `json:"maxWalSenders,omitempty" toml:"maxWalSenders,omitempty"`
+	MaxReplicationSlots           *int32   `json:"maxReplicationSlots,omitempty" toml:"maxReplicationSlots,omitempty"`
 }
 
 func (o *ConfigPostgresSettingsInsertInput) GetJit() *string {
@@ -13780,6 +14984,27 @@ func (o *ConfigPostgresSettingsInsertInput) GetMaxParallelMaintenanceWorkers() *
 	return o.MaxParallelMaintenanceWorkers
 }
 
+func (o *ConfigPostgresSettingsInsertInput) GetWalLevel() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.WalLevel
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetMaxWalSenders() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.MaxWalSenders
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetMaxReplicationSlots() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.MaxReplicationSlots
+}
+
 func (s *ConfigPostgresSettings) Insert(v *ConfigPostgresSettingsInsertInput) {
 	s.Jit = v.Jit
 	s.MaxConnections = v.MaxConnections
@@ -13799,6 +15024,9 @@ func (s *ConfigPostgresSettings) Insert(v *ConfigPostgresSettingsInsertInput) {
 	s.MaxParallelWorkersPerGather = v.MaxParallelWorkersPerGather
 	s.MaxParallelWorkers = v.MaxParallelWorkers
 	s.MaxParallelMaintenanceWorkers = v.MaxParallelMaintenanceWorkers
+	s.WalLevel = v.WalLevel
+	s.MaxWalSenders = v.MaxWalSenders
+	s.MaxReplicationSlots = v.MaxReplicationSlots
 }
 
 func (s *ConfigPostgresSettings) Clone() *ConfigPostgresSettings {
@@ -13825,6 +15053,9 @@ func (s *ConfigPostgresSettings) Clone() *ConfigPostgresSettings {
 	v.MaxParallelWorkersPerGather = s.MaxParallelWorkersPerGather
 	v.MaxParallelWorkers = s.MaxParallelWorkers
 	v.MaxParallelMaintenanceWorkers = s.MaxParallelMaintenanceWorkers
+	v.WalLevel = s.WalLevel
+	v.MaxWalSenders = s.MaxWalSenders
+	v.MaxReplicationSlots = s.MaxReplicationSlots
 	return v
 }
 
@@ -13850,6 +15081,9 @@ type ConfigPostgresSettingsComparisonExp struct {
 	MaxParallelWorkersPerGather   *ConfigInt32ComparisonExp              `json:"maxParallelWorkersPerGather,omitempty"`
 	MaxParallelWorkers            *ConfigInt32ComparisonExp              `json:"maxParallelWorkers,omitempty"`
 	MaxParallelMaintenanceWorkers *ConfigInt32ComparisonExp              `json:"maxParallelMaintenanceWorkers,omitempty"`
+	WalLevel                      *ConfigStringComparisonExp             `json:"walLevel,omitempty"`
+	MaxWalSenders                 *ConfigInt32ComparisonExp              `json:"maxWalSenders,omitempty"`
+	MaxReplicationSlots           *ConfigInt32ComparisonExp              `json:"maxReplicationSlots,omitempty"`
 }
 
 func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSettings) bool {
@@ -13912,6 +15146,15 @@ func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSetting
 		return false
 	}
 	if o.MaxParallelMaintenanceWorkers != nil && !exp.MaxParallelMaintenanceWorkers.Matches(*o.MaxParallelMaintenanceWorkers) {
+		return false
+	}
+	if o.WalLevel != nil && !exp.WalLevel.Matches(*o.WalLevel) {
+		return false
+	}
+	if o.MaxWalSenders != nil && !exp.MaxWalSenders.Matches(*o.MaxWalSenders) {
+		return false
+	}
+	if o.MaxReplicationSlots != nil && !exp.MaxReplicationSlots.Matches(*o.MaxReplicationSlots) {
 		return false
 	}
 
@@ -15773,7 +17016,7 @@ func (exp *ConfigRunServicePortComparisonExp) Matches(o *ConfigRunServicePort) b
 
 // Resource configuration for a service
 type ConfigRunServiceResources struct {
-	Compute *ConfigRunServiceResourcesCompute `json:"compute,omitempty" toml:"compute,omitempty"`
+	Compute *ConfigComputeResources `json:"compute,omitempty" toml:"compute,omitempty"`
 
 	Storage []*ConfigRunServiceResourcesStorage `json:"storage,omitempty" toml:"storage,omitempty"`
 	// Number of replicas for a service
@@ -15792,7 +17035,7 @@ func (o *ConfigRunServiceResources) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
-func (o *ConfigRunServiceResources) GetCompute() *ConfigRunServiceResourcesCompute {
+func (o *ConfigRunServiceResources) GetCompute() *ConfigComputeResources {
 	if o == nil {
 		return nil
 	}
@@ -15814,7 +17057,7 @@ func (o *ConfigRunServiceResources) GetReplicas() uint8 {
 }
 
 type ConfigRunServiceResourcesUpdateInput struct {
-	Compute       *ConfigRunServiceResourcesComputeUpdateInput   `json:"compute,omitempty" toml:"compute,omitempty"`
+	Compute       *ConfigComputeResourcesUpdateInput             `json:"compute,omitempty" toml:"compute,omitempty"`
 	IsSetCompute  bool                                           `json:"-"`
 	Storage       []*ConfigRunServiceResourcesStorageUpdateInput `json:"storage,omitempty" toml:"storage,omitempty"`
 	IsSetStorage  bool                                           `json:"-"`
@@ -15829,7 +17072,7 @@ func (o *ConfigRunServiceResourcesUpdateInput) UnmarshalGQL(v interface{}) error
 	}
 	if x, ok := m["compute"]; ok {
 		if x != nil {
-			t := &ConfigRunServiceResourcesComputeUpdateInput{}
+			t := &ConfigComputeResourcesUpdateInput{}
 			if err := t.UnmarshalGQL(x); err != nil {
 				return err
 			}
@@ -15884,7 +17127,7 @@ func (o *ConfigRunServiceResourcesUpdateInput) MarshalGQL(w io.Writer) {
 	}
 }
 
-func (o *ConfigRunServiceResourcesUpdateInput) GetCompute() *ConfigRunServiceResourcesComputeUpdateInput {
+func (o *ConfigRunServiceResourcesUpdateInput) GetCompute() *ConfigComputeResourcesUpdateInput {
 	if o == nil {
 		return nil
 	}
@@ -15914,7 +17157,7 @@ func (s *ConfigRunServiceResources) Update(v *ConfigRunServiceResourcesUpdateInp
 			s.Compute = nil
 		} else {
 			if s.Compute == nil {
-				s.Compute = &ConfigRunServiceResourcesCompute{}
+				s.Compute = &ConfigComputeResources{}
 			}
 			s.Compute.Update(v.Compute)
 		}
@@ -15939,12 +17182,12 @@ func (s *ConfigRunServiceResources) Update(v *ConfigRunServiceResourcesUpdateInp
 }
 
 type ConfigRunServiceResourcesInsertInput struct {
-	Compute  *ConfigRunServiceResourcesComputeInsertInput   `json:"compute,omitempty" toml:"compute,omitempty"`
+	Compute  *ConfigComputeResourcesInsertInput             `json:"compute,omitempty" toml:"compute,omitempty"`
 	Storage  []*ConfigRunServiceResourcesStorageInsertInput `json:"storage,omitempty" toml:"storage,omitempty"`
 	Replicas uint8                                          `json:"replicas,omitempty" toml:"replicas,omitempty"`
 }
 
-func (o *ConfigRunServiceResourcesInsertInput) GetCompute() *ConfigRunServiceResourcesComputeInsertInput {
+func (o *ConfigRunServiceResourcesInsertInput) GetCompute() *ConfigComputeResourcesInsertInput {
 	if o == nil {
 		return nil
 	}
@@ -15968,7 +17211,7 @@ func (o *ConfigRunServiceResourcesInsertInput) GetReplicas() uint8 {
 func (s *ConfigRunServiceResources) Insert(v *ConfigRunServiceResourcesInsertInput) {
 	if v.Compute != nil {
 		if s.Compute == nil {
-			s.Compute = &ConfigRunServiceResourcesCompute{}
+			s.Compute = &ConfigComputeResources{}
 		}
 		s.Compute.Insert(v.Compute)
 	}
@@ -16004,7 +17247,7 @@ type ConfigRunServiceResourcesComparisonExp struct {
 	And      []*ConfigRunServiceResourcesComparisonExp      `json:"_and,omitempty"`
 	Not      *ConfigRunServiceResourcesComparisonExp        `json:"_not,omitempty"`
 	Or       []*ConfigRunServiceResourcesComparisonExp      `json:"_or,omitempty"`
-	Compute  *ConfigRunServiceResourcesComputeComparisonExp `json:"compute,omitempty"`
+	Compute  *ConfigComputeResourcesComparisonExp           `json:"compute,omitempty"`
 	Storage  *ConfigRunServiceResourcesStorageComparisonExp `json:"storage,omitempty"`
 	Replicas *ConfigUint8ComparisonExp                      `json:"replicas,omitempty"`
 }
@@ -16016,7 +17259,7 @@ func (exp *ConfigRunServiceResourcesComparisonExp) Matches(o *ConfigRunServiceRe
 
 	if o == nil {
 		o = &ConfigRunServiceResources{
-			Compute: &ConfigRunServiceResourcesCompute{},
+			Compute: &ConfigComputeResources{},
 			Storage: []*ConfigRunServiceResourcesStorage{},
 		}
 	}
@@ -16036,194 +17279,6 @@ func (exp *ConfigRunServiceResourcesComparisonExp) Matches(o *ConfigRunServiceRe
 		}
 	}
 	if !exp.Replicas.Matches(o.Replicas) {
-		return false
-	}
-
-	if exp.And != nil && !all(exp.And, o) {
-		return false
-	}
-
-	if exp.Or != nil && !or(exp.Or, o) {
-		return false
-	}
-
-	if exp.Not != nil && exp.Not.Matches(o) {
-		return false
-	}
-
-	return true
-}
-
-type ConfigRunServiceResourcesCompute struct {
-	// milicpus, 1000 milicpus = 1 cpu
-	Cpu uint32 `json:"cpu" toml:"cpu"`
-	// MiB: 128MiB to 30GiB
-	Memory uint32 `json:"memory" toml:"memory"`
-}
-
-func (o *ConfigRunServiceResourcesCompute) MarshalJSON() ([]byte, error) {
-	m := make(map[string]any)
-	m["cpu"] = o.Cpu
-	m["memory"] = o.Memory
-	return json.Marshal(m)
-}
-
-func (o *ConfigRunServiceResourcesCompute) GetCpu() uint32 {
-	if o == nil {
-		o = &ConfigRunServiceResourcesCompute{}
-	}
-	return o.Cpu
-}
-
-func (o *ConfigRunServiceResourcesCompute) GetMemory() uint32 {
-	if o == nil {
-		o = &ConfigRunServiceResourcesCompute{}
-	}
-	return o.Memory
-}
-
-type ConfigRunServiceResourcesComputeUpdateInput struct {
-	Cpu         *uint32 `json:"cpu,omitempty" toml:"cpu,omitempty"`
-	IsSetCpu    bool    `json:"-"`
-	Memory      *uint32 `json:"memory,omitempty" toml:"memory,omitempty"`
-	IsSetMemory bool    `json:"-"`
-}
-
-func (o *ConfigRunServiceResourcesComputeUpdateInput) UnmarshalGQL(v interface{}) error {
-	m, ok := v.(map[string]any)
-	if !ok {
-		return fmt.Errorf("must be map[string]interface{}, got %T", v)
-	}
-	if v, ok := m["cpu"]; ok {
-		if v == nil {
-			o.Cpu = nil
-		} else {
-			// clearly a not very efficient shortcut
-			b, err := json.Marshal(v)
-			if err != nil {
-				return err
-			}
-			var x uint32
-			if err := json.Unmarshal(b, &x); err != nil {
-				return err
-			}
-			o.Cpu = &x
-		}
-		o.IsSetCpu = true
-	}
-	if v, ok := m["memory"]; ok {
-		if v == nil {
-			o.Memory = nil
-		} else {
-			// clearly a not very efficient shortcut
-			b, err := json.Marshal(v)
-			if err != nil {
-				return err
-			}
-			var x uint32
-			if err := json.Unmarshal(b, &x); err != nil {
-				return err
-			}
-			o.Memory = &x
-		}
-		o.IsSetMemory = true
-	}
-
-	return nil
-}
-
-func (o *ConfigRunServiceResourcesComputeUpdateInput) MarshalGQL(w io.Writer) {
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(o); err != nil {
-		panic(err)
-	}
-}
-
-func (o *ConfigRunServiceResourcesComputeUpdateInput) GetCpu() *uint32 {
-	if o == nil {
-		o = &ConfigRunServiceResourcesComputeUpdateInput{}
-	}
-	return o.Cpu
-}
-
-func (o *ConfigRunServiceResourcesComputeUpdateInput) GetMemory() *uint32 {
-	if o == nil {
-		o = &ConfigRunServiceResourcesComputeUpdateInput{}
-	}
-	return o.Memory
-}
-
-func (s *ConfigRunServiceResourcesCompute) Update(v *ConfigRunServiceResourcesComputeUpdateInput) {
-	if v == nil {
-		return
-	}
-	if v.IsSetCpu || v.Cpu != nil {
-		if v.Cpu != nil {
-			s.Cpu = *v.Cpu
-		}
-	}
-	if v.IsSetMemory || v.Memory != nil {
-		if v.Memory != nil {
-			s.Memory = *v.Memory
-		}
-	}
-}
-
-type ConfigRunServiceResourcesComputeInsertInput struct {
-	Cpu    uint32 `json:"cpu,omitempty" toml:"cpu,omitempty"`
-	Memory uint32 `json:"memory,omitempty" toml:"memory,omitempty"`
-}
-
-func (o *ConfigRunServiceResourcesComputeInsertInput) GetCpu() uint32 {
-	if o == nil {
-		o = &ConfigRunServiceResourcesComputeInsertInput{}
-	}
-	return o.Cpu
-}
-
-func (o *ConfigRunServiceResourcesComputeInsertInput) GetMemory() uint32 {
-	if o == nil {
-		o = &ConfigRunServiceResourcesComputeInsertInput{}
-	}
-	return o.Memory
-}
-
-func (s *ConfigRunServiceResourcesCompute) Insert(v *ConfigRunServiceResourcesComputeInsertInput) {
-	s.Cpu = v.Cpu
-	s.Memory = v.Memory
-}
-
-func (s *ConfigRunServiceResourcesCompute) Clone() *ConfigRunServiceResourcesCompute {
-	if s == nil {
-		return nil
-	}
-
-	v := &ConfigRunServiceResourcesCompute{}
-	v.Cpu = s.Cpu
-	v.Memory = s.Memory
-	return v
-}
-
-type ConfigRunServiceResourcesComputeComparisonExp struct {
-	And    []*ConfigRunServiceResourcesComputeComparisonExp `json:"_and,omitempty"`
-	Not    *ConfigRunServiceResourcesComputeComparisonExp   `json:"_not,omitempty"`
-	Or     []*ConfigRunServiceResourcesComputeComparisonExp `json:"_or,omitempty"`
-	Cpu    *ConfigUint32ComparisonExp                       `json:"cpu,omitempty"`
-	Memory *ConfigUint32ComparisonExp                       `json:"memory,omitempty"`
-}
-
-func (exp *ConfigRunServiceResourcesComputeComparisonExp) Matches(o *ConfigRunServiceResourcesCompute) bool {
-	if exp == nil {
-		return true
-	}
-
-	if o == nil {
-		o = &ConfigRunServiceResourcesCompute{}
-	}
-	if !exp.Cpu.Matches(o.Cpu) {
-		return false
-	}
-	if !exp.Memory.Matches(o.Memory) {
 		return false
 	}
 
