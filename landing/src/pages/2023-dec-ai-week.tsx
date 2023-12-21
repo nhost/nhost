@@ -283,13 +283,13 @@ export default function Page() {
             link: '/blog/dev-assistant',
           }}
         />
-        <PostDay
+        <AvailablePostDay
           date={new Date('2023-12-21T16:00:00.000+02:00')}
           post={{
-            image: '/images/blog/dark-mode/banner.png',
-            title: 'Coming soon',
-            description: '',
-            link: '',
+            image: '/images/blog/docs-chatgpt/og-new-docs.png',
+            title: 'Better Docs with ChatGPT support',
+            description: 'A new and more interactive documentation website.',
+            link: '/blog/docs-and-chatgpt',
           }}
         />
         <PostDay
