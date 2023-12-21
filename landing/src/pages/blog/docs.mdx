@@ -1,0 +1,64 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Better Docs with ChatGPT',
+  description:
+    'Interactive Documentation',
+  image: '/images/blog/docs-chatgpt/og-new-docs.png',
+  date: '2023-12-21',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'AI', 'Documentation', 'ChatGPT'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Introducing a revamped documentation website with support to ChatGPT and a more interactive learning experience.
+
+This release is more than a new face and ChatGPT support. We took the time to rewrite most of the content as well. 
+
+### ChatGPT Support
+
+Instant responses, interactive learning, and personalized assistance. ChatGPT makes the overal experience of browsing and searching through documentation more fun and engaging: 
+
+<video width="99%" autoPlay loop muted controls>
+  <source
+    src="/videos/docs.mp4"
+    type="video/mp4"
+  />
+</video>
+
+Find answers faster, follow-up with questions and specific examples, all with a more personalized and tailored interaction regardless of your experience level.
+
+### New content
+
+We took the time to rewrite most of the content:
+
+- new tutorials and quickstart guides available
+- a new section on Graphite and our AI toolkit
+- a new `guides` section that we intend to hammer with content
+- an API playground
+
+
+#### API Playground
+
+The API playground allows you to test both Auth and Storage endpoints against a real Nhost instance running on your computer:
+
+![API Playground](/images/blog/docs-chatgpt/docs-playground.png)
+
+Simply start a local Nhost instance with `nhost up` and you're good to go.
+
+## Wrap up
+
+Documentation is an important part of any technical product, and we are finally taking the time to improve it.
+
+There are a lot of useful guides and learning material that we want to work on, so expect the docs to improve consideraly in the near future.
+
+
