@@ -20,6 +20,9 @@ fragment Project on apps {
         enableConsole
       }
     }
+    ai {
+      version
+    }
   }
   featureFlags {
     description

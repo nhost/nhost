@@ -1,0 +1,5 @@
+mutation deleteGraphiteAutoEmbeddingsConfiguration($id: uuid!) {
+  deleteGraphiteAutoEmbeddingsConfiguration(id: $id) {
+    __typename
+  }
+}

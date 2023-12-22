@@ -71,6 +71,106 @@ export type Boolean_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['Boolean']>>;
 };
 
+export type ConfigAi = {
+  __typename?: 'ConfigAI';
+  autoEmbeddings?: Maybe<ConfigAiAutoEmbeddings>;
+  openai: ConfigAiOpenai;
+  resources: ConfigAiResources;
+  version?: Maybe<Scalars['String']>;
+  webhookSecret: Scalars['String'];
+};
+
+export type ConfigAiAutoEmbeddings = {
+  __typename?: 'ConfigAIAutoEmbeddings';
+  synchPeriodMinutes?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAiAutoEmbeddingsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAiAutoEmbeddingsComparisonExp>>;
+  _not?: InputMaybe<ConfigAiAutoEmbeddingsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAiAutoEmbeddingsComparisonExp>>;
+  synchPeriodMinutes?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigAiAutoEmbeddingsInsertInput = {
+  synchPeriodMinutes?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAiAutoEmbeddingsUpdateInput = {
+  synchPeriodMinutes?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAiComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAiComparisonExp>>;
+  _not?: InputMaybe<ConfigAiComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAiComparisonExp>>;
+  autoEmbeddings?: InputMaybe<ConfigAiAutoEmbeddingsComparisonExp>;
+  openai?: InputMaybe<ConfigAiOpenaiComparisonExp>;
+  resources?: InputMaybe<ConfigAiResourcesComparisonExp>;
+  version?: InputMaybe<ConfigStringComparisonExp>;
+  webhookSecret?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAiInsertInput = {
+  autoEmbeddings?: InputMaybe<ConfigAiAutoEmbeddingsInsertInput>;
+  openai: ConfigAiOpenaiInsertInput;
+  resources: ConfigAiResourcesInsertInput;
+  version?: InputMaybe<Scalars['String']>;
+  webhookSecret: Scalars['String'];
+};
+
+export type ConfigAiOpenai = {
+  __typename?: 'ConfigAIOpenai';
+  apiKey: Scalars['String'];
+  organization?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAiOpenaiComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAiOpenaiComparisonExp>>;
+  _not?: InputMaybe<ConfigAiOpenaiComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAiOpenaiComparisonExp>>;
+  apiKey?: InputMaybe<ConfigStringComparisonExp>;
+  organization?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAiOpenaiInsertInput = {
+  apiKey: Scalars['String'];
+  organization?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAiOpenaiUpdateInput = {
+  apiKey?: InputMaybe<Scalars['String']>;
+  organization?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAiResources = {
+  __typename?: 'ConfigAIResources';
+  compute: ConfigComputeResources;
+};
+
+export type ConfigAiResourcesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAiResourcesComparisonExp>>;
+  _not?: InputMaybe<ConfigAiResourcesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAiResourcesComparisonExp>>;
+  compute?: InputMaybe<ConfigComputeResourcesComparisonExp>;
+};
+
+export type ConfigAiResourcesInsertInput = {
+  compute: ConfigComputeResourcesInsertInput;
+};
+
+export type ConfigAiResourcesUpdateInput = {
+  compute?: InputMaybe<ConfigComputeResourcesUpdateInput>;
+};
+
+export type ConfigAiUpdateInput = {
+  autoEmbeddings?: InputMaybe<ConfigAiAutoEmbeddingsUpdateInput>;
+  openai?: InputMaybe<ConfigAiOpenaiUpdateInput>;
+  resources?: InputMaybe<ConfigAiResourcesUpdateInput>;
+  version?: InputMaybe<Scalars['String']>;
+  webhookSecret?: InputMaybe<Scalars['String']>;
+};
+
 export type ConfigAppConfig = {
   __typename?: 'ConfigAppConfig';
   appID: Scalars['uuid'];
@@ -951,9 +1051,38 @@ export type ConfigClaimMapUpdateInput = {
   value?: InputMaybe<Scalars['String']>;
 };
 
+/** Resource configuration for a service */
+export type ConfigComputeResources = {
+  __typename?: 'ConfigComputeResources';
+  /** milicpus, 1000 milicpus = 1 cpu */
+  cpu: Scalars['ConfigUint32'];
+  /** MiB: 128MiB to 30GiB */
+  memory: Scalars['ConfigUint32'];
+};
+
+export type ConfigComputeResourcesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigComputeResourcesComparisonExp>>;
+  _not?: InputMaybe<ConfigComputeResourcesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigComputeResourcesComparisonExp>>;
+  cpu?: InputMaybe<ConfigUint32ComparisonExp>;
+  memory?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigComputeResourcesInsertInput = {
+  cpu: Scalars['ConfigUint32'];
+  memory: Scalars['ConfigUint32'];
+};
+
+export type ConfigComputeResourcesUpdateInput = {
+  cpu?: InputMaybe<Scalars['ConfigUint32']>;
+  memory?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
 /** main entrypoint to the configuration */
 export type ConfigConfig = {
   __typename?: 'ConfigConfig';
+  /** Configuration for graphite service */
+  ai?: Maybe<ConfigAi>;
   /** Configuration for auth service */
   auth?: Maybe<ConfigAuth>;
   /** Configuration for functions service */
@@ -976,6 +1105,7 @@ export type ConfigConfigComparisonExp = {
   _and?: InputMaybe<Array<ConfigConfigComparisonExp>>;
   _not?: InputMaybe<ConfigConfigComparisonExp>;
   _or?: InputMaybe<Array<ConfigConfigComparisonExp>>;
+  ai?: InputMaybe<ConfigAiComparisonExp>;
   auth?: InputMaybe<ConfigAuthComparisonExp>;
   functions?: InputMaybe<ConfigFunctionsComparisonExp>;
   global?: InputMaybe<ConfigGlobalComparisonExp>;
@@ -987,6 +1117,7 @@ export type ConfigConfigComparisonExp = {
 };
 
 export type ConfigConfigInsertInput = {
+  ai?: InputMaybe<ConfigAiInsertInput>;
   auth?: InputMaybe<ConfigAuthInsertInput>;
   functions?: InputMaybe<ConfigFunctionsInsertInput>;
   global?: InputMaybe<ConfigGlobalInsertInput>;
@@ -998,6 +1129,7 @@ export type ConfigConfigInsertInput = {
 };
 
 export type ConfigConfigUpdateInput = {
+  ai?: InputMaybe<ConfigAiUpdateInput>;
   auth?: InputMaybe<ConfigAuthUpdateInput>;
   functions?: InputMaybe<ConfigFunctionsUpdateInput>;
   global?: InputMaybe<ConfigGlobalUpdateInput>;
@@ -1318,6 +1450,34 @@ export type ConfigHasuraUpdateInput = {
   webhookSecret?: InputMaybe<Scalars['String']>;
 };
 
+export type ConfigHealthCheck = {
+  __typename?: 'ConfigHealthCheck';
+  initialDelaySeconds?: Maybe<Scalars['Int']>;
+  port: Scalars['ConfigPort'];
+  probePeriodSeconds?: Maybe<Scalars['Int']>;
+};
+
+export type ConfigHealthCheckComparisonExp = {
+  _and?: InputMaybe<Array<ConfigHealthCheckComparisonExp>>;
+  _not?: InputMaybe<ConfigHealthCheckComparisonExp>;
+  _or?: InputMaybe<Array<ConfigHealthCheckComparisonExp>>;
+  initialDelaySeconds?: InputMaybe<ConfigIntComparisonExp>;
+  port?: InputMaybe<ConfigPortComparisonExp>;
+  probePeriodSeconds?: InputMaybe<ConfigIntComparisonExp>;
+};
+
+export type ConfigHealthCheckInsertInput = {
+  initialDelaySeconds?: InputMaybe<Scalars['Int']>;
+  port: Scalars['ConfigPort'];
+  probePeriodSeconds?: InputMaybe<Scalars['Int']>;
+};
+
+export type ConfigHealthCheckUpdateInput = {
+  initialDelaySeconds?: InputMaybe<Scalars['Int']>;
+  port?: InputMaybe<Scalars['ConfigPort']>;
+  probePeriodSeconds?: InputMaybe<Scalars['Int']>;
+};
+
 export type ConfigIngress = {
   __typename?: 'ConfigIngress';
   fqdn?: Maybe<Array<Scalars['String']>>;
@@ -1549,12 +1709,15 @@ export type ConfigPostgresSettings = {
   maxParallelMaintenanceWorkers?: Maybe<Scalars['ConfigInt32']>;
   maxParallelWorkers?: Maybe<Scalars['ConfigInt32']>;
   maxParallelWorkersPerGather?: Maybe<Scalars['ConfigInt32']>;
+  maxReplicationSlots?: Maybe<Scalars['ConfigInt32']>;
+  maxWalSenders?: Maybe<Scalars['ConfigInt32']>;
   maxWalSize?: Maybe<Scalars['String']>;
   maxWorkerProcesses?: Maybe<Scalars['ConfigInt32']>;
   minWalSize?: Maybe<Scalars['String']>;
   randomPageCost?: Maybe<Scalars['Float']>;
   sharedBuffers?: Maybe<Scalars['String']>;
   walBuffers?: Maybe<Scalars['String']>;
+  walLevel?: Maybe<Scalars['String']>;
   workMem?: Maybe<Scalars['String']>;
 };
 
@@ -1573,12 +1736,15 @@ export type ConfigPostgresSettingsComparisonExp = {
   maxParallelMaintenanceWorkers?: InputMaybe<ConfigInt32ComparisonExp>;
   maxParallelWorkers?: InputMaybe<ConfigInt32ComparisonExp>;
   maxParallelWorkersPerGather?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxReplicationSlots?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxWalSenders?: InputMaybe<ConfigInt32ComparisonExp>;
   maxWalSize?: InputMaybe<ConfigStringComparisonExp>;
   maxWorkerProcesses?: InputMaybe<ConfigInt32ComparisonExp>;
   minWalSize?: InputMaybe<ConfigStringComparisonExp>;
   randomPageCost?: InputMaybe<ConfigFloatComparisonExp>;
   sharedBuffers?: InputMaybe<ConfigStringComparisonExp>;
   walBuffers?: InputMaybe<ConfigStringComparisonExp>;
+  walLevel?: InputMaybe<ConfigStringComparisonExp>;
   workMem?: InputMaybe<ConfigStringComparisonExp>;
 };
 
@@ -1594,12 +1760,15 @@ export type ConfigPostgresSettingsInsertInput = {
   maxParallelMaintenanceWorkers?: InputMaybe<Scalars['ConfigInt32']>;
   maxParallelWorkers?: InputMaybe<Scalars['ConfigInt32']>;
   maxParallelWorkersPerGather?: InputMaybe<Scalars['ConfigInt32']>;
+  maxReplicationSlots?: InputMaybe<Scalars['ConfigInt32']>;
+  maxWalSenders?: InputMaybe<Scalars['ConfigInt32']>;
   maxWalSize?: InputMaybe<Scalars['String']>;
   maxWorkerProcesses?: InputMaybe<Scalars['ConfigInt32']>;
   minWalSize?: InputMaybe<Scalars['String']>;
   randomPageCost?: InputMaybe<Scalars['Float']>;
   sharedBuffers?: InputMaybe<Scalars['String']>;
   walBuffers?: InputMaybe<Scalars['String']>;
+  walLevel?: InputMaybe<Scalars['String']>;
   workMem?: InputMaybe<Scalars['String']>;
 };
 
@@ -1615,12 +1784,15 @@ export type ConfigPostgresSettingsUpdateInput = {
   maxParallelMaintenanceWorkers?: InputMaybe<Scalars['ConfigInt32']>;
   maxParallelWorkers?: InputMaybe<Scalars['ConfigInt32']>;
   maxParallelWorkersPerGather?: InputMaybe<Scalars['ConfigInt32']>;
+  maxReplicationSlots?: InputMaybe<Scalars['ConfigInt32']>;
+  maxWalSenders?: InputMaybe<Scalars['ConfigInt32']>;
   maxWalSize?: InputMaybe<Scalars['String']>;
   maxWorkerProcesses?: InputMaybe<Scalars['ConfigInt32']>;
   minWalSize?: InputMaybe<Scalars['String']>;
   randomPageCost?: InputMaybe<Scalars['Float']>;
   sharedBuffers?: InputMaybe<Scalars['String']>;
   walBuffers?: InputMaybe<Scalars['String']>;
+  walLevel?: InputMaybe<Scalars['String']>;
   workMem?: InputMaybe<Scalars['String']>;
 };
 
@@ -1735,6 +1907,7 @@ export type ConfigRunServiceConfig = {
   __typename?: 'ConfigRunServiceConfig';
   command?: Maybe<Array<Scalars['String']>>;
   environment?: Maybe<Array<ConfigEnvironmentVariable>>;
+  healthCheck?: Maybe<ConfigHealthCheck>;
   image: ConfigRunServiceImage;
   name: Scalars['ConfigRunServiceName'];
   ports?: Maybe<Array<ConfigRunServicePort>>;
@@ -1747,6 +1920,7 @@ export type ConfigRunServiceConfigComparisonExp = {
   _or?: InputMaybe<Array<ConfigRunServiceConfigComparisonExp>>;
   command?: InputMaybe<ConfigStringComparisonExp>;
   environment?: InputMaybe<ConfigEnvironmentVariableComparisonExp>;
+  healthCheck?: InputMaybe<ConfigHealthCheckComparisonExp>;
   image?: InputMaybe<ConfigRunServiceImageComparisonExp>;
   name?: InputMaybe<ConfigRunServiceNameComparisonExp>;
   ports?: InputMaybe<ConfigRunServicePortComparisonExp>;
@@ -1756,6 +1930,7 @@ export type ConfigRunServiceConfigComparisonExp = {
 export type ConfigRunServiceConfigInsertInput = {
   command?: InputMaybe<Array<Scalars['String']>>;
   environment?: InputMaybe<Array<ConfigEnvironmentVariableInsertInput>>;
+  healthCheck?: InputMaybe<ConfigHealthCheckInsertInput>;
   image: ConfigRunServiceImageInsertInput;
   name: Scalars['ConfigRunServiceName'];
   ports?: InputMaybe<Array<ConfigRunServicePortInsertInput>>;
@@ -1765,6 +1940,7 @@ export type ConfigRunServiceConfigInsertInput = {
 export type ConfigRunServiceConfigUpdateInput = {
   command?: InputMaybe<Array<Scalars['String']>>;
   environment?: InputMaybe<Array<ConfigEnvironmentVariableUpdateInput>>;
+  healthCheck?: InputMaybe<ConfigHealthCheckUpdateInput>;
   image?: InputMaybe<ConfigRunServiceImageUpdateInput>;
   name?: InputMaybe<Scalars['ConfigRunServiceName']>;
   ports?: InputMaybe<Array<ConfigRunServicePortUpdateInput>>;
@@ -1839,7 +2015,7 @@ export type ConfigRunServicePortUpdateInput = {
 /** Resource configuration for a service */
 export type ConfigRunServiceResources = {
   __typename?: 'ConfigRunServiceResources';
-  compute: ConfigRunServiceResourcesCompute;
+  compute: ConfigComputeResources;
   /** Number of replicas for a service */
   replicas: Scalars['ConfigUint8'];
   storage?: Maybe<Array<ConfigRunServiceResourcesStorage>>;
@@ -1849,39 +2025,13 @@ export type ConfigRunServiceResourcesComparisonExp = {
   _and?: InputMaybe<Array<ConfigRunServiceResourcesComparisonExp>>;
   _not?: InputMaybe<ConfigRunServiceResourcesComparisonExp>;
   _or?: InputMaybe<Array<ConfigRunServiceResourcesComparisonExp>>;
-  compute?: InputMaybe<ConfigRunServiceResourcesComputeComparisonExp>;
+  compute?: InputMaybe<ConfigComputeResourcesComparisonExp>;
   replicas?: InputMaybe<ConfigUint8ComparisonExp>;
   storage?: InputMaybe<ConfigRunServiceResourcesStorageComparisonExp>;
 };
 
-export type ConfigRunServiceResourcesCompute = {
-  __typename?: 'ConfigRunServiceResourcesCompute';
-  /** milicpus, 1000 milicpus = 1 cpu */
-  cpu: Scalars['ConfigUint32'];
-  /** MiB: 128MiB to 30GiB */
-  memory: Scalars['ConfigUint32'];
-};
-
-export type ConfigRunServiceResourcesComputeComparisonExp = {
-  _and?: InputMaybe<Array<ConfigRunServiceResourcesComputeComparisonExp>>;
-  _not?: InputMaybe<ConfigRunServiceResourcesComputeComparisonExp>;
-  _or?: InputMaybe<Array<ConfigRunServiceResourcesComputeComparisonExp>>;
-  cpu?: InputMaybe<ConfigUint32ComparisonExp>;
-  memory?: InputMaybe<ConfigUint32ComparisonExp>;
-};
-
-export type ConfigRunServiceResourcesComputeInsertInput = {
-  cpu: Scalars['ConfigUint32'];
-  memory: Scalars['ConfigUint32'];
-};
-
-export type ConfigRunServiceResourcesComputeUpdateInput = {
-  cpu?: InputMaybe<Scalars['ConfigUint32']>;
-  memory?: InputMaybe<Scalars['ConfigUint32']>;
-};
-
 export type ConfigRunServiceResourcesInsertInput = {
-  compute: ConfigRunServiceResourcesComputeInsertInput;
+  compute: ConfigComputeResourcesInsertInput;
   replicas: Scalars['ConfigUint8'];
   storage?: InputMaybe<Array<ConfigRunServiceResourcesStorageInsertInput>>;
 };
@@ -1917,7 +2067,7 @@ export type ConfigRunServiceResourcesStorageUpdateInput = {
 };
 
 export type ConfigRunServiceResourcesUpdateInput = {
-  compute?: InputMaybe<ConfigRunServiceResourcesComputeUpdateInput>;
+  compute?: InputMaybe<ConfigComputeResourcesUpdateInput>;
   replicas?: InputMaybe<Scalars['ConfigUint8']>;
   storage?: InputMaybe<Array<ConfigRunServiceResourcesStorageUpdateInput>>;
 };
@@ -16470,6 +16620,7 @@ export type Query_RootGithubRepositoryArgs = {
 export type Query_RootLogsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
+  regexFilter?: InputMaybe<Scalars['String']>;
   service?: InputMaybe<Scalars['String']>;
   to?: InputMaybe<Scalars['Timestamp']>;
 };
@@ -17981,6 +18132,8 @@ export enum Software_Type_Constraint {
 export enum Software_Type_Enum {
   /** Hasura Auth */
   Auth = 'Auth',
+  /** Graphite */
+  Graphite = 'Graphite',
   /** Hasura GraphQL Engine */
   Hasura = 'Hasura',
   /** PostgreSQL Database */
@@ -19540,6 +19693,7 @@ export type Subscription_RootGithubRepositoryArgs = {
 export type Subscription_RootLogsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
+  regexFilter?: InputMaybe<Scalars['String']>;
   service?: InputMaybe<Scalars['String']>;
 };
 
@@ -22249,6 +22403,13 @@ export type DeletePersonalAccessTokenMutationVariables = Exact<{
 
 export type DeletePersonalAccessTokenMutation = { __typename?: 'mutation_root', deletePersonalAccessToken?: { __typename?: 'authRefreshTokens', id: any, metadata?: any | null } | null };
 
+export type GetAiSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetAiSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', apiKey: string, organization?: string | null }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } | null };
+
 export type GetAuthenticationSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -22329,7 +22490,7 @@ export type DeleteApplicationMutation = { __typename?: 'mutation_root', deleteAp
 export type GetAllWorkspacesAndProjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
 
 export type GetAppPlanAndGlobalPlansAppFragment = { __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }, plan: { __typename?: 'plans', id: any, name: string } };
 
@@ -22386,7 +22547,7 @@ export type GetWorkspaceAndProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
 
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
@@ -22493,7 +22654,7 @@ export type UpdateConfigMutationVariables = Exact<{
 }>;
 
 
-export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null } };
+export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null, ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', organization?: string | null, apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } };
 
 export type UnpauseApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -22578,9 +22739,9 @@ export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate
 
 export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any };
 
-export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
+export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
-export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
@@ -22772,7 +22933,7 @@ export type GetRunServiceQueryVariables = Exact<{
 }>;
 
 
-export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigRunServiceResourcesCompute', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
+export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
 
 export type GetRunServicesQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -22782,7 +22943,7 @@ export type GetRunServicesQueryVariables = Exact<{
 }>;
 
 
-export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigRunServiceResourcesCompute', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
+export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
 
 export type InsertRunServiceMutationVariables = Exact<{
   object: Run_Service_Insert_Input;
@@ -23092,6 +23253,9 @@ export const ProjectFragmentDoc = gql`
         enableConsole
       }
     }
+    ai {
+      version
+    }
   }
   featureFlags {
     description
@@ -23348,6 +23512,60 @@ export function useDeletePersonalAccessTokenMutation(baseOptions?: Apollo.Mutati
 export type DeletePersonalAccessTokenMutationHookResult = ReturnType<typeof useDeletePersonalAccessTokenMutation>;
 export type DeletePersonalAccessTokenMutationResult = Apollo.MutationResult<DeletePersonalAccessTokenMutation>;
 export type DeletePersonalAccessTokenMutationOptions = Apollo.BaseMutationOptions<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>;
+export const GetAiSettingsDocument = gql`
+    query GetAISettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    ai {
+      version
+      webhookSecret
+      autoEmbeddings {
+        synchPeriodMinutes
+      }
+      openai {
+        apiKey
+        organization
+      }
+      resources {
+        compute {
+          cpu
+          memory
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAiSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetAiSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAiSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAiSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetAiSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetAiSettingsQuery, GetAiSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAiSettingsQuery, GetAiSettingsQueryVariables>(GetAiSettingsDocument, options);
+      }
+export function useGetAiSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAiSettingsQuery, GetAiSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAiSettingsQuery, GetAiSettingsQueryVariables>(GetAiSettingsDocument, options);
+        }
+export type GetAiSettingsQueryHookResult = ReturnType<typeof useGetAiSettingsQuery>;
+export type GetAiSettingsLazyQueryHookResult = ReturnType<typeof useGetAiSettingsLazyQuery>;
+export type GetAiSettingsQueryResult = Apollo.QueryResult<GetAiSettingsQuery, GetAiSettingsQueryVariables>;
+export function refetchGetAiSettingsQuery(variables: GetAiSettingsQueryVariables) {
+      return { query: GetAiSettingsDocument, variables: variables }
+    }
 export const GetAuthenticationSettingsDocument = gql`
     query GetAuthenticationSettings($appId: uuid!) {
   config(appID: $appId, resolve: false) {
@@ -24814,6 +25032,23 @@ export const UpdateConfigDocument = gql`
       resources {
         storage {
           capacity
+        }
+      }
+    }
+    ai {
+      version
+      webhookSecret
+      autoEmbeddings {
+        synchPeriodMinutes
+      }
+      openai {
+        organization
+        apiKey
+      }
+      resources {
+        compute {
+          cpu
+          memory
         }
       }
     }

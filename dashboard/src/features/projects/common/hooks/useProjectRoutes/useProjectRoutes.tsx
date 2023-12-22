@@ -1,4 +1,5 @@
 import { useUI } from '@/components/common/UIProvider';
+import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
 import { CloudIcon } from '@/components/ui/v2/icons/CloudIcon';
 import { CogIcon } from '@/components/ui/v2/icons/CogIcon';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
@@ -143,6 +144,13 @@ export default function useProjectRoutes() {
       label: 'Run',
       icon: <ServicesIcon />,
       disabled: !isPlatform,
+    },
+    {
+      relativeMainPath: '/ai',
+      relativePath: '/ai/auto-embeddings',
+      exact: false,
+      label: 'AI',
+      icon: <AIIcon />,
     },
     ...nhostRoutes,
   ];

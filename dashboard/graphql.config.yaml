@@ -7,6 +7,7 @@ generates:
     documents:
       - 'src/**/*.graphql'
       - 'src/**/*.gql'
+      - '!src/gql/graphite/**/*.gql'
     plugins:
       - 'typescript'
       - 'typescript-operations'
