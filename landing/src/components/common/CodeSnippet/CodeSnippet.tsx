@@ -61,6 +61,10 @@ export default function CodeSnippet({
         language={language}
         style={nightOwl}
         wrapLongLines
+        wrapLines
+        lineProps={{
+          className: 'bg-red-500',
+        }}
         customStyle={{
           position: 'relative',
           margin: 0,

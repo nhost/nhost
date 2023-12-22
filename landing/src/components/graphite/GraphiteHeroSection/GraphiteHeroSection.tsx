@@ -7,7 +7,20 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { ArrowLeftIcon } from '@/components/common/icons/ArrowLeftIcon'
 import Image from 'next/image'
 
-export default function RunHeroSection() {
+const graphiteQuery = `query {
+  graphiteSearchMovies(
+    args: {
+      query: "comedy in space",
+      amount: 5
+    }
+  ) {
+    name
+    overview
+    genre
+  }
+}`
+
+export default function GraphiteHeroSection() {
   return (
     <Container
       component="section"
@@ -17,23 +30,23 @@ export default function RunHeroSection() {
       <div className="relative z-10 grid content-center justify-start grid-flow-row gap-4 pt-16 justify-items-start md:pt-42 lg:px-20">
         <ProductIcon>
           <Image
-            src="/products/play.svg"
-            width={30}
-            height={30}
-            alt="Play icon"
+            src="/products/graphite-logo.svg"
+            width={20}
+            height={20}
+            alt="Graphite icon"
             priority
           />
         </ProductIcon>
 
         <div className="flex space-x-2">
           <h2 className="font-mona text-3.5xl font-semibold md:text-4.5xl">
-            Run
+            Graphite
           </h2>
         </div>
 
         <SectionHeading
           title=""
-          subtitle="Build, Push, and Run custom services alongside your Nhost Stack."
+          subtitle="Infuse your Nhost Stack with AI capabilities and supercharge its potential."
           className="text-left"
           slotProps={{
             title: {
@@ -47,34 +60,29 @@ export default function RunHeroSection() {
         />
       </div>
 
-      <div className="relative sm:pt-6 md:pt-24">
+      <div className="relative sm:pt-6 md:-translate-x-1 md:pt-24">
         <LineGrid className="md:-translate-x-11 md:-translate-y-11" priority />
 
-        <Glow className="mx-auto h-[75%] w-[90%] opacity-40 blur-3xl" />
+        <Glow className="h-[75%] w-full opacity-40 blur-3xl" />
 
         <Image
-          src="/products/run-hero.png"
-          width={1920}
-          height={991}
-          alt="The Nhost Dashboard's storage page"
-          className="relative z-10 object-contain w-full h-auto mx-auto"
+          src="/products/graphite-hero.png"
+          alt="Auto-Embeddings page in the Nhost Dashboard"
+          width={2880}
+          height={1800}
+          className="relative z-10 w-full h-auto"
           priority
           sizes="(max-width: 1024px) 50vw, 60vw"
         />
 
-        <div className="flex items-center justify-center py-2 space-x-2 rounded-xl bg-paper">
-          <a
-            href="https://tcspovfliddfqpzfloes-5000.svc.eu-central-1.nhost.run/cat"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="z-50 hover:underline"
-          >
-            https://tcspovfliddfqpzfloes-5000.svc.eu-central-1.nhost.run/cat
-          </a>
-          <div className="flex items-center w-6 h-6 ">
-            <ArrowLeftIcon className="animate-bounce-right-left text-brand-main" />
-          </div>
-        </div>
+        <CodeSnippet
+          language="graphql"
+          disableGlow
+          disableLineGrid
+          className="absolute z-20 max-w-sm shadow-lg -right-3 -bottom-6 xl:-right-5 xl:-bottom-12"
+        >
+          {graphiteQuery}
+        </CodeSnippet>
       </div>
     </Container>
   )
