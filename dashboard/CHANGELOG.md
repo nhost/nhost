@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.3.0
+
+### Minor Changes
+
+- 04784d880: Fix graphite's default version
+
 ## 1.2.0
 
 ### Minor Changes
