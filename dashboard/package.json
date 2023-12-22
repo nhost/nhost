@@ -75,7 +75,6 @@
     "react-resizable-layout": "^0.7.2",
     "react-syntax-highlighter": "^15.4.5",
     "react-table": "^7.8.0",
-    "sharp": "^0.32.0",
     "shell-quote": "^1.8.1",
     "slugify": "^1.6.5",
     "stripe": "^10.17.0",
