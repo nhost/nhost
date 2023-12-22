@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.1.10
+
+### Patch Changes
+
+- b338793d6: Fix typo
+
 ## 2.1.9
 
 ### Patch Changes
