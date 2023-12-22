@@ -70,7 +70,7 @@
         {
           "group": "Monitoring",
           "icon": "monitor-waveform",
-          "pages": ["platform/metrics", "platform/logs"]
+          "pages": ["platform/metrics"]
         },
         "platform/environment-variables",
         "platform/secrets",
