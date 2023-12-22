@@ -1,0 +1,67 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'AI Week Release Day and Recap ',
+  description:
+    '',
+  image: '/images/blog/docs-chatgpt/og-new-docs.png',
+  date: '2023-12-21',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'AI', 'Documentation', 'ChatGPT'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Today marks the end of Nhost's AI Week with its official **Release Day**. We're making all the AI features introduced this week available for use. 
+
+Here's a quick summary of what's now at your fingertips for you to explore and integrate into your projects:
+
+### Day 1, Postgres Vector && Auto-Embeddings
+
+Nhost Postgres is now a vector database that you can use to manage your embeddings and unlock a whole new set of applications. 
+
+We also released Auto-Embeddings, a feature that makes it trivial to create and keep embeddings up to date.
+
+### Day 2, AI Assistants
+
+Nhost Assistants are better LLMs that can extend their knowledge base with your own data and connect to external tools for various tasks. 
+
+Use Nhost as your Knowledge Base and to build custom tools for your LLMs. 
+
+### Day 3, Dev Assistant
+
+A new Developer Assistant and coding partner integrated into the Nhost Dashboard designed to support you with SQL and GraphQL coding tasks. 
+
+The assistant knows about your project's database and GraphQL schemas.
+
+
+### Day 4, Docs v2 with ChatGPT support
+
+A revamped documentation website with support for ChatGPT for a more engaging and learning experience.
+
+We also took the time to rewrite a bunch of content.
+
+### Enabling Graphite
+
+Graphite is available starting on the Pro plan and its current pricing is based on the resources used. 
+
+To enable Graphite, head to your project's settings and select **AI**. After enabling the service you will have to add your own OpenAI API key, 
+
+![Enable Graphite](/images/blog/ai-week-release-day/enable-graphite.png)
+
+Note that Graphite is in **beta** and its pricing is subject to change.
+
+## Wrap up
+
+This week we began our journey of offering the best tooling to build great AI products and companies to our users. We are genuily excited about the future of Nhost AI and we can't wait to see what you all are going to build. 
+
+As always, please let us know your feedback and suggestions. Your feedback is the single most important piece of the puzzle. 
+
