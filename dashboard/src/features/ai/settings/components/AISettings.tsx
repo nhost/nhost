@@ -95,8 +95,8 @@ export default function AISettings() {
     reValidateMode: 'onSubmit',
     defaultValues: {
       version: {
-        label: '0.1.0-beta4',
-        value: '0.1.0-beta4',
+        label: '0.1.0',
+        value: '0.1.0',
       },
       webhookSecret: '',
       organization: '',
