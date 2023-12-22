@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.1.0
+
+### Minor Changes
+
+- e2b79b5ec: chore: remove sharp from deps
+
 ## 1.0.1
 
 ### Patch Changes
