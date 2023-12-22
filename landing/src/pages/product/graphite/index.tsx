@@ -35,36 +35,36 @@ memory = 256`,
   },
   'auto-embeddings.gql': {
     snippet: `query {
-      graphiteSearchMovies(
-        args: {
-          query: "comedy in space",
-          amount: 5
-        }
-      ) {
-        name
-        overview
-        genre
-      }
-    }`,
+  graphiteSearchMovies(
+    args: {
+      query: "comedy in space",
+      amount: 5
+    }
+  ) {
+    name
+    overview
+    genre
+  }
+}`,
     lang: 'graphql',
   },
   'assistant.gql': {
     snippet: `
-    mutation {
-      graphite{
-        sendMessage(
-          sessionID: "thread_TJ1ImA9kpToCioJvOEJuHeuD",
-          message: "can you recommend me a thrilling space opera?",
-          prevMessageId: "msg_FAhHm3HYL87gPhuvh4wwnRl6",
-        ) {
-          sessionId
-          messages {
-            id
-            message
-          }
-        }
+mutation {
+  graphite{
+    sendMessage(
+      sessionID: "thread_TJ1ImA9kpToCioJvOEJuHeuD",
+      message: "can you recommend me a thrilling space opera?",
+      prevMessageId: "msg_FAhHm3HYL87gPhuvh4wwnRl6",
+    ) {
+      sessionId
+      messages {
+        id
+        message
       }
-    }`,
+    }
+  }
+}`,
     lang: 'graphql',
   },
 }
@@ -79,15 +79,15 @@ export default function GraphitePage() {
 
       <Container
         component="section"
-        className="mt-16 grid grid-flow-row gap-16 md:mt-32 md:gap-24"
+        className="grid grid-flow-row gap-16 mt-16 md:mt-32 md:gap-24"
         slotProps={{
           root: { className: 'overflow-hidden xl:overflow-visible' },
         }}
       >
-        <div className="grid grid-flow-row justify-items-center gap-8">
+        <div className="grid grid-flow-row gap-8 justify-items-center">
           <SectionHeading
             title="Enhance your backend with AI integration"
-            subtitle="Create and deploy AI-powered assistants"
+            subtitle="Create and deploy AI-powered applications"
             className="max-w-xl"
             slotProps={{
               subtitle: {
@@ -108,7 +108,7 @@ export default function GraphitePage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 items-start justify-items-center gap-0 pb-12 xl:grid-cols-2 xl:justify-items-start xl:gap-6">
+        <div className="grid items-start grid-cols-1 gap-0 pb-12 justify-items-center xl:grid-cols-2 xl:justify-items-start xl:gap-6">
           <div className="order-2 w-full xl:order-1">
             <CodeSnippet
               language={codeSnippets[selectedExample].lang}
@@ -120,7 +120,7 @@ export default function GraphitePage() {
           </div>
 
           <div className="relative order-1 w-full max-w-3xl xl:order-2">
-            <div className="relative z-10 grid grid-flow-col justify-around xl:justify-evenly">
+            <div className="relative z-10 grid justify-around grid-flow-col xl:justify-evenly">
               <ExampleSelectorButton
                 active={selectedExample === 'nhost.toml'}
                 onClick={() => setSelectedExample('nhost.toml')}
@@ -148,7 +148,7 @@ export default function GraphitePage() {
               alt="Dashed lines"
               width={608}
               height={97}
-              className="h-auto w-full"
+              className="w-full h-auto"
             />
 
             <Image
@@ -174,7 +174,7 @@ export default function GraphitePage() {
           }}
         />
 
-        <div className="mx-auto mt-24 grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid max-w-4xl grid-cols-1 gap-4 mx-auto mt-24 md:grid-cols-3">
           <Card className="flex flex-col space-y-3">
             <Image
               src="/products/auto-embeddings.svg"
@@ -231,7 +231,7 @@ export default function GraphitePage() {
           }}
         />
 
-        <div className="mx-auto mt-24 grid max-w-4xl grid-cols-1 gap-8 md:grid-cols-2">
+        <div className="grid max-w-4xl grid-cols-1 gap-8 mx-auto mt-24 md:grid-cols-2">
           <div className="flex flex-row items-start space-x-4">
             <Image
               src="/products/tick.svg"
@@ -303,7 +303,7 @@ export default function GraphitePage() {
         </div>
       </Container>
 
-      <Container component="section" className="mt-24 hidden lg:mt-40">
+      <Container component="section" className="hidden mt-24 lg:mt-40">
         <SectionHeading
           title="Powerful permissions, made simple"
           subtitle="Storage permissions work like any other data in your database. Use Buckets to segment files."
@@ -315,7 +315,7 @@ export default function GraphitePage() {
           }}
         />
 
-        <div className="mx-auto mt-16 flex h-52 w-full max-w-5xl items-center justify-center rounded-xl border border-divider bg-paper">
+        <div className="flex items-center justify-center w-full max-w-5xl mx-auto mt-16 border h-52 rounded-xl border-divider bg-paper">
           Video Placeholder
         </div>
       </Container>
@@ -323,8 +323,8 @@ export default function GraphitePage() {
       <ProductSection
         slotProps={{ root: { className: 'mt-24 lg:mt-20' } }}
         heading={
-          <div className="grid grid-flow-row items-center justify-items-center gap-4">
-            <div className="gradient-background rounded-full p-px">
+          <div className="grid items-center grid-flow-row gap-4 justify-items-center">
+            <div className="p-px rounded-full gradient-background">
               <p className="rounded-full bg-paper px-4.5 py-1.5">
                 There is more
               </p>

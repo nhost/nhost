@@ -152,7 +152,7 @@ export default function ProductSection({
             />
           }
           title="Graphite"
-          description="Run AI workloads easily alongside your Nhost stack"
+          description="Run AI workloads easily alongside your Nhost Stack."
           className="place-self-center"
           href="/product/graphite"
           disableLink={disabledLink === 'graphite'}

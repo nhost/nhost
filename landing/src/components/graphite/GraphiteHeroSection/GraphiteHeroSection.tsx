@@ -46,7 +46,7 @@ export default function GraphiteHeroSection() {
 
         <SectionHeading
           title=""
-          subtitle="Infuse your Nhost stack with AI capabilities and supercharge its potential."
+          subtitle="Infuse your Nhost Stack with AI capabilities and supercharge its potential."
           className="text-left"
           slotProps={{
             title: {
