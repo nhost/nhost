@@ -69,6 +69,7 @@
         "platform/service-replicas", 
         {
           "group": "Monitoring",
+          "icon": "monitor-waveform",
           "pages": ["platform/metrics", "platform/logs"]
         },
         "platform/environment-variables", 
@@ -102,6 +103,7 @@
       "pages": [
         { 
           "group": "Social Sign In", 
+          "icon": "at",
           "pages": [
             "guides/auth/social/sign-in-apple", 
             "guides/auth/social/sign-in-discord", 
@@ -126,14 +128,28 @@
       "pages": ["guides/api/configuring-hasura", "guides/api/permissions"]
     },
     {
+      "group": "Storage",
+      "pages": ["guides/storage/antivirus"]
+    },
+    {
+      "group": "Run",
+      "pages": ["guides/run/getting-started", "guides/run/configuration", "guides/run/networking", "guides/run/resources", "guides/run/registry", "guides/run/cli-deployments"]
+    },
+    {
+      "group": "CLI",
+      "pages": ["guides/cli/local-development", "guides/cli/migrate-config", "guides/cli/multiple-projects", "guides/cli/configuration-overlays", "guides/cli/seeds"]
+    },
+    {
       "group": "Backend Services",
       "pages": [
 
         {
           "group": "Authentication",
+          "icon": "users",
           "pages": [
             {
               "group": "Email and Password", 
+              "icon": "envelope",
               "pages": [
                 "reference/auth/sign-up-email-and-password",
                 "reference/auth/sign-in-email-and-password"
@@ -141,6 +157,7 @@
             },
             {
               "group": "Passwordless", 
+              "icon": "message-sms",
               "pages": [
                 "reference/auth/sign-in-email-passwordless",
                 "reference/auth/sign-in-sms-passwordless",
@@ -149,6 +166,7 @@
             },
             {
               "group": "OAuth", 
+              "icon": "at",
               "pages": [
                 "reference/auth/sign-in-oauth-provider",
                 "reference/auth/oauth-callback-url-that-will-be-used-by-the-oauth-provider-to-redirect-to-the-client-application-attention:-all-providers-are-using-a-get-operation-except-apple-and-azure-ad-that-use-post"
@@ -156,6 +174,7 @@
             },
             {
               "group": "WebAuthn", 
+              "icon": "atom",
               "pages": [
                 "reference/auth/sign-up-using-email-via-fido2-webauthn-authentication",
                 "reference/auth/verfiy-fido2-webauthn-authentication-and-complete-signup",
@@ -165,6 +184,7 @@
             },
             {
               "group": "Anonymous", 
+              "icon": "luchador-mask",
               "pages": [
                 "reference/auth/sign-in-anonymous",
                 "reference/auth/deanonymize-an-anonymous-user-in-adding-missing-email-or-email+password-depending-on-the-chosen-authentication-method-will-send-a-confirmation-email-if-the-server-is-configured-to-do-so"
@@ -172,6 +192,7 @@
             },
             {
               "group": "MFA", 
+              "icon": "message-sms",
               "pages": [
                 "reference/auth/generate-a-secret-to-request-the-activation-of-time-based-one-time-password-totp-multi-factor-authentication",
                 "reference/auth/sign-in-totp",
@@ -180,6 +201,7 @@
             },
             {
               "group": "User", 
+              "icon": "user",
               "pages": [
                 "reference/auth/change-the-current-users-email",
                 "reference/auth/send-an-email-asking-the-user-to-reset-their-password",
@@ -196,6 +218,7 @@
         },
         {                  
           "group": "Storage",
+          "icon": "file",
           "pages": [
             "reference/storage/upload-file",
             "reference/storage/replace-file",
@@ -213,6 +236,7 @@
       "pages": [
         {
           "group": "JavaScript",
+          "icon": "js",
           "pages": [
             {
               "group": "Auth",
@@ -267,6 +291,7 @@
         },
         {
           "group": "React",
+          "icon": "react",
           "pages": [
             "reference/react/nhost-client",
             "reference/react/signed-in",
@@ -310,6 +335,7 @@
         },
         {
           "group": "Next.js",
+          "icon": "react",
           "pages": [
             "reference/nextjs/nhost-client",
             "reference/nextjs/signed-in",
@@ -355,6 +381,7 @@
         },
         {
           "group": "Vue",
+          "icon": "vuejs",
           "pages": [
             "reference/vue/nhost-client",
             "reference/vue/use-access-token",

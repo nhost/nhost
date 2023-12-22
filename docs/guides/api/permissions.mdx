@@ -2,6 +2,7 @@
 title: 'Permissions'
 sidebarTitle: Permissions
 description: 'Learn how permissions work'
+icon: octagon-exclamation
 ---
 
 **Permissions** or authorization rules are used to control acess to data and are set per role and table for each of the **select**, **insert**, **update**, and **delete** database operations.
@@ -10,7 +11,7 @@ Permissions follow a **Zero Trust** model, meaning that by default, no role, wit
 
 ![Permission Variables](/images/guides/graphql/dashboard-permissions.png)
 
-Let's use a table `todos` as an example, with `id` `title` and `user_id` columns, and you want users to only access their own todos. This is how you would do it:
+Imagine a table `todos` with `id`, `title`, and `user_id` columns. We want users to only have access to their own todos. This is how we would do it:
 
 ![Permission Variables](/images/guides/graphql/dashboard-permissions-select.png)
 
