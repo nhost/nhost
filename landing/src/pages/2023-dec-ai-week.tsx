@@ -292,13 +292,13 @@ export default function Page() {
             link: '/blog/docs-and-chatgpt',
           }}
         />
-        <PostDay
+        <AvailablePostDay
           date={new Date('2023-12-22T16:00:00.000+02:00')}
           post={{
-            image: '/images/blog/dark-mode/banner.png',
-            title: 'Coming soon',
-            description: '',
-            link: '',
+            image: '/images/blog/ai-week-release-day/ai-week-release-day.png',
+            title: 'AI Week Release & Recap',
+            description: 'Release Day of all features announced.',
+            link: '/blog/ai-week-release-day',
           }}
         />
         {/* <TbaDayDelayed date={new Date('2023-02-22T16:00:00.000+02:00')} /> */}
