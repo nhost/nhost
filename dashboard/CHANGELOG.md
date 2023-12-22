@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.2.0
+
+### Minor Changes
+
+- 5733162ed: feat: add settings and ui for graphite
+
 ## 1.1.0
 
 ### Minor Changes
