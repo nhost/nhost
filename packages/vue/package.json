@@ -1,6 +1,6 @@
 {
   "name": "@nhost/vue",
-  "version": "1.14.1",
+  "version": "2.0.0",
   "description": "Nhost Vue library",
   "license": "MIT",
   "keywords": [

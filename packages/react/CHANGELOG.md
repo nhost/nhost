@@ -1,5 +1,16 @@
 # @nhost/react
 
+## 3.0.0
+
+### Major Changes
+
+- bc9eff6e4: chore: remove support for using backendUrl when instantiating the Nhost client
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/nhost-js@3.0.0
+
 ## 2.1.1
 
 ### Patch Changes
