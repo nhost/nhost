@@ -10,8 +10,8 @@ export const getNhost = async (cookies) => {
 
   /** @type {import('@nhost/nhost-js').NhostClient} */
 	const nhost = new NhostClient({
-    region: env.PUBLIC_NHOST_REGION,
     subdomain: env.PUBLIC_NHOST_SUBDOMAIN || 'local',
+    region: env.PUBLIC_NHOST_REGION,
     clientStorageType: 'cookie',
 		start: false
   })
