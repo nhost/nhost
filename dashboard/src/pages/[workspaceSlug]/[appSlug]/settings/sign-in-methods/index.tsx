@@ -1,6 +1,5 @@
 import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
-import { ProvidersUpdatedAlert } from '@/components/settings';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { AnonymousSignInSettings } from '@/features/authentication/settings/components/AnonymousSignInSettings';
 import { AppleProviderSettings } from '@/features/authentication/settings/components/AppleProviderSettings';
@@ -55,7 +54,6 @@ export default function SettingsSignInMethodsPage() {
       <WebAuthnSettings />
       <AnonymousSignInSettings />
       <SMSSettings />
-      {!currentProject.providersUpdated && <ProvidersUpdatedAlert />}
       <AppleProviderSettings />
       <AzureADProviderSettings />
       <DiscordProviderSettings />

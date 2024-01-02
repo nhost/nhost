@@ -22979,13 +22979,6 @@ export type UpdateRunServiceConfigMutationVariables = Exact<{
 
 export type UpdateRunServiceConfigMutation = { __typename?: 'mutation_root', updateRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: any } };
 
-export type ConfirmProvidersUpdatedMutationVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type ConfirmProvidersUpdatedMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', id: any } | null };
-
 export type GetFreeAndActiveProjectsQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
@@ -26751,39 +26744,6 @@ export function useUpdateRunServiceConfigMutation(baseOptions?: Apollo.MutationH
 export type UpdateRunServiceConfigMutationHookResult = ReturnType<typeof useUpdateRunServiceConfigMutation>;
 export type UpdateRunServiceConfigMutationResult = Apollo.MutationResult<UpdateRunServiceConfigMutation>;
 export type UpdateRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
-export const ConfirmProvidersUpdatedDocument = gql`
-    mutation confirmProvidersUpdated($id: uuid!) {
-  updateApp(pk_columns: {id: $id}, _set: {providersUpdated: true}) {
-    id
-  }
-}
-    `;
-export type ConfirmProvidersUpdatedMutationFn = Apollo.MutationFunction<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>;
-
-/**
- * __useConfirmProvidersUpdatedMutation__
- *
- * To run a mutation, you first call `useConfirmProvidersUpdatedMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useConfirmProvidersUpdatedMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [confirmProvidersUpdatedMutation, { data, loading, error }] = useConfirmProvidersUpdatedMutation({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useConfirmProvidersUpdatedMutation(baseOptions?: Apollo.MutationHookOptions<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>(ConfirmProvidersUpdatedDocument, options);
-      }
-export type ConfirmProvidersUpdatedMutationHookResult = ReturnType<typeof useConfirmProvidersUpdatedMutation>;
-export type ConfirmProvidersUpdatedMutationResult = Apollo.MutationResult<ConfirmProvidersUpdatedMutation>;
-export type ConfirmProvidersUpdatedMutationOptions = Apollo.BaseMutationOptions<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>;
 export const GetFreeAndActiveProjectsDocument = gql`
     query GetFreeAndActiveProjects($userId: uuid!) {
   freeAndActiveProjects: apps(
