@@ -43,9 +43,9 @@ probePeriodSeconds = 10
 
 ## Healthcheck behaviour
 
-The healthcheck endpoint must be available at `/healthz` on the port specified in `healthCheck.port`. The endpoint must return `200` status code within `5` seconds for the service to be considered healthy.
+The healthcheck endpoint must be available at `/healthz` on the port specified in `healthCheck.port`. If your container image exposes multiple ports only one of them can be used for healthchecks.
 
-If the service fails to respond correctly `3` times in a row it will be considered not healthy and will be restarted with an exponential backoff delay (10s, 20s, 40s, …), that is capped at five minutes.
+The endpoint must return `200` status code within `5` seconds for the service to be considered healthy. If the service fails to respond correctly `3` times in a row it will be considered not healthy and will be restarted with an exponential backoff delay (10s, 20s, 40s, …), that is capped at five minutes.
 
 With `healthCheck.initialDelaySeconds` you can specify the number of seconds to wait before sending the first healthcheck request, this is useful if the service needs some time to start up. The default value is `30` seconds.
 
