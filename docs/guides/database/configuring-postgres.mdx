@@ -45,6 +45,9 @@ The following `CUE` schema contains all postgres settings available in `nhost.to
         maxParallelWorkersPerGather:   int32  | *2
         maxParallelWorkers:            int32  | *8
         maxParallelMaintenanceWorkers: int32  | *2
+        walLevel:                      string | *"replica"
+        maxWalSenders:                 int32 | *10
+        maxReplicationSlots:           int32 | *10
     }
 }
 ```
@@ -80,6 +83,9 @@ maxWorkerProcesses = 8
 maxParallelWorkersPerGather = 2
 maxParallelWorkers = 8
 maxParallelMaintenanceWorkers = 2
+walLevel = "replica"
+maxWalSenders = 10
+maxReplicationSlots = 10
 ```
 
 ### Resources
