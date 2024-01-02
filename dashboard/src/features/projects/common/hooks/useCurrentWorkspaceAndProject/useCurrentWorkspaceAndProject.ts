@@ -114,7 +114,6 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
       createdAt: new Date().toISOString(),
       desiredState: ApplicationStatus.Live,
       featureFlags: [],
-      providersUpdated: true,
       repositoryProductionBranch: null,
       nhostBaseFolder: null,
       plan: null,

@@ -59,7 +59,6 @@ export const mockApplication: Project = {
   deployments: [],
   desiredState: ApplicationStatus.Live,
   featureFlags: [],
-  providersUpdated: true,
   githubRepository: { fullName: 'test/git-project' },
   repositoryProductionBranch: null,
   nhostBaseFolder: null,
