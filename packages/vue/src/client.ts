@@ -2,6 +2,7 @@ import {
   NhostAuthConstructorParams,
   NhostClient as VanillaClient,
   removeParameterFromWindow,
+  ServiceUrls,
   Subdomain
 } from '@nhost/nhost-js'
 import { App, warn } from 'vue'
@@ -11,6 +12,7 @@ export type { ErrorPayload, NhostSession, Subdomain, User } from '@nhost/nhost-j
 
 export interface NhostVueClientConstructorParams
   extends Partial<Subdomain>,
+    Partial<ServiceUrls>,
     Omit<NhostAuthConstructorParams, 'url' | 'start' | 'client'> {}
 
 export class NhostClient extends VanillaClient {
