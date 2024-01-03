@@ -1,4 +1,3 @@
-import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -127,10 +126,5 @@ export default function MetricsPage() {
 }
 
 MetricsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout>
-      <DepricationNotice />
-      {page}
-    </ProjectLayout>
-  );
+  return <ProjectLayout>{page}</ProjectLayout>;
 };

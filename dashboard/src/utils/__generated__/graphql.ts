@@ -3362,7 +3362,6 @@ export type Apps = {
   /** An object relationship */
   plan: Plans;
   planId: Scalars['uuid'];
-  providersUpdated?: Maybe<Scalars['Boolean']>;
   /** An object relationship */
   region: Regions;
   regionId: Scalars['uuid'];
@@ -3626,7 +3625,6 @@ export type Apps_Bool_Exp = {
   nhostBaseFolder?: InputMaybe<String_Comparison_Exp>;
   plan?: InputMaybe<Plans_Bool_Exp>;
   planId?: InputMaybe<Uuid_Comparison_Exp>;
-  providersUpdated?: InputMaybe<Boolean_Comparison_Exp>;
   region?: InputMaybe<Regions_Bool_Exp>;
   regionId?: InputMaybe<Uuid_Comparison_Exp>;
   repositoryProductionBranch?: InputMaybe<String_Comparison_Exp>;
@@ -3700,7 +3698,6 @@ export type Apps_Insert_Input = {
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
   planId?: InputMaybe<Scalars['uuid']>;
-  providersUpdated?: InputMaybe<Scalars['Boolean']>;
   region?: InputMaybe<Regions_Obj_Rel_Insert_Input>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
@@ -3862,7 +3859,6 @@ export type Apps_Order_By = {
   nhostBaseFolder?: InputMaybe<Order_By>;
   plan?: InputMaybe<Plans_Order_By>;
   planId?: InputMaybe<Order_By>;
-  providersUpdated?: InputMaybe<Order_By>;
   region?: InputMaybe<Regions_Order_By>;
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
@@ -3919,8 +3915,6 @@ export enum Apps_Select_Column {
   /** column name */
   PlanId = 'planId',
   /** column name */
-  ProvidersUpdated = 'providersUpdated',
-  /** column name */
   RegionId = 'regionId',
   /** column name */
   RepositoryProductionBranch = 'repositoryProductionBranch',
@@ -3943,8 +3937,6 @@ export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_And_Arguments_Column
   /** column name */
   IsLocked = 'isLocked',
   /** column name */
-  ProvidersUpdated = 'providersUpdated',
-  /** column name */
   StateMatch = 'stateMatch'
 }
 
@@ -3952,8 +3944,6 @@ export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_And_Arguments_Column
 export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
   IsLocked = 'isLocked',
-  /** column name */
-  ProvidersUpdated = 'providersUpdated',
   /** column name */
   StateMatch = 'stateMatch'
 }
@@ -3975,7 +3965,6 @@ export type Apps_Set_Input = {
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   planId?: InputMaybe<Scalars['uuid']>;
-  providersUpdated?: InputMaybe<Scalars['Boolean']>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
   slug?: InputMaybe<Scalars['String']>;
@@ -4049,7 +4038,6 @@ export type Apps_Stream_Cursor_Value_Input = {
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
   planId?: InputMaybe<Scalars['uuid']>;
-  providersUpdated?: InputMaybe<Scalars['Boolean']>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
   slug?: InputMaybe<Scalars['String']>;
@@ -4105,8 +4093,6 @@ export enum Apps_Update_Column {
   NhostBaseFolder = 'nhostBaseFolder',
   /** column name */
   PlanId = 'planId',
-  /** column name */
-  ProvidersUpdated = 'providersUpdated',
   /** column name */
   RegionId = 'regionId',
   /** column name */
@@ -22490,7 +22476,7 @@ export type DeleteApplicationMutation = { __typename?: 'mutation_root', deleteAp
 export type GetAllWorkspacesAndProjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
 
 export type GetAppPlanAndGlobalPlansAppFragment = { __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }, plan: { __typename?: 'plans', id: any, name: string } };
 
@@ -22547,7 +22533,7 @@ export type GetWorkspaceAndProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
 
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
@@ -22739,9 +22725,9 @@ export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate
 
 export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any };
 
-export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
+export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
-export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
@@ -22978,13 +22964,6 @@ export type UpdateRunServiceConfigMutationVariables = Exact<{
 
 
 export type UpdateRunServiceConfigMutation = { __typename?: 'mutation_root', updateRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: any } };
-
-export type ConfirmProvidersUpdatedMutationVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type ConfirmProvidersUpdatedMutation = { __typename?: 'mutation_root', updateApp?: { __typename?: 'apps', id: any } | null };
 
 export type GetFreeAndActiveProjectsQueryVariables = Exact<{
   userId: Scalars['uuid'];
@@ -23240,7 +23219,6 @@ export const ProjectFragmentDoc = gql`
   createdAt
   desiredState
   nhostBaseFolder
-  providersUpdated
   config(resolve: true) {
     observability {
       grafana {
@@ -26751,39 +26729,6 @@ export function useUpdateRunServiceConfigMutation(baseOptions?: Apollo.MutationH
 export type UpdateRunServiceConfigMutationHookResult = ReturnType<typeof useUpdateRunServiceConfigMutation>;
 export type UpdateRunServiceConfigMutationResult = Apollo.MutationResult<UpdateRunServiceConfigMutation>;
 export type UpdateRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
-export const ConfirmProvidersUpdatedDocument = gql`
-    mutation confirmProvidersUpdated($id: uuid!) {
-  updateApp(pk_columns: {id: $id}, _set: {providersUpdated: true}) {
-    id
-  }
-}
-    `;
-export type ConfirmProvidersUpdatedMutationFn = Apollo.MutationFunction<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>;
-
-/**
- * __useConfirmProvidersUpdatedMutation__
- *
- * To run a mutation, you first call `useConfirmProvidersUpdatedMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useConfirmProvidersUpdatedMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [confirmProvidersUpdatedMutation, { data, loading, error }] = useConfirmProvidersUpdatedMutation({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useConfirmProvidersUpdatedMutation(baseOptions?: Apollo.MutationHookOptions<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>(ConfirmProvidersUpdatedDocument, options);
-      }
-export type ConfirmProvidersUpdatedMutationHookResult = ReturnType<typeof useConfirmProvidersUpdatedMutation>;
-export type ConfirmProvidersUpdatedMutationResult = Apollo.MutationResult<ConfirmProvidersUpdatedMutation>;
-export type ConfirmProvidersUpdatedMutationOptions = Apollo.BaseMutationOptions<ConfirmProvidersUpdatedMutation, ConfirmProvidersUpdatedMutationVariables>;
 export const GetFreeAndActiveProjectsDocument = gql`
     query GetFreeAndActiveProjects($userId: uuid!) {
   freeAndActiveProjects: apps(

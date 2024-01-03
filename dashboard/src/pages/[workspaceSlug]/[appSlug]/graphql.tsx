@@ -1,4 +1,3 @@
-import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -352,7 +351,6 @@ GraphQLPage.getLayout = function getLayout(page: ReactElement) {
         },
       }}
     >
-      <DepricationNotice />
       {page}
     </ProjectLayout>
   );

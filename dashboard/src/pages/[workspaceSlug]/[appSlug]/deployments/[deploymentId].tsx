@@ -1,4 +1,3 @@
-import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import type { DeploymentStatus } from '@/components/presentational/StatusCircle';
@@ -153,10 +152,5 @@ export default function DeploymentDetailsPage() {
 }
 
 DeploymentDetailsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout>
-      <DepricationNotice />
-      {page}
-    </ProjectLayout>
-  );
+  return <ProjectLayout>{page}</ProjectLayout>;
 };
