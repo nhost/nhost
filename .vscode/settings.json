@@ -1,7 +1,0 @@
-{
-  "editor.codeActionsOnSave": {
-    "source.organizeImports": true
-  },
-  "eslint.workingDirectories": ["./dashboard"],
-  "typescript.tsdk": "node_modules/typescript/lib"
-}
