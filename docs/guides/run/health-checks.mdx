@@ -6,19 +6,9 @@ icon: heart-pulse
 
 ## Configuration
 
-Below you can find an example with a toml configuration file for a service with healthcheck enabled.
+Below you can find an excerpt from a toml configuration file for a service with healthcheck enabled:
 
 ```toml
-name = 'mysvc'
-.
-.
-.
-[[ports]]
-port = 3000
-type = 'http'
-.
-.
-.
 [healthCheck]
 port = 3000
 initialDelaySeconds = 30
@@ -27,7 +17,7 @@ probePeriodSeconds = 60
 
 ## Healthcheck behaviour
 
-The healthcheck endpoint must be available at `/healthz` on the port specified in `healthCheck.port`. If your container image exposes multiple ports only one of them can be used for healthchecks.
+The healthcheck endpoint must be available at `/healthz` on the port specified in `healthCheck.port`. It is not necessary to publish the port in order to enable healthchecks on it. However, if the container image itself exposes multiple ports, only one of them can be used for healthchecks.
 
 The endpoint must return `200` status code within `5` seconds for the service to be considered healthy. If the service fails to respond correctly `3` times in a row it will be considered not healthy and will be restarted with an exponential backoff delay (10s, 20s, 40s, …), that is capped at five minutes.
 
