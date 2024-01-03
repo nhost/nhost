@@ -1,7 +1,7 @@
 schema:
-  - https://local.graphql.nhost.run/v1:
+  - ${CODEGEN_GRAPHQL_URL}:
       headers:
-        x-hasura-admin-secret: nhost-admin-secret
+        x-hasura-admin-secret: ${CODEGEN_HASURA_ADMIN_SECRET}
 generates:
   src/utils/__generated__/graphql.ts:
     documents:
