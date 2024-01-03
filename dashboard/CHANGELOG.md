@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.3.1
+
+### Patch Changes
+
+- af33c21d1: chore: remove backendUrl deprecation notice and remove all references to `providersUpdated`
+
 ## 1.3.0
 
 ### Minor Changes
