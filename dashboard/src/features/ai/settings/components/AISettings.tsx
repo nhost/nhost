@@ -5,7 +5,6 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
-import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { Box } from '@/components/ui/v2/Box';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Input } from '@/components/ui/v2/Input';
@@ -112,6 +111,8 @@ export default function AISettings() {
 
   const { register, formState, reset, watch, setValue } = form;
 
+  const aiSettingsFormValues = watch();
+
   useEffect(() => {
     if (ai) {
       reset({
@@ -134,10 +135,21 @@ export default function AISettings() {
   }, [ai, reset]);
 
   useEffect(() => {
-    if (!loadingGraphiteVersionsData && availableVersions.length > 0 && !ai) {
+    if (
+      !loadingGraphiteVersionsData &&
+      availableVersions.length > 0 &&
+      !ai &&
+      !aiSettingsFormValues.version.value
+    ) {
       setValue('version', availableVersions?.at(0));
     }
-  }, [availableVersions, loadingGraphiteVersionsData, ai, setValue]);
+  }, [
+    ai,
+    setValue,
+    availableVersions,
+    aiSettingsFormValues,
+    loadingGraphiteVersionsData,
+  ]);
 
   const toggleAIService = async (enabled: boolean) => {
     setAIServiceEnabled(enabled);
@@ -212,8 +224,6 @@ export default function AISettings() {
     }
   }
 
-  const aiSettingsFormValues = watch();
-
   const getAIResourcesCost = () => {
     const vCPUs = `${
       aiSettingsFormValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER
@@ -264,12 +274,7 @@ export default function AISettings() {
                     <ControlledAutocomplete
                       id="version"
                       name="version"
-                      filterOptions={(options, state) => {
-                        if (state.inputValue === ai?.version) {
-                          return options;
-                        }
-                        return filterOptions(options, state);
-                      }}
+                      filterOptions={(options) => options}
                       fullWidth
                       className="col-span-4"
                       options={availableVersions}

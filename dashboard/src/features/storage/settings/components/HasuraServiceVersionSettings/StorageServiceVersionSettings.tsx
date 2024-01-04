@@ -3,7 +3,6 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetStorageSettingsDocument,
@@ -136,13 +135,7 @@ export default function StorageServiceVersionSettings() {
           <ControlledAutocomplete
             id="version"
             name="version"
-            filterOptions={(options, state) => {
-              if (state.inputValue === version) {
-                return options;
-              }
-
-              return filterOptions(options, state);
-            }}
+            filterOptions={(options) => options}
             fullWidth
             className="lg:col-span-2"
             options={availableVersions}
