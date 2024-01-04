@@ -95,8 +95,8 @@ export default function AISettings() {
     reValidateMode: 'onSubmit',
     defaultValues: {
       version: {
-        label: '0.1.0',
-        value: '0.1.0',
+        label: ai?.version ?? availableVersions?.at(0)?.label,
+        value: ai?.version ?? availableVersions?.at(0)?.value,
       },
       webhookSecret: '',
       organization: '',
@@ -110,12 +110,15 @@ export default function AISettings() {
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState, reset, watch } = form;
+  const { register, formState, reset, watch, setValue } = form;
 
   useEffect(() => {
     if (ai) {
       reset({
-        version: { label: ai?.version, value: ai?.version },
+        version: {
+          label: ai?.version,
+          value: ai?.version,
+        },
         webhookSecret: ai?.webhookSecret,
         synchPeriodMinutes: ai?.autoEmbeddings?.synchPeriodMinutes,
         apiKey: ai?.openai?.apiKey,
@@ -130,10 +133,16 @@ export default function AISettings() {
     setAIServiceEnabled(!!ai);
   }, [ai, reset]);
 
+  useEffect(() => {
+    if (!loadingGraphiteVersionsData && availableVersions.length > 0 && !ai) {
+      setValue('version', availableVersions?.at(0));
+    }
+  }, [availableVersions, loadingGraphiteVersionsData, ai, setValue]);
+
   const toggleAIService = async (enabled: boolean) => {
     setAIServiceEnabled(enabled);
 
-    if (!enabled) {
+    if (!enabled && ai) {
       openDialog({
         title: 'Confirm Disabling the AI service',
         component: (
@@ -240,37 +249,39 @@ export default function AISettings() {
               className="flex flex-col"
             >
               <Box className="space-y-4">
-                <Box className="space-y-2">
-                  <Box className="flex flex-row items-center space-x-2">
-                    <Text className="text-lg font-semibold">Version</Text>
-                    <Tooltip title="Version of the service to use.">
-                      <InfoIcon
-                        aria-label="Info"
-                        className="h-4 w-4"
-                        color="primary"
-                      />
-                    </Tooltip>
-                  </Box>
-                  <ControlledAutocomplete
-                    id="version"
-                    name="version"
-                    filterOptions={(options, state) => {
-                      if (state.inputValue === ai?.version) {
-                        return options;
+                {availableVersions.length > 0 && (
+                  <Box className="space-y-2">
+                    <Box className="flex flex-row items-center space-x-2">
+                      <Text className="text-lg font-semibold">Version</Text>
+                      <Tooltip title="Version of the service to use.">
+                        <InfoIcon
+                          aria-label="Info"
+                          className="h-4 w-4"
+                          color="primary"
+                        />
+                      </Tooltip>
+                    </Box>
+                    <ControlledAutocomplete
+                      id="version"
+                      name="version"
+                      filterOptions={(options, state) => {
+                        if (state.inputValue === ai?.version) {
+                          return options;
+                        }
+                        return filterOptions(options, state);
+                      }}
+                      fullWidth
+                      className="col-span-4"
+                      options={availableVersions}
+                      error={!!formState.errors?.version?.message}
+                      helperText={formState.errors?.version?.message}
+                      showCustomOption="auto"
+                      customOptionLabel={(value) =>
+                        `Use custom value: "${value}"`
                       }
-                      return filterOptions(options, state);
-                    }}
-                    fullWidth
-                    className="col-span-4"
-                    options={availableVersions}
-                    error={!!formState.errors?.version?.message}
-                    helperText={formState.errors?.version?.message}
-                    showCustomOption="auto"
-                    customOptionLabel={(value) =>
-                      `Use custom value: "${value}"`
-                    }
-                  />
-                </Box>
+                    />
+                  </Box>
+                )}
 
                 <Box className="space-y-2">
                   <Box className="flex flex-row items-center space-x-2">
