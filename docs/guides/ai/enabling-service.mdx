@@ -11,21 +11,6 @@ You can enable Graphite, Nhost's AI service, with the following steps:
 
     ![database settings](/images/guides/ai/enabling/database.png)
   </Step>
-  <Step title="Prepare your database">
-    Create a migration with the following SQL code (if you aren't working with migrations you can apply the SQL directly in the database tab):
-    ```sql
-    -- AI service data will be stored in this schema
-    CREATE SCHEMA IF NOT EXISTS graphite;
-    SET ROLE postgres;
-    -- We need this extension to store and work with embeddings
-    CREATE EXTENSION IF NOT EXISTS vector;
-    -- This extension is used to be able to call the AI service to
-    -- generate embeddings directly from a postgres function
-    CREATE EXTENSION IF NOT EXISTS http;
-    ```
-
-    ![database migration](/images/guides/ai/enabling/migration.png)
-  </Step>
   <Step title="Get an OpenAPI key">
     Get an OpenAI API key from their [customer portal](https://platform.openai.com/account/api-keys).
 
