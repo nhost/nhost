@@ -36,7 +36,7 @@ export interface RoleSettingsFormValues {
    */
   authUserDefaultRole: string;
   /**
-   * Allowed roles for the project.
+   * Default Allowed roles for the project.
    */
   authUserDefaultAllowedRoles: Role[];
 }
@@ -169,8 +169,8 @@ export default function RoleSettings() {
 
   return (
     <SettingsContainer
-      title="Allowed Roles"
-      description="Allowed roles are roles users get automatically when they sign up."
+      title="Default Allowed Roles"
+      description="Default Allowed Roles are roles users get automatically when they sign up."
       docsLink="https://docs.nhost.io/authentication/users#allowed-roles"
       rootClassName="gap-0"
       className={twMerge(
