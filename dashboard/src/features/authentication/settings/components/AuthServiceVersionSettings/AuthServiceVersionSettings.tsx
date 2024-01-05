@@ -3,7 +3,6 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetAuthenticationSettingsDocument,
@@ -134,12 +133,26 @@ export default function AuthServiceVersionSettings() {
           <ControlledAutocomplete
             id="version"
             name="version"
-            filterOptions={(options, state) => {
-              if (state.inputValue === version) {
-                return options;
-              }
+            autoHighlight
+            isOptionEqualToValue={() => false}
+            filterOptions={(options, { inputValue }) => {
+              const inputValueLower = inputValue.toLowerCase();
+              const matched = [];
+              const otherOptions = [];
 
-              return filterOptions(options, state);
+              options.forEach((option) => {
+                const optionLabelLower = option.label.toLowerCase();
+
+                if (optionLabelLower.startsWith(inputValueLower)) {
+                  matched.push(option);
+                } else {
+                  otherOptions.push(option);
+                }
+              });
+
+              const result = [...matched, ...otherOptions];
+
+              return result;
             }}
             fullWidth
             className="lg:col-span-2"
