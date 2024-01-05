@@ -135,7 +135,27 @@ export default function HasuraServiceVersionSettings() {
           <ControlledAutocomplete
             id="version"
             name="version"
-            filterOptions={(options) => options}
+            autoHighlight
+            isOptionEqualToValue={() => false}
+            filterOptions={(options, { inputValue }) => {
+              const inputValueLower = inputValue.toLowerCase();
+              const matched = [];
+              const otherOptions = [];
+
+              options.forEach((option) => {
+                const optionLabelLower = option.label.toLowerCase();
+
+                if (optionLabelLower.startsWith(inputValueLower)) {
+                  matched.push(option);
+                } else {
+                  otherOptions.push(option);
+                }
+              });
+
+              const result = [...matched, ...otherOptions];
+
+              return result;
+            }}
             fullWidth
             className="lg:col-span-2"
             aria-label="Hasura Service Version"
