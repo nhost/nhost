@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 1.3.2
+
+### Patch Changes
+
+- 174b4165b: chore: use env variables when running graphql codegen
+- 7c977e714: chore: change `Allowed Roles` to `Default Allowed Roles`
+- 46f028b9f: fix: remove hardcoded ai version setting
+
 ## 1.3.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nhost/vue
 
+## 2.0.2
+
+### Patch Changes
+
+- 184c341f0: fix: include `ServiceUrls` in `NhostVueClientConstructorParams` interface
+
 ## 2.0.1
 
 ### Patch Changes
