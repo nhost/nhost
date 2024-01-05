@@ -4,7 +4,7 @@
   "openapi": ["reference/openapi-auth.yaml", "reference/openapi-storage.yaml"],
   "logo": {
     "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg
+    "light": "/logo/light.svg"
   },
   "favicon": "/favicon.svg",
   "colors": {
