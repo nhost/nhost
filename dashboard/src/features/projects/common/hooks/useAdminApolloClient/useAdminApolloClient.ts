@@ -13,7 +13,7 @@ export default function useAdminApolloClient() {
     'graphql',
   );
 
-  const adminSecret = getHasuraAdminSecret();
+  const projectAdminSecret = currentProject.config?.hasura?.adminSecret;
 
   const adminClient = useMemo(
     () =>
@@ -25,11 +25,11 @@ export default function useAdminApolloClient() {
             'x-hasura-admin-secret':
               process.env.NEXT_PUBLIC_ENV === 'dev'
                 ? getHasuraAdminSecret()
-                : adminSecret,
+                : projectAdminSecret,
           },
         }),
       }),
-    [serviceUrl, adminSecret],
+    [serviceUrl, projectAdminSecret],
   );
 
   return {
