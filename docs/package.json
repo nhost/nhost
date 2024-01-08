@@ -28,7 +28,7 @@
     "prismjs": "^1.29.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "unist-util-visit": "^2.0.0"
+    "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "2.4.1",
