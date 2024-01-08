@@ -20,7 +20,7 @@ func expectedGraphql() *Service {
 		Environment: map[string]string{
 			"ENV1":                                                     "VALUE1",
 			"ENV2":                                                     "VALUE2",
-			"GRAPHITE_WEBHOOK_SECRET":                                  "",
+			"GRAPHITE_WEBHOOK_SECRET":                                  "webhookSecret",
 			"HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS":                     "true",
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",
@@ -150,7 +150,7 @@ func expectedConsole() *Service {
 		Environment: map[string]string{
 			"ENV1":                                                     "VALUE1",
 			"ENV2":                                                     "VALUE2",
-			"GRAPHITE_WEBHOOK_SECRET":                                  "",
+			"GRAPHITE_WEBHOOK_SECRET":                                  "webhookSecret",
 			"HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS":                     "true",
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",

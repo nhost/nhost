@@ -320,6 +320,7 @@ func functions( //nolint:funlen
 		"NHOST_REGION":                "",
 		"NHOST_SUBDOMAIN":             "local",
 		"NHOST_WEBHOOK_SECRET":        cfg.Hasura.WebhookSecret,
+		"GRAPHITE_WEBHOOK_SECRET":     cfg.GetAi().GetWebhookSecret(),
 	}
 	for _, envVar := range cfg.GetGlobal().GetEnvironment() {
 		envVars[envVar.GetName()] = envVar.GetValue()
@@ -512,5 +513,10 @@ func ComposeFileFromConfig( //nolint:funlen
 			pgVolumeName:             {},
 		},
 	}
+
+	if cfg.Ai != nil {
+		c.Services["ai"] = ai(cfg)
+	}
+
 	return c, nil
 }

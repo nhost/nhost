@@ -1,1 +1,15 @@
-[]
+- name: graphite
+  definition:
+    url: http://ai:8090/v1/graphql
+    timeout_seconds: 300
+    customization:
+      field_names: []
+      root_fields_namespace: graphite
+      type_names:
+        mapping: {}
+        prefix: graphite
+    headers:
+      - name: X-Graphite-Webhook-Secret
+        value_from_env: GRAPHITE_WEBHOOK_SECRET
+    forward_client_headers: true
+  comment: Nhost Graphite remote schema

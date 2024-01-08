@@ -7,6 +7,20 @@ value = 'Sayonara'
 name = 'GREET_TYPE'
 value = '{{ secrets.GREET_TYPE }}'
 
+[ai]
+version = '0.3.1'
+webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
+
+[ai.resources.compute]
+cpu = 64
+memory = 128
+
+[ai.openai]
+apiKey = '{{ secrets.OPENAI_API_KEY }}'
+
+[ai.autoEmbeddings]
+synchPeriodMinutes = 10
+
 [hasura]
 version = 'v2.33.4-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
@@ -131,7 +145,7 @@ timeout = 60000
 enabled = false
 
 [postgres]
-version = '14.6-20230925-1'
+version = '14.6-20231218-1'
 
 [postgres.settings]
 maxConnections = 100

@@ -1248,8 +1248,7 @@ type Apps struct {
 	Name               string                 `json:"name"`
 	NhostBaseFolder    string                 `json:"nhostBaseFolder"`
 	// An object relationship
-	Plan             Plans `json:"plan"`
-	ProvidersUpdated *bool `json:"providersUpdated,omitempty"`
+	Plan Plans `json:"plan"`
 	// An object relationship
 	Region                     Regions `json:"region"`
 	RepositoryProductionBranch string  `json:"repositoryProductionBranch"`
@@ -1315,7 +1314,6 @@ type AppsBoolExp struct {
 	Name                       *StringComparisonExp        `json:"name,omitempty"`
 	NhostBaseFolder            *StringComparisonExp        `json:"nhostBaseFolder,omitempty"`
 	Plan                       *PlansBoolExp               `json:"plan,omitempty"`
-	ProvidersUpdated           *BooleanComparisonExp       `json:"providersUpdated,omitempty"`
 	Region                     *RegionsBoolExp             `json:"region,omitempty"`
 	RepositoryProductionBranch *StringComparisonExp        `json:"repositoryProductionBranch,omitempty"`
 	RunServices                *RunServiceBoolExp          `json:"runServices,omitempty"`
@@ -1420,7 +1418,6 @@ type AppsOrderBy struct {
 	Name                       *OrderBy                         `json:"name,omitempty"`
 	NhostBaseFolder            *OrderBy                         `json:"nhostBaseFolder,omitempty"`
 	Plan                       *PlansOrderBy                    `json:"plan,omitempty"`
-	ProvidersUpdated           *OrderBy                         `json:"providersUpdated,omitempty"`
 	Region                     *RegionsOrderBy                  `json:"region,omitempty"`
 	RepositoryProductionBranch *OrderBy                         `json:"repositoryProductionBranch,omitempty"`
 	RunServicesAggregate       *RunServiceAggregateOrderBy      `json:"runServices_aggregate,omitempty"`
@@ -1443,7 +1440,6 @@ type AppsSetInput struct {
 	Name                       *string `json:"name,omitempty"`
 	NhostBaseFolder            *string `json:"nhostBaseFolder,omitempty"`
 	PlanID                     *string `json:"planId,omitempty"`
-	ProvidersUpdated           *bool   `json:"providersUpdated,omitempty"`
 	RepositoryProductionBranch *string `json:"repositoryProductionBranch,omitempty"`
 	Slug                       *string `json:"slug,omitempty"`
 }
@@ -1483,7 +1479,6 @@ type AppsStreamCursorValueInput struct {
 	MetadataFunctions          map[string]interface{} `json:"metadataFunctions,omitempty"`
 	Name                       *string                `json:"name,omitempty"`
 	NhostBaseFolder            *string                `json:"nhostBaseFolder,omitempty"`
-	ProvidersUpdated           *bool                  `json:"providersUpdated,omitempty"`
 	RepositoryProductionBranch *string                `json:"repositoryProductionBranch,omitempty"`
 	Slug                       *string                `json:"slug,omitempty"`
 	Subdomain                  *string                `json:"subdomain,omitempty"`
@@ -4382,8 +4377,6 @@ const (
 	// column name
 	AppsSelectColumnNhostBaseFolder AppsSelectColumn = "nhostBaseFolder"
 	// column name
-	AppsSelectColumnProvidersUpdated AppsSelectColumn = "providersUpdated"
-	// column name
 	AppsSelectColumnRepositoryProductionBranch AppsSelectColumn = "repositoryProductionBranch"
 	// column name
 	AppsSelectColumnSlug AppsSelectColumn = "slug"
@@ -4406,7 +4399,6 @@ var AllAppsSelectColumn = []AppsSelectColumn{
 	AppsSelectColumnMetadataFunctions,
 	AppsSelectColumnName,
 	AppsSelectColumnNhostBaseFolder,
-	AppsSelectColumnProvidersUpdated,
 	AppsSelectColumnRepositoryProductionBranch,
 	AppsSelectColumnSlug,
 	AppsSelectColumnSubdomain,
@@ -4416,7 +4408,7 @@ var AllAppsSelectColumn = []AppsSelectColumn{
 
 func (e AppsSelectColumn) IsValid() bool {
 	switch e {
-	case AppsSelectColumnCreatedAt, AppsSelectColumnCreatorUserID, AppsSelectColumnDesiredState, AppsSelectColumnGithubRepositoryID, AppsSelectColumnID, AppsSelectColumnIsLocked, AppsSelectColumnIsLockedReason, AppsSelectColumnMetadataFunctions, AppsSelectColumnName, AppsSelectColumnNhostBaseFolder, AppsSelectColumnProvidersUpdated, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnSlug, AppsSelectColumnSubdomain, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID:
+	case AppsSelectColumnCreatedAt, AppsSelectColumnCreatorUserID, AppsSelectColumnDesiredState, AppsSelectColumnGithubRepositoryID, AppsSelectColumnID, AppsSelectColumnIsLocked, AppsSelectColumnIsLockedReason, AppsSelectColumnMetadataFunctions, AppsSelectColumnName, AppsSelectColumnNhostBaseFolder, AppsSelectColumnRepositoryProductionBranch, AppsSelectColumnSlug, AppsSelectColumnSubdomain, AppsSelectColumnUpdatedAt, AppsSelectColumnWorkspaceID:
 		return true
 	}
 	return false
@@ -4458,8 +4450,6 @@ const (
 	// column name
 	AppsUpdateColumnPlanID AppsUpdateColumn = "planId"
 	// column name
-	AppsUpdateColumnProvidersUpdated AppsUpdateColumn = "providersUpdated"
-	// column name
 	AppsUpdateColumnRepositoryProductionBranch AppsUpdateColumn = "repositoryProductionBranch"
 	// column name
 	AppsUpdateColumnSlug AppsUpdateColumn = "slug"
@@ -4471,14 +4461,13 @@ var AllAppsUpdateColumn = []AppsUpdateColumn{
 	AppsUpdateColumnName,
 	AppsUpdateColumnNhostBaseFolder,
 	AppsUpdateColumnPlanID,
-	AppsUpdateColumnProvidersUpdated,
 	AppsUpdateColumnRepositoryProductionBranch,
 	AppsUpdateColumnSlug,
 }
 
 func (e AppsUpdateColumn) IsValid() bool {
 	switch e {
-	case AppsUpdateColumnDesiredState, AppsUpdateColumnGithubRepositoryID, AppsUpdateColumnName, AppsUpdateColumnNhostBaseFolder, AppsUpdateColumnPlanID, AppsUpdateColumnProvidersUpdated, AppsUpdateColumnRepositoryProductionBranch, AppsUpdateColumnSlug:
+	case AppsUpdateColumnDesiredState, AppsUpdateColumnGithubRepositoryID, AppsUpdateColumnName, AppsUpdateColumnNhostBaseFolder, AppsUpdateColumnPlanID, AppsUpdateColumnRepositoryProductionBranch, AppsUpdateColumnSlug:
 		return true
 	}
 	return false

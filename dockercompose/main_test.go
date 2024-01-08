@@ -6,6 +6,23 @@ import (
 
 func getConfig() *model.ConfigConfig { //nolint:maintidx
 	return &model.ConfigConfig{
+		Ai: &model.ConfigAI{
+			Version: ptr("0.2.5"),
+			Resources: &model.ConfigAIResources{
+				Compute: &model.ConfigComputeResources{
+					Cpu:    128,
+					Memory: 256,
+				},
+			},
+			Openai: &model.ConfigAIOpenai{
+				Organization: ptr("my-org"),
+				ApiKey:       "openaiApiKey",
+			},
+			AutoEmbeddings: &model.ConfigAIAutoEmbeddings{
+				SynchPeriodMinutes: ptr(uint32(10)),
+			},
+			WebhookSecret: "webhookSecret",
+		},
 		Auth: &model.ConfigAuth{
 			Resources: &model.ConfigResources{
 				Compute: &model.ConfigResourcesCompute{
@@ -301,7 +318,6 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 			},
 			Version: ptr("0.2.5"),
 		},
-		Ai: nil,
 		Observability: &model.ConfigObservability{
 			Grafana: &model.ConfigGrafana{
 				AdminPassword: "grafanaAdminPassword",

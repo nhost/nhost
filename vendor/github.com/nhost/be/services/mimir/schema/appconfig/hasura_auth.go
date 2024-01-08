@@ -75,8 +75,10 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			IsSecret:   true,
 		},
 		{
-			Name:  "HASURA_GRAPHQL_GRAPHQL_URL",
-			Value: hasuraGraphqlURL,
+			Name:       "HASURA_GRAPHQL_GRAPHQL_URL",
+			Value:      hasuraGraphqlURL,
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_ACCESS_TOKEN_EXPIRES_IN",
@@ -88,6 +90,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetExpiresIn(),
 				),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_REFRESH_TOKEN_EXPIRES_IN",
@@ -100,28 +104,40 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetExpiresIn(),
 				),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
-			Name:  "AUTH_SERVER_URL",
-			Value: authServerURL,
+			Name:       "AUTH_SERVER_URL",
+			Value:      authServerURL,
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_CLIENT_URL",
 			Value: unptr(
 				config.GetAuth().GetRedirections().GetClientUrl(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
-			Name:  "AUTH_PORT",
-			Value: "4000",
+			Name:       "AUTH_PORT",
+			Value:      "4000",
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
-			Name:  "AUTH_HOST",
-			Value: "0.0.0.0",
+			Name:       "AUTH_HOST",
+			Value:      "0.0.0.0",
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
-			Name:  "AUTH_API_PREFIX",
-			Value: "/v1",
+			Name:       "AUTH_API_PREFIX",
+			Value:      "/v1",
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_ANONYMOUS_USERS_ENABLED",
@@ -134,98 +150,134 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetEnabled(),
 				),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
-			Name:  "AUTH_USER_DEFAULT_ROLE",
-			Value: *config.GetAuth().GetUser().GetRoles().GetDefault(),
+			Name:       "AUTH_USER_DEFAULT_ROLE",
+			Value:      *config.GetAuth().GetUser().GetRoles().GetDefault(),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_PASSWORD_HIBP_ENABLED",
 			Value: Stringify(
 				*config.GetAuth().GetMethod().GetEmailPassword().GetHibpEnabled(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_PASSWORD_MIN_LENGTH",
 			Value: Stringify(
 				*config.GetAuth().GetMethod().GetEmailPassword().GetPasswordMinLength(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_USER_DEFAULT_ALLOWED_ROLES",
 			Value: Stringify(
 				config.GetAuth().GetUser().GetRoles().GetAllowed(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
-			Name:  "AUTH_MFA_ENABLED",
-			Value: Stringify(*config.GetAuth().GetTotp().GetEnabled()),
+			Name:       "AUTH_MFA_ENABLED",
+			Value:      Stringify(*config.GetAuth().GetTotp().GetEnabled()),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
-			Name:  "AUTH_MFA_TOTP_ISSUER",
-			Value: unptr(config.GetAuth().GetTotp().GetIssuer()),
+			Name:       "AUTH_MFA_TOTP_ISSUER",
+			Value:      unptr(config.GetAuth().GetTotp().GetIssuer()),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_LOCALE_DEFAULT",
 			Value: unptr(
 				config.GetAuth().GetUser().GetLocale().GetDefault(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_LOCALE_ALLOWED_LOCALES",
 			Value: Stringify(
 				config.GetAuth().GetUser().GetLocale().GetAllowed(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS",
 			Value: Stringify(
 				config.GetAuth().GetRedirections().GetAllowedUrls(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_ACCESS_CONTROL_ALLOWED_EMAILS",
 			Value: Stringify(
 				config.GetAuth().GetUser().GetEmail().GetAllowed(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS",
 			Value: Stringify(
 				config.GetAuth().GetUser().GetEmailDomains().GetAllowed(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_ACCESS_CONTROL_BLOCKED_EMAILS",
 			Value: Stringify(
 				config.GetAuth().GetUser().GetEmail().GetBlocked(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS",
 			Value: Stringify(
 				config.GetAuth().GetUser().GetEmailDomains().GetBlocked(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
-			Name:  "AUTH_JWT_CUSTOM_CLAIMS",
-			Value: string(authJwtCustomClaims),
+			Name:       "AUTH_JWT_CUSTOM_CLAIMS",
+			Value:      string(authJwtCustomClaims),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_EMAIL_PASSWORDLESS_ENABLED",
 			Value: Stringify(
 				*config.GetAuth().GetMethod().GetEmailPasswordless().GetEnabled(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED",
 			Value: Stringify(
 				*config.GetAuth().GetMethod().GetEmailPassword().GetEmailVerificationRequired(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
-			Name:  "AUTH_DISABLE_SIGNUP",
-			Value: Stringify(!unptr(config.GetAuth().GetSignUp().GetEnabled())),
+			Name:       "AUTH_DISABLE_SIGNUP",
+			Value:      Stringify(!unptr(config.GetAuth().GetSignUp().GetEnabled())),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_DISABLE_NEW_USERS",
@@ -233,6 +285,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 				!unptr(config.GetAuth().GetSignUp().GetEnabled()) ||
 					unptr(config.GetAuth().GetSignUp().GetDisableNewUsers()),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 	}
 
@@ -244,6 +298,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 					config.GetAuth().GetUser().GetGravatar().GetEnabled(),
 				),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 	}...)
 	if unptr(config.GetAuth().GetUser().GetGravatar().GetEnabled()) {
@@ -259,6 +315,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetDefault(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_GRAVATAR_RATING",
@@ -271,6 +329,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetRating(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
@@ -290,6 +350,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_WEBAUTHN_RP_ID",
@@ -301,6 +363,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetRelyingParty().
 						GetId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_WEBAUTHN_RP_NAME",
@@ -312,6 +376,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetRelyingParty().
 						GetName(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_WEBAUTHN_RP_ORIGINS",
@@ -323,6 +389,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetRelyingParty().
 						GetOrigins(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_WEBAUTHN_ATTESTATION_TIMEOUT",
@@ -336,6 +404,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetTimeout(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
@@ -355,20 +425,28 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_SMS_PROVIDER",
 				Value: unptr(
 					config.GetProvider().GetSms().GetProvider(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
-				Name:  "AUTH_SMS_TWILIO_ACCOUNT_SID",
-				Value: config.GetProvider().GetSms().GetAccountSid(),
+				Name:       "AUTH_SMS_TWILIO_ACCOUNT_SID",
+				Value:      config.GetProvider().GetSms().GetAccountSid(),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
-				Name:  "AUTH_SMS_TWILIO_AUTH_TOKEN",
-				Value: config.GetProvider().GetSms().GetAuthToken(),
+				Name:       "AUTH_SMS_TWILIO_AUTH_TOKEN",
+				Value:      config.GetProvider().GetSms().GetAuthToken(),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID",
@@ -376,6 +454,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 					GetProvider().
 					GetSms().
 					GetMessagingServiceId(),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
@@ -396,6 +476,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_GITHUB_CLIENT_ID",
@@ -407,6 +489,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetGithub().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_GITHUB_CLIENT_SECRET",
@@ -419,7 +503,7 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		}...)
 	}
 
-	if unptr(
+	if unptr( //nolint:dupl
 		config.GetAuth().GetMethod().GetOauth().GetGoogle().GetEnabled(),
 	) {
 		env = append(env, []EnvVar{
@@ -435,6 +519,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_GOOGLE_CLIENT_ID",
@@ -446,6 +532,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetGoogle().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_GOOGLE_CLIENT_SECRET",
@@ -465,11 +553,13 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetGoogle().
 						GetScope(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
 
-	if unptr(
+	if unptr( //nolint:dupl
 		config.GetAuth().GetMethod().GetOauth().GetFacebook().GetEnabled(),
 	) {
 		env = append(env, []EnvVar{
@@ -486,6 +576,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_FACEBOOK_CLIENT_ID",
@@ -497,6 +589,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetFacebook().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_FACEBOOK_CLIENT_SECRET",
@@ -516,11 +610,13 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetFacebook().
 						GetScope(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
 
-	if unptr(
+	if unptr( //nolint:dupl
 		config.GetAuth().GetMethod().GetOauth().GetSpotify().GetEnabled(),
 	) {
 		env = append(env, []EnvVar{
@@ -537,6 +633,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_SPOTIFY_CLIENT_ID",
@@ -548,6 +646,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetSpotify().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_SPOTIFY_CLIENT_SECRET",
@@ -567,11 +667,13 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetSpotify().
 						GetScope(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
 
-	if unptr(
+	if unptr( //nolint:dupl
 		config.GetAuth().GetMethod().GetOauth().GetLinkedin().GetEnabled(),
 	) {
 		env = append(env, []EnvVar{
@@ -587,6 +689,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_LINKEDIN_CLIENT_ID",
@@ -598,6 +702,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetLinkedin().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_LINKEDIN_CLIENT_SECRET",
@@ -617,11 +723,13 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetLinkedin().
 						GetScope(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
 
-	if unptr(
+	if unptr( //nolint:dupl
 		config.GetAuth().GetMethod().GetOauth().GetDiscord().GetEnabled(),
 	) {
 		env = append(env, []EnvVar{
@@ -637,6 +745,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_DISCORD_CLIENT_ID",
@@ -648,6 +758,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetDiscord().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_DISCORD_CLIENT_SECRET",
@@ -667,11 +779,13 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetDiscord().
 						GetScope(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
 
-	if unptr(
+	if unptr( //nolint:dupl
 		config.GetAuth().GetMethod().GetOauth().GetTwitch().GetEnabled(),
 	) {
 		env = append(env, []EnvVar{
@@ -687,6 +801,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_TWITCH_CLIENT_ID",
@@ -698,6 +814,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetTwitch().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_TWITCH_CLIENT_SECRET",
@@ -717,11 +835,13 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetTwitch().
 						GetScope(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
 
-	if unptr(
+	if unptr( //nolint:dupl
 		config.
 			GetAuth().
 			GetMethod().
@@ -742,6 +862,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_ID",
@@ -753,6 +875,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetWindowslive().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_WINDOWS_LIVE_CLIENT_SECRET",
@@ -772,6 +896,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetWindowslive().
 						GetScope(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
@@ -792,6 +918,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_WORKOS_CLIENT_ID",
@@ -803,6 +931,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetWorkos().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_WORKOS_CLIENT_SECRET",
@@ -822,6 +952,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetWorkos().
 						GetOrganization(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_WORKOS_DEFAULT_CONNECTION",
@@ -833,6 +965,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetWorkos().
 						GetConnection(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
@@ -854,6 +988,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_TWITTER_CONSUMER_KEY",
@@ -865,6 +1001,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetTwitter().
 						GetConsumerKey(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_TWITTER_CONSUMER_SECRET",
@@ -893,6 +1031,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_APPLE_CLIENT_ID",
@@ -904,6 +1044,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetApple().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_APPLE_TEAM_ID",
@@ -915,6 +1057,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetApple().
 						GetTeamId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_APPLE_KEY_ID",
@@ -933,7 +1077,7 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		}...)
 	}
 
-	if unptr(
+	if unptr( //nolint:dupl
 		config.GetAuth().GetMethod().GetOauth().GetAzuread().GetEnabled(),
 	) {
 		env = append(env, []EnvVar{
@@ -949,6 +1093,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_AZUREAD_CLIENT_ID",
@@ -960,6 +1106,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetAzuread().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_AZUREAD_CLIENT_SECRET",
@@ -979,11 +1127,13 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetAzuread().
 						GetTenant(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
 
-	if unptr(
+	if unptr( //nolint:dupl
 		config.GetAuth().GetMethod().GetOauth().GetGitlab().GetEnabled(),
 	) {
 		env = append(env, []EnvVar{
@@ -999,6 +1149,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_GITLAB_CLIENT_ID",
@@ -1010,6 +1162,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetGitlab().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_GITLAB_CLIENT_SECRET",
@@ -1029,11 +1183,13 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetGitlab().
 						GetScope(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
 
-	if unptr(
+	if unptr( //nolint:dupl
 		config.GetAuth().GetMethod().GetOauth().GetStrava().GetEnabled(),
 	) {
 		env = append(env, []EnvVar{
@@ -1049,6 +1205,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_STRAVA_CLIENT_ID",
@@ -1060,6 +1218,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetStrava().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_STRAVA_CLIENT_SECRET",
@@ -1079,6 +1239,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetStrava().
 						GetScope(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 		}...)
 	}
@@ -1099,6 +1261,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 							GetEnabled(),
 					),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name: "AUTH_PROVIDER_BITBUCKET_CLIENT_ID",
@@ -1110,6 +1274,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 						GetBitbucket().
 						GetClientId(),
 				),
+				IsSecret:   false,
+				SecretName: "",
 			},
 			{
 				Name:       "AUTH_PROVIDER_BITBUCKET_CLIENT_SECRET",
@@ -1124,32 +1290,44 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 
 	env = append(env, []EnvVar{
 		{
-			Name:  "AUTH_SMTP_HOST",
-			Value: smtpSettings.GetHost(),
+			Name:       "AUTH_SMTP_HOST",
+			Value:      smtpSettings.GetHost(),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_SMTP_SECURE",
 			Value: Stringify(
 				smtpSettings.GetSecure(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name: "AUTH_SMTP_PORT",
 			Value: Stringify(
 				smtpSettings.GetPort(),
 			),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
-			Name:  "AUTH_SMTP_USER",
-			Value: smtpSettings.GetUser(),
+			Name:       "AUTH_SMTP_USER",
+			Value:      smtpSettings.GetUser(),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
-			Name:  "AUTH_SMTP_SENDER",
-			Value: smtpSettings.GetSender(),
+			Name:       "AUTH_SMTP_SENDER",
+			Value:      smtpSettings.GetSender(),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
-			Name:  "AUTH_SMTP_AUTH_METHOD",
-			Value: smtpSettings.GetMethod(),
+			Name:       "AUTH_SMTP_AUTH_METHOD",
+			Value:      smtpSettings.GetMethod(),
+			IsSecret:   false,
+			SecretName: "",
 		},
 		{
 			Name:       "AUTH_SMTP_PASS",

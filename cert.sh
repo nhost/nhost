@@ -20,7 +20,7 @@ certbot certonly \
     --config-dir letsencrypt \
     --work-dir letsencrypt
 
-cp letsencrypt/live/local.db.nhost.run/fullchain.pem internal/ssl/.ssl/
-cp letsencrypt/live/local.db.nhost.run/privkey.pem internal/ssl/.ssl/
+cp letsencrypt/live/local.db.nhost.run/fullchain.pem ssl/.ssl/
+cp letsencrypt/live/local.db.nhost.run/privkey.pem ssl/.ssl/
 
 rm -rf letsencrypt
