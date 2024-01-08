@@ -15,6 +15,7 @@ import {
 } from '@/features/ai/DevAssistant/state';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import {
@@ -46,6 +47,8 @@ export default function DevAssistant() {
   const { adminClient } = useAdminApolloClient();
   const [startDevSession] = useStartDevSessionMutation({ client: adminClient });
   const [sendDevMessage] = useSendDevMessageMutation({ client: adminClient });
+
+  const { isGraphiteEnabled } = useIsGraphiteEnabled();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -160,8 +163,10 @@ export default function DevAssistant() {
   }
 
   if (
-    (isPlatform && !currentProject?.plan?.isFree) ||
-    !currentProject.config?.ai
+    (isPlatform &&
+      !currentProject?.plan?.isFree &&
+      !currentProject.config?.ai) ||
+    !isGraphiteEnabled
   ) {
     return (
       <Box className="p-4">

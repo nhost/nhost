@@ -7283,6 +7283,11 @@ export type GetAssistantsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetAssistantsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', assistants: Array<{ __typename?: 'graphiteAssistant', assistantID: string, name: string, description: string, model: string, instructions: string, graphql?: Array<{ __typename?: 'graphiteAssistantToolGraphQL', name: string, query: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null, webhooks?: Array<{ __typename?: 'graphiteAssistantToolWebhook', name: string, URL: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null }> } | null };
 
+export type GetGraphiteSessionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetGraphiteSessionsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', sessions: Array<{ __typename?: 'graphiteSession', sessionID: string }> } | null };
+
 export type InsertAssistantMutationVariables = Exact<{
   data: GraphiteAssistantInput;
 }>;
@@ -7450,6 +7455,45 @@ export type GetAssistantsLazyQueryHookResult = ReturnType<typeof useGetAssistant
 export type GetAssistantsQueryResult = Apollo.QueryResult<GetAssistantsQuery, GetAssistantsQueryVariables>;
 export function refetchGetAssistantsQuery(variables?: GetAssistantsQueryVariables) {
       return { query: GetAssistantsDocument, variables: variables }
+    }
+export const GetGraphiteSessionsDocument = gql`
+    query getGraphiteSessions {
+  graphite {
+    sessions {
+      sessionID
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetGraphiteSessionsQuery__
+ *
+ * To run a query within a React component, call `useGetGraphiteSessionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGraphiteSessionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGraphiteSessionsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetGraphiteSessionsQuery(baseOptions?: Apollo.QueryHookOptions<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>(GetGraphiteSessionsDocument, options);
+      }
+export function useGetGraphiteSessionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>(GetGraphiteSessionsDocument, options);
+        }
+export type GetGraphiteSessionsQueryHookResult = ReturnType<typeof useGetGraphiteSessionsQuery>;
+export type GetGraphiteSessionsLazyQueryHookResult = ReturnType<typeof useGetGraphiteSessionsLazyQuery>;
+export type GetGraphiteSessionsQueryResult = Apollo.QueryResult<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>;
+export function refetchGetGraphiteSessionsQuery(variables?: GetGraphiteSessionsQueryVariables) {
+      return { query: GetGraphiteSessionsDocument, variables: variables }
     }
 export const InsertAssistantDocument = gql`
     mutation insertAssistant($data: graphiteAssistantInput!) {

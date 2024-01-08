@@ -9,15 +9,14 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AssistantForm } from '@/features/ai/AssistantForm';
 import { AssistantsList } from '@/features/ai/AssistantsList';
+import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
-import { getHasuraAdminSecret } from '@/utils/env';
 import {
   useGetAssistantsQuery,
   type GetAssistantsQuery,
 } from '@/utils/__generated__/graphite.graphql';
-import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { useMemo, type ReactElement } from 'react';
 
 export type Assistant = Omit<
@@ -30,32 +29,12 @@ export default function AssistantsPage() {
   const isPlatform = useIsPlatform();
 
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
-  const adminSecret = currentProject?.config?.hasura?.adminSecret;
+  const { adminClient } = useAdminApolloClient();
+  const { isGraphiteEnabled } = useIsGraphiteEnabled();
 
-  const serviceUrl = generateAppServiceUrl(
-    currentProject?.subdomain,
-    currentProject?.region,
-    'graphql',
-  );
-
-  const client = useMemo(
-    () =>
-      new ApolloClient({
-        cache: new InMemoryCache(),
-        link: new HttpLink({
-          uri: serviceUrl,
-          headers: {
-            'x-hasura-admin-secret':
-              process.env.NEXT_PUBLIC_ENV === 'dev'
-                ? getHasuraAdminSecret()
-                : adminSecret,
-          },
-        }),
-      }),
-    [serviceUrl, adminSecret],
-  );
-
-  const { data, loading, refetch, error } = useGetAssistantsQuery({ client });
+  const { data, loading, refetch } = useGetAssistantsQuery({
+    client: adminClient,
+  });
 
   const assistants = useMemo(() => data?.graphite?.assistants || [], [data]);
 
@@ -82,14 +61,11 @@ export default function AssistantsPage() {
     );
   }
 
-  const queryDoesNotExist =
-    error?.message === "field 'graphite' not found in type: 'query_root'";
-
   if (
     (isPlatform &&
       !currentProject?.plan?.isFree &&
       !currentProject.config?.ai) ||
-    queryDoesNotExist
+    !isGraphiteEnabled
   ) {
     return (
       <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>

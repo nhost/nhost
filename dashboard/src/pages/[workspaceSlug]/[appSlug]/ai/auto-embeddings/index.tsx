@@ -11,15 +11,14 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AutoEmbeddingsForm } from '@/features/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/ai/AutoEmbeddingsList';
+import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
-import { getHasuraAdminSecret } from '@/utils/env';
 import {
   useGetGraphiteAutoEmbeddingsConfigurationsQuery,
   type GetGraphiteAutoEmbeddingsConfigurationsQuery,
 } from '@/utils/__generated__/graphite.graphql';
-import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 
@@ -36,51 +35,24 @@ export default function AutoEmbeddingsPage() {
   const isPlatform = useIsPlatform();
 
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
-  const adminSecret = currentProject?.config?.hasura?.adminSecret;
 
-  const serviceUrl = generateAppServiceUrl(
-    currentProject?.subdomain,
-    currentProject?.region,
-    'graphql',
-  );
-
-  const client = useMemo(
-    () =>
-      new ApolloClient({
-        cache: new InMemoryCache(),
-        link: new HttpLink({
-          uri: serviceUrl,
-          headers: {
-            'x-hasura-admin-secret':
-              process.env.NEXT_PUBLIC_ENV === 'dev'
-                ? getHasuraAdminSecret()
-                : adminSecret,
-          },
-        }),
-      }),
-    [serviceUrl, adminSecret],
-  );
+  const { adminClient } = useAdminApolloClient();
+  const { isGraphiteEnabled } = useIsGraphiteEnabled();
 
   const [currentPage, setCurrentPage] = useState(
     parseInt(router.query.page as string, 10) || 1,
   );
-
   const [nrOfPages, setNrOfPages] = useState(0);
-
   const offset = useMemo(() => currentPage - 1, [currentPage]);
 
-  const { data, loading, refetch, error } =
+  const { data, loading, refetch } =
     useGetGraphiteAutoEmbeddingsConfigurationsQuery({
-      client,
+      client: adminClient,
       variables: {
         limit: limit.current,
         offset,
       },
     });
-
-  const queryDoesNotExist =
-    error?.message ===
-    "field 'graphiteAutoEmbeddingsConfigurations' not found in type: 'query_root'";
 
   useEffect(() => {
     if (loading) {
@@ -129,7 +101,7 @@ export default function AutoEmbeddingsPage() {
     (isPlatform &&
       !currentProject?.plan?.isFree &&
       !currentProject.config?.ai) ||
-    queryDoesNotExist
+    !isGraphiteEnabled
   ) {
     return (
       <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
