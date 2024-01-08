@@ -46,7 +46,7 @@ export default function Footer() {
             rel="noreferrer noopener"
           >
             <Image
-              src="/brands/brand-twitter.svg"
+              src="/brands/brand-x.svg"
               width={18}
               height={18}
               alt="Twitter Logo"
