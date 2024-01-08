@@ -53,6 +53,7 @@ type QueryRoot struct {
 	GetLogsVolume                  Metrics                      "json:\"getLogsVolume\" graphql:\"getLogsVolume\""
 	GetPostgresVolumeCapacity      Metrics                      "json:\"getPostgresVolumeCapacity\" graphql:\"getPostgresVolumeCapacity\""
 	GetPostgresVolumeUsage         Metrics                      "json:\"getPostgresVolumeUsage\" graphql:\"getPostgresVolumeUsage\""
+	GetServiceLabelValues          []string                     "json:\"getServiceLabelValues\" graphql:\"getServiceLabelValues\""
 	GetTotalRequests               Metrics                      "json:\"getTotalRequests\" graphql:\"getTotalRequests\""
 	GithubAppInstallation          *GithubAppInstallations      "json:\"githubAppInstallation,omitempty\" graphql:\"githubAppInstallation\""
 	GithubAppInstallations         []*GithubAppInstallations    "json:\"githubAppInstallations\" graphql:\"githubAppInstallations\""
