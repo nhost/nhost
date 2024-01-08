@@ -43,7 +43,7 @@ function Share({ title }: { title: string }) {
       <div className="grid grid-flow-col justify-center gap-8">
         <Link href={twitterUrl} target="_blank" rel="noopener noreferrer">
           <Image
-            src="/brands/brand-twitter.svg"
+            src="/brands/brand-x.svg"
             width={18}
             height={18}
             alt="Twitter Logo"
