@@ -10,6 +10,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { AssistantForm } from '@/features/ai/AssistantForm';
 import { AssistantsList } from '@/features/ai/AssistantsList';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
 import {
@@ -26,6 +27,7 @@ export type Assistant = Omit<
 
 export default function AssistantsPage() {
   const { openDrawer } = useDialog();
+  const isPlatform = useIsPlatform();
 
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const adminSecret = currentProject?.config?.hasura?.adminSecret;
@@ -53,7 +55,7 @@ export default function AssistantsPage() {
     [serviceUrl, adminSecret],
   );
 
-  const { data, loading, refetch } = useGetAssistantsQuery({ client });
+  const { data, loading, refetch, error } = useGetAssistantsQuery({ client });
 
   const assistants = useMemo(() => data?.graphite?.assistants || [], [data]);
 
@@ -64,7 +66,7 @@ export default function AssistantsPage() {
     });
   };
 
-  if (currentProject.plan.isFree) {
+  if (isPlatform && currentProject?.plan?.isFree) {
     return (
       <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
         <UpgradeToProBanner
@@ -80,7 +82,15 @@ export default function AssistantsPage() {
     );
   }
 
-  if (!currentProject.plan.isFree && !currentProject.config?.ai) {
+  const queryDoesNotExist =
+    error?.message === "field 'graphite' not found in type: 'query_root'";
+
+  if (
+    (isPlatform &&
+      !currentProject?.plan?.isFree &&
+      !currentProject.config?.ai) ||
+    queryDoesNotExist
+  ) {
     return (
       <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">

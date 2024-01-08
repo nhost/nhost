@@ -12,6 +12,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { AutoEmbeddingsForm } from '@/features/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/ai/AutoEmbeddingsList';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
 import {
@@ -31,6 +32,8 @@ export default function AutoEmbeddingsPage() {
   const limit = useRef(25);
   const router = useRouter();
   const { openDrawer } = useDialog();
+
+  const isPlatform = useIsPlatform();
 
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const adminSecret = currentProject?.config?.hasura?.adminSecret;
@@ -66,7 +69,7 @@ export default function AutoEmbeddingsPage() {
 
   const offset = useMemo(() => currentPage - 1, [currentPage]);
 
-  const { data, loading, refetch } =
+  const { data, loading, refetch, error } =
     useGetGraphiteAutoEmbeddingsConfigurationsQuery({
       client,
       variables: {
@@ -74,6 +77,10 @@ export default function AutoEmbeddingsPage() {
         offset,
       },
     });
+
+  const queryDoesNotExist =
+    error?.message ===
+    "field 'graphiteAutoEmbeddingsConfigurations' not found in type: 'query_root'";
 
   useEffect(() => {
     if (loading) {
@@ -102,7 +109,7 @@ export default function AutoEmbeddingsPage() {
     });
   };
 
-  if (currentProject.plan.isFree) {
+  if (isPlatform && currentProject?.plan?.isFree) {
     return (
       <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
         <UpgradeToProBanner
@@ -118,7 +125,12 @@ export default function AutoEmbeddingsPage() {
     );
   }
 
-  if (!currentProject.plan.isFree && !currentProject.config?.ai) {
+  if (
+    (isPlatform &&
+      !currentProject?.plan?.isFree &&
+      !currentProject.config?.ai) ||
+    queryDoesNotExist
+  ) {
     return (
       <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">

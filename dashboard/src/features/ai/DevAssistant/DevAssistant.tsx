@@ -141,7 +141,7 @@ export default function DevAssistant() {
     }
   };
 
-  if (currentProject.plan.isFree) {
+  if (currentProject?.plan?.isFree) {
     return (
       <Box className="p-4">
         <UpgradeToProBanner
@@ -157,7 +157,7 @@ export default function DevAssistant() {
     );
   }
 
-  if (!currentProject.plan.isFree && !currentProject.config?.ai) {
+  if (!currentProject?.plan?.isFree && !currentProject.config?.ai) {
     return (
       <Box className="p-4">
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
