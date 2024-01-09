@@ -23,7 +23,7 @@ node_modules/
 tmp/
 .pnpm-store
 .turbo
-.env
+.env*
 .secrets
 out/
 

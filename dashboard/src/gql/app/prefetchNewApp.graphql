@@ -32,7 +32,7 @@ query PrefetchNewApp {
   regions(order_by: { city: asc }) {
     ...PrefetchNewAppRegions
   }
-  plans(order_by: { sort: asc }) {
+  plans(order_by: {sort: asc}, where: {deprecated: {_eq: false}}) {
     ...PrefetchNewAppPlans
   }
   workspaces {
