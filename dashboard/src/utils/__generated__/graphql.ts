@@ -14948,6 +14948,7 @@ export type Plans = {
   /** An aggregate relationship */
   apps_aggregate: Apps_Aggregate;
   createdAt: Scalars['timestamptz'];
+  deprecated: Scalars['Boolean'];
   featureBackupEnabled: Scalars['Boolean'];
   featureCustomDomainsEnabled: Scalars['Boolean'];
   featureCustomEmailTemplatesEnabled: Scalars['Boolean'];
@@ -14961,6 +14962,7 @@ export type Plans = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment: Scalars['Int'];
   id: Scalars['uuid'];
+  individual: Scalars['Boolean'];
   isDefault: Scalars['Boolean'];
   isFree: Scalars['Boolean'];
   isPublic: Scalars['Boolean'];
@@ -15048,6 +15050,7 @@ export type Plans_Bool_Exp = {
   apps?: InputMaybe<Apps_Bool_Exp>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  deprecated?: InputMaybe<Boolean_Comparison_Exp>;
   featureBackupEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomDomainsEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Boolean_Comparison_Exp>;
@@ -15058,6 +15061,7 @@ export type Plans_Bool_Exp = {
   featureMaxFilesSize?: InputMaybe<Int_Comparison_Exp>;
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
+  individual?: InputMaybe<Boolean_Comparison_Exp>;
   isDefault?: InputMaybe<Boolean_Comparison_Exp>;
   isFree?: InputMaybe<Boolean_Comparison_Exp>;
   isPublic?: InputMaybe<Boolean_Comparison_Exp>;
@@ -15096,6 +15100,7 @@ export type Plans_Inc_Input = {
 export type Plans_Insert_Input = {
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  deprecated?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
@@ -15109,6 +15114,7 @@ export type Plans_Insert_Input = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
+  individual?: InputMaybe<Scalars['Boolean']>;
   isDefault?: InputMaybe<Scalars['Boolean']>;
   isFree?: InputMaybe<Scalars['Boolean']>;
   isPublic?: InputMaybe<Scalars['Boolean']>;
@@ -15200,6 +15206,7 @@ export type Plans_On_Conflict = {
 export type Plans_Order_By = {
   apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  deprecated?: InputMaybe<Order_By>;
   featureBackupEnabled?: InputMaybe<Order_By>;
   featureCustomDomainsEnabled?: InputMaybe<Order_By>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Order_By>;
@@ -15210,6 +15217,7 @@ export type Plans_Order_By = {
   featureMaxFilesSize?: InputMaybe<Order_By>;
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  individual?: InputMaybe<Order_By>;
   isDefault?: InputMaybe<Order_By>;
   isFree?: InputMaybe<Order_By>;
   isPublic?: InputMaybe<Order_By>;
@@ -15236,6 +15244,8 @@ export enum Plans_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
+  Deprecated = 'deprecated',
+  /** column name */
   FeatureBackupEnabled = 'featureBackupEnabled',
   /** column name */
   FeatureCustomDomainsEnabled = 'featureCustomDomainsEnabled',
@@ -15255,6 +15265,8 @@ export enum Plans_Select_Column {
   FeatureMaxNumberOfFunctionsPerDeployment = 'featureMaxNumberOfFunctionsPerDeployment',
   /** column name */
   Id = 'id',
+  /** column name */
+  Individual = 'individual',
   /** column name */
   IsDefault = 'isDefault',
   /** column name */
@@ -15288,6 +15300,7 @@ export enum Plans_Select_Column {
 /** input type for updating data in table "plans" */
 export type Plans_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  deprecated?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
@@ -15301,6 +15314,7 @@ export type Plans_Set_Input = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
+  individual?: InputMaybe<Scalars['Boolean']>;
   isDefault?: InputMaybe<Scalars['Boolean']>;
   isFree?: InputMaybe<Scalars['Boolean']>;
   isPublic?: InputMaybe<Scalars['Boolean']>;
@@ -15367,6 +15381,7 @@ export type Plans_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Plans_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  deprecated?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
@@ -15380,6 +15395,7 @@ export type Plans_Stream_Cursor_Value_Input = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
+  individual?: InputMaybe<Scalars['Boolean']>;
   isDefault?: InputMaybe<Scalars['Boolean']>;
   isFree?: InputMaybe<Scalars['Boolean']>;
   isPublic?: InputMaybe<Scalars['Boolean']>;
@@ -15414,6 +15430,8 @@ export enum Plans_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
+  Deprecated = 'deprecated',
+  /** column name */
   FeatureBackupEnabled = 'featureBackupEnabled',
   /** column name */
   FeatureCustomDomainsEnabled = 'featureCustomDomainsEnabled',
@@ -15433,6 +15451,8 @@ export enum Plans_Update_Column {
   FeatureMaxNumberOfFunctionsPerDeployment = 'featureMaxNumberOfFunctionsPerDeployment',
   /** column name */
   Id = 'id',
+  /** column name */
+  Individual = 'individual',
   /** column name */
   IsDefault = 'isDefault',
   /** column name */
@@ -15700,6 +15720,12 @@ export type Query_Root = {
   getLogsVolume: Metrics;
   getPostgresVolumeCapacity: Metrics;
   getPostgresVolumeUsage: Metrics;
+  /**
+   * Returns list of label values for a given label within a range of time.
+   *
+   * If `from` and `to` are not provided, they default to 6 hour ago and now, respectively.
+   */
+  getServiceLabelValues: Array<Scalars['String']>;
   getTotalRequests: Metrics;
   getUsageAll: Array<UsageSummary>;
   /** fetch data from the table: "github_app_installations" using primary key columns */
@@ -16541,6 +16567,11 @@ export type Query_RootGetPostgresVolumeCapacityArgs = {
 export type Query_RootGetPostgresVolumeUsageArgs = {
   appID: Scalars['String'];
   t?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetServiceLabelValuesArgs = {
+  appID: Scalars['String'];
 };
 
 
@@ -24465,7 +24496,7 @@ export const PrefetchNewAppDocument = gql`
   regions(order_by: {city: asc}) {
     ...PrefetchNewAppRegions
   }
-  plans(order_by: {sort: asc}) {
+  plans(order_by: {sort: asc}, where: {deprecated: {_eq: false}}) {
     ...PrefetchNewAppPlans
   }
   workspaces {
