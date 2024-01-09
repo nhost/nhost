@@ -2,4 +2,4 @@
 '@nhost/dashboard': minor
 ---
 
-don't show deprecated plans
+feat: don't show deprecated plans
