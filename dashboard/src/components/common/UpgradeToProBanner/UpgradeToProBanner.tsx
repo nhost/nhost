@@ -9,10 +9,11 @@ import { ChangePlanModal } from '@/features/projects/common/components/ChangePla
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 
 import Image from 'next/image';
+import { type ReactNode } from 'react';
 
 interface UpgradeToProBannerProps {
   title: string;
-  description: string;
+  description: string | ReactNode;
 }
 
 export default function UpgradeToProBanner({
@@ -25,7 +26,7 @@ export default function UpgradeToProBanner({
   return (
     <Box
       sx={{ backgroundColor: 'primary.light' }}
-      className="flex flex-col p-4 space-y-4 rounded-md lg:flex-row lg:items-center lg:space-y-0"
+      className="flex flex-col justify-between space-y-4 rounded-md p-4 lg:flex-row lg:items-center lg:space-y-0"
     >
       <div className="flex flex-col justify-between space-y-4">
         <div className="space-y-2">
@@ -39,7 +40,11 @@ export default function UpgradeToProBanner({
             </div>
           </div>
           <Text variant="h3">{title}</Text>
-          <Text>{description}</Text>
+          {typeof description === 'string' ? (
+            <Text>{description}</Text>
+          ) : (
+            description
+          )}
         </div>
 
         <div className="flex flex-col space-y-2 lg:flex-row lg:items-center lg:space-y-0 lg:space-x-2">
@@ -76,25 +81,23 @@ export default function UpgradeToProBanner({
             target="_blank"
             rel="noopener noreferrer"
             underline="hover"
-            className="font-medium text-center"
+            className="text-center font-medium"
             sx={{
               color: 'text.secondary',
             }}
           >
             See all features
-            <ArrowSquareOutIcon className="w-4 h-4 ml-1" />
+            <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
           </Link>
         </div>
       </div>
 
-      <div className="max-w-xs mx-auto">
-        <Image
-          src="/illustration-unbox.png"
-          width={400}
-          height={260}
-          objectFit="contain"
-        />
-      </div>
+      <Image
+        src="/illustration-unbox.png"
+        width={300}
+        height={140}
+        objectFit="contain"
+      />
     </Box>
   );
 }

@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.7.5
+
+### Patch Changes
+
+- 7c977e714: chore: change `Allowed Roles` to `Default Allowed Roles`
+
 ## 0.7.4
 
 ### Patch Changes

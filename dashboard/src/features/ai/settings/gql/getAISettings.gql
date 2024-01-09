@@ -1,0 +1,21 @@
+query GetAISettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    ai {
+      version
+      webhookSecret
+      autoEmbeddings {
+        synchPeriodMinutes
+      }
+      openai {
+        apiKey
+        organization
+      }
+      resources {
+        compute {
+          cpu
+          memory
+        }
+      }
+    }
+  }
+}

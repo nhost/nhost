@@ -1,5 +1,10 @@
 ---
 
+## 0.2.1
+### Patch Changes
+
+- b4dccd449: fix: resolve auth issue and too many redirects error
+
 ## 0.2.0
 ### Minor Changes
 

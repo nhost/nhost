@@ -1,5 +1,31 @@
 # @nhost/dashboard
 
+## 1.3.2
+
+### Patch Changes
+
+- 174b4165b: chore: use env variables when running graphql codegen
+- 7c977e714: chore: change `Allowed Roles` to `Default Allowed Roles`
+- 46f028b9f: fix: remove hardcoded ai version setting
+
+## 1.3.1
+
+### Patch Changes
+
+- af33c21d1: chore: remove backendUrl deprecation notice and remove all references to `providersUpdated`
+
+## 1.3.0
+
+### Minor Changes
+
+- 04784d880: Fix graphite's default version
+
+## 1.2.0
+
+### Minor Changes
+
+- 5733162ed: feat: add settings and ui for graphite
+
 ## 1.1.0
 
 ### Minor Changes

@@ -1,4 +1,5 @@
 import { ContactUs } from '@/components/common/ContactUs';
+import { useDialog } from '@/components/common/DialogProvider';
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
@@ -6,14 +7,19 @@ import { LocalAccountMenu } from '@/components/layout/LocalAccountMenu';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
+import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
+import { DevAssistant } from '@/features/ai/DevAssistant';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ApplicationStatus } from '@/types/application';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
 import { useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export interface HeaderProps
@@ -23,9 +29,14 @@ export interface HeaderProps
 
 export default function Header({ className, ...props }: HeaderProps) {
   const router = useRouter();
+
   const isPlatform = useIsPlatform();
+
+  const { openDrawer } = useDialog();
+
   const { currentProject, refetch: refetchProject } =
     useCurrentWorkspaceAndProject();
+
   const isProjectUpdating =
     currentProject?.appStates[0]?.stateId === ApplicationStatus.Updating;
 
@@ -44,6 +55,23 @@ export default function Header({ className, ...props }: HeaderProps) {
     };
   }, [isProjectUpdating, refetchProject]);
 
+  const openDevAssistant = () => {
+    // The dev assistant can be only answer questions related to a particular project
+    if (!currentProject) {
+      toast.error('You need to be inside a project to open the Assistant', {
+        style: getToastStyleProps().style,
+        ...getToastStyleProps().error,
+      });
+
+      return;
+    }
+
+    openDrawer({
+      title: <GraphiteIcon />,
+      component: <DevAssistant />,
+    });
+  };
+
   return (
     <Box
       component="header"
@@ -54,7 +82,7 @@ export default function Header({ className, ...props }: HeaderProps) {
       sx={{ backgroundColor: 'background.paper' }}
       {...props}
     >
-      <div className="grid grid-flow-col items-center gap-3 ">
+      <div className="grid grid-flow-col items-center gap-3">
         <NavLink href="/" className="w-12">
           <Logo className="mx-auto cursor-pointer" />
         </NavLink>
@@ -69,6 +97,10 @@ export default function Header({ className, ...props }: HeaderProps) {
       </div>
 
       <div className="hidden grid-flow-col items-center gap-2 sm:grid">
+        <Button className="rounded-full" onClick={openDevAssistant}>
+          <GraphiteIcon />
+        </Button>
+
         {isPlatform && (
           <Dropdown.Root>
             <Dropdown.Trigger

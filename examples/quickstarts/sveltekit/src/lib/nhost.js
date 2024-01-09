@@ -8,9 +8,11 @@ export const NHOST_SESSION_KEY = 'nhostSession';
 /** @param {import('@sveltejs/kit').Cookies} cookies */
 export const getNhost = async (cookies) => {
 
+  /** @type {import('@nhost/nhost-js').NhostClient} */
 	const nhost = new NhostClient({
     subdomain: env.PUBLIC_NHOST_SUBDOMAIN || 'local',
-		region: env.PUBLIC_NHOST_REGION,
+    region: env.PUBLIC_NHOST_REGION,
+    clientStorageType: 'cookie',
 		start: false
   })
 
@@ -18,7 +20,7 @@ export const getNhost = async (cookies) => {
 	
 	/** @type {import('@nhost/nhost-js').NhostSession} */
   const initialSession = JSON.parse(atob(sessionCookieValue) || 'null')
-
+  
   nhost.auth.client.start({ initialSession })
 
 	/** @type {import('@nhost/nhost-js').NhostSession} */
@@ -50,6 +52,8 @@ export const manageAuthSession = async (
     const { session: newSession, error } = await nhost.auth.refreshSession(refreshToken)
 
     if (error) {
+      // delete session cookie when the refreshToken has expired
+      event.cookies.delete(NHOST_SESSION_KEY, { path: '/' })
       return onError?.(error)
     }
 

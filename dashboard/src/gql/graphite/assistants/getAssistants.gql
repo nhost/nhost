@@ -1,0 +1,33 @@
+query getAssistants {
+  graphite {
+    assistants {
+      assistantID
+      name
+      description
+      model
+      instructions
+      graphql {
+        name
+        query
+        description
+        arguments {
+          name
+          type
+          description
+          required
+        }
+      }
+      webhooks {
+        name
+        URL
+        description
+        arguments {
+          name
+          type
+          description
+          required
+        }
+      }
+    }
+  }
+}

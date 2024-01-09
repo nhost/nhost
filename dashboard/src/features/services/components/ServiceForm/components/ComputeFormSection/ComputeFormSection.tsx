@@ -14,7 +14,13 @@ import {
 import type { ServiceFormValues } from '@/features/services/components/ServiceForm';
 import { useFormContext, useWatch } from 'react-hook-form';
 
-export default function ComputeFormSection() {
+interface ComputeFormSectionProps {
+  showTooltip?: boolean;
+}
+
+export default function ComputeFormSection({
+  showTooltip = false,
+}: ComputeFormSectionProps) {
   const { setValue } = useFormContext<ServiceFormValues>();
 
   const formValues = useWatch<ServiceFormValues>();
@@ -34,14 +40,18 @@ export default function ComputeFormSection() {
 
   const incrementCompute = () => {
     const newMemoryValue = formValues.compute.memory + 128;
-    setValue('compute.memory', newMemoryValue);
-    setValue('compute.cpu', Math.floor(newMemoryValue / MEM_CPU_RATIO));
+    setValue('compute.memory', newMemoryValue, { shouldDirty: true });
+    setValue('compute.cpu', Math.floor(newMemoryValue / MEM_CPU_RATIO), {
+      shouldDirty: true,
+    });
   };
 
   const decrementCompute = () => {
     const newMemoryValue = formValues.compute.memory - 128;
-    setValue('compute.memory', newMemoryValue);
-    setValue('compute.cpu', Math.floor(newMemoryValue / MEM_CPU_RATIO));
+    setValue('compute.memory', newMemoryValue, { shouldDirty: true });
+    setValue('compute.cpu', Math.floor(newMemoryValue / MEM_CPU_RATIO), {
+      shouldDirty: true,
+    });
   };
 
   return (
@@ -52,24 +62,26 @@ export default function ComputeFormSection() {
           {formValues.compute.memory}
         </Text>
 
-        <Tooltip
-          title={
-            <span>
-              Compute resources dedicated for the service. Refer to{' '}
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://docs.nhost.io/run/resources"
-                className="underline"
-              >
-                resources
-              </a>{' '}
-              for more information.
-            </span>
-          }
-        >
-          <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
-        </Tooltip>
+        {showTooltip && (
+          <Tooltip
+            title={
+              <span>
+                Compute resources dedicated for the service. Refer to{' '}
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href="https://docs.nhost.io/run/resources"
+                  className="underline"
+                >
+                  resources
+                </a>{' '}
+                for more information.
+              </span>
+            }
+          >
+            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+          </Tooltip>
+        )}
       </Box>
 
       <Box className="flex flex-row items-center justify-between space-x-4">

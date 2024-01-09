@@ -107,7 +107,7 @@ export default function WorkspaceSidebar({
         <div className="grid grid-flow-row gap-2">
           <Resource
             text="Documentation"
-            logo="Question"
+            logo="Note"
             link="https://docs.nhost.io"
           />
           <Resource

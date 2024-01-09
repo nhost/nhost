@@ -83,7 +83,7 @@ export const AUTH_GRAVATAR_DEFAULT = [
 /**
  *  Default Gravatar Rating for newly signed up users.
  *  Gravatar allows users to self-rate their images so that they can indicate if an image is appropriate for a certain audience.
- *  @see https://en.gravatar.com/site/implement/images/
+ *  @see {@link: https://en.gravatar.com/site/implement/images/}
  */
 export const AUTH_GRAVATAR_RATING = [
   {

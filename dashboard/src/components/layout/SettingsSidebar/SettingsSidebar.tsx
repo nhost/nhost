@@ -208,6 +208,9 @@ export default function SettingsSidebar({
             >
               Custom Domains
             </SettingsNavLink>
+            <SettingsNavLink href="/ai" exact={false} onClick={handleSelect}>
+              AI
+            </SettingsNavLink>
           </List>
         </nav>
       </Box>
