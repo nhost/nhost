@@ -66,23 +66,3 @@ You can enable Graphite, Nhost's AI service, with the following steps:
     </Tabs>
   </Step>
 </Steps>
-
-## Local Development
-
-If you are using the Nhost CLI for development, as of [v0.11.1](https://github.com/nhost/cli/releases/tag/v1.11.1) you can also start Graphite locally. To do so start by adding the AI service to the `nhost.toml` as instructed above (don't forget to add the relevant secrets to your `.secrets` file) and then start nhost:
-
-![nhost up](/images/guides/ai/enabling/nhost_up.png)
-
-After starting the service the first thing you will notice is that there is a new `ai` service running. The second thing you will notice is that this service proposed a few metadata changes:
-
-![git status](/images/guides/ai/enabling/git_status.png)
-
-### Auto-Embeddings
-
-If you add [auto-embeddings](/guides/ai/auto-embeddings) configuration locally and want to synchronize them with the cloud we recommend inserting them using a migration rather than with the auto-embeddings UI:
-
-
-And then running `nhost up` to download the updated the metadata. Afterwards you should see both database migrations and functions' metadata changes:
-
-
-Alternatively you can modify your auto-embeddings configuration in all of your environments using the UI.

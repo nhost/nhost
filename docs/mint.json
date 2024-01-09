@@ -102,6 +102,7 @@
         "group": "AI",
         "pages": [
             "guides/ai/enabling-service",
+            "guides/ai/local_development",
             "guides/ai/auto-embeddings",
             "guides/ai/assistants",
             "guides/ai/dev-assistant"
@@ -110,8 +111,8 @@
     {
       "group": "Authentication",
       "pages": [
-        { 
-          "group": "Social Sign In", 
+        {
+          "group": "Social Sign In",
           "icon": "at",
           "pages": [
             "guides/auth/social/sign-in-apple",
@@ -161,7 +162,7 @@
           "icon": "users",
           "pages": [
             {
-              "group": "Email and Password", 
+              "group": "Email and Password",
               "icon": "envelope",
               "pages": [
                 "reference/auth/sign-up-email-and-password",
@@ -169,7 +170,7 @@
               ]
             },
             {
-              "group": "Passwordless", 
+              "group": "Passwordless",
               "icon": "message-sms",
               "pages": [
                 "reference/auth/sign-in-email-passwordless",
@@ -178,7 +179,7 @@
               ]
             },
             {
-              "group": "OAuth", 
+              "group": "OAuth",
               "icon": "at",
               "pages": [
                 "reference/auth/sign-in-oauth-provider",
@@ -186,7 +187,7 @@
               ]
             },
             {
-              "group": "WebAuthn", 
+              "group": "WebAuthn",
               "icon": "atom",
               "pages": [
                 "reference/auth/sign-up-using-email-via-fido2-webauthn-authentication",
@@ -196,7 +197,7 @@
               ]
             },
             {
-              "group": "Anonymous", 
+              "group": "Anonymous",
               "icon": "luchador-mask",
               "pages": [
                 "reference/auth/sign-in-anonymous",
@@ -204,7 +205,7 @@
               ]
             },
             {
-              "group": "MFA", 
+              "group": "MFA",
               "icon": "message-sms",
               "pages": [
                 "reference/auth/generate-a-secret-to-request-the-activation-of-time-based-one-time-password-totp-multi-factor-authentication",
@@ -213,7 +214,7 @@
               ]
             },
             {
-              "group": "User", 
+              "group": "User",
               "icon": "user",
               "pages": [
                 "reference/auth/change-the-current-users-email",
