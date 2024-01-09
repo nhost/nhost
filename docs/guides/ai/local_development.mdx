@@ -39,3 +39,7 @@ And then running `nhost up` to download the updated the metadata. Afterwards you
 ![git status](/images/guides/ai/local_development/git_status_functions.png)
 
 Pushing them to your deployment branch will also deploy them to your cloud project.
+
+### Synhcronizing Assistants
+
+Similar to auto-embeddings, if you want to synchronize assistants we recommend you to insert them using a migration and then running `nhost up` to update any metadata if necessary. After pushing the proposed changes to the deployment branch all the changes should be deployed to the cloud project.
