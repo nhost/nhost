@@ -138,11 +138,11 @@
     },
     {
       "group": "Storage",
-      "pages": ["guides/storage/antivirus"]
+      "pages": ["guides/storage/overview", "guides/storage/antivirus"]
     },
     {
       "group": "Functions",
-      "pages": ["guides/functions/getting-started"]
+      "pages": ["guides/functions/overview"]
     },
     {
       "group": "Run",
