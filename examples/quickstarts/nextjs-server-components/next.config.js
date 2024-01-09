@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@nhost/nhost-js'],
+  transpilePackages: ['packages/nhost-js'],
   experimental: {
     serverActions: true
   }
