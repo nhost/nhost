@@ -85,7 +85,7 @@ export default function OverviewTopBar() {
               <div className="mt-1 inline-grid grid-flow-col items-center justify-start gap-2 md:mt-0">
                 <Chip
                   size="small"
-                  label={isPro ? 'Pro' : 'Starter'}
+                  label={currentProject.plan.name}
                   color={isPro ? 'primary' : 'default'}
                 />
 
