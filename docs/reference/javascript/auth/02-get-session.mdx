@@ -1,0 +1,22 @@
+---
+title: getSession()
+sidebarTitle: getSession()
+---
+
+## Parameters
+
+---
+
+**<span className="parameter-name">context</span>** <span className="optional-status">optional</span> [`AuthContext`](/reference/javascript/auth/types/auth-context)
+
+| Property                                                                                                | Type                                                                                                                    | Required | Notes                                                                                              |
+| :------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------- | :------: | :------------------------------------------------------------------------------------------------- |
+| <span className="parameter-name"><span className="light-grey">context.</span>errors</span>              | <code>Partial&lt;Record&lt;StateErrorTypes, AuthErrorPayload&gt;&gt;</code>                                             |    ✔️    |                                                                                                    |
+| <span className="parameter-name"><span className="light-grey">context.</span>importTokenAttempts</span> | <code>number</code>                                                                                                     |    ✔️    | Number of times the user tried to get an access token from a refresh token but got a network error |
+| <span className="parameter-name"><span className="light-grey">context.</span>refreshToken</span>        | <code>&#123; value: string &#124; null, isPAT: boolean &#125;</code>                                                    |    ✔️    |                                                                                                    |
+| <span className="parameter-name"><span className="light-grey">context.</span>refreshTimer</span>        | <code>&#123; startedAt: Date &#124; null, attempts: number, lastAttempt: Date &#124; null &#125;</code>                 |    ✔️    |                                                                                                    |
+| <span className="parameter-name"><span className="light-grey">context.</span>accessToken</span>         | <code>&#123; value: string &#124; null, expiresAt: Date &#124; null, expiresInSeconds: number &#124; null &#125;</code> |    ✔️    |                                                                                                    |
+| <span className="parameter-name"><span className="light-grey">context.</span>mfa</span>                 | <code>&#123; ticket: string &#125; &#124; null</code>                                                                   |    ✔️    |                                                                                                    |
+| <span className="parameter-name"><span className="light-grey">context.</span>user</span>                | <code>[`User`](/reference/javascript/auth/types/user) &#124; null</code>                                                |    ✔️    |                                                                                                    |
+
+---

@@ -1,8 +1,8 @@
 {
   "title": "Nhost JS",
   "path": "./.docgen/nhost-js.json",
-  "output": "../../docs/docs/reference/docgen/javascript/nhost-js",
-  "root": "reference/docgen/javascript/nhost-js",
+  "output": "../../docs/reference/javascript/nhost-js",
+  "root": "reference/javascript/nhost-js",
   "slug": "/reference/javascript/nhost-js",
   "sidebarConfig": "referenceSidebar",
   "baseEditUrl": "https://github.com/nhost/nhost/edit/main/packages",

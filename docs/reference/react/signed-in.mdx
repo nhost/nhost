@@ -1,0 +1,29 @@
+---
+title: <SignedIn />
+sidebarTitle: <SignedIn />
+---
+
+Use `<SignedIn />` to control the rendering of components for users. Components inside `<SignedIn />` are only rendered if the user is authenticated.
+
+```tsx
+import { NhostProvider, SignedIn } from '@nhost/react'
+import { nhost } from '@/utils/nhost'
+
+function Page() {
+  return (
+    <NhostProvider nhost={nhost}>
+      <SignedIn>
+        <h1>Only rendered if the user is authenticated</h1>
+      </SignedIn>
+    </NhostProvider>
+  )
+}
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">\_\_namedParameters</span>** <span className="optional-status">required</span> <code>&#123; children: ReactNode &#125;</code>
+
+---

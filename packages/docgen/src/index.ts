@@ -145,25 +145,12 @@ async function parser() {
       await fs.mkdir(output, { recursive: true })
     }
 
-    if (title) {
-      await fs.writeFile(
-        `${output}/_category_.json`,
-        JSON.stringify(
-          {
-            label: title
-          },
-          null,
-          2
-        ),
-        'utf-8'
-      )
-    }
-
     if (verbose) {
       console.info(chalk.blue`\n📝 Generating ${title || name} docs...`)
     }
 
     if (parsedContent?.every(({ kindString }: Signature) => kindString === 'Module')) {
+      console.log(chalk.blue`\n📝 Module`)
       await Promise.all(
         parsedContent.map(({ name, children, groups }: Signature) => {
           if (groups) {
@@ -174,9 +161,11 @@ async function parser() {
         })
       )
     } else {
+      console.log(chalk.blue`\n📝 not Module`)
       if (groups) {
         appState.contentReferences = getModuleContentMap(groups)
       }
+      console.log(appState.contentReferences)
 
       await generateModuleDocumentation(parsedContent, output)
     }

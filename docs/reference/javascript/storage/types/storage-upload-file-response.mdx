@@ -1,0 +1,13 @@
+---
+title: StorageUploadFileResponse
+sidebarTitle: StorageUploadFileResponse
+description: No description provided.
+---
+
+# `StorageUploadFileResponse`
+
+```ts
+type StorageUploadFileResponse =
+  | { fileMetadata: FileResponse; error: null }
+  | { fileMetadata: null; error: StorageErrorPayload }
+```

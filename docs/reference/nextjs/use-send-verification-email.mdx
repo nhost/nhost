@@ -1,0 +1,29 @@
+---
+title: useSendVerificationEmail()
+sidebarTitle: useSendVerificationEmail()
+---
+
+Use the hook `useSendVerificationEmail` to send a verification email. The verification email is sent to the user's email address and includes a link to verify the email address.
+
+```tsx
+const { sendEmail, isLoading, isSent, isError, error } =
+  useSendVerificationEmail()
+
+console.log({ isLoading, isSent, isError, error })
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await sendEmail({
+    email: 'joe@example.com'
+  })
+}
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">options</span>** <span className="optional-status">optional</span> <code>SendVerificationEmailOptions</code>
+
+---

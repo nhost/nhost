@@ -15,7 +15,6 @@ import generateFunctions from './generateFunctions'
  * @returns Results of the generation.
  */
 export async function generateClasses(parsedContent: Array<ClassSignature>, outputPath: string) {
-  const finalOutputPath = `${outputPath}/content`
   const { ClassTemplate } = await import('../templates')
   const { baseSlug, verbose } = snapshot(appState)
 
@@ -38,7 +37,7 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
 
       return {
         name: props.name,
-        index: ClassTemplate(props, parsedContent as Array<Signature>, slug),
+        index: ClassTemplate(props, parsedContent as Array<Signature>),
         subPages: props.children || [],
         slug
       }
@@ -46,11 +45,11 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
 
   const results = await Promise.allSettled(
     classesAndSubpages.map(async ({ name, index, subPages, slug }) => {
-      const outputDirectory = `${finalOutputPath}/${kebabCase(name)}`
+      //const outputDirectory = `${outputPath}/${kebabCase(name)}`
 
       // we are creating the folder for the class
       try {
-        await fs.mkdir(outputDirectory, { recursive: true })
+        await fs.mkdir(outputPath, { recursive: true })
       } catch {
         if (verbose) {
           console.info(chalk.blue`⏭️  Skipping: Class folder already exists.\n`)
@@ -58,15 +57,14 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
       }
 
       // create index.mdx for the class
-      await fs.writeFile(`${outputDirectory}/index.mdx`, index, 'utf-8')
+      await fs.writeFile(`${outputPath}/${kebabCase(name)}.mdx`, index, 'utf-8')
 
-      await generateFunctions(subPages, outputDirectory, {
+      await generateFunctions(subPages, outputPath, {
         originalDocument: parsedContent,
-        keepOriginalOrder: true,
         classSlug: slug
       })
 
-      return { name, fileOutput: outputDirectory }
+      return { name, fileOutput: outputPath }
     })
   )
 

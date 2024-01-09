@@ -1,0 +1,41 @@
+---
+title: 'Environment Variables'
+description: 'Configure your Backend'
+icon: boxes-stacked
+---
+
+Environment Variables are key-value pairs used to store configuration settings and parameters, influencing the behavior and settings of your services at runtime.
+
+
+Here is how you would access an environment variable, `MY_NHOST_CONFIG`, from a function:
+
+```ts functions/print-env.ts
+import { Request, Response } from 'express'
+
+export default (req: Request, res: Response) => {
+  res.status(200).send(`${process.env.MY_NHOST_CONFIG} ${req.query.name}!`)
+}
+```
+
+<Note>
+Variables created are available to all services, including Run Services and Functions
+</Note>
+
+## Add Environment Variables
+
+<Tabs>
+<Tab title="Config">
+```toml
+[[global.environment]]
+name = 'MY_NHOST_CONFIG'
+value = "Nhost is Awesome!"
+```
+</Tab>
+<Tab title="Dashboard">
+  **Project Dashboard -> Settings -> Environment Variables**
+
+  ![Environment Variables](/images/platform/environment-variables/environment-variables.png)
+
+</Tab>
+</Tabs>
+

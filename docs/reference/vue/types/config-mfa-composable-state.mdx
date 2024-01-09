@@ -1,0 +1,57 @@
+---
+title: ConfigMfaComposableState
+sidebarTitle: ConfigMfaComposableState
+description: No description provided.
+---
+
+# `ConfigMfaComposableState`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">qrCodeDataUrl</span>** <span className="optional-status">required</span> <code>Ref&lt;string&gt;</code>
+
+---
+
+**<span className="parameter-name">isGenerated</span>** <span className="optional-status">required</span> <code>Ref&lt;boolean&gt;</code>
+
+---
+
+**<span className="parameter-name">isGenerating</span>** <span className="optional-status">required</span> <code>Ref&lt;boolean&gt;</code>
+
+---
+
+**<span className="parameter-name">isActivated</span>** <span className="optional-status">required</span> <code>Ref&lt;boolean&gt;</code>
+
+---
+
+**<span className="parameter-name">isActivating</span>** <span className="optional-status">required</span> <code>Ref&lt;boolean&gt;</code>
+
+---
+
+**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> <code>Ref&lt;boolean&gt;</code>
+
+**`@returns`**
+
+`true` if an error occurred
+
+**`@depreacted`**
+
+use `!isSuccess` or `!!error` instead
+
+---
+
+**<span className="parameter-name">error</span>** <span className="optional-status">required</span> <code>Ref&lt;null &#124; AuthErrorPayload&gt;</code>
+
+Provides details about the error
+
+---
+
+**<span className="parameter-name">generateQrCode</span>** <span className="optional-status">required</span> <code>() =&gt; Promise&lt;GenerateQrCodeHandlerResult&gt;</code>
+
+---
+
+**<span className="parameter-name">activateMfa</span>** <span className="optional-status">required</span> <code>(code: string) =&gt; Promise&lt;ActivateMfaHandlerResult&gt;</code>
+
+---

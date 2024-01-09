@@ -1,0 +1,107 @@
+---
+title: Sign In with WebAuthn
+sidebarTitle: WebAuthn and Security Keys
+description: Learn about WebAuthn and Security Keys
+icon: atom
+---
+
+Follow this guide to sign in users with security keys and the WebAuthn API.
+
+Examples of security keys:
+
+- [Windows Hello](https://support.microsoft.com/en-us/windows/learn-about-windows-hello-and-set-it-up-dae28983-8242-bb2a-d3d1-87c9d265a5f0)
+- [Apple Touch ID](https://support.apple.com/en-us/HT201371)
+- [Apple Face ID](https://support.apple.com/en-us/HT208109)
+- [Yubico security keys](https://www.yubico.com/)
+- Android Fingerprint sensors
+
+You can read more about this feature in our [blog post](https://nhost.io/blog/webauthn-sign-in-method)
+
+## Configuration
+
+Enable the Security Key sign-in method in the Nhost Dashboard under **Settings -> Sign-In Methods -> Security Keys**.
+
+You need to make sure you also set a valid client URL under **Settings -> Authentication -> Client URL**.
+
+## Sign Up
+
+Users must use an email address to sign up with a security key.
+
+
+<Tabs>
+<Tab title="JavaScript">
+```tsx
+const { error, session } = await nhost.auth.signUp({
+  email: 'joe@example.com',
+  securityKey: true
+})
+```
+</Tab>
+</Tabs>
+
+## Sign In
+
+Once a user signed up with a security key, and verfied their email if needed, they can use it to sign in.
+
+**Example:** Sign in with a security key:
+
+<Tabs>
+<Tab title="JavaScript">
+```js
+await nhost.auth.signIn({
+  email: 'joe@example.com',
+  securityKey: true
+})
+```
+</Tab>
+</Tabs>
+
+## Add a Security Key
+
+Any signed-in user with a verified email can add a security key to their user account. Once a security key is added, the user can use it their email and the security key to sign in.
+
+It's possible to add multiple security keys to a user account.
+
+**Example:** Add a security key to a user account:
+
+```tsx
+const { key, error } = await nhost.auth.addSecurityKey()
+
+// Something unexpected happened
+if (error) {
+  console.log(error)
+  return
+}
+
+// Successfully added a new security key
+console.log(key.id)
+```
+
+A nickname can be associated with each security key to make it easier to manage security keys in the future.
+
+```js
+await nhost.auth.addSecurityKey('iPhone')
+```
+
+## List or Remove Security Keys
+
+To list and remove security keys, use GraphQL and set permissions on the `auth.security_keys` table:
+
+```graphql
+query securityKeys($userId: uuid!) {
+  authUserSecurityKeys(where: { userId: { _eq: $userId } }) {
+    id
+    nickname
+  }
+}
+```
+
+To remove a security key:
+
+```graphql
+mutation removeSecurityKey($id: uuid!) {
+  deleteAuthUserSecurityKey(id: $id) {
+    id
+  }
+}
+```

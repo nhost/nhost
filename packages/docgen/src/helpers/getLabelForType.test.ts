@@ -167,7 +167,7 @@ test('should create an object signature for reflections', () => {
         ]
       }
     })
-  ).toBe('<code>{ firstAttribute: string, secondAttribute: number, thirdAttribute: null }</code>')
+  ).toBe('<code>&#123; firstAttribute: string, secondAttribute: number, thirdAttribute: null &#125;</code>')
 })
 
 test('should return "null" or "undefined" for falsy literal values', () => {

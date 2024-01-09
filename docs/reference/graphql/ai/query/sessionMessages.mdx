@@ -1,0 +1,121 @@
+---
+title: sessionMessages
+---
+
+```graphql
+sessionMessages {
+   sessionID: String! 
+}: MessageResponse
+```
+
+Retrieve all messages for a session
+
+## Permissions needed
+
+select (sessions):
+- id
+- assistant_id
+- session_id
+- user_id
+
+
+## Arguments
+
+
+
+    <ParamField body="sessionID" type="String!" required>
+    ID of the session to retrieve messages for
+    </ParamField>
+
+
+
+## Response
+
+Type: `MessageResponse`
+
+
+
+
+
+    
+    <ResponseField name="sessionID" type="String!">
+    ID of the session
+    </ResponseField>
+    
+    <ResponseField name="messages" type="[Message!]!">
+    Messages in this session
+    </ResponseField>
+    <Expandable title="properties">
+    
+    
+    <ResponseField name="id" type="String!">
+    ID of the message
+    </ResponseField>
+    
+    <ResponseField name="role" type="String!">
+    Role of the message. Either "user" or "assistant"
+    </ResponseField>
+    
+    <ResponseField name="message" type="String!">
+    Message content
+    </ResponseField>
+    
+    <ResponseField name="createdAt" type="timestampz!">
+    Timestamp of when the message was sent
+    </ResponseField>
+    
+    </Expandable>
+    
+    
+
+
+
+<RequestExample>
+```graphql query
+query sessionMessages (
+  $sessionID: String!
+) {
+  graphite {
+    sessionMessages (
+      sessionID: $sessionID
+    ) {
+      sessionID
+      messages {
+        id
+        role
+        message
+        createdAt
+        }
+    }
+  }
+}
+```
+
+```json variables
+{
+  "sessionID": "string"
+}
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "data": {
+    "graphite": {
+      "sessionMessages": {
+        "messages": [
+          {
+            "createdAt": "2023-12-14T07:45:15.20353+00:00",
+            "id": "string",
+            "message": "string",
+            "role": "string"
+          }
+        ],
+        "sessionID": "string"
+      }
+    }
+  }
+}
+```
+</ResponseExample>

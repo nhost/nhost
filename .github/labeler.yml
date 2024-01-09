@@ -4,7 +4,6 @@ dashboard:
 documentation:
   - any:
       - docs/**/*
-      - '!docs/docs/reference/docgen/**/*'
 
 examples:
   - examples/**/*

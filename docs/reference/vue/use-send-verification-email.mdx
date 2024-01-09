@@ -1,0 +1,31 @@
+---
+title: useSendVerificationEmail()
+sidebarTitle: useSendVerificationEmail()
+---
+
+Use the composable `useSendVerificationEmail` to send a verification email. The verification email is sent to the user's email address and includes a link to verify the email address.
+
+```tsx
+const { sendEmail, isLoading, isSent, isError, error } =
+  useSendVerificationEmail()
+
+watchEffect(() => {
+  console.log(isLoading.value, isSent.value, isError.value, error.value)
+})
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await sendEmail({
+    email: 'joe@example.com'
+  })
+}
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">options</span>** <span className="optional-status">optional</span> <code>NestedRefOfValue&lt;undefined &#124; SendVerificationEmailOptions&gt;</code>
+
+---

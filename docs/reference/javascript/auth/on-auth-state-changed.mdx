@@ -1,0 +1,22 @@
+---
+title: onAuthStateChanged()
+sidebarTitle: onAuthStateChanged()
+---
+
+Use `nhost.auth.onAuthStateChanged` to add a custom function that runs every time the authentication status of the user changes. E.g. add a custom function that runs every time the authentication status changes from signed-in to signed-out.
+
+```ts
+nhost.auth.onAuthStateChanged((event, session) => {
+  console.log(
+    `The auth state has changed. State is now ${event} with session: ${session}`
+  )
+})
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">fn</span>** <span className="optional-status">required</span> [`AuthChangedFunction`](/reference/javascript/auth/types/auth-changed-function)
+
+---

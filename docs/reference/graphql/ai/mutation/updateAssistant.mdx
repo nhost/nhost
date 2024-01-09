@@ -1,0 +1,431 @@
+---
+title: updateAssistant
+---
+
+```graphql
+updateAssistant {
+   assistantID: String!  object: AssistantInput! 
+}: Assistant!
+```
+
+Update an assistant
+
+## Permissions needed
+
+select (assistants):
+- assistant_id
+update (assistants):
+- update_at
+
+
+## Arguments
+
+
+
+    <ParamField body="assistantID" type="String!" required>
+    ID of the assistant to update
+    </ParamField>
+
+
+    <ParamField body="object" type="AssistantInput!" required>
+    New assistant data. Will fully replace the existing assistant
+    </ParamField>
+    <Expandable title="properties">
+    
+    
+    
+    <ParamField body="name" type="String!" required>
+    Name of the assistant
+    </ParamField>
+    
+    
+    <ParamField body="description" type="String!" required>
+    Description of the assistant
+    </ParamField>
+    
+    
+    <ParamField body="instructions" type="String!" required>
+    Instructions for the assistant. This is used to instruct the AI assistant
+on how to behave and respond to the user
+    </ParamField>
+    
+    
+    <ParamField body="model" type="String!" required>
+    Model to use for the assistant.
+    </ParamField>
+    
+    
+    <ParamField body="graphql" type="[AssistantToolGraphQLInput]" >
+    GraphQL data sources. Run against the project's GraphQL API
+    </ParamField>
+    <Expandable title="properties">
+    
+    
+    
+    <ParamField body="name" type="String!" required>
+    Name of the data source. Use a descriptive name
+    </ParamField>
+    
+    
+    <ParamField body="description" type="String!" required>
+    Description of the data source. Be as clear and concise as possible.
+This is used to help the AI assistant understand when and how
+external data sources should be used.
+    </ParamField>
+    
+    
+    <ParamField body="query" type="String!" required>
+    GraphQL query to run against the project's GraphQL API.
+    </ParamField>
+    
+    
+    <ParamField body="arguments" type="[AssistantToolArgumentInput!]!" required>
+    Arguments to pass to the GraphQL query
+    </ParamField>
+    <Expandable title="properties">
+    
+    
+    
+    <ParamField body="name" type="String!" required>
+    Name of the argument
+    </ParamField>
+    
+    
+    <ParamField body="description" type="String!" required>
+    Description of the argument. Be as clear and concise as possible.
+    </ParamField>
+    
+    
+    <ParamField body="type" type="String!" required>
+    Type of the argument
+    </ParamField>
+    
+    
+    <ParamField body="required" type="Boolean!" required>
+    Whether or not the argument is required
+    </ParamField>
+    
+    </Expandable>
+    
+    
+    </Expandable>
+    
+    
+    
+    <ParamField body="webhooks" type="[AssistantToolWebhookInput]" >
+    Webhook data sources
+    </ParamField>
+    <Expandable title="properties">
+    
+    
+    
+    <ParamField body="name" type="String!" required>
+    Name of the data source. Use a descriptive name
+    </ParamField>
+    
+    
+    <ParamField body="description" type="String!" required>
+    Description of the data source. Be as clear and concise as possible.
+This is used to help the AI assistant understand when and how
+external data sources should be used.
+    </ParamField>
+    
+    
+    <ParamField body="URL" type="String!" required>
+    URL of the webhook
+    </ParamField>
+    
+    
+    <ParamField body="arguments" type="[AssistantToolArgumentInput!]!" required>
+    Arguments to pass to the webhook
+    </ParamField>
+    <Expandable title="properties">
+    
+    
+    
+    <ParamField body="name" type="String!" required>
+    Name of the argument
+    </ParamField>
+    
+    
+    <ParamField body="description" type="String!" required>
+    Description of the argument. Be as clear and concise as possible.
+    </ParamField>
+    
+    
+    <ParamField body="type" type="String!" required>
+    Type of the argument
+    </ParamField>
+    
+    
+    <ParamField body="required" type="Boolean!" required>
+    Whether or not the argument is required
+    </ParamField>
+    
+    </Expandable>
+    
+    
+    </Expandable>
+    
+    
+    </Expandable>
+    
+
+
+
+## Response
+
+Type: `Assistant!`
+
+
+
+
+
+    
+    <ResponseField name="assistantID" type="String!">
+    ID of the assistant
+    </ResponseField>
+    
+    <ResponseField name="name" type="String!">
+    Name of the assistant
+    </ResponseField>
+    
+    <ResponseField name="description" type="String!">
+    Description of the assistant
+    </ResponseField>
+    
+    <ResponseField name="instructions" type="String!">
+    Instructions for the assistant. This is used to instruct the AI assistant
+on how to behave and respond to the user
+    </ResponseField>
+    
+    <ResponseField name="model" type="String!">
+    Model to use for the assistant.
+    </ResponseField>
+    
+    <ResponseField name="graphql" type="[AssistantToolGraphQL!]">
+    GraphQL data sources and tools. Run against the project's GraphQL API
+    </ResponseField>
+    <Expandable title="properties">
+    
+    
+    <ResponseField name="name" type="String!">
+    Name of the data source
+    </ResponseField>
+    
+    <ResponseField name="description" type="String!">
+    Description of the data source
+    </ResponseField>
+    
+    <ResponseField name="query" type="String!">
+    GraphQL query to run against the project's GraphQL API.
+    </ResponseField>
+    
+    <ResponseField name="arguments" type="[AssistantToolArgument!]!">
+    Arguments to pass to the GraphQL query
+    </ResponseField>
+    <Expandable title="properties">
+    
+    
+    <ResponseField name="name" type="String!">
+    
+    </ResponseField>
+    
+    <ResponseField name="description" type="String!">
+    
+    </ResponseField>
+    
+    <ResponseField name="type" type="String!">
+    
+    </ResponseField>
+    
+    <ResponseField name="required" type="Boolean!">
+    
+    </ResponseField>
+    
+    </Expandable>
+    
+    
+    </Expandable>
+    
+    
+    <ResponseField name="webhooks" type="[AssistantToolWebhook!]">
+    Webhook data sources and tools
+    </ResponseField>
+    <Expandable title="properties">
+    
+    
+    <ResponseField name="name" type="String!">
+    Name of the data source
+    </ResponseField>
+    
+    <ResponseField name="description" type="String!">
+    Description of the data source
+    </ResponseField>
+    
+    <ResponseField name="URL" type="String!">
+    URL of the webhook
+    </ResponseField>
+    
+    <ResponseField name="arguments" type="[AssistantToolArgument!]!">
+    Arguments to pass to the webhook
+    </ResponseField>
+    <Expandable title="properties">
+    
+    
+    <ResponseField name="name" type="String!">
+    
+    </ResponseField>
+    
+    <ResponseField name="description" type="String!">
+    
+    </ResponseField>
+    
+    <ResponseField name="type" type="String!">
+    
+    </ResponseField>
+    
+    <ResponseField name="required" type="Boolean!">
+    
+    </ResponseField>
+    
+    </Expandable>
+    
+    
+    </Expandable>
+    
+    
+
+
+
+<RequestExample>
+```graphql query
+query updateAssistant (
+  $assistantID: String!$object: AssistantInput!
+) {
+  graphite {
+    updateAssistant (
+      assistantID: $assistantIDobject: $object
+    ) {
+      assistantID
+      name
+      description
+      instructions
+      model
+      graphql {
+        name
+        description
+        query
+        arguments {
+          name
+          description
+          type
+          required
+          }
+        }
+      webhooks {
+        name
+        description
+        URL
+        arguments {
+          name
+          description
+          type
+          required
+          }
+        }
+    }
+  }
+}
+```
+
+```json variables
+{
+  "assistantID": "string",
+  "object": {
+    "description": "string",
+    "graphql": [
+      {
+        "arguments": [
+          {
+            "description": "string",
+            "name": "string",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "description": "string",
+        "name": "string",
+        "query": "string"
+      }
+    ],
+    "instructions": "string",
+    "model": "string",
+    "name": "string",
+    "webhooks": [
+      {
+        "URL": "string",
+        "arguments": [
+          {
+            "description": "string",
+            "name": "string",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "description": "string",
+        "name": "string"
+      }
+    ]
+  }
+}
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "data": {
+    "graphite": {
+      "updateAssistant": {
+        "assistantID": "string",
+        "description": "string",
+        "graphql": [
+          {
+            "arguments": [
+              {
+                "description": "string",
+                "name": "string",
+                "required": true,
+                "type": "string"
+              }
+            ],
+            "description": "string",
+            "name": "string",
+            "query": "string"
+          }
+        ],
+        "instructions": "string",
+        "model": "string",
+        "name": "string",
+        "webhooks": [
+          {
+            "URL": "string",
+            "arguments": [
+              {
+                "description": "string",
+                "name": "string",
+                "required": true,
+                "type": "string"
+              }
+            ],
+            "description": "string",
+            "name": "string"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+</ResponseExample>

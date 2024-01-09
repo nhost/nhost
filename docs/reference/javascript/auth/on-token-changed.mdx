@@ -1,0 +1,20 @@
+---
+title: onTokenChanged()
+sidebarTitle: onTokenChanged()
+---
+
+Use `nhost.auth.onTokenChanged` to add a custom function that runs every time the access or refresh token is changed.
+
+```ts
+nhost.auth.onTokenChanged(() =>
+  console.log('The access and refresh token has changed')
+)
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">fn</span>** <span className="optional-status">required</span> [`OnTokenChangedFunction`](/reference/javascript/auth/types/on-token-changed-function)
+
+---
