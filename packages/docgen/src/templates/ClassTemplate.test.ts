@@ -28,20 +28,6 @@ test('should contain title and a placeholder description in front matter', () =>
       }
     })
   ).toContain(`title: TestClass
-sidebar_label: TestClass
-description: No description provided.`)
-})
-
-test('should contain alias as a sidebar label in front matter if available', () => {
-  expect(
-    ClassTemplate({
-      ...classSignatureBase,
-      comment: {
-        tags: [{ tag: 'alias', text: 'TestClassAlias' }]
-      }
-    })
-  ).toContain(`title: TestClass
-sidebar_label: TestClassAlias
 description: No description provided.`)
 })
 
@@ -54,7 +40,6 @@ test('should contain description in front matter if available', () => {
       }
     })
   ).toContain(`title: TestClass
-sidebar_label: TestClass
 description: Test Description`)
 })
 

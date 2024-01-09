@@ -16,12 +16,10 @@ export const ClassTemplate = (
   { name, comment, children }: ClassSignature,
   originalDocument?: Array<Signature>
 ) => {
-  const alias = comment?.tags?.find(({ tag }) => tag === 'alias')?.text.replace(/\n/g, '')
   const deprecationTag = comment?.tags?.find(({ tag }) => tag === 'deprecated')
 
   const header = `---
 title: ${name}
-sidebarTitle: ${alias || name}
 description: ${
     removeLinksFromText(comment?.shortText?.replace(/\n/gi, ' ')) || 'No description provided.'
   }
