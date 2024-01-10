@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.0.0
+
+### Major Changes
+
+- 6d08b3430: New Docs powered by Mintlify
+
 ## 0.7.5
 
 ### Patch Changes
