@@ -1,5 +1,17 @@
 # @nhost/dashboard
 
+## 1.4.0
+
+### Minor Changes
+
+- 7883bbcbd: feat: don't show deprecated plans
+- 44be6dc0a: feat: set redirectTo during sign-in to support preview environments
+
+### Patch Changes
+
+- 3c3594898: fix: allow access to graphite when configured running in local dashboard
+- 32c246b7a: chore: update docs icon
+
 ## 1.3.2
 
 ### Patch Changes
