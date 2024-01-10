@@ -5,13 +5,12 @@ import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { useHostName } from '@/features/projects/common/hooks/useHostName';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useHostName } from '@/features/projects/common/hooks/useHostName';
-
 
 export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
@@ -28,7 +27,7 @@ export default function SignUpPage() {
         It&apos;s time to build
       </Text>
 
-      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
+      <Box className="grid grid-flow-row gap-4 p-6 bg-transparent border rounded-md lg:p-12">
         <Button
           className="!bg-white !text-black hover:ring-2 hover:ring-white hover:ring-opacity-50 disabled:!text-black disabled:!text-opacity-60"
           startIcon={<GitHubIcon />}
@@ -39,7 +38,10 @@ export default function SignUpPage() {
             setLoading(true);
 
             try {
-              await nhost.auth.signIn({provider: 'github', options: {redirectTo} });
+              await nhost.auth.signIn({
+                provider: 'github',
+                options: { redirectTo },
+              });
             } catch {
               toast.error(
                 `An error occurred while trying to sign in using GitHub. Please try again later.`,
@@ -65,7 +67,7 @@ export default function SignUpPage() {
 
         <Divider className="!my-2" />
 
-        <Text color="secondary" className="text-center text-sm">
+        <Text color="secondary" className="text-sm text-center">
           By clicking continue, you agree to our{' '}
           <NavLink
             href="https://nhost.io/legal/terms-of-service"
