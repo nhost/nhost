@@ -8,7 +8,7 @@ import {
   ParameterTableFragment,
   UnionOrIntersectionTypeFragment
 } from '../fragments'
-import { findNestedParametersByReferenceId, mergeUrls } from '../helpers'
+import { findNestedParametersByReferenceId } from '../helpers'
 import { Parameter, Signature } from '../types'
 
 /**
