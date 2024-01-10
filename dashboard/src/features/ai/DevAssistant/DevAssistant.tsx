@@ -15,6 +15,8 @@ import {
 } from '@/features/ai/DevAssistant/state';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   useSendDevMessageMutation,
@@ -33,6 +35,7 @@ export type Message = Omit<
 >;
 
 export default function DevAssistant() {
+  const isPlatform = useIsPlatform();
   const { currentProject, currentWorkspace } = useCurrentWorkspaceAndProject();
 
   const [loading, setLoading] = useState(false);
@@ -44,6 +47,8 @@ export default function DevAssistant() {
   const { adminClient } = useAdminApolloClient();
   const [startDevSession] = useStartDevSessionMutation({ client: adminClient });
   const [sendDevMessage] = useSendDevMessageMutation({ client: adminClient });
+
+  const { isGraphiteEnabled } = useIsGraphiteEnabled();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -141,7 +146,7 @@ export default function DevAssistant() {
     }
   };
 
-  if (currentProject.plan.isFree) {
+  if (isPlatform && currentProject?.plan?.isFree) {
     return (
       <Box className="p-4">
         <UpgradeToProBanner
@@ -157,7 +162,12 @@ export default function DevAssistant() {
     );
   }
 
-  if (!currentProject.plan.isFree && !currentProject.config?.ai) {
+  if (
+    (isPlatform &&
+      !currentProject?.plan?.isFree &&
+      !currentProject.config?.ai) ||
+    !isGraphiteEnabled
+  ) {
     return (
       <Box className="p-4">
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
