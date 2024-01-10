@@ -134,3 +134,41 @@ func (n *Client) Logout(ctx context.Context, refreshTokenID string, accessToken 
 	}
 	return nil
 }
+
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refreshToken"`
+}
+
+type RefreshTokenResponse struct {
+	AccessToken string `json:"accessToken"`
+}
+
+func (n *Client) RefreshToken(
+	ctx context.Context,
+	refreshToken string,
+) (RefreshTokenResponse, error) {
+	var resp RefreshTokenResponse
+	if err := MakeJSONRequest(
+		ctx,
+		n.client,
+		fmt.Sprintf("%s%s", n.baseURL, "/token"),
+		http.MethodPost,
+		RefreshTokenRequest{
+			RefreshToken: refreshToken,
+		},
+		http.Header{},
+		&resp,
+		func(resp *http.Response) error {
+			if resp.StatusCode != http.StatusOK {
+				b, _ := io.ReadAll(resp.Body)
+				return fmt.Errorf("unexpected status code: %d, message: %s", resp.StatusCode, string(b)) //nolint:goerr113
+			}
+			return nil
+		},
+		n.retryer,
+	); err != nil {
+		return RefreshTokenResponse{}, fmt.Errorf("failed to refresh session: %w", err)
+	}
+
+	return resp, nil
+}

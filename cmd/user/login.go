@@ -19,6 +19,11 @@ func CommandLogin() *cli.Command {
 		Action:  commandLogin,
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagPAT,
+				Usage:   "Use this Personal Access Token instead of generating a new one with your email/password",
+				EnvVars: []string{"NHOST_PAT"},
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagEmail,
 				Usage:   "Email address",
 				EnvVars: []string{"NHOST_EMAIL"},
@@ -28,11 +33,6 @@ func CommandLogin() *cli.Command {
 				Usage:   "Password",
 				EnvVars: []string{"NHOST_PASSWORD"},
 			},
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagPAT,
-				Usage:   "Use this Personal Access Token instead of generating a new one with your email/password",
-				EnvVars: []string{"NHOST_PAT"},
-			},
 		},
 	}
 }
@@ -40,7 +40,7 @@ func CommandLogin() *cli.Command {
 func commandLogin(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 	_, err := ce.Login(
-		cCtx.Context, cCtx.String(flagEmail), cCtx.String(flagPassword), cCtx.String(flagPAT),
+		cCtx.Context, cCtx.String(flagPAT), cCtx.String(flagEmail), cCtx.String(flagPassword),
 	)
 	return err //nolint:wrapcheck
 }

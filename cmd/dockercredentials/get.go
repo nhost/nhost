@@ -11,7 +11,9 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const flagDomain = "domain"
+const (
+	flagDomain = "domain"
+)
 
 func CommandGet() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct

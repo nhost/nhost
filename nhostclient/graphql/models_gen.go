@@ -2843,11 +2843,13 @@ type Plans struct {
 	// An array relationship
 	Apps                               []*Apps   `json:"apps"`
 	CreatedAt                          time.Time `json:"createdAt"`
+	Deprecated                         bool      `json:"deprecated"`
 	FeatureBackupEnabled               bool      `json:"featureBackupEnabled"`
 	FeatureCustomDomainsEnabled        bool      `json:"featureCustomDomainsEnabled"`
 	FeatureCustomEmailTemplatesEnabled bool      `json:"featureCustomEmailTemplatesEnabled"`
 	FeatureMaxDbSize                   int64     `json:"featureMaxDbSize"`
 	ID                                 string    `json:"id"`
+	Individual                         bool      `json:"individual"`
 	IsDefault                          bool      `json:"isDefault"`
 	IsFree                             bool      `json:"isFree"`
 	Name                               string    `json:"name"`
@@ -2863,11 +2865,13 @@ type PlansBoolExp struct {
 	Or                                 []*PlansBoolExp           `json:"_or,omitempty"`
 	Apps                               *AppsBoolExp              `json:"apps,omitempty"`
 	CreatedAt                          *TimestamptzComparisonExp `json:"createdAt,omitempty"`
+	Deprecated                         *BooleanComparisonExp     `json:"deprecated,omitempty"`
 	FeatureBackupEnabled               *BooleanComparisonExp     `json:"featureBackupEnabled,omitempty"`
 	FeatureCustomDomainsEnabled        *BooleanComparisonExp     `json:"featureCustomDomainsEnabled,omitempty"`
 	FeatureCustomEmailTemplatesEnabled *BooleanComparisonExp     `json:"featureCustomEmailTemplatesEnabled,omitempty"`
 	FeatureMaxDbSize                   *IntComparisonExp         `json:"featureMaxDbSize,omitempty"`
 	ID                                 *UUIDComparisonExp        `json:"id,omitempty"`
+	Individual                         *BooleanComparisonExp     `json:"individual,omitempty"`
 	IsDefault                          *BooleanComparisonExp     `json:"isDefault,omitempty"`
 	IsFree                             *BooleanComparisonExp     `json:"isFree,omitempty"`
 	Name                               *StringComparisonExp      `json:"name,omitempty"`
@@ -2880,11 +2884,13 @@ type PlansBoolExp struct {
 type PlansOrderBy struct {
 	AppsAggregate                      *AppsAggregateOrderBy `json:"apps_aggregate,omitempty"`
 	CreatedAt                          *OrderBy              `json:"createdAt,omitempty"`
+	Deprecated                         *OrderBy              `json:"deprecated,omitempty"`
 	FeatureBackupEnabled               *OrderBy              `json:"featureBackupEnabled,omitempty"`
 	FeatureCustomDomainsEnabled        *OrderBy              `json:"featureCustomDomainsEnabled,omitempty"`
 	FeatureCustomEmailTemplatesEnabled *OrderBy              `json:"featureCustomEmailTemplatesEnabled,omitempty"`
 	FeatureMaxDbSize                   *OrderBy              `json:"featureMaxDbSize,omitempty"`
 	ID                                 *OrderBy              `json:"id,omitempty"`
+	Individual                         *OrderBy              `json:"individual,omitempty"`
 	IsDefault                          *OrderBy              `json:"isDefault,omitempty"`
 	IsFree                             *OrderBy              `json:"isFree,omitempty"`
 	Name                               *OrderBy              `json:"name,omitempty"`
@@ -2904,11 +2910,13 @@ type PlansStreamCursorInput struct {
 // Initial value of the column from where the streaming should start
 type PlansStreamCursorValueInput struct {
 	CreatedAt                          *time.Time `json:"createdAt,omitempty"`
+	Deprecated                         *bool      `json:"deprecated,omitempty"`
 	FeatureBackupEnabled               *bool      `json:"featureBackupEnabled,omitempty"`
 	FeatureCustomDomainsEnabled        *bool      `json:"featureCustomDomainsEnabled,omitempty"`
 	FeatureCustomEmailTemplatesEnabled *bool      `json:"featureCustomEmailTemplatesEnabled,omitempty"`
 	FeatureMaxDbSize                   *int64     `json:"featureMaxDbSize,omitempty"`
 	ID                                 *string    `json:"id,omitempty"`
+	Individual                         *bool      `json:"individual,omitempty"`
 	IsDefault                          *bool      `json:"isDefault,omitempty"`
 	IsFree                             *bool      `json:"isFree,omitempty"`
 	Name                               *string    `json:"name,omitempty"`
@@ -5600,6 +5608,8 @@ const (
 	// column name
 	PlansSelectColumnCreatedAt PlansSelectColumn = "createdAt"
 	// column name
+	PlansSelectColumnDeprecated PlansSelectColumn = "deprecated"
+	// column name
 	PlansSelectColumnFeatureBackupEnabled PlansSelectColumn = "featureBackupEnabled"
 	// column name
 	PlansSelectColumnFeatureCustomDomainsEnabled PlansSelectColumn = "featureCustomDomainsEnabled"
@@ -5609,6 +5619,8 @@ const (
 	PlansSelectColumnFeatureMaxDbSize PlansSelectColumn = "featureMaxDbSize"
 	// column name
 	PlansSelectColumnID PlansSelectColumn = "id"
+	// column name
+	PlansSelectColumnIndividual PlansSelectColumn = "individual"
 	// column name
 	PlansSelectColumnIsDefault PlansSelectColumn = "isDefault"
 	// column name
@@ -5625,11 +5637,13 @@ const (
 
 var AllPlansSelectColumn = []PlansSelectColumn{
 	PlansSelectColumnCreatedAt,
+	PlansSelectColumnDeprecated,
 	PlansSelectColumnFeatureBackupEnabled,
 	PlansSelectColumnFeatureCustomDomainsEnabled,
 	PlansSelectColumnFeatureCustomEmailTemplatesEnabled,
 	PlansSelectColumnFeatureMaxDbSize,
 	PlansSelectColumnID,
+	PlansSelectColumnIndividual,
 	PlansSelectColumnIsDefault,
 	PlansSelectColumnIsFree,
 	PlansSelectColumnName,
@@ -5640,7 +5654,7 @@ var AllPlansSelectColumn = []PlansSelectColumn{
 
 func (e PlansSelectColumn) IsValid() bool {
 	switch e {
-	case PlansSelectColumnCreatedAt, PlansSelectColumnFeatureBackupEnabled, PlansSelectColumnFeatureCustomDomainsEnabled, PlansSelectColumnFeatureCustomEmailTemplatesEnabled, PlansSelectColumnFeatureMaxDbSize, PlansSelectColumnID, PlansSelectColumnIsDefault, PlansSelectColumnIsFree, PlansSelectColumnName, PlansSelectColumnPrice, PlansSelectColumnSort, PlansSelectColumnUpatedAt:
+	case PlansSelectColumnCreatedAt, PlansSelectColumnDeprecated, PlansSelectColumnFeatureBackupEnabled, PlansSelectColumnFeatureCustomDomainsEnabled, PlansSelectColumnFeatureCustomEmailTemplatesEnabled, PlansSelectColumnFeatureMaxDbSize, PlansSelectColumnID, PlansSelectColumnIndividual, PlansSelectColumnIsDefault, PlansSelectColumnIsFree, PlansSelectColumnName, PlansSelectColumnPrice, PlansSelectColumnSort, PlansSelectColumnUpatedAt:
 		return true
 	}
 	return false
