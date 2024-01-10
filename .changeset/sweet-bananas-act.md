@@ -2,4 +2,4 @@
 '@nhost/dashboard': minor
 ---
 
-feat: allow redirectTo during sign-in to support cli/preview environments
+feat: set redirectTo during sign-in to support preview environments

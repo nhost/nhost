@@ -10,17 +10,13 @@ import { nhost } from '@/utils/nhost';
 import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useRouter } from 'next/router';
 import { useHostName } from '@/features/projects/common/hooks/useHostName';
 
 
 export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
 
-  const router = useRouter();
-  const { query } = router;
-
-  const redirectTo = query.redirectTo?.toString() || useHostName() as string;
+  const redirectTo = useHostName();
 
   return (
     <>
@@ -43,7 +39,7 @@ export default function SignUpPage() {
             setLoading(true);
 
             try {
-              await nhost.auth.signIn({provider: 'github', options: { redirectTo} });
+              await nhost.auth.signIn({provider: 'github', options: {redirectTo} });
             } catch {
               toast.error(
                 `An error occurred while trying to sign in using GitHub. Please try again later.`,
