@@ -11,6 +11,7 @@ import type { ReactElement } from 'react';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/router';
+import { useHostName } from '@/features/projects/common/hooks/useHostName';
 
 
 export default function SignUpPage() {
@@ -19,9 +20,7 @@ export default function SignUpPage() {
   const router = useRouter();
   const { query } = router;
 
-  // const host = router.req.headers.host;
-  // const url = `${router.req.protocol}://${host}${router.asPath}`;
-  const redirectTo = query.redirectTo?.toString() || '' as string;
+  const redirectTo = query.redirectTo?.toString() || useHostName() as string;
 
   return (
     <>
