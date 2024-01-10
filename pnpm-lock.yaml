@@ -733,9 +733,6 @@ importers:
 
   examples/codegen-react-urql:
     dependencies:
-      '@nhost/nhost-js':
-        specifier: '*'
-        version: link:../../packages/nhost-js
       '@nhost/react':
         specifier: ^3.0.2
         version: link:../../packages/react
