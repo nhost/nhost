@@ -233,12 +233,12 @@ export default function PricingPage() {
           {/* Plan details end */}
           {/* Call to action start */}
           <Button
-            href="https://app.nhost.io/signup"
+            href="https://app.nhost.io/new"
             rel="noopener noreferrer"
             target="_blank"
             className="col-span-2 w-full justify-center text-center"
           >
-            Start for free <ArrowRightIcon />
+            Get Started <ArrowRightIcon />
           </Button>
           {/* Call to action end */}
         </div>
@@ -266,7 +266,7 @@ export default function PricingPage() {
                   </h2>
                 </div>
                 <p className="text-xs text-white text-opacity-65">
-                  Up to 5 members / $20 per additional member
+                  5 members included / $20 per additional member, up to 20 members
                 </p>
               </div>
             </div>
@@ -453,7 +453,7 @@ export default function PricingPage() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Buy Pro <ArrowRightIcon />
+              Get Started <ArrowRightIcon />
             </Button>
             {/* Call to action end */}
           </div>
@@ -661,12 +661,12 @@ export default function PricingPage() {
           {/* Plan details end */}
           {/* Call to action start */}
           <Button
-            href="https://app.nhost.io/signup"
+            href="https://app.nhost.io/new"
             rel="noopener noreferrer"
             target="_blank"
             className="col-span-2 w-full justify-center text-center"
           >
-            Start for free <ArrowRightIcon />
+            Get Started <ArrowRightIcon />
           </Button>
           {/* Call to action end */}
         </div>
