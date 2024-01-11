@@ -253,8 +253,7 @@ export default function PricingPage() {
                 <h2 className="font-mona text-2xl font-semibold">Pro</h2>
               </div>
               <h2 className="font-normal text-white text-opacity-65">
-                Well suited for production applications. Scale as you
-                grow.
+                Well suited for production applications, scale as needed.
               </h2>
 
 
@@ -266,7 +265,7 @@ export default function PricingPage() {
                   </h2>
                 </div>
                 <p className="text-xs text-white text-opacity-65">
-                  5 members included / $20 per additional member, up to 20 members
+                  3 members included / $20 per additional member, up to 10 members
                 </p>
               </div>
             </div>
@@ -468,7 +467,7 @@ export default function PricingPage() {
             </div>
 
             <h2 className="font-normal text-white text-opacity-65">
-              Collaborate with added support.
+              Collaborate with added support, scale as needed.
             </h2>
               <div className="flex flex-col items-start">
                 <div className="flex flex-row items-center space-x-2">
@@ -655,7 +654,7 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={[{ title: 'Community', enabled: true }, {title: 'Email', enabled: true}, {title: 'Dedicated Chat', enabled: true }, {title: 'SLA (add-on)'}]}
+            subFeatures={[{ title: 'Community', enabled: true }, {title: 'Email', enabled: true}, {title: 'Dedicated Chat', enabled: true }, {title: 'SLAs'}]}
           />
 
           {/* Plan details end */}
@@ -678,8 +677,7 @@ export default function PricingPage() {
             <h2 className="font-mona text-2xl font-semibold">Enterprise</h2>
 
             <h2 className="font-normal text-white text-opacity-65">
-              Ideal for those with specific
-              infrastructure and customization needs.
+              Ideal for specific infrastructure and customization needs.
             </h2>
 
             <div className="flex flex-row items-center space-x-2">
@@ -828,7 +826,7 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={[{ title: 'Community', enabled: true }, {title: 'Email', enabled: true}, {title: 'Dedicated Chat', enabled: true }, {title: 'SLA'}]}
+            subFeatures={[{ title: 'Community', enabled: true }, {title: 'Email', enabled: true}, {title: 'Dedicated Chat', enabled: true }, {title: 'SLAs'}]}
           />
           {/* Call to action start */}
           <Button
