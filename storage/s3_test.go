@@ -46,7 +46,7 @@ func getS3() *storage.S3 {
 			o.UsePathStyle = true
 			o.EndpointOptions.DisableHTTPS = true
 		})
-	st := storage.NewS3(client, "default", "f215cf48-7458-4596-9aa5-2159fc6a3caf", url, true, logger)
+	st := storage.NewS3(client, "default", "f215cf48-7458-4596-9aa5-2159fc6a3caf", url, logger)
 	return st
 }
 

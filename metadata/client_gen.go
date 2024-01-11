@@ -358,6 +358,10 @@ func (c *Client) GetBucket(ctx context.Context, id string, interceptors ...clien
 
 	var res GetBucket
 	if err := c.Client.Post(ctx, "GetBucket", GetBucketDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -391,6 +395,10 @@ func (c *Client) GetFile(ctx context.Context, id string, interceptors ...clientv
 
 	var res GetFile
 	if err := c.Client.Post(ctx, "GetFile", GetFileDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -415,6 +423,10 @@ func (c *Client) ListFilesSummary(ctx context.Context, interceptors ...clientv2.
 
 	var res ListFilesSummary
 	if err := c.Client.Post(ctx, "ListFilesSummary", ListFilesSummaryDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -435,6 +447,10 @@ func (c *Client) InsertFile(ctx context.Context, object FilesInsertInput, interc
 
 	var res InsertFile
 	if err := c.Client.Post(ctx, "InsertFile", InsertFileDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -469,6 +485,10 @@ func (c *Client) UpdateFile(ctx context.Context, id string, set FilesSetInput, i
 
 	var res UpdateFile
 	if err := c.Client.Post(ctx, "UpdateFile", UpdateFileDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -489,6 +509,10 @@ func (c *Client) DeleteFile(ctx context.Context, id string, interceptors ...clie
 
 	var res DeleteFile
 	if err := c.Client.Post(ctx, "DeleteFile", DeleteFileDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -509,8 +533,22 @@ func (c *Client) InsertVirus(ctx context.Context, object VirusInsertInput, inter
 
 	var res InsertVirus
 	if err := c.Client.Post(ctx, "InsertVirus", InsertVirusDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
 	return &res, nil
+}
+
+var DocumentOperationNames = map[string]string{
+	GetBucketDocument:        "GetBucket",
+	GetFileDocument:          "GetFile",
+	ListFilesSummaryDocument: "ListFilesSummary",
+	InsertFileDocument:       "InsertFile",
+	UpdateFileDocument:       "UpdateFile",
+	DeleteFileDocument:       "DeleteFile",
+	InsertVirusDocument:      "InsertVirus",
 }

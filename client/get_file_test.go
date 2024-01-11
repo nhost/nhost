@@ -235,7 +235,7 @@ func TestGetFile(t *testing.T) {
 			name: "get image manipulated, if-match==etag",
 			id:   testFiles.ProcessedFiles[1].ID,
 			opts: []client.GetFileInformationOpt{
-				client.WithIfMatch(`"38aae548d455b164041743d5a0131d93b94fd0f13b2d6aed278469ce29f2328b"`),
+				client.WithIfMatch(`"012fe5fec0a590f1c7246938af1918d02cc1514e30b76e0b45ff5ab2123a2b43"`),
 				client.WithImageSize(600, 200),
 				client.WithImageQuality(50),
 				client.WithImageBlur(5),
@@ -244,14 +244,14 @@ func TestGetFile(t *testing.T) {
 				Filename: "nhost.jpg",
 				FileInformationHeader: &client.FileInformationHeader{
 					CacheControl:  "max-age=3600",
-					ContentLength: 6761,
+					ContentLength: 6775,
 					ContentType:   "image/jpeg",
-					Etag:          `"38aae548d455b164041743d5a0131d93b94fd0f13b2d6aed278469ce29f2328b"`,
+					Etag:          `"012fe5fec0a590f1c7246938af1918d02cc1514e30b76e0b45ff5ab2123a2b43"`,
 					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
 					StatusCode:    200,
 				},
 			},
-			expectedSha: "38aae548d455b164041743d5a0131d93b94fd0f13b2d6aed278469ce29f2328b",
+			expectedSha: "012fe5fec0a590f1c7246938af1918d02cc1514e30b76e0b45ff5ab2123a2b43",
 		},
 		{
 			name: "get image manipulated, if-match!=etag",
@@ -265,9 +265,9 @@ func TestGetFile(t *testing.T) {
 			expected: &client.FileInformationHeaderWithReader{
 				FileInformationHeader: &client.FileInformationHeader{
 					CacheControl:  "max-age=3600",
-					ContentLength: 6761,
+					ContentLength: 6775,
 					ContentType:   "image/jpeg",
-					Etag:          `"38aae548d455b164041743d5a0131d93b94fd0f13b2d6aed278469ce29f2328b"`,
+					Etag:          `"012fe5fec0a590f1c7246938af1918d02cc1514e30b76e0b45ff5ab2123a2b43"`,
 					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
 					StatusCode:    412,
 				},

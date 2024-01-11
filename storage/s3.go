@@ -18,6 +18,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func deptr[T any](p *T) T { //nolint:ireturn
+	if p == nil {
+		return *new(T)
+	}
+	return *p
+}
+
 type S3Error struct {
 	Code    string `xml:"Code"`
 	Message string `xml:"Message"`
@@ -48,7 +55,11 @@ type S3 struct {
 }
 
 func NewS3(
-	client *s3.Client, bucket string, rootFolder string, url string, disableHTTPS bool, logger *logrus.Logger,
+	client *s3.Client,
+	bucket string,
+	rootFolder string,
+	url string,
+	logger *logrus.Logger,
 ) *S3 {
 	return &S3{
 		client:     client,
@@ -59,7 +70,12 @@ func NewS3(
 	}
 }
 
-func (s *S3) PutFile(ctx context.Context, content io.ReadSeeker, filepath string, contentType string) (string, *controller.APIError) {
+func (s *S3) PutFile(
+	ctx context.Context,
+	content io.ReadSeeker,
+	filepath string,
+	contentType string,
+) (string, *controller.APIError) {
 	key, err := url.JoinPath(s.rootFolder, filepath)
 	if err != nil {
 		return "", controller.InternalServerError(fmt.Errorf("problem joining path: %w", err))
@@ -85,7 +101,11 @@ func (s *S3) PutFile(ctx context.Context, content io.ReadSeeker, filepath string
 	return *object.ETag, nil
 }
 
-func (s *S3) GetFile(ctx context.Context, filepath string, headers http.Header) (*controller.File, *controller.APIError) {
+func (s *S3) GetFile(
+	ctx context.Context,
+	filepath string,
+	headers http.Header,
+) (*controller.File, *controller.APIError) {
 	key, err := url.JoinPath(s.rootFolder, filepath)
 	if err != nil {
 		return nil, controller.InternalServerError(fmt.Errorf("problem joining path: %w", err))
@@ -119,7 +139,7 @@ func (s *S3) GetFile(ctx context.Context, filepath string, headers http.Header) 
 
 	return &controller.File{
 		ContentType:   *object.ContentType,
-		ContentLength: object.ContentLength,
+		ContentLength: deptr(object.ContentLength),
 		Etag:          *object.ETag,
 		StatusCode:    status,
 		Body:          object.Body,
@@ -127,7 +147,11 @@ func (s *S3) GetFile(ctx context.Context, filepath string, headers http.Header) 
 	}, nil
 }
 
-func (s *S3) CreatePresignedURL(ctx context.Context, filepath string, expire time.Duration) (string, *controller.APIError) {
+func (s *S3) CreatePresignedURL(
+	ctx context.Context,
+	filepath string,
+	expire time.Duration,
+) (string, *controller.APIError) {
 	key, err := url.JoinPath(s.rootFolder, filepath)
 	if err != nil {
 		return "", controller.InternalServerError(fmt.Errorf("problem joining path: %w", err))

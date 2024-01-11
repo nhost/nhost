@@ -46,7 +46,7 @@ const (
 	corsAllowOriginsFlag         = "cors-allow-origins"
 	corsAllowCredentialsFlag     = "cors-allow-credentials" //nolint: gosec
 	clamavServerFlag             = "clamav-server"
-	hasuraDbNameFlag             = "hasura-db-name"
+	hasuraDBNameFlag             = "hasura-db-name"
 )
 
 func ginLogger(logger *logrus.Logger) gin.HandlerFunc {
@@ -165,7 +165,7 @@ func getContentStorage(
 			o.EndpointOptions.DisableHTTPS = disableHTTPS
 		},
 	)
-	st := storage.NewS3(client, bucket, rootFolder, s3Endpoint, disableHTTPS, logger)
+	st := storage.NewS3(client, bucket, rootFolder, s3Endpoint, logger)
 
 	return st
 }
@@ -176,7 +176,7 @@ func applymigrations(
 	hasuraMetadata bool,
 	hasuraEndpoint string,
 	hasuraSecret string,
-	hasuraDbName string,
+	hasuraDBName string,
 	logger *logrus.Logger,
 ) {
 	if postgresMigrations {
@@ -193,7 +193,7 @@ func applymigrations(
 
 	if hasuraMetadata {
 		logger.Info("applying hasura metadata")
-		if err := migrations.ApplyHasuraMetadata(hasuraEndpoint, hasuraSecret, hasuraDbName); err != nil {
+		if err := migrations.ApplyHasuraMetadata(hasuraEndpoint, hasuraSecret, hasuraDBName); err != nil {
 			logger.Errorf("problem applying hasura metadata: %s", err.Error())
 			os.Exit(1)
 		}
@@ -241,7 +241,7 @@ func init() {
 			"",
 			"postgres connection, i.e. postgres://user@pass:localhost:5432/mydb",
 		)
-		addStringFlag(serveCmd.Flags(), hasuraDbNameFlag, "default", "Hasura database name")
+		addStringFlag(serveCmd.Flags(), hasuraDBNameFlag, "default", "Hasura database name")
 	}
 
 	{
@@ -295,7 +295,7 @@ var serveCmd = &cobra.Command{
 				s3BucketFlag:           viper.GetString(s3BucketFlag),
 				s3RootFolderFlag:       viper.GetString(s3RootFolderFlag),
 				clamavServerFlag:       viper.GetString(clamavServerFlag),
-				hasuraDbNameFlag:       viper.GetString(hasuraDbNameFlag),
+				hasuraDBNameFlag:       viper.GetString(hasuraDBNameFlag),
 			},
 		).Debug("parameters")
 
@@ -317,7 +317,7 @@ var serveCmd = &cobra.Command{
 			viper.GetBool(hasuraMetadataFlag),
 			viper.GetString(hasuraEndpointFlag),
 			viper.GetString(hasuraAdminSecretFlag),
-			viper.GetString(hasuraDbNameFlag),
+			viper.GetString(hasuraDBNameFlag),
 			logger,
 		)
 

@@ -24,7 +24,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "jpg",
 			filename: "testdata/nhost.jpg",
-			sum:      "a88fdb178a6c476e0cb07bdee7a5ffa62d7197dfe54b67cc4a022a36445c6a32",
+			sum:      "74868ab5a0e944f8db1ff021af11af3eb84e273516383b984761184ddffd9936",
 			size:     33399,
 			options: image.Options{
 				Height:  100,
@@ -37,28 +37,28 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "jpg",
 			filename: "testdata/nhost.jpg",
-			sum:      "609365ae9f099954d90270f1c4ba19fed1bf54094d7b6495dc93b4d0ebae9211",
+			sum:      "a37c9b734caff0cbcb98c56b42443020ad71c86f0ec9f3401bcfe7df0b5c6280",
 			size:     33399,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeJPEG},
 		},
 		{
 			name:     "png",
 			filename: "testdata/nhost.png",
-			sum:      "ac7da45c3a994e50fdbc25123992b31116d32f20dac2c5436d2d6fdbfd319853",
+			sum:      "d538212aa74ad1d17261bc2126e60964e6d2dc1c7898ea3b9f9bd3b5bc94b380",
 			size:     68307,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypePNG},
 		},
 		{
 			name:     "webp",
 			filename: "testdata/nhost.webp",
-			sum:      "d57de01e6c966a0802bbb558392e973fd28399bc3617a0a8f4c25942f3988b4f",
+			sum:      "d731b20cbfb6b064e4c4d25db0608c40ab9dcec773cee301393bd332bcf5b300",
 			size:     17784,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeWEBP},
 		},
 		{
 			name:     "jpg only blur",
 			filename: "testdata/nhost.jpg",
-			sum:      "c534df8fcf66240a63b561b1d628e05fa02baad44aac4c8a93550080c2a159f1",
+			sum:      "dc72277490497dc9b3ca900e5d2797b99a23797a3bcfbc7418f60f9d4c058fe9",
 			size:     33399,
 			options:  image.Options{Blur: 2, Format: image.ImageTypeJPEG},
 		},

@@ -142,11 +142,11 @@ type DropRelationshipArgs struct {
 	Relationship string `json:"relationship"`
 }
 
-func ApplyHasuraMetadata(url, hasuraSecret, hasuraDbName string) error { //nolint: funlen
+func ApplyHasuraMetadata(url, hasuraSecret, hasuraDBName string) error { //nolint: funlen
 	bucketsTable := TrackTable{
 		Type: "pg_track_table",
 		Args: PgTrackTableArgs{
-			Source: hasuraDbName,
+			Source: hasuraDBName,
 			Table: Table{
 				Schema: "storage",
 				Name:   "buckets",
@@ -185,7 +185,7 @@ func ApplyHasuraMetadata(url, hasuraSecret, hasuraDbName string) error { //nolin
 	filesTable := TrackTable{
 		Type: "pg_track_table",
 		Args: PgTrackTableArgs{
-			Source: hasuraDbName,
+			Source: hasuraDBName,
 			Table: Table{
 				Schema: "storage",
 				Name:   "files",
@@ -227,7 +227,7 @@ func ApplyHasuraMetadata(url, hasuraSecret, hasuraDbName string) error { //nolin
 	virusTable := TrackTable{
 		Type: "pg_track_table",
 		Args: PgTrackTableArgs{
-			Source: hasuraDbName,
+			Source: hasuraDBName,
 			Table: Table{
 				Schema: "storage",
 				Name:   "virus",
@@ -270,7 +270,7 @@ func ApplyHasuraMetadata(url, hasuraSecret, hasuraDbName string) error { //nolin
 				Name:   "files",
 			},
 			Name:   "bucket",
-			Source: hasuraDbName,
+			Source: hasuraDBName,
 			Using: CreateObjectRelationshipUsing{
 				ForeignKeyConstraintOn: []string{"bucket_id"},
 			},
@@ -289,7 +289,7 @@ func ApplyHasuraMetadata(url, hasuraSecret, hasuraDbName string) error { //nolin
 				Name:   "buckets",
 			},
 			Name:   "files",
-			Source: hasuraDbName,
+			Source: hasuraDBName,
 			Using: CreateArrayRelationshipUsing{
 				ForeignKeyConstraintOn: ForeignKeyConstraintOn{
 					Table: Table{
@@ -314,7 +314,7 @@ func ApplyHasuraMetadata(url, hasuraSecret, hasuraDbName string) error { //nolin
 				Name:   "virus",
 			},
 			Name:   "file",
-			Source: hasuraDbName,
+			Source: hasuraDBName,
 			Using: CreateObjectRelationshipUsing{
 				ForeignKeyConstraintOn: []string{"file_id"},
 			},

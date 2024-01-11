@@ -1,11 +1,11 @@
 final: prev: rec {
   go = prev.go_1_21.overrideAttrs
     (finalAttrs: previousAttrs: rec {
-      version = "1.21.4";
+      version = "1.21.5";
 
       src = final.fetchurl {
         url = "https://go.dev/dl/go${version}.src.tar.gz";
-        sha256 = "sha256-R7Jqg9K2WjwcG8rOJztpvuSaentRaKdgTe09JqN714c=";
+        sha256 = "sha256-KFy730tubmLtWPNw8/bYwwgl1uVsWFPGbTwjvNsJ2xk=";
       };
 
     });
@@ -38,15 +38,28 @@ final: prev: rec {
 
   gqlgenc = prev.gqlgenc.override rec {
     buildGoModule = args: prev.buildGoModule.override { go = go; } (args // rec {
-      version = "0.14.0";
+      version = "0.16.2";
       src = prev.fetchFromGitHub {
         owner = "Yamashou";
         repo = "gqlgenc";
         rev = "v${version}";
-        sha256 = "sha256-0KUJlz8ey0kLmHO083ZPaJYIhInlKvO/a1oZYjPGopo=";
+        sha256 = "sha256-XNmCSkgJJ2notrv0Din4jlU9EoHJcznjEUiXQgQ5a7I=";
       };
 
-      vendorHash = "sha256-Up7Wi6z0Cbp9RHKAsjj/kd50UqcXtsS+ETRYuxRfGuA=";
+      vendorHash = "sha256-6iwNykvW1m+hl6FzMNbvvPpBNp8OQn2/vfJLmAj60Mw=";
+    });
+  };
+
+  mockgen = prev.mockgen.override rec {
+    buildGoModule = args: final.buildGoModule (args // rec {
+      version = "0.3.0";
+      src = final.fetchFromGitHub {
+        owner = "uber-go";
+        repo = "mock";
+        rev = "v${version}";
+        sha256 = "sha256-pwlssqk/2aXTOwchePJK7CqEQ6lkQv7E+aT3HzUhvpE=";
+      };
+      vendorHash = "sha256-mcNVud2jzvlPPQEaar/eYZkP71V2Civz+R5v10+tewA=";
     });
   };
 
@@ -61,6 +74,8 @@ final: prev: rec {
       final.libwebp
       final.openjpeg
       final.pango
+      final.libarchive
+      final.libhwy
     ];
     mesonFlags = [
       "-Dgtk_doc=false"
@@ -68,7 +83,6 @@ final: prev: rec {
       "-Dspng=disabled"
       "-Dpdfium=disabled"
       "-Dnifti=disabled"
-      "-Dgsf=disabled"
       "-Dfftw=disabled"
       "-Dmagick=disabled"
       "-Dcfitsio=disabled"
