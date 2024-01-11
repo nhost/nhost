@@ -26,7 +26,7 @@ export default function PricingPage() {
         <Glow className="top-5 h-32 w-32 bg-opacity-50 blur-3xl lg:top-16" />
         <SectionHeading
           title="Pricing"
-          subtitle="Select your plan and start building"
+          subtitle="Start building for free, and scale as needed"
           slotProps={{
             title: {
               component: 'h1',
@@ -37,38 +37,33 @@ export default function PricingPage() {
         />
       </Container>
 
-      <Container className="grid w-full grid-flow-row grid-cols-1 justify-items-center gap-4 pb-8 lg:grid-cols-3">
+      <Container className="grid w-full grid-flow-row grid-cols-1 justify-items-center gap-4 pb-8 lg:grid-cols-4">
         {/* Starter plan  */}
         <div className="mt-14 w-full max-w-[500px] space-y-8 self-start overflow-hidden rounded-md border border-divider p-8">
           {/* Plan Header Start */}
           <div className="flex flex-col space-y-4 ">
             <div className="flex flex-row justify-between">
               <h2 className="font-mona text-2xl font-semibold">Starter</h2>
-              <div className="flex flex-row items-center space-x-2">
-                <h2 className="font-mona text-2xl font-semibold">$0</h2>
-                <h2 className="mt-1 font-normal text-white text-opacity-65">
-                  / month
-                </h2>
-              </div>
             </div>
 
             <h2 className="font-normal text-white text-opacity-65">
               Get your idea off the ground for free. Limited to 1 project.
             </h2>
           </div>
+
+        <div className="flex flex-col items-start">
+          <div className="flex flex-row items-center space-x-2">
+            <h2 className="font-mona text-2xl font-semibold">$0</h2>
+            <h2 className="mt-1 font-normal text-white text-opacity-65">
+              / month
+            </h2>
+          </div>
+          <p className="text-xs text-white text-opacity-65">
+            Limited to 1 member
+          </p>
+        </div>
+
           {/* Plan Header End */}
-
-          {/* Call to action start */}
-          <Button
-            href="https://app.nhost.io/signup"
-            rel="noopener noreferrer"
-            target="_blank"
-            className="col-span-2 w-full justify-center text-center"
-          >
-            Start for free <ArrowRightIcon />
-          </Button>
-          {/* Call to action end */}
-
           {/* Plan details start */}
           <PricingFeature
             feature="Postgres"
@@ -86,17 +81,11 @@ export default function PricingPage() {
               {
                 title: '1 GB included',
               },
-              {
-                title: 'Custom API requests',
-              },
-              {
-                title: 'Event Triggers',
-              },
             ]}
           />
 
           <PricingFeature
-            feature="GraphQL"
+            feature="Hasura GraphQL"
             featureIcon={
               <ProductIcon className="h-8 w-8">
                 <Image
@@ -108,9 +97,6 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              {
-                title: 'Hasura',
-              },
               {
                 title: 'Role based authorization',
               },
@@ -228,41 +214,64 @@ export default function PricingPage() {
             subFeatures={[{ title: 'Custom domains', enabled: false }]}
           />
 
+
+          <PricingFeature
+            feature="Support"
+            featureIcon={
+              <ProductIcon className="h-8 w-8">
+                <Image
+                  src="/products/platform.svg"
+                  width={20}
+                  height={20}
+                  alt="Egress icon"
+                />
+              </ProductIcon>
+            }
+            subFeatures={[{ title: 'Community', enabled: true }]}
+          />
+
           {/* Plan details end */}
+          {/* Call to action start */}
+          <Button
+            href="https://app.nhost.io/signup"
+            rel="noopener noreferrer"
+            target="_blank"
+            className="col-span-2 w-full justify-center text-center"
+          >
+            Start for free <ArrowRightIcon />
+          </Button>
+          {/* Call to action end */}
         </div>
 
         {/* Pro plan */}
         <div className="flex w-full max-w-[500px] flex-col self-start rounded-md bg-brand-main p-1">
-          <span className="px-8 py-4 uppercase">most popular</span>
+          <span className="px-8 py-4">Most Popular</span>
           <div className="space-y-8 overflow-hidden rounded-md border border-divider bg-black p-8">
             {/* Plan Header Start */}
             <div className="flex flex-col space-y-4 ">
               <div className="flex flex-row justify-between">
                 <h2 className="font-mona text-2xl font-semibold">Pro</h2>
+              </div>
+              <h2 className="font-normal text-white text-opacity-65">
+                Well suited for production applications. Scale as you
+                grow.
+              </h2>
+
+
+              <div className="flex flex-col items-start">
                 <div className="flex flex-row items-center space-x-2">
                   <h2 className="font-mona text-2xl font-semibold">$25</h2>
                   <h2 className="mt-1 font-normal text-white text-opacity-65">
                     / month
                   </h2>
                 </div>
+                <p className="text-xs text-white text-opacity-65">
+                  Up to 5 members / $20 per additional member
+                </p>
               </div>
-              <h2 className="font-normal text-white text-opacity-65">
-                Well suited for production applications. Meets your needs as you
-                grow.
-              </h2>
             </div>
             {/* Plan Header End */}
 
-            {/* Call to action start */}
-            <Button
-              className="w-full justify-center text-center"
-              href="https://app.nhost.io/new"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Buy Pro <ArrowRightIcon />
-            </Button>
-            {/* Call to action end */}
 
             {/* Plan details start */}
             <PricingFeature
@@ -284,13 +293,10 @@ export default function PricingPage() {
                 {
                   title: '7 days Backups',
                 },
-                {
-                  title: 'Always available',
-                },
               ]}
             />
             <PricingFeature
-              feature="GraphQL"
+              feature="Hasura GraphQL"
               featureIcon={
                 <ProductIcon className="h-8 w-8">
                   <Image
@@ -302,9 +308,6 @@ export default function PricingPage() {
                 </ProductIcon>
               }
               subFeatures={[
-                {
-                  title: 'Hasura',
-                },
                 {
                   title: 'Role based authorization',
                 },
@@ -427,9 +430,246 @@ export default function PricingPage() {
                 },
               ]}
             />
+
+          <PricingFeature
+            feature="Support"
+            featureIcon={
+              <ProductIcon className="h-8 w-8">
+                <Image
+                  src="/products/platform.svg"
+                  width={20}
+                  height={20}
+                  alt="Egress icon"
+                />
+              </ProductIcon>
+            }
+            subFeatures={[{ title: 'Community', enabled: true }, {title: 'Email', enabled: true}]}
+          />
+
+            {/* Call to action start */}
+            <Button
+              className="w-full justify-center text-center"
+              href="https://app.nhost.io/new"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Buy Pro <ArrowRightIcon />
+            </Button>
+            {/* Call to action end */}
           </div>
         </div>
 
+        {/* Teams plan  */}
+        <div className="mt-14 w-full max-w-[500px] space-y-8 self-start overflow-hidden rounded-md border border-divider p-8">
+          {/* Plan Header Start */}
+          <div className="flex flex-col space-y-4 ">
+            <div className="flex flex-row justify-between">
+              <h2 className="font-mona text-2xl font-semibold">Team</h2>
+            </div>
+
+            <h2 className="font-normal text-white text-opacity-65">
+              Collaborate with added support.
+            </h2>
+              <div className="flex flex-col items-start">
+                <div className="flex flex-row items-center space-x-2">
+                  <h2 className="font-mona text-2xl font-semibold">$599</h2>
+                  <h2 className="mt-1 font-normal text-white text-opacity-65">
+                    / month
+                  </h2>
+                </div>
+                <p className="text-xs text-white text-opacity-65">
+                  Unlimited members
+                </p>
+              </div>
+          </div>
+          {/* Plan Header End */}
+
+
+          {/* Plan details start */}
+            <PricingFeature
+              feature="Postgres"
+              featureIcon={
+                <ProductIcon className="h-8 w-8">
+                  <Image
+                    src="/products/postgres.svg"
+                    width={24}
+                    height={24}
+                    alt="Logo of Postgres"
+                  />
+                </ProductIcon>
+              }
+              subFeatures={[
+                {
+                  title: '10 GB included, then $0.20 per GB',
+                },
+                {
+                  title: '7 days Backups',
+                },
+              ]}
+            />
+            <PricingFeature
+              feature="Hasura GraphQL"
+              featureIcon={
+                <ProductIcon className="h-8 w-8">
+                  <Image
+                    src="/products/graphql.svg"
+                    width={24}
+                    height={24}
+                    alt="Logo of GraphQL"
+                  />
+                </ProductIcon>
+              }
+              subFeatures={[
+                {
+                  title: 'Role based authorization',
+                },
+                {
+                  title: 'Realtime subscriptions',
+                },
+              ]}
+            />
+            <PricingFeature
+              feature="Authentication"
+              featureIcon={
+                <ProductIcon className="h-8 w-8">
+                  <Image
+                    src="/products/authentication.svg"
+                    width={24}
+                    height={24}
+                    alt="A user icon"
+                  />
+                </ProductIcon>
+              }
+              subFeatures={[
+                {
+                  title: '100,000 users',
+                },
+                {
+                  title: 'Email / Password',
+                },
+                {
+                  title: 'Magic Link',
+                },
+                {
+                  title: 'Social OAuth providers',
+                },
+              ]}
+            />
+            <PricingFeature
+              feature="Storage"
+              featureIcon={
+                <ProductIcon className="h-8 w-8">
+                  <Image
+                    src="/products/storage.svg"
+                    width={20}
+                    height={20}
+                    alt="A file icon"
+                  />
+                </ProductIcon>
+              }
+              subFeatures={[
+                {
+                  title: '50 GB included, then $0.05 per GB',
+                },
+                {
+                  title: 'Image transformation',
+                },
+                {
+                  title: 'Global CDN',
+                },
+              ]}
+            />
+            <PricingFeature
+              feature="Functions"
+              featureIcon={
+                <ProductIcon className="h-8 w-8">
+                  <Image
+                    src="/products/functions.svg"
+                    width={24}
+                    height={24}
+                    alt="Lambda icon"
+                  />
+                </ProductIcon>
+              }
+              subFeatures={[
+                {
+                  title: '50 included, then $5 per additional 50',
+                },
+                {
+                  title:
+                    '10 hours of execution time included, then $0.18 per additional hour (billed per second)',
+                },
+                {
+                  title: '60 sec timeout',
+                },
+              ]}
+            />
+
+            <PricingFeature
+              feature="Network Egress"
+              featureIcon={
+                <ProductIcon className="h-8 w-8">
+                  <Image
+                    src="/products/egress.svg"
+                    width={20}
+                    height={20}
+                    alt="Egress icon"
+                  />
+                </ProductIcon>
+              }
+              subFeatures={[
+                {
+                  title: '50 GB included, then $0.10 per GB',
+                },
+              ]}
+            />
+
+            <PricingFeature
+              feature="Platform"
+              featureIcon={
+                <ProductIcon className="h-8 w-8">
+                  <Image
+                    src="/products/platform.svg"
+                    width={20}
+                    height={20}
+                    alt="Egress icon"
+                  />
+                </ProductIcon>
+              }
+              subFeatures={[
+                {
+                  title: 'Custom domains ($10 add-on)',
+                },
+              ]}
+            />
+
+          <PricingFeature
+            feature="Support"
+            featureIcon={
+              <ProductIcon className="h-8 w-8">
+                <Image
+                  src="/products/platform.svg"
+                  width={20}
+                  height={20}
+                  alt="Egress icon"
+                />
+              </ProductIcon>
+            }
+            subFeatures={[{ title: 'Community', enabled: true }, {title: 'Email', enabled: true}, {title: 'Dedicated Chat', enabled: true }, {title: 'SLA (add-on)'}]}
+          />
+
+          {/* Plan details end */}
+          {/* Call to action start */}
+          <Button
+            href="https://app.nhost.io/signup"
+            rel="noopener noreferrer"
+            target="_blank"
+            className="col-span-2 w-full justify-center text-center"
+          >
+            Start for free <ArrowRightIcon />
+          </Button>
+          {/* Call to action end */}
+        </div>
         {/* Enterprise plan */}
         <div className="w-full max-w-[500px] space-y-8 self-start overflow-hidden rounded-md border border-divider p-8 md:mt-14">
           {/* Plan Header Start */}
@@ -438,23 +678,17 @@ export default function PricingPage() {
             <h2 className="font-mona text-2xl font-semibold">Enterprise</h2>
 
             <h2 className="font-normal text-white text-opacity-65">
-              Ideal for large-scale applications or those with specific
+              Ideal for those with specific
               infrastructure and customization needs.
             </h2>
+
+            <div className="flex flex-row items-center space-x-2">
+              <h2 className="font-mona text-2xl font-semibold">Contact us</h2>
+            </div>
           </div>
 
           {/* Plan Header End */}
 
-          {/* Call to action start */}
-          <Button
-            className="w-full justify-center text-center"
-            href="mailto:hello@nhost.io"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Contact us <ArrowRightIcon />
-          </Button>
-          {/* Call to action end */}
 
           {/* Plan details start */}
           <PricingFeature
@@ -477,7 +711,7 @@ export default function PricingPage() {
           />
 
           <PricingFeature
-            feature="GraphQL"
+            feature="Hasura GraphQL"
             featureIcon={
               <ProductIcon className="h-8 w-8">
                 <Image
@@ -489,7 +723,6 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              { title: 'Hasura' },
               { title: 'Role based authorization' },
               { title: 'Realtime subscriptions' },
             ]}
@@ -582,6 +815,31 @@ export default function PricingPage() {
             }
             subFeatures={[{ title: 'Custom domains' }]}
           />
+
+          <PricingFeature
+            feature="Support"
+            featureIcon={
+              <ProductIcon className="h-8 w-8">
+                <Image
+                  src="/products/platform.svg"
+                  width={20}
+                  height={20}
+                  alt="Egress icon"
+                />
+              </ProductIcon>
+            }
+            subFeatures={[{ title: 'Community', enabled: true }, {title: 'Email', enabled: true}, {title: 'Dedicated Chat', enabled: true }, {title: 'SLA'}]}
+          />
+          {/* Call to action start */}
+          <Button
+            className="w-full justify-center text-center"
+            href="mailto:hello@nhost.io"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Contact us <ArrowRightIcon />
+          </Button>
+          {/* Call to action end */}
         </div>
       </Container>
 
