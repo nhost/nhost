@@ -8,6 +8,7 @@ module.exports = {
   moduleNameMapper: {
     '^@config$': '<rootDir>/src/config',
     '^@/(.*)$': '<rootDir>/src/$1',
+    axios: require.resolve('axios'),
   },
   testPathIgnorePatterns: [
     '<rootDir>/dist/',
@@ -17,4 +18,4 @@ module.exports = {
   setupFilesAfterEnv: ['jest-extended'],
   preset: 'ts-jest',
   testEnvironment: 'node',
-}
+};

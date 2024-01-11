@@ -29,6 +29,7 @@ dev: check-port dev-env-up  ## Start development environment.
 
 .PHONY: test
 test: check-port dev-env-up ## Run end-to-end tests.
+	pnpm audit
 	pnpm test
 
 .PHONY: check-port
