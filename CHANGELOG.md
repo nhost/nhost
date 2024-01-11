@@ -1,5 +1,13 @@
 ## Changelog
 
+## 0.24.1
+
+### Patch Changes
+
+- 68aa985: chore: add pnpm audit to the CI and update deps
+- 00b3994: Adding an index on refresh_tokens to increase performances
+- 011516e: fix: parse stringified metadata during oauth callback
+
 ## 0.24.0
 
 ### Minor Changes
