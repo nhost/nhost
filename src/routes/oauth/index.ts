@@ -168,6 +168,18 @@ export const oauthProviders = Router()
    */
   .all(`${OAUTH_ROUTE}/:provider/callback`, async ({ session, query }, res) => {
     const { grant, options, redirectTo = ENV.AUTH_CLIENT_URL } = { ...session };
+
+    // as the session may be passed via query args to the callback it is stringified
+    // so we need to parse it back to an object
+    if (typeof options?.metadata === 'string') {
+      try {
+        options.metadata = JSON.parse(options.metadata);
+      } catch (err) {
+        // do nothing, we leave as is
+      }
+    }
+
+
     // * Destroy the session as it is only needed for the oauth flow
     await new Promise((resolve) => {
       session.destroy(() => {
