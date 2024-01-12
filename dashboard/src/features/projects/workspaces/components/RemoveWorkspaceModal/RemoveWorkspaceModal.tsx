@@ -3,16 +3,14 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { getErrorMessage } from '@/utils/getErrorMessage';
-import { getServerError } from '@/utils/getServerError';
+import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteWorkspaceMutation,
 } from '@/utils/__generated__/graphql';
 import router from 'next/router';
 import { useState } from 'react';
-import { toast } from 'react-hot-toast';
 
 export interface RemoveWorkspaceModalProps {
   /**
@@ -37,31 +35,26 @@ export default function RemoveWorkspaceModal({
   const { currentWorkspace } = useCurrentWorkspaceAndProject();
 
   async function handleClick() {
-    try {
-      await toast.promise(
-        deleteWorkspace({
+    await callPromiseWithCustomErrorToast(
+      async () => {
+        await deleteWorkspace({
           variables: {
             id: currentWorkspace.id,
           },
-        }),
-        {
-          loading: 'Deleting workspace...',
-          success: `Workspace "${currentWorkspace.name}" has been deleted successfully.`,
-          error: getServerError(
-            `An error occurred while trying to delete the workspace "${currentWorkspace.name}". Please try again.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-    } catch (error) {
-      // TODO: Display error to user and use a logging solution
-      return;
-    }
-    await onSubmit?.();
-    await router.push('/');
-    await client.refetchQueries({
-      include: [GetAllWorkspacesAndProjectsDocument],
-    });
+        });
+
+        await onSubmit?.();
+        await router.push('/');
+        await client.refetchQueries({
+          include: [GetAllWorkspacesAndProjectsDocument],
+        });
+      },
+      {
+        loadingMessage: 'Deleting workspace...',
+        successMessage: `Workspace "${currentWorkspace.name}" has been deleted successfully.`,
+        errorMessage: `An error occurred while trying to delete the workspace "${currentWorkspace.name}". Please try again.`,
+      },
+    );
   }
 
   return (

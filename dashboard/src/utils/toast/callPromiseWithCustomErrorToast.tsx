@@ -8,10 +8,12 @@ export default async function callPromiseWithCustomErrorToast(
     loadingMessage,
     successMessage,
     errorMessage,
+    onError,
   }: {
     loadingMessage: string;
     successMessage: string;
     errorMessage: string;
+    onError?: (error: Error) => void;
   },
 ) {
   let loadingToastId: string | null = null;
@@ -35,6 +37,8 @@ export default async function callPromiseWithCustomErrorToast(
     if (loadingToastId) {
       toast.dismiss(loadingToastId);
     }
+
+    onError?.(error);
 
     toast.custom(
       (t) => (

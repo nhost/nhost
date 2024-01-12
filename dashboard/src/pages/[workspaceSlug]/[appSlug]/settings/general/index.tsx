@@ -19,6 +19,7 @@ import { getToastStyleProps } from '@/utils/constants/settings';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { getServerError } from '@/utils/getServerError';
 import { slugifyString } from '@/utils/helpers';
+import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
@@ -134,35 +135,31 @@ export default function SettingsGeneralPage() {
   }
 
   async function handleDeleteApplication() {
-    await toast.promise(
-      deleteApplication(),
-      {
-        loading: `Deleting ${currentProject.name}...`,
-        success: `${currentProject.name} has been deleted successfully.`,
-        error: getServerError(
-          `An error occurred while trying to delete the project "${currentProject.name}". Please try again.`,
-        ),
+    await callPromiseWithCustomErrorToast(
+      async () => {
+        await deleteApplication();
+        await router.push('/');
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: `Deleting ${currentProject.name}...`,
+        successMessage: `${currentProject.name} has been deleted successfully.`,
+        errorMessage: `An error occurred while trying to delete the project "${currentProject.name}". Please try again.`,
+      },
     );
-
-    await router.push('/');
   }
 
   async function handlePauseApplication() {
-    await toast.promise(
-      pauseApplication(),
-      {
-        loading: `Pausing ${currentProject.name}...`,
-        success: `${currentProject.name} will be paused, but please note that it may take some time to complete the process.`,
-        error: getServerError(
-          `An error occurred while trying to pause the project "${currentProject.name}". Please try again.`,
-        ),
+    await callPromiseWithCustomErrorToast(
+      async () => {
+        await pauseApplication();
+        await router.push('/');
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: `Pausing ${currentProject.name}...`,
+        successMessage: `${currentProject.name} will be paused, but please note that it may take some time to complete the process.`,
+        errorMessage: `An error occurred while trying to pause the project "${currentProject.name}". Please try again.`,
+      },
     );
-
-    await router.push('/');
   }
 
   if (loading) {

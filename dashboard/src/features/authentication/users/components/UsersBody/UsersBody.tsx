@@ -17,8 +17,7 @@ import { getReadableProviderName } from '@/features/authentication/users/utils/g
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import {
   useDeleteRemoteAppUserRolesMutation,
   useGetRolesPermissionsQuery,
@@ -33,7 +32,6 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { Fragment, useMemo } from 'react';
-import toast from 'react-hot-toast';
 
 const EditUserForm = dynamic(
   () =>
@@ -153,20 +151,18 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
       });
     }
 
-    await toast.promise(
-      updateUserMutationPromise,
-      {
-        loading: `Updating user's settings...`,
-        success: 'User settings have been updated successfully.',
-        error: getServerError(
-          `An error occurred while trying to update this user's settings.`,
-        ),
+    await callPromiseWithCustomErrorToast(
+      async () => {
+        await updateUserMutationPromise;
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: `Updating user's settings...`,
+        successMessage: 'User settings have been updated successfully.',
+        errorMessage: `An error occurred while trying to update this user's settings.`,
+      },
     );
 
     await onSubmit?.();
-
     closeDrawer();
   }
 
@@ -181,20 +177,20 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
       ),
       props: {
         onPrimaryAction: async () => {
-          await toast.promise(
-            deleteUser({
-              variables: {
-                id: user.id,
-              },
-            }),
-            {
-              loading: 'Deleting user...',
-              success: 'User deleted successfully.',
-              error: getServerError(
-                'An error occurred while trying to delete this user.',
-              ),
+          await callPromiseWithCustomErrorToast(
+            async () => {
+              await deleteUser({
+                variables: {
+                  id: user.id,
+                },
+              });
             },
-            getToastStyleProps(),
+            {
+              loadingMessage: 'Deleting user...',
+              successMessage: 'User deleted successfully.',
+              errorMessage:
+                'An error occurred while trying to delete this user.',
+            },
           );
 
           await onSubmit();
