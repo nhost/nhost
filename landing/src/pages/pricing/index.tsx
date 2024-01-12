@@ -120,9 +120,6 @@ export default function PricingPage() {
             }
             subFeatures={[
               {
-                title: '10,000 users',
-              },
-              {
                 title: 'Email / Password',
               },
               {
@@ -211,7 +208,7 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={[{ title: 'Custom domains', enabled: false }]}
+            subFeatures={[{ title: 'Custom domains', enabled: false }, {title: 'Run your own containers', enabled: false}]}
           />
 
 
@@ -329,9 +326,6 @@ export default function PricingPage() {
               }
               subFeatures={[
                 {
-                  title: '100,000 users',
-                },
-                {
                   title: 'Email / Password',
                 },
                 {
@@ -427,6 +421,9 @@ export default function PricingPage() {
                 {
                   title: 'Custom domains ($10 add-on)',
                 },
+                {
+                  title: 'Run your own containers'
+                }
               ]}
             />
 
@@ -541,9 +538,6 @@ export default function PricingPage() {
               }
               subFeatures={[
                 {
-                  title: '100,000 users',
-                },
-                {
                   title: 'Email / Password',
                 },
                 {
@@ -639,6 +633,9 @@ export default function PricingPage() {
                 {
                   title: 'Custom domains ($10 add-on)',
                 },
+                {
+                  title: 'Run your own containers'
+                }
               ]}
             />
 
@@ -679,6 +676,10 @@ export default function PricingPage() {
             <h2 className="font-normal text-white text-opacity-65">
               Ideal for specific infrastructure and customization needs.
             </h2>
+            <span className="font-normal text-xs text-white text-opacity-85">
+              Dedicated clusters available as an add-on. 
+            </span>
+
 
             <div className="flex flex-row items-center space-x-2">
               <h2 className="font-mona text-2xl font-semibold">Contact us</h2>
@@ -702,9 +703,8 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              { title: 'Unlimited' },
-              { title: 'Extendable Storage' },
-              { title: 'Custom Backups' },
+              { title: 'Custom' },
+              { title: 'Custom' },
             ]}
           />
 
@@ -739,7 +739,6 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              { title: 'Unlimited' },
               { title: 'Email / Password' },
               { title: 'Magic Link' },
               { title: 'Social OAuth providers' },
@@ -759,7 +758,7 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              { title: 'Unlimited' },
+              { title: 'Custom' },
               { title: 'Image transformation' },
               { title: 'Global CDN' },
             ]}
@@ -778,8 +777,8 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              { title: 'Unlimited' },
-              { title: 'Unlimited' },
+              { title: 'Custom' },
+              { title: 'Custom' },
               { title: '600 sec timeout' },
             ]}
           />
@@ -796,7 +795,7 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={[{ title: 'Unlimited' }]}
+            subFeatures={[{ title: 'Custom' }]}
           />
 
           <PricingFeature
@@ -811,7 +810,7 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={[{ title: 'Custom domains' }]}
+            subFeatures={[{ title: 'Custom domains' }, { title: 'Run your own containers'}]}
           />
 
           <PricingFeature
@@ -826,7 +825,7 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={[{ title: 'Community', enabled: true }, {title: 'Email', enabled: true}, {title: 'Dedicated Chat', enabled: true }, {title: 'SLAs'}]}
+            subFeatures={[{title: 'Enterprise'}, { title: 'Community', enabled: true }, {title: 'Email', enabled: true}, {title: 'Dedicated Chat', enabled: true }, {title: 'SLAs'}, {title: 'Security Questionnaires'}, {title: 'On boarding'}]}
           />
           {/* Call to action start */}
           <Button
