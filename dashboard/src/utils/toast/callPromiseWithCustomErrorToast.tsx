@@ -26,13 +26,15 @@ export default async function callPromiseWithCustomErrorToast(
       ...toastStyle.success,
     });
 
-    await call();
+    const result = await call();
 
     toast.dismiss(loadingToastId);
     toast.success(successMessage, {
       style: toastStyle.style,
       ...toastStyle.success,
     });
+
+    return result;
   } catch (error) {
     if (loadingToastId) {
       toast.dismiss(loadingToastId);
@@ -53,5 +55,7 @@ export default async function callPromiseWithCustomErrorToast(
         duration: Number.POSITIVE_INFINITY,
       },
     );
+
+    return null;
   }
 }

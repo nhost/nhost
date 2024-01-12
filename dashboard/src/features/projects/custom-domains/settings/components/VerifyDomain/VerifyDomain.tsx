@@ -51,7 +51,7 @@ export default function VerifyDomain({
         loadingMessage: `Verifying ${hostname} ...`,
         successMessage: `${hostname} has been verified.`,
         errorMessage: `An error occurred while trying to verify ${hostname}. Please try again.`,
-        onError: (error) => {
+        onError: () => {
           setVerificationFailed(true);
           setVerificationSucceeded(false);
           setLoading(false);
@@ -73,7 +73,7 @@ export default function VerifyDomain({
           color: 'success.dark',
         },
       ]}
-      className="flex flex-col space-y-4 rounded-md p-4"
+      className="flex flex-col p-4 space-y-4 rounded-md"
     >
       <div className="flex flex-row items-center justify-between">
         {!verificationFailed && !verificationSucceeded && (
@@ -117,7 +117,7 @@ export default function VerifyDomain({
             color="secondary"
             onClick={() => copy(value, 'CNAME Value')}
           >
-            <CopyIcon className="h-4 w-4" />
+            <CopyIcon className="w-4 h-4" />
           </IconButton>
         </div>
         <Button

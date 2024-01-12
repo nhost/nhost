@@ -15,16 +15,13 @@ import {
   usePauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getServerError } from '@/utils/getServerError';
 import { slugifyString } from '@/utils/helpers';
 import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const projectNameValidationSchema = Yup.object({
@@ -103,16 +100,13 @@ export default function SettingsGeneralPage() {
     });
 
     try {
-      const { data: updateAppData } = await toast.promise(
-        updateAppMutation,
+      const { data: updateAppData } = await callPromiseWithCustomErrorToast(
+        async () => updateAppMutation,
         {
-          loading: `Project name is being updated...`,
-          success: `Project name has been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update project name.`,
-          ),
+          loadingMessage: `Project name is being updated...`,
+          successMessage: `Project name has been updated successfully.`,
+          errorMessage: `An error occurred while trying to update project name.`,
         },
-        getToastStyleProps(),
       );
 
       const updateAppResult = updateAppData?.updateApp;
