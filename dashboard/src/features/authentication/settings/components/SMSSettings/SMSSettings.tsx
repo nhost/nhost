@@ -12,12 +12,10 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Image from 'next/image';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
@@ -112,23 +110,17 @@ export default function SMSSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `SMS settings are being updated...`,
-          success: `SMS settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update SMS settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(values);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await callPromiseWithCustomErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(values);
+      },
+      {
+        loadingMessage: 'SMS settings are being updated...',
+        successMessage: 'SMS settings have been updated successfully.',
+        errorMessage: 'An error occurred while trying to update SMS settings.',
+      },
+    );
   };
 
   return (

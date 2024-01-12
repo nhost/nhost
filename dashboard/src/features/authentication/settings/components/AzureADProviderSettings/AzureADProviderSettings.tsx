@@ -14,12 +14,10 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
-import { getServerError } from '@/utils/getServerError';
+import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
@@ -106,23 +104,18 @@ export default function AzureADProviderSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Azure AD settings are being updated...`,
-          success: `Azure AD settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update the project's Azure AD settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await callPromiseWithCustomErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+      },
+      {
+        loadingMessage: 'Azure AD settings are being updated...',
+        successMessage: 'Azure AD settings have been updated successfully.',
+        errorMessage:
+          "An error occurred while trying to update the project's Azure AD settings.",
+      },
+    );
   }
 
   return (

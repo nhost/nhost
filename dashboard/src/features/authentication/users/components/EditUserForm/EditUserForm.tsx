@@ -19,9 +19,8 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
-import { getServerError } from '@/utils/getServerError';
+import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import {
   RemoteAppGetUsersDocument,
   useGetProjectLocalesQuery,
@@ -36,7 +35,6 @@ import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export interface EditUserFormProps extends DialogFormProps {
@@ -173,21 +171,15 @@ export default function EditUserForm({
       },
     });
 
-    await toast.promise(
-      banUser,
-      {
-        loading: shouldBan ? 'Banning user...' : 'Unbanning user...',
-        success: shouldBan
-          ? 'User has been banned successfully.'
-          : 'User has been unbanned successfully.',
-        error: getServerError(
-          shouldBan
-            ? 'An error occurred while trying to ban the user.'
-            : 'An error occurred while trying to unban the user.',
-        ),
-      },
-      getToastStyleProps(),
-    );
+    await callPromiseWithCustomErrorToast(() => banUser, {
+      loadingMessage: shouldBan ? 'Banning user...' : 'Unbanning user...',
+      successMessage: shouldBan
+        ? 'User has been banned successfully.'
+        : 'User has been unbanned successfully.',
+      errorMessage: shouldBan
+        ? 'An error occurred while trying to ban the user.'
+        : 'An error occurred while trying to unban the user.',
+    });
   }
 
   return (

@@ -18,12 +18,10 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
-import { getServerError } from '@/utils/getServerError';
+import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function DiscordProviderSettings() {
@@ -87,23 +85,18 @@ export default function DiscordProviderSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Discord settings are being updated...`,
-          success: `Discord settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update the project's Discrod settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await callPromiseWithCustomErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+      },
+      {
+        loadingMessage: 'Discord settings are being updated...',
+        successMessage: 'Discord settings have been updated successfully.',
+        errorMessage:
+          "An error occurred while trying to update the project's Discrod settings.",
+      },
+    );
   }
 
   return (

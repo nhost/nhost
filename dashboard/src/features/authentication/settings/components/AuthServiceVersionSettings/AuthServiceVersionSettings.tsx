@@ -11,11 +11,9 @@ import {
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -95,23 +93,17 @@ export default function AuthServiceVersionSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Auth version is being updated...`,
-          success: `Auth version has been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update Auth version.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await callPromiseWithCustomErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+      },
+      {
+        loadingMessage: 'Auth version is being updated...',
+        successMessage: 'Auth version has been updated successfully.',
+        errorMessage: 'An error occurred while trying to update Auth version.',
+      },
+    );
   };
 
   return (
