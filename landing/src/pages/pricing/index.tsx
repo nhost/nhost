@@ -474,6 +474,7 @@ export default function PricingPage() {
                   </h2>
                 </div>
                 <p className="text-xs text-white text-opacity-65">
+                  10 members included / $20 per additional member, up to 20 members
                   Unlimited members
                 </p>
               </div>
