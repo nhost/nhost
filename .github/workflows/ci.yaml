@@ -107,6 +107,9 @@ jobs:
       - name: Lint
         run: pnpm run lint:all
 
+      - name: Audit
+        run: pnpm audit
+
   e2e:
     name: 'E2E (Package: ${{ matrix.package.path }})'
     needs: build
