@@ -8,6 +8,7 @@ import { Link } from '@/components/common/Link'
 import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { PricingFeature } from '@/components/pricing/PricingFeature'
+import { Tooltip } from '@/components/common/Tooltip'
 import Image from 'next/image'
 import { ReactElement } from 'react'
 
@@ -58,9 +59,8 @@ export default function PricingPage() {
               / month
             </h2>
           </div>
-          <p className="text-xs text-white text-opacity-65">
-            Limited to 1 member
-          </p>
+          
+          <Tooltip message={"Limited to 1 member"} />
         </div>
 
           {/* Plan Header End */}
@@ -261,9 +261,6 @@ export default function PricingPage() {
                     / month
                   </h2>
                 </div>
-                <p className="text-xs text-white text-opacity-65">
-                  3 members included / $20 per additional member, up to 10 members
-                </p>
               </div>
             </div>
             {/* Plan Header End */}
@@ -473,10 +470,6 @@ export default function PricingPage() {
                     / month
                   </h2>
                 </div>
-                <p className="text-xs text-white text-opacity-65">
-                  10 members included / $20 per additional member, up to 20 members
-                  Unlimited members
-                </p>
               </div>
           </div>
           {/* Plan Header End */}
@@ -652,7 +645,7 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={[{ title: 'Community', enabled: true }, {title: 'Email', enabled: true}, {title: 'Dedicated Chat', enabled: true }, {title: 'SLAs'}]}
+            subFeatures={[{ title: 'Community', enabled: true }, {title: 'Email', enabled: true}, {title: 'Email SLA'}, {title: 'Dedicated Chat', enabled: true } ]}
           />
 
           {/* Plan details end */}
@@ -704,7 +697,6 @@ export default function PricingPage() {
               </ProductIcon>
             }
             subFeatures={[
-              { title: 'Custom' },
               { title: 'Custom' },
             ]}
           />
@@ -779,8 +771,6 @@ export default function PricingPage() {
             }
             subFeatures={[
               { title: 'Custom' },
-              { title: 'Custom' },
-              { title: '600 sec timeout' },
             ]}
           />
 
@@ -826,7 +816,7 @@ export default function PricingPage() {
                 />
               </ProductIcon>
             }
-            subFeatures={[{title: 'Enterprise'}, { title: 'Community', enabled: true }, {title: 'Email', enabled: true}, {title: 'Dedicated Chat', enabled: true }, {title: 'SLAs'}, {title: 'Security Questionnaires'}, {title: 'On boarding'}]}
+            subFeatures={[{ title: 'Community', enabled: true }, {title: 'Email', enabled: true}, {title: 'Dedicated Chat', enabled: true }, {title: 'Technical Account Manager (TAM)'}, {title: 'SLAs'}, {title: 'Security Questionnaires'}, {title: 'On boarding'}]}
           />
           {/* Call to action start */}
           <Button
@@ -863,8 +853,7 @@ export default function PricingPage() {
             <h3 className="text-xl">Do I pick one plan per project?</h3>
 
             <p className="text-base">
-              Yes. When creating a project, you will be asked about which plan
-              you want for your backend.
+              Yes, plans are per project. 
             </p>
           </li>
           <li className="grid grid-flow-row gap-4 py-6">
@@ -872,7 +861,7 @@ export default function PricingPage() {
               How many free Starter projects can I have?
             </h3>
 
-            <p className="text-base">You can have maximum 1 Starter project.</p>
+            <p className="text-base">You can have 1 Starter project.</p>
           </li>
           <li className="grid grid-flow-row gap-4 py-6">
             <h3 className="text-xl">Can I switch between plans later?</h3>
@@ -893,30 +882,15 @@ export default function PricingPage() {
             <h3 className="text-xl">Can I export my data?</h3>
 
             <p className="text-base">
-              Yes. You have full access to your database and the storage. If you
-              decide to leave and want to export all your data, we will help
-              you. Nhost has no vendor lock-in.
+              Yes, you have full access to your database and storage. 
+              No vendor lock-in.
             </p>
           </li>
           <li className="grid grid-flow-row gap-4 py-6">
             <h3 className="text-xl">What happens if I exceed the limits?</h3>
 
             <p className="text-base">
-              We never shut down service without warning. Your project will
-              continue to work, and we will contact you and resolve the
-              situation.
-            </p>
-          </li>
-          <li className="grid grid-flow-row gap-4 py-6">
-            <h3 className="text-xl">
-              How does payment get made for the Nhost paid plans?
-            </h3>
-
-            <p className="text-base">
-              For Starter plan, payment is made by Stripe on a monthly basis.
-              For Enterprise plan, payment is made by Stripe on a monthly basis,
-              however, this can also be discussed to accommodate procurement
-              processes.
+              You will be charged for excess usage.
             </p>
           </li>
         </ul>
