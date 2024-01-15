@@ -13,9 +13,7 @@ endif
 .PHONY: check
 check:  ## Run nix flake check
 	sed -i 's/$$NHOST_PAT/$(NHOST_PAT)/' get_access_token.sh
-	nix build \
-		--print-build-logs \
-		.\#checks.$(ARCH)-$(OS).go
+	nix flake check --print-build-logs
 
 .PHONY: build
 build:  ## Build application and places the binary under ./result/bin

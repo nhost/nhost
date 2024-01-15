@@ -160,7 +160,7 @@ func trafikFiles(dotnhostfolder string) error {
 	}
 	defer f3.Close()
 
-	if _, err := f3.Write([]byte(traefikConfig)); err != nil {
+	if _, err := f3.WriteString(traefikConfig); err != nil {
 		return fmt.Errorf("failed to write traefik.yaml: %w", err)
 	}
 

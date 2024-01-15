@@ -74,7 +74,7 @@ func writeScript(ctx context.Context, ce *clienv.CliEnv) error {
 	}
 	defer tmpfile.Close()
 
-	if _, err := tmpfile.Write([]byte(script)); err != nil {
+	if _, err := tmpfile.WriteString(script); err != nil {
 		return fmt.Errorf("could not write to temporary file: %w", err)
 	}
 

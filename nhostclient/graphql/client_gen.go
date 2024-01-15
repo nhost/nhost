@@ -53,6 +53,7 @@ type QueryRoot struct {
 	GetLogsVolume                  Metrics                      "json:\"getLogsVolume\" graphql:\"getLogsVolume\""
 	GetPostgresVolumeCapacity      Metrics                      "json:\"getPostgresVolumeCapacity\" graphql:\"getPostgresVolumeCapacity\""
 	GetPostgresVolumeUsage         Metrics                      "json:\"getPostgresVolumeUsage\" graphql:\"getPostgresVolumeUsage\""
+	GetServiceLabelValues          []string                     "json:\"getServiceLabelValues\" graphql:\"getServiceLabelValues\""
 	GetTotalRequests               Metrics                      "json:\"getTotalRequests\" graphql:\"getTotalRequests\""
 	GithubAppInstallation          *GithubAppInstallations      "json:\"githubAppInstallation,omitempty\" graphql:\"githubAppInstallation\""
 	GithubAppInstallations         []*GithubAppInstallations    "json:\"githubAppInstallations\" graphql:\"githubAppInstallations\""
@@ -533,6 +534,10 @@ func (c *Client) GetWorkspacesApps(ctx context.Context, interceptors ...clientv2
 
 	var res GetWorkspacesApps
 	if err := c.Client.Post(ctx, "GetWorkspacesApps", GetWorkspacesAppsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -558,6 +563,10 @@ func (c *Client) GetHasuraAdminSecret(ctx context.Context, appID string, interce
 
 	var res GetHasuraAdminSecret
 	if err := c.Client.Post(ctx, "GetHasuraAdminSecret", GetHasuraAdminSecretDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -576,6 +585,10 @@ func (c *Client) GetConfigRawJSON(ctx context.Context, appID string, interceptor
 
 	var res GetConfigRawJSON
 	if err := c.Client.Post(ctx, "GetConfigRawJSON", GetConfigRawJSONDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -599,6 +612,10 @@ func (c *Client) DeleteRefreshToken(ctx context.Context, where AuthRefreshTokens
 
 	var res DeleteRefreshToken
 	if err := c.Client.Post(ctx, "DeleteRefreshToken", DeleteRefreshTokenDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -620,6 +637,10 @@ func (c *Client) GetSecrets(ctx context.Context, appID string, interceptors ...c
 
 	var res GetSecrets
 	if err := c.Client.Post(ctx, "GetSecrets", GetSecretsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -643,6 +664,10 @@ func (c *Client) CreateSecret(ctx context.Context, appID string, name string, va
 
 	var res CreateSecret
 	if err := c.Client.Post(ctx, "CreateSecret", CreateSecretDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -664,6 +689,10 @@ func (c *Client) DeleteSecret(ctx context.Context, appID string, name string, in
 
 	var res DeleteSecret
 	if err := c.Client.Post(ctx, "DeleteSecret", DeleteSecretDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -687,6 +716,10 @@ func (c *Client) UpdateSecret(ctx context.Context, appID string, name string, va
 
 	var res UpdateSecret
 	if err := c.Client.Post(ctx, "UpdateSecret", UpdateSecretDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -709,6 +742,10 @@ func (c *Client) UpdateRunServiceConfig(ctx context.Context, appID string, servi
 
 	var res UpdateRunServiceConfig
 	if err := c.Client.Post(ctx, "UpdateRunServiceConfig", UpdateRunServiceConfigDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -731,6 +768,10 @@ func (c *Client) ReplaceRunServiceConfig(ctx context.Context, appID string, serv
 
 	var res ReplaceRunServiceConfig
 	if err := c.Client.Post(ctx, "ReplaceRunServiceConfig", ReplaceRunServiceConfigDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -751,6 +792,10 @@ func (c *Client) GetRunServiceInfo(ctx context.Context, serviceID string, interc
 
 	var res GetRunServiceInfo
 	if err := c.Client.Post(ctx, "GetRunServiceInfo", GetRunServiceInfoDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
@@ -771,8 +816,27 @@ func (c *Client) GetRunServiceConfigRawJSON(ctx context.Context, appID string, s
 
 	var res GetRunServiceConfigRawJSON
 	if err := c.Client.Post(ctx, "GetRunServiceConfigRawJSON", GetRunServiceConfigRawJSONDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
 		return nil, err
 	}
 
 	return &res, nil
+}
+
+var DocumentOperationNames = map[string]string{
+	GetWorkspacesAppsDocument:          "GetWorkspacesApps",
+	GetHasuraAdminSecretDocument:       "GetHasuraAdminSecret",
+	GetConfigRawJSONDocument:           "GetConfigRawJSON",
+	DeleteRefreshTokenDocument:         "DeleteRefreshToken",
+	GetSecretsDocument:                 "GetSecrets",
+	CreateSecretDocument:               "CreateSecret",
+	DeleteSecretDocument:               "DeleteSecret",
+	UpdateSecretDocument:               "UpdateSecret",
+	UpdateRunServiceConfigDocument:     "UpdateRunServiceConfig",
+	ReplaceRunServiceConfigDocument:    "ReplaceRunServiceConfig",
+	GetRunServiceInfoDocument:          "GetRunServiceInfo",
+	GetRunServiceConfigRawJSONDocument: "GetRunServiceConfigRawJSON",
 }

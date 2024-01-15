@@ -16,6 +16,7 @@ linters:
       - nosnakecase  # deprecated
       - ifshort  # deprecated
       - varcheck  # deprecated
+      - depguard
 
 issues:
   exclude-rules:

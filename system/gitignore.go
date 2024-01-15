@@ -23,7 +23,7 @@ func AddToGitignore(l string) error {
 		return nil
 	}
 
-	if _, err := f.Write([]byte(l)); err != nil {
+	if _, err := f.WriteString(l); err != nil {
 		return fmt.Errorf("failed to write gitignore: %w", err)
 	}
 
