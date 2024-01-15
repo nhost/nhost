@@ -77,26 +77,26 @@ build-docker-image-clamav:  ## Build docker container for clamav
 
 .PHONY: dev-env-up-short
 dev-env-up-short:  ## Starts development environment without hasura-storage
-	docker-compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d postgres graphql-engine minio clamd
+	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d postgres graphql-engine minio clamd
 
 
 .PHONY: dev-env-up-hasura
 dev-env-up-hasura: build-docker-image  ## Starts development environment but only hasura-storage
-	docker-compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d storage
+	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d storage
 
 .PHONY: dev-env-up
 dev-env-up: dev-env-down dev-env-build  ## Starts development environment
-	docker-compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
+	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
 
 
 .PHONY: dev-env-down
 dev-env-down:  ## Stops development environment
-	docker-compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml down
+	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml down
 
 
 .PHONY: dev-env-build
 dev-env-build: build-docker-image  ## Builds development environment
-	docker-compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml build
+	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml build
 
 
 .PHONY: dev-jwt

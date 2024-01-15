@@ -34,7 +34,10 @@ func (c *Client) DeleteFile(
 			StatusCode: resp.StatusCode,
 		}
 		if err := json.Unmarshal(b, resp); err != nil {
-			return fmt.Errorf("api reported an error occurred but couldn't unmarshal response: %w", err)
+			return fmt.Errorf(
+				"api reported an error occurred but couldn't unmarshal response: %w",
+				err,
+			)
 		}
 		return resp
 	}

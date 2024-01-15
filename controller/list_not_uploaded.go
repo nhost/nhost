@@ -8,7 +8,10 @@ import (
 )
 
 func (ctrl *Controller) listNotUploaded(ctx *gin.Context) ([]FileSummary, *APIError) {
-	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(ctx.Request.Context(), ctx.Request.Header)
+	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(
+		ctx.Request.Context(),
+		ctx.Request.Header,
+	)
 	if apiErr != nil {
 		return nil, apiErr
 	}

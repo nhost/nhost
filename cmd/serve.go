@@ -126,7 +126,10 @@ func getGin(
 	fastlyService := viper.GetString(fastlyServiceFlag)
 	if fastlyService != "" {
 		logger.Info("enabling fastly middleware")
-		middlewares = append(middlewares, fastly.New(fastlyService, viper.GetString(fastlyKeyFlag), logger))
+		middlewares = append(
+			middlewares,
+			fastly.New(fastlyService, viper.GetString(fastlyKeyFlag), logger),
+		)
 	}
 
 	return ctrl.SetupRouter( //nolint: wrapcheck
@@ -140,15 +143,20 @@ func getMetadataStorage(endpoint string) *metadata.Hasura {
 
 func getContentStorage(
 	ctx context.Context,
-	s3Endpoint, region, s3AccessKey, s3SecretKey, bucket, rootFolder string, disableHTTPS bool, logger *logrus.Logger,
+	s3Endpoint, region, s3AccessKey, s3SecretKey, bucket, rootFolder string,
+	disableHTTPS bool,
+	logger *logrus.Logger,
 ) *storage.S3 {
 	var cfg aws.Config
 	var err error
 	if s3AccessKey != "" && s3SecretKey != "" {
 		logger.Info("Using static aws credentials")
-		cfg, err = config.LoadDefaultConfig(ctx,
+		cfg, err = config.LoadDefaultConfig(
+			ctx,
 			config.WithRegion(region),
-			config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(s3AccessKey, s3SecretKey, "")),
+			config.WithCredentialsProvider(
+				credentials.NewStaticCredentialsProvider(s3AccessKey, s3SecretKey, ""),
+			),
 		)
 	} else {
 		logger.Info("Using default configuration for aws credentials")
@@ -200,11 +208,16 @@ func applymigrations(
 	}
 }
 
-func init() {
+func init() { //nolint:funlen
 	rootCmd.AddCommand(serveCmd)
 
 	{
-		addStringFlag(serveCmd.Flags(), publicURLFlag, "http://localhost:8000", "public URL of the service")
+		addStringFlag(
+			serveCmd.Flags(),
+			publicURLFlag,
+			"http://localhost:8000",
+			"public URL of the service",
+		)
 		addStringFlag(serveCmd.Flags(), apiRootPrefixFlag, "/v1", "API root prefix")
 		addStringFlag(serveCmd.Flags(), bindFlag, ":8000", "bind the service to this address")
 		addStringArrayFlag(
@@ -230,7 +243,12 @@ func init() {
 		addStringFlag(serveCmd.Flags(), s3SecretKeyFlag, "", "S3 Secret key")
 		addStringFlag(serveCmd.Flags(), s3RegionFlag, "no-region", "S3 region")
 		addStringFlag(serveCmd.Flags(), s3BucketFlag, "", "S3 bucket")
-		addStringFlag(serveCmd.Flags(), s3RootFolderFlag, "", "All buckets will be created inside this root")
+		addStringFlag(
+			serveCmd.Flags(),
+			s3RootFolderFlag,
+			"",
+			"All buckets will be created inside this root",
+		)
 	}
 
 	{
@@ -250,15 +268,28 @@ func init() {
 	}
 
 	{
-		addStringFlag(serveCmd.Flags(), fastlyServiceFlag, "", "Enable Fastly middleware and enable automated purges")
+		addStringFlag(
+			serveCmd.Flags(),
+			fastlyServiceFlag,
+			"",
+			"Enable Fastly middleware and enable automated purges",
+		)
 		addStringFlag(serveCmd.Flags(), fastlyKeyFlag, "", "Fastly CDN Key to authenticate purges")
 	}
 
 	{
-		addStringArrayFlag(serveCmd.Flags(), corsAllowOriginsFlag, []string{"*"}, "CORS allow origins")
+		addStringArrayFlag(
+			serveCmd.Flags(),
+			corsAllowOriginsFlag,
+			[]string{"*"},
+			"CORS allow origins",
+		)
 		addBoolFlag(serveCmd.Flags(), corsAllowCredentialsFlag, false, "CORS allow credentials")
 		addStringFlag(
-			serveCmd.Flags(), clamavServerFlag, "", "If set, use ClamAV to scan files. Example: tcp://clamavd:3310",
+			serveCmd.Flags(),
+			clamavServerFlag,
+			"",
+			"If set, use ClamAV to scan files. Example: tcp://clamavd:3310",
 		)
 	}
 }

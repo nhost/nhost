@@ -73,13 +73,27 @@ func TestDeleteOrphans(t *testing.T) {
 
 			contentStorage.EXPECT().DeleteFile(gomock.Any(), "default/garbage").Return(nil)
 
-			ctrl := controller.New("http://asd", "/v1", "asdasd", metadataStorage, contentStorage, nil, nil, logger)
+			ctrl := controller.New(
+				"http://asd",
+				"/v1",
+				"asdasd",
+				metadataStorage,
+				contentStorage,
+				nil,
+				nil,
+				logger,
+			)
 
 			router, _ := ctrl.SetupRouter(nil, "/v1", []string{"*"}, false, ginLogger(logger))
 
 			responseRecorder := httptest.NewRecorder()
 
-			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/ops/delete-orphans", nil)
+			req, _ := http.NewRequestWithContext(
+				context.Background(),
+				"POST",
+				"/v1/ops/delete-orphans",
+				nil,
+			)
 
 			router.ServeHTTP(responseRecorder, req)
 

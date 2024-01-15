@@ -24,7 +24,11 @@ func CreateUpdateMultiForm(file *File) (io.Reader, string, error) {
 	return bytes.NewReader(body.Bytes()), writer.FormDataContentType(), nil
 }
 
-func (c *Client) UpdateFile(ctx context.Context, fileID string, file *File) (*controller.UpdateFileResponse, error) {
+func (c *Client) UpdateFile(
+	ctx context.Context,
+	fileID string,
+	file *File,
+) (*controller.UpdateFileResponse, error) {
 	body, contentType, err := CreateUpdateMultiForm(file)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating multiform: %w", err)

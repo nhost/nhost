@@ -224,7 +224,11 @@ func (h *Hasura) SetIsUploaded(
 	return nil
 }
 
-func (h *Hasura) DeleteFileByID(ctx context.Context, fileID string, headers http.Header) *controller.APIError {
+func (h *Hasura) DeleteFileByID(
+	ctx context.Context,
+	fileID string,
+	headers http.Header,
+) *controller.APIError {
 	resp, err := h.cl.DeleteFile(
 		ctx,
 		fileID,
@@ -242,7 +246,10 @@ func (h *Hasura) DeleteFileByID(ctx context.Context, fileID string, headers http
 	return nil
 }
 
-func (h *Hasura) ListFiles(ctx context.Context, headers http.Header) ([]controller.FileSummary, *controller.APIError) {
+func (h *Hasura) ListFiles(
+	ctx context.Context,
+	headers http.Header,
+) ([]controller.FileSummary, *controller.APIError) {
 	resp, err := h.cl.ListFilesSummary(
 		ctx,
 		WithHeaders(headers),
@@ -261,7 +268,10 @@ func (h *Hasura) ListFiles(ctx context.Context, headers http.Header) ([]controll
 }
 
 func (h *Hasura) InsertVirus(
-	ctx context.Context, fileID, filename, virus string, userSession map[string]any, headers http.Header,
+	ctx context.Context,
+	fileID, filename, virus string,
+	userSession map[string]any,
+	headers http.Header,
 ) *controller.APIError {
 	_, err := h.cl.InsertVirus(
 		ctx,

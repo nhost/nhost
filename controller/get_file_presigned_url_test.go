@@ -90,7 +90,16 @@ func TestGetFilePresignedURL(t *testing.T) {
 					controller.ErrFileNotFound)
 			}
 
-			ctrl := controller.New("http://asd", "/v1", "asdasd", metadataStorage, contentStorage, nil, nil, logger)
+			ctrl := controller.New(
+				"http://asd",
+				"/v1",
+				"asdasd",
+				metadataStorage,
+				contentStorage,
+				nil,
+				nil,
+				logger,
+			)
 
 			router, _ := ctrl.SetupRouter(nil, "/v1", []string{"*"}, false, ginLogger(logger))
 

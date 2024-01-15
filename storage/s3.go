@@ -40,10 +40,19 @@ func parseS3Error(resp *http.Response) *controller.APIError {
 			)
 		}
 		return controller.InternalServerError(
-			fmt.Errorf("problem parsing S3 error, status code %d: %s", resp.StatusCode, b), //nolint: goerr113
+			fmt.Errorf( //nolint: goerr113
+				"problem parsing S3 error, status code %d: %s",
+				resp.StatusCode,
+				b,
+			),
 		)
 	}
-	return controller.NewAPIError(resp.StatusCode, s3Error.Message, errors.New(s3Error.Message), nil) //nolint: goerr113
+	return controller.NewAPIError(
+		resp.StatusCode,
+		s3Error.Message,
+		errors.New(s3Error.Message), //nolint: goerr113
+		nil,
+	)
 }
 
 type S3 struct {
@@ -83,7 +92,9 @@ func (s *S3) PutFile(
 
 	// let's make sure we are in the beginning of the content
 	if _, err := content.Seek(0, 0); err != nil {
-		return "", controller.InternalServerError(fmt.Errorf("problem going to the beginning of the content: %w", err))
+		return "", controller.InternalServerError(
+			fmt.Errorf("problem going to the beginning of the content: %w", err),
+		)
 	}
 
 	object, err := s.client.PutObject(ctx,
@@ -168,12 +179,16 @@ func (s *S3) CreatePresignedURL(
 		},
 	)
 	if err != nil {
-		return "", controller.InternalServerError(fmt.Errorf("problem generating pre-signed URL: %w", err))
+		return "", controller.InternalServerError(
+			fmt.Errorf("problem generating pre-signed URL: %w", err),
+		)
 	}
 
 	parts := strings.Split(request.URL, "?")
 	if len(parts) != 2 { //nolint: gomnd
-		return "", controller.InternalServerError(fmt.Errorf("problem generating pre-signed URL: %w", err))
+		return "", controller.InternalServerError(
+			fmt.Errorf("problem generating pre-signed URL: %w", err),
+		)
 	}
 
 	return parts[1], nil
@@ -217,7 +232,9 @@ func (s *S3) GetFileWithPresignedURL(
 
 		length, err = strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 32)
 		if err != nil {
-			return nil, controller.InternalServerError(fmt.Errorf("problem parsing Content-Length: %w", err))
+			return nil, controller.InternalServerError(
+				fmt.Errorf("problem parsing Content-Length: %w", err),
+			)
 		}
 	}
 
@@ -255,7 +272,9 @@ func (s *S3) ListFiles(ctx context.Context) ([]string, *controller.APIError) {
 			Prefix: aws.String(s.rootFolder + "/"),
 		})
 	if err != nil {
-		return nil, controller.InternalServerError(fmt.Errorf("problem listing objects in s3: %w", err))
+		return nil, controller.InternalServerError(
+			fmt.Errorf("problem listing objects in s3: %w", err),
+		)
 	}
 
 	res := make([]string, len(objects.Contents))

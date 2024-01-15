@@ -61,7 +61,8 @@ func New(serviceID string, apiKey string, logger *logrus.Logger) gin.HandlerFunc
 		ctx.Next()
 
 		// after request
-		if ctx.Writer.Status() == http.StatusNotModified && ctx.Request.Header.Get(headerToRemoveCacheControl) == "true" {
+		if ctx.Writer.Status() == http.StatusNotModified &&
+			ctx.Request.Header.Get(headerToRemoveCacheControl) == "true" {
 			// cache control should be sent in a 304 but
 			// due to a series of unfortunate events at Fastly we need to hide it:
 			// 1. fastly ignores no-cache

@@ -49,7 +49,11 @@ type fileMetadataMatcher struct {
 }
 
 func (m fileMetadataMatcher) Matches(x interface{}) bool {
-	return cmp.Equal(m.v, x, cmpopts.IgnoreFields(controller.FileMetadata{}, "CreatedAt", "UpdatedAt"))
+	return cmp.Equal(
+		m.v,
+		x,
+		cmpopts.IgnoreFields(controller.FileMetadata{}, "CreatedAt", "UpdatedAt"),
+	)
 }
 
 func (m fileMetadataMatcher) String() string {

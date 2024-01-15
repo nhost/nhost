@@ -101,13 +101,27 @@ func TestDeleteBrokenMetadata(t *testing.T) {
 				gomock.Any(), "e6aad336-ad79-4df7-a09b-5782f71948f4", gomock.Any(),
 			).Return(nil)
 
-			ctrl := controller.New("http://asd", "/v1", "asdasd", metadataStorage, contentStorage, nil, nil, logger)
+			ctrl := controller.New(
+				"http://asd",
+				"/v1",
+				"asdasd",
+				metadataStorage,
+				contentStorage,
+				nil,
+				nil,
+				logger,
+			)
 
 			router, _ := ctrl.SetupRouter(nil, "/v1", []string{"*"}, false, ginLogger(logger))
 
 			responseRecorder := httptest.NewRecorder()
 
-			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/ops/delete-broken-metadata", nil)
+			req, _ := http.NewRequestWithContext(
+				context.Background(),
+				"POST",
+				"/v1/ops/delete-broken-metadata",
+				nil,
+			)
 
 			router.ServeHTTP(responseRecorder, req)
 

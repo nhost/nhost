@@ -245,7 +245,12 @@ func TestGetFilePresignedURL(t *testing.T) {
 
 			time.Sleep(tc.sleep)
 
-			got, apiErr := s3.GetFileWithPresignedURL(context.Background(), tc.filepath, signature, tc.requestHeaders)
+			got, apiErr := s3.GetFileWithPresignedURL(
+				context.Background(),
+				tc.filepath,
+				signature,
+				tc.requestHeaders,
+			)
 			opts := cmp.Options{
 				cmpopts.IgnoreFields(controller.File{}, "Body"),
 			}

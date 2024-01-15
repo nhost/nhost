@@ -47,7 +47,12 @@ func NewFile(name string, r io.ReadSeeker, opts ...fileOptions) *File {
 	return file
 }
 
-func CreateMultiFormFile(writer *multipart.Writer, fieldName string, file *File, multiple bool) error {
+func CreateMultiFormFile(
+	writer *multipart.Writer,
+	fieldName string,
+	file *File,
+	multiple bool,
+) error {
 	formWriter, err := writer.CreateFormFile(fieldName, file.md.Name)
 	if err != nil {
 		return fmt.Errorf("problem create part: %w", err)

@@ -13,7 +13,10 @@ type ListBrokenMetadataResponse struct {
 }
 
 func (ctrl *Controller) listBrokenMetadata(ctx *gin.Context) ([]FileSummary, *APIError) {
-	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(ctx.Request.Context(), ctx.Request.Header)
+	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(
+		ctx.Request.Context(),
+		ctx.Request.Header,
+	)
 	if apiErr != nil {
 		return nil, apiErr
 	}

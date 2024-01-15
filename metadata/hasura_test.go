@@ -88,7 +88,11 @@ func TestGetBucketByID(t *testing.T) {
 			bucket, err := hasura.GetBucketByID(context.Background(), tc.bucketID, tc.headers)
 
 			if tc.expectedStatusCode != err.StatusCode() {
-				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
+				t.Errorf(
+					"wrong status code, expected %d, got %d",
+					tc.expectedStatusCode,
+					err.StatusCode(),
+				)
 			}
 
 			if err != nil {
@@ -151,10 +155,22 @@ func TestInitializeFile(t *testing.T) {
 
 			hasura := metadata.NewHasura(hasuraURL)
 
-			err := hasura.InitializeFile(context.Background(), tc.fileID, "name", 123, "default", "mimetype", tc.headers)
+			err := hasura.InitializeFile(
+				context.Background(),
+				tc.fileID,
+				"name",
+				123,
+				"default",
+				"mimetype",
+				tc.headers,
+			)
 
 			if tc.expectedStatusCode != err.StatusCode() {
-				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
+				t.Errorf(
+					"wrong status code, expected %d, got %d",
+					tc.expectedStatusCode,
+					err.StatusCode(),
+				)
 			}
 			if err != nil {
 				if !cmp.Equal(err.PublicResponse(), tc.expectedPublicResponse) {
@@ -238,10 +254,25 @@ func TestPopulateMetadata(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			got, err := hasura.PopulateMetadata(context.Background(), tc.fileID, "name", 123, "default", "asdasd", true, "text", nil, tc.headers)
+			got, err := hasura.PopulateMetadata(
+				context.Background(),
+				tc.fileID,
+				"name",
+				123,
+				"default",
+				"asdasd",
+				true,
+				"text",
+				nil,
+				tc.headers,
+			)
 
 			if tc.expectedStatusCode != err.StatusCode() {
-				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
+				t.Errorf(
+					"wrong status code, expected %d, got %d",
+					tc.expectedStatusCode,
+					err.StatusCode(),
+				)
 			}
 			if err != nil {
 				if !cmp.Equal(err.PublicResponse(), tc.expectedPublicResponse) {
@@ -339,7 +370,11 @@ func TestGetFileByID(t *testing.T) {
 			got, err := hasura.GetFileByID(context.Background(), tc.fileID, tc.headers)
 
 			if tc.expectedStatusCode != err.StatusCode() {
-				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
+				t.Errorf(
+					"wrong status code, expected %d, got %d",
+					tc.expectedStatusCode,
+					err.StatusCode(),
+				)
 			}
 			if err != nil {
 				if !cmp.Equal(err.PublicResponse(), tc.expectedPublicResponse) {
@@ -419,7 +454,11 @@ func TestSetIsUploaded(t *testing.T) {
 
 			err := hasura.SetIsUploaded(context.Background(), tc.fileID, true, tc.headers)
 			if tc.expectedStatusCode != err.StatusCode() {
-				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
+				t.Errorf(
+					"wrong status code, expected %d, got %d",
+					tc.expectedStatusCode,
+					err.StatusCode(),
+				)
 			}
 
 			if err != nil {
@@ -496,7 +535,11 @@ func TestDeleteFileByID(t *testing.T) {
 
 			err := hasura.DeleteFileByID(context.Background(), tc.fileID, tc.headers)
 			if tc.expectedStatusCode != err.StatusCode() {
-				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
+				t.Errorf(
+					"wrong status code, expected %d, got %d",
+					tc.expectedStatusCode,
+					err.StatusCode(),
+				)
 			}
 			if err != nil {
 				if !cmp.Equal(err.PublicResponse(), tc.expectedPublicResponse) {
@@ -557,7 +600,11 @@ func TestListFiles(t *testing.T) {
 
 			got, err := hasura.ListFiles(context.Background(), tc.headers)
 			if tc.expectedStatusCode != err.StatusCode() {
-				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
+				t.Errorf(
+					"wrong status code, expected %d, got %d",
+					tc.expectedStatusCode,
+					err.StatusCode(),
+				)
 			}
 
 			if err != nil {

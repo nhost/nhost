@@ -66,7 +66,9 @@ func TestGetFile(t *testing.T) {
 		{
 			name: "get file, if-match==etag",
 			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfMatch(testFiles.ProcessedFiles[0].ETag)},
+			opts: []client.GetFileInformationOpt{
+				client.WithIfMatch(testFiles.ProcessedFiles[0].ETag),
+			},
 			expected: &client.FileInformationHeaderWithReader{
 				Filename: "alphabet.txt",
 				FileInformationHeader: &client.FileInformationHeader{
@@ -98,7 +100,9 @@ func TestGetFile(t *testing.T) {
 		{
 			name: "get file, if-none-match==etag",
 			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithNoneMatch(testFiles.ProcessedFiles[0].ETag)},
+			opts: []client.GetFileInformationOpt{
+				client.WithNoneMatch(testFiles.ProcessedFiles[0].ETag),
+			},
 			expected: &client.FileInformationHeaderWithReader{
 				FileInformationHeader: &client.FileInformationHeader{
 					CacheControl:  "max-age=3600",
@@ -130,7 +134,9 @@ func TestGetFile(t *testing.T) {
 		{
 			name: "get file, if-modified-since!=date",
 			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfModifiedSince("Thu, 23 Dec 2025 10:00:00 UTC")},
+			opts: []client.GetFileInformationOpt{
+				client.WithIfModifiedSince("Thu, 23 Dec 2025 10:00:00 UTC"),
+			},
 			expected: &client.FileInformationHeaderWithReader{
 				FileInformationHeader: &client.FileInformationHeader{
 					CacheControl:  "max-age=3600",
@@ -145,7 +151,9 @@ func TestGetFile(t *testing.T) {
 		{
 			name: "get file, if-modified-since==date",
 			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfModifiedSince("Thu, 23 Dec 2020 10:00:00 UTC")},
+			opts: []client.GetFileInformationOpt{
+				client.WithIfModifiedSince("Thu, 23 Dec 2020 10:00:00 UTC"),
+			},
 			expected: &client.FileInformationHeaderWithReader{
 				Filename: "alphabet.txt",
 				FileInformationHeader: &client.FileInformationHeader{
@@ -162,7 +170,9 @@ func TestGetFile(t *testing.T) {
 		{
 			name: "get file, if-unmodified-since!=date",
 			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfUnmodifiedSince("Thu, 23 Dec 2025 10:00:00 UTC")},
+			opts: []client.GetFileInformationOpt{
+				client.WithIfUnmodifiedSince("Thu, 23 Dec 2025 10:00:00 UTC"),
+			},
 			expected: &client.FileInformationHeaderWithReader{
 				Filename: "alphabet.txt",
 				FileInformationHeader: &client.FileInformationHeader{
@@ -179,7 +189,9 @@ func TestGetFile(t *testing.T) {
 		{
 			name: "get file, if-unmodified-since==date",
 			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfUnmodifiedSince("Thu, 23 Dec 2020 10:00:00 UTC")},
+			opts: []client.GetFileInformationOpt{
+				client.WithIfUnmodifiedSince("Thu, 23 Dec 2020 10:00:00 UTC"),
+			},
 			expected: &client.FileInformationHeaderWithReader{
 				FileInformationHeader: &client.FileInformationHeader{
 					CacheControl:  "max-age=3600",
@@ -217,7 +229,9 @@ func TestGetFile(t *testing.T) {
 		{
 			name: "get image, if-match==etag",
 			id:   testFiles.ProcessedFiles[1].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfMatch(testFiles.ProcessedFiles[1].ETag)},
+			opts: []client.GetFileInformationOpt{
+				client.WithIfMatch(testFiles.ProcessedFiles[1].ETag),
+			},
 			expected: &client.FileInformationHeaderWithReader{
 				Filename: "nhost.jpg",
 				FileInformationHeader: &client.FileInformationHeader{
@@ -235,7 +249,9 @@ func TestGetFile(t *testing.T) {
 			name: "get image manipulated, if-match==etag",
 			id:   testFiles.ProcessedFiles[1].ID,
 			opts: []client.GetFileInformationOpt{
-				client.WithIfMatch(`"012fe5fec0a590f1c7246938af1918d02cc1514e30b76e0b45ff5ab2123a2b43"`),
+				client.WithIfMatch(
+					`"012fe5fec0a590f1c7246938af1918d02cc1514e30b76e0b45ff5ab2123a2b43"`,
+				),
 				client.WithImageSize(600, 200),
 				client.WithImageQuality(50),
 				client.WithImageBlur(5),

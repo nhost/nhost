@@ -44,7 +44,9 @@ func TestGetFileInformation(t *testing.T) {
 		{
 			name: "get file information, if-match==etag",
 			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfMatch(testFiles.ProcessedFiles[0].ETag)},
+			opts: []client.GetFileInformationOpt{
+				client.WithIfMatch(testFiles.ProcessedFiles[0].ETag),
+			},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
 				ContentLength: 63,
@@ -70,7 +72,9 @@ func TestGetFileInformation(t *testing.T) {
 		{
 			name: "get file information, if-none-match==etag",
 			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithNoneMatch(testFiles.ProcessedFiles[0].ETag)},
+			opts: []client.GetFileInformationOpt{
+				client.WithNoneMatch(testFiles.ProcessedFiles[0].ETag),
+			},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
 				ContentLength: 0,
@@ -96,7 +100,9 @@ func TestGetFileInformation(t *testing.T) {
 		{
 			name: "get file information, if-modified-since!=date",
 			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfModifiedSince("Thu, 23 Dec 2025 10:00:00 UTC")},
+			opts: []client.GetFileInformationOpt{
+				client.WithIfModifiedSince("Thu, 23 Dec 2025 10:00:00 UTC"),
+			},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
 				ContentLength: 0,
@@ -109,7 +115,9 @@ func TestGetFileInformation(t *testing.T) {
 		{
 			name: "get file information, if-modified-since==date",
 			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfModifiedSince("Thu, 23 Dec 2020 10:00:00 UTC")},
+			opts: []client.GetFileInformationOpt{
+				client.WithIfModifiedSince("Thu, 23 Dec 2020 10:00:00 UTC"),
+			},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
 				ContentLength: 63,
@@ -122,7 +130,9 @@ func TestGetFileInformation(t *testing.T) {
 		{
 			name: "get file information, if-unmodified-since!=date",
 			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfUnmodifiedSince("Thu, 23 Dec 2025 10:00:00 UTC")},
+			opts: []client.GetFileInformationOpt{
+				client.WithIfUnmodifiedSince("Thu, 23 Dec 2025 10:00:00 UTC"),
+			},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
 				ContentLength: 63,
@@ -135,7 +145,9 @@ func TestGetFileInformation(t *testing.T) {
 		{
 			name: "get file information, if-unmodified-since==date",
 			id:   testFiles.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfUnmodifiedSince("Thu, 23 Dec 2020 10:00:00 UTC")},
+			opts: []client.GetFileInformationOpt{
+				client.WithIfUnmodifiedSince("Thu, 23 Dec 2020 10:00:00 UTC"),
+			},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
 				ContentLength: 63,

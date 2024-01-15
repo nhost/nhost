@@ -80,10 +80,13 @@ func getImageManipulationOptions(ctx *gin.Context, mimeType string) (image.Optio
 		case "image/jpeg":
 			opts.Format = image.ImageTypeJPEG
 		default:
-			return image.Options{}, BadDataError(
-				fmt.Errorf("image manipulation features are not supported for '%s'", mimeType), //nolint: goerr113
-				fmt.Sprintf("image manipulation features are not supported for '%s'", mimeType),
-			)
+			return image.Options{},
+				BadDataError(
+					fmt.Errorf( //nolint: goerr113
+						"image manipulation features are not supported for '%s'", mimeType,
+					),
+					fmt.Sprintf("image manipulation features are not supported for '%s'", mimeType),
+				)
 		}
 	}
 
@@ -173,7 +176,9 @@ func (ctrl *Controller) processFileToDownload( //nolint: funlen
 		updateAt = time.Now().Format(time.RFC3339)
 
 		if _, ok := download.ExtraHeaders["Content-Range"]; ok {
-			download.ExtraHeaders["Content-Range"] = []string{fmt.Sprintf("bytes 0-%d/%d", contentLength-1, contentLength)}
+			download.ExtraHeaders["Content-Range"] = []string{
+				fmt.Sprintf("bytes 0-%d/%d", contentLength-1, contentLength),
+			}
 		}
 	}
 
@@ -223,7 +228,10 @@ func (ctrl *Controller) getFileProcess(ctx *gin.Context) (*FileResponse, *APIErr
 
 	if response.statusCode == http.StatusOK {
 		// if we want to download files at some point prepend `attachment;` before filename
-		response.headers.Add("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, url.QueryEscape(fileMetadata.Name)))
+		response.headers.Add(
+			"Content-Disposition",
+			fmt.Sprintf(`inline; filename="%s"`, url.QueryEscape(fileMetadata.Name)),
+		)
 	}
 
 	return response, nil

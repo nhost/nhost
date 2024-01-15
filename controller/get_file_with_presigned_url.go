@@ -46,13 +46,18 @@ func expiresIn(urlValues url.Values) (int, *APIError) {
 	expires := time.Second*time.Duration(amzExpires) - time.Since(date)
 
 	if expires <= 0 {
-		return 0, BadDataError(errors.New("signature already expired"), "signature already expired") //nolint: goerr113
+		return 0, BadDataError(
+			errors.New("signature already expired"), //nolint: goerr113
+			"signature already expired",
+		)
 	}
 
 	return int(expires.Seconds()), nil
 }
 
-func (ctrl *Controller) getFileWithPresignedURLParse(ctx *gin.Context) (GetFileWithPresignedURLRequest, *APIError) {
+func (ctrl *Controller) getFileWithPresignedURLParse(
+	ctx *gin.Context,
+) (GetFileWithPresignedURLRequest, *APIError) {
 	var headers getFileInformationHeaders
 	if err := ctx.ShouldBindHeader(&headers); err != nil {
 		return GetFileWithPresignedURLRequest{}, //nolint: exhaustruct
@@ -109,7 +114,13 @@ func (ctrl *Controller) getFileWithPresignedURL(ctx *gin.Context) (*FileResponse
 		return nil, apiErr
 	}
 
-	return ctrl.processFileToDownload(ctx, downloadFunc, fileMetadata, fmt.Sprintf("max-age=%d", req.Expires), nil)
+	return ctrl.processFileToDownload(
+		ctx,
+		downloadFunc,
+		fileMetadata,
+		fmt.Sprintf("max-age=%d", req.Expires),
+		nil,
+	)
 }
 
 func (ctrl *Controller) GetFileWithPresignedURL(ctx *gin.Context) {

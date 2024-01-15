@@ -13,7 +13,12 @@ func (c *Client) GetFilePresignedURL(
 	ctx context.Context,
 	fileID string,
 ) (*controller.GetFilePresignedURLResponse, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+"/files/"+fileID+"/presignedurl", nil)
+	req, err := http.NewRequestWithContext(
+		ctx,
+		"GET",
+		c.baseURL+"/files/"+fileID+"/presignedurl",
+		nil,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating request: %w", err)
 	}

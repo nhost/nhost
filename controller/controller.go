@@ -1,3 +1,4 @@
+//go:generate mockgen -destination mock/controller.go -package mock -source=controller.go MetadataStorage
 package controller
 
 import (
@@ -45,7 +46,6 @@ type FileMetadata struct {
 	Metadata         map[string]any `json:"metadata"`
 }
 
-//go:generate mockgen --build_flags=--mod=mod -destination mock/metadata_storage.go -package mock . MetadataStorage
 type MetadataStorage interface {
 	GetBucketByID(ctx context.Context, id string, headers http.Header) (BucketMetadata, *APIError)
 	GetFileByID(ctx context.Context, id string, headers http.Header) (FileMetadata, *APIError)
@@ -60,7 +60,12 @@ type MetadataStorage interface {
 		metadata map[string]any,
 		headers http.Header) (FileMetadata, *APIError,
 	)
-	SetIsUploaded(ctx context.Context, fileID string, isUploaded bool, headers http.Header) *APIError
+	SetIsUploaded(
+		ctx context.Context,
+		fileID string,
+		isUploaded bool,
+		headers http.Header,
+	) *APIError
 	DeleteFileByID(ctx context.Context, fileID string, headers http.Header) *APIError
 	ListFiles(ctx context.Context, headers http.Header) ([]FileSummary, *APIError)
 	InsertVirus(
@@ -71,11 +76,18 @@ type MetadataStorage interface {
 	) *APIError
 }
 
-//go:generate mockgen --build_flags=--mod=mod -destination mock/content_storage.go -package mock . ContentStorage
 type ContentStorage interface {
-	PutFile(ctx context.Context, content io.ReadSeeker, filepath, contentType string) (string, *APIError)
+	PutFile(
+		ctx context.Context,
+		content io.ReadSeeker,
+		filepath, contentType string,
+	) (string, *APIError)
 	GetFile(ctx context.Context, filepath string, headers http.Header) (*File, *APIError)
-	CreatePresignedURL(ctx context.Context, filepath string, expire time.Duration) (string, *APIError)
+	CreatePresignedURL(
+		ctx context.Context,
+		filepath string,
+		expire time.Duration,
+	) (string, *APIError)
 	GetFileWithPresignedURL(
 		ctx context.Context, filepath, signature string, headers http.Header,
 	) (*File, *APIError)
@@ -83,7 +95,6 @@ type ContentStorage interface {
 	ListFiles(ctx context.Context) ([]string, *APIError)
 }
 
-//go:generate mockgen --build_flags=--mod=mod -destination mock/antivirus.go -package mock . Antivirus
 type Antivirus interface {
 	ScanReader(r io.ReaderAt) *APIError
 }

@@ -25,7 +25,9 @@ func updateFileParseRequest(ctx *gin.Context) (fileData, *APIError) {
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
-		return fileData{}, InternalServerError(fmt.Errorf("problem reading multipart form: %w", err))
+		return fileData{}, InternalServerError(
+			fmt.Errorf("problem reading multipart form: %w", err),
+		)
 	}
 
 	file := form.File["file"]
@@ -64,7 +66,7 @@ func updateFileParseRequest(ctx *gin.Context) (fileData, *APIError) {
 	return res, nil
 }
 
-func (ctrl *Controller) updateFile(ctx *gin.Context) (FileMetadata, *APIError) {
+func (ctrl *Controller) updateFile(ctx *gin.Context) (FileMetadata, *APIError) { //nolint:funlen
 	file, apiErr := updateFileParseRequest(ctx)
 	if apiErr != nil {
 		return FileMetadata{}, apiErr
@@ -78,16 +80,20 @@ func (ctrl *Controller) updateFile(ctx *gin.Context) (FileMetadata, *APIError) {
 	}
 
 	if apiErr = checkFileSize(
-		file.header,
-		bucketMetadata.MinUploadFile,
-		bucketMetadata.MaxUploadFile,
+		file.header, bucketMetadata.MinUploadFile, bucketMetadata.MaxUploadFile,
 	); apiErr != nil {
-		return FileMetadata{}, InternalServerError(fmt.Errorf("problem checking file size %s: %w", file.Name, apiErr))
+		return FileMetadata{}, InternalServerError(
+			fmt.Errorf("problem checking file size %s: %w", file.Name, apiErr),
+		)
 	}
 
 	if apiErr := ctrl.metadataStorage.SetIsUploaded(ctx, file.ID, false, ctx.Request.Header); apiErr != nil {
 		return FileMetadata{}, apiErr.ExtendError(
-			fmt.Sprintf("problem flagging file as pending upload %s: %s", file.Name, apiErr.Error()),
+			fmt.Sprintf(
+				"problem flagging file as pending upload %s: %s",
+				file.Name,
+				apiErr.Error(),
+			),
 		)
 	}
 
@@ -118,11 +124,12 @@ func (ctrl *Controller) updateFile(ctx *gin.Context) (FileMetadata, *APIError) {
 		ctx.Request.Header,
 	)
 	if apiErr != nil {
-		return FileMetadata{}, apiErr.ExtendError(fmt.Sprintf("problem populating file metadata for file %s", file.Name))
+		return FileMetadata{}, apiErr.ExtendError(
+			fmt.Sprintf("problem populating file metadata for file %s", file.Name),
+		)
 	}
 
 	ctx.Set("FileChanged", file.ID)
-
 	return newMetadata, nil
 }
 

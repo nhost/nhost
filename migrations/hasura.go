@@ -30,7 +30,12 @@ func postMetadata(baseURL, hasuraSecret string, data interface{}) error {
 		return fmt.Errorf("problem marshalling data: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, baseURL+"/metadata", bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		baseURL+"/metadata",
+		bytes.NewBuffer(b),
+	)
 	if err != nil {
 		return fmt.Errorf("problem creating request: %w", err)
 	}
@@ -48,7 +53,11 @@ func postMetadata(baseURL, hasuraSecret string, data interface{}) error {
 		var errResponse *hasuraErrResponse
 		b, _ := io.ReadAll(resp.Body)
 		if err := json.Unmarshal(b, &errResponse); err != nil {
-			return fmt.Errorf("status_code: %d\nresponse: %s", resp.StatusCode, b) //nolint: goerr113
+			return fmt.Errorf( //nolint: goerr113
+				"status_code: %d\nresponse: %s",
+				resp.StatusCode,
+				b,
+			)
 		}
 		if errResponse.Code == "already-tracked" || errResponse.Code == "already-exists" {
 			return nil

@@ -77,7 +77,8 @@ func (c *Client) GetFile( //nolint: cyclop
 		return nil, err
 	}
 
-	if info.StatusCode == http.StatusPreconditionFailed || info.StatusCode == http.StatusNotModified {
+	if info.StatusCode == http.StatusPreconditionFailed ||
+		info.StatusCode == http.StatusNotModified {
 		defer resp.Body.Close()
 		return &FileInformationHeaderWithReader{info, "", nil}, nil
 	}

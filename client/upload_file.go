@@ -36,7 +36,10 @@ func CreateUploadMultiForm(files ...*File) (io.Reader, string, error) {
 	return bytes.NewReader(body.Bytes()), writer.FormDataContentType(), nil
 }
 
-func (c *Client) UploadFile(ctx context.Context, files ...*File) (*controller.UploadFileResponse, error) {
+func (c *Client) UploadFile(
+	ctx context.Context,
+	files ...*File,
+) (*controller.UploadFileResponse, error) {
 	if len(files) == 0 {
 		return nil, ErrNoFiles
 	}

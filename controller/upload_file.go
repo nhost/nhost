@@ -45,7 +45,9 @@ func checkFileSize(file *multipart.FileHeader, minSize, maxSize int) *APIError {
 func (ctrl *Controller) getMultipartFile(file fileData) (multipart.File, string, *APIError) {
 	fileContent, err := file.header.Open()
 	if err != nil {
-		return nil, "", InternalServerError(fmt.Errorf("problem opening file %s: %w", file.Name, err))
+		return nil, "", InternalServerError(
+			fmt.Errorf("problem opening file %s: %w", file.Name, err),
+		)
 	}
 
 	contentType := file.header.Header.Get("Content-Type")
@@ -56,7 +58,9 @@ func (ctrl *Controller) getMultipartFile(file fileData) (multipart.File, string,
 	mt, err := mimetype.DetectReader(fileContent)
 	if err != nil {
 		return nil, "",
-			InternalServerError(fmt.Errorf("problem figuring out content type for file %s: %w", file.Name, err))
+			InternalServerError(
+				fmt.Errorf("problem figuring out content type for file %s: %w", file.Name, err),
+			)
 	}
 
 	return fileContent, mt.String(), nil
@@ -95,7 +99,9 @@ func (ctrl *Controller) processFile(
 	headers http.Header,
 ) (FileMetadata, *APIError) {
 	if err := checkFileSize(file.header, bucket.MinUploadFile, bucket.MaxUploadFile); err != nil {
-		return FileMetadata{}, InternalServerError(fmt.Errorf("problem checking file size %s: %w", file.Name, err))
+		return FileMetadata{}, InternalServerError(
+			fmt.Errorf("problem checking file size %s: %w", file.Name, err),
+		)
 	}
 
 	fileContent, contentType, err := ctrl.getMultipartFile(file)
@@ -132,7 +138,9 @@ func (ctrl *Controller) processFile(
 		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
 	)
 	if apiErr != nil {
-		return FileMetadata{}, apiErr.ExtendError(fmt.Sprintf("problem populating file metadata for file %s", file.Name))
+		return FileMetadata{}, apiErr.ExtendError(
+			fmt.Sprintf("problem populating file metadata for file %s", file.Name),
+		)
 	}
 
 	return metadata, nil
@@ -165,7 +173,11 @@ func (ctrl *Controller) upload(
 	return filesMetadata, nil
 }
 
-func fileDataFromFormValue(md map[string][]string, fileHedaer *multipart.FileHeader, i int) (fileData, *APIError) {
+func fileDataFromFormValue(
+	md map[string][]string,
+	fileHedaer *multipart.FileHeader,
+	i int,
+) (fileData, *APIError) {
 	formValue := []byte("{}")
 	userSpecified, ok := md["metadata[]"]
 	if ok {
@@ -193,7 +205,9 @@ func getBucketIDFromFormValue(md map[string][]string) string {
 func parseUploadRequestOld(ctx *gin.Context) (uploadFileRequest, *APIError) {
 	form, err := ctx.MultipartForm()
 	if err != nil {
-		return uploadFileRequest{}, InternalServerError(fmt.Errorf("problem reading multipart form: %w", err))
+		return uploadFileRequest{}, InternalServerError(
+			fmt.Errorf("problem reading multipart form: %w", err),
+		)
 	}
 
 	fileForm, ok := form.File["file"]
@@ -237,7 +251,9 @@ func parseUploadRequestOld(ctx *gin.Context) (uploadFileRequest, *APIError) {
 func parseUploadRequestNew(ctx *gin.Context) (uploadFileRequest, *APIError) {
 	form, err := ctx.MultipartForm()
 	if err != nil {
-		return uploadFileRequest{}, InternalServerError(fmt.Errorf("problem reading multipart form: %w", err))
+		return uploadFileRequest{}, InternalServerError(
+			fmt.Errorf("problem reading multipart form: %w", err),
+		)
 	}
 
 	files, ok := form.File["file[]"]

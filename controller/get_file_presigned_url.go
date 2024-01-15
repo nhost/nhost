@@ -25,7 +25,9 @@ func (ctrl *Controller) getFilePresignedURLParse(ctx *gin.Context) GetFilePresig
 	}
 }
 
-func (ctrl *Controller) getFilePresignedURL(ctx *gin.Context) (GetFilePresignedURLResponse, *APIError) {
+func (ctrl *Controller) getFilePresignedURL(
+	ctx *gin.Context,
+) (GetFilePresignedURLResponse, *APIError) {
 	req := ctrl.getFilePresignedURLParse(ctx)
 
 	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
@@ -36,7 +38,9 @@ func (ctrl *Controller) getFilePresignedURL(ctx *gin.Context) (GetFilePresignedU
 	}
 
 	if !bucketMetadata.PresignedURLsEnabled {
-		err := errors.New("presigned URLs are not enabled on the bucket where this file is located in") //nolint: goerr113
+		err := errors.New( //nolint: goerr113
+			"presigned URLs are not enabled on the bucket where this file is located in",
+		)
 		return GetFilePresignedURLResponse{}, ForbiddenError(err, err.Error())
 	}
 
@@ -47,7 +51,9 @@ func (ctrl *Controller) getFilePresignedURL(ctx *gin.Context) (GetFilePresignedU
 	)
 	if apiErr != nil {
 		return GetFilePresignedURLResponse{},
-			apiErr.ExtendError(fmt.Sprintf("problem creating presigned URL for file %s", fileMetadata.Name))
+			apiErr.ExtendError(
+				fmt.Sprintf("problem creating presigned URL for file %s", fileMetadata.Name),
+			)
 	}
 
 	url := fmt.Sprintf(

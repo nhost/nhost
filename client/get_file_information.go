@@ -25,7 +25,11 @@ func fileInformationFromResponse(resp *http.Response) (*FileInformationHeader, e
 	if resp.Header.Get("Content-Length") != "" {
 		length, err = strconv.Atoi(resp.Header.Get("Content-Length"))
 		if err != nil {
-			return nil, fmt.Errorf("problem converting Content-Length %s to integer: %w", resp.Header.Get("Content-Length"), err)
+			return nil, fmt.Errorf(
+				"problem converting Content-Length %s to integer: %w",
+				resp.Header.Get("Content-Length"),
+				err,
+			)
 		}
 	}
 

@@ -24,11 +24,14 @@ func (ctrl *Controller) getFileMetadata(
 
 	if checkIsUploaded && !fileMetadata.IsUploaded {
 		msg := "file is not uploaded"
-		return FileMetadata{}, BucketMetadata{}, ForbiddenError(errors.New(msg), msg) //nolint:goerr113
+		return FileMetadata{}, BucketMetadata{},
+			ForbiddenError(errors.New(msg), msg) //nolint:goerr113
 	}
 
 	bucketMetadata, apiErr := ctrl.metadataStorage.GetBucketByID(
-		ctx, fileMetadata.BucketID, http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+		ctx,
+		fileMetadata.BucketID,
+		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
 	)
 	if apiErr != nil {
 		return FileMetadata{}, BucketMetadata{}, apiErr
@@ -52,7 +55,9 @@ type getFileRequest struct {
 func (ctrl *Controller) getFileParse(ctx *gin.Context) (getFileRequest, *APIError) {
 	var headers getFileInformationHeaders
 	if err := ctx.ShouldBindHeader(&headers); err != nil {
-		return getFileRequest{}, InternalServerError(fmt.Errorf("problem parsing request headers: %w", err))
+		return getFileRequest{}, InternalServerError(
+			fmt.Errorf("problem parsing request headers: %w", err),
+		)
 	}
 
 	return getFileRequest{ctx.Param("id"), headers}, nil
@@ -127,7 +132,9 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 	}
 
 	id := ctx.Param("id")
-	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), id, true, ctx.Request.Header)
+	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
+		ctx.Request.Context(), id, true, ctx.Request.Header,
+	)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -137,7 +144,9 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 		return nil, apiErr
 	}
 
-	statusCode, apiErr := checkConditionals(fileMetadata.ETag, updateAt, &req.headers, http.StatusOK)
+	statusCode, apiErr := checkConditionals(
+		fileMetadata.ETag, updateAt, &req.headers, http.StatusOK,
+	)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -162,7 +171,6 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 			return nil, apiErr
 		}
 		defer object.Close()
-
 		updateAt = time.Now().Format(time.RFC3339)
 	}
 
