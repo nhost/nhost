@@ -1,0 +1,14 @@
+query getAnnouncements($limit: Int) {
+  announcements(
+    order_by: { createdAt: desc }
+    limit: $limit
+    where: {
+      _or: [{ expiresAt: { _is_null: true } }, { expiresAt: { _gt: now } }]
+    }
+  ) {
+    id
+    href
+    content
+    createdAt
+  }
+}

@@ -1,11 +1,14 @@
-import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa/index.js'
+import { FaApple, FaGithub, FaGoogle, FaLinkedin } from 'react-icons/fa/index.js'
 
 import { useProviderLink } from '@nhost/react'
 
 import AuthLink from './AuthLink'
 
 export default function OauthLinks() {
-  const { github, google, facebook } = useProviderLink({ redirectTo: window.location.origin })
+  const { github, google, apple, linkedin } = useProviderLink({
+    redirectTo: window.location.origin
+  })
+
   return (
     <>
       <AuthLink leftIcon={<FaGithub />} link={github} color="#333">
@@ -14,8 +17,12 @@ export default function OauthLinks() {
       <AuthLink leftIcon={<FaGoogle />} link={google} color="#de5246">
         Continue with Google
       </AuthLink>
-      <AuthLink leftIcon={<FaFacebook />} link={facebook} color="#3b5998">
-        Continue with Facebook
+      <AuthLink leftIcon={<FaApple />} link={apple} color="#333333">
+        Sign In With Apple
+      </AuthLink>
+
+      <AuthLink leftIcon={<FaLinkedin />} link={linkedin} color="#0073B1">
+        Sign In With LinkedIn
       </AuthLink>
     </>
   )

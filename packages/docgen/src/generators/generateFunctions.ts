@@ -30,11 +30,11 @@ export type GenerateFunctionsOptions = GeneratorOptions & {
 export async function generateFunctions(
   parsedContent: Array<Signature>,
   outputPath: string,
-  { originalDocument = null, keepOriginalOrder = false, classSlug }: GenerateFunctionsOptions = {}
+  { originalDocument = null, classSlug }: GenerateFunctionsOptions = {}
 ) {
-  const finalOutputPath = `${outputPath}/content`
   const { baseSlug, verbose } = snapshot(appState)
   const { FunctionTemplate } = await import('../templates')
+
   const functions: Array<{ name: string; content: string }> = (parsedContent || [])
     .filter((document) => ['Function', 'Method'].includes(document.kindString))
     .map((props: Signature) => ({
@@ -47,15 +47,13 @@ export async function generateFunctions(
     }))
 
   const results = await Promise.allSettled(
-    functions.map(async ({ name, content }, index) => {
-      const fileName = keepOriginalOrder
-        ? `${(index + 1).toString().padStart(2, '0')}-${kebabCase(name)}.mdx`
-        : `${kebabCase(name)}.mdx`
-      const fileOutput = `${finalOutputPath}/${fileName}`
+    functions.map(async ({ name, content }) => {
+      const fileName = `${kebabCase(name)}.mdx`
+      const fileOutput = `${outputPath}/${fileName}`
 
       // we are creating the folder for functions
       try {
-        await fs.mkdir(finalOutputPath)
+        await fs.mkdir(outputPath)
       } catch {
         if (verbose) {
           console.info(chalk.blue`⏭️  Skipping: Functions folder already exists.\n`)

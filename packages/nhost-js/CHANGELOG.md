@@ -1,5 +1,54 @@
 # @nhost/nhost-js
 
+## 3.0.1
+
+### Patch Changes
+
+- Updated dependencies [b338793d6]
+  - @nhost/hasura-auth-js@2.1.10
+
+## 3.0.0
+
+### Major Changes
+
+- bc9eff6e4: chore: remove support for using backendUrl when instantiating the Nhost client
+
+## 2.2.18
+
+### Patch Changes
+
+- 8b127fbb6: feat: export `urlFromSubdomain` helper
+
+## 2.2.17
+
+### Patch Changes
+
+- Updated dependencies [4fe4a1696]
+- Updated dependencies [4fe4a1696]
+  - @nhost/hasura-auth-js@2.1.9
+  - @nhost/hasura-storage-js@2.2.5
+
+## 2.2.16
+
+### Patch Changes
+
+- Updated dependencies [83fee5446]
+  - @nhost/hasura-storage-js@2.2.4
+
+## 2.2.15
+
+### Patch Changes
+
+- Updated dependencies [032c0bd21]
+  - @nhost/hasura-auth-js@2.1.8
+
+## 2.2.14
+
+### Patch Changes
+
+- Updated dependencies [39de0063b]
+  - @nhost/hasura-storage-js@2.2.3
+
 ## 2.2.13
 
 ### Patch Changes

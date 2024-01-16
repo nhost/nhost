@@ -1,5 +1,78 @@
 # @nhost/vue
 
+## 2.0.2
+
+### Patch Changes
+
+- 184c341f0: fix: include `ServiceUrls` in `NhostVueClientConstructorParams` interface
+
+## 2.0.1
+
+### Patch Changes
+
+- @nhost/nhost-js@3.0.1
+
+## 2.0.0
+
+### Major Changes
+
+- bc9eff6e4: chore: remove support for using backendUrl when instantiating the Nhost client
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/nhost-js@3.0.0
+
+## 1.14.1
+
+### Patch Changes
+
+- Updated dependencies [8b127fbb6]
+  - @nhost/nhost-js@2.2.18
+
+## 1.14.0
+
+### Minor Changes
+
+- 0c49e757c: feat: add new composable `useMultipleFilesUpload`
+
+## 1.13.39
+
+### Patch Changes
+
+- 00c363f80: fix(docs): update changeEmail usage reference
+
+## 1.13.38
+
+### Patch Changes
+
+- 7214d47cc: fix(vue-sdk): correctly unref arrays
+
+## 1.13.37
+
+### Patch Changes
+
+- 4fe4a1696: return `refreshToken` immediately after signIn and signUp
+  - @nhost/nhost-js@2.2.17
+
+## 1.13.36
+
+### Patch Changes
+
+- @nhost/nhost-js@2.2.16
+
+## 1.13.35
+
+### Patch Changes
+
+- @nhost/nhost-js@2.2.15
+
+## 1.13.34
+
+### Patch Changes
+
+- @nhost/nhost-js@2.2.14
+
 ## 1.13.33
 
 ### Patch Changes

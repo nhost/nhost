@@ -1,0 +1,26 @@
+---
+title: getPublicUrl()
+sidebarTitle: getPublicUrl()
+---
+
+Use `nhost.storage.getPublicUrl` to get the public URL of a file. The public URL can be used for un-authenticated users to access files. To access public files the `public` role must have permissions to select the file in the `storage.files` table.
+
+```ts
+const publicUrl = nhost.storage.getPublicUrl({ fileId: '<File-ID>' })
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`StorageGetUrlParams`](/reference/javascript/storage/types/storage-get-url-params)
+
+| Property                                                                                   | Type                | Required | Notes                                                        |
+| :----------------------------------------------------------------------------------------- | :------------------ | :------: | :----------------------------------------------------------- |
+| <span className="parameter-name"><span className="light-grey">params.</span>fileId</span>  | <code>string</code> |    ✔️    |                                                              |
+| <span className="parameter-name"><span className="light-grey">params.</span>blur</span>    | <code>number</code> |          | Image blur, between 0 and 100                                |
+| <span className="parameter-name"><span className="light-grey">params.</span>quality</span> | <code>number</code> |          | Image quality, between 1 and 100, 100 being the best quality |
+| <span className="parameter-name"><span className="light-grey">params.</span>height</span>  | <code>number</code> |          | Image height, in pixels                                      |
+| <span className="parameter-name"><span className="light-grey">params.</span>width</span>   | <code>number</code> |          | Image width, in pixels                                       |
+
+---

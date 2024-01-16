@@ -3,11 +3,12 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetAuthenticationSettingsDocument,
+  Software_Type_Enum,
   useGetAuthenticationSettingsQuery,
+  useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -28,15 +29,6 @@ export type AuthServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
-const AVAILABLE_AUTH_VERSIONS = [
-  '0.21.2',
-  '0.20.1',
-  '0.20.0',
-  '0.19.3',
-  '0.19.2',
-  '0.19.1',
-];
-
 export default function AuthServiceVersionSettings() {
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -49,9 +41,16 @@ export default function AuthServiceVersionSettings() {
     fetchPolicy: 'cache-only',
   });
 
+  const { data: authVersionsData } = useGetSoftwareVersionsQuery({
+    variables: {
+      software: Software_Type_Enum.Auth,
+    },
+  });
+
   const { version } = data?.config?.auth || {};
+  const versions = authVersionsData?.softwareVersions || [];
   const availableVersions = Array.from(
-    new Set(AVAILABLE_AUTH_VERSIONS).add(version),
+    new Set(versions.map((el) => el.version)).add(version),
   )
     .sort()
     .reverse()
@@ -134,12 +133,26 @@ export default function AuthServiceVersionSettings() {
           <ControlledAutocomplete
             id="version"
             name="version"
-            filterOptions={(options, state) => {
-              if (state.inputValue === version) {
-                return options;
-              }
+            autoHighlight
+            isOptionEqualToValue={() => false}
+            filterOptions={(options, { inputValue }) => {
+              const inputValueLower = inputValue.toLowerCase();
+              const matched = [];
+              const otherOptions = [];
 
-              return filterOptions(options, state);
+              options.forEach((option) => {
+                const optionLabelLower = option.label.toLowerCase();
+
+                if (optionLabelLower.startsWith(inputValueLower)) {
+                  matched.push(option);
+                } else {
+                  otherOptions.push(option);
+                }
+              });
+
+              const result = [...matched, ...otherOptions];
+
+              return result;
             }}
             fullWidth
             className="lg:col-span-2"

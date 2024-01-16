@@ -48,7 +48,6 @@ export const mockApplication: Project = {
   slug: 'test-application',
   appStates: [],
   subdomain: '',
-  isProvisioned: true,
   region: {
     awsName: 'us-east-1',
     city: 'New York',
@@ -60,7 +59,6 @@ export const mockApplication: Project = {
   deployments: [],
   desiredState: ApplicationStatus.Live,
   featureFlags: [],
-  providersUpdated: true,
   githubRepository: { fullName: 'test/git-project' },
   repositoryProductionBranch: null,
   nhostBaseFolder: null,
@@ -69,6 +67,7 @@ export const mockApplication: Project = {
     name: 'Starter',
     isFree: true,
     price: 0,
+    featureMaxDbSize: 1,
   },
   config: {
     observability: {

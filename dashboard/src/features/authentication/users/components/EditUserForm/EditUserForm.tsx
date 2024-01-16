@@ -24,6 +24,7 @@ import { copy } from '@/utils/copy';
 import { getServerError } from '@/utils/getServerError';
 import {
   RemoteAppGetUsersDocument,
+  useGetProjectLocalesQuery,
   useGetRolesPermissionsQuery,
   useUpdateRemoteAppUserMutation,
 } from '@/utils/__generated__/graphql';
@@ -145,6 +146,14 @@ export default function EditUserForm({
   const allAvailableProjectRoles = getUserRoles(
     dataRoles?.config?.auth?.user?.roles?.allowed,
   );
+
+  const { data } = useGetProjectLocalesQuery({
+    variables: {
+      appId: currentProject?.id,
+    },
+  });
+
+  const allowedLocales = data?.config?.auth?.user?.locale?.allowed || [];
 
   /**
    * This will change the `disabled` field in the user to its opposite.
@@ -374,12 +383,11 @@ export default function EditUserForm({
               error={!!errors.locale}
               helperText={errors?.locale?.message}
             >
-              <Option key="en" value="en">
-                en
-              </Option>
-              <Option key="fr" value="fr">
-                fr
-              </Option>
+              {allowedLocales.map((locale) => (
+                <Option key={locale} value={locale}>
+                  {locale}
+                </Option>
+              ))}
             </ControlledSelect>
           </Box>
           <Box

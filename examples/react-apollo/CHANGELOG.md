@@ -1,5 +1,28 @@
 # @nhost-examples/react-apollo
 
+## 0.1.17
+
+### Patch Changes
+
+- 67b2c044b: feat: add sign-in with Linked-In
+
+## 0.1.16
+
+### Patch Changes
+
+- 6e61dce29: feat: add SignIn with Apple
+  - @nhost/react@2.1.1
+  - @nhost/react-apollo@6.0.1
+
+## 0.1.15
+
+### Patch Changes
+
+- dba71483d: chore: react-apollo-example: add profile to allowedUrls
+- e819903f1: chore: remove facebook login
+  - @nhost/react@2.0.30
+  - @nhost/react-apollo@5.0.34
+
 ## 0.1.14
 
 ### Patch Changes

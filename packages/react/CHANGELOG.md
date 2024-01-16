@@ -1,5 +1,64 @@
 # @nhost/react
 
+## 3.0.1
+
+### Patch Changes
+
+- @nhost/nhost-js@3.0.1
+
+## 3.0.0
+
+### Major Changes
+
+- bc9eff6e4: chore: remove support for using backendUrl when instantiating the Nhost client
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/nhost-js@3.0.0
+
+## 2.1.1
+
+### Patch Changes
+
+- Updated dependencies [8b127fbb6]
+  - @nhost/nhost-js@2.2.18
+
+## 2.1.0
+
+### Minor Changes
+
+- 66c3193bc: Update useChangePassword hook interface to include ActionLoadingState
+
+### Patch Changes
+
+- 00c363f80: fix(docs): update changeEmail usage reference
+
+## 2.0.32
+
+### Patch Changes
+
+- 4fe4a1696: return `refreshToken` immediately after signIn and signUp
+  - @nhost/nhost-js@2.2.17
+
+## 2.0.31
+
+### Patch Changes
+
+- @nhost/nhost-js@2.2.16
+
+## 2.0.30
+
+### Patch Changes
+
+- @nhost/nhost-js@2.2.15
+
+## 2.0.29
+
+### Patch Changes
+
+- @nhost/nhost-js@2.2.14
+
 ## 2.0.28
 
 ### Patch Changes

@@ -1,0 +1,30 @@
+---
+title: localStorageGetter()
+sidebarTitle: localStorageGetter()
+---
+
+## Parameters
+
+---
+
+**<span className="parameter-name">clientStorageType</span>** <span className="optional-status">required</span> [`ClientStorageType`](/reference/javascript/auth/types/client-storage-type)
+
+---
+
+**<span className="parameter-name">clientStorage</span>** <span className="optional-status">optional</span> [`ClientStorage`](/reference/javascript/auth/types/client-storage)
+
+| Property                                                                                                  | Type                                                                                         | Required | Notes |
+| :-------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>customSet</span>       | <code>(key: string, value: null &#124; string) =&gt; void &#124; Promise&lt;void&gt;</code>  |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>customGet</span>       | <code>(key: string) =&gt; null &#124; string &#124; Promise&lt;null &#124; string&gt;</code> |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>deleteItemAsync</span> | <code>(key: string) =&gt; void</code>                                                        |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>getItemAsync</span>    | <code>(key: string) =&gt; any</code>                                                         |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>setItemAsync</span>    | <code>(key: string, value: string) =&gt; void</code>                                         |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>remove</span>          | <code>(options: &#123; key: string &#125;) =&gt; void</code>                                 |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>get</span>             | <code>(options: &#123; key: string &#125;) =&gt; any</code>                                  |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>set</span>             | <code>(options: &#123; key: string, value: string &#125;) =&gt; void</code>                  |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>removeItem</span>      | <code>(key: string) =&gt; void</code>                                                        |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>getItem</span>         | <code>(key: string) =&gt; any</code>                                                         |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>setItem</span>         | <code>(\_key: string, \_value: string) =&gt; void</code>                                     |          |       |
+
+---

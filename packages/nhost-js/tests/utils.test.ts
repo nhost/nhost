@@ -2,20 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { buildUrl, LOCALHOST_REGEX, urlFromSubdomain } from '../src/utils/helpers'
 
 describe('urlFromParams', () => {
-  describe('when using backendUrl', () => {
-    it('should return the full url with the path "/v1/auth" concatenated', async () => {
-      const url = urlFromSubdomain({ backendUrl: 'http://localhost' }, 'auth')
-
-      expect(url).toBe('http://localhost/v1/auth')
-    })
-
-    it('should return the full url with the path "/v1/storage" concatenated', async () => {
-      const url = urlFromSubdomain({ backendUrl: 'http://localhost:1337' }, 'storage')
-
-      expect(url).toBe('http://localhost:1337/v1/storage')
-    })
-  })
-
   describe('using subdomain', () => {
     describe('other than "localhost" and a region', () => {
       it('should return the full authentication url', async () => {
@@ -140,7 +126,9 @@ describe('buildUrl', () => {
   })
 
   it('should handle missing parameters', () => {
+    // @ts-ignore
     expect(() => buildUrl()).toThrow()
+    // @ts-ignore
     expect(() => buildUrl('https://example.com')).toThrow()
   })
 })

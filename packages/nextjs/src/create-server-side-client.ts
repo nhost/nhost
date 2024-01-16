@@ -1,9 +1,9 @@
 import {
   AuthMachine,
-  NHOST_REFRESH_TOKEN_KEY,
   NhostClient,
   NhostReactClientConstructorParams,
   NhostSession,
+  NHOST_REFRESH_TOKEN_KEY,
   VanillaNhostClient
 } from '@nhost/react'
 import Cookies from 'js-cookie'
@@ -29,27 +29,11 @@ export type CreateServerSideClientParams = Partial<
  * @returns instance of `NhostClient` that is ready to use on the server side (signed in or signed out)
  */
 export const createServerSideClient = async (
-  params: string | CreateServerSideClientParams,
+  params: CreateServerSideClientParams,
   context: GetServerSidePropsContext
 ): Promise<NhostClient> => {
-  let clientParams: NhostReactClientConstructorParams
-
-  if (typeof params === 'string') {
-    console.warn(
-      'Deprecation Notice: Backend URL is no longer supported. Please use subdomain + region or individual service URLs.'
-    )
-
-    clientParams = {
-      backendUrl: params
-    }
-  } else {
-    clientParams = {
-      ...params
-    }
-  }
-
   const nhost = new VanillaNhostClient({
-    ...clientParams,
+    ...params,
     clientStorageType: 'custom',
     clientStorage: {
       getItem: (key) => {

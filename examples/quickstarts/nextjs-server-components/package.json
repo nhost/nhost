@@ -1,0 +1,36 @@
+{
+  "name": "@nhost-examples/nextjs-server-components",
+  "version": "0.1.4",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.8.2",
+    "@nhost/nhost-js": "workspace:^",
+    "autoprefixer": "10.4.15",
+    "cookies-next": "^3.0.0",
+    "eslint": "8.48.0",
+    "eslint-config-next": "13.4.19",
+    "form-data": "^4.0.0",
+    "graphql": "16.7.1",
+    "js-cookie": "^3.0.5",
+    "next": "13.4.19",
+    "postcss": "8.4.29",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "tailwind-merge": "^1.8.0",
+    "tailwindcss": "3.3.3",
+    "typescript": "5.2.2",
+    "xstate": "^4.38.2"
+  },
+  "devDependencies": {
+    "@types/js-cookie": "^3.0.2",
+    "@types/node": "20.5.6",
+    "@types/react": "18.2.21",
+    "@types/react-dom": "18.2.7"
+  }
+}

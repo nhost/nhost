@@ -1,0 +1,21 @@
+mutation insertGraphiteAutoEmbeddingsConfiguration(
+  $name: String
+  $schemaName: String
+  $tableName: String
+  $columnName: String
+  $query: String
+  $mutation: String
+) {
+  insertGraphiteAutoEmbeddingsConfiguration(
+    object: {
+      name: $name
+      schemaName: $schemaName
+      tableName: $tableName
+      columnName: $columnName
+      query: $query
+      mutation: $mutation
+    }
+  ) {
+    id
+  }
+}

@@ -1,0 +1,161 @@
+---
+title: Setup Nhost with Next.js
+sidebarTitle: Next.js
+description: Get up and running with Nhost and Next.js
+icon: react
+---
+
+<Steps>
+  <Step title="Create Project">
+    If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io/new).
+  </Step>
+
+  <Step title="Setup Database">
+    Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `movies` with some great movies.
+
+    ```sql SQL Editor
+    CREATE TABLE movies (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      director VARCHAR(255),
+      release_year INTEGER,
+      genre VARCHAR(100),
+      rating FLOAT
+    );
+
+    INSERT INTO movies (title, director, release_year, genre, rating) VALUES
+      ('Inception', 'Christopher Nolan', 2010, 'Sci-Fi', 8.8),
+      ('The Godfather', 'Francis Ford Coppola', 1972, 'Crime', 9.2),
+      ('Forrest Gump', 'Robert Zemeckis', 1994, 'Drama', 8.8),
+      ('The Matrix', 'Lana Wachowski, Lilly Wachowski', 1999, 'Action', 8.7);
+    ```
+
+    <Warning>Make sure the option `Track this` is enabled</Warning>
+
+    ![SQL Editor](/images/guides/quickstarts/react/sql-editor.png)
+
+  </Step>
+
+  <Step title="permissions">
+    Select the new table `movies` just created, and click in **Edit Permissions** to set the following permissions for the `public` role and `select` action.
+
+    ![Permission Rules](/images/guides/quickstarts/react/permissions.png)
+
+  </Step>
+
+  <Step title="Setup a Next.js Application">
+    Create a Next.js application.
+
+    ```bash Terminal
+    npx create-next-app@latest --no-eslint \
+        --src-dir \
+        --no-tailwind \
+        --import-alias "@/*" \
+        --js \
+        --app \
+        nhost-nextjs-quickstart
+    ```
+
+  </Step>
+
+  <Step title="Install the Nhost package for Next.js">
+    Navidate to the React application and install `@nhost/nextjs`.
+
+    ```bash Terminal
+    cd nhost-nextjs-quickstart && npm install @nhost/nextjs
+    ```
+
+  </Step>
+
+  <Step title="Configure the Nhost client and fetch the list of movies">
+
+    Create a new file with the following code to creates the Nhost client.
+
+    ```js ./src/lib/nhost.js
+    import { NhostClient } from "@nhost/nextjs";
+
+    export const nhost = new NhostClient({
+      subdomain: "<subdomain>",
+      region: "<region>",
+    })
+    ```
+
+    <Note>Replace `<subdomain>` and `<region>` with the subdomain and region for the project</Note>
+
+    Finally, update `./src/app/page.js` to fetch the list of movies.
+
+    ```js src/app/page.js
+    'use client'
+
+    import { useEffect, useState } from "react";
+    import { NhostProvider } from "@nhost/nextjs";
+    import { nhost } from '../lib/nhost'
+
+    const getMovies = `
+      query {
+        movies {
+          title
+          genre
+          rating
+        }
+      }
+    `;
+
+    function App() {
+      return (
+        <NhostProvider nhost={nhost}>
+          <Home />
+        </NhostProvider>
+      );
+    }
+
+    function Home() {
+      const [loading, setLoading] = useState(true);
+      const [movies, setMovies] = useState([]);
+
+      useEffect(() => {
+        async function fetchMovies() {
+          setLoading(true);
+          const { data, error } = await nhost.graphql.request(getMovies);
+
+          setMovies(data.movies);
+          setLoading(false);
+        }
+
+        fetchMovies();
+      }, []);
+
+      return (
+        <div>
+          {loading ? (
+            <p>Loading...</p>
+          ) : (
+            <table>
+              <tbody>
+                {movies.map((movie, index) => (
+                  <tr key={index}>
+                    <td>{movie.title}</td>
+                    <td>{movie.genre}</td>
+                    <td>{movie.rating}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      );
+    }
+
+    export default App;
+    ```
+
+  </Step>
+
+  <Step title="The end">
+    Run your project with `npm run dev` and navigate to `http://localhost:3000` in your browser.
+  </Step>
+</Steps>
+
+```
+
+```

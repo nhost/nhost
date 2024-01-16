@@ -1,0 +1,23 @@
+---
+title: sendVerificationEmail()
+sidebarTitle: sendVerificationEmail()
+---
+
+Use `nhost.auth.sendVerificationEmail` to send a verification email to the specified email. The email contains a verification-email link. When the user clicks the verification-email link their email is verified.
+
+```ts
+nhost.auth.sendVerificationEmail({ email: 'joe@example.com' })
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">\_\_namedParameters</span>** <span className="optional-status">required</span> [`SendVerificationEmailParams`](/reference/javascript/auth/types/send-verification-email-params)
+
+| Property                                                                                                | Type                                                                 | Required | Notes |
+| :------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>email</span>   | <code>string</code>                                                  |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>options</span> | [`RedirectOption`](/reference/javascript/auth/types/redirect-option) |          |       |
+
+---

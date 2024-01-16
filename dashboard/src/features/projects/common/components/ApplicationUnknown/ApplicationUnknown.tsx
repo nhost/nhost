@@ -1,4 +1,4 @@
-import { FeedbackForm } from '@/components/common/FeedbackForm';
+import { ContactUs } from '@/components/common/ContactUs';
 import { Container } from '@/components/layout/Container';
 import { Modal } from '@/components/ui/v1/Modal';
 import { Button } from '@/components/ui/v2/Button';
@@ -65,7 +65,7 @@ export default function ApplicationUnknown() {
               anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
               transformOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
-              <FeedbackForm />
+              <ContactUs />
             </Dropdown.Content>
           </Dropdown.Root>
 

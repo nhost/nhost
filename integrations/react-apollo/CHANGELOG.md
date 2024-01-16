@@ -1,5 +1,78 @@
 # @nhost/react-apollo
 
+## 7.0.1
+
+### Patch Changes
+
+- @nhost/apollo@6.0.1
+- @nhost/react@3.0.1
+
+## 7.0.0
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/react@3.0.0
+  - @nhost/apollo@6.0.0
+
+## 6.0.1
+
+### Patch Changes
+
+- @nhost/apollo@5.2.22
+- @nhost/react@2.1.1
+
+## 6.0.0
+
+### Patch Changes
+
+- Updated dependencies [00c363f80]
+- Updated dependencies [66c3193bc]
+  - @nhost/react@2.1.0
+
+## 5.0.38
+
+### Patch Changes
+
+- Updated dependencies [f777a3380]
+  - @nhost/apollo@5.2.21
+
+## 5.0.37
+
+### Patch Changes
+
+- Updated dependencies [7459a9413]
+  - @nhost/apollo@5.2.20
+
+## 5.0.36
+
+### Patch Changes
+
+- Updated dependencies [4fe4a1696]
+  - @nhost/react@2.0.32
+  - @nhost/apollo@5.2.19
+
+## 5.0.35
+
+### Patch Changes
+
+- @nhost/apollo@5.2.18
+- @nhost/react@2.0.31
+
+## 5.0.34
+
+### Patch Changes
+
+- @nhost/apollo@5.2.17
+- @nhost/react@2.0.30
+
+## 5.0.33
+
+### Patch Changes
+
+- @nhost/apollo@5.2.16
+- @nhost/react@2.0.29
+
 ## 5.0.32
 
 ### Patch Changes

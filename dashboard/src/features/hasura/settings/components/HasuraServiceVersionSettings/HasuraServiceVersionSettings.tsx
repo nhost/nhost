@@ -3,11 +3,12 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetHasuraSettingsDocument,
+  Software_Type_Enum,
   useGetHasuraSettingsQuery,
+  useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -30,16 +31,6 @@ export type HasuraServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
-const AVAILABLE_HASURA_VERSIONS = [
-  'v2.29.0-ce',
-  'v2.28.2-ce',
-  'v2.27.0-ce',
-  'v2.25.1-ce',
-  'v2.25.0-ce',
-  'v2.24.1-ce',
-  'v2.15.2',
-];
-
 export default function HasuraServiceVersionSettings() {
   const { maintenanceActive } = useUI();
   const { currentProject, refetch: refetchWorkspaceAndProject } =
@@ -53,9 +44,16 @@ export default function HasuraServiceVersionSettings() {
     fetchPolicy: 'cache-only',
   });
 
+  const { data: hasuraVersionsData } = useGetSoftwareVersionsQuery({
+    variables: {
+      software: Software_Type_Enum.Hasura,
+    },
+  });
+
   const { version } = data?.config?.hasura || {};
+  const versions = hasuraVersionsData?.softwareVersions || [];
   const availableVersions = Array.from(
-    new Set(AVAILABLE_HASURA_VERSIONS).add(version),
+    new Set(versions.map((el) => el.version)).add(version),
   )
     .sort()
     .reverse()
@@ -137,12 +135,26 @@ export default function HasuraServiceVersionSettings() {
           <ControlledAutocomplete
             id="version"
             name="version"
-            filterOptions={(options, state) => {
-              if (state.inputValue === version) {
-                return options;
-              }
+            autoHighlight
+            isOptionEqualToValue={() => false}
+            filterOptions={(options, { inputValue }) => {
+              const inputValueLower = inputValue.toLowerCase();
+              const matched = [];
+              const otherOptions = [];
 
-              return filterOptions(options, state);
+              options.forEach((option) => {
+                const optionLabelLower = option.label.toLowerCase();
+
+                if (optionLabelLower.startsWith(inputValueLower)) {
+                  matched.push(option);
+                } else {
+                  otherOptions.push(option);
+                }
+              });
+
+              const result = [...matched, ...otherOptions];
+
+              return result;
             }}
             fullWidth
             className="lg:col-span-2"

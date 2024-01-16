@@ -15,8 +15,10 @@ export type Scalars = {
   Float: number;
   ConfigEmail: any;
   ConfigHasuraAPIs: any;
+  ConfigInt32: any;
   ConfigLocale: any;
   ConfigPort: any;
+  ConfigRunServiceName: any;
   ConfigUint8: any;
   ConfigUint32: any;
   ConfigUrl: any;
@@ -28,6 +30,7 @@ export type Scalars = {
   citext: any;
   float64: any;
   jsonb: any;
+  map: any;
   smallint: any;
   timestamp: any;
   timestamptz: any;
@@ -66,6 +69,106 @@ export type Boolean_Comparison_Exp = {
   _lte?: InputMaybe<Scalars['Boolean']>;
   _neq?: InputMaybe<Scalars['Boolean']>;
   _nin?: InputMaybe<Array<Scalars['Boolean']>>;
+};
+
+export type ConfigAi = {
+  __typename?: 'ConfigAI';
+  autoEmbeddings?: Maybe<ConfigAiAutoEmbeddings>;
+  openai: ConfigAiOpenai;
+  resources: ConfigAiResources;
+  version?: Maybe<Scalars['String']>;
+  webhookSecret: Scalars['String'];
+};
+
+export type ConfigAiAutoEmbeddings = {
+  __typename?: 'ConfigAIAutoEmbeddings';
+  synchPeriodMinutes?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAiAutoEmbeddingsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAiAutoEmbeddingsComparisonExp>>;
+  _not?: InputMaybe<ConfigAiAutoEmbeddingsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAiAutoEmbeddingsComparisonExp>>;
+  synchPeriodMinutes?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigAiAutoEmbeddingsInsertInput = {
+  synchPeriodMinutes?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAiAutoEmbeddingsUpdateInput = {
+  synchPeriodMinutes?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigAiComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAiComparisonExp>>;
+  _not?: InputMaybe<ConfigAiComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAiComparisonExp>>;
+  autoEmbeddings?: InputMaybe<ConfigAiAutoEmbeddingsComparisonExp>;
+  openai?: InputMaybe<ConfigAiOpenaiComparisonExp>;
+  resources?: InputMaybe<ConfigAiResourcesComparisonExp>;
+  version?: InputMaybe<ConfigStringComparisonExp>;
+  webhookSecret?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAiInsertInput = {
+  autoEmbeddings?: InputMaybe<ConfigAiAutoEmbeddingsInsertInput>;
+  openai: ConfigAiOpenaiInsertInput;
+  resources: ConfigAiResourcesInsertInput;
+  version?: InputMaybe<Scalars['String']>;
+  webhookSecret: Scalars['String'];
+};
+
+export type ConfigAiOpenai = {
+  __typename?: 'ConfigAIOpenai';
+  apiKey: Scalars['String'];
+  organization?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAiOpenaiComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAiOpenaiComparisonExp>>;
+  _not?: InputMaybe<ConfigAiOpenaiComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAiOpenaiComparisonExp>>;
+  apiKey?: InputMaybe<ConfigStringComparisonExp>;
+  organization?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAiOpenaiInsertInput = {
+  apiKey: Scalars['String'];
+  organization?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAiOpenaiUpdateInput = {
+  apiKey?: InputMaybe<Scalars['String']>;
+  organization?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAiResources = {
+  __typename?: 'ConfigAIResources';
+  compute: ConfigComputeResources;
+};
+
+export type ConfigAiResourcesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAiResourcesComparisonExp>>;
+  _not?: InputMaybe<ConfigAiResourcesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAiResourcesComparisonExp>>;
+  compute?: InputMaybe<ConfigComputeResourcesComparisonExp>;
+};
+
+export type ConfigAiResourcesInsertInput = {
+  compute: ConfigComputeResourcesInsertInput;
+};
+
+export type ConfigAiResourcesUpdateInput = {
+  compute?: InputMaybe<ConfigComputeResourcesUpdateInput>;
+};
+
+export type ConfigAiUpdateInput = {
+  autoEmbeddings?: InputMaybe<ConfigAiAutoEmbeddingsUpdateInput>;
+  openai?: InputMaybe<ConfigAiOpenaiUpdateInput>;
+  resources?: InputMaybe<ConfigAiResourcesUpdateInput>;
+  version?: InputMaybe<Scalars['String']>;
+  webhookSecret?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigAppConfig = {
@@ -525,6 +628,7 @@ export type ConfigAuthMethodWebauthnInsertInput = {
 
 export type ConfigAuthMethodWebauthnRelyingParty = {
   __typename?: 'ConfigAuthMethodWebauthnRelyingParty';
+  id?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   origins?: Maybe<Array<Scalars['ConfigUrl']>>;
 };
@@ -533,16 +637,19 @@ export type ConfigAuthMethodWebauthnRelyingPartyComparisonExp = {
   _and?: InputMaybe<Array<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>>;
   _not?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>;
   _or?: InputMaybe<Array<ConfigAuthMethodWebauthnRelyingPartyComparisonExp>>;
+  id?: InputMaybe<ConfigStringComparisonExp>;
   name?: InputMaybe<ConfigStringComparisonExp>;
   origins?: InputMaybe<ConfigUrlComparisonExp>;
 };
 
 export type ConfigAuthMethodWebauthnRelyingPartyInsertInput = {
+  id?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   origins?: InputMaybe<Array<Scalars['ConfigUrl']>>;
 };
 
 export type ConfigAuthMethodWebauthnRelyingPartyUpdateInput = {
+  id?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   origins?: InputMaybe<Array<Scalars['ConfigUrl']>>;
 };
@@ -652,7 +759,9 @@ export type ConfigAuthSessionUpdateInput = {
 
 export type ConfigAuthSignUp = {
   __typename?: 'ConfigAuthSignUp';
-  /** Inverse of AUTH_DISABLE_NEW_USERS */
+  /** AUTH_DISABLE_NEW_USERS */
+  disableNewUsers?: Maybe<Scalars['Boolean']>;
+  /** Inverse of AUTH_DISABLE_SIGNUP */
   enabled?: Maybe<Scalars['Boolean']>;
 };
 
@@ -660,14 +769,17 @@ export type ConfigAuthSignUpComparisonExp = {
   _and?: InputMaybe<Array<ConfigAuthSignUpComparisonExp>>;
   _not?: InputMaybe<ConfigAuthSignUpComparisonExp>;
   _or?: InputMaybe<Array<ConfigAuthSignUpComparisonExp>>;
+  disableNewUsers?: InputMaybe<ConfigBooleanComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
 };
 
 export type ConfigAuthSignUpInsertInput = {
+  disableNewUsers?: InputMaybe<Scalars['Boolean']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type ConfigAuthSignUpUpdateInput = {
+  disableNewUsers?: InputMaybe<Scalars['Boolean']>;
   enabled?: InputMaybe<Scalars['Boolean']>;
 };
 
@@ -939,9 +1051,38 @@ export type ConfigClaimMapUpdateInput = {
   value?: InputMaybe<Scalars['String']>;
 };
 
+/** Resource configuration for a service */
+export type ConfigComputeResources = {
+  __typename?: 'ConfigComputeResources';
+  /** milicpus, 1000 milicpus = 1 cpu */
+  cpu: Scalars['ConfigUint32'];
+  /** MiB: 128MiB to 30GiB */
+  memory: Scalars['ConfigUint32'];
+};
+
+export type ConfigComputeResourcesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigComputeResourcesComparisonExp>>;
+  _not?: InputMaybe<ConfigComputeResourcesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigComputeResourcesComparisonExp>>;
+  cpu?: InputMaybe<ConfigUint32ComparisonExp>;
+  memory?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigComputeResourcesInsertInput = {
+  cpu: Scalars['ConfigUint32'];
+  memory: Scalars['ConfigUint32'];
+};
+
+export type ConfigComputeResourcesUpdateInput = {
+  cpu?: InputMaybe<Scalars['ConfigUint32']>;
+  memory?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
 /** main entrypoint to the configuration */
 export type ConfigConfig = {
   __typename?: 'ConfigConfig';
+  /** Configuration for graphite service */
+  ai?: Maybe<ConfigAi>;
   /** Configuration for auth service */
   auth?: Maybe<ConfigAuth>;
   /** Configuration for functions service */
@@ -964,6 +1105,7 @@ export type ConfigConfigComparisonExp = {
   _and?: InputMaybe<Array<ConfigConfigComparisonExp>>;
   _not?: InputMaybe<ConfigConfigComparisonExp>;
   _or?: InputMaybe<Array<ConfigConfigComparisonExp>>;
+  ai?: InputMaybe<ConfigAiComparisonExp>;
   auth?: InputMaybe<ConfigAuthComparisonExp>;
   functions?: InputMaybe<ConfigFunctionsComparisonExp>;
   global?: InputMaybe<ConfigGlobalComparisonExp>;
@@ -975,6 +1117,7 @@ export type ConfigConfigComparisonExp = {
 };
 
 export type ConfigConfigInsertInput = {
+  ai?: InputMaybe<ConfigAiInsertInput>;
   auth?: InputMaybe<ConfigAuthInsertInput>;
   functions?: InputMaybe<ConfigFunctionsInsertInput>;
   global?: InputMaybe<ConfigGlobalInsertInput>;
@@ -986,6 +1129,7 @@ export type ConfigConfigInsertInput = {
 };
 
 export type ConfigConfigUpdateInput = {
+  ai?: InputMaybe<ConfigAiUpdateInput>;
   auth?: InputMaybe<ConfigAuthUpdateInput>;
   functions?: InputMaybe<ConfigFunctionsUpdateInput>;
   global?: InputMaybe<ConfigGlobalUpdateInput>;
@@ -1028,10 +1172,18 @@ export type ConfigEnvironmentVariableUpdateInput = {
   value?: InputMaybe<Scalars['String']>;
 };
 
+export type ConfigFloatComparisonExp = {
+  _eq?: InputMaybe<Scalars['Float']>;
+  _in?: InputMaybe<Array<Scalars['Float']>>;
+  _neq?: InputMaybe<Scalars['Float']>;
+  _nin?: InputMaybe<Array<Scalars['Float']>>;
+};
+
 /** Configuration for functions service */
 export type ConfigFunctions = {
   __typename?: 'ConfigFunctions';
   node?: Maybe<ConfigFunctionsNode>;
+  resources?: Maybe<ConfigFunctionsResources>;
 };
 
 export type ConfigFunctionsComparisonExp = {
@@ -1039,10 +1191,12 @@ export type ConfigFunctionsComparisonExp = {
   _not?: InputMaybe<ConfigFunctionsComparisonExp>;
   _or?: InputMaybe<Array<ConfigFunctionsComparisonExp>>;
   node?: InputMaybe<ConfigFunctionsNodeComparisonExp>;
+  resources?: InputMaybe<ConfigFunctionsResourcesComparisonExp>;
 };
 
 export type ConfigFunctionsInsertInput = {
   node?: InputMaybe<ConfigFunctionsNodeInsertInput>;
+  resources?: InputMaybe<ConfigFunctionsResourcesInsertInput>;
 };
 
 export type ConfigFunctionsNode = {
@@ -1065,8 +1219,29 @@ export type ConfigFunctionsNodeUpdateInput = {
   version?: InputMaybe<Scalars['Int']>;
 };
 
+export type ConfigFunctionsResources = {
+  __typename?: 'ConfigFunctionsResources';
+  networking?: Maybe<ConfigNetworking>;
+};
+
+export type ConfigFunctionsResourcesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigFunctionsResourcesComparisonExp>>;
+  _not?: InputMaybe<ConfigFunctionsResourcesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigFunctionsResourcesComparisonExp>>;
+  networking?: InputMaybe<ConfigNetworkingComparisonExp>;
+};
+
+export type ConfigFunctionsResourcesInsertInput = {
+  networking?: InputMaybe<ConfigNetworkingInsertInput>;
+};
+
+export type ConfigFunctionsResourcesUpdateInput = {
+  networking?: InputMaybe<ConfigNetworkingUpdateInput>;
+};
+
 export type ConfigFunctionsUpdateInput = {
   node?: InputMaybe<ConfigFunctionsNodeUpdateInput>;
+  resources?: InputMaybe<ConfigFunctionsResourcesUpdateInput>;
 };
 
 /** Global configuration that applies to all services */
@@ -1227,6 +1402,8 @@ export type ConfigHasuraSettings = {
   enableRemoteSchemaPermissions?: Maybe<Scalars['Boolean']>;
   /** HASURA_GRAPHQL_ENABLED_APIS */
   enabledAPIs?: Maybe<Array<Scalars['ConfigHasuraAPIs']>>;
+  /** HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL */
+  liveQueriesMultiplexedRefetchInterval?: Maybe<Scalars['ConfigUint32']>;
 };
 
 export type ConfigHasuraSettingsComparisonExp = {
@@ -1239,6 +1416,7 @@ export type ConfigHasuraSettingsComparisonExp = {
   enableConsole?: InputMaybe<ConfigBooleanComparisonExp>;
   enableRemoteSchemaPermissions?: InputMaybe<ConfigBooleanComparisonExp>;
   enabledAPIs?: InputMaybe<ConfigHasuraApIsComparisonExp>;
+  liveQueriesMultiplexedRefetchInterval?: InputMaybe<ConfigUint32ComparisonExp>;
 };
 
 export type ConfigHasuraSettingsInsertInput = {
@@ -1248,6 +1426,7 @@ export type ConfigHasuraSettingsInsertInput = {
   enableConsole?: InputMaybe<Scalars['Boolean']>;
   enableRemoteSchemaPermissions?: InputMaybe<Scalars['Boolean']>;
   enabledAPIs?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
+  liveQueriesMultiplexedRefetchInterval?: InputMaybe<Scalars['ConfigUint32']>;
 };
 
 export type ConfigHasuraSettingsUpdateInput = {
@@ -1257,6 +1436,7 @@ export type ConfigHasuraSettingsUpdateInput = {
   enableConsole?: InputMaybe<Scalars['Boolean']>;
   enableRemoteSchemaPermissions?: InputMaybe<Scalars['Boolean']>;
   enabledAPIs?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
+  liveQueriesMultiplexedRefetchInterval?: InputMaybe<Scalars['ConfigUint32']>;
 };
 
 export type ConfigHasuraUpdateInput = {
@@ -1270,11 +1450,66 @@ export type ConfigHasuraUpdateInput = {
   webhookSecret?: InputMaybe<Scalars['String']>;
 };
 
+export type ConfigHealthCheck = {
+  __typename?: 'ConfigHealthCheck';
+  initialDelaySeconds?: Maybe<Scalars['Int']>;
+  port: Scalars['ConfigPort'];
+  probePeriodSeconds?: Maybe<Scalars['Int']>;
+};
+
+export type ConfigHealthCheckComparisonExp = {
+  _and?: InputMaybe<Array<ConfigHealthCheckComparisonExp>>;
+  _not?: InputMaybe<ConfigHealthCheckComparisonExp>;
+  _or?: InputMaybe<Array<ConfigHealthCheckComparisonExp>>;
+  initialDelaySeconds?: InputMaybe<ConfigIntComparisonExp>;
+  port?: InputMaybe<ConfigPortComparisonExp>;
+  probePeriodSeconds?: InputMaybe<ConfigIntComparisonExp>;
+};
+
+export type ConfigHealthCheckInsertInput = {
+  initialDelaySeconds?: InputMaybe<Scalars['Int']>;
+  port: Scalars['ConfigPort'];
+  probePeriodSeconds?: InputMaybe<Scalars['Int']>;
+};
+
+export type ConfigHealthCheckUpdateInput = {
+  initialDelaySeconds?: InputMaybe<Scalars['Int']>;
+  port?: InputMaybe<Scalars['ConfigPort']>;
+  probePeriodSeconds?: InputMaybe<Scalars['Int']>;
+};
+
+export type ConfigIngress = {
+  __typename?: 'ConfigIngress';
+  fqdn?: Maybe<Array<Scalars['String']>>;
+};
+
+export type ConfigIngressComparisonExp = {
+  _and?: InputMaybe<Array<ConfigIngressComparisonExp>>;
+  _not?: InputMaybe<ConfigIngressComparisonExp>;
+  _or?: InputMaybe<Array<ConfigIngressComparisonExp>>;
+  fqdn?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigIngressInsertInput = {
+  fqdn?: InputMaybe<Array<Scalars['String']>>;
+};
+
+export type ConfigIngressUpdateInput = {
+  fqdn?: InputMaybe<Array<Scalars['String']>>;
+};
+
 export type ConfigInsertConfigResponse = {
   __typename?: 'ConfigInsertConfigResponse';
   config: ConfigConfig;
   secrets: Array<ConfigEnvironmentVariable>;
   systemConfig: ConfigSystemConfig;
+};
+
+export type ConfigInt32ComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigInt32']>;
+  _in?: InputMaybe<Array<Scalars['ConfigInt32']>>;
+  _neq?: InputMaybe<Scalars['ConfigInt32']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigInt32']>>;
 };
 
 export type ConfigIntComparisonExp = {
@@ -1352,6 +1587,26 @@ export type ConfigLocaleComparisonExp = {
   _nin?: InputMaybe<Array<Scalars['ConfigLocale']>>;
 };
 
+export type ConfigNetworking = {
+  __typename?: 'ConfigNetworking';
+  ingresses?: Maybe<Array<ConfigIngress>>;
+};
+
+export type ConfigNetworkingComparisonExp = {
+  _and?: InputMaybe<Array<ConfigNetworkingComparisonExp>>;
+  _not?: InputMaybe<ConfigNetworkingComparisonExp>;
+  _or?: InputMaybe<Array<ConfigNetworkingComparisonExp>>;
+  ingresses?: InputMaybe<ConfigIngressComparisonExp>;
+};
+
+export type ConfigNetworkingInsertInput = {
+  ingresses?: InputMaybe<Array<ConfigIngressInsertInput>>;
+};
+
+export type ConfigNetworkingUpdateInput = {
+  ingresses?: InputMaybe<Array<ConfigIngressUpdateInput>>;
+};
+
 export type ConfigObservability = {
   __typename?: 'ConfigObservability';
   grafana: ConfigGrafana;
@@ -1383,7 +1638,8 @@ export type ConfigPortComparisonExp = {
 export type ConfigPostgres = {
   __typename?: 'ConfigPostgres';
   /** Resources for the service */
-  resources?: Maybe<ConfigResources>;
+  resources?: Maybe<ConfigPostgresResources>;
+  settings?: Maybe<ConfigPostgresSettings>;
   /**
    * Version of postgres, you can see available versions in the URL below:
    * https://hub.docker.com/r/nhost/postgres/tags
@@ -1395,17 +1651,175 @@ export type ConfigPostgresComparisonExp = {
   _and?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
   _not?: InputMaybe<ConfigPostgresComparisonExp>;
   _or?: InputMaybe<Array<ConfigPostgresComparisonExp>>;
-  resources?: InputMaybe<ConfigResourcesComparisonExp>;
+  resources?: InputMaybe<ConfigPostgresResourcesComparisonExp>;
+  settings?: InputMaybe<ConfigPostgresSettingsComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigPostgresInsertInput = {
-  resources?: InputMaybe<ConfigResourcesInsertInput>;
+  resources?: InputMaybe<ConfigPostgresResourcesInsertInput>;
+  settings?: InputMaybe<ConfigPostgresSettingsInsertInput>;
   version?: InputMaybe<Scalars['String']>;
 };
 
+/** Resources for the service */
+export type ConfigPostgresResources = {
+  __typename?: 'ConfigPostgresResources';
+  compute?: Maybe<ConfigResourcesCompute>;
+  networking?: Maybe<ConfigNetworking>;
+  /** Number of replicas for a service */
+  replicas?: Maybe<Scalars['ConfigUint8']>;
+  storage?: Maybe<ConfigPostgresStorage>;
+};
+
+export type ConfigPostgresResourcesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigPostgresResourcesComparisonExp>>;
+  _not?: InputMaybe<ConfigPostgresResourcesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigPostgresResourcesComparisonExp>>;
+  compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
+  networking?: InputMaybe<ConfigNetworkingComparisonExp>;
+  replicas?: InputMaybe<ConfigUint8ComparisonExp>;
+  storage?: InputMaybe<ConfigPostgresStorageComparisonExp>;
+};
+
+export type ConfigPostgresResourcesInsertInput = {
+  compute?: InputMaybe<ConfigResourcesComputeInsertInput>;
+  networking?: InputMaybe<ConfigNetworkingInsertInput>;
+  replicas?: InputMaybe<Scalars['ConfigUint8']>;
+  storage?: InputMaybe<ConfigPostgresStorageInsertInput>;
+};
+
+export type ConfigPostgresResourcesUpdateInput = {
+  compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
+  networking?: InputMaybe<ConfigNetworkingUpdateInput>;
+  replicas?: InputMaybe<Scalars['ConfigUint8']>;
+  storage?: InputMaybe<ConfigPostgresStorageUpdateInput>;
+};
+
+export type ConfigPostgresSettings = {
+  __typename?: 'ConfigPostgresSettings';
+  checkpointCompletionTarget?: Maybe<Scalars['Float']>;
+  defaultStatisticsTarget?: Maybe<Scalars['ConfigInt32']>;
+  effectiveCacheSize?: Maybe<Scalars['String']>;
+  effectiveIOConcurrency?: Maybe<Scalars['ConfigInt32']>;
+  hugePages?: Maybe<Scalars['String']>;
+  jit?: Maybe<Scalars['String']>;
+  maintenanceWorkMem?: Maybe<Scalars['String']>;
+  maxConnections?: Maybe<Scalars['ConfigInt32']>;
+  maxParallelMaintenanceWorkers?: Maybe<Scalars['ConfigInt32']>;
+  maxParallelWorkers?: Maybe<Scalars['ConfigInt32']>;
+  maxParallelWorkersPerGather?: Maybe<Scalars['ConfigInt32']>;
+  maxReplicationSlots?: Maybe<Scalars['ConfigInt32']>;
+  maxWalSenders?: Maybe<Scalars['ConfigInt32']>;
+  maxWalSize?: Maybe<Scalars['String']>;
+  maxWorkerProcesses?: Maybe<Scalars['ConfigInt32']>;
+  minWalSize?: Maybe<Scalars['String']>;
+  randomPageCost?: Maybe<Scalars['Float']>;
+  sharedBuffers?: Maybe<Scalars['String']>;
+  walBuffers?: Maybe<Scalars['String']>;
+  walLevel?: Maybe<Scalars['String']>;
+  workMem?: Maybe<Scalars['String']>;
+};
+
+export type ConfigPostgresSettingsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigPostgresSettingsComparisonExp>>;
+  _not?: InputMaybe<ConfigPostgresSettingsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigPostgresSettingsComparisonExp>>;
+  checkpointCompletionTarget?: InputMaybe<ConfigFloatComparisonExp>;
+  defaultStatisticsTarget?: InputMaybe<ConfigInt32ComparisonExp>;
+  effectiveCacheSize?: InputMaybe<ConfigStringComparisonExp>;
+  effectiveIOConcurrency?: InputMaybe<ConfigInt32ComparisonExp>;
+  hugePages?: InputMaybe<ConfigStringComparisonExp>;
+  jit?: InputMaybe<ConfigStringComparisonExp>;
+  maintenanceWorkMem?: InputMaybe<ConfigStringComparisonExp>;
+  maxConnections?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxParallelMaintenanceWorkers?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxParallelWorkers?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxParallelWorkersPerGather?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxReplicationSlots?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxWalSenders?: InputMaybe<ConfigInt32ComparisonExp>;
+  maxWalSize?: InputMaybe<ConfigStringComparisonExp>;
+  maxWorkerProcesses?: InputMaybe<ConfigInt32ComparisonExp>;
+  minWalSize?: InputMaybe<ConfigStringComparisonExp>;
+  randomPageCost?: InputMaybe<ConfigFloatComparisonExp>;
+  sharedBuffers?: InputMaybe<ConfigStringComparisonExp>;
+  walBuffers?: InputMaybe<ConfigStringComparisonExp>;
+  walLevel?: InputMaybe<ConfigStringComparisonExp>;
+  workMem?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigPostgresSettingsInsertInput = {
+  checkpointCompletionTarget?: InputMaybe<Scalars['Float']>;
+  defaultStatisticsTarget?: InputMaybe<Scalars['ConfigInt32']>;
+  effectiveCacheSize?: InputMaybe<Scalars['String']>;
+  effectiveIOConcurrency?: InputMaybe<Scalars['ConfigInt32']>;
+  hugePages?: InputMaybe<Scalars['String']>;
+  jit?: InputMaybe<Scalars['String']>;
+  maintenanceWorkMem?: InputMaybe<Scalars['String']>;
+  maxConnections?: InputMaybe<Scalars['ConfigInt32']>;
+  maxParallelMaintenanceWorkers?: InputMaybe<Scalars['ConfigInt32']>;
+  maxParallelWorkers?: InputMaybe<Scalars['ConfigInt32']>;
+  maxParallelWorkersPerGather?: InputMaybe<Scalars['ConfigInt32']>;
+  maxReplicationSlots?: InputMaybe<Scalars['ConfigInt32']>;
+  maxWalSenders?: InputMaybe<Scalars['ConfigInt32']>;
+  maxWalSize?: InputMaybe<Scalars['String']>;
+  maxWorkerProcesses?: InputMaybe<Scalars['ConfigInt32']>;
+  minWalSize?: InputMaybe<Scalars['String']>;
+  randomPageCost?: InputMaybe<Scalars['Float']>;
+  sharedBuffers?: InputMaybe<Scalars['String']>;
+  walBuffers?: InputMaybe<Scalars['String']>;
+  walLevel?: InputMaybe<Scalars['String']>;
+  workMem?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigPostgresSettingsUpdateInput = {
+  checkpointCompletionTarget?: InputMaybe<Scalars['Float']>;
+  defaultStatisticsTarget?: InputMaybe<Scalars['ConfigInt32']>;
+  effectiveCacheSize?: InputMaybe<Scalars['String']>;
+  effectiveIOConcurrency?: InputMaybe<Scalars['ConfigInt32']>;
+  hugePages?: InputMaybe<Scalars['String']>;
+  jit?: InputMaybe<Scalars['String']>;
+  maintenanceWorkMem?: InputMaybe<Scalars['String']>;
+  maxConnections?: InputMaybe<Scalars['ConfigInt32']>;
+  maxParallelMaintenanceWorkers?: InputMaybe<Scalars['ConfigInt32']>;
+  maxParallelWorkers?: InputMaybe<Scalars['ConfigInt32']>;
+  maxParallelWorkersPerGather?: InputMaybe<Scalars['ConfigInt32']>;
+  maxReplicationSlots?: InputMaybe<Scalars['ConfigInt32']>;
+  maxWalSenders?: InputMaybe<Scalars['ConfigInt32']>;
+  maxWalSize?: InputMaybe<Scalars['String']>;
+  maxWorkerProcesses?: InputMaybe<Scalars['ConfigInt32']>;
+  minWalSize?: InputMaybe<Scalars['String']>;
+  randomPageCost?: InputMaybe<Scalars['Float']>;
+  sharedBuffers?: InputMaybe<Scalars['String']>;
+  walBuffers?: InputMaybe<Scalars['String']>;
+  walLevel?: InputMaybe<Scalars['String']>;
+  workMem?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigPostgresStorage = {
+  __typename?: 'ConfigPostgresStorage';
+  /** GiB */
+  capacity: Scalars['ConfigUint32'];
+};
+
+export type ConfigPostgresStorageComparisonExp = {
+  _and?: InputMaybe<Array<ConfigPostgresStorageComparisonExp>>;
+  _not?: InputMaybe<ConfigPostgresStorageComparisonExp>;
+  _or?: InputMaybe<Array<ConfigPostgresStorageComparisonExp>>;
+  capacity?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigPostgresStorageInsertInput = {
+  capacity: Scalars['ConfigUint32'];
+};
+
+export type ConfigPostgresStorageUpdateInput = {
+  capacity?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
 export type ConfigPostgresUpdateInput = {
-  resources?: InputMaybe<ConfigResourcesUpdateInput>;
+  resources?: InputMaybe<ConfigPostgresResourcesUpdateInput>;
+  settings?: InputMaybe<ConfigPostgresSettingsUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
 };
 
@@ -1436,9 +1850,10 @@ export type ConfigProviderUpdateInput = {
 /** Resource configuration for a service */
 export type ConfigResources = {
   __typename?: 'ConfigResources';
-  compute: ConfigResourcesCompute;
+  compute?: Maybe<ConfigResourcesCompute>;
+  networking?: Maybe<ConfigNetworking>;
   /** Number of replicas for a service */
-  replicas: Scalars['ConfigUint8'];
+  replicas?: Maybe<Scalars['ConfigUint8']>;
 };
 
 export type ConfigResourcesComparisonExp = {
@@ -1446,6 +1861,7 @@ export type ConfigResourcesComparisonExp = {
   _not?: InputMaybe<ConfigResourcesComparisonExp>;
   _or?: InputMaybe<Array<ConfigResourcesComparisonExp>>;
   compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
+  networking?: InputMaybe<ConfigNetworkingComparisonExp>;
   replicas?: InputMaybe<ConfigUint8ComparisonExp>;
 };
 
@@ -1476,13 +1892,184 @@ export type ConfigResourcesComputeUpdateInput = {
 };
 
 export type ConfigResourcesInsertInput = {
-  compute: ConfigResourcesComputeInsertInput;
-  replicas: Scalars['ConfigUint8'];
+  compute?: InputMaybe<ConfigResourcesComputeInsertInput>;
+  networking?: InputMaybe<ConfigNetworkingInsertInput>;
+  replicas?: InputMaybe<Scalars['ConfigUint8']>;
 };
 
 export type ConfigResourcesUpdateInput = {
   compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
+  networking?: InputMaybe<ConfigNetworkingUpdateInput>;
   replicas?: InputMaybe<Scalars['ConfigUint8']>;
+};
+
+export type ConfigRunServiceConfig = {
+  __typename?: 'ConfigRunServiceConfig';
+  command?: Maybe<Array<Scalars['String']>>;
+  environment?: Maybe<Array<ConfigEnvironmentVariable>>;
+  healthCheck?: Maybe<ConfigHealthCheck>;
+  image: ConfigRunServiceImage;
+  name: Scalars['ConfigRunServiceName'];
+  ports?: Maybe<Array<ConfigRunServicePort>>;
+  resources: ConfigRunServiceResources;
+};
+
+export type ConfigRunServiceConfigComparisonExp = {
+  _and?: InputMaybe<Array<ConfigRunServiceConfigComparisonExp>>;
+  _not?: InputMaybe<ConfigRunServiceConfigComparisonExp>;
+  _or?: InputMaybe<Array<ConfigRunServiceConfigComparisonExp>>;
+  command?: InputMaybe<ConfigStringComparisonExp>;
+  environment?: InputMaybe<ConfigEnvironmentVariableComparisonExp>;
+  healthCheck?: InputMaybe<ConfigHealthCheckComparisonExp>;
+  image?: InputMaybe<ConfigRunServiceImageComparisonExp>;
+  name?: InputMaybe<ConfigRunServiceNameComparisonExp>;
+  ports?: InputMaybe<ConfigRunServicePortComparisonExp>;
+  resources?: InputMaybe<ConfigRunServiceResourcesComparisonExp>;
+};
+
+export type ConfigRunServiceConfigInsertInput = {
+  command?: InputMaybe<Array<Scalars['String']>>;
+  environment?: InputMaybe<Array<ConfigEnvironmentVariableInsertInput>>;
+  healthCheck?: InputMaybe<ConfigHealthCheckInsertInput>;
+  image: ConfigRunServiceImageInsertInput;
+  name: Scalars['ConfigRunServiceName'];
+  ports?: InputMaybe<Array<ConfigRunServicePortInsertInput>>;
+  resources: ConfigRunServiceResourcesInsertInput;
+};
+
+export type ConfigRunServiceConfigUpdateInput = {
+  command?: InputMaybe<Array<Scalars['String']>>;
+  environment?: InputMaybe<Array<ConfigEnvironmentVariableUpdateInput>>;
+  healthCheck?: InputMaybe<ConfigHealthCheckUpdateInput>;
+  image?: InputMaybe<ConfigRunServiceImageUpdateInput>;
+  name?: InputMaybe<Scalars['ConfigRunServiceName']>;
+  ports?: InputMaybe<Array<ConfigRunServicePortUpdateInput>>;
+  resources?: InputMaybe<ConfigRunServiceResourcesUpdateInput>;
+};
+
+export type ConfigRunServiceConfigWithId = {
+  __typename?: 'ConfigRunServiceConfigWithID';
+  config: ConfigRunServiceConfig;
+  serviceID: Scalars['uuid'];
+};
+
+export type ConfigRunServiceImage = {
+  __typename?: 'ConfigRunServiceImage';
+  image: Scalars['String'];
+};
+
+export type ConfigRunServiceImageComparisonExp = {
+  _and?: InputMaybe<Array<ConfigRunServiceImageComparisonExp>>;
+  _not?: InputMaybe<ConfigRunServiceImageComparisonExp>;
+  _or?: InputMaybe<Array<ConfigRunServiceImageComparisonExp>>;
+  image?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigRunServiceImageInsertInput = {
+  image: Scalars['String'];
+};
+
+export type ConfigRunServiceImageUpdateInput = {
+  image?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigRunServiceNameComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigRunServiceName']>;
+  _in?: InputMaybe<Array<Scalars['ConfigRunServiceName']>>;
+  _neq?: InputMaybe<Scalars['ConfigRunServiceName']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigRunServiceName']>>;
+};
+
+export type ConfigRunServicePort = {
+  __typename?: 'ConfigRunServicePort';
+  ingresses?: Maybe<Array<ConfigIngress>>;
+  port: Scalars['ConfigPort'];
+  publish?: Maybe<Scalars['Boolean']>;
+  type: Scalars['String'];
+};
+
+export type ConfigRunServicePortComparisonExp = {
+  _and?: InputMaybe<Array<ConfigRunServicePortComparisonExp>>;
+  _not?: InputMaybe<ConfigRunServicePortComparisonExp>;
+  _or?: InputMaybe<Array<ConfigRunServicePortComparisonExp>>;
+  ingresses?: InputMaybe<ConfigIngressComparisonExp>;
+  port?: InputMaybe<ConfigPortComparisonExp>;
+  publish?: InputMaybe<ConfigBooleanComparisonExp>;
+  type?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigRunServicePortInsertInput = {
+  ingresses?: InputMaybe<Array<ConfigIngressInsertInput>>;
+  port: Scalars['ConfigPort'];
+  publish?: InputMaybe<Scalars['Boolean']>;
+  type: Scalars['String'];
+};
+
+export type ConfigRunServicePortUpdateInput = {
+  ingresses?: InputMaybe<Array<ConfigIngressUpdateInput>>;
+  port?: InputMaybe<Scalars['ConfigPort']>;
+  publish?: InputMaybe<Scalars['Boolean']>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+/** Resource configuration for a service */
+export type ConfigRunServiceResources = {
+  __typename?: 'ConfigRunServiceResources';
+  compute: ConfigComputeResources;
+  /** Number of replicas for a service */
+  replicas: Scalars['ConfigUint8'];
+  storage?: Maybe<Array<ConfigRunServiceResourcesStorage>>;
+};
+
+export type ConfigRunServiceResourcesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigRunServiceResourcesComparisonExp>>;
+  _not?: InputMaybe<ConfigRunServiceResourcesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigRunServiceResourcesComparisonExp>>;
+  compute?: InputMaybe<ConfigComputeResourcesComparisonExp>;
+  replicas?: InputMaybe<ConfigUint8ComparisonExp>;
+  storage?: InputMaybe<ConfigRunServiceResourcesStorageComparisonExp>;
+};
+
+export type ConfigRunServiceResourcesInsertInput = {
+  compute: ConfigComputeResourcesInsertInput;
+  replicas: Scalars['ConfigUint8'];
+  storage?: InputMaybe<Array<ConfigRunServiceResourcesStorageInsertInput>>;
+};
+
+export type ConfigRunServiceResourcesStorage = {
+  __typename?: 'ConfigRunServiceResourcesStorage';
+  /** GiB */
+  capacity: Scalars['ConfigUint32'];
+  /** name of the volume, changing it will cause data loss */
+  name: Scalars['ConfigRunServiceName'];
+  path: Scalars['String'];
+};
+
+export type ConfigRunServiceResourcesStorageComparisonExp = {
+  _and?: InputMaybe<Array<ConfigRunServiceResourcesStorageComparisonExp>>;
+  _not?: InputMaybe<ConfigRunServiceResourcesStorageComparisonExp>;
+  _or?: InputMaybe<Array<ConfigRunServiceResourcesStorageComparisonExp>>;
+  capacity?: InputMaybe<ConfigUint32ComparisonExp>;
+  name?: InputMaybe<ConfigRunServiceNameComparisonExp>;
+  path?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigRunServiceResourcesStorageInsertInput = {
+  capacity: Scalars['ConfigUint32'];
+  name: Scalars['ConfigRunServiceName'];
+  path: Scalars['String'];
+};
+
+export type ConfigRunServiceResourcesStorageUpdateInput = {
+  capacity?: InputMaybe<Scalars['ConfigUint32']>;
+  name?: InputMaybe<Scalars['ConfigRunServiceName']>;
+  path?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigRunServiceResourcesUpdateInput = {
+  compute?: InputMaybe<ConfigComputeResourcesUpdateInput>;
+  replicas?: InputMaybe<Scalars['ConfigUint8']>;
+  storage?: InputMaybe<Array<ConfigRunServiceResourcesStorageUpdateInput>>;
 };
 
 export type ConfigSms = {
@@ -1624,7 +2211,11 @@ export type ConfigStandardOauthProviderWithScopeUpdateInput = {
 /** Configuration for storage service */
 export type ConfigStorage = {
   __typename?: 'ConfigStorage';
-  /** Resources for the service */
+  antivirus?: Maybe<ConfigStorageAntivirus>;
+  /**
+   * Networking (custom domains at the moment) are not allowed as we need to do further
+   * configurations in the CDN. We will enable it again in the future.
+   */
   resources?: Maybe<ConfigResources>;
   /**
    * Version of storage service, you can see available versions in the URL below:
@@ -1637,20 +2228,43 @@ export type ConfigStorage = {
   version?: Maybe<Scalars['String']>;
 };
 
+export type ConfigStorageAntivirus = {
+  __typename?: 'ConfigStorageAntivirus';
+  server?: Maybe<Scalars['String']>;
+};
+
+export type ConfigStorageAntivirusComparisonExp = {
+  _and?: InputMaybe<Array<ConfigStorageAntivirusComparisonExp>>;
+  _not?: InputMaybe<ConfigStorageAntivirusComparisonExp>;
+  _or?: InputMaybe<Array<ConfigStorageAntivirusComparisonExp>>;
+  server?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigStorageAntivirusInsertInput = {
+  server?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigStorageAntivirusUpdateInput = {
+  server?: InputMaybe<Scalars['String']>;
+};
+
 export type ConfigStorageComparisonExp = {
   _and?: InputMaybe<Array<ConfigStorageComparisonExp>>;
   _not?: InputMaybe<ConfigStorageComparisonExp>;
   _or?: InputMaybe<Array<ConfigStorageComparisonExp>>;
+  antivirus?: InputMaybe<ConfigStorageAntivirusComparisonExp>;
   resources?: InputMaybe<ConfigResourcesComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigStorageInsertInput = {
+  antivirus?: InputMaybe<ConfigStorageAntivirusInsertInput>;
   resources?: InputMaybe<ConfigResourcesInsertInput>;
   version?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigStorageUpdateInput = {
+  antivirus?: InputMaybe<ConfigStorageAntivirusUpdateInput>;
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
 };
@@ -1847,6 +2461,19 @@ export type Int_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['Int']>>;
 };
 
+export type InvoiceItem = {
+  __typename?: 'InvoiceItem';
+  Amount: Scalars['float64'];
+  Description: Scalars['String'];
+};
+
+export type InvoiceSummary = {
+  __typename?: 'InvoiceSummary';
+  AmountDue: Scalars['float64'];
+  PeriodEnd: Scalars['Timestamp'];
+  items: Array<InvoiceItem>;
+};
+
 export type Log = {
   __typename?: 'Log';
   log: Scalars['String'];
@@ -1896,6 +2523,197 @@ export type String_Comparison_Exp = {
   _regex?: InputMaybe<Scalars['String']>;
   /** does the column match the given SQL regular expression */
   _similar?: InputMaybe<Scalars['String']>;
+};
+
+export type UsageSummary = {
+  __typename?: 'UsageSummary';
+  EgressBytes: Scalars['float64'];
+  EgressCDNBytes: Scalars['float64'];
+  EgressPgbouncerBytes: Scalars['float64'];
+  LambdaUsageSeconds: Scalars['float64'];
+  appID: Scalars['uuid'];
+};
+
+/** columns and relationships of "announcements" */
+export type Announcements = {
+  __typename?: 'announcements';
+  content: Scalars['String'];
+  createdAt: Scalars['timestamptz'];
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  href: Scalars['String'];
+  id: Scalars['uuid'];
+  updatedAt: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "announcements" */
+export type Announcements_Aggregate = {
+  __typename?: 'announcements_aggregate';
+  aggregate?: Maybe<Announcements_Aggregate_Fields>;
+  nodes: Array<Announcements>;
+};
+
+/** aggregate fields of "announcements" */
+export type Announcements_Aggregate_Fields = {
+  __typename?: 'announcements_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Announcements_Max_Fields>;
+  min?: Maybe<Announcements_Min_Fields>;
+};
+
+
+/** aggregate fields of "announcements" */
+export type Announcements_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Announcements_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "announcements". All fields are combined with a logical 'AND'. */
+export type Announcements_Bool_Exp = {
+  _and?: InputMaybe<Array<Announcements_Bool_Exp>>;
+  _not?: InputMaybe<Announcements_Bool_Exp>;
+  _or?: InputMaybe<Array<Announcements_Bool_Exp>>;
+  content?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  href?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "announcements" */
+export enum Announcements_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  AnnouncementsPkey = 'announcements_pkey'
+}
+
+/** input type for inserting data into table "announcements" */
+export type Announcements_Insert_Input = {
+  content?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  href?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Announcements_Max_Fields = {
+  __typename?: 'announcements_max_fields';
+  content?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  href?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type Announcements_Min_Fields = {
+  __typename?: 'announcements_min_fields';
+  content?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  href?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "announcements" */
+export type Announcements_Mutation_Response = {
+  __typename?: 'announcements_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Announcements>;
+};
+
+/** on_conflict condition type for table "announcements" */
+export type Announcements_On_Conflict = {
+  constraint: Announcements_Constraint;
+  update_columns?: Array<Announcements_Update_Column>;
+  where?: InputMaybe<Announcements_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "announcements". */
+export type Announcements_Order_By = {
+  content?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  href?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: announcements */
+export type Announcements_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "announcements" */
+export enum Announcements_Select_Column {
+  /** column name */
+  Content = 'content',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Href = 'href',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "announcements" */
+export type Announcements_Set_Input = {
+  content?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  href?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "announcements" */
+export type Announcements_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Announcements_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Announcements_Stream_Cursor_Value_Input = {
+  content?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  href?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "announcements" */
+export enum Announcements_Update_Column {
+  /** column name */
+  Content = 'content',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Href = 'href',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type Announcements_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Announcements_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Announcements_Bool_Exp;
 };
 
 /** columns and relationships of "app_state_history" */
@@ -2502,7 +3320,6 @@ export type Apps = {
   appStates: Array<AppStateHistory>;
   /** An aggregate relationship */
   appStates_aggregate: AppStateHistory_Aggregate;
-  autoUpdate: Scalars['Boolean'];
   /** An array relationship */
   backups: Array<Backups>;
   /** An aggregate relationship */
@@ -2518,6 +3335,7 @@ export type Apps = {
   /** An object relationship */
   creator?: Maybe<Users>;
   creatorUserId?: Maybe<Scalars['uuid']>;
+  currentState?: Maybe<Scalars['Int']>;
   /** An array relationship */
   deployments: Array<Deployments>;
   /** An aggregate relationship */
@@ -2533,24 +3351,27 @@ export type Apps = {
   githubRepository?: Maybe<GithubRepositories>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id: Scalars['uuid'];
-  isProvisioned: Scalars['Boolean'];
+  isLocked?: Maybe<Scalars['Boolean']>;
+  isLockedReason?: Maybe<Scalars['String']>;
   metadataFunctions: Scalars['jsonb'];
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
   mimirSystemConfigEnc?: Maybe<Scalars['String']>;
   name: Scalars['String'];
   nhostBaseFolder: Scalars['String'];
-  /** whether or not this app is paused */
-  paused: Scalars['Boolean'];
   /** An object relationship */
   plan: Plans;
   planId: Scalars['uuid'];
-  providersUpdated?: Maybe<Scalars['Boolean']>;
   /** An object relationship */
   region: Regions;
   regionId: Scalars['uuid'];
   repositoryProductionBranch: Scalars['String'];
+  /** An array relationship */
+  runServices: Array<Run_Service>;
+  /** An aggregate relationship */
+  runServices_aggregate: Run_Service_Aggregate;
   slug: Scalars['String'];
+  stateMatch?: Maybe<Scalars['Boolean']>;
   stripeSubscriptionId?: Maybe<Scalars['String']>;
   subdomain: Scalars['String'];
   systemConfig?: Maybe<ConfigSystemConfig>;
@@ -2652,6 +3473,26 @@ export type AppsMetadataFunctionsArgs = {
   path?: InputMaybe<Scalars['String']>;
 };
 
+
+/** columns and relationships of "apps" */
+export type AppsRunServicesArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
+/** columns and relationships of "apps" */
+export type AppsRunServices_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
 /** aggregated selection of "apps" */
 export type Apps_Aggregate = {
   __typename?: 'apps_aggregate';
@@ -2739,11 +3580,13 @@ export type Apps_Arr_Rel_Insert_Input = {
 /** aggregate avg on columns */
 export type Apps_Avg_Fields = {
   __typename?: 'apps_avg_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by avg() on columns of table "apps" */
 export type Apps_Avg_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
@@ -2754,7 +3597,6 @@ export type Apps_Bool_Exp = {
   _or?: InputMaybe<Array<Apps_Bool_Exp>>;
   appStates?: InputMaybe<AppStateHistory_Bool_Exp>;
   appStates_aggregate?: InputMaybe<AppStateHistory_Aggregate_Bool_Exp>;
-  autoUpdate?: InputMaybe<Boolean_Comparison_Exp>;
   backups?: InputMaybe<Backups_Bool_Exp>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Bool_Exp>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
@@ -2763,6 +3605,7 @@ export type Apps_Bool_Exp = {
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   creator?: InputMaybe<Users_Bool_Exp>;
   creatorUserId?: InputMaybe<Uuid_Comparison_Exp>;
+  currentState?: InputMaybe<Int_Comparison_Exp>;
   deployments?: InputMaybe<Deployments_Bool_Exp>;
   deployments_aggregate?: InputMaybe<Deployments_Aggregate_Bool_Exp>;
   desiredAppState?: InputMaybe<AppStates_Bool_Exp>;
@@ -2772,21 +3615,23 @@ export type Apps_Bool_Exp = {
   githubRepository?: InputMaybe<GithubRepositories_Bool_Exp>;
   githubRepositoryId?: InputMaybe<Uuid_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
-  isProvisioned?: InputMaybe<Boolean_Comparison_Exp>;
+  isLocked?: InputMaybe<Boolean_Comparison_Exp>;
+  isLockedReason?: InputMaybe<String_Comparison_Exp>;
   metadataFunctions?: InputMaybe<Jsonb_Comparison_Exp>;
   mimirConfigEnc?: InputMaybe<String_Comparison_Exp>;
   mimirSecretsEnc?: InputMaybe<String_Comparison_Exp>;
   mimirSystemConfigEnc?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   nhostBaseFolder?: InputMaybe<String_Comparison_Exp>;
-  paused?: InputMaybe<Boolean_Comparison_Exp>;
   plan?: InputMaybe<Plans_Bool_Exp>;
   planId?: InputMaybe<Uuid_Comparison_Exp>;
-  providersUpdated?: InputMaybe<Boolean_Comparison_Exp>;
   region?: InputMaybe<Regions_Bool_Exp>;
   regionId?: InputMaybe<Uuid_Comparison_Exp>;
   repositoryProductionBranch?: InputMaybe<String_Comparison_Exp>;
+  runServices?: InputMaybe<Run_Service_Bool_Exp>;
+  runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Bool_Exp>;
   slug?: InputMaybe<String_Comparison_Exp>;
+  stateMatch?: InputMaybe<Boolean_Comparison_Exp>;
   stripeSubscriptionId?: InputMaybe<String_Comparison_Exp>;
   subdomain?: InputMaybe<String_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -2821,13 +3666,13 @@ export type Apps_Delete_Key_Input = {
 
 /** input type for incrementing numeric columns in table "apps" */
 export type Apps_Inc_Input = {
+  currentState?: InputMaybe<Scalars['Int']>;
   desiredState?: InputMaybe<Scalars['Int']>;
 };
 
 /** input type for inserting data into table "apps" */
 export type Apps_Insert_Input = {
   appStates?: InputMaybe<AppStateHistory_Arr_Rel_Insert_Input>;
-  autoUpdate?: InputMaybe<Scalars['Boolean']>;
   backups?: InputMaybe<Backups_Arr_Rel_Insert_Input>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Obj_Rel_Insert_Input>;
   billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Obj_Rel_Insert_Input>;
@@ -2835,6 +3680,7 @@ export type Apps_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creator?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   creatorUserId?: InputMaybe<Scalars['uuid']>;
+  currentState?: InputMaybe<Scalars['Int']>;
   deployments?: InputMaybe<Deployments_Arr_Rel_Insert_Input>;
   desiredAppState?: InputMaybe<AppStates_Obj_Rel_Insert_Input>;
   desiredState?: InputMaybe<Scalars['Int']>;
@@ -2842,21 +3688,20 @@ export type Apps_Insert_Input = {
   githubRepository?: InputMaybe<GithubRepositories_Obj_Rel_Insert_Input>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
-  isProvisioned?: InputMaybe<Scalars['Boolean']>;
+  isLocked?: InputMaybe<Scalars['Boolean']>;
+  isLockedReason?: InputMaybe<Scalars['String']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   mimirSecretsEnc?: InputMaybe<Scalars['String']>;
   mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
-  /** whether or not this app is paused */
-  paused?: InputMaybe<Scalars['Boolean']>;
   plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
   planId?: InputMaybe<Scalars['uuid']>;
-  providersUpdated?: InputMaybe<Scalars['Boolean']>;
   region?: InputMaybe<Regions_Obj_Rel_Insert_Input>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
+  runServices?: InputMaybe<Run_Service_Arr_Rel_Insert_Input>;
   slug?: InputMaybe<Scalars['String']>;
   stripeSubscriptionId?: InputMaybe<Scalars['String']>;
   subdomain?: InputMaybe<Scalars['String']>;
@@ -2870,9 +3715,11 @@ export type Apps_Max_Fields = {
   __typename?: 'apps_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   creatorUserId?: Maybe<Scalars['uuid']>;
+  currentState?: Maybe<Scalars['Int']>;
   desiredState?: Maybe<Scalars['Int']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
+  isLockedReason?: Maybe<Scalars['String']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
   mimirSystemConfigEnc?: Maybe<Scalars['String']>;
@@ -2892,9 +3739,11 @@ export type Apps_Max_Fields = {
 export type Apps_Max_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   creatorUserId?: InputMaybe<Order_By>;
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  isLockedReason?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
@@ -2915,9 +3764,11 @@ export type Apps_Min_Fields = {
   __typename?: 'apps_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
   creatorUserId?: Maybe<Scalars['uuid']>;
+  currentState?: Maybe<Scalars['Int']>;
   desiredState?: Maybe<Scalars['Int']>;
   githubRepositoryId?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
+  isLockedReason?: Maybe<Scalars['String']>;
   mimirConfigEnc?: Maybe<Scalars['String']>;
   mimirSecretsEnc?: Maybe<Scalars['String']>;
   mimirSystemConfigEnc?: Maybe<Scalars['String']>;
@@ -2937,9 +3788,11 @@ export type Apps_Min_Fields = {
 export type Apps_Min_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   creatorUserId?: InputMaybe<Order_By>;
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  isLockedReason?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
@@ -2981,7 +3834,6 @@ export type Apps_On_Conflict = {
 /** Ordering options when selecting data from "apps". */
 export type Apps_Order_By = {
   appStates_aggregate?: InputMaybe<AppStateHistory_Aggregate_Order_By>;
-  autoUpdate?: InputMaybe<Order_By>;
   backups_aggregate?: InputMaybe<Backups_Aggregate_Order_By>;
   billingDedicatedCompute?: InputMaybe<Billing_Dedicated_Compute_Order_By>;
   billingDedicatedComputeReports?: InputMaybe<Billing_Dedicated_Compute_Reports_Order_By>;
@@ -2989,6 +3841,7 @@ export type Apps_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   creator?: InputMaybe<Users_Order_By>;
   creatorUserId?: InputMaybe<Order_By>;
+  currentState?: InputMaybe<Order_By>;
   deployments_aggregate?: InputMaybe<Deployments_Aggregate_Order_By>;
   desiredAppState?: InputMaybe<AppStates_Order_By>;
   desiredState?: InputMaybe<Order_By>;
@@ -2996,21 +3849,22 @@ export type Apps_Order_By = {
   githubRepository?: InputMaybe<GithubRepositories_Order_By>;
   githubRepositoryId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  isProvisioned?: InputMaybe<Order_By>;
+  isLocked?: InputMaybe<Order_By>;
+  isLockedReason?: InputMaybe<Order_By>;
   metadataFunctions?: InputMaybe<Order_By>;
   mimirConfigEnc?: InputMaybe<Order_By>;
   mimirSecretsEnc?: InputMaybe<Order_By>;
   mimirSystemConfigEnc?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nhostBaseFolder?: InputMaybe<Order_By>;
-  paused?: InputMaybe<Order_By>;
   plan?: InputMaybe<Plans_Order_By>;
   planId?: InputMaybe<Order_By>;
-  providersUpdated?: InputMaybe<Order_By>;
   region?: InputMaybe<Regions_Order_By>;
   regionId?: InputMaybe<Order_By>;
   repositoryProductionBranch?: InputMaybe<Order_By>;
+  runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Order_By>;
   slug?: InputMaybe<Order_By>;
+  stateMatch?: InputMaybe<Order_By>;
   stripeSubscriptionId?: InputMaybe<Order_By>;
   subdomain?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
@@ -3031,11 +3885,11 @@ export type Apps_Prepend_Input = {
 /** select columns of table "apps" */
 export enum Apps_Select_Column {
   /** column name */
-  AutoUpdate = 'autoUpdate',
-  /** column name */
   CreatedAt = 'createdAt',
   /** column name */
   CreatorUserId = 'creatorUserId',
+  /** column name */
+  CurrentState = 'currentState',
   /** column name */
   DesiredState = 'desiredState',
   /** column name */
@@ -3043,7 +3897,9 @@ export enum Apps_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  IsProvisioned = 'isProvisioned',
+  IsLocked = 'isLocked',
+  /** column name */
+  IsLockedReason = 'isLockedReason',
   /** column name */
   MetadataFunctions = 'metadataFunctions',
   /** column name */
@@ -3057,17 +3913,15 @@ export enum Apps_Select_Column {
   /** column name */
   NhostBaseFolder = 'nhostBaseFolder',
   /** column name */
-  Paused = 'paused',
-  /** column name */
   PlanId = 'planId',
-  /** column name */
-  ProvidersUpdated = 'providersUpdated',
   /** column name */
   RegionId = 'regionId',
   /** column name */
   RepositoryProductionBranch = 'repositoryProductionBranch',
   /** column name */
   Slug = 'slug',
+  /** column name */
+  StateMatch = 'stateMatch',
   /** column name */
   StripeSubscriptionId = 'stripeSubscriptionId',
   /** column name */
@@ -3081,46 +3935,36 @@ export enum Apps_Select_Column {
 /** select "apps_aggregate_bool_exp_bool_and_arguments_columns" columns of table "apps" */
 export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
   /** column name */
-  AutoUpdate = 'autoUpdate',
+  IsLocked = 'isLocked',
   /** column name */
-  IsProvisioned = 'isProvisioned',
-  /** column name */
-  Paused = 'paused',
-  /** column name */
-  ProvidersUpdated = 'providersUpdated'
+  StateMatch = 'stateMatch'
 }
 
 /** select "apps_aggregate_bool_exp_bool_or_arguments_columns" columns of table "apps" */
 export enum Apps_Select_Column_Apps_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
-  AutoUpdate = 'autoUpdate',
+  IsLocked = 'isLocked',
   /** column name */
-  IsProvisioned = 'isProvisioned',
-  /** column name */
-  Paused = 'paused',
-  /** column name */
-  ProvidersUpdated = 'providersUpdated'
+  StateMatch = 'stateMatch'
 }
 
 /** input type for updating data in table "apps" */
 export type Apps_Set_Input = {
-  autoUpdate?: InputMaybe<Scalars['Boolean']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creatorUserId?: InputMaybe<Scalars['uuid']>;
+  currentState?: InputMaybe<Scalars['Int']>;
   desiredState?: InputMaybe<Scalars['Int']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
-  isProvisioned?: InputMaybe<Scalars['Boolean']>;
+  isLocked?: InputMaybe<Scalars['Boolean']>;
+  isLockedReason?: InputMaybe<Scalars['String']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   mimirSecretsEnc?: InputMaybe<Scalars['String']>;
   mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
-  /** whether or not this app is paused */
-  paused?: InputMaybe<Scalars['Boolean']>;
   planId?: InputMaybe<Scalars['uuid']>;
-  providersUpdated?: InputMaybe<Scalars['Boolean']>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
   slug?: InputMaybe<Scalars['String']>;
@@ -3133,33 +3977,39 @@ export type Apps_Set_Input = {
 /** aggregate stddev on columns */
 export type Apps_Stddev_Fields = {
   __typename?: 'apps_stddev_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by stddev() on columns of table "apps" */
 export type Apps_Stddev_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Apps_Stddev_Pop_Fields = {
   __typename?: 'apps_stddev_pop_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by stddev_pop() on columns of table "apps" */
 export type Apps_Stddev_Pop_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Apps_Stddev_Samp_Fields = {
   __typename?: 'apps_stddev_samp_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by stddev_samp() on columns of table "apps" */
 export type Apps_Stddev_Samp_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
@@ -3173,26 +4023,25 @@ export type Apps_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Apps_Stream_Cursor_Value_Input = {
-  autoUpdate?: InputMaybe<Scalars['Boolean']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   creatorUserId?: InputMaybe<Scalars['uuid']>;
+  currentState?: InputMaybe<Scalars['Int']>;
   desiredState?: InputMaybe<Scalars['Int']>;
   githubRepositoryId?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
-  isProvisioned?: InputMaybe<Scalars['Boolean']>;
+  isLocked?: InputMaybe<Scalars['Boolean']>;
+  isLockedReason?: InputMaybe<Scalars['String']>;
   metadataFunctions?: InputMaybe<Scalars['jsonb']>;
   mimirConfigEnc?: InputMaybe<Scalars['String']>;
   mimirSecretsEnc?: InputMaybe<Scalars['String']>;
   mimirSystemConfigEnc?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   nhostBaseFolder?: InputMaybe<Scalars['String']>;
-  /** whether or not this app is paused */
-  paused?: InputMaybe<Scalars['Boolean']>;
   planId?: InputMaybe<Scalars['uuid']>;
-  providersUpdated?: InputMaybe<Scalars['Boolean']>;
   regionId?: InputMaybe<Scalars['uuid']>;
   repositoryProductionBranch?: InputMaybe<Scalars['String']>;
   slug?: InputMaybe<Scalars['String']>;
+  stateMatch?: InputMaybe<Scalars['Boolean']>;
   stripeSubscriptionId?: InputMaybe<Scalars['String']>;
   subdomain?: InputMaybe<Scalars['String']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
@@ -3202,22 +4051,24 @@ export type Apps_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Apps_Sum_Fields = {
   __typename?: 'apps_sum_fields';
+  currentState?: Maybe<Scalars['Int']>;
   desiredState?: Maybe<Scalars['Int']>;
 };
 
 /** order by sum() on columns of table "apps" */
 export type Apps_Sum_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
 /** update columns of table "apps" */
 export enum Apps_Update_Column {
   /** column name */
-  AutoUpdate = 'autoUpdate',
-  /** column name */
   CreatedAt = 'createdAt',
   /** column name */
   CreatorUserId = 'creatorUserId',
+  /** column name */
+  CurrentState = 'currentState',
   /** column name */
   DesiredState = 'desiredState',
   /** column name */
@@ -3225,7 +4076,9 @@ export enum Apps_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  IsProvisioned = 'isProvisioned',
+  IsLocked = 'isLocked',
+  /** column name */
+  IsLockedReason = 'isLockedReason',
   /** column name */
   MetadataFunctions = 'metadataFunctions',
   /** column name */
@@ -3239,11 +4092,7 @@ export enum Apps_Update_Column {
   /** column name */
   NhostBaseFolder = 'nhostBaseFolder',
   /** column name */
-  Paused = 'paused',
-  /** column name */
   PlanId = 'planId',
-  /** column name */
-  ProvidersUpdated = 'providersUpdated',
   /** column name */
   RegionId = 'regionId',
   /** column name */
@@ -3282,33 +4131,39 @@ export type Apps_Updates = {
 /** aggregate var_pop on columns */
 export type Apps_Var_Pop_Fields = {
   __typename?: 'apps_var_pop_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by var_pop() on columns of table "apps" */
 export type Apps_Var_Pop_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Apps_Var_Samp_Fields = {
   __typename?: 'apps_var_samp_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by var_samp() on columns of table "apps" */
 export type Apps_Var_Samp_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Apps_Variance_Fields = {
   __typename?: 'apps_variance_fields';
+  currentState?: Maybe<Scalars['Float']>;
   desiredState?: Maybe<Scalars['Float']>;
 };
 
 /** order by variance() on columns of table "apps" */
 export type Apps_Variance_Order_By = {
+  currentState?: InputMaybe<Order_By>;
   desiredState?: InputMaybe<Order_By>;
 };
 
@@ -5717,11 +6572,11 @@ export type Billing_Dedicated_Compute = {
   __typename?: 'billing_dedicated_compute';
   /** An object relationship */
   app?: Maybe<Apps>;
-  app_id: Scalars['uuid'];
-  created_at: Scalars['timestamptz'];
+  appID: Scalars['uuid'];
+  createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
-  total_millicores: Scalars['Int'];
-  updated_at: Scalars['timestamptz'];
+  totalMillicores: Scalars['Int'];
+  updatedAt: Scalars['timestamptz'];
 };
 
 /** aggregated selection of "billing.dedicated_compute" */
@@ -5757,7 +6612,7 @@ export type Billing_Dedicated_Compute_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Billing_Dedicated_Compute_Avg_Fields = {
   __typename?: 'billing_dedicated_compute_avg_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
+  totalMillicores?: Maybe<Scalars['Float']>;
 };
 
 /** Boolean expression to filter rows from the table "billing.dedicated_compute". All fields are combined with a logical 'AND'. */
@@ -5766,11 +6621,11 @@ export type Billing_Dedicated_Compute_Bool_Exp = {
   _not?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
   _or?: InputMaybe<Array<Billing_Dedicated_Compute_Bool_Exp>>;
   app?: InputMaybe<Apps_Bool_Exp>;
-  app_id?: InputMaybe<Uuid_Comparison_Exp>;
-  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  appID?: InputMaybe<Uuid_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
-  total_millicores?: InputMaybe<Int_Comparison_Exp>;
-  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  totalMillicores?: InputMaybe<Int_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "billing.dedicated_compute" */
@@ -5783,37 +6638,37 @@ export enum Billing_Dedicated_Compute_Constraint {
 
 /** input type for incrementing numeric columns in table "billing.dedicated_compute" */
 export type Billing_Dedicated_Compute_Inc_Input = {
-  total_millicores?: InputMaybe<Scalars['Int']>;
+  totalMillicores?: InputMaybe<Scalars['Int']>;
 };
 
 /** input type for inserting data into table "billing.dedicated_compute" */
 export type Billing_Dedicated_Compute_Insert_Input = {
   app?: InputMaybe<Apps_Obj_Rel_Insert_Input>;
-  app_id?: InputMaybe<Scalars['uuid']>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
-  total_millicores?: InputMaybe<Scalars['Int']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  totalMillicores?: InputMaybe<Scalars['Int']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** aggregate max on columns */
 export type Billing_Dedicated_Compute_Max_Fields = {
   __typename?: 'billing_dedicated_compute_max_fields';
-  app_id?: Maybe<Scalars['uuid']>;
-  created_at?: Maybe<Scalars['timestamptz']>;
+  appID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
-  total_millicores?: Maybe<Scalars['Int']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
+  totalMillicores?: Maybe<Scalars['Int']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** aggregate min on columns */
 export type Billing_Dedicated_Compute_Min_Fields = {
   __typename?: 'billing_dedicated_compute_min_fields';
-  app_id?: Maybe<Scalars['uuid']>;
-  created_at?: Maybe<Scalars['timestamptz']>;
+  appID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
-  total_millicores?: Maybe<Scalars['Int']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
+  totalMillicores?: Maybe<Scalars['Int']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** response of any mutation on the table "billing.dedicated_compute" */
@@ -5842,11 +6697,11 @@ export type Billing_Dedicated_Compute_On_Conflict = {
 /** Ordering options when selecting data from "billing.dedicated_compute". */
 export type Billing_Dedicated_Compute_Order_By = {
   app?: InputMaybe<Apps_Order_By>;
-  app_id?: InputMaybe<Order_By>;
-  created_at?: InputMaybe<Order_By>;
+  appID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  total_millicores?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
+  totalMillicores?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: billing.dedicated_compute */
@@ -6136,42 +6991,42 @@ export type Billing_Dedicated_Compute_Reports_Variance_Fields = {
 /** select columns of table "billing.dedicated_compute" */
 export enum Billing_Dedicated_Compute_Select_Column {
   /** column name */
-  AppId = 'app_id',
+  AppId = 'appID',
   /** column name */
-  CreatedAt = 'created_at',
+  CreatedAt = 'createdAt',
   /** column name */
   Id = 'id',
   /** column name */
-  TotalMillicores = 'total_millicores',
+  TotalMillicores = 'totalMillicores',
   /** column name */
-  UpdatedAt = 'updated_at'
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "billing.dedicated_compute" */
 export type Billing_Dedicated_Compute_Set_Input = {
-  app_id?: InputMaybe<Scalars['uuid']>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
-  total_millicores?: InputMaybe<Scalars['Int']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  totalMillicores?: InputMaybe<Scalars['Int']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** aggregate stddev on columns */
 export type Billing_Dedicated_Compute_Stddev_Fields = {
   __typename?: 'billing_dedicated_compute_stddev_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
+  totalMillicores?: Maybe<Scalars['Float']>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Billing_Dedicated_Compute_Stddev_Pop_Fields = {
   __typename?: 'billing_dedicated_compute_stddev_pop_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
+  totalMillicores?: Maybe<Scalars['Float']>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Billing_Dedicated_Compute_Stddev_Samp_Fields = {
   __typename?: 'billing_dedicated_compute_stddev_samp_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
+  totalMillicores?: Maybe<Scalars['Float']>;
 };
 
 /** Streaming cursor of the table "billing_dedicated_compute" */
@@ -6184,31 +7039,31 @@ export type Billing_Dedicated_Compute_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Billing_Dedicated_Compute_Stream_Cursor_Value_Input = {
-  app_id?: InputMaybe<Scalars['uuid']>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
-  total_millicores?: InputMaybe<Scalars['Int']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  totalMillicores?: InputMaybe<Scalars['Int']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** aggregate sum on columns */
 export type Billing_Dedicated_Compute_Sum_Fields = {
   __typename?: 'billing_dedicated_compute_sum_fields';
-  total_millicores?: Maybe<Scalars['Int']>;
+  totalMillicores?: Maybe<Scalars['Int']>;
 };
 
 /** update columns of table "billing.dedicated_compute" */
 export enum Billing_Dedicated_Compute_Update_Column {
   /** column name */
-  AppId = 'app_id',
+  AppId = 'appID',
   /** column name */
-  CreatedAt = 'created_at',
+  CreatedAt = 'createdAt',
   /** column name */
   Id = 'id',
   /** column name */
-  TotalMillicores = 'total_millicores',
+  TotalMillicores = 'totalMillicores',
   /** column name */
-  UpdatedAt = 'updated_at'
+  UpdatedAt = 'updatedAt'
 }
 
 export type Billing_Dedicated_Compute_Updates = {
@@ -6223,19 +7078,855 @@ export type Billing_Dedicated_Compute_Updates = {
 /** aggregate var_pop on columns */
 export type Billing_Dedicated_Compute_Var_Pop_Fields = {
   __typename?: 'billing_dedicated_compute_var_pop_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
+  totalMillicores?: Maybe<Scalars['Float']>;
 };
 
 /** aggregate var_samp on columns */
 export type Billing_Dedicated_Compute_Var_Samp_Fields = {
   __typename?: 'billing_dedicated_compute_var_samp_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
+  totalMillicores?: Maybe<Scalars['Float']>;
 };
 
 /** aggregate variance on columns */
 export type Billing_Dedicated_Compute_Variance_Fields = {
   __typename?: 'billing_dedicated_compute_variance_fields';
-  total_millicores?: Maybe<Scalars['Float']>;
+  totalMillicores?: Maybe<Scalars['Float']>;
+};
+
+/** columns and relationships of "billing.report_type" */
+export type Billing_Report_Type = {
+  __typename?: 'billing_report_type';
+  comment?: Maybe<Scalars['String']>;
+  value: Scalars['String'];
+};
+
+/** aggregated selection of "billing.report_type" */
+export type Billing_Report_Type_Aggregate = {
+  __typename?: 'billing_report_type_aggregate';
+  aggregate?: Maybe<Billing_Report_Type_Aggregate_Fields>;
+  nodes: Array<Billing_Report_Type>;
+};
+
+/** aggregate fields of "billing.report_type" */
+export type Billing_Report_Type_Aggregate_Fields = {
+  __typename?: 'billing_report_type_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Billing_Report_Type_Max_Fields>;
+  min?: Maybe<Billing_Report_Type_Min_Fields>;
+};
+
+
+/** aggregate fields of "billing.report_type" */
+export type Billing_Report_Type_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Billing_Report_Type_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "billing.report_type". All fields are combined with a logical 'AND'. */
+export type Billing_Report_Type_Bool_Exp = {
+  _and?: InputMaybe<Array<Billing_Report_Type_Bool_Exp>>;
+  _not?: InputMaybe<Billing_Report_Type_Bool_Exp>;
+  _or?: InputMaybe<Array<Billing_Report_Type_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  value?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "billing.report_type" */
+export enum Billing_Report_Type_Constraint {
+  /** unique or primary key constraint on columns "value" */
+  ReportTypePkey = 'report_type_pkey'
+}
+
+export enum Billing_Report_Type_Enum {
+  /** Dedicated compute */
+  DedicatedCompute = 'dedicated_compute',
+  /** Egress usage in MB */
+  Egress = 'egress',
+  /** Functions usage in seconds */
+  Functions = 'functions'
+}
+
+/** Boolean expression to compare columns of type "billing_report_type_enum". All fields are combined with logical 'AND'. */
+export type Billing_Report_Type_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Billing_Report_Type_Enum>;
+  _in?: InputMaybe<Array<Billing_Report_Type_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<Billing_Report_Type_Enum>;
+  _nin?: InputMaybe<Array<Billing_Report_Type_Enum>>;
+};
+
+/** input type for inserting data into table "billing.report_type" */
+export type Billing_Report_Type_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Billing_Report_Type_Max_Fields = {
+  __typename?: 'billing_report_type_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type Billing_Report_Type_Min_Fields = {
+  __typename?: 'billing_report_type_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "billing.report_type" */
+export type Billing_Report_Type_Mutation_Response = {
+  __typename?: 'billing_report_type_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Billing_Report_Type>;
+};
+
+/** on_conflict condition type for table "billing.report_type" */
+export type Billing_Report_Type_On_Conflict = {
+  constraint: Billing_Report_Type_Constraint;
+  update_columns?: Array<Billing_Report_Type_Update_Column>;
+  where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "billing.report_type". */
+export type Billing_Report_Type_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: billing.report_type */
+export type Billing_Report_Type_Pk_Columns_Input = {
+  value: Scalars['String'];
+};
+
+/** select columns of table "billing.report_type" */
+export enum Billing_Report_Type_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+/** input type for updating data in table "billing.report_type" */
+export type Billing_Report_Type_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "billing_report_type" */
+export type Billing_Report_Type_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Billing_Report_Type_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Billing_Report_Type_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "billing.report_type" */
+export enum Billing_Report_Type_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+export type Billing_Report_Type_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Billing_Report_Type_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Billing_Report_Type_Bool_Exp;
+};
+
+/** columns and relationships of "billing.reports" */
+export type Billing_Reports = {
+  __typename?: 'billing_reports';
+  appID: Scalars['uuid'];
+  createdAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  pending: Scalars['Boolean'];
+  reportEnds: Scalars['timestamptz'];
+  reportStarts: Scalars['timestamptz'];
+  type: Billing_Report_Type_Enum;
+  updatedAt: Scalars['timestamptz'];
+  value: Scalars['Int'];
+};
+
+/** aggregated selection of "billing.reports" */
+export type Billing_Reports_Aggregate = {
+  __typename?: 'billing_reports_aggregate';
+  aggregate?: Maybe<Billing_Reports_Aggregate_Fields>;
+  nodes: Array<Billing_Reports>;
+};
+
+export type Billing_Reports_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Billing_Reports_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Billing_Reports_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<Billing_Reports_Aggregate_Bool_Exp_Count>;
+};
+
+export type Billing_Reports_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Billing_Reports_Select_Column_Billing_Reports_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Billing_Reports_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Billing_Reports_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Billing_Reports_Select_Column_Billing_Reports_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Billing_Reports_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Billing_Reports_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Billing_Reports_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Billing_Reports_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "billing.reports" */
+export type Billing_Reports_Aggregate_Fields = {
+  __typename?: 'billing_reports_aggregate_fields';
+  avg?: Maybe<Billing_Reports_Avg_Fields>;
+  count: Scalars['Int'];
+  max?: Maybe<Billing_Reports_Max_Fields>;
+  min?: Maybe<Billing_Reports_Min_Fields>;
+  stddev?: Maybe<Billing_Reports_Stddev_Fields>;
+  stddev_pop?: Maybe<Billing_Reports_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Billing_Reports_Stddev_Samp_Fields>;
+  sum?: Maybe<Billing_Reports_Sum_Fields>;
+  var_pop?: Maybe<Billing_Reports_Var_Pop_Fields>;
+  var_samp?: Maybe<Billing_Reports_Var_Samp_Fields>;
+  variance?: Maybe<Billing_Reports_Variance_Fields>;
+};
+
+
+/** aggregate fields of "billing.reports" */
+export type Billing_Reports_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Billing_Reports_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "billing.reports" */
+export type Billing_Reports_Aggregate_Order_By = {
+  avg?: InputMaybe<Billing_Reports_Avg_Order_By>;
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Billing_Reports_Max_Order_By>;
+  min?: InputMaybe<Billing_Reports_Min_Order_By>;
+  stddev?: InputMaybe<Billing_Reports_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Billing_Reports_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Billing_Reports_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Billing_Reports_Sum_Order_By>;
+  var_pop?: InputMaybe<Billing_Reports_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Billing_Reports_Var_Samp_Order_By>;
+  variance?: InputMaybe<Billing_Reports_Variance_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "billing.reports" */
+export type Billing_Reports_Arr_Rel_Insert_Input = {
+  data: Array<Billing_Reports_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Billing_Reports_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Billing_Reports_Avg_Fields = {
+  __typename?: 'billing_reports_avg_fields';
+  value?: Maybe<Scalars['Float']>;
+};
+
+/** order by avg() on columns of table "billing.reports" */
+export type Billing_Reports_Avg_Order_By = {
+  value?: InputMaybe<Order_By>;
+};
+
+/** Boolean expression to filter rows from the table "billing.reports". All fields are combined with a logical 'AND'. */
+export type Billing_Reports_Bool_Exp = {
+  _and?: InputMaybe<Array<Billing_Reports_Bool_Exp>>;
+  _not?: InputMaybe<Billing_Reports_Bool_Exp>;
+  _or?: InputMaybe<Array<Billing_Reports_Bool_Exp>>;
+  appID?: InputMaybe<Uuid_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  pending?: InputMaybe<Boolean_Comparison_Exp>;
+  reportEnds?: InputMaybe<Timestamptz_Comparison_Exp>;
+  reportStarts?: InputMaybe<Timestamptz_Comparison_Exp>;
+  type?: InputMaybe<Billing_Report_Type_Enum_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  value?: InputMaybe<Int_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "billing.reports" */
+export enum Billing_Reports_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  ReportsPkey = 'reports_pkey'
+}
+
+/** input type for incrementing numeric columns in table "billing.reports" */
+export type Billing_Reports_Inc_Input = {
+  value?: InputMaybe<Scalars['Int']>;
+};
+
+/** input type for inserting data into table "billing.reports" */
+export type Billing_Reports_Insert_Input = {
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  pending?: InputMaybe<Scalars['Boolean']>;
+  reportEnds?: InputMaybe<Scalars['timestamptz']>;
+  reportStarts?: InputMaybe<Scalars['timestamptz']>;
+  type?: InputMaybe<Billing_Report_Type_Enum>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  value?: InputMaybe<Scalars['Int']>;
+};
+
+/** aggregate max on columns */
+export type Billing_Reports_Max_Fields = {
+  __typename?: 'billing_reports_max_fields';
+  appID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  reportEnds?: Maybe<Scalars['timestamptz']>;
+  reportStarts?: Maybe<Scalars['timestamptz']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  value?: Maybe<Scalars['Int']>;
+};
+
+/** order by max() on columns of table "billing.reports" */
+export type Billing_Reports_Max_Order_By = {
+  appID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  reportEnds?: InputMaybe<Order_By>;
+  reportStarts?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Billing_Reports_Min_Fields = {
+  __typename?: 'billing_reports_min_fields';
+  appID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  reportEnds?: Maybe<Scalars['timestamptz']>;
+  reportStarts?: Maybe<Scalars['timestamptz']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  value?: Maybe<Scalars['Int']>;
+};
+
+/** order by min() on columns of table "billing.reports" */
+export type Billing_Reports_Min_Order_By = {
+  appID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  reportEnds?: InputMaybe<Order_By>;
+  reportStarts?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "billing.reports" */
+export type Billing_Reports_Mutation_Response = {
+  __typename?: 'billing_reports_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Billing_Reports>;
+};
+
+/** on_conflict condition type for table "billing.reports" */
+export type Billing_Reports_On_Conflict = {
+  constraint: Billing_Reports_Constraint;
+  update_columns?: Array<Billing_Reports_Update_Column>;
+  where?: InputMaybe<Billing_Reports_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "billing.reports". */
+export type Billing_Reports_Order_By = {
+  appID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  pending?: InputMaybe<Order_By>;
+  reportEnds?: InputMaybe<Order_By>;
+  reportStarts?: InputMaybe<Order_By>;
+  type?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: billing.reports */
+export type Billing_Reports_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "billing.reports" */
+export enum Billing_Reports_Select_Column {
+  /** column name */
+  AppId = 'appID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Pending = 'pending',
+  /** column name */
+  ReportEnds = 'reportEnds',
+  /** column name */
+  ReportStarts = 'reportStarts',
+  /** column name */
+  Type = 'type',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  Value = 'value'
+}
+
+/** select "billing_reports_aggregate_bool_exp_bool_and_arguments_columns" columns of table "billing.reports" */
+export enum Billing_Reports_Select_Column_Billing_Reports_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  Pending = 'pending'
+}
+
+/** select "billing_reports_aggregate_bool_exp_bool_or_arguments_columns" columns of table "billing.reports" */
+export enum Billing_Reports_Select_Column_Billing_Reports_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  Pending = 'pending'
+}
+
+/** input type for updating data in table "billing.reports" */
+export type Billing_Reports_Set_Input = {
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  pending?: InputMaybe<Scalars['Boolean']>;
+  reportEnds?: InputMaybe<Scalars['timestamptz']>;
+  reportStarts?: InputMaybe<Scalars['timestamptz']>;
+  type?: InputMaybe<Billing_Report_Type_Enum>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  value?: InputMaybe<Scalars['Int']>;
+};
+
+/** aggregate stddev on columns */
+export type Billing_Reports_Stddev_Fields = {
+  __typename?: 'billing_reports_stddev_fields';
+  value?: Maybe<Scalars['Float']>;
+};
+
+/** order by stddev() on columns of table "billing.reports" */
+export type Billing_Reports_Stddev_Order_By = {
+  value?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Billing_Reports_Stddev_Pop_Fields = {
+  __typename?: 'billing_reports_stddev_pop_fields';
+  value?: Maybe<Scalars['Float']>;
+};
+
+/** order by stddev_pop() on columns of table "billing.reports" */
+export type Billing_Reports_Stddev_Pop_Order_By = {
+  value?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Billing_Reports_Stddev_Samp_Fields = {
+  __typename?: 'billing_reports_stddev_samp_fields';
+  value?: Maybe<Scalars['Float']>;
+};
+
+/** order by stddev_samp() on columns of table "billing.reports" */
+export type Billing_Reports_Stddev_Samp_Order_By = {
+  value?: InputMaybe<Order_By>;
+};
+
+/** Streaming cursor of the table "billing_reports" */
+export type Billing_Reports_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Billing_Reports_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Billing_Reports_Stream_Cursor_Value_Input = {
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  pending?: InputMaybe<Scalars['Boolean']>;
+  reportEnds?: InputMaybe<Scalars['timestamptz']>;
+  reportStarts?: InputMaybe<Scalars['timestamptz']>;
+  type?: InputMaybe<Billing_Report_Type_Enum>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  value?: InputMaybe<Scalars['Int']>;
+};
+
+/** aggregate sum on columns */
+export type Billing_Reports_Sum_Fields = {
+  __typename?: 'billing_reports_sum_fields';
+  value?: Maybe<Scalars['Int']>;
+};
+
+/** order by sum() on columns of table "billing.reports" */
+export type Billing_Reports_Sum_Order_By = {
+  value?: InputMaybe<Order_By>;
+};
+
+/** update columns of table "billing.reports" */
+export enum Billing_Reports_Update_Column {
+  /** column name */
+  AppId = 'appID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Pending = 'pending',
+  /** column name */
+  ReportEnds = 'reportEnds',
+  /** column name */
+  ReportStarts = 'reportStarts',
+  /** column name */
+  Type = 'type',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  Value = 'value'
+}
+
+export type Billing_Reports_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Billing_Reports_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Billing_Reports_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Billing_Reports_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Billing_Reports_Var_Pop_Fields = {
+  __typename?: 'billing_reports_var_pop_fields';
+  value?: Maybe<Scalars['Float']>;
+};
+
+/** order by var_pop() on columns of table "billing.reports" */
+export type Billing_Reports_Var_Pop_Order_By = {
+  value?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Billing_Reports_Var_Samp_Fields = {
+  __typename?: 'billing_reports_var_samp_fields';
+  value?: Maybe<Scalars['Float']>;
+};
+
+/** order by var_samp() on columns of table "billing.reports" */
+export type Billing_Reports_Var_Samp_Order_By = {
+  value?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Billing_Reports_Variance_Fields = {
+  __typename?: 'billing_reports_variance_fields';
+  value?: Maybe<Scalars['Float']>;
+};
+
+/** order by variance() on columns of table "billing.reports" */
+export type Billing_Reports_Variance_Order_By = {
+  value?: InputMaybe<Order_By>;
+};
+
+/** columns and relationships of "billing.resources" */
+export type Billing_Resources = {
+  __typename?: 'billing_resources';
+  appID: Scalars['uuid'];
+  createdAt: Scalars['timestamptz'];
+  customDomains: Scalars['Int'];
+  functionsAmount: Scalars['Int'];
+  id: Scalars['uuid'];
+  persistentVolume: Scalars['Int'];
+  updatedAt: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "billing.resources" */
+export type Billing_Resources_Aggregate = {
+  __typename?: 'billing_resources_aggregate';
+  aggregate?: Maybe<Billing_Resources_Aggregate_Fields>;
+  nodes: Array<Billing_Resources>;
+};
+
+/** aggregate fields of "billing.resources" */
+export type Billing_Resources_Aggregate_Fields = {
+  __typename?: 'billing_resources_aggregate_fields';
+  avg?: Maybe<Billing_Resources_Avg_Fields>;
+  count: Scalars['Int'];
+  max?: Maybe<Billing_Resources_Max_Fields>;
+  min?: Maybe<Billing_Resources_Min_Fields>;
+  stddev?: Maybe<Billing_Resources_Stddev_Fields>;
+  stddev_pop?: Maybe<Billing_Resources_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Billing_Resources_Stddev_Samp_Fields>;
+  sum?: Maybe<Billing_Resources_Sum_Fields>;
+  var_pop?: Maybe<Billing_Resources_Var_Pop_Fields>;
+  var_samp?: Maybe<Billing_Resources_Var_Samp_Fields>;
+  variance?: Maybe<Billing_Resources_Variance_Fields>;
+};
+
+
+/** aggregate fields of "billing.resources" */
+export type Billing_Resources_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Billing_Resources_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** aggregate avg on columns */
+export type Billing_Resources_Avg_Fields = {
+  __typename?: 'billing_resources_avg_fields';
+  customDomains?: Maybe<Scalars['Float']>;
+  functionsAmount?: Maybe<Scalars['Float']>;
+  persistentVolume?: Maybe<Scalars['Float']>;
+};
+
+/** Boolean expression to filter rows from the table "billing.resources". All fields are combined with a logical 'AND'. */
+export type Billing_Resources_Bool_Exp = {
+  _and?: InputMaybe<Array<Billing_Resources_Bool_Exp>>;
+  _not?: InputMaybe<Billing_Resources_Bool_Exp>;
+  _or?: InputMaybe<Array<Billing_Resources_Bool_Exp>>;
+  appID?: InputMaybe<Uuid_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  customDomains?: InputMaybe<Int_Comparison_Exp>;
+  functionsAmount?: InputMaybe<Int_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  persistentVolume?: InputMaybe<Int_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "billing.resources" */
+export enum Billing_Resources_Constraint {
+  /** unique or primary key constraint on columns "app_id" */
+  ResourcesAppIdKey = 'resources_app_id_key',
+  /** unique or primary key constraint on columns "id" */
+  ResourcesPkey = 'resources_pkey'
+}
+
+/** input type for incrementing numeric columns in table "billing.resources" */
+export type Billing_Resources_Inc_Input = {
+  customDomains?: InputMaybe<Scalars['Int']>;
+  functionsAmount?: InputMaybe<Scalars['Int']>;
+  persistentVolume?: InputMaybe<Scalars['Int']>;
+};
+
+/** input type for inserting data into table "billing.resources" */
+export type Billing_Resources_Insert_Input = {
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  customDomains?: InputMaybe<Scalars['Int']>;
+  functionsAmount?: InputMaybe<Scalars['Int']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  persistentVolume?: InputMaybe<Scalars['Int']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Billing_Resources_Max_Fields = {
+  __typename?: 'billing_resources_max_fields';
+  appID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  customDomains?: Maybe<Scalars['Int']>;
+  functionsAmount?: Maybe<Scalars['Int']>;
+  id?: Maybe<Scalars['uuid']>;
+  persistentVolume?: Maybe<Scalars['Int']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type Billing_Resources_Min_Fields = {
+  __typename?: 'billing_resources_min_fields';
+  appID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  customDomains?: Maybe<Scalars['Int']>;
+  functionsAmount?: Maybe<Scalars['Int']>;
+  id?: Maybe<Scalars['uuid']>;
+  persistentVolume?: Maybe<Scalars['Int']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "billing.resources" */
+export type Billing_Resources_Mutation_Response = {
+  __typename?: 'billing_resources_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Billing_Resources>;
+};
+
+/** input type for inserting object relation for remote table "billing.resources" */
+export type Billing_Resources_Obj_Rel_Insert_Input = {
+  data: Billing_Resources_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Billing_Resources_On_Conflict>;
+};
+
+/** on_conflict condition type for table "billing.resources" */
+export type Billing_Resources_On_Conflict = {
+  constraint: Billing_Resources_Constraint;
+  update_columns?: Array<Billing_Resources_Update_Column>;
+  where?: InputMaybe<Billing_Resources_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "billing.resources". */
+export type Billing_Resources_Order_By = {
+  appID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  customDomains?: InputMaybe<Order_By>;
+  functionsAmount?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  persistentVolume?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: billing.resources */
+export type Billing_Resources_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "billing.resources" */
+export enum Billing_Resources_Select_Column {
+  /** column name */
+  AppId = 'appID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  CustomDomains = 'customDomains',
+  /** column name */
+  FunctionsAmount = 'functionsAmount',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  PersistentVolume = 'persistentVolume',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "billing.resources" */
+export type Billing_Resources_Set_Input = {
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  customDomains?: InputMaybe<Scalars['Int']>;
+  functionsAmount?: InputMaybe<Scalars['Int']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  persistentVolume?: InputMaybe<Scalars['Int']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate stddev on columns */
+export type Billing_Resources_Stddev_Fields = {
+  __typename?: 'billing_resources_stddev_fields';
+  customDomains?: Maybe<Scalars['Float']>;
+  functionsAmount?: Maybe<Scalars['Float']>;
+  persistentVolume?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Billing_Resources_Stddev_Pop_Fields = {
+  __typename?: 'billing_resources_stddev_pop_fields';
+  customDomains?: Maybe<Scalars['Float']>;
+  functionsAmount?: Maybe<Scalars['Float']>;
+  persistentVolume?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Billing_Resources_Stddev_Samp_Fields = {
+  __typename?: 'billing_resources_stddev_samp_fields';
+  customDomains?: Maybe<Scalars['Float']>;
+  functionsAmount?: Maybe<Scalars['Float']>;
+  persistentVolume?: Maybe<Scalars['Float']>;
+};
+
+/** Streaming cursor of the table "billing_resources" */
+export type Billing_Resources_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Billing_Resources_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Billing_Resources_Stream_Cursor_Value_Input = {
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  customDomains?: InputMaybe<Scalars['Int']>;
+  functionsAmount?: InputMaybe<Scalars['Int']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  persistentVolume?: InputMaybe<Scalars['Int']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate sum on columns */
+export type Billing_Resources_Sum_Fields = {
+  __typename?: 'billing_resources_sum_fields';
+  customDomains?: Maybe<Scalars['Int']>;
+  functionsAmount?: Maybe<Scalars['Int']>;
+  persistentVolume?: Maybe<Scalars['Int']>;
+};
+
+/** update columns of table "billing.resources" */
+export enum Billing_Resources_Update_Column {
+  /** column name */
+  AppId = 'appID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  CustomDomains = 'customDomains',
+  /** column name */
+  FunctionsAmount = 'functionsAmount',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  PersistentVolume = 'persistentVolume',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type Billing_Resources_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Billing_Resources_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Billing_Resources_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Billing_Resources_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Billing_Resources_Var_Pop_Fields = {
+  __typename?: 'billing_resources_var_pop_fields';
+  customDomains?: Maybe<Scalars['Float']>;
+  functionsAmount?: Maybe<Scalars['Float']>;
+  persistentVolume?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate var_samp on columns */
+export type Billing_Resources_Var_Samp_Fields = {
+  __typename?: 'billing_resources_var_samp_fields';
+  customDomains?: Maybe<Scalars['Float']>;
+  functionsAmount?: Maybe<Scalars['Float']>;
+  persistentVolume?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate variance on columns */
+export type Billing_Resources_Variance_Fields = {
+  __typename?: 'billing_resources_variance_fields';
+  customDomains?: Maybe<Scalars['Float']>;
+  functionsAmount?: Maybe<Scalars['Float']>;
+  persistentVolume?: Maybe<Scalars['Float']>;
 };
 
 /** columns and relationships of "billing.subscriptions" */
@@ -6243,11 +7934,42 @@ export type Billing_Subscriptions = {
   __typename?: 'billing_subscriptions';
   /** An object relationship */
   app?: Maybe<Apps>;
-  app_id: Scalars['uuid'];
-  created_at: Scalars['timestamptz'];
-  dedicated_compute?: Maybe<Scalars['String']>;
+  appID: Scalars['uuid'];
+  createdAt: Scalars['timestamptz'];
+  customDomains?: Maybe<Scalars['String']>;
+  dedicatedCompute?: Maybe<Scalars['String']>;
+  egress?: Maybe<Scalars['String']>;
+  functions?: Maybe<Scalars['String']>;
+  functionsAmount?: Maybe<Scalars['String']>;
   id: Scalars['uuid'];
-  updated_at: Scalars['timestamptz'];
+  persistentVolume?: Maybe<Scalars['String']>;
+  /** An array relationship */
+  reports: Array<Billing_Reports>;
+  /** An aggregate relationship */
+  reports_aggregate: Billing_Reports_Aggregate;
+  /** An object relationship */
+  resources?: Maybe<Billing_Resources>;
+  updatedAt: Scalars['timestamptz'];
+};
+
+
+/** columns and relationships of "billing.subscriptions" */
+export type Billing_SubscriptionsReportsArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Reports_Bool_Exp>;
+};
+
+
+/** columns and relationships of "billing.subscriptions" */
+export type Billing_SubscriptionsReports_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Reports_Bool_Exp>;
 };
 
 /** aggregated selection of "billing.subscriptions" */
@@ -6278,19 +8000,37 @@ export type Billing_Subscriptions_Bool_Exp = {
   _not?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
   _or?: InputMaybe<Array<Billing_Subscriptions_Bool_Exp>>;
   app?: InputMaybe<Apps_Bool_Exp>;
-  app_id?: InputMaybe<Uuid_Comparison_Exp>;
-  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  dedicated_compute?: InputMaybe<String_Comparison_Exp>;
+  appID?: InputMaybe<Uuid_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  customDomains?: InputMaybe<String_Comparison_Exp>;
+  dedicatedCompute?: InputMaybe<String_Comparison_Exp>;
+  egress?: InputMaybe<String_Comparison_Exp>;
+  functions?: InputMaybe<String_Comparison_Exp>;
+  functionsAmount?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
-  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  persistentVolume?: InputMaybe<String_Comparison_Exp>;
+  reports?: InputMaybe<Billing_Reports_Bool_Exp>;
+  reports_aggregate?: InputMaybe<Billing_Reports_Aggregate_Bool_Exp>;
+  resources?: InputMaybe<Billing_Resources_Bool_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "billing.subscriptions" */
 export enum Billing_Subscriptions_Constraint {
   /** unique or primary key constraint on columns "app_id" */
   SubscriptionsAppIdKey = 'subscriptions_app_id_key',
+  /** unique or primary key constraint on columns "custom_domains" */
+  SubscriptionsCustomDomainsKey = 'subscriptions_custom_domains_key',
   /** unique or primary key constraint on columns "dedicated_compute" */
   SubscriptionsDedicatedComputeKey = 'subscriptions_dedicated_compute_key',
+  /** unique or primary key constraint on columns "egress" */
+  SubscriptionsEgressKey = 'subscriptions_egress_key',
+  /** unique or primary key constraint on columns "functions_amount" */
+  SubscriptionsFunctionsAmountKey = 'subscriptions_functions_amount_key',
+  /** unique or primary key constraint on columns "functions" */
+  SubscriptionsFunctionsKey = 'subscriptions_functions_key',
+  /** unique or primary key constraint on columns "persistent_volume" */
+  SubscriptionsPersistentVolumeKey = 'subscriptions_persistent_volume_key',
   /** unique or primary key constraint on columns "id" */
   SubscriptionsPkey = 'subscriptions_pkey'
 }
@@ -6298,31 +8038,48 @@ export enum Billing_Subscriptions_Constraint {
 /** input type for inserting data into table "billing.subscriptions" */
 export type Billing_Subscriptions_Insert_Input = {
   app?: InputMaybe<Apps_Obj_Rel_Insert_Input>;
-  app_id?: InputMaybe<Scalars['uuid']>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  dedicated_compute?: InputMaybe<Scalars['String']>;
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  customDomains?: InputMaybe<Scalars['String']>;
+  dedicatedCompute?: InputMaybe<Scalars['String']>;
+  egress?: InputMaybe<Scalars['String']>;
+  functions?: InputMaybe<Scalars['String']>;
+  functionsAmount?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  persistentVolume?: InputMaybe<Scalars['String']>;
+  reports?: InputMaybe<Billing_Reports_Arr_Rel_Insert_Input>;
+  resources?: InputMaybe<Billing_Resources_Obj_Rel_Insert_Input>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** aggregate max on columns */
 export type Billing_Subscriptions_Max_Fields = {
   __typename?: 'billing_subscriptions_max_fields';
-  app_id?: Maybe<Scalars['uuid']>;
-  created_at?: Maybe<Scalars['timestamptz']>;
-  dedicated_compute?: Maybe<Scalars['String']>;
+  appID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  customDomains?: Maybe<Scalars['String']>;
+  dedicatedCompute?: Maybe<Scalars['String']>;
+  egress?: Maybe<Scalars['String']>;
+  functions?: Maybe<Scalars['String']>;
+  functionsAmount?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
+  persistentVolume?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** aggregate min on columns */
 export type Billing_Subscriptions_Min_Fields = {
   __typename?: 'billing_subscriptions_min_fields';
-  app_id?: Maybe<Scalars['uuid']>;
-  created_at?: Maybe<Scalars['timestamptz']>;
-  dedicated_compute?: Maybe<Scalars['String']>;
+  appID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  customDomains?: Maybe<Scalars['String']>;
+  dedicatedCompute?: Maybe<Scalars['String']>;
+  egress?: Maybe<Scalars['String']>;
+  functions?: Maybe<Scalars['String']>;
+  functionsAmount?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
+  persistentVolume?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** response of any mutation on the table "billing.subscriptions" */
@@ -6351,11 +8108,18 @@ export type Billing_Subscriptions_On_Conflict = {
 /** Ordering options when selecting data from "billing.subscriptions". */
 export type Billing_Subscriptions_Order_By = {
   app?: InputMaybe<Apps_Order_By>;
-  app_id?: InputMaybe<Order_By>;
-  created_at?: InputMaybe<Order_By>;
-  dedicated_compute?: InputMaybe<Order_By>;
+  appID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  customDomains?: InputMaybe<Order_By>;
+  dedicatedCompute?: InputMaybe<Order_By>;
+  egress?: InputMaybe<Order_By>;
+  functions?: InputMaybe<Order_By>;
+  functionsAmount?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
+  persistentVolume?: InputMaybe<Order_By>;
+  reports_aggregate?: InputMaybe<Billing_Reports_Aggregate_Order_By>;
+  resources?: InputMaybe<Billing_Resources_Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: billing.subscriptions */
@@ -6366,24 +8130,39 @@ export type Billing_Subscriptions_Pk_Columns_Input = {
 /** select columns of table "billing.subscriptions" */
 export enum Billing_Subscriptions_Select_Column {
   /** column name */
-  AppId = 'app_id',
+  AppId = 'appID',
   /** column name */
-  CreatedAt = 'created_at',
+  CreatedAt = 'createdAt',
   /** column name */
-  DedicatedCompute = 'dedicated_compute',
+  CustomDomains = 'customDomains',
+  /** column name */
+  DedicatedCompute = 'dedicatedCompute',
+  /** column name */
+  Egress = 'egress',
+  /** column name */
+  Functions = 'functions',
+  /** column name */
+  FunctionsAmount = 'functionsAmount',
   /** column name */
   Id = 'id',
   /** column name */
-  UpdatedAt = 'updated_at'
+  PersistentVolume = 'persistentVolume',
+  /** column name */
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "billing.subscriptions" */
 export type Billing_Subscriptions_Set_Input = {
-  app_id?: InputMaybe<Scalars['uuid']>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  dedicated_compute?: InputMaybe<Scalars['String']>;
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  customDomains?: InputMaybe<Scalars['String']>;
+  dedicatedCompute?: InputMaybe<Scalars['String']>;
+  egress?: InputMaybe<Scalars['String']>;
+  functions?: InputMaybe<Scalars['String']>;
+  functionsAmount?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  persistentVolume?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** Streaming cursor of the table "billing_subscriptions" */
@@ -6396,25 +8175,40 @@ export type Billing_Subscriptions_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Billing_Subscriptions_Stream_Cursor_Value_Input = {
-  app_id?: InputMaybe<Scalars['uuid']>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
-  dedicated_compute?: InputMaybe<Scalars['String']>;
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  customDomains?: InputMaybe<Scalars['String']>;
+  dedicatedCompute?: InputMaybe<Scalars['String']>;
+  egress?: InputMaybe<Scalars['String']>;
+  functions?: InputMaybe<Scalars['String']>;
+  functionsAmount?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  persistentVolume?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** update columns of table "billing.subscriptions" */
 export enum Billing_Subscriptions_Update_Column {
   /** column name */
-  AppId = 'app_id',
+  AppId = 'appID',
   /** column name */
-  CreatedAt = 'created_at',
+  CreatedAt = 'createdAt',
   /** column name */
-  DedicatedCompute = 'dedicated_compute',
+  CustomDomains = 'customDomains',
+  /** column name */
+  DedicatedCompute = 'dedicatedCompute',
+  /** column name */
+  Egress = 'egress',
+  /** column name */
+  Functions = 'functions',
+  /** column name */
+  FunctionsAmount = 'functionsAmount',
   /** column name */
   Id = 'id',
   /** column name */
-  UpdatedAt = 'updated_at'
+  PersistentVolume = 'persistentVolume',
+  /** column name */
+  UpdatedAt = 'updatedAt'
 }
 
 export type Billing_Subscriptions_Updates = {
@@ -8566,321 +10360,6 @@ export type FeatureFlags_Updates = {
   where: FeatureFlags_Bool_Exp;
 };
 
-/** columns and relationships of "feedback" */
-export type Feedback = {
-  __typename?: 'feedback';
-  createdAt: Scalars['timestamptz'];
-  feedback: Scalars['String'];
-  id: Scalars['Int'];
-  sentBy: Scalars['uuid'];
-  /** An object relationship */
-  user: Users;
-};
-
-/** aggregated selection of "feedback" */
-export type Feedback_Aggregate = {
-  __typename?: 'feedback_aggregate';
-  aggregate?: Maybe<Feedback_Aggregate_Fields>;
-  nodes: Array<Feedback>;
-};
-
-export type Feedback_Aggregate_Bool_Exp = {
-  count?: InputMaybe<Feedback_Aggregate_Bool_Exp_Count>;
-};
-
-export type Feedback_Aggregate_Bool_Exp_Count = {
-  arguments?: InputMaybe<Array<Feedback_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-  filter?: InputMaybe<Feedback_Bool_Exp>;
-  predicate: Int_Comparison_Exp;
-};
-
-/** aggregate fields of "feedback" */
-export type Feedback_Aggregate_Fields = {
-  __typename?: 'feedback_aggregate_fields';
-  avg?: Maybe<Feedback_Avg_Fields>;
-  count: Scalars['Int'];
-  max?: Maybe<Feedback_Max_Fields>;
-  min?: Maybe<Feedback_Min_Fields>;
-  stddev?: Maybe<Feedback_Stddev_Fields>;
-  stddev_pop?: Maybe<Feedback_Stddev_Pop_Fields>;
-  stddev_samp?: Maybe<Feedback_Stddev_Samp_Fields>;
-  sum?: Maybe<Feedback_Sum_Fields>;
-  var_pop?: Maybe<Feedback_Var_Pop_Fields>;
-  var_samp?: Maybe<Feedback_Var_Samp_Fields>;
-  variance?: Maybe<Feedback_Variance_Fields>;
-};
-
-
-/** aggregate fields of "feedback" */
-export type Feedback_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Feedback_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** order by aggregate values of table "feedback" */
-export type Feedback_Aggregate_Order_By = {
-  avg?: InputMaybe<Feedback_Avg_Order_By>;
-  count?: InputMaybe<Order_By>;
-  max?: InputMaybe<Feedback_Max_Order_By>;
-  min?: InputMaybe<Feedback_Min_Order_By>;
-  stddev?: InputMaybe<Feedback_Stddev_Order_By>;
-  stddev_pop?: InputMaybe<Feedback_Stddev_Pop_Order_By>;
-  stddev_samp?: InputMaybe<Feedback_Stddev_Samp_Order_By>;
-  sum?: InputMaybe<Feedback_Sum_Order_By>;
-  var_pop?: InputMaybe<Feedback_Var_Pop_Order_By>;
-  var_samp?: InputMaybe<Feedback_Var_Samp_Order_By>;
-  variance?: InputMaybe<Feedback_Variance_Order_By>;
-};
-
-/** input type for inserting array relation for remote table "feedback" */
-export type Feedback_Arr_Rel_Insert_Input = {
-  data: Array<Feedback_Insert_Input>;
-  /** upsert condition */
-  on_conflict?: InputMaybe<Feedback_On_Conflict>;
-};
-
-/** aggregate avg on columns */
-export type Feedback_Avg_Fields = {
-  __typename?: 'feedback_avg_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** order by avg() on columns of table "feedback" */
-export type Feedback_Avg_Order_By = {
-  id?: InputMaybe<Order_By>;
-};
-
-/** Boolean expression to filter rows from the table "feedback". All fields are combined with a logical 'AND'. */
-export type Feedback_Bool_Exp = {
-  _and?: InputMaybe<Array<Feedback_Bool_Exp>>;
-  _not?: InputMaybe<Feedback_Bool_Exp>;
-  _or?: InputMaybe<Array<Feedback_Bool_Exp>>;
-  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  feedback?: InputMaybe<String_Comparison_Exp>;
-  id?: InputMaybe<Int_Comparison_Exp>;
-  sentBy?: InputMaybe<Uuid_Comparison_Exp>;
-  user?: InputMaybe<Users_Bool_Exp>;
-};
-
-/** unique or primary key constraints on table "feedback" */
-export enum Feedback_Constraint {
-  /** unique or primary key constraint on columns "id" */
-  FeedbackPkey = 'feedback_pkey'
-}
-
-/** input type for incrementing numeric columns in table "feedback" */
-export type Feedback_Inc_Input = {
-  id?: InputMaybe<Scalars['Int']>;
-};
-
-/** input type for inserting data into table "feedback" */
-export type Feedback_Insert_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  feedback?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['Int']>;
-  sentBy?: InputMaybe<Scalars['uuid']>;
-  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
-};
-
-/** aggregate max on columns */
-export type Feedback_Max_Fields = {
-  __typename?: 'feedback_max_fields';
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  feedback?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['Int']>;
-  sentBy?: Maybe<Scalars['uuid']>;
-};
-
-/** order by max() on columns of table "feedback" */
-export type Feedback_Max_Order_By = {
-  createdAt?: InputMaybe<Order_By>;
-  feedback?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  sentBy?: InputMaybe<Order_By>;
-};
-
-/** aggregate min on columns */
-export type Feedback_Min_Fields = {
-  __typename?: 'feedback_min_fields';
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  feedback?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['Int']>;
-  sentBy?: Maybe<Scalars['uuid']>;
-};
-
-/** order by min() on columns of table "feedback" */
-export type Feedback_Min_Order_By = {
-  createdAt?: InputMaybe<Order_By>;
-  feedback?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  sentBy?: InputMaybe<Order_By>;
-};
-
-/** response of any mutation on the table "feedback" */
-export type Feedback_Mutation_Response = {
-  __typename?: 'feedback_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Feedback>;
-};
-
-/** on_conflict condition type for table "feedback" */
-export type Feedback_On_Conflict = {
-  constraint: Feedback_Constraint;
-  update_columns?: Array<Feedback_Update_Column>;
-  where?: InputMaybe<Feedback_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "feedback". */
-export type Feedback_Order_By = {
-  createdAt?: InputMaybe<Order_By>;
-  feedback?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  sentBy?: InputMaybe<Order_By>;
-  user?: InputMaybe<Users_Order_By>;
-};
-
-/** primary key columns input for table: feedback */
-export type Feedback_Pk_Columns_Input = {
-  id: Scalars['Int'];
-};
-
-/** select columns of table "feedback" */
-export enum Feedback_Select_Column {
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  Feedback = 'feedback',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  SentBy = 'sentBy'
-}
-
-/** input type for updating data in table "feedback" */
-export type Feedback_Set_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  feedback?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['Int']>;
-  sentBy?: InputMaybe<Scalars['uuid']>;
-};
-
-/** aggregate stddev on columns */
-export type Feedback_Stddev_Fields = {
-  __typename?: 'feedback_stddev_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** order by stddev() on columns of table "feedback" */
-export type Feedback_Stddev_Order_By = {
-  id?: InputMaybe<Order_By>;
-};
-
-/** aggregate stddev_pop on columns */
-export type Feedback_Stddev_Pop_Fields = {
-  __typename?: 'feedback_stddev_pop_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** order by stddev_pop() on columns of table "feedback" */
-export type Feedback_Stddev_Pop_Order_By = {
-  id?: InputMaybe<Order_By>;
-};
-
-/** aggregate stddev_samp on columns */
-export type Feedback_Stddev_Samp_Fields = {
-  __typename?: 'feedback_stddev_samp_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** order by stddev_samp() on columns of table "feedback" */
-export type Feedback_Stddev_Samp_Order_By = {
-  id?: InputMaybe<Order_By>;
-};
-
-/** Streaming cursor of the table "feedback" */
-export type Feedback_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Feedback_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Feedback_Stream_Cursor_Value_Input = {
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  feedback?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['Int']>;
-  sentBy?: InputMaybe<Scalars['uuid']>;
-};
-
-/** aggregate sum on columns */
-export type Feedback_Sum_Fields = {
-  __typename?: 'feedback_sum_fields';
-  id?: Maybe<Scalars['Int']>;
-};
-
-/** order by sum() on columns of table "feedback" */
-export type Feedback_Sum_Order_By = {
-  id?: InputMaybe<Order_By>;
-};
-
-/** update columns of table "feedback" */
-export enum Feedback_Update_Column {
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  Feedback = 'feedback',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  SentBy = 'sentBy'
-}
-
-export type Feedback_Updates = {
-  /** increments the numeric columns with given value of the filtered values */
-  _inc?: InputMaybe<Feedback_Inc_Input>;
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Feedback_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Feedback_Bool_Exp;
-};
-
-/** aggregate var_pop on columns */
-export type Feedback_Var_Pop_Fields = {
-  __typename?: 'feedback_var_pop_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** order by var_pop() on columns of table "feedback" */
-export type Feedback_Var_Pop_Order_By = {
-  id?: InputMaybe<Order_By>;
-};
-
-/** aggregate var_samp on columns */
-export type Feedback_Var_Samp_Fields = {
-  __typename?: 'feedback_var_samp_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** order by var_samp() on columns of table "feedback" */
-export type Feedback_Var_Samp_Order_By = {
-  id?: InputMaybe<Order_By>;
-};
-
-/** aggregate variance on columns */
-export type Feedback_Variance_Fields = {
-  __typename?: 'feedback_variance_fields';
-  id?: Maybe<Scalars['Float']>;
-};
-
-/** order by variance() on columns of table "feedback" */
-export type Feedback_Variance_Order_By = {
-  id?: InputMaybe<Order_By>;
-};
-
 /** columns and relationships of "storage.files" */
 export type Files = {
   __typename?: 'files';
@@ -10131,10 +11610,13 @@ export type Mutation_Root = {
   backupApplicationDatabase: BackupResult;
   billingFinishSubscription: Scalars['Boolean'];
   billingFixSubscriptions: Scalars['Boolean'];
-  billingReportDedicatedCompute: Scalars['Boolean'];
-  billingUpdateAndReportDedicatedComputeReports: Scalars['Boolean'];
+  billingFullReportWorkflow: Scalars['Boolean'];
+  billingUpdateCustomDomains: Scalars['Boolean'];
   billingUpdateDedicatedCompute: Scalars['Boolean'];
-  billingUpdateDedicatedComputeReports: Scalars['Boolean'];
+  billingUpdateFunctionsAmount: Scalars['Boolean'];
+  billingUpdatePersistentVolume: Scalars['Boolean'];
+  billingUpdateReports: Scalars['Boolean'];
+  billingUploadReports: Scalars['Boolean'];
   /** delete single row from the table: "apps" */
   deleteApp?: Maybe<Apps>;
   /** delete single row from the table: "app_states" */
@@ -10183,6 +11665,22 @@ export type Mutation_Root = {
   deleteBackup?: Maybe<Backups>;
   /** delete data from the table: "backups" */
   deleteBackups?: Maybe<Backups_Mutation_Response>;
+  /** delete single row from the table: "billing.dedicated_compute" */
+  deleteBillingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
+  /** delete data from the table: "billing.dedicated_compute" */
+  deleteBillingDedicatedComputes?: Maybe<Billing_Dedicated_Compute_Mutation_Response>;
+  /** delete single row from the table: "billing.reports" */
+  deleteBillingReport?: Maybe<Billing_Reports>;
+  /** delete data from the table: "billing.reports" */
+  deleteBillingReports?: Maybe<Billing_Reports_Mutation_Response>;
+  /** delete single row from the table: "billing.resources" */
+  deleteBillingResource?: Maybe<Billing_Resources>;
+  /** delete data from the table: "billing.resources" */
+  deleteBillingResources?: Maybe<Billing_Resources_Mutation_Response>;
+  /** delete data from the table: "billing.subscriptions" */
+  deleteBillingSubscription?: Maybe<Billing_Subscriptions_Mutation_Response>;
+  /** delete single row from the table: "billing.subscriptions" */
+  deleteBillingSubscriptions?: Maybe<Billing_Subscriptions>;
   /** delete single row from the table: "storage.buckets" */
   deleteBucket?: Maybe<Buckets>;
   /** delete data from the table: "storage.buckets" */
@@ -10204,10 +11702,6 @@ export type Mutation_Root = {
   deleteFeatureFlag?: Maybe<FeatureFlags>;
   /** delete data from the table: "feature_flags" */
   deleteFeatureFlags?: Maybe<FeatureFlags_Mutation_Response>;
-  /** delete data from the table: "feedback" */
-  deleteFeedback?: Maybe<Feedback_Mutation_Response>;
-  /** delete single row from the table: "feedback" */
-  deleteFeedbackOne?: Maybe<Feedback>;
   /** delete single row from the table: "storage.files" */
   deleteFile?: Maybe<Files>;
   /** delete data from the table: "storage.files" */
@@ -10232,11 +11726,28 @@ export type Mutation_Root = {
   deleteRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** delete data from the table: "regions_allowed_workspace" */
   deleteRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
-  deleteSecret: ConfigEnvironmentVariable;
+  /** delete single row from the table: "run_service" */
+  deleteRunService?: Maybe<Run_Service>;
+  deleteRunServiceConfig?: Maybe<ConfigRunServiceConfig>;
+  /** delete data from the table: "run_service" */
+  deleteRunServices?: Maybe<Run_Service_Mutation_Response>;
+  deleteSecret?: Maybe<ConfigEnvironmentVariable>;
+  /** delete single row from the table: "software_type" */
+  deleteSoftwareType?: Maybe<Software_Type>;
+  /** delete data from the table: "software_type" */
+  deleteSoftwareTypes?: Maybe<Software_Type_Mutation_Response>;
+  /** delete single row from the table: "software_versions" */
+  deleteSoftwareVersion?: Maybe<Software_Versions>;
+  /** delete data from the table: "software_versions" */
+  deleteSoftwareVersions?: Maybe<Software_Versions_Mutation_Response>;
   /** delete single row from the table: "auth.users" */
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
   deleteUsers?: Maybe<Users_Mutation_Response>;
+  /** delete single row from the table: "users_usage" */
+  deleteUsersUsage?: Maybe<Users_Usage>;
+  /** delete data from the table: "users_usage" */
+  deleteUsersUsages?: Maybe<Users_Usage_Mutation_Response>;
   /** delete single row from the table: "workspaces" */
   deleteWorkspace?: Maybe<Workspaces>;
   /** delete single row from the table: "workspace_members" */
@@ -10249,10 +11760,18 @@ export type Mutation_Root = {
   deleteWorkspaceMembers?: Maybe<WorkspaceMembers_Mutation_Response>;
   /** delete data from the table: "workspaces" */
   deleteWorkspaces?: Maybe<Workspaces_Mutation_Response>;
+  /** delete data from the table: "announcements" */
+  delete_announcements?: Maybe<Announcements_Mutation_Response>;
+  /** delete single row from the table: "announcements" */
+  delete_announcements_by_pk?: Maybe<Announcements>;
   /** delete data from the table: "auth.migrations" */
   delete_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
   /** delete single row from the table: "auth.migrations" */
   delete_auth_migrations_by_pk?: Maybe<Auth_Migrations>;
+  /** delete data from the table: "billing.report_type" */
+  delete_billing_report_type?: Maybe<Billing_Report_Type_Mutation_Response>;
+  /** delete single row from the table: "billing.report_type" */
+  delete_billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
   /** delete data from the table: "continents" */
   delete_continents?: Maybe<Continents_Mutation_Response>;
   /** delete single row from the table: "continents" */
@@ -10317,6 +11836,22 @@ export type Mutation_Root = {
   insertBackup?: Maybe<Backups>;
   /** insert data into the table: "backups" */
   insertBackups?: Maybe<Backups_Mutation_Response>;
+  /** insert a single row into the table: "billing.dedicated_compute" */
+  insertBillingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
+  /** insert data into the table: "billing.dedicated_compute" */
+  insertBillingDedicatedComputes?: Maybe<Billing_Dedicated_Compute_Mutation_Response>;
+  /** insert a single row into the table: "billing.reports" */
+  insertBillingReport?: Maybe<Billing_Reports>;
+  /** insert data into the table: "billing.reports" */
+  insertBillingReports?: Maybe<Billing_Reports_Mutation_Response>;
+  /** insert a single row into the table: "billing.resources" */
+  insertBillingResource?: Maybe<Billing_Resources>;
+  /** insert data into the table: "billing.resources" */
+  insertBillingResources?: Maybe<Billing_Resources_Mutation_Response>;
+  /** insert data into the table: "billing.subscriptions" */
+  insertBillingSubscription?: Maybe<Billing_Subscriptions_Mutation_Response>;
+  /** insert a single row into the table: "billing.subscriptions" */
+  insertBillingSubscriptions?: Maybe<Billing_Subscriptions>;
   /** insert a single row into the table: "storage.buckets" */
   insertBucket?: Maybe<Buckets>;
   /** insert data into the table: "storage.buckets" */
@@ -10338,10 +11873,6 @@ export type Mutation_Root = {
   insertFeatureFlag?: Maybe<FeatureFlags>;
   /** insert data into the table: "feature_flags" */
   insertFeatureFlags?: Maybe<FeatureFlags_Mutation_Response>;
-  /** insert data into the table: "feedback" */
-  insertFeedback?: Maybe<Feedback_Mutation_Response>;
-  /** insert a single row into the table: "feedback" */
-  insertFeedbackOne?: Maybe<Feedback>;
   /** insert a single row into the table: "storage.files" */
   insertFile?: Maybe<Files>;
   /** insert data into the table: "storage.files" */
@@ -10366,11 +11897,28 @@ export type Mutation_Root = {
   insertRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** insert data into the table: "regions_allowed_workspace" */
   insertRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
+  /** insert a single row into the table: "run_service" */
+  insertRunService?: Maybe<Run_Service>;
+  insertRunServiceConfig: ConfigRunServiceConfig;
+  /** insert data into the table: "run_service" */
+  insertRunServices?: Maybe<Run_Service_Mutation_Response>;
   insertSecret: ConfigEnvironmentVariable;
+  /** insert a single row into the table: "software_type" */
+  insertSoftwareType?: Maybe<Software_Type>;
+  /** insert data into the table: "software_type" */
+  insertSoftwareTypes?: Maybe<Software_Type_Mutation_Response>;
+  /** insert a single row into the table: "software_versions" */
+  insertSoftwareVersion?: Maybe<Software_Versions>;
+  /** insert data into the table: "software_versions" */
+  insertSoftwareVersions?: Maybe<Software_Versions_Mutation_Response>;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
   insertUsers?: Maybe<Users_Mutation_Response>;
+  /** insert a single row into the table: "users_usage" */
+  insertUsersUsage?: Maybe<Users_Usage>;
+  /** insert data into the table: "users_usage" */
+  insertUsersUsages?: Maybe<Users_Usage_Mutation_Response>;
   /** insert a single row into the table: "workspaces" */
   insertWorkspace?: Maybe<Workspaces>;
   /** insert a single row into the table: "workspace_members" */
@@ -10383,10 +11931,18 @@ export type Mutation_Root = {
   insertWorkspaceMembers?: Maybe<WorkspaceMembers_Mutation_Response>;
   /** insert data into the table: "workspaces" */
   insertWorkspaces?: Maybe<Workspaces_Mutation_Response>;
+  /** insert data into the table: "announcements" */
+  insert_announcements?: Maybe<Announcements_Mutation_Response>;
+  /** insert a single row into the table: "announcements" */
+  insert_announcements_one?: Maybe<Announcements>;
   /** insert data into the table: "auth.migrations" */
   insert_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
   /** insert a single row into the table: "auth.migrations" */
   insert_auth_migrations_one?: Maybe<Auth_Migrations>;
+  /** insert data into the table: "billing.report_type" */
+  insert_billing_report_type?: Maybe<Billing_Report_Type_Mutation_Response>;
+  /** insert a single row into the table: "billing.report_type" */
+  insert_billing_report_type_one?: Maybe<Billing_Report_Type>;
   /** insert data into the table: "continents" */
   insert_continents?: Maybe<Continents_Mutation_Response>;
   /** insert a single row into the table: "continents" */
@@ -10403,11 +11959,13 @@ export type Mutation_Root = {
   insert_regions?: Maybe<Regions_Mutation_Response>;
   /** insert a single row into the table: "regions" */
   insert_regions_one?: Maybe<Regions>;
-  migrateRDSToPostgres: Scalars['Boolean'];
+  pauseAppsExceedUsage: Array<Scalars['String']>;
   pauseInactiveApps: Array<Scalars['String']>;
   replaceConfig: ConfigConfig;
+  replaceRunServiceConfig: ConfigRunServiceConfig;
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
+  sendEmailTemplate: Scalars['Boolean'];
   /** update single row of the table: "apps" */
   updateApp?: Maybe<Apps>;
   /** update single row of the table: "app_states" */
@@ -10456,6 +12014,22 @@ export type Mutation_Root = {
   updateBackup?: Maybe<Backups>;
   /** update data of the table: "backups" */
   updateBackups?: Maybe<Backups_Mutation_Response>;
+  /** update single row of the table: "billing.dedicated_compute" */
+  updateBillingDedicatedCompute?: Maybe<Billing_Dedicated_Compute>;
+  /** update data of the table: "billing.dedicated_compute" */
+  updateBillingDedicatedComputes?: Maybe<Billing_Dedicated_Compute_Mutation_Response>;
+  /** update single row of the table: "billing.reports" */
+  updateBillingReport?: Maybe<Billing_Reports>;
+  /** update data of the table: "billing.reports" */
+  updateBillingReports?: Maybe<Billing_Reports_Mutation_Response>;
+  /** update single row of the table: "billing.resources" */
+  updateBillingResource?: Maybe<Billing_Resources>;
+  /** update data of the table: "billing.resources" */
+  updateBillingResources?: Maybe<Billing_Resources_Mutation_Response>;
+  /** update single row of the table: "billing.subscriptions" */
+  updateBillingSubscription?: Maybe<Billing_Subscriptions>;
+  /** update data of the table: "billing.subscriptions" */
+  updateBillingSubscriptions?: Maybe<Billing_Subscriptions_Mutation_Response>;
   /** update single row of the table: "storage.buckets" */
   updateBucket?: Maybe<Buckets>;
   /** update data of the table: "storage.buckets" */
@@ -10477,10 +12051,6 @@ export type Mutation_Root = {
   updateFeatureFlag?: Maybe<FeatureFlags>;
   /** update data of the table: "feature_flags" */
   updateFeatureFlags?: Maybe<FeatureFlags_Mutation_Response>;
-  /** update data of the table: "feedback" */
-  updateFeedback?: Maybe<Feedback_Mutation_Response>;
-  /** update single row of the table: "feedback" */
-  updateFeedbackOne?: Maybe<Feedback>;
   /** update single row of the table: "storage.files" */
   updateFile?: Maybe<Files>;
   /** update data of the table: "storage.files" */
@@ -10493,6 +12063,14 @@ export type Mutation_Root = {
   updateGithubRepositories?: Maybe<GithubRepositories_Mutation_Response>;
   /** update single row of the table: "github_repositories" */
   updateGithubRepository?: Maybe<GithubRepositories>;
+  /** update multiples rows of table: "billing.reports" */
+  updateManyBillingReports?: Maybe<Array<Maybe<Billing_Reports_Mutation_Response>>>;
+  /** update multiples rows of table: "billing.resources" */
+  updateManyBillingResources?: Maybe<Array<Maybe<Billing_Resources_Mutation_Response>>>;
+  /** update multiples rows of table: "software_type" */
+  updateManySoftwareType?: Maybe<Array<Maybe<Software_Type_Mutation_Response>>>;
+  /** update multiples rows of table: "software_versions" */
+  updateManySoftwareVersions?: Maybe<Array<Maybe<Software_Versions_Mutation_Response>>>;
   /** update single row of the table: "payment_methods" */
   updatePaymentMethod?: Maybe<PaymentMethods>;
   /** update data of the table: "payment_methods" */
@@ -10505,12 +12083,29 @@ export type Mutation_Root = {
   updateRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** update data of the table: "regions_allowed_workspace" */
   updateRegionsAllowedWorkspaces?: Maybe<Regions_Allowed_Workspace_Mutation_Response>;
+  /** update single row of the table: "run_service" */
+  updateRunService?: Maybe<Run_Service>;
+  updateRunServiceConfig: ConfigRunServiceConfig;
+  /** update data of the table: "run_service" */
+  updateRunServices?: Maybe<Run_Service_Mutation_Response>;
   updateSecret: ConfigEnvironmentVariable;
+  /** update single row of the table: "software_type" */
+  updateSoftwareType?: Maybe<Software_Type>;
+  /** update data of the table: "software_type" */
+  updateSoftwareTypes?: Maybe<Software_Type_Mutation_Response>;
+  /** update single row of the table: "software_versions" */
+  updateSoftwareVersion?: Maybe<Software_Versions>;
+  /** update data of the table: "software_versions" */
+  updateSoftwareVersions?: Maybe<Software_Versions_Mutation_Response>;
   updateSystemConfig: ConfigSystemConfig;
   /** update single row of the table: "auth.users" */
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
   updateUsers?: Maybe<Users_Mutation_Response>;
+  /** update single row of the table: "users_usage" */
+  updateUsersUsage?: Maybe<Users_Usage>;
+  /** update data of the table: "users_usage" */
+  updateUsersUsages?: Maybe<Users_Usage_Mutation_Response>;
   /** update single row of the table: "workspaces" */
   updateWorkspace?: Maybe<Workspaces>;
   /** update single row of the table: "workspace_members" */
@@ -10523,6 +12118,12 @@ export type Mutation_Root = {
   updateWorkspaceMembers?: Maybe<WorkspaceMembers_Mutation_Response>;
   /** update data of the table: "workspaces" */
   updateWorkspaces?: Maybe<Workspaces_Mutation_Response>;
+  /** update data of the table: "announcements" */
+  update_announcements?: Maybe<Announcements_Mutation_Response>;
+  /** update single row of the table: "announcements" */
+  update_announcements_by_pk?: Maybe<Announcements>;
+  /** update multiples rows of table: "announcements" */
+  update_announcements_many?: Maybe<Array<Maybe<Announcements_Mutation_Response>>>;
   /** update multiples rows of table: "app_state_history" */
   update_appStateHistory_many?: Maybe<Array<Maybe<AppStateHistory_Mutation_Response>>>;
   /** update multiples rows of table: "app_states" */
@@ -10553,6 +12154,14 @@ export type Mutation_Root = {
   update_auth_migrations_many?: Maybe<Array<Maybe<Auth_Migrations_Mutation_Response>>>;
   /** update multiples rows of table: "backups" */
   update_backups_many?: Maybe<Array<Maybe<Backups_Mutation_Response>>>;
+  /** update multiples rows of table: "billing.dedicated_compute" */
+  update_billing_dedicated_compute_many?: Maybe<Array<Maybe<Billing_Dedicated_Compute_Mutation_Response>>>;
+  /** update data of the table: "billing.report_type" */
+  update_billing_report_type?: Maybe<Billing_Report_Type_Mutation_Response>;
+  /** update single row of the table: "billing.report_type" */
+  update_billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
+  /** update multiples rows of table: "billing.report_type" */
+  update_billing_report_type_many?: Maybe<Array<Maybe<Billing_Report_Type_Mutation_Response>>>;
   /** update multiples rows of table: "storage.buckets" */
   update_buckets_many?: Maybe<Array<Maybe<Buckets_Mutation_Response>>>;
   /** update multiples rows of table: "cli_tokens" */
@@ -10575,14 +12184,14 @@ export type Mutation_Root = {
   update_deployments_many?: Maybe<Array<Maybe<Deployments_Mutation_Response>>>;
   /** update multiples rows of table: "feature_flags" */
   update_featureFlags_many?: Maybe<Array<Maybe<FeatureFlags_Mutation_Response>>>;
-  /** update multiples rows of table: "feedback" */
-  update_feedback_many?: Maybe<Array<Maybe<Feedback_Mutation_Response>>>;
   /** update multiples rows of table: "storage.files" */
   update_files_many?: Maybe<Array<Maybe<Files_Mutation_Response>>>;
   /** update multiples rows of table: "github_app_installations" */
   update_githubAppInstallations_many?: Maybe<Array<Maybe<GithubAppInstallations_Mutation_Response>>>;
   /** update multiples rows of table: "github_repositories" */
   update_githubRepositories_many?: Maybe<Array<Maybe<GithubRepositories_Mutation_Response>>>;
+  /** update multiples rows of table: "billing.subscriptions" */
+  update_many_billing_subscriptions?: Maybe<Array<Maybe<Billing_Subscriptions_Mutation_Response>>>;
   /** update multiples rows of table: "payment_methods" */
   update_paymentMethods_many?: Maybe<Array<Maybe<PaymentMethods_Mutation_Response>>>;
   /** update multiples rows of table: "plans" */
@@ -10601,56 +12210,32 @@ export type Mutation_Root = {
   update_regions_by_pk?: Maybe<Regions>;
   /** update multiples rows of table: "regions" */
   update_regions_many?: Maybe<Array<Maybe<Regions_Mutation_Response>>>;
+  /** update multiples rows of table: "run_service" */
+  update_run_service_many?: Maybe<Array<Maybe<Run_Service_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
+  /** update multiples rows of table: "users_usage" */
+  update_users_usage_many?: Maybe<Array<Maybe<Users_Usage_Mutation_Response>>>;
   /** update multiples rows of table: "workspace_member_invites" */
   update_workspaceMemberInvites_many?: Maybe<Array<Maybe<WorkspaceMemberInvites_Mutation_Response>>>;
   /** update multiples rows of table: "workspace_members" */
   update_workspaceMembers_many?: Maybe<Array<Maybe<WorkspaceMembers_Mutation_Response>>>;
   /** update multiples rows of table: "workspaces" */
   update_workspaces_many?: Maybe<Array<Maybe<Workspaces_Mutation_Response>>>;
-  /** delete single row from the table: "billing.dedicated_compute" */
-  zzzDONOTUSE_delete_billing_dedicated_compute?: Maybe<Billing_Dedicated_Compute>;
   /** delete single row from the table: "billing.dedicated_compute_reports" */
   zzzDONOTUSE_delete_billing_dedicated_compute_report?: Maybe<Billing_Dedicated_Compute_Reports>;
   /** delete data from the table: "billing.dedicated_compute_reports" */
   zzzDONOTUSE_delete_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
-  /** delete data from the table: "billing.dedicated_compute" */
-  zzzDONOTUSE_delete_billing_dedicated_computes?: Maybe<Billing_Dedicated_Compute_Mutation_Response>;
-  /** delete single row from the table: "billing.subscriptions" */
-  zzzDONOTUSE_delete_billing_subscription?: Maybe<Billing_Subscriptions>;
-  /** delete data from the table: "billing.subscriptions" */
-  zzzDONOTUSE_delete_billing_subscriptions?: Maybe<Billing_Subscriptions_Mutation_Response>;
-  /** insert a single row into the table: "billing.dedicated_compute" */
-  zzzDONOTUSE_insert_billing_dedicated_compute?: Maybe<Billing_Dedicated_Compute>;
   /** insert a single row into the table: "billing.dedicated_compute_reports" */
   zzzDONOTUSE_insert_billing_dedicated_compute_report?: Maybe<Billing_Dedicated_Compute_Reports>;
   /** insert data into the table: "billing.dedicated_compute_reports" */
   zzzDONOTUSE_insert_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
-  /** insert data into the table: "billing.dedicated_compute" */
-  zzzDONOTUSE_insert_billing_dedicated_computes?: Maybe<Billing_Dedicated_Compute_Mutation_Response>;
-  /** insert a single row into the table: "billing.subscriptions" */
-  zzzDONOTUSE_insert_billing_subscription?: Maybe<Billing_Subscriptions>;
-  /** insert data into the table: "billing.subscriptions" */
-  zzzDONOTUSE_insert_billing_subscriptions?: Maybe<Billing_Subscriptions_Mutation_Response>;
-  /** update single row of the table: "billing.dedicated_compute" */
-  zzzDONOTUSE_update_billing_dedicated_compute?: Maybe<Billing_Dedicated_Compute>;
   /** update single row of the table: "billing.dedicated_compute_reports" */
   zzzDONOTUSE_update_billing_dedicated_compute_report?: Maybe<Billing_Dedicated_Compute_Reports>;
   /** update data of the table: "billing.dedicated_compute_reports" */
   zzzDONOTUSE_update_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
-  /** update data of the table: "billing.dedicated_compute" */
-  zzzDONOTUSE_update_billing_dedicated_computes?: Maybe<Billing_Dedicated_Compute_Mutation_Response>;
-  /** update single row of the table: "billing.subscriptions" */
-  zzzDONOTUSE_update_billing_subscription?: Maybe<Billing_Subscriptions>;
-  /** update data of the table: "billing.subscriptions" */
-  zzzDONOTUSE_update_billing_subscriptions?: Maybe<Billing_Subscriptions_Mutation_Response>;
-  /** update multiples rows of table: "billing.dedicated_compute" */
-  zzzDONOTUSE_update_many_billing_dedicated_compute?: Maybe<Array<Maybe<Billing_Dedicated_Compute_Mutation_Response>>>;
   /** update multiples rows of table: "billing.dedicated_compute_reports" */
   zzzDONOTUSE_update_many_billing_dedicated_compute_reports?: Maybe<Array<Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>>>;
-  /** update multiples rows of table: "billing.subscriptions" */
-  zzzDONOTUSE_update_many_billing_subscriptions?: Maybe<Array<Maybe<Billing_Subscriptions_Mutation_Response>>>;
 };
 
 
@@ -10671,20 +12256,22 @@ export type Mutation_RootBackupApplicationDatabaseArgs = {
 export type Mutation_RootBillingFinishSubscriptionArgs = {
   appID: Scalars['uuid'];
   appName: Scalars['String'];
+  planID: Scalars['uuid'];
   subdomain: Scalars['String'];
   subscriptionID: Scalars['String'];
 };
 
 
 /** mutation root */
-export type Mutation_RootBillingReportDedicatedComputeArgs = {
-  reportTime: Scalars['Timestamp'];
+export type Mutation_RootBillingFullReportWorkflowArgs = {
+  reportTime?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
 /** mutation root */
-export type Mutation_RootBillingUpdateAndReportDedicatedComputeReportsArgs = {
-  reportTime?: InputMaybe<Scalars['Timestamp']>;
+export type Mutation_RootBillingUpdateCustomDomainsArgs = {
+  amount: Scalars['Int'];
+  appID: Scalars['uuid'];
 };
 
 
@@ -10696,8 +12283,22 @@ export type Mutation_RootBillingUpdateDedicatedComputeArgs = {
 
 
 /** mutation root */
-export type Mutation_RootBillingUpdateDedicatedComputeReportsArgs = {
-  reportTime: Scalars['Timestamp'];
+export type Mutation_RootBillingUpdateFunctionsAmountArgs = {
+  amount: Scalars['Int'];
+  appID: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootBillingUpdatePersistentVolumeArgs = {
+  amount: Scalars['Int'];
+  appID: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootBillingUpdateReportsArgs = {
+  reportTime?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
@@ -10846,6 +12447,54 @@ export type Mutation_RootDeleteBackupsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDeleteBillingDedicatedComputeArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteBillingDedicatedComputesArgs = {
+  where: Billing_Dedicated_Compute_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteBillingReportArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteBillingReportsArgs = {
+  where: Billing_Reports_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteBillingResourceArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteBillingResourcesArgs = {
+  where: Billing_Resources_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteBillingSubscriptionArgs = {
+  where: Billing_Subscriptions_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteBillingSubscriptionsArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
 export type Mutation_RootDeleteBucketArgs = {
   id: Scalars['String'];
 };
@@ -10908,18 +12557,6 @@ export type Mutation_RootDeleteFeatureFlagArgs = {
 /** mutation root */
 export type Mutation_RootDeleteFeatureFlagsArgs = {
   where: FeatureFlags_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteFeedbackArgs = {
-  where: Feedback_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteFeedbackOneArgs = {
-  id: Scalars['Int'];
 };
 
 
@@ -10996,9 +12633,52 @@ export type Mutation_RootDeleteRegionsAllowedWorkspacesArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDeleteRunServiceArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteRunServiceConfigArgs = {
+  appID: Scalars['uuid'];
+  serviceID: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteRunServicesArgs = {
+  where: Run_Service_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootDeleteSecretArgs = {
   appID: Scalars['uuid'];
   key: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteSoftwareTypeArgs = {
+  type: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteSoftwareTypesArgs = {
+  where: Software_Type_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteSoftwareVersionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteSoftwareVersionsArgs = {
+  where: Software_Versions_Bool_Exp;
 };
 
 
@@ -11011,6 +12691,18 @@ export type Mutation_RootDeleteUserArgs = {
 /** mutation root */
 export type Mutation_RootDeleteUsersArgs = {
   where: Users_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteUsersUsageArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteUsersUsagesArgs = {
+  where: Users_Usage_Bool_Exp;
 };
 
 
@@ -11051,6 +12743,18 @@ export type Mutation_RootDeleteWorkspacesArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDelete_AnnouncementsArgs = {
+  where: Announcements_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Announcements_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
 export type Mutation_RootDelete_Auth_MigrationsArgs = {
   where: Auth_Migrations_Bool_Exp;
 };
@@ -11059,6 +12763,18 @@ export type Mutation_RootDelete_Auth_MigrationsArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Auth_Migrations_By_PkArgs = {
   id: Scalars['Int'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Billing_Report_TypeArgs = {
+  where: Billing_Report_Type_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Billing_Report_Type_By_PkArgs = {
+  value: Scalars['String'];
 };
 
 
@@ -11279,6 +12995,62 @@ export type Mutation_RootInsertBackupsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsertBillingDedicatedComputeArgs = {
+  object: Billing_Dedicated_Compute_Insert_Input;
+  on_conflict?: InputMaybe<Billing_Dedicated_Compute_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertBillingDedicatedComputesArgs = {
+  objects: Array<Billing_Dedicated_Compute_Insert_Input>;
+  on_conflict?: InputMaybe<Billing_Dedicated_Compute_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertBillingReportArgs = {
+  object: Billing_Reports_Insert_Input;
+  on_conflict?: InputMaybe<Billing_Reports_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertBillingReportsArgs = {
+  objects: Array<Billing_Reports_Insert_Input>;
+  on_conflict?: InputMaybe<Billing_Reports_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertBillingResourceArgs = {
+  object: Billing_Resources_Insert_Input;
+  on_conflict?: InputMaybe<Billing_Resources_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertBillingResourcesArgs = {
+  objects: Array<Billing_Resources_Insert_Input>;
+  on_conflict?: InputMaybe<Billing_Resources_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertBillingSubscriptionArgs = {
+  objects: Array<Billing_Subscriptions_Insert_Input>;
+  on_conflict?: InputMaybe<Billing_Subscriptions_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertBillingSubscriptionsArgs = {
+  object: Billing_Subscriptions_Insert_Input;
+  on_conflict?: InputMaybe<Billing_Subscriptions_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertBucketArgs = {
   object: Buckets_Insert_Input;
   on_conflict?: InputMaybe<Buckets_On_Conflict>;
@@ -11354,20 +13126,6 @@ export type Mutation_RootInsertFeatureFlagArgs = {
 export type Mutation_RootInsertFeatureFlagsArgs = {
   objects: Array<FeatureFlags_Insert_Input>;
   on_conflict?: InputMaybe<FeatureFlags_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertFeedbackArgs = {
-  objects: Array<Feedback_Insert_Input>;
-  on_conflict?: InputMaybe<Feedback_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertFeedbackOneArgs = {
-  object: Feedback_Insert_Input;
-  on_conflict?: InputMaybe<Feedback_On_Conflict>;
 };
 
 
@@ -11456,9 +13214,59 @@ export type Mutation_RootInsertRegionsAllowedWorkspacesArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsertRunServiceArgs = {
+  object: Run_Service_Insert_Input;
+  on_conflict?: InputMaybe<Run_Service_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertRunServiceConfigArgs = {
+  appID: Scalars['uuid'];
+  config: ConfigRunServiceConfigInsertInput;
+  serviceID: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertRunServicesArgs = {
+  objects: Array<Run_Service_Insert_Input>;
+  on_conflict?: InputMaybe<Run_Service_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertSecretArgs = {
   appID: Scalars['uuid'];
   secret: ConfigEnvironmentVariableInsertInput;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertSoftwareTypeArgs = {
+  object: Software_Type_Insert_Input;
+  on_conflict?: InputMaybe<Software_Type_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertSoftwareTypesArgs = {
+  objects: Array<Software_Type_Insert_Input>;
+  on_conflict?: InputMaybe<Software_Type_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertSoftwareVersionArgs = {
+  object: Software_Versions_Insert_Input;
+  on_conflict?: InputMaybe<Software_Versions_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertSoftwareVersionsArgs = {
+  objects: Array<Software_Versions_Insert_Input>;
+  on_conflict?: InputMaybe<Software_Versions_On_Conflict>;
 };
 
 
@@ -11473,6 +13281,20 @@ export type Mutation_RootInsertUserArgs = {
 export type Mutation_RootInsertUsersArgs = {
   objects: Array<Users_Insert_Input>;
   on_conflict?: InputMaybe<Users_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertUsersUsageArgs = {
+  object: Users_Usage_Insert_Input;
+  on_conflict?: InputMaybe<Users_Usage_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertUsersUsagesArgs = {
+  objects: Array<Users_Usage_Insert_Input>;
+  on_conflict?: InputMaybe<Users_Usage_On_Conflict>;
 };
 
 
@@ -11519,6 +13341,20 @@ export type Mutation_RootInsertWorkspacesArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsert_AnnouncementsArgs = {
+  objects: Array<Announcements_Insert_Input>;
+  on_conflict?: InputMaybe<Announcements_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Announcements_OneArgs = {
+  object: Announcements_Insert_Input;
+  on_conflict?: InputMaybe<Announcements_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsert_Auth_MigrationsArgs = {
   objects: Array<Auth_Migrations_Insert_Input>;
   on_conflict?: InputMaybe<Auth_Migrations_On_Conflict>;
@@ -11529,6 +13365,20 @@ export type Mutation_RootInsert_Auth_MigrationsArgs = {
 export type Mutation_RootInsert_Auth_Migrations_OneArgs = {
   object: Auth_Migrations_Insert_Input;
   on_conflict?: InputMaybe<Auth_Migrations_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Billing_Report_TypeArgs = {
+  objects: Array<Billing_Report_Type_Insert_Input>;
+  on_conflict?: InputMaybe<Billing_Report_Type_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Billing_Report_Type_OneArgs = {
+  object: Billing_Report_Type_Insert_Input;
+  on_conflict?: InputMaybe<Billing_Report_Type_On_Conflict>;
 };
 
 
@@ -11589,16 +13439,17 @@ export type Mutation_RootInsert_Regions_OneArgs = {
 
 
 /** mutation root */
-export type Mutation_RootMigrateRdsToPostgresArgs = {
-  appID: Scalars['String'];
-  backupID: Scalars['String'];
+export type Mutation_RootReplaceConfigArgs = {
+  appID: Scalars['uuid'];
+  config: ConfigConfigInsertInput;
 };
 
 
 /** mutation root */
-export type Mutation_RootReplaceConfigArgs = {
+export type Mutation_RootReplaceRunServiceConfigArgs = {
   appID: Scalars['uuid'];
-  config: ConfigConfigInsertInput;
+  config: ConfigRunServiceConfigInsertInput;
+  serviceID: Scalars['uuid'];
 };
 
 
@@ -11613,6 +13464,15 @@ export type Mutation_RootResetPostgresPasswordArgs = {
 export type Mutation_RootRestoreApplicationDatabaseArgs = {
   appID: Scalars['String'];
   backupID: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootSendEmailTemplateArgs = {
+  from: Scalars['String'];
+  templateAlias: Scalars['String'];
+  templateModel?: InputMaybe<Scalars['map']>;
+  to: Scalars['String'];
 };
 
 
@@ -11825,6 +13685,68 @@ export type Mutation_RootUpdateBackupsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateBillingDedicatedComputeArgs = {
+  _inc?: InputMaybe<Billing_Dedicated_Compute_Inc_Input>;
+  _set?: InputMaybe<Billing_Dedicated_Compute_Set_Input>;
+  pk_columns: Billing_Dedicated_Compute_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateBillingDedicatedComputesArgs = {
+  _inc?: InputMaybe<Billing_Dedicated_Compute_Inc_Input>;
+  _set?: InputMaybe<Billing_Dedicated_Compute_Set_Input>;
+  where: Billing_Dedicated_Compute_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateBillingReportArgs = {
+  _inc?: InputMaybe<Billing_Reports_Inc_Input>;
+  _set?: InputMaybe<Billing_Reports_Set_Input>;
+  pk_columns: Billing_Reports_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateBillingReportsArgs = {
+  _inc?: InputMaybe<Billing_Reports_Inc_Input>;
+  _set?: InputMaybe<Billing_Reports_Set_Input>;
+  where: Billing_Reports_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateBillingResourceArgs = {
+  _inc?: InputMaybe<Billing_Resources_Inc_Input>;
+  _set?: InputMaybe<Billing_Resources_Set_Input>;
+  pk_columns: Billing_Resources_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateBillingResourcesArgs = {
+  _inc?: InputMaybe<Billing_Resources_Inc_Input>;
+  _set?: InputMaybe<Billing_Resources_Set_Input>;
+  where: Billing_Resources_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateBillingSubscriptionArgs = {
+  _set?: InputMaybe<Billing_Subscriptions_Set_Input>;
+  pk_columns: Billing_Subscriptions_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateBillingSubscriptionsArgs = {
+  _set?: InputMaybe<Billing_Subscriptions_Set_Input>;
+  where: Billing_Subscriptions_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateBucketArgs = {
   _inc?: InputMaybe<Buckets_Inc_Input>;
   _set?: InputMaybe<Buckets_Set_Input>;
@@ -11904,22 +13826,6 @@ export type Mutation_RootUpdateFeatureFlagsArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdateFeedbackArgs = {
-  _inc?: InputMaybe<Feedback_Inc_Input>;
-  _set?: InputMaybe<Feedback_Set_Input>;
-  where: Feedback_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateFeedbackOneArgs = {
-  _inc?: InputMaybe<Feedback_Inc_Input>;
-  _set?: InputMaybe<Feedback_Set_Input>;
-  pk_columns: Feedback_Pk_Columns_Input;
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdateFileArgs = {
   _inc?: InputMaybe<Files_Inc_Input>;
   _set?: InputMaybe<Files_Set_Input>;
@@ -11976,6 +13882,30 @@ export type Mutation_RootUpdateGithubRepositoryArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateManyBillingReportsArgs = {
+  updates: Array<Billing_Reports_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateManyBillingResourcesArgs = {
+  updates: Array<Billing_Resources_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateManySoftwareTypeArgs = {
+  updates: Array<Software_Type_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateManySoftwareVersionsArgs = {
+  updates: Array<Software_Versions_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdatePaymentMethodArgs = {
   _inc?: InputMaybe<PaymentMethods_Inc_Input>;
   _set?: InputMaybe<PaymentMethods_Set_Input>;
@@ -12022,9 +13952,59 @@ export type Mutation_RootUpdateRegionsAllowedWorkspacesArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateRunServiceArgs = {
+  _set?: InputMaybe<Run_Service_Set_Input>;
+  pk_columns: Run_Service_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateRunServiceConfigArgs = {
+  appID: Scalars['uuid'];
+  config: ConfigRunServiceConfigUpdateInput;
+  serviceID: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateRunServicesArgs = {
+  _set?: InputMaybe<Run_Service_Set_Input>;
+  where: Run_Service_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateSecretArgs = {
   appID: Scalars['uuid'];
   secret: ConfigEnvironmentVariableInsertInput;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateSoftwareTypeArgs = {
+  _set?: InputMaybe<Software_Type_Set_Input>;
+  pk_columns: Software_Type_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateSoftwareTypesArgs = {
+  _set?: InputMaybe<Software_Type_Set_Input>;
+  where: Software_Type_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateSoftwareVersionArgs = {
+  _set?: InputMaybe<Software_Versions_Set_Input>;
+  pk_columns: Software_Versions_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateSoftwareVersionsArgs = {
+  _set?: InputMaybe<Software_Versions_Set_Input>;
+  where: Software_Versions_Bool_Exp;
 };
 
 
@@ -12056,6 +14036,20 @@ export type Mutation_RootUpdateUsersArgs = {
   _prepend?: InputMaybe<Users_Prepend_Input>;
   _set?: InputMaybe<Users_Set_Input>;
   where: Users_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateUsersUsageArgs = {
+  _set?: InputMaybe<Users_Usage_Set_Input>;
+  pk_columns: Users_Usage_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateUsersUsagesArgs = {
+  _set?: InputMaybe<Users_Usage_Set_Input>;
+  where: Users_Usage_Bool_Exp;
 };
 
 
@@ -12098,6 +14092,26 @@ export type Mutation_RootUpdateWorkspaceMembersArgs = {
 export type Mutation_RootUpdateWorkspacesArgs = {
   _set?: InputMaybe<Workspaces_Set_Input>;
   where: Workspaces_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_AnnouncementsArgs = {
+  _set?: InputMaybe<Announcements_Set_Input>;
+  where: Announcements_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Announcements_By_PkArgs = {
+  _set?: InputMaybe<Announcements_Set_Input>;
+  pk_columns: Announcements_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Announcements_ManyArgs = {
+  updates: Array<Announcements_Updates>;
 };
 
 
@@ -12196,6 +14210,32 @@ export type Mutation_RootUpdate_Backups_ManyArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdate_Billing_Dedicated_Compute_ManyArgs = {
+  updates: Array<Billing_Dedicated_Compute_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Billing_Report_TypeArgs = {
+  _set?: InputMaybe<Billing_Report_Type_Set_Input>;
+  where: Billing_Report_Type_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Billing_Report_Type_By_PkArgs = {
+  _set?: InputMaybe<Billing_Report_Type_Set_Input>;
+  pk_columns: Billing_Report_Type_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Billing_Report_Type_ManyArgs = {
+  updates: Array<Billing_Report_Type_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdate_Buckets_ManyArgs = {
   updates: Array<Buckets_Updates>;
 };
@@ -12268,12 +14308,6 @@ export type Mutation_RootUpdate_FeatureFlags_ManyArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdate_Feedback_ManyArgs = {
-  updates: Array<Feedback_Updates>;
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdate_Files_ManyArgs = {
   updates: Array<Files_Updates>;
 };
@@ -12288,6 +14322,12 @@ export type Mutation_RootUpdate_GithubAppInstallations_ManyArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_GithubRepositories_ManyArgs = {
   updates: Array<GithubRepositories_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Many_Billing_SubscriptionsArgs = {
+  updates: Array<Billing_Subscriptions_Updates>;
 };
 
 
@@ -12350,8 +14390,20 @@ export type Mutation_RootUpdate_Regions_ManyArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdate_Run_Service_ManyArgs = {
+  updates: Array<Run_Service_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdate_Users_ManyArgs = {
   updates: Array<Users_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Users_Usage_ManyArgs = {
+  updates: Array<Users_Usage_Updates>;
 };
 
 
@@ -12374,12 +14426,6 @@ export type Mutation_RootUpdate_Workspaces_ManyArgs = {
 
 
 /** mutation root */
-export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_ComputeArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
 export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_Compute_ReportArgs = {
   id: Scalars['uuid'];
 };
@@ -12388,31 +14434,6 @@ export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_Compute_ReportArgs
 /** mutation root */
 export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_Compute_ReportsArgs = {
   where: Billing_Dedicated_Compute_Reports_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Delete_Billing_Dedicated_ComputesArgs = {
-  where: Billing_Dedicated_Compute_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Delete_Billing_SubscriptionArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Delete_Billing_SubscriptionsArgs = {
-  where: Billing_Subscriptions_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Insert_Billing_Dedicated_ComputeArgs = {
-  object: Billing_Dedicated_Compute_Insert_Input;
-  on_conflict?: InputMaybe<Billing_Dedicated_Compute_On_Conflict>;
 };
 
 
@@ -12427,35 +14448,6 @@ export type Mutation_RootZzzDonotuse_Insert_Billing_Dedicated_Compute_ReportArgs
 export type Mutation_RootZzzDonotuse_Insert_Billing_Dedicated_Compute_ReportsArgs = {
   objects: Array<Billing_Dedicated_Compute_Reports_Insert_Input>;
   on_conflict?: InputMaybe<Billing_Dedicated_Compute_Reports_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Insert_Billing_Dedicated_ComputesArgs = {
-  objects: Array<Billing_Dedicated_Compute_Insert_Input>;
-  on_conflict?: InputMaybe<Billing_Dedicated_Compute_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Insert_Billing_SubscriptionArgs = {
-  object: Billing_Subscriptions_Insert_Input;
-  on_conflict?: InputMaybe<Billing_Subscriptions_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Insert_Billing_SubscriptionsArgs = {
-  objects: Array<Billing_Subscriptions_Insert_Input>;
-  on_conflict?: InputMaybe<Billing_Subscriptions_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Update_Billing_Dedicated_ComputeArgs = {
-  _inc?: InputMaybe<Billing_Dedicated_Compute_Inc_Input>;
-  _set?: InputMaybe<Billing_Dedicated_Compute_Set_Input>;
-  pk_columns: Billing_Dedicated_Compute_Pk_Columns_Input;
 };
 
 
@@ -12476,42 +14468,8 @@ export type Mutation_RootZzzDonotuse_Update_Billing_Dedicated_Compute_ReportsArg
 
 
 /** mutation root */
-export type Mutation_RootZzzDonotuse_Update_Billing_Dedicated_ComputesArgs = {
-  _inc?: InputMaybe<Billing_Dedicated_Compute_Inc_Input>;
-  _set?: InputMaybe<Billing_Dedicated_Compute_Set_Input>;
-  where: Billing_Dedicated_Compute_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Update_Billing_SubscriptionArgs = {
-  _set?: InputMaybe<Billing_Subscriptions_Set_Input>;
-  pk_columns: Billing_Subscriptions_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Update_Billing_SubscriptionsArgs = {
-  _set?: InputMaybe<Billing_Subscriptions_Set_Input>;
-  where: Billing_Subscriptions_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Update_Many_Billing_Dedicated_ComputeArgs = {
-  updates: Array<Billing_Dedicated_Compute_Updates>;
-};
-
-
-/** mutation root */
 export type Mutation_RootZzzDonotuse_Update_Many_Billing_Dedicated_Compute_ReportsArgs = {
   updates: Array<Billing_Dedicated_Compute_Reports_Updates>;
-};
-
-
-/** mutation root */
-export type Mutation_RootZzzDonotuse_Update_Many_Billing_SubscriptionsArgs = {
-  updates: Array<Billing_Subscriptions_Updates>;
 };
 
 /** column ordering options */
@@ -12990,6 +14948,7 @@ export type Plans = {
   /** An aggregate relationship */
   apps_aggregate: Apps_Aggregate;
   createdAt: Scalars['timestamptz'];
+  deprecated: Scalars['Boolean'];
   featureBackupEnabled: Scalars['Boolean'];
   featureCustomDomainsEnabled: Scalars['Boolean'];
   featureCustomEmailTemplatesEnabled: Scalars['Boolean'];
@@ -13003,12 +14962,19 @@ export type Plans = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment: Scalars['Int'];
   id: Scalars['uuid'];
+  individual: Scalars['Boolean'];
   isDefault: Scalars['Boolean'];
   isFree: Scalars['Boolean'];
   isPublic: Scalars['Boolean'];
   name: Scalars['String'];
   price: Scalars['Int'];
   sort: Scalars['Int'];
+  stripePriceIDCustomDomains: Scalars['String'];
+  stripePriceIDDedicatedCompute: Scalars['String'];
+  stripePriceIDEgressUsageMB: Scalars['String'];
+  stripePriceIDFunctionsAmount: Scalars['String'];
+  stripePriceIDFunctionsUsageSeconds: Scalars['String'];
+  stripePriceIDPersistentVolumesGB: Scalars['String'];
   stripePriceId: Scalars['String'];
   upatedAt: Scalars['timestamptz'];
 };
@@ -13084,6 +15050,7 @@ export type Plans_Bool_Exp = {
   apps?: InputMaybe<Apps_Bool_Exp>;
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  deprecated?: InputMaybe<Boolean_Comparison_Exp>;
   featureBackupEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomDomainsEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Boolean_Comparison_Exp>;
@@ -13094,12 +15061,19 @@ export type Plans_Bool_Exp = {
   featureMaxFilesSize?: InputMaybe<Int_Comparison_Exp>;
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Int_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
+  individual?: InputMaybe<Boolean_Comparison_Exp>;
   isDefault?: InputMaybe<Boolean_Comparison_Exp>;
   isFree?: InputMaybe<Boolean_Comparison_Exp>;
   isPublic?: InputMaybe<Boolean_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   price?: InputMaybe<Int_Comparison_Exp>;
   sort?: InputMaybe<Int_Comparison_Exp>;
+  stripePriceIDCustomDomains?: InputMaybe<String_Comparison_Exp>;
+  stripePriceIDDedicatedCompute?: InputMaybe<String_Comparison_Exp>;
+  stripePriceIDEgressUsageMB?: InputMaybe<String_Comparison_Exp>;
+  stripePriceIDFunctionsAmount?: InputMaybe<String_Comparison_Exp>;
+  stripePriceIDFunctionsUsageSeconds?: InputMaybe<String_Comparison_Exp>;
+  stripePriceIDPersistentVolumesGB?: InputMaybe<String_Comparison_Exp>;
   stripePriceId?: InputMaybe<String_Comparison_Exp>;
   upatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -13126,6 +15100,7 @@ export type Plans_Inc_Input = {
 export type Plans_Insert_Input = {
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  deprecated?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
@@ -13139,12 +15114,19 @@ export type Plans_Insert_Input = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
+  individual?: InputMaybe<Scalars['Boolean']>;
   isDefault?: InputMaybe<Scalars['Boolean']>;
   isFree?: InputMaybe<Scalars['Boolean']>;
   isPublic?: InputMaybe<Scalars['Boolean']>;
   name?: InputMaybe<Scalars['String']>;
   price?: InputMaybe<Scalars['Int']>;
   sort?: InputMaybe<Scalars['Int']>;
+  stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
+  stripePriceIDDedicatedCompute?: InputMaybe<Scalars['String']>;
+  stripePriceIDEgressUsageMB?: InputMaybe<Scalars['String']>;
+  stripePriceIDFunctionsAmount?: InputMaybe<Scalars['String']>;
+  stripePriceIDFunctionsUsageSeconds?: InputMaybe<Scalars['String']>;
+  stripePriceIDPersistentVolumesGB?: InputMaybe<Scalars['String']>;
   stripePriceId?: InputMaybe<Scalars['String']>;
   upatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -13163,6 +15145,12 @@ export type Plans_Max_Fields = {
   name?: Maybe<Scalars['String']>;
   price?: Maybe<Scalars['Int']>;
   sort?: Maybe<Scalars['Int']>;
+  stripePriceIDCustomDomains?: Maybe<Scalars['String']>;
+  stripePriceIDDedicatedCompute?: Maybe<Scalars['String']>;
+  stripePriceIDEgressUsageMB?: Maybe<Scalars['String']>;
+  stripePriceIDFunctionsAmount?: Maybe<Scalars['String']>;
+  stripePriceIDFunctionsUsageSeconds?: Maybe<Scalars['String']>;
+  stripePriceIDPersistentVolumesGB?: Maybe<Scalars['String']>;
   stripePriceId?: Maybe<Scalars['String']>;
   upatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -13181,6 +15169,12 @@ export type Plans_Min_Fields = {
   name?: Maybe<Scalars['String']>;
   price?: Maybe<Scalars['Int']>;
   sort?: Maybe<Scalars['Int']>;
+  stripePriceIDCustomDomains?: Maybe<Scalars['String']>;
+  stripePriceIDDedicatedCompute?: Maybe<Scalars['String']>;
+  stripePriceIDEgressUsageMB?: Maybe<Scalars['String']>;
+  stripePriceIDFunctionsAmount?: Maybe<Scalars['String']>;
+  stripePriceIDFunctionsUsageSeconds?: Maybe<Scalars['String']>;
+  stripePriceIDPersistentVolumesGB?: Maybe<Scalars['String']>;
   stripePriceId?: Maybe<Scalars['String']>;
   upatedAt?: Maybe<Scalars['timestamptz']>;
 };
@@ -13212,6 +15206,7 @@ export type Plans_On_Conflict = {
 export type Plans_Order_By = {
   apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  deprecated?: InputMaybe<Order_By>;
   featureBackupEnabled?: InputMaybe<Order_By>;
   featureCustomDomainsEnabled?: InputMaybe<Order_By>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Order_By>;
@@ -13222,12 +15217,19 @@ export type Plans_Order_By = {
   featureMaxFilesSize?: InputMaybe<Order_By>;
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  individual?: InputMaybe<Order_By>;
   isDefault?: InputMaybe<Order_By>;
   isFree?: InputMaybe<Order_By>;
   isPublic?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   price?: InputMaybe<Order_By>;
   sort?: InputMaybe<Order_By>;
+  stripePriceIDCustomDomains?: InputMaybe<Order_By>;
+  stripePriceIDDedicatedCompute?: InputMaybe<Order_By>;
+  stripePriceIDEgressUsageMB?: InputMaybe<Order_By>;
+  stripePriceIDFunctionsAmount?: InputMaybe<Order_By>;
+  stripePriceIDFunctionsUsageSeconds?: InputMaybe<Order_By>;
+  stripePriceIDPersistentVolumesGB?: InputMaybe<Order_By>;
   stripePriceId?: InputMaybe<Order_By>;
   upatedAt?: InputMaybe<Order_By>;
 };
@@ -13241,6 +15243,8 @@ export type Plans_Pk_Columns_Input = {
 export enum Plans_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
+  /** column name */
+  Deprecated = 'deprecated',
   /** column name */
   FeatureBackupEnabled = 'featureBackupEnabled',
   /** column name */
@@ -13262,6 +15266,8 @@ export enum Plans_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  Individual = 'individual',
+  /** column name */
   IsDefault = 'isDefault',
   /** column name */
   IsFree = 'isFree',
@@ -13274,6 +15280,18 @@ export enum Plans_Select_Column {
   /** column name */
   Sort = 'sort',
   /** column name */
+  StripePriceIdCustomDomains = 'stripePriceIDCustomDomains',
+  /** column name */
+  StripePriceIdDedicatedCompute = 'stripePriceIDDedicatedCompute',
+  /** column name */
+  StripePriceIdEgressUsageMb = 'stripePriceIDEgressUsageMB',
+  /** column name */
+  StripePriceIdFunctionsAmount = 'stripePriceIDFunctionsAmount',
+  /** column name */
+  StripePriceIdFunctionsUsageSeconds = 'stripePriceIDFunctionsUsageSeconds',
+  /** column name */
+  StripePriceIdPersistentVolumesGb = 'stripePriceIDPersistentVolumesGB',
+  /** column name */
   StripePriceId = 'stripePriceId',
   /** column name */
   UpatedAt = 'upatedAt'
@@ -13282,6 +15300,7 @@ export enum Plans_Select_Column {
 /** input type for updating data in table "plans" */
 export type Plans_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  deprecated?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
@@ -13295,12 +15314,19 @@ export type Plans_Set_Input = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
+  individual?: InputMaybe<Scalars['Boolean']>;
   isDefault?: InputMaybe<Scalars['Boolean']>;
   isFree?: InputMaybe<Scalars['Boolean']>;
   isPublic?: InputMaybe<Scalars['Boolean']>;
   name?: InputMaybe<Scalars['String']>;
   price?: InputMaybe<Scalars['Int']>;
   sort?: InputMaybe<Scalars['Int']>;
+  stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
+  stripePriceIDDedicatedCompute?: InputMaybe<Scalars['String']>;
+  stripePriceIDEgressUsageMB?: InputMaybe<Scalars['String']>;
+  stripePriceIDFunctionsAmount?: InputMaybe<Scalars['String']>;
+  stripePriceIDFunctionsUsageSeconds?: InputMaybe<Scalars['String']>;
+  stripePriceIDPersistentVolumesGB?: InputMaybe<Scalars['String']>;
   stripePriceId?: InputMaybe<Scalars['String']>;
   upatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -13355,6 +15381,7 @@ export type Plans_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Plans_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  deprecated?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
@@ -13368,12 +15395,19 @@ export type Plans_Stream_Cursor_Value_Input = {
   /** Max number of functions to deploy per git deployment */
   featureMaxNumberOfFunctionsPerDeployment?: InputMaybe<Scalars['Int']>;
   id?: InputMaybe<Scalars['uuid']>;
+  individual?: InputMaybe<Scalars['Boolean']>;
   isDefault?: InputMaybe<Scalars['Boolean']>;
   isFree?: InputMaybe<Scalars['Boolean']>;
   isPublic?: InputMaybe<Scalars['Boolean']>;
   name?: InputMaybe<Scalars['String']>;
   price?: InputMaybe<Scalars['Int']>;
   sort?: InputMaybe<Scalars['Int']>;
+  stripePriceIDCustomDomains?: InputMaybe<Scalars['String']>;
+  stripePriceIDDedicatedCompute?: InputMaybe<Scalars['String']>;
+  stripePriceIDEgressUsageMB?: InputMaybe<Scalars['String']>;
+  stripePriceIDFunctionsAmount?: InputMaybe<Scalars['String']>;
+  stripePriceIDFunctionsUsageSeconds?: InputMaybe<Scalars['String']>;
+  stripePriceIDPersistentVolumesGB?: InputMaybe<Scalars['String']>;
   stripePriceId?: InputMaybe<Scalars['String']>;
   upatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
@@ -13396,6 +15430,8 @@ export enum Plans_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
+  Deprecated = 'deprecated',
+  /** column name */
   FeatureBackupEnabled = 'featureBackupEnabled',
   /** column name */
   FeatureCustomDomainsEnabled = 'featureCustomDomainsEnabled',
@@ -13416,6 +15452,8 @@ export enum Plans_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  Individual = 'individual',
+  /** column name */
   IsDefault = 'isDefault',
   /** column name */
   IsFree = 'isFree',
@@ -13427,6 +15465,18 @@ export enum Plans_Update_Column {
   Price = 'price',
   /** column name */
   Sort = 'sort',
+  /** column name */
+  StripePriceIdCustomDomains = 'stripePriceIDCustomDomains',
+  /** column name */
+  StripePriceIdDedicatedCompute = 'stripePriceIDDedicatedCompute',
+  /** column name */
+  StripePriceIdEgressUsageMb = 'stripePriceIDEgressUsageMB',
+  /** column name */
+  StripePriceIdFunctionsAmount = 'stripePriceIDFunctionsAmount',
+  /** column name */
+  StripePriceIdFunctionsUsageSeconds = 'stripePriceIDFunctionsUsageSeconds',
+  /** column name */
+  StripePriceIdPersistentVolumesGb = 'stripePriceIDPersistentVolumesGB',
   /** column name */
   StripePriceId = 'stripePriceId',
   /** column name */
@@ -13483,6 +15533,12 @@ export type Plans_Variance_Fields = {
 
 export type Query_Root = {
   __typename?: 'query_root';
+  /** fetch data from the table: "announcements" */
+  announcements: Array<Announcements>;
+  /** fetch aggregated fields from the table: "announcements" */
+  announcements_aggregate: Announcements_Aggregate;
+  /** fetch data from the table: "announcements" using primary key columns */
+  announcements_by_pk?: Maybe<Announcements>;
   /** fetch data from the table: "apps" using primary key columns */
   app?: Maybe<Apps>;
   appSecrets: Array<ConfigEnvironmentVariable>;
@@ -13575,13 +15631,31 @@ export type Query_Root = {
   billingDedicatedComputeReportsAggregate: Billing_Dedicated_Compute_Reports_Aggregate;
   /** fetch data from the table: "billing.dedicated_compute" */
   billingDedicatedComputes: Array<Billing_Dedicated_Compute>;
-  billingDummy: Scalars['Boolean'];
+  billingGetNextInvoice?: Maybe<InvoiceSummary>;
+  /** fetch data from the table: "billing.reports" using primary key columns */
+  billingReport?: Maybe<Billing_Reports>;
+  /** fetch data from the table: "billing.reports" */
+  billingReports: Array<Billing_Reports>;
+  /** fetch aggregated fields from the table: "billing.reports" */
+  billingReportsAggregate: Billing_Reports_Aggregate;
+  /** fetch data from the table: "billing.resources" using primary key columns */
+  billingResource?: Maybe<Billing_Resources>;
+  /** fetch data from the table: "billing.resources" */
+  billingResources: Array<Billing_Resources>;
+  /** fetch aggregated fields from the table: "billing.resources" */
+  billingResourcesAggregate: Billing_Resources_Aggregate;
   /** fetch data from the table: "billing.subscriptions" using primary key columns */
   billingSubscription?: Maybe<Billing_Subscriptions>;
   /** fetch data from the table: "billing.subscriptions" */
   billingSubscriptions: Array<Billing_Subscriptions>;
   /** fetch aggregated fields from the table: "billing.subscriptions" */
   billingSubscriptionsAggregate: Billing_Subscriptions_Aggregate;
+  /** fetch data from the table: "billing.report_type" */
+  billing_report_type: Array<Billing_Report_Type>;
+  /** fetch aggregated fields from the table: "billing.report_type" */
+  billing_report_type_aggregate: Billing_Report_Type_Aggregate;
+  /** fetch data from the table: "billing.report_type" using primary key columns */
+  billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
   /** fetch data from the table: "storage.buckets" using primary key columns */
   bucket?: Maybe<Buckets>;
   /** fetch data from the table: "storage.buckets" */
@@ -13621,18 +15695,17 @@ export type Query_Root = {
   deployments: Array<Deployments>;
   /** fetch aggregated fields from the table: "deployments" */
   deploymentsAggregate: Deployments_Aggregate;
+  /**
+   * Returns the CNAME the hostname resolves to.
+   * If the hostname cannot be resolved or isn't a CNAME, returns empty
+   */
+  dnsLookupCNAME: Scalars['String'];
   /** fetch data from the table: "feature_flags" using primary key columns */
   featureFlag?: Maybe<FeatureFlags>;
   /** An array relationship */
   featureFlags: Array<FeatureFlags>;
   /** fetch aggregated fields from the table: "feature_flags" */
   featureFlagsAggregate: FeatureFlags_Aggregate;
-  /** fetch data from the table: "feedback" */
-  feedback: Array<Feedback>;
-  /** fetch aggregated fields from the table: "feedback" */
-  feedbackAggreggate: Feedback_Aggregate;
-  /** fetch data from the table: "feedback" using primary key columns */
-  feedbackOne?: Maybe<Feedback>;
   /** fetch data from the table: "storage.files" using primary key columns */
   file?: Maybe<Files>;
   /** An array relationship */
@@ -13642,11 +15715,19 @@ export type Query_Root = {
   getBackupPresignedURL: BackupPresignedUrl;
   getCPUSecondsUsage: Metrics;
   getEgressVolume: Metrics;
+  getFunctionsDuration: Metrics;
   getFunctionsInvocations: Metrics;
   getLogsVolume: Metrics;
   getPostgresVolumeCapacity: Metrics;
   getPostgresVolumeUsage: Metrics;
+  /**
+   * Returns list of label values for a given label within a range of time.
+   *
+   * If `from` and `to` are not provided, they default to 6 hour ago and now, respectively.
+   */
+  getServiceLabelValues: Array<Scalars['String']>;
   getTotalRequests: Metrics;
+  getUsageAll: Array<UsageSummary>;
   /** fetch data from the table: "github_app_installations" using primary key columns */
   githubAppInstallation?: Maybe<GithubAppInstallations>;
   /** fetch data from the table: "github_app_installations" */
@@ -13688,12 +15769,33 @@ export type Query_Root = {
   regions_aggregate: Regions_Aggregate;
   /** fetch data from the table: "regions" using primary key columns */
   regions_by_pk?: Maybe<Regions>;
+  /** fetch data from the table: "run_service" using primary key columns */
+  runService?: Maybe<Run_Service>;
+  runServiceConfig?: Maybe<ConfigRunServiceConfig>;
+  runServiceConfigRawJSON: Scalars['String'];
+  runServiceConfigs: Array<ConfigRunServiceConfigWithId>;
+  /** An array relationship */
+  runServices: Array<Run_Service>;
+  /** fetch aggregated fields from the table: "run_service" */
+  runServicesAggregate: Run_Service_Aggregate;
   /** fetch data from the table: "regions_allowed_workspace" using primary key columns */
   selectRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** fetch data from the table: "regions_allowed_workspace" */
   selectRegionsAllowedWorkspaces: Array<Regions_Allowed_Workspace>;
   /** fetch aggregated fields from the table: "regions_allowed_workspace" */
   selectRegionsAllowedWorkspacesAggregate: Regions_Allowed_Workspace_Aggregate;
+  /** fetch data from the table: "software_type" using primary key columns */
+  softwareType?: Maybe<Software_Type>;
+  /** fetch data from the table: "software_type" */
+  softwareTypes: Array<Software_Type>;
+  /** fetch aggregated fields from the table: "software_type" */
+  softwareTypesAggregate: Software_Type_Aggregate;
+  /** fetch data from the table: "software_versions" using primary key columns */
+  softwareVersion?: Maybe<Software_Versions>;
+  /** fetch data from the table: "software_versions" */
+  softwareVersions: Array<Software_Versions>;
+  /** fetch aggregated fields from the table: "software_versions" */
+  softwareVersionsAggregate: Software_Versions_Aggregate;
   /**
    * Returns lists of apps that have some live traffic in the give time range.
    * From defaults to 24 hours ago and to defaults to now.
@@ -13709,6 +15811,12 @@ export type Query_Root = {
   users: Array<Users>;
   /** fetch aggregated fields from the table: "auth.users" */
   usersAggregate: Users_Aggregate;
+  /** fetch data from the table: "users_usage" using primary key columns */
+  usersUsage?: Maybe<Users_Usage>;
+  /** fetch data from the table: "users_usage" */
+  usersUsages: Array<Users_Usage>;
+  /** fetch aggregated fields from the table: "users_usage" */
+  usersUsagesAggregate: Users_Usage_Aggregate;
   /** fetch data from the table: "workspaces" using primary key columns */
   workspace?: Maybe<Workspaces>;
   /** fetch data from the table: "workspace_members" using primary key columns */
@@ -13727,6 +15835,29 @@ export type Query_Root = {
   workspaces: Array<Workspaces>;
   /** fetch aggregated fields from the table: "workspaces" */
   workspacesAggregate: Workspaces_Aggregate;
+};
+
+
+export type Query_RootAnnouncementsArgs = {
+  distinct_on?: InputMaybe<Array<Announcements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Announcements_Order_By>>;
+  where?: InputMaybe<Announcements_Bool_Exp>;
+};
+
+
+export type Query_RootAnnouncements_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Announcements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Announcements_Order_By>>;
+  where?: InputMaybe<Announcements_Bool_Exp>;
+};
+
+
+export type Query_RootAnnouncements_By_PkArgs = {
+  id: Scalars['uuid'];
 };
 
 
@@ -14080,6 +16211,57 @@ export type Query_RootBillingDedicatedComputesArgs = {
 };
 
 
+export type Query_RootBillingGetNextInvoiceArgs = {
+  appID: Scalars['uuid'];
+};
+
+
+export type Query_RootBillingReportArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootBillingReportsArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Reports_Bool_Exp>;
+};
+
+
+export type Query_RootBillingReportsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Reports_Bool_Exp>;
+};
+
+
+export type Query_RootBillingResourceArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootBillingResourcesArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Resources_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Resources_Order_By>>;
+  where?: InputMaybe<Billing_Resources_Bool_Exp>;
+};
+
+
+export type Query_RootBillingResourcesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Resources_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Resources_Order_By>>;
+  where?: InputMaybe<Billing_Resources_Bool_Exp>;
+};
+
+
 export type Query_RootBillingSubscriptionArgs = {
   id: Scalars['uuid'];
 };
@@ -14100,6 +16282,29 @@ export type Query_RootBillingSubscriptionsAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Billing_Subscriptions_Order_By>>;
   where?: InputMaybe<Billing_Subscriptions_Bool_Exp>;
+};
+
+
+export type Query_RootBilling_Report_TypeArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Report_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Report_Type_Order_By>>;
+  where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
+};
+
+
+export type Query_RootBilling_Report_Type_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Report_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Report_Type_Order_By>>;
+  where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
+};
+
+
+export type Query_RootBilling_Report_Type_By_PkArgs = {
+  value: Scalars['String'];
 };
 
 
@@ -14259,6 +16464,11 @@ export type Query_RootDeploymentsAggregateArgs = {
 };
 
 
+export type Query_RootDnsLookupCnameArgs = {
+  hostname: Scalars['String'];
+};
+
+
 export type Query_RootFeatureFlagArgs = {
   id: Scalars['uuid'];
 };
@@ -14279,29 +16489,6 @@ export type Query_RootFeatureFlagsAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<FeatureFlags_Order_By>>;
   where?: InputMaybe<FeatureFlags_Bool_Exp>;
-};
-
-
-export type Query_RootFeedbackArgs = {
-  distinct_on?: InputMaybe<Array<Feedback_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Feedback_Order_By>>;
-  where?: InputMaybe<Feedback_Bool_Exp>;
-};
-
-
-export type Query_RootFeedbackAggreggateArgs = {
-  distinct_on?: InputMaybe<Array<Feedback_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Feedback_Order_By>>;
-  where?: InputMaybe<Feedback_Bool_Exp>;
-};
-
-
-export type Query_RootFeedbackOneArgs = {
-  id: Scalars['Int'];
 };
 
 
@@ -14350,6 +16537,13 @@ export type Query_RootGetEgressVolumeArgs = {
 };
 
 
+export type Query_RootGetFunctionsDurationArgs = {
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
 export type Query_RootGetFunctionsInvocationsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
@@ -14376,10 +16570,21 @@ export type Query_RootGetPostgresVolumeUsageArgs = {
 };
 
 
+export type Query_RootGetServiceLabelValuesArgs = {
+  appID: Scalars['String'];
+};
+
+
 export type Query_RootGetTotalRequestsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+export type Query_RootGetUsageAllArgs = {
+  from: Scalars['Timestamp'];
+  to: Scalars['Timestamp'];
 };
 
 
@@ -14432,6 +16637,7 @@ export type Query_RootGithubRepositoryArgs = {
 export type Query_RootLogsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
+  regexFilter?: InputMaybe<Scalars['String']>;
   service?: InputMaybe<Scalars['String']>;
   to?: InputMaybe<Scalars['Timestamp']>;
 };
@@ -14529,6 +16735,49 @@ export type Query_RootRegions_By_PkArgs = {
 };
 
 
+export type Query_RootRunServiceArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootRunServiceConfigArgs = {
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+  serviceID: Scalars['uuid'];
+};
+
+
+export type Query_RootRunServiceConfigRawJsonArgs = {
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+  serviceID: Scalars['uuid'];
+};
+
+
+export type Query_RootRunServiceConfigsArgs = {
+  resolve: Scalars['Boolean'];
+  where?: InputMaybe<ConfigRunServiceConfigComparisonExp>;
+};
+
+
+export type Query_RootRunServicesArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
+export type Query_RootRunServicesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
 export type Query_RootSelectRegionsAllowedWorkspaceArgs = {
   id: Scalars['uuid'];
 };
@@ -14549,6 +16798,52 @@ export type Query_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+};
+
+
+export type Query_RootSoftwareTypeArgs = {
+  type: Scalars['String'];
+};
+
+
+export type Query_RootSoftwareTypesArgs = {
+  distinct_on?: InputMaybe<Array<Software_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Type_Order_By>>;
+  where?: InputMaybe<Software_Type_Bool_Exp>;
+};
+
+
+export type Query_RootSoftwareTypesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Software_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Type_Order_By>>;
+  where?: InputMaybe<Software_Type_Bool_Exp>;
+};
+
+
+export type Query_RootSoftwareVersionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootSoftwareVersionsArgs = {
+  distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+
+export type Query_RootSoftwareVersionsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
 };
 
 
@@ -14588,6 +16883,29 @@ export type Query_RootUsersAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Users_Order_By>>;
   where?: InputMaybe<Users_Bool_Exp>;
+};
+
+
+export type Query_RootUsersUsageArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootUsersUsagesArgs = {
+  distinct_on?: InputMaybe<Array<Users_Usage_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Users_Usage_Order_By>>;
+  where?: InputMaybe<Users_Usage_Bool_Exp>;
+};
+
+
+export type Query_RootUsersUsagesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Users_Usage_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Users_Usage_Order_By>>;
+  where?: InputMaybe<Users_Usage_Bool_Exp>;
 };
 
 
@@ -15485,6 +17803,266 @@ export type Regions_Updates = {
   where: Regions_Bool_Exp;
 };
 
+/** columns and relationships of "run_service" */
+export type Run_Service = {
+  __typename?: 'run_service';
+  /** An object relationship */
+  app: Apps;
+  appID: Scalars['uuid'];
+  config?: Maybe<ConfigRunServiceConfig>;
+  createdAt: Scalars['timestamptz'];
+  /** An object relationship */
+  creator: Users;
+  creatorUserId: Scalars['uuid'];
+  id: Scalars['uuid'];
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  subdomain: Scalars['String'];
+  updatedAt: Scalars['timestamptz'];
+};
+
+
+/** columns and relationships of "run_service" */
+export type Run_ServiceConfigArgs = {
+  resolve: Scalars['Boolean'];
+};
+
+/** aggregated selection of "run_service" */
+export type Run_Service_Aggregate = {
+  __typename?: 'run_service_aggregate';
+  aggregate?: Maybe<Run_Service_Aggregate_Fields>;
+  nodes: Array<Run_Service>;
+};
+
+export type Run_Service_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Run_Service_Aggregate_Bool_Exp_Count>;
+};
+
+export type Run_Service_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Run_Service_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Run_Service_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "run_service" */
+export type Run_Service_Aggregate_Fields = {
+  __typename?: 'run_service_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Run_Service_Max_Fields>;
+  min?: Maybe<Run_Service_Min_Fields>;
+};
+
+
+/** aggregate fields of "run_service" */
+export type Run_Service_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Run_Service_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "run_service" */
+export type Run_Service_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Run_Service_Max_Order_By>;
+  min?: InputMaybe<Run_Service_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "run_service" */
+export type Run_Service_Arr_Rel_Insert_Input = {
+  data: Array<Run_Service_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Run_Service_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "run_service". All fields are combined with a logical 'AND'. */
+export type Run_Service_Bool_Exp = {
+  _and?: InputMaybe<Array<Run_Service_Bool_Exp>>;
+  _not?: InputMaybe<Run_Service_Bool_Exp>;
+  _or?: InputMaybe<Array<Run_Service_Bool_Exp>>;
+  app?: InputMaybe<Apps_Bool_Exp>;
+  appID?: InputMaybe<Uuid_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  creator?: InputMaybe<Users_Bool_Exp>;
+  creatorUserId?: InputMaybe<Uuid_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  mimirConfigEnc?: InputMaybe<String_Comparison_Exp>;
+  subdomain?: InputMaybe<String_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "run_service" */
+export enum Run_Service_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  RunServicePkey = 'run_service_pkey',
+  /** unique or primary key constraint on columns "subdomain" */
+  RunServiceSubdomainKey = 'run_service_subdomain_key'
+}
+
+/** input type for inserting data into table "run_service" */
+export type Run_Service_Insert_Input = {
+  app?: InputMaybe<Apps_Obj_Rel_Insert_Input>;
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  creator?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  creatorUserId?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  subdomain?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Run_Service_Max_Fields = {
+  __typename?: 'run_service_max_fields';
+  appID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  creatorUserId?: Maybe<Scalars['uuid']>;
+  id?: Maybe<Scalars['uuid']>;
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  subdomain?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by max() on columns of table "run_service" */
+export type Run_Service_Max_Order_By = {
+  appID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  creatorUserId?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  subdomain?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Run_Service_Min_Fields = {
+  __typename?: 'run_service_min_fields';
+  appID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  creatorUserId?: Maybe<Scalars['uuid']>;
+  id?: Maybe<Scalars['uuid']>;
+  mimirConfigEnc?: Maybe<Scalars['String']>;
+  subdomain?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by min() on columns of table "run_service" */
+export type Run_Service_Min_Order_By = {
+  appID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  creatorUserId?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  subdomain?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "run_service" */
+export type Run_Service_Mutation_Response = {
+  __typename?: 'run_service_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Run_Service>;
+};
+
+/** on_conflict condition type for table "run_service" */
+export type Run_Service_On_Conflict = {
+  constraint: Run_Service_Constraint;
+  update_columns?: Array<Run_Service_Update_Column>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "run_service". */
+export type Run_Service_Order_By = {
+  app?: InputMaybe<Apps_Order_By>;
+  appID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  creator?: InputMaybe<Users_Order_By>;
+  creatorUserId?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  mimirConfigEnc?: InputMaybe<Order_By>;
+  subdomain?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: run_service */
+export type Run_Service_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "run_service" */
+export enum Run_Service_Select_Column {
+  /** column name */
+  AppId = 'appID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  CreatorUserId = 'creatorUserId',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  MimirConfigEnc = 'mimirConfigEnc',
+  /** column name */
+  Subdomain = 'subdomain',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "run_service" */
+export type Run_Service_Set_Input = {
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  creatorUserId?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  subdomain?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "run_service" */
+export type Run_Service_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Run_Service_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Run_Service_Stream_Cursor_Value_Input = {
+  appID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  creatorUserId?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  mimirConfigEnc?: InputMaybe<Scalars['String']>;
+  subdomain?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "run_service" */
+export enum Run_Service_Update_Column {
+  /** column name */
+  AppId = 'appID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  CreatorUserId = 'creatorUserId',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  MimirConfigEnc = 'mimirConfigEnc',
+  /** column name */
+  Subdomain = 'subdomain',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type Run_Service_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Run_Service_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Run_Service_Bool_Exp;
+};
+
 /** Boolean expression to compare columns of type "smallint". All fields are combined with logical 'AND'. */
 export type Smallint_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['smallint']>;
@@ -15498,8 +18076,393 @@ export type Smallint_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['smallint']>>;
 };
 
+/** Software type: hasura, postgres, hasura-auth ... */
+export type Software_Type = {
+  __typename?: 'software_type';
+  comment: Scalars['String'];
+  /** An array relationship */
+  software_versions: Array<Software_Versions>;
+  /** An aggregate relationship */
+  software_versions_aggregate: Software_Versions_Aggregate;
+  type: Scalars['String'];
+};
+
+
+/** Software type: hasura, postgres, hasura-auth ... */
+export type Software_TypeSoftware_VersionsArgs = {
+  distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+
+/** Software type: hasura, postgres, hasura-auth ... */
+export type Software_TypeSoftware_Versions_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+/** aggregated selection of "software_type" */
+export type Software_Type_Aggregate = {
+  __typename?: 'software_type_aggregate';
+  aggregate?: Maybe<Software_Type_Aggregate_Fields>;
+  nodes: Array<Software_Type>;
+};
+
+/** aggregate fields of "software_type" */
+export type Software_Type_Aggregate_Fields = {
+  __typename?: 'software_type_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Software_Type_Max_Fields>;
+  min?: Maybe<Software_Type_Min_Fields>;
+};
+
+
+/** aggregate fields of "software_type" */
+export type Software_Type_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Software_Type_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "software_type". All fields are combined with a logical 'AND'. */
+export type Software_Type_Bool_Exp = {
+  _and?: InputMaybe<Array<Software_Type_Bool_Exp>>;
+  _not?: InputMaybe<Software_Type_Bool_Exp>;
+  _or?: InputMaybe<Array<Software_Type_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  software_versions?: InputMaybe<Software_Versions_Bool_Exp>;
+  software_versions_aggregate?: InputMaybe<Software_Versions_Aggregate_Bool_Exp>;
+  type?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "software_type" */
+export enum Software_Type_Constraint {
+  /** unique or primary key constraint on columns "type" */
+  SoftwareTypePkey = 'software_type_pkey'
+}
+
+export enum Software_Type_Enum {
+  /** Hasura Auth */
+  Auth = 'Auth',
+  /** Graphite */
+  Graphite = 'Graphite',
+  /** Hasura GraphQL Engine */
+  Hasura = 'Hasura',
+  /** PostgreSQL Database */
+  PostgreSql = 'PostgreSQL',
+  /** Hasura Storage */
+  Storage = 'Storage'
+}
+
+/** Boolean expression to compare columns of type "software_type_enum". All fields are combined with logical 'AND'. */
+export type Software_Type_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Software_Type_Enum>;
+  _in?: InputMaybe<Array<Software_Type_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<Software_Type_Enum>;
+  _nin?: InputMaybe<Array<Software_Type_Enum>>;
+};
+
+/** input type for inserting data into table "software_type" */
+export type Software_Type_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  software_versions?: InputMaybe<Software_Versions_Arr_Rel_Insert_Input>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Software_Type_Max_Fields = {
+  __typename?: 'software_type_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  type?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type Software_Type_Min_Fields = {
+  __typename?: 'software_type_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  type?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "software_type" */
+export type Software_Type_Mutation_Response = {
+  __typename?: 'software_type_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Software_Type>;
+};
+
+/** input type for inserting object relation for remote table "software_type" */
+export type Software_Type_Obj_Rel_Insert_Input = {
+  data: Software_Type_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Software_Type_On_Conflict>;
+};
+
+/** on_conflict condition type for table "software_type" */
+export type Software_Type_On_Conflict = {
+  constraint: Software_Type_Constraint;
+  update_columns?: Array<Software_Type_Update_Column>;
+  where?: InputMaybe<Software_Type_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "software_type". */
+export type Software_Type_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  software_versions_aggregate?: InputMaybe<Software_Versions_Aggregate_Order_By>;
+  type?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: software_type */
+export type Software_Type_Pk_Columns_Input = {
+  type: Scalars['String'];
+};
+
+/** select columns of table "software_type" */
+export enum Software_Type_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Type = 'type'
+}
+
+/** input type for updating data in table "software_type" */
+export type Software_Type_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "software_type" */
+export type Software_Type_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Software_Type_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Software_Type_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "software_type" */
+export enum Software_Type_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Type = 'type'
+}
+
+export type Software_Type_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Software_Type_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Software_Type_Bool_Exp;
+};
+
+/** columns and relationships of "software_versions" */
+export type Software_Versions = {
+  __typename?: 'software_versions';
+  id: Scalars['uuid'];
+  software: Software_Type_Enum;
+  /** An object relationship */
+  softwareType: Software_Type;
+  version: Scalars['String'];
+};
+
+/** aggregated selection of "software_versions" */
+export type Software_Versions_Aggregate = {
+  __typename?: 'software_versions_aggregate';
+  aggregate?: Maybe<Software_Versions_Aggregate_Fields>;
+  nodes: Array<Software_Versions>;
+};
+
+export type Software_Versions_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Software_Versions_Aggregate_Bool_Exp_Count>;
+};
+
+export type Software_Versions_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Software_Versions_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "software_versions" */
+export type Software_Versions_Aggregate_Fields = {
+  __typename?: 'software_versions_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Software_Versions_Max_Fields>;
+  min?: Maybe<Software_Versions_Min_Fields>;
+};
+
+
+/** aggregate fields of "software_versions" */
+export type Software_Versions_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "software_versions" */
+export type Software_Versions_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Software_Versions_Max_Order_By>;
+  min?: InputMaybe<Software_Versions_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "software_versions" */
+export type Software_Versions_Arr_Rel_Insert_Input = {
+  data: Array<Software_Versions_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Software_Versions_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "software_versions". All fields are combined with a logical 'AND'. */
+export type Software_Versions_Bool_Exp = {
+  _and?: InputMaybe<Array<Software_Versions_Bool_Exp>>;
+  _not?: InputMaybe<Software_Versions_Bool_Exp>;
+  _or?: InputMaybe<Array<Software_Versions_Bool_Exp>>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  software?: InputMaybe<Software_Type_Enum_Comparison_Exp>;
+  softwareType?: InputMaybe<Software_Type_Bool_Exp>;
+  version?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "software_versions" */
+export enum Software_Versions_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  SoftwareVersionsPkey = 'software_versions_pkey'
+}
+
+/** input type for inserting data into table "software_versions" */
+export type Software_Versions_Insert_Input = {
+  id?: InputMaybe<Scalars['uuid']>;
+  software?: InputMaybe<Software_Type_Enum>;
+  softwareType?: InputMaybe<Software_Type_Obj_Rel_Insert_Input>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type Software_Versions_Max_Fields = {
+  __typename?: 'software_versions_max_fields';
+  id?: Maybe<Scalars['uuid']>;
+  version?: Maybe<Scalars['String']>;
+};
+
+/** order by max() on columns of table "software_versions" */
+export type Software_Versions_Max_Order_By = {
+  id?: InputMaybe<Order_By>;
+  version?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Software_Versions_Min_Fields = {
+  __typename?: 'software_versions_min_fields';
+  id?: Maybe<Scalars['uuid']>;
+  version?: Maybe<Scalars['String']>;
+};
+
+/** order by min() on columns of table "software_versions" */
+export type Software_Versions_Min_Order_By = {
+  id?: InputMaybe<Order_By>;
+  version?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "software_versions" */
+export type Software_Versions_Mutation_Response = {
+  __typename?: 'software_versions_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Software_Versions>;
+};
+
+/** on_conflict condition type for table "software_versions" */
+export type Software_Versions_On_Conflict = {
+  constraint: Software_Versions_Constraint;
+  update_columns?: Array<Software_Versions_Update_Column>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "software_versions". */
+export type Software_Versions_Order_By = {
+  id?: InputMaybe<Order_By>;
+  software?: InputMaybe<Order_By>;
+  softwareType?: InputMaybe<Software_Type_Order_By>;
+  version?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: software_versions */
+export type Software_Versions_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "software_versions" */
+export enum Software_Versions_Select_Column {
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Software = 'software',
+  /** column name */
+  Version = 'version'
+}
+
+/** input type for updating data in table "software_versions" */
+export type Software_Versions_Set_Input = {
+  id?: InputMaybe<Scalars['uuid']>;
+  software?: InputMaybe<Software_Type_Enum>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "software_versions" */
+export type Software_Versions_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Software_Versions_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Software_Versions_Stream_Cursor_Value_Input = {
+  id?: InputMaybe<Scalars['uuid']>;
+  software?: InputMaybe<Software_Type_Enum>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "software_versions" */
+export enum Software_Versions_Update_Column {
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Software = 'software',
+  /** column name */
+  Version = 'version'
+}
+
+export type Software_Versions_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Software_Versions_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Software_Versions_Bool_Exp;
+};
+
 export type Subscription_Root = {
   __typename?: 'subscription_root';
+  /** fetch data from the table: "announcements" */
+  announcements: Array<Announcements>;
+  /** fetch aggregated fields from the table: "announcements" */
+  announcements_aggregate: Announcements_Aggregate;
+  /** fetch data from the table: "announcements" using primary key columns */
+  announcements_by_pk?: Maybe<Announcements>;
+  /** fetch data from the table in a streaming manner: "announcements" */
+  announcements_stream: Array<Announcements>;
   /** fetch data from the table: "apps" using primary key columns */
   app?: Maybe<Apps>;
   /** fetch data from the table: "app_states" using primary key columns */
@@ -15616,6 +18579,22 @@ export type Subscription_Root = {
   billingDedicatedComputeReportsAggregate: Billing_Dedicated_Compute_Reports_Aggregate;
   /** fetch data from the table: "billing.dedicated_compute" */
   billingDedicatedComputes: Array<Billing_Dedicated_Compute>;
+  /** fetch data from the table: "billing.reports" using primary key columns */
+  billingReport?: Maybe<Billing_Reports>;
+  /** fetch data from the table: "billing.reports" */
+  billingReports: Array<Billing_Reports>;
+  /** fetch aggregated fields from the table: "billing.reports" */
+  billingReportsAggregate: Billing_Reports_Aggregate;
+  /** fetch data from the table in a streaming manner: "billing.reports" */
+  billingReportsStream: Array<Billing_Reports>;
+  /** fetch data from the table: "billing.resources" using primary key columns */
+  billingResource?: Maybe<Billing_Resources>;
+  /** fetch data from the table: "billing.resources" */
+  billingResources: Array<Billing_Resources>;
+  /** fetch aggregated fields from the table: "billing.resources" */
+  billingResourcesAggregate: Billing_Resources_Aggregate;
+  /** fetch data from the table in a streaming manner: "billing.resources" */
+  billingResourcesStream: Array<Billing_Resources>;
   /** fetch data from the table: "billing.subscriptions" using primary key columns */
   billingSubscription?: Maybe<Billing_Subscriptions>;
   /** fetch data from the table: "billing.subscriptions" */
@@ -15626,6 +18605,14 @@ export type Subscription_Root = {
   billing_dedicated_compute_reports_stream: Array<Billing_Dedicated_Compute_Reports>;
   /** fetch data from the table in a streaming manner: "billing.dedicated_compute" */
   billing_dedicated_compute_stream: Array<Billing_Dedicated_Compute>;
+  /** fetch data from the table: "billing.report_type" */
+  billing_report_type: Array<Billing_Report_Type>;
+  /** fetch aggregated fields from the table: "billing.report_type" */
+  billing_report_type_aggregate: Billing_Report_Type_Aggregate;
+  /** fetch data from the table: "billing.report_type" using primary key columns */
+  billing_report_type_by_pk?: Maybe<Billing_Report_Type>;
+  /** fetch data from the table in a streaming manner: "billing.report_type" */
+  billing_report_type_stream: Array<Billing_Report_Type>;
   /** fetch data from the table in a streaming manner: "billing.subscriptions" */
   billing_subscriptions_stream: Array<Billing_Subscriptions>;
   /** fetch data from the table: "storage.buckets" using primary key columns */
@@ -15684,14 +18671,6 @@ export type Subscription_Root = {
   featureFlagsAggregate: FeatureFlags_Aggregate;
   /** fetch data from the table in a streaming manner: "feature_flags" */
   featureFlags_stream: Array<FeatureFlags>;
-  /** fetch data from the table: "feedback" */
-  feedback: Array<Feedback>;
-  /** fetch aggregated fields from the table: "feedback" */
-  feedbackAggreggate: Feedback_Aggregate;
-  /** fetch data from the table: "feedback" using primary key columns */
-  feedbackOne?: Maybe<Feedback>;
-  /** fetch data from the table in a streaming manner: "feedback" */
-  feedback_stream: Array<Feedback>;
   /** fetch data from the table: "storage.files" using primary key columns */
   file?: Maybe<Files>;
   /** An array relationship */
@@ -15755,20 +18734,52 @@ export type Subscription_Root = {
   regions_by_pk?: Maybe<Regions>;
   /** fetch data from the table in a streaming manner: "regions" */
   regions_stream: Array<Regions>;
+  /** fetch data from the table: "run_service" using primary key columns */
+  runService?: Maybe<Run_Service>;
+  /** An array relationship */
+  runServices: Array<Run_Service>;
+  /** fetch aggregated fields from the table: "run_service" */
+  runServicesAggregate: Run_Service_Aggregate;
+  /** fetch data from the table in a streaming manner: "run_service" */
+  run_service_stream: Array<Run_Service>;
   /** fetch data from the table: "regions_allowed_workspace" using primary key columns */
   selectRegionsAllowedWorkspace?: Maybe<Regions_Allowed_Workspace>;
   /** fetch data from the table: "regions_allowed_workspace" */
   selectRegionsAllowedWorkspaces: Array<Regions_Allowed_Workspace>;
   /** fetch aggregated fields from the table: "regions_allowed_workspace" */
   selectRegionsAllowedWorkspacesAggregate: Regions_Allowed_Workspace_Aggregate;
+  /** fetch data from the table: "software_type" using primary key columns */
+  softwareType?: Maybe<Software_Type>;
+  /** fetch data from the table: "software_type" */
+  softwareTypes: Array<Software_Type>;
+  /** fetch aggregated fields from the table: "software_type" */
+  softwareTypesAggregate: Software_Type_Aggregate;
+  /** fetch data from the table in a streaming manner: "software_type" */
+  softwareTypesStream: Array<Software_Type>;
+  /** fetch data from the table: "software_versions" using primary key columns */
+  softwareVersion?: Maybe<Software_Versions>;
+  /** fetch data from the table: "software_versions" */
+  softwareVersions: Array<Software_Versions>;
+  /** fetch aggregated fields from the table: "software_versions" */
+  softwareVersionsAggregate: Software_Versions_Aggregate;
+  /** fetch data from the table in a streaming manner: "software_versions" */
+  softwareVersionsStream: Array<Software_Versions>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
   users: Array<Users>;
   /** fetch aggregated fields from the table: "auth.users" */
   usersAggregate: Users_Aggregate;
+  /** fetch data from the table: "users_usage" using primary key columns */
+  usersUsage?: Maybe<Users_Usage>;
+  /** fetch data from the table: "users_usage" */
+  usersUsages: Array<Users_Usage>;
+  /** fetch aggregated fields from the table: "users_usage" */
+  usersUsagesAggregate: Users_Usage_Aggregate;
   /** fetch data from the table in a streaming manner: "auth.users" */
   users_stream: Array<Users>;
+  /** fetch data from the table in a streaming manner: "users_usage" */
+  users_usage_stream: Array<Users_Usage>;
   /** fetch data from the table: "workspaces" using primary key columns */
   workspace?: Maybe<Workspaces>;
   /** fetch data from the table: "workspace_members" using primary key columns */
@@ -15793,6 +18804,36 @@ export type Subscription_Root = {
   workspacesAggregate: Workspaces_Aggregate;
   /** fetch data from the table in a streaming manner: "workspaces" */
   workspaces_stream: Array<Workspaces>;
+};
+
+
+export type Subscription_RootAnnouncementsArgs = {
+  distinct_on?: InputMaybe<Array<Announcements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Announcements_Order_By>>;
+  where?: InputMaybe<Announcements_Bool_Exp>;
+};
+
+
+export type Subscription_RootAnnouncements_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Announcements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Announcements_Order_By>>;
+  where?: InputMaybe<Announcements_Bool_Exp>;
+};
+
+
+export type Subscription_RootAnnouncements_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootAnnouncements_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Announcements_Stream_Cursor_Input>>;
+  where?: InputMaybe<Announcements_Bool_Exp>;
 };
 
 
@@ -16232,6 +19273,66 @@ export type Subscription_RootBillingDedicatedComputesArgs = {
 };
 
 
+export type Subscription_RootBillingReportArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootBillingReportsArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Reports_Bool_Exp>;
+};
+
+
+export type Subscription_RootBillingReportsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Reports_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Reports_Order_By>>;
+  where?: InputMaybe<Billing_Reports_Bool_Exp>;
+};
+
+
+export type Subscription_RootBillingReportsStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Billing_Reports_Stream_Cursor_Input>>;
+  where?: InputMaybe<Billing_Reports_Bool_Exp>;
+};
+
+
+export type Subscription_RootBillingResourceArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootBillingResourcesArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Resources_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Resources_Order_By>>;
+  where?: InputMaybe<Billing_Resources_Bool_Exp>;
+};
+
+
+export type Subscription_RootBillingResourcesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Resources_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Resources_Order_By>>;
+  where?: InputMaybe<Billing_Resources_Bool_Exp>;
+};
+
+
+export type Subscription_RootBillingResourcesStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Billing_Resources_Stream_Cursor_Input>>;
+  where?: InputMaybe<Billing_Resources_Bool_Exp>;
+};
+
+
 export type Subscription_RootBillingSubscriptionArgs = {
   id: Scalars['uuid'];
 };
@@ -16266,6 +19367,36 @@ export type Subscription_RootBilling_Dedicated_Compute_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Billing_Dedicated_Compute_Stream_Cursor_Input>>;
   where?: InputMaybe<Billing_Dedicated_Compute_Bool_Exp>;
+};
+
+
+export type Subscription_RootBilling_Report_TypeArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Report_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Report_Type_Order_By>>;
+  where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
+};
+
+
+export type Subscription_RootBilling_Report_Type_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Billing_Report_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Billing_Report_Type_Order_By>>;
+  where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
+};
+
+
+export type Subscription_RootBilling_Report_Type_By_PkArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Subscription_RootBilling_Report_Type_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Billing_Report_Type_Stream_Cursor_Input>>;
+  where?: InputMaybe<Billing_Report_Type_Bool_Exp>;
 };
 
 
@@ -16486,36 +19617,6 @@ export type Subscription_RootFeatureFlags_StreamArgs = {
 };
 
 
-export type Subscription_RootFeedbackArgs = {
-  distinct_on?: InputMaybe<Array<Feedback_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Feedback_Order_By>>;
-  where?: InputMaybe<Feedback_Bool_Exp>;
-};
-
-
-export type Subscription_RootFeedbackAggreggateArgs = {
-  distinct_on?: InputMaybe<Array<Feedback_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Feedback_Order_By>>;
-  where?: InputMaybe<Feedback_Bool_Exp>;
-};
-
-
-export type Subscription_RootFeedbackOneArgs = {
-  id: Scalars['Int'];
-};
-
-
-export type Subscription_RootFeedback_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Feedback_Stream_Cursor_Input>>;
-  where?: InputMaybe<Feedback_Bool_Exp>;
-};
-
-
 export type Subscription_RootFileArgs = {
   id: Scalars['uuid'];
 };
@@ -16609,6 +19710,7 @@ export type Subscription_RootGithubRepositoryArgs = {
 export type Subscription_RootLogsArgs = {
   appID: Scalars['String'];
   from?: InputMaybe<Scalars['Timestamp']>;
+  regexFilter?: InputMaybe<Scalars['String']>;
   service?: InputMaybe<Scalars['String']>;
 };
 
@@ -16740,6 +19842,36 @@ export type Subscription_RootRegions_StreamArgs = {
 };
 
 
+export type Subscription_RootRunServiceArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootRunServicesArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
+export type Subscription_RootRunServicesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
+export type Subscription_RootRun_Service_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Run_Service_Stream_Cursor_Input>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
 export type Subscription_RootSelectRegionsAllowedWorkspaceArgs = {
   id: Scalars['uuid'];
 };
@@ -16760,6 +19892,66 @@ export type Subscription_RootSelectRegionsAllowedWorkspacesAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Regions_Allowed_Workspace_Order_By>>;
   where?: InputMaybe<Regions_Allowed_Workspace_Bool_Exp>;
+};
+
+
+export type Subscription_RootSoftwareTypeArgs = {
+  type: Scalars['String'];
+};
+
+
+export type Subscription_RootSoftwareTypesArgs = {
+  distinct_on?: InputMaybe<Array<Software_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Type_Order_By>>;
+  where?: InputMaybe<Software_Type_Bool_Exp>;
+};
+
+
+export type Subscription_RootSoftwareTypesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Software_Type_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Type_Order_By>>;
+  where?: InputMaybe<Software_Type_Bool_Exp>;
+};
+
+
+export type Subscription_RootSoftwareTypesStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Software_Type_Stream_Cursor_Input>>;
+  where?: InputMaybe<Software_Type_Bool_Exp>;
+};
+
+
+export type Subscription_RootSoftwareVersionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootSoftwareVersionsArgs = {
+  distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+
+export type Subscription_RootSoftwareVersionsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Software_Versions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+
+export type Subscription_RootSoftwareVersionsStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Software_Versions_Stream_Cursor_Input>>;
+  where?: InputMaybe<Software_Versions_Bool_Exp>;
 };
 
 
@@ -16786,10 +19978,40 @@ export type Subscription_RootUsersAggregateArgs = {
 };
 
 
+export type Subscription_RootUsersUsageArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootUsersUsagesArgs = {
+  distinct_on?: InputMaybe<Array<Users_Usage_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Users_Usage_Order_By>>;
+  where?: InputMaybe<Users_Usage_Bool_Exp>;
+};
+
+
+export type Subscription_RootUsersUsagesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<Users_Usage_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Users_Usage_Order_By>>;
+  where?: InputMaybe<Users_Usage_Bool_Exp>;
+};
+
+
 export type Subscription_RootUsers_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Users_Stream_Cursor_Input>>;
   where?: InputMaybe<Users_Bool_Exp>;
+};
+
+
+export type Subscription_RootUsers_Usage_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Users_Usage_Stream_Cursor_Input>>;
+  where?: InputMaybe<Users_Usage_Bool_Exp>;
 };
 
 
@@ -16935,10 +20157,6 @@ export type Users = {
   email?: Maybe<Scalars['citext']>;
   emailVerified: Scalars['Boolean'];
   /** An array relationship */
-  feedbacks: Array<Feedback>;
-  /** An aggregate relationship */
-  feedbacks_aggregate: Feedback_Aggregate;
-  /** An array relationship */
   github_app_installations: Array<GithubAppInstallations>;
   /** An aggregate relationship */
   github_app_installations_aggregate: GithubAppInstallations_Aggregate;
@@ -16968,6 +20186,10 @@ export type Users = {
   roles: Array<AuthUserRoles>;
   /** An aggregate relationship */
   roles_aggregate: AuthUserRoles_Aggregate;
+  /** An array relationship */
+  runServices: Array<Run_Service>;
+  /** An aggregate relationship */
+  runServices_aggregate: Run_Service_Aggregate;
   /** An array relationship */
   securityKeys: Array<AuthUserSecurityKeys>;
   /** An aggregate relationship */
@@ -17056,26 +20278,6 @@ export type UsersCreatorOfWorkspaces_AggregateArgs = {
 
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersFeedbacksArgs = {
-  distinct_on?: InputMaybe<Array<Feedback_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Feedback_Order_By>>;
-  where?: InputMaybe<Feedback_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
-export type UsersFeedbacks_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Feedback_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Feedback_Order_By>>;
-  where?: InputMaybe<Feedback_Bool_Exp>;
-};
-
-
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersGithub_App_InstallationsArgs = {
   distinct_on?: InputMaybe<Array<GithubAppInstallations_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -17158,6 +20360,26 @@ export type UsersRoles_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<AuthUserRoles_Order_By>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersRunServicesArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersRunServices_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Run_Service_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Run_Service_Order_By>>;
+  where?: InputMaybe<Run_Service_Bool_Exp>;
 };
 
 
@@ -17349,8 +20571,6 @@ export type Users_Bool_Exp = {
   displayName?: InputMaybe<String_Comparison_Exp>;
   email?: InputMaybe<Citext_Comparison_Exp>;
   emailVerified?: InputMaybe<Boolean_Comparison_Exp>;
-  feedbacks?: InputMaybe<Feedback_Bool_Exp>;
-  feedbacks_aggregate?: InputMaybe<Feedback_Aggregate_Bool_Exp>;
   github_app_installations?: InputMaybe<GithubAppInstallations_Bool_Exp>;
   github_app_installations_aggregate?: InputMaybe<GithubAppInstallations_Aggregate_Bool_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
@@ -17372,6 +20592,8 @@ export type Users_Bool_Exp = {
   role?: InputMaybe<AuthRoles_Bool_Exp>;
   roles?: InputMaybe<AuthUserRoles_Bool_Exp>;
   roles_aggregate?: InputMaybe<AuthUserRoles_Aggregate_Bool_Exp>;
+  runServices?: InputMaybe<Run_Service_Bool_Exp>;
+  runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Bool_Exp>;
   securityKeys?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
   securityKeys_aggregate?: InputMaybe<AuthUserSecurityKeys_Aggregate_Bool_Exp>;
   ticket?: InputMaybe<String_Comparison_Exp>;
@@ -17428,7 +20650,6 @@ export type Users_Insert_Input = {
   displayName?: InputMaybe<Scalars['String']>;
   email?: InputMaybe<Scalars['citext']>;
   emailVerified?: InputMaybe<Scalars['Boolean']>;
-  feedbacks?: InputMaybe<Feedback_Arr_Rel_Insert_Input>;
   github_app_installations?: InputMaybe<GithubAppInstallations_Arr_Rel_Insert_Input>;
   id?: InputMaybe<Scalars['uuid']>;
   isAnonymous?: InputMaybe<Scalars['Boolean']>;
@@ -17446,6 +20667,7 @@ export type Users_Insert_Input = {
   refreshTokens?: InputMaybe<AuthRefreshTokens_Arr_Rel_Insert_Input>;
   role?: InputMaybe<AuthRoles_Obj_Rel_Insert_Input>;
   roles?: InputMaybe<AuthUserRoles_Arr_Rel_Insert_Input>;
+  runServices?: InputMaybe<Run_Service_Arr_Rel_Insert_Input>;
   securityKeys?: InputMaybe<AuthUserSecurityKeys_Arr_Rel_Insert_Input>;
   ticket?: InputMaybe<Scalars['String']>;
   ticketExpiresAt?: InputMaybe<Scalars['timestamptz']>;
@@ -17593,7 +20815,6 @@ export type Users_Order_By = {
   displayName?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
   emailVerified?: InputMaybe<Order_By>;
-  feedbacks_aggregate?: InputMaybe<Feedback_Aggregate_Order_By>;
   github_app_installations_aggregate?: InputMaybe<GithubAppInstallations_Aggregate_Order_By>;
   id?: InputMaybe<Order_By>;
   isAnonymous?: InputMaybe<Order_By>;
@@ -17611,6 +20832,7 @@ export type Users_Order_By = {
   refreshTokens_aggregate?: InputMaybe<AuthRefreshTokens_Aggregate_Order_By>;
   role?: InputMaybe<AuthRoles_Order_By>;
   roles_aggregate?: InputMaybe<AuthUserRoles_Aggregate_Order_By>;
+  runServices_aggregate?: InputMaybe<Run_Service_Aggregate_Order_By>;
   securityKeys_aggregate?: InputMaybe<AuthUserSecurityKeys_Aggregate_Order_By>;
   ticket?: InputMaybe<Order_By>;
   ticketExpiresAt?: InputMaybe<Order_By>;
@@ -17845,6 +21067,176 @@ export type Users_Updates = {
   _set?: InputMaybe<Users_Set_Input>;
   /** filter the rows which have to be updated */
   where: Users_Bool_Exp;
+};
+
+/** columns and relationships of "users_usage" */
+export type Users_Usage = {
+  __typename?: 'users_usage';
+  created_at: Scalars['timestamptz'];
+  free_allowance_exceeded: Scalars['Boolean'];
+  id: Scalars['uuid'];
+  updated_at: Scalars['timestamptz'];
+  user_id: Scalars['uuid'];
+};
+
+/** aggregated selection of "users_usage" */
+export type Users_Usage_Aggregate = {
+  __typename?: 'users_usage_aggregate';
+  aggregate?: Maybe<Users_Usage_Aggregate_Fields>;
+  nodes: Array<Users_Usage>;
+};
+
+/** aggregate fields of "users_usage" */
+export type Users_Usage_Aggregate_Fields = {
+  __typename?: 'users_usage_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Users_Usage_Max_Fields>;
+  min?: Maybe<Users_Usage_Min_Fields>;
+};
+
+
+/** aggregate fields of "users_usage" */
+export type Users_Usage_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Users_Usage_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "users_usage". All fields are combined with a logical 'AND'. */
+export type Users_Usage_Bool_Exp = {
+  _and?: InputMaybe<Array<Users_Usage_Bool_Exp>>;
+  _not?: InputMaybe<Users_Usage_Bool_Exp>;
+  _or?: InputMaybe<Array<Users_Usage_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  free_allowance_exceeded?: InputMaybe<Boolean_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user_id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "users_usage" */
+export enum Users_Usage_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  UsersUsagePkey = 'users_usage_pkey',
+  /** unique or primary key constraint on columns "user_id" */
+  UsersUsageUserIdKey = 'users_usage_user_id_key'
+}
+
+/** input type for inserting data into table "users_usage" */
+export type Users_Usage_Insert_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  free_allowance_exceeded?: InputMaybe<Scalars['Boolean']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Users_Usage_Max_Fields = {
+  __typename?: 'users_usage_max_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type Users_Usage_Min_Fields = {
+  __typename?: 'users_usage_min_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "users_usage" */
+export type Users_Usage_Mutation_Response = {
+  __typename?: 'users_usage_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Users_Usage>;
+};
+
+/** on_conflict condition type for table "users_usage" */
+export type Users_Usage_On_Conflict = {
+  constraint: Users_Usage_Constraint;
+  update_columns?: Array<Users_Usage_Update_Column>;
+  where?: InputMaybe<Users_Usage_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "users_usage". */
+export type Users_Usage_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  free_allowance_exceeded?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: users_usage */
+export type Users_Usage_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "users_usage" */
+export enum Users_Usage_Select_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  FreeAllowanceExceeded = 'free_allowance_exceeded',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  UserId = 'user_id'
+}
+
+/** input type for updating data in table "users_usage" */
+export type Users_Usage_Set_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  free_allowance_exceeded?: InputMaybe<Scalars['Boolean']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "users_usage" */
+export type Users_Usage_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Users_Usage_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Users_Usage_Stream_Cursor_Value_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  free_allowance_exceeded?: InputMaybe<Scalars['Boolean']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "users_usage" */
+export enum Users_Usage_Update_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  FreeAllowanceExceeded = 'free_allowance_exceeded',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  UserId = 'user_id'
+}
+
+export type Users_Usage_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Users_Usage_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Users_Usage_Bool_Exp;
 };
 
 /** Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'. */
@@ -19009,6 +22401,13 @@ export type Workspaces_Updates = {
   where: Workspaces_Bool_Exp;
 };
 
+export type DeleteUserAccountMutationVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type DeleteUserAccountMutation = { __typename?: 'mutation_root', deleteUser?: { __typename: 'users' } | null };
+
 export type GetPersonalAccessTokensQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -19021,19 +22420,26 @@ export type DeletePersonalAccessTokenMutationVariables = Exact<{
 
 export type DeletePersonalAccessTokenMutation = { __typename?: 'mutation_root', deletePersonalAccessToken?: { __typename?: 'authRefreshTokens', id: any, metadata?: any | null } | null };
 
+export type GetAiSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetAiSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', apiKey: string, organization?: string | null }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } | null };
+
 export type GetAuthenticationSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null } | null } | null } | null };
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null } | null } | null };
 
 export type GetPostgresSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', version?: string | null } | null } | null };
+export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', version?: string | null, resources?: { __typename?: 'ConfigPostgresResources', storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null } | null };
 
 export type ResetDatabasePasswordMutationVariables = Exact<{
   appId: Scalars['String'];
@@ -19048,7 +22454,7 @@ export type GetHasuraSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null, settings?: { __typename?: 'ConfigHasuraSettings', enableAllowList?: boolean | null, enableRemoteSchemaPermissions?: boolean | null, enableConsole?: boolean | null, devMode?: boolean | null, corsDomain?: Array<any> | null, enabledAPIs?: Array<any> | null } | null, logs?: { __typename?: 'ConfigHasuraLogs', level?: string | null } | null, events?: { __typename?: 'ConfigHasuraEvents', httpPoolSize?: any | null } | null } } | null };
+export type GetHasuraSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', version?: string | null, settings?: { __typename?: 'ConfigHasuraSettings', enableAllowList?: boolean | null, enableRemoteSchemaPermissions?: boolean | null, enableConsole?: boolean | null, devMode?: boolean | null, corsDomain?: Array<any> | null, enabledAPIs?: Array<any> | null } | null, logs?: { __typename?: 'ConfigHasuraLogs', level?: string | null } | null, events?: { __typename?: 'ConfigHasuraEvents', httpPoolSize?: any | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } } | null };
 
 export type BackupFragment = { __typename?: 'backups', id: any, size: any, createdAt: any, completedAt?: any | null };
 
@@ -19068,21 +22474,28 @@ export type GetBackupPresignedUrlQueryVariables = Exact<{
 
 export type GetBackupPresignedUrlQuery = { __typename?: 'query_root', getBackupPresignedUrl: { __typename?: 'BackupPresignedURL', url: string, expiresAt: any } };
 
-export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null };
+export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null };
 
 export type GetResourcesQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas: any, compute: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } } | null } | null } | null };
+export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null } | null };
+
+export type GetServerlessFunctionsSettingsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetServerlessFunctionsSettingsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', functions?: { __typename?: 'ConfigFunctions', resources?: { __typename?: 'ConfigFunctionsResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null } | null } | null };
 
 export type GetStorageSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetStorageSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', storage?: { __typename?: 'ConfigStorage', version?: string | null } | null } | null };
+export type GetStorageSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', storage?: { __typename?: 'ConfigStorage', version?: string | null, antivirus?: { __typename?: 'ConfigStorageAntivirus', server?: string | null } | null } | null } | null };
 
 export type DeleteApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -19094,7 +22507,7 @@ export type DeleteApplicationMutation = { __typename?: 'mutation_root', deleteAp
 export type GetAllWorkspacesAndProjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+export type GetAllWorkspacesAndProjectsQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
 
 export type GetAppPlanAndGlobalPlansAppFragment = { __typename?: 'apps', id: any, subdomain: string, workspace: { __typename?: 'workspaces', id: any, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }, plan: { __typename?: 'plans', id: any, name: string } };
 
@@ -19123,6 +22536,13 @@ export type GetApplicationStateQueryVariables = Exact<{
 
 export type GetApplicationStateQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, name: string, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> } | null };
 
+export type GetProjectLocalesQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetProjectLocalesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', user?: { __typename?: 'ConfigAuthUser', locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null } | null } | null };
+
 export type GetProjectMetricsQueryVariables = Exact<{
   appId: Scalars['String'];
   subdomain: Scalars['String'];
@@ -19131,7 +22551,7 @@ export type GetProjectMetricsQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
+export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, functionsDuration: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
 
 export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -19144,7 +22564,7 @@ export type GetWorkspaceAndProjectQueryVariables = Exact<{
 }>;
 
 
-export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
+export type GetWorkspaceAndProjectQuery = { __typename?: 'query_root', workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> }> };
 
 export type InsertApplicationMutationVariables = Exact<{
   app: Apps_Insert_Input;
@@ -19170,6 +22590,13 @@ export type PrefetchNewAppQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type PrefetchNewAppQuery = { __typename?: 'query_root', regions: Array<{ __typename?: 'regions', id: any, city: string, active: boolean, country: { __typename?: 'countries', code: any, name: string } }>, plans: Array<{ __typename?: 'plans', id: any, name: string, isDefault: boolean, isFree: boolean, price: number, featureBackupEnabled: boolean, featureCustomDomainsEnabled: boolean, featureMaxDbSize: number }>, workspaces: Array<{ __typename?: 'workspaces', id: any, name: string, slug: string, paymentMethods: Array<{ __typename?: 'paymentMethods', id: any }> }> };
+
+export type DnsLookupCnameQueryVariables = Exact<{
+  hostname: Scalars['String'];
+}>;
+
+
+export type DnsLookupCnameQuery = { __typename?: 'query_root', dnsLookupCNAME: string };
 
 export type EnvironmentVariableFragment = { __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string };
 
@@ -19197,7 +22624,7 @@ export type DeleteSecretMutationVariables = Exact<{
 }>;
 
 
-export type DeleteSecretMutation = { __typename?: 'mutation_root', deleteSecret: { __typename?: 'ConfigEnvironmentVariable', name: string } };
+export type DeleteSecretMutation = { __typename?: 'mutation_root', deleteSecret?: { __typename?: 'ConfigEnvironmentVariable', name: string } | null };
 
 export type SecretFragment = { __typename?: 'ConfigEnvironmentVariable', name: string };
 
@@ -19244,7 +22671,7 @@ export type UpdateConfigMutationVariables = Exact<{
 }>;
 
 
-export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig' } };
+export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null, ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', organization?: string | null, apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } };
 
 export type UnpauseApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -19329,9 +22756,9 @@ export type GetFilesAggregateQuery = { __typename?: 'query_root', filesAggregate
 
 export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any };
 
-export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
+export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
-export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, isProvisioned: boolean, createdAt: any, desiredState: number, nhostBaseFolder: string, providersUpdated?: boolean | null, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null } } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
+export type WorkspaceFragment = { __typename?: 'workspaces', id: any, name: string, slug: string, creatorUserId?: any | null, workspaceMembers: Array<{ __typename?: 'workspaceMembers', id: any, type: string, user: { __typename?: 'users', id: any, email?: any | null, displayName: string } }>, projects: Array<{ __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, awsName: string, domain: string, city: string }, plan: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number }, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null }> };
 
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
@@ -19391,12 +22818,26 @@ export type SetNewDefaultPaymentMethodMutationVariables = Exact<{
 
 export type SetNewDefaultPaymentMethodMutation = { __typename?: 'mutation_root', setAllPaymentMethodToDefaultFalse?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null, updatePaymentMethods?: { __typename?: 'paymentMethods_mutation_response', affected_rows: number } | null };
 
+export type GetAnnouncementsQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']>;
+}>;
+
+
+export type GetAnnouncementsQuery = { __typename?: 'query_root', announcements: Array<{ __typename?: 'announcements', id: any, href: string, content: string, createdAt: any }> };
+
 export type GetPlansQueryVariables = Exact<{
   where?: InputMaybe<Plans_Bool_Exp>;
 }>;
 
 
 export type GetPlansQuery = { __typename?: 'query_root', plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number }> };
+
+export type GetSoftwareVersionsQueryVariables = Exact<{
+  software: Software_Type_Enum;
+}>;
+
+
+export type GetSoftwareVersionsQuery = { __typename?: 'query_root', softwareVersions: Array<{ __typename?: 'software_versions', version: string, software: Software_Type_Enum }> };
 
 export type RestoreApplicationDatabaseMutationVariables = Exact<{
   appId: Scalars['String'];
@@ -19488,19 +22929,79 @@ export type DeleteRemoteAppUserRolesMutationVariables = Exact<{
 
 export type DeleteRemoteAppUserRolesMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
 
+export type DeleteRunServiceMutationVariables = Exact<{
+  serviceID: Scalars['uuid'];
+}>;
+
+
+export type DeleteRunServiceMutation = { __typename?: 'mutation_root', deleteRunService?: { __typename?: 'run_service', id: any } | null };
+
+export type DeleteRunServiceConfigMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  serviceID: Scalars['uuid'];
+}>;
+
+
+export type DeleteRunServiceConfigMutation = { __typename?: 'mutation_root', deleteRunServiceConfig?: { __typename?: 'ConfigRunServiceConfig', name: any } | null };
+
+export type GetRunServiceQueryVariables = Exact<{
+  id: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
+
+export type GetRunServicesQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
+}>;
+
+
+export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
+
+export type InsertRunServiceMutationVariables = Exact<{
+  object: Run_Service_Insert_Input;
+}>;
+
+
+export type InsertRunServiceMutation = { __typename?: 'mutation_root', insertRunService?: { __typename?: 'run_service', id: any, subdomain: string } | null };
+
+export type InsertRunServiceConfigMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  serviceID: Scalars['uuid'];
+  config: ConfigRunServiceConfigInsertInput;
+}>;
+
+
+export type InsertRunServiceConfigMutation = { __typename?: 'mutation_root', insertRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: any } };
+
+export type ReplaceRunServiceConfigMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  serviceID: Scalars['uuid'];
+  config: ConfigRunServiceConfigInsertInput;
+}>;
+
+
+export type ReplaceRunServiceConfigMutation = { __typename?: 'mutation_root', replaceRunServiceConfig: { __typename: 'ConfigRunServiceConfig' } };
+
+export type UpdateRunServiceConfigMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  serviceID: Scalars['uuid'];
+  config: ConfigRunServiceConfigUpdateInput;
+}>;
+
+
+export type UpdateRunServiceConfigMutation = { __typename?: 'mutation_root', updateRunServiceConfig: { __typename?: 'ConfigRunServiceConfig', name: any } };
+
 export type GetFreeAndActiveProjectsQueryVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
 
 
 export type GetFreeAndActiveProjectsQuery = { __typename?: 'query_root', freeAndActiveProjects: Array<{ __typename?: 'apps', id: any }> };
-
-export type InsertFeedbackOneMutationVariables = Exact<{
-  feedback: Feedback_Insert_Input;
-}>;
-
-
-export type InsertFeedbackOneMutation = { __typename?: 'mutation_root', insertFeedbackOne?: { __typename?: 'feedback', id: number } | null };
 
 export type DeleteWorkspaceMemberInvitesMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -19746,11 +23247,9 @@ export const ProjectFragmentDoc = gql`
   name
   repositoryProductionBranch
   subdomain
-  isProvisioned
   createdAt
   desiredState
   nhostBaseFolder
-  providersUpdated
   config(resolve: true) {
     observability {
       grafana {
@@ -19762,6 +23261,9 @@ export const ProjectFragmentDoc = gql`
       settings {
         enableConsole
       }
+    }
+    ai {
+      version
     }
   }
   featureFlags {
@@ -19789,6 +23291,7 @@ export const ProjectFragmentDoc = gql`
     name
     price
     isFree
+    featureMaxDbSize
   }
   githubRepository {
     fullName
@@ -19908,6 +23411,39 @@ export const GetWorkspaceMembersWorkspaceMemberInviteFragmentDoc = gql`
   memberType
 }
     `;
+export const DeleteUserAccountDocument = gql`
+    mutation deleteUserAccount($id: uuid!) {
+  deleteUser(id: $id) {
+    __typename
+  }
+}
+    `;
+export type DeleteUserAccountMutationFn = Apollo.MutationFunction<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>;
+
+/**
+ * __useDeleteUserAccountMutation__
+ *
+ * To run a mutation, you first call `useDeleteUserAccountMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteUserAccountMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteUserAccountMutation, { data, loading, error }] = useDeleteUserAccountMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteUserAccountMutation(baseOptions?: Apollo.MutationHookOptions<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>(DeleteUserAccountDocument, options);
+      }
+export type DeleteUserAccountMutationHookResult = ReturnType<typeof useDeleteUserAccountMutation>;
+export type DeleteUserAccountMutationResult = Apollo.MutationResult<DeleteUserAccountMutation>;
+export type DeleteUserAccountMutationOptions = Apollo.BaseMutationOptions<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>;
 export const GetPersonalAccessTokensDocument = gql`
     query GetPersonalAccessTokens {
   personalAccessTokens: authRefreshTokens(
@@ -19985,9 +23521,63 @@ export function useDeletePersonalAccessTokenMutation(baseOptions?: Apollo.Mutati
 export type DeletePersonalAccessTokenMutationHookResult = ReturnType<typeof useDeletePersonalAccessTokenMutation>;
 export type DeletePersonalAccessTokenMutationResult = Apollo.MutationResult<DeletePersonalAccessTokenMutation>;
 export type DeletePersonalAccessTokenMutationOptions = Apollo.BaseMutationOptions<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>;
+export const GetAiSettingsDocument = gql`
+    query GetAISettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    ai {
+      version
+      webhookSecret
+      autoEmbeddings {
+        synchPeriodMinutes
+      }
+      openai {
+        apiKey
+        organization
+      }
+      resources {
+        compute {
+          cpu
+          memory
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAiSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetAiSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAiSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAiSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetAiSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetAiSettingsQuery, GetAiSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAiSettingsQuery, GetAiSettingsQueryVariables>(GetAiSettingsDocument, options);
+      }
+export function useGetAiSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAiSettingsQuery, GetAiSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAiSettingsQuery, GetAiSettingsQueryVariables>(GetAiSettingsDocument, options);
+        }
+export type GetAiSettingsQueryHookResult = ReturnType<typeof useGetAiSettingsQuery>;
+export type GetAiSettingsLazyQueryHookResult = ReturnType<typeof useGetAiSettingsLazyQuery>;
+export type GetAiSettingsQueryResult = Apollo.QueryResult<GetAiSettingsQuery, GetAiSettingsQueryVariables>;
+export function refetchGetAiSettingsQuery(variables: GetAiSettingsQueryVariables) {
+      return { query: GetAiSettingsDocument, variables: variables }
+    }
 export const GetAuthenticationSettingsDocument = gql`
     query GetAuthenticationSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     auth {
@@ -20012,6 +23602,13 @@ export const GetAuthenticationSettingsDocument = gql`
           expiresIn
         }
       }
+      resources {
+        networking {
+          ingresses {
+            fqdn
+          }
+        }
+      }
       user {
         email {
           allowed
@@ -20025,6 +23622,10 @@ export const GetAuthenticationSettingsDocument = gql`
           enabled
           default
           rating
+        }
+        locale {
+          allowed
+          default
         }
       }
       version
@@ -20070,11 +23671,16 @@ export const GetPostgresSettingsDocument = gql`
       database
     }
   }
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     postgres {
       version
+      resources {
+        storage {
+          capacity
+        }
+      }
     }
   }
 }
@@ -20144,7 +23750,7 @@ export type ResetDatabasePasswordMutationResult = Apollo.MutationResult<ResetDat
 export type ResetDatabasePasswordMutationOptions = Apollo.BaseMutationOptions<ResetDatabasePasswordMutation, ResetDatabasePasswordMutationVariables>;
 export const GetHasuraSettingsDocument = gql`
     query GetHasuraSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     hasura {
@@ -20162,6 +23768,13 @@ export const GetHasuraSettingsDocument = gql`
       }
       events {
         httpPoolSize
+      }
+      resources {
+        networking {
+          ingresses {
+            fqdn
+          }
+        }
       }
     }
   }
@@ -20285,7 +23898,7 @@ export function refetchGetBackupPresignedUrlQuery(variables: GetBackupPresignedU
     }
 export const GetResourcesDocument = gql`
     query GetResources($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     ...ServiceResources
   }
 }
@@ -20321,13 +23934,62 @@ export type GetResourcesQueryResult = Apollo.QueryResult<GetResourcesQuery, GetR
 export function refetchGetResourcesQuery(variables: GetResourcesQueryVariables) {
       return { query: GetResourcesDocument, variables: variables }
     }
+export const GetServerlessFunctionsSettingsDocument = gql`
+    query GetServerlessFunctionsSettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    functions {
+      resources {
+        networking {
+          ingresses {
+            fqdn
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetServerlessFunctionsSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetServerlessFunctionsSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServerlessFunctionsSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServerlessFunctionsSettingsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetServerlessFunctionsSettingsQuery(baseOptions: Apollo.QueryHookOptions<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>(GetServerlessFunctionsSettingsDocument, options);
+      }
+export function useGetServerlessFunctionsSettingsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>(GetServerlessFunctionsSettingsDocument, options);
+        }
+export type GetServerlessFunctionsSettingsQueryHookResult = ReturnType<typeof useGetServerlessFunctionsSettingsQuery>;
+export type GetServerlessFunctionsSettingsLazyQueryHookResult = ReturnType<typeof useGetServerlessFunctionsSettingsLazyQuery>;
+export type GetServerlessFunctionsSettingsQueryResult = Apollo.QueryResult<GetServerlessFunctionsSettingsQuery, GetServerlessFunctionsSettingsQueryVariables>;
+export function refetchGetServerlessFunctionsSettingsQuery(variables: GetServerlessFunctionsSettingsQueryVariables) {
+      return { query: GetServerlessFunctionsSettingsDocument, variables: variables }
+    }
 export const GetStorageSettingsDocument = gql`
     query GetStorageSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     storage {
       version
+      antivirus {
+        server
+      }
     }
   }
 }
@@ -20564,6 +24226,51 @@ export type GetApplicationStateQueryResult = Apollo.QueryResult<GetApplicationSt
 export function refetchGetApplicationStateQuery(variables: GetApplicationStateQueryVariables) {
       return { query: GetApplicationStateDocument, variables: variables }
     }
+export const GetProjectLocalesDocument = gql`
+    query getProjectLocales($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    auth {
+      user {
+        locale {
+          allowed
+          default
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetProjectLocalesQuery__
+ *
+ * To run a query within a React component, call `useGetProjectLocalesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectLocalesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectLocalesQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetProjectLocalesQuery(baseOptions: Apollo.QueryHookOptions<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>(GetProjectLocalesDocument, options);
+      }
+export function useGetProjectLocalesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>(GetProjectLocalesDocument, options);
+        }
+export type GetProjectLocalesQueryHookResult = ReturnType<typeof useGetProjectLocalesQuery>;
+export type GetProjectLocalesLazyQueryHookResult = ReturnType<typeof useGetProjectLocalesLazyQuery>;
+export type GetProjectLocalesQueryResult = Apollo.QueryResult<GetProjectLocalesQuery, GetProjectLocalesQueryVariables>;
+export function refetchGetProjectLocalesQuery(variables: GetProjectLocalesQueryVariables) {
+      return { query: GetProjectLocalesDocument, variables: variables }
+    }
 export const GetProjectMetricsDocument = gql`
     query GetProjectMetrics($appId: String!, $subdomain: String!, $from: Timestamp, $to: Timestamp) {
   logsVolume: getLogsVolume(appID: $appId, from: $from, to: $to) {
@@ -20577,6 +24284,9 @@ export const GetProjectMetricsDocument = gql`
     from: $from
     to: $to
   ) {
+    value
+  }
+  functionsDuration: getFunctionsDuration(appID: $appId, from: $from, to: $to) {
     value
   }
   postgresVolumeCapacity: getPostgresVolumeCapacity(appID: $appId) {
@@ -20786,7 +24496,7 @@ export const PrefetchNewAppDocument = gql`
   regions(order_by: {city: asc}) {
     ...PrefetchNewAppRegions
   }
-  plans(order_by: {sort: asc}) {
+  plans(order_by: {sort: asc}, where: {deprecated: {_eq: false}}) {
     ...PrefetchNewAppPlans
   }
   workspaces {
@@ -20826,9 +24536,45 @@ export type PrefetchNewAppQueryResult = Apollo.QueryResult<PrefetchNewAppQuery, 
 export function refetchPrefetchNewAppQuery(variables?: PrefetchNewAppQueryVariables) {
       return { query: PrefetchNewAppDocument, variables: variables }
     }
+export const DnsLookupCnameDocument = gql`
+    query dnsLookupCNAME($hostname: String!) {
+  dnsLookupCNAME(hostname: $hostname)
+}
+    `;
+
+/**
+ * __useDnsLookupCnameQuery__
+ *
+ * To run a query within a React component, call `useDnsLookupCnameQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDnsLookupCnameQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDnsLookupCnameQuery({
+ *   variables: {
+ *      hostname: // value for 'hostname'
+ *   },
+ * });
+ */
+export function useDnsLookupCnameQuery(baseOptions: Apollo.QueryHookOptions<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>(DnsLookupCnameDocument, options);
+      }
+export function useDnsLookupCnameLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>(DnsLookupCnameDocument, options);
+        }
+export type DnsLookupCnameQueryHookResult = ReturnType<typeof useDnsLookupCnameQuery>;
+export type DnsLookupCnameLazyQueryHookResult = ReturnType<typeof useDnsLookupCnameLazyQuery>;
+export type DnsLookupCnameQueryResult = Apollo.QueryResult<DnsLookupCnameQuery, DnsLookupCnameQueryVariables>;
+export function refetchDnsLookupCnameQuery(variables: DnsLookupCnameQueryVariables) {
+      return { query: DnsLookupCnameDocument, variables: variables }
+    }
 export const GetEnvironmentVariablesDocument = gql`
     query GetEnvironmentVariables($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     global {
@@ -20880,7 +24626,7 @@ export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVar
     }
 export const GetRolesPermissionsDocument = gql`
     query GetRolesPermissions($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     auth {
@@ -21074,7 +24820,7 @@ export type UpdateSecretMutationResult = Apollo.MutationResult<UpdateSecretMutat
 export type UpdateSecretMutationOptions = Apollo.BaseMutationOptions<UpdateSecretMutation, UpdateSecretMutationVariables>;
 export const GetSignInMethodsDocument = gql`
     query GetSignInMethods($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     provider {
@@ -21238,7 +24984,7 @@ export function refetchGetSignInMethodsQuery(variables: GetSignInMethodsQueryVar
     }
 export const GetSmtpSettingsDocument = gql`
     query GetSmtpSettings($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+  config(appID: $appId, resolve: false) {
     id: __typename
     __typename
     provider {
@@ -21291,6 +25037,30 @@ export const UpdateConfigDocument = gql`
     mutation UpdateConfig($appId: uuid!, $config: ConfigConfigUpdateInput!) {
   updateConfig(appID: $appId, config: $config) {
     id: __typename
+    postgres {
+      resources {
+        storage {
+          capacity
+        }
+      }
+    }
+    ai {
+      version
+      webhookSecret
+      autoEmbeddings {
+        synchPeriodMinutes
+      }
+      openai {
+        organization
+        apiKey
+      }
+      resources {
+        compute {
+          cpu
+          memory
+        }
+      }
+    }
   }
 }
     `;
@@ -22021,6 +25791,51 @@ export function useSetNewDefaultPaymentMethodMutation(baseOptions?: Apollo.Mutat
 export type SetNewDefaultPaymentMethodMutationHookResult = ReturnType<typeof useSetNewDefaultPaymentMethodMutation>;
 export type SetNewDefaultPaymentMethodMutationResult = Apollo.MutationResult<SetNewDefaultPaymentMethodMutation>;
 export type SetNewDefaultPaymentMethodMutationOptions = Apollo.BaseMutationOptions<SetNewDefaultPaymentMethodMutation, SetNewDefaultPaymentMethodMutationVariables>;
+export const GetAnnouncementsDocument = gql`
+    query getAnnouncements($limit: Int) {
+  announcements(
+    order_by: {createdAt: desc}
+    limit: $limit
+    where: {_or: [{expiresAt: {_is_null: true}}, {expiresAt: {_gt: now}}]}
+  ) {
+    id
+    href
+    content
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetAnnouncementsQuery__
+ *
+ * To run a query within a React component, call `useGetAnnouncementsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAnnouncementsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAnnouncementsQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useGetAnnouncementsQuery(baseOptions?: Apollo.QueryHookOptions<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>(GetAnnouncementsDocument, options);
+      }
+export function useGetAnnouncementsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>(GetAnnouncementsDocument, options);
+        }
+export type GetAnnouncementsQueryHookResult = ReturnType<typeof useGetAnnouncementsQuery>;
+export type GetAnnouncementsLazyQueryHookResult = ReturnType<typeof useGetAnnouncementsLazyQuery>;
+export type GetAnnouncementsQueryResult = Apollo.QueryResult<GetAnnouncementsQuery, GetAnnouncementsQueryVariables>;
+export function refetchGetAnnouncementsQuery(variables?: GetAnnouncementsQueryVariables) {
+      return { query: GetAnnouncementsDocument, variables: variables }
+    }
 export const GetPlansDocument = gql`
     query GetPlans($where: plans_bool_exp) {
   plans(where: $where) {
@@ -22061,6 +25876,45 @@ export type GetPlansLazyQueryHookResult = ReturnType<typeof useGetPlansLazyQuery
 export type GetPlansQueryResult = Apollo.QueryResult<GetPlansQuery, GetPlansQueryVariables>;
 export function refetchGetPlansQuery(variables?: GetPlansQueryVariables) {
       return { query: GetPlansDocument, variables: variables }
+    }
+export const GetSoftwareVersionsDocument = gql`
+    query getSoftwareVersions($software: software_type_enum!) {
+  softwareVersions(where: {software: {_eq: $software}}, order_by: {version: desc}) {
+    version
+    software
+  }
+}
+    `;
+
+/**
+ * __useGetSoftwareVersionsQuery__
+ *
+ * To run a query within a React component, call `useGetSoftwareVersionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSoftwareVersionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSoftwareVersionsQuery({
+ *   variables: {
+ *      software: // value for 'software'
+ *   },
+ * });
+ */
+export function useGetSoftwareVersionsQuery(baseOptions: Apollo.QueryHookOptions<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>(GetSoftwareVersionsDocument, options);
+      }
+export function useGetSoftwareVersionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>(GetSoftwareVersionsDocument, options);
+        }
+export type GetSoftwareVersionsQueryHookResult = ReturnType<typeof useGetSoftwareVersionsQuery>;
+export type GetSoftwareVersionsLazyQueryHookResult = ReturnType<typeof useGetSoftwareVersionsLazyQuery>;
+export type GetSoftwareVersionsQueryResult = Apollo.QueryResult<GetSoftwareVersionsQuery, GetSoftwareVersionsQueryVariables>;
+export function refetchGetSoftwareVersionsQuery(variables: GetSoftwareVersionsQueryVariables) {
+      return { query: GetSoftwareVersionsDocument, variables: variables }
     }
 export const RestoreApplicationDatabaseDocument = gql`
     mutation RestoreApplicationDatabase($appId: String!, $backupId: String!) {
@@ -22550,6 +26404,362 @@ export function useDeleteRemoteAppUserRolesMutation(baseOptions?: Apollo.Mutatio
 export type DeleteRemoteAppUserRolesMutationHookResult = ReturnType<typeof useDeleteRemoteAppUserRolesMutation>;
 export type DeleteRemoteAppUserRolesMutationResult = Apollo.MutationResult<DeleteRemoteAppUserRolesMutation>;
 export type DeleteRemoteAppUserRolesMutationOptions = Apollo.BaseMutationOptions<DeleteRemoteAppUserRolesMutation, DeleteRemoteAppUserRolesMutationVariables>;
+export const DeleteRunServiceDocument = gql`
+    mutation deleteRunService($serviceID: uuid!) {
+  deleteRunService(id: $serviceID) {
+    id
+  }
+}
+    `;
+export type DeleteRunServiceMutationFn = Apollo.MutationFunction<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>;
+
+/**
+ * __useDeleteRunServiceMutation__
+ *
+ * To run a mutation, you first call `useDeleteRunServiceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteRunServiceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteRunServiceMutation, { data, loading, error }] = useDeleteRunServiceMutation({
+ *   variables: {
+ *      serviceID: // value for 'serviceID'
+ *   },
+ * });
+ */
+export function useDeleteRunServiceMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>(DeleteRunServiceDocument, options);
+      }
+export type DeleteRunServiceMutationHookResult = ReturnType<typeof useDeleteRunServiceMutation>;
+export type DeleteRunServiceMutationResult = Apollo.MutationResult<DeleteRunServiceMutation>;
+export type DeleteRunServiceMutationOptions = Apollo.BaseMutationOptions<DeleteRunServiceMutation, DeleteRunServiceMutationVariables>;
+export const DeleteRunServiceConfigDocument = gql`
+    mutation deleteRunServiceConfig($appID: uuid!, $serviceID: uuid!) {
+  deleteRunServiceConfig(appID: $appID, serviceID: $serviceID) {
+    name
+  }
+}
+    `;
+export type DeleteRunServiceConfigMutationFn = Apollo.MutationFunction<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>;
+
+/**
+ * __useDeleteRunServiceConfigMutation__
+ *
+ * To run a mutation, you first call `useDeleteRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteRunServiceConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteRunServiceConfigMutation, { data, loading, error }] = useDeleteRunServiceConfigMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      serviceID: // value for 'serviceID'
+ *   },
+ * });
+ */
+export function useDeleteRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>(DeleteRunServiceConfigDocument, options);
+      }
+export type DeleteRunServiceConfigMutationHookResult = ReturnType<typeof useDeleteRunServiceConfigMutation>;
+export type DeleteRunServiceConfigMutationResult = Apollo.MutationResult<DeleteRunServiceConfigMutation>;
+export type DeleteRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<DeleteRunServiceConfigMutation, DeleteRunServiceConfigMutationVariables>;
+export const GetRunServiceDocument = gql`
+    query getRunService($id: uuid!, $resolve: Boolean!) {
+  runService(id: $id) {
+    id
+    subdomain
+    config(resolve: $resolve) {
+      name
+      image {
+        image
+      }
+      command
+      resources {
+        compute {
+          cpu
+          memory
+        }
+        storage {
+          name
+          path
+          capacity
+        }
+        replicas
+      }
+      environment {
+        name
+        value
+      }
+      ports {
+        port
+        type
+        publish
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetRunServiceQuery__
+ *
+ * To run a query within a React component, call `useGetRunServiceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRunServiceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRunServiceQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetRunServiceQuery(baseOptions: Apollo.QueryHookOptions<GetRunServiceQuery, GetRunServiceQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRunServiceQuery, GetRunServiceQueryVariables>(GetRunServiceDocument, options);
+      }
+export function useGetRunServiceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServiceQuery, GetRunServiceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRunServiceQuery, GetRunServiceQueryVariables>(GetRunServiceDocument, options);
+        }
+export type GetRunServiceQueryHookResult = ReturnType<typeof useGetRunServiceQuery>;
+export type GetRunServiceLazyQueryHookResult = ReturnType<typeof useGetRunServiceLazyQuery>;
+export type GetRunServiceQueryResult = Apollo.QueryResult<GetRunServiceQuery, GetRunServiceQueryVariables>;
+export function refetchGetRunServiceQuery(variables: GetRunServiceQueryVariables) {
+      return { query: GetRunServiceDocument, variables: variables }
+    }
+export const GetRunServicesDocument = gql`
+    query getRunServices($appID: uuid!, $resolve: Boolean!, $limit: Int!, $offset: Int!) {
+  app(id: $appID) {
+    runServices(limit: $limit, offset: $offset) {
+      id
+      createdAt
+      updatedAt
+      subdomain
+      config(resolve: $resolve) {
+        name
+        image {
+          image
+        }
+        command
+        resources {
+          compute {
+            cpu
+            memory
+          }
+          storage {
+            name
+            path
+            capacity
+          }
+          replicas
+        }
+        environment {
+          name
+          value
+        }
+        ports {
+          port
+          type
+          publish
+          ingresses {
+            fqdn
+          }
+        }
+      }
+    }
+    runServices_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetRunServicesQuery__
+ *
+ * To run a query within a React component, call `useGetRunServicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRunServicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRunServicesQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      resolve: // value for 'resolve'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useGetRunServicesQuery(baseOptions: Apollo.QueryHookOptions<GetRunServicesQuery, GetRunServicesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRunServicesQuery, GetRunServicesQueryVariables>(GetRunServicesDocument, options);
+      }
+export function useGetRunServicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServicesQuery, GetRunServicesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRunServicesQuery, GetRunServicesQueryVariables>(GetRunServicesDocument, options);
+        }
+export type GetRunServicesQueryHookResult = ReturnType<typeof useGetRunServicesQuery>;
+export type GetRunServicesLazyQueryHookResult = ReturnType<typeof useGetRunServicesLazyQuery>;
+export type GetRunServicesQueryResult = Apollo.QueryResult<GetRunServicesQuery, GetRunServicesQueryVariables>;
+export function refetchGetRunServicesQuery(variables: GetRunServicesQueryVariables) {
+      return { query: GetRunServicesDocument, variables: variables }
+    }
+export const InsertRunServiceDocument = gql`
+    mutation insertRunService($object: run_service_insert_input!) {
+  insertRunService(object: $object) {
+    id
+    subdomain
+  }
+}
+    `;
+export type InsertRunServiceMutationFn = Apollo.MutationFunction<InsertRunServiceMutation, InsertRunServiceMutationVariables>;
+
+/**
+ * __useInsertRunServiceMutation__
+ *
+ * To run a mutation, you first call `useInsertRunServiceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertRunServiceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertRunServiceMutation, { data, loading, error }] = useInsertRunServiceMutation({
+ *   variables: {
+ *      object: // value for 'object'
+ *   },
+ * });
+ */
+export function useInsertRunServiceMutation(baseOptions?: Apollo.MutationHookOptions<InsertRunServiceMutation, InsertRunServiceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertRunServiceMutation, InsertRunServiceMutationVariables>(InsertRunServiceDocument, options);
+      }
+export type InsertRunServiceMutationHookResult = ReturnType<typeof useInsertRunServiceMutation>;
+export type InsertRunServiceMutationResult = Apollo.MutationResult<InsertRunServiceMutation>;
+export type InsertRunServiceMutationOptions = Apollo.BaseMutationOptions<InsertRunServiceMutation, InsertRunServiceMutationVariables>;
+export const InsertRunServiceConfigDocument = gql`
+    mutation insertRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
+  insertRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
+    name
+  }
+}
+    `;
+export type InsertRunServiceConfigMutationFn = Apollo.MutationFunction<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>;
+
+/**
+ * __useInsertRunServiceConfigMutation__
+ *
+ * To run a mutation, you first call `useInsertRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertRunServiceConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertRunServiceConfigMutation, { data, loading, error }] = useInsertRunServiceConfigMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      serviceID: // value for 'serviceID'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useInsertRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>(InsertRunServiceConfigDocument, options);
+      }
+export type InsertRunServiceConfigMutationHookResult = ReturnType<typeof useInsertRunServiceConfigMutation>;
+export type InsertRunServiceConfigMutationResult = Apollo.MutationResult<InsertRunServiceConfigMutation>;
+export type InsertRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<InsertRunServiceConfigMutation, InsertRunServiceConfigMutationVariables>;
+export const ReplaceRunServiceConfigDocument = gql`
+    mutation replaceRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigInsertInput!) {
+  replaceRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
+    __typename
+  }
+}
+    `;
+export type ReplaceRunServiceConfigMutationFn = Apollo.MutationFunction<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>;
+
+/**
+ * __useReplaceRunServiceConfigMutation__
+ *
+ * To run a mutation, you first call `useReplaceRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReplaceRunServiceConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [replaceRunServiceConfigMutation, { data, loading, error }] = useReplaceRunServiceConfigMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      serviceID: // value for 'serviceID'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useReplaceRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>(ReplaceRunServiceConfigDocument, options);
+      }
+export type ReplaceRunServiceConfigMutationHookResult = ReturnType<typeof useReplaceRunServiceConfigMutation>;
+export type ReplaceRunServiceConfigMutationResult = Apollo.MutationResult<ReplaceRunServiceConfigMutation>;
+export type ReplaceRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<ReplaceRunServiceConfigMutation, ReplaceRunServiceConfigMutationVariables>;
+export const UpdateRunServiceConfigDocument = gql`
+    mutation updateRunServiceConfig($appID: uuid!, $serviceID: uuid!, $config: ConfigRunServiceConfigUpdateInput!) {
+  updateRunServiceConfig(appID: $appID, serviceID: $serviceID, config: $config) {
+    name
+  }
+}
+    `;
+export type UpdateRunServiceConfigMutationFn = Apollo.MutationFunction<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
+
+/**
+ * __useUpdateRunServiceConfigMutation__
+ *
+ * To run a mutation, you first call `useUpdateRunServiceConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateRunServiceConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateRunServiceConfigMutation, { data, loading, error }] = useUpdateRunServiceConfigMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      serviceID: // value for 'serviceID'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useUpdateRunServiceConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>(UpdateRunServiceConfigDocument, options);
+      }
+export type UpdateRunServiceConfigMutationHookResult = ReturnType<typeof useUpdateRunServiceConfigMutation>;
+export type UpdateRunServiceConfigMutationResult = Apollo.MutationResult<UpdateRunServiceConfigMutation>;
+export type UpdateRunServiceConfigMutationOptions = Apollo.BaseMutationOptions<UpdateRunServiceConfigMutation, UpdateRunServiceConfigMutationVariables>;
 export const GetFreeAndActiveProjectsDocument = gql`
     query GetFreeAndActiveProjects($userId: uuid!) {
   freeAndActiveProjects: apps(
@@ -22590,39 +26800,6 @@ export type GetFreeAndActiveProjectsQueryResult = Apollo.QueryResult<GetFreeAndA
 export function refetchGetFreeAndActiveProjectsQuery(variables: GetFreeAndActiveProjectsQueryVariables) {
       return { query: GetFreeAndActiveProjectsDocument, variables: variables }
     }
-export const InsertFeedbackOneDocument = gql`
-    mutation insertFeedbackOne($feedback: feedback_insert_input!) {
-  insertFeedbackOne(object: $feedback) {
-    id
-  }
-}
-    `;
-export type InsertFeedbackOneMutationFn = Apollo.MutationFunction<InsertFeedbackOneMutation, InsertFeedbackOneMutationVariables>;
-
-/**
- * __useInsertFeedbackOneMutation__
- *
- * To run a mutation, you first call `useInsertFeedbackOneMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useInsertFeedbackOneMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [insertFeedbackOneMutation, { data, loading, error }] = useInsertFeedbackOneMutation({
- *   variables: {
- *      feedback: // value for 'feedback'
- *   },
- * });
- */
-export function useInsertFeedbackOneMutation(baseOptions?: Apollo.MutationHookOptions<InsertFeedbackOneMutation, InsertFeedbackOneMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<InsertFeedbackOneMutation, InsertFeedbackOneMutationVariables>(InsertFeedbackOneDocument, options);
-      }
-export type InsertFeedbackOneMutationHookResult = ReturnType<typeof useInsertFeedbackOneMutation>;
-export type InsertFeedbackOneMutationResult = Apollo.MutationResult<InsertFeedbackOneMutation>;
-export type InsertFeedbackOneMutationOptions = Apollo.BaseMutationOptions<InsertFeedbackOneMutation, InsertFeedbackOneMutationVariables>;
 export const DeleteWorkspaceMemberInvitesDocument = gql`
     mutation deleteWorkspaceMemberInvites($id: uuid!) {
   deleteWorkspaceMemberInvites(where: {id: {_eq: $id}}) {

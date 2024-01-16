@@ -1,0 +1,504 @@
+---
+title: Build a Todo Manager with Vue
+description: Learn how to use Nhost with Vue
+sidebarTitle: Vue
+icon: vuejs
+---
+
+In this tutorial, you will build a simple **Todo Manager** with Vue and Nhost. The Todo Manager will allow users to sign in using a Magic Link and manage their own Todos with attachments.
+
+<CardGroup cols={3}>
+<Card title="Database">
+To store todos
+</Card>
+
+<Card title="Auth">
+To sign in users
+</Card>
+
+<Card title="Storage">
+To store attachments
+</Card>
+</CardGroup>
+
+
+
+## Setup Nhost Backend
+
+In this section, you will create and setup your first Nhost project.
+
+### Create project
+
+Create a new project in the [Nhost Dashboard](https://app.nhost.io/new).
+
+Enter the details for your project and wait a couple of minutes while Nhost provisions your backend infrastructure:
+
+- Dedicated PostgreSQL
+- Realtime APIs over your data
+- Authentication for managing your users
+- Storage for handling files
+
+### Create table todos
+
+On the project's dashboard, navigate to **Database** and create a new table called `todos`.
+
+![Database](/images/guides/todos-database.png)
+
+You can either copy and paste the following SQL into the SQL Editor, **Database -> SQL Editor**, or manually create the table by clicking on **New Table**.
+
+<Tabs>
+  <Tab title="SQL Editor">
+    Copy and paste the following SQL into the SQL Editor and press **Run**. 
+
+    <Note>Please make sure to enable **Track this** so that the new table `todos` is available through the auto-generated APIs</Note>
+
+    ```sql SQL
+    CREATE TABLE public.todos (
+      id uuid DEFAULT gen_random_uuid() NOT NULL,
+      created_at timestamptz DEFAULT now() NOT NULL,
+      updated_at timestamptz DEFAULT now() NOT NULL, 
+      title text NOT NULL,
+      completed bool DEFAULT 'false' NOT NULL,
+      file_id uuid,
+      user_id uuid NOT NULL,
+      PRIMARY KEY (id),
+      FOREIGN KEY (file_id) REFERENCES storage.files (id) ON UPDATE SET NULL ON DELETE SET NULL,
+      FOREIGN KEY (user_id) REFERENCES auth.users (id) ON UPDATE SET NULL ON DELETE SET NULL 
+    ); 
+    ```
+  </Tab>
+  <Tab title="UI">
+    Click on **New Table** and fill in the details for the `todos` table as shown.
+
+    ![New Table](/images/guides/todos-react-database-new-table.png)
+
+  </Tab>
+</Tabs>
+
+You should now see a new table called `todos` on the left panel, above **New Table**.
+
+### Set permissions for todos
+
+It's now time to set permission rules for the table you just created. With the table `todos` selected, click on **...**, followed by **Edit Permissions**. 
+
+You will set permissions for the `user` role and actions `insert`, `select`, `update`, and `delete`. 
+
+<Tabs>
+<Tab title="insert">
+Click on the right cell for the `user` role and action `insert` and set permissions as follows:
+![User Insert](/images/guides/todos-react-permissions-insert.png)
+</Tab>
+<Tab title="select">
+Click on the right cell for the `user` role and action `select` and set permissions as follows:
+![User Select](/images/guides/todos-react-permissions-select.png)
+</Tab>
+<Tab title="update">
+Click on the right cell for the `user` role and action `update` and set permissions as follows:
+![User Select](/images/guides/todos-react-permissions-update.png)
+</Tab>
+<Tab title="delete">
+Click on the right cell for the `user` role and action `delete` and set permissions as follows:
+![User Delete](/images/guides/todos-react-permissions-delete.png)
+</Tab>
+</Tabs>
+
+### Set permissions for files
+
+The `files` table is managed by Nhost and is defined on the `storage` schema. Click on the dropdown right next to `schema.public` and choose `schema.storage`.
+
+With the `files` table selected, click on **...**, followed by **Edit Permissions**.
+
+As before, we want to set permissions for the `user` role and actions `insert`, `select`, `delete`. 
+
+<Tabs>
+<Tab title="insert">
+Click on the right cell for the `user` role and action `insert` and set permissions as follows:
+![User Insert](/images/guides/todos-react-permissions-files-insert.png)
+</Tab>
+<Tab title="select">
+Click on the right cell for the `user` role and action `select` and set permissions as follows:
+![User Select](/images/guides/todos-react-permissions-files-select.png)
+</Tab>
+<Tab title="delete">
+Click on the right cell for the `user` role and action `delete` and set permissions as follows:
+![User Delete](/images/guides/todos-react-permissions-files-delete.png)
+</Tab>
+</Tabs>
+
+### Enable Sign In with Magic Link 
+
+To enable Magic Links, navigate to your project's **Settings -> Sign-In Methods**, toggle Magic Link, and save.
+
+### Recap
+
+<Steps>
+<Step title="Nhost project created">
+</Step>
+
+<Step title="Database todos created">
+</Step>
+
+<Step title="Permissions set for todos and files">
+</Step>
+
+<Step title="Magic Link enabled">
+</Step>
+</Steps>
+
+
+## Setup Vue Application
+
+Now that we have Nhost configured, let's move on to setup the Vue application and the Nhost client.
+
+### Create Vue Application
+
+Run the following command in your terminal to create a Vue application using Vite.
+
+```bash Terminal
+npm create vue@latest nhost-vue
+```
+
+### Install Nhost Vue package
+
+To install Nhost's Vue package, run the following command.
+
+```bash Terminal
+cd nhost-vue && npm install @nhost/vue
+```
+
+#### Configure the Nhost Client
+
+Create a new file `./src/lib/nhost.js` with the following code to create a Nhost client. Replace `<subdomain>` and `<region>` with the values for the project you created earlier. 
+
+```js ./src/lib/nhost.js
+import { NhostClient } from "@nhost/vue";
+
+export const nhost = new NhostClient({
+  subdomain: "<SUBDOMAIN>",
+  region: "<REGION>"
+});
+```
+
+<Info>The project's `subdomain` and `region` can be found in the Nhost Dashboard under **Project Info**</Info>
+
+### Setup Sign In Component
+
+It is time to setup a new React component to handle the login functionality. Your users will be able to sign in using a Magic Link and without a password.
+
+Create a new file `./src/SignIn.vue` for the Sign In component with the following content:
+
+```js ./src/SignIn.vue
+<template>
+  <div>
+    <h1>Todo Manager</h1>
+    <p>powered by Nhost and Vue</p>
+    <form @submit.prevent="handleSignIn">
+      <div>
+        <input type="email" placeholder="Your email" v-model="email" required />
+      </div>
+      <div>
+        <button :disabled="loading">
+          <span v-if="loading">Loading</span>
+          <span v-else>Send me a Magic Link!</span>
+        </button>
+      </div>
+      <p v-if="error">{{ error.message }}</p>
+    </form>
+  </div>
+</template>
+
+<script>
+import { ref } from "vue";
+import { useSignInEmailPasswordless } from "@nhost/vue"; 
+
+export default {
+  setup() {
+    const email = ref("");
+    const { signInEmailPasswordless, error } = useSignInEmailPasswordless();
+    const loading = ref(false);
+
+    const handleSignIn = async () => {
+      loading.value = true;
+      const { error } = await signInEmailPasswordless(email.value);
+      if (error) {
+        console.error({ error });
+        loading.value = false;
+        return;
+      }
+      loading.value = false;
+      alert("Magic Link Sent!");
+    };
+
+    return { email, handleSignIn, loading, error };
+  },
+};
+</script>
+```
+
+### Setup Todos Component
+
+Now that users can sign in, go ahead and create the authenticated page that lists a user's todos and has a form for managing todos with attachments.
+
+```js ./src/Todos.vue
+<template>
+  <div class="container">
+    <div class="form-section">
+      <h2>Add a new TODO</h2>
+      <form @submit.prevent="handleCreateTodo">
+        <div class="input-group">
+          <label for="title">Title</label>
+          <input
+            id="title"
+            type="text"
+            placeholder="Title"
+            v-model="todoTitle"
+          />
+        </div>
+        <div class="input-group">
+          <label for="file">File (optional)</label>
+          <input
+            id="file"
+            type="file"
+            @change="handleFileChange"
+          />
+        </div>
+        <div class="submit-group">
+          <button type="submit" :disabled="!todoTitle">
+            Add Todo
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="todos-section">
+      <div
+        class="todo-item"
+        v-for="todo in todos"
+        :key="todo.id"
+      >
+        <input
+          type="checkbox"
+          :checked="todo.completed"
+          :disabled="todo.completed"
+          :id="`todo-${todo.id}`"
+          @change="() => completeTodo(todo.id)"
+        />
+        <span v-if="todo.file_id">
+          <a @click="() => openAttachment(todo)">Open Attachment</a>
+        </span>
+        <label :for="`todo-${todo.id}`" class="todo-title">
+          <s v-if="todo.completed">{{ todo.title }}</s>
+          <span v-else>{{ todo.title }}</span>
+        </label>
+        <button type="button" @click="() => handleDeleteTodo(todo.id)">
+          Delete
+        </button>
+      </div>
+      <div class="todo-item" v-if="loading">
+        <label class="todo-title">Loading...</label>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref, onMounted } from 'vue';
+import { useNhostClient, useFileUpload } from '@nhost/vue'; 
+
+const getTodos = `
+  query {
+    todos {
+      id
+      title
+      file_id
+      completed
+    }
+  }
+`;
+
+const createTodo = `
+  mutation($title: String!, $file_id: uuid) {
+    insert_todos_one(object: {title: $title, file_id: $file_id}) {
+      id
+    }
+  }
+`;
+
+const deleteTodo = `
+  mutation($id: uuid!) {
+    delete_todos_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+
+export default {
+  setup() {
+    const { nhost } = useNhostClient();
+    const { upload } = useFileUpload();
+    const todos = ref([]);
+    const todoTitle = ref('');
+    const todoAttachment = ref(null);
+    const loading = ref(true);
+
+    const fetchTodos = async () => {
+      loading.value = true;
+      const { data, error } = await nhost.graphql.request(getTodos);
+
+      if (error) {
+        console.error({ error });
+        return;
+      }
+
+      todos.value = data.todos;
+      loading.value = false;
+    };
+
+    onMounted(fetchTodos);
+
+    const handleCreateTodo = async () => {
+      let todo = { title: todoTitle.value };
+      if (todoAttachment.value) {
+        const { id, error } = await upload({
+          file: todoAttachment.value,
+          name: todoAttachment.value.name
+        });
+
+        if (error) {
+          console.error({ error });
+          return;
+        }
+
+        todo.file_id = id;
+      }
+
+      const { error } = await nhost.graphql.request(createTodo, todo);
+
+      if (error) {
+        console.error({ error });
+      }
+
+      todoTitle.value = '';
+      todoAttachment.value = null;
+      fetchTodos();
+    };
+
+    const handleDeleteTodo = async (id) => {
+      if (!window.confirm('Are you sure you want to delete this TODO?')) {
+        return;
+      }
+
+      const todo = todos.value.find((t) => t.id === id);
+      if (todo && todo.file_id) {
+        await nhost.storage.delete({ fileId: todo.file_id });
+      }
+
+      const { error } = await nhost.graphql.request(deleteTodo, { id });
+      if (error) {
+        console.error({ error });
+      }
+
+      fetchTodos();
+    };
+
+    const completeTodo = async (id) => {
+      const { error } = await nhost.graphql.request(
+        `
+        mutation($id: uuid!) {
+          update_todos_by_pk(pk_columns: {id: $id}, _set: {completed: true}) {
+            completed
+          }
+        }
+        `,
+        { id }
+      );
+
+      if (error) {
+        console.error({ error });
+      }
+
+      fetchTodos();
+    };
+
+    const openAttachment = async (todo) => {
+      const { presignedUrl, error } = await nhost.storage.getPresignedUrl({
+        fileId: todo.file_id
+      });
+
+      if (error) {
+        console.error({ error });
+        return;
+      }
+
+      window.open(presignedUrl.url, '_blank');
+    };
+
+    return {
+      todos,
+      todoTitle,
+      todoAttachment,
+      loading,
+      handleCreateTodo,
+      handleDeleteTodo,
+      completeTodo,
+      openAttachment
+    };
+  },
+};
+</script>
+```
+
+With both `SignIn` and `Todos` in place, update `./src/App.vue` to use the new components:
+
+```js ./src/App.vue
+<template>
+  <Todos v-if="session" :session="session" />
+  <SignIn v-else />
+</template>
+
+<script>
+import { ref, onMounted } from 'vue';
+import SignIn from './SignIn.vue';
+import Todos from './Todos.vue';
+import { useNhostClient } from '@nhost/vue';
+
+export default {
+  components: { SignIn, Todos },
+  setup() {
+    const session = ref(null);
+    const { nhost } = useNhostClient()
+
+    onMounted(() => {
+      session.value = nhost.auth.getSession();
+      nhost.auth.onAuthStateChanged((_, newSession) => {
+        session.value = newSession;
+      });
+    });
+
+    return { session };
+  },
+};
+</script>
+```
+
+The last step missing is to install `nhost` as a plugin:
+
+```js ./src/main.js
+import "./assets/main.css";
+import { nhost } from "./lib/nhost";
+
+import { createApp } from "vue";
+import App from "./App.vue";
+
+createApp(App).use(nhost).mount("#app");
+```
+
+## The End
+
+Run the Todo Manager with:
+
+```bash Terminal
+npm run dev -- --open --port 3000
+```
+
+Open your browser on [localhost:3000](localhost:3000) to see your new application in action.
+

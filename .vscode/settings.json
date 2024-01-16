@@ -1,6 +1,0 @@
-{
-  "editor.codeActionsOnSave": {
-    "source.organizeImports": true
-  },
-  "eslint.workingDirectories": ["./dashboard"]
-}

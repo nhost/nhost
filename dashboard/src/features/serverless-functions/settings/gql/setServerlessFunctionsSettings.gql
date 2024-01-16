@@ -1,0 +1,13 @@
+query GetServerlessFunctionsSettings($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    functions {
+      resources {
+        networking {
+          ingresses {
+            fqdn
+          }
+        }
+      }
+    }
+  }
+}

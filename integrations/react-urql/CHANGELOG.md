@@ -1,5 +1,57 @@
 # @nhost/react-urql
 
+## 4.0.1
+
+### Patch Changes
+
+- @nhost/react@3.0.1
+
+## 4.0.0
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/react@3.0.0
+
+## 3.0.1
+
+### Patch Changes
+
+- @nhost/react@2.1.1
+
+## 3.0.0
+
+### Patch Changes
+
+- Updated dependencies [00c363f80]
+- Updated dependencies [66c3193bc]
+  - @nhost/react@2.1.0
+
+## 2.0.33
+
+### Patch Changes
+
+- Updated dependencies [4fe4a1696]
+  - @nhost/react@2.0.32
+
+## 2.0.32
+
+### Patch Changes
+
+- @nhost/react@2.0.31
+
+## 2.0.31
+
+### Patch Changes
+
+- @nhost/react@2.0.30
+
+## 2.0.30
+
+### Patch Changes
+
+- @nhost/react@2.0.29
+
 ## 2.0.29
 
 ### Patch Changes

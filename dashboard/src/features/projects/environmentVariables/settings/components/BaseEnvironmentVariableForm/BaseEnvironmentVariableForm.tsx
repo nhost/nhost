@@ -128,6 +128,8 @@ export default function BaseEnvironmentVariableForm({
           error={!!errors.value}
           helperText={errors?.value?.message}
           fullWidth
+          multiline
+          rows={5}
           autoComplete="off"
           autoFocus={mode === 'edit'}
         />

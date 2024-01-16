@@ -7,14 +7,15 @@ import MaterialLinearProgress, {
 
 export interface LinearProgressProps extends MaterialLinearProgressProps {}
 
-const LinearProgress = styled(MaterialLinearProgress)(({ theme }) => ({
+const LinearProgress = styled(MaterialLinearProgress)(({ theme, value }) => ({
   height: 12,
   borderRadius: 1,
   [`&.${linearProgressClasses.colorPrimary}`]: {
     backgroundColor: theme.palette.grey[300],
   },
   [`& .${linearProgressClasses.bar}`]: {
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor:
+      value >= 100 ? theme.palette.error.dark : theme.palette.primary.main,
   },
 }));
 

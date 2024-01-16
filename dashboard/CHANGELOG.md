@@ -1,5 +1,284 @@
 # @nhost/dashboard
 
+## 1.4.0
+
+### Minor Changes
+
+- 7883bbcbd: feat: don't show deprecated plans
+- 44be6dc0a: feat: set redirectTo during sign-in to support preview environments
+
+### Patch Changes
+
+- 3c3594898: fix: allow access to graphite when configured running in local dashboard
+- 32c246b7a: chore: update docs icon
+
+## 1.3.2
+
+### Patch Changes
+
+- 174b4165b: chore: use env variables when running graphql codegen
+- 7c977e714: chore: change `Allowed Roles` to `Default Allowed Roles`
+- 46f028b9f: fix: remove hardcoded ai version setting
+
+## 1.3.1
+
+### Patch Changes
+
+- af33c21d1: chore: remove backendUrl deprecation notice and remove all references to `providersUpdated`
+
+## 1.3.0
+
+### Minor Changes
+
+- 04784d880: Fix graphite's default version
+
+## 1.2.0
+
+### Minor Changes
+
+- 5733162ed: feat: add settings and ui for graphite
+
+## 1.1.0
+
+### Minor Changes
+
+- e2b79b5ec: chore: remove sharp from deps
+
+## 1.0.1
+
+### Patch Changes
+
+- @nhost/react-apollo@7.0.1
+- @nhost/nextjs@2.0.1
+
+## 1.0.0
+
+### Major Changes
+
+- bc9eff6e4: chore: remove support for using backendUrl when instantiating the Nhost client
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/nextjs@2.0.0
+  - @nhost/react-apollo@7.0.0
+
+## 0.21.1
+
+### Patch Changes
+
+- 97ced73a3: fix(dashboard): prevent dashboard from resolving secrets
+
+## 0.21.0
+
+### Minor Changes
+
+- ed1a8d458: Update alert message on increasing PostgreSQL's volume capacity
+- 2e2248fd4: feat(dashboard): add SQL editor
+
+## 0.20.28
+
+### Patch Changes
+
+- 7c2c31082: feat: add support for users to delete their account
+  - @nhost/react-apollo@6.0.1
+  - @nhost/nextjs@1.13.40
+
+## 0.20.27
+
+### Patch Changes
+
+- fa79b7709: chore(dashboard): tweaks and fixes to the service form and dialog
+- 8df84d782: fix(dashboard): allow resetting custom domains
+  - @nhost/react-apollo@6.0.0
+  - @nhost/nextjs@1.13.39
+
+## 0.20.26
+
+### Patch Changes
+
+- 331ba0376: feat(dashboard): add postgres storage capacity modifier in the settings
+- b7f801874: feat(dashboard): add new settings page for custom domains
+
+## 0.20.25
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.38
+
+## 0.20.24
+
+### Patch Changes
+
+- e10389ecf: fix(dashboard): disable run tab when developing locally
+  - @nhost/react-apollo@5.0.37
+
+## 0.20.23
+
+### Patch Changes
+
+- c01568a7d: chore(dashboard): show alert to update oauth providers
+
+## 0.20.22
+
+### Patch Changes
+
+- c3efb7ec8: feat(dashboard): query latest announcement from platform
+
+## 0.20.21
+
+### Patch Changes
+
+- 3e46d3873: chore: update link to node18 announcement
+
+## 0.20.20
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.36
+- @nhost/nextjs@1.13.38
+
+## 0.20.19
+
+### Patch Changes
+
+- 75c4c8ae3: feat(dashboard): make env value input multiline
+
+## 0.20.18
+
+### Patch Changes
+
+- 425d485f8: fix(dashboard): make sure dedicated resources pricing follows total resources
+
+## 0.20.17
+
+### Patch Changes
+
+- ae324f67f: fix(dashboard): remove unused graphql fields
+
+## 0.20.16
+
+### Patch Changes
+
+- df5b4302c: chore(dashboard): remove run feature flag
+- bf4a1f6c2: feat(dashboard): fetch auth, postgres, hasura and storage versions from dashboard
+- 34fc08ca7: fix(dashboard/run): show correct private registry in service details
+- 885d10620: chore(dashboard): change feedback to contact us
+
+## 0.20.15
+
+### Patch Changes
+
+- ed16c8b5d: feat(run): add a confirmation dialog when deleting a run service
+- 216990888: fix(run): center loading indicator when selecting a project
+
+## 0.20.14
+
+### Patch Changes
+
+- 9fbea9787: feat: add node18 announcement
+
+## 0.20.13
+
+### Patch Changes
+
+- e84acf469: fix(run): handle subdomain undefined error when creating a new service
+
+## 0.20.12
+
+### Patch Changes
+
+- b7c799d62: feat(run): add dialog to copy registry and URLs
+
+## 0.20.11
+
+### Patch Changes
+
+- 8903e6abd: fix(dashboard): show correct egress limit in usage stats
+
+## 0.20.10
+
+### Patch Changes
+
+- 666a75a23: feat(dashboard): add functions execution time and egress volume to usage stats
+
+## 0.20.9
+
+### Patch Changes
+
+- 5e1e80aa8: fix(dashboard): show correct locales in user details
+  - @nhost/react-apollo@5.0.35
+  - @nhost/nextjs@1.13.37
+
+## 0.20.8
+
+### Patch Changes
+
+- @nhost/react-apollo@5.0.34
+- @nhost/nextjs@1.13.36
+
+## 0.20.7
+
+### Patch Changes
+
+- 4a7ede11e: fix: distinguish files that were not uploaded
+- 202b64723: feat(nhost-run): add support for one-click-install run services
+- 074a0fa11: feat(dashboard): add settings toggle to enable/disable antivirus
+  - @nhost/react-apollo@5.0.33
+  - @nhost/nextjs@1.13.35
+
+## 0.20.6
+
+### Patch Changes
+
+- b20761e97: feat(services): add pricing info and confirmation dialog
+- 90df6d81d: fix(services): handle null values when editing a service
+- aa8508467: fix: query service logs correctly
+  feat: enable multiline support for environment value input
+
+## 0.20.5
+
+### Patch Changes
+
+- 8d7f84b8d: fix: make announcement adapt to theme
+
+## 0.20.4
+
+### Patch Changes
+
+- 3b75bfce2: fix: make announcement close properly
+- f49819075: fix: show correct values when dedicated resources are disabled
+
+## 0.20.3
+
+### Patch Changes
+
+- e643bd362: fix(services): fix errors when config is null
+- bcdab66bf: feat: add annoucement for nhost run
+- f967a2e59: added note about storage not being able to be downsized
+- 311c7756d: chore(services): consistent naming for compute
+
+## 0.20.2
+
+### Patch Changes
+
+- 9073182d5: chore(dashboard): bump `turbo` to 1.10.11
+- ece717d6e: feat(logs): show services in the logs page
+- 82b335311: feat(metrics): change grafana link to point to the dashboards
+- b135ef695: fix(services): set command as optional and set min replicas to 0
+
+## 0.20.1
+
+### Patch Changes
+
+- 3d5c34f4c: fix(auth): fix users pagination limit
+
+## 0.20.0
+
+### Minor Changes
+
+- c99d117d1: feat(services): add support for custom services
+
 ## 0.19.2
 
 ### Patch Changes

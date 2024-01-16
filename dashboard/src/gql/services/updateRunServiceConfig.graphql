@@ -1,0 +1,13 @@
+mutation updateRunServiceConfig(
+  $appID: uuid!
+  $serviceID: uuid!
+  $config: ConfigRunServiceConfigUpdateInput!
+) {
+  updateRunServiceConfig(
+    appID: $appID
+    serviceID: $serviceID
+    config: $config
+  ) {
+    name
+  }
+}

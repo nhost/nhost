@@ -4,11 +4,9 @@ fragment Project on apps {
   name
   repositoryProductionBranch
   subdomain
-  isProvisioned
   createdAt
   desiredState
   nhostBaseFolder
-  providersUpdated
   config(resolve: true) {
     observability {
       grafana {
@@ -20,6 +18,9 @@ fragment Project on apps {
       settings {
         enableConsole
       }
+    }
+    ai {
+      version
     }
   }
   featureFlags {
@@ -47,6 +48,7 @@ fragment Project on apps {
     name
     price
     isFree
+    featureMaxDbSize
   }
   githubRepository {
     fullName

@@ -114,7 +114,7 @@ export default function SettingsContainer({
     <Box
       {...root}
       className={twMerge(
-        'grid grid-flow-row gap-4 rounded-lg border-1 py-4',
+        'grid grid-flow-row gap-4 overflow-hidden rounded-lg border-1 py-4',
         root?.className || rootClassName,
       )}
     >
@@ -128,7 +128,11 @@ export default function SettingsContainer({
             icon}
 
           <div className="grid grid-flow-row gap-1">
-            <Text className="text-lg font-semibold">{title}</Text>
+            {typeof title === 'string' ? (
+              <Text className="text-lg font-semibold">{title}</Text>
+            ) : (
+              title
+            )}
 
             {description && <Text color="secondary">{description}</Text>}
           </div>

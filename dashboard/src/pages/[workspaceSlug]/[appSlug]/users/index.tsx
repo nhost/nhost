@@ -347,6 +347,7 @@ export default function UsersPage() {
                           .count
                       : dataRemoteAppUsers?.usersAggregate?.aggregate?.count
                   }
+                  itemsLabel="users"
                   elementsPerPage={
                     searchString
                       ? dataRemoteAppUsers?.filteredUsersAggreggate.aggregate

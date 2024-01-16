@@ -1,0 +1,21 @@
+---
+title: isAuthenticated()
+sidebarTitle: isAuthenticated()
+---
+
+Use `nhost.auth.isAuthenticated` to check if the user is authenticated or not.
+
+Note: `nhost.auth.isAuthenticated()` can return `false` for two reasons:
+
+1. The user is not authenticated
+2. The user is not authenticated but _might_ be authenticated soon (loading) because there is a network request in transit.
+
+Use `nhost.auth.getAuthenticationStatus` to get both authentication and loading status.
+
+```ts
+const isAuthenticated = nhost.auth.isAuthenticated()
+
+if (isAuthenticated) {
+  console.log('User is authenticated')
+}
+```

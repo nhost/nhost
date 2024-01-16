@@ -1,0 +1,20 @@
+mutation sendDevMessage(
+  $sessionId: String!
+  $prevMessageID: String!
+  $message: String!
+) {
+  graphite {
+    sendDevMessage(
+      sessionID: $sessionId
+      prevMessageID: $prevMessageID
+      message: $message
+    ) {
+      messages {
+        id
+        role
+        message
+        createdAt
+      }
+    }
+  }
+}

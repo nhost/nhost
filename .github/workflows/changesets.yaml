@@ -10,6 +10,7 @@ on:
       - '**.md'
       - '!.changeset/**'
       - 'LICENSE'
+  workflow_dispatch:
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -41,6 +42,7 @@ jobs:
           commit: 'chore: update versions'
           title: 'chore: update versions'
           publish: pnpm run release
+          createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -61,12 +63,39 @@ jobs:
     uses: ./.github/workflows/dashboard.yaml
     secrets: inherit
 
+  publish-vercel:
+    name: Publish to Vercel
+    runs-on: ubuntu-latest
+    needs:
+      - test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
+        with:
+          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      - name: Setup Vercel CLI
+        run: pnpm add -g vercel
+      - name: Trigger a Vercel deployment
+        env:
+          VERCEL_ORG_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
+
   publish-docker:
     name: Publish to Docker Hub
     runs-on: ubuntu-latest
     needs:
       - test
       - version
+      - publish-vercel
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -99,7 +128,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and push to Docker Hub
         uses: docker/build-push-action@v4
-        timeout-minutes: 60
+        timeout-minutes: 90
         with:
           context: .
           file: ./dashboard/Dockerfile
@@ -112,42 +141,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
-      - name: Create GitHub Release
-        uses: taiki-e/create-gh-release-action@v1
-        with:
-          changelog: dashboard/CHANGELOG.md
-          token: ${{ secrets.GITHUB_TOKEN }}
-          prefix: ${{ env.DASHBOARD_PACKAGE }}@
-          ref: refs/tags/${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
-      - name: Remove tag on failure
-        if: failure()
-        run: git push --delete origin ${{ env.DASHBOARD_PACKAGE }}@${{ needs.version.outputs.dashboardVersion }}
-
-  publish-vercel:
-    name: Publish to Vercel
-    runs-on: ubuntu-latest
-    needs:
-      - publish-docker
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
-        with:
-          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ env.TURBO_TEAM }}
-      - name: Setup Vercel CLI
-        run: pnpm add -g vercel
-      - name: Trigger a Vercel deployment
-        env:
-          VERCEL_ORG_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.DASHBOARD_VERCEL_PROJECT_ID }}
-        run: |
-          vercel pull --environment=production --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-          vercel build --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-          vercel deploy --prebuilt --prod --token=${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
 
   bump-cli:
     name: Bump Dashboard version in the Nhost CLI

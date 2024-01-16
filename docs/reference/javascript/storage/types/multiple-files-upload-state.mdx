@@ -1,0 +1,47 @@
+---
+title: MultipleFilesUploadState
+sidebarTitle: MultipleFilesUploadState
+description: No description provided.
+---
+
+# `MultipleFilesUploadState`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">isUploading</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+Returns `true` when the files are being uploaded.
+
+---
+
+**<span className="parameter-name">progress</span>** <span className="optional-status">required</span> <code>null &#124; number</code>
+
+Returns the overall progress of the upload, from 0 to 100. Returns null if the upload has not started yet.
+
+---
+
+**<span className="parameter-name">files</span>** <span className="optional-status">required</span> <code>Array&lt;ActorRefWithDeprecatedState&lt;FileUploadContext, &#123; type: "ADD", file: File, id: string, bucketId: string, name: string &#125; &#124; &#123; type: "UPLOAD", file: File, id: string, name: string, bucketId: string &#125; &amp; FileUploadConfig &#124; &#123; type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number &#125; &#124; &#123; type: "UPLOAD_DONE", id: string, bucketId: string &#125; &#124; &#123; type: "UPLOAD_ERROR", error: StorageErrorPayload &#125; &#124; &#123; type: "CANCEL" &#125; &#124; &#123; type: "DESTROY" &#125;, &#123; value: any, context: FileUploadContext &#125;, ResolveTypegenMeta&lt;Typegen0, &#123; type: "ADD", file: File, id: string, bucketId: string, name: string &#125; &#124; &#123; type: "UPLOAD", file: File, id: string, name: string, bucketId: string &#125; &amp; FileUploadConfig &#124; &#123; type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number &#125; &#124; &#123; type: "UPLOAD_DONE", id: string, bucketId: string &#125; &#124; &#123; type: "UPLOAD_ERROR", error: StorageErrorPayload &#125; &#124; &#123; type: "CANCEL" &#125; &#124; &#123; type: "DESTROY" &#125;, BaseActionObject, ServiceMap&gt;&gt;&gt;</code>
+
+The list of file uploads. The properties can be accessed through `item.getSnapshot()` of with the `useFileUploadItem` hook.
+
+---
+
+**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+Returns `true` when all upload request are processed, but at least one of them has failed.
+
+---
+
+**<span className="parameter-name">errors</span>** <span className="optional-status">required</span> <code>Array&lt;ActorRefWithDeprecatedState&lt;FileUploadContext, &#123; type: "ADD", file: File, id: string, bucketId: string, name: string &#125; &#124; &#123; type: "UPLOAD", file: File, id: string, name: string, bucketId: string &#125; &amp; FileUploadConfig &#124; &#123; type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number &#125; &#124; &#123; type: "UPLOAD_DONE", id: string, bucketId: string &#125; &#124; &#123; type: "UPLOAD_ERROR", error: StorageErrorPayload &#125; &#124; &#123; type: "CANCEL" &#125; &#124; &#123; type: "DESTROY" &#125;, &#123; value: any, context: FileUploadContext &#125;, ResolveTypegenMeta&lt;Typegen0, &#123; type: "ADD", file: File, id: string, bucketId: string, name: string &#125; &#124; &#123; type: "UPLOAD", file: File, id: string, name: string, bucketId: string &#125; &amp; FileUploadConfig &#124; &#123; type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number &#125; &#124; &#123; type: "UPLOAD_DONE", id: string, bucketId: string &#125; &#124; &#123; type: "UPLOAD_ERROR", error: StorageErrorPayload &#125; &#124; &#123; type: "CANCEL" &#125; &#124; &#123; type: "DESTROY" &#125;, BaseActionObject, ServiceMap&gt;&gt;&gt;</code>
+
+Returns the list of file uploads that have failed
+
+---
+
+**<span className="parameter-name">isUploaded</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+Returns `true` when all the files have been successfully uploaded.
+
+---

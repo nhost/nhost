@@ -79,8 +79,11 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (options) => {
   )
   const accessToken = useSelector(service, (state) => state.context.accessToken.value)
 
+  const refreshToken = useSelector(service, (state) => state.context.refreshToken.value)
+
   return {
     accessToken,
+    refreshToken,
     error,
     isError,
     isLoading,

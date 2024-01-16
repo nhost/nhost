@@ -10,7 +10,6 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
-  defaultLocalBackendSlugs,
   defaultRemoteBackendSlugs,
   generateAppServiceUrl,
 } from '@/features/projects/common/utils/generateAppServiceUrl';
@@ -38,7 +37,6 @@ export default function HasuraPage() {
           currentProject?.subdomain,
           currentProject?.region,
           'hasura',
-          defaultLocalBackendSlugs,
           { ...defaultRemoteBackendSlugs, hasura: '/console' },
         );
 

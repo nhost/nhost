@@ -1,0 +1,132 @@
+---
+title: Setup Nhost with Vue
+sidebarTitle: Vue
+description: Get up and running with Nhost and Vue
+icon: vuejs
+---
+
+<Steps>
+  <Step title="Create Project">
+    If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io/new).
+  </Step>
+
+  <Step title="Setup Database">
+    Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `movies` with some great movies.
+
+    ```sql SQL Editor
+    CREATE TABLE movies (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      director VARCHAR(255),
+      release_year INTEGER,
+      genre VARCHAR(100),
+      rating FLOAT
+    );
+
+    INSERT INTO movies (title, director, release_year, genre, rating) VALUES
+      ('Inception', 'Christopher Nolan', 2010, 'Sci-Fi', 8.8),
+      ('The Godfather', 'Francis Ford Coppola', 1972, 'Crime', 9.2),
+      ('Forrest Gump', 'Robert Zemeckis', 1994, 'Drama', 8.8),
+      ('The Matrix', 'Lana Wachowski, Lilly Wachowski', 1999, 'Action', 8.7);
+    ```
+
+    <Warning>Make sure the option `Track this` is enabled</Warning>
+
+    ![SQL Editor](/images/guides/quickstarts/react/sql-editor.png)
+
+  </Step>
+
+  <Step title="permissions">
+    Select the new table `movies` just created, and click in **Edit Permissions** to set the following permissions for the `public` role and `select` action.
+
+    ![Permission Rules](/images/guides/quickstarts/react/permissions.png)
+
+  </Step>
+
+  <Step title="Setup a Vue Application">
+    Create a Vue application using Vite.
+
+    ```bash Terminal
+    npm create vue@latest nhost-vue-quickstart
+    ```
+
+  </Step>
+
+  <Step title="Install the Nhost package for Vue">
+    Navidate to the React application and install `@nhost/vue`.
+
+    ```bash Terminal
+    cd nhost-vue-quickstart && npm install @nhost/vue
+    ```
+
+  </Step>
+
+  <Step title="Configure the Nhost client and fetch the list of movies">
+
+    Create a new file with the following code to creates the Nhost client.
+
+    ```js ./src/lib/nhost.js
+    import { NhostClient } from "@nhost/vue";
+
+    export const nhost = new NhostClient({
+      subdomain: "<subdomain>",
+      region: "<region>",
+    })
+    ```
+
+    <Note>Replace `<subdomain>` and `<region>` with the subdomain and region for the project</Note>
+
+    Finally, update `./src/App.vue` to fetch the list of movies.
+
+    ```js src/App.vue
+    <script setup>
+      import { ref, onMounted } from 'vue'
+      import { nhost } from "./lib/nhost"
+
+      const getMoviesQuery = `
+        query {
+          movies {
+            id
+            title
+            genre
+            rating
+          }
+        }
+      `;
+
+      const movies = ref([])
+      async function getMovies() {
+        const { data } = await nhost.graphql.request(getMoviesQuery)
+        movies.value = data.movies
+      }
+
+      onMounted(() => {
+        getMovies()
+      })
+    </script>
+
+    <template>
+      <div>
+        <table>
+          <tbody>
+            <tr v-for="movie in movies" :key="movie.id">
+              <td>{{ movie.title }}</td>
+              <td>{{ movie.genre }}</td>
+              <td>{{ movie.rating }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </template>
+    ```
+
+  </Step>
+
+  <Step title="The end">
+    Run your project with `npm run dev -- --open --port 3000` and enter `http://localhost:3000` in your browser.
+  </Step>
+</Steps>
+
+```
+
+```

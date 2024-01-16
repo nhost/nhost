@@ -1,5 +1,23 @@
 # @nhost/hasura-auth-js
 
+## 2.1.10
+
+### Patch Changes
+
+- b338793d6: Fix typo
+
+## 2.1.9
+
+### Patch Changes
+
+- 4fe4a1696: return `refreshToken` immediately after signIn and signUp
+
+## 2.1.8
+
+### Patch Changes
+
+- 032c0bd21: fix: make sure errors are correctly thrown on non v8 browsers
+
 ## 2.1.7
 
 ### Patch Changes

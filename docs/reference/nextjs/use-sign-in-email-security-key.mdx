@@ -1,0 +1,25 @@
+---
+title: useSignInEmailSecurityKey()
+sidebarTitle: useSignInEmailSecurityKey()
+---
+
+Use the hook `useSignInEmailSecurityKey` to sign in a user using their email and a security key using the WebAuthn API.
+
+```tsx
+const {
+  signInEmailSecurityKey,
+  needsEmailVerification,
+  isLoading,
+  isSuccess,
+  isError,
+  error
+} = useSignInEmailSecurityKey()
+
+console.log({ needsEmailVerification, isLoading, isSuccess, isError, error })
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await signInEmailSecurityKey('joe@example.com')
+}
+```

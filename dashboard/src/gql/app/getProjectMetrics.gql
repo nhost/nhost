@@ -17,6 +17,9 @@ query GetProjectMetrics(
   ) {
     value
   }
+  functionsDuration: getFunctionsDuration(appID: $appId, from: $from, to: $to) {
+    value
+  }
   postgresVolumeCapacity: getPostgresVolumeCapacity(appID: $appId) {
     value
   }

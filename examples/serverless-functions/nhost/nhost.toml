@@ -1,4 +1,7 @@
 [global]
+[[global.environment]]
+name='STRIPE_SECRET_KEY'
+value='{{ secrets.STRIPE_SECRET_KEY }}'
 
 [hasura]
 version = 'v2.25.1-ce'
@@ -25,7 +28,7 @@ httpPoolSize = 100
 
 [functions]
 [functions.node]
-version = 16
+version = 18
 
 [auth]
 version = '0.20.2'

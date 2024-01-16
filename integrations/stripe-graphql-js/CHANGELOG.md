@@ -1,5 +1,11 @@
 # @nhost/stripe-graphql-js
 
+## 1.0.5
+
+### Patch Changes
+
+- 45759c4d4: fix(stripe-graphql-js): fix stripe GraphQL extension export issue in serverless functions
+
 ## 1.0.4
 
 ### Patch Changes

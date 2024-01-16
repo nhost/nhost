@@ -1,4 +1,5 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
+const plugin = require('tailwindcss/plugin');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -18,6 +19,8 @@ module.exports = {
         github: '#24292E;',
         brown: '#382D22',
         copper: '#DD792D',
+        paper: '#171d26',
+        divider: '#2f363d',
       },
       boxShadow: {
         outline: 'inset 0 0 0 2px rgba(0, 82, 205, 0.6)',
@@ -148,11 +151,34 @@ module.exports = {
         'inter-var': ['Inter var', ...defaultTheme.fontFamily.sans],
         mono: ['"Roboto Mono"', ...defaultTheme.fontFamily.mono],
       },
+      keyframes: {
+        blinking: {
+          '0%': { opacity: 0 },
+          '50%': { opacity: 1 },
+          '100%': { opacity: 0 },
+        },
+      },
+      animation: {
+        blinking: 'blinking 1s infinite',
+      },
     },
   },
   variants: {
     extend: {},
   },
   // eslint-disable-next-line global-require
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+    plugin(({ matchUtilities, theme }) => {
+      matchUtilities(
+        {
+          'animate-delay': (value) => ({
+            animationDelay: value,
+          }),
+        },
+        { values: theme('transitionDelay') },
+      );
+    }),
+  ],
 };

@@ -1,0 +1,48 @@
+---
+title: NhostSession
+sidebarTitle: NhostSession
+description: No description provided.
+---
+
+# `NhostSession`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">accessToken</span>** <span className="optional-status">required</span> <code>string</code>
+
+---
+
+**<span className="parameter-name">accessTokenExpiresIn</span>** <span className="optional-status">required</span> <code>number</code>
+
+---
+
+**<span className="parameter-name">refreshToken</span>** <span className="optional-status">required</span> <code>null &#124; string</code>
+
+---
+
+**<span className="parameter-name">refreshTokenId</span>** <span className="optional-status">optional</span> <code>null &#124; string</code>
+
+---
+
+**<span className="parameter-name">user</span>** <span className="optional-status">required</span> [`User`](/reference/nextjs/types/user)
+
+| Property                                                                                             | Type                                       | Required | Notes                                              |
+| :--------------------------------------------------------------------------------------------------- | :----------------------------------------- | :------: | :------------------------------------------------- |
+| <span className="parameter-name"><span className="light-grey">user.</span>activeMfaType</span>       | <code>null &#124; "totp"</code>            |    ✔️    |                                                    |
+| <span className="parameter-name"><span className="light-grey">user.</span>phoneNumberVerified</span> | <code>boolean</code>                       |    ✔️    |                                                    |
+| <span className="parameter-name"><span className="light-grey">user.</span>phoneNumber</span>         | <code>null &#124; string</code>            |    ✔️    |                                                    |
+| <span className="parameter-name"><span className="light-grey">user.</span>emailVerified</span>       | <code>boolean</code>                       |    ✔️    | Is `true` if the user email has not been verified  |
+| <span className="parameter-name"><span className="light-grey">user.</span>metadata</span>            | <code>Record&lt;string, unknown&gt;</code> |    ✔️    | Additional attributes used for user information    |
+| <span className="parameter-name"><span className="light-grey">user.</span>roles</span>               | <code>Array&lt;string&gt;</code>           |    ✔️    | The roles assigned to the user                     |
+| <span className="parameter-name"><span className="light-grey">user.</span>defaultRole</span>         | <code>string</code>                        |    ✔️    | The default role of the user                       |
+| <span className="parameter-name"><span className="light-grey">user.</span>isAnonymous</span>         | <code>boolean</code>                       |    ✔️    | Whether or not the user is anonymous               |
+| <span className="parameter-name"><span className="light-grey">user.</span>locale</span>              | <code>string</code>                        |    ✔️    | The locale of the user, as a two-characters string |
+| <span className="parameter-name"><span className="light-grey">user.</span>avatarUrl</span>           | <code>string</code>                        |    ✔️    | The URL to the user's profile picture              |
+| <span className="parameter-name"><span className="light-grey">user.</span>displayName</span>         | <code>string</code>                        |    ✔️    | User's display name                                |
+| <span className="parameter-name"><span className="light-grey">user.</span>createdAt</span>           | <code>string</code>                        |    ✔️    | The date-time when the user has been created       |
+| <span className="parameter-name"><span className="light-grey">user.</span>id</span>                  | <code>string</code>                        |    ✔️    | User's unique identifier (uuid)                    |
+| <span className="parameter-name"><span className="light-grey">user.</span>email</span>               | <code>string</code>                        |          | User's email address                               |
+
+---

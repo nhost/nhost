@@ -1,0 +1,3 @@
+query dnsLookupCNAME($hostname: String!) {
+  dnsLookupCNAME(hostname: $hostname)
+}

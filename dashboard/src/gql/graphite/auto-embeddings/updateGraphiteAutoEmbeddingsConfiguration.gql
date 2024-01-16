@@ -1,0 +1,29 @@
+mutation updateGraphiteAutoEmbeddingsConfiguration(
+  $id: uuid!
+  $name: String
+  $schemaName: String
+  $tableName: String
+  $columnName: String
+  $query: String
+  $mutation: String
+) {
+  updateGraphiteAutoEmbeddingsConfiguration(
+    pk_columns: { id: $id }
+    _set: {
+      name: $name
+      schemaName: $schemaName
+      tableName: $tableName
+      columnName: $columnName
+      query: $query
+      mutation: $mutation
+    }
+  ) {
+    id
+    name
+    schemaName
+    tableName
+    columnName
+    query
+    mutation
+  }
+}

@@ -1,0 +1,9 @@
+query getSoftwareVersions($software: software_type_enum!) {
+  softwareVersions(
+    where: { software: { _eq: $software } }
+    order_by: { version: desc }
+  ) {
+    version
+    software
+  }
+}

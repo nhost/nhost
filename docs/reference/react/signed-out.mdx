@@ -1,0 +1,29 @@
+---
+title: <SignedOut />
+sidebarTitle: <SignedOut />
+---
+
+Use `<SignedOut />` to control the rendering of components for users. Components inside `<SignedOut />` are only rendered if the user is not authenticated.
+
+```tsx
+import { NhostProvider, SignedOut } from '@nhost/react'
+import { nhost } from '@/utils/nhost'
+
+function Page() {
+  return (
+    <NhostProvider nhost={nhost}>
+      <SignedOut>
+        <h1>Only rendered if the user is not authenticated</h1>
+      </SignedOut>
+    </NhostProvider>
+  )
+}
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">\_\_namedParameters</span>** <span className="optional-status">required</span> <code>&#123; children: ReactNode &#125;</code>
+
+---

@@ -1,5 +1,61 @@
 # @nhost/apollo
 
+## 6.0.1
+
+### Patch Changes
+
+- @nhost/nhost-js@3.0.1
+
+## 6.0.0
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/nhost-js@3.0.0
+
+## 5.2.22
+
+### Patch Changes
+
+- Updated dependencies [8b127fbb6]
+  - @nhost/nhost-js@2.2.18
+
+## 5.2.21
+
+### Patch Changes
+
+- f777a3380: fix: apollo-integration: correctly reset accessToken to null after sign-out
+
+## 5.2.20
+
+### Patch Changes
+
+- 7459a9413: fix: apollo-integration: reset accessToken to null after sign-out
+
+## 5.2.19
+
+### Patch Changes
+
+- @nhost/nhost-js@2.2.17
+
+## 5.2.18
+
+### Patch Changes
+
+- @nhost/nhost-js@2.2.16
+
+## 5.2.17
+
+### Patch Changes
+
+- @nhost/nhost-js@2.2.15
+
+## 5.2.16
+
+### Patch Changes
+
+- @nhost/nhost-js@2.2.14
+
 ## 5.2.15
 
 ### Patch Changes

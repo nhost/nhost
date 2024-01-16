@@ -80,7 +80,7 @@ function AllWorkspaceApps() {
 
                 <Chip
                   size="small"
-                  label={project.plan.isFree ? 'Starter' : 'Pro'}
+                  label={project.plan.name}
                   color={project.plan.isFree ? 'default' : 'primary'}
                 />
               </ListItem.Button>

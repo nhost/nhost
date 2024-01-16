@@ -1,5 +1,61 @@
 # @nhost/nextjs
 
+## 2.0.1
+
+### Patch Changes
+
+- @nhost/react@3.0.1
+
+## 2.0.0
+
+### Major Changes
+
+- bc9eff6e4: chore: remove support for using backendUrl when instantiating the Nhost client
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/react@3.0.0
+
+## 1.13.40
+
+### Patch Changes
+
+- @nhost/react@2.1.1
+
+## 1.13.39
+
+### Patch Changes
+
+- Updated dependencies [00c363f80]
+- Updated dependencies [66c3193bc]
+  - @nhost/react@2.1.0
+
+## 1.13.38
+
+### Patch Changes
+
+- Updated dependencies [4fe4a1696]
+  - @nhost/react@2.0.32
+
+## 1.13.37
+
+### Patch Changes
+
+- @nhost/react@2.0.31
+
+## 1.13.36
+
+### Patch Changes
+
+- @nhost/react@2.0.30
+
+## 1.13.35
+
+### Patch Changes
+
+- @nhost/react@2.0.29
+
 ## 1.13.34
 
 ### Patch Changes

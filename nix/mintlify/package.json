@@ -1,0 +1,34 @@
+{
+  "name": "mintlify",
+  "version": "4.0.63",
+  "description": "Alias for @mintlify/cli",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Mintlify, Inc.",
+  "bugs": {
+    "url": "https://github.com/mintlify/docs/issues"
+  },
+  "license": "Elastic-2.0",
+  "keywords": [
+    "mintlify",
+    "mint",
+    "cli"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "bin": "index.js",
+  "scripts": {
+    "clean:all": "rimraf node_modules"
+  },
+  "dependencies": {
+    "@mintlify/cli": "4.0.63"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.1"
+  },
+  "gitHead": "c634474da9fb789bb4b3d709a63b49d0ddc6b0cf"
+}

@@ -1,0 +1,21 @@
+---
+title: getAuthenticationResult()
+sidebarTitle: getAuthenticationResult()
+---
+
+## Parameters
+
+---
+
+**<span className="parameter-name">\_\_namedParameters</span>** <span className="optional-status">required</span> [`SessionActionHandlerResult`](/reference/javascript/auth/types/session-action-handler-result)
+
+| Property                                                                                                     | Type                                                                                               | Required | Notes                                       |
+| :----------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------- | :------: | :------------------------------------------ |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>refreshToken</span> | <code>null &#124; string</code>                                                                    |    ✔️    | Access token (JWT)                          |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>accessToken</span>  | <code>null &#124; string</code>                                                                    |    ✔️    | Access token (JWT)                          |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>user</span>         | <code>null &#124; [`User`](/reference/javascript/auth/types/user)</code>                           |    ✔️    | User information                            |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>isSuccess</span>    | <code>boolean</code>                                                                               |    ✔️    | Returns `true` if the action is successful. |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>error</span>        | <code>null &#124; [`AuthErrorPayload`](/reference/javascript/auth/types/auth-error-payload)</code> |    ✔️    | Provides details about the error            |
+| <span className="parameter-name"><span className="light-grey">\_\_namedParameters.</span>isError</span>      | <code>boolean</code>                                                                               |    ✔️    |                                             |
+
+---

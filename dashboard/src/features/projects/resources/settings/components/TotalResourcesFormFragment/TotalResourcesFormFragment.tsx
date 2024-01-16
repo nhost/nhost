@@ -4,7 +4,6 @@ import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { Slider, sliderClasses } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
-import { calculateBillableResources } from '@/features/projects/resources/settings/utils/calculateBillableResources';
 import { getAllocatedResources } from '@/features/projects/resources/settings/utils/getAllocatedResources';
 import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/projects/resources/settings/utils/prettifyVCPU';
@@ -63,34 +62,7 @@ export default function TotalResourcesFormFragment({
     (formValues.totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) *
     RESOURCE_VCPU_PRICE;
 
-  const billableResources = calculateBillableResources(
-    {
-      replicas: formValues.database?.replicas,
-      vcpu: formValues.database?.vcpu,
-      memory: formValues.database?.memory,
-    },
-    {
-      replicas: formValues.hasura?.replicas,
-      vcpu: formValues.hasura?.vcpu,
-      memory: formValues.hasura?.memory,
-    },
-    {
-      replicas: formValues.auth?.replicas,
-      vcpu: formValues.auth?.vcpu,
-      memory: formValues.auth?.memory,
-    },
-    {
-      replicas: formValues.storage?.replicas,
-      vcpu: formValues.storage?.vcpu,
-      memory: formValues.storage?.memory,
-    },
-  );
-
-  const updatedPrice =
-    Math.max(
-      priceForTotalAvailableVCPU,
-      (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE,
-    ) + proPlan.price;
+  const updatedPrice = priceForTotalAvailableVCPU + proPlan.price;
 
   const { vcpu: allocatedVCPU, memory: allocatedMemory } =
     getAllocatedResources(formValues);

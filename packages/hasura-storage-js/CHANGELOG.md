@@ -1,5 +1,25 @@
 # @nhost/hasura-storage-js
 
+## 2.2.5
+
+### Patch Changes
+
+- 4fe4a1696: - accept FormData exported from [`form-data`](https://www.npmjs.com/package/form-data) as LegacyFormData
+  - accept native FormData available on node18 and above
+  - call native fetch available on node18 and above when running on [EdgeRuntime](https://edge-runtime.vercel.app/)
+
+## 2.2.4
+
+### Patch Changes
+
+- 83fee5446: fix(hasura-storage-js): swap fetch when running on edge runtime
+
+## 2.2.3
+
+### Patch Changes
+
+- 39de0063b: fix(hasura-storage-js): fix upload response status code check
+
 ## 2.2.2
 
 ### Patch Changes

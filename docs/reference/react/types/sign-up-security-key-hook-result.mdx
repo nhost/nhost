@@ -1,0 +1,75 @@
+---
+title: SignUpSecurityKeyHookResult
+sidebarTitle: SignUpSecurityKeyHookResult
+description: No description provided.
+---
+
+# `SignUpSecurityKeyHookResult`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+**`@returns`**
+
+`true` if an error occurred
+
+**`@depreacted`**
+
+use `!isSuccess` or `!!error` instead
+
+---
+
+**<span className="parameter-name">error</span>** <span className="optional-status">required</span> <code>null &#124; AuthErrorPayload</code>
+
+Provides details about the error
+
+---
+
+**<span className="parameter-name">isLoading</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+**`@returns`**
+
+`true` when the action is executing, `false` when it finished its execution.
+
+---
+
+**<span className="parameter-name">isSuccess</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+Returns `true` if the action is successful.
+
+---
+
+**<span className="parameter-name">user</span>** <span className="optional-status">required</span> <code>null &#124; [`User`](/reference/react/types/user)</code>
+
+User information
+
+---
+
+**<span className="parameter-name">accessToken</span>** <span className="optional-status">required</span> <code>null &#124; string</code>
+
+Access token (JWT)
+
+---
+
+**<span className="parameter-name">refreshToken</span>** <span className="optional-status">required</span> <code>null &#124; string</code>
+
+Access token (JWT)
+
+---
+
+**<span className="parameter-name">needsEmailVerification</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+**`@returns`**
+
+`true` if an email is required to complete the action, and that a verification email has been sent to complete the action.
+
+---
+
+**<span className="parameter-name">signUpEmailSecurityKey</span>** <span className="optional-status">required</span> <code>SignUpSecurityKeyHandler</code>
+
+Used for a new user to sign up with a security key. Returns a promise with the current context
+
+---

@@ -1,5 +1,5 @@
 import fetchPonyfill from 'fetch-ponyfill'
-import FormData from 'form-data'
+import LegacyFormData from 'form-data'
 import {
   ApiDeleteParams,
   ApiDeleteResponse,
@@ -12,7 +12,11 @@ import {
 } from './utils/types'
 import { fetchUpload } from './utils/upload'
 
-const { fetch } = fetchPonyfill()
+let fetch: any
+
+if (typeof fetch === 'undefined') {
+  fetch = fetchPonyfill().fetch
+}
 
 /**
  * @internal
@@ -61,7 +65,7 @@ export class HasuraStorageApi {
     id,
     name
   }: StorageUploadFileParams): Promise<StorageUploadFileResponse> {
-    const formData = new FormData()
+    const formData = typeof window === 'undefined' ? new LegacyFormData() : new FormData()
 
     formData.append('file[]', file)
     formData.append('metadata[]', JSON.stringify({ id, name }))

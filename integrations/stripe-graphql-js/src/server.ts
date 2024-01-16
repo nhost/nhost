@@ -56,7 +56,7 @@ const createStripeGraphQLServer = ({
     maskedErrors,
   })
 
-  return createServer(yoga)
+  return yoga
 }
 
 export { createStripeGraphQLServer, schema }

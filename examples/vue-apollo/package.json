@@ -1,7 +1,7 @@
 {
   "name": "@nhost-examples/vue-apollo",
   "private": true,
-  "version": "0.0.8",
+  "version": "0.0.9",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -17,14 +17,16 @@
     "@apollo/client": "^3.7.1",
     "@mdi/font": "5.9.55",
     "@nhost/apollo": "*",
+    "@nhost/nhost-js": "*",
     "@nhost/vue": "*",
     "@vue/apollo-composable": "4.0.0-alpha.18",
-    "graphql": "15.7.2",
+    "graphql": "^16.8.1",
     "graphql-tag": "^2.12.6",
     "roboto-fontface": "*",
     "vite-plugin-vuetify": "^1.0.1",
     "vue": "^3.2.41",
     "vue-router": "^4.1.6",
+    "vue3-dropzone": "^2.1.2",
     "vuetify": "3.0.0-beta.10",
     "webfontloader": "^1.0.0"
   },
@@ -35,7 +37,7 @@
     "@xstate/inspect": "^0.6.2",
     "sass": "1.32.0",
     "typescript": "4.9.4",
-    "vite": "^4.0.2",
+    "vite": "^4.5.0",
     "vue-tsc": "^0.38.9"
   },
   "eslintConfig": {

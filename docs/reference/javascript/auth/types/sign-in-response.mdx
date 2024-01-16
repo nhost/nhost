@@ -1,0 +1,25 @@
+---
+title: SignInResponse
+sidebarTitle: SignInResponse
+description: payload from hasura-auth endpoint /signin/email-password
+---
+
+# `SignInResponse`
+
+payload from hasura-auth endpoint /signin/email-password
+
+## Parameters
+
+---
+
+**<span className="parameter-name">session</span>** <span className="optional-status">required</span> <code>null &#124; [`NhostSession`](/reference/javascript/auth/types/nhost-session)</code>
+
+---
+
+**<span className="parameter-name">mfa</span>** <span className="optional-status">required</span> <code>null &#124; &#123; ticket: string &#125;</code>
+
+---
+
+**<span className="parameter-name">error</span>** <span className="optional-status">required</span> <code>null &#124; [`AuthErrorPayload`](/reference/javascript/auth/types/auth-error-payload)</code>
+
+---

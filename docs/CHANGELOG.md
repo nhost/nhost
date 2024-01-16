@@ -1,5 +1,85 @@
 # @nhost/docs
 
+## 2.0.0
+
+### Major Changes
+
+- 6d08b3430: New Docs powered by Mintlify
+
+## 0.7.5
+
+### Patch Changes
+
+- 7c977e714: chore: change `Allowed Roles` to `Default Allowed Roles`
+
+## 0.7.4
+
+### Patch Changes
+
+- 2a04bc9e5: added functions to custom domains documentation
+
+## 0.7.3
+
+### Patch Changes
+
+- 3ffb60f0a: fixed typo in Run deploy example script
+
+## 0.7.2
+
+### Patch Changes
+
+- 138bf9eb5: fix: add instructions for enabling Sign In with LinkedIn using OpenID Connect
+
+## 0.7.1
+
+### Patch Changes
+
+- 1ee021b4a: remove custom domains from roadmap
+
+## 0.7.0
+
+### Minor Changes
+
+- 5764f46d9: Add docs for Custom Domains
+
+### Patch Changes
+
+- cc8cc8d45: database: added extension http
+
+## 0.6.2
+
+### Patch Changes
+
+- 4fe4a1696: return `refreshToken` immediately after signIn and signUp
+
+## 0.6.1
+
+### Patch Changes
+
+- 612d75496: updated postgres and graphql documentation
+- 3b3e83a21: fix(docs): correct rendering of mermaid diagrams in dark mode
+- 765b398b2: added jit settings documentation
+- 30aae1557: minor fix to performance documentation
+- a3efc1d13: docs: added storage/antivirus documentation
+
+## 0.6.0
+
+### Minor Changes
+
+- 9aaa407d2: Fix messaging around Run's private beta
+
+## 0.5.1
+
+### Patch Changes
+
+- 819e1e97d: update fqdn format for nhost run
+
+## 0.5.0
+
+### Minor Changes
+
+- 960d815f6: added docs for Nhost Run
+
 ## 0.4.0
 
 ### Minor Changes

@@ -11,7 +11,7 @@ import {
  */
 export function createFunctionsClient(params: NhostClientConstructorParams) {
   const functionsUrl =
-    'subdomain' in params || 'backendUrl' in params
+    'subdomain' in params
       ? urlFromSubdomain(params, 'functions')
       : params.functionsUrl
 

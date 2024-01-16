@@ -1,5 +1,0 @@
-mutation insertFeedbackOne($feedback: feedback_insert_input!) {
-  insertFeedbackOne(object: $feedback) {
-    id
-  }
-}

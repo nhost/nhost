@@ -1,5 +1,29 @@
 mutation UpdateConfig($appId: uuid!, $config: ConfigConfigUpdateInput!) {
   updateConfig(appID: $appId, config: $config) {
     id: __typename
+    postgres {
+      resources {
+        storage {
+          capacity
+        }
+      }
+    }
+    ai {
+      version
+      webhookSecret
+      autoEmbeddings {
+        synchPeriodMinutes
+      }
+      openai {
+        organization
+        apiKey
+      }
+      resources {
+        compute {
+          cpu
+          memory
+        }
+      }
+    }
   }
 }

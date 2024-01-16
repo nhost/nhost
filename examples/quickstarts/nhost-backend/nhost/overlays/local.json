@@ -1,0 +1,15 @@
+[
+  {
+    "op": "remove",
+    "path": "/auth/method/webauthn/relyingParty/id"
+  },
+  {
+    "value": "http://localhost:3000",
+    "op": "replace",
+    "path": "/auth/method/webauthn/relyingParty/origins/0"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/method/webauthn/relyingParty/origins/1"
+  }
+]

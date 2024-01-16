@@ -1,0 +1,9 @@
+{
+  "label": "Types",
+  "position": 1,
+  "className": "hidden",
+  "link": {
+    "type": "generated-index",
+    "slug": "/reference/vue/types"
+  }
+}

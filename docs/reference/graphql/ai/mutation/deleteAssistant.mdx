@@ -1,0 +1,67 @@
+---
+title: deleteAssistant
+---
+
+```graphql
+deleteAssistant {
+   assistantID: String! 
+}: Boolean!
+```
+
+Delete an assistant
+
+## Permissions needed
+
+select (assistants):
+- assistant_id
+delete (assistants):
+
+
+## Arguments
+
+
+
+    <ParamField body="assistantID" type="String!" required>
+    Assistant to delete
+    </ParamField>
+
+
+
+## Response
+
+Type: `Boolean!`
+
+
+
+
+
+
+<RequestExample>
+```graphql query
+query deleteAssistant (
+  $assistantID: String!
+) {
+  graphite {
+    deleteAssistant (
+      assistantID: $assistantID
+    )
+  }
+}
+```
+
+```json variables
+{
+  "assistantID": "string"
+}
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "data": {
+    "graphite": {}
+  }
+}
+```
+</ResponseExample>

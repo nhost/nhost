@@ -1,0 +1,51 @@
+query getRunServices(
+  $appID: uuid!
+  $resolve: Boolean!
+  $limit: Int!
+  $offset: Int!
+) {
+  app(id: $appID) {
+    runServices(limit: $limit, offset: $offset) {
+      id
+      createdAt
+      updatedAt
+      subdomain
+      config(resolve: $resolve) {
+        name
+        image {
+          image
+        }
+        command
+        resources {
+          compute {
+            cpu
+            memory
+          }
+          storage {
+            name
+            path
+            capacity
+          }
+          replicas
+        }
+        environment {
+          name
+          value
+        }
+        ports {
+          port
+          type
+          publish
+          ingresses {
+            fqdn
+          }
+        }
+      }
+    }
+    runServices_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+}

@@ -1,37 +1,32 @@
-# Nhost Docs
+# Mintlify Starter Kit
 
-This documentation describes how to build, start and test the documentation locally.
+Click on `Use this template` to copy the Mintlify starter kit. The starter kit contains examples including
 
-### Installation
+- Guide pages
+- Navigation
+- Customizations
+- API Reference pages
+- Use of popular components
 
-```bash
-$ pnpm i
+### Development
+
+Install the [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the documentation changes locally. To install, use the following command
+
+```
+npm i -g mintlify
 ```
 
-### Local Development
+Run the following command at the root of your documentation (where mint.json is)
 
-```bash
-$ pnpm start
+```
+mintlify dev
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+### Publishing Changes
 
-### Build
+Install our Github App to autopropagate changes from youre repo to your deployment. Changes will be deployed to production automatically after pushing to the default branch. Find the link to install on your dashboard. 
 
-```bash
-$ pnpm build
-```
+#### Troubleshooting
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
-
-### Serve
-
-```bash
-$ pnpm serve
-```
-
-This command serves the static content from the `build` directory.
-
-### Contributing
-
-All pull requests are greatly appreciated! See our [contributing guide](https://github.com/nhost/nhost/blob/main/CONTRIBUTING.md) to get started.
+- Mintlify dev isn't running - Run `mintlify install` it'll re-install dependencies.
+- Page loads as a 404 - Make sure you are running in a folder with `mint.json`

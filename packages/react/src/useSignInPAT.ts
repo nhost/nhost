@@ -44,6 +44,8 @@ export const useSignInPAT: SignInPATHook = () => {
 
   const accessToken = useSelector(service, (state) => state.context.accessToken.value)
 
+  const refreshToken = useSelector(service, (state) => state.context.refreshToken.value)
+
   const error = useSelector(
     service,
     (state) => state.context.errors.authentication || null,
@@ -66,6 +68,7 @@ export const useSignInPAT: SignInPATHook = () => {
 
   return {
     accessToken,
+    refreshToken,
     error,
     isError,
     isLoading,

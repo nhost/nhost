@@ -1,6 +1,8 @@
 import fetchPonyfill from 'fetch-ponyfill'
-import FormData from 'form-data'
+import LegacyFormData from 'form-data'
 import { StorageErrorPayload, StorageUploadResponse } from './types'
+
+let fetch = globalThis.fetch
 
 /** Convert any string into ISO-8859-1 */
 export const toIso88591 = (fileName: string) => {
@@ -12,11 +14,9 @@ export const toIso88591 = (fileName: string) => {
   }
 }
 
-const { fetch } = fetchPonyfill()
-
 export const fetchUpload = async (
   backendUrl: string,
-  data: FormData,
+  data: FormData | LegacyFormData,
   {
     accessToken,
     name,
@@ -52,6 +52,10 @@ export const fetchUpload = async (
   if (typeof XMLHttpRequest === 'undefined') {
     // * Non-browser environment: XMLHttpRequest is not available
     try {
+      if (data instanceof LegacyFormData) {
+        fetch = fetchPonyfill().fetch
+      }
+
       const response = await fetch(url, {
         method: 'POST',
         headers,
@@ -87,10 +91,14 @@ export const fetchUpload = async (
     xhr.responseType = 'json'
 
     xhr.onload = () => {
-      if (xhr.status < 200 && xhr.status >= 300) {
+      if (xhr.status < 200 || xhr.status >= 300) {
         return resolve({
           fileMetadata: null,
-          error: { error: xhr.statusText, message: xhr.statusText, status: xhr.status }
+          error: {
+            error: xhr.response?.error ?? xhr.response,
+            message: xhr.response?.error?.message ?? xhr.response,
+            status: xhr.status
+          }
         })
       }
       return resolve({ fileMetadata: xhr.response, error: null })

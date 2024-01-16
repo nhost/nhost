@@ -3,8 +3,14 @@
     <v-list-item title="Home" to="/" value="home" prepend-icon="mdi-home" />
     <v-list-item title="Profile" to="/profile" value="profile" prepend-icon="mdi-account" />
     <v-list-item title="Apollo" to="/apollo" value="apollo" prepend-icon="mdi-api" />
+    <v-list-item title="Storage" to="/storage" value="storage" prepend-icon="mdi-server" />
     <v-list-item title="About" to="/about" value="about" prepend-icon="mdi-information" />
-    <v-list-item v-if="authenticated" title="Sign out" prepend-icon="mdi-exit-to-app" @click="signOutHandler" />
+    <v-list-item
+      v-if="authenticated"
+      title="Sign out"
+      prepend-icon="mdi-exit-to-app"
+      @click="signOutHandler"
+    />
   </v-list>
 </template>
 

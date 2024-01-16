@@ -1,0 +1,12 @@
+query getProjectLocales($appId: uuid!) {
+  config(appID: $appId, resolve: false) {
+    auth {
+      user {
+        locale {
+          allowed
+          default
+        }
+      }
+    }
+  }
+}

@@ -41,12 +41,13 @@ import { createServerSideClient, CreateServerSideClientParams } from './create-s
  * }
  * ```
  *
- * @param backendUrl - URL of your Nhost application
+ * @param subdomain - URL of your Nhost application
+ * @param region - Region of your Nhost application
  * @param context - Next.js context
  * @returns Nhost session
  */
 export const getNhostSession = async (
-  params: string | CreateServerSideClientParams,
+  params: CreateServerSideClientParams,
   context: GetServerSidePropsContext
 ): Promise<NhostSession | null> => {
   const nhost = await createServerSideClient(params, context)

@@ -1,0 +1,14 @@
+schema:
+  - https://local.graphql.nhost.run/v1:
+      headers:
+        x-hasura-admin-secret: nhost-admin-secret
+generates:
+  src/utils/__generated__/graphite.graphql.ts:
+    documents:
+      - 'src/gql/graphite/**/*.gql'
+    plugins:
+      - 'typescript'
+      - 'typescript-operations'
+      - 'typescript-react-apollo'
+    config:
+      withRefetchFn: true

@@ -42,11 +42,6 @@ export default function OverviewMetrics() {
       }),
     },
     {
-      label: 'Egress Volume',
-      tooltip: 'Amount of data your services have sent to users',
-      value: prettifySize(data?.egressVolume?.value || 0),
-    },
-    {
       label: 'Logs',
       tooltip: 'Amount of logs stored',
       value: prettifySize(data?.logsVolume?.value || 0),

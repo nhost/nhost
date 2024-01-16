@@ -1,0 +1,6 @@
+mutation insertRunService($object: run_service_insert_input!) {
+  insertRunService(object: $object) {
+    id
+    subdomain
+  }
+}

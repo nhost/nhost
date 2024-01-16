@@ -1,0 +1,65 @@
+---
+title: FileUploadState
+sidebarTitle: FileUploadState
+description: No description provided.
+---
+
+# `FileUploadState`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">isUploading</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+Returns `true` when the file is being uploaded.
+
+---
+
+**<span className="parameter-name">progress</span>** <span className="optional-status">required</span> <code>null &#124; number</code>
+
+Returns the progress of the upload, from 0 to 100. Returns null if the upload has not started yet.
+
+---
+
+**<span className="parameter-name">isUploaded</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+Returns `true` when the file has been successfully uploaded.
+
+---
+
+**<span className="parameter-name">id</span>** <span className="optional-status">optional</span> <code>string</code>
+
+Returns the id of the file.
+
+---
+
+**<span className="parameter-name">bucketId</span>** <span className="optional-status">optional</span> <code>string</code>
+
+Returns the bucket id.
+
+---
+
+**<span className="parameter-name">name</span>** <span className="optional-status">optional</span> <code>string</code>
+
+Returns the name of the file.
+
+---
+
+**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+**`@returns`**
+
+`true` if an error occurred
+
+**`@depreacted`**
+
+use `!isSuccess` or `!!error` instead
+
+---
+
+**<span className="parameter-name">error</span>** <span className="optional-status">required</span> <code>null &#124; [`StorageErrorPayload`](/reference/javascript/storage/types/storage-error-payload)</code>
+
+Provides details about the error
+
+---
