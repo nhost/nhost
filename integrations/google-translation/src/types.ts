@@ -59,4 +59,10 @@ export type CreateServerProps = {
    * Logger function
    */
   logger?: Logger
+  /**
+   * Whether to enable GraphQL Yoga error masking
+   * @see {@link https://the-guild.dev/graphql/yoga-server/docs/features/error-masking#disabling-error-masking}
+   * @default true
+   */
+  maskedErrors?: boolean
 }
