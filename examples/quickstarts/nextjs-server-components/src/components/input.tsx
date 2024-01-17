@@ -15,6 +15,8 @@ export default function Input({
 }: DetailedHTMLProps<HTMLProps<HTMLInputElement>, HTMLInputElement>) {
   const { pending } = useFormStatus()
 
+  const { children, ...restOfInputProps } = rest
+
   return (
     <div className={className}>
       {label && (
@@ -29,7 +31,7 @@ export default function Input({
         required={required}
         disabled={pending}
         className="block w-full p-3 border rounded-md border-slate-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-        {...rest}
+        {...restOfInputProps}
       />
     </div>
   )

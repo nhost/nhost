@@ -34,7 +34,7 @@ export default function ServerlessFunctionsDomain() {
 
   const [updateConfig] = useUpdateConfigMutation();
 
-  const form = useForm<{ functions_fqdn: string }>({
+  const form = useForm<ServerlessFunctionsDomainFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: { functions_fqdn: null },
     resolver: yupResolver(validationSchema),

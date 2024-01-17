@@ -40,7 +40,7 @@ export default function RunServicePortDomain({
   const runServicePort = service.config.ports.find((p) => p.port === port);
   const initialValue = runServicePort?.ingresses?.[0]?.fqdn?.[0];
 
-  const form = useForm<{ runServicePortFQDN: string }>({
+  const form = useForm<RunServicePortFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
       runServicePortFQDN: initialValue,

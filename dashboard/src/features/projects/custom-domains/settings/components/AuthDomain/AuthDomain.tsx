@@ -32,7 +32,7 @@ export default function AuthDomain() {
 
   const [updateConfig] = useUpdateConfigMutation();
 
-  const form = useForm<{ auth_fqdn: string }>({
+  const form = useForm<Yup.InferType<typeof validationSchema>>({
     reValidateMode: 'onSubmit',
     defaultValues: { auth_fqdn: null },
     resolver: yupResolver(validationSchema),

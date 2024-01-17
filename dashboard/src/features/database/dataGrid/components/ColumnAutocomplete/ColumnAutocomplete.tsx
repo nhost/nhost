@@ -14,8 +14,8 @@ import { Text } from '@/components/ui/v2/Text';
 import { useMetadataQuery } from '@/features/database/dataGrid/hooks/useMetadataQuery';
 import { useTableQuery } from '@/features/database/dataGrid/hooks/useTableQuery';
 import { getTruncatedText } from '@/utils/getTruncatedText';
-import type { AutocompleteGroupedOption } from '@mui/base/AutocompleteUnstyled';
-import { useAutocomplete } from '@mui/base/AutocompleteUnstyled';
+import type { AutocompleteGroupedOption } from '@mui/base/useAutocomplete';
+import { useAutocomplete } from '@mui/base/useAutocomplete';
 import type { AutocompleteRenderGroupParams } from '@mui/material/Autocomplete';
 import { autocompleteClasses } from '@mui/material/Autocomplete';
 import type {
@@ -366,11 +366,11 @@ function ColumnAutocomplete(
                   );
                 }}
               >
-                <ArrowLeftIcon className="h-4 w-4" />
+                <ArrowLeftIcon className="w-4 h-4" />
               </IconButton>
             )}
 
-            <Text className="direction-rtl truncate text-left">
+            <Text className="text-left truncate direction-rtl">
               <Text component="span" color="disabled">
                 {defaultTable}
               </Text>

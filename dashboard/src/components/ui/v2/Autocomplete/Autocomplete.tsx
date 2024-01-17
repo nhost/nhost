@@ -8,9 +8,9 @@ import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { OptionBase } from '@/components/ui/v2/Option';
 import { OptionGroupBase } from '@/components/ui/v2/OptionGroup';
 import type { StyledComponent } from '@emotion/styled';
-import type { UseAutocompleteProps } from '@mui/base/AutocompleteUnstyled';
-import { createFilterOptions } from '@mui/base/AutocompleteUnstyled';
-import PopperUnstyled from '@mui/base/PopperUnstyled';
+import type { UseAutocompleteProps } from '@mui/base/useAutocomplete';
+import { createFilterOptions } from '@mui/base/useAutocomplete';
+import { Popper } from '@mui/base'
 import { styled } from '@mui/material';
 import type { AutocompleteProps as MaterialAutocompleteProps } from '@mui/material/Autocomplete';
 import MaterialAutocomplete, {
@@ -142,7 +142,7 @@ const StyledOptionBase = styled(OptionBase)(({ theme }) => ({
   gap: theme.spacing(0.5),
 }));
 
-export const AutocompletePopper = styled(PopperUnstyled)(({ theme }) => ({
+export const AutocompletePopper = styled(Popper)(({ theme }) => ({
   zIndex: theme.zIndex.modal + 1,
   boxShadow: 'none',
   minWidth: 320,

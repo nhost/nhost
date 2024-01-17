@@ -6,17 +6,17 @@ import { experimental_useFormStatus as useFormStatus } from 'react-dom'
 import { twMerge } from 'tailwind-merge'
 
 type ButtonProps = {
-  type?: 'button' | 'submit' | 'reset' | undefined
-} & DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>
+  type?: 'button' | 'submit' | 'reset' | undefined;
+} & DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>;
 
 export default function SubmitButton({
   disabled,
   type,
-  children,
   className,
+  children,
   ...rest
 }: ButtonProps) {
-  const { pending } = useFormStatus()
+  const { pending } = useFormStatus();
 
   return (
     <button
@@ -33,5 +33,5 @@ export default function SubmitButton({
     >
       {children}
     </button>
-  )
+  );
 }

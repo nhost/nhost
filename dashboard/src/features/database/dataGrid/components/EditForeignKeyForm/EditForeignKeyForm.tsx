@@ -12,6 +12,7 @@ import type { ForeignKeyRelation } from '@/features/database/dataGrid/types/data
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 
 export interface EditForeignKeyFormProps
   extends Pick<
@@ -40,7 +41,10 @@ export default function EditForeignKeyForm({
 }: EditForeignKeyFormProps) {
   const [error, setError] = useState<Error>(null);
 
-  const form = useForm<BaseForeignKeyFormValues>({
+  const form = useForm<
+    | BaseForeignKeyFormValues
+    | Yup.InferType<typeof baseForeignKeyValidationSchema>
+  >({
     defaultValues: {
       id: foreignKeyRelation.id,
       name: foreignKeyRelation.name,
@@ -73,10 +77,10 @@ export default function EditForeignKeyForm({
   return (
     <FormProvider {...form}>
       {error && (
-        <div className="mb-4 px-6">
+        <div className="px-6 mb-4">
           <Alert
             severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            className="grid items-center justify-between grid-flow-col px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}

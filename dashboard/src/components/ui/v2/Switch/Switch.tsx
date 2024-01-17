@@ -1,14 +1,15 @@
 import type { FormControlLabelProps } from '@/components/ui/v2/FormControlLabel';
 import { FormControlLabel } from '@/components/ui/v2/FormControlLabel';
-import SwitchUnstyled, {
-  switchUnstyledClasses,
-} from '@mui/base/SwitchUnstyled';
-import type { SwitchUnstyledProps } from '@mui/base/SwitchUnstyled/SwitchUnstyled.types';
+import {
+  Switch as BaseSwitch,
+  switchClasses as baseSwitchClasses,
+} from '@mui/base';
+import type { SwitchProps as BaseSwitchProps } from '@mui/base/Switch';
 import { styled } from '@mui/material';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
 
-export interface SwitchProps extends SwitchUnstyledProps {
+export interface SwitchProps extends BaseSwitchProps {
   /**
    * Label to be displayed next to the checkbox.
    */
@@ -16,11 +17,11 @@ export interface SwitchProps extends SwitchUnstyledProps {
   /**
    * Props to be passed to the internal components.
    */
-  slotProps?: SwitchUnstyledProps['slotProps'] & {
+  slotProps?: BaseSwitchProps['slotProps'] & {
     /**
      * Props to be passed to the `Switch` component.
      */
-    root?: Partial<SwitchUnstyledProps>;
+    root?: Partial<BaseSwitchProps>;
     /**
      * Props to be passed to the `FormControlLabel` component.
      */
@@ -35,23 +36,23 @@ const StyledFormControlLabel = styled(FormControlLabel)(({ theme }) => ({
   justifyContent: 'start',
 }));
 
-const StyledSwitch = styled(SwitchUnstyled)(({ theme }) => ({
+const StyledSwitch = styled(BaseSwitch)(({ theme }) => ({
   position: 'relative',
   display: 'inline-block',
   width: '40px',
   height: '24px',
   cursor: 'pointer',
 
-  [`&.${switchUnstyledClasses.disabled}`]: {
+  [`&.${baseSwitchClasses.disabled}`]: {
     cursor: 'not-allowed',
 
-    [`& .${switchUnstyledClasses.track}`]: {
+    [`& .${baseSwitchClasses.track}`]: {
       backgroundColor: theme.palette.grey[200],
       color: theme.palette.grey[200],
     },
   },
 
-  [`& .${switchUnstyledClasses.track}`]: {
+  [`& .${baseSwitchClasses.track}`]: {
     backgroundColor:
       theme.palette.mode === 'dark'
         ? theme.palette.grey[500]
@@ -63,7 +64,7 @@ const StyledSwitch = styled(SwitchUnstyled)(({ theme }) => ({
     position: 'absolute',
   },
 
-  [` & .${switchUnstyledClasses.thumb}`]: {
+  [` & .${baseSwitchClasses.thumb}`]: {
     display: 'block',
     width: '18px',
     height: '18px',
@@ -77,24 +78,24 @@ const StyledSwitch = styled(SwitchUnstyled)(({ theme }) => ({
     transitionDuration: '120ms',
   },
 
-  [`&.${switchUnstyledClasses.focusVisible} .${switchUnstyledClasses.thumb}`]: {
+  [`&.${baseSwitchClasses.focusVisible} .${baseSwitchClasses.thumb}`]: {
     backgroundColor: theme.palette.action.focus,
     boxShadow: '0 0 1px 8px rgba(0, 0, 0, 0.25)',
   },
 
-  [`&.${switchUnstyledClasses.checked}`]: {
-    [`.${switchUnstyledClasses.thumb}`]: {
+  [`&.${baseSwitchClasses.checked}`]: {
+    [`.${baseSwitchClasses.thumb}`]: {
       left: '19px',
       top: '3px',
       backgroundColor: theme.palette.common.white,
     },
 
-    [`.${switchUnstyledClasses.track}`]: {
+    [`.${baseSwitchClasses.track}`]: {
       backgroundColor: theme.palette.primary.main,
     },
 
-    [`&.${switchUnstyledClasses.disabled}`]: {
-      [`.${switchUnstyledClasses.track}`]: {
+    [`&.${baseSwitchClasses.disabled}`]: {
+      [`.${baseSwitchClasses.track}`]: {
         opacity: 0.5,
         backgroundColor:
           theme.palette.mode === 'dark'
@@ -104,7 +105,7 @@ const StyledSwitch = styled(SwitchUnstyled)(({ theme }) => ({
     },
   },
 
-  [`& .${switchUnstyledClasses.input}`]: {
+  [`& .${baseSwitchClasses.input}`]: {
     cursor: 'inherit',
     position: 'absolute',
     width: '100%',

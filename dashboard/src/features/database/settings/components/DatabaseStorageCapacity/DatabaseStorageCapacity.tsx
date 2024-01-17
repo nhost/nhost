@@ -45,7 +45,7 @@ export default function AuthDomain() {
 
   const [updateConfig] = useUpdateConfigMutation();
 
-  const form = useForm<{ capacity: number }>({
+  const form = useForm<Yup.InferType<typeof validationSchema>>({
     reValidateMode: 'onSubmit',
     defaultValues: { capacity },
     resolver: yupResolver(validationSchema),

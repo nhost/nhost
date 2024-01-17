@@ -7,7 +7,7 @@ export interface HelperTextProps extends MaterialFormHelperTextProps {
   /**
    * Custom component for the root node.
    */
-  component?: string | ElementType;
+  component?: ElementType;
 }
 
 const HelperText = styled(MaterialFormHelperText)<HelperTextProps>({

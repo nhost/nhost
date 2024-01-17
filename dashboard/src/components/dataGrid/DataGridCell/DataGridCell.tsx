@@ -8,7 +8,7 @@ import type {
   DataBrowserGridCellProps,
 } from '@/features/database/dataGrid/types/dataBrowser';
 import { triggerToast } from '@/utils/toast';
-import type { FocusEvent, KeyboardEvent, MouseEvent } from 'react';
+import type { FocusEvent, JSXElementConstructor, KeyboardEvent, MouseEvent, ReactElement, ReactNode, ReactPortal } from 'react';
 import {
   Children,
   cloneElement,
@@ -320,7 +320,7 @@ function DataGridCellContent<TData extends object = {}, TValue = unknown>({
       sx={{ backgroundColor: 'transparent' }}
       {...props}
     >
-      {Children.map(children, (child) => {
+      {Children.map(children, (child: ReactNode | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>>) => {
         if (!isValidElement(child)) {
           return null;
         }
