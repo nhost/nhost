@@ -72,11 +72,11 @@ function PricingListItem({
       <span
         className={twMerge(
           'col-span-3 flex items-center justify-center text-center text-white',
-          !proIcon && 'text-opacity-65',
+          !teamIcon && 'text-opacity-65',
           'lg:inline',
         )}
       >
-        {proIcon === 'check' && (
+        {teamIcon === 'check' && (
           <CheckmarkCircleIcon className="mx-auto h-5 w-5" />
         )}
         {teamIcon === 'x' && <XIcon className="mx-auto h-5 w-5" />}
@@ -152,13 +152,13 @@ export default function PricingPage() {
           <PricingFeature
             subFeatures={[
               {
-                title: '1 GB Database',
+                title: '1 GB database',
               },
               {
-                title: '1 GB Storage',
+                title: '1 GB storage',
               },
               {
-                title: '5 GB Egress',
+                title: '5 GB egress',
               },
               {
                 title: 'Functions',
@@ -167,13 +167,13 @@ export default function PricingPage() {
                 title: 'Realtime APIs',
               },
               {
-                title: 'Unlimited Users',
+                title: 'Unlimited users',
               },
               {
-                title: 'OAuth Providers',
+                title: 'OAuth providers',
               },
               {
-                title: 'Community Support',
+                title: 'Community support',
               },
             ]}
           />
@@ -210,7 +210,7 @@ export default function PricingPage() {
               </div>
             </div>
 
-            <h2 className="mt-1 font-sm text-white text-opacity-65">
+            <h2 className="font-sm mt-1 text-white text-opacity-65">
               Everything in Starter plus:
             </h2>
 
@@ -220,13 +220,13 @@ export default function PricingPage() {
                   title: 'No project pausing',
                 },
                 {
-                  title: '10GB database',
+                  title: '10 GB database',
                 },
                 {
-                  title: '50GB storage',
+                  title: '50 GB storage',
                 },
                 {
-                  title: '50GB egress',
+                  title: '50 GB egress',
                 },
                 {
                   title: 'Backups stored for 7 days',
@@ -238,7 +238,7 @@ export default function PricingPage() {
                   title: 'Run your own services',
                 },
                 {
-                  title: 'Managed grafana instance',
+                  title: 'Managed Grafana',
                 },
                 {
                   title: 'Email support',
@@ -277,7 +277,7 @@ export default function PricingPage() {
             </div>
           </div>
 
-          <h2 className="mt-1 font-sm text-white text-opacity-65">
+          <h2 className="font-sm mt-1 text-white text-opacity-65">
             Everything in Pro plus:
           </h2>
 
@@ -322,15 +322,17 @@ export default function PricingPage() {
             </div>
           </div>
 
-          <h2 className="mt-1 font-sm text-white text-opacity-65">
+          <h2 className="font-sm mt-1 text-white text-opacity-65">
             Everything in Team plus:
           </h2>
 
-          <PricingFeature subFeatures={[
-            { title: 'SLAs' },
-            { title: 'Dedicated Technical Account Manager' },
-            { title: 'Dedicated clusters (add-on)' },
-          ]} />
+          <PricingFeature
+            subFeatures={[
+              { title: 'SLAs' },
+              { title: 'Dedicated Technical Account Manager' },
+              { title: 'Dedicated clusters (add-on)' },
+            ]}
+          />
 
           <Button
             className="w-full justify-center text-center"
@@ -365,7 +367,7 @@ export default function PricingPage() {
           />
 
           <Button
-            href="https://app.nhost.io/signup"
+            href="https://app.nhost.io/new"
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -391,7 +393,7 @@ export default function PricingPage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Buy Pro
+            Get Started
           </Button>
         </div>
 
@@ -413,14 +415,14 @@ export default function PricingPage() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Buy Team
+            Get Started
           </Button>
         </div>
 
         <div className="col-span-3 grid grid-flow-row content-between justify-center gap-6">
           <SectionHeading
             title="Enterprise"
-            subtitle="Custom plan"
+            subtitle="Custom"
             className="gap-2"
             slotProps={{
               title: { className: 'text-3xl md:text-3xl' },
@@ -444,71 +446,40 @@ export default function PricingPage() {
 
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
-              title="Postgres"
+              title="Dedicated Postgres instance"
               starterIcon="check"
+              teamIcon="check"
               proIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
-              title="Size"
-              starterContent="500 MB"
-              proContent="10 GB"
-              enterpriseContent="Up to 5 TB"
-            />
-
-            <PricingListItem
-              title="Per extra 10 GB"
-              starterIcon="x"
-              proContent="$20"
+              title="Database size"
+              starterContent="1 GB"
+              proContent="10 GB included, then $0.20 per GB"
+              teamContent="10 GB included, then $0.20 per GB"
               enterpriseContent="Custom"
-            />
-
-            <PricingListItem
-              title="Custom API requests"
-              starterIcon="check"
-              proIcon="check"
-              enterpriseIcon="check"
-            />
-
-            <PricingListItem
-              title="Event triggers"
-              starterIcon="check"
-              proIcon="check"
-              enterpriseIcon="check"
-            />
-
-            <PricingListItem
-              title="Always available"
-              starterContent="Sleep after 7 days of inactivity"
-              proIcon="check"
-              enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Backups"
               starterIcon="x"
               proContent="7 days"
+              teamContent="7 days"
               enterpriseContent="Custom"
             />
           </ul>
         </section>
 
         <section>
-          <h3 className="py-4 text-xl">GraphQL</h3>
+          <h3 className="py-4 text-xl">Hasura GraphQL</h3>
 
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="Hasura GraphQL Engine"
               starterIcon="check"
               proIcon="check"
-              enterpriseIcon="check"
-            />
-
-            <PricingListItem
-              title="Role based authorization"
-              starterIcon="check"
-              proIcon="check"
+              teamIcon="check"
               enterpriseIcon="check"
             />
 
@@ -516,6 +487,23 @@ export default function PricingPage() {
               title="Realtime subscriptions"
               starterIcon="check"
               proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Event triggers"
+              starterIcon="check"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Role based authorization"
+              starterIcon="check"
+              proIcon="check"
+              teamIcon="check"
               enterpriseIcon="check"
             />
           </ul>
@@ -526,16 +514,34 @@ export default function PricingPage() {
 
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
-              title="Users"
-              starterContent={new Intl.NumberFormat().format(10000)}
-              proContent={new Intl.NumberFormat().format(100000)}
-              enterpriseContent="Custom"
+              title="Total users"
+              starterContent="Unlimited"
+              proContent="Unlimited"
+              teamContent="Unlimited"
+              enterpriseContent="Unlimited"
+            />
+
+            <PricingListItem
+              title="Social OAuth providers"
+              starterIcon="check"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="WebAuthn / FIDO2"
+              starterIcon="check"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Email / Password"
               starterIcon="check"
               proIcon="check"
+              teamIcon="check"
               enterpriseIcon="check"
             />
 
@@ -543,14 +549,21 @@ export default function PricingPage() {
               title="Magic Link"
               starterIcon="check"
               proIcon="check"
+              teamIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
-              title="Social OAuth providers"
+              title="2FA"
               starterIcon="check"
               proIcon="check"
+              teamIcon="check"
               enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Advanced security features"
+              enterpriseContent="Contact Us"
             />
           </ul>
         </section>
@@ -560,23 +573,26 @@ export default function PricingPage() {
 
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
-              title="Size"
-              starterContent="1 GB"
-              proContent="25 GB"
+              title="Storage size"
+              starterContent="1 GB included"
+              proContent="50 GB included, then $0.05 per GB"
+              teamContent="50 GB included, then $0.05 per GB"
               enterpriseContent="Custom"
             />
 
             <PricingListItem
-              title="Per extra 10 GB"
-              starterIcon="x"
-              proContent="$1"
-              enterpriseContent="Custom"
+              title="Custom Permissions"
+              starterIcon="check"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Image transformation"
               starterIcon="check"
               proIcon="check"
+              teamIcon="check"
               enterpriseIcon="check"
             />
 
@@ -584,6 +600,7 @@ export default function PricingPage() {
               title="Global CDN"
               starterIcon="check"
               proIcon="check"
+              teamIcon="check"
               enterpriseIcon="check"
             />
           </ul>
@@ -594,64 +611,79 @@ export default function PricingPage() {
 
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
-              title="Execution"
-              starterContent="1 GB-hours"
-              proContent="10 GB-hours"
+              title="Total functions"
+              starterContent="10 included"
+              proContent="50 included, then $5 per 50"
+              teamContent="50 included, then $5 per 50"
               enterpriseContent="Custom"
             />
 
             <PricingListItem
-              title="Execution time"
+              title="Execution"
+              starterContent="1 GB-hours included"
+              proContent="10 GB-hours included, then $0.18 per GB-hour (billed per second)"
+              teamContent="10 GB-hours included, then $0.18 per GB-hour (billed per second)"
+              enterpriseContent="Custom"
+            />
+
+            <PricingListItem
+              title="Execution Time"
               starterContent="10 sec"
               proContent="60 sec"
-              enterpriseContent="900 sec"
-            />
-
-            <PricingListItem
-              title="Max per deployment"
-              starterContent="10 functions"
-              proContent="50 functions"
+              teamContent="10 sec"
               enterpriseContent="Custom"
             />
           </ul>
         </section>
 
         <section>
-          <h3 className="py-4 text-xl">Network</h3>
+          <h3 className="py-4 text-xl">AI Toolkit</h3>
 
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
-              title="Transfer available"
-              starterContent="5 GB"
-              proContent="50 GB"
-              enterpriseContent="Custom"
+              title="pgvector"
+              starterIcon="check"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
             />
 
             <PricingListItem
-              title="Per extra 100 GB"
+              title="Auto-Embeddings"
               starterIcon="x"
-              proContent="$20"
-              enterpriseContent="Custom"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Nhost Assistants"
+              starterIcon="x"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Nhost Assistants"
+              starterIcon="x"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
             />
           </ul>
         </section>
 
         <section>
-          <h3 className="py-4 text-xl">Email</h3>
+          <h3 className="py-4 text-xl">Network Egress</h3>
 
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
-              title="Custom SMTP settings"
-              starterIcon="x"
-              proIcon="check"
-              enterpriseIcon="check"
-            />
-
-            <PricingListItem
-              title="Custom branded templates"
-              starterIcon="x"
-              proIcon="check"
-              enterpriseIcon="check"
+              title="Egress"
+              starterContent="5 GB included"
+              proContent="50 GB included, then $0.10 per GB"
+              teamContent="50 GB included, then $0.10 per GB"
+              enterpriseContent="Custom"
             />
           </ul>
         </section>
@@ -661,37 +693,82 @@ export default function PricingPage() {
 
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
-              title="HTTPS/SSL by default"
+              title="HTTPS / SSL"
               starterIcon="check"
               proIcon="check"
+              teamIcon="check"
               enterpriseIcon="check"
             />
 
             <PricingListItem
-              title="Custom backend domain"
+              title="Run your own services"
               starterIcon="x"
-              proContent={
-                <span className="text-white text-opacity-30">Coming soon</span>
-              }
-              enterpriseContent={
-                <span className="text-white text-opacity-30">Coming soon</span>
-              }
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+            <PricingListItem
+              title="Custom SMTP"
+              starterIcon="x"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Custom emails"
+              starterIcon="x"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Managed Grafana"
+              starterIcon="x"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Custom domains"
+              starterIcon="x"
+              proContent="$10 per project / month"
+              teamContent="$10 per project / month"
+              enterpriseContent="$10 per project / month"
+            />
+
+            <PricingListItem
+              title="External databases"
+              starterIcon="x"
+              proIcon="x"
+              teamIcon="check"
+              enterpriseIcon="check"
             />
 
             <PricingListItem
               title="Auto scaling"
               starterIcon="x"
               proIcon="x"
+              teamIcon="x"
               enterpriseIcon="check"
             />
 
             <PricingListItem
-              title="99.5 uptime SLA"
+              title="99.9% SLA"
               starterIcon="x"
               proIcon="x"
-              enterpriseContent={
-                <span className="text-white text-opacity-30">Coming soon</span>
-              }
+              teamIcon="x"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Dedicated clusters"
+              starterIcon="x"
+              proIcon="x"
+              teamIcon="x"
+              enterpriseContent="Available as an add-on"
             />
           </ul>
         </section>
@@ -704,6 +781,7 @@ export default function PricingPage() {
               title="Community"
               starterIcon="check"
               proIcon="check"
+              teamIcon="check"
               enterpriseIcon="check"
             />
 
@@ -711,6 +789,23 @@ export default function PricingPage() {
               title="Email"
               starterIcon="x"
               proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Email SLA"
+              starterIcon="x"
+              proIcon="x"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Dedicated Technical Account Manager"
+              starterIcon="x"
+              proIcon="x"
+              teamIcon="x"
               enterpriseIcon="check"
             />
 
@@ -718,6 +813,7 @@ export default function PricingPage() {
               title="24x7x365 support with SLA"
               starterIcon="x"
               proIcon="x"
+              teamIcon="x"
               enterpriseIcon="check"
             />
           </ul>
