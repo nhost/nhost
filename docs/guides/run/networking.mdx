@@ -19,7 +19,7 @@ To connect your service to the Nhost stack, use the following information:
 
 To connect to your own service internally from another service, follow these steps:
 
-1. Expose the desired port(s).
+1. Configure the desired port(s).
 
 Example for Redis service:
 
@@ -40,9 +40,9 @@ publish = false
 </Tabs>
 
 
-2. Once the port is exposed, you can connect to the service using its name and the corresponding port.
+2. Once the port is configured, you can connect to the service using as host `run-${name}` and the corresponding port.
 
-Example: `redis://user:password@redis:6379`
+   Example: `redis://user:password@run-redis:6379`
 
 If needed, you can open internally more than one port by repeating the block for each one of them:
 
