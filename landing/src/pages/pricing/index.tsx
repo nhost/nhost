@@ -802,7 +802,23 @@ export default function PricingPage() {
             />
 
             <PricingListItem
-              title="Dedicated Technical Account Manager"
+              title="Dedicated Discord channel"
+              starterIcon="x"
+              proIcon="x"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Security questionnaire"
+              starterIcon="x"
+              proIcon="x"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Dedicated technical account manager"
               starterIcon="x"
               proIcon="x"
               teamIcon="x"
@@ -811,6 +827,22 @@ export default function PricingPage() {
 
             <PricingListItem
               title="24x7x365 support with SLA"
+              starterIcon="x"
+              proIcon="x"
+              teamIcon="x"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Architecture review"
+              starterIcon="x"
+              proIcon="x"
+              teamIcon="x"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="On boarding"
               starterIcon="x"
               proIcon="x"
               teamIcon="x"
