@@ -152,10 +152,28 @@ export default function PricingPage() {
           <PricingFeature
             subFeatures={[
               {
-                title: '1 GB included',
+                title: '1 GB Database',
               },
               {
-                title: 'another feature',
+                title: '1 GB Storage',
+              },
+              {
+                title: '5 GB Egress',
+              },
+              {
+                title: 'Functions',
+              },
+              {
+                title: 'Realtime APIs',
+              },
+              {
+                title: 'Unlimited Users',
+              },
+              {
+                title: 'OAuth Providers',
+              },
+              {
+                title: 'Community Support',
               },
             ]}
           />
@@ -192,13 +210,38 @@ export default function PricingPage() {
               </div>
             </div>
 
+            <h2 className="mt-1 font-sm text-white text-opacity-65">
+              Everything in Starter plus:
+            </h2>
+
             <PricingFeature
               subFeatures={[
                 {
-                  title: '10 GB included, then $0.20 per GB',
+                  title: 'No project pausing',
                 },
                 {
-                  title: '7 days Backups',
+                  title: '10GB database',
+                },
+                {
+                  title: '50GB storage',
+                },
+                {
+                  title: '50GB egress',
+                },
+                {
+                  title: 'Backups stored for 7 days',
+                },
+                {
+                  title: 'AI toolkit',
+                },
+                {
+                  title: 'Run your own services',
+                },
+                {
+                  title: 'Managed grafana instance',
+                },
+                {
+                  title: 'Email support',
                 },
               ]}
             />
@@ -234,13 +277,23 @@ export default function PricingPage() {
             </div>
           </div>
 
+          <h2 className="mt-1 font-sm text-white text-opacity-65">
+            Everything in Pro plus:
+          </h2>
+
           <PricingFeature
             subFeatures={[
               {
-                title: '10 GB included, then $0.20 per GB',
+                title: 'Email support SLA',
               },
               {
-                title: '7 days Backups',
+                title: 'Dedicated discord channel',
+              },
+              {
+                title: 'Connect to external databases',
+              },
+              {
+                title: 'SOC2 (coming soon)',
               },
             ]}
           />
@@ -263,16 +316,21 @@ export default function PricingPage() {
             <h2 className="font-normal text-white text-opacity-65">
               Ideal for specific infrastructure and customization needs.
             </h2>
-            <span className="text-opacity-85 text-xs font-normal text-white">
-              Dedicated clusters available as an add-on.
-            </span>
 
             <div className="flex flex-row items-center space-x-2">
               <h2 className="font-mona text-2xl font-semibold">Contact us</h2>
             </div>
           </div>
 
-          <PricingFeature subFeatures={[{ title: 'Custom' }]} />
+          <h2 className="mt-1 font-sm text-white text-opacity-65">
+            Everything in Team plus:
+          </h2>
+
+          <PricingFeature subFeatures={[
+            { title: 'SLAs' },
+            { title: 'Dedicated Technical Account Manager' },
+            { title: 'Dedicated clusters (add-on)' },
+          ]} />
 
           <Button
             className="w-full justify-center text-center"

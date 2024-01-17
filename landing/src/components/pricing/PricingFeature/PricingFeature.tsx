@@ -14,7 +14,7 @@ interface PricingFeatureProps {
 
 export default function PricingFeature({ subFeatures }: PricingFeatureProps) {
   return (
-    <div className="space-y-2 pl-[2.8rem]">
+    <div className="space-y-2">
       {subFeatures.map((subFeature, index) => (
         <div
           key={String(index)}
