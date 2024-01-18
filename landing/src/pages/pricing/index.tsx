@@ -18,6 +18,7 @@ import { XIcon } from '@/components/common/icons/XIcon'
 
 function PricingListItem({
   title,
+  titleTooltip,
   starterContent,
   proContent,
   teamContent,
@@ -26,8 +27,13 @@ function PricingListItem({
   proIcon,
   teamIcon,
   enterpriseIcon,
+  starterTooltip,
+  proTooltip,
+  teamTooltip,
+  enterpriseTooltip,
 }: {
   title: ReactNode
+  titleTooltip?: string
   starterContent?: ReactNode
   proContent?: ReactNode
   teamContent?: ReactNode
@@ -36,10 +42,17 @@ function PricingListItem({
   proIcon?: 'check' | 'x'
   teamIcon?: 'check' | 'x'
   enterpriseIcon?: 'check' | 'x'
+  starterTooltip?: string
+  proTooltip?: string
+  teamTooltip?: string
+  enterpriseTooltip?: string
 }) {
   return (
     <li className="grid auto-cols-fr grid-flow-col gap-6 py-4">
-      <span className="col-span-5 text-white text-opacity-65">{title}</span>
+      <div className="col-span-5 flex text-white text-opacity-65">
+        <span className="pr-2">{title}</span>
+        {titleTooltip && <Tooltip message={titleTooltip} />}
+      </div>
 
       <span
         className={twMerge(
@@ -53,6 +66,7 @@ function PricingListItem({
         )}
         {starterIcon === 'x' && <XIcon className="mx-auto h-5 w-5" />}
         {!starterIcon && starterContent}
+        {starterTooltip && <Tooltip message={starterTooltip} />}
       </span>
 
       <span
@@ -67,6 +81,7 @@ function PricingListItem({
         )}
         {proIcon === 'x' && <XIcon className="mx-auto h-5 w-5" />}
         {!proIcon && proContent}
+        {proTooltip && <Tooltip message={proTooltip} />}
       </span>
 
       <span
@@ -81,6 +96,7 @@ function PricingListItem({
         )}
         {teamIcon === 'x' && <XIcon className="mx-auto h-5 w-5" />}
         {!teamIcon && teamContent}
+        {teamTooltip && <Tooltip message={teamTooltip} />}
       </span>
 
       <span
@@ -95,6 +111,7 @@ function PricingListItem({
         )}
         {enterpriseIcon === 'x' && <XIcon className="mx-auto h-5 w-5" />}
         {!enterpriseIcon && enterpriseContent}
+        {enterpriseTooltip && <Tooltip message={enterpriseTooltip} />}
       </span>
     </li>
   )
@@ -115,8 +132,7 @@ export default function PricingPage() {
         <Glow className="top-5 h-32 w-32 bg-opacity-50 blur-3xl lg:top-16" />
 
         <SectionHeading
-          title="Pricing"
-          subtitle="Start building for free, and scale as needed"
+          title="Start small, grow big"
           slotProps={{
             title: {
               component: 'h1',
@@ -262,6 +278,9 @@ export default function PricingPage() {
           <div className="flex flex-col space-y-4 ">
             <div className="flex flex-row justify-between">
               <h2 className="font-mona text-2xl font-semibold">Team</h2>
+              <span className="rounded-md bg-brand-main px-1 py-1 text-xs text-opacity-7 opacity-75 md:text-sm">
+                Coming soon
+              </span>
             </div>
 
             <h2 className="font-normal text-white text-opacity-65">
@@ -462,10 +481,11 @@ export default function PricingPage() {
             />
 
             <PricingListItem
-              title="Backups"
+              title="Automated Backups"
+              titleTooltip="Daily backups of your database that can be restored."
               starterIcon="x"
-              proContent="7 days"
-              teamContent="7 days"
+              proContent="7 days of backups"
+              teamContent="7 days of backups"
               enterpriseContent="Custom"
             />
           </ul>
@@ -519,6 +539,22 @@ export default function PricingPage() {
               proContent="Unlimited"
               teamContent="Unlimited"
               enterpriseContent="Unlimited"
+            />
+
+            <PricingListItem
+              title="Custom SMTP"
+              starterIcon="x"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Custom emails"
+              starterIcon="x"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
             />
 
             <PricingListItem
@@ -663,9 +699,23 @@ export default function PricingPage() {
               teamIcon="check"
               enterpriseIcon="check"
             />
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="py-4 text-xl">Nhost Run</h3>
+
+          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="Run your own services"
+              starterIcon="x"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
 
             <PricingListItem
-              title="Nhost Assistants"
+              title="Private registry"
               starterIcon="x"
               proIcon="check"
               teamIcon="check"
@@ -689,8 +739,38 @@ export default function PricingPage() {
         </section>
 
         <section>
-          <h3 className="py-4 text-xl">Platform</h3>
+          <h3 className="py-4 text-xl">Collaboration</h3>
 
+          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="Deployments"
+              starterIcon="check"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Projects"
+              starterContent="1 project"
+              proContent="Unlimited"
+              teamContent="Unlimited"
+              enterpriseContent="Unlimited"
+            />
+
+            <PricingListItem
+              title="Workspace members"
+              titleTooltip="Only workspace members have access to projects and can trigger deployments."
+              starterContent="1 member"
+              proContent="Unlimited"
+              teamContent="Unlimited"
+              enterpriseContent="Unlimited"
+            />
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="py-4 text-xl">Platform</h3>
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="HTTPS / SSL"
@@ -701,14 +781,8 @@ export default function PricingPage() {
             />
 
             <PricingListItem
-              title="Run your own services"
-              starterIcon="x"
-              proIcon="check"
-              teamIcon="check"
-              enterpriseIcon="check"
-            />
-            <PricingListItem
-              title="Custom SMTP"
+              title="Compute resources"
+              titleTooltip="CPU and memory allocated to services. See Compute Pricing below."
               starterIcon="x"
               proIcon="check"
               teamIcon="check"
@@ -716,7 +790,8 @@ export default function PricingPage() {
             />
 
             <PricingListItem
-              title="Custom emails"
+              title="Service replicas"
+              titleTooltip="Service replicas are the number of instances of a service running. See Compute Pricing below."
               starterIcon="x"
               proIcon="check"
               teamIcon="check"
@@ -724,8 +799,77 @@ export default function PricingPage() {
             />
 
             <PricingListItem
-              title="Managed Grafana"
+              title="Custom domains"
               starterIcon="x"
+              proContent="$10 per project / month"
+              teamContent="$10 per project / month"
+              enterpriseContent="$10 per project / month"
+            />
+
+            <PricingListItem
+              title="External databases"
+              titleTooltip="Connect to external databases hosted elsewhere."
+              starterIcon="x"
+              proIcon="x"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Auto scaling"
+              starterIcon="x"
+              proIcon="x"
+              teamContent="Coming soon"
+              enterpriseContent="Coming soon"
+            />
+
+            <PricingListItem
+              title="99.9% SLA"
+              starterIcon="x"
+              proIcon="x"
+              teamIcon="x"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Dedicated clusters"
+              titleTooltip="A dedicated and fully managed cluster for your infrastructure. Ideal for security, customization, and compliance."
+              starterIcon="x"
+              proIcon="x"
+              teamIcon="x"
+              enterpriseContent="Available as an add-on"
+            />
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="py-4 text-xl">Observability</h3>
+          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="Nhost Logs"
+              starterIcon="check"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Managed Grafana for metrics"
+              starterIcon="x"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+          </ul>
+        </section>
+
+        <section>
+          <h3 className="py-4 text-xl">Platform</h3>
+
+          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="HTTPS / SSL"
+              starterIcon="check"
               proIcon="check"
               teamIcon="check"
               enterpriseIcon="check"
@@ -748,14 +892,6 @@ export default function PricingPage() {
             />
 
             <PricingListItem
-              title="Auto scaling"
-              starterIcon="x"
-              proIcon="x"
-              teamIcon="x"
-              enterpriseIcon="check"
-            />
-
-            <PricingListItem
               title="99.9% SLA"
               starterIcon="x"
               proIcon="x"
@@ -769,6 +905,14 @@ export default function PricingPage() {
               proIcon="x"
               teamIcon="x"
               enterpriseContent="Available as an add-on"
+            />
+
+            <PricingListItem
+              title="Auto scaling"
+              starterIcon="x"
+              proIcon="x"
+              teamContent="Coming soon"
+              enterpriseContent="Coming soon"
             />
           </ul>
         </section>
@@ -851,6 +995,42 @@ export default function PricingPage() {
           </ul>
         </section>
       </Container>
+
+      <section className="col-span-3 mx-auto mt-4 grid max-w-5xl grid-flow-row gap-6">
+        <SectionHeading
+          title="Compute Pricing"
+          subtitle="Billed by the minute"
+        />
+
+        <div className="bg-background inline-flex shrink grow basis-0 flex-col items-center justify-start gap-4 rounded-lg border border-black border-opacity-5 pb-16">
+          <div className="flex flex-col items-center justify-start gap-[12px] p-[0px]">
+            <div className="flex flex-col items-center justify-center gap-2">
+              <div className="inline-flex items-center justify-center gap-[4px] p-[0px]">
+                {/* <div className="text-center text-[24px] font-medium leading-loose text-zinc-500">
+                  $
+                </div> */}
+                {/* <div className="text-[48px] font-semibold leading-10 text-zinc-500"> */}
+                <h2 className="font-mona text-2xl font-semibold">$</h2>
+                <h2 className="font-mona text-2xl font-semibold">50</h2>
+              </div>
+              <div className="text-[16px] font-normal leading-snug text-gray-300">
+                Per vCPU core / month
+              </div>
+              <div className="text-[14px] font-normal leading-snug text-gray-300 text-opacity-50">
+                For each vCPU core you get 2 GB of memory.
+              </div>
+            </div>
+          </div>
+          <div className="flex h-[38px] flex-col items-center justify-start gap-4 self-stretch p-[0px]">
+            <div className="inline-flex h-[1px] w-[270px] items-center justify-center p-[0px]">
+              <div className="h-[1px] w-[270px] bg-black bg-opacity-5 dark:bg-gray-100"></div>
+            </div>
+            <div className="text-[14px] font-normal leading-tight text-gray-500">
+              $0.0012 / vCPU / minute
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="col-span-3 mx-auto mt-4 grid max-w-5xl grid-flow-row gap-16 p-8">
         <SectionHeading
