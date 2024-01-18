@@ -132,7 +132,7 @@ export default function PricingPage() {
         <Glow className="top-5 h-32 w-32 bg-opacity-50 blur-3xl lg:top-16" />
 
         <SectionHeading
-          title="Choose the right plan to power your infrastructure"
+          title="Choose the right plan for your infrastructure"
           slotProps={{
             title: {
               component: 'h1',
