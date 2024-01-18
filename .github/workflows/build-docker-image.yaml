@@ -37,7 +37,7 @@ jobs:
           sandbox = false
 
     - name: Cache nix store
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /nix
         key: nix-build-${{ matrix.platform }}-${{ hashFiles('**/*.nix') }}
