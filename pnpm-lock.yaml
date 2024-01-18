@@ -576,7 +576,7 @@ importers:
     dependencies:
       '@nhost/nhost-js':
         specifier: ^3.0.1
-        version: 3.0.1(graphql@16.7.1)
+        version: link:../../packages/nhost-js
       commander:
         specifier: ^10.0.1
         version: 10.0.1
@@ -600,10 +600,10 @@ importers:
         version: 3.8.9(graphql-ws@5.14.3)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/react':
         specifier: ^3.0.1
-        version: 3.0.1(@types/react@18.2.47)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
+        version: link:../../packages/react
       '@nhost/react-apollo':
         specifier: ^7.0.1
-        version: 7.0.1(@apollo/client@3.8.9)(@nhost/nhost-js@3.0.1)(@nhost/react@3.0.1)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
+        version: link:../../integrations/react-apollo
       clsx:
         specifier: ^1.2.1
         version: 1.2.1
@@ -661,7 +661,7 @@ importers:
     dependencies:
       '@nhost/react':
         specifier: ^3.0.1
-        version: 3.0.1(@types/react@18.2.47)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
+        version: link:../../packages/react
       '@tanstack/react-query':
         specifier: ^4.36.1
         version: 4.36.1(react-dom@18.2.0)(react@18.2.0)
@@ -728,10 +728,10 @@ importers:
     dependencies:
       '@nhost/react':
         specifier: ^3.0.1
-        version: 3.0.1(@types/react@18.2.47)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
+        version: link:../../packages/react
       '@nhost/react-urql':
         specifier: ^4.0.1
-        version: 4.0.1(@nhost/react@3.0.1)(@urql/core@4.2.2)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)(urql@3.0.4)
+        version: link:../../integrations/react-urql
       clsx:
         specifier: ^1.2.1
         version: 1.2.1
@@ -798,7 +798,7 @@ importers:
     dependencies:
       '@nhost/nhost-js':
         specifier: ^3.0.1
-        version: 3.0.1(graphql@16.7.1)
+        version: link:../../packages/nhost-js
     devDependencies:
       '@types/express':
         specifier: ^4.17.21
@@ -829,13 +829,13 @@ importers:
         version: 4.2.12(@mantine/core@4.2.12)(@mantine/hooks@4.2.12)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/nextjs':
         specifier: ^2.0.1
-        version: 2.0.1(@types/react@18.2.47)(graphql@16.7.1)(next@14.0.4)(react-dom@18.2.0)(react@18.2.0)
+        version: link:../../packages/nextjs
       '@nhost/react':
         specifier: ^3.0.1
-        version: 3.0.1(@types/react@18.2.47)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
+        version: link:../../packages/react
       '@nhost/react-apollo':
         specifier: ^7.0.1
-        version: 7.0.1(@apollo/client@3.8.9)(@nhost/nhost-js@3.0.1)(@nhost/react@3.0.1)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
+        version: link:../../integrations/react-apollo
       graphql:
         specifier: 16.7.1
         version: 16.7.1
@@ -881,7 +881,7 @@ importers:
     dependencies:
       '@nhost/nhost-js':
         specifier: ^3.0.1
-        version: 3.0.1(graphql@16.7.1)
+        version: link:../../packages/nhost-js
       dotenv:
         specifier: ^16.3.1
         version: 16.3.1
@@ -1070,10 +1070,10 @@ importers:
         version: 4.2.12(@mantine/core@4.2.12)(@mantine/hooks@4.2.12)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/react':
         specifier: ^3.0.1
-        version: 3.0.1(@types/react@18.2.47)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
+        version: link:../../packages/react
       '@nhost/react-apollo':
         specifier: ^7.0.1
-        version: 7.0.1(@apollo/client@3.8.9)(@nhost/nhost-js@3.0.1)(@nhost/react@3.0.1)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
+        version: link:../../integrations/react-apollo
       graphql:
         specifier: 16.7.1
         version: 16.7.1
@@ -1158,7 +1158,7 @@ importers:
         version: 2.1.0(gqty@2.3.0)(graphql@16.7.1)(react@18.2.0)
       '@nhost/react':
         specifier: ^3.0.1
-        version: 3.0.1(@types/react@18.2.47)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
+        version: link:../../packages/react
       gqty:
         specifier: ^2.3.0
         version: 2.3.0(graphql@16.7.1)
@@ -1246,13 +1246,13 @@ importers:
         version: 5.9.55
       '@nhost/apollo':
         specifier: ^6.0.1
-        version: 6.0.1(@apollo/client@3.8.9)(@nhost/nhost-js@3.0.1)
+        version: link:../../integrations/apollo
       '@nhost/nhost-js':
         specifier: ^3.0.1
-        version: 3.0.1(graphql@16.7.1)
+        version: link:../../packages/nhost-js
       '@nhost/vue':
         specifier: ^2.0.2
-        version: 2.0.2(graphql@16.7.1)(vue@3.4.11)(xstate@4.38.3)
+        version: link:../../packages/vue
       '@vue/apollo-composable':
         specifier: 4.0.0-alpha.18
         version: 4.0.0-alpha.18(@apollo/client@3.8.9)(graphql@16.7.1)(typescript@4.9.4)(vue@3.4.11)
@@ -1286,7 +1286,7 @@ importers:
     devDependencies:
       '@nhost/hasura-auth-js':
         specifier: ^2.1.10
-        version: 2.1.10
+        version: link:../../packages/hasura-auth-js
       '@types/webfontloader':
         specifier: ^1.6.38
         version: 1.6.38
@@ -1316,10 +1316,10 @@ importers:
         version: 3.8.9(graphql-ws@5.14.3)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/apollo':
         specifier: ^6.0.1
-        version: 6.0.1(@apollo/client@3.8.9)(@nhost/nhost-js@3.0.1)
+        version: link:../../integrations/apollo
       '@nhost/vue':
         specifier: ^2.0.2
-        version: 2.0.2(graphql@16.7.1)(vue@3.4.11)
+        version: link:../../packages/vue
       '@vue/apollo-composable':
         specifier: 4.0.0-alpha.18
         version: 4.0.0-alpha.18(@apollo/client@3.8.9)(graphql@16.7.1)(typescript@4.9.5)(vue@3.4.11)
@@ -6708,18 +6708,6 @@ packages:
     requiresBuild: true
     optional: true
 
-  /@nhost/apollo@6.0.1(@apollo/client@3.8.9)(@nhost/nhost-js@3.0.1):
-    resolution: {integrity: sha512-5k8xrN3eAdyQHd0usbhodpeE6Mh4uc6heMkzjsy11Iwh+RDdX0W7NoI1Tnrh8d9HQbbruh6gSYMEE8wqo0ynHQ==}
-    peerDependencies:
-      '@apollo/client': ^3.7.10
-      '@nhost/nhost-js': 3.0.1
-    dependencies:
-      '@apollo/client': 3.8.9(graphql-ws@5.14.3)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
-      '@nhost/nhost-js': 3.0.1(graphql@16.7.1)
-      graphql: 16.7.1
-      graphql-ws: 5.14.3(graphql@16.7.1)
-    dev: false
-
   /@nhost/graphql-js@0.1.4(graphql@16.7.1):
     resolution: {integrity: sha512-IPHuGOf4iQrFsxG7Rh5jCCZzPCN9JkvldFww4Fz1lCVi9ZQNEaGaawIP5gBuBHeYIuALeaK1wVYKPc7vJ/euCA==}
     peerDependencies:
@@ -6730,17 +6718,7 @@ packages:
       isomorphic-unfetch: 3.1.0(encoding@0.1.13)
     transitivePeerDependencies:
       - encoding
-
-  /@nhost/hasura-auth-js@2.1.10:
-    resolution: {integrity: sha512-4tyNg39TwL+JAxdwCLFYk/pRX0QbvjJ88Z2693pib53nqzr8DPnVSj7GRCao3/2E42n0DntLOmZa/FLD4haPqQ==}
-    dependencies:
-      '@simplewebauthn/browser': 6.2.2
-      fetch-ponyfill: 7.1.0
-      js-cookie: 3.0.5
-      jwt-decode: 3.1.2
-      xstate: 4.38.3
-    transitivePeerDependencies:
-      - encoding
+    dev: true
 
   /@nhost/hasura-auth-js@2.1.9:
     resolution: {integrity: sha512-tZl6iArGBIuzaD9ZMCR4NUNxXneIj87c15nG0RWqzqScMAklQ0l9J52CLeE8NDPNFWFuwNLm2FBpnEz4YGJLVw==}
@@ -6762,27 +6740,7 @@ packages:
       xstate: 4.38.3
     transitivePeerDependencies:
       - encoding
-
-  /@nhost/nextjs@2.0.1(@types/react@18.2.47)(graphql@16.7.1)(next@14.0.4)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-u8ZGHvakHg1lF7u35/Metk+JfllhXuwjtbJku8oAC443smhQPwIxmcm/8R7gYPfRrniiAwkDTbnY5Do8t59Z8g==}
-    peerDependencies:
-      next: '>=13.4.20-canary.13'
-      react: ^17.0.0 || ^18.0.0
-      react-dom: ^17.0.0 || ^18.0.0
-    dependencies:
-      '@nhost/react': 3.0.1(@types/react@18.2.47)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
-      isomorphic-unfetch: 3.1.0(encoding@0.1.13)
-      js-cookie: 3.0.5
-      next: 14.0.4(@babel/core@7.23.7)(react-dom@18.2.0)(react@18.2.0)
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      xstate: 4.38.3
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@xstate/fsm'
-      - encoding
-      - graphql
-    dev: false
+    dev: true
 
   /@nhost/nhost-js@2.2.18(graphql@16.7.1):
     resolution: {integrity: sha512-aHn6p75fuG7SEUyB/yfX5TXtVTqwCT88zdN9Mmgo/8hnFOGV1XM7B4fxuGpNQCz18tG6kjM24tWx8EGXAEZ1sw==}
@@ -6797,115 +6755,6 @@ packages:
     transitivePeerDependencies:
       - encoding
     dev: true
-
-  /@nhost/nhost-js@3.0.1(graphql@16.7.1):
-    resolution: {integrity: sha512-i7YqnHin0V0sbTzH3aAA+JEnEcOTL6bECijdeNfNVjWrkqrL1t5INwEy8ftjfw3tREwGzxlNE/VtP+DvNfKJag==}
-    peerDependencies:
-      graphql: 16.7.1
-    dependencies:
-      '@nhost/graphql-js': 0.1.4(graphql@16.7.1)
-      '@nhost/hasura-auth-js': 2.1.10
-      '@nhost/hasura-storage-js': 2.2.5
-      graphql: 16.7.1
-      isomorphic-unfetch: 3.1.0(encoding@0.1.13)
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
-  /@nhost/react-apollo@7.0.1(@apollo/client@3.8.9)(@nhost/nhost-js@3.0.1)(@nhost/react@3.0.1)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-JxZEUT1+0m3QQFCiRGjerYdvShKmfXu590K36FxeWWuhB0JM6C/XOktaVycRnqIEn8aPhl1oy72RH64LMMJx5Q==}
-    peerDependencies:
-      '@apollo/client': ^3.7.10
-      '@nhost/react': 3.0.1
-      graphql: '>=16.8.1'
-      react: ^17.0.0 || ^18.0.0
-      react-dom: ^17.0.0 || ^18.0.0
-    dependencies:
-      '@apollo/client': 3.8.9(graphql-ws@5.14.3)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
-      '@nhost/apollo': 6.0.1(@apollo/client@3.8.9)(@nhost/nhost-js@3.0.1)
-      '@nhost/react': 3.0.1(@types/react@18.2.47)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
-      graphql: 16.7.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-    transitivePeerDependencies:
-      - '@nhost/nhost-js'
-    dev: false
-
-  /@nhost/react-urql@4.0.1(@nhost/react@3.0.1)(@urql/core@4.2.2)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)(urql@3.0.4):
-    resolution: {integrity: sha512-Po751N5Af5nzhNogQ2ytKXJNcDf39hmorVOplqvS7XXSY2F+jg+OFGO8ftb2A1EsEZ4WVuUKN2X7+sEEE+yg5w==}
-    peerDependencies:
-      '@nhost/react': 3.0.1
-      graphql: '>=16.8.1'
-      react: ^17.0.0 || ^18.0.0
-      react-dom: ^17.0.0 || ^18.0.0
-      urql: ^3.0.3
-    dependencies:
-      '@nhost/react': 3.0.1(@types/react@18.2.47)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
-      '@urql/devtools': 2.0.3(@urql/core@4.2.2)(graphql@16.7.1)
-      '@urql/exchange-refocus': 1.0.2(graphql@16.7.1)
-      graphql: 16.7.1
-      graphql-ws: 5.14.3(graphql@16.7.1)
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      urql: 3.0.4(graphql@16.7.1)(react@18.2.0)
-    transitivePeerDependencies:
-      - '@urql/core'
-    dev: false
-
-  /@nhost/react@3.0.1(@types/react@18.2.47)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-5R+6k36VsSWP2f6DXVnaS8wSISFy/7lisLGwffgKwPfEwig1xX7z4xJJH7jwnaAvpBKUZWPOkFkViCoKToptAQ==}
-    peerDependencies:
-      react: ^17.0.0 || ^18.1.0
-      react-dom: ^17.0.0 || ^18.1.0
-    dependencies:
-      '@nhost/nhost-js': 3.0.1(graphql@16.7.1)
-      '@xstate/react': 3.2.2(@types/react@18.2.47)(react@18.2.0)(xstate@4.38.3)
-      jwt-decode: 3.1.2
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      xstate: 4.38.3
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@xstate/fsm'
-      - encoding
-      - graphql
-    dev: false
-
-  /@nhost/vue@2.0.2(graphql@16.7.1)(vue@3.4.11):
-    resolution: {integrity: sha512-UFsK6PLlJvMkc9+p83EiWicvIoLvqtIkGOPmvpkoMtrsyXm2oSq0BmWYuFd80on7jULnf3FeF7Gkcl54zfA7gw==}
-    peerDependencies:
-      vue: ^3.2.31
-    dependencies:
-      '@nhost/nhost-js': 3.0.1(graphql@16.7.1)
-      '@vueuse/core': 10.7.1(vue@3.4.11)
-      '@xstate/vue': 2.0.0(vue@3.4.11)(xstate@4.38.3)
-      jwt-decode: 3.1.2
-      vue: 3.4.11(typescript@4.9.5)
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - '@xstate/fsm'
-      - encoding
-      - graphql
-      - xstate
-    dev: false
-
-  /@nhost/vue@2.0.2(graphql@16.7.1)(vue@3.4.11)(xstate@4.38.3):
-    resolution: {integrity: sha512-UFsK6PLlJvMkc9+p83EiWicvIoLvqtIkGOPmvpkoMtrsyXm2oSq0BmWYuFd80on7jULnf3FeF7Gkcl54zfA7gw==}
-    peerDependencies:
-      vue: ^3.2.31
-    dependencies:
-      '@nhost/nhost-js': 3.0.1(graphql@16.7.1)
-      '@vueuse/core': 10.7.1(vue@3.4.11)
-      '@xstate/vue': 2.0.0(vue@3.4.11)(xstate@4.38.3)
-      jwt-decode: 3.1.2
-      vue: 3.4.11(typescript@4.9.4)
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - '@xstate/fsm'
-      - encoding
-      - graphql
-      - xstate
-    dev: false
 
   /@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1:
     resolution: {integrity: sha512-54/JRvkLIzzDWshCWfuhadfrfZVPiElY8Fcgmg1HroEly/EDSszzhBAsarCux+D/kOslTRquNzuyGSmUSTTHGg==}
@@ -17343,7 +17192,7 @@ packages:
     resolution: {integrity: sha512-o/ZgTS0pBxWm3hSF4+6GwiV1//DxzoLWEbS38+jqpzzy1d/QXBidwQuVYTOksclbtOJZ3KR/tZ8fi/tI6VpVMg==}
     hasBin: true
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.7.1
     dependencies:
       graphql: 16.7.1
       nullthrows: 1.1.1
@@ -26667,7 +26516,7 @@ packages:
       '@vue/composition-api':
         optional: true
     dependencies:
-      vue: 3.4.11(typescript@4.9.4)
+      vue: 3.4.11(typescript@4.9.5)
 
   /vue-eslint-parser@8.3.0(eslint@8.56.0):
     resolution: {integrity: sha512-dzHGG3+sYwSf6zFBa0Gi9ZDshD7+ad14DGOdTLjruRVgZXe2J+DcZ9iUhyR48z5g1PqRa20yt3Njna/veLJL/g==}
