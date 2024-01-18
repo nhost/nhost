@@ -11,7 +11,6 @@ import { Option } from '@/components/ui/v2/Option';
 import { Radio } from '@/components/ui/v2/Radio';
 import { RadioGroup } from '@/components/ui/v2/RadioGroup';
 import { Select } from '@/components/ui/v2/Select';
-import type { TextProps } from '@/components/ui/v2/Text';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
@@ -37,7 +36,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { FormEvent, ReactElement } from 'react';
-import { cloneElement, isValidElement, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import slugify from 'slugify';
 import { twMerge } from 'tailwind-merge';
@@ -203,10 +202,10 @@ export function NewProjectPageContent({
   if (!selectedWorkspace) {
     return (
       <Container>
-        <Box className="max-w-full mx-auto my-64 subpixel-antialiased">
+        <Box className="mx-auto my-64 max-w-full subpixel-antialiased">
           <div className="relative transform">
-            <div className="max-w-3xl mx-auto text-center">
-              <Text variant="h1" className="text-6xl font-semibold text-center">
+            <div className="mx-auto max-w-3xl text-center">
+              <Text variant="h1" className="text-center text-6xl font-semibold">
                 Workspace Error
               </Text>
               <Text className="mt-2">
@@ -277,7 +276,7 @@ export function NewProjectPageContent({
               }}
               value={selectedWorkspace.id}
               renderValue={(option) => (
-                <span className="inline-grid items-center grid-flow-col gap-2">
+                <span className="inline-grid grid-flow-col items-center gap-2">
                   {option?.label}
                 </span>
               )}
@@ -286,9 +285,9 @@ export function NewProjectPageContent({
                 <Option
                   value={option.id}
                   key={option.id}
-                  className="grid items-center grid-flow-col gap-2"
+                  className="grid grid-flow-col items-center gap-2"
                 >
-                  <span className="inline-block w-6 h-6 overflow-hidden rounded-md">
+                  <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
                     <Image
                       src="/logos/new.svg"
                       alt="Nhost Logo"
@@ -321,21 +320,22 @@ export function NewProjectPageContent({
                 });
               }}
               value={selectedRegion.id}
-              renderValue={(option) => {
-                const [flag, , country] = (option?.label as any[]) || [];
-                return (
-                  <span className="inline-grid items-center grid-flow-col grid-rows-none gap-x-2">
-                    {flag}
-
-                    {isValidElement<TextProps>(country)
-                      ? cloneElement(country, {
-                          ...country.props,
-                          variant: 'body1',
-                        })
-                      : null}
+              renderValue={() => (
+                <div className="relative grid grid-flow-col items-center justify-start gap-x-3">
+                  <span className="row-span-2 flex">
+                    <Image
+                      src={`/assets/flags/${selectedRegion.code}.svg`}
+                      alt={`${selectedRegion.name} country flag`}
+                      width={16}
+                      height={12}
+                    />
                   </span>
-                );
-              }}
+
+                  <Text variant="body1" className="row-span-1">
+                    {selectedRegion.name}
+                  </Text>
+                </div>
+              )}
             >
               {regionOptions.map((option) => (
                 <Option
@@ -347,7 +347,7 @@ export function NewProjectPageContent({
                   )}
                   disabled={option.disabled}
                 >
-                  <span className="flex row-span-2">
+                  <span className="row-span-2 flex">
                     <Image
                       src={`/assets/flags/${option.code}.svg`}
                       alt={`${option.country} country flag`}
@@ -365,7 +365,7 @@ export function NewProjectPageContent({
                   {option.disabled && (
                     <Text
                       variant="subtitle2"
-                      className="absolute -translate-y-1/2 top-1/2 right-4"
+                      className="absolute right-4 top-1/2 -translate-y-1/2"
                     >
                       Disabled
                     </Text>
@@ -401,7 +401,7 @@ export function NewProjectPageContent({
                         tooltip: { className: '!max-w-xs w-full text-center' },
                       }}
                     >
-                      <Box className="w-full border rounded-md">
+                      <Box className="w-full rounded-md border">
                         <Radio
                           slotProps={{
                             formControl: {
@@ -414,7 +414,7 @@ export function NewProjectPageContent({
                           value={currentPlan.id}
                           disabled={disabledPlan}
                           label={
-                            <div className="flex items-center justify-between w-full ">
+                            <div className="flex w-full items-center justify-between ">
                               <div className="inline-block max-w-xs">
                                 <Text className="font-medium text-[inherit]">
                                   {currentPlan.name}
