@@ -16,7 +16,7 @@ import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup'
+import type * as Yup from 'yup';
 
 export interface CreateTableFormProps
   extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
@@ -54,7 +54,9 @@ export default function CreateTableForm({
 
   const error = createTableError || trackTableError || foreignKeyError;
 
-  const form = useForm<BaseTableFormValues | Yup.InferType<typeof baseTableValidationSchema>>({
+  const form = useForm<
+    BaseTableFormValues | Yup.InferType<typeof baseTableValidationSchema>
+  >({
     defaultValues: {
       columns: [
         {
@@ -115,10 +117,10 @@ export default function CreateTableForm({
   return (
     <FormProvider {...form}>
       {error && error instanceof Error && (
-        <div className="px-6 mb-4 -mt-3">
+        <div className="-mt-3 mb-4 px-6">
           <Alert
             severity="error"
-            className="grid items-center justify-between grid-flow-col px-4 py-3"
+            className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}

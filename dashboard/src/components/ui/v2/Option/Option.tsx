@@ -1,7 +1,7 @@
 import {
   Option as BaseOption,
   optionClasses as baseOptionClasses,
-  OptionProps as BaseOptionProps,
+  type OptionProps as BaseOptionProps,
 } from '@mui/base';
 import { darken, styled } from '@mui/material';
 import type { ForwardedRef } from 'react';

@@ -1,7 +1,10 @@
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { ChevronUpIcon } from '@/components/ui/v2/icons/ChevronUpIcon';
-import { ButtonProps as ButtonUnstyledProps, Button as ButtonUnstyled } from '@mui/base'
-import { selectClasses as selectUnstyledClasses } from '@mui/base/Select'
+import {
+  Button as ButtonUnstyled,
+  type ButtonProps as ButtonUnstyledProps,
+} from '@mui/base';
+import { selectClasses as selectUnstyledClasses } from '@mui/base/Select';
 import type { SxProps } from '@mui/material';
 import { styled } from '@mui/material';
 import type { Theme } from '@mui/system';
@@ -23,7 +26,7 @@ export interface ToggleButtonProps
       Omit<DetailedHTMLProps<HTMLProps<HTMLSpanElement>, HTMLSpanElement>, 'as'>
     >;
   };
-  placeholder?: string
+  placeholder?: string;
 }
 
 const StyledButton = styled(ButtonUnstyled)(({ theme }) => ({

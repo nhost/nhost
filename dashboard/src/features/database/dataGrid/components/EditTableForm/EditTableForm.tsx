@@ -22,7 +22,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
+import type * as Yup from 'yup';
 
 export interface EditTableFormProps
   extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
@@ -197,7 +197,7 @@ export default function EditTableForm({
 
   if (columnsStatus === 'error') {
     return (
-      <div className="px-6 -mt-3">
+      <div className="-mt-3 px-6">
         <Alert severity="error" className="text-left">
           <strong>Error:</strong>{' '}
           {columnsError && columnsError instanceof Error
@@ -211,10 +211,10 @@ export default function EditTableForm({
   return (
     <FormProvider {...form}>
       {error && error instanceof Error && (
-        <div className="px-6 mb-4 -mt-3">
+        <div className="-mt-3 mb-4 px-6">
           <Alert
             severity="error"
-            className="grid items-center justify-between grid-flow-col px-4 py-3"
+            className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}
