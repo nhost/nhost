@@ -16,7 +16,7 @@
     "eslint": "8.48.0",
     "eslint-config-next": "13.4.19",
     "form-data": "^4.0.0",
-    "graphql": "^16.8.1",
+    "graphql": "16.8.1",
     "js-cookie": "^3.0.5",
     "next": "^14.0.4",
     "postcss": "^8.4.33",

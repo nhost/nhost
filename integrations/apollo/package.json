@@ -64,7 +64,7 @@
     "@nhost/nhost-js": "workspace:*"
   },
   "dependencies": {
-    "graphql": "^16.8.1",
+    "graphql": "16.8.1",
     "graphql-ws": "^5.14.3"
   },
   "devDependencies": {

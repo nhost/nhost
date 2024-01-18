@@ -10,7 +10,7 @@
     "@nhost/nhost-js": "^3.0.1",
     "commander": "^10.0.1",
     "dotenv": "^16.3.1",
-    "graphql": "^16.8.1",
+    "graphql": "16.8.1",
     "graphql-tag": "^2.12.6",
     "pino": "^8.17.2"
   },

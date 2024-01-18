@@ -61,6 +61,6 @@
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "graphql": "^16.8.1"
+    "graphql": "16.8.1"
   }
 }

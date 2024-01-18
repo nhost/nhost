@@ -13,7 +13,7 @@
     "@gqty/react": "2.1.0",
     "@nhost/react": "^3.0.1",
     "gqty": "^2.3.0",
-    "graphql": "15.7.2",
+    "graphql": "16.8.1",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
