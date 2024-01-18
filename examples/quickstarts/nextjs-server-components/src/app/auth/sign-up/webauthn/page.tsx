@@ -10,7 +10,7 @@ import { useState, type FormEvent } from 'react'
 const NHOST_SESSION_KEY = 'nhostSession'
 
 const nhost = new NhostClient({
-  subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN,
+  subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN || 'local',
   region: process.env.NEXT_PUBLIC_NHOST_REGION
 })
 
