@@ -132,14 +132,14 @@ export default function PricingPage() {
         <Glow className="top-5 h-32 w-32 bg-opacity-50 blur-3xl lg:top-16" />
 
         <SectionHeading
-          title="Start small, grow big"
+          title="Choose the right plan to power your infrastructure"
           slotProps={{
             title: {
               component: 'h1',
               className: 'text-3.5xl md:text-5xl',
             },
           }}
-          className="relative z-10"
+          className="relative z-10 pb-8 lg:pb-16"
         />
       </Container>
 
