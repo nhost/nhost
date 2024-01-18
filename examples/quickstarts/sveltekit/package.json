@@ -8,15 +8,14 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
-    "install-browsers": "pnpm dlx playwright@1.31.0 install --with-deps",
     "add-nhost-js": "pnpm add @nhost/nhost-js@2.2.18 --ignore-workspace",
-    "test": "pnpm install-browsers && pnpm add-nhost-js && pnpm dlx playwright@1.31.0 test",
+    "test": "pnpm add-nhost-js && pnpm playwright test",
     "lint": "eslint .",
     "postinstall": "pnpm add-nhost-js"
   },
   "devDependencies": {
     "@nhost/nhost-js": "2.2.18",
-    "@playwright/test": "^1.40.1",
+    "@playwright/test": "^1.41.0",
     "@sveltejs/adapter-auto": "^2.1.1",
     "@sveltejs/kit": "^1.30.3",
     "@types/js-cookie": "^3.0.6",
@@ -39,7 +38,6 @@
     "graphql": "^16.8.1",
     "graphql-tag": "^2.12.6",
     "js-cookie": "^3.0.5",
-    "playwright": "^1.40.1",
     "uuid": "^9.0.1",
     "xstate": "^4.38.3"
   }
