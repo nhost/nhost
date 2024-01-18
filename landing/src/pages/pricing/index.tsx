@@ -168,6 +168,9 @@ export default function PricingPage() {
           <PricingFeature
             subFeatures={[
               {
+                title: 'Project pauses with inactivity',
+              },
+              {
                 title: '1 GB database',
               },
               {
@@ -181,6 +184,12 @@ export default function PricingPage() {
               },
               {
                 title: 'Realtime APIs',
+              },
+              {
+                title: 'IaC',
+              },
+              {
+                title: 'Automated deployments',
               },
               {
                 title: 'Unlimited users',
@@ -685,6 +694,15 @@ export default function PricingPage() {
             />
 
             <PricingListItem
+              title="Graphite"
+              titleTooltip="Graphite is an additional AI service available to your project as an add-on. It is billed per vCPU core and memory allocated to the service. See Compute Pricing below."
+              starterIcon="x"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
               title="Auto-Embeddings"
               starterIcon="x"
               proIcon="check"
@@ -708,6 +726,7 @@ export default function PricingPage() {
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
             <PricingListItem
               title="Run your own services"
+              titleTooltip="Nhost Run is a managed container runtime for running your own services. It is billed per vCPU core and memory allocated to the service. See Compute Pricing below."
               starterIcon="x"
               proIcon="check"
               teamIcon="check"
@@ -742,6 +761,15 @@ export default function PricingPage() {
           <h3 className="py-4 text-xl">Collaboration</h3>
 
           <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
+            <PricingListItem
+              title="IaC"
+              titleTooltip="Use the Nhost CLI and Nhost Config to manage your infrastructure as code."
+              starterIcon="check"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
             <PricingListItem
               title="Deployments"
               starterIcon="check"
@@ -859,60 +887,6 @@ export default function PricingPage() {
               proIcon="check"
               teamIcon="check"
               enterpriseIcon="check"
-            />
-          </ul>
-        </section>
-
-        <section>
-          <h3 className="py-4 text-xl">Platform</h3>
-
-          <ul className="grid grid-flow-row divide-y divide-divider border-y border-divider">
-            <PricingListItem
-              title="HTTPS / SSL"
-              starterIcon="check"
-              proIcon="check"
-              teamIcon="check"
-              enterpriseIcon="check"
-            />
-
-            <PricingListItem
-              title="Custom domains"
-              starterIcon="x"
-              proContent="$10 per project / month"
-              teamContent="$10 per project / month"
-              enterpriseContent="$10 per project / month"
-            />
-
-            <PricingListItem
-              title="External databases"
-              starterIcon="x"
-              proIcon="x"
-              teamIcon="check"
-              enterpriseIcon="check"
-            />
-
-            <PricingListItem
-              title="99.9% SLA"
-              starterIcon="x"
-              proIcon="x"
-              teamIcon="x"
-              enterpriseIcon="check"
-            />
-
-            <PricingListItem
-              title="Dedicated clusters"
-              starterIcon="x"
-              proIcon="x"
-              teamIcon="x"
-              enterpriseContent="Available as an add-on"
-            />
-
-            <PricingListItem
-              title="Auto scaling"
-              starterIcon="x"
-              proIcon="x"
-              teamContent="Coming soon"
-              enterpriseContent="Coming soon"
             />
           </ul>
         </section>
