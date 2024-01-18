@@ -695,7 +695,7 @@ export default function PricingPage() {
 
             <PricingListItem
               title="Graphite"
-              titleTooltip="Graphite is an additional AI service available to your project as an add-on. It is billed per vCPU core and memory allocated to the service. See Compute Pricing below."
+              titleTooltip="Graphite is our AI service available to your project as an add-on. It is billed per vCPU core and memory allocated to the service. See Compute Pricing below."
               starterIcon="x"
               proIcon="check"
               teamIcon="check"
