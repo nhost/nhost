@@ -11,9 +11,6 @@ info:
 servers:
   - url: https://local.auth.nhost.run/v1
     description: API Server
-security:
-  - BearerAuth: []
-
 components:
 
   securitySchemes:
