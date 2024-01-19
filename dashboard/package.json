@@ -15,8 +15,8 @@
     "format": "prettier --write \"src/**/*.{js,ts,tsx,jsx,json,md}\" --plugin-search-dir=.",
     "storybook": "start-storybook -p 6006 -s public",
     "build-storybook": "build-storybook",
-    "install-browsers": "pnpm dlx playwright@1.31.0 install --with-deps",
-    "e2e": "pnpm install-browsers && pnpm dlx playwright@1.31.0 test"
+    "install-browsers": "pnpm playwright install && pnpm playwright install-deps",
+    "e2e": "pnpm install-browsers && pnpm playwright test"
   },
   "dependencies": {
     "@apollo/client": "^3.8.9",
