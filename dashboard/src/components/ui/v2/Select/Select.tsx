@@ -60,7 +60,7 @@ const StyledListbox = styled('ul')(({ theme }) => ({
 }));
 
 const StyledPopper = styled(BasePopper)`
-  z-index: 10;
+  z-index: 9999;
 `;
 
 function Select<TValue>(
