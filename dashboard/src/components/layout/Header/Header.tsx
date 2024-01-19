@@ -13,6 +13,7 @@ import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { DevAssistant } from '@/features/ai/DevAssistant';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ApplicationStatus } from '@/types/application';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -36,6 +37,8 @@ export default function Header({ className, ...props }: HeaderProps) {
 
   const { currentProject, refetch: refetchProject } =
     useCurrentWorkspaceAndProject();
+
+  const isOwner = useIsCurrentUserOwner();
 
   const isProjectUpdating =
     currentProject?.appStates[0]?.stateId === ApplicationStatus.Updating;
@@ -114,7 +117,11 @@ export default function Header({ className, ...props }: HeaderProps) {
               transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-              <ContactUs className="max-w-md" />
+              <ContactUs
+                className="max-w-md"
+                isTeam={currentProject?.plan?.name === 'Team'}
+                isOwner={isOwner}
+              />
             </Dropdown.Content>
           </Dropdown.Root>
         )}

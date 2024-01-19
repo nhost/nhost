@@ -34,6 +34,7 @@ import {
 import type { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { FormEvent, ReactElement } from 'react';
 import { cloneElement, isValidElement, useState } from 'react';
@@ -444,6 +445,19 @@ export function NewProjectPageContent({
                     </Tooltip>
                   );
                 })}
+                <Text variant="subtitle2">
+                  Select a plan that suits your infrastructure needs.{' '}
+                  <Link href="https://nhost.io/pricing">
+                    <a
+                      href="https://nhost.io/pricing"
+                      className="underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Learn more
+                    </a>
+                  </Link>
+                </Text>
               </RadioGroup>
             </div>
           </div>
