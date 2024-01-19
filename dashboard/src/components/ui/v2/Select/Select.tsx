@@ -118,9 +118,6 @@ function Select<TValue>(
           root: {
             ...slotProps?.root,
           },
-          popper: {
-            disablePortal: true,
-          },
           listbox: {
             ...slotProps?.listbox,
             onKeyDown: (event) => {
