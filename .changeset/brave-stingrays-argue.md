@@ -2,4 +2,4 @@
 '@nhost/dashboard': minor
 ---
 
-Add support for Team plan
+feat: add support for new Team plan
