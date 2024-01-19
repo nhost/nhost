@@ -12,17 +12,11 @@ servers:
   - url: https://local.auth.nhost.run/v1
     description: API Server
 security:
-  - AdminSecret: []
   - BearerAuth: []
 
 components:
 
   securitySchemes:
-    AdminSecret:
-      type: apiKey
-      in: header
-      name: X-Hasura-Admin-Secret
-      description: Hasura Admin Secret
     BearerAuth:
       scheme: bearer
       type: http
