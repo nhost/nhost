@@ -5,13 +5,11 @@ import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
-import { ProductIcon } from '@/components/common/ProductIcon'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { CheckmarkCircleIcon } from '@/components/common/icons/CheckmarkCircleIcon'
 
 import { PricingFeature } from '@/components/pricing/PricingFeature'
 import { Tooltip } from '@/components/common/Tooltip'
-import Image from 'next/image'
 import { ReactElement, ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { XIcon } from '@/components/common/icons/XIcon'
@@ -154,14 +152,15 @@ export default function PricingPage() {
             <h2 className="font-normal text-white text-opacity-65">
               Get your idea off the ground for free.
             </h2>
-          </div>
 
-          <div className="flex flex-col items-start">
-            <div className="flex flex-row items-center space-x-2">
-              <h2 className="font-mona text-2xl font-semibold">$0</h2>
-              <h2 className="mt-1 font-normal text-white text-opacity-65">
-                / month
-              </h2>
+            <div className="flex flex-col items-start">
+              <div className="flex flex-row items-center space-x-2">
+                <h2 className="font-mona text-4xl font-medium">$0</h2>
+                <h2 className="mt-1 font-normal text-white text-opacity-65">
+                  / month / project
+                </h2>
+              </div>
+              <div className="p-1 text-xs">Limit of 1 project</div>
             </div>
           </div>
 
@@ -226,10 +225,13 @@ export default function PricingPage() {
               </h2>
 
               <div className="flex flex-col items-start">
+                <h2 className="mt-1 font-normal text-white text-opacity-65">
+                  From
+                </h2>
                 <div className="flex flex-row items-center space-x-2">
-                  <h2 className="font-mona text-2xl font-semibold">$25</h2>
+                  <h2 className="font-mona text-4xl font-medium">$25</h2>
                   <h2 className="mt-1 font-normal text-white text-opacity-65">
-                    / month
+                    / month / project
                   </h2>
                 </div>
               </div>
@@ -287,19 +289,21 @@ export default function PricingPage() {
           <div className="flex flex-col space-y-4 ">
             <div className="flex flex-row justify-between">
               <h2 className="font-mona text-2xl font-semibold">Team</h2>
-              <span className="rounded-md bg-brand-main px-1 py-1 text-xs text-opacity-7 opacity-75 md:text-sm">
-                Coming soon
-              </span>
+              <span className="rounded-md bg-brand-main px-2 py-2">New</span>
             </div>
 
             <h2 className="font-normal text-white text-opacity-65">
               Collaborate with added support, scale as needed.
             </h2>
+
             <div className="flex flex-col items-start">
+              <h2 className="mt-1 font-normal text-white text-opacity-65">
+                / month / project
+              </h2>
               <div className="flex flex-row items-center space-x-2">
-                <h2 className="font-mona text-2xl font-semibold">$599</h2>
+                <h2 className="font-mona text-4xl font-medium">$599</h2>
                 <h2 className="mt-1 font-normal text-white text-opacity-65">
-                  / month
+                  / month / project
                 </h2>
               </div>
             </div>
@@ -346,7 +350,7 @@ export default function PricingPage() {
             </h2>
 
             <div className="flex flex-row items-center space-x-2">
-              <h2 className="font-mona text-2xl font-semibold">Contact us</h2>
+              <h2 className="font-mona text-4xl font-medium">Contact us</h2>
             </div>
           </div>
 
@@ -551,22 +555,6 @@ export default function PricingPage() {
             />
 
             <PricingListItem
-              title="Custom SMTP"
-              starterIcon="x"
-              proIcon="check"
-              teamIcon="check"
-              enterpriseIcon="check"
-            />
-
-            <PricingListItem
-              title="Custom emails"
-              starterIcon="x"
-              proIcon="check"
-              teamIcon="check"
-              enterpriseIcon="check"
-            />
-
-            <PricingListItem
               title="Social OAuth providers"
               starterIcon="check"
               proIcon="check"
@@ -607,6 +595,22 @@ export default function PricingPage() {
             />
 
             <PricingListItem
+              title="Custom SMTP"
+              starterIcon="x"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Custom emails"
+              starterIcon="x"
+              proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
               title="Advanced security features"
               enterpriseContent="Contact Us"
             />
@@ -626,7 +630,7 @@ export default function PricingPage() {
             />
 
             <PricingListItem
-              title="Custom Permissions"
+              title="Custom permissions"
               starterIcon="check"
               proIcon="check"
               teamIcon="check"
@@ -836,7 +840,7 @@ export default function PricingPage() {
 
             <PricingListItem
               title="External databases"
-              titleTooltip="Connect to external databases hosted elsewhere."
+              titleTooltip="Connect to external databases hosted outside of Nhost."
               starterIcon="x"
               proIcon="x"
               teamIcon="check"

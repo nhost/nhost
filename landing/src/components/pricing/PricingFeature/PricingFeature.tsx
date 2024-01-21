@@ -27,7 +27,7 @@ export default function PricingFeature({ subFeatures }: PricingFeatureProps) {
               <TickIcon />
             )}
           </div>
-          <span className="font-normal text-white text-opacity-65">
+          <span className="font-normal text-white">
             {subFeature.title}{' '}
             {subFeature.enabled === false && '(not available)'}
           </span>
