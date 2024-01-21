@@ -256,7 +256,7 @@ export default function PricingPage() {
                   title: '50 GB egress',
                 },
                 {
-                  title: 'Backups stored for 7 days',
+                  title: 'Automated backups',
                 },
                 {
                   title: 'AI toolkit',
@@ -298,7 +298,7 @@ export default function PricingPage() {
 
             <div className="flex flex-col items-start">
               <h2 className="mt-1 font-normal text-white text-opacity-65">
-                / month / project
+                From
               </h2>
               <div className="flex flex-row items-center space-x-2">
                 <h2 className="font-mona text-4xl font-medium">$599</h2>
@@ -361,7 +361,7 @@ export default function PricingPage() {
           <PricingFeature
             subFeatures={[
               { title: 'SLAs' },
-              { title: 'Dedicated Technical Account Manager' },
+              { title: 'Dedicated technical account manager' },
               { title: 'Dedicated clusters (add-on)' },
             ]}
           />
