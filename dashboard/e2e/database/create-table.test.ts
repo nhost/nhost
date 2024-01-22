@@ -208,7 +208,11 @@ test('should create table with foreign key constraint', async () => {
   await page.getByRole('option', { name: /author_id/i }).click();
 
   // select reference schema
-  await page.getByRole('button', { name: /schema/i }).click();
+  await page.waitForSelector('button[aria-label="Schema"]');
+  await page.click('button[aria-label="Schema"]');
+
+  //  await page.getByRole('button', { name: /schema/i }).click();
+
   await page.getByRole('option', { name: /public/i }).click();
 
   // select reference table
