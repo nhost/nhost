@@ -17,6 +17,7 @@ export default function OverviewTopBar() {
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const isOwner = useIsCurrentUserOwner();
   const isStarter = currentProject?.plan?.name === 'Starter';
+  const isPro = currentProject?.plan?.name === 'Pro';
   const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
 
@@ -87,7 +88,7 @@ export default function OverviewTopBar() {
                   color={!isStarter ? 'primary' : 'default'}
                 />
 
-                {isStarter && isOwner && (
+                {(isStarter || isPro) && isOwner && (
                   <Button
                     variant="borderless"
                     className="mr-2"

@@ -4,7 +4,6 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { BaseDialog } from '@/components/ui/v2/Dialog';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useAppState } from '@/features/projects/common/hooks/useAppState';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -85,6 +84,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
 
   const currentPlan = plans.find((plan) => plan.id === app.plan.id);
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId);
+  const higherPlans = plans.filter((plan) => plan.price > currentPlan.price);
 
   useEffect(() => {
     if (!pollingCurrentProject || state === ApplicationStatus.Paused) {
@@ -201,53 +201,6 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
     );
   }
 
-  if (app.plan.id !== plans.find((plan) => plan.isFree)?.id) {
-    return (
-      <Box className="mx-auto w-full max-w-xl rounded-lg p-6 text-left">
-        <div className="flex flex-col">
-          <div className="mx-auto">
-            <Image
-              src="/assets/upgrade.svg"
-              alt="Nhost Logo"
-              width={72}
-              height={72}
-            />
-          </div>
-          <Text variant="h3" component="h2" className="mt-2 text-center">
-            Downgrade is not available
-          </Text>
-
-          <Text className="mt-1 text-center">
-            You can&apos;t downgrade from a paid plan to a free plan here.
-          </Text>
-
-          <Text className="text-center">
-            Please contact us at{' '}
-            <Link href="mailto:info@nhost.io">info@nhost.io</Link> if you want
-            to downgrade.
-          </Text>
-
-          <div className="mt-6 grid grid-flow-row gap-2">
-            <Button
-              variant="outlined"
-              color="secondary"
-              className="mx-auto w-full max-w-sm"
-              onClick={() => {
-                if (close) {
-                  close();
-                }
-
-                closeAlertDialog();
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </Box>
-    );
-  }
-
   return (
     <Box className="w-full max-w-xl rounded-lg p-6 text-left">
       <BaseDialog
@@ -277,7 +230,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
         </Text>
 
         <div className="mt-2">
-          {plans
+          {higherPlans
             .filter((plan) => plan.id !== app.plan.id)
             .map((plan) => (
               <div className="mt-4" key={plan.id}>
