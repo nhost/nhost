@@ -66,16 +66,11 @@ func printlist(ce *clienv.CliEnv, workspaces []*graphql.GetWorkspacesApps_Worksp
 }
 
 func List(ctx context.Context, ce *clienv.CliEnv) error {
-	session, err := ce.LoadSession(ctx)
+	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to load session: %w", err)
+		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
-
-	cl := ce.GetNhostClient()
-	workspaces, err := cl.GetWorkspacesApps(
-		ctx,
-		graphql.WithAccessToken(session.Session.AccessToken),
-	)
+	workspaces, err := cl.GetWorkspacesApps(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get workspaces: %w", err)
 	}

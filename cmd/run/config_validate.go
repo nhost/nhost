@@ -10,7 +10,6 @@ import (
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 	"github.com/nhost/cli/clienv"
 	"github.com/nhost/cli/nhostclient"
-	"github.com/nhost/cli/nhostclient/credentials"
 	"github.com/nhost/cli/nhostclient/graphql"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
@@ -79,13 +78,11 @@ func loadConfig(
 func getAppIDFromServiceID(
 	ctx context.Context,
 	cl *nhostclient.Client,
-	session credentials.Session,
 	serviceID string,
 ) (string, error) {
 	resp, err := cl.GetRunServiceInfo(
 		ctx,
 		serviceID,
-		graphql.WithAccessToken(session.Session.AccessToken),
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to get app info from service id: %w", err)
@@ -97,7 +94,7 @@ func getAppIDFromServiceID(
 func ValidateRemote(
 	ctx context.Context,
 	ce *clienv.CliEnv,
-	session credentials.Session,
+	cl *nhostclient.Client,
 	cfg *model.ConfigRunServiceConfig,
 	appID string,
 ) error {
@@ -107,11 +104,9 @@ func ValidateRemote(
 	}
 
 	ce.Infoln("Getting secrets...")
-	cl := ce.GetNhostClient()
 	secretsResp, err := cl.GetSecrets(
 		ctx,
 		appID,
-		graphql.WithAccessToken(session.Session.AccessToken),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get secrets: %w", err)
@@ -135,14 +130,12 @@ func commandConfigValidate(cCtx *cli.Context) error {
 	}
 
 	ce := clienv.FromCLI(cCtx)
-	cl := ce.GetNhostClient()
-
-	session, err := ce.LoadSession(cCtx.Context)
+	cl, err := ce.GetNhostClient(cCtx.Context)
 	if err != nil {
-		return fmt.Errorf("failed to load session: %w", err)
+		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	appID, err := getAppIDFromServiceID(cCtx.Context, cl, session, cCtx.String(flagServiceID))
+	appID, err := getAppIDFromServiceID(cCtx.Context, cl, cCtx.String(flagServiceID))
 	if err != nil {
 		return err
 	}
@@ -150,7 +143,7 @@ func commandConfigValidate(cCtx *cli.Context) error {
 	return ValidateRemote(
 		cCtx.Context,
 		ce,
-		session,
+		cl,
 		cfg,
 		appID,
 	)

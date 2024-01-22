@@ -11,7 +11,6 @@ import (
 	"github.com/nhost/be/services/mimir/schema"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/cli/project/env"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
@@ -148,17 +147,15 @@ func ValidateRemote(
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
-	session, err := ce.LoadSession(ctx)
+	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to load session: %w", err)
+		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
 	ce.Infoln("Getting secrets...")
-	cl := ce.GetNhostClient()
 	secretsResp, err := cl.GetSecrets(
 		ctx,
 		proj.ID,
-		graphql.WithAccessToken(session.Session.AccessToken),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get secrets: %w", err)

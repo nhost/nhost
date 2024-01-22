@@ -23,7 +23,7 @@ type Client struct {
 	retryer BasicRetryer
 }
 
-func New(domain string) *Client {
+func New(domain string, interceptors ...clientv2.RequestInterceptor) *Client {
 	return &Client{
 		baseURL: fmt.Sprintf("https://%s/v1/auth", domain),
 		client:  &http.Client{}, //nolint:exhaustruct
@@ -31,6 +31,7 @@ func New(domain string) *Client {
 			&http.Client{}, //nolint:exhaustruct
 			fmt.Sprintf("https://%s/v1/graphql", domain),
 			&clientv2.Options{}, //nolint:exhaustruct
+			interceptors...,
 		),
 		retryer: NewBasicRetryer(retryerMaxAttempts, retryerBaseDelay),
 	}

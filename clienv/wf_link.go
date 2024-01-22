@@ -90,16 +90,11 @@ OUTER:
 }
 
 func (ce *CliEnv) Link(ctx context.Context) (*graphql.GetWorkspacesApps_Workspaces_Apps, error) {
-	session, err := ce.LoadSession(ctx)
+	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load session: %w", err)
+		return nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
-
-	cl := ce.GetNhostClient()
-	workspaces, err := cl.GetWorkspacesApps(
-		ctx,
-		graphql.WithAccessToken(session.Session.AccessToken),
-	)
+	workspaces, err := cl.GetWorkspacesApps(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get workspaces: %w", err)
 	}

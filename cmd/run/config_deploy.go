@@ -56,19 +56,16 @@ func commandConfigDeploy(cCtx *cli.Context) error {
 
 	ce := clienv.FromCLI(cCtx)
 
-	session, err := ce.LoadSession(cCtx.Context)
+	cl, err := ce.GetNhostClient(cCtx.Context)
 	if err != nil {
-		return fmt.Errorf("failed to load session: %w", err)
+		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
-
-	cl := ce.GetNhostClient()
-
-	appID, err := getAppIDFromServiceID(cCtx.Context, cl, session, cCtx.String(flagServiceID))
+	appID, err := getAppIDFromServiceID(cCtx.Context, cl, cCtx.String(flagServiceID))
 	if err != nil {
 		return err
 	}
 
-	if err := ValidateRemote(cCtx.Context, ce, session, cfg, appID); err != nil {
+	if err := ValidateRemote(cCtx.Context, ce, cl, cfg, appID); err != nil {
 		return err
 	}
 
@@ -84,7 +81,6 @@ func commandConfigDeploy(cCtx *cli.Context) error {
 		appID,
 		cCtx.String(flagServiceID),
 		*replaceConfig,
-		graphql.WithAccessToken(session.Session.AccessToken),
 	); err != nil {
 		return fmt.Errorf("failed to replace service config: %w", err)
 	}

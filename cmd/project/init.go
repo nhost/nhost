@@ -11,7 +11,6 @@ import (
 	"github.com/nhost/cli/clienv"
 	"github.com/nhost/cli/cmd/config"
 	"github.com/nhost/cli/dockercompose"
-	"github.com/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/cli/system"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
@@ -140,12 +139,7 @@ func InitRemote(
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
-	session, err := ce.LoadSession(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to load session: %w", err)
-	}
-
-	cfg, err := config.Pull(ctx, ce, proj, session, true)
+	cfg, err := config.Pull(ctx, ce, proj, true)
 	if err != nil {
 		return fmt.Errorf("failed to pull config: %w", err)
 	}
@@ -154,10 +148,11 @@ func InitRemote(
 		return err
 	}
 
-	cl := ce.GetNhostClient()
-	hasuraAdminSecret, err := cl.GetHasuraAdminSecret(
-		ctx, proj.ID, graphql.WithAccessToken(session.Session.AccessToken),
-	)
+	cl, err := ce.GetNhostClient(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get nhost client: %w", err)
+	}
+	hasuraAdminSecret, err := cl.GetHasuraAdminSecret(ctx, proj.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get hasura admin secret: %w", err)
 	}

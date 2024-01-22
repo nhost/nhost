@@ -8,7 +8,6 @@ import (
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/nhostclient/credentials"
 	"github.com/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/cli/project/env"
 	"github.com/nhost/cli/system"
@@ -70,11 +69,7 @@ func commandPull(cCtx *cli.Context) error {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
-	session, err := ce.LoadSession(cCtx.Context)
-	if err != nil {
-		return fmt.Errorf("failed to load session: %w", err)
-	}
-	_, err = Pull(cCtx.Context, ce, proj, session, writeSecrets)
+	_, err = Pull(cCtx.Context, ce, proj, writeSecrets)
 	return err
 }
 
@@ -121,14 +116,15 @@ func pullSecrets(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	proj *graphql.GetWorkspacesApps_Workspaces_Apps,
-	session credentials.Session,
 ) error {
 	ce.Infoln("Getting secrets list from Nhost...")
-	cl := ce.GetNhostClient()
+	cl, err := ce.GetNhostClient(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get nhost client: %w", err)
+	}
 	resp, err := cl.GetSecrets(
 		ctx,
 		proj.ID,
-		graphql.WithAccessToken(session.Session.AccessToken),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get secrets: %w", err)
@@ -151,16 +147,17 @@ func Pull(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	proj *graphql.GetWorkspacesApps_Workspaces_Apps,
-	session credentials.Session,
 	writeSecrts bool,
 ) (*model.ConfigConfig, error) {
 	ce.Infoln("Pulling config from Nhost...")
 
-	cl := ce.GetNhostClient()
+	cl, err := ce.GetNhostClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get nhost client: %w", err)
+	}
 	cfg, err := cl.GetConfigRawJSON(
 		ctx,
 		proj.ID,
-		graphql.WithAccessToken(session.Session.AccessToken),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get config: %w", err)
@@ -180,7 +177,7 @@ func Pull(
 	}
 
 	if writeSecrts {
-		if err := pullSecrets(ctx, ce, proj, session); err != nil {
+		if err := pullSecrets(ctx, ce, proj); err != nil {
 			return nil, err
 		}
 	}

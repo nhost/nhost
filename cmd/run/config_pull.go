@@ -44,9 +44,12 @@ func commandConfigPull(cCtx *cli.Context) error {
 		return fmt.Errorf("failed to load session: %w", err)
 	}
 
-	cl := ce.GetNhostClient()
+	cl, err := ce.GetNhostClient(cCtx.Context)
+	if err != nil {
+		return fmt.Errorf("failed to get nhost client: %w", err)
+	}
 
-	appID, err := getAppIDFromServiceID(cCtx.Context, cl, session, cCtx.String(flagServiceID))
+	appID, err := getAppIDFromServiceID(cCtx.Context, cl, cCtx.String(flagServiceID))
 	if err != nil {
 		return err
 	}

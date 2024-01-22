@@ -15,15 +15,12 @@ func getRemoteAppInfo(
 	ce *CliEnv,
 	subdomain string,
 ) (*graphql.GetWorkspacesApps_Workspaces_Apps, error) {
-	session, err := ce.LoadSession(ctx)
+	cl, err := ce.GetNhostClient(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load session: %w", err)
+		return nil, fmt.Errorf("failed to get nhost client: %w", err)
 	}
-
-	cl := ce.GetNhostClient()
 	workspaces, err := cl.GetWorkspacesApps(
 		ctx,
-		graphql.WithAccessToken(session.Session.AccessToken),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get workspaces: %w", err)

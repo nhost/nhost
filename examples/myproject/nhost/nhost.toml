@@ -32,7 +32,7 @@ key = '{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}'
 
 [hasura.settings]
 enableRemoteSchemaPermissions = false
-corsDomain = ['https://app.nhost.io', 'https://staging.apps.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
+corsDomain = ['https://local.dashboard.nhost.run', 'https://app.nhost.io', 'https://staging.app.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
 liveQueriesMultiplexedRefetchInterval = 3000
 
 [functions]

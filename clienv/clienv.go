@@ -1,12 +1,15 @@
 package clienv
 
 import (
+	"context"
+	"fmt"
 	"io"
 	"os"
 	"regexp"
 	"strings"
 
 	"github.com/nhost/cli/nhostclient"
+	"github.com/nhost/cli/nhostclient/graphql"
 	"github.com/urfave/cli/v2"
 )
 
@@ -78,9 +81,16 @@ func (ce *CliEnv) Branch() string {
 	return ce.branch
 }
 
-func (ce *CliEnv) GetNhostClient() *nhostclient.Client {
+func (ce *CliEnv) GetNhostClient(ctx context.Context) (*nhostclient.Client, error) {
 	if ce.nhclient == nil {
-		ce.nhclient = nhostclient.New(ce.domain)
+		session, err := ce.LoadSession(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load session: %w", err)
+		}
+		ce.nhclient = nhostclient.New(
+			ce.domain,
+			graphql.WithAccessToken(session.Session.AccessToken),
+		)
 	}
-	return ce.nhclient
+	return ce.nhclient, nil
 }

@@ -16,6 +16,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/nhost/cli/nhostclient"
 	"github.com/nhost/cli/nhostclient/credentials"
 	"github.com/nhost/cli/ssl"
 )
@@ -116,7 +117,7 @@ func (ce *CliEnv) loginEmailPassword(
 	email string,
 	password string,
 ) (credentials.Credentials, error) {
-	cl := ce.GetNhostClient()
+	cl := nhostclient.New(ce.Domain())
 	var err error
 	if email == "" {
 		ce.PromptMessage("email: ")
@@ -176,7 +177,7 @@ func (ce *CliEnv) loginGithub(ctx context.Context) (credentials.Credentials, err
 
 	refreshTokenValue := <-refreshToken
 
-	cl := ce.GetNhostClient()
+	cl := nhostclient.New(ce.Domain())
 	refreshTokenResp, err := cl.RefreshToken(ctx, refreshTokenValue)
 	if err != nil {
 		return credentials.Credentials{}, fmt.Errorf("failed to get access token: %w", err)

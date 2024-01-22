@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/nhost/cli/nhostclient"
 	"github.com/nhost/cli/nhostclient/credentials"
 )
 
@@ -19,7 +20,7 @@ func (ce *CliEnv) LoadSession(
 		}
 	}
 
-	cl := ce.GetNhostClient()
+	cl := nhostclient.New(ce.Domain())
 	session, err := cl.LoginPAT(ctx, creds.PersonalAccessToken)
 	if err != nil {
 		return credentials.Session{}, fmt.Errorf("failed to login: %w", err)
