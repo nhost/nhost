@@ -116,7 +116,7 @@ export async function prepareTable({
   );
 
   // select the first column as primary key
-  await page.getByRole('button', { name: /primary key/i }).click();
+  await page.getByLabel('Primary Key').click();
   await page.getByRole('option', { name: primaryKey, exact: true }).click();
 }
 
