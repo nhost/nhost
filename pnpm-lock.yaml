@@ -403,8 +403,8 @@ importers:
         specifier: ^16.11.7
         version: 16.18.11
       '@types/pluralize':
-        specifier: ^0.0.30
-        version: 0.0.30
+        specifier: ^0.0.33
+        version: 0.0.33
       '@types/react':
         specifier: ^18.2.14
         version: 18.2.14
@@ -13240,8 +13240,8 @@ packages:
     resolution: {integrity: sha512-kUNnecmtkunAoQ3CnjmMkzNU/gtxG8guhi+Fk2U/kOpIKjIMKnXGp4IJCgQJrXSgMsWYimYG4TGjz/UzbGEBTw==}
     dev: true
 
-  /@types/pluralize@0.0.30:
-    resolution: {integrity: sha512-kVww6xZrW/db5BR9OqiT71J9huRdQ+z/r+LbDuT7/EK50mCmj5FoaIARnVv0rvjUS/YpDox0cDU9lpQT011VBA==}
+  /@types/pluralize@0.0.33:
+    resolution: {integrity: sha512-JOqsl+ZoCpP4e8TDke9W79FDcSgPAR0l6pixx2JHkhnRjvShyYiAYw2LVsnA7K08Y6DeOnaU6ujmENO4os/cYg==}
     dev: true
 
   /@types/pngjs@6.0.1:
