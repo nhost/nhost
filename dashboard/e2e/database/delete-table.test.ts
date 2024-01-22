@@ -113,7 +113,10 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
   // select column in current table
-  await page.getByLabel('Column').first().click();
+  await page
+    .getByRole('button', { name: /column/i })
+    .first()
+    .click();
   await page.getByRole('option', { name: /author_id/i }).click();
 
   // select reference schema
