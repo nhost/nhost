@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.1.0
+
+### Minor Changes
+
+- 65b6a48d5: feat: added graphite/cli documentation
+
 ## 2.0.0
 
 ### Major Changes
