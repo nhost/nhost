@@ -198,28 +198,19 @@ test('should create table with foreign key constraint', async () => {
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
   // select column in current table
-  await page.waitForSelector('button[aria-label="Column"]');
-  await page.click('button[aria-label="Column"]');
+  await page
+    .getByRole('button', { name: /column/i })
+    .first()
+    .click();
 
-  // await page
-  //   .getByRole('button', { name: /column/i })
-  //   .first()
-  //   .click();
   await page.getByRole('option', { name: /author_id/i }).click();
 
   // select reference schema
-  await page.waitForSelector('button[aria-label="Schema"]');
-  await page.click('button[aria-label="Schema"]');
-
-  //  await page.getByRole('button', { name: /schema/i }).click();
-
+  await page.getByRole('button', { name: /schema/i }).click();
   await page.getByRole('option', { name: /public/i }).click();
 
   // select reference table
-  await page.waitForSelector('button[aria-label="Table"]');
-  await page.click('button[aria-label="Table"]');
-
-  // await page.getByRole('button', { name: /table/i }).click();
+  await page.getByRole('button', { name: /table/i }).click();
   await page.getByRole('option', { name: firstTableName, exact: true }).click();
 
   await page.waitForTimeout(1000);
