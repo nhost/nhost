@@ -222,6 +222,8 @@ test('should create table with foreign key constraint', async () => {
   // await page.getByRole('button', { name: /table/i }).click();
   await page.getByRole('option', { name: firstTableName, exact: true }).click();
 
+  await page.waitForTimeout(1000);
+
   // select reference column
   await page
     .getByRole('button', { name: /column/i })
