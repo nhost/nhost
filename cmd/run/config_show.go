@@ -1,4 +1,4 @@
-package config
+package run
 
 import (
 	"fmt"
@@ -10,25 +10,32 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func CommandShow() *cli.Command {
+func CommandConfigShow() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
-		Name:        "show",
+		Name:        "config-show",
 		Aliases:     []string{},
-		Usage:       "Shows configuration after resolving secrets",
+		Usage:       "Shows Run service configuration after resolving secrets",
 		Description: "Note that this command will always use the local secrets, even if you specify subdomain",
-		Action:      commandShow,
+		Action:      commandConfigShow,
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagSubdomain,
-				Usage:   "Show this subdomain's rendered configuration. Defaults to base configuration",
-				EnvVars: []string{"NHOST_SUBDOMAIN"},
+				Name:    flagConfig,
+				Aliases: []string{},
+				Usage:   "Service configuration file",
+				Value:   "nhost-run-service.toml",
+				EnvVars: []string{"NHOST_RUN_SERVICE_CONFIG"},
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagOverlayName,
+				Usage:   "If specified, apply this overlay",
+				EnvVars: []string{"NHOST_RUN_SERVICE_ID", "NHOST_SERVICE_OVERLAY_NAME"},
 			},
 		},
 	}
 }
 
-func commandShow(c *cli.Context) error {
-	ce := clienv.FromCLI(c)
+func commandConfigShow(cCtx *cli.Context) error {
+	ce := clienv.FromCLI(cCtx)
 
 	var secrets model.Secrets
 	if err := clienv.UnmarshalFile(ce.Path.Secrets(), &secrets, env.Unmarshal); err != nil {
@@ -38,7 +45,12 @@ func commandShow(c *cli.Context) error {
 		)
 	}
 
-	cfg, err := Validate(ce, c.String(flagSubdomain), secrets)
+	cfg, err := Validate(
+		ce,
+		cCtx.String(flagConfig),
+		cCtx.String(flagOverlayName),
+		secrets,
+	)
 	if err != nil {
 		return err
 	}

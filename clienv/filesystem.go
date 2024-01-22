@@ -92,3 +92,12 @@ func PathStateHome() string {
 
 	return path
 }
+
+func (p PathStructure) RunServiceOverlaysFolder(configPath string) string {
+	base := filepath.Dir(configPath)
+	return filepath.Join(base, "nhost", "overlays")
+}
+
+func (p PathStructure) RunServiceOverlay(configPath, subdomain string) string {
+	return filepath.Join(p.RunServiceOverlaysFolder(configPath), "run-"+subdomain+".json")
+}

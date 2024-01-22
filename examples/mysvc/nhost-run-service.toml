@@ -1,0 +1,20 @@
+name = 'bun-gen'
+
+[image]
+image = 'nhost/bun-generator:0.0.3'
+
+[[environment]]
+name = 'PEXELS_API_KEY'
+value = '{{ secrets.PEXELS_API_KEY }}'
+
+[[ports]]
+port = 5000
+type = 'http'
+publish = true
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 62
+memory = 128

@@ -9,9 +9,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/clienv"
 	"github.com/nhost/cli/cmd/config"
 	"github.com/nhost/cli/dockercompose"
+	"github.com/nhost/cli/project/env"
 	"github.com/urfave/cli/v2"
 )
 
@@ -199,7 +201,14 @@ func up( //nolint:funlen
 		cancel()
 	}()
 
-	cfg, err := config.Validate(ce, "local")
+	var secrets model.Secrets
+	if err := clienv.UnmarshalFile(ce.Path.Secrets(), &secrets, env.Unmarshal); err != nil {
+		return fmt.Errorf(
+			"failed to parse secrets, make sure secret values are between quotes: %w",
+			err,
+		)
+	}
+	cfg, err := config.Validate(ce, "local", secrets)
 	if err != nil {
 		return fmt.Errorf("failed to validate config: %w", err)
 	}

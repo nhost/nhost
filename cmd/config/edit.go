@@ -43,7 +43,7 @@ func CommandEdit() *cli.Command {
 	}
 }
 
-func editFile(ctx context.Context, editor, filepath string) error {
+func EditFile(ctx context.Context, editor, filepath string) error {
 	cmd := exec.CommandContext(
 		ctx,
 		editor,
@@ -60,15 +60,15 @@ func editFile(ctx context.Context, editor, filepath string) error {
 	return nil
 }
 
-func copyConfig(ce *clienv.CliEnv, dst, overlay string) error {
-	var cfg *model.ConfigConfig
-	if err := clienv.UnmarshalFile(ce.Path.NhostToml(), &cfg, toml.Unmarshal); err != nil {
+func CopyConfig[T any](src, dst, overlayPath string) error {
+	var cfg *T
+	if err := clienv.UnmarshalFile(src, &cfg, toml.Unmarshal); err != nil {
 		return fmt.Errorf("failed to parse config: %w", err)
 	}
 
 	var err error
-	if clienv.PathExists(ce.Path.Overlay(overlay)) {
-		cfg, err = applyJSONPatches(ce, *cfg, overlay)
+	if clienv.PathExists(overlayPath) {
+		cfg, err = ApplyJSONPatches(*cfg, overlayPath)
 		if err != nil {
 			return fmt.Errorf("failed to apply json patches: %w", err)
 		}
@@ -101,7 +101,7 @@ func readFile(filepath string) (any, error) {
 	return v, nil
 }
 
-func generateJSONPatch(origfilepath, newfilepath, dst string) error {
+func GenerateJSONPatch(origfilepath, newfilepath, dst string) error {
 	origo, err := readFile(origfilepath)
 	if err != nil {
 		return fmt.Errorf("failed to convert original toml to json: %w", err)
@@ -143,7 +143,7 @@ func edit(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
 	if cCtx.String(flagSubdomain) == "" {
-		if err := editFile(cCtx.Context, cCtx.String(flagEditor), ce.Path.NhostToml()); err != nil {
+		if err := EditFile(cCtx.Context, cCtx.String(flagEditor), ce.Path.NhostToml()); err != nil {
 			return fmt.Errorf("failed to edit config: %w", err)
 		}
 		return nil
@@ -161,15 +161,17 @@ func edit(cCtx *cli.Context) error {
 
 	tmpfileName := filepath.Join(tmpdir, "nhost.toml")
 
-	if err := copyConfig(ce, tmpfileName, cCtx.String(flagSubdomain)); err != nil {
+	if err := CopyConfig[model.ConfigConfig](
+		ce.Path.NhostToml(), tmpfileName, ce.Path.Overlay(cCtx.String(flagSubdomain)),
+	); err != nil {
 		return fmt.Errorf("failed to copy config: %w", err)
 	}
 
-	if err := editFile(cCtx.Context, cCtx.String(flagEditor), tmpfileName); err != nil {
+	if err := EditFile(cCtx.Context, cCtx.String(flagEditor), tmpfileName); err != nil {
 		return fmt.Errorf("failed to edit config: %w", err)
 	}
 
-	if err := generateJSONPatch(
+	if err := GenerateJSONPatch(
 		ce.Path.NhostToml(), tmpfileName, ce.Path.Overlay(cCtx.String(flagSubdomain)),
 	); err != nil {
 		return fmt.Errorf("failed to generate json patch: %w", err)

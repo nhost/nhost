@@ -9,35 +9,42 @@ import (
 	"github.com/nhost/be/services/mimir/schema"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 	"github.com/nhost/cli/clienv"
+	"github.com/nhost/cli/cmd/config"
 	"github.com/nhost/cli/nhostclient"
 	"github.com/nhost/cli/nhostclient/graphql"
+	"github.com/nhost/cli/project/env"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
 )
 
 const (
-	flagConfig = "config"
+	flagConfig      = "config"
+	flagOverlayName = "overlay-name"
 )
 
 func CommandConfigValidate() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "config-validate",
 		Aliases: []string{},
-		Usage:   "Validates service configuration after resolving secrets (only validation against cloud project supported)",
+		Usage:   "Validates service configuration after resolving secrets",
 		Action:  commandConfigValidate,
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:     flagConfig,
-				Aliases:  []string{},
-				Usage:    "Service configuration file",
-				Required: true,
-				EnvVars:  []string{"NHOST_RUN_SERVICE_CONFIG"},
+				Name:    flagConfig,
+				Aliases: []string{},
+				Usage:   "Service configuration file",
+				Value:   "nhost-run-service.toml",
+				EnvVars: []string{"NHOST_RUN_SERVICE_CONFIG"},
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:     flagServiceID,
-				Usage:    "Service ID to update",
-				Required: true,
-				EnvVars:  []string{"NHOST_RUN_SERVICE_ID"},
+				Name:    flagOverlayName,
+				Usage:   "If specified, apply this overlay",
+				EnvVars: []string{"NHOST_SERVICE_OVERLAY_NAME"},
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagServiceID,
+				Usage:   "If specified, apply this overlay and remote secrets for this service",
+				EnvVars: []string{"NHOST_RUN_SERVICE_ID"},
 			},
 		},
 	}
@@ -91,60 +98,102 @@ func getAppIDFromServiceID(
 	return resp.GetRunService().GetAppID(), nil
 }
 
-func ValidateRemote(
-	ctx context.Context,
+func Validate(
 	ce *clienv.CliEnv,
-	cl *nhostclient.Client,
-	cfg *model.ConfigRunServiceConfig,
-	appID string,
-) error {
-	schema, err := schema.New()
+	configPath string,
+	overlayName string,
+	secrets model.Secrets,
+) (*model.ConfigRunServiceConfig, error) {
+	cfg, err := loadConfig(configPath)
 	if err != nil {
-		return fmt.Errorf("failed to create schema: %w", err)
+		return nil, err
 	}
 
-	ce.Infoln("Getting secrets...")
+	if clienv.PathExists(ce.Path.RunServiceOverlay(configPath, overlayName)) {
+		cfg, err = config.ApplyJSONPatches(*cfg, ce.Path.RunServiceOverlay(configPath, overlayName))
+		if err != nil {
+			return nil, fmt.Errorf("failed to apply json patches: %w", err)
+		}
+	}
+
+	schema, err := schema.New()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create schema: %w", err)
+	}
+
+	cfg, err = appconfig.SecretsResolver(cfg, secrets, schema.FillRunServiceConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate config: %w", err)
+	}
+
+	return cfg, nil
+}
+
+func getRemoteSecrets(
+	ctx context.Context,
+	cl *nhostclient.Client,
+	serviceID string,
+) (model.Secrets, string, error) {
+	appID, err := getAppIDFromServiceID(ctx, cl, serviceID)
+	if err != nil {
+		return nil, "", err
+	}
 	secretsResp, err := cl.GetSecrets(
 		ctx,
 		appID,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to get secrets: %w", err)
+		return nil, "", fmt.Errorf("failed to get secrets: %w", err)
 	}
 
-	secrets := respToSecrets(secretsResp.GetAppSecrets())
-	_, err = appconfig.SecretsResolver(cfg, secrets, schema.FillRunServiceConfig)
-	if err != nil {
-		return fmt.Errorf("failed to validate config: %w", err)
-	}
-
-	ce.Infoln("Config is valid!")
-
-	return nil
+	return respToSecrets(secretsResp.GetAppSecrets()), appID, nil
 }
 
 func commandConfigValidate(cCtx *cli.Context) error {
-	cfg, err := loadConfig(cCtx.String(flagConfig))
-	if err != nil {
-		return err
+	var overlayName string
+	var serviceID string
+	switch {
+	case cCtx.String(flagServiceID) != "" && cCtx.String(flagOverlayName) != "":
+		return fmt.Errorf("cannot specify both service id and overlay name") //nolint:goerr113
+	case cCtx.String(flagServiceID) != "":
+		serviceID = cCtx.String(flagServiceID)
+		overlayName = serviceID
+	case cCtx.String(flagOverlayName) != "":
+		overlayName = cCtx.String(flagOverlayName)
 	}
 
 	ce := clienv.FromCLI(cCtx)
-	cl, err := ce.GetNhostClient(cCtx.Context)
-	if err != nil {
-		return fmt.Errorf("failed to get nhost client: %w", err)
+
+	var secrets model.Secrets
+	ce.Infoln("Getting secrets...")
+	if serviceID != "" {
+		cl, err := ce.GetNhostClient(cCtx.Context)
+		if err != nil {
+			return fmt.Errorf("failed to get nhost client: %w", err)
+		}
+		secrets, _, err = getRemoteSecrets(cCtx.Context, cl, serviceID)
+		if err != nil {
+			return err
+		}
+	} else {
+		if err := clienv.UnmarshalFile(ce.Path.Secrets(), &secrets, env.Unmarshal); err != nil {
+			return fmt.Errorf(
+				"failed to parse secrets, make sure secret values are between quotes: %w",
+				err,
+			)
+		}
 	}
 
-	appID, err := getAppIDFromServiceID(cCtx.Context, cl, cCtx.String(flagServiceID))
-	if err != nil {
+	ce.Infoln("Verifying configuration...")
+	if _, err := Validate(
+		ce,
+		cCtx.String(flagConfig),
+		overlayName,
+		secrets,
+	); err != nil {
 		return err
 	}
 
-	return ValidateRemote(
-		cCtx.Context,
-		ce,
-		cl,
-		cfg,
-		appID,
-	)
+	ce.Infoln("Configuration is valid!")
+	return nil
 }

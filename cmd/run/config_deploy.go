@@ -21,12 +21,13 @@ func CommandConfigDeploy() *cli.Command {
 				Name:     flagConfig,
 				Aliases:  []string{},
 				Usage:    "Service configuration file",
+				Value:    "nhost-run-service.toml",
 				Required: true,
 				EnvVars:  []string{"NHOST_RUN_SERVICE_CONFIG"},
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagServiceID,
-				Usage:    "Service ID to update",
+				Usage:    "Service ID to update. Applies overlay of the same name",
 				Required: true,
 				EnvVars:  []string{"NHOST_RUN_SERVICE_ID"},
 			},
@@ -49,23 +50,24 @@ func transform[T, V any](t *T) (*V, error) {
 }
 
 func commandConfigDeploy(cCtx *cli.Context) error {
-	cfg, err := loadConfig(cCtx.String(flagConfig))
-	if err != nil {
-		return err
-	}
-
 	ce := clienv.FromCLI(cCtx)
-
 	cl, err := ce.GetNhostClient(cCtx.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
-	appID, err := getAppIDFromServiceID(cCtx.Context, cl, cCtx.String(flagServiceID))
+
+	secrets, appID, err := getRemoteSecrets(cCtx.Context, cl, cCtx.String(flagServiceID))
 	if err != nil {
 		return err
 	}
 
-	if err := ValidateRemote(cCtx.Context, ce, cl, cfg, appID); err != nil {
+	cfg, err := Validate(
+		ce,
+		cCtx.String(flagConfig),
+		cCtx.String(flagServiceID),
+		secrets,
+	)
+	if err != nil {
 		return err
 	}
 

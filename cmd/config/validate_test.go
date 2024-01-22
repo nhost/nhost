@@ -9,6 +9,7 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/clienv"
 	"github.com/nhost/cli/cmd/config"
+	"github.com/nhost/cli/project/env"
 )
 
 func ptr[T any](t T) *T {
@@ -214,7 +215,14 @@ func TestValidate(t *testing.T) {
 				"",
 			)
 
-			cfg, err := config.Validate(ce, "local")
+			var secrets model.Secrets
+			if err := clienv.UnmarshalFile(ce.Path.Secrets(), &secrets, env.Unmarshal); err != nil {
+				t.Fatalf(
+					"failed to parse secrets, make sure secret values are between quotes: %s",
+					err,
+				)
+			}
+			cfg, err := config.Validate(ce, "local", secrets)
 			if err != nil {
 				t.Fatal(err)
 			}

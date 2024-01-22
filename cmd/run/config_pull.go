@@ -6,7 +6,6 @@ import (
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/clienv"
-	"github.com/nhost/cli/nhostclient/graphql"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v2"
 )
@@ -20,11 +19,11 @@ func CommandConfigPull() *cli.Command {
 		Usage:   "Download service configuration",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:     flagConfig,
-				Aliases:  []string{},
-				Usage:    "Service configuration file",
-				Required: true,
-				EnvVars:  []string{"NHOST_RUN_SERVICE_CONFIG"},
+				Name:    flagConfig,
+				Aliases: []string{},
+				Usage:   "Service configuration file",
+				Value:   "nhost-run-service.toml",
+				EnvVars: []string{"NHOST_RUN_SERVICE_CONFIG"},
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagServiceID,
@@ -39,11 +38,6 @@ func CommandConfigPull() *cli.Command {
 
 func commandConfigPull(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
-	session, err := ce.LoadSession(cCtx.Context)
-	if err != nil {
-		return fmt.Errorf("failed to load session: %w", err)
-	}
-
 	cl, err := ce.GetNhostClient(cCtx.Context)
 	if err != nil {
 		return fmt.Errorf("failed to get nhost client: %w", err)
@@ -59,7 +53,6 @@ func commandConfigPull(cCtx *cli.Context) error {
 		appID,
 		cCtx.String(flagServiceID),
 		false,
-		graphql.WithAccessToken(session.Session.AccessToken),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get service config: %w", err)

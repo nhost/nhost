@@ -18,11 +18,11 @@ func CommandConfigEditImage() *cli.Command {
 		Usage:   "Edits configuration file and sets the image",
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:     flagConfig,
-				Aliases:  []string{},
-				Usage:    "Service configuration file",
-				Required: true,
-				EnvVars:  []string{"NHOST_RUN_SERVICE_CONFIG"},
+				Name:    flagConfig,
+				Aliases: []string{},
+				Usage:   "Service configuration file",
+				Value:   "nhost-run-service.toml",
+				EnvVars: []string{"NHOST_RUN_SERVICE_CONFIG"},
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagImage,
