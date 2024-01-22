@@ -116,7 +116,6 @@ export async function prepareTable({
   );
 
   // select the first column as primary key
-  // await page.getByRole('button', { name: /primary key/i }).click();
   await page.waitForSelector('button[aria-label="Primary Key"]');
   await page.click('button[aria-label="Primary Key"]');
 

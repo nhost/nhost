@@ -138,7 +138,10 @@ test('should create a table with an identity column', async () => {
     ],
   });
 
-  await page.getByRole('button', { name: /identity/i }).click();
+  await page.waitForSelector('button[aria-label="Identity"]');
+  await page.click('button[aria-label="Identity"]');
+
+  // await page.getByRole('button', { name: /identity/i }).click();
   await page.getByRole('option', { name: /id/i }).click();
 
   // create table
@@ -195,10 +198,13 @@ test('should create table with foreign key constraint', async () => {
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
   // select column in current table
-  await page
-    .getByRole('button', { name: /column/i })
-    .first()
-    .click();
+  await page.waitForSelector('button[aria-label="Column"]');
+  await page.click('button[aria-label="Column"]');
+
+  // await page
+  //   .getByRole('button', { name: /column/i })
+  //   .first()
+  //   .click();
   await page.getByRole('option', { name: /author_id/i }).click();
 
   // select reference schema
