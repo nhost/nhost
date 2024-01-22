@@ -49,7 +49,7 @@
     "@uiw/react-codemirror": "^4.21.20",
     "analytics-node": "^6.2.0",
     "bcryptjs": "^2.4.3",
-    "clsx": "^1.2.1",
+    "clsx": "^2.0.0",
     "date-fns": "^2.29.3",
     "generate-password": "^1.7.0",
     "graphiql": "^3.0.0",
