@@ -662,3 +662,14 @@ body {
 [data-rmiz-modal-overlay='hidden'] {
   background-color: rgba(0, 0, 0, 0) !important;
 }
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -5px; /* Position the arrow just below the tooltip */
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #1f2937 transparent transparent transparent; /* Match the tooltip color */
+}

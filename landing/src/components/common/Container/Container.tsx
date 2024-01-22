@@ -53,7 +53,7 @@ function Container(
     <div
       {...(slotProps?.content || {})}
       className={twMerge(
-        'mx-auto max-w-7xl px-5',
+        'mx-auto max-w-7xl',
         className,
         slotProps?.content?.className,
       )}
