@@ -135,8 +135,8 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0
       '@graphiql/react':
-        specifier: ^0.18.0
-        version: 0.18.0(@codemirror/language@6.0.0)(@types/node@16.18.11)(@types/react-dom@18.2.6)(@types/react@18.2.14)(graphql-ws@5.11.2)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
+        specifier: ^0.20.0
+        version: 0.20.0(@codemirror/language@6.0.0)(@types/node@16.18.11)(@types/react-dom@18.2.6)(@types/react@18.2.14)(graphql-ws@5.11.2)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
       '@graphiql/toolkit':
         specifier: ^0.8.2
         version: 0.8.2(@types/node@16.18.11)(graphql-ws@5.11.2)(graphql@16.7.1)
@@ -6816,11 +6816,44 @@ packages:
       '@types/codemirror': 5.60.8
       clsx: 1.2.1
       codemirror: 5.65.9
-      codemirror-graphql: 2.0.9(@codemirror/language@6.0.0)(codemirror@5.65.9)(graphql@16.7.1)
+      codemirror-graphql: 2.0.10(@codemirror/language@6.0.0)(codemirror@5.65.9)(graphql@16.7.1)
       copy-to-clipboard: 3.3.3
       framer-motion: 6.5.1(react-dom@18.2.0)(react@18.2.0)
       graphql: 16.7.1
-      graphql-language-service: 5.1.7(graphql@16.7.1)
+      graphql-language-service: 5.2.0(graphql@16.7.1)
+      markdown-it: 12.3.2
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      set-value: 4.1.0
+    transitivePeerDependencies:
+      - '@codemirror/language'
+      - '@types/node'
+      - '@types/react'
+      - '@types/react-dom'
+      - graphql-ws
+    dev: false
+
+  /@graphiql/react@0.20.0(@codemirror/language@6.0.0)(@types/node@16.18.11)(@types/react-dom@18.2.6)(@types/react@18.2.14)(graphql-ws@5.11.2)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-ot+9/10qLtg5leE8Lv3YgWGzOjD05bLopOu5zaGkx4pqmDp3Mlon1QTGJg+rRi2M6nIJGzO6jyoRLHmNj4QF+Q==}
+    peerDependencies:
+      graphql: ^15.5.0 || ^16.0.0
+      react: ^16.8.0 || ^17 || ^18
+      react-dom: ^16.8.0 || ^17 || ^18
+    dependencies:
+      '@graphiql/toolkit': 0.9.1(@types/node@16.18.11)(graphql-ws@5.11.2)(graphql@16.7.1)
+      '@headlessui/react': 1.7.15(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-dialog': 1.0.4(@types/react-dom@18.2.6)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-dropdown-menu': 2.0.5(@types/react-dom@18.2.6)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-tooltip': 1.0.6(@types/react-dom@18.2.6)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-visually-hidden': 1.0.3(@types/react-dom@18.2.6)(@types/react@18.2.14)(react-dom@18.2.0)(react@18.2.0)
+      '@types/codemirror': 5.60.8
+      clsx: 1.2.1
+      codemirror: 5.65.9
+      codemirror-graphql: 2.0.10(@codemirror/language@6.0.0)(codemirror@5.65.9)(graphql@16.7.1)
+      copy-to-clipboard: 3.3.3
+      framer-motion: 6.5.1(react-dom@18.2.0)(react@18.2.0)
+      graphql: 16.7.1
+      graphql-language-service: 5.2.0(graphql@16.7.1)
       markdown-it: 12.3.2
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
@@ -6852,6 +6885,23 @@ packages:
 
   /@graphiql/toolkit@0.8.4(@types/node@16.18.11)(graphql-ws@5.11.2)(graphql@16.7.1):
     resolution: {integrity: sha512-cFUGqh3Dau+SD3Vq9EFlZrhzYfaHKyOJveFtaCR+U5Cn/S68p7oy+vQBIdwtO6J2J58FncnwBbVRfr+IvVfZqQ==}
+    peerDependencies:
+      graphql: ^15.5.0 || ^16.0.0
+      graphql-ws: '>= 4.5.0'
+    peerDependenciesMeta:
+      graphql-ws:
+        optional: true
+    dependencies:
+      '@n1ru4l/push-pull-async-iterable-iterator': 3.2.0
+      graphql: 16.7.1
+      graphql-ws: 5.11.2(graphql@16.7.1)
+      meros: 1.2.1(@types/node@16.18.11)
+    transitivePeerDependencies:
+      - '@types/node'
+    dev: false
+
+  /@graphiql/toolkit@0.9.1(@types/node@16.18.11)(graphql-ws@5.11.2)(graphql@16.7.1):
+    resolution: {integrity: sha512-LVt9pdk0830so50ZnU2Znb2rclcoWznG8r8asqAENzV0U1FM1kuY0sdPpc/rBc9MmmNgnB6A+WZzDhq6dbhTHA==}
     peerDependencies:
       graphql: ^15.5.0 || ^16.0.0
       graphql-ws: '>= 4.5.0'
@@ -12944,6 +12994,12 @@ packages:
     resolution: {integrity: sha512-mEo1sAde+UCE6b2hxn332f1g1E8WfYRu6p5SvTKr2ZKC1f7gFJXk4h5PyGP9Dt6gCaG8y8XhwnXWC6Iy2cmBng==}
     dev: true
 
+  /@types/codemirror@0.0.90:
+    resolution: {integrity: sha512-8Z9+tSg27NPRGubbUPUCrt5DDG/OWzLph5BvcDykwR5D7RyZh5mhHG0uS1ePKV1YFCA+/cwc4Ey2AJAEFfV3IA==}
+    dependencies:
+      '@types/tern': 0.23.4
+    dev: false
+
   /@types/codemirror@5.60.8:
     resolution: {integrity: sha512-VjFgDF/eB+Aklcy15TtOTLQeMjTo07k7KAjql8OK5Dirr7a6sJY4T1uVBDuTVG9VEmn1uUsohOpYnVfgC6/jyw==}
     dependencies:
@@ -17333,17 +17389,18 @@ packages:
     resolution: {integrity: sha512-EcR6r5a8bj6pu3ycsa/E/cKVGuTgZJZdsyUYHOksG/UHIiKfjxzRxYJpyVBwYaQeOvghal9fcc4PidlgzugAQg==}
     engines: {node: '>=6'}
 
-  /codemirror-graphql@2.0.9(@codemirror/language@6.0.0)(codemirror@5.65.9)(graphql@16.7.1):
-    resolution: {integrity: sha512-gl1LR6XSBgZtl7Dr2q4jjRNfhxMF8vn+rnjZTZPf/l+VrQgavY8l3G//hW7s3hWy73iiqkq5LZ4KE1tdaxB/vQ==}
+  /codemirror-graphql@2.0.10(@codemirror/language@6.0.0)(codemirror@5.65.9)(graphql@16.7.1):
+    resolution: {integrity: sha512-rC9NxibCsSzWtCQjHLfwKCkyYdGv2BT/BCgyDoKPrc/e7aGiyLyeT0fB60d+0imwlvhX3lIHncl6JMz2YxQ/jg==}
     peerDependencies:
       '@codemirror/language': 6.0.0
       codemirror: ^5.65.3
       graphql: ^15.5.0 || ^16.0.0
     dependencies:
       '@codemirror/language': 6.0.0
+      '@types/codemirror': 0.0.90
       codemirror: 5.65.9
       graphql: 16.7.1
-      graphql-language-service: 5.1.7(graphql@16.7.1)
+      graphql-language-service: 5.2.0(graphql@16.7.1)
     dev: false
 
   /codemirror@5.65.9:
@@ -21772,6 +21829,17 @@ packages:
 
   /graphql-language-service@5.1.7(graphql@16.7.1):
     resolution: {integrity: sha512-xkawYMJeoNYGhT+SpSH3c2qf6HpGHQ/duDmrseVHBpVCrXAiGnliXGSCC4jyMGgZQ05GytsZ12p0nUo7s6lSSw==}
+    hasBin: true
+    peerDependencies:
+      graphql: ^15.5.0 || ^16.0.0
+    dependencies:
+      graphql: 16.7.1
+      nullthrows: 1.1.1
+      vscode-languageserver-types: 3.17.2
+    dev: false
+
+  /graphql-language-service@5.2.0(graphql@16.7.1):
+    resolution: {integrity: sha512-o/ZgTS0pBxWm3hSF4+6GwiV1//DxzoLWEbS38+jqpzzy1d/QXBidwQuVYTOksclbtOJZ3KR/tZ8fi/tI6VpVMg==}
     hasBin: true
     peerDependencies:
       graphql: ^15.5.0 || ^16.0.0
