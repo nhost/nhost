@@ -1029,16 +1029,16 @@ export default function PricingPage() {
 
         <ul className="divide-y divide-divider">
           <li className="grid grid-flow-row gap-4 py-6">
-            <h3 className="text-xl">Do I pick one plan per project?</h3>
+            <h3 className="text-xl">Are plans per project?</h3>
 
             <p className="text-base">Yes, plans are per project.</p>
           </li>
           <li className="grid grid-flow-row gap-4 py-6">
             <h3 className="text-xl">
-              How many free Starter projects can I have?
+              How many free projects can I have?
             </h3>
 
-            <p className="text-base">You can have 1 Starter project.</p>
+            <p className="text-base">You can have as many free projects as you want, as long as only 1 is active at any given time. You can pause and unpause free projects as needed.</p>
           </li>
           <li className="grid grid-flow-row gap-4 py-6">
             <h3 className="text-xl">Can I switch between plans later?</h3>
@@ -1066,7 +1066,7 @@ export default function PricingPage() {
           <li className="grid grid-flow-row gap-4 py-6">
             <h3 className="text-xl">What happens if I exceed the limits?</h3>
 
-            <p className="text-base">You will be charged for excess usage.</p>
+            <p className="text-base">We never stop your project and you will be charged for the excess usage. Pay as you grow.</p>
           </li>
         </ul>
       </section>
