@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.5.0
+
+### Minor Changes
+
+- c2ef17c0a: feat: add support for new Team plan
+
 ## 1.4.0
 
 ### Minor Changes
