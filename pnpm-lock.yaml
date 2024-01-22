@@ -138,8 +138,8 @@ importers:
         specifier: ^0.18.0
         version: 0.18.0(@codemirror/language@6.0.0)(@types/node@16.18.11)(@types/react-dom@18.2.6)(@types/react@18.2.14)(graphql-ws@5.11.2)(graphql@16.7.1)(react-dom@18.2.0)(react@18.2.0)
       '@graphiql/toolkit':
-        specifier: ^0.8.2
-        version: 0.8.2(@types/node@16.18.11)(graphql-ws@5.11.2)(graphql@16.7.1)
+        specifier: ^0.9.0
+        version: 0.9.0(@types/node@16.18.11)(graphql-ws@5.11.2)(graphql@16.7.1)
       '@headlessui/react':
         specifier: ^1.6.5
         version: 1.7.4(react-dom@18.2.0)(react@18.2.0)
@@ -6833,8 +6833,8 @@ packages:
       - graphql-ws
     dev: false
 
-  /@graphiql/toolkit@0.8.2(@types/node@16.18.11)(graphql-ws@5.11.2)(graphql@16.7.1):
-    resolution: {integrity: sha512-FGtXBYTzcPuwfpaC+0BGeriLD6kwTdcF5xugGvjutk5J93Dgy2vw+SkBdbi1QGzz/jooETi1kEtFeDuWTzIG7Q==}
+  /@graphiql/toolkit@0.8.4(@types/node@16.18.11)(graphql-ws@5.11.2)(graphql@16.7.1):
+    resolution: {integrity: sha512-cFUGqh3Dau+SD3Vq9EFlZrhzYfaHKyOJveFtaCR+U5Cn/S68p7oy+vQBIdwtO6J2J58FncnwBbVRfr+IvVfZqQ==}
     peerDependencies:
       graphql: ^15.5.0 || ^16.0.0
       graphql-ws: '>= 4.5.0'
@@ -6850,8 +6850,8 @@ packages:
       - '@types/node'
     dev: false
 
-  /@graphiql/toolkit@0.8.4(@types/node@16.18.11)(graphql-ws@5.11.2)(graphql@16.7.1):
-    resolution: {integrity: sha512-cFUGqh3Dau+SD3Vq9EFlZrhzYfaHKyOJveFtaCR+U5Cn/S68p7oy+vQBIdwtO6J2J58FncnwBbVRfr+IvVfZqQ==}
+  /@graphiql/toolkit@0.9.0(@types/node@16.18.11)(graphql-ws@5.11.2)(graphql@16.7.1):
+    resolution: {integrity: sha512-BQNbQQixDuwkPq8IDKtyFX4MyqoSP39NAtb75u631NfoNH05soTU1JEduW9acPokP736nBOj+Sa4uz7822y9cg==}
     peerDependencies:
       graphql: ^15.5.0 || ^16.0.0
       graphql-ws: '>= 4.5.0'
