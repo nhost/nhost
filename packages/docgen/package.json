@@ -42,7 +42,7 @@
     "chalk": "4",
     "commander": "^11.0.0",
     "just-kebab-case": "^4.1.1",
-    "prettier": "^2.7.1",
+    "prettier": "^3.0.0",
     "valtio": "^1.6.4"
   }
 }

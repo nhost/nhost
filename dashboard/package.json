@@ -150,7 +150,7 @@
     "msw-storybook-addon": "^1.6.3",
     "node-fetch": "^3.3.0",
     "postcss": "^8.4.19",
-    "prettier": "^2.7.1",
+    "prettier": "^3.0.0",
     "prettier-plugin-organize-imports": "^3.2.0",
     "prettier-plugin-tailwindcss": "^0.4.0",
     "react-date-fns-hooks": "^0.9.4",
