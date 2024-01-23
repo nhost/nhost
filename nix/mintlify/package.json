@@ -1,6 +1,6 @@
 {
   "name": "mintlify",
-  "version": "4.0.63",
+  "version": "4.0.104",
   "description": "Alias for @mintlify/cli",
   "engines": {
     "node": ">=18.0.0"
@@ -25,10 +25,10 @@
     "clean:all": "rimraf node_modules"
   },
   "dependencies": {
-    "@mintlify/cli": "4.0.63"
+    "@mintlify/cli": "4.0.104"
   },
   "devDependencies": {
     "rimraf": "^5.0.1"
   },
-  "gitHead": "c634474da9fb789bb4b3d709a63b49d0ddc6b0cf"
+  "gitHead": "431fd04d525465bcbe469f6fe0db30d7acd67ee2"
 }

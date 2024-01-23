@@ -106,6 +106,8 @@ jobs:
       # * Run every `lint` script in the workspace . Dependencies build is cached by Turborepo
       - name: Lint
         run: pnpm run lint:all
+      - name: Audit for vulnerabilities
+        run: pnpx audit-ci --config ./audit-ci.jsonc
 
   e2e:
     name: 'E2E (Package: ${{ matrix.package.path }})'

@@ -64,11 +64,11 @@
     "@nhost/nhost-js": "workspace:*"
   },
   "dependencies": {
-    "graphql": "16.7.1",
-    "graphql-ws": "^5.10.1"
+    "graphql": "16.8.1",
+    "graphql-ws": "^5.14.3"
   },
   "devDependencies": {
-    "@apollo/client": "^3.7.10",
+    "@apollo/client": "^3.8.9",
     "@nhost/nhost-js": "workspace:*"
   }
 }

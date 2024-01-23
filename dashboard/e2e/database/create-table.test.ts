@@ -138,7 +138,8 @@ test('should create a table with an identity column', async () => {
     ],
   });
 
-  await page.getByRole('button', { name: /identity/i }).click();
+  // await page.getByRole('button', { name: /identity/i }).click();
+  await page.getByLabel('Identity').click();
   await page.getByRole('option', { name: /id/i }).click();
 
   // create table
@@ -194,26 +195,18 @@ test('should create table with foreign key constraint', async () => {
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  // select column in current table
-  await page
-    .getByRole('button', { name: /column/i })
-    .first()
-    .click();
+  await page.locator('#columnName').click();
   await page.getByRole('option', { name: /author_id/i }).click();
 
   // select reference schema
-  await page.getByRole('button', { name: /schema/i }).click();
+  await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
 
   // select reference table
-  await page.getByRole('button', { name: /table/i }).click();
+  await page.getByLabel('Table').click();
   await page.getByRole('option', { name: firstTableName, exact: true }).click();
 
-  // select reference column
-  await page
-    .getByRole('button', { name: /column/i })
-    .nth(1)
-    .click();
+  await page.locator('#referencedColumn').click();
   await page.getByRole('option', { name: /id/i }).click();
 
   await page.getByRole('button', { name: /add/i }).click();

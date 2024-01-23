@@ -65,9 +65,10 @@
   },
   "dependencies": {
     "@nhost/react": "workspace:*",
+    "graphql": "16.8.1",
     "isomorphic-unfetch": "^3.1.0",
-    "js-cookie": "^3.0.1",
-    "xstate": "^4.33.5"
+    "js-cookie": "^3.0.5",
+    "xstate": "^4.38.3"
   },
   "peerDependencies": {
     "next": "^12.0.10 || ^13.0.0",
@@ -76,8 +77,8 @@
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "@types/js-cookie": "^3.0.2",
-    "next": "12.3.4",
+    "@types/js-cookie": "^3.0.6",
+    "next": "^14.0.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }

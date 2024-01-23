@@ -22,6 +22,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import type * as Yup from 'yup';
 
 export interface EditTableFormProps
   extends Pick<BaseTableFormProps, 'onCancel' | 'location'> {
@@ -85,7 +86,9 @@ export default function EditTableForm({
     resetUpdateError();
   }
 
-  const form = useForm<BaseTableFormValues>({
+  const form = useForm<
+    BaseTableFormValues | Yup.InferType<typeof baseTableValidationSchema>
+  >({
     defaultValues: {
       name: originalTable.table_name,
       columns: [],

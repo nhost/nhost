@@ -32,7 +32,7 @@ export default function HasuraDomain() {
 
   const [updateConfig] = useUpdateConfigMutation();
 
-  const form = useForm<{ hasura_fqdn: string }>({
+  const form = useForm<Yup.InferType<typeof validationSchema>>({
     reValidateMode: 'onSubmit',
     defaultValues: { hasura_fqdn: null },
     resolver: yupResolver(validationSchema),

@@ -10,7 +10,7 @@ import {
   MAX_STORAGE_CAPACITY,
   MIN_STORAGE_CAPACITY,
 } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import type { ServiceFormValues } from '@/features/services/components/ServiceForm';
+import type { ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 export default function StorageFormSection() {
@@ -53,7 +53,8 @@ export default function StorageFormSection() {
               <span>
                 By default, services do not have persistent storage. You can add
                 SSD disks to the service here. It is important to note that
-                capacity can not be decreased after creation, only expanded. Refer to{' '}
+                capacity can not be decreased after creation, only expanded.
+                Refer to{' '}
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
@@ -82,7 +83,7 @@ export default function StorageFormSection() {
         {fields.map((field, index) => (
           <Box
             key={field.id}
-            className="flex w-full flex-col space-y-2 xs+:flex-row xs+:space-y-0 xs+:space-x-2"
+            className="flex w-full flex-col space-y-2 xs+:flex-row xs+:space-x-2 xs+:space-y-0"
           >
             <Input
               {...register(`storage.${index}.name`)}

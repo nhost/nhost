@@ -21,7 +21,7 @@ import {
   render as rtlRender,
   waitForElementToBeRemoved as rtlWaitForElementToBeRemoved,
 } from '@testing-library/react';
-import { RouterContext } from 'next/dist/shared/lib/router-context';
+import { RouterContext } from 'next/dist/shared/lib/router-context.shared-runtime';
 import type { PropsWithChildren, ReactElement } from 'react';
 import { Toaster } from 'react-hot-toast';
 

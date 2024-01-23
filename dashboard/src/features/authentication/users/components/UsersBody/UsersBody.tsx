@@ -226,12 +226,12 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
 
   if (!users) {
     return (
-      <div className="h-screen w-screen overflow-hidden">
-        <div className="absolute top-0 left-0 z-50 block h-full w-full">
-          <span className="top50percent relative top-1/2 mx-auto my-0 block">
+      <div className="w-screen h-screen overflow-hidden">
+        <div className="absolute top-0 left-0 z-50 block w-full h-full">
+          <span className="relative block mx-auto my-0 top50percent top-1/2">
             <ActivityIndicator
               label="Loading users..."
-              className="my-auto flex items-center justify-center"
+              className="flex items-center justify-center my-auto"
             />
           </span>
         </div>
@@ -269,7 +269,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
                     }}
                     className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                   >
-                    <UserIcon className="h-4 w-4" />
+                    <UserIcon className="w-4 h-4" />
                     <Text className="font-medium">View User</Text>
                   </Dropdown.Item>
 
@@ -280,7 +280,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
                     sx={{ color: 'error.main' }}
                     onClick={() => handleDeleteUser(user)}
                   >
-                    <TrashIcon className="h-4 w-4" />
+                    <TrashIcon className="w-4 h-4" />
                     <Text className="font-medium" color="error">
                       Delete User
                     </Text>
@@ -294,14 +294,14 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
               onClick={() => handleViewUser(user)}
               aria-label={`View ${user.displayName}`}
             >
-              <div className="col-span-2 grid grid-flow-col place-content-start gap-4">
+              <div className="grid grid-flow-col col-span-2 gap-4 place-content-start">
                 <Avatar
                   src={user.avatarUrl}
                   alt={`Avatar of ${user.displayName}`}
                 />
-                <div className="grid grid-flow-row items-center">
-                  <div className="grid grid-flow-col items-center gap-2">
-                    <Text className="truncate font-medium leading-5">
+                <div className="grid items-center grid-flow-row">
+                  <div className="grid items-center grid-flow-col gap-2">
+                    <Text className="font-medium leading-5 truncate">
                       {user.displayName}
                     </Text>
                     {user.disabled && (
@@ -314,7 +314,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
                     )}
                   </div>
 
-                  <Text className="truncate font-normal" color="secondary">
+                  <Text className="font-normal truncate" color="secondary">
                     {user.email}
                   </Text>
                 </div>
@@ -334,7 +334,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
                   : '-'}
               </Text>
 
-              <div className="col-span-2 hidden grid-flow-col place-content-start gap-3 px-4 lg:grid">
+              <div className="hidden grid-flow-col col-span-2 gap-3 px-4 place-content-start lg:grid">
                 {user.userProviders.length === 0 && (
                   <Text className="col-span-3 font-medium">-</Text>
                 )}
@@ -362,6 +362,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
                         }
                         width={16}
                         height={16}
+                        alt='Oauth provider logo'
                       />
                     }
                   />

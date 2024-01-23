@@ -10,7 +10,7 @@ export interface ChipProps extends MaterialChipProps {
   /**
    * Custom component for the root node.
    */
-  component?: string | ElementType;
+  component?: ElementType;
 }
 
 const Chip = styled(MaterialChip)<ChipProps>(({ theme }) => ({

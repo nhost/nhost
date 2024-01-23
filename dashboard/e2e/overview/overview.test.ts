@@ -93,7 +93,7 @@ test("should show the project's region and subdomain", async () => {
 
 test('should not have a GitHub repository connected', async () => {
   await expect(
-    page.getByRole('button', { name: /connect to github/i }),
+    page.getByRole('button', { name: /connect to github/i }).first(),
   ).toBeVisible();
 });
 
