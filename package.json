@@ -20,6 +20,7 @@
     "build:dashboard": "turbo run build --filter=@nhost/dashboard",
     "build:docs": "turbo run build --filter=@nhost/docs",
     "build:all": "turbo run build --include-dependencies",
+    "build:nextjs-server-components": "turbo run build --filter=@nhost-examples/nextjs-server-components",
     "dev": "turbo run dev --filter=!@nhost/dashboard --filter=!@nhost/docs --filter=!@nhost-examples/* --filter=!@nhost/docgen --no-deps --include-dependencies",
     "clean:all": "pnpm clean && rm -rf ./{{packages,examples/**}/*,docs,dashboard}/{.nhost,node_modules} node_modules",
     "clean": "rm -rf ./{{packages,examples/**}/*,docs,dashboard}/{dist,umd,.next,.turbo,coverage}",
