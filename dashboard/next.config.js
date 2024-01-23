@@ -6,8 +6,8 @@ const { version } = require('./package.json');
 
 
 const cspHeader = `
-    default-src 'self' 'staging.nhost.run';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' 'cdn.segment.com' 'js.stripe.com';
+    default-src 'self' 'https://staging.nhost.run';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' 'https://cdn.segment.com' 'https://js.stripe.com';
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data:;
     font-src 'self';
