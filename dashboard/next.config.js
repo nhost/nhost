@@ -10,7 +10,7 @@ const cspHeader = `
     script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.segment.com js.stripe.com;
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: avatars.githubusercontent.com;
-    font-src 'self';
+    font-src 'self' data:;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
