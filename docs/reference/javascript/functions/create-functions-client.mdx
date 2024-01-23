@@ -1,0 +1,31 @@
+---
+title: createFunctionsClient()
+sidebarTitle: createFunctionsClient()
+---
+
+Creates a client for Functions from either a subdomain or a URL
+
+## Parameters
+
+---
+
+**<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`NhostClientConstructorParams`](/reference/javascript/nhost-js/types/nhost-client-constructor-params)
+
+| Property                                                                                               | Type                                                                            | Required | Notes                                                                                                                                    |
+| :----------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------ | :------: | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| <span className="parameter-name"><span className="light-grey">params.</span>adminSecret</span>         | <code>string</code>                                                             |          | When set, the admin secret is sent as a header, `x-hasura-admin-secret`, for all requests to GraphQL, Storage, and Serverless Functions. |
+| <span className="parameter-name"><span className="light-grey">params.</span>functionsUrl</span>        | <code>string</code>                                                             |          |                                                                                                                                          |
+| <span className="parameter-name"><span className="light-grey">params.</span>storageUrl</span>          | <code>string</code>                                                             |          |                                                                                                                                          |
+| <span className="parameter-name"><span className="light-grey">params.</span>graphqlUrl</span>          | <code>string</code>                                                             |          |                                                                                                                                          |
+| <span className="parameter-name"><span className="light-grey">params.</span>authUrl</span>             | <code>string</code>                                                             |          |                                                                                                                                          |
+| <span className="parameter-name"><span className="light-grey">params.</span>region</span>              | <code>string</code>                                                             |          | Project region (e.g. `eu-central-1`) Project region is not required during local development (when `subdomain` is `localhost`)           |
+| <span className="parameter-name"><span className="light-grey">params.</span>subdomain</span>           | <code>string</code>                                                             |          | Project subdomain (e.g. `ieingiwnginwnfnegqwvdqwdwq`) Use `localhost` during local development                                           |
+| <span className="parameter-name"><span className="light-grey">params.</span>devTools</span>            | <code>boolean</code>                                                            |          | Activate devTools e.g. the ability to connect to the xstate inspector                                                                    |
+| <span className="parameter-name"><span className="light-grey">params.</span>autoSignIn</span>          | <code>boolean</code>                                                            |          | When set to true, will parse the url on startup to check if it contains a refresh token to start the session with                        |
+| <span className="parameter-name"><span className="light-grey">params.</span>autoRefreshToken</span>    | <code>boolean</code>                                                            |          | When set to true, will automatically refresh token before it expires                                                                     |
+| <span className="parameter-name"><span className="light-grey">params.</span>clientStorage</span>       | [`ClientStorage`](/reference/javascript/nhost-js/types/client-storage)          |          | Object where the refresh token will be persisted and read locally.                                                                       |
+| <span className="parameter-name"><span className="light-grey">params.</span>clientStorageType</span>   | [`ClientStorageType`](/reference/javascript/nhost-js/types/client-storage-type) |          | Define a way to get information about the refresh token and its exipration date.                                                         |
+| <span className="parameter-name"><span className="light-grey">params.</span>refreshIntervalTime</span> | <code>number</code>                                                             |          | Time interval until token refreshes, in seconds                                                                                          |
+| <span className="parameter-name"><span className="light-grey">params.</span>start</span>               | <code>boolean</code>                                                            |          |                                                                                                                                          |
+
+---

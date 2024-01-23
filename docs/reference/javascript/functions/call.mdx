@@ -1,0 +1,70 @@
+---
+title: call()
+sidebarTitle: call()
+---
+
+Use `nhost.functions.call` to call (sending a POST request to) a serverless function. Use generic
+types to specify the expected response data, request body and error message.
+
+```ts
+await nhost.functions.call('send-welcome-email', {
+  email: 'joe@example.com',
+  name: 'Joe Doe'
+})
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">url</span>** <span className="optional-status">required</span> <code>string</code>
+
+---
+
+**<span className="parameter-name">body</span>** <span className="optional-status">optional</span> <code>null &#124; TBody</code>
+
+---
+
+**<span className="parameter-name">config</span>** <span className="optional-status">optional</span> <code>NhostFunctionCallConfig</code>
+
+---
+
+## Examples
+
+### Without generic types
+
+```ts
+await nhost.functions.call('send-welcome-email', {
+  email: 'joe@example.com',
+  name: 'Joe Doe'
+})
+```
+
+### Using generic types
+
+```ts
+type Data = {
+  message: string
+}
+
+type Body = {
+  email: string
+  name: string
+}
+
+type ErrorMessage = {
+  details: string
+}
+
+// The function will only accept a body of type `Body`
+const { res, error } = await nhost.functions.call<Data, Body, ErrorMessage>(
+  'send-welcome-email',
+  { email: 'joe@example.com', name: 'Joe Doe' }
+)
+
+// Now the response data is typed as `Data`
+console.log(res?.data.message)
+
+// Now the error message is typed as `ErrorMessage`
+console.log(error?.message.details)
+```
