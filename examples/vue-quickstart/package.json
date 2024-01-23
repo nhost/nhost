@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/vue-quickstart",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "private": true,
   "scripts": {
     "build": "vite build",
@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "@apollo/client": "^3.8.9",
-    "@nhost/apollo": "^6.0.1",
-    "@nhost/vue": "^2.0.2",
+    "@nhost/apollo": "^6.0.2",
+    "@nhost/vue": "^2.0.3",
     "@vue/apollo-composable": "4.0.0-alpha.18",
     "@vueuse/core": "^8.9.4",
     "graphql": "16.8.1",

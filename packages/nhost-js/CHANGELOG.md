@@ -1,5 +1,15 @@
 # @nhost/nhost-js
 
+## 3.0.2
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- Updated dependencies [8d91f71]
+  - @nhost/hasura-storage-js@2.2.6
+  - @nhost/hasura-auth-js@2.1.11
+  - @nhost/graphql-js@0.1.5
+
 ## 3.0.1
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/codegen-react-query",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "private": true,
   "scripts": {
     "codegen": "graphql-codegen",
@@ -15,7 +15,7 @@
     ]
   },
   "dependencies": {
-    "@nhost/react": "^3.0.1",
+    "@nhost/react": "^3.0.2",
     "@tanstack/react-query": "^4.36.1",
     "@tanstack/react-query-devtools": "^4.36.1",
     "clsx": "^1.2.1",

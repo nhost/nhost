@@ -578,7 +578,7 @@ importers:
   examples/cli:
     dependencies:
       '@nhost/nhost-js':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/nhost-js
       commander:
         specifier: ^10.0.1
@@ -602,10 +602,10 @@ importers:
         specifier: ^3.8.9
         version: 3.8.10(graphql-ws@5.14.3)(graphql@16.8.1)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/react':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/react
       '@nhost/react-apollo':
-        specifier: ^7.0.1
+        specifier: ^7.0.2
         version: link:../../integrations/react-apollo
       clsx:
         specifier: ^1.2.1
@@ -663,7 +663,7 @@ importers:
   examples/codegen-react-query:
     dependencies:
       '@nhost/react':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/react
       '@tanstack/react-query':
         specifier: ^4.36.1
@@ -730,10 +730,10 @@ importers:
   examples/codegen-react-urql:
     dependencies:
       '@nhost/react':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/react
       '@nhost/react-urql':
-        specifier: ^4.0.1
+        specifier: ^4.0.2
         version: link:../../integrations/react-urql
       clsx:
         specifier: ^1.2.1
@@ -804,7 +804,7 @@ importers:
   examples/multi-tenant-one-to-many:
     dependencies:
       '@nhost/nhost-js':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/nhost-js
     devDependencies:
       '@types/express':
@@ -835,13 +835,13 @@ importers:
         specifier: ^4.2.12
         version: 4.2.12(@mantine/core@4.2.12)(@mantine/hooks@4.2.12)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/nextjs':
-        specifier: ^2.0.1
+        specifier: ^2.0.2
         version: link:../../packages/nextjs
       '@nhost/react':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/react
       '@nhost/react-apollo':
-        specifier: ^7.0.1
+        specifier: ^7.0.2
         version: link:../../integrations/react-apollo
       graphql:
         specifier: 16.8.1
@@ -887,7 +887,7 @@ importers:
   examples/node-storage:
     dependencies:
       '@nhost/nhost-js':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/nhost-js
       dotenv:
         specifier: ^16.3.1
@@ -998,8 +998,8 @@ importers:
         version: 4.38.3
     devDependencies:
       '@nhost/nhost-js':
-        specifier: 2.2.18
-        version: 2.2.18(graphql@16.8.1)
+        specifier: 3.0.2
+        version: link:../../../packages/nhost-js
       '@playwright/test':
         specifier: ^1.41.0
         version: 1.41.0
@@ -1073,10 +1073,10 @@ importers:
         specifier: ^4.2.12
         version: 4.2.12(@mantine/core@4.2.12)(@mantine/hooks@4.2.12)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/react':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/react
       '@nhost/react-apollo':
-        specifier: ^7.0.1
+        specifier: ^7.0.2
         version: link:../../integrations/react-apollo
       graphql:
         specifier: 16.8.1
@@ -1161,7 +1161,7 @@ importers:
         specifier: 2.1.0
         version: 2.1.0(gqty@2.3.0)(graphql@16.8.1)(react@18.2.0)
       '@nhost/react':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/react
       gqty:
         specifier: ^2.3.0
@@ -1249,13 +1249,13 @@ importers:
         specifier: 5.9.55
         version: 5.9.55
       '@nhost/apollo':
-        specifier: ^6.0.1
+        specifier: ^6.0.2
         version: link:../../integrations/apollo
       '@nhost/nhost-js':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/nhost-js
       '@nhost/vue':
-        specifier: ^2.0.2
+        specifier: ^2.0.3
         version: link:../../packages/vue
       '@vue/apollo-composable':
         specifier: 4.0.0-alpha.18
@@ -1289,7 +1289,7 @@ importers:
         version: 1.6.28
     devDependencies:
       '@nhost/hasura-auth-js':
-        specifier: ^2.1.10
+        specifier: ^2.1.11
         version: link:../../packages/hasura-auth-js
       '@types/webfontloader':
         specifier: ^1.6.38
@@ -1319,10 +1319,10 @@ importers:
         specifier: ^3.8.9
         version: 3.8.10(graphql-ws@5.14.3)(graphql@16.8.1)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/apollo':
-        specifier: ^6.0.1
+        specifier: ^6.0.2
         version: link:../../integrations/apollo
       '@nhost/vue':
-        specifier: ^2.0.2
+        specifier: ^2.0.3
         version: link:../../packages/vue
       '@vue/apollo-composable':
         specifier: 4.0.0-alpha.18
@@ -6734,54 +6734,6 @@ packages:
     requiresBuild: true
     optional: true
 
-  /@nhost/graphql-js@0.1.4(graphql@16.8.1):
-    resolution: {integrity: sha512-IPHuGOf4iQrFsxG7Rh5jCCZzPCN9JkvldFww4Fz1lCVi9ZQNEaGaawIP5gBuBHeYIuALeaK1wVYKPc7vJ/euCA==}
-    peerDependencies:
-      graphql: '>=16.8.1'
-    dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
-      graphql: 16.8.1
-      isomorphic-unfetch: 3.1.0(encoding@0.1.13)
-    transitivePeerDependencies:
-      - encoding
-    dev: true
-
-  /@nhost/hasura-auth-js@2.1.9:
-    resolution: {integrity: sha512-tZl6iArGBIuzaD9ZMCR4NUNxXneIj87c15nG0RWqzqScMAklQ0l9J52CLeE8NDPNFWFuwNLm2FBpnEz4YGJLVw==}
-    dependencies:
-      '@simplewebauthn/browser': 6.2.2
-      fetch-ponyfill: 7.1.0
-      js-cookie: 3.0.5
-      jwt-decode: 3.1.2
-      xstate: 4.38.3
-    transitivePeerDependencies:
-      - encoding
-    dev: true
-
-  /@nhost/hasura-storage-js@2.2.5:
-    resolution: {integrity: sha512-IW0IwHlvuo9PxVQTXoQUE8LOpuOnjp+XlqgAKeatg1rY0MjJokcm4Xd0yLInAXfYBkK0r9pdKz7+RW+GDiYQ5g==}
-    dependencies:
-      fetch-ponyfill: 7.1.0
-      form-data: 4.0.0
-      xstate: 4.38.3
-    transitivePeerDependencies:
-      - encoding
-    dev: true
-
-  /@nhost/nhost-js@2.2.18(graphql@16.8.1):
-    resolution: {integrity: sha512-aHn6p75fuG7SEUyB/yfX5TXtVTqwCT88zdN9Mmgo/8hnFOGV1XM7B4fxuGpNQCz18tG6kjM24tWx8EGXAEZ1sw==}
-    peerDependencies:
-      graphql: '>=16.8.1'
-    dependencies:
-      '@nhost/graphql-js': 0.1.4(graphql@16.8.1)
-      '@nhost/hasura-auth-js': 2.1.9
-      '@nhost/hasura-storage-js': 2.2.5
-      graphql: 16.8.1
-      isomorphic-unfetch: 3.1.0(encoding@0.1.13)
-    transitivePeerDependencies:
-      - encoding
-    dev: true
-
   /@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1:
     resolution: {integrity: sha512-54/JRvkLIzzDWshCWfuhadfrfZVPiElY8Fcgmg1HroEly/EDSszzhBAsarCux+D/kOslTRquNzuyGSmUSTTHGg==}
     dependencies:
@@ -7987,6 +7939,7 @@ packages:
 
   /@simplewebauthn/browser@6.2.2:
     resolution: {integrity: sha512-VUtne7+s6BmW4usnbitjZEI1VNT/PNh6bYg+AI4OMdfpo5z+yAq+6iVAWBJlIUGVk5InetEQvTUp6OefBam8qg==}
+    dev: false
 
   /@simplewebauthn/typescript-types@6.2.1:
     resolution: {integrity: sha512-qScvkt0nP0Uy/xeeunlXAkJni9wtecsvxwLELSgiWRx/KRVZy1SGDHsKAfQowpIeDmLDyhWxUoN7qUgvgWCiAQ==}
@@ -16366,6 +16319,7 @@ packages:
       node-fetch: 2.6.13
     transitivePeerDependencies:
       - encoding
+    dev: false
 
   /fetch-retry@5.0.6:
     resolution: {integrity: sha512-3yurQZ2hD9VISAhJJP9bpYFNQrHHBXE2JxxjY5aLEcDi46RmAzJE2OC9FAde0yis5ElW0jTTzs0zfg/Cca4XqQ==}
@@ -18811,6 +18765,7 @@ packages:
   /js-cookie@3.0.5:
     resolution: {integrity: sha512-cEiJEAEoIbWfCZYKWhVwFuvPX1gETRYPw6LlaTKoxD3s2AkXzkCjnp6h0V77ozyqj0jakteJ4YqDJT830+lVGw==}
     engines: {node: '>=14'}
+    dev: false
 
   /js-levenshtein@1.1.6:
     resolution: {integrity: sha512-X2BB11YZtrRqY4EnQcLX5Rh373zbK4alC1FW7D7MBhL2gtcC17cTnr6DmfHZeS0s2rTHjUTMMHfG7gO8SSdw+g==}
@@ -19118,6 +19073,7 @@ packages:
 
   /jwt-decode@3.1.2:
     resolution: {integrity: sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==}
+    dev: false
 
   /keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
@@ -20794,6 +20750,7 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
+    dev: false
 
   /node-fetch@2.7.0(encoding@0.1.13):
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}

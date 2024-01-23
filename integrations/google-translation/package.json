@@ -1,6 +1,6 @@
 {
   "name": "@nhost/google-translation",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Google Translation GraphQL API",
   "license": "MIT",
   "keywords": [

@@ -1,6 +1,6 @@
 {
   "name": "@nhost/graphql-js",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Nhost GraphQL client",
   "license": "MIT",
   "keywords": [
