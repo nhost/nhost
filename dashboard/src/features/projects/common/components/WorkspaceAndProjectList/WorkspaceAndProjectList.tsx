@@ -110,7 +110,7 @@ export default function WorkspaceAndProjectList({
           onChange={handleQueryChange}
         />
 
-        <NavLink href="/new" passHref>
+        <NavLink href="/new" passHref legacyBehavior>
           <Button
             variant="outlined"
             color="secondary"
@@ -126,7 +126,7 @@ export default function WorkspaceAndProjectList({
       <Box className="grid grid-flow-row gap-8 my-8">
         {filteredWorkspaces.map((workspace) => (
           <div key={workspace.slug}>
-            <NavLink href={`/${workspace.slug}`} passHref>
+            <NavLink href={`/${workspace.slug}`} passHref legacyBehavior>
               <Link
                 href={`${workspace.slug}`}
                 className="mb-1.5 block font-medium"
@@ -172,7 +172,7 @@ export default function WorkspaceAndProjectList({
                         href={`${workspace?.slug}/${project.slug}`}
                         passHref
                         className='w-full'
-                      >
+                        legacyBehavior>
                         <ListItem.Button className="rounded-none">
                           <ListItem.Avatar>
                             <div className="w-10 h-10 overflow-hidden rounded-lg">

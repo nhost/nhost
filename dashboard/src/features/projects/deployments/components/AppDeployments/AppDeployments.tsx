@@ -37,7 +37,7 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
       <Link
         href={`${window.location.pathname}?page=${currentPage - 1}`}
         passHref
-      >
+        legacyBehavior>
         <IconButton variant="borderless" color="secondary">
           <ChevronLeftIcon className="h-4 w-4" />
         </IconButton>
@@ -48,7 +48,10 @@ function NextPrevPageLink(props: NextPrevPageLinkProps) {
     return <ChevronRightIcon className="h-4 w-4 cursor-not-allowed" />;
   }
   return (
-    <Link href={`${window.location.pathname}?page=${currentPage + 1}`} passHref>
+    <Link
+      href={`${window.location.pathname}?page=${currentPage + 1}`}
+      passHref
+      legacyBehavior>
       <IconButton variant="borderless" color="secondary">
         <ChevronRightIcon className="h-4 w-4" />
       </IconButton>

@@ -23,7 +23,7 @@ export default function OverviewRepository() {
           <NavLink
             href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/git`}
             passHref
-          >
+            legacyBehavior>
             <Button
               variant="outlined"
               color="secondary"
@@ -53,7 +53,7 @@ export default function OverviewRepository() {
           <NavLink
             href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/git`}
             passHref
-          >
+            legacyBehavior>
             <Button
               variant="borderless"
               size="small"

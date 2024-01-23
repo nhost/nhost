@@ -433,15 +433,14 @@ export function NewProjectPageContent({
                 })}
                 <Text variant="subtitle2">
                   Select a plan that suits your infrastructure needs.{' '}
-                  <Link href="https://nhost.io/pricing">
-                    <a
-                      href="https://nhost.io/pricing"
-                      className="underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                  <Link
+                    href="https://nhost.io/pricing"
+                    className="underline"
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    
                       Learn more
-                    </a>
+                    
                   </Link>
                 </Text>
               </RadioGroup>

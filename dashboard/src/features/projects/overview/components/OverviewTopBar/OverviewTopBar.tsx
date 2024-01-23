@@ -127,7 +127,7 @@ export default function OverviewTopBar() {
       <Link
         href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/general`}
         passHref
-      >
+        legacyBehavior>
         <Button
           endIcon={<CogIcon className="h-4 w-4" />}
           variant="outlined"
