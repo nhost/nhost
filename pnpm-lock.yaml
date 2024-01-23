@@ -918,7 +918,7 @@ importers:
         specifier: ^3.8.9
         version: 3.8.10(graphql-ws@5.14.3)(graphql@16.8.1)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/nhost-js':
-        specifier: ^3.0.1
+        specifier: workspace:^
         version: link:../../../packages/nhost-js
       autoprefixer:
         specifier: 10.4.15
