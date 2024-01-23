@@ -1,5 +1,14 @@
 # @nhost-examples/vue-quickstart
 
+## 0.0.10
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- Updated dependencies [8d91f71]
+  - @nhost/apollo@6.0.2
+  - @nhost/vue@2.0.3
+
 ## 0.0.9
 
 ### Patch Changes

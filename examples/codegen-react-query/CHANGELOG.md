@@ -1,5 +1,13 @@
 # @nhost-examples/codegen-react-query
 
+## 0.1.12
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- Updated dependencies [8d91f71]
+  - @nhost/react@3.0.2
+
 ## 0.1.11
 
 ### Patch Changes

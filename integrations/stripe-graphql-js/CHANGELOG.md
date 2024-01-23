@@ -1,5 +1,11 @@
 # @nhost/stripe-graphql-js
 
+## 1.0.6
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+
 ## 1.0.5
 
 ### Patch Changes

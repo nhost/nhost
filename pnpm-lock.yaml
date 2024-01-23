@@ -578,7 +578,7 @@ importers:
   examples/cli:
     dependencies:
       '@nhost/nhost-js':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/nhost-js
       commander:
         specifier: ^10.0.1
@@ -602,10 +602,10 @@ importers:
         specifier: ^3.8.9
         version: 3.8.10(graphql-ws@5.14.3)(graphql@16.8.1)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/react':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/react
       '@nhost/react-apollo':
-        specifier: ^7.0.1
+        specifier: ^7.0.2
         version: link:../../integrations/react-apollo
       clsx:
         specifier: ^1.2.1
@@ -663,7 +663,7 @@ importers:
   examples/codegen-react-query:
     dependencies:
       '@nhost/react':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/react
       '@tanstack/react-query':
         specifier: ^4.36.1
@@ -730,10 +730,10 @@ importers:
   examples/codegen-react-urql:
     dependencies:
       '@nhost/react':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/react
       '@nhost/react-urql':
-        specifier: ^4.0.1
+        specifier: ^4.0.2
         version: link:../../integrations/react-urql
       clsx:
         specifier: ^1.2.1
@@ -804,7 +804,7 @@ importers:
   examples/multi-tenant-one-to-many:
     dependencies:
       '@nhost/nhost-js':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/nhost-js
     devDependencies:
       '@types/express':
@@ -835,13 +835,13 @@ importers:
         specifier: ^4.2.12
         version: 4.2.12(@mantine/core@4.2.12)(@mantine/hooks@4.2.12)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/nextjs':
-        specifier: ^2.0.1
+        specifier: ^2.0.2
         version: link:../../packages/nextjs
       '@nhost/react':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/react
       '@nhost/react-apollo':
-        specifier: ^7.0.1
+        specifier: ^7.0.2
         version: link:../../integrations/react-apollo
       graphql:
         specifier: 16.8.1
@@ -887,7 +887,7 @@ importers:
   examples/node-storage:
     dependencies:
       '@nhost/nhost-js':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/nhost-js
       dotenv:
         specifier: ^16.3.1
@@ -1073,10 +1073,10 @@ importers:
         specifier: ^4.2.12
         version: 4.2.12(@mantine/core@4.2.12)(@mantine/hooks@4.2.12)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/react':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/react
       '@nhost/react-apollo':
-        specifier: ^7.0.1
+        specifier: ^7.0.2
         version: link:../../integrations/react-apollo
       graphql:
         specifier: 16.8.1
@@ -1161,7 +1161,7 @@ importers:
         specifier: 2.1.0
         version: 2.1.0(gqty@2.3.0)(graphql@16.8.1)(react@18.2.0)
       '@nhost/react':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/react
       gqty:
         specifier: ^2.3.0
@@ -1249,13 +1249,13 @@ importers:
         specifier: 5.9.55
         version: 5.9.55
       '@nhost/apollo':
-        specifier: ^6.0.1
+        specifier: ^6.0.2
         version: link:../../integrations/apollo
       '@nhost/nhost-js':
-        specifier: ^3.0.1
+        specifier: ^3.0.2
         version: link:../../packages/nhost-js
       '@nhost/vue':
-        specifier: ^2.0.2
+        specifier: ^2.0.3
         version: link:../../packages/vue
       '@vue/apollo-composable':
         specifier: 4.0.0-alpha.18
@@ -1289,7 +1289,7 @@ importers:
         version: 1.6.28
     devDependencies:
       '@nhost/hasura-auth-js':
-        specifier: ^2.1.10
+        specifier: ^2.1.11
         version: link:../../packages/hasura-auth-js
       '@types/webfontloader':
         specifier: ^1.6.38
@@ -1319,10 +1319,10 @@ importers:
         specifier: ^3.8.9
         version: 3.8.10(graphql-ws@5.14.3)(graphql@16.8.1)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/apollo':
-        specifier: ^6.0.1
+        specifier: ^6.0.2
         version: link:../../integrations/apollo
       '@nhost/vue':
-        specifier: ^2.0.2
+        specifier: ^2.0.3
         version: link:../../packages/vue
       '@vue/apollo-composable':
         specifier: 4.0.0-alpha.18

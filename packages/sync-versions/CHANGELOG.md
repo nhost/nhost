@@ -1,5 +1,11 @@
 # @nhost/sync-versions
 
+## 0.0.9
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+
 ## 0.0.8
 
 ### Patch Changes
