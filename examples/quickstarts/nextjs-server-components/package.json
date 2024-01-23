@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.8.9",
-    "@nhost/nhost-js": "workspace:^",
+    "@nhost/nhost-js": "workspace:*",
     "autoprefixer": "10.4.15",
     "cookies-next": "^3.0.0",
     "eslint": "8.48.0",
