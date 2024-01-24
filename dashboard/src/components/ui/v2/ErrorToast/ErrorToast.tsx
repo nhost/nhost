@@ -6,6 +6,7 @@ import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getToastBackgroundColor } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
+import { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/router';
@@ -28,7 +29,7 @@ export default function ErrorToast({
 }: {
   isVisible: boolean;
   errorMessage: string;
-  error: Error;
+  error: ApolloError;
   close: () => void;
 }) {
   const userData = useUserData();
@@ -45,6 +46,8 @@ export default function ErrorToast({
     },
     error,
   };
+
+  const msg = error?.graphQLErrors?.at(0)?.message || errorMessage;
 
   return (
     <AnimatePresence>
@@ -77,8 +80,7 @@ export default function ErrorToast({
               <XIcon className="h-4 w-4 text-white" />
             </button>
             <span>
-              {errorMessage ??
-                'An unkown error has occured, please try again later!'}
+              {msg ?? 'An unkown error has occured, please try again later!'}
             </span>
 
             <button
@@ -103,7 +105,7 @@ export default function ErrorToast({
                 </div>
                 <button
                   type="button"
-                  className="absolute top-2 right-2"
+                  className="absolute right-2 top-2"
                   onClick={(event) => {
                     event.stopPropagation();
                     copy(
