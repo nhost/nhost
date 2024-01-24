@@ -1,7 +1,7 @@
 {
   "name": "@nhost-examples/vue-apollo",
   "private": true,
-  "version": "0.0.9",
+  "version": "0.0.10",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -16,9 +16,9 @@
   "dependencies": {
     "@apollo/client": "^3.8.9",
     "@mdi/font": "5.9.55",
-    "@nhost/apollo": "^6.0.1",
-    "@nhost/nhost-js": "^3.0.1",
-    "@nhost/vue": "^2.0.2",
+    "@nhost/apollo": "^6.0.2",
+    "@nhost/nhost-js": "^3.0.2",
+    "@nhost/vue": "^2.0.3",
     "@vue/apollo-composable": "4.0.0-alpha.18",
     "graphql": "16.8.1",
     "graphql-tag": "^2.12.6",
@@ -31,7 +31,7 @@
     "webfontloader": "^1.6.28"
   },
   "devDependencies": {
-    "@nhost/hasura-auth-js": "^2.1.10",
+    "@nhost/hasura-auth-js": "^2.1.11",
     "@types/webfontloader": "^1.6.38",
     "@vitejs/plugin-vue": "^4.6.2",
     "@xstate/inspect": "^0.6.5",

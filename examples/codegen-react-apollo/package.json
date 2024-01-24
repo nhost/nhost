@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/codegen-react-apollo",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "private": true,
   "scripts": {
     "codegen": "graphql-codegen",
@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "@apollo/client": "^3.8.9",
-    "@nhost/react": "^3.0.1",
-    "@nhost/react-apollo": "^7.0.1",
+    "@nhost/react": "^3.0.2",
+    "@nhost/react-apollo": "^7.0.2",
     "clsx": "^1.2.1",
     "graphql": "16.8.1",
     "react": "^18.2.0",

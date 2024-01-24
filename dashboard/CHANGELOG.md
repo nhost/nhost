@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 1.6.1
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- 3b8473b: chore: update turbo to `1.11.3` and pnpm to `8.10.5` in Dockerfile
+- Updated dependencies [8d91f71]
+  - @nhost/react-apollo@7.0.2
+  - @nhost/nextjs@2.0.2
+
 ## 1.6.0
 
 ### Minor Changes
