@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import type { DialogFormProps } from '@/types/common';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -75,7 +75,7 @@ export default function CreateUserForm({
   async function handleCreateUser({ email, password }: CreateUserFormValues) {
     setCreateUserFormError(null);
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await fetch(signUpUrl, {
           method: 'POST',

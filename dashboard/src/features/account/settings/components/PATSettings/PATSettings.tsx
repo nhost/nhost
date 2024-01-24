@@ -15,7 +15,7 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { CreatePATForm } from '@/features/account/settings/components/CreatePATForm';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetPersonalAccessTokensDocument,
   useDeletePersonalAccessTokenMutation,
@@ -57,8 +57,8 @@ export default function PATSettings() {
 
   async function handleDeletePAT({
     id,
-  }: typeof availablePersonalAccessTokens[0]) {
-    await callPromiseWithCustomErrorToast(
+  }: (typeof availablePersonalAccessTokens)[0]) {
+    await execPromiseWithErrorToast(
       () => deletePAT({ variables: { patId: id } }),
       {
         loadingMessage: 'Deleting personal access token...',
@@ -70,7 +70,7 @@ export default function PATSettings() {
   }
 
   function handleConfirmDelete(
-    originalPAT: typeof availablePersonalAccessTokens[0],
+    originalPAT: (typeof availablePersonalAccessTokens)[0],
   ) {
     openAlertDialog({
       title: 'Delete Personal Access Token',

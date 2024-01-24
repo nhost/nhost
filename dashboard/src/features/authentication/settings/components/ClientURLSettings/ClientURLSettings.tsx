@@ -9,7 +9,7 @@ import {
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -73,7 +73,7 @@ export default function ClientURLSettings() {
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
         form.reset(values);

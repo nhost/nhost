@@ -10,7 +10,7 @@ import {
 } from '@/features/projects/roles/settings/components/BaseRoleForm';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import type { Role } from '@/types/application';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
@@ -111,7 +111,7 @@ export default function EditRoleForm({
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
         onSubmit?.();

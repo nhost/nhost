@@ -16,8 +16,8 @@ import {
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { discordAnnounce } from '@/utils/discordAnnounce';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { slugifyString } from '@/utils/helpers';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
@@ -100,7 +100,7 @@ export default function SettingsGeneralPage() {
     });
 
     try {
-      const { data: updateAppData } = await callPromiseWithCustomErrorToast(
+      const { data: updateAppData } = await execPromiseWithErrorToast(
         async () => updateAppMutation,
         {
           loadingMessage: `Project name is being updated...`,
@@ -129,7 +129,7 @@ export default function SettingsGeneralPage() {
   }
 
   async function handleDeleteApplication() {
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await deleteApplication();
         await router.push('/');
@@ -143,7 +143,7 @@ export default function SettingsGeneralPage() {
   }
 
   async function handlePauseApplication() {
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await pauseApplication();
         await router.push('/');

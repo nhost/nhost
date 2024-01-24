@@ -5,7 +5,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getHasuraAdminSecret } from '@/utils/env';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useDeleteGraphiteAutoEmbeddingsConfigurationMutation } from '@/utils/__generated__/graphite.graphql';
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { type AutoEmbeddingsConfiguration } from 'pages/[workspaceSlug]/[appSlug]/ai/auto-embeddings';
@@ -65,7 +65,7 @@ export default function DeleteAutoEmbeddingsModal({
   async function handleClick() {
     setLoadingRemove(true);
 
-    await callPromiseWithCustomErrorToast(deleteAutoEmbeddingsConfig, {
+    await execPromiseWithErrorToast(deleteAutoEmbeddingsConfig, {
       loadingMessage: 'Deleting Auto-Embeddings Configuration...',
       successMessage:
         'The Auto-Embeddings Configuration has been deleted successfully.',

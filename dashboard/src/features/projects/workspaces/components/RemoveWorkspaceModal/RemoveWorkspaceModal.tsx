@@ -3,8 +3,8 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { getErrorMessage } from '@/utils/getErrorMessage';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteWorkspaceMutation,
@@ -35,7 +35,7 @@ export default function RemoveWorkspaceModal({
   const { currentWorkspace } = useCurrentWorkspaceAndProject();
 
   async function handleClick() {
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await deleteWorkspace({
           variables: {
@@ -58,7 +58,7 @@ export default function RemoveWorkspaceModal({
   }
 
   return (
-    <Box className="grid grid-flow-row gap-4 px-6 pt-4 pb-6">
+    <Box className="grid grid-flow-row gap-4 px-6 pb-6 pt-4">
       <Box className="border-y py-2">
         <Checkbox
           id="accept-remove"

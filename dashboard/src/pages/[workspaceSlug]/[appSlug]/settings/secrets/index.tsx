@@ -19,7 +19,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { CreateSecretForm } from '@/features/projects/secrets/settings/components/CreateSecretForm';
 import { EditSecretForm } from '@/features/projects/secrets/settings/components/EditSecretForm';
 import type { Secret } from '@/types/application';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSecretsDocument,
   useDeleteSecretMutation,
@@ -58,7 +58,7 @@ export default function SecretsPage() {
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await deleteSecretPromise;
       },

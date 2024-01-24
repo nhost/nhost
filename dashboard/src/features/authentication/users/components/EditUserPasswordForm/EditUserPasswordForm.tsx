@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import type { RemoteAppGetUsersQuery } from '@/utils/__generated__/graphql';
 import {
   useGetSignInMethodsQuery,
@@ -88,7 +88,7 @@ export default function EditUserPasswordForm({
       client: remoteProjectGQLClient,
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateUserPasswordPromise;
       },

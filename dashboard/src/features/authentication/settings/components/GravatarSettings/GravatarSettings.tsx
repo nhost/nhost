@@ -14,7 +14,7 @@ import {
   AUTH_GRAVATAR_DEFAULT,
   AUTH_GRAVATAR_RATING,
 } from '@/utils/constants/settings';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -87,7 +87,7 @@ export default function GravatarSettings() {
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
         form.reset(values);

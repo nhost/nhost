@@ -10,7 +10,7 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetAllWorkspacesAndProjectsDocument,
@@ -76,7 +76,7 @@ export default function DeploymentListItem({
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await insertDeploymentPromise;
       },

@@ -14,7 +14,7 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { copy } from '@/utils/copy';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -115,7 +115,7 @@ export default function AppleProviderSettings() {
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
         form.reset(formValues);
@@ -151,7 +151,7 @@ export default function AppleProviderSettings() {
           switchId="enabled"
           showSwitch
           className={twMerge(
-            'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-y-4 gap-x-3 px-4 py-2',
+            'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
             !authEnabled && 'hidden',
           )}
         >

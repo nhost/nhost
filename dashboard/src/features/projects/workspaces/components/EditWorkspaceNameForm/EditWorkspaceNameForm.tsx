@@ -3,8 +3,8 @@ import { Form } from '@/components/form/Form';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import type { DialogFormProps } from '@/types/common';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { slugifyString } from '@/utils/helpers';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useInsertWorkspaceMutation,
@@ -123,7 +123,7 @@ export default function EditWorkspaceNameForm({
           query: { ...router.query, updating: true },
         });
 
-        await callPromiseWithCustomErrorToast(
+        await execPromiseWithErrorToast(
           async () => {
             await updateWorkspaceName({
               variables: {
@@ -143,7 +143,7 @@ export default function EditWorkspaceNameForm({
           },
         );
       } else {
-        await callPromiseWithCustomErrorToast(
+        await execPromiseWithErrorToast(
           async () => {
             await insertWorkspace({
               variables: {
@@ -203,7 +203,7 @@ export default function EditWorkspaceNameForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-auto flex-col content-between overflow-hidden pt-2 pb-6"
+        className="flex flex-auto flex-col content-between overflow-hidden pb-6 pt-2"
       >
         <div className="flex-auto overflow-y-auto px-6">
           <Input

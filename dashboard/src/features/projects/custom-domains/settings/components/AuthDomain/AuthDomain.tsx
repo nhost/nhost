@@ -10,7 +10,7 @@ import {
   useUpdateConfigMutation,
   type ConfigIngressUpdateInput,
 } from '@/generated/graphql';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -89,7 +89,7 @@ export default function AuthDomain() {
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
         form.reset(formValues);
@@ -117,7 +117,7 @@ export default function AuthDomain() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row gap-y-4 gap-x-4 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
         >
           <Input
             {...register('auth_fqdn')}

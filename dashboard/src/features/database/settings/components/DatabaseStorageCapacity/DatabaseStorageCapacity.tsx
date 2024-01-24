@@ -11,7 +11,7 @@ import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -73,7 +73,7 @@ export default function AuthDomain() {
   }
 
   async function handleSubmit(formValues: AuthDomainFormValues) {
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfig({
           variables: {

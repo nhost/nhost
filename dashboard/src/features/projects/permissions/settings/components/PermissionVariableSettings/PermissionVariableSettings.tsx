@@ -19,7 +19,7 @@ import { CreatePermissionVariableForm } from '@/features/projects/permissions/se
 import { EditPermissionVariableForm } from '@/features/projects/permissions/settings/components/EditPermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
 import type { PermissionVariable } from '@/types/application';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
@@ -76,7 +76,7 @@ export default function PermissionVariableSettings() {
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
       },

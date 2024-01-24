@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useDeleteRunServiceConfigMutation,
   useDeleteRunServiceMutation,
@@ -41,7 +41,7 @@ export default function DeleteServiceModal({
   async function handleClick() {
     setLoadingRemove(true);
 
-    await callPromiseWithCustomErrorToast(() => deleteServiceAndConfig(), {
+    await execPromiseWithErrorToast(() => deleteServiceAndConfig(), {
       loadingMessage: 'Deleting the service...',
       successMessage: 'The service has been deleted successfully.',
       errorMessage:

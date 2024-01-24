@@ -15,7 +15,7 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { copy } from '@/utils/copy';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -104,7 +104,7 @@ export default function AzureADProviderSettings() {
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
         form.reset(formValues);
@@ -134,7 +134,7 @@ export default function AzureADProviderSettings() {
           switchId="enabled"
           showSwitch
           className={twMerge(
-            'grid grid-flow-row grid-cols-2 gap-y-4 gap-x-3 px-4 py-2',
+            'grid grid-flow-row grid-cols-2 gap-x-3 gap-y-4 px-4 py-2',
             !authEnabled && 'hidden',
           )}
         >

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useDeleteAssistantMutation } from '@/utils/__generated__/graphite.graphql';
 import { type Assistant } from 'pages/[workspaceSlug]/[appSlug]/ai/assistants';
 import { useState } from 'react';
@@ -42,7 +42,7 @@ export default function DeleteAssistantModal({
   async function handleClick() {
     setLoadingRemove(true);
 
-    await callPromiseWithCustomErrorToast(deleteAssistant, {
+    await execPromiseWithErrorToast(deleteAssistant, {
       loadingMessage: 'Deleting the assistant...',
       successMessage: 'The Assistant has been deleted successfully.',
       errorMessage:

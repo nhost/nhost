@@ -18,7 +18,7 @@ import {
   useUnpauseApplicationMutation,
 } from '@/generated/graphql';
 import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -45,7 +45,7 @@ export default function ApplicationPaused() {
   const wakeUpDisabled = numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS;
 
   async function handleTriggerUnpausing() {
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         unpauseApplication({ variables: { appId: currentProject.id } });
         await refetchWorkspaceAndProject();

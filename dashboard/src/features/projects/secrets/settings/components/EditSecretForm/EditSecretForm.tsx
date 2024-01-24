@@ -8,7 +8,7 @@ import {
   baseSecretFormValidationSchema,
 } from '@/features/projects/secrets/settings/components/BaseSecretForm';
 import type { Secret } from '@/types/application';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSecretsDocument,
   useUpdateSecretMutation,
@@ -59,7 +59,7 @@ export default function EditSecretForm({
     });
 
     try {
-      await callPromiseWithCustomErrorToast(
+      await execPromiseWithErrorToast(
         async () => {
           await updateSecretPromise;
           onSubmit?.();

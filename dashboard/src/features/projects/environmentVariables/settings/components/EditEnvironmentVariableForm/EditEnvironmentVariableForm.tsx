@@ -9,7 +9,7 @@ import {
   baseEnvironmentVariableFormValidationSchema,
 } from '@/features/projects/environmentVariables/settings/components/BaseEnvironmentVariableForm';
 import type { EnvironmentVariable } from '@/types/application';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
@@ -114,7 +114,7 @@ export default function EditEnvironmentVariableForm({
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
         onSubmit?.();

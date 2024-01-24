@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { DialogFormProps } from '@/types/common';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetEnvironmentVariablesDocument,
   useUpdateConfigMutation,
@@ -101,7 +101,7 @@ export default function EditJwtSecretForm({
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
         onSubmit?.();

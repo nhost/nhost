@@ -17,8 +17,8 @@ import { planDescriptions } from '@/features/projects/common/utils/planDescripti
 import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { getErrorMessage } from '@/utils/getErrorMessage';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import type {
   PrefetchNewAppPlansFragment,
   PrefetchNewAppRegionsFragment,
@@ -133,7 +133,7 @@ export function NewProjectPageContent({
 
     const slug = slugify(name, { lower: true, strict: true });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await insertApp({
           variables: {
@@ -437,10 +437,9 @@ export function NewProjectPageContent({
                     href="https://nhost.io/pricing"
                     className="underline"
                     target="_blank"
-                    rel="noopener noreferrer">
-                    
-                      Learn more
-                    
+                    rel="noopener noreferrer"
+                  >
+                    Learn more
                   </Link>
                 </Text>
               </RadioGroup>

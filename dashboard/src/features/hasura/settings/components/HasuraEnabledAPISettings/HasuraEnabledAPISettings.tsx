@@ -9,7 +9,7 @@ import {
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -91,7 +91,7 @@ export default function HasuraEnabledAPISettings() {
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
         form.reset(formValues);
@@ -117,7 +117,7 @@ export default function HasuraEnabledAPISettings() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-6"
+          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-6"
         >
           <ControlledAutocomplete
             id="enabledAPIs"

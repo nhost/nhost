@@ -12,8 +12,8 @@ import { GraphqlDataSourcesFormSection } from '@/features/ai/AssistantForm/compo
 import { WebhooksDataSourcesFormSection } from '@/features/ai/AssistantForm/components/WebhooksDataSourcesFormSection';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import type { DialogFormProps } from '@/types/common';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { removeTypename, type DeepRequired } from '@/utils/helpers';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
@@ -160,7 +160,7 @@ export default function AssistantForm({
   const handleSubmit = async (
     values: DeepRequired<AssistantFormValues> & { assistantID: string },
   ) => {
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await createOrUpdateAutoEmbeddings(values);
         onSubmit?.();
@@ -178,9 +178,9 @@ export default function AssistantForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-col h-full overflow-hidden border-t"
+        className="flex h-full flex-col overflow-hidden border-t"
       >
-        <div className="flex flex-col flex-1 p-4 space-y-4 overflow-auto">
+        <div className="flex flex-1 flex-col space-y-4 overflow-auto p-4">
           <Input
             {...register('name')}
             id="name"
@@ -190,7 +190,7 @@ export default function AssistantForm({
                 <Tooltip title="Name of the assistant">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -214,7 +214,7 @@ export default function AssistantForm({
                 <Tooltip title={<span>Description of the assistant</span>}>
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -241,7 +241,7 @@ export default function AssistantForm({
                 <Tooltip title="Instructions for the assistant. This is used to instruct the AI assistant on how to behave and respond to the user">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -268,7 +268,7 @@ export default function AssistantForm({
                 <Tooltip title="Model to use for the assistant.">
                   <InfoIcon
                     aria-label="Info"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -286,7 +286,7 @@ export default function AssistantForm({
           <WebhooksDataSourcesFormSection />
         </div>
 
-        <Box className="flex flex-row justify-between w-full p-4 border-t rounded">
+        <Box className="flex w-full flex-row justify-between rounded border-t p-4">
           <Button variant="outlined" color="secondary" onClick={onCancel}>
             Cancel
           </Button>

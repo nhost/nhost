@@ -8,7 +8,7 @@ import {
   BaseEnvironmentVariableForm,
   baseEnvironmentVariableFormValidationSchema,
 } from '@/features/projects/environmentVariables/settings/components/BaseEnvironmentVariableForm';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
@@ -100,7 +100,7 @@ export default function CreateEnvironmentVariableForm({
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
         onSubmit?.();

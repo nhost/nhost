@@ -16,7 +16,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { CreateEnvironmentVariableForm } from '@/features/projects/environmentVariables/settings/components/CreateEnvironmentVariableForm';
 import { EditEnvironmentVariableForm } from '@/features/projects/environmentVariables/settings/components/EditEnvironmentVariableForm';
 import type { EnvironmentVariable } from '@/types/application';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
@@ -89,7 +89,7 @@ export default function EnvironmentVariableSettings() {
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
       },

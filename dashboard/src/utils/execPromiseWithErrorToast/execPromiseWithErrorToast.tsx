@@ -2,7 +2,7 @@ import { ErrorToast } from '@/components/ui/v2/ErrorToast';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { toast } from 'react-hot-toast';
 
-export default async function callPromiseWithCustomErrorToast(
+export default async function execPromiseWithErrorToast(
   call: () => Promise<any>,
   {
     loadingMessage,

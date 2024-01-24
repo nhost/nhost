@@ -27,7 +27,7 @@ import {
 } from '@/features/services/components/ServiceForm/ServiceFormTypes';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useInsertRunServiceConfigMutation,
   useInsertRunServiceMutation,
@@ -175,7 +175,7 @@ export default function ServiceForm({
   };
 
   const handleSubmit = async (values: ServiceFormValues) => {
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await createOrUpdateService(values);
         onSubmit?.();

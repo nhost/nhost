@@ -21,7 +21,7 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -180,7 +180,7 @@ export default function AISettings() {
   }
 
   async function handleSubmit(formValues: AISettingsFormValues) {
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfig({
           variables: {

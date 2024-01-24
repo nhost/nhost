@@ -1,4 +1,3 @@
-// import { Button } from '@/components/ui/v2/Button';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { ChevronUpIcon } from '@/components/ui/v2/icons/ChevronUpIcon';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
@@ -6,7 +5,7 @@ import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getToastBackgroundColor } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
-import { ApolloError } from '@apollo/client';
+import { type ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/router';
@@ -76,7 +75,7 @@ export default function ErrorToast({
           }}
         >
           <div className="flex w-full flex-row items-center justify-between space-x-4">
-            <button onClick={close} type="button">
+            <button onClick={close} type="button" aria-label="Close">
               <XIcon className="h-4 w-4 text-white" />
             </button>
             <span>
@@ -105,6 +104,7 @@ export default function ErrorToast({
                 </div>
                 <button
                   type="button"
+                  aria-label="Copy error details"
                   className="absolute right-2 top-2"
                   onClick={(event) => {
                     event.stopPropagation();

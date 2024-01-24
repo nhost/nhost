@@ -8,8 +8,8 @@ import {
   useDeleteApplicationMutation,
 } from '@/generated/graphql';
 import { copy } from '@/utils/copy';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { getApplicationStatusString } from '@/utils/helpers';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
 import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';
 
@@ -21,7 +21,7 @@ export default function ApplicationInfo() {
   const router = useRouter();
 
   async function handleClickRemove() {
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await deleteApplication({ variables: { appId: currentProject.id } });
         await router.push('/');

@@ -3,7 +3,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useUpdateConfigMutation } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -32,7 +32,7 @@ export default function DisableAIServiceConfirmationDialog({
   async function handleClick() {
     setLoading(true);
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfig({
           variables: {

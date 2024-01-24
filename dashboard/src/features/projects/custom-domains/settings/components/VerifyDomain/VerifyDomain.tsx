@@ -4,7 +4,7 @@ import { IconButton } from '@/components/ui/v2/IconButton';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { copy } from '@/utils/copy';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useDnsLookupCnameLazyQuery } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
 
@@ -30,7 +30,7 @@ export default function VerifyDomain({
   const handleVerifyDomain = async () => {
     setLoading(true);
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await fireLookupCNAME({
           variables: {
@@ -73,7 +73,7 @@ export default function VerifyDomain({
           color: 'success.dark',
         },
       ]}
-      className="flex flex-col p-4 space-y-4 rounded-md"
+      className="flex flex-col space-y-4 rounded-md p-4"
     >
       <div className="flex flex-row items-center justify-between">
         {!verificationFailed && !verificationSucceeded && (
@@ -117,7 +117,7 @@ export default function VerifyDomain({
             color="secondary"
             onClick={() => copy(value, 'CNAME Value')}
           >
-            <CopyIcon className="w-4 h-4" />
+            <CopyIcon className="h-4 w-4" />
           </IconButton>
         </div>
         <Button

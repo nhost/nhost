@@ -18,7 +18,7 @@ import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
 } from '@/utils/constants/common';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import type { GetResourcesQuery } from '@/utils/__generated__/graphql';
 import {
   GetResourcesDocument,
@@ -214,7 +214,7 @@ export default function ResourcesForm() {
     });
 
     try {
-      await callPromiseWithCustomErrorToast(
+      await execPromiseWithErrorToast(
         async () => {
           await updateConfigPromise;
         },

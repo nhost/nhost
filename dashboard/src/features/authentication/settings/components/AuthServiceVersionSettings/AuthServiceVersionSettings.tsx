@@ -11,7 +11,7 @@ import {
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -93,7 +93,7 @@ export default function AuthServiceVersionSettings() {
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
         form.reset(formValues);
@@ -120,7 +120,7 @@ export default function AuthServiceVersionSettings() {
           }}
           docsLink="https://github.com/nhost/hasura-auth/releases"
           docsTitle="the latest releases"
-          className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
         >
           <ControlledAutocomplete
             id="version"

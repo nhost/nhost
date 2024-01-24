@@ -7,7 +7,7 @@ import {
   BaseSecretForm,
   baseSecretFormValidationSchema,
 } from '@/features/projects/secrets/settings/components/BaseSecretForm';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSecretsDocument,
   useInsertSecretMutation,
@@ -53,7 +53,7 @@ export default function CreateSecretForm({
     });
 
     try {
-      await callPromiseWithCustomErrorToast(
+      await execPromiseWithErrorToast(
         async () => {
           await insertSecretPromise;
           onSubmit?.();

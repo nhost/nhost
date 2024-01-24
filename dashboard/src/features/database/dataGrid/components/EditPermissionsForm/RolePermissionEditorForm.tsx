@@ -14,7 +14,7 @@ import type {
 import { convertToHasuraPermissions } from '@/features/database/dataGrid/utils/convertToHasuraPermissions';
 import { convertToRuleGroup } from '@/features/database/dataGrid/utils/convertToRuleGroup';
 import type { DialogFormProps } from '@/types/common';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -252,7 +252,7 @@ export default function RolePermissionEditorForm({
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await managePermissionPromise;
         onDirtyStateChange(false, location);
@@ -291,7 +291,7 @@ export default function RolePermissionEditorForm({
       mode: 'delete',
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await deletePermissionPromise;
         onDirtyStateChange(false, location);
@@ -326,7 +326,7 @@ export default function RolePermissionEditorForm({
   return (
     <FormProvider {...form}>
       {error && error instanceof Error && (
-        <div className="mb-4 -mt-3 px-6">
+        <div className="-mt-3 mb-4 px-6">
           <Alert
             severity="error"
             className="grid grid-flow-col items-center justify-between px-4 py-3"

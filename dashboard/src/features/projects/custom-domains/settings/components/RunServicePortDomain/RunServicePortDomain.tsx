@@ -6,7 +6,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { VerifyDomain } from '@/features/projects/custom-domains/settings/components/VerifyDomain';
 import { useUpdateRunServiceConfigMutation } from '@/generated/graphql';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { type RunService } from 'pages/[workspaceSlug]/[appSlug]/services';
 import { useState } from 'react';
@@ -54,7 +54,7 @@ export default function RunServicePortDomain({
   async function handleSubmit(formValues: RunServicePortFormValues) {
     setLoading(true);
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateRunServiceConfig({
           variables: {

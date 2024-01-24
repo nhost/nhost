@@ -8,7 +8,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSmtpSettingsDocument,
   useGetSmtpSettingsQuery,
@@ -126,7 +126,7 @@ export default function SMTPSettingsPage() {
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
       },

@@ -1,7 +1,7 @@
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useChangePassword } from '@nhost/nextjs';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -36,7 +36,7 @@ export default function PasswordSettings() {
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   async function handleSubmit(formValues: PasswordSettingsFormValues) {
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         // TODO fix changePassword should throw an error if something happens
         await changePassword(formValues.newPassword);

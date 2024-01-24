@@ -16,7 +16,7 @@ import {
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -117,7 +117,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
   });
 
   const handleUpdateAppPlan = async () => {
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         updateApp({
           variables: {

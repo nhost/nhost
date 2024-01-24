@@ -10,7 +10,7 @@ import {
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -53,7 +53,7 @@ export default function BaseDirectorySettings() {
       },
     });
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await updateAppMutation;
         form.reset(values);

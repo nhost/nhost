@@ -4,7 +4,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
-import { callPromiseWithCustomErrorToast } from '@/utils/toast';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useDeleteUserAccountMutation,
   useGetAllWorkspacesAndProjectsQuery,
@@ -42,7 +42,7 @@ function ConfirmDeleteAccountModal({
   const onClickConfirm = async () => {
     setLoadingRemove(true);
 
-    await callPromiseWithCustomErrorToast(
+    await execPromiseWithErrorToast(
       async () => {
         await deleteUserAccount();
         onDelete?.();
