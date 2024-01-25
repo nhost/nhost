@@ -1,0 +1,93 @@
+---
+title: Configuration Overlays
+description: Learn how to use Configuration Overlays
+icon: circles-overlap
+---
+
+Before reading this document about how to use configuration overlays with Run services make sure you are familiar with the concept of [configuration overlays](/guides/cli/configuration-overlays) and how they work.
+
+Working with configuration overlays with Run services is very similar to working with them in the Nhost stack. There are a few differences though:
+
+1. Commands to work with the configuration are located under `nhost run config-...`, for instance:
+
+```
+nhost run config-show --config ../mysvc/nhost-run-service.toml
+name = 'bun-gen'
+
+[image]
+image = 'nhost/bun-generator:0.0.3'
+
+[[environment]]
+name = 'PEXELS_API_KEY'
+value = 'asdasdasd'
+
+[[ports]]
+port = 5000
+type = 'http'
+publish = true
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 62
+memory = 128
+```
+
+2. Unless explicitly indicated by the help of the command, overlays are never applied automatically, a flag needs to be used to apply the overlay:
+
+```
+nhost run config-show --config ../mysvc/nhost-run-service.toml --overlay-name mysvc
+name = 'mysvc'
+
+[image]
+image = 'nhost/bun-generator:0.0.3'
+
+[[environment]]
+name = 'PEXELS_API_KEY'
+value = 'asdasdasd'
+
+[[environment]]
+name = 'ENVIRONMENT'
+value = 'development'
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 62
+memory = 128
+```
+
+3. A notable exception of the point above is `nhost run config-deploy --service-id SERVICE_ID`, which, as indicated by the help, will apply automatically the overlay with name `SERVICE_ID` if it exists:
+
+```
+$ nhost run config-deploy --help
+NAME:
+   nhost run config-deploy - Deploy service configuration
+
+USAGE:
+   nhost run config-deploy [command options] [arguments...]
+
+OPTIONS:
+   --config value      Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
+   --service-id value  Service ID to update. Applies overlay of the same name [$NHOST_RUN_SERVICE_ID]
+   --help, -h          show help
+```
+
+4. Overlays will be located under the same base path as the specified configuration file, under `nhost/overlays` and prefixed with `run-`. If you are using the command `nhost run config-show --config ../mysvc/nhost-run-service.toml --overlay-name mysvc` to edit overlays this is handled by you and you don't need to be worried about. For instance:
+
+```
+$ nhost run config-show --config ../mysvc/nhost-run-service.toml --overlay-name mysvc
+(output omitted for brevity)
+$ find ../mysvc
+find ../mysvc
+../mysvc
+../mysvc/nhost
+../mysvc/nhost/overlays
+../mysvc/nhost/overlays/run-mysvc.json
+../mysvc/nhost/overlays/run-70dca23e-aeed-4351-b37d-9a4a6f17147f.json
+../mysvc/nhost-run-service.toml
+```
+
+5. When running `nhost up --run-service ...` no overlay will be applied automatically. If you want to apply an overlay you will need to specify the name of the overlay name to apply by prefixing the path with `:overlay_name`, for instance: `nhost up --run-service ../mysvc/nhost-run-service.toml:mysvc`
