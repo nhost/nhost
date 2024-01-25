@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.6.4
+
+### Patch Changes
+
+- 7c2a1c2: feat: show error and debug info in the error toast
+
 ## 1.6.3
 
 ### Patch Changes
