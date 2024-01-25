@@ -4,7 +4,7 @@ import { getDesignTokens } from '@/components/ui/v2/theme/getDesignTokens';
 import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
 import type { DefaultToastOptions } from 'react-hot-toast';
 
-function getToastBackgroundColor() {
+export function getToastBackgroundColor() {
   const lightTokens = getDesignTokens('light');
   const darkTokens = getDesignTokens('dark');
 
@@ -33,11 +33,11 @@ export const getToastStyleProps: () => DefaultToastOptions = () => ({
   },
   success: {
     duration: 5000,
-    icon: <CheckIcon className="h-4 w-4" />,
+    icon: <CheckIcon className="w-4 h-4" />,
   },
   error: {
     duration: 5000,
-    icon: <XIcon className="h-4 w-4" />,
+    icon: <XIcon className="w-4 h-4" />,
   },
 });
 

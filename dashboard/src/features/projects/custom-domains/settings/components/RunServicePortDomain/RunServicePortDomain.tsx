@@ -6,13 +6,11 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { VerifyDomain } from '@/features/projects/custom-domains/settings/components/VerifyDomain';
 import { useUpdateRunServiceConfigMutation } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { type RunService } from 'pages/[workspaceSlug]/[appSlug]/services';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 interface RunServicePortProps {
@@ -54,11 +52,11 @@ export default function RunServicePortDomain({
   const runServicePortFQDN = watch('runServicePortFQDN');
 
   async function handleSubmit(formValues: RunServicePortFormValues) {
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      await toast.promise(
-        updateRunServiceConfig({
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateRunServiceConfig({
           variables: {
             appID: currentProject.id,
             serviceID: service.id,
@@ -87,25 +85,18 @@ export default function RunServicePortDomain({
               }),
             },
           },
-        }),
-        {
-          loading: `Port ${port} is being updated...`,
-          success: `Port ${port} has been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update Port ${port}.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
+        });
 
-      form.reset(formValues);
-      // TODO refetch the service config
-      // await refetchWorkspaceAndProject();
-    } catch {
-      // Note: The toast will handle the error.
-    } finally {
-      setLoading(false);
-    }
+        form.reset(formValues);
+      },
+      {
+        loadingMessage: `Port ${port} is being updated...`,
+        successMessage: `Port ${port} has been updated successfully.`,
+        errorMessage: `An error occurred while trying to update Port ${port}.`,
+      },
+    );
+
+    setLoading(false);
   }
 
   return (

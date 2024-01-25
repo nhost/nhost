@@ -9,11 +9,9 @@ import {
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -93,24 +91,18 @@ export default function HasuraEnabledAPISettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Enabled APIs are being updated...`,
-          success: `Enabled APIs have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update enabled APIs.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-      await refetchWorkspaceAndProject();
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+        await refetchWorkspaceAndProject();
+      },
+      {
+        loadingMessage: 'Enabled APIs are being updated...',
+        successMessage: 'Enabled APIs have been updated successfully.',
+        errorMessage: 'An error occurred while trying to update enabled APIs.',
+      },
+    );
   }
 
   return (
@@ -125,7 +117,7 @@ export default function HasuraEnabledAPISettings() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-6"
+          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-6"
         >
           <ControlledAutocomplete
             id="enabledAPIs"

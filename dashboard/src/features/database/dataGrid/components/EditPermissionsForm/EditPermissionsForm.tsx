@@ -331,7 +331,7 @@ export default function EditPermissionsForm({
             <NavLink
               href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/roles-and-permissions`}
               passHref
-            >
+              legacyBehavior>
               <Link
                 href="settings/roles-and-permissions"
                 underline="hover"

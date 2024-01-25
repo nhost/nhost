@@ -19,15 +19,13 @@ import { CreatePermissionVariableForm } from '@/features/projects/permissions/se
 import { EditPermissionVariableForm } from '@/features/projects/permissions/settings/components/EditPermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
 import type { PermissionVariable } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
-import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function PermissionVariableSettings() {
@@ -78,16 +76,16 @@ export default function PermissionVariableSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigPromise,
-      {
-        loading: 'Deleting permission variable...',
-        success: 'Permission variable has been deleted successfully.',
-        error: getServerError(
-          'An error occurred while trying to delete permission variable.',
-        ),
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: 'Deleting permission variable...',
+        successMessage: 'Permission variable has been deleted successfully.',
+        errorMessage:
+          'An error occurred while trying to delete permission variable.',
+      },
     );
   }
 

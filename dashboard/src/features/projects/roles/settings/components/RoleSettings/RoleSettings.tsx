@@ -19,15 +19,13 @@ import { CreateRoleForm } from '@/features/projects/roles/settings/components/Cr
 import { EditRoleForm } from '@/features/projects/roles/settings/components/EditRoleForm';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import type { Role } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
-import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export interface RoleSettingsFormValues {
@@ -83,16 +81,16 @@ export default function RoleSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigPromise,
-      {
-        loading: 'Updating default role...',
-        success: 'Default role has been updated successfully.',
-        error: getServerError(
-          'An error occurred while trying to update the default role.',
-        ),
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: 'Updating default role...',
+        successMessage: 'Default role has been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update the default role.',
+      },
     );
   }
 
@@ -113,16 +111,16 @@ export default function RoleSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigPromise,
-      {
-        loading: 'Deleting allowed role...',
-        success: 'Allowed Role has been deleted successfully.',
-        error: getServerError(
-          'An error occurred while trying to delete the allowed role.',
-        ),
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: 'Deleting allowed role...',
+        successMessage: 'Allowed Role has been deleted successfully.',
+        errorMessage:
+          'An error occurred while trying to delete the allowed role.',
+      },
     );
   }
 

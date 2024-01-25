@@ -15,15 +15,13 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { CreatePATForm } from '@/features/account/settings/components/CreatePATForm';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetPersonalAccessTokensDocument,
   useDeletePersonalAccessTokenMutation,
   useGetPersonalAccessTokensQuery,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
-import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function PATSettings() {
@@ -59,28 +57,20 @@ export default function PATSettings() {
 
   async function handleDeletePAT({
     id,
-  }: typeof availablePersonalAccessTokens[0]) {
-    const deletePATPromise = deletePAT({ variables: { patId: id } });
-
-    try {
-      await toast.promise(
-        deletePATPromise,
-        {
-          loading: 'Deleting personal access token...',
-          success: 'Personal access token has been deleted successfully.',
-          error: getServerError(
-            'An error occurred while deleting the personal access token.',
-          ),
-        },
-        getToastStyleProps(),
-      );
-    } catch {
-      // Note: The toast will handle the error.
-    }
+  }: (typeof availablePersonalAccessTokens)[0]) {
+    await execPromiseWithErrorToast(
+      () => deletePAT({ variables: { patId: id } }),
+      {
+        loadingMessage: 'Deleting personal access token...',
+        successMessage: 'Personal access token has been deleted successfully.',
+        errorMessage:
+          'An error occurred while deleting the personal access token.',
+      },
+    );
   }
 
   function handleConfirmDelete(
-    originalPAT: typeof availablePersonalAccessTokens[0],
+    originalPAT: (typeof availablePersonalAccessTokens)[0],
   ) {
     openAlertDialog({
       title: 'Delete Personal Access Token',

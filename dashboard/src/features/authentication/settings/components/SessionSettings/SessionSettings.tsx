@@ -9,11 +9,9 @@ import {
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -84,23 +82,18 @@ export default function SessionSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Session settings are being updated...`,
-          success: `Session settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update the project's session settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+      },
+      {
+        loadingMessage: 'Session settings are being updated...',
+        successMessage: 'Session settings have been updated successfully.',
+        errorMessage:
+          "An error occurred while trying to update the project's session settings.",
+      },
+    );
   };
 
   return (

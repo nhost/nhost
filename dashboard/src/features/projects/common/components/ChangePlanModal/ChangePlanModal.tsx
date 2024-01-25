@@ -16,12 +16,10 @@ import {
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
 
 function Plan({ planName, price, setPlan, planId, selectedPlanId }: any) {
   return (
@@ -119,8 +117,8 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
   });
 
   const handleUpdateAppPlan = async () => {
-    try {
-      await toast.promise(
+    await execPromiseWithErrorToast(
+      async () => {
         updateApp({
           variables: {
             appId: app.id,
@@ -129,21 +127,17 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
               desiredState: 5,
             },
           },
-        }),
-        {
-          loading: 'Updating plan...',
-          success: `Plan has been updated successfully to ${selectedPlan.name}.`,
-          error: getServerError(
-            'An error occurred while updating the plan. Please try again.',
-          ),
-        },
-        getToastStyleProps(),
-      );
+        });
 
-      setPollingCurrentProject(true);
-    } catch (error) {
-      // Note: Error is handled by the toast.
-    }
+        setPollingCurrentProject(true);
+      },
+      {
+        loadingMessage: 'Updating plan...',
+        successMessage: `Plan has been updated successfully to ${selectedPlan.name}.`,
+        errorMessage:
+          'An error occurred while updating the plan. Please try again.',
+      },
+    );
   };
 
   const handleChangePlanClick = async () => {

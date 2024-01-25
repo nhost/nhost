@@ -8,14 +8,13 @@ import {
   baseSecretFormValidationSchema,
 } from '@/features/projects/secrets/settings/components/BaseSecretForm';
 import type { Secret } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSecretsDocument,
   useUpdateSecretMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
 
 export interface EditSecretFormProps
   extends Pick<BaseSecretFormProps, 'onCancel'> {
@@ -60,20 +59,17 @@ export default function EditSecretForm({
     });
 
     try {
-      await toast.promise(
-        updateSecretPromise,
-        {
-          loading: 'Updating secret...',
-          success: 'Secret has been updated successfully.',
-          error: (arg: Error) =>
-            arg?.message
-              ? `Error: ${arg?.message}`
-              : 'An error occurred while updating the secret.',
+      await execPromiseWithErrorToast(
+        async () => {
+          await updateSecretPromise;
+          onSubmit?.();
         },
-        getToastStyleProps(),
+        {
+          loadingMessage: 'Updating secret...',
+          successMessage: 'Secret has been updated successfully.',
+          errorMessage: 'An error occurred while updating the secret.',
+        },
       );
-
-      onSubmit?.();
     } catch (error) {
       console.error(error);
     }

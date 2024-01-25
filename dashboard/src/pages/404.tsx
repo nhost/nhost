@@ -16,7 +16,7 @@ export default function NotFoundPage() {
         Page Not Found
       </Text>
 
-      <NavLink href="/" passHref>
+      <NavLink href="/" passHref legacyBehavior>
         <Link href="/" underline="hover">
           Go back to home page
         </Link>

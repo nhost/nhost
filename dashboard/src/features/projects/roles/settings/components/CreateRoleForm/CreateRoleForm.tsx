@@ -9,8 +9,7 @@ import {
   baseRoleFormValidationSchema,
 } from '@/features/projects/roles/settings/components/BaseRoleForm';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
@@ -18,7 +17,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
 
 export interface CreateRoleFormProps
   extends Pick<BaseRoleFormProps, 'onCancel' | 'location'> {
@@ -84,23 +82,17 @@ export default function CreateRoleForm({
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: 'Creating role...',
-          success: 'Role has been created successfully.',
-          error: getServerError(
-            'An error occurred while trying to create the role.',
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      onSubmit?.();
-    } catch (updateConfigError) {
-      console.error(updateConfigError);
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        onSubmit?.();
+      },
+      {
+        loadingMessage: 'Creating role...',
+        successMessage: 'Role has been created successfully.',
+        errorMessage: 'An error occurred while trying to create the role.',
+      },
+    );
   }
 
   return (

@@ -32,7 +32,7 @@ function OverviewDeploymentsTopBar() {
       <NavLink
         href={`/${currentWorkspace?.slug}/${currentProject?.slug}/deployments`}
         passHref
-      >
+        legacyBehavior>
         <Button variant="borderless" disabled={!isGitHubConnected}>
           View all
           <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
@@ -106,7 +106,7 @@ function OverviewDeploymentList() {
           <NavLink
             href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/git`}
             passHref
-          >
+            legacyBehavior>
             <Button variant="borderless" size="small">
               Edit
             </Button>

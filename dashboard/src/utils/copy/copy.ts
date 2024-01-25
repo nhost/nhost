@@ -1,4 +1,4 @@
-import { triggerToast } from '@/utils/toast';
+import triggerToast from '@/utils/toast/triggerToast';
 
 export default function copy(toCopy: string, name?: string) {
   navigator.clipboard.writeText(toCopy).catch(() => {

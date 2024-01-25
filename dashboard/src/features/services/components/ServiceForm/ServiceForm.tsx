@@ -26,19 +26,17 @@ import {
   type ServiceFormValues,
 } from '@/features/services/components/ServiceForm/ServiceFormTypes';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useInsertRunServiceConfigMutation,
   useInsertRunServiceMutation,
   useReplaceRunServiceConfigMutation,
   type ConfigRunServiceConfigInsertInput,
 } from '@/utils/__generated__/graphql';
-import type { ApolloError } from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import { parse } from 'shell-quote';
 import { ServiceConfirmationDialog } from './components/ServiceConfirmationDialog';
 import { ServiceDetailsDialog } from './components/ServiceDetailsDialog';
@@ -177,33 +175,18 @@ export default function ServiceForm({
   };
 
   const handleSubmit = async (values: ServiceFormValues) => {
-    try {
-      await toast.promise(
-        createOrUpdateService(values),
-        {
-          loading: 'Configuring the service...',
-          success: `The service has been configured successfully.`,
-          error: (arg: ApolloError) => {
-            // we need to get the internal error message from the GraphQL error
-            const { internal } = arg.graphQLErrors[0]?.extensions || {};
-            const { message } = (internal as Record<string, any>)?.error || {};
-
-            // we use the default Apollo error message if we can't find the
-            // internal error message
-            return (
-              message ||
-              arg.message ||
-              'An error occurred while configuring the service. Please try again.'
-            );
-          },
-        },
-        getToastStyleProps(),
-      );
-
-      onSubmit?.();
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await createOrUpdateService(values);
+        onSubmit?.();
+      },
+      {
+        loadingMessage: 'Configuring the service...',
+        successMessage: 'The service has been configured successfully.',
+        errorMessage:
+          'An error occurred while configuring the service. Please try again.',
+      },
+    );
   };
 
   const handleConfirm = (values: ServiceFormValues) => {

@@ -9,7 +9,7 @@ import {
   basePermissionVariableValidationSchema,
 } from '@/features/projects/permissions/settings/components/BasePermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
@@ -17,7 +17,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
 
 export interface CreatePermissionVariableFormProps
   extends Pick<BasePermissionVariableFormProps, 'onCancel' | 'location'> {
@@ -103,18 +102,18 @@ export default function CreatePermissionVariableForm({
       },
     });
 
-    await toast.promise(
-      updateConfigPromise,
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        await onSubmit?.();
+      },
       {
-        loading: 'Creating permission variable...',
-        success: 'Permission variable has been created successfully.',
-        error:
+        loadingMessage: 'Creating permission variable...',
+        successMessage: 'Permission variable has been created successfully.',
+        errorMessage:
           'An error occurred while trying to create the permission variable.',
       },
-      getToastStyleProps(),
     );
-
-    await onSubmit?.();
   }
 
   return (

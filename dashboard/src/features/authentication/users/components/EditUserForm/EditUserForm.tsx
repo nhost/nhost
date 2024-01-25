@@ -19,9 +19,8 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   RemoteAppGetUsersDocument,
   useGetProjectLocalesQuery,
@@ -36,7 +35,6 @@ import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export interface EditUserFormProps extends DialogFormProps {
@@ -173,21 +171,15 @@ export default function EditUserForm({
       },
     });
 
-    await toast.promise(
-      banUser,
-      {
-        loading: shouldBan ? 'Banning user...' : 'Unbanning user...',
-        success: shouldBan
-          ? 'User has been banned successfully.'
-          : 'User has been unbanned successfully.',
-        error: getServerError(
-          shouldBan
-            ? 'An error occurred while trying to ban the user.'
-            : 'An error occurred while trying to unban the user.',
-        ),
-      },
-      getToastStyleProps(),
-    );
+    await execPromiseWithErrorToast(() => banUser, {
+      loadingMessage: shouldBan ? 'Banning user...' : 'Unbanning user...',
+      successMessage: shouldBan
+        ? 'User has been banned successfully.'
+        : 'User has been unbanned successfully.',
+      errorMessage: shouldBan
+        ? 'An error occurred while trying to ban the user.'
+        : 'An error occurred while trying to unban the user.',
+    });
   }
 
   return (
@@ -196,14 +188,14 @@ export default function EditUserForm({
         className="flex flex-col overflow-hidden border-t-1 lg:flex-auto lg:content-between"
         onSubmit={onSubmit}
       >
-        <Box className="flex-auto overflow-y-auto divide-y">
+        <Box className="flex-auto divide-y overflow-y-auto">
           <Box
             component="section"
             className="grid grid-flow-col p-6 lg:grid-cols-7"
           >
-            <div className="grid items-center grid-flow-col col-span-6 gap-4 place-content-start">
-              <Avatar className="w-12 h-12" src={user.avatarUrl} />
-              <div className="grid items-center grid-flow-row">
+            <div className="col-span-6 grid grid-flow-col place-content-start items-center gap-4">
+              <Avatar className="h-12 w-12" src={user.avatarUrl} />
+              <div className="grid grid-flow-row items-center">
                 <Text className="text-lg font-medium">{user.displayName}</Text>
                 <Text className="text-sm+ font-normal" color="secondary">
                   {user.email}
@@ -225,7 +217,7 @@ export default function EditUserForm({
                     Actions
                   </Button>
                 </Dropdown.Trigger>
-                <Dropdown.Content menu className="w-full h-full">
+                <Dropdown.Content menu className="h-full w-full">
                   <Dropdown.Item
                     className="font-medium"
                     sx={{ color: 'error.main' }}
@@ -253,11 +245,11 @@ export default function EditUserForm({
             component="section"
             className="grid grid-flow-row grid-cols-4 gap-8 p-6"
           >
-            <InputLabel as="h3" className="self-center col-span-1">
+            <InputLabel as="h3" className="col-span-1 self-center">
               User ID
             </InputLabel>
-            <div className="grid items-center justify-start grid-flow-col col-span-3 gap-2">
-              <Text className="font-medium truncate">{user.id}</Text>
+            <div className="col-span-3 grid grid-flow-col items-center justify-start gap-2">
+              <Text className="truncate font-medium">{user.id}</Text>
               <IconButton
                 variant="borderless"
                 color="secondary"
@@ -267,18 +259,18 @@ export default function EditUserForm({
                   copy(user.id, 'User ID');
                 }}
               >
-                <CopyIcon className="w-4 h-4" />
+                <CopyIcon className="h-4 w-4" />
               </IconButton>
             </div>
 
-            <InputLabel as="h3" className="self-center col-span-1 ">
+            <InputLabel as="h3" className="col-span-1 self-center ">
               Created At
             </InputLabel>
             <Text className="col-span-3 font-medium">
               {format(new Date(user.createdAt), 'yyyy-MM-dd HH:mm:ss')}
             </Text>
 
-            <InputLabel as="h3" className="self-center col-span-1 ">
+            <InputLabel as="h3" className="col-span-1 self-center ">
               Last Seen
             </InputLabel>
             <Text className="col-span-3 font-medium">
@@ -336,14 +328,14 @@ export default function EditUserForm({
               autoComplete="off"
             />
 
-            <div className="grid items-center grid-flow-col grid-cols-8 col-span-1 my-1">
+            <div className="col-span-1 my-1 grid grid-flow-col grid-cols-8 items-center">
               <div className="col-span-2 ">
                 <InputLabel as="h3">Password</InputLabel>
               </div>
               <Button
                 color="primary"
                 variant="borderless"
-                className="col-span-6 px-2 place-self-start"
+                className="col-span-6 place-self-start px-2"
                 onClick={handleChangeUserPassword}
               >
                 Change
@@ -392,12 +384,12 @@ export default function EditUserForm({
           </Box>
           <Box
             component="section"
-            className="grid gap-4 p-6 place-content-start lg:grid-cols-4"
+            className="grid place-content-start gap-4 p-6 lg:grid-cols-4"
           >
-            <div className="items-center self-center col-span-1 align-middle">
+            <div className="col-span-1 items-center self-center align-middle">
               <InputLabel as="h3">OAuth Providers</InputLabel>
             </div>
-            <div className="grid w-full grid-flow-row col-span-3 gap-y-6">
+            <div className="col-span-3 grid w-full grid-flow-row gap-y-6">
               {user.userProviders.length === 0 && (
                 <div className="grid grid-flow-col place-content-between gap-x-1">
                   <Text className="font-normal" color="disabled">
@@ -408,10 +400,10 @@ export default function EditUserForm({
 
               {user.userProviders.map((provider) => (
                 <div
-                  className="grid grid-flow-col gap-3 place-content-between"
+                  className="grid grid-flow-col place-content-between gap-3"
                   key={provider.id}
                 >
-                  <div className="grid grid-flow-col gap-2 span-cols-1">
+                  <div className="span-cols-1 grid grid-flow-col gap-2">
                     <Image
                       src={
                         theme.palette.mode === 'dark'
@@ -424,7 +416,7 @@ export default function EditUserForm({
                       }
                       width={25}
                       height={25}
-                      alt='Oauth provider logo'
+                      alt="Oauth provider logo"
                     />
                     <Text className="font-medium capitalize">
                       {getReadableProviderName(provider.providerId)}
@@ -437,7 +429,7 @@ export default function EditUserForm({
           {!isAnonymous && (
             <Box
               component="section"
-              className="grid grid-flow-row p-6 gap-y-10"
+              className="grid grid-flow-row gap-y-10 p-6"
             >
               <ControlledSelect
                 {...register('defaultRole')}
@@ -457,11 +449,11 @@ export default function EditUserForm({
                   </Option>
                 ))}
               </ControlledSelect>
-              <div className="grid grid-flow-row gap-6 place-content-start lg:grid-flow-col lg:grid-cols-8">
+              <div className="grid grid-flow-row place-content-start gap-6 lg:grid-flow-col lg:grid-cols-8">
                 <InputLabel as="h3" className="col-span-2">
                   Allowed Roles
                 </InputLabel>
-                <div className="grid grid-flow-row col-span-3 gap-6">
+                <div className="col-span-3 grid grid-flow-row gap-6">
                   {roles.map((role, i) => (
                     <ControlledCheckbox
                       id={`roles.${i}`}
@@ -477,7 +469,7 @@ export default function EditUserForm({
           )}
         </Box>
 
-        <Box className="grid justify-between flex-shrink-0 w-full grid-flow-col gap-3 p-2 snap-end place-self-end border-t-1">
+        <Box className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-between gap-3 place-self-end border-t-1 p-2">
           <Button
             variant="outlined"
             color="secondary"

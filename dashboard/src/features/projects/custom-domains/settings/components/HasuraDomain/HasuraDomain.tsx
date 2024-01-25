@@ -10,12 +10,10 @@ import {
   useUpdateConfigMutation,
   type ConfigIngressUpdateInput,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -93,24 +91,19 @@ export default function HasuraDomain() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Hasura domain is being updated...`,
-          success: `Hasura domain has been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update the Hasura domain.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-      await refetchWorkspaceAndProject();
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+        await refetchWorkspaceAndProject();
+      },
+      {
+        loadingMessage: 'Hasura domain is being updated...',
+        successMessage: 'Hasura domain has been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update the Hasura domain.',
+      },
+    );
   }
 
   return (
@@ -126,7 +119,7 @@ export default function HasuraDomain() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row px-4 gap-y-4 gap-x-4 lg:grid-cols-5"
+          className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
         >
           <Input
             {...register('hasura_fqdn')}

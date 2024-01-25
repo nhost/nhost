@@ -11,11 +11,9 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -85,23 +83,19 @@ export default function EmailAndPasswordSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Email and password sign-in settings are being updated...`,
-          success: `Email and password sign-in settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update email sign-in settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+      },
+      {
+        loadingMessage: `Email and password sign-in settings are being updated...`,
+        successMessage:
+          'Email and password sign-in settings have been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update email sign-in settings.',
+      },
+    );
   }
 
   return (
