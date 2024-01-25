@@ -172,7 +172,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.4.0"
+	version: string | *"0.5.1"
 
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
@@ -246,7 +246,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.21.2"
+	version: string | *"0.24.1"
 
 	// Resources for the service
 	resources?: #Resources
@@ -620,7 +620,7 @@ import (
 #HealthCheck: {
 	port:    #Port
 	initialDelaySeconds: int | *30
-	probePeriodSeconds:  int | *10
+	probePeriodSeconds:  int | *60
 }
 
 #RunServiceConfig: {

@@ -8,10 +8,10 @@ require (
 	github.com/Yamashou/gqlgenc v0.16.0
 	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/creack/pty v1.1.18
-	github.com/go-git/go-git/v5 v5.9.0
+	github.com/go-git/go-git/v5 v5.11.0
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/go-getter v1.7.3
-	github.com/nhost/be v0.0.0-20240106121631-d9a3a3127388
+	github.com/nhost/be v0.0.0-20240124113854-51357c4752c0
 	github.com/pelletier/go-toml/v2 v2.1.1
 	github.com/urfave/cli/v2 v2.26.0
 	github.com/wI2L/jsondiff v0.4.0
@@ -82,7 +82,7 @@ require (
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.16.1 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
