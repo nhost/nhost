@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.6.3
+
+### Patch Changes
+
+- 6b8aad5: fix: add bare nhost.run to CSP
+
 ## 1.6.2
 
 ### Patch Changes
