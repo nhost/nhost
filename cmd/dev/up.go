@@ -6,16 +6,26 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
+	"text/tabwriter"
 	"time"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/cli/clienv"
 	"github.com/nhost/cli/cmd/config"
+	"github.com/nhost/cli/cmd/run"
 	"github.com/nhost/cli/dockercompose"
 	"github.com/nhost/cli/project/env"
 	"github.com/urfave/cli/v2"
 )
+
+func deptr[T any](t *T) T { //nolint:ireturn
+	if t == nil {
+		return *new(T)
+	}
+	return *t
+}
 
 const (
 	flagHTTPPort           = "http-port"
@@ -28,6 +38,7 @@ const (
 	flagsHasuraPort        = "hasura-port"
 	flagsHasuraConsolePort = "hasura-console-port"
 	flagDashboardVersion   = "dashboard-version"
+	flagRunService         = "run-service"
 )
 
 const (
@@ -97,6 +108,11 @@ func CommandUp() *cli.Command { //nolint:funlen
 				Value:   "nhost/dashboard:1.4.0",
 				EnvVars: []string{"NHOST_DASHBOARD_VERSION"},
 			},
+			&cli.StringSliceFlag{ //nolint:exhaustruct
+				Name:    flagRunService,
+				Usage:   "Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: /path/to/run-service.toml[:overlay_name]", //nolint:lll
+				EnvVars: []string{"NHOST_RUN_SERVICE"},
+			},
 		},
 	}
 }
@@ -133,6 +149,7 @@ func commandUp(cCtx *cli.Context) error {
 			Functions: cCtx.Uint(flagsFunctionsPort),
 		},
 		cCtx.String(flagDashboardVersion),
+		cCtx.StringSlice(flagRunService),
 	)
 }
 
@@ -181,6 +198,44 @@ func restart(
 	return nil
 }
 
+func parseRunServiceConfigFlag(value string) (string, string, error) {
+	parts := strings.Split(value, ":")
+	switch len(parts) {
+	case 1:
+		return parts[0], "", nil
+	case 2: //nolint:gomnd
+		return parts[0], parts[1], nil
+	default:
+		return "", "", fmt.Errorf( //nolint:goerr113
+			"invalid run service format, must be /path/to/config.toml:overlay_name, got %s",
+			value,
+		)
+	}
+}
+
+func processRunServices(
+	ce *clienv.CliEnv,
+	runServices []string,
+	secrets model.Secrets,
+) ([]*model.ConfigRunServiceConfig, error) {
+	r := make([]*model.ConfigRunServiceConfig, 0, len(runServices))
+	for _, runService := range runServices {
+		cfgPath, overlayName, err := parseRunServiceConfigFlag(runService)
+		if err != nil {
+			return nil, err
+		}
+
+		cfg, err := run.Validate(ce, cfgPath, overlayName, secrets)
+		if err != nil {
+			return nil, fmt.Errorf("failed to validate run service %s: %w", cfgPath, err)
+		}
+
+		r = append(r, cfg)
+	}
+
+	return r, nil
+}
+
 func up( //nolint:funlen
 	ctx context.Context,
 	ce *clienv.CliEnv,
@@ -191,6 +246,7 @@ func up( //nolint:funlen
 	applySeeds bool,
 	ports dockercompose.ExposePorts,
 	dashboardVersion string,
+	runServices []string,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -208,9 +264,15 @@ func up( //nolint:funlen
 			err,
 		)
 	}
+
 	cfg, err := config.Validate(ce, "local", secrets)
 	if err != nil {
 		return fmt.Errorf("failed to validate config: %w", err)
+	}
+
+	runServicesCfg, err := processRunServices(ce, runServices, secrets)
+	if err != nil {
+		return err
 	}
 
 	ce.Infoln("Setting up Nhost development environment...")
@@ -227,6 +289,7 @@ func up( //nolint:funlen
 		ports,
 		ce.Branch(),
 		dashboardVersion,
+		runServicesCfg...,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to generate docker-compose.yaml: %w", err)
@@ -263,31 +326,60 @@ func up( //nolint:funlen
 	}
 
 	ce.Infoln("Nhost development environment started.")
-	printInfo(ce, httpPort, postgresPort, useTLS)
+	printInfo(httpPort, postgresPort, useTLS, runServicesCfg)
 	return nil
 }
 
-func printInfo(ce *clienv.CliEnv, httpPort, postgresPort uint, useTLS bool) {
-	ce.Println("URLs:")
-	ce.Println(
-		"- Postgres:             postgres://postgres:postgres@localhost:%d/local",
+func printInfo(
+	httpPort, postgresPort uint,
+	useTLS bool,
+	runServices []*model.ConfigRunServiceConfig,
+) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0) //nolint:gomnd
+	fmt.Fprintf(w, "URLs:\n")
+	fmt.Fprintf(w,
+		"- Postgres:\t\tpostgres://postgres:postgres@localhost:%d/local\n",
 		postgresPort,
 	)
-	ce.Println("- Hasura:               %s", dockercompose.URL("hasura", httpPort, useTLS))
-	ce.Println("- GraphQL:              %s", dockercompose.URL("graphql", httpPort, useTLS))
-	ce.Println("- Auth:                 %s", dockercompose.URL("auth", httpPort, useTLS))
-	ce.Println("- Storage:              %s", dockercompose.URL("storage", httpPort, useTLS))
-	ce.Println("- Functions:            %s", dockercompose.URL("functions", httpPort, useTLS))
-	ce.Println("- Dashboard:            %s", dockercompose.URL("dashboard", httpPort, useTLS))
-	ce.Println("- Mailhog:              %s", dockercompose.URL("mailhog", httpPort, useTLS))
-	ce.Println("")
-	ce.Println("SDK Configuration:")
-	ce.Println(" Subdomain:             local")
-	ce.Println(" Region:                (empty)")
-	ce.Println("")
-	ce.Println("Run `nhost up` to reload the development environment")
-	ce.Println("Run `nhost down` to stop the development environment")
-	ce.Println("Run `nhost logs` to watch the logs")
+	fmt.Fprintf(w, "- Hasura:\t\t%s\n", dockercompose.URL("hasura", httpPort, useTLS))
+	fmt.Fprintf(w, "- GraphQL:\t\t%s\n", dockercompose.URL("graphql", httpPort, useTLS))
+	fmt.Fprintf(w, "- Auth:\t\t%s\n", dockercompose.URL("auth", httpPort, useTLS))
+	fmt.Fprintf(w, "- Storage:\t\t%s\n", dockercompose.URL("storage", httpPort, useTLS))
+	fmt.Fprintf(w, "- Functions:\t\t%s\n", dockercompose.URL("functions", httpPort, useTLS))
+	fmt.Fprintf(w, "- Dashboard:\t\t%s\n", dockercompose.URL("dashboard", httpPort, useTLS))
+	fmt.Fprintf(w, "- Mailhog:\t\t%s\n", dockercompose.URL("mailhog", httpPort, useTLS))
+
+	for _, svc := range runServices {
+		for _, port := range svc.GetPorts() {
+			if deptr(port.GetPublish()) {
+				fmt.Fprintf(
+					w,
+					"- run-%s:\t\tFrom laptop:\t%s://localhost:%d\n",
+					svc.Name,
+					port.GetType(),
+					port.GetPort(),
+				)
+				fmt.Fprintf(
+					w,
+					"\t\tFrom services:\t%s://run-%s:%d\n",
+					port.GetType(),
+					svc.Name,
+					port.GetPort(),
+				)
+			}
+		}
+	}
+
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "SDK Configuration:\n")
+	fmt.Fprintf(w, " Subdomain:\tlocal\n")
+	fmt.Fprintf(w, " Region:\t(empty)\n")
+	fmt.Fprintf(w, "")
+	fmt.Fprintf(w, "Run `nhost up` to reload the development environment\n")
+	fmt.Fprintf(w, "Run `nhost down` to stop the development environment\n")
+	fmt.Fprintf(w, "Run `nhost logs` to watch the logs\n")
+
+	w.Flush()
 }
 
 func Up(
@@ -299,11 +391,12 @@ func Up(
 	applySeeds bool,
 	ports dockercompose.ExposePorts,
 	dashboardVersion string,
+	runServices []string,
 ) error {
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
 	if err := up(
-		ctx, ce, dc, httpPort, useTLS, postgresPort, applySeeds, ports, dashboardVersion,
+		ctx, ce, dc, httpPort, useTLS, postgresPort, applySeeds, ports, dashboardVersion, runServices,
 	); err != nil {
 		ce.Warnln(err.Error())
 

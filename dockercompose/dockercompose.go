@@ -57,6 +57,7 @@ func (dc *DockerCompose) Start(ctx context.Context) error {
 		"-p", dc.projectName,
 		"up",
 		"-d", "--wait",
+		"--remove-orphans",
 	)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

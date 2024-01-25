@@ -26,6 +26,14 @@ const (
 	minimumHasuraVerson = "v2.18.0"
 )
 
+func rootNodeModules(branch string) string {
+	return fmt.Sprintf("%s-root_node_modules", sanitizeBranch(branch))
+}
+
+func functionsNodeModules(branch string) string {
+	return fmt.Sprintf("%s-functions_node_modules", sanitizeBranch(branch))
+}
+
 func ptr[T any](v T) *T {
 	return &v
 }
@@ -304,6 +312,7 @@ func functions( //nolint:funlen
 	rootFolder string,
 	jwtSecret string,
 	port uint,
+	branch string,
 ) *Service {
 	envVars := map[string]string{
 		"HASURA_GRAPHQL_ADMIN_SECRET": cfg.Hasura.AdminSecret,
@@ -361,12 +370,12 @@ func functions( //nolint:funlen
 			},
 			{
 				Type:   "volume",
-				Source: "root_node_modules",
+				Source: rootNodeModules(branch),
 				Target: "/opt/project/node_modules",
 			},
 			{
 				Type:   "volume",
-				Source: "functions_node_modules",
+				Source: functionsNodeModules(branch),
 				Target: "/opt/project/functions/node_modules",
 			},
 		},
@@ -430,7 +439,7 @@ func sanitizeBranch(name string) string {
 	return strings.ToLower(re.ReplaceAllString(name, ""))
 }
 
-func ComposeFileFromConfig( //nolint:funlen
+func getServices( //nolint: funlen,cyclop
 	cfg *model.ConfigConfig,
 	projectName string,
 	httpPort uint,
@@ -443,7 +452,8 @@ func ComposeFileFromConfig( //nolint:funlen
 	ports ExposePorts,
 	branch string,
 	dashboardVersion string,
-) (*ComposeFile, error) {
+	runServices ...*model.ConfigRunServiceConfig,
+) (map[string]*Service, error) {
 	minio, err := minio(dataFolder)
 	if err != nil {
 		return nil, err
@@ -486,37 +496,87 @@ func ComposeFileFromConfig( //nolint:funlen
 		return nil, err
 	}
 
-	c := &ComposeFile{
-		Version: "3.8",
-		Services: map[string]*Service{
-			"auth":      auth,
-			"console":   console,
-			"dashboard": dashboard(cfg, dashboardVersion, httpPort, useTLS),
-			"functions": functions(
-				cfg,
-				httpPort,
-				useTLS,
-				rootFolder,
-				jwtSecret,
-				ports.Functions,
-			),
-			"graphql":  graphql,
-			"minio":    minio,
-			"postgres": postgres,
-			"storage":  storage,
-			"mailhog":  mailhog,
-			"traefik":  traefik,
-		},
-		Volumes: map[string]struct{}{
-			"functions_node_modules": {},
-			"root_node_modules":      {},
-			pgVolumeName:             {},
-		},
+	services := map[string]*Service{
+		"auth":      auth,
+		"console":   console,
+		"dashboard": dashboard(cfg, dashboardVersion, httpPort, useTLS),
+		"functions": functions(
+			cfg,
+			httpPort,
+			useTLS,
+			rootFolder,
+			jwtSecret,
+			ports.Functions,
+			branch,
+		),
+		"graphql":  graphql,
+		"minio":    minio,
+		"postgres": postgres,
+		"storage":  storage,
+		"mailhog":  mailhog,
+		"traefik":  traefik,
 	}
 
 	if cfg.Ai != nil {
-		c.Services["ai"] = ai(cfg)
+		services["ai"] = ai(cfg)
 	}
 
-	return c, nil
+	for _, runService := range runServices {
+		services["run-"+runService.Name] = run(runService, branch)
+	}
+
+	return services, nil
+}
+
+func ComposeFileFromConfig(
+	cfg *model.ConfigConfig,
+	projectName string,
+	httpPort uint,
+	useTLS bool,
+	postgresPort uint,
+	dataFolder string,
+	nhostFolder string,
+	dotNhostFolder string,
+	rootFolder string,
+	ports ExposePorts,
+	branch string,
+	dashboardVersion string,
+	runServices ...*model.ConfigRunServiceConfig,
+) (*ComposeFile, error) {
+	services, err := getServices(
+		cfg,
+		projectName,
+		httpPort,
+		useTLS,
+		postgresPort,
+		dataFolder,
+		nhostFolder,
+		dotNhostFolder,
+		rootFolder,
+		ports,
+		branch,
+		dashboardVersion,
+		runServices...,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	pgVolumeName := fmt.Sprintf("pgdata_%s", sanitizeBranch(branch))
+	volumes := map[string]struct{}{
+		rootNodeModules(branch):      {},
+		functionsNodeModules(branch): {},
+		pgVolumeName:                 {},
+	}
+	for _, runService := range runServices {
+		for _, s := range runService.GetResources().GetStorage() {
+			volumes[runVolumeName(runService.Name, s.GetName(), branch)] = struct{}{}
+		}
+	}
+
+	return &ComposeFile{
+		Version:  "3.8",
+		Services: services,
+		Volumes:  volumes,
+	}, nil
 }
