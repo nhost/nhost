@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.6.2
+
+### Patch Changes
+
+- b18edc0: feat: added CSP and X-Frame-Options
+
 ## 1.6.1
 
 ### Patch Changes
