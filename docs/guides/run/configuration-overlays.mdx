@@ -1,5 +1,6 @@
 ---
 title: Configuration Overlays
+description: Learn how to use Configuration Overlays
 icon: circles-overlap
 ---
 
@@ -90,9 +91,3 @@ find ../mysvc
 ```
 
 5. When running `nhost up --run-service ...` no overlay will be applied automatically. If you want to apply an overlay you will need to specify the name of the overlay name to apply by prefixing the path with `:overlay_name`, for instance: `nhost up --run-service ../mysvc/nhost-run-service.toml:mysvc`
-
-## Examples
-
-### Using overlays to override development image
-
-TBD
