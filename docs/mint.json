@@ -335,6 +335,14 @@
                 "reference/javascript/graphql/set-access-token",
                 "reference/javascript/graphql/request"
               ]
+            },
+            {
+              "group": "Functions ",
+              "pages": [
+                "reference/javascript/functions/create-functions-client",
+                "reference/javascript/functions/call",
+                "reference/javascript/functions/set-access-token"
+              ]
             }
           ]
         },
