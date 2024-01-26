@@ -85,7 +85,7 @@ dev-env-up-hasura: build-docker-image  ## Starts development environment but onl
 	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d storage
 
 .PHONY: dev-env-up
-dev-env-up: dev-env-down dev-env-build  ## Starts development environment
+dev-env-up: dev-env-build  ## Starts development environment
 	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
 
 

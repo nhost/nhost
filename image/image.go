@@ -1,20 +1,14 @@
 package image
 
-// #cgo pkg-config: vips
-// #include <vips/vips.h>
-// #include "image.h"
-import "C" //nolint: gci
-
 import (
 	"bytes"
 	"fmt"
 	"io"
 	"math"
-	"reflect"
-	"runtime/debug"
 	"sync"
 	"sync/atomic"
-	"unsafe"
+
+	"github.com/davidbyttow/govips/v2/vips"
 )
 
 const (
@@ -26,9 +20,9 @@ type ImageType int //nolint: revive
 var initialized int32 //nolint: gochecknoglobals
 
 const (
-	ImageTypeJPEG ImageType = C.JPEG
-	ImageTypePNG  ImageType = C.PNG
-	ImageTypeWEBP ImageType = C.WEBP
+	ImageTypeJPEG ImageType = iota
+	ImageTypePNG
+	ImageTypeWEBP
 )
 
 type Options struct {
@@ -50,20 +44,8 @@ type Transformer struct {
 
 func NewTransformer() *Transformer {
 	if atomic.CompareAndSwapInt32(&initialized, 0, 1) {
-		// thread-safe way of initializing vips once and only once
-		// mostly interesting for testing in parallel
-		name := C.CString("hasuraStorage")
-		defer C.free(unsafe.Pointer(name))
-
-		err := C.vips_init(name)
-		if err != 0 {
-			panic(fmt.Sprintf("vips error, code=%v", err))
-		}
-
-		C.vips_concurrency_set(C.int(1))
-		C.vips_cache_set_max_files(C.int(0))
-		C.vips_cache_set_max_mem(C.size_t(0))
-		C.vips_cache_set_max(C.int(0))
+		vips.LoggingSettings(nil, vips.LogLevelWarning)
+		vips.Startup(nil)
 	}
 
 	workers := make(chan struct{}, maxWorkers)
@@ -82,10 +64,57 @@ func NewTransformer() *Transformer {
 }
 
 func (t *Transformer) Shutdown() {
-	C.vips_shutdown()
+	vips.Shutdown()
 }
 
-func (t *Transformer) Run(orig io.Reader, length uint64, modified io.Writer, opts Options) error {
+func getExportParams(opts Options) *vips.ExportParams {
+	var ep *vips.ExportParams
+	switch opts.Format {
+	case ImageTypeJPEG:
+		ep = vips.NewDefaultJPEGExportParams()
+	case ImageTypePNG:
+		ep = vips.NewDefaultPNGExportParams()
+	case ImageTypeWEBP:
+		ep = vips.NewDefaultWEBPExportParams()
+	}
+	ep.Quality = opts.Quality
+
+	return ep
+}
+
+func processImage(image *vips.ImageRef, opts Options) error {
+	if opts.Width > 0 || opts.Height > 0 {
+		width := opts.Width
+		height := opts.Height
+
+		if width == 0 {
+			width = int((float64(height) / float64(image.Height())) * float64(image.Width()))
+		}
+
+		if height == 0 {
+			height = int((float64(width) / float64(image.Width())) * float64(image.Height()))
+		}
+
+		if err := image.Thumbnail(width, height, vips.InterestingCentre); err != nil {
+			return fmt.Errorf("failed to thumbnail: %w", err)
+		}
+	}
+
+	if opts.Blur > 0 {
+		if err := image.GaussianBlur(opts.Blur); err != nil {
+			return fmt.Errorf("failed to blur: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (t *Transformer) Run(
+	orig io.Reader,
+	length uint64,
+	modified io.Writer,
+	opts Options,
+) error {
 	// this is to avoid processing too many images at the same time in order to save memory
 	<-t.workers
 	defer func() { t.workers <- struct{}{} }()
@@ -106,47 +135,24 @@ func (t *Transformer) Run(orig io.Reader, length uint64, modified io.Writer, opt
 		panic(err)
 	}
 
-	b, err := Manipulate(buf.Bytes(), opts)
+	image, err := vips.NewImageFromBuffer(buf.Bytes())
 	if err != nil {
-		return fmt.Errorf("problem manipulating image: %w", err)
+		return fmt.Errorf("failed to load image: %w", err)
+	}
+	defer image.Close()
+
+	if err := processImage(image, opts); err != nil {
+		return err
 	}
 
-	if _, err := modified.Write(b); err != nil {
-		return fmt.Errorf("problem writing image: %w", err)
+	b, _, err := image.Export(getExportParams(opts))
+	if err != nil {
+		return fmt.Errorf("failed to export: %w", err)
+	}
+
+	if _, err = modified.Write(b); err != nil {
+		return fmt.Errorf("failed to write: %w", err)
 	}
 
 	return nil
-}
-
-func Manipulate(buf []byte, opts Options) ([]byte, error) {
-	var result C.Result
-
-	err := C.manipulate(
-		unsafe.Pointer(&buf[0]),
-		C.size_t(len(buf)),
-		&result, //nolint: exhaustruct
-		C.Options{
-			quality: C.int(opts.Quality),
-			width:   C.int(opts.Width),
-			height:  C.int(opts.Height),
-			crop:    C.VIPS_INTERESTING_CENTRE,
-			size:    C.VIPS_SIZE_BOTH, //nolint: gocritic
-			blur:    C.double(opts.Blur),
-			format:  C.ImageType(opts.Format), //nolint: gocritic
-		},
-	)
-	if err != 0 {
-		s := C.GoString(C.vips_error_buffer())
-		C.vips_error_clear()
-
-		return nil, fmt.Errorf("%v\nStack:\n%s", s, debug.Stack()) //nolint: goerr113
-	}
-
-	var data []byte
-	sh := (*reflect.SliceHeader)(unsafe.Pointer(&data))
-	sh.Data = uintptr(result.buf)
-	sh.Len = int(result.len)
-	sh.Cap = int(result.len)
-
-	return data, nil
 }

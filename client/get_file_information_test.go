@@ -199,9 +199,9 @@ func TestGetFileInformation(t *testing.T) {
 			id:   testFiles.ProcessedFiles[1].ID,
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
-				ContentLength: 14497,
+				ContentLength: 16897,
 				ContentType:   "image/jpeg",
-				Etag:          `"dc72277490497dc9b3ca900e5d2797b99a23797a3bcfbc7418f60f9d4c058fe9"`,
+				Etag:          `"0b038c3afbe8a848974874aad4fb11983d45ab84d9113eb4260c4ed34d2d03d6"`,
 				LastModified:  "",
 				Error:         "",
 				StatusCode:    200,
@@ -216,9 +216,9 @@ func TestGetFileInformation(t *testing.T) {
 			id:   testFiles.ProcessedFiles[1].ID,
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
-				ContentLength: 6658,
+				ContentLength: 12490,
 				ContentType:   "image/jpeg",
-				Etag:          `"2b99a81ce11cd6604622fcf44701318e7a9c85cdac43ccb5296f5168fb301429"`,
+				Etag:          `"55de6c49d308de6158f713ea84f476096d227bcf7a2395c10617193e9c80eeb2"`,
 				LastModified:  "",
 				Error:         "",
 				StatusCode:    200,
