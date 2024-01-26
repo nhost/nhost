@@ -9,8 +9,7 @@ import {
   baseEnvironmentVariableFormValidationSchema,
 } from '@/features/projects/environmentVariables/settings/components/BaseEnvironmentVariableForm';
 import type { EnvironmentVariable } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
@@ -18,7 +17,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
 
 export interface EditEnvironmentVariableFormProps
   extends Pick<BaseEnvironmentVariableFormProps, 'onCancel' | 'location'> {
@@ -116,19 +114,18 @@ export default function EditEnvironmentVariableForm({
       },
     });
 
-    await toast.promise(
-      updateConfigPromise,
-      {
-        loading: 'Updating environment variable...',
-        success: 'Environment variable has been updated successfully.',
-        error: getServerError(
-          'An error occurred while updating the environment variable.',
-        ),
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        onSubmit?.();
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: 'Updating environment variable...',
+        successMessage: 'Environment variable has been updated successfully.',
+        errorMessage:
+          'An error occurred while updating the environment variable.',
+      },
     );
-
-    onSubmit?.();
   }
 
   return (

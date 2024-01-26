@@ -11,11 +11,9 @@ import {
   useGetStorageSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -97,23 +95,18 @@ export default function StorageServiceVersionSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Storage version is being updated...`,
-          success: `Storage version has been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update Storage version.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+      },
+      {
+        loadingMessage: 'Storage version is being updated...',
+        successMessage: 'Storage version has been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update Storage version.',
+      },
+    );
   };
 
   return (
@@ -130,7 +123,7 @@ export default function StorageServiceVersionSettings() {
           }}
           docsLink="https://github.com/nhost/hasura-storage/releases"
           docsTitle="the latest releases"
-          className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
         >
           <ControlledAutocomplete
             id="version"

@@ -3,15 +3,13 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -71,23 +69,18 @@ export default function DisableNewUsersSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Disabling new user sign ups...`,
-          success: `New user sign ups have been disabled successfully.`,
-          error: getServerError(
-            `An error occurred while trying to disable new user sign ups.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(values);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(values);
+      },
+      {
+        loadingMessage: 'Disabling new user sign ups...',
+        successMessage: 'New user sign ups have been disabled successfully.',
+        errorMessage:
+          'An error occurred while trying to disable new user sign ups.',
+      },
+    );
   };
 
   return (

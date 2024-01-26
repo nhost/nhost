@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.2.0
+
+### Minor Changes
+
+- 5c9b8f0: feat: added docs regarding local development for Run services
+
 ## 2.1.0
 
 ### Minor Changes

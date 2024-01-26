@@ -14,13 +14,11 @@ import type {
 import { convertToHasuraPermissions } from '@/features/database/dataGrid/utils/convertToHasuraPermissions';
 import { convertToRuleGroup } from '@/features/database/dataGrid/utils/convertToRuleGroup';
 import type { DialogFormProps } from '@/types/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import AggregationQuerySection from './sections/AggregationQuerySection';
 import BackendOnlySection from './sections/BackendOnlySection';
 import ColumnPermissionsSection from './sections/ColumnPermissionsSection';
@@ -254,18 +252,18 @@ export default function RolePermissionEditorForm({
       },
     });
 
-    await toast.promise(
-      managePermissionPromise,
-      {
-        loading: 'Saving permission...',
-        success: 'Permission has been saved successfully.',
-        error: getServerError('An error occurred while saving the permission.'),
+    await execPromiseWithErrorToast(
+      async () => {
+        await managePermissionPromise;
+        onDirtyStateChange(false, location);
+        onSubmit?.();
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: 'Saving permission...',
+        successMessage: 'Permission has been saved successfully.',
+        errorMessage: 'An error occurred while saving the permission.',
+      },
     );
-
-    onDirtyStateChange(false, location);
-    onSubmit?.();
   }
 
   function handleCancelClick() {
@@ -293,20 +291,18 @@ export default function RolePermissionEditorForm({
       mode: 'delete',
     });
 
-    await toast.promise(
-      deletePermissionPromise,
-      {
-        loading: 'Deleting permission...',
-        success: 'Permission has been deleted successfully.',
-        error: getServerError(
-          'An error occurred while deleting the permission.',
-        ),
+    await execPromiseWithErrorToast(
+      async () => {
+        await deletePermissionPromise;
+        onDirtyStateChange(false, location);
+        onSubmit?.();
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: 'Deleting permission...',
+        successMessage: 'Permission has been deleted successfully.',
+        errorMessage: 'An error occurred while deleting the permission.',
+      },
     );
-
-    onDirtyStateChange(false, location);
-    onSubmit?.();
   }
 
   function handleDeleteClick() {

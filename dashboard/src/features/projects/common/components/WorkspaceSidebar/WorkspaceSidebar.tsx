@@ -48,7 +48,7 @@ export default function WorkspaceSidebar({
           <List className="grid grid-flow-row gap-2">
             {workspaces.map(({ id, name, slug }) => (
               <ListItem.Root key={id}>
-                <NavLink href={`/${slug}`} passHref className='w-full'>
+                <NavLink href={`/${slug}`} passHref className='w-full' legacyBehavior>
                   <ListItem.Button
                     dense
                     aria-label={`View ${name}`}
@@ -129,7 +129,7 @@ export default function WorkspaceSidebar({
           passHref
           target="_blank"
           rel="noreferrer noopener"
-        >
+          legacyBehavior>
           <Button
             className="grid w-full grid-flow-col gap-1"
             variant="outlined"
@@ -145,7 +145,7 @@ export default function WorkspaceSidebar({
           passHref
           target="_blank"
           rel="noreferrer noopener"
-        >
+          legacyBehavior>
           <Button
             className="grid w-full grid-flow-col gap-1"
             variant="outlined"

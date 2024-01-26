@@ -7,13 +7,11 @@ import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteApplicationMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { getApplicationStatusString } from '@/utils/helpers';
 import { formatDistance } from 'date-fns';
 import { useRouter } from 'next/router';
-import { toast } from 'react-hot-toast';
 
 export default function ApplicationInfo() {
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -23,23 +21,18 @@ export default function ApplicationInfo() {
   const router = useRouter();
 
   async function handleClickRemove() {
-    try {
-      await toast.promise(
-        deleteApplication({ variables: { appId: currentProject.id } }),
-        {
-          loading: 'Deleting project...',
-          success: 'The project has been deleted successfully.',
-          error: getServerError(
-            'An error occurred while deleting the project. Please try again.',
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      await router.push('/');
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await deleteApplication({ variables: { appId: currentProject.id } });
+        await router.push('/');
+      },
+      {
+        loadingMessage: 'Deleting project...',
+        successMessage: 'The project has been deleted successfully.',
+        errorMessage:
+          'An error occurred while deleting the project. Please try again.',
+      },
+    );
   }
 
   if (!currentProject) {

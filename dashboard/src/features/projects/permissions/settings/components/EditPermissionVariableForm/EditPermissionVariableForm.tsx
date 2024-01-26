@@ -10,7 +10,7 @@ import {
 } from '@/features/projects/permissions/settings/components/BasePermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
 import type { PermissionVariable } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
@@ -18,7 +18,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
 
 export interface EditPermissionVariableFormProps
   extends Pick<BasePermissionVariableFormProps, 'onCancel' | 'location'> {
@@ -130,15 +129,16 @@ export default function EditPermissionVariableForm({
       },
     });
 
-    await toast.promise(
-      updateConfigPromise,
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+      },
       {
-        loading: 'Updating permission variable...',
-        success: 'Permission variable has been updated successfully.',
-        error:
+        loadingMessage: 'Updating permission variable...',
+        successMessage: 'Permission variable has been updated successfully.',
+        errorMessage:
           'An error occurred while trying to update the permission variable.',
       },
-      getToastStyleProps(),
     );
 
     await onSubmit?.();

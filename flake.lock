@@ -33,6 +33,26 @@
         "type": "github"
       }
     },
+    "nixops": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nix-filter": "nix-filter",
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1705308034,
+        "narHash": "sha256-uJa9SWplvvnwthotS4I45ASKhanXI6q9fMlEbbQHIEE=",
+        "owner": "nhost",
+        "repo": "nixops",
+        "rev": "6c0e4331c558c78238cae26cb4ef118d0c3126bc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nhost",
+        "repo": "nixops",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1704842529,
@@ -51,9 +71,19 @@
     },
     "root": {
       "inputs": {
-        "flake-utils": "flake-utils",
-        "nix-filter": "nix-filter",
-        "nixpkgs": "nixpkgs"
+        "flake-utils": [
+          "nixops",
+          "flake-utils"
+        ],
+        "nix-filter": [
+          "nixops",
+          "nix-filter"
+        ],
+        "nixops": "nixops",
+        "nixpkgs": [
+          "nixops",
+          "nixpkgs"
+        ]
       }
     },
     "systems": {

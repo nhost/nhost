@@ -17,8 +17,7 @@ import { getReadableProviderName } from '@/features/authentication/users/utils/g
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useDeleteRemoteAppUserRolesMutation,
   useGetRolesPermissionsQuery,
@@ -33,7 +32,6 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
 import { Fragment, useMemo } from 'react';
-import toast from 'react-hot-toast';
 
 const EditUserForm = dynamic(
   () =>
@@ -153,20 +151,18 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
       });
     }
 
-    await toast.promise(
-      updateUserMutationPromise,
-      {
-        loading: `Updating user's settings...`,
-        success: 'User settings have been updated successfully.',
-        error: getServerError(
-          `An error occurred while trying to update this user's settings.`,
-        ),
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateUserMutationPromise;
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: `Updating user's settings...`,
+        successMessage: 'User settings have been updated successfully.',
+        errorMessage: `An error occurred while trying to update this user's settings.`,
+      },
     );
 
     await onSubmit?.();
-
     closeDrawer();
   }
 
@@ -181,20 +177,20 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
       ),
       props: {
         onPrimaryAction: async () => {
-          await toast.promise(
-            deleteUser({
-              variables: {
-                id: user.id,
-              },
-            }),
-            {
-              loading: 'Deleting user...',
-              success: 'User deleted successfully.',
-              error: getServerError(
-                'An error occurred while trying to delete this user.',
-              ),
+          await execPromiseWithErrorToast(
+            async () => {
+              await deleteUser({
+                variables: {
+                  id: user.id,
+                },
+              });
             },
-            getToastStyleProps(),
+            {
+              loadingMessage: 'Deleting user...',
+              successMessage: 'User deleted successfully.',
+              errorMessage:
+                'An error occurred while trying to delete this user.',
+            },
           );
 
           await onSubmit();
@@ -226,12 +222,12 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
 
   if (!users) {
     return (
-      <div className="w-screen h-screen overflow-hidden">
-        <div className="absolute top-0 left-0 z-50 block w-full h-full">
-          <span className="relative block mx-auto my-0 top50percent top-1/2">
+      <div className="h-screen w-screen overflow-hidden">
+        <div className="absolute left-0 top-0 z-50 block h-full w-full">
+          <span className="top50percent relative top-1/2 mx-auto my-0 block">
             <ActivityIndicator
               label="Loading users..."
-              className="flex items-center justify-center my-auto"
+              className="my-auto flex items-center justify-center"
             />
           </span>
         </div>
@@ -269,7 +265,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
                     }}
                     className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                   >
-                    <UserIcon className="w-4 h-4" />
+                    <UserIcon className="h-4 w-4" />
                     <Text className="font-medium">View User</Text>
                   </Dropdown.Item>
 
@@ -280,7 +276,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
                     sx={{ color: 'error.main' }}
                     onClick={() => handleDeleteUser(user)}
                   >
-                    <TrashIcon className="w-4 h-4" />
+                    <TrashIcon className="h-4 w-4" />
                     <Text className="font-medium" color="error">
                       Delete User
                     </Text>
@@ -294,14 +290,14 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
               onClick={() => handleViewUser(user)}
               aria-label={`View ${user.displayName}`}
             >
-              <div className="grid grid-flow-col col-span-2 gap-4 place-content-start">
+              <div className="col-span-2 grid grid-flow-col place-content-start gap-4">
                 <Avatar
                   src={user.avatarUrl}
                   alt={`Avatar of ${user.displayName}`}
                 />
-                <div className="grid items-center grid-flow-row">
-                  <div className="grid items-center grid-flow-col gap-2">
-                    <Text className="font-medium leading-5 truncate">
+                <div className="grid grid-flow-row items-center">
+                  <div className="grid grid-flow-col items-center gap-2">
+                    <Text className="truncate font-medium leading-5">
                       {user.displayName}
                     </Text>
                     {user.disabled && (
@@ -314,7 +310,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
                     )}
                   </div>
 
-                  <Text className="font-normal truncate" color="secondary">
+                  <Text className="truncate font-normal" color="secondary">
                     {user.email}
                   </Text>
                 </div>
@@ -334,7 +330,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
                   : '-'}
               </Text>
 
-              <div className="hidden grid-flow-col col-span-2 gap-3 px-4 place-content-start lg:grid">
+              <div className="col-span-2 hidden grid-flow-col place-content-start gap-3 px-4 lg:grid">
                 {user.userProviders.length === 0 && (
                   <Text className="col-span-3 font-medium">-</Text>
                 )}
@@ -362,7 +358,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
                         }
                         width={16}
                         height={16}
-                        alt='Oauth provider logo'
+                        alt="Oauth provider logo"
                       />
                     }
                   />

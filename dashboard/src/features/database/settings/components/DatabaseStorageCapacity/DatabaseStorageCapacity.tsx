@@ -11,12 +11,10 @@ import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -75,9 +73,9 @@ export default function AuthDomain() {
   }
 
   async function handleSubmit(formValues: AuthDomainFormValues) {
-    try {
-      await toast.promise(
-        updateConfig({
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfig({
           variables: {
             appId: currentProject.id,
             config: {
@@ -90,22 +88,19 @@ export default function AuthDomain() {
               },
             },
           },
-        }),
-        {
-          loading: `Database storage capacity is being updated...`,
-          success: `Database storage capacity has been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update the database storage capacity.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
+        });
 
-      form.reset(formValues);
-      await refetchPostgresSettings();
-    } catch {
-      // Note: The toast will handle the error.
-    }
+        form.reset(formValues);
+        await refetchPostgresSettings();
+      },
+      {
+        loadingMessage: 'Database storage capacity is being updated...',
+        successMessage:
+          'Database storage capacity has been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update the database storage capacity.',
+      },
+    );
   }
 
   return (

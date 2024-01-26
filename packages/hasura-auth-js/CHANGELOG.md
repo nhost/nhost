@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.1.11
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+
 ## 2.1.10
 
 ### Patch Changes

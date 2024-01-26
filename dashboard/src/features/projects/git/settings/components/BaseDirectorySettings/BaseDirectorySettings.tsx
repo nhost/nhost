@@ -9,13 +9,11 @@ import {
   GetAllWorkspacesAndProjectsDocument,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 
 export interface BaseDirectoryFormValues {
   /**
@@ -55,19 +53,18 @@ export default function BaseDirectorySettings() {
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `The base directory is being updated...`,
-        success: `The base directory has been updated successfully.`,
-        error: getServerError(
-          `An error occurred while trying to update the project's base directory.`,
-        ),
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateAppMutation;
+        form.reset(values);
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: 'The base directory is being updated...',
+        successMessage: 'The base directory has been updated successfully.',
+        errorMessage:
+          "An error occurred while trying to update the project's base directory.",
+      },
     );
-
-    form.reset(values);
 
     try {
       await client.refetchQueries({

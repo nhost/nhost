@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/react-apollo",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.8.9",
@@ -9,8 +9,8 @@
     "@mantine/hooks": "^4.2.12",
     "@mantine/notifications": "^4.2.12",
     "@mantine/prism": "^4.2.12",
-    "@nhost/react": "^3.0.1",
-    "@nhost/react-apollo": "^7.0.1",
+    "@nhost/react": "^3.0.2",
+    "@nhost/react-apollo": "^7.0.2",
     "graphql": "16.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

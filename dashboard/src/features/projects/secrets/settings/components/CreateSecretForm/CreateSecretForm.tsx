@@ -7,14 +7,13 @@ import {
   BaseSecretForm,
   baseSecretFormValidationSchema,
 } from '@/features/projects/secrets/settings/components/BaseSecretForm';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSecretsDocument,
   useInsertSecretMutation,
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
 
 export interface CreateSecretFormProps
   extends Pick<BaseSecretFormProps, 'onCancel'> {
@@ -54,20 +53,17 @@ export default function CreateSecretForm({
     });
 
     try {
-      await toast.promise(
-        insertSecretPromise,
-        {
-          loading: 'Creating secret...',
-          success: 'Secret has been created successfully.',
-          error: (arg: Error) =>
-            arg?.message
-              ? `Error: ${arg?.message}`
-              : 'An error occurred while creating the secret.',
+      await execPromiseWithErrorToast(
+        async () => {
+          await insertSecretPromise;
+          onSubmit?.();
         },
-        getToastStyleProps(),
+        {
+          loadingMessage: 'Creating secret...',
+          successMessage: 'Secret has been created successfully.',
+          errorMessage: 'An error occurred while creating the secret.',
+        },
       );
-
-      onSubmit?.();
     } catch (error) {
       console.error(error);
     }

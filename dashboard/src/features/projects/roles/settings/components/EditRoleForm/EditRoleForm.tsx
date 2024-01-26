@@ -10,8 +10,7 @@ import {
 } from '@/features/projects/roles/settings/components/BaseRoleForm';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import type { Role } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
@@ -19,7 +18,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
 
 export interface EditRoleFormProps
   extends Pick<BaseRoleFormProps, 'onCancel' | 'location'> {
@@ -113,23 +111,17 @@ export default function EditRoleForm({
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: 'Updating role...',
-          success: 'Role has been updated successfully.',
-          error: getServerError(
-            'An error occurred while trying to update the role.',
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      onSubmit?.();
-    } catch (updateConfigError) {
-      console.error(updateConfigError);
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        onSubmit?.();
+      },
+      {
+        loadingMessage: 'Updating role...',
+        successMessage: 'Role has been updated successfully.',
+        errorMessage: 'An error occurred while trying to update the role.',
+      },
+    );
   }
 
   return (

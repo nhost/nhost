@@ -8,25 +8,16 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
+import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import type { DialogFormProps } from '@/types/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getHasuraAdminSecret } from '@/utils/env';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useInsertGraphiteAutoEmbeddingsConfigurationMutation,
   useUpdateGraphiteAutoEmbeddingsConfigurationMutation,
 } from '@/utils/__generated__/graphite.graphql';
-import {
-  ApolloClient,
-  HttpLink,
-  InMemoryCache,
-  type ApolloError,
-} from '@apollo/client';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
@@ -70,34 +61,17 @@ export default function AutoEmbeddingsForm({
 }: AutoEmbeddingsFormProps) {
   const { onDirtyStateChange } = useDialog();
 
-  const { currentProject } = useCurrentWorkspaceAndProject();
-
-  const serviceUrl = generateAppServiceUrl(
-    currentProject?.subdomain,
-    currentProject?.region,
-    'graphql',
-  );
-
-  const client = new ApolloClient({
-    cache: new InMemoryCache(),
-    link: new HttpLink({
-      uri: serviceUrl,
-      headers: {
-        'x-hasura-admin-secret':
-          process.env.NEXT_PUBLIC_ENV === 'dev'
-            ? getHasuraAdminSecret()
-            : currentProject?.config?.hasura.adminSecret,
-      },
-    }),
-  });
+  const { adminClient } = useAdminApolloClient();
 
   const [insertGraphiteAutoEmbeddingsConfiguration] =
     useInsertGraphiteAutoEmbeddingsConfigurationMutation({
-      client,
+      client: adminClient,
     });
 
   const [updateGraphiteAutoEmbeddingsConfiguration] =
-    useUpdateGraphiteAutoEmbeddingsConfigurationMutation({ client });
+    useUpdateGraphiteAutoEmbeddingsConfigurationMutation({
+      client: adminClient,
+    });
 
   const form = useForm<AutoEmbeddingsFormValues>({
     defaultValues: initialData,
@@ -137,33 +111,18 @@ export default function AutoEmbeddingsForm({
   };
 
   const handleSubmit = async (values: AutoEmbeddingsFormValues) => {
-    try {
-      await toast.promise(
-        createOrUpdateAutoEmbeddings(values),
-        {
-          loading: 'Configuring the Auto-Embeddings...',
-          success: `The Auto-Embeddings has been configured successfully.`,
-          error: (arg: ApolloError) => {
-            // we need to get the internal error message from the GraphQL error
-            const { internal } = arg.graphQLErrors[0]?.extensions || {};
-            const { message } = (internal as Record<string, any>)?.error || {};
-
-            // we use the default Apollo error message if we can't find the
-            // internal error message
-            return (
-              message ||
-              arg.message ||
-              'An error occurred while configuring the Auto-Embeddings. Please try again.'
-            );
-          },
-        },
-        getToastStyleProps(),
-      );
-
-      onSubmit?.();
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await createOrUpdateAutoEmbeddings(values);
+        onSubmit?.();
+      },
+      {
+        loadingMessage: 'Configuring the Auto-Embeddings...',
+        successMessage: 'The Auto-Embeddings has been configured successfully.',
+        errorMessage:
+          'An error occurred while configuring the Auto-Embeddings. Please try again.',
+      },
+    );
   };
 
   return (

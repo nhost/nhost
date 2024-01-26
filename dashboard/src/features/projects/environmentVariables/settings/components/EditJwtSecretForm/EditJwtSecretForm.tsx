@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import type { DialogFormProps } from '@/types/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetEnvironmentVariablesDocument,
   useUpdateConfigMutation,
@@ -12,7 +12,6 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export interface EditJwtSecretFormProps extends DialogFormProps {
@@ -102,24 +101,17 @@ export default function EditJwtSecretForm({
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: 'Updating JWT secret...',
-          success: 'JWT secret has been updated successfully.',
-          error: (arg: Error) =>
-            arg?.message
-              ? `Error: ${arg.message}`
-              : 'An error occurred while updating the JWT secret.',
-        },
-        getToastStyleProps(),
-      );
-
-      onSubmit?.();
-    } catch {
-      // Note: error is handled above
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        onSubmit?.();
+      },
+      {
+        loadingMessage: 'Updating JWT secret...',
+        successMessage: 'JWT secret has been updated successfully.',
+        errorMessage: 'An error occurred while updating the JWT secret.',
+      },
+    );
   }
 
   return (

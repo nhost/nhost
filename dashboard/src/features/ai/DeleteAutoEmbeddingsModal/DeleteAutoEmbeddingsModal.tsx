@@ -4,18 +4,12 @@ import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { getHasuraAdminSecret } from '@/utils/env';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useDeleteGraphiteAutoEmbeddingsConfigurationMutation } from '@/utils/__generated__/graphite.graphql';
-import {
-  ApolloClient,
-  HttpLink,
-  InMemoryCache,
-  type ApolloError,
-} from '@apollo/client';
+import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { type AutoEmbeddingsConfiguration } from 'pages/[workspaceSlug]/[appSlug]/ai/auto-embeddings';
 import { useState } from 'react';
-import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export interface DeleteAutoEmbeddingsModalProps {
@@ -71,27 +65,13 @@ export default function DeleteAutoEmbeddingsModal({
   async function handleClick() {
     setLoadingRemove(true);
 
-    await toast.promise(
-      deleteAutoEmbeddingsConfig(),
-      {
-        loading: 'Deleting Auto-Embeddings Configuration...',
-        success: `The Auto-Embeddings Configuration has been deleted successfully.`,
-        error: (arg: ApolloError) => {
-          // we need to get the internal error message from the GraphQL error
-          const { internal } = arg.graphQLErrors[0]?.extensions || {};
-          const { message } = (internal as Record<string, any>)?.error || {};
-
-          // we use the default Apollo error message if we can't find the
-          // internal error message
-          return (
-            message ||
-            arg.message ||
-            'An error occurred while deleting the Auto-Embeddings Configuration. Please try again.'
-          );
-        },
-      },
-      getToastStyleProps(),
-    );
+    await execPromiseWithErrorToast(deleteAutoEmbeddingsConfig, {
+      loadingMessage: 'Deleting Auto-Embeddings Configuration...',
+      successMessage:
+        'The Auto-Embeddings Configuration has been deleted successfully.',
+      errorMessage:
+        'An error occurred while deleting the Auto-Embeddings Configuration. Please try again.',
+    });
   }
 
   return (

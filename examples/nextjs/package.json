@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/nextjs",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -20,9 +20,9 @@
     "@mantine/hooks": "^4.2.12",
     "@mantine/next": "^4.2.12",
     "@mantine/notifications": "^4.2.12",
-    "@nhost/nextjs": "^2.0.1",
-    "@nhost/react": "^3.0.1",
-    "@nhost/react-apollo": "^7.0.1",
+    "@nhost/nextjs": "^2.0.2",
+    "@nhost/react": "^3.0.2",
+    "@nhost/react-apollo": "^7.0.2",
     "graphql": "16.8.1",
     "next": "^14.0.4",
     "react": "18.2.0",

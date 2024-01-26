@@ -19,7 +19,7 @@ logs/
 coverage/
 dist/
 umd/
-node_modules/
+node_modules
 tmp/
 .pnpm-store
 .turbo

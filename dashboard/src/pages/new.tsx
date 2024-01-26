@@ -17,7 +17,7 @@ import { planDescriptions } from '@/features/projects/common/utils/planDescripti
 import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import type {
   PrefetchNewAppPlansFragment,
@@ -30,14 +30,12 @@ import {
   useInsertApplicationMutation,
   usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
-import type { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { FormEvent, ReactElement } from 'react';
 import { useState } from 'react';
-import { toast } from 'react-hot-toast';
 import slugify from 'slugify';
 import { twMerge } from 'tailwind-merge';
 
@@ -135,9 +133,9 @@ export function NewProjectPageContent({
 
     const slug = slugify(name, { lower: true, strict: true });
 
-    try {
-      await toast.promise(
-        insertApp({
+    await execPromiseWithErrorToast(
+      async () => {
+        await insertApp({
           variables: {
             app: {
               name,
@@ -147,34 +145,23 @@ export function NewProjectPageContent({
               regionId: selectedRegion.id,
             },
           },
-        }),
-        {
-          loading: 'Creating the project...',
-          success: 'The project has been created successfully.',
-          error: (arg: ApolloError) => {
-            // we need to get the internal error message from the GraphQL error
-            const { internal } = arg.graphQLErrors[0]?.extensions || {};
-            const { message } = (internal as Record<string, any>)?.error || {};
+        });
 
-            // we use the default Apollo error message if we can't find the
-            // internal error message
-            return (
-              message ||
-              arg.message ||
-              'An error occurred while creating the project. Please try again.'
-            );
-          },
+        await router.push(`/${selectedWorkspace.slug}/${slug}`);
+      },
+      {
+        loadingMessage: 'Creating the project...',
+        successMessage: 'The project has been created successfully.',
+        errorMessage:
+          'An error occurred while creating the project. Please try again.',
+        onError: () => {
+          setSubmitState({
+            error: null,
+            loading: false,
+          });
         },
-        getToastStyleProps(),
-      );
-
-      await router.push(`/${selectedWorkspace.slug}/${slug}`);
-    } catch (error) {
-      setSubmitState({
-        error: null,
-        loading: false,
-      });
-    }
+      },
+    );
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -446,15 +433,13 @@ export function NewProjectPageContent({
                 })}
                 <Text variant="subtitle2">
                   Select a plan that suits your infrastructure needs.{' '}
-                  <Link href="https://nhost.io/pricing">
-                    <a
-                      href="https://nhost.io/pricing"
-                      className="underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Learn more
-                    </a>
+                  <Link
+                    href="https://nhost.io/pricing"
+                    className="underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Learn more
                   </Link>
                 </Text>
               </RadioGroup>

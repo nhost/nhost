@@ -46,7 +46,7 @@ function AllWorkspaceApps() {
               href={`${currentWorkspace?.slug}/${project.slug}`}
               passHref
               className='w-full'
-            >
+              legacyBehavior>
               <ListItem.Button className="grid items-center justify-between grid-flow-col gap-2">
                 <div className="grid items-center justify-start grid-flow-col gap-2">
                   <ListItem.Avatar>
@@ -110,7 +110,7 @@ export default function WorkspaceApps() {
                 pathname: '/new',
                 query: { workspace: currentWorkspace?.slug },
               }}
-            >
+              legacyBehavior>
               <Button
                 variant="outlined"
                 color="secondary"
