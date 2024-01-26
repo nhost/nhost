@@ -12,6 +12,7 @@ certbot certonly \
     -d local.auth.nhost.run \
     -d local.storage.nhost.run \
     -d local.functions.nhost.run \
+    -d local.mailhog.nhost.run \
     -m 'admin@nhost.io' \
     --non-interactive \
     --agree-tos \
