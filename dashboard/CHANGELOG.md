@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 1.6.5
+
+### Patch Changes
+
+- ba73bb4: fix: update ErrorToast component to show the internal graphql error
+- d5337ff: fix: utilize accumulator in the creation of validation schema within data grid utils
+
 ## 1.6.4
 
 ### Patch Changes
