@@ -46,7 +46,16 @@ export default function ErrorToast({
     error,
   };
 
-  const msg = error?.graphQLErrors?.at(0)?.message || errorMessage;
+  const internalError = error?.graphQLErrors?.at(0)?.extensions?.internal as {
+    error: {
+      message: string;
+    };
+  };
+
+  const msg =
+    internalError?.error?.message ||
+    error?.graphQLErrors?.at(0).message ||
+    errorMessage;
 
   return (
     <AnimatePresence>
