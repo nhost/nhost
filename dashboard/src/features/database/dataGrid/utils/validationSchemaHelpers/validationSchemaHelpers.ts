@@ -114,7 +114,7 @@ export function createDynamicValidationSchema(
       ['time', 'timetz', 'interval'].includes(column.specificType)
     ) {
       return {
-        ...schema,
+        ...currentSchema,
         [column.id]: createTextValidationSchema(details).matches(
           /^\d{2}:\d{2}(:\d{2})?$/,
           'This is not a valid time (e.g: HH:MM:SS / HH:MM).',
@@ -124,14 +124,14 @@ export function createDynamicValidationSchema(
 
     if (column.type === 'date') {
       return {
-        ...schema,
+        ...currentSchema,
         [column.id]: createDateValidationSchema(details),
       };
     }
 
     if (column.type === 'boolean') {
       return {
-        ...schema,
+        ...currentSchema,
         [column.id]: createBooleanValidationSchema(details),
       };
     }
@@ -141,13 +141,13 @@ export function createDynamicValidationSchema(
       (column.specificType === 'jsonb' || column.specificType === 'json')
     ) {
       return {
-        ...schema,
+        ...currentSchema,
         [column.id]: createJSONValidationSchema(details),
       };
     }
 
     return {
-      ...schema,
+      ...currentSchema,
       [column.id]: createTextValidationSchema(details),
     };
   }, {});
