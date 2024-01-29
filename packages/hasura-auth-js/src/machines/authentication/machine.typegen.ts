@@ -29,6 +29,11 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
+    'done.invoke.elevateUserWithSecurityKey': {
+      type: 'done.invoke.elevateUserWithSecurityKey'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
     'done.invoke.importRefreshToken': {
       type: 'done.invoke.importRefreshToken'
       data: unknown
@@ -94,6 +99,10 @@ export interface Typegen0 {
       type: 'error.platform.authenticateWithToken'
       data: unknown
     }
+    'error.platform.elevateUserWithSecurityKey': {
+      type: 'error.platform.elevateUserWithSecurityKey'
+      data: unknown
+    }
     'error.platform.importRefreshToken': {
       type: 'error.platform.importRefreshToken'
       data: unknown
@@ -122,6 +131,7 @@ export interface Typegen0 {
     'xstate.stop': { type: 'xstate.stop' }
   }
   invokeSrcNameMap: {
+    elevateSecurityKeyEmail: 'done.invoke.elevateUserWithSecurityKey'
     importRefreshToken: 'done.invoke.importRefreshToken'
     passwordlessEmail: 'done.invoke.passwordlessEmail'
     passwordlessSms: 'done.invoke.passwordlessSms'
@@ -176,6 +186,7 @@ export interface Typegen0 {
       | 'done.invoke.signUpSecurityKey'
     clearContextExceptRefreshToken: 'SIGNOUT'
     destroyRefreshToken:
+      | 'ELEVATE_SECURITY_KEY_EMAIL'
       | 'SESSION_UPDATE'
       | 'SIGNIN_ANONYMOUS'
       | 'SIGNIN_MFA_TOTP'
@@ -186,6 +197,7 @@ export interface Typegen0 {
       | 'error.platform.signingOut'
       | 'xstate.stop'
     incrementTokenImportAttempts: 'error.platform.importRefreshToken'
+    reportElevated: 'done.invoke.elevateUserWithSecurityKey'
     reportSignedIn:
       | ''
       | 'SESSION_UPDATE'
@@ -215,6 +227,7 @@ export interface Typegen0 {
       | 'error.platform.importRefreshToken'
       | 'error.platform.signInMfaTotp'
     reportTokenChanged:
+      | 'ELEVATE_SECURITY_KEY_EMAIL'
       | 'SESSION_UPDATE'
       | 'SIGNIN_ANONYMOUS'
       | 'SIGNIN_MFA_TOTP'
@@ -237,6 +250,7 @@ export interface Typegen0 {
       | 'xstate.stop'
     resetErrors:
       | ''
+      | 'ELEVATE_SECURITY_KEY_EMAIL'
       | 'PASSWORDLESS_EMAIL'
       | 'PASSWORDLESS_SMS'
       | 'PASSWORDLESS_SMS_OTP'
@@ -289,6 +303,7 @@ export interface Typegen0 {
       | 'done.invoke.signInMfaTotp'
       | 'done.invoke.signUpEmailPassword'
       | 'done.invoke.signUpSecurityKey'
+    setAsElevated: 'done.invoke.elevateUserWithSecurityKey'
   }
   eventsCausingDelays: {
     RETRY_IMPORT_TOKEN_DELAY: 'error.platform.importRefreshToken'
@@ -315,6 +330,7 @@ export interface Typegen0 {
       | 'error.platform.signUpSecurityKey'
   }
   eventsCausingServices: {
+    elevateSecurityKeyEmail: 'ELEVATE_SECURITY_KEY_EMAIL'
     importRefreshToken:
       | 'done.invoke.authenticateWithToken'
       | 'done.invoke.passwordlessEmail'
@@ -342,11 +358,15 @@ export interface Typegen0 {
     | 'authentication'
     | 'authentication.authenticating'
     | 'authentication.authenticating.anonymous'
+    | 'authentication.authenticating.elevateSecurityKeyEmail'
     | 'authentication.authenticating.mfa'
     | 'authentication.authenticating.mfa.totp'
     | 'authentication.authenticating.password'
     | 'authentication.authenticating.pat'
     | 'authentication.authenticating.securityKeyEmail'
+    | 'authentication.elevated'
+    | 'authentication.elevated.failed'
+    | 'authentication.elevated.success'
     | 'authentication.retryTokenImport'
     | 'authentication.signedIn'
     | 'authentication.signedIn.refreshTimer'
@@ -384,6 +404,7 @@ export interface Typegen0 {
     | {
         authentication?:
           | 'authenticating'
+          | 'elevated'
           | 'retryTokenImport'
           | 'signedIn'
           | 'signedOut'
@@ -391,11 +412,13 @@ export interface Typegen0 {
           | {
               authenticating?:
                 | 'anonymous'
+                | 'elevateSecurityKeyEmail'
                 | 'mfa'
                 | 'password'
                 | 'pat'
                 | 'securityKeyEmail'
                 | { mfa?: 'totp' }
+              elevated?: 'failed' | 'success'
               signedIn?:
                 | 'refreshTimer'
                 | {

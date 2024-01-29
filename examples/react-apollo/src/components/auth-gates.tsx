@@ -23,9 +23,9 @@ export const AuthGate: React.FC<React.PropsWithChildren<unknown>> = ({ children 
     return <LoadingComponent connectionAttempts={connectionAttempts} />
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/sign-in" state={{ from: location }} replace />
-  }
+  // if (!isAuthenticated) {
+  //   return <Navigate to="/sign-in" state={{ from: location }} replace />
+  // }
 
   return <div>{children}</div>
 }

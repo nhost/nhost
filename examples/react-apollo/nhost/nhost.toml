@@ -28,7 +28,7 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.22.1'
+version = 'local'
 
 [auth.redirections]
 clientUrl = 'https://react-apollo.example.nhost.io/'

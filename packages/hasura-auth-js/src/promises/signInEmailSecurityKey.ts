@@ -26,7 +26,8 @@ export const signInEmailSecurityKeyPromise = (interpreter: AuthInterpreter, emai
         isError: true,
         isSuccess: false,
         needsEmailVerification: false,
-        user: context.user
+        user: context.user,
+        elevated: false
       })
     }
     interpreter.onTransition((state) => {
@@ -43,7 +44,8 @@ export const signInEmailSecurityKeyPromise = (interpreter: AuthInterpreter, emai
           isError: false,
           isSuccess: false,
           needsEmailVerification: true,
-          user: null
+          user: null,
+          elevated: false
         })
       } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
         resolve({
@@ -53,7 +55,8 @@ export const signInEmailSecurityKeyPromise = (interpreter: AuthInterpreter, emai
           isError: true,
           isSuccess: false,
           needsEmailVerification: false,
-          user: null
+          user: null,
+          elevated: false
         })
       } else if (state.matches({ authentication: 'signedIn' })) {
         resolve({
@@ -63,7 +66,8 @@ export const signInEmailSecurityKeyPromise = (interpreter: AuthInterpreter, emai
           isError: false,
           isSuccess: true,
           needsEmailVerification: false,
-          user: state.context.user
+          user: state.context.user,
+          elevated: false
         })
       }
     })

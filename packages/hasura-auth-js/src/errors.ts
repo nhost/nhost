@@ -96,6 +96,12 @@ export const USER_ALREADY_SIGNED_IN: AuthErrorPayload = {
   message: 'User is already signed in'
 }
 
+export const FAILED_TO_ELEVATE: AuthErrorPayload = {
+  status: STATE_ERROR_CODE,
+  error: 'failed-to-elevated',
+  message: 'Failed to elevate permissions'
+}
+
 export const USER_UNAUTHENTICATED: AuthErrorPayload = {
   status: STATE_ERROR_CODE,
   error: 'unauthenticated-user',

@@ -71,6 +71,7 @@ type AuthServices = {
   signInPAT: { data: SignInPATResponse }
   signInMfaTotp: { data: SignInMfaTotpResponse }
   signInSecurityKeyEmail: { data: SignInResponse }
+  elevateSecurityKeyEmail: { data: SignInResponse }
   refreshToken: { data: NhostSessionResponse }
   signout: { data: SignOutResponse }
   signUpEmailPassword: { data: SignUpResponse }
@@ -184,6 +185,7 @@ export const createAuthMachine = ({
                 SIGNIN_PASSWORD: 'authenticating.password',
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
                 SIGNIN_SECURITY_KEY_EMAIL: 'authenticating.securityKeyEmail',
+                ELEVATE_SECURITY_KEY_EMAIL: 'authenticating.elevateSecurityKeyEmail',
                 SIGNIN_MFA_TOTP: 'authenticating.mfa.totp',
                 SIGNIN_PAT: 'authenticating.pat'
               }
@@ -289,6 +291,19 @@ export const createAuthMachine = ({
                       }
                     ]
                   }
+                },
+                elevateSecurityKeyEmail: {
+                  invoke: {
+                    src: 'elevateSecurityKeyEmail',
+                    id: 'elevateUserWithSecurityKey',
+                    onDone: {
+                      actions: ['setAsElevated', 'reportElevated'],
+                      target: '#nhost.authentication.elevated.success'
+                    },
+                    onError: {
+                      target: '#nhost.authentication.elevated.failed'
+                    }
+                  }
                 }
               }
             },
@@ -296,7 +311,8 @@ export const createAuthMachine = ({
               type: 'parallel',
               entry: ['reportSignedIn', 'cleanUrl', 'broadcastToken', 'resetErrors'],
               on: {
-                SIGNOUT: 'signedOut.signingOut'
+                SIGNOUT: 'signedOut.signingOut',
+                ELEVATE_SECURITY_KEY_EMAIL: 'authenticating.elevateSecurityKeyEmail'
               },
               states: {
                 refreshTimer: {
@@ -348,6 +364,15 @@ export const createAuthMachine = ({
                     }
                   }
                 }
+              }
+            },
+            elevated: {
+              on: {
+                SIGNOUT: 'signedOut.signingOut'
+              },
+              states: {
+                success: {},
+                failed: {}
               }
             }
           }
@@ -517,6 +542,7 @@ export const createAuthMachine = ({
     {
       actions: {
         reportSignedIn: send('SIGNED_IN'),
+        reportElevated: send('ELEVATED'),
         reportSignedOut: send('SIGNED_OUT'),
         reportTokenChanged: send('TOKEN_CHANGED'),
         incrementTokenImportAttempts: assign({
@@ -573,6 +599,10 @@ export const createAuthMachine = ({
 
             return { value: refreshToken }
           }
+        }),
+
+        setAsElevated: assign({
+          elevated: true
         }),
 
         savePATSession: assign({
@@ -852,6 +882,31 @@ export const createAuthMachine = ({
           }
           return postRequest<SignInResponse>('/signin/webauthn/verify', { email, credential })
         },
+        elevateSecurityKeyEmail: async (event, { email }) => {
+          if (!isValidEmail(email)) {
+            throw new CodifiedError(INVALID_EMAIL_ERROR)
+          }
+
+          const options = await postRequest<PublicKeyCredentialRequestOptionsJSON>(
+            '/elevate/webauthn',
+            { email },
+            event.accessToken.value
+          )
+
+          let credential: AuthenticationCredentialJSON
+
+          try {
+            credential = await startAuthentication(options)
+          } catch (e) {
+            throw new CodifiedError(e as Error)
+          }
+
+          return postRequest<SignInResponse>(
+            '/elevate/webauthn/verify',
+            { email, credential },
+            event.accessToken.value
+          )
+        },
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
           const session = await postRequest<RefreshSessionResponse>('/token', {
@@ -934,7 +989,8 @@ export const createAuthMachine = ({
                 accessToken: ctx.accessToken.value,
                 accessTokenExpiresIn: ctx.accessToken.expiresAt.getTime() - Date.now(),
                 refreshToken: ctx.refreshToken.value,
-                user: ctx.user
+                user: ctx.user,
+                elevated: ctx.elevated
               },
               error: null
             }

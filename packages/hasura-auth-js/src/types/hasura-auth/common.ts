@@ -46,6 +46,7 @@ export interface NhostSession {
   refreshToken: string | null
   refreshTokenId?: string | null
   user: User
+  elevated: boolean
 }
 
 export type Provider =

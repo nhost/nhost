@@ -34,7 +34,8 @@ export const signUpEmailSecurityKeyPromise = (
         isError: true,
         isSuccess: false,
         needsEmailVerification: false,
-        user: context.user
+        user: context.user,
+        elevated: false
       })
     }
     interpreter.onTransition((state) => {
@@ -46,7 +47,8 @@ export const signUpEmailSecurityKeyPromise = (
           isError: true,
           isSuccess: false,
           needsEmailVerification: false,
-          user: null
+          user: null,
+          elevated: false
         })
       } else if (
         state.matches({
@@ -61,7 +63,8 @@ export const signUpEmailSecurityKeyPromise = (
           isError: false,
           isSuccess: false,
           needsEmailVerification: true,
-          user: null
+          user: null,
+          elevated: false
         })
       } else if (state.matches({ authentication: 'signedIn', registration: 'complete' })) {
         resolve({
@@ -71,7 +74,8 @@ export const signUpEmailSecurityKeyPromise = (
           isError: false,
           isSuccess: true,
           needsEmailVerification: false,
-          user: state.context.user
+          user: state.context.user,
+          elevated: false
         })
       }
     })
