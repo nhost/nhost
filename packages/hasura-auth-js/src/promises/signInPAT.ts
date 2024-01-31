@@ -20,8 +20,7 @@ export const signInPATPromise = (
         error: USER_ALREADY_SIGNED_IN,
         user: null,
         accessToken: null,
-        refreshToken: null,
-        elevated: false
+        refreshToken: null
       })
     }
 
@@ -33,8 +32,7 @@ export const signInPATPromise = (
           user: null,
           error: state.context.errors.authentication || null,
           isError: true,
-          isSuccess: false,
-          elevated: false
+          isSuccess: false
         })
       }
 
@@ -45,8 +43,7 @@ export const signInPATPromise = (
           user: state.context.user,
           error: null,
           isError: false,
-          isSuccess: true,
-          elevated: false
+          isSuccess: true
         })
       }
     })

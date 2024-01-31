@@ -15,6 +15,7 @@ import { SignUpPage } from './sign-up'
 import { StoragePage } from './Storage'
 
 import './App.css?inline'
+import { NotesPage } from './components/notes'
 const title = 'Nhost with React and Apollo'
 
 function App() {
@@ -94,6 +95,16 @@ function App() {
                 </AuthGate>
               }
             />
+
+            <Route
+              path="/secret-notes"
+              element={
+                <AuthGate>
+                  <NotesPage />
+                </AuthGate>
+              }
+            />
+
             <Route
               path="/storage"
               element={

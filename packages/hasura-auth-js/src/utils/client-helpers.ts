@@ -10,8 +10,7 @@ export const getSession = (context?: AuthContext): NhostSession | null => {
     accessToken: context.accessToken.value,
     accessTokenExpiresIn: (context.accessToken.expiresAt.getTime() - Date.now()) / 1000,
     refreshToken: context.refreshToken.value,
-    user: context.user,
-    elevated: context.elevated
+    user: context.user
   }
 }
 
@@ -20,8 +19,7 @@ export const getAuthenticationResult = ({
   refreshToken,
   isError,
   user,
-  error,
-  elevated
+  error
 }: SessionActionHandlerResult): SignUpResponse => {
   if (isError) {
     return {
@@ -32,7 +30,7 @@ export const getAuthenticationResult = ({
   if (user && accessToken) {
     return {
       // TODO either return the refresh token or remove it from the session type
-      session: { accessToken, accessTokenExpiresIn: 0, refreshToken: refreshToken, user, elevated },
+      session: { accessToken, accessTokenExpiresIn: 0, refreshToken: refreshToken, user },
       error: null
     }
   }

@@ -1,5 +1,5 @@
 schema:
-  - http://local.graphql.nhost.run/v1:
+  - https://local.hasura.nhost.run/v1/graphql:
       headers:
         x-hasura-admin-secret: nhost-admin-secret
         x-hasura-role: user
@@ -15,7 +15,6 @@ generates:
         bigint: number
         citext: string
         timestamptz: string
-
     plugins:
       - typescript
       - typescript-operations

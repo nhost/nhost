@@ -1,22 +1,20 @@
 import {
   elevateEmailSecurityKeyPromise,
-  ElevateWithSecurityKeyHandlerResult,
-  SignInSecurityKeyPasswordlessState
+  ElevateWithSecurityKeyHandlerResult
 } from '@nhost/nhost-js'
-import { useSelector } from '@xstate/react'
+import { useEffect, useState } from 'react'
 import { useAuthInterpreter } from './useAuthInterpreter'
+import { useHasuraClaims } from './useHasuraClaims'
+import { useNhostClient } from './useNhostClient'
+import { useUserData } from './useUserData'
 
 interface ElevateWithSecurityKeyHandler {
   (email: string): Promise<ElevateWithSecurityKeyHandlerResult>
 }
 
-export interface ElevateWithSecurityKeyHookResult
-  extends Omit<SignInSecurityKeyPasswordlessState, 'needsEmailVerification'> {
-  elevateEmailSecurityKey: ElevateWithSecurityKeyHandler
-}
-
 interface ElevateWithSecurityKeyHook {
-  (): ElevateWithSecurityKeyHookResult
+  elevateEmailSecurityKey: ElevateWithSecurityKeyHandler
+  elevated: boolean
 }
 
 /**
@@ -37,57 +35,22 @@ interface ElevateWithSecurityKeyHook {
  *
  * @docs https://docs.nhost.io/reference/react/elevate-web-authn
  */
-export const useElevateSecurityKeyEmail: ElevateWithSecurityKeyHook = () => {
-  const service = useAuthInterpreter()
+export const useElevateSecurityKeyEmail = (): ElevateWithSecurityKeyHook => {
+  const user = useUserData()
+  const claims = useHasuraClaims()
+  const nhost = useNhostClient()
+
+  const [elevated, setElevated] = useState(claims?.['x-nhost-auth-elevated'] === user?.id)
 
   const elevateEmailSecurityKey: ElevateWithSecurityKeyHandler = (email: string) =>
-    elevateEmailSecurityKeyPromise(service, email)
+    elevateEmailSecurityKeyPromise(nhost.auth.client, email)
 
-  const user = useSelector(
-    service,
-    (state) => state.context.user,
-    (a, b) => a?.id === b?.id
-  )
-
-  const accessToken = useSelector(service, (state) => state.context.accessToken.value)
-
-  const refreshToken = useSelector(service, (state) => state.context.refreshToken.value)
-
-  const error = useSelector(
-    service,
-    (state) => state.context.errors.authentication || null,
-    (a, b) => a?.error === b?.error
-  )
-
-  const isSuccess = useSelector(service, (state) =>
-    state.matches({
-      authentication: { elevated: 'success' }
-    })
-  )
-
-  const isLoading = useSelector(
-    service,
-    (state) => state.matches({ authentication: { authenticating: 'elevateSecurityKeyEmail' } }),
-    (a, b) => a === b
-  )
-
-  const isError = useSelector(
-    service,
-    (state) => state.matches({ authentication: { elevated: 'failed' } }),
-    (a, b) => a === b
-  )
-
-  const elevated = useSelector(service, (state) => state.context.elevated)
+  useEffect(() => {
+    setElevated(claims?.['x-nhost-auth-elevated'] === user?.id)
+  }, [claims, user])
 
   return {
-    accessToken,
-    refreshToken,
-    error,
-    isError,
-    isLoading,
-    isSuccess,
-    user,
-    elevateEmailSecurityKey,
-    elevated
+    elevated,
+    elevateEmailSecurityKey
   }
 }

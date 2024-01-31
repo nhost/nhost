@@ -25,7 +25,6 @@ const tokenQuery = rest.post(
           activeMfaType: null,
           metadata: {},
         },
-        elevated: false,
       }),
     ),
 );

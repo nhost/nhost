@@ -31,5 +31,3 @@ export type AuthEvents =
   | { type: 'SIGNED_OUT' }
   | { type: 'TOKEN_CHANGED' }
   | { type: 'AWAIT_EMAIL_VERIFICATION' }
-  | { type: 'ELEVATE_SECURITY_KEY_EMAIL'; email?: string }
-  | { type: 'ELEVATED' }

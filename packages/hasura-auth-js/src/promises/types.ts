@@ -29,8 +29,6 @@ export interface SessionActionHandlerResult extends AuthActionSuccessState, Auth
   accessToken: string | null
   /** Access token (JWT) */
   refreshToken: string | null
-  /** Auth elevated */
-  elevated: boolean
 }
 
 export interface NeedsEmailVerificationState {

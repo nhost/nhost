@@ -20,8 +20,7 @@ export const signInAnonymousPromise = (
         error: USER_ALREADY_SIGNED_IN,
         user: null,
         accessToken: null,
-        refreshToken: null,
-        elevated: false
+        refreshToken: null
       })
     }
     interpreter.onTransition((state) => {
@@ -32,8 +31,7 @@ export const signInAnonymousPromise = (
           error: null,
           user: state.context.user,
           accessToken: state.context.accessToken.value,
-          refreshToken: state.context.refreshToken.value,
-          elevated: false
+          refreshToken: state.context.refreshToken.value
         })
       }
       if (state.matches({ authentication: { signedOut: 'failed' } })) {
@@ -43,8 +41,7 @@ export const signInAnonymousPromise = (
           error: state.context.errors.authentication || null,
           user: null,
           accessToken: null,
-          refreshToken: null,
-          elevated: false
+          refreshToken: null
         })
       }
     })

@@ -111,5 +111,4 @@ export const mockSession: NhostSession = {
     phoneNumberVerified: true,
     activeMfaType: 'totp',
   },
-  elevated: false,
 };

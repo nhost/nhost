@@ -1,4 +1,4 @@
-import { FaFile, FaHouseUser, FaQuestion, FaSignOutAlt } from 'react-icons/fa'
+import { FaFile, FaHouseUser, FaQuestion, FaSignOutAlt, FaLock } from 'react-icons/fa'
 import { SiApollographql } from 'react-icons/si'
 import { useLocation, useNavigate } from 'react-router'
 import { Link } from 'react-router-dom'
@@ -52,6 +52,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, color, label, link, action })
 const data: MenuItemProps[] = [
   { icon: <FaHouseUser size={16} />, label: 'Home', link: '/' },
   { icon: <FaHouseUser size={16} />, label: 'Profile', link: '/profile' },
+  { icon: <FaLock size={16} />, label: 'Secret Notes', link: '/secret-notes' },
   { icon: <FaFile size={16} />, label: 'Storage', link: '/storage' },
   { icon: <SiApollographql size={16} />, label: 'Apollo', link: '/apollo' },
   { icon: <FaQuestion size={16} />, label: 'About', link: '/about' }

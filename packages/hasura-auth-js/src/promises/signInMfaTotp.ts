@@ -20,8 +20,7 @@ export const signInMfaTotpPromise = (interpreter: AuthInterpreter, otp: string, 
         error: USER_ALREADY_SIGNED_IN,
         isError: true,
         isSuccess: false,
-        user: context.user,
-        elevated: false
+        user: context.user
       })
     }
     interpreter.onTransition((state) => {
@@ -32,8 +31,7 @@ export const signInMfaTotpPromise = (interpreter: AuthInterpreter, otp: string, 
           error: state.context.errors.authentication || null,
           isError: true,
           isSuccess: false,
-          user: null,
-          elevated: false
+          user: null
         })
       } else if (state.matches({ authentication: 'signedIn' })) {
         resolve({
@@ -42,8 +40,7 @@ export const signInMfaTotpPromise = (interpreter: AuthInterpreter, otp: string, 
           error: null,
           isError: false,
           isSuccess: true,
-          user: state.context.user,
-          elevated: false
+          user: state.context.user
         })
       }
     })

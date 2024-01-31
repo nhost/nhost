@@ -448,13 +448,11 @@ export class HasuraAuthClient {
   async elevateWebAuthn(
     email: string
   ): Promise<SignInResponse & { providerUrl?: string; provider?: string }> {
-    const interpreter = await this.waitUntilReady()
-
     if (!email) {
       throw Error('A user email is required')
     }
 
-    const res = await elevateEmailSecurityKeyPromise(interpreter, email)
+    const res = await elevateEmailSecurityKeyPromise(this._client, email)
 
     return { ...getAuthenticationResult(res), mfa: null }
   }

@@ -1,46 +1,89 @@
-import { FAILED_TO_ELEVATE, SessionActionHandlerResult } from '..'
-import { AuthInterpreter } from '../machines'
+import {
+  AuthenticationCredentialJSON,
+  PublicKeyCredentialRequestOptionsJSON
+} from '@simplewebauthn/typescript-types'
+import {
+  AuthClient,
+  CodifiedError,
+  postFetch,
+  SessionActionHandlerResult,
+  SignInResponse
+} from '..'
+import { startAuthentication } from '@simplewebauthn/browser'
 
-export interface ElevateWithSecurityKeyHandlerResult extends SessionActionHandlerResult {}
+export interface ElevateWithSecurityKeyHandlerResult extends SessionActionHandlerResult {
+  elevated: boolean
+}
 
-export const elevateEmailSecurityKeyPromise = (interpreter: AuthInterpreter, email: string) =>
-  new Promise<ElevateWithSecurityKeyHandlerResult>((resolve) => {
-    const { context } = interpreter.send({ type: 'ELEVATE_SECURITY_KEY_EMAIL', email })
+export const elevateEmailSecurityKeyPromise = (authClient: AuthClient, email: string) =>
+  new Promise<ElevateWithSecurityKeyHandlerResult>(async (resolve) => {
+    const snapshot = authClient.interpreter?.getSnapshot()
+    const accessToken = snapshot?.context.accessToken.value
 
-    interpreter.onTransition((state) => {
-      console.log({ state })
+    console.log({
+      accessToken
+    })
 
-      if (
-        state.matches({
-          authentication: {
-            elevated: 'failed'
-          }
-        })
-      ) {
+    const { data } = await postFetch<PublicKeyCredentialRequestOptionsJSON>(
+      `${authClient.backendUrl}/elevate/webauthn`,
+      {
+        email
+      },
+      accessToken
+    )
+
+    let credential: AuthenticationCredentialJSON
+
+    try {
+      credential = await startAuthentication(data)
+    } catch (e) {
+      throw new CodifiedError(e as Error)
+    }
+
+    const {
+      data: { session },
+      error: signInError
+    } = await postFetch<SignInResponse>(
+      `${authClient.backendUrl}/elevate/webauthn/verify`,
+      {
+        email,
+        credential
+      },
+      accessToken
+    )
+
+    if (session && !signInError) {
+      authClient.interpreter?.send({
+        type: 'SESSION_UPDATE',
+        data: {
+          session
+        }
+      })
+    }
+
+    authClient.interpreter?.onTransition((state) => {
+      if (state.matches({ authentication: 'signedIn' })) {
+        // must return the
         resolve({
-          accessToken: context.accessToken.value,
-          refreshToken: context.refreshToken.value,
-          error: FAILED_TO_ELEVATE,
-          isError: true,
-          isSuccess: false,
-          user: context.user,
-          elevated: false
-        })
-      } else if (
-        state.matches({
-          authentication: {
-            elevated: 'success'
-          }
-        })
-      ) {
-        resolve({
-          accessToken: context.accessToken.value,
-          refreshToken: context.refreshToken.value,
+          accessToken: state.context.accessToken.value,
+          refreshToken: state.context.refreshToken.value,
           error: null,
           isError: false,
           isSuccess: true,
-          user: context.user,
+          user: state.context.user,
           elevated: true
+        })
+      } else {
+        //
+        console.log('Handle error here')
+        resolve({
+          accessToken: state.context.accessToken.value,
+          refreshToken: state.context.refreshToken.value,
+          error: null, // This error should exist here
+          isError: true,
+          isSuccess: false,
+          user: state.context.user,
+          elevated: false
         })
       }
     })

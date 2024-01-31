@@ -24,7 +24,6 @@ export type AuthContext = {
   /** Number of times the user tried to get an access token from a refresh token but got a network error */
   importTokenAttempts: number
   errors: Partial<Record<StateErrorTypes, AuthErrorPayload>>
-  elevated: boolean
 }
 
 export const INITIAL_MACHINE_CONTEXT: AuthContext = {
@@ -44,6 +43,5 @@ export const INITIAL_MACHINE_CONTEXT: AuthContext = {
     value: null
   },
   importTokenAttempts: 0,
-  errors: {},
-  elevated: false
+  errors: {}
 }

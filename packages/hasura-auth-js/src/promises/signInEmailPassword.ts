@@ -40,8 +40,7 @@ export const signInEmailPasswordPromise = (
         needsEmailVerification: false,
         needsMfaOtp: false,
         mfa: null,
-        user: context.user,
-        elevated: false
+        user: context.user
       })
     }
     interpreter.onTransition((state) => {
@@ -60,8 +59,7 @@ export const signInEmailPasswordPromise = (
           needsEmailVerification: true,
           needsMfaOtp: false,
           mfa: null,
-          user: null,
-          elevated: false
+          user: null
         })
       } else if (state.matches({ authentication: { signedOut: 'needsMfa' } })) {
         resolve({
@@ -73,8 +71,7 @@ export const signInEmailPasswordPromise = (
           needsEmailVerification: false,
           needsMfaOtp: true,
           mfa: state.context.mfa,
-          user: null,
-          elevated: false
+          user: null
         })
       } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
         resolve({
@@ -86,8 +83,7 @@ export const signInEmailPasswordPromise = (
           needsEmailVerification: false,
           needsMfaOtp: false,
           mfa: null,
-          user: null,
-          elevated: false
+          user: null
         })
       } else if (state.matches({ authentication: 'signedIn' })) {
         resolve({
@@ -99,8 +95,7 @@ export const signInEmailPasswordPromise = (
           needsEmailVerification: false,
           needsMfaOtp: false,
           mfa: null,
-          user: state.context.user,
-          elevated: false
+          user: state.context.user
         })
       }
     })

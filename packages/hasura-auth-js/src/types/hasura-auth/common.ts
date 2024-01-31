@@ -46,7 +46,6 @@ export interface NhostSession {
   refreshToken: string | null
   refreshTokenId?: string | null
   user: User
-  elevated: boolean
 }
 
 export type Provider =
@@ -86,6 +85,7 @@ export interface JWTHasuraClaims {
   'x-hasura-default-role': string
   'x-hasura-user-id': string
   'x-hasura-user-is-anonymous': string
+  'x-nhost-auth-elevated': string
 }
 
 export interface Mfa {

@@ -2,12 +2,7 @@ import { useState } from 'react'
 
 import { Button, Card, Grid, TextInput, Title } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
-import {
-  useChangeEmail,
-  useUserEmail,
-  useElevateSecurityKeyEmail,
-  useHasElevatedPermissions
-} from '@nhost/react'
+import { useChangeEmail, useUserEmail, useElevateSecurityKeyEmail } from '@nhost/react'
 
 export const ChangeEmail: React.FC = () => {
   const [newEmail, setNewEmail] = useState('')
@@ -18,8 +13,7 @@ export const ChangeEmail: React.FC = () => {
     redirectTo: '/profile'
   })
 
-  const { elevateEmailSecurityKey } = useElevateSecurityKeyEmail()
-  const elevated = useHasElevatedPermissions()
+  const { elevateEmailSecurityKey, elevated } = useElevateSecurityKeyEmail()
 
   const change = async () => {
     if (newEmail && email === newEmail) {
