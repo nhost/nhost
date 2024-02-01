@@ -151,6 +151,28 @@ func (dc *DockerCompose) ApplyMetadata(ctx context.Context) error {
 		"--skip-update-check",
 	)
 
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to run docker compose: %w", err)
+	}
+
+	return nil
+}
+
+func (dc *DockerCompose) ReloadMetadata(ctx context.Context) error {
+	cmd := exec.CommandContext( //nolint:gosec
+		ctx,
+		"docker", "compose",
+		"--project-directory", dc.workingDir,
+		"-f", dc.filepath,
+		"-p", dc.projectName,
+		"exec",
+		"console",
+		"hasura-cli",
+		"metadata", "reload",
+		"--endpoint", "http://graphql:8080",
+		"--skip-update-check",
+	)
+
 	f, err := pty.Start(cmd)
 	if err != nil {
 		return fmt.Errorf("failed to start pty: %w", err)
