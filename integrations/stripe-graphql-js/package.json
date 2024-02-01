@@ -49,8 +49,8 @@
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.5",
-    "@types/node": "^18.19.6",
-    "dotenv": "^16.3.1",
+    "@types/node": "^18.19.12",
+    "dotenv": "^16.4.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^4.9.5"
   }

@@ -16,11 +16,11 @@
   },
   "devDependencies": {
     "@nhost/nhost-js": "2.2.18",
-    "@playwright/test": "^1.41.0",
+    "@playwright/test": "^1.41.1",
     "@sveltejs/adapter-auto": "^2.1.1",
     "@sveltejs/kit": "^1.30.3",
     "@types/js-cookie": "^3.0.6",
-    "autoprefixer": "^10.4.16",
+    "autoprefixer": "^10.4.17",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^8.10.0",
     "eslint-plugin-svelte": "^2.35.1",

@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@apollo/client": "^3.8.9",
+    "@apollo/client": "^3.9.1",
     "@nhost/nhost-js": "workspace:^",
     "autoprefixer": "10.4.15",
     "cookies-next": "^3.0.0",
@@ -18,7 +18,7 @@
     "form-data": "^4.0.0",
     "graphql": "16.8.1",
     "js-cookie": "^3.0.5",
-    "next": "^14.0.4",
+    "next": "^14.1.0",
     "postcss": "^8.4.33",
     "react": "18.2.0",
     "react-dom": "18.2.0",
