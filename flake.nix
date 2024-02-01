@@ -134,9 +134,10 @@
               nodePackages.pnpm
             ] ++ buildInputs ++ nativeBuildInputs;
 
-            shellHook = ''
-              rm -rf node_modules
-            '';
+            # shellHook = ''
+            #   rm -rf node_modules
+            #   ln -sf ${node_modules}/node_modules/ node_modules
+            # '';
           };
         };
 
