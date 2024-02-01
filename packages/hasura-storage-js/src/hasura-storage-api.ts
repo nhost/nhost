@@ -1,10 +1,13 @@
 import fetchPonyfill from 'fetch-ponyfill'
+
 import LegacyFormData from 'form-data'
 import {
   ApiDeleteParams,
   ApiDeleteResponse,
   ApiGetPresignedUrlParams,
   ApiGetPresignedUrlResponse,
+  StorageDownloadFileParams,
+  StorageDownloadFileResponse,
   StorageUploadFileParams,
   StorageUploadFileResponse,
   StorageUploadFormDataParams,
@@ -92,6 +95,38 @@ export class HasuraStorageApi {
     return { fileMetadata, error: null }
   }
 
+  async downloadFile(params: StorageDownloadFileParams): Promise<StorageDownloadFileResponse> {
+    try {
+      const { fileId, range, width: w, height: h, quality: q, blur: b } = params
+
+      const headers = this.generateAuthHeaders()
+      if (range) headers.append('Range', range)
+
+      const searchParams = new URLSearchParams()
+      if (w) searchParams.append('w', w.toString())
+      if (h) searchParams.append('h', h.toString())
+      if (q) searchParams.append('q', q.toString())
+      if (b) searchParams.append('b', b.toString())
+
+      const urlWithParams = `${this.url}/files/${fileId}?${searchParams.toString()}`
+
+      const response = await fetch(urlWithParams, {
+        method: 'GET',
+        headers
+      })
+
+      if (!response.ok) {
+        throw new Error(await response.text())
+      }
+
+      const file = await response.blob()
+
+      return { file, error: null }
+    } catch (error) {
+      return { file: null, error: error as Error }
+    }
+  }
+
   async getPresignedUrl(params: ApiGetPresignedUrlParams): Promise<ApiGetPresignedUrlResponse> {
     try {
       const { fileId } = params
@@ -149,19 +184,16 @@ export class HasuraStorageApi {
     return this
   }
 
-  private generateAuthHeaders(): HeadersInit | undefined {
-    if (!this.adminSecret && !this.accessToken) {
-      return undefined
-    }
+  private generateAuthHeaders(): Headers {
+    const headers = new Headers()
 
     if (this.adminSecret) {
-      return {
-        'x-hasura-admin-secret': this.adminSecret
-      }
+      headers.append('x-hasura-admin-secret', this.adminSecret)
+    }
+    if (this.accessToken) {
+      headers.append('Authorization', `Bearer ${this.accessToken}`)
     }
 
-    return {
-      Authorization: `Bearer ${this.accessToken}`
-    }
+    return headers
   }
 }
