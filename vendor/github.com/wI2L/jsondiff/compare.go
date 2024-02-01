@@ -38,7 +38,6 @@ func compare(d *Differ, src, tgt interface{}) (Patch, error) {
 		return nil, err
 	}
 	d.targetBytes = tb
-	d.compactInPlace = true
 
 	d.Compare(si, ti)
 	return d.patch, nil
@@ -56,7 +55,6 @@ func compareJSON(d *Differ, src, tgt []byte, unmarshal unmarshalFunc) (Patch, er
 		return nil, err
 	}
 	d.targetBytes = tgt
-	d.compactInPlace = true
 
 	d.Compare(si, ti)
 	return d.patch, nil

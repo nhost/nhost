@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/nhost/be/services/mimir/model"
@@ -46,7 +47,7 @@ func ports(host, container uint) []Port {
 		{
 			Mode:      "ingress",
 			Target:    container,
-			Published: fmt.Sprintf("%d", host),
+			Published: strconv.FormatUint(uint64(host), 10),
 			Protocol:  "tcp",
 		},
 	}
@@ -204,7 +205,7 @@ func traefik(projectName string, port uint, dotnhostfolder string) (*Service, er
 			{
 				Mode:      "ingress",
 				Target:    port,
-				Published: fmt.Sprintf("%d", port),
+				Published: strconv.FormatUint(uint64(port), 10),
 				Protocol:  "tcp",
 			},
 		},
@@ -249,9 +250,10 @@ func minio(dataFolder string) (*Service, error) {
 		Labels:      nil,
 		Volumes: []Volume{
 			{
-				Type:   "bind",
-				Source: fmt.Sprintf("%s/minio", dataFolder),
-				Target: "/data",
+				Type:     "bind",
+				Source:   fmt.Sprintf("%s/minio", dataFolder),
+				Target:   "/data",
+				ReadOnly: nil,
 			},
 		},
 		WorkingDir: nil,
@@ -364,19 +366,22 @@ func functions( //nolint:funlen
 		Restart: "always",
 		Volumes: []Volume{
 			{
-				Type:   "bind",
-				Source: rootFolder,
-				Target: "/opt/project",
+				Type:     "bind",
+				Source:   rootFolder,
+				Target:   "/opt/project",
+				ReadOnly: ptr(false),
 			},
 			{
-				Type:   "volume",
-				Source: rootNodeModules(branch),
-				Target: "/opt/project/node_modules",
+				Type:     "volume",
+				Source:   rootNodeModules(branch),
+				Target:   "/opt/project/node_modules",
+				ReadOnly: ptr(false),
 			},
 			{
-				Type:   "volume",
-				Source: functionsNodeModules(branch),
-				Target: "/opt/project/functions/node_modules",
+				Type:     "volume",
+				Source:   functionsNodeModules(branch),
+				Target:   "/opt/project/functions/node_modules",
+				ReadOnly: ptr(false),
 			},
 		},
 		WorkingDir: nil,
@@ -406,10 +411,11 @@ func mailhog(dataFolder string, useTLS bool) (*Service, error) {
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
-				Name: "mailhog",
-				TLS:  useTLS,
-				Rule: "Host(`local.mailhog.nhost.run`)",
-				Port: mailhogPort,
+				Name:    "mailhog",
+				TLS:     useTLS,
+				Rule:    "Host(`local.mailhog.nhost.run`)",
+				Port:    mailhogPort,
+				Rewrite: nil,
 			},
 		}.Labels(),
 		Ports:   nil,

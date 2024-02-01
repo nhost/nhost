@@ -342,6 +342,8 @@ func (c *Client) parseResponse(body []byte, httpCode int, result interface{}) er
 		var gqlErr *GqlErrorList
 		if errors.As(err, &gqlErr) {
 			errResponse.GqlErrors = &gqlErr.Errors
+		} else if !isKOCode {
+			return err
 		}
 	}
 

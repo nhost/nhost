@@ -80,6 +80,7 @@ func TestRun(t *testing.T) {
 					},
 				}
 			},
+			useTlS: false,
 			expected: func() *Service {
 				return &Service{
 					Image:       "image:tag",

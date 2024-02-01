@@ -34,7 +34,7 @@ func auth( //nolint:funlen
 	envars, err := appconfig.HasuraAuthEnv(
 		cfg,
 		"http://graphql:8080/v1/graphql",
-		URL("auth", httpPort, useTLS)+"/v1",
+		URL("auth", httpPort, useTLS)+"/v1", //nolint:goconst
 		"postgres://nhost_auth_admin@postgres:5432/local",
 		&model.ConfigSmtp{
 			User:     "user",
@@ -76,19 +76,21 @@ func auth( //nolint:funlen
 		},
 		Labels: Ingresses{
 			{
-				Name: "auth",
-				TLS:  useTLS,
-				Rule: "Host(`local.auth.nhost.run`)",
-				Port: authPort,
+				Name:    "auth",
+				TLS:     useTLS,
+				Rule:    "Host(`local.auth.nhost.run`)",
+				Port:    authPort,
+				Rewrite: nil,
 			},
 		}.Labels(),
 		Ports:   ports(port, authPort),
 		Restart: "always",
 		Volumes: []Volume{
 			{
-				Type:   "bind",
-				Source: fmt.Sprintf("%s/emails", nhostFolder),
-				Target: "/app/email-templates",
+				Type:     "bind",
+				Source:   fmt.Sprintf("%s/emails", nhostFolder),
+				Target:   "/app/email-templates",
+				ReadOnly: ptr(false),
 			},
 		},
 		WorkingDir: nil,

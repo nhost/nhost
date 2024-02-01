@@ -45,7 +45,7 @@ _testmain.go
 vendor/
 Godeps/
 
-#  markdown-spellcheck
+# markdown-spellcheck
 .spelling
 
 # CI/CD

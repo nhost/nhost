@@ -140,7 +140,8 @@ func _compact(src, dst []byte) []byte {
 		if src[i] > ' ' {
 			dst = append(dst, src[i])
 			if src[i] == '"' {
-				for i = i + 1; i < len(src); i++ {
+				i++
+				for ; i < len(src); i++ {
 					dst = append(dst, src[i])
 					if src[i] == '"' {
 						j := i - 1

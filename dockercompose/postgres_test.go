@@ -41,14 +41,16 @@ func expectedPostgres(tmpdir string) *Service {
 		Restart: "always",
 		Volumes: []Volume{
 			{
-				Type:   "volume",
-				Source: "pgdate_test",
-				Target: "/var/lib/postgresql/data/pgdata",
+				Type:     "volume",
+				Source:   "pgdate_test",
+				Target:   "/var/lib/postgresql/data/pgdata",
+				ReadOnly: ptr(false),
 			},
 			{
-				Type:   "bind",
-				Source: filepath.Join(tmpdir, "db/pg_hba_local.conf"),
-				Target: "/etc/pg_hba_local.conf",
+				Type:     "bind",
+				Source:   filepath.Join(tmpdir, "db/pg_hba_local.conf"),
+				Target:   "/etc/pg_hba_local.conf",
+				ReadOnly: ptr(false),
 			},
 		},
 		WorkingDir: nil,

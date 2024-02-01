@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 type (
@@ -37,7 +38,7 @@ func MakeJSONRequest(
 		}
 		req.Header = headers
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Request-Attempt", fmt.Sprintf("%d", attempt))
+		req.Header.Set("X-Request-Attempt", strconv.Itoa(attempt))
 
 		resp, err := client.Do(req)
 		if err != nil {

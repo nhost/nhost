@@ -19,6 +19,12 @@ func Equivalent() Option {
 	return func(o *Differ) { o.opts.equivalent = true }
 }
 
+// LCS uses a Longest Common Subsequence to compare
+// arrays.
+func LCS() Option {
+	return func(o *Differ) { o.opts.lcs = true }
+}
+
 // Invertible enables the generation of an invertible
 // patch, by preceding each remove and replace operation
 // by a test operation that verifies the value at the
@@ -59,8 +65,8 @@ func SkipCompact() Option {
 }
 
 // InPlaceCompaction instructs to compact the input JSON
-// documents in place; it does not allocate to create
-// a copy, but modify the original byte slice.
+// documents in place; it does not allocate to create a
+// copy, but modify the original byte slice instead.
 // This option has no effect if used alongside SkipCompact.
 func InPlaceCompaction() Option {
 	return func(o *Differ) {

@@ -22,7 +22,7 @@ First, get the latest version of the library using the following command:
 $ go get github.com/wI2L/jsondiff@latest
 ```
 
-:warning: Requires Go1.18+, due to the usage of the package [`hash/maphash`](https://golang.org/pkg/hash/maphash/), and the `any` keyword (predeclared type alias for the empty interface).
+:warning: Requires Go1.21+, due to the usage of the [`hash/maphash`](https://golang.org/pkg/hash/maphash/) package, and the `any/min/max` keyword/builtins.
 
 ### Example use cases
 
@@ -78,7 +78,7 @@ newPod.Spec.Containers[0].Image = "nginx:1.19.5-alpine"
 newPod.Spec.Volumes[0].EmptyDir.Medium = corev1.StorageMediumDefault
 ```
 
-Finally, generate the patch that represents the changes relative to the original value. Note that when the `Compare` or `CompareOpts` functions are used, the `source` and `target` parameters are first marshaled using the `encoding/json` package in order to obtain their final JSON representation, prior to comparing them.
+Finally, generate the patch that represents the changes relative to the original value. Note that when the `Compare` function is called, the `source` and `target` parameters are first marshaled using the `encoding/json` package (or a custom func) in order to obtain their final JSON representation, prior to comparing them.
 
 ```go
 import "github.com/wI2L/jsondiff"
@@ -136,9 +136,9 @@ There's also one other downside to the above example. If your webhook does not h
 
 For example, if your webhook mutate `Service` resources, a user could set the field `.spec.allocateLoadBalancerNodePort` in Kubernetes 1.20 to disable allocating a node port for services with `Type=LoadBalancer`. However, if the webhook is still using the v1.19.x version of the `k8s.io/api/core/v1` package that define the `Service` type, instead of simply ignoring this field, a `remove` operation will be generated for it.
 
-### Diff options
+### Options
 
-If more control over the diff behaviour is required, use the `CompareOpts` or `CompareJSONOpts` function instead. The third parameter is variadic and accept a list of functional opt-in options described below.
+If more control over the diff behaviour is required, you can pass a variadic list of functional options as the third argument of the `Compare` and `CompareJSON` functions.
 
 Note that any combination of options can be used without issues.
 
@@ -245,7 +245,7 @@ When the `Rationalize()` option is enabled, the package pre-process the JSON inp
 
 ##### In-place compaction
 
-By default, the package will not modify the JSON documents given to the `CompareJSON` and `CompareJSONOpts` functions. Instead, a copy of the `target` byte slice argument is created and then compacted to remove insignificant spaces.
+By default, the package will not modify the JSON documents given to the `CompareJSON` function. Instead, a copy of the `target` byte slice argument is created and then compacted to remove insignificant spaces.
 
 To avoid an extra allocation, you can use the `InPlaceCompaction()` option to allow the package to *take ownership* of the `target` byte slice and modify it directly. **Note that you should not update it concurrently with a call to the `CompareJSON*` functions.**
 
@@ -317,11 +317,19 @@ The root arrays of each document are not equal because the values differ at each
 
 For such situations, you can use the `Equivalent()` option to instruct the diff generator to skip the generation of operations that would otherwise be added to the patch to represent the differences between the two arrays.
 
+#### LCS (Longest Common Subsequence)
+
+:construction: *This is an new/experimental option, which might be promoted as the default behavior in the future*.
+
+:warning: **Do not use in conjunction with the `Factorize()` option, it will lead to unexpected results**.
+
+The default algorithm used to compare arrays is naive and can generate a lot of operations. For example, if a single element located *in the middle* of the array is deleted, all items to its right will be shifted one position to the left, generating one `replace` operation per item.
+
+The `LCS()` option instruct the diff generator to compute the [Longest common subsequence](https://en.wikipedia.org/wiki/Longest_common_subsequence) of the source and target arrays, and use it to generate a list of operations that is more succinct and more faithfully represents the differences.
+
 #### Ignores
 
 :construction: *This option is experimental and might be revised in the future.*
-<br/>
-<br/>
 
 The `Ignores()` option allows to exclude one or more JSON fields/values from the *generated diff*. The fields must be identified using the JSON Pointer (RFC6901) string syntax.
 
@@ -361,7 +369,7 @@ Using the option with the following pointers list, we can ignore some of the fie
 jsondiff.Ignores("/A", "/B", "/C")
 ```
 
-The resulting patch is empty, because all changes and ignored.
+The resulting patch is empty, because all changes are ignored.
 
 [Run this example](https://pkg.go.dev/github.com/wI2L/jsondiff#example-Ignores).
 
@@ -378,7 +386,7 @@ The prototype of the function argument accepted by these options is the same as 
 In the following example, the `UnmarshalFunc` option is used to set up a custom JSON [`Decoder`](https://pkg.go.dev/encoding/json#Decoder) with the [`UserNumber`](https://pkg.go.dev/encoding/json#Decoder.UseNumber) flag enabled, to decode JSON numbers as [`json.Number`](https://pkg.go.dev/encoding/json#Decoder.UseNumber) instead of `float64`:
 
 ```go
-patch, err := jsondiff.CompareJSONOpts(
+patch, err := jsondiff.CompareJSON(
     source,
     target,
     jsondiff.UnmarshalFunc(func(b []byte, v any) error {
@@ -539,14 +547,15 @@ Medium/Differ/all-unordered-8                83.0 ± 0%
 
 ## Credits
 
-This package has been inspired by existing implementations of JSON Patch in various languages:
+This package has been inspired by existing implementations of JSON Patch/diff algorithms in various languages:
 
 - [cujojs/jiff](https://github.com/cujojs/jiff)
 - [Starcounter-Jack/JSON-Patch](https://github.com/Starcounter-Jack/JSON-Patch)
 - [java-json-tools/json-patch](https://github.com/java-json-tools/json-patch)
 - [Lattyware/elm-json-diff](https://github.com/Lattyware/elm-json-diff)
 - [espadrine/json-diff](https://github.com/espadrine/json-diff)
+- [`Algorithm::Diff`](https://metacpan.org/pod/Algorithm::Diff)
 
 ## License
 
-`jsondiff` is licensed under the **MIT** license. See the [LICENSE](LICENSE) file.
+The code is licensed under the **MIT** license. [Read this](https://www.tldrlegal.com/license/mit-license) or see the [LICENSE](LICENSE) file.

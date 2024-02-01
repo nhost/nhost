@@ -67,6 +67,7 @@ func TestStorage(t *testing.T) {
 		{
 			name:     "success",
 			cfg:      getConfig,
+			useTlS:   false,
 			expected: expectedStorage,
 		},
 	}

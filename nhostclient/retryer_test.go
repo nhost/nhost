@@ -38,6 +38,7 @@ func TestStandardRetry(t *testing.T) {
 			},
 			expectedCalls: 1,
 			expectedDelay: 0,
+			expectedError: nil,
 		},
 		{
 			name:        "success after three attempts",
@@ -58,6 +59,7 @@ func TestStandardRetry(t *testing.T) {
 			},
 			expectedCalls: 3,
 			expectedDelay: 3 * time.Second,
+			expectedError: nil,
 		},
 		{
 			name:        "fail after four attempts",

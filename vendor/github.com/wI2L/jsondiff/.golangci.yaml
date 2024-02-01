@@ -1,41 +1,26 @@
 run:
+  go: "1.21"
   timeout: 10m
 linters:
   disable-all: true
   enable:
-    - asciicheck
-    - bodyclose
-    - deadcode
-    - depguard
-    - dogsled
     - dupl
-    - errcheck
-    - exportloopref
-    - funlen
-    - gocognit
-    - goconst
+    - dupword
+    - forbidigo
     - gocritic
-    - gocyclo
-    - gofmt
+    - gofumpt
     - goimports
-    - goprintffuncname
-    - gosec
-    - gosimple
-    - govet
-    - ineffassign
     - misspell
-    - nakedret
-    - nolintlint
+    - prealloc
     - revive
-    - rowserrcheck
-    - staticcheck
-    - structcheck
+    - revive
     - stylecheck
-    - typecheck
+    - thelper
+    - tparallel
     - unconvert
     - unparam
     - unused
-    - varcheck
+    - wastedassign
     - whitespace
 linters-settings:
   gofmt:
@@ -44,3 +29,8 @@ linters-settings:
     threshold: 400
   funlen:
     lines: 120
+issues:
+  exclude-rules:
+    - path: (.+)_test.go
+      linters:
+        - funlen

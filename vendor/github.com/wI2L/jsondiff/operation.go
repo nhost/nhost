@@ -60,12 +60,10 @@ func (o Operation) MarshalJSON() ([]byte, error) {
 
 	if !o.marshalWithValue() {
 		o.Value = nil
-	} else {
+	} else if (*[2]uintptr)(unsafe.Pointer(&o.Value))[1] == 0 {
 		// Generic check that works for nil
 		// and typed nil interface values.
-		if (*[2]uintptr)(unsafe.Pointer(&o.Value))[1] == 0 {
-			o.Value = null{}
-		}
+		o.Value = null{}
 	}
 	if !o.hasFrom() {
 		o.From = emptyPointer

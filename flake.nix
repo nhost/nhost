@@ -9,7 +9,14 @@
   outputs = { self, nixops, nixpkgs, flake-utils, nix-filter }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        overlays = [ nixops.overlays.default ];
+        overlays = [
+          nixops.overlays.default
+          (final: prev: {
+            certbot-full = prev.certbot.overrideAttrs (old: {
+              doCheck = false;
+            });
+          })
+        ];
         pkgs = import nixpkgs {
           inherit system overlays;
         };

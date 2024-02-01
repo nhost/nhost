@@ -107,6 +107,7 @@ func TestGraphql(t *testing.T) {
 		{
 			name:     "success",
 			cfg:      getConfig,
+			useTlS:   false,
 			expected: expectedGraphql,
 		},
 	}
@@ -240,6 +241,7 @@ func TestConsole(t *testing.T) {
 				cfg.Hasura.Version = ptr("v2.25.0")
 				return cfg
 			},
+			useTlS:   false,
 			expected: expectedConsole,
 		},
 		// {

@@ -90,7 +90,7 @@ func getTLSServer() (*http.Server, error) {
 		MinVersion:   tls.VersionTLS12,
 		CipherSuites: nil,
 		Certificates: []tls.Certificate{
-			{
+			{ //nolint:exhaustruct
 				Certificate: [][]byte{certificate.Raw},
 				PrivateKey:  pk,
 			},

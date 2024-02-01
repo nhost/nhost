@@ -2,6 +2,7 @@ package dockercompose
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/nhost/be/services/mimir/model"
 )
@@ -33,7 +34,7 @@ func run(
 			ports = append(ports, Port{
 				Mode:      "ingress",
 				Target:    uint(p.GetPort()),
-				Published: fmt.Sprintf("%d", p.GetPort()),
+				Published: strconv.FormatUint(uint64(p.GetPort()), 10),
 				Protocol:  proto,
 			})
 		}

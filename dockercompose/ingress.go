@@ -1,6 +1,9 @@
 package dockercompose
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type Ingresses []Ingress
 
@@ -33,13 +36,10 @@ func (i Ingress) Labels() map[string]string {
 		fmt.Sprintf("traefik.http.routers.%s.entrypoints", i.Name): "web",
 		fmt.Sprintf("traefik.http.routers.%s.rule", i.Name):        i.Rule,
 		fmt.Sprintf("traefik.http.routers.%s.service", i.Name):     i.Name,
-		fmt.Sprintf("traefik.http.routers.%s.tls", i.Name): fmt.Sprintf(
-			"%t",
-			i.TLS,
-		),
-		fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", i.Name): fmt.Sprintf(
-			"%d",
-			i.Port,
+		fmt.Sprintf("traefik.http.routers.%s.tls", i.Name):         strconv.FormatBool(i.TLS),
+		fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", i.Name): strconv.FormatUint(
+			uint64(i.Port),
+			10,
 		),
 	}
 

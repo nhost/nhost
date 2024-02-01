@@ -61,6 +61,7 @@ func TestAI(t *testing.T) {
 		{
 			name:     "success",
 			cfg:      getConfig,
+			useTlS:   false,
 			expected: expectedAI,
 		},
 	}

@@ -106,6 +106,14 @@ func (errs List) As(target interface{}) bool {
 	return false
 }
 
+func (errs List) Unwrap() []error {
+	l := make([]error, len(errs))
+	for i, err := range errs {
+		l[i] = err
+	}
+	return l
+}
+
 func WrapPath(path ast.Path, err error) *Error {
 	if err == nil {
 		return nil

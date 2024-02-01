@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/nhost/cli/nhostclient/graphql"
 )
@@ -37,7 +38,7 @@ func printlist(ce *CliEnv, workspaces []*graphql.GetWorkspacesApps_Workspaces) e
 
 	for _, ws := range workspaces {
 		for _, app := range ws.Apps {
-			num.Rows = append(num.Rows, fmt.Sprintf("%d", len(num.Rows)+1))
+			num.Rows = append(num.Rows, strconv.Itoa(len(num.Rows)+1))
 			subdomain.Rows = append(subdomain.Rows, app.Subdomain)
 			project.Rows = append(project.Rows, app.Name)
 			workspace.Rows = append(workspace.Rows, ws.Name)
@@ -73,7 +74,7 @@ func getApp(
 OUTER:
 	for _, ws := range workspaces {
 		for _, a := range ws.GetApps() {
-			if fmt.Sprintf("%d", x) == idx {
+			if strconv.Itoa(x) == idx {
 				a := a
 				app = a
 				break OUTER

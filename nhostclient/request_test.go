@@ -40,6 +40,7 @@ func TestMakeJSONRequest(t *testing.T) {
 			retryer:                 nhostclient.NewBasicRetryer(1, 1),
 			expectedRequestMethod:   http.MethodPost,
 			expectedResponsePayload: map[string]any{"FOO": "BAR"},
+			expectedErr:             nil,
 		},
 		{
 			name:        "failure after 2 attempts",
@@ -52,9 +53,10 @@ func TestMakeJSONRequest(t *testing.T) {
 			responseValidator: func(resp *http.Response) error {
 				return errTest
 			},
-			retryer:               nhostclient.NewBasicRetryer(2, 2),
-			expectedRequestMethod: http.MethodPost,
-			expectedErr:           errTest,
+			retryer:                 nhostclient.NewBasicRetryer(2, 2),
+			expectedRequestMethod:   http.MethodPost,
+			expectedResponsePayload: nil,
+			expectedErr:             errTest,
 		},
 	}
 

@@ -3,6 +3,7 @@ package dockercompose
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
@@ -69,21 +70,23 @@ func postgres( //nolint:funlen
 			{
 				Mode:      "ingress",
 				Target:    postgresPort,
-				Published: fmt.Sprintf("%d", port),
+				Published: strconv.FormatUint(uint64(port), 10),
 				Protocol:  "tcp",
 			},
 		},
 		Restart: "always",
 		Volumes: []Volume{
 			{
-				Type:   "volume",
-				Source: volumeName,
-				Target: "/var/lib/postgresql/data/pgdata",
+				Type:     "volume",
+				Source:   volumeName,
+				Target:   "/var/lib/postgresql/data/pgdata",
+				ReadOnly: ptr(false),
 			},
 			{
-				Type:   "bind",
-				Source: fmt.Sprintf("%s/db/pg_hba_local.conf", dataFolder),
-				Target: "/etc/pg_hba_local.conf",
+				Type:     "bind",
+				Source:   fmt.Sprintf("%s/db/pg_hba_local.conf", dataFolder),
+				Target:   "/etc/pg_hba_local.conf",
+				ReadOnly: ptr(false),
 			},
 		},
 		WorkingDir: nil,

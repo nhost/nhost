@@ -14,10 +14,15 @@ const (
 	emptyPointer = ""
 )
 
-// rfc6901Escaper is a replacer that escapes a JSON Pointer string
-// in compliance with the JavaScript Object Notation Pointer syntax.
-// https://tools.ietf.org/html/rfc6901
-var rfc6901Escaper = strings.NewReplacer("~", escapeTilde, "/", escapeSlash)
+var (
+	// rfc6901Escaper is a replacer that escapes a JSON Pointer string
+	// in compliance with the JavaScript Object Notation Pointer syntax.
+	// https://tools.ietf.org/html/rfc6901
+	rfc6901Escaper = strings.NewReplacer("~", escapeTilde, "/", escapeSlash)
+
+	// rfc6901Unescaper is a replacer that unescape a JSON Pointer string.
+	rfc6901Unescaper = strings.NewReplacer(escapeTilde, "~", escapeSlash, "/")
+)
 
 type segment struct {
 	key string
@@ -107,7 +112,8 @@ func parsePointer(s string) ([]string, error) {
 
 	ls := 0
 	for i, r := range a {
-		if r == '/' {
+		switch {
+		case r == '/':
 			if i != 0 {
 				tokens = append(tokens, string(a[ls+1:i]))
 			}
@@ -117,18 +123,16 @@ func parsePointer(s string) ([]string, error) {
 				break
 			}
 			ls = i
-		} else if r == '~' {
+		case r == '~':
 			if i == len(a)-1 {
 				return nil, errIncompleteEscapeSequence
 			}
 			if a[i+1] != '0' && a[i+1] != '1' {
 				return nil, errInvalidEscapeSequence
 			}
-		} else {
-			if i == len(a)-1 {
-				// End of string, accumulate from last separator.
-				tokens = append(tokens, string(a[ls+1:]))
-			}
+		case i == len(a)-1:
+			// End of string, accumulate from last separator.
+			tokens = append(tokens, string(a[ls+1:]))
 		}
 	}
 	return tokens, nil

@@ -153,7 +153,12 @@ func expectedAuth() *Service {
 		Ports:   nil,
 		Restart: "always",
 		Volumes: []Volume{
-			{Type: "bind", Source: "/tmp/nhost/emails", Target: "/app/email-templates"},
+			{
+				Type:     "bind",
+				Source:   "/tmp/nhost/emails",
+				Target:   "/app/email-templates",
+				ReadOnly: ptr(false),
+			},
 		},
 		WorkingDir: nil,
 	}
@@ -171,6 +176,7 @@ func TestAuth(t *testing.T) {
 		{
 			name:     "default",
 			cfg:      getConfig,
+			useTlS:   false,
 			expected: expectedAuth,
 		},
 		{
@@ -180,15 +186,14 @@ func TestAuth(t *testing.T) {
 				cfg.Auth.Version = ptr("0.21.3")
 				return cfg
 			},
+			useTlS: false,
 			expected: func() *Service {
 				svc := expectedAuth()
 				svc.Image = "nhost/hasura-auth:0.21.3"
-
 				svc.Labels["traefik.http.middlewares.replace-auth.replacepathregex.regex"] = "/v1(/|$$)(.*)"
 				svc.Labels["traefik.http.middlewares.replace-auth.replacepathregex.replacement"] = "/$$2"
 				svc.Labels["traefik.http.routers.auth.middlewares"] = "replace-auth"
 				svc.Labels["traefik.http.routers.auth.rule"] = "Host(`local.auth.nhost.run`) && PathPrefix(`/v1`)"
-
 				return svc
 			},
 		},
