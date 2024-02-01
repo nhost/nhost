@@ -85,7 +85,7 @@ export interface JWTHasuraClaims {
   'x-hasura-default-role': string
   'x-hasura-user-id': string
   'x-hasura-user-is-anonymous': string
-  'x-nhost-auth-elevated': string
+  'x-hasura-auth-elevated': string
 }
 
 export interface Mfa {

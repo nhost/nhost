@@ -3,7 +3,6 @@ import {
   ElevateWithSecurityKeyHandlerResult
 } from '@nhost/nhost-js'
 import { useEffect, useState } from 'react'
-import { useAuthInterpreter } from './useAuthInterpreter'
 import { useHasuraClaims } from './useHasuraClaims'
 import { useNhostClient } from './useNhostClient'
 import { useUserData } from './useUserData'
@@ -22,31 +21,27 @@ interface ElevateWithSecurityKeyHook {
  *
  * @example
  * ```tsx
- * const { elevateEmailSecurityKey, isLoading, isSuccess, isError, error } = useSignInEmailSecurityKey()
+ * const { elevateEmailSecurityKey, elevated } = useElevateSecurityKeyEmail()
  *
- * console.log({ elevateEmailSecurityKey, isLoading, isSuccess, isError, error });
+ * console.log({ elevated });
  *
- * const handleFormSubmit = async (e) => {
- *   e.preventDefault();
- *
- *   await elevateEmailSecurityKey('joe@example.com')
- * }
+ * await elevateEmailSecurityKey('joe@example.com')
  * ```
  *
  * @docs https://docs.nhost.io/reference/react/elevate-web-authn
  */
 export const useElevateSecurityKeyEmail = (): ElevateWithSecurityKeyHook => {
   const user = useUserData()
-  const claims = useHasuraClaims()
   const nhost = useNhostClient()
+  const claims = useHasuraClaims()
 
-  const [elevated, setElevated] = useState(claims?.['x-nhost-auth-elevated'] === user?.id)
+  const [elevated, setElevated] = useState(claims?.['x-hasura-auth-elevated'] === user?.id)
 
   const elevateEmailSecurityKey: ElevateWithSecurityKeyHandler = (email: string) =>
     elevateEmailSecurityKeyPromise(nhost.auth.client, email)
 
   useEffect(() => {
-    setElevated(claims?.['x-nhost-auth-elevated'] === user?.id)
+    setElevated(claims?.['x-hasura-auth-elevated'] === user?.id)
   }, [claims, user])
 
   return {

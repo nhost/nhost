@@ -20,10 +20,6 @@ export const elevateEmailSecurityKeyPromise = (authClient: AuthClient, email: st
     const snapshot = authClient.interpreter?.getSnapshot()
     const accessToken = snapshot?.context.accessToken.value
 
-    console.log({
-      accessToken
-    })
-
     const { data } = await postFetch<PublicKeyCredentialRequestOptionsJSON>(
       `${authClient.backendUrl}/elevate/webauthn`,
       {
@@ -63,7 +59,6 @@ export const elevateEmailSecurityKeyPromise = (authClient: AuthClient, email: st
 
     authClient.interpreter?.onTransition((state) => {
       if (state.matches({ authentication: 'signedIn' })) {
-        // must return the
         resolve({
           accessToken: state.context.accessToken.value,
           refreshToken: state.context.refreshToken.value,
@@ -74,12 +69,10 @@ export const elevateEmailSecurityKeyPromise = (authClient: AuthClient, email: st
           elevated: true
         })
       } else {
-        //
-        console.log('Handle error here')
         resolve({
           accessToken: state.context.accessToken.value,
           refreshToken: state.context.refreshToken.value,
-          error: null, // This error should exist here
+          error: null, // TODO pass error
           isError: true,
           isSuccess: false,
           user: state.context.user,
