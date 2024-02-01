@@ -1637,6 +1637,13 @@ export type InsertNoteMutationVariables = Exact<{
 
 export type InsertNoteMutation = { __typename?: 'mutation_root', insertNote?: { __typename?: 'notes', id: string, content: string } | null };
 
+export type DeleteNoteMutationVariables = Exact<{
+  noteId: Scalars['uuid'];
+}>;
+
+
+export type DeleteNoteMutation = { __typename?: 'mutation_root', deleteNote?: { __typename?: 'notes', id: string, content: string } | null };
+
 export type NewNoteFragment = { __typename?: 'notes', id: string, content: string };
 
 export type SecurityKeysQueryVariables = Exact<{

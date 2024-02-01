@@ -1,11 +1,22 @@
-import { InsertNoteMutation, NotesListQuery } from 'src/generated'
+import { DeleteNoteMutation, InsertNoteMutation, NotesListQuery } from 'src/generated'
 
 import { gql, useMutation } from '@apollo/client'
-import { Button, Card, Container, Grid, Loader, TextInput, Title, Group } from '@mantine/core'
+import {
+  Button,
+  Card,
+  Container,
+  Grid,
+  Loader,
+  TextInput,
+  Title,
+  Group,
+  ActionIcon
+} from '@mantine/core'
 import { useInputState } from '@mantine/hooks'
 import { showNotification } from '@mantine/notifications'
 import { useAuthQuery } from '@nhost/react-apollo'
 import { useElevateSecurityKeyEmail, useUserData } from '@nhost/react'
+import { FaTrash } from 'react-icons/fa'
 
 const NOTES_LIST = gql`
   query notesList {
@@ -25,23 +36,14 @@ const INSERT_NOTE = gql`
   }
 `
 
-// const UPDATE_NOTE = gql`
-//   mutation updateNote($noteId: uuid!, $content: String!) {
-//     updateNote(pk_columns: { id: $noteId }, _set: { content: $content }) {
-//       id
-//       content
-//     }
-//   }
-// `
-
-// const DELETE_NOTE = gql`
-//   mutation deleteNote($noteId: uuid!) {
-//     deleteNote(id: $noteId) {
-//       id
-//       content
-//     }
-//   }
-// `
+const DELETE_NOTE = gql`
+  mutation deleteNote($noteId: uuid!) {
+    deleteNote(id: $noteId) {
+      id
+      content
+    }
+  }
+`
 
 export const NotesPage: React.FC = () => {
   const userData = useUserData()
@@ -57,12 +59,13 @@ export const NotesPage: React.FC = () => {
 
   console.log(elevated)
 
-  const [addNote] = useMutation<InsertNoteMutation>(INSERT_NOTE)
+  const [addNoteMutation] = useMutation<InsertNoteMutation>(INSERT_NOTE)
+  const [deleteNoteMutation] = useMutation<DeleteNoteMutation>(DELETE_NOTE)
 
   const add = () => {
     if (!content) return
 
-    addNote({
+    addNoteMutation({
       variables: { content },
       onCompleted: () => setContent(''),
       onError: (error) => {
@@ -93,6 +96,35 @@ export const NotesPage: React.FC = () => {
     })
   }
 
+  const deleteNote = (noteId: string) => {
+    if (!noteId) return
+
+    deleteNoteMutation({
+      variables: { noteId },
+      onCompleted: () => setContent(''),
+      onError: (error) => {
+        showNotification({
+          color: 'red',
+          title: error.networkError ? 'Network error' : 'Error',
+          message: error.message
+        })
+      },
+      update: (cache, { data }) => {
+        const deletedNoteId = data?.deleteNote?.id
+        if (deletedNoteId) {
+          cache.modify({
+            fields: {
+              notes(existingNotes = [], { readField }) {
+                // @ts-ignore
+                return existingNotes.filter((noteRef) => noteId !== readField('id', noteRef))
+              }
+            }
+          })
+        }
+      }
+    })
+  }
+
   return (
     <Container>
       {loading && <Loader />}
@@ -113,7 +145,7 @@ export const NotesPage: React.FC = () => {
       <Card shadow="sm" p="lg" m="sm">
         <Title>Secret Notes</Title>
         <Grid>
-          <Grid.Col span={9}>
+          <Grid.Col span={10}>
             <TextInput
               value={content}
               onChange={setContent}
@@ -121,8 +153,9 @@ export const NotesPage: React.FC = () => {
               onKeyDown={(e) => e.code === 'Enter' && add()}
             />
           </Grid.Col>
-          <Grid.Col span={3}>
+          <Grid.Col span={2}>
             <Button
+              fullWidth
               onClick={(e: React.MouseEvent) => {
                 e.preventDefault()
                 add()
@@ -132,9 +165,22 @@ export const NotesPage: React.FC = () => {
             </Button>
           </Grid.Col>
         </Grid>
-        <ul>
+        <ul style={{ paddingLeft: 12 }}>
           {data?.notes.map((note) => (
-            <li key={note.id}>{note.content}</li>
+            <li key={note.id}>
+              <Group position="apart">
+                <span>{note.content}</span>
+                <ActionIcon
+                  size={21}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    deleteNote(note.id)
+                  }}
+                >
+                  <FaTrash />
+                </ActionIcon>
+              </Group>
+            </li>
           ))}
         </ul>
       </Card>
