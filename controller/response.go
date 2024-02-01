@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -69,7 +70,7 @@ func (r *FileResponse) Write(ctx *gin.Context) {
 
 	if r.statusCode != http.StatusNotModified {
 		// https://www.rfc-editor.org/rfc/rfc7232#section-4.1
-		ctx.Header("Content-Length", fmt.Sprintf("%d", r.contentLength))
+		ctx.Header("Content-Length", strconv.FormatInt(r.contentLength, 10))
 		ctx.Header("Content-Type", r.contentType)
 		ctx.Header("Surrogate-Key", r.fileID)
 		ctx.Header("Last-modified", r.lastModified)

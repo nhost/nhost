@@ -93,8 +93,8 @@ func WithIfUnmodifiedSince(modifiedSince string) GetFileInformationOpt {
 func WithImageSize(newSizeX, newSizeY int) GetFileInformationOpt {
 	return func(req *http.Request) {
 		q := req.URL.Query()
-		q.Add("w", fmt.Sprintf("%d", newSizeX))
-		q.Add("h", fmt.Sprintf("%d", newSizeY))
+		q.Add("w", strconv.Itoa(newSizeX))
+		q.Add("h", strconv.Itoa(newSizeY))
 		req.URL.RawQuery = q.Encode()
 	}
 }
@@ -102,7 +102,7 @@ func WithImageSize(newSizeX, newSizeY int) GetFileInformationOpt {
 func WithImageQuality(quality int) GetFileInformationOpt {
 	return func(req *http.Request) {
 		q := req.URL.Query()
-		q.Add("q", fmt.Sprintf("%d", quality))
+		q.Add("q", strconv.Itoa(quality))
 		req.URL.RawQuery = q.Encode()
 	}
 }
@@ -110,7 +110,7 @@ func WithImageQuality(quality int) GetFileInformationOpt {
 func WithImageBlur(blur int) GetFileInformationOpt {
 	return func(req *http.Request) {
 		q := req.URL.Query()
-		q.Add("b", fmt.Sprintf("%d", blur))
+		q.Add("b", strconv.Itoa(blur))
 		req.URL.RawQuery = q.Encode()
 	}
 }

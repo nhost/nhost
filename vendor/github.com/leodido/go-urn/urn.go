@@ -17,9 +17,11 @@ const errInvalidURN = "invalid URN: %s"
 // Details at https://tools.ietf.org/html/rfc2141.
 type URN struct {
 	prefix string // Static prefix. Equal to "urn" when empty.
-	ID     string // Namespace identifier
-	SS     string // Namespace specific string
+	ID     string // Namespace identifier (NID)
+	SS     string // Namespace specific string (NSS)
 	norm   string // Normalized namespace specific string
+	kind   Kind
+	scim   *SCIM
 }
 
 // Normalize turns the receiving URN into its norm version.
@@ -56,9 +58,9 @@ func (u *URN) String() string {
 	return res
 }
 
-// Parse is responsible to create an URN instance from a byte array matching the correct URN syntax.
-func Parse(u []byte) (*URN, bool) {
-	urn, err := NewMachine().Parse(u)
+// Parse is responsible to create an URN instance from a byte array matching the correct URN syntax (RFC 2141).
+func Parse(u []byte, options ...Option) (*URN, bool) {
+	urn, err := NewMachine(options...).Parse(u)
 	if err != nil {
 		return nil, false
 	}
@@ -71,7 +73,7 @@ func (u URN) MarshalJSON() ([]byte, error) {
 	return json.Marshal(u.String())
 }
 
-// MarshalJSON unmarshals a URN from JSON string form (e.g. `"urn:oid:1.2.3.4"`).
+// UnmarshalJSON unmarshals a URN from JSON string form (e.g. `"urn:oid:1.2.3.4"`).
 func (u *URN) UnmarshalJSON(bytes []byte) error {
 	var str string
 	if err := json.Unmarshal(bytes, &str); err != nil {
@@ -83,4 +85,16 @@ func (u *URN) UnmarshalJSON(bytes []byte) error {
 		*u = *value
 	}
 	return nil
+}
+
+func (u *URN) IsSCIM() bool {
+	return u.kind == RFC7643
+}
+
+func (u *URN) SCIM() *SCIM {
+	if !u.IsSCIM() {
+		return nil
+	}
+
+	return u.scim
 }

@@ -13,8 +13,8 @@
       let
         localOverlay = import ./nix/overlay.nix;
         overlays = [
-          localOverlay
           nixops.overlays.default
+          localOverlay
         ];
         pkgs = import nixpkgs {
           inherit system overlays;

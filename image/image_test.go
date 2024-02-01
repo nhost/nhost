@@ -2,7 +2,7 @@ package image_test
 
 import (
 	"crypto/sha256"
-	"fmt"
+	"encoding/hex"
 	"io"
 	"os"
 	"testing"
@@ -84,7 +84,7 @@ func TestManipulate(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			got := fmt.Sprintf("%x", hasher.Sum(nil))
+			got := hex.EncodeToString(hasher.Sum(nil))
 			if !cmp.Equal(got, tc.sum) {
 				t.Error(cmp.Diff(got, tc.sum))
 			}
