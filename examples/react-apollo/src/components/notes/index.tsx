@@ -57,8 +57,6 @@ export const NotesPage: React.FC = () => {
 
   const { elevateEmailSecurityKey, elevated } = useElevateSecurityKeyEmail()
 
-  console.log(elevated)
-
   const [addNoteMutation] = useMutation<InsertNoteMutation>(INSERT_NOTE)
   const [deleteNoteMutation] = useMutation<DeleteNoteMutation>(DELETE_NOTE)
 
