@@ -11,10 +11,8 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
-import {
-  PortTypes,
-  type ServiceFormValues,
-} from '@/features/services/components/ServiceForm';
+import { PortTypes } from '@/features/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
+import { type ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 
 export default function PortsFormSection() {

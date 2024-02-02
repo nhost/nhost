@@ -6,12 +6,10 @@ import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import type { DialogFormProps } from '@/types/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export interface CreateUserFormProps extends DialogFormProps {
@@ -77,9 +75,9 @@ export default function CreateUserForm({
   async function handleCreateUser({ email, password }: CreateUserFormValues) {
     setCreateUserFormError(null);
 
-    try {
-      await toast.promise(
-        fetch(signUpUrl, {
+    await execPromiseWithErrorToast(
+      async () => {
+        await fetch(signUpUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password }),
@@ -95,21 +93,16 @@ export default function CreateUserForm({
           }
 
           throw new Error(data?.message || 'Something went wrong.');
-        }),
-        {
-          loading: 'Creating user...',
-          success: 'User has been created successfully.',
-          error: getServerError(
-            'An error occurred while trying to create the user.',
-          ),
-        },
-        getToastStyleProps(),
-      );
+        });
 
-      onSubmit?.();
-    } catch (error) {
-      // Note: The error is already handled by the toast promise.
-    }
+        onSubmit?.();
+      },
+      {
+        loadingMessage: 'Creating user...',
+        successMessage: 'User has been created successfully.',
+        errorMessage: 'An error occurred while trying to create the user.',
+      },
+    );
   }
 
   return (

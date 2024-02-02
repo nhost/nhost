@@ -26,7 +26,7 @@ export default function UpgradeToProBanner({
   return (
     <Box
       sx={{ backgroundColor: 'primary.light' }}
-      className="flex flex-col justify-between space-y-4 rounded-md p-4 lg:flex-row lg:items-center lg:space-y-0"
+      className="flex flex-col justify-between p-4 space-y-4 rounded-md lg:flex-row lg:items-center lg:space-y-0"
     >
       <div className="flex flex-col justify-between space-y-4">
         <div className="space-y-2">
@@ -81,13 +81,13 @@ export default function UpgradeToProBanner({
             target="_blank"
             rel="noopener noreferrer"
             underline="hover"
-            className="text-center font-medium"
+            className="font-medium text-center"
             sx={{
               color: 'text.secondary',
             }}
           >
             See all features
-            <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+            <ArrowSquareOutIcon className="w-4 h-4 ml-1" />
           </Link>
         </div>
       </div>
@@ -97,6 +97,7 @@ export default function UpgradeToProBanner({
         width={300}
         height={140}
         objectFit="contain"
+        alt='Upgrade to Pro illustration'
       />
     </Box>
   );

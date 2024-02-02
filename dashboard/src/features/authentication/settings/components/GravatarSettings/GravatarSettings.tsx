@@ -13,12 +13,10 @@ import {
 import {
   AUTH_GRAVATAR_DEFAULT,
   AUTH_GRAVATAR_RATING,
-  getToastStyleProps,
 } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
@@ -89,23 +87,18 @@ export default function GravatarSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Gravatar settings are being updated...`,
-          success: `Gravatar settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update the project's Gravatar settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(values);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(values);
+      },
+      {
+        loadingMessage: 'Gravatar settings are being updated...',
+        successMessage: 'Gravatar settings have been updated successfully.',
+        errorMessage:
+          "An error occurred while trying to update the project's Gravatar settings.",
+      },
+    );
   };
 
   return (

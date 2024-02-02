@@ -27,7 +27,7 @@ test('should be able to create then delete a personal access token', async () =>
   const patName = faker.lorem.slug(3);
 
   await page.getByRole('textbox', { name: /name/i }).fill(patName);
-  await page.getByRole('button', { name: /expiration/i }).click();
+  await page.getByLabel('Expiration').click();
   await page.getByRole('option', { name: /7 days/i }).click();
   await page.getByRole('button', { name: /create/i }).click();
 

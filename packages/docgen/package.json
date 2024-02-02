@@ -2,7 +2,7 @@
   "name": "@nhost/docgen",
   "description": "Documentation generator for classes and functions",
   "private": true,
-  "version": "0.1.11",
+  "version": "0.1.12",
   "license": "MIT",
   "main": "dist/index.cjs.js",
   "types": "dist/index.d.ts",
@@ -33,16 +33,16 @@
     "docgen": "dist/index.js"
   },
   "devDependencies": {
-    "@types/node": "^16.11.7",
-    "@types/prettier": "^2.7.0",
-    "rimraf": "^5.0.0",
-    "typescript": "^4.8.4"
+    "@types/node": "^16.18.70",
+    "@types/prettier": "^2.7.3",
+    "rimraf": "^5.0.5",
+    "typescript": "^4.9.5"
   },
   "dependencies": {
-    "chalk": "4",
-    "commander": "^11.0.0",
-    "just-kebab-case": "^4.1.1",
-    "prettier": "^2.7.1",
-    "valtio": "^1.6.4"
+    "chalk": "^4.1.2",
+    "commander": "^11.1.0",
+    "just-kebab-case": "^4.2.0",
+    "prettier": "^2.8.8",
+    "valtio": "^1.13.0"
   }
 }

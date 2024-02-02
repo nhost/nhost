@@ -1,6 +1,6 @@
 {
   "name": "@nhost/stripe-graphql-js",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Stripe GraphQL API",
   "license": "MIT",
   "keywords": [
@@ -40,18 +40,18 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@pothos/core": "^3.21.0",
-    "graphql": "16.7.1",
-    "graphql-scalars": "^1.18.0",
-    "graphql-yoga": "^3.4.0",
-    "jsonwebtoken": "^9.0.0",
-    "stripe": "^11.8.0"
+    "@pothos/core": "^3.41.0",
+    "graphql": "16.8.1",
+    "graphql-scalars": "^1.22.4",
+    "graphql-yoga": "^3.9.1",
+    "jsonwebtoken": "^9.0.2",
+    "stripe": "^11.18.0"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.0",
-    "@types/node": "^18.11.9",
-    "dotenv": "^16.0.3",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^18.19.6",
+    "dotenv": "^16.3.1",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^4.7.4"
+    "typescript": "^4.9.5"
   }
 }

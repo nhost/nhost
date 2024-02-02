@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [
@@ -69,7 +69,7 @@
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "graphql": "16.7.1"
+    "graphql": "16.8.1"
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"

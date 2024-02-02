@@ -1,5 +1,13 @@
 # @nhost/vue
 
+## 2.0.3
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- Updated dependencies [8d91f71]
+  - @nhost/nhost-js@3.0.2
+
 ## 2.0.2
 
 ### Patch Changes

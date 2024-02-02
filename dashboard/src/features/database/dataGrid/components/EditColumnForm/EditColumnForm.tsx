@@ -17,6 +17,7 @@ import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import { FormProvider, useForm } from 'react-hook-form';
+import type * as Yup from 'yup';
 
 export interface EditColumnFormProps
   extends Pick<BaseColumnFormProps, 'onCancel' | 'location'> {
@@ -78,7 +79,9 @@ export default function EditColumnForm({
     comment: originalColumn.comment || null,
   };
 
-  const form = useForm<BaseColumnFormValues>({
+  const form = useForm<
+    BaseColumnFormValues | Yup.InferType<typeof baseColumnValidationSchema>
+  >({
     defaultValues: columnValues,
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseColumnValidationSchema),

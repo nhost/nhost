@@ -18,12 +18,10 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function LinkedInProviderSettings() {
@@ -87,23 +85,18 @@ export default function LinkedInProviderSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `LinkedIn settings are being updated...`,
-          success: `LinkedIn settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update the project's LinkedIn settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+      },
+      {
+        loadingMessage: 'LinkedIn settings are being updated...',
+        successMessage: 'LinkedIn settings have been updated successfully.',
+        errorMessage:
+          "An error occurred while trying to update the project's LinkedIn settings.",
+      },
+    );
   }
 
   return (
@@ -124,7 +117,7 @@ export default function LinkedInProviderSettings() {
           switchId="enabled"
           showSwitch
           className={twMerge(
-            'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-y-4 gap-x-3 px-4 py-2',
+            'grid-flow-rows grid grid-cols-2 grid-rows-2 gap-x-3 gap-y-4 px-4 py-2',
             !authEnabled && 'hidden',
           )}
         >

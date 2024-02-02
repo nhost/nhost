@@ -10,11 +10,9 @@ import {
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -94,24 +92,18 @@ export default function HasuraLogLevelSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Log level is being updated...`,
-          success: `Log level has been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update log level.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-      await refetchWorkspaceAndProject();
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+        await refetchWorkspaceAndProject();
+      },
+      {
+        loadingMessage: 'Log level is being updated...',
+        successMessage: 'Log level has been updated successfully.',
+        errorMessage: 'An error occurred while trying to update log level.',
+      },
+    );
   }
 
   return (
@@ -136,7 +128,7 @@ export default function HasuraLogLevelSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
         >
           <ControlledAutocomplete
             id="logLevel"

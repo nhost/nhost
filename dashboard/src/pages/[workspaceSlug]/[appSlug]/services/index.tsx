@@ -13,10 +13,8 @@ import type { GetRunServicesQuery } from '@/utils/__generated__/graphql';
 import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
 
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
-import {
-  ServiceForm,
-  type PortTypes,
-} from '@/features/services/components/ServiceForm';
+import { ServiceForm } from '@/features/services/components/ServiceForm';
+import { type PortTypes } from '@/features/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import ServicesList from '@/features/services/components/ServicesList/ServicesList';
 import { useRouter } from 'next/router';
 import {

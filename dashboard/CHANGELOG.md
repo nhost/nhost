@@ -1,5 +1,52 @@
 # @nhost/dashboard
 
+## 1.6.5
+
+### Patch Changes
+
+- ba73bb4: fix: update ErrorToast component to show the internal graphql error
+- d5337ff: fix: utilize accumulator in the creation of validation schema within data grid utils
+
+## 1.6.4
+
+### Patch Changes
+
+- 7c2a1c2: feat: show error and debug info in the error toast
+
+## 1.6.3
+
+### Patch Changes
+
+- 6b8aad5: fix: add bare nhost.run to CSP
+
+## 1.6.2
+
+### Patch Changes
+
+- b18edc0: feat: added CSP and X-Frame-Options
+
+## 1.6.1
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- 3b8473b: chore: update turbo to `1.11.3` and pnpm to `8.10.5` in Dockerfile
+- Updated dependencies [8d91f71]
+  - @nhost/react-apollo@7.0.2
+  - @nhost/nextjs@2.0.2
+
+## 1.6.0
+
+### Minor Changes
+
+- 3ff1c2b53: fix: show upgrade option for pro projects
+
+## 1.5.0
+
+### Minor Changes
+
+- c2ef17c0a: feat: add support for new Team plan
+
 ## 1.4.0
 
 ### Minor Changes

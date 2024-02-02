@@ -1,9 +1,7 @@
 import { styled } from '@mui/material';
-import type {
-  BoxProps as MaterialBoxProps,
-  BoxTypeMap,
-} from '@mui/material/Box';
+import type { BoxProps as MaterialBoxProps } from '@mui/material/Box';
 import MaterialBox from '@mui/material/Box';
+import { type BoxTypeMap } from '@mui/system';
 import type { ForwardedRef, PropsWithoutRef } from 'react';
 import { forwardRef } from 'react';
 

@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.2.6
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+
 ## 2.2.5
 
 ### Patch Changes

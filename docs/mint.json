@@ -147,7 +147,7 @@
     },
     {
       "group": "Run",
-      "pages": ["guides/run/getting-started", "guides/run/configuration", "guides/run/networking", "guides/run/health-checks", "guides/run/resources", "guides/run/registry", "guides/run/cli-deployments"]
+      "pages": ["guides/run/getting-started", "guides/run/configuration", "guides/run/networking", "guides/run/health-checks", "guides/run/resources", "guides/run/registry", "guides/run/local-development", "guides/run/configuration-overlays", "guides/run/cli-deployments" ]
     },
     {
       "group": "CLI",
@@ -334,6 +334,14 @@
                 "reference/javascript/graphql/get-url",
                 "reference/javascript/graphql/set-access-token",
                 "reference/javascript/graphql/request"
+              ]
+            },
+            {
+              "group": "Functions ",
+              "pages": [
+                "reference/javascript/functions/create-functions-client",
+                "reference/javascript/functions/call",
+                "reference/javascript/functions/set-access-token"
               ]
             }
           ]

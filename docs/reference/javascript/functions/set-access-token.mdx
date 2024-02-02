@@ -1,0 +1,18 @@
+---
+title: setAccessToken()
+sidebarTitle: setAccessToken()
+---
+
+Use `nhost.functions.setAccessToken` to a set an access token to be used in subsequent functions requests. Note that if you're signin in users with `nhost.auth.signIn()` the access token will be set automatically.
+
+```ts
+nhost.functions.setAccessToken('some-access-token')
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">accessToken</span>** <span className="optional-status">required</span> <code>undefined &#124; string</code>
+
+---

@@ -21,12 +21,10 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 import { DisableAIServiceConfirmationDialog } from './DisableAIServiceConfirmationDialog';
 
@@ -182,9 +180,9 @@ export default function AISettings() {
   }
 
   async function handleSubmit(formValues: AISettingsFormValues) {
-    try {
-      await toast.promise(
-        updateConfig({
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfig({
           variables: {
             appId: currentProject.id,
             config: {
@@ -207,21 +205,17 @@ export default function AISettings() {
               },
             },
           },
-        }),
-        {
-          loading: `AI settings are being updated...`,
-          success: `AI settings has been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update the AI settings!`,
-          ),
-        },
-        getToastStyleProps(),
-      );
+        });
 
-      form.reset(formValues);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+        form.reset(formValues);
+      },
+      {
+        loadingMessage: 'AI settings are being updated...',
+        successMessage: 'AI settings has been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update the AI settings!',
+      },
+    );
   }
 
   const getAIResourcesCost = () => {

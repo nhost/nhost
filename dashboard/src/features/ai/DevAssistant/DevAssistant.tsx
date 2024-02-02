@@ -2,6 +2,7 @@ import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
+import { ErrorToast } from '@/components/ui/v2/ErrorToast';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { ArrowUpIcon } from '@/components/ui/v2/icons/ArrowUpIcon';
 import { Input } from '@/components/ui/v2/Input';
@@ -17,7 +18,6 @@ import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminA
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import {
   useSendDevMessageMutation,
   useStartDevSessionMutation,
@@ -122,11 +122,17 @@ export default function DevAssistant() {
 
       setMessages(thread);
     } catch (error) {
-      toast.error(
-        'Failed to send the message to graphite. Please try again later.',
+      toast.custom(
+        (t) => (
+          <ErrorToast
+            isVisible={t.visible}
+            errorMessage="Failed to send the message. Please try again later."
+            error={error}
+            close={() => toast.dismiss()}
+          />
+        ),
         {
-          style: getToastStyleProps().style,
-          ...getToastStyleProps().error,
+          duration: Number.POSITIVE_INFINITY,
         },
       );
     } finally {

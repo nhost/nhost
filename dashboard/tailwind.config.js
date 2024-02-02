@@ -157,9 +157,19 @@ module.exports = {
           '50%': { opacity: 1 },
           '100%': { opacity: 0 },
         },
+        toastenter: {
+          '0%': { transform: 'scale(0.9)', opacity: 0 },
+          '100%': { transform: 'scale(1)', opacity: 1 },
+        },
+        toastleave: {
+          '0%': { transform: 'scale(1)', opacity: 1 },
+          '100%': { transform: 'scale(0.9)', opacity: 0 },
+        },
       },
       animation: {
         blinking: 'blinking 1s infinite',
+        toastenter: 'enter 200ms ease-out',
+        toastleave: 'leave 150ms ease-in forwards',
       },
     },
   },

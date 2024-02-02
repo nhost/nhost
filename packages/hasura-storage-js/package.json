@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-storage-js",
-  "version": "2.2.5",
+  "version": "2.2.6",
   "description": "Hasura-storage client",
   "license": "MIT",
   "keywords": [
@@ -64,13 +64,14 @@
   "dependencies": {
     "fetch-ponyfill": "^7.1.0",
     "form-data": "^4.0.0",
-    "xstate": "^4.33.5"
+    "graphql": "16.8.1",
+    "xstate": "^4.38.3"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "@types/uuid": "^9.0.1",
+    "@types/uuid": "^9.0.7",
     "jpeg-js": "^0.4.4",
     "pixelmatch": "^5.3.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.1"
   }
 }

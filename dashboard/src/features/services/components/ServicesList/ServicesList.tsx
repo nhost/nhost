@@ -11,10 +11,8 @@ import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { DeleteServiceModal } from '@/features/projects/common/components/DeleteServiceModal';
-import {
-  ServiceForm,
-  type PortTypes,
-} from '@/features/services/components/ServiceForm';
+import { ServiceForm } from '@/features/services/components/ServiceForm';
+import { type PortTypes } from '@/features/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
 import { copy } from '@/utils/copy';
 import { formatDistanceToNow } from 'date-fns';
 import type { RunService } from 'pages/[workspaceSlug]/[appSlug]/services';

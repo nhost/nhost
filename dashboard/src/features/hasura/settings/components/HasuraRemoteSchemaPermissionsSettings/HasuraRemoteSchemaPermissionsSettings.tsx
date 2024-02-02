@@ -8,11 +8,9 @@ import {
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -76,24 +74,21 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Remote schema permission settings are being updated...`,
-          success: `Remote schema permission settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update remote schema permission settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-      await refetchWorkspaceAndProject();
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+        await refetchWorkspaceAndProject();
+      },
+      {
+        loadingMessage:
+          'Remote schema permission settings are being updated...',
+        successMessage:
+          'Remote schema permission settings have been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update remote schema permission settings.',
+      },
+    );
   }
 
   return (

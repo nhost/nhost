@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-auth-js",
-  "version": "2.1.10",
+  "version": "2.1.11",
   "description": "Hasura-auth client",
   "license": "MIT",
   "keywords": [
@@ -64,18 +64,18 @@
     "docgen": "pnpm typedoc && docgen --config ./auth.docgen.json"
   },
   "dependencies": {
-    "@simplewebauthn/browser": "^6.0.0",
+    "@simplewebauthn/browser": "^6.2.2",
     "fetch-ponyfill": "^7.1.0",
-    "js-cookie": "^3.0.1",
+    "js-cookie": "^3.0.5",
     "jwt-decode": "^3.1.2",
-    "xstate": "^4.33.5"
+    "xstate": "^4.38.3"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "@simplewebauthn/typescript-types": "^6.0.0",
-    "@types/js-cookie": "^3.0.2",
+    "@simplewebauthn/typescript-types": "^6.2.1",
+    "@types/js-cookie": "^3.0.6",
     "cheerio": "1.0.0-rc.12",
     "mailhog": "^4.16.0",
-    "msw": "^1.2.2"
+    "msw": "^1.3.2"
   }
 }

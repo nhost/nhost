@@ -1,5 +1,17 @@
 # @nhost/docs
 
+## 2.2.0
+
+### Minor Changes
+
+- 5c9b8f0: feat: added docs regarding local development for Run services
+
+## 2.1.0
+
+### Minor Changes
+
+- 65b6a48d5: feat: added graphite/cli documentation
+
 ## 2.0.0
 
 ### Major Changes

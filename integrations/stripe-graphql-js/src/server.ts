@@ -1,14 +1,16 @@
 import { createYoga, YogaInitialContext } from 'graphql-yoga'
+import { createServer } from 'node:http'
 
 import { schema } from './schema'
 import { Context, CreateServerProps } from './types'
 import { getUserClaims } from './utils'
 
-const createStripeGraphQLServer = (params?: CreateServerProps) => {
-  const cors = params?.cors
-  const isAllowed = params?.isAllowed
-  const graphiql = params?.graphiql
-
+const createStripeGraphQLServer = ({
+  cors,
+  isAllowed,
+  graphiql,
+  maskedErrors = true,
+}: CreateServerProps = {}) => {
   const context = (context: YogaInitialContext): Context => {
     const { request } = context
 
@@ -50,7 +52,8 @@ const createStripeGraphQLServer = (params?: CreateServerProps) => {
     graphiql,
     context,
     schema,
-    graphqlEndpoint: '*'
+    graphqlEndpoint: '*',
+    maskedErrors,
   })
 
   return yoga

@@ -1,6 +1,6 @@
 {
   "name": "@nhost/vue",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Nhost Vue library",
   "license": "MIT",
   "keywords": [
@@ -66,17 +66,17 @@
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:*",
-    "@vueuse/core": "^10.0.0",
+    "@vueuse/core": "^10.7.1",
     "@xstate/vue": "^2.0.0",
     "jwt-decode": "^3.1.2"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "@vitejs/plugin-vue": "^4.0.0",
+    "@vitejs/plugin-vue": "^4.6.2",
     "@xstate/inspect": "^0.8.0",
-    "vue": "^3.2.41",
-    "vue-router": "^4.1.6",
-    "ws": "^8.10.0",
-    "xstate": "^4.33.5"
+    "vue": "^3.4.11",
+    "vue-router": "^4.2.5",
+    "ws": "^8.16.0",
+    "xstate": "^4.38.3"
   }
 }

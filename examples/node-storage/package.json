@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/node-storage",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "private": true,
   "description": "This is an example of how to use the Storage with Node.js",
   "main": "src/index.mjs",
@@ -11,15 +11,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@nhost/nhost-js": "*",
-    "dotenv": "^16.1.3",
+    "@nhost/nhost-js": "^3.0.2",
+    "dotenv": "^16.3.1",
     "form-data": "^4.0.0",
-    "fs-extra": "^11.1.1",
-    "node-fetch": "^3.3.0",
-    "uuid": "^9.0.0"
+    "fs-extra": "^11.2.0",
+    "node-fetch": "^3.3.2",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "@types/uuid": "^9.0.1"
+    "@types/node": "^18.19.6",
+    "@types/uuid": "^9.0.7"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-urql",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Nhost React URQL client",
   "license": "MIT",
   "keywords": [
@@ -60,8 +60,8 @@
   },
   "dependencies": {
     "@urql/devtools": "^2.0.3",
-    "@urql/exchange-refocus": "^1.0.0",
-    "graphql-ws": "^5.11.2"
+    "@urql/exchange-refocus": "^1.0.2",
+    "graphql-ws": "^5.14.3"
   },
   "peerDependencies": {
     "@nhost/react": "workspace:*",
@@ -72,10 +72,10 @@
   },
   "devDependencies": {
     "@nhost/react": "workspace:*",
-    "@types/react": "^18.2.14",
-    "graphql": "16.7.1",
+    "@types/react": "^18.2.47",
+    "graphql": "16.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "urql": "^4.0.0"
+    "urql": "^4.0.6"
   }
 }

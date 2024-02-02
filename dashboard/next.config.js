@@ -4,6 +4,22 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 const { version } = require('./package.json');
 
+
+const cspHeader = `
+    default-src 'self' *.nhost.run ws://*.nhost.run nhost.run ws://nhost.run;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.segment.com js.stripe.com;
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' blob: data: avatars.githubusercontent.com s.gravatar.com *.nhost.run nhost.run;
+    font-src 'self' data:;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    frame-src 'self' js.stripe.com;
+    block-all-mixed-content;
+    upgrade-insecure-requests;
+`
+
 module.exports = withBundleAnalyzer({
   reactStrictMode: true,
   swcMinify: false,
@@ -16,6 +32,23 @@ module.exports = withBundleAnalyzer({
   },
   eslint: {
     dirs: ['src'],
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: cspHeader.replace(/\n/g, ''),
+          },
+        ],
+      },
+    ]
   },
   async redirects() {
     return [

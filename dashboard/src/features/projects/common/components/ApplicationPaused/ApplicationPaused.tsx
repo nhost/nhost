@@ -18,12 +18,10 @@ import {
   useUnpauseApplicationMutation,
 } from '@/generated/graphql';
 import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import type { ApolloError } from '@apollo/client';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
 import { useState } from 'react';
-import { toast } from 'react-hot-toast';
 
 export default function ApplicationPaused() {
   const { openDialog } = useDialog();
@@ -47,33 +45,18 @@ export default function ApplicationPaused() {
   const wakeUpDisabled = numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS;
 
   async function handleTriggerUnpausing() {
-    try {
-      await toast.promise(
-        unpauseApplication({ variables: { appId: currentProject.id } }),
-        {
-          loading: 'Starting the project...',
-          success: `The project has been started successfully.`,
-          error: (arg: ApolloError) => {
-            // we need to get the internal error message from the GraphQL error
-            const { internal } = arg.graphQLErrors[0]?.extensions || {};
-            const { message } = (internal as Record<string, any>)?.error || {};
-
-            // we use the default Apollo error message if we can't find the
-            // internal error message
-            return (
-              message ||
-              arg.message ||
-              'An error occurred while waking up the project. Please try again.'
-            );
-          },
-        },
-        getToastStyleProps(),
-      );
-
-      await refetchWorkspaceAndProject();
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        unpauseApplication({ variables: { appId: currentProject.id } });
+        await refetchWorkspaceAndProject();
+      },
+      {
+        loadingMessage: 'Starting the project...',
+        successMessage: 'The project has been started successfully.',
+        errorMessage:
+          'An error occurred while waking up the project. Please try again.',
+      },
+    );
   }
 
   if (loading) {

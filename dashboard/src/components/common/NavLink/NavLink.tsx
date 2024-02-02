@@ -17,7 +17,7 @@ function NavLink(
   ref: ForwardedRef<HTMLAnchorElement>,
 ) {
   return (
-    <NextLink href={href} passHref>
+    <NextLink href={href} passHref legacyBehavior>
       <Link className={twMerge('font-display', className)} ref={ref} {...props}>
         {children}
       </Link>
