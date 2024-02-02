@@ -1,5 +1,11 @@
 import { sendError } from '@/errors';
-import { ENV, getUserByEmail, performWebAuthn, verifyWebAuthn } from '@/utils';
+import {
+  ENV,
+  getUser,
+  getUserByEmail,
+  performWebAuthn,
+  verifyWebAuthn,
+} from '@/utils';
 import { RequestHandler } from 'express';
 
 import { SignInResponse } from '@/types';
@@ -10,30 +16,41 @@ import {
   PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/types';
 
-export type SignInWebAuthnRequestBody = { email: string };
-export type SignInWebAuthnResponseBody = PublicKeyCredentialRequestOptionsJSON;
+export type ElevateWebAuthnRequestBody = { email: string };
+export type ElevateWebAuthnResponseBody = PublicKeyCredentialRequestOptionsJSON;
 
-export const signInWebauthnSchema = Joi.object<SignInWebAuthnRequestBody>({
+export const elevateWebauthnSchema = Joi.object<ElevateWebAuthnRequestBody>({
   email: email.required(),
-}).meta({ className: 'SignInWebauthnSchema' });
+}).meta({ className: 'ElevateWebauthnSchema' });
 
-export const signInWebauthnHandler: RequestHandler<
+export const elevateWebauthnHandler: RequestHandler<
   {},
-  SignInWebAuthnResponseBody,
-  SignInWebAuthnRequestBody
+  ElevateWebAuthnResponseBody,
+  ElevateWebAuthnRequestBody
 > = async (req, res) => {
   if (!ENV.AUTH_WEBAUTHN_ENABLED) {
     return sendError(res, 'disabled-endpoint');
   }
 
-  const { body } = req;
-  const { email } = body;
+  const { userId } = req.auth as RequestAuth;
+
+  const userRequestAuth = await getUser({ userId });
+
+  if (!userRequestAuth) {
+    return sendError(res, 'user-not-found');
+  }
+
+  const { email } = req.body;
 
   const user = await getUserByEmail(email);
 
   // ? Do we know to let anyone know if the user doesn't exist?
   if (!user) {
     return sendError(res, 'user-not-found');
+  }
+
+  if (user.id !== userRequestAuth.id) {
+    return sendError(res, 'bad-request');
   }
 
   if (user.disabled) {
@@ -49,26 +66,34 @@ export const signInWebauthnHandler: RequestHandler<
   return res.send(options);
 };
 
-export type SignInVerifyWebAuthnRequestBody = {
+export type ElevateVerifyWebAuthnRequestBody = {
   credential: AuthenticationResponseJSON;
   email: string;
 };
 
-export type SignInVerifyWebAuthnResponseBody = SignInResponse;
+export type ElevateVerifyWebAuthnResponseBody = SignInResponse;
 
-export const signInVerifyWebauthnSchema =
-  Joi.object<SignInVerifyWebAuthnRequestBody>({
+export const elevateVerifyWebauthnSchema =
+  Joi.object<ElevateVerifyWebAuthnRequestBody>({
     email: email.required(),
     credential: Joi.object().required(),
-  }).meta({ className: 'SignInVerifyWebauthnSchema' });
+  }).meta({ className: 'ElevateVerifyWebauthnSchema' });
 
-export const signInVerifyWebauthnHandler: RequestHandler<
+export const elevateVerifyWebauthnHandler: RequestHandler<
   {},
-  SignInVerifyWebAuthnResponseBody,
-  SignInVerifyWebAuthnRequestBody
+  ElevateVerifyWebAuthnResponseBody,
+  ElevateVerifyWebAuthnRequestBody
 > = async (req, res) => {
   if (!ENV.AUTH_WEBAUTHN_ENABLED) {
     return sendError(res, 'disabled-endpoint');
+  }
+
+  const { userId } = req.auth as RequestAuth;
+
+  const userRequestAuth = await getUser({ userId });
+
+  if (!userRequestAuth) {
+    return sendError(res, 'user-not-found');
   }
 
   const { credential, email } = req.body;
@@ -77,6 +102,10 @@ export const signInVerifyWebauthnHandler: RequestHandler<
 
   if (!user) {
     return sendError(res, 'user-not-found');
+  }
+
+  if (user.id !== userRequestAuth.id) {
+    return sendError(res, 'bad-request');
   }
 
   if (user.disabled) {
@@ -91,6 +120,9 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     user.id,
     credential,
     (code, payload) => sendError(res, code, payload),
-    (signInResponse) => res.send(signInResponse)
+    (signInResponse) => res.send(signInResponse),
+    {
+      [`x-hasura-auth-elevated`]: user.id,
+    }
   );
 };

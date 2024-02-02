@@ -525,13 +525,6 @@ export type AuthRefreshTokenTypes_Mutation_Response = {
   returning: Array<AuthRefreshTokenTypes>;
 };
 
-/** input type for inserting object relation for remote table "auth.refresh_token_types" */
-export type AuthRefreshTokenTypes_Obj_Rel_Insert_Input = {
-  data: AuthRefreshTokenTypes_Insert_Input;
-  /** upsert condition */
-  on_conflict?: InputMaybe<AuthRefreshTokenTypes_On_Conflict>;
-};
-
 /** on_conflict condition type for table "auth.refresh_token_types" */
 export type AuthRefreshTokenTypes_On_Conflict = {
   constraint: AuthRefreshTokenTypes_Constraint;
@@ -601,8 +594,6 @@ export type AuthRefreshTokens = {
   id: Scalars['uuid'];
   metadata?: Maybe<Scalars['jsonb']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  /** An object relationship */
-  refresh_token_type: AuthRefreshTokenTypes;
   type: AuthRefreshTokenTypes_Enum;
   /** An object relationship */
   user: Users;
@@ -677,7 +668,6 @@ export type AuthRefreshTokens_Bool_Exp = {
   id?: InputMaybe<Uuid_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
-  refresh_token_type?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
@@ -711,7 +701,6 @@ export type AuthRefreshTokens_Insert_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token_type?: InputMaybe<AuthRefreshTokenTypes_Obj_Rel_Insert_Input>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
@@ -778,7 +767,6 @@ export type AuthRefreshTokens_Order_By = {
   id?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token_type?: InputMaybe<AuthRefreshTokenTypes_Order_By>;
   type?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userId?: InputMaybe<Order_By>;

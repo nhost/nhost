@@ -33,7 +33,8 @@ export const sign = async ({
  * @param jwt if true, add a 'x-hasura-' prefix to the property names, and stringifies the values (required by Hasura)
  */
 const generateHasuraClaims = async (
-  user: UserFieldsFragment
+  user: UserFieldsFragment,
+  extraClaims?: { [key: string]: ClaimValueType },
 ): Promise<{
   [key: string]: ClaimValueType;
 }> => {
@@ -47,6 +48,7 @@ const generateHasuraClaims = async (
   const customClaims = await generateCustomClaims(user.id);
   return {
     ...customClaims,
+    ...extraClaims,
     [`x-hasura-allowed-roles`]: allowedRoles,
     [`x-hasura-default-role`]: user.defaultRole,
     [`x-hasura-user-id`]: user.id,
@@ -57,7 +59,8 @@ const generateHasuraClaims = async (
  * Create JWT ENV.
  */
 export const createHasuraAccessToken = async (
-  user: UserFieldsFragment
+  user: UserFieldsFragment,
+  extraClaims?: { [key: string]: ClaimValueType },
 ): Promise<string> => {
   const namespace =
     ENV.HASURA_GRAPHQL_JWT_SECRET.claims_namespace ||
@@ -65,7 +68,7 @@ export const createHasuraAccessToken = async (
 
   return sign({
     payload: {
-      [namespace]: await generateHasuraClaims(user),
+      [namespace]: await generateHasuraClaims(user, extraClaims),
     },
     user,
   });

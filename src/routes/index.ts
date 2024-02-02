@@ -5,6 +5,7 @@ import { mfaRouter } from './mfa';
 import { oauthProviders } from './oauth';
 import { patRouter } from './pat';
 import { signInRouter } from './signin';
+import { elevateRouter } from './elevate';
 import { signOutRouter } from './signout';
 import { signUpRouter } from './signup';
 import { tokenRouter } from './token';
@@ -28,6 +29,7 @@ router.get('/version', (_req, res) =>
 router.use(signUpRouter);
 router.use(signInRouter);
 router.use(signOutRouter);
+router.use(elevateRouter);
 router.use(userRouter);
 router.use(mfaRouter);
 router.use(tokenRouter);

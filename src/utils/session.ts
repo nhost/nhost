@@ -1,4 +1,4 @@
-import { Session, SignInResponse } from '@/types';
+import { ClaimValueType, Session, SignInResponse } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import { UserFieldsFragment } from './__generated__/graphql-request';
 import { ENV } from './env';
@@ -17,9 +17,11 @@ import { getUser } from './user';
 export const getNewOrUpdateCurrentSession = async ({
   user,
   currentRefreshToken,
+  extraClaims,
 }: {
   user: UserFieldsFragment;
   currentRefreshToken?: string;
+  extraClaims?: { [key: string]: ClaimValueType },
 }): Promise<Session> => {
   // update user's last seen
   gqlSdk.updateUser({
@@ -29,7 +31,7 @@ export const getNewOrUpdateCurrentSession = async ({
     },
   });
   const sessionUser = await getUser({ userId: user.id });
-  const accessToken = await createHasuraAccessToken(user);
+  const accessToken = await createHasuraAccessToken(user, extraClaims);
   const { refreshToken, id: refreshTokenId } =
     (currentRefreshToken &&
       (await updateRefreshTokenExpiry(currentRefreshToken))) ||
@@ -46,9 +48,11 @@ export const getNewOrUpdateCurrentSession = async ({
 export const getSignInResponse = async ({
   userId,
   checkMFA,
+  extraClaims,
 }: {
   userId: string;
   checkMFA: boolean;
+  extraClaims?: { [key: string]: ClaimValueType },
 }): Promise<SignInResponse> => {
   const { user } = await gqlSdk.user({
     id: userId,
@@ -74,7 +78,7 @@ export const getSignInResponse = async ({
       },
     };
   }
-  const session = await getNewOrUpdateCurrentSession({ user });
+  const session = await getNewOrUpdateCurrentSession({ user, extraClaims });
   return {
     session,
     mfa: null,

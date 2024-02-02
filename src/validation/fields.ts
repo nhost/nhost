@@ -90,7 +90,7 @@ export const redirectTo = Joi.string()
     // * We allow any sub-path of the client url
     // * With optional hash and query params
     if (
-      new RegExp(`^${ENV.AUTH_CLIENT_URL}(\/.*)?([?].*)?([#].*)?$`).test(value)
+      new RegExp(`^${ENV.AUTH_CLIENT_URL}(/.*)?([?].*)?([#].*)?$`).test(value)
     ) {
       return value;
     }
