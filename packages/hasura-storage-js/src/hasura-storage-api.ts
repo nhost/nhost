@@ -14,6 +14,7 @@ import {
   StorageUploadFormDataResponse
 } from './utils/types'
 import { fetchUpload } from './utils/upload'
+import { appendImageTransformationParameters } from './utils'
 
 let fetch: any
 
@@ -97,18 +98,18 @@ export class HasuraStorageApi {
 
   async downloadFile(params: StorageDownloadFileParams): Promise<StorageDownloadFileResponse> {
     try {
-      const { fileId, range, width: w, height: h, quality: q, blur: b } = params
+      const { fileId, headers: customHeaders = {}, ...imageTransformationParams } = params
+      const authHeaders = this.generateAuthHeaders()
 
-      const headers = this.generateAuthHeaders()
-      if (range) headers.append('Range', range)
+      const headers = new Headers(customHeaders)
+      authHeaders.forEach((value, key) => {
+        headers?.append(key, value)
+      })
 
-      const searchParams = new URLSearchParams()
-      if (w) searchParams.append('w', w.toString())
-      if (h) searchParams.append('h', h.toString())
-      if (q) searchParams.append('q', q.toString())
-      if (b) searchParams.append('b', b.toString())
-
-      const urlWithParams = `${this.url}/files/${fileId}?${searchParams.toString()}`
+      const urlWithParams = appendImageTransformationParameters(
+        `${this.url}/files/${fileId}`,
+        imageTransformationParams
+      )
 
       const response = await fetch(urlWithParams, {
         method: 'GET',

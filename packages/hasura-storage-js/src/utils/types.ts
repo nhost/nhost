@@ -55,10 +55,10 @@ export type StorageUploadResponse = StorageUploadFileResponse | StorageUploadFor
 
 export interface StorageDownloadFileParams extends StorageImageTransformationParams {
   fileId: string
-  /** Range of bytes to download
-   * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
+  /**
+   * Optional headers to be sent with the request
    */
-  range?: string // "bytes=0-999"
+  headers?: Record<string, string>
 }
 
 export type StorageDownloadFileResponse = { file: Blob; error: null } | { file: null; error: Error }
