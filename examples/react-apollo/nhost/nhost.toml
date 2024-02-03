@@ -32,7 +32,7 @@ version = 'local'
 
 [auth.redirections]
 clientUrl = 'https://react-apollo.example.nhost.io/'
-allowedUrls = ['https://react-apollo.example.nhost.io/profile', 'http://localhost:30000']
+allowedUrls = ['https://react-apollo.example.nhost.io/profile', 'http://localhost:3000']
 
 [auth.signUp]
 enabled = true
