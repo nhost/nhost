@@ -2,18 +2,14 @@ import { useState } from 'react'
 
 import { Button, Card, Grid, TextInput, Title } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
-import { useChangeEmail, useUserEmail, useElevateSecurityKeyEmail } from '@nhost/react'
+import { useChangeEmail, useUserEmail } from '@nhost/react'
 
 export const ChangeEmail: React.FC = () => {
   const [newEmail, setNewEmail] = useState('')
-
   const email = useUserEmail()
-
   const { changeEmail } = useChangeEmail({
     redirectTo: '/profile'
   })
-
-  const { elevateEmailSecurityKey, elevated } = useElevateSecurityKeyEmail()
 
   const change = async () => {
     if (newEmail && email === newEmail) {
@@ -23,42 +19,18 @@ export const ChangeEmail: React.FC = () => {
       })
       return
     }
-
-    if (!elevated) {
-      try {
-        const res = await elevateEmailSecurityKey(email as string)
-
-        if (!res.elevated) {
-          showNotification({
-            color: 'red',
-            title: 'Error',
-            message: 'Failed to elevate permissions!'
-          })
-
-          return
-        }
-
-        const result = await changeEmail(newEmail)
-
-        if (result.needsEmailVerification) {
-          showNotification({
-            message: `An email has been sent to ${newEmail}. Please check your inbox and follow the link to confirm the email change.`
-          })
-        }
-        if (result.error) {
-          showNotification({
-            color: 'red',
-            title: 'Error',
-            message: result.error.message
-          })
-        }
-      } catch (error) {
-        showNotification({
-          color: 'red',
-          title: 'Error',
-          message: 'An error has occured while trying to change the email! Please try again later.'
-        })
-      }
+    const result = await changeEmail(newEmail)
+    if (result.needsEmailVerification) {
+      showNotification({
+        message: `An email has been sent to ${newEmail}. Please check your inbox and follow the link to confirm the email change.`
+      })
+    }
+    if (result.error) {
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: result.error.message
+      })
     }
   }
   return (
