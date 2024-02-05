@@ -14,9 +14,7 @@ const AuthLink: React.FC<{
       <Button
         fullWidth
         radius="sm"
-        component="a"
         variant={variant}
-        href={link}
         leftIcon={icon}
         styles={(theme) => ({
           root: {
