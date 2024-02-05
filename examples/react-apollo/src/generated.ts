@@ -75,6 +75,132 @@ export type StringComparisonExp = {
   _similar?: InputMaybe<Scalars['String']>;
 };
 
+export enum AuthRefreshTokenTypesEnum {
+  /** Personal access token */
+  Pat = 'pat',
+  /** Regular refresh token */
+  Regular = 'regular'
+}
+
+/** Boolean expression to compare columns of type "authRefreshTokenTypes_enum". All fields are combined with logical 'AND'. */
+export type AuthRefreshTokenTypesEnumComparisonExp = {
+  _eq?: InputMaybe<AuthRefreshTokenTypesEnum>;
+  _in?: InputMaybe<Array<AuthRefreshTokenTypesEnum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<AuthRefreshTokenTypesEnum>;
+  _nin?: InputMaybe<Array<AuthRefreshTokenTypesEnum>>;
+};
+
+/** User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type AuthRefreshTokens = {
+  __typename?: 'authRefreshTokens';
+  createdAt: Scalars['timestamptz'];
+  expiresAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  metadata?: Maybe<Scalars['jsonb']>;
+  type: AuthRefreshTokenTypesEnum;
+  /** An object relationship */
+  user: Users;
+  userId: Scalars['uuid'];
+};
+
+
+/** User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type AuthRefreshTokensMetadataArgs = {
+  path?: InputMaybe<Scalars['String']>;
+};
+
+/** order by aggregate values of table "auth.refresh_tokens" */
+export type AuthRefreshTokensAggregateOrderBy = {
+  count?: InputMaybe<OrderBy>;
+  max?: InputMaybe<AuthRefreshTokensMaxOrderBy>;
+  min?: InputMaybe<AuthRefreshTokensMinOrderBy>;
+};
+
+/** Boolean expression to filter rows from the table "auth.refresh_tokens". All fields are combined with a logical 'AND'. */
+export type AuthRefreshTokensBoolExp = {
+  _and?: InputMaybe<Array<AuthRefreshTokensBoolExp>>;
+  _not?: InputMaybe<AuthRefreshTokensBoolExp>;
+  _or?: InputMaybe<Array<AuthRefreshTokensBoolExp>>;
+  createdAt?: InputMaybe<TimestamptzComparisonExp>;
+  expiresAt?: InputMaybe<TimestamptzComparisonExp>;
+  id?: InputMaybe<UuidComparisonExp>;
+  metadata?: InputMaybe<JsonbComparisonExp>;
+  type?: InputMaybe<AuthRefreshTokenTypesEnumComparisonExp>;
+  user?: InputMaybe<UsersBoolExp>;
+  userId?: InputMaybe<UuidComparisonExp>;
+};
+
+/** order by max() on columns of table "auth.refresh_tokens" */
+export type AuthRefreshTokensMaxOrderBy = {
+  createdAt?: InputMaybe<OrderBy>;
+  expiresAt?: InputMaybe<OrderBy>;
+  id?: InputMaybe<OrderBy>;
+  userId?: InputMaybe<OrderBy>;
+};
+
+/** order by min() on columns of table "auth.refresh_tokens" */
+export type AuthRefreshTokensMinOrderBy = {
+  createdAt?: InputMaybe<OrderBy>;
+  expiresAt?: InputMaybe<OrderBy>;
+  id?: InputMaybe<OrderBy>;
+  userId?: InputMaybe<OrderBy>;
+};
+
+/** response of any mutation on the table "auth.refresh_tokens" */
+export type AuthRefreshTokensMutationResponse = {
+  __typename?: 'authRefreshTokens_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<AuthRefreshTokens>;
+};
+
+/** Ordering options when selecting data from "auth.refresh_tokens". */
+export type AuthRefreshTokensOrderBy = {
+  createdAt?: InputMaybe<OrderBy>;
+  expiresAt?: InputMaybe<OrderBy>;
+  id?: InputMaybe<OrderBy>;
+  metadata?: InputMaybe<OrderBy>;
+  type?: InputMaybe<OrderBy>;
+  user?: InputMaybe<UsersOrderBy>;
+  userId?: InputMaybe<OrderBy>;
+};
+
+/** select columns of table "auth.refresh_tokens" */
+export enum AuthRefreshTokensSelectColumn {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Metadata = 'metadata',
+  /** column name */
+  Type = 'type',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** Streaming cursor of the table "authRefreshTokens" */
+export type AuthRefreshTokensStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: AuthRefreshTokensStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthRefreshTokensStreamCursorValueInput = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  type?: InputMaybe<AuthRefreshTokenTypesEnum>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
 /** User webauthn security keys. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthUserSecurityKeys = {
   __typename?: 'authUserSecurityKeys';
@@ -144,6 +270,21 @@ export enum AuthUserSecurityKeysSelectColumn {
   UserId = 'userId'
 }
 
+/** Streaming cursor of the table "authUserSecurityKeys" */
+export type AuthUserSecurityKeysStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: AuthUserSecurityKeysStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthUserSecurityKeysStreamCursorValueInput = {
+  id?: InputMaybe<Scalars['uuid']>;
+  nickname?: InputMaybe<Scalars['String']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
 /** Boolean expression to compare columns of type "citext". All fields are combined with logical 'AND'. */
 export type CitextComparisonExp = {
   _eq?: InputMaybe<Scalars['citext']>;
@@ -176,6 +317,14 @@ export type CitextComparisonExp = {
   /** does the column match the given SQL regular expression */
   _similar?: InputMaybe<Scalars['citext']>;
 };
+
+/** ordering argument of a cursor */
+export enum CursorOrdering {
+  /** ascending ordering of the cursor */
+  Asc = 'ASC',
+  /** descending ordering of the cursor */
+  Desc = 'DESC'
+}
 
 /** columns and relationships of "storage.files" */
 export type Files = {
@@ -264,7 +413,7 @@ export type FilesOrderBy = {
   uploadedByUserId?: InputMaybe<OrderBy>;
 };
 
-/** primary key columns input for table: files */
+/** primary key columns input for table: storage.files */
 export type FilesPkColumnsInput = {
   id: Scalars['uuid'];
 };
@@ -307,6 +456,28 @@ export type FilesSetInput = {
   uploadedByUserId?: InputMaybe<Scalars['uuid']>;
 };
 
+/** Streaming cursor of the table "files" */
+export type FilesStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: FilesStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type FilesStreamCursorValueInput = {
+  bucketId?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  etag?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  isUploaded?: InputMaybe<Scalars['Boolean']>;
+  mimeType?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  size?: InputMaybe<Scalars['Int']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  uploadedByUserId?: InputMaybe<Scalars['uuid']>;
+};
+
 /** update columns of table "storage.files" */
 export enum FilesUpdateColumn {
   /** column name */
@@ -336,6 +507,7 @@ export type FilesUpdates = {
   _inc?: InputMaybe<FilesIncInput>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<FilesSetInput>;
+  /** filter the rows which have to be updated */
   where: FilesBoolExp;
 };
 
@@ -370,6 +542,10 @@ export type JsonbComparisonExp = {
 /** mutation root */
 export type MutationRoot = {
   __typename?: 'mutation_root';
+  /** delete single row from the table: "auth.refresh_tokens" */
+  deleteAuthRefreshToken?: Maybe<AuthRefreshTokens>;
+  /** delete data from the table: "auth.refresh_tokens" */
+  deleteAuthRefreshTokens?: Maybe<AuthRefreshTokensMutationResponse>;
   /** delete single row from the table: "auth.user_security_keys" */
   deleteAuthUserSecurityKey?: Maybe<AuthUserSecurityKeys>;
   /** delete data from the table: "auth.user_security_keys" */
@@ -378,14 +554,22 @@ export type MutationRoot = {
   deleteFile?: Maybe<Files>;
   /** delete data from the table: "storage.files" */
   deleteFiles?: Maybe<FilesMutationResponse>;
+  /** delete single row from the table: "notes" */
+  deleteNote?: Maybe<Notes>;
+  /** delete data from the table: "notes" */
+  deleteNotes?: Maybe<NotesMutationResponse>;
   /** delete single row from the table: "todos" */
   deleteTodo?: Maybe<Todos>;
   /** delete data from the table: "todos" */
   deleteTodos?: Maybe<TodosMutationResponse>;
+  /** insert data into the table: "notes" */
+  inserNotes?: Maybe<NotesMutationResponse>;
   /** insert a single row into the table: "storage.files" */
   insertFile?: Maybe<Files>;
   /** insert data into the table: "storage.files" */
   insertFiles?: Maybe<FilesMutationResponse>;
+  /** insert a single row into the table: "notes" */
+  insertNote?: Maybe<Notes>;
   /** insert a single row into the table: "todos" */
   insertTodo?: Maybe<Todos>;
   /** insert data into the table: "todos" */
@@ -394,14 +578,32 @@ export type MutationRoot = {
   updateFile?: Maybe<Files>;
   /** update data of the table: "storage.files" */
   updateFiles?: Maybe<FilesMutationResponse>;
+  /** update single row of the table: "notes" */
+  updateNote?: Maybe<Notes>;
+  /** update data of the table: "notes" */
+  updateNotes?: Maybe<NotesMutationResponse>;
   /** update single row of the table: "todos" */
   updateTodo?: Maybe<Todos>;
   /** update data of the table: "todos" */
   updateTodos?: Maybe<TodosMutationResponse>;
   /** update multiples rows of table: "storage.files" */
   update_files_many?: Maybe<Array<Maybe<FilesMutationResponse>>>;
+  /** update multiples rows of table: "notes" */
+  update_notes_many?: Maybe<Array<Maybe<NotesMutationResponse>>>;
   /** update multiples rows of table: "todos" */
   update_todos_many?: Maybe<Array<Maybe<TodosMutationResponse>>>;
+};
+
+
+/** mutation root */
+export type MutationRootDeleteAuthRefreshTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type MutationRootDeleteAuthRefreshTokensArgs = {
+  where: AuthRefreshTokensBoolExp;
 };
 
 
@@ -430,6 +632,18 @@ export type MutationRootDeleteFilesArgs = {
 
 
 /** mutation root */
+export type MutationRootDeleteNoteArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type MutationRootDeleteNotesArgs = {
+  where: NotesBoolExp;
+};
+
+
+/** mutation root */
 export type MutationRootDeleteTodoArgs = {
   id: Scalars['uuid'];
 };
@@ -438,6 +652,13 @@ export type MutationRootDeleteTodoArgs = {
 /** mutation root */
 export type MutationRootDeleteTodosArgs = {
   where: TodosBoolExp;
+};
+
+
+/** mutation root */
+export type MutationRootInserNotesArgs = {
+  objects: Array<NotesInsertInput>;
+  on_conflict?: InputMaybe<NotesOnConflict>;
 };
 
 
@@ -452,6 +673,13 @@ export type MutationRootInsertFileArgs = {
 export type MutationRootInsertFilesArgs = {
   objects: Array<FilesInsertInput>;
   on_conflict?: InputMaybe<FilesOnConflict>;
+};
+
+
+/** mutation root */
+export type MutationRootInsertNoteArgs = {
+  object: NotesInsertInput;
+  on_conflict?: InputMaybe<NotesOnConflict>;
 };
 
 
@@ -486,6 +714,20 @@ export type MutationRootUpdateFilesArgs = {
 
 
 /** mutation root */
+export type MutationRootUpdateNoteArgs = {
+  _set?: InputMaybe<NotesSetInput>;
+  pk_columns: NotesPkColumnsInput;
+};
+
+
+/** mutation root */
+export type MutationRootUpdateNotesArgs = {
+  _set?: InputMaybe<NotesSetInput>;
+  where: NotesBoolExp;
+};
+
+
+/** mutation root */
 export type MutationRootUpdateTodoArgs = {
   _set?: InputMaybe<TodosSetInput>;
   pk_columns: TodosPkColumnsInput;
@@ -506,8 +748,164 @@ export type MutationRootUpdateFilesManyArgs = {
 
 
 /** mutation root */
+export type MutationRootUpdateNotesManyArgs = {
+  updates: Array<NotesUpdates>;
+};
+
+
+/** mutation root */
 export type MutationRootUpdateTodosManyArgs = {
   updates: Array<TodosUpdates>;
+};
+
+/** columns and relationships of "notes" */
+export type Notes = {
+  __typename?: 'notes';
+  content: Scalars['String'];
+  createdAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  updatedAt: Scalars['timestamptz'];
+  /** An object relationship */
+  user: Users;
+};
+
+/** aggregated selection of "notes" */
+export type NotesAggregate = {
+  __typename?: 'notes_aggregate';
+  aggregate?: Maybe<NotesAggregateFields>;
+  nodes: Array<Notes>;
+};
+
+/** aggregate fields of "notes" */
+export type NotesAggregateFields = {
+  __typename?: 'notes_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<NotesMaxFields>;
+  min?: Maybe<NotesMinFields>;
+};
+
+
+/** aggregate fields of "notes" */
+export type NotesAggregateFieldsCountArgs = {
+  columns?: InputMaybe<Array<NotesSelectColumn>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "notes". All fields are combined with a logical 'AND'. */
+export type NotesBoolExp = {
+  _and?: InputMaybe<Array<NotesBoolExp>>;
+  _not?: InputMaybe<NotesBoolExp>;
+  _or?: InputMaybe<Array<NotesBoolExp>>;
+  content?: InputMaybe<StringComparisonExp>;
+  createdAt?: InputMaybe<TimestamptzComparisonExp>;
+  id?: InputMaybe<UuidComparisonExp>;
+  updatedAt?: InputMaybe<TimestamptzComparisonExp>;
+  user?: InputMaybe<UsersBoolExp>;
+};
+
+/** unique or primary key constraints on table "notes" */
+export enum NotesConstraint {
+  /** unique or primary key constraint on columns "id" */
+  NotesPkey = 'notes_pkey'
+}
+
+/** input type for inserting data into table "notes" */
+export type NotesInsertInput = {
+  content?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type NotesMaxFields = {
+  __typename?: 'notes_max_fields';
+  content?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type NotesMinFields = {
+  __typename?: 'notes_min_fields';
+  content?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "notes" */
+export type NotesMutationResponse = {
+  __typename?: 'notes_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Notes>;
+};
+
+/** on_conflict condition type for table "notes" */
+export type NotesOnConflict = {
+  constraint: NotesConstraint;
+  update_columns?: Array<NotesUpdateColumn>;
+  where?: InputMaybe<NotesBoolExp>;
+};
+
+/** Ordering options when selecting data from "notes". */
+export type NotesOrderBy = {
+  content?: InputMaybe<OrderBy>;
+  createdAt?: InputMaybe<OrderBy>;
+  id?: InputMaybe<OrderBy>;
+  updatedAt?: InputMaybe<OrderBy>;
+  user?: InputMaybe<UsersOrderBy>;
+};
+
+/** primary key columns input for table: notes */
+export type NotesPkColumnsInput = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "notes" */
+export enum NotesSelectColumn {
+  /** column name */
+  Content = 'content',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "notes" */
+export type NotesSetInput = {
+  content?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "notes" */
+export type NotesStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: NotesStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type NotesStreamCursorValueInput = {
+  content?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "notes" */
+export enum NotesUpdateColumn {
+  /** column name */
+  Content = 'content'
+}
+
+export type NotesUpdates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<NotesSetInput>;
+  /** filter the rows which have to be updated */
+  where: NotesBoolExp;
 };
 
 /** column ordering options */
@@ -528,6 +926,10 @@ export enum OrderBy {
 
 export type QueryRoot = {
   __typename?: 'query_root';
+  /** fetch data from the table: "auth.refresh_tokens" using primary key columns */
+  authRefreshToken?: Maybe<AuthRefreshTokens>;
+  /** fetch data from the table: "auth.refresh_tokens" */
+  authRefreshTokens: Array<AuthRefreshTokens>;
   /** fetch data from the table: "auth.user_security_keys" using primary key columns */
   authUserSecurityKey?: Maybe<AuthUserSecurityKeys>;
   /** fetch data from the table: "auth.user_security_keys" */
@@ -536,6 +938,12 @@ export type QueryRoot = {
   file?: Maybe<Files>;
   /** fetch data from the table: "storage.files" */
   files: Array<Files>;
+  /** fetch data from the table: "notes" using primary key columns */
+  note?: Maybe<Notes>;
+  /** fetch data from the table: "notes" */
+  notes: Array<Notes>;
+  /** fetch aggregated fields from the table: "notes" */
+  notesAggregate: NotesAggregate;
   /** fetch data from the table: "todos" using primary key columns */
   todo?: Maybe<Todos>;
   /** fetch data from the table: "todos" */
@@ -546,6 +954,20 @@ export type QueryRoot = {
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
   users: Array<Users>;
+};
+
+
+export type QueryRootAuthRefreshTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type QueryRootAuthRefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthRefreshTokensSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthRefreshTokensOrderBy>>;
+  where?: InputMaybe<AuthRefreshTokensBoolExp>;
 };
 
 
@@ -574,6 +996,29 @@ export type QueryRootFilesArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<FilesOrderBy>>;
   where?: InputMaybe<FilesBoolExp>;
+};
+
+
+export type QueryRootNoteArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type QueryRootNotesArgs = {
+  distinct_on?: InputMaybe<Array<NotesSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<NotesOrderBy>>;
+  where?: InputMaybe<NotesBoolExp>;
+};
+
+
+export type QueryRootNotesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<NotesSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<NotesOrderBy>>;
+  where?: InputMaybe<NotesBoolExp>;
 };
 
 
@@ -615,24 +1060,67 @@ export type QueryRootUsersArgs = {
 
 export type SubscriptionRoot = {
   __typename?: 'subscription_root';
+  /** fetch data from the table: "auth.refresh_tokens" using primary key columns */
+  authRefreshToken?: Maybe<AuthRefreshTokens>;
+  /** fetch data from the table: "auth.refresh_tokens" */
+  authRefreshTokens: Array<AuthRefreshTokens>;
+  /** fetch data from the table in a streaming manner: "auth.refresh_tokens" */
+  authRefreshTokens_stream: Array<AuthRefreshTokens>;
   /** fetch data from the table: "auth.user_security_keys" using primary key columns */
   authUserSecurityKey?: Maybe<AuthUserSecurityKeys>;
   /** fetch data from the table: "auth.user_security_keys" */
   authUserSecurityKeys: Array<AuthUserSecurityKeys>;
+  /** fetch data from the table in a streaming manner: "auth.user_security_keys" */
+  authUserSecurityKeys_stream: Array<AuthUserSecurityKeys>;
   /** fetch data from the table: "storage.files" using primary key columns */
   file?: Maybe<Files>;
   /** fetch data from the table: "storage.files" */
   files: Array<Files>;
+  /** fetch data from the table in a streaming manner: "storage.files" */
+  files_stream: Array<Files>;
+  /** fetch data from the table: "notes" using primary key columns */
+  note?: Maybe<Notes>;
+  /** fetch data from the table: "notes" */
+  notes: Array<Notes>;
+  /** fetch aggregated fields from the table: "notes" */
+  notesAggregate: NotesAggregate;
+  /** fetch data from the table in a streaming manner: "notes" */
+  notes_stream: Array<Notes>;
   /** fetch data from the table: "todos" using primary key columns */
   todo?: Maybe<Todos>;
   /** fetch data from the table: "todos" */
   todos: Array<Todos>;
   /** fetch aggregated fields from the table: "todos" */
   todosAggregate: TodosAggregate;
+  /** fetch data from the table in a streaming manner: "todos" */
+  todos_stream: Array<Todos>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
   users: Array<Users>;
+  /** fetch data from the table in a streaming manner: "auth.users" */
+  users_stream: Array<Users>;
+};
+
+
+export type SubscriptionRootAuthRefreshTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type SubscriptionRootAuthRefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthRefreshTokensSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthRefreshTokensOrderBy>>;
+  where?: InputMaybe<AuthRefreshTokensBoolExp>;
+};
+
+
+export type SubscriptionRootAuthRefreshTokensStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthRefreshTokensStreamCursorInput>>;
+  where?: InputMaybe<AuthRefreshTokensBoolExp>;
 };
 
 
@@ -650,6 +1138,13 @@ export type SubscriptionRootAuthUserSecurityKeysArgs = {
 };
 
 
+export type SubscriptionRootAuthUserSecurityKeysStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthUserSecurityKeysStreamCursorInput>>;
+  where?: InputMaybe<AuthUserSecurityKeysBoolExp>;
+};
+
+
 export type SubscriptionRootFileArgs = {
   id: Scalars['uuid'];
 };
@@ -661,6 +1156,43 @@ export type SubscriptionRootFilesArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<FilesOrderBy>>;
   where?: InputMaybe<FilesBoolExp>;
+};
+
+
+export type SubscriptionRootFilesStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<FilesStreamCursorInput>>;
+  where?: InputMaybe<FilesBoolExp>;
+};
+
+
+export type SubscriptionRootNoteArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type SubscriptionRootNotesArgs = {
+  distinct_on?: InputMaybe<Array<NotesSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<NotesOrderBy>>;
+  where?: InputMaybe<NotesBoolExp>;
+};
+
+
+export type SubscriptionRootNotesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<NotesSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<NotesOrderBy>>;
+  where?: InputMaybe<NotesBoolExp>;
+};
+
+
+export type SubscriptionRootNotesStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<NotesStreamCursorInput>>;
+  where?: InputMaybe<NotesBoolExp>;
 };
 
 
@@ -687,6 +1219,13 @@ export type SubscriptionRootTodosAggregateArgs = {
 };
 
 
+export type SubscriptionRootTodosStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<TodosStreamCursorInput>>;
+  where?: InputMaybe<TodosBoolExp>;
+};
+
+
 export type SubscriptionRootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -697,6 +1236,13 @@ export type SubscriptionRootUsersArgs = {
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<UsersOrderBy>>;
+  where?: InputMaybe<UsersBoolExp>;
+};
+
+
+export type SubscriptionRootUsersStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<UsersStreamCursorInput>>;
   where?: InputMaybe<UsersBoolExp>;
 };
 
@@ -842,6 +1388,23 @@ export type TodosSetInput = {
   contents?: InputMaybe<Scalars['String']>;
 };
 
+/** Streaming cursor of the table "todos" */
+export type TodosStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: TodosStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type TodosStreamCursorValueInput = {
+  contents?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
 /** update columns of table "todos" */
 export enum TodosUpdateColumn {
   /** column name */
@@ -851,6 +1414,7 @@ export enum TodosUpdateColumn {
 export type TodosUpdates = {
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<TodosSetInput>;
+  /** filter the rows which have to be updated */
   where: TodosBoolExp;
 };
 
@@ -876,6 +1440,8 @@ export type Users = {
   phoneNumber?: Maybe<Scalars['String']>;
   phoneNumberVerified: Scalars['Boolean'];
   /** An array relationship */
+  refreshTokens: Array<AuthRefreshTokens>;
+  /** An array relationship */
   securityKeys: Array<AuthUserSecurityKeys>;
   updatedAt: Scalars['timestamptz'];
 };
@@ -884,6 +1450,16 @@ export type Users = {
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersMetadataArgs = {
   path?: InputMaybe<Scalars['String']>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersRefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthRefreshTokensSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthRefreshTokensOrderBy>>;
+  where?: InputMaybe<AuthRefreshTokensBoolExp>;
 };
 
 
@@ -919,6 +1495,7 @@ export type UsersBoolExp = {
   otpMethodLastUsed?: InputMaybe<StringComparisonExp>;
   phoneNumber?: InputMaybe<StringComparisonExp>;
   phoneNumberVerified?: InputMaybe<BooleanComparisonExp>;
+  refreshTokens?: InputMaybe<AuthRefreshTokensBoolExp>;
   securityKeys?: InputMaybe<AuthUserSecurityKeysBoolExp>;
   updatedAt?: InputMaybe<TimestamptzComparisonExp>;
 };
@@ -943,6 +1520,7 @@ export type UsersOrderBy = {
   otpMethodLastUsed?: InputMaybe<OrderBy>;
   phoneNumber?: InputMaybe<OrderBy>;
   phoneNumberVerified?: InputMaybe<OrderBy>;
+  refreshTokens_aggregate?: InputMaybe<AuthRefreshTokensAggregateOrderBy>;
   securityKeys_aggregate?: InputMaybe<AuthUserSecurityKeysAggregateOrderBy>;
   updatedAt?: InputMaybe<OrderBy>;
 };
@@ -989,6 +1567,37 @@ export enum UsersSelectColumn {
   UpdatedAt = 'updatedAt'
 }
 
+/** Streaming cursor of the table "users" */
+export type UsersStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: UsersStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type UsersStreamCursorValueInput = {
+  activeMfaType?: InputMaybe<Scalars['String']>;
+  avatarUrl?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  currentChallenge?: InputMaybe<Scalars['String']>;
+  defaultRole?: InputMaybe<Scalars['String']>;
+  disabled?: InputMaybe<Scalars['Boolean']>;
+  displayName?: InputMaybe<Scalars['String']>;
+  email?: InputMaybe<Scalars['citext']>;
+  emailVerified?: InputMaybe<Scalars['Boolean']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  isAnonymous?: InputMaybe<Scalars['Boolean']>;
+  lastSeen?: InputMaybe<Scalars['timestamptz']>;
+  locale?: InputMaybe<Scalars['String']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  otpHash?: InputMaybe<Scalars['String']>;
+  otpMethodLastUsed?: InputMaybe<Scalars['String']>;
+  phoneNumber?: InputMaybe<Scalars['String']>;
+  phoneNumberVerified?: InputMaybe<Scalars['Boolean']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
 /** Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'. */
 export type UuidComparisonExp = {
   _eq?: InputMaybe<Scalars['uuid']>;
@@ -1015,6 +1624,27 @@ export type AddItemMutationVariables = Exact<{
 export type AddItemMutation = { __typename?: 'mutation_root', insertTodo?: { __typename?: 'todos', id: string, contents: string } | null };
 
 export type NewTodoFragment = { __typename?: 'todos', id: string, contents: string };
+
+export type NotesListQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NotesListQuery = { __typename?: 'query_root', notes: Array<{ __typename?: 'notes', id: string, content: string }> };
+
+export type InsertNoteMutationVariables = Exact<{
+  content: Scalars['String'];
+}>;
+
+
+export type InsertNoteMutation = { __typename?: 'mutation_root', insertNote?: { __typename?: 'notes', id: string, content: string } | null };
+
+export type DeleteNoteMutationVariables = Exact<{
+  noteId: Scalars['uuid'];
+}>;
+
+
+export type DeleteNoteMutation = { __typename?: 'mutation_root', deleteNote?: { __typename?: 'notes', id: string, content: string } | null };
+
+export type NewNoteFragment = { __typename?: 'notes', id: string, content: string };
 
 export type SecurityKeysQueryVariables = Exact<{
   userId: Scalars['uuid'];

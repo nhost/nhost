@@ -2,8 +2,11 @@ table:
   name: providers
   schema: auth
 configuration:
-  column_config: {}
-  custom_column_names: {}
+  column_config:
+    id:
+      custom_name: id
+  custom_column_names:
+    id: id
   custom_name: authProviders
   custom_root_fields:
     delete: deleteAuthProviders
