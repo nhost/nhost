@@ -102,7 +102,7 @@
         "group": "AI",
         "pages": [
             "guides/ai/enabling-service",
-            "guides/ai/local_development",
+            "guides/ai/local-development",
             "guides/ai/auto-embeddings",
             "guides/ai/assistants",
             "guides/ai/dev-assistant"
