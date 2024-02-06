@@ -12,6 +12,7 @@
         pkgs = import nixpkgs {
           inherit system;
           overlays = [
+            nixops.overlays.default
             (import ./nix/overlay.nix)
           ];
         };
@@ -133,10 +134,10 @@
               nodePackages.pnpm
             ] ++ buildInputs ++ nativeBuildInputs;
 
-            shellHook = ''
-              rm -rf node_modules
-              ln -sf ${node_modules}/node_modules/ node_modules
-            '';
+            # shellHook = ''
+            #   rm -rf node_modules
+            #   ln -sf ${node_modules}/node_modules/ node_modules
+            # '';
           };
         };
 
