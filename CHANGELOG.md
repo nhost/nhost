@@ -1,5 +1,16 @@
 ## Changelog
 
+## 0.25.0
+
+### Minor Changes
+
+- 93abd35: feat: added endpoint to "elevate" permissions using webauthn
+
+### Patch Changes
+
+- fcec7fa: chore: update dependencies
+- 27aeca6: fix: replace helper.error with helper.message due to joi's breaking changes
+
 ## 0.24.1
 
 ### Patch Changes
