@@ -25,7 +25,7 @@ The following examples assume we are configuring custom domains at `*.custom-dom
   <Tab title="Config File">
     The first step is to add a CNAME record in your DNS provider for each of the services you want a custom domain for. You can find the instructions in the dashboard tab.
 
-    For Hasura, Auth, Functions, and PostgreSQL, custom domains are defined in the default `./nhost/config.toml` as follows:
+    For Hasura, Auth, and Functions, custom domains are defined in the default `./nhost/config.toml` as follows:
 
 ```toml
 [[hasura.resources.networking.ingresses]]
@@ -34,14 +34,15 @@ fqdn = ['hasura.custom-domain.com']
 [[auth.resources.networking.ingresses]]
 fqdn = ['auth.custom-domain.com']
 
-[[postgres.resources.networking.ingresses]]
-fqdn = ['postgres.custom-domain.com']
-
 [[functions.resources.networking.ingresses]]
 fqdn = ['functions.custom-domain.com']
 ```
 
-For Run services, typically in nhost-service.toml specific to the service:
+For PostgreSQL there is nothing to configure on Nhost's side so as long as you have a CNAME properly configured it should work.
+
+<Note>To connect to your backend using your custom domains instead of the subdomain and region you will have to pass the verious service URLs to the client. You can find the relevant parameters to pass to the client in the reference documentation (i.e. [react](/reference/react/nhost-client#nhostclient))</Note>
+
+For Run services, typically in an `nhost-service.toml` specific to the service:
 
 ```toml
 name = 'my-service'
