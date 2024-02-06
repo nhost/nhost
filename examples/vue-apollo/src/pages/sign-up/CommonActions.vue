@@ -14,4 +14,7 @@
   <v-btn class="my-1" block variant="text" color="primary" to="/signup/email-password">
     Continue with email + password
   </v-btn>
+  <v-btn class="my-1" block variant="text" color="primary" to="/signup/security-key">
+    Continue with security key
+  </v-btn>
 </template>

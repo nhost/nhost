@@ -18,7 +18,9 @@ const LoadingComponent: React.FC<React.PropsWithChildren<{ connectionAttempts: n
 
 export const AuthGate: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
   const { isLoading, isAuthenticated, connectionAttempts } = useAuthenticationStatus()
+
   const location = useLocation()
+
   if (isLoading) {
     return <LoadingComponent connectionAttempts={connectionAttempts} />
   }

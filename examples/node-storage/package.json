@@ -11,15 +11,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@nhost/nhost-js": "^3.0.2",
-    "dotenv": "^16.3.1",
+    "@nhost/nhost-js": "workspace:^",
+    "dotenv": "^16.4.1",
     "form-data": "^4.0.0",
     "fs-extra": "^11.2.0",
     "node-fetch": "^3.3.2",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/node": "^18.19.6",
-    "@types/uuid": "^9.0.7"
+    "@types/node": "^18.19.12",
+    "@types/uuid": "^9.0.8"
   }
 }

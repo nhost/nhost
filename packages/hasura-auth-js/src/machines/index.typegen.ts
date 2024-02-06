@@ -125,6 +125,7 @@ export interface Typegen0 {
     signUpEmailPassword: 'done.invoke.signUpEmailPassword'
     signUpSecurityKey: 'done.invoke.signUpSecurityKey'
     signout: 'done.invoke.signingOut'
+    elevateSecurityKeyEmail: 'done.invoke.elevateSecurityKeyEmail'
   }
   missingImplementations: {
     actions: never
@@ -291,6 +292,7 @@ export interface Typegen0 {
     signUpEmailPassword: 'SIGNUP_EMAIL_PASSWORD'
     signUpSecurityKey: 'SIGNUP_SECURITY_KEY'
     signout: 'SIGNOUT'
+    elevateSecurityKeyEmail: 'ELEVATE_SECURITY_KEY_EMAIL'
   }
   eventsCausingGuards: {
     hasMfaTicket: 'done.invoke.authenticateUserWithPassword'

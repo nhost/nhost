@@ -54,16 +54,17 @@ insert_permissions:
     permission:
       check: {}
       columns:
-        - is_uploaded
-        - size
-        - bucket_id
-        - etag
-        - mime_type
-        - name
+        - id
         - created_at
         - updated_at
-        - id
+        - bucket_id
+        - name
+        - size
+        - mime_type
+        - etag
+        - is_uploaded
         - uploaded_by_user_id
+        - metadata
   - role: user
     permission:
       check: {}
@@ -78,16 +79,17 @@ select_permissions:
   - role: public
     permission:
       columns:
-        - is_uploaded
-        - size
-        - bucket_id
-        - etag
-        - mime_type
-        - name
+        - id
         - created_at
         - updated_at
-        - id
+        - bucket_id
+        - name
+        - size
+        - mime_type
+        - etag
+        - is_uploaded
         - uploaded_by_user_id
+        - metadata
       filter: {}
   - role: user
     permission:

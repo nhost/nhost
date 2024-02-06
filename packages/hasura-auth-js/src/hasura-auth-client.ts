@@ -31,7 +31,8 @@ import {
   signInSmsPasswordlessPromise,
   signOutPromise,
   signUpEmailPasswordPromise,
-  signUpEmailSecurityKeyPromise
+  signUpEmailSecurityKeyPromise,
+  elevateEmailSecurityKeyPromise
 } from './promises'
 import { createPATPromise } from './promises/createPAT'
 import {
@@ -436,6 +437,24 @@ export class HasuraAuthClient {
   ): Promise<{ error: AuthErrorPayload | null; key?: SecurityKey }> {
     const { error, key } = await addSecurityKeyPromise(this._client, nickname)
     return { error, key }
+  }
+
+  /**
+   * Use `nhost.auth.elevateWithSecurityKey` to get a temporary elevated auth permissions to run sensitive operations.
+   * @param email user email
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/elevate-security-key
+   */
+  async elevateWebAuthn(
+    email: string
+  ): Promise<SignInResponse & { providerUrl?: string; provider?: string }> {
+    if (!email) {
+      throw Error('A user email is required')
+    }
+
+    const res = await elevateEmailSecurityKeyPromise(this._client, email)
+
+    return { ...getAuthenticationResult(res), mfa: null }
   }
 
   /**

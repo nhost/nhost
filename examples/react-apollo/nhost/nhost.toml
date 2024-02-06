@@ -28,11 +28,11 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.22.1'
+version = '0.24.1'
 
 [auth.redirections]
 clientUrl = 'https://react-apollo.example.nhost.io/'
-allowedUrls = ['https://react-apollo.example.nhost.io/profile', 'http://localhost:30000']
+allowedUrls = ['https://react-apollo.example.nhost.io/profile', 'http://localhost:3000']
 
 [auth.signUp]
 enabled = true

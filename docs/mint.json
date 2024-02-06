@@ -102,7 +102,7 @@
         "group": "AI",
         "pages": [
             "guides/ai/enabling-service",
-            "guides/ai/local_development",
+            "guides/ai/local-development",
             "guides/ai/auto-embeddings",
             "guides/ai/assistants",
             "guides/ai/dev-assistant"
@@ -319,12 +319,13 @@
               "group": "Storage",
               "pages": [
                 "reference/javascript/storage/hasura-storage-client",
-                "reference/javascript/storage/delete",
+                "reference/javascript/storage/upload",
+                "reference/javascript/storage/download",
                 "reference/javascript/storage/get-presigned-url",
                 "reference/javascript/storage/get-public-url",
+                "reference/javascript/storage/delete",
                 "reference/javascript/storage/set-access-token",
-                "reference/javascript/storage/set-admin-secret",
-                "reference/javascript/storage/upload"
+                "reference/javascript/storage/set-admin-secret"
               ]
             },
             {
