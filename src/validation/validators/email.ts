@@ -16,11 +16,11 @@ export const EmailValidator: CustomValidator = (email, helper) => {
 
   // check if email is blocked
   if (ENV.AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS.includes(emailDomain)) {
-    return helper.error('Email is not valid');
+    return helper.message({custom:'Email is not valid'});
   }
 
   if (ENV.AUTH_ACCESS_CONTROL_BLOCKED_EMAILS.includes(email)) {
-    return helper.error('Email is not valid');
+    return helper.message({custom:'Email is not valid'});
   }
 
   // We've now checked the block list.
@@ -45,5 +45,5 @@ export const EmailValidator: CustomValidator = (email, helper) => {
     return email;
   }
 
-  return helper.error('Email is not valid');
+  return helper.message({custom:'Email is not valid'});
 };

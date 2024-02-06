@@ -186,7 +186,7 @@ export const registrationOptions =
     .custom((value, helper) => {
       const { allowedRoles, defaultRole } = value;
       if (!allowedRoles.includes(defaultRole)) {
-        return helper.error('Default role must be part of allowed roles');
+        return helper.message({custom:'Default role must be part of allowed roles'});
       }
       // check if allowedRoles is a subset of allowed user roles
       if (
@@ -194,7 +194,7 @@ export const registrationOptions =
           ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES.includes(role)
         )
       ) {
-        return helper.error('Allowed roles must be a subset of allowedRoles');
+        return helper.message({custom:'Allowed roles must be a subset of allowedRoles'});
       }
       return value;
     });
