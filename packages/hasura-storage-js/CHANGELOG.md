@@ -1,5 +1,15 @@
 # @nhost/hasura-storage-js
 
+## 2.3.0
+
+### Minor Changes
+
+- d3d1424: feat: Add support for authenticated download of files
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+
 ## 2.2.6
 
 ### Patch Changes

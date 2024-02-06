@@ -1,5 +1,11 @@
 # @nhost/google-translation
 
+## 0.0.8
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+
 ## 0.0.7
 
 ### Patch Changes

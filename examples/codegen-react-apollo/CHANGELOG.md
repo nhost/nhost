@@ -1,5 +1,15 @@
 # @nhost-examples/codegen-react-apollo
 
+## 0.1.12
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+- Updated dependencies [1a61c65]
+- Updated dependencies [e5bab6a]
+  - @nhost/react@3.1.0
+  - @nhost/react-apollo@8.0.0
+
 ## 0.1.11
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @nhost-examples/nextjs-server-components
 
+## 0.2.0
+
+### Minor Changes
+
+- d3d1424: feat: Add support for authenticated download of files
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+  - @nhost/nhost-js@3.0.3
+
 ## 0.1.5
 
 ### Patch Changes

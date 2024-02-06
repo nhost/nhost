@@ -1,5 +1,12 @@
 # @nhost-examples/node-storage
 
+## 0.0.6
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+  - @nhost/nhost-js@3.0.3
+
 ## 0.0.5
 
 ### Patch Changes
