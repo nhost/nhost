@@ -1,5 +1,16 @@
 # @nhost/docs
 
+## 2.3.0
+
+### Minor Changes
+
+- d3d1424: feat: Add support for authenticated download of files
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+- 2ae5ea8: fix: indicate that custom domains for postgres doesn't require configuration
+
 ## 2.2.0
 
 ### Minor Changes

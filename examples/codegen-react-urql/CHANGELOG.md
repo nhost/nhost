@@ -1,5 +1,15 @@
 # @nhost-examples/react-urql
 
+## 0.0.9
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+- Updated dependencies [1a61c65]
+- Updated dependencies [e5bab6a]
+  - @nhost/react@3.1.0
+  - @nhost/react-urql@5.0.0
+
 ## 0.0.8
 
 ### Patch Changes

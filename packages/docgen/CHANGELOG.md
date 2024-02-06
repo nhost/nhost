@@ -1,5 +1,11 @@
 # @nhost/docgen
 
+## 0.1.13
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+
 ## 0.1.12
 
 ### Patch Changes

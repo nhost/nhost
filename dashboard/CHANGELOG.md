@@ -1,5 +1,16 @@
 # @nhost/dashboard
 
+## 1.6.6
+
+### Patch Changes
+
+- 3ba485e: fix: added discord.com to connect-src
+- e5bab6a: chore: update dependencies
+- Updated dependencies [b19ffed]
+- Updated dependencies [e5bab6a]
+  - @nhost/nextjs@2.1.0
+  - @nhost/react-apollo@8.0.0
+
 ## 1.6.5
 
 ### Patch Changes

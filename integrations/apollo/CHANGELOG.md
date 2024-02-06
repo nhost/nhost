@@ -1,5 +1,12 @@
 # @nhost/apollo
 
+## 6.0.3
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+  - @nhost/nhost-js@3.0.3
+
 ## 6.0.2
 
 ### Patch Changes

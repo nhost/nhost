@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.2.0
+
+### Minor Changes
+
+- 1a61c65: feat: add 'elevateEmailSecurityKey' to the SDKs along with integration into react-apollo and vue-apollo examples
+
 ## 2.1.11
 
 ### Patch Changes

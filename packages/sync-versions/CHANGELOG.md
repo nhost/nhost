@@ -1,5 +1,11 @@
 # @nhost/sync-versions
 
+## 0.0.10
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+
 ## 0.0.9
 
 ### Patch Changes

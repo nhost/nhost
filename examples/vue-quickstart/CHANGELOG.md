@@ -1,5 +1,15 @@
 # @nhost-examples/vue-quickstart
 
+## 0.0.11
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+- Updated dependencies [1a61c65]
+- Updated dependencies [e5bab6a]
+  - @nhost/vue@2.1.0
+  - @nhost/apollo@6.0.3
+
 ## 0.0.10
 
 ### Patch Changes

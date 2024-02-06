@@ -1,7 +1,7 @@
 {
   "name": "@nhost-examples/serverless-functions",
   "private": true,
-  "version": "0.0.10",
+  "version": "0.0.11",
   "devDependencies": {
     "@types/express": "^4.17.21"
   },

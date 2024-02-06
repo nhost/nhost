@@ -1,5 +1,16 @@
 # @nhost/vue
 
+## 2.1.0
+
+### Minor Changes
+
+- 1a61c65: feat: add 'elevateEmailSecurityKey' to the SDKs along with integration into react-apollo and vue-apollo examples
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+  - @nhost/nhost-js@3.0.3
+
 ## 2.0.3
 
 ### Patch Changes

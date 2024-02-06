@@ -1,5 +1,12 @@
 # @nhost-examples/multi-tenant-one-to-many
 
+## 2.0.2
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+  - @nhost/nhost-js@3.0.3
+
 ## 2.0.1
 
 ### Patch Changes

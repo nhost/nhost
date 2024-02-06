@@ -1,5 +1,15 @@
 # @nhost/react-apollo
 
+## 8.0.0
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+- Updated dependencies [1a61c65]
+- Updated dependencies [e5bab6a]
+  - @nhost/react@3.1.0
+  - @nhost/apollo@6.0.3
+
 ## 7.0.2
 
 ### Patch Changes
