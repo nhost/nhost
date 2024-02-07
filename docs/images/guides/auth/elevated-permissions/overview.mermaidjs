@@ -1,0 +1,7 @@
+sequenceDiagram
+    User->>+App: I want to see my profile data
+    App->>+User: Here it is
+    User->>+App: I want to change my address to X
+    App->>+User: Initiate Security Key Challenge
+    User->>+App: Security Key Challenge response
+    App->>+User: Your address has been changed
