@@ -1,4 +1,9 @@
-import { DeleteNoteMutation, InsertNoteMutation, NotesListQuery } from 'src/generated'
+import {
+  DeleteNoteMutation,
+  InsertNoteMutation,
+  NotesListQuery,
+  SecurityKeysQuery
+} from 'src/generated'
 
 import { gql, useMutation } from '@apollo/client'
 import {
@@ -17,6 +22,8 @@ import { showNotification } from '@mantine/notifications'
 import { useAuthQuery } from '@nhost/react-apollo'
 import { useElevateSecurityKeyEmail, useUserData } from '@nhost/react'
 import { FaTrash } from 'react-icons/fa'
+import { SECURITY_KEYS_LIST } from 'src/utils'
+import { useState } from 'react'
 
 const NOTES_LIST = gql`
   query notesList {
@@ -54,14 +61,43 @@ export const NotesPage: React.FC = () => {
   })
 
   const [content, setContent] = useInputState('')
+  const { elevated, elevateEmailSecurityKey } = useElevateSecurityKeyEmail()
 
-  const { elevateEmailSecurityKey, elevated } = useElevateSecurityKeyEmail()
+  const [userHasSecurityKey, setUserHasSecurityKey] = useState(false)
+
+  useAuthQuery<SecurityKeysQuery>(SECURITY_KEYS_LIST, {
+    variables: { userId: userData?.id },
+    onCompleted: ({ authUserSecurityKeys }) => {
+      setUserHasSecurityKey(authUserSecurityKeys?.length > 0)
+    }
+  })
 
   const [addNoteMutation] = useMutation<InsertNoteMutation>(INSERT_NOTE)
   const [deleteNoteMutation] = useMutation<DeleteNoteMutation>(DELETE_NOTE)
 
-  const add = () => {
+  const checkElevatedPermission = async () => {
+    if (!elevated && userHasSecurityKey) {
+      const { elevated } = await elevateEmailSecurityKey(userData?.email as string)
+
+      if (!elevated) {
+        throw new Error('Permissions were not elevated')
+      }
+    }
+  }
+
+  const add = async () => {
     if (!content) return
+
+    try {
+      await checkElevatedPermission()
+    } catch (error) {
+      showNotification({
+        title: 'Error',
+        message: 'Could not elevate permissions'
+      })
+
+      return
+    }
 
     addNoteMutation({
       variables: { content },
@@ -94,8 +130,19 @@ export const NotesPage: React.FC = () => {
     })
   }
 
-  const deleteNote = (noteId: string) => {
+  const deleteNote = async (noteId: string) => {
     if (!noteId) return
+
+    try {
+      await checkElevatedPermission()
+    } catch (error) {
+      showNotification({
+        title: 'Error',
+        message: 'Could not elevate permissions'
+      })
+
+      return
+    }
 
     deleteNoteMutation({
       variables: { noteId },
@@ -126,20 +173,6 @@ export const NotesPage: React.FC = () => {
   return (
     <Container>
       {loading && <Loader />}
-      <Card shadow="sm" p="lg" m="sm">
-        <Group position="apart">
-          <span>Elevated permissions: {String(elevated)}</span>
-          <Button
-            onClick={async (e: React.MouseEvent) => {
-              if (userData?.email) {
-                await elevateEmailSecurityKey(userData.email)
-              }
-            }}
-          >
-            Elevate
-          </Button>
-        </Group>
-      </Card>
       <Card shadow="sm" p="lg" m="sm">
         <Title>Secret Notes</Title>
         <Grid>

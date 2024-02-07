@@ -2,11 +2,25 @@ import { useState } from 'react'
 
 import { Button, Card, Grid, TextInput, Title } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
-import { useChangeEmail, useUserEmail } from '@nhost/react'
+import { useChangeEmail, useElevateSecurityKeyEmail, useUserEmail, useUserId } from '@nhost/react'
+import { useAuthQuery } from '@nhost/react-apollo'
+import { SecurityKeysQuery } from 'src/generated'
+import { SECURITY_KEYS_LIST } from 'src/utils'
 
 export const ChangeEmail: React.FC = () => {
-  const [newEmail, setNewEmail] = useState('')
+  const userId = useUserId()
   const email = useUserEmail()
+  const [newEmail, setNewEmail] = useState('')
+  const { elevated, elevateEmailSecurityKey } = useElevateSecurityKeyEmail()
+  const [userHasSecurityKey, setUserHasSecurityKey] = useState(false)
+
+  useAuthQuery<SecurityKeysQuery>(SECURITY_KEYS_LIST, {
+    variables: { userId },
+    onCompleted: ({ authUserSecurityKeys }) => {
+      setUserHasSecurityKey(authUserSecurityKeys?.length > 0)
+    }
+  })
+
   const { changeEmail } = useChangeEmail({
     redirectTo: '/profile'
   })
@@ -19,7 +33,26 @@ export const ChangeEmail: React.FC = () => {
       })
       return
     }
+
+    if (!elevated && userHasSecurityKey) {
+      try {
+        const { elevated } = await elevateEmailSecurityKey(email as string)
+
+        if (!elevated) {
+          throw new Error('Permissions were not elevated')
+        }
+      } catch (error) {
+        showNotification({
+          title: 'Error',
+          message: 'Could not elevate permissions'
+        })
+
+        return
+      }
+    }
+
     const result = await changeEmail(newEmail)
+
     if (result.needsEmailVerification) {
       showNotification({
         message: `An email has been sent to ${newEmail}. Please check your inbox and follow the link to confirm the email change.`
@@ -33,6 +66,7 @@ export const ChangeEmail: React.FC = () => {
       })
     }
   }
+
   return (
     <Card shadow="sm" p="lg" m="sm">
       <Title>Change email</Title>

@@ -17,19 +17,37 @@
       prepend-icon="mdi-exit-to-app"
       @click="signOutHandler"
     />
+
+    <v-card-text
+      class="d-flex flex-column align-center justify-space-between align-self-end"
+      v-if="authenticated"
+    >
+      <span>Elevated permissions: {{ elevated }}</span>
+      <v-btn variant="text" color="primary" @click="elevatePermission(user?.email)">
+        Elevate
+      </v-btn>
+    </v-card-text>
   </v-list>
 </template>
 
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
+import { useAuthenticated, useSignOut, useElevateSecurityKeyEmail, useUserData } from '@nhost/vue'
 
-import { useAuthenticated, useSignOut } from '@nhost/vue'
-
+const user = useUserData()
 const router = useRouter()
 const { signOut } = useSignOut()
 const authenticated = useAuthenticated()
+const { elevated, elevateEmailSecurityKey } = useElevateSecurityKeyEmail()
+
 const signOutHandler = async () => {
   await signOut()
   router.push('/')
+}
+
+const elevatePermission = async (email: string | undefined) => {
+  if (email) {
+    await elevateEmailSecurityKey(email)
+  }
 }
 </script>

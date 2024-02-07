@@ -3,8 +3,17 @@ import { SiApollographql } from 'react-icons/si'
 import { useLocation, useNavigate } from 'react-router'
 import { Link } from 'react-router-dom'
 
-import { Group, MantineColor, Navbar, Text, ThemeIcon, UnstyledButton } from '@mantine/core'
-import { useAuthenticated, useSignOut } from '@nhost/react'
+import {
+  Button,
+  Card,
+  Group,
+  MantineColor,
+  Navbar,
+  Text,
+  ThemeIcon,
+  UnstyledButton
+} from '@mantine/core'
+import { useAuthenticated, useElevateSecurityKeyEmail, useSignOut, useUserData } from '@nhost/react'
 interface MenuItemProps {
   icon: React.ReactNode
   color?: MantineColor
@@ -59,7 +68,9 @@ const data: MenuItemProps[] = [
 ]
 
 export default function NavBar() {
+  const userData = useUserData()
   const authenticated = useAuthenticated()
+  const { elevateEmailSecurityKey, elevated } = useElevateSecurityKeyEmail()
   const { signOut } = useSignOut()
   const navigate = useNavigate()
   const links = data.map((link) => <MenuItem {...link} key={link.label} />)
@@ -78,6 +89,21 @@ export default function NavBar() {
           />
         )}
       </Navbar.Section>
+
+      <Card p="lg" m="sm">
+        <Group position="apart">
+          <span>Elevated permissions: {String(elevated)}</span>
+          <Button
+            onClick={async (e: React.MouseEvent) => {
+              if (userData?.email) {
+                await elevateEmailSecurityKey(userData.email)
+              }
+            }}
+          >
+            Elevate
+          </Button>
+        </Group>
+      </Card>
     </Navbar>
   )
 }

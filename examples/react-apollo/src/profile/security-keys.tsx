@@ -2,29 +2,13 @@ import { useState } from 'react'
 import { FaMinus } from 'react-icons/fa'
 import { RemoveSecurityKeyMutation, SecurityKeysQuery } from 'src/generated'
 
-import { gql, useMutation } from '@apollo/client'
+import { useMutation } from '@apollo/client'
 import { ActionIcon, Button, Card, SimpleGrid, Table, TextInput, Title } from '@mantine/core'
 import { useInputState } from '@mantine/hooks'
 import { showNotification } from '@mantine/notifications'
 import { useAddSecurityKey, useUserId } from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
-
-const SECURITY_KEYS_LIST = gql`
-  query securityKeys($userId: uuid!) {
-    authUserSecurityKeys(where: { userId: { _eq: $userId } }) {
-      id
-      nickname
-    }
-  }
-`
-
-const REMOVE_SECURITY_KEY = gql`
-  mutation removeSecurityKey($id: uuid!) {
-    deleteAuthUserSecurityKey(id: $id) {
-      id
-    }
-  }
-`
+import { REMOVE_SECURITY_KEY, SECURITY_KEYS_LIST } from 'src/utils'
 
 export const SecurityKeys: React.FC = () => {
   const { add } = useAddSecurityKey()

@@ -1,4 +1,7 @@
 [global]
+[[global.environment]]
+name = 'AUTH_REQUIRE_ELEVATED_CLAIM'
+value = 'recommended'
 
 [hasura]
 version = 'v2.25.1-ce'
@@ -28,7 +31,7 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.25.0'
+version = 'local'
 
 [auth.redirections]
 clientUrl = 'http://localhost:5173'
