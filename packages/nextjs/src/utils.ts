@@ -19,15 +19,26 @@ export const refresh = async (nhostUrl: string, refreshToken: string): Promise<N
 export const NHOST_SESSION_KEY = 'nhostSession'
 
 export const setNhostSessionInCookie = (param: NhostClient | NhostSession | null) => {
+  console.log({
+    setNhostSessionInCookieArgs: param
+  })
+
   const session = param && 'auth' in param ? param.auth.getSession() : param
+
   if (!session) {
     Cookies.remove(NHOST_SESSION_KEY)
     return
   }
+
   const { refreshToken, ...rest } = session
   const expires = new Date()
   // * Expire the cookie 60 seconds before the token expires
   expires.setSeconds(expires.getSeconds() + session.accessTokenExpiresIn - 60)
+
+  console.log({
+    setNhostSessionInCookie: rest
+  })
+
   Cookies.set(NHOST_SESSION_KEY, JSON.stringify(rest), {
     sameSite: 'strict',
     expires

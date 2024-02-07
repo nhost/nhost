@@ -1,0 +1,32 @@
+table:
+  name: projects
+  schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - is_in_trash
+        - name
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - is_in_trash
+        - name
+        - created_at
+        - updated_at
+        - id
+      filter: {}
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - is_in_trash
+        - name
+      filter: {}
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter: {}

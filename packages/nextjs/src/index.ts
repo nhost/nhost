@@ -31,8 +31,10 @@ export class NhostClient extends ReactNhostClient {
     })
 
     this.auth.onAuthStateChanged(() => {
+      console.log('onAuthStateChanged')
       setNhostSessionInCookie(this)
     })
+
     this.auth.onTokenChanged(setNhostSessionInCookie)
   }
 }

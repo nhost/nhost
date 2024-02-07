@@ -1,0 +1,44 @@
+table:
+  name: invites
+  schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - id
+        - inviter_name
+        - project_id
+        - email
+        - project_name
+        - created_at
+        - updated_at
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - email
+        - inviter_name
+        - project_name
+        - created_at
+        - updated_at
+        - id
+        - project_id
+      filter: {}
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - email
+        - inviter_name
+        - project_name
+        - created_at
+        - updated_at
+        - id
+        - project_id
+      filter: {}
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter: {}

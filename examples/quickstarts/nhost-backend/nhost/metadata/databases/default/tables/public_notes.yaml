@@ -1,0 +1,37 @@
+table:
+  name: notes
+  schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      set:
+        user_id: x-hasura-User-Id
+      columns:
+        - content
+        - id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - content
+        - id
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - content
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id

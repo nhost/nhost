@@ -1,0 +1,1 @@
+CREATE TABLE "public"."projects" ("id" uuid NOT NULL, "name" text NOT NULL, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, "is_in_trash" boolean NOT NULL DEFAULT false, PRIMARY KEY ("id") );
