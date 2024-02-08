@@ -1,0 +1,102 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'IPv6 Support',
+  description:
+    'IPv6',
+  image: '/images/blog/ai-week-release-day/ai-week-release-day.png',
+  date: '2024-02-10',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'IPv6', 'IPv4'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+AWS has started to charge $0.005 per IP per hour (~$3.6/month) for all public IPv4 addresses on February 1st. This decision was announced back in July last year and has sent ripples through the industry with good reason: there is a considerable amount of infrastructure companies that rely on AWS as their backbone and depending on their cloud setup, this change could mean a much, much higher bill at the end of the month.
+
+Our infrastructure strategy and the decisions we took early on are the reason why we navigated these changes without much trouble and, most importantly, without offloading the additional cost to users.
+
+### IPv4 vs IPv6
+
+Imagine the internet as a big address book. IPv4 is like an old version of that book that's almost full because it only has space for about 4 billion addresses. This is why AWS is starting to charge for them, to make sure we use it wisely. IPv6 is like a new, much, much bigger address book, so we won't run out of addresses anytime soon.
+
+It's important to note that IPv4 and IPv6 are different and incompatible protocols. You can not have a IPv4-only machine talking to an IPv6-only machine and vice-versa - this is the reason why the process of moving entirely to IPv6 is extremely time-consuming - tooling and internet providers need to catch up.
+
+Here’s an example of each:
+
+- IPv4 – `192.168.10.150`
+- IPv6 – `3002:0bd6:0000:0000:0000:ee00:0033:6778`
+
+### Our Cloud Strategy 
+
+Our platform is built around Kubernetes. I believe that k8s was the right decision for a few reasons, and today I want to zoom in into our networking stack and how it works together with k8s to send traffic to/from our clusters in a performant and cost-effective way. 
+
+We've noticed some of our peers struggling with the new cost implications, it's a stark reminder of the importance of adaptability and foresight in cloud architecture.
+
+#### Efficient IP Usage
+
+Kubernetes allows multiple services to be exposed through a single IP address using ingress controllers or load balancers. We segregate users with namespaces, allowing many users' services to operate under the umbrella of fewer public IP addresses.
+
+It is important to mention that we have networking policies in place that allow for fine-grained control over how services communicate with each other and the outside world, thus maintaining network isolation and security without the need for a separate IP address for each user.
+
+#### Network Load Balancers
+
+By aleveraging NLBs with Kubernetes, we've minimized our reliance on public IPv4 addresses. Unlike traditional VM setups, where each instance is assigned a unique public IP, our NLBs act as robust gatekeepers while managing traffic to multiple services through a significantly smaller pool of IPs. 
+
+[diagram?]
+[the distinction between NLBs and ingresses could be clearer]
+
+### Migrating to IPv6
+
+#### Enable IPv6 
+
+To enable IPv6 in our ELBs we had to do 2 simple changes: 
+
+1. enable dual stack on ingress-nginx - this is a one line change in our terraform configuration:
+
+```
+"service.beta.kubernetes.io/aws-load-balancer-ip-address-type" = "dualstack"
+```
+
+2. Add IPv6 CIDR blocks to all subnets
+
+We had to configure the CIDR blocks for all subnets we operate.
+
+#### AAAA Records
+
+AAAA records were added for all services and all projects. You can test this yourself using a tool like `dig`:
+
+```bash
+> dig AAAA chavdxivhpthsshbpvut.db.eu-central-1.nhost.run
+
+; <<>> DiG 9.10.6 <<>> AAAA chavdxivhpthsshbpvut.db.eu-central-1.nhost.run
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 15435
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 512
+;; QUESTION SECTION:
+;chavdxivhpthsshbpvut.db.eu-central-1.nhost.run.	IN AAAA
+
+;; ANSWER SECTION:
+chavdxivhpthsshbpvut.db.eu-central-1.nhost.run.	60 IN AAAA 2a05:d014:807:5803:273:2c64:792e:6572
+chavdxivhpthsshbpvut.db.eu-central-1.nhost.run.	60 IN AAAA 2a05:d014:807:5804:2282:b76c:792:ea
+
+;; Query time: 171 msec
+;; SERVER: 8.8.8.8#53(8.8.8.8)
+;; WHEN: Wed Feb 07 23:16:27 -01 2024
+;; MSG SIZE  rcvd: 131
+```
+
+Note the answer section with a couple of AAAA records. You can interact with your project's endpoints both using IPv4 or IPv6.
+
