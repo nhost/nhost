@@ -5,7 +5,7 @@ export const article = {
   title: 'IPv6 Support',
   description:
     'IPv6',
-  image: '/images/blog/ai-week-release-day/ai-week-release-day.png',
+  image: '/images/blog/ipv6/meme.png',
   date: '2024-02-10',
   authors: [
     {
@@ -26,53 +26,29 @@ Our infrastructure strategy and the decisions we took early on are the reason wh
 
 ### IPv4 vs IPv6
 
-Imagine the internet as a big address book. IPv4 is like an old version of that book that's almost full because it only has space for about 4 billion addresses. This is why AWS is starting to charge for them, to make sure we use it wisely. IPv6 is like a new, much, much bigger address book, so we won't run out of addresses anytime soon.
+Imagine the internet as a big address book. IPv4 is like an old version of that book that's almost full because it only has space for about 4 billion addresses. The problem of "running out of addresses" is the reason why AWS decided to start charging for them. An IPv4 looks like this: `192.168.10.150`.
 
-It's important to note that IPv4 and IPv6 are different and incompatible protocols. You can not have a IPv4-only machine talking to an IPv6-only machine and vice-versa - this is the reason why the process of moving entirely to IPv6 is extremely time-consuming - tooling and internet providers need to catch up.
+IPv6 is like a new, much, much bigger address book (128-bit address vs 32-bit in IPv4), so we won't run out of addresses anytime soon. An IPv6 looks like this: `2001:db8:0000:0000:0000:ee00:0033:6778`.
 
-Here’s an example of each:
+It's important to note that these are different and incompatible protocols. You cannot have a IPv4-only machine talking to an IPv6-only machine and vice-versa without having an expensive and fragile translation in between - this incompatibility is the reason why the process of moving entirely to IPv6 is extremely time-consuming - tooling and internet providers need to catch up.
 
-- IPv4 – `192.168.10.150`
-- IPv6 – `3002:0bd6:0000:0000:0000:ee00:0033:6778`
+### Future-proof Cloud Strategy 
 
-### Our Cloud Strategy 
+I've noticed some of our peers struggling with the new cost implications, it's a stark reminder of the importance of adaptability and foresight in cloud architecture.
 
-Our platform is built around Kubernetes. I believe that k8s was the right decision for a few reasons, and today I want to zoom in into our networking stack and how it works together with k8s to send traffic to/from our clusters in a performant and cost-effective way. 
+#### Kubernetes, NLBs, and Efficient IP Usage
 
-We've noticed some of our peers struggling with the new cost implications, it's a stark reminder of the importance of adaptability and foresight in cloud architecture.
+Unlike traditional virtual machine (VM) environments, where each instance usually requires a dedicated public IP address, Network Load Balancers (NLBs) offer a more efficient approach. They serve as resilient and extremely performant intermediaries, directing traffic to various services using a considerably reduced pool of IP addresses.
 
-#### Efficient IP Usage
+Kubernetes improves on this efficiency by enabling multiple services to be exposed through a singular IP address - this is achieved with a strategic integration of network load balancers and ingress controllers for the management and allocation of IP resources.
 
-Kubernetes allows multiple services to be exposed through a single IP address using ingress controllers or load balancers. We segregate users with namespaces, allowing many users' services to operate under the umbrella of fewer public IP addresses.
+### IPv6 Support
 
-It is important to mention that we have networking policies in place that allow for fine-grained control over how services communicate with each other and the outside world, thus maintaining network isolation and security without the need for a separate IP address for each user.
+To migrate to IPv6 you have to, well ... do nothing. We already did all the work for you without you noticing it! DNS changes, service updates, CIDR blocks, "dualstack" configuration, etc.
 
-#### Network Load Balancers
+You can use a tool like `Dig` to ensure the domains for your project correctly resolve to an IPv6 address. If they do, you will see a section "ANSWER" with a couple of AAAA records. 
 
-By aleveraging NLBs with Kubernetes, we've minimized our reliance on public IPv4 addresses. Unlike traditional VM setups, where each instance is assigned a unique public IP, our NLBs act as robust gatekeepers while managing traffic to multiple services through a significantly smaller pool of IPs. 
-
-[diagram?]
-[the distinction between NLBs and ingresses could be clearer]
-
-### Migrating to IPv6
-
-#### Enable IPv6 
-
-To enable IPv6 in our ELBs we had to do 2 simple changes: 
-
-1. enable dual stack on ingress-nginx - this is a one line change in our terraform configuration:
-
-```
-"service.beta.kubernetes.io/aws-load-balancer-ip-address-type" = "dualstack"
-```
-
-2. Add IPv6 CIDR blocks to all subnets
-
-We had to configure the CIDR blocks for all subnets we operate.
-
-#### AAAA Records
-
-AAAA records were added for all services and all projects. You can test this yourself using a tool like `dig`:
+In the following example I am looking for the records of my database service:
 
 ```bash
 > dig AAAA chavdxivhpthsshbpvut.db.eu-central-1.nhost.run
@@ -98,5 +74,12 @@ chavdxivhpthsshbpvut.db.eu-central-1.nhost.run.	60 IN AAAA 2a05:d014:807:5804:22
 ;; MSG SIZE  rcvd: 131
 ```
 
-Note the answer section with a couple of AAAA records. You can interact with your project's endpoints both using IPv4 or IPv6.
+If your ISP supports IPv6, or you are running on a VPN that supports it, you can use cURL, with `curl -6`, to query your Nhost endpoints directly using IPv6.
+
+### What about IPv4?
+
+Because our cloud setup allows us to operate with a very small pool of IPs, we are absorbing the costs so that you can still use IPv4 for free and without having to change anything! 
+
+You can thank us later.
+
 
