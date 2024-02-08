@@ -8,10 +8,20 @@ on:
     secrets:
       NHOST_PAT:
         required: true
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
 
 jobs:
   tests:
     runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
 
     steps:
     - name: "Check out repository"
@@ -21,24 +31,46 @@ jobs:
         ref: ${{ inputs.GIT_REF }}
         submodules: true
 
-    - uses: nixbuild/nix-quick-install-action@v22
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v4
       with:
-        nix_version: 2.14.1
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
+
+    - uses: nixbuild/nix-quick-install-action@v26
+      with:
+        nix_version: 2.16.2
         nix_conf: |
           experimental-features = nix-command flakes
           sandbox = false
-          substituters = https://cache.nixos.org/?priority=40
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
           builders-use-substitutes = true
-          extra-platforms = aarch64-linux
 
     - name: Cache nix store
       uses: actions/cache@v3
       with:
-        path: /nix
+        path: |
+          /nix/store/**
+          /nix/var/nix/*/*
+          /nix/var/nix/db/*
+          /nix/var/nix/db/*/**
+          !/nix/var/nix/daemon-socket/socket
+          !/nix/var/nix/userpool/*
+          !/nix/var/nix/gc.lock
+          !/nix/var/nix/db/big-lock
+          !/nix/var/nix/db/reserved
         key: nix-${{ runner.os }}-${{ hashFiles('flake.nix', 'flake.lock', '**.nix') }}
 
     - name: "Run checks"
       run: |
         export NHOST_PAT=${{ secrets.NHOST_PAT }}
         make check
+
+    - name: "Cache nix store on s3"
+      run: |
+        echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
+        nix store sign --key-file cache-priv-key.pem --all
+        find /nix/store -maxdepth 1 -name "*-*" -type d | grep -v source | xargs -n 1000 nix copy --to s3://nhost-nix-cache\?region=eu-central-1
+      if: always()

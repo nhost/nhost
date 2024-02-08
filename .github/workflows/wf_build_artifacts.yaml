@@ -8,15 +8,31 @@ on:
       VERSION:
         type: string
         required: true
+      GOOS:
+        type: string
+        required: true
+      GOARCH:
+        type: string
+        required: true
     secrets:
+      AWS_ACCOUNT_ID:
+        required: true
       CERT_FULL_CHAIN:
         required: true
       CERT_PRIV_KEY:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
         required: true
 
 jobs:
   artifacts:
     runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
 
     steps:
     - name: "Check out repository"
@@ -26,26 +42,41 @@ jobs:
         ref: ${{ inputs.GIT_REF }}
         submodules: true
 
-    - uses: nixbuild/nix-quick-install-action@v22
+    - name: Configure aws
+      uses: aws-actions/configure-aws-credentials@v4
       with:
-        nix_version: 2.14.1
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+        aws-region: eu-central-1
+
+    - uses: nixbuild/nix-quick-install-action@v26
+      with:
+        nix_version: 2.16.2
         nix_conf: |
           experimental-features = nix-command flakes
           sandbox = false
-          substituters = https://cache.nixos.org/?priority=40
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
           builders-use-substitutes = true
-          extra-platforms = aarch64-linux
 
     - name: Cache nix store
       uses: actions/cache@v3
       with:
-        path: /nix
-        key: nix-build-${{ hashFiles('flake.nix', 'flake.lock', '**.nix') }}
+        path: |
+          /nix/store/**
+          /nix/var/nix/*/*
+          /nix/var/nix/db/*
+          /nix/var/nix/db/*/**
+          !/nix/var/nix/daemon-socket/socket
+          !/nix/var/nix/userpool/*
+          !/nix/var/nix/gc.lock
+          !/nix/var/nix/db/big-lock
+          !/nix/var/nix/db/reserved
+        key: nix-build-${{ inputs.GOOS }}-${{ inputs.GOARCH}}-${{ hashFiles('flake.nix', 'flake.lock', '**.nix') }}
     - name: Compute common env vars
       id: vars
       run: |
-        echo "VERSION=$(make get-version VERSION=v0.0.0-${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
+        echo "VERSION=$(make get-version VERSION=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
 
     - name: place let's encrypt cert
       run: |
@@ -59,33 +90,45 @@ jobs:
 
     - name: "Build artifact"
       run: |
-        export GORELEASER_CURRENT_TAG=${{ steps.vars.outputs.VERSION }}
-        nix develop .\#cibuild -c goreleaser release --skip-validate
+        make build ARCH=${{ inputs.GOARCH }} OS=${{ inputs.GOOS }}
+        find -L result -type f -exec cp {} nhost-cli \;
 
     - name: "Push artifact to artifact repository"
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: cli-${{ steps.vars.outputs.VERSION }}-darwin-arm64.tar.gz
-        path: dist/cli-${{ steps.vars.outputs.VERSION }}-darwin-arm64.tar.gz
+        name: cli-${{ steps.vars.outputs.VERSION }}-${{ inputs.GOOS }}-${{ inputs.GOARCH }}
+        path: nhost-cli
         retention-days: 7
 
-    - name: "Push artifact to artifact repository"
-      uses: actions/upload-artifact@v3
-      with:
-        name: cli-${{ steps.vars.outputs.VERSION }}-darwin-amd64.tar.gz
-        path: dist/cli-${{ steps.vars.outputs.VERSION }}-darwin-amd64.tar.gz
-        retention-days: 7
+    - name: "Build docker-image"
+      run: |
+        make build-docker-image ARCH=${{ inputs.GOARCH }}
+      if: ${{ ( inputs.GOOS == 'linux' ) }}
 
-    - name: "Push artifact to artifact repository"
-      uses: actions/upload-artifact@v3
-      with:
-        name: cli-${{ steps.vars.outputs.VERSION }}-linux-arm64.tar.gz
-        path: dist/cli-${{ steps.vars.outputs.VERSION }}-linux-arm64.tar.gz
-        retention-days: 7
+    - name: "Ammend manifest"
+      run: |
+          # hack that speeds up build a lot by crosscompiling with nix/go
+          # and avoiding to use qemu
+          mkdir tmp && cd tmp
+          tar xvzf ../result
+          sed -i 's/amd64/arm64/g' *.json
+          tar cvzf image *
+          rm ../result
+          cp image ../result
+      shell: bash
+      if: ${{ ( inputs.GOOS == 'linux' && inputs.GOARCH == 'arm64' ) }}
 
-    - name: "Push artifact to artifact repository"
-      uses: actions/upload-artifact@v3
+    - name: "Push docker-image to artifact repository"
+      uses: actions/upload-artifact@v4
       with:
-        name: cli-${{ steps.vars.outputs.VERSION }}-linux-amd64.tar.gz
-        path: dist/cli-${{ steps.vars.outputs.VERSION }}-linux-amd64.tar.gz
+        name: cli-docker-image-${{ steps.vars.outputs.VERSION }}-${{ inputs.GOOS }}-${{ inputs.GOARCH }}
+        path: result
         retention-days: 7
+      if: ${{ ( inputs.GOOS == 'linux' ) }}
+
+    - name: "Cache nix store on s3"
+      run: |
+        echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
+        nix store sign --key-file cache-priv-key.pem --all
+        find /nix/store -maxdepth 1 -name "*-*" -type d | grep -v source | xargs -n 1000 nix copy --to s3://nhost-nix-cache\?region=eu-central-1
+      if: always()

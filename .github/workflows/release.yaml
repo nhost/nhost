@@ -1,92 +1,42 @@
 ---
+name: "release"
 on:
   release:
     types: [published]
 
-name: release
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: write
-    steps:
-      - uses: actions/checkout@v3
+  tests:
+    uses: ./.github/workflows/wf_check.yaml
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NHOST_PAT: ${{ secrets.NHOST_PAT }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
-      - uses: nixbuild/nix-quick-install-action@v22
-        with:
-          nix_version: 2.14.1
-          nix_conf: |
-            experimental-features = nix-command flakes
-            sandbox = false
-            substituters = https://cache.nixos.org/?priority=40
-            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
-            builders-use-substitutes = true
-            extra-platforms = aarch64-linux
+  build_artifacts:
+    strategy:
+      matrix:
+        GOOS: ["darwin", "linux"]
+        GOARCH: ["amd64", "arm64"]
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    with:
+      GOOS: ${{ matrix.GOOS }}
+      GOARCH: ${{ matrix.GOARCH }}
+      VERSION: ${{ github.ref_name }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      CERT_FULL_CHAIN: ${{ secrets.CERT_FULL_CHAIN }}
+      CERT_PRIV_KEY: ${{ secrets.CERT_PRIV_KEY }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
-      - name: Cache nix store
-        uses: actions/cache@v3
-        with:
-          path: /nix
-          key: nix-build-${{ hashFiles('flake.nix', 'flake.lock', '**.nix') }}
-
-      - name: place let's encrypt cert
-        run: |
-          cat <<EOF > ssl/.ssl/fullchain.pem
-          ${{ secrets.CERT_FULL_CHAIN }}
-          EOF
-          cat <<EOF > ssl/.ssl/privkey.pem
-          ${{ secrets.CERT_PRIV_KEY }}
-          EOF
-        shell: bash
-
-      - name: "Build artifact"
-        run: |
-          export GORELEASER_CURRENT_TAG=${{ steps.vars.outputs.VERSION }}
-          nix develop .\#cibuild -c goreleaser release --skip-validate
-
-      - name: Upload assets
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload --clobber "${{ github.ref_name }}" ./dist/*.tar.gz ./dist/checksums.txt
-
-  update-releases-file:
-    name: Update Releases File
-    runs-on: ubuntu-latest
-    needs: release
-    steps:
-      - uses: actions/checkout@v3.5.0
-        with:
-          ref: gh-pages
-      - name: Generate releases.json
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        run: |
-          gh api repos/nhost/cli/releases > releases.json
-      - name: Check if there are changes
-        id: changes
-        shell: bash
-        run: |
-          if [[ -z "$(git status --porcelain . )" ]]; then
-           echo "::set-output name=changed::0"
-          else
-           echo "::set-output name=changed::1"
-          fi
-      - name: Committing releases.json
-        shell: bash
-        if: steps.changes.outputs.changed == 1
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add .
-          git commit -m "" --allow-empty-message
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        if: steps.changes.outputs.changed == 1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages
-          force: true
+  publish:
+    uses: ./.github/workflows/wf_publish.yaml
+    needs:
+      - tests
+      - build_artifacts
+    with:
+      VERSION: ${{ github.ref_name }}
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

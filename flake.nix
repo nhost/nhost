@@ -61,7 +61,7 @@
 
         nixops-lib = nixops.lib { inherit pkgs; };
 
-        name = "nhost";
+        name = "cli";
         description = "Nhost CLI";
         version = pkgs.lib.fileContents ./VERSION;
         module = "github.com/nhost/cli";
@@ -94,18 +94,49 @@
               certbot-full
             ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
           };
-
-          cibuild = pkgs.mkShell {
-            buildInputs = with pkgs; [
-              go
-              goreleaser
-            ];
-          };
         };
 
         packages = flake-utils.lib.flattenTree rec {
           cli = nixops-lib.go.package {
             inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
+
+            cgoEnabled = false;
+          };
+
+          cli-arm64-darwin = (nixops-lib.go.package {
+            inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
+
+            cgoEnabled = false;
+          }).overrideAttrs (old: old // { GOOS = "darwin"; GOARCH = "arm64"; });
+
+          cli-amd64-darwin = (nixops-lib.go.package {
+            inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
+
+            cgoEnabled = false;
+          }).overrideAttrs (old: old // { GOOS = "darwin"; GOARCH = "amd64"; });
+
+          cli-arm64-linux = (nixops-lib.go.package {
+            inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
+
+            cgoEnabled = false;
+          }).overrideAttrs (old: old // { GOOS = "linux"; GOARCH = "arm64"; });
+
+          cli-amd64-linux = (nixops-lib.go.package {
+            inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
+
+            cgoEnabled = false;
+          }).overrideAttrs (old: old // { GOOS = "linux"; GOARCH = "amd64"; });
+
+          docker-image-arm64 = nixops-lib.go.docker-image {
+            inherit name version buildInputs;
+
+            package = cli-arm64-linux;
+          };
+
+          docker-image-amd64 = nixops-lib.go.docker-image {
+            inherit name version buildInputs;
+
+            package = cli-amd64-linux;
           };
         };
 

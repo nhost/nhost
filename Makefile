@@ -1,7 +1,9 @@
 ifeq ($(shell uname -m),x86_64)
-  ARCH?=x86_64
+  HOST_ARCH?=x86_64
+  GOARCH?=amd64
 else ifeq ($(shell uname -m),arm64)
-  ARCH?=aarch64
+  HOST_ARCH?=aarch64
+  GOARCH?=arm64
 endif
 
 ifeq ($(shell uname -o),Darwin)
@@ -10,18 +12,31 @@ else
   OS?=linux
 endif
 
+VER=$(shell echo $(VERSION) | sed -e 's/^v//g' -e 's/\//_/g')
+
+
 .PHONY: check
 check:  ## Run nix flake check
 	sed -i 's/$$NHOST_PAT/$(NHOST_PAT)/' get_access_token.sh
 	nix flake check --print-build-logs
 
+
 .PHONY: build
 build:  ## Build application and places the binary under ./result/bin
-	nix build \
-		.\#packages.$(ARCH)-$(OS).cli \
+	nix build $(docker-build-options) \
+		.\#cli-$(GOARCH)-$(OS) \
 		--print-build-logs
+
+
+.PHONY: build-docker-image
+build-docker-image:  ## Build docker image
+	nix build $(docker-build-options) \
+		.\#packages.$(HOST_ARCH)-linux.docker-image-$(GOARCH) \
+		--print-build-logs
+	docker load < result
+
 
 .PHONY: get-version
 get-version:  ## Return version
-	@echo $(VERSION) > VERSION
-	@echo $(VERSION)
+	@echo $(VER) > VERSION
+	@echo $(VER)
