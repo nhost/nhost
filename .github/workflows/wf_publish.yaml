@@ -80,7 +80,7 @@ jobs:
 
           find upload/ -type f -exec sha256sum {} + > checksums.txt
 
-          cat upload/checksums.txt
+          cat checksums.txt
 
           gh release upload \
             --clobber "${{ github.ref_name }}" \
