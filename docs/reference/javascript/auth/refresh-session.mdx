@@ -1,0 +1,24 @@
+---
+title: refreshSession()
+sidebarTitle: refreshSession()
+---
+
+Use `nhost.auth.refreshSession` to refresh the session with either the current internal refresh token or an external refresh token.
+
+Note: The Nhost client automatically refreshes the session when the user is authenticated but `nhost.auth.refreshSession` can be useful in some special cases.
+
+```ts
+// Refresh the session with the the current internal refresh token.
+nhost.auth.refreshSession()
+
+// Refresh the session with an external refresh token.
+nhost.auth.refreshSession(refreshToken)
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">refreshToken</span>** <span className="optional-status">optional</span> <code>string</code>
+
+---

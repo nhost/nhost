@@ -8,11 +8,9 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -73,23 +71,18 @@ export default function MagicLinkSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Magic Link settings are being updated...`,
-          success: `Magic Link settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update the project's Magic Link settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(values);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(values);
+      },
+      {
+        loadingMessage: 'Magic Link settings are being updated...',
+        successMessage: 'Magic Link settings have been updated successfully.',
+        errorMessage:
+          "An error occurred while trying to update the project's Magic Link settings.",
+      },
+    );
   };
 
   return (

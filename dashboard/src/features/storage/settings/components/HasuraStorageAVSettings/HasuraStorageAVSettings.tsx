@@ -8,11 +8,9 @@ import {
   useGetStorageSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -78,24 +76,18 @@ export default function HasuraStorageAVSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Antivirus settings are being updated...`,
-          success: `Antivirus settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update Antivirus settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-      await refetchWorkspaceAndProject();
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+        await refetchWorkspaceAndProject();
+      },
+      {
+        loadingMessage: 'Antivirus settings are being updated...',
+        successMessage: `Antivirus settings have been updated successfully.`,
+        errorMessage: `An error occurred while trying to update Antivirus settings.`,
+      },
+    );
   }
 
   return (

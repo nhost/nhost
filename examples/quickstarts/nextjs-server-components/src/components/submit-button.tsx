@@ -2,7 +2,7 @@
 
 import { ButtonHTMLAttributes, DetailedHTMLProps } from 'react'
 // @ts-ignore
-import { experimental_useFormStatus as useFormStatus } from 'react-dom'
+import { useFormStatus } from 'react-dom'
 import { twMerge } from 'tailwind-merge'
 
 type ButtonProps = {
@@ -12,8 +12,8 @@ type ButtonProps = {
 export default function SubmitButton({
   disabled,
   type,
-  children,
   className,
+  children,
   ...rest
 }: ButtonProps) {
   const { pending } = useFormStatus()

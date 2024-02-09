@@ -1,0 +1,16 @@
+---
+title: useAddSecurityKey()
+sidebarTitle: useAddSecurityKey()
+---
+
+Use the hook `useAddSecurityKey` to add a WebAuthn security key.
+
+```tsx
+const { add, isLoading, isSuccess, isError, error } = useAddSecurityKey()
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await add('key nickname')
+}
+```

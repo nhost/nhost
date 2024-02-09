@@ -8,13 +8,11 @@ import {
   GetAllWorkspacesAndProjectsDocument,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useApolloClient } from '@apollo/client';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 
 export interface DeploymentBranchFormValues {
   /**
@@ -56,19 +54,18 @@ export default function DeploymentBranchSettings() {
       },
     });
 
-    await toast.promise(
-      updateAppMutation,
-      {
-        loading: `The deployment branch is being updated...`,
-        success: `The deployment branch has been updated successfully.`,
-        error: getServerError(
-          `An error occurred while trying to update the project's deployment branch.`,
-        ),
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateAppMutation;
+        form.reset(values);
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: 'The deployment branch is being updated...',
+        successMessage: 'The deployment branch has been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to create the permission variable.',
+      },
     );
-
-    form.reset(values);
 
     try {
       await client.refetchQueries({

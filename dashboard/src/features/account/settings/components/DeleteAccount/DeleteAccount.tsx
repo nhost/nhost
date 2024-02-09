@@ -4,16 +4,14 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useDeleteUserAccountMutation,
   useGetAllWorkspacesAndProjectsQuery,
 } from '@/utils/__generated__/graphql';
-import { type ApolloError } from '@apollo/client';
 import { useSignOut, useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 function ConfirmDeleteAccountModal({
@@ -44,30 +42,19 @@ function ConfirmDeleteAccountModal({
   const onClickConfirm = async () => {
     setLoadingRemove(true);
 
-    await toast.promise(
-      deleteUserAccount(),
-      {
-        loading: 'Deleting your account...',
-        success: `The account has been deleted successfully.`,
-        error: (arg: ApolloError) => {
-          // we need to get the internal error message from the GraphQL error
-          const { internal } = arg.graphQLErrors[0]?.extensions || {};
-          const { message } = (internal as Record<string, any>)?.error || {};
-
-          // we use the default Apollo error message if we can't find the
-          // internal error message
-          return (
-            message ||
-            arg.message ||
-            'An error occurred while deleting your account. Please try again.'
-          );
-        },
+    await execPromiseWithErrorToast(
+      async () => {
+        await deleteUserAccount();
+        onDelete?.();
+        close();
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: 'Deleting your account...',
+        successMessage: 'The account has been deleted successfully.',
+        errorMessage:
+          'An error occurred while deleting your account. Please try again.',
+      },
     );
-
-    onDelete?.();
-    close();
   };
 
   return (

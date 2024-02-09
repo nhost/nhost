@@ -2,6 +2,12 @@
   <v-list nav>
     <v-list-item title="Home" to="/" value="home" prepend-icon="mdi-home" />
     <v-list-item title="Profile" to="/profile" value="profile" prepend-icon="mdi-account" />
+    <v-list-item
+      title="Secret Notes"
+      to="/secret-notes"
+      value="secret-notes"
+      prepend-icon="mdi-lock"
+    />
     <v-list-item title="Apollo" to="/apollo" value="apollo" prepend-icon="mdi-api" />
     <v-list-item title="Storage" to="/storage" value="storage" prepend-icon="mdi-server" />
     <v-list-item title="About" to="/about" value="about" prepend-icon="mdi-information" />

@@ -10,8 +10,7 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { DeploymentDurationLabel } from '@/features/projects/deployments/components/DeploymentDurationLabel';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
 import {
   GetAllWorkspacesAndProjectsDocument,
@@ -19,7 +18,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import type { MouseEvent } from 'react';
-import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export interface DeploymentListItemProps {
@@ -78,14 +76,15 @@ export default function DeploymentListItem({
       },
     });
 
-    await toast.promise(
-      insertDeploymentPromise,
-      {
-        loading: 'Scheduling deployment...',
-        success: 'Deployment has been scheduled successfully.',
-        error: getServerError('An error occurred when scheduling deployment.'),
+    await execPromiseWithErrorToast(
+      async () => {
+        await insertDeploymentPromise;
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: 'Scheduling deployment...',
+        successMessage: 'Deployment has been scheduled successfully.',
+        errorMessage: 'An error occurred when scheduling deployment.',
+      },
     );
   }
 
@@ -138,7 +137,7 @@ export default function DeploymentListItem({
                 startIcon={
                   <ArrowCounterclockwiseIcon className={twMerge('h-4 w-4')} />
                 }
-                className="rounded-full py-1 px-2 text-xs"
+                className="rounded-full px-2 py-1 text-xs"
                 aria-label="Redeploy"
               >
                 Redeploy

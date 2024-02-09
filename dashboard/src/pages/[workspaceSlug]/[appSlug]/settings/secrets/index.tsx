@@ -19,7 +19,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { CreateSecretForm } from '@/features/projects/secrets/settings/components/CreateSecretForm';
 import { EditSecretForm } from '@/features/projects/secrets/settings/components/EditSecretForm';
 import type { Secret } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSecretsDocument,
   useDeleteSecretMutation,
@@ -27,7 +27,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 import { Fragment } from 'react';
-import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export default function SecretsPage() {
@@ -59,22 +58,16 @@ export default function SecretsPage() {
       },
     });
 
-    try {
-      await toast.promise(
-        deleteSecretPromise,
-        {
-          loading: 'Deleting secret...',
-          success: 'Secret has been deleted successfully.',
-          error: (arg: Error) =>
-            arg?.message
-              ? `Error: ${arg?.message}`
-              : 'An error occurred while deleting the secret.',
-        },
-        getToastStyleProps(),
-      );
-    } catch (deleteSecretError) {
-      console.error(deleteSecretError);
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await deleteSecretPromise;
+      },
+      {
+        loadingMessage: 'Deleting secret...',
+        successMessage: 'Secret has been deleted successfully.',
+        errorMessage: 'An error occurred while deleting the secret.',
+      },
+    );
   }
 
   function handleOpenCreator() {

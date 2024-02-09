@@ -70,7 +70,7 @@ enabled = true
 
 [auth.method.emailPassword]
 hibpEnabled = false
-emailVerificationRequired = true
+emailVerificationRequired = false
 passwordMinLength = 8
 
 [auth.method.smsPasswordless]

@@ -1,0 +1,14 @@
+---
+title: ChangeEmailEvents
+sidebarTitle: ChangeEmailEvents
+description: No description provided.
+---
+
+# `ChangeEmailEvents`
+
+```ts
+type ChangeEmailEvents =
+  | { type: 'REQUEST'; email: string; options: ChangeEmailOptions }
+  | { type: 'SUCCESS' }
+  | { type: 'ERROR'; error: AuthErrorPayload | null }
+```

@@ -1,4 +1,3 @@
-import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -118,7 +117,7 @@ function GraphiQLHeader({ onUserChange, onRoleChange }: GraphiQLHeaderProps) {
   }
 
   return (
-    <header className="grid grid-flow-row items-end gap-2 p-2 md:grid-flow-col md:justify-between">
+    <header className="grid items-end grid-flow-row gap-2 p-2 md:grid-flow-col md:justify-between">
       <div className="grid grid-flow-row gap-2 md:grid-flow-col md:items-end">
         <div className="grid grid-cols-2 gap-2 md:grid-flow-col md:grid-cols-[initial]">
           <UserSelect
@@ -352,7 +351,6 @@ GraphQLPage.getLayout = function getLayout(page: ReactElement) {
         },
       }}
     >
-      <DepricationNotice />
       {page}
     </ProjectLayout>
   );

@@ -1,5 +1,17 @@
 # @nhost-examples/docker-compose
 
+## 0.0.7
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+
+## 0.0.6
+
+### Patch Changes
+
+- a1c5c97a5: Clarify instructions for running the Nhost dashboard with Docker Compose
+
 ## 0.0.5
 
 ### Patch Changes

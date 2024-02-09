@@ -53,6 +53,16 @@ export type StorageUploadFormDataResponse =
 
 export type StorageUploadResponse = StorageUploadFileResponse | StorageUploadFormDataResponse
 
+export interface StorageDownloadFileParams extends StorageImageTransformationParams {
+  fileId: string
+  /**
+   * Optional headers to be sent with the request
+   */
+  headers?: Record<string, string>
+}
+
+export type StorageDownloadFileResponse = { file: Blob; error: null } | { file: null; error: Error }
+
 export interface StorageImageTransformationParams {
   /** Image width, in pixels */
   width?: number

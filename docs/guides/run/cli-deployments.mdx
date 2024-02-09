@@ -1,0 +1,50 @@
+---
+title: CLI & CI Deployments
+description: Learn how to deploy your Run services using the CLI
+icon: rocket-launch
+---
+
+## Deploying with the CLI
+
+Below you can find a simple script to deploy a Nhost Run service using the CLI. This script can be leveraged on any CI or environment as long as you can install the Nhost CLI and have access to docker buildx.
+
+```bash
+#!/bin/sh
+SERVICE_ID="2503b290-249c-42f5-b89e-fd9a98980e22"
+IMAGE="registry.eu-central-1.nhost.run/2503b290-249c-42f5-b89e-fd9a98980e22"
+PAT="this-is-my-pat"
+VERSION="1.0.0"
+CONFIGURATION_FILE="nhost-service.toml"
+
+# this only needs to be done once in each environment
+# but usually CIs start with a clean environment each time
+#
+# you can also login with your regular email/password
+# credentials if you prefer
+nhost login --pat $PAT
+
+# this only needs to be done once in each environment
+# but usually CIs start with a clean environment each time
+nhost docker-credentials configure --no-interactive
+
+docker buildx build \
+    --push \
+    --platform linux/amd64,linux/arm64 \
+    -t $IMAGE:$VERSION \
+    .
+
+nhost run config-deploy \
+    --config $CONFIGURATION_FILE \
+    --service-id $SERVICE_ID
+```
+
+<Info>You can create a PAT by heading to the dashboard -> Account Settings -> Create Personal Access Token</Info>
+
+## Deploy from Github Actions
+
+If you prefer to deploy from GitHub actions we support a few GitHub actions you can use to build your own workflows. We also have an already-made workflow you can leverage and there is a hello-world application you can check for a more thorough example and a step-by-step demo:
+
+1. [Github actions](https://github.com/marketplace?type=actions&query=nhost+)
+2. [Workflows](https://github.com/nhost-actions/workflows#build-and-release-nhost-runyaml)
+3. [Hello World](https://github.com/nhost/nhost-run-hello-world)
+

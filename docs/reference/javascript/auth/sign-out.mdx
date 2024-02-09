@@ -1,0 +1,32 @@
+---
+title: signOut()
+sidebarTitle: signOut()
+---
+
+Use `nhost.auth.signOut` to sign out the user.
+
+```ts
+nhost.auth.signOut()
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">params</span>** <span className="optional-status">optional</span> <code>&#123; all: boolean &#125;</code>
+
+---
+
+## Examples
+
+### Sign out the user from current device
+
+```ts
+nhost.auth.signOut()
+```
+
+### Sign out the user from all devices
+
+```ts
+nhost.auth.signOut({ all: true })
+```

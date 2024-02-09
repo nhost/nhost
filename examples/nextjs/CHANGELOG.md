@@ -1,5 +1,27 @@
 # @nhost-examples/nextjs
 
+## 0.1.14
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+- Updated dependencies [1a61c65]
+- Updated dependencies [b19ffed]
+- Updated dependencies [e5bab6a]
+  - @nhost/react@3.1.0
+  - @nhost/nextjs@2.1.0
+  - @nhost/react-apollo@8.0.0
+
+## 0.1.13
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- Updated dependencies [8d91f71]
+  - @nhost/react-apollo@7.0.2
+  - @nhost/nextjs@2.0.2
+  - @nhost/react@3.0.2
+
 ## 0.1.12
 
 ### Patch Changes

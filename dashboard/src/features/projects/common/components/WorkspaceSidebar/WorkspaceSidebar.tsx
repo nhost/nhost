@@ -48,14 +48,14 @@ export default function WorkspaceSidebar({
           <List className="grid grid-flow-row gap-2">
             {workspaces.map(({ id, name, slug }) => (
               <ListItem.Root key={id}>
-                <NavLink href={`/${slug}`} passHref>
+                <NavLink href={`/${slug}`} passHref className='w-full' legacyBehavior>
                   <ListItem.Button
                     dense
                     aria-label={`View ${name}`}
                     className="!p-1"
                   >
-                    <ListItem.Avatar className="h-8 w-8">
-                      <div className="inline-block h-8 w-8 overflow-hidden rounded-lg">
+                    <ListItem.Avatar className="w-8 h-8">
+                      <div className="inline-block w-8 h-8 overflow-hidden rounded-lg">
                         <Image
                           src="/logos/new.svg"
                           alt="Nhost Logo"
@@ -107,7 +107,7 @@ export default function WorkspaceSidebar({
         <div className="grid grid-flow-row gap-2">
           <Resource
             text="Documentation"
-            logo="Question"
+            logo="Note"
             link="https://docs.nhost.io"
           />
           <Resource
@@ -129,9 +129,9 @@ export default function WorkspaceSidebar({
           passHref
           target="_blank"
           rel="noreferrer noopener"
-        >
+          legacyBehavior>
           <Button
-            className="grid grid-flow-col gap-1"
+            className="grid w-full grid-flow-col gap-1"
             variant="outlined"
             color="secondary"
             startIcon={<GitHubIcon />}
@@ -145,9 +145,9 @@ export default function WorkspaceSidebar({
           passHref
           target="_blank"
           rel="noreferrer noopener"
-        >
+          legacyBehavior>
           <Button
-            className="grid grid-flow-col gap-1"
+            className="grid w-full grid-flow-col gap-1"
             variant="outlined"
             color="secondary"
             aria-labelledby="discord-button-label"

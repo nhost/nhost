@@ -6,31 +6,31 @@ settings:
 
 dependencies:
   graphql:
-    specifier: ^16.7.1
-    version: 16.8.0
+    specifier: 16.8.1
+    version: 16.8.1
 
 devDependencies:
   '@nhost/nhost-js':
     specifier: 2.2.18
-    version: 2.2.18(graphql@16.8.0)
+    version: 2.2.18(graphql@16.8.1)
 
 packages:
 
-  /@graphql-typed-document-node/core@3.2.0(graphql@16.8.0):
+  /@graphql-typed-document-node/core@3.2.0(graphql@16.8.1):
     resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
     peerDependencies:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
     dependencies:
-      graphql: 16.8.0
+      graphql: 16.8.1
     dev: true
 
-  /@nhost/graphql-js@0.1.4(graphql@16.8.0):
+  /@nhost/graphql-js@0.1.4(graphql@16.8.1):
     resolution: {integrity: sha512-IPHuGOf4iQrFsxG7Rh5jCCZzPCN9JkvldFww4Fz1lCVi9ZQNEaGaawIP5gBuBHeYIuALeaK1wVYKPc7vJ/euCA==}
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.0)
-      graphql: 16.8.0
+      '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
+      graphql: 16.8.1
       isomorphic-unfetch: 3.1.0
     transitivePeerDependencies:
       - encoding
@@ -58,15 +58,15 @@ packages:
       - encoding
     dev: true
 
-  /@nhost/nhost-js@2.2.18(graphql@16.8.0):
+  /@nhost/nhost-js@2.2.18(graphql@16.8.1):
     resolution: {integrity: sha512-aHn6p75fuG7SEUyB/yfX5TXtVTqwCT88zdN9Mmgo/8hnFOGV1XM7B4fxuGpNQCz18tG6kjM24tWx8EGXAEZ1sw==}
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
-      '@nhost/graphql-js': 0.1.4(graphql@16.8.0)
+      '@nhost/graphql-js': 0.1.4(graphql@16.8.1)
       '@nhost/hasura-auth-js': 2.1.9
       '@nhost/hasura-storage-js': 2.2.5
-      graphql: 16.8.0
+      graphql: 16.8.1
       isomorphic-unfetch: 3.1.0
     transitivePeerDependencies:
       - encoding
@@ -109,8 +109,8 @@ packages:
       mime-types: 2.1.35
     dev: true
 
-  /graphql@16.8.0:
-    resolution: {integrity: sha512-0oKGaR+y3qcS5mCu1vb7KG+a89vjn06C7Ihq/dDl3jA+A8B3TKomvi3CiEcVLJQGalbu8F52LxkOym7U5sSfbg==}
+  /graphql@16.8.1:
+    resolution: {integrity: sha512-59LZHPdGZVh695Ud9lRzPBVTtlX9ZCV150Er2W43ro37wVof0ctenSaskPPjN7lVTIN8mSZt8PHUNKZuNQUuxw==}
     engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
 
   /isomorphic-unfetch@3.1.0:

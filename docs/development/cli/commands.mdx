@@ -1,0 +1,162 @@
+---
+title: Commands
+description: Available commands to run and manage local Nhost projects
+icon: rectangle-code
+---
+
+## `nhost init`
+
+Initializes current directory with a new project containing configuration and objects necessary to run Nhost locally. 
+
+<Accordion title="Output">
+
+  Initializing Nhost project
+
+  Successfully initialized Nhost project, run `nhost up` to start development
+</Accordion>
+
+### Flags 
+
+`--remote` optional `false` <br />
+Pulls state from a remote Nhost instance.
+
+
+## `nhost up`
+
+Starts Nhost for development and testing purposes. Requires scaffolding from `nhost init`.
+
+<Accordion title="Output">
+
+```
+Nhost development environment started.
+URLs:
+- Postgres:             postgres://postgres:postgres@localhost:5432/local
+- Hasura:               https://local.hasura.nhost.run
+- GraphQL:              https://local.graphql.nhost.run
+- Auth:                 https://local.auth.nhost.run
+- Storage:              https://local.storage.nhost.run
+- Functions:            https://local.functions.nhost.run
+- Dashboard:            https://local.dashboard.nhost.run
+- Mailhog:              https://local.mailhog.nhost.run
+
+SDK Configuration:
+ Subdomain:             local
+ Region:                (empty)
+
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
+```
+
+</Accordion>
+
+
+
+
+## `nhost down`
+
+Stops all services and deletes all containers.
+
+### Flags 
+
+`--volumes` optional `false` <br />
+Remove volumes.
+
+
+## `nhost login`
+
+Login to an Nhost account to perform authenticated operations.
+
+<Accordion title="Output">
+- email: user@domain.com
+- password: 
+
+Authenticating <br />
+Successfully logged in, creating PAT <br />
+Successfully created PAT <br />
+Storing PAT for future user
+
+</Accordion>
+
+### Flags 
+
+`--email` optional <br />
+Email adress.
+
+`--password` optional <br />
+Password.
+
+`--pat` optional <br />
+Use this Personal Access Token instead of generating a new one with email/password.
+
+## `nhost logs`
+
+Render all logs.
+
+<Accordion title="Output">
+```
+app-auth-1       | {"level":"info","message":"Applying SQL migrations..."}
+app-auth-1       | {"level":"info","message":"SQL migrations applied"}
+app-auth-1       | {"level":"info","message":"Applying metadata..."}
+app-auth-1       | {"level":"info","message":"Metadata applied"}
+app-auth-1       | {"level":"info","message":"Running on port 4000"}
+```
+
+</Accordion>
+
+### Flags 
+
+`--follow` optional <br />
+Follow (or tail) log output.
+
+`--no-color` optional <br />
+Produce monochrome output.
+
+`--no-log-prefix` optional <br />
+Don't print prefix in logs.
+
+`--since` optional <br />
+Show logs since timestamp (e.g. 2013-01-02T13:23:37Z) or relative (e.g. 42m for 42 minutes)
+
+`--tail` optional `all`<br />
+Number of lines to show from the end of the logs for each service
+
+`--timestamps` optional <br />
+Show timestamps
+
+`--until` optional <br />
+Show logs before a timestamp
+
+## `nhost list`
+
+List all remote Nhost projects this user has access to.
+
+<Accordion title="Output">
+
+```
+ #  │ Subdomain            │ Project                         │ Workspace        │ Region         │
+ 1  │ dahvgwlspuridghplrso │ nbp                             │ Nuno's Workspace │ eu-central-1   │
+ 2  │ mhmvhergiiycqfvhisan │ Bun Generator                   │ Nhost Examples   │ eu-central-1   │
+ 4  │ qaxzubvwbuhzgxswghug │ Next.js Stripe Starter Template │ Nhost Examples   │ eu-central-1   │
+ 5  │ cuzwcdqwgmhbxqetfbci │ Nhost Netlify Starter Template  │ Nhost Examples   │ us-east-1      │
+ 6  │ jsjiiuwiuqdvvwgwhxnx │ quickstarts                     │ Nhost Examples   │ eu-central-1   │
+ 7  │ vvhjnsgebtspueuuxnvp │ React Apollo                    │ Nhost Examples   │ eu-central-1   │
+ 9  │ vue-quickstart       │ vue-quickstart                  │ Nhost Examples   │ eu-central-1   │
+ 11 │ odqlmnqxospbvqvphuyl │ monitoring-app-frankfurt        │ monitoring       │ eu-central-1   │
+ 12 │ xmhqdbhkvskuubnelgkc │ monitoring-app-london           │ monitoring       │ eu-west-2      │
+ 13 │ jjetetkbmovfgyewremk │ monitoring-app-mumbai           │ monitoring       │ ap-south-1     │
+```
+</Accordion>
+
+## `nhost secrets`
+
+Manage secrets in the Nhost cloud.
+
+### `nhost secrets create`
+
+#### Flags
+
+<Accordion title="Output">
+
+</Accordion>
+

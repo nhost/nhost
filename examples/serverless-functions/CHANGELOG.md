@@ -1,5 +1,21 @@
 # @nhost-examples/serverless-functions
 
+## 0.0.11
+
+### Patch Changes
+
+- 8c34c69: chore: update nodemailer version to `6.9.9`
+- Updated dependencies [e5bab6a]
+  - @nhost/stripe-graphql-js@1.0.7
+
+## 0.0.10
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- Updated dependencies [8d91f71]
+  - @nhost/stripe-graphql-js@1.0.6
+
 ## 0.0.9
 
 ### Patch Changes

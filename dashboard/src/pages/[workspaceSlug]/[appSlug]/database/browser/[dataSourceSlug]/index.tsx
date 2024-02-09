@@ -1,4 +1,3 @@
-import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { DataBrowserEmptyState } from '@/features/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserLayout } from '@/features/database/dataGrid/components/DataBrowserLayout';
@@ -38,7 +37,6 @@ DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
 ) {
   return (
     <DataBrowserLayout>
-      <DepricationNotice />
       {page}
     </DataBrowserLayout>
   );

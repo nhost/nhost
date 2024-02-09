@@ -4,6 +4,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import '@/styles/fonts.css';
+import '@/styles/github-dark.css';
 import '@/styles/globals.css';
 import '@/styles/graphiql.min.css';
 import '@/styles/style.css';
@@ -30,6 +31,7 @@ import Script from 'next/script';
 import type { ReactElement } from 'react';
 import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
+import { RecoilRoot } from 'recoil';
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
@@ -104,9 +106,11 @@ function MyApp({
                 colorPreferenceStorageKey={COLOR_PREFERENCE_STORAGE_KEY}
               >
                 <RetryableErrorBoundary>
-                  <DialogProvider>
-                    {getLayout(<Component {...pageProps} />)}
-                  </DialogProvider>
+                  <RecoilRoot>
+                    <DialogProvider>
+                      {getLayout(<Component {...pageProps} />)}
+                    </DialogProvider>
+                  </RecoilRoot>
                 </RetryableErrorBoundary>
               </ThemeProvider>
             </UIProvider>

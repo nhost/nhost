@@ -8,5 +8,22 @@ mutation UpdateConfig($appId: uuid!, $config: ConfigConfigUpdateInput!) {
         }
       }
     }
+    ai {
+      version
+      webhookSecret
+      autoEmbeddings {
+        synchPeriodMinutes
+      }
+      openai {
+        organization
+        apiKey
+      }
+      resources {
+        compute {
+          cpu
+          memory
+        }
+      }
+    }
   }
 }

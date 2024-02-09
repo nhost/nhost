@@ -1,0 +1,7 @@
+mutation updateAssistant($id: String!, $data: graphiteAssistantInput!) {
+  graphite {
+    updateAssistant(assistantID: $id, object: $data) {
+      assistantID
+    }
+  }
+}

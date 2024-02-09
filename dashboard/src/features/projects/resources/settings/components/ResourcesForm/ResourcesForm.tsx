@@ -18,8 +18,7 @@ import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
 } from '@/utils/constants/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import type { GetResourcesQuery } from '@/utils/__generated__/graphql';
 import {
   GetResourcesDocument,
@@ -28,7 +27,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 import ResourcesFormFooter from './ResourcesFormFooter';
 
@@ -216,16 +214,16 @@ export default function ResourcesForm() {
     });
 
     try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: 'Updating resources...',
-          success: 'Resources have been updated successfully.',
-          error: getServerError(
-            'An error occurred while updating resources. Please try again.',
-          ),
+      await execPromiseWithErrorToast(
+        async () => {
+          await updateConfigPromise;
         },
-        getToastStyleProps(),
+        {
+          loadingMessage: 'Updating resources...',
+          successMessage: 'Resources have been updated successfully.',
+          errorMessage:
+            'An error occurred while updating resources. Please try again.',
+        },
       );
 
       if (!formValues.enabled) {

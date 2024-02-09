@@ -4,9 +4,17 @@ import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface ContactUsProps
-  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {}
+  extends DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement> {
+  isTeam?: boolean;
+  isOwner?: boolean;
+}
 
-export default function FeedbackForm({ className, ...props }: ContactUsProps) {
+export default function FeedbackForm({
+  className,
+  isTeam,
+  isOwner,
+  ...props
+}: ContactUsProps) {
   return (
     <div
       className={twMerge(
@@ -18,6 +26,30 @@ export default function FeedbackForm({ className, ...props }: ContactUsProps) {
       <Text variant="h3" component="h2">
         Contact us
       </Text>
+
+      {isTeam && isOwner && (
+        <Text>
+          If this is a new Team project, or you need to manage members, reach
+          out to us on discord or via email at{' '}
+          <Link
+            href="mailto:support@nhost.io"
+            target="_blank"
+            rel="noopener noreferrer"
+            underline="hover"
+          >
+            support@nhost.io
+          </Link>{' '}
+          so we can have your dedicated channel set up.
+        </Text>
+      )}
+
+      {isTeam && !isOwner && (
+        <Text>
+          As part of a team plan you can reach out to us on the private channel
+          for this workspace. If you haven&apos;t been added to the channel, ask
+          the workspace owner to add you.
+        </Text>
+      )}
 
       <Text>
         To report issues with Nhost, please open a GitHub issue in the{' '}

@@ -1,5 +1,17 @@
 # @nhost/google-translation
 
+## 0.0.8
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+
+## 0.0.7
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+
 ## 0.0.6
 
 ### Patch Changes

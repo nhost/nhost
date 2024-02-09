@@ -8,7 +8,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSmtpSettingsDocument,
   useGetSmtpSettingsQuery,
@@ -17,7 +17,6 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import type { ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import type { Optional } from 'utility-types';
 import * as yup from 'yup';
 
@@ -127,22 +126,17 @@ export default function SMTPSettingsPage() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `SMTP settings are being updated...`,
-          success: `SMTP settings have been updated successfully.`,
-          error: (arg: Error) =>
-            arg?.message
-              ? `Error: ${arg.message}`
-              : `An error occurred while trying to update the SMTP settings.`,
-        },
-        getToastStyleProps(),
-      );
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+      },
+      {
+        loadingMessage: 'SMTP settings are being updated...',
+        successMessage: 'SMTP settings have been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update the SMTP settings.',
+      },
+    );
   };
 
   return (

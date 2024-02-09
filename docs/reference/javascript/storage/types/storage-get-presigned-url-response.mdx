@@ -1,0 +1,13 @@
+---
+title: StorageGetPresignedUrlResponse
+sidebarTitle: StorageGetPresignedUrlResponse
+description: No description provided.
+---
+
+# `StorageGetPresignedUrlResponse`
+
+```ts
+type StorageGetPresignedUrlResponse =
+  | { presignedUrl: { url: string; expiration: number }; error: null }
+  | { presignedUrl: null; error: Error }
+```

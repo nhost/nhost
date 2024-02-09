@@ -1,0 +1,29 @@
+---
+title: MultipleFilesHandlerResult
+sidebarTitle: MultipleFilesHandlerResult
+description: No description provided.
+---
+
+# `MultipleFilesHandlerResult`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">files</span>** <span className="optional-status">required</span> <code>Array&lt;ActorRefWithDeprecatedState&lt;FileUploadContext, &#123; type: "ADD", file: File, id: string, bucketId: string, name: string &#125; &#124; &#123; type: "UPLOAD", file: File, id: string, name: string, bucketId: string &#125; &amp; FileUploadConfig &#124; &#123; type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number &#125; &#124; &#123; type: "UPLOAD_DONE", id: string, bucketId: string &#125; &#124; &#123; type: "UPLOAD_ERROR", error: StorageErrorPayload &#125; &#124; &#123; type: "CANCEL" &#125; &#124; &#123; type: "DESTROY" &#125;, &#123; value: any, context: FileUploadContext &#125;, ResolveTypegenMeta&lt;Typegen0, &#123; type: "ADD", file: File, id: string, bucketId: string, name: string &#125; &#124; &#123; type: "UPLOAD", file: File, id: string, name: string, bucketId: string &#125; &amp; FileUploadConfig &#124; &#123; type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number &#125; &#124; &#123; type: "UPLOAD_DONE", id: string, bucketId: string &#125; &#124; &#123; type: "UPLOAD_ERROR", error: StorageErrorPayload &#125; &#124; &#123; type: "CANCEL" &#125; &#124; &#123; type: "DESTROY" &#125;, BaseActionObject, ServiceMap&gt;&gt;&gt;</code>
+
+The list of file uploads. The properties can be accessed through `item.getSnapshot()` of with the `useFileUploadItem` hook.
+
+---
+
+**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+Returns `true` when all upload request are processed, but at least one of them has failed.
+
+---
+
+**<span className="parameter-name">errors</span>** <span className="optional-status">required</span> <code>Array&lt;ActorRefWithDeprecatedState&lt;FileUploadContext, &#123; type: "ADD", file: File, id: string, bucketId: string, name: string &#125; &#124; &#123; type: "UPLOAD", file: File, id: string, name: string, bucketId: string &#125; &amp; FileUploadConfig &#124; &#123; type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number &#125; &#124; &#123; type: "UPLOAD_DONE", id: string, bucketId: string &#125; &#124; &#123; type: "UPLOAD_ERROR", error: StorageErrorPayload &#125; &#124; &#123; type: "CANCEL" &#125; &#124; &#123; type: "DESTROY" &#125;, &#123; value: any, context: FileUploadContext &#125;, ResolveTypegenMeta&lt;Typegen0, &#123; type: "ADD", file: File, id: string, bucketId: string, name: string &#125; &#124; &#123; type: "UPLOAD", file: File, id: string, name: string, bucketId: string &#125; &amp; FileUploadConfig &#124; &#123; type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number &#125; &#124; &#123; type: "UPLOAD_DONE", id: string, bucketId: string &#125; &#124; &#123; type: "UPLOAD_ERROR", error: StorageErrorPayload &#125; &#124; &#123; type: "CANCEL" &#125; &#124; &#123; type: "DESTROY" &#125;, BaseActionObject, ServiceMap&gt;&gt;&gt;</code>
+
+Returns the list of file uploads that have failed
+
+---

@@ -1,12 +1,10 @@
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useChangePassword } from '@nhost/nextjs';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -38,25 +36,19 @@ export default function PasswordSettings() {
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
   async function handleSubmit(formValues: PasswordSettingsFormValues) {
-    try {
-      const changePasswordPromise = changePassword(formValues.newPassword);
-
-      await toast.promise(
-        changePasswordPromise,
-        {
-          loading: 'Changing password...',
-          success: 'The password has been changed successfully.',
-          error: getServerError(
-            'An error occurred while trying to update the password. Please try again.',
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset();
-    } catch {
-      // Note: The error is handled by the toast.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        // TODO fix changePassword should throw an error if something happens
+        await changePassword(formValues.newPassword);
+        form.reset();
+      },
+      {
+        loadingMessage: 'Changing password...',
+        successMessage: 'The password has been changed successfully.',
+        errorMessage:
+          'An error occurred while trying to update the password. Please try again.',
+      },
+    );
   }
 
   return (

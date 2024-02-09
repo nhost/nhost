@@ -8,11 +8,9 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -73,23 +71,19 @@ export default function AnonymousSignInSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Anonymous sign-in settings are being updated...`,
-          success: `Anonymous sign-in settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update Anonymous sign-in settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(values);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(values);
+      },
+      {
+        loadingMessage: 'Anonymous sign-in settings are being updated...',
+        successMessage:
+          'Anonymous sign-in settings have been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update Anonymous sign-in settings.',
+      },
+    );
   };
 
   return (

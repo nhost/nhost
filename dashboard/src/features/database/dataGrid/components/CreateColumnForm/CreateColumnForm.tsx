@@ -14,6 +14,7 @@ import { triggerToast } from '@/utils/toast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import { FormProvider, useForm } from 'react-hook-form';
+import type * as Yup from 'yup';
 
 export interface CreateColumnFormProps
   extends Pick<BaseColumnFormProps, 'onCancel' | 'location'> {
@@ -50,7 +51,9 @@ export default function CreateColumnForm({
     resetForeignKeyError();
   }
 
-  const form = useForm<BaseColumnFormValues>({
+  const form = useForm<
+    BaseColumnFormValues | Yup.InferType<typeof baseColumnValidationSchema>
+  >({
     defaultValues: {
       name: '',
       type: null,

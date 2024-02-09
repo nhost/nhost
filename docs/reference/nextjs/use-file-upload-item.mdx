@@ -1,0 +1,38 @@
+---
+title: useFileUploadItem()
+sidebarTitle: useFileUploadItem()
+---
+
+Use the hook `useFileUploadItem` to control the file upload of a file in a multiple file upload.
+
+It has the same signature as `useFileUpload`.
+
+```tsx
+const Item = ({ itemRef }) => {
+  const { name, progress } = useFileUploadItem(itemRef)
+  return (
+    <li>
+      {name} {progress}
+    </li>
+  )
+}
+
+const List = () => {
+  const { list } = useMultipleFilesUpload()
+  return (
+    <ul>
+      {list.map((itemRef) => (
+        <Item key={item.id} itemRef={item} />
+      ))}
+    </ul>
+  )
+}
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">ref</span>** <span className="optional-status">required</span> <code>ActorRefWithDeprecatedState&lt;FileUploadContext, &#123; type: "ADD", file: File, id: string, bucketId: string, name: string &#125; &#124; &#123; type: "UPLOAD", file: File, id: string, name: string, bucketId: string &#125; &amp; FileUploadConfig &#124; &#123; type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number &#125; &#124; &#123; type: "UPLOAD_DONE", id: string, bucketId: string &#125; &#124; &#123; type: "UPLOAD_ERROR", error: StorageErrorPayload &#125; &#124; &#123; type: "CANCEL" &#125; &#124; &#123; type: "DESTROY" &#125;, &#123; value: any, context: FileUploadContext &#125;, ResolveTypegenMeta&lt;Typegen0, &#123; type: "ADD", file: File, id: string, bucketId: string, name: string &#125; &#124; &#123; type: "UPLOAD", file: File, id: string, name: string, bucketId: string &#125; &amp; FileUploadConfig &#124; &#123; type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number &#125; &#124; &#123; type: "UPLOAD_DONE", id: string, bucketId: string &#125; &#124; &#123; type: "UPLOAD_ERROR", error: StorageErrorPayload &#125; &#124; &#123; type: "CANCEL" &#125; &#124; &#123; type: "DESTROY" &#125;, BaseActionObject, ServiceMap&gt;&gt; &#124; Interpreter&lt;FileUploadContext, any, &#123; type: "ADD", file: File, id: string, bucketId: string, name: string &#125; &#124; &#123; type: "UPLOAD", file: File, id: string, name: string, bucketId: string &#125; &amp; FileUploadConfig &#124; &#123; type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number &#125; &#124; &#123; type: "UPLOAD_DONE", id: string, bucketId: string &#125; &#124; &#123; type: "UPLOAD_ERROR", error: StorageErrorPayload &#125; &#124; &#123; type: "CANCEL" &#125; &#124; &#123; type: "DESTROY" &#125;, &#123; value: any, context: FileUploadContext &#125;, ResolveTypegenMeta&lt;Typegen0, &#123; type: "ADD", file: File, id: string, bucketId: string, name: string &#125; &#124; &#123; type: "UPLOAD", file: File, id: string, name: string, bucketId: string &#125; &amp; FileUploadConfig &#124; &#123; type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number &#125; &#124; &#123; type: "UPLOAD_DONE", id: string, bucketId: string &#125; &#124; &#123; type: "UPLOAD_ERROR", error: StorageErrorPayload &#125; &#124; &#123; type: "CANCEL" &#125; &#124; &#123; type: "DESTROY" &#125;, BaseActionObject, ServiceMap&gt;&gt;</code>
+
+---

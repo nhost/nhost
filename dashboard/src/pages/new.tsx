@@ -11,14 +11,13 @@ import { Option } from '@/components/ui/v2/Option';
 import { Radio } from '@/components/ui/v2/Radio';
 import { RadioGroup } from '@/components/ui/v2/RadioGroup';
 import { Select } from '@/components/ui/v2/Select';
-import type { TextProps } from '@/components/ui/v2/Text';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { planDescriptions } from '@/features/projects/common/utils/planDescriptions';
 import { BillingPaymentMethodForm } from '@/features/projects/workspaces/components/BillingPaymentMethodForm';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 import type {
   PrefetchNewAppPlansFragment,
@@ -31,13 +30,12 @@ import {
   useInsertApplicationMutation,
   usePrefetchNewAppQuery,
 } from '@/utils/__generated__/graphql';
-import type { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { FormEvent, ReactElement } from 'react';
-import { cloneElement, isValidElement, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { useState } from 'react';
 import slugify from 'slugify';
 import { twMerge } from 'tailwind-merge';
 
@@ -135,9 +133,9 @@ export function NewProjectPageContent({
 
     const slug = slugify(name, { lower: true, strict: true });
 
-    try {
-      await toast.promise(
-        insertApp({
+    await execPromiseWithErrorToast(
+      async () => {
+        await insertApp({
           variables: {
             app: {
               name,
@@ -147,34 +145,23 @@ export function NewProjectPageContent({
               regionId: selectedRegion.id,
             },
           },
-        }),
-        {
-          loading: 'Creating the project...',
-          success: 'The project has been created successfully.',
-          error: (arg: ApolloError) => {
-            // we need to get the internal error message from the GraphQL error
-            const { internal } = arg.graphQLErrors[0]?.extensions || {};
-            const { message } = (internal as Record<string, any>)?.error || {};
+        });
 
-            // we use the default Apollo error message if we can't find the
-            // internal error message
-            return (
-              message ||
-              arg.message ||
-              'An error occurred while creating the project. Please try again.'
-            );
-          },
+        await router.push(`/${selectedWorkspace.slug}/${slug}`);
+      },
+      {
+        loadingMessage: 'Creating the project...',
+        successMessage: 'The project has been created successfully.',
+        errorMessage:
+          'An error occurred while creating the project. Please try again.',
+        onError: () => {
+          setSubmitState({
+            error: null,
+            loading: false,
+          });
         },
-        getToastStyleProps(),
-      );
-
-      await router.push(`/${selectedWorkspace.slug}/${slug}`);
-    } catch (error) {
-      setSubmitState({
-        error: null,
-        loading: false,
-      });
-    }
+      },
+    );
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -320,22 +307,22 @@ export function NewProjectPageContent({
                 });
               }}
               value={selectedRegion.id}
-              renderValue={(option) => {
-                const [flag, , country] = (option?.label as any[]) || [];
-
-                return (
-                  <span className="inline-grid grid-flow-col grid-rows-none items-center gap-x-2">
-                    {flag}
-
-                    {isValidElement<TextProps>(country)
-                      ? cloneElement(country, {
-                          ...country.props,
-                          variant: 'body1',
-                        })
-                      : null}
+              renderValue={() => (
+                <div className="relative grid grid-flow-col items-center justify-start gap-x-3">
+                  <span className="row-span-2 flex">
+                    <Image
+                      src={`/assets/flags/${selectedRegion.code}.svg`}
+                      alt={`${selectedRegion.name} country flag`}
+                      width={16}
+                      height={12}
+                    />
                   </span>
-                );
-              }}
+
+                  <Text variant="body1" className="row-span-1">
+                    {selectedRegion.name}
+                  </Text>
+                </div>
+              )}
             >
               {regionOptions.map((option) => (
                 <Option
@@ -365,7 +352,7 @@ export function NewProjectPageContent({
                   {option.disabled && (
                     <Text
                       variant="subtitle2"
-                      className="absolute top-1/2 right-4 -translate-y-1/2"
+                      className="absolute right-4 top-1/2 -translate-y-1/2"
                     >
                       Disabled
                     </Text>
@@ -444,6 +431,17 @@ export function NewProjectPageContent({
                     </Tooltip>
                   );
                 })}
+                <Text variant="subtitle2">
+                  Select a plan that suits your infrastructure needs.{' '}
+                  <Link
+                    href="https://nhost.io/pricing"
+                    className="underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Learn more
+                  </Link>
+                </Text>
               </RadioGroup>
             </div>
           </div>

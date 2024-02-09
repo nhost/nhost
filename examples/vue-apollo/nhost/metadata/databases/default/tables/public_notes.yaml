@@ -1,0 +1,58 @@
+table:
+  name: notes
+  schema: public
+configuration:
+  column_config: {}
+  custom_column_names: {}
+  custom_root_fields:
+    delete: deleteNotes
+    delete_by_pk: deleteNote
+    insert: insertNotes
+    insert_one: insertNote
+    select: notes
+    select_aggregate: notesAggregate
+    select_by_pk: note
+    update: updateNotes
+    update_by_pk: updateNote
+object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: x-hasura-auth-elevated
+      set:
+        user_id: x-hasura-User-Id
+      columns:
+        - content
+        - id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - content
+        - created_at
+        - id
+        - updated_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - content
+      filter:
+        user_id:
+          _eq: x-hasura-auth-elevated
+      check: {}
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: x-hasura-auth-elevated

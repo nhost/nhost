@@ -1,4 +1,3 @@
-import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import type { ProjectLayoutProps } from '@/components/layout/ProjectLayout';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import type { SettingsSidebarProps } from '@/components/layout/SettingsSidebar';
@@ -50,7 +49,6 @@ export default function SettingsLayout({
       >
         <RetryableErrorBoundary>
           <div className="flex flex-col space-y-2">
-            <DepricationNotice />
             {hasGitRepo && (
               <Alert
                 severity="warning"

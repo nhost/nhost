@@ -1,0 +1,19 @@
+---
+title: useMultipleFilesUpload()
+sidebarTitle: useMultipleFilesUpload()
+---
+
+Use the composable `useMultipleFilesUpload` to upload multiple files.
+
+```ts
+const { add, upload } = useMultipleFilesUpload()
+
+const addFiles = async (files) => {
+  add({ files })
+}
+
+const handleSubmit = async (e) => {
+  e.preventDefault()
+  await upload()
+}
+```

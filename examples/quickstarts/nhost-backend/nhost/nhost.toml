@@ -146,7 +146,7 @@ version = '14.6-20230406-2'
 [provider]
 
 [storage]
-version = '0.4.0'
+version = '0.5.1'
 
 [observability]
 [observability.grafana]

@@ -63,7 +63,7 @@ export default function IndexPage() {
             </Text>
 
             <div className="inline-block pt-10">
-              <NavLink href="/new" passHref>
+              <NavLink href="/new" passHref legacyBehavior>
                 <Button
                   sx={{
                     backgroundColor: (theme) =>

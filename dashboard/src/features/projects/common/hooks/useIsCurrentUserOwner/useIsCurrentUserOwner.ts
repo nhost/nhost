@@ -10,7 +10,7 @@ export default function useIsCurrentUserOwner() {
   const { currentWorkspace, loading } = useCurrentWorkspaceAndProject();
   const currentUser = useUserData();
 
-  if (loading || !currentWorkspace.workspaceMembers || !currentUser) {
+  if (loading || !currentWorkspace?.workspaceMembers || !currentUser) {
     return false;
   }
 

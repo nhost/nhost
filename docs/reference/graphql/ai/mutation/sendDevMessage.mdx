@@ -1,0 +1,131 @@
+---
+title: sendDevMessage
+---
+
+```graphql
+sendDevMessage {
+   sessionID: String!  message: String!  prevMessageID: String! 
+}: MessageResponse!
+```
+
+Send a message to a developer session.
+If prevMessageID is `""`, return all messages in the session.
+If prevMessageID is not `""`, return all messages after prevMessageID.
+
+## Permissions needed
+
+Only admins can send messages to developer sessions
+
+
+## Arguments
+
+
+
+    <ParamField body="sessionID" type="String!" required>
+    Session to send the message to
+    </ParamField>
+
+
+    <ParamField body="message" type="String!" required>
+    Message to send
+    </ParamField>
+
+
+    <ParamField body="prevMessageID" type="String!" required>
+    Only return messages after this message ID
+    </ParamField>
+
+
+
+## Response
+
+Type: `MessageResponse!`
+
+
+
+
+
+    
+    <ResponseField name="sessionID" type="String!">
+    ID of the session
+    </ResponseField>
+    
+    <ResponseField name="messages" type="[Message!]!">
+    Messages in this session
+    </ResponseField>
+    <Expandable title="properties">
+    
+    
+    <ResponseField name="id" type="String!">
+    ID of the message
+    </ResponseField>
+    
+    <ResponseField name="role" type="String!">
+    Role of the message. Either "user" or "assistant"
+    </ResponseField>
+    
+    <ResponseField name="message" type="String!">
+    Message content
+    </ResponseField>
+    
+    <ResponseField name="createdAt" type="timestampz!">
+    Timestamp of when the message was sent
+    </ResponseField>
+    
+    </Expandable>
+    
+    
+
+
+
+<RequestExample>
+```graphql query
+query sendDevMessage (
+  $sessionID: String!$message: String!$prevMessageID: String!
+) {
+  graphite {
+    sendDevMessage (
+      sessionID: $sessionIDmessage: $messageprevMessageID: $prevMessageID
+    ) {
+      sessionID
+      messages {
+        id
+        role
+        message
+        createdAt
+        }
+    }
+  }
+}
+```
+
+```json variables
+{
+  "message": "string",
+  "prevMessageID": "string",
+  "sessionID": "string"
+}
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "data": {
+    "graphite": {
+      "sendDevMessage": {
+        "messages": [
+          {
+            "createdAt": "2023-12-14T07:45:15.20353+00:00",
+            "id": "string",
+            "message": "string",
+            "role": "string"
+          }
+        ],
+        "sessionID": "string"
+      }
+    }
+  }
+}
+```
+</ResponseExample>

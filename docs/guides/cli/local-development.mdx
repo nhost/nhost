@@ -1,0 +1,204 @@
+---
+title: Local Development
+description: Learn how to start a development instance of Nhost 
+icon: code
+---
+
+Nhost's command-line interface (CLI) lets you run a complete Nhost development environment locally with the following services: PostgreSQL database, Hasura, Authentication, Storage (MinIO), Serverless Functions, and Emails (Mailhog).
+
+
+## Dependencies
+
+- [Git](https://git-scm.com/downloads)
+- [Docker](https://www.docker.com/get-started)
+
+## Login to Nhost
+
+```bash
+nhost login
+```
+
+<Info>If you used GitHub to register, you will have to first set a password in your [account page](https://app.nhost.io/account).</Info>
+
+
+## Initialize local project
+
+Let's start by creating a directory to hold your project.
+
+```bash
+mkdir my-project
+cd my-project
+```
+
+We can now initialize and create the necessary project configuration.
+
+```bash
+nhost init
+```
+
+`nhost init` creates all the configuration necessary for your project, including database migrations and Hasura metadata.
+
+
+We can now start your project with `nhost up`.
+
+```bash
+nhost up
+```
+
+Once all services are up and running, the following information is displayed for your project:
+
+```bash
+Nhost development environment started.
+
+URLs:
+- Postgres:             postgres://postgres:postgres@localhost:5432/local
+- Hasura:               https://local.hasura.nhost.run
+- GraphQL:              https://local.graphql.nhost.run
+- Auth:                 https://local.auth.nhost.run
+- Storage:              https://local.storage.nhost.run
+- Functions:            https://local.functions.nhost.run
+- Dashboard:            https://local.dashboard.nhost.run
+- Mailhog:              https://local.mailhog.nhost.run
+
+SDK Configuration:
+ Subdomain:             local
+ Region:                (empty)
+
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
+
+```
+
+You can use `nhost down` at any time to tear down your environment.
+
+### Access your project's services
+
+To test that the services are running, let's curl the Auth endpoint and get its version:
+
+```bash
+curl https://local.auth.nhost.run/v1/version
+
+{"version":"v0.20.1"}
+```
+
+Hurrah! Auth seems to be running on v0.20.1.
+
+We can also test that Postgres is running as expected by using `psql` (or your favourite Postgres client).
+
+```bash
+psql postgres://postgres:postgres@localhost:5432/local
+
+psql (14.8 (Ubuntu 14.8-0ubuntu0.22.04.1), server 14.6 (Debian 14.6-1.pgdg110+1))
+Type "help" for help.
+
+local=#
+```
+
+## Database Migrations and Metadata Changes
+
+All changes to your project should be tested locally first before deploying to your users. In this guide, we will be creating a database migration and setting permissions.
+
+### Migration
+
+Let's create a new table called `messages`, with the following columns:
+
+- id (UUID)
+- text (Text)
+- author_id (UUID)
+- created_at (Timestamp)
+
+There are other ways to generate a migration, here we will use the local Nhost Dashboard running on `https://local.dashboard.nhost.run/local/local`. Please head to the `database` tab and add the columns as follows:
+
+
+![Nhost Local Dashboard](/images/guides/cli/create-table-messages.png)
+
+To confirm that the migration was correctly generated with the correct SQL:
+
+```bash
+cat nhost/migrations/default/1685452095884_create_table_public_messages/up.sql
+
+CREATE TABLE public.messages (id uuid DEFAULT gen_random_uuid() NOT NULL, text text NOT NULL, author_id uuid NOT NULL, created_at timestamp DEFAULT now() NOT NULL, PRIMARY KEY (id));
+```
+
+Now is a good time to commit the new migration.
+
+```bash
+git add .
+git commit -m 'add database migration to create the table `messages`'
+```
+
+### Metadata
+
+Metadata is used to track the state of the API, permissions, event triggers, remote schemas, etc. In this guide, we will use permissions to show how metadata is tracked.
+
+Again on the `database` tab of the Nhost Dashboard, click on the 3 dots right next to the table name and choose "Edit Permissions" to open the permissions editor.
+
+![Permissions Editor](/images/guides/cli/matrix-permissions.png)
+
+Here we have access to a matrix of permissions for all available roles and actions. We want to set a permission to the `user` role and `insert` action as follows:
+
+![Permissions Editor](/images/guides/cli/insert-permissions.png)
+
+We defined a simple permission to allow a `user` to insert or create messages. We can look at the underlying metadata that tracks it.
+
+```bash
+cat nhost/metadata/databases/default/tables/public_messages.yaml
+
+table:
+  name: messages
+  schema: public
+insert_permissions:
+  - role: public
+    permission:
+      check:
+        author_id:
+          _eq: X-Hasura-User-Id
+      set:
+        author_id: X-Hasura-User-Id
+      columns:
+        - text
+```
+
+As before, we can now commit this change:
+
+```bash
+git add .
+git commit -m 'add permission for user insert messages'
+```
+
+## Deploy your Project to Nhost
+
+We've been developing your project locally, introducing changes via the Dashboard, which in turn creates the actual database migrations and metadata changes that can be properly versioned and tracked. It's time to deploy your project to the Nhost Platform using Git. If you haven't already, please head to [Nhost](https://app.nhost.io) and create a project to deploy to. You will also need to connect a GitHub repository to it for automatic deployments with Git.
+
+### Link your project
+
+It's time to link, or associate, your local project to the remote one:
+
+```bash
+nhost link
+
+    │                      │                                 │                  │              │
+ #  │ Subdomain            │ Project                         │ Workspace        │ Region       │
+ 1  │ kgrbyupffiamgqwnovkb │ local-development               │ Nhost            │ eu-central-1 │
+ 2  │ odtxlexktkcwdynjssqg │ nbp                             │ Nuno's Workspace │ eu-central-1 │
+    │                      │                                 │                  │              │
+- Select the workspace # to link: 1
+- Enter project subdomain to confirm: kgrbyupffiamgqwnovkb
+```
+
+You have now successfully linked your local project to a hosted project running on the Nhost Cloud.
+
+The final step is to push all changes to GitHub which will trigger a new deployment on Nhost.
+
+```bash
+git add -A
+git push -u origin main
+```
+
+To check out your deployment, head over to the **Deployments** tab (https://app.nhost.io).
+
+![Deployments](/images/guides/cli/deployments.png)
+
+You should now have the same `messages` table (and permissions) on your production instance!
+

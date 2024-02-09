@@ -1,0 +1,193 @@
+---
+title: Overview
+description: Learn how to use Nhost Storage
+icon: play
+---
+
+Nhost Storage lets your users upload and download files. Nhost Storage is partially integrated with the GraphQL API, where file metadata and permissions are managed. Files are stored in S3 and served via a CDN.
+
+## Files
+
+Files can be of any type, such as images, documents, videos, etc.
+
+File metadata is stored in your database in the `files` table in the `storage` schema. This means that file metadata is available in your GraphQL API, which makes it easy to:
+
+- Read file metadata via GraphQL.
+- Manage file permissions (in Hasura).
+- Create GraphQL relationships between files and your database tables.
+
+<Warning>
+Don't modify the database schema, nor GraphQL root fields in any of the tables in the `storage` schema.
+</Warning>
+
+<Tip>
+You're allowed to add and modify the following:
+
+- GraphQL Relationships
+- Permissions
+</Tip>
+
+### Upload File
+
+When a file is uploaded, the file metadata is inserted into the `storage.files` table and a file `id` is returned. The file's `id` is how you reference and access the file. It's recommended to create your own table to store the uploaded file `id`, to access the file in the future.
+
+<Tabs>
+  <Tab title="JavaScript">
+
+```js
+await nhost.storage.upload({ file })
+```
+
+Learn more about [`upload()`](/reference/javascript/storage/upload).
+
+  </Tab>
+  <Tab title="HTTP">
+
+```http
+POST https://local.storage.nhost.run/v1/files HTTP/1.1
+```
+
+  </Tab>
+</Tabs>
+
+### Download File
+
+There are two ways to download a file:
+
+- Public URL
+- Pre-signed URL
+
+#### Public URL
+
+Public URLs are available for both unauthenticated and authenticated users. Permissions are checked for every file request. To get a public URL for a file, you would normally use the `public` role to set **select** permissions.
+
+<Tabs>
+  <Tab title="JavaScript">
+
+```js
+await nhost.storage.getPublicUrl({
+  fileId: '<File-ID>'
+})
+```
+
+Learn more about [`getPublicUrl()`](/reference/javascript/storage/get-public-url).
+
+  </Tab>
+  <Tab title="HTTP">
+
+```http
+GET https://local.storage.nhost.run/v1/files/{file_id} HTTP/1.1
+```
+
+  </Tab>
+</Tabs>
+
+#### Pre-signed URL
+
+Pre-signed URLs work a bit differently from public URLs.
+
+The permission check only happens when the user requests a pre-signed URL. Once a pre-signed URL is generated, anyone with the URL can download the file.
+
+Pre-signed URLs expire after an expiration time. For files in the `default` bucket, the expiration time is 30 seconds. You can change the expiration time for pre-signed URLs by changing the `download_expiration` (in seconds) field for the bucket where the file is located.
+
+<Tabs>
+  <Tab title="JavaScript">
+
+```js
+await nhost.storage.getPresignedUrl({
+  fileId: '<File-ID>'
+})
+```
+
+Learn more about [`getPresignedUrl()`](/reference/javascript/storage/get-presigned-url).
+
+  </Tab>
+  <Tab title="HTTP">
+
+```http
+GET https://local.storage.nhost.run/v1/files/{file_id}/presignedurl HTTP/1.1
+```
+
+  </Tab>
+</Tabs>
+
+### Delete File
+
+Delete a file and the file metadata in the database.
+
+<Tabs>
+  <Tab title="JavaScript">
+
+```js
+const { error } = await nhost.storage.delete({ fileId: 'uuid' })
+```
+
+Learn more about [`delete()`](/reference/javascript/storage/delete).
+
+  </Tab>
+  <Tab title="HTTP">
+
+```http
+DELETE https://local.storage.nhost.run/v1/files/{file_id} HTTP/1.1
+```
+
+  </Tab>
+</Tabs>
+
+## Buckets
+
+Buckets are used to organize files and group permissions for files. Buckets are stored in the `storage.buckets` table in your database, and accessible via `buckets` in your GraphQL API.
+
+For each Bucket, you can specify file permissions for the following properties:
+
+- MIME type.
+- Minimum size in bytes.
+- Maximum size in bytes.
+- Cache control.
+- Allow pre-signed URLs.
+- Download expiration (for pre-signed URLs).
+
+There is a default Bucket (`default`) that is used if no Bucket is specified during file upload. It's not possible to delete the `default` Bucket.
+
+## Permissions
+
+Permissions to upload, download, and delete files are managed through Hasura's permission system on the `storage.files` table.
+
+### Upload
+
+To upload a file, a user must have the **`insert` permission** to the `storage.files` table. The `id` column must be granted.
+
+The following columns can be used for insert permissions:
+
+- `id`
+- `bucket_id`
+- `name`
+- `size`
+- `mime_type`
+
+### Download
+
+To download a file, a user must have the **`select` permission** to the `storage.files` table. **All** columns must be granted.
+
+### Delete
+
+To delete a file, a user must have the **`delete` permission** to the `storage.files` table.
+
+Updating an existing file is not supported. If you need to update a file, delete the file and upload a new file.
+
+Just deleting the file metadata in the `storage.files` table does **not** delete the actual file. Always delete files via Nhost Storage. This way, both the file metadata and the actual file are deleted.
+
+## Image Transformation
+
+Images can be transformed, on the fly, by adding query parameters. The following query parameters are available:
+
+- `w` - Width of the image in pixels.
+- `h` - Height of the image in pixels.
+
+Image Transformation works on both public and pre-signed URLs.
+
+**Example**: Transform an image to 500px width (`?w=500`):
+
+```text
+https://[subdomain].storage.[region].nhost.run/v1/files/08e6fa32-0880-4d0e-a832-278198acb363?w=500
+```

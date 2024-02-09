@@ -1,5 +1,126 @@
 # @nhost/dashboard
 
+## 1.6.6
+
+### Patch Changes
+
+- 3ba485e: fix: added discord.com to connect-src
+- e5bab6a: chore: update dependencies
+- Updated dependencies [b19ffed]
+- Updated dependencies [e5bab6a]
+  - @nhost/nextjs@2.1.0
+  - @nhost/react-apollo@8.0.0
+
+## 1.6.5
+
+### Patch Changes
+
+- ba73bb4: fix: update ErrorToast component to show the internal graphql error
+- d5337ff: fix: utilize accumulator in the creation of validation schema within data grid utils
+
+## 1.6.4
+
+### Patch Changes
+
+- 7c2a1c2: feat: show error and debug info in the error toast
+
+## 1.6.3
+
+### Patch Changes
+
+- 6b8aad5: fix: add bare nhost.run to CSP
+
+## 1.6.2
+
+### Patch Changes
+
+- b18edc0: feat: added CSP and X-Frame-Options
+
+## 1.6.1
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- 3b8473b: chore: update turbo to `1.11.3` and pnpm to `8.10.5` in Dockerfile
+- Updated dependencies [8d91f71]
+  - @nhost/react-apollo@7.0.2
+  - @nhost/nextjs@2.0.2
+
+## 1.6.0
+
+### Minor Changes
+
+- 3ff1c2b53: fix: show upgrade option for pro projects
+
+## 1.5.0
+
+### Minor Changes
+
+- c2ef17c0a: feat: add support for new Team plan
+
+## 1.4.0
+
+### Minor Changes
+
+- 7883bbcbd: feat: don't show deprecated plans
+- 44be6dc0a: feat: set redirectTo during sign-in to support preview environments
+
+### Patch Changes
+
+- 3c3594898: fix: allow access to graphite when configured running in local dashboard
+- 32c246b7a: chore: update docs icon
+
+## 1.3.2
+
+### Patch Changes
+
+- 174b4165b: chore: use env variables when running graphql codegen
+- 7c977e714: chore: change `Allowed Roles` to `Default Allowed Roles`
+- 46f028b9f: fix: remove hardcoded ai version setting
+
+## 1.3.1
+
+### Patch Changes
+
+- af33c21d1: chore: remove backendUrl deprecation notice and remove all references to `providersUpdated`
+
+## 1.3.0
+
+### Minor Changes
+
+- 04784d880: Fix graphite's default version
+
+## 1.2.0
+
+### Minor Changes
+
+- 5733162ed: feat: add settings and ui for graphite
+
+## 1.1.0
+
+### Minor Changes
+
+- e2b79b5ec: chore: remove sharp from deps
+
+## 1.0.1
+
+### Patch Changes
+
+- @nhost/react-apollo@7.0.1
+- @nhost/nextjs@2.0.1
+
+## 1.0.0
+
+### Major Changes
+
+- bc9eff6e4: chore: remove support for using backendUrl when instantiating the Nhost client
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/nextjs@2.0.0
+  - @nhost/react-apollo@7.0.0
+
 ## 0.21.1
 
 ### Patch Changes

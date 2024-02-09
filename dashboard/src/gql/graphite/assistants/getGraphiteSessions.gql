@@ -1,0 +1,7 @@
+query getGraphiteSessions {
+  graphite {
+    sessions {
+      sessionID
+    }
+  }
+}

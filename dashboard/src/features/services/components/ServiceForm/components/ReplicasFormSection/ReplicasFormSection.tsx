@@ -4,7 +4,7 @@ import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { MAX_SERVICE_REPLICAS } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import type { ServiceFormValues } from '@/features/services/components/ServiceForm';
+import type { ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 export default function ReplicasFormSection() {

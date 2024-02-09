@@ -1,0 +1,93 @@
+---
+title: Configuring Postgres
+description: Learn how to configure your Postgres server instance
+icon: gear
+---
+
+Postgres configuration can be tweaked to customize the **runtime behavior**, **peformance**, and **operational** aspects of your Postgres server instance.
+
+<Warning>
+  Making changes should be done with caution, especially in a production
+  environment, as incorrect settings can affect the stability and performance of
+  Postgres.
+</Warning>
+
+### Available Settings
+
+The following `CUE` schema contains all postgres settings available in `nhost.toml`.
+
+```cue schema
+#Postgres: {
+    version: string | *"14.6-20230705-1"
+
+    // Resources for the service, optional
+    resources?: #Resources & {
+        replicas: 1
+    }
+
+    // postgres settings of the same name in camelCase, optional
+    settings?: {
+        jit:                           "off"  | "on" | *"on"
+        maxConnections:                int32  | *100
+        sharedBuffers:                 string | *"128MB"
+        effectiveCacheSize:            string | *"4GB"
+        maintenanceWorkMem:            string | *"64MB"
+        checkpointCompletionTarget:    number | *0.9
+        walBuffers:                    int32  | *-1
+        defaultStatisticsTarget:       int32  | *100
+        randomPageCost:                number | *4.0
+        effectiveIOConcurrency:        int32  | *1
+        workMem:                       string | *"4MB"
+        hugePages:                     string | *"try"
+        minWalSize:                    string | *"80MB"
+        maxWalSize:                    string | *"1GB"
+        maxWorkerProcesses:            int32  | *8
+        maxParallelWorkersPerGather:   int32  | *2
+        maxParallelWorkers:            int32  | *8
+        maxParallelMaintenanceWorkers: int32  | *2
+        walLevel:                      string | *"replica"
+        maxWalSenders:                 int32 | *10
+        maxReplicationSlots:           int32 | *10
+    }
+}
+```
+
+### Configuration Example
+
+To configure your Postgres instance, simply add the relevant settings under `[postgres.settings]` in your project's `nhost.toml` file.
+
+```toml nhost.toml
+[postgres]
+version = '14.6-20230925-1'
+
+[postgres.resources.compute]
+cpu = 1000
+memory = 2048
+
+[postgres.settings]
+jit = "off"
+maxConnections = 100
+sharedBuffers = '256MB'
+effectiveCacheSize = '768MB'
+maintenanceWorkMem = '64MB'
+checkpointCompletionTarget = 0.9
+walBuffers = -1
+defaultStatisticsTarget = 100
+randomPageCost = 1.1
+effectiveIOConcurrency = 200
+workMem = '1310kB'
+hugePages = 'off'
+minWalSize = '80MB'
+maxWalSize = '1GB'
+maxWorkerProcesses = 8
+maxParallelWorkersPerGather = 2
+maxParallelWorkers = 8
+maxParallelMaintenanceWorkers = 2
+walLevel = "replica"
+maxWalSenders = 10
+maxReplicationSlots = 10
+```
+
+### Resources
+
+- [Official documentation](https://www.postgresql.org/docs/14/runtime-config.html) from Postgres

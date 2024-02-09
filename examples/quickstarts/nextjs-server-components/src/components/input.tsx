@@ -2,7 +2,7 @@
 
 import { DetailedHTMLProps, HTMLProps } from 'react'
 // @ts-ignore
-import { experimental_useFormStatus as useFormStatus } from 'react-dom'
+import { useFormStatus } from 'react-dom'
 
 export default function Input({
   id,
@@ -14,6 +14,8 @@ export default function Input({
   ...rest
 }: DetailedHTMLProps<HTMLProps<HTMLInputElement>, HTMLInputElement>) {
   const { pending } = useFormStatus()
+
+  const { children, ...restOfInputProps } = rest
 
   return (
     <div className={className}>
@@ -29,7 +31,7 @@ export default function Input({
         required={required}
         disabled={pending}
         className="block w-full p-3 border rounded-md border-slate-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-        {...rest}
+        {...restOfInputProps}
       />
     </div>
   )

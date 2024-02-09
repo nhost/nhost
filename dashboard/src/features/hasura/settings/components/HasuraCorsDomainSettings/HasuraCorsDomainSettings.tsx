@@ -9,11 +9,9 @@ import {
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
@@ -95,24 +93,18 @@ export default function HasuraCorsDomainSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `CORS domain settings are being updated...`,
-          success: `CORS domain settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update the project's CORS domain settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-      await refetchWorkspaceAndProject();
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+        await refetchWorkspaceAndProject();
+      },
+      {
+        loadingMessage: 'CORS domain settings are being updated...',
+        successMessage: 'CORS domain settings have been updated successfully.',
+        errorMessage: `An error occurred while trying to update the project's CORS domain settings.`,
+      },
+    );
   }
 
   return (

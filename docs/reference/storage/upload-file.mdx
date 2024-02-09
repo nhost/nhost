@@ -1,0 +1,180 @@
+---
+openapi: post /files/
+---
+
+
+<RequestExample>
+
+```bash Request
+curl --request POST \
+  --url https://local.storage.nhost.run/v1/files/ \
+  --header 'Authorization: <authorization>'	 \
+  --header 'Content-Type: multipart/form-data' \
+  --form 'file[]=@path-to-file'
+```
+
+```python Python
+import requests
+
+url = "https://local.storage.nhost.run/v1/files/"
+
+files = {
+    'file': ('<filename>', open('<path-to-file>', 'rb'))
+}
+headers = {
+    "Authorization": "<authorization>",
+}
+
+response = requests.post(url, files=files, headers=headers)
+
+print(response.text)
+```
+
+```js JavaScript
+const form = new FormData();
+form.append("bucket-id", "<string>");
+
+form.append("file[]", <file_object>);
+
+form.append("metadata[]", JSON.stringify({
+  "id": "<string>",
+  "metadata": {},
+  "name": "<string>"
+}));
+
+const options = {
+  method: 'POST',
+  headers: {
+    Authorization: '<authorization>'
+  },
+  body: form
+};
+
+fetch('https://local.storage.nhost.run/v1/files/', options)
+  .then(response => response.json())
+  .then(response => console.log(response))
+  .catch(err => console.error(err));
+```
+
+```php PHP
+<?php
+$curl = curl_init();
+
+$file_path = '<path_to_file>'; 
+
+$postfields = [
+  "bucket-id" => "<string>",
+  "file[]" => new CURLFile($file_path),
+  "metadata[]" => json_encode([
+      "id" => "<string>",
+      "metadata" => new stdClass(),
+      "name" => "<string>"
+  ])
+];
+
+curl_setopt_array($curl, [
+  CURLOPT_URL => "https://local.storage.nhost.run/v1/files/",
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => "",
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 30,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => "POST",
+  CURLOPT_POSTFIELDS => $postfields,
+  CURLOPT_HTTPHEADER => [
+    "Authorization: <authorization>"
+  ],
+]);
+
+$response = curl_exec($curl);
+$err = curl_error($curl);
+
+curl_close($curl);
+
+if ($err) {
+  echo "cURL Error #:" . $err;
+} else {
+  echo $response;
+}
+?>
+```
+
+```go Go
+package main
+
+import (
+	"bytes"
+	"fmt"
+	"mime/multipart"
+	"net/http"
+	"os"
+	"io/ioutil"
+)
+
+func main() {
+	url := "https://local.storage.nhost.run/v1/files/"
+
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	w.WriteField("bucket-id", "<string>")
+
+	fw, _ := w.CreateFormFile("file[]", "<filename>")
+
+	file, _ := os.Open("<path_to_file>")
+	defer file.Close()
+
+	_, _ = io.Copy(fw, file)
+
+	metadata := `{
+		"id": "<string>",
+		"metadata": {},
+		"name": "<string>"
+	}`
+	w.WriteField("metadata[]", metadata)
+	w.Close()
+
+	req, _ := http.NewRequest("POST", url, &b)
+
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	req.Header.Add("Authorization", "<authorization>")
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+
+	body, _ := ioutil.ReadAll(res.Body)
+
+	fmt.Println(res)
+	fmt.Println(string(body))
+}
+```
+
+```java Java
+import com.mashape.unirest.http.HttpResponse;
+import com.mashape.unirest.http.Unirest;
+import java.io.File;
+
+public class Main {
+    public static void main(String[] args) {
+        try {
+            File file = new File("<path_to_file>");
+
+            HttpResponse<String> response = Unirest.post("https://local.storage.nhost.run/v1/files/")
+                .header("Authorization", "<authorization>")
+                // Removed Content-Type header, Unirest handles it
+                .field("bucket-id", "<string>")
+                .field("file[]", file)
+                .field("metadata[]", "{\"id\": \"<string>\", \"metadata\": {}, \"name\": \"<string>\"}")
+                .asString();
+
+            System.out.println(response.getBody());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+</RequestExample>
+
+

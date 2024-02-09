@@ -40,6 +40,7 @@ export const mockRouter: NextRouter = {
     emit: vi.fn(),
   },
   isFallback: false,
+  forward: vi.fn(),
 };
 
 export const mockApplication: Project = {
@@ -59,7 +60,6 @@ export const mockApplication: Project = {
   deployments: [],
   desiredState: ApplicationStatus.Live,
   featureFlags: [],
-  providersUpdated: true,
   githubRepository: { fullName: 'test/git-project' },
   repositoryProductionBranch: null,
   nhostBaseFolder: null,

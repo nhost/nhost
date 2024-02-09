@@ -18,6 +18,8 @@ function codifyValue(value: string | number, wrap: boolean = true) {
     .replace(/&/gi, '&amp;')
     .replace(/</gi, '&lt;')
     .replace(/>/gi, '&gt;')
+    .replace(/{/gi, '&#123;')
+    .replace(/}/gi, '&#125;')
     .replace(/\|/gi, '&#124;')}</code>`
 }
 

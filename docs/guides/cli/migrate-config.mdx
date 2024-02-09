@@ -1,0 +1,98 @@
+---
+title: Migrate to Nhost Config
+description: Learn how to migrate old projects to use the new configuration file
+icon: arrow-down-to-bracket
+---
+
+If you want to migrate an existing project you need to:
+
+1. Go into your project's folder:
+
+```bash
+$ cd /path/to/existingproject
+```
+
+2. Login:
+
+```bash
+$ nhost login
+- email: david@nhost.io
+- password:
+Authenticating
+Successfully logged in, creating PAT
+Successfully created PAT
+Storing PAT for future user
+```
+
+3. Link your project:
+
+```bash
+$ nhost link
+
+   │                      │               │            │              │
+ # │ Subdomain            │ Project       │ Workspace  │ Region       │
+ 1 │ lrkadqfanxgmscttabiv │ demo          │ david-yirq │ eu-central-1 │
+   │                      │               │            │              │
+- Select # the workspace to link: 1
+- Enter project subdomain to confirm: lrkadqfanxgmscttabiv
+```
+
+4. Pull the configuration from the cloud:
+
+```bash
+$ nhost config pull
+
+- /path/to/existingproject/nhost/nhost.toml already exists. Do you want to overwrite it? [y/N] y
+- /path/to/existingproject/.secrets already exists. Do you want to overwrite it? [y/N] y
+Pulling config from Nhost...
+Getting secrets list from Nhost...
+Adding .secrets to .gitignore...
+Success!
+- Review `nhost/nhost.toml` and make sure there are no secrets before you commit it to git.
+- Review `.secrets` file and set your development secrets
+- Review `.secrets` was added to .gitignore
+```
+
+5. Follow the instructions on screen to ensure your configuration contains no secrets and you don't commit sensitive information to git.
+
+6. Profit:
+
+```bash
+$ nhost up
+
+Verifying configuration...
+Configuration is valid!
+Setting up Nhost development environment...
+Starting Nhost development environment...
+[+] Running 11/11
+ ✔ Network existingproject_default        Created                       0.0s
+ ✔ Container existingproject-minio-1      Healthy                      13.9s
+ ✔ Container existingproject-postgres-1   Healthy                      13.9s
+ ✔ Container existingproject-traefik-1    Healthy                      13.9s
+ ✔ Container existingproject-dashboard-1  Healthy                      13.9s
+ ✔ Container existingproject-mailhog-1    Healthy                      13.9s
+ ✔ Container existingproject-functions-1  Healthy                      13.9s
+ ✔ Container existingproject-graphql-1    Healthy                      13.8s
+ ✔ Container existingproject-console-1    Healthy                      18.8s
+ ✔ Container existingproject-storage-1    Healthy                      13.8s
+ ✔ Container existingproject-auth-1       Healthy                      18.8s
+Applying migrations...
+INFO nothing to apply on database: default
+Nhost development environment started.
+URLs:
+- Postgres:             postgres://postgres:postgres@localhost:5432/postgres
+- Hasura:               https://local.hasura.nhost.run
+- GraphQL:              https://local.graphql.nhost.run
+- Auth:                 https://local.auth.nhost.run
+- Storage:              https://local.storage.nhost.run
+- Functions:            https://local.functions.nhost.run
+- Dashboard:            https://local.dashboard.nhost.run
+- Mailhog:              https://local.mailhog.nhost.run
+SDK Configuration:
+ Subdomain:             local
+ Region:                (empty)
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
+```
+

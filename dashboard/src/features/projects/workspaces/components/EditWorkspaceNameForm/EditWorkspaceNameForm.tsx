@@ -3,8 +3,7 @@ import { Form } from '@/components/form/Form';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import type { DialogFormProps } from '@/types/common';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { slugifyString } from '@/utils/helpers';
 import {
   GetAllWorkspacesAndProjectsDocument,
@@ -16,7 +15,6 @@ import { useUserData } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 export interface EditWorkspaceNameFormProps extends DialogFormProps {
@@ -125,53 +123,52 @@ export default function EditWorkspaceNameForm({
           query: { ...router.query, updating: true },
         });
 
-        await toast.promise(
-          updateWorkspaceName({
-            variables: {
-              id: currentWorkspaceId,
-              workspace: {
-                name: newWorkspaceName,
-                slug,
-              },
-            },
-          }),
-          {
-            loading: 'Updating workspace name...',
-            success: 'Workspace name has been updated successfully.',
-            error: getServerError(
-              'An error occurred while updating the workspace name.',
-            ),
-          },
-          getToastStyleProps(),
-        );
-      } else {
-        await toast.promise(
-          insertWorkspace({
-            variables: {
-              workspace: {
-                name: newWorkspaceName,
-                companyName: newWorkspaceName,
-                email: currentUser.email,
-                slug,
-                workspaceMembers: {
-                  data: [
-                    {
-                      userId: currentUser.id,
-                      type: 'owner',
-                    },
-                  ],
+        await execPromiseWithErrorToast(
+          async () => {
+            await updateWorkspaceName({
+              variables: {
+                id: currentWorkspaceId,
+                workspace: {
+                  name: newWorkspaceName,
+                  slug,
                 },
               },
-            },
-          }),
-          {
-            loading: 'Creating new workspace...',
-            success: 'The new workspace has been created successfully.',
-            error: getServerError(
-              'An error occurred while creating the new workspace.',
-            ),
+            });
           },
-          getToastStyleProps(),
+          {
+            loadingMessage: 'Updating workspace name...',
+            successMessage: 'Workspace name has been updated successfully.',
+            errorMessage:
+              'An error occurred while updating the workspace name.',
+          },
+        );
+      } else {
+        await execPromiseWithErrorToast(
+          async () => {
+            await insertWorkspace({
+              variables: {
+                workspace: {
+                  name: newWorkspaceName,
+                  companyName: newWorkspaceName,
+                  email: currentUser.email,
+                  slug,
+                  workspaceMembers: {
+                    data: [
+                      {
+                        userId: currentUser.id,
+                        type: 'owner',
+                      },
+                    ],
+                  },
+                },
+              },
+            });
+          },
+          {
+            loadingMessage: 'Creating new workspace...',
+            successMessage: 'The new workspace has been created successfully.',
+            errorMessage: 'An error occurred while creating the new workspace.',
+          },
         );
       }
     } catch (error) {
@@ -206,7 +203,7 @@ export default function EditWorkspaceNameForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-auto flex-col content-between overflow-hidden pt-2 pb-6"
+        className="flex flex-auto flex-col content-between overflow-hidden pb-6 pt-2"
       >
         <div className="flex-auto overflow-y-auto px-6">
           <Input

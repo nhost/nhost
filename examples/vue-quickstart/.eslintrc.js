@@ -7,6 +7,7 @@ module.exports = {
     'quote-props': 'off',
     'vue/html-self-closing': 'off',
     'vue/singleline-html-element-content-newline': 'off',
-    'eol-last': 'off'
+    'eol-last': 'off',
+    'eslint-comments/no-unlimited-disable': 'off'
   }
 }

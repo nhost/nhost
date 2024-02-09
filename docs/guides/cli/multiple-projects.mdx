@@ -1,0 +1,107 @@
+---
+title: 'Running Multiple Projects'
+description: Learn how to run multiple Nhost projects locally
+icon: clone
+---
+
+By default the name of the project is going to be the folder of the root of your project and it's goint to run on port 443 (https) and 5432 (postgres). If you need to run multiple projects or multiple instances of the same project at the same time you may need to override those. For instance:
+
+```bash
+$ nhost up
+Verifying configuration...
+Configuration is valid!
+Setting up Nhost development environment...
+Starting Nhost development environment...
+[+] Running 11/11
+ ✔ Network existingproject_default        Created                       0.0s
+ ✔ Container existingproject-minio-1      Healthy                      13.9s
+ ✔ Container existingproject-postgres-1   Healthy                      13.9s
+ ✔ Container existingproject-traefik-1    Healthy                      13.9s
+ ✔ Container existingproject-dashboard-1  Healthy                      13.9s
+ ✔ Container existingproject-mailhog-1    Healthy                      13.9s
+ ✔ Container existingproject-functions-1  Healthy                      13.9s
+ ✔ Container existingproject-graphql-1    Healthy                      13.8s
+ ✔ Container existingproject-console-1    Healthy                      18.8s
+ ✔ Container existingproject-storage-1    Healthy                      13.8s
+ ✔ Container existingproject-auth-1       Healthy                      18.8s
+Applying migrations...
+INFO nothing to apply on database: default
+Nhost development environment started.
+URLs:
+- Postgres:             postgres://postgres:postgres@localhost:5432/postgres
+- Hasura:               https://local.hasura.nhost.run
+- GraphQL:              https://local.graphql.nhost.run
+- Auth:                 https://local.auth.nhost.run
+- Storage:              https://local.storage.nhost.run
+- Functions:            https://local.functions.nhost.run
+- Dashboard:            https://local.dashboard.nhost.run
+- Mailhog:              https://local.mailhog.nhost.run
+
+SDK Configuration:
+ Subdomain:             local
+ Region:                (empty)
+
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
+
+$ nhost --project-name alternativeproject dev up --http-port 8433 --postgres-port 5433
+Verifying configuration...
+Configuration is valid!
+Setting up Nhost development environment...
+Starting Nhost development environment...
+[+] Running 13/13
+ ✔ Network alternativeproject_default                  Created               0.0s
+ ✔ Volume "alternativeproject_root_node_modules"       Created               0.0s
+ ✔ Volume "alternativeproject_functions_node_modules"  Created               0.0s
+ ✔ Container alternativeproject-mailhog-1              Healthy              13.7s
+ ✔ Container alternativeproject-functions-1            Healthy              13.7s
+ ✔ Container alternativeproject-dashboard-1            Healthy              13.7s
+ ✔ Container alternativeproject-postgres-1             Healthy              13.7s
+ ✔ Container alternativeproject-traefik-1              Healthy              13.7s
+ ✔ Container alternativeproject-minio-1                Healthy              13.7s
+ ✔ Container alternativeproject-graphql-1              Healthy              13.7s
+ ✔ Container alternativeproject-storage-1              Healthy              13.7s
+ ✔ Container alternativeproject-console-1              Healthy              18.7s
+ ✔ Container alternativeproject-auth-1                 Healthy              18.2s
+Applying migrations...
+INFO nothing to apply on database: default
+Nhost development environment started.
+URLs:
+- Postgres:             postgres://postgres:postgres@localhost:5433/postgres
+- Hasura:               https://local.hasura.nhost.run:8433
+- GraphQL:              https://local.graphql.nhost.run:8433
+- Auth:                 https://local.auth.nhost.run:8433
+- Storage:              https://local.storage.nhost.run:8433
+- Functions:            https://local.functions.nhost.run:8433
+- Dashboard:            https://local.dashboard.nhost.run:8433
+- Mailhog:              https://local.mailhog.nhost.run:8433
+
+SDK Configuration:
+ Subdomain:             local
+ Region:                (empty)
+
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
+```
+
+From now on you can operate on each one of them accordingly by specifying `--project-name`:
+
+```bash
+$ nhost --project-name alternativeproject dev logs auth
+alternativeproject-auth-1  |
+alternativeproject-auth-1  | > hasura-auth@0.19.1 start /app
+alternativeproject-auth-1  | > node ./dist/start.js
+alternativeproject-auth-1  |
+alternativeproject-auth-1  | {"level":"info","message":"Log level: info"}
+alternativeproject-auth-1  | {"level":"info","message":"Waiting for Hasura to be ready..."}
+alternativeproject-auth-1  | {"level":"info","message":"Hasura is ready"}
+alternativeproject-auth-1  | {"level":"info","message":"Applying SQL migrations..."}
+alternativeproject-auth-1  | {"level":"info","message":"SQL migrations applied"}
+alternativeproject-auth-1  | {"level":"info","message":"Applying metadata..."}
+alternativeproject-auth-1  | {"level":"info","message":"Metadata applied"}
+alternativeproject-auth-1  | {"level":"info","message":"Running on port 4000"}
+```
+
+

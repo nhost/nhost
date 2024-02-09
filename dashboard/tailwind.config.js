@@ -1,4 +1,5 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
+const plugin = require('tailwindcss/plugin');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -150,11 +151,44 @@ module.exports = {
         'inter-var': ['Inter var', ...defaultTheme.fontFamily.sans],
         mono: ['"Roboto Mono"', ...defaultTheme.fontFamily.mono],
       },
+      keyframes: {
+        blinking: {
+          '0%': { opacity: 0 },
+          '50%': { opacity: 1 },
+          '100%': { opacity: 0 },
+        },
+        toastenter: {
+          '0%': { transform: 'scale(0.9)', opacity: 0 },
+          '100%': { transform: 'scale(1)', opacity: 1 },
+        },
+        toastleave: {
+          '0%': { transform: 'scale(1)', opacity: 1 },
+          '100%': { transform: 'scale(0.9)', opacity: 0 },
+        },
+      },
+      animation: {
+        blinking: 'blinking 1s infinite',
+        toastenter: 'enter 200ms ease-out',
+        toastleave: 'leave 150ms ease-in forwards',
+      },
     },
   },
   variants: {
     extend: {},
   },
   // eslint-disable-next-line global-require
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+    plugin(({ matchUtilities, theme }) => {
+      matchUtilities(
+        {
+          'animate-delay': (value) => ({
+            animationDelay: value,
+          }),
+        },
+        { values: theme('transitionDelay') },
+      );
+    }),
+  ],
 };

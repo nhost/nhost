@@ -15,15 +15,13 @@ import {
   usePauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { slugifyString } from '@/utils/helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const projectNameValidationSchema = Yup.object({
@@ -102,16 +100,13 @@ export default function SettingsGeneralPage() {
     });
 
     try {
-      const { data: updateAppData } = await toast.promise(
-        updateAppMutation,
+      const { data: updateAppData } = await execPromiseWithErrorToast(
+        async () => updateAppMutation,
         {
-          loading: `Project name is being updated...`,
-          success: `Project name has been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update project name.`,
-          ),
+          loadingMessage: `Project name is being updated...`,
+          successMessage: `Project name has been updated successfully.`,
+          errorMessage: `An error occurred while trying to update project name.`,
         },
-        getToastStyleProps(),
       );
 
       const updateAppResult = updateAppData?.updateApp;
@@ -134,35 +129,31 @@ export default function SettingsGeneralPage() {
   }
 
   async function handleDeleteApplication() {
-    await toast.promise(
-      deleteApplication(),
-      {
-        loading: `Deleting ${currentProject.name}...`,
-        success: `${currentProject.name} has been deleted successfully.`,
-        error: getServerError(
-          `An error occurred while trying to delete the project "${currentProject.name}". Please try again.`,
-        ),
+    await execPromiseWithErrorToast(
+      async () => {
+        await deleteApplication();
+        await router.push('/');
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: `Deleting ${currentProject.name}...`,
+        successMessage: `${currentProject.name} has been deleted successfully.`,
+        errorMessage: `An error occurred while trying to delete the project "${currentProject.name}". Please try again.`,
+      },
     );
-
-    await router.push('/');
   }
 
   async function handlePauseApplication() {
-    await toast.promise(
-      pauseApplication(),
-      {
-        loading: `Pausing ${currentProject.name}...`,
-        success: `${currentProject.name} will be paused, but please note that it may take some time to complete the process.`,
-        error: getServerError(
-          `An error occurred while trying to pause the project "${currentProject.name}". Please try again.`,
-        ),
+    await execPromiseWithErrorToast(
+      async () => {
+        await pauseApplication();
+        await router.push('/');
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: `Pausing ${currentProject.name}...`,
+        successMessage: `${currentProject.name} will be paused, but please note that it may take some time to complete the process.`,
+        errorMessage: `An error occurred while trying to pause the project "${currentProject.name}". Please try again.`,
+      },
     );
-
-    await router.push('/');
   }
 
   if (loading) {

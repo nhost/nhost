@@ -1,0 +1,17 @@
+---
+title: useSignOut()
+sidebarTitle: useSignOut()
+---
+
+Use the composable `useSignOut` to sign out the user.
+
+```jsx
+import { useSignOut } from '@nhost/vue'
+
+const { signOut, isSuccess } = useSignOut()
+
+const handleSignOut = async (e) => {
+  e.preventDefault()
+  await signOut()
+}
+```

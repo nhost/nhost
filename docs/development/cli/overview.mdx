@@ -1,0 +1,32 @@
+---
+title: 'Overview'
+description: 'Developing locally with the Nhost CLI'
+icon: hand-wave
+---
+
+Run the Nhost Stack on your computer with `nhost init` and `nhost start`. The Nhost CLI ships with all the tools you need to run, test, and operate your projects. 
+
+Manage configuration, database migrations, API schema changes, and more, with ease. 
+
+```bash
+> nhost up
+
+Nhost development environment started.
+URLs:
+- Postgres:             postgres://postgres:postgres@localhost:5432/local
+- Hasura:               https://local.hasura.nhost.run
+- GraphQL:              https://local.graphql.nhost.run
+- Auth:                 https://local.auth.nhost.run
+- Storage:              https://local.storage.nhost.run
+- Functions:            https://local.functions.nhost.run
+- Dashboard:            https://local.dashboard.nhost.run
+- Mailhog:              https://local.mailhog.nhost.run
+
+SDK Configuration:
+ Subdomain:             local
+ Region:                (empty)
+
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
+```

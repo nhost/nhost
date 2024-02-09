@@ -11,7 +11,9 @@ import {
   StorageUploadFormDataParams,
   StorageUploadFormDataResponse,
   StorageUploadParams,
-  StorageUploadResponse
+  StorageUploadResponse,
+  StorageDownloadFileParams,
+  StorageDownloadFileResponse
 } from './utils'
 
 export interface NhostStorageConstructorParams {
@@ -142,6 +144,33 @@ export class HasuraStorageClient {
         ...presignedUrl,
         url: urlWithTransformationParams
       },
+      error: null
+    }
+  }
+
+  /**
+   * Use `nhost.storage.download` to download a file. To download a file the user must have permission to select the file in the `storage.files` table.
+   *
+   * @example
+   * ```ts
+   * const { file, error} = await nhost.storage.download({ fileId: '<File-ID>' })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/storage/download
+   */
+  async download(params: StorageDownloadFileParams): Promise<StorageDownloadFileResponse> {
+    const { file, error } = await this.api.downloadFile(params)
+
+    if (error) {
+      return { file: null, error }
+    }
+
+    if (!file) {
+      return { file: null, error: new Error('File does not exist') }
+    }
+
+    return {
+      file,
       error: null
     }
   }

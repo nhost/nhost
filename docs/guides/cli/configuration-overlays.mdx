@@ -1,0 +1,79 @@
+---
+title: Configuration Overlays
+description: Learn how to use Configuration Overlays
+icon: circles-overlap
+---
+
+## Introduction
+
+Nhost uses a single configuration file to configure both cloud projects and the local development environment, ensuring a near-identical replica of the production environment. This approach also simplifies connecting a repository to multiple projects, keeping them in sync with minimal effort. However, in cases where minor differences need to be accommodated, Nhost offers overlays - files containing operations to modify the configuration file:
+
+```bash
+[
+  {
+    "op": "replace",
+    "path": "/auth/method/emailPassword/emailVerificationRequired",
+    "value": false
+  },
+  {
+    "op": "replace",
+    "path": "/auth/redirections/clientUrl",
+    "value": "https://staging.myapp.io"
+  },
+  {
+    "op": "add",
+    "path": "/global/environment/3",
+    "value": {
+      "name": "ENVIRONMENT",
+      "value": "staging"
+    }
+  }
+]
+```
+
+The overlay above will perform the following changes to the configuration file:
+
+1. Disable email verification
+2. Set the correct client URL for the staging environment
+3. Add the environment variable `ENVIRONMENT=staging`
+
+<Info>Overlays are based on [RFC6902](https://www.rfc-editor.org/rfc/rfc6902).</Info>
+
+It's important to note that overlays in Nhost do not modify the original files, but rather manipulate the resulting configuration at runtime. This allows multiple environments to safely share the same base configuration and rely on the overlay to accommodate differences. Additionally, changes to the base configuration file will propagate to all environments unless an overlay operation prevents it, making overlays a convenient and efficient way to manage configuration differences.
+
+## Creating Overlays
+
+You can create overlays with the CLI command `nhost config edit [--subdomain $SUBDOMAIN]`:
+
+![open editor](/images/guides/cli/1.png)
+
+<Info>If you need to create an overlay for your local development environment remember to use `local` as subdomain</Info>
+
+This will open an editor with the configuration for your `$SUBDOMAIN`:
+
+![editor](/images/guides/cli/2.png)
+
+You can perform as many changes as needed using overlays. For example, you can add an environment variable, enable Hasura remote permissions, and change the client URL.
+
+![editor](/images/guides/cli/3.png)
+
+You can verify the overlay by checking the file `nhost/overlays/$SUBDOMAIN.json`
+
+![verify overlay](/images/guides/cli/4.png)
+
+## Viewing Configuration
+
+To verify that your final configuration is correct, you can use the command `nhost config show [--subdomain $SUBDOMAIN]`. This command will apply the specified overlay (if it exists) and render the configuration using the local secrets.
+
+![view configuration](/images/guides/cli/5.png)
+
+## Validating Configuration
+
+Finally, you can validate your configuration overlay with the command `nhost config validate [--subdomain $SUBDOMAIN]`
+
+![view configuration](/images/guides/cli/6.png)
+
+
+## Run services
+
+To learn how to use configuration overlays with Run services, please refer to the specific information provided for [Run services](/guides/run/configuration-overlays).

@@ -19,15 +19,13 @@ import { CreateRoleForm } from '@/features/projects/roles/settings/components/Cr
 import { EditRoleForm } from '@/features/projects/roles/settings/components/EditRoleForm';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
 import type { Role } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
   useGetRolesPermissionsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
-import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export interface RoleSettingsFormValues {
@@ -36,7 +34,7 @@ export interface RoleSettingsFormValues {
    */
   authUserDefaultRole: string;
   /**
-   * Allowed roles for the project.
+   * Default Allowed roles for the project.
    */
   authUserDefaultAllowedRoles: Role[];
 }
@@ -83,16 +81,16 @@ export default function RoleSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigPromise,
-      {
-        loading: 'Updating default role...',
-        success: 'Default role has been updated successfully.',
-        error: getServerError(
-          'An error occurred while trying to update the default role.',
-        ),
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: 'Updating default role...',
+        successMessage: 'Default role has been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update the default role.',
+      },
     );
   }
 
@@ -113,16 +111,16 @@ export default function RoleSettings() {
       },
     });
 
-    await toast.promise(
-      updateConfigPromise,
-      {
-        loading: 'Deleting allowed role...',
-        success: 'Allowed Role has been deleted successfully.',
-        error: getServerError(
-          'An error occurred while trying to delete the allowed role.',
-        ),
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
       },
-      getToastStyleProps(),
+      {
+        loadingMessage: 'Deleting allowed role...',
+        successMessage: 'Allowed Role has been deleted successfully.',
+        errorMessage:
+          'An error occurred while trying to delete the allowed role.',
+      },
     );
   }
 
@@ -169,8 +167,8 @@ export default function RoleSettings() {
 
   return (
     <SettingsContainer
-      title="Allowed Roles"
-      description="Allowed roles are roles users get automatically when they sign up."
+      title="Default Allowed Roles"
+      description="Default Allowed Roles are roles users get automatically when they sign up."
       docsLink="https://docs.nhost.io/authentication/users#allowed-roles"
       rootClassName="gap-0"
       className={twMerge(

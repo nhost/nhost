@@ -1,0 +1,75 @@
+---
+title: Overview
+description: Learn how to use Nhost Functions
+icon: play
+---
+
+All you have to do is throw your `.js` and `.ts` files inside of the `./functions` folder of your project and Nhost takes care of deploying your functions as part of a [Deployment](/platform/deployments).
+
+<Info>To deploy Nhost Functions, your project needs to be connected to a GitHub repository.</Info>
+
+## Nhost Functions
+
+<Tabs>
+  <Tab title="JavaScript">
+
+```js ./functions/hello.js
+export default (req, res) => {
+  res.status(200).send(`Hello ${req.query.name}!`)
+}
+```
+  </Tab>
+
+  <Tab title="TypeScript">
+
+```ts ./functions/hello.ts
+import { Request, Response } from 'express'
+
+export default (req: Request, res: Response) => {
+  res.status(200).send(`Hello ${req.query.name}!`)
+}
+```
+
+<Info>
+To get the `Request` and `Response` types you have to install the `@types/express` package.
+</Info>
+  </Tab>
+
+</Tabs>
+
+
+<Tip>Folders and filenames prepended with an underscore are not exposed. This is useful, for example, for utility functions that you want to share across multiple functions.</Tip>
+
+### Endpoints
+
+Functions are exposed through HTTP endpoints generated based on the contents of `./functions`: 
+
+| File                        | HTTP Endpoint                                                      |
+| --------------------------- | ------------------------------------------------------------------ |
+| `functions/index.js`        | `https://[subdomain].functions.[region].nhost.run/v1/`             |
+| `functions/users/index.ts`  | `https://[subdomain].functions.[region].nhost.run/v1/users`        |
+| `functions/users/active.ts` | `https://[subdomain].functions.[region].nhost.run/v1/users/active` |
+| `functions/my-company.js`   | `https://[subdomain].functions.[region].nhost.run/v1/my-company`   |
+
+
+<Tip>Folders and filenames prepended with an underscore are not exposed. This is useful, for example, for utility functions that you want to share across multiple functions.</Tip>
+
+### Environment Variables
+
+[Environment variables](/platform/environment-variables) are available to your Functions. Both in production and when running Nhost locally using the [Nhost CLI](/development/cli).
+
+The same environment variables that are used to configure event triggers can be used to authenticate functions.
+
+### Billing
+
+Functions are billed per GB-sec or GB-hour. 1 GB-hour is 3600 GB-seconds.
+
+1 GB-sec is 1 Function with 1GB of RAM running for 1 second. If 1 Function with 1GB of RAM runs for 3600 seconds, that's the equivalent of 1 GB-hour.
+
+### Additional Resources
+
+<CardGroup cols={2}>
+  <Card title="Examples" href="https://github.com/nhost/nhost/tree/main/examples/serverless-functions/functions">
+  </Card>
+</CardGroup>
+

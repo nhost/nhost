@@ -3,15 +3,13 @@ import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { getToastStyleProps } from '@/utils/constants/settings';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useDeleteRunServiceConfigMutation,
   useDeleteRunServiceMutation,
 } from '@/utils/__generated__/graphql';
-import type { ApolloError } from '@apollo/client';
 import { type RunService } from 'pages/[workspaceSlug]/[appSlug]/services';
 import { useState } from 'react';
-import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export interface DeleteServiceModalProps {
@@ -43,27 +41,12 @@ export default function DeleteServiceModal({
   async function handleClick() {
     setLoadingRemove(true);
 
-    await toast.promise(
-      deleteServiceAndConfig(),
-      {
-        loading: 'Deleting the service...',
-        success: `The service has been deleted successfully.`,
-        error: (arg: ApolloError) => {
-          // we need to get the internal error message from the GraphQL error
-          const { internal } = arg.graphQLErrors[0]?.extensions || {};
-          const { message } = (internal as Record<string, any>)?.error || {};
-
-          // we use the default Apollo error message if we can't find the
-          // internal error message
-          return (
-            message ||
-            arg.message ||
-            'An error occurred while deleting the service. Please try again.'
-          );
-        },
-      },
-      getToastStyleProps(),
-    );
+    await execPromiseWithErrorToast(() => deleteServiceAndConfig(), {
+      loadingMessage: 'Deleting the service...',
+      successMessage: 'The service has been deleted successfully.',
+      errorMessage:
+        'An error occurred while deleting the service. Please try again.',
+    });
   }
 
   return (

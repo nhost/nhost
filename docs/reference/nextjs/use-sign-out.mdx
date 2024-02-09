@@ -1,0 +1,29 @@
+---
+title: useSignOut()
+sidebarTitle: useSignOut()
+---
+
+Use the hook `useSignOut` to sign out the user.
+
+```tsx
+import { useSignOut, useAuthenticated } from '@nhost/react'
+
+const Component = () => {
+  const { signOut } = useSignOut()
+  const isAuthenticated = useAuthenticated()
+
+  if (isAuthenticated) {
+    return <button onClick={() => signOut()}>Sign Out</button>
+  }
+
+  return <div>Not authenticated</div>
+}
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">stateAll</span>** <span className="optional-status">required</span> <code>boolean</code>
+
+---

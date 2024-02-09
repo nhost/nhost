@@ -1,5 +1,39 @@
 # @nhost/react-apollo
 
+## 8.0.0
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+- Updated dependencies [1a61c65]
+- Updated dependencies [e5bab6a]
+  - @nhost/react@3.1.0
+  - @nhost/apollo@6.0.3
+
+## 7.0.2
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- Updated dependencies [8d91f71]
+  - @nhost/apollo@6.0.2
+  - @nhost/react@3.0.2
+
+## 7.0.1
+
+### Patch Changes
+
+- @nhost/apollo@6.0.1
+- @nhost/react@3.0.1
+
+## 7.0.0
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/react@3.0.0
+  - @nhost/apollo@6.0.0
+
 ## 6.0.1
 
 ### Patch Changes

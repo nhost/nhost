@@ -1,8 +1,8 @@
 {
   "title": "Storage",
   "path": "./.docgen/storage.json",
-  "output": "../../docs/docs/reference/docgen/javascript/storage",
-  "root": "reference/docgen/javascript/storage",
+  "output": "../../docs/reference/javascript/storage",
+  "root": "reference/javascript/storage",
   "slug": "/reference/javascript/storage",
   "sidebarConfig": "referenceSidebar",
   "baseEditUrl": "https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src",

@@ -1,4 +1,3 @@
-import DepricationNotice from '@/components/common/DepricationNotice/DepricationNotice';
 import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
 import { ProjectLayout } from '@/components/layout/ProjectLayout';
@@ -39,7 +38,7 @@ export default function DeploymentsPage() {
         <NavLink
           href={`/${currentWorkspace?.slug}/${currentProject?.slug}/settings/git`}
           passHref
-        >
+          legacyBehavior>
           <Button
             variant="borderless"
             className="mx-auto font-medium"
@@ -68,10 +67,5 @@ export default function DeploymentsPage() {
 }
 
 DeploymentsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout>
-      <DepricationNotice />
-      {page}
-    </ProjectLayout>
-  );
+  return <ProjectLayout>{page}</ProjectLayout>;
 };

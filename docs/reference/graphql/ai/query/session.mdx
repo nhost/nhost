@@ -1,0 +1,100 @@
+---
+title: session
+---
+
+```graphql
+session {
+   sessionID: String! 
+}: Session
+```
+
+Retrieve a session
+
+## Permissions needed
+
+select (sessions):
+- id
+- assistant_id
+- session_id
+- user_id
+
+
+## Arguments
+
+
+
+    <ParamField body="sessionID" type="String!" required>
+    ID of the session to retrieve
+    </ParamField>
+
+
+
+## Response
+
+Type: `Session`
+
+
+
+
+
+    
+    <ResponseField name="sessionID" type="String!">
+    ID of the session
+    </ResponseField>
+    
+    <ResponseField name="assistantID" type="String!">
+    ID of the assistant used in this session
+    </ResponseField>
+    
+    <ResponseField name="userID" type="uuid!">
+    ID of the user who started this session
+    </ResponseField>
+    
+    <ResponseField name="createdAt" type="timestampz!">
+    Messages in this session
+    </ResponseField>
+    
+
+
+
+<RequestExample>
+```graphql query
+query session (
+  $sessionID: String!
+) {
+  graphite {
+    session (
+      sessionID: $sessionID
+    ) {
+      sessionID
+      assistantID
+      userID
+      createdAt
+    }
+  }
+}
+```
+
+```json variables
+{
+  "sessionID": "string"
+}
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "data": {
+    "graphite": {
+      "session": {
+        "assistantID": "string",
+        "createdAt": "2023-12-14T07:45:15.20353+00:00",
+        "sessionID": "string",
+        "userID": "61809D37-DA3F-4EFC-A324-EB181F38DD85"
+      }
+    }
+  }
+}
+```
+</ResponseExample>

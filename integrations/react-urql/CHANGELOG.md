@@ -1,5 +1,35 @@
 # @nhost/react-urql
 
+## 5.0.0
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+- Updated dependencies [1a61c65]
+- Updated dependencies [e5bab6a]
+  - @nhost/react@3.1.0
+
+## 4.0.2
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- Updated dependencies [8d91f71]
+  - @nhost/react@3.0.2
+
+## 4.0.1
+
+### Patch Changes
+
+- @nhost/react@3.0.1
+
+## 4.0.0
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/react@3.0.0
+
 ## 3.0.1
 
 ### Patch Changes

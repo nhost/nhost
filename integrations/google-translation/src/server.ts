@@ -17,7 +17,8 @@ export const createGoogleTranslationGraphQLServer = ({
   defaultLanguage = 'en',
   getUserLanguage = defaultGetUserLanguage,
   canTranslate = defaultCanTranslate,
-  logger = console.log
+  logger = console.log,
+  maskedErrors = true,
 }: CreateServerProps = {}) => {
   const translator = new v2.Translate({ projectId, key: apiKey })
 
@@ -62,6 +63,7 @@ export const createGoogleTranslationGraphQLServer = ({
       ...context,
       userLanguage: await getUserLanguage(context)
     }),
-    schema: builder.toSchema()
+    schema: builder.toSchema(),
+    maskedErrors,
   })
 }

@@ -1,5 +1,41 @@
 # @nhost/react
 
+## 3.1.0
+
+### Minor Changes
+
+- 1a61c65: feat: add 'elevateEmailSecurityKey' to the SDKs along with integration into react-apollo and vue-apollo examples
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+  - @nhost/nhost-js@3.0.3
+
+## 3.0.2
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- Updated dependencies [8d91f71]
+  - @nhost/nhost-js@3.0.2
+
+## 3.0.1
+
+### Patch Changes
+
+- @nhost/nhost-js@3.0.1
+
+## 3.0.0
+
+### Major Changes
+
+- bc9eff6e4: chore: remove support for using backendUrl when instantiating the Nhost client
+
+### Patch Changes
+
+- Updated dependencies [bc9eff6e4]
+  - @nhost/nhost-js@3.0.0
+
 ## 2.1.1
 
 ### Patch Changes

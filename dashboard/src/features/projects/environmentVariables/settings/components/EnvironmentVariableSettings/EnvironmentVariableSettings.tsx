@@ -16,15 +16,13 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { CreateEnvironmentVariableForm } from '@/features/projects/environmentVariables/settings/components/CreateEnvironmentVariableForm';
 import { EditEnvironmentVariableForm } from '@/features/projects/environmentVariables/settings/components/EditEnvironmentVariableForm';
 import type { EnvironmentVariable } from '@/types/application';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetEnvironmentVariablesDocument,
   useGetEnvironmentVariablesQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
 import { Fragment } from 'react';
-import toast from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 
 export interface EnvironmentVariableSettingsFormValues {
@@ -91,21 +89,17 @@ export default function EnvironmentVariableSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: 'Deleting environment variable...',
-          success: 'Environment variable has been deleted successfully.',
-          error: getServerError(
-            'An error occurred while deleting the environment variable.',
-          ),
-        },
-        getToastStyleProps(),
-      );
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+      },
+      {
+        loadingMessage: 'Deleting environment variable...',
+        successMessage: 'Environment variable has been deleted successfully.',
+        errorMessage:
+          'An error occurred while deleting the environment variable.',
+      },
+    );
   }
 
   function handleOpenCreator() {

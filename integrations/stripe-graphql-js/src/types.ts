@@ -11,9 +11,25 @@ export type StripeGraphQLContext = {
 export type Context = YogaInitialContext & StripeGraphQLContext
 
 export type CreateServerProps = {
+  /**
+   * GraphQL Yoga CORS configuration
+   * @see {@link https://www.the-guild.dev/graphql/yoga-server/docs/features/cors}
+   */
   cors?: CORSOptions
+  /**
+   * Function to determine more granular user permission
+   */
   isAllowed?: (stripeCustomerId: string, context: Context) => boolean | Promise<boolean>
+  /**
+   * Whether to enable the GraphiQL interface
+   */
   graphiql?: boolean
+  /**
+   * Whether to enable GraphQL Yoga error masking
+   * @see {@link https://the-guild.dev/graphql/yoga-server/docs/features/error-masking#disabling-error-masking}
+   * @default true
+   */
+  maskedErrors?: boolean
 }
 
 // removing Stripe.Customer from `customer` because we will never expand

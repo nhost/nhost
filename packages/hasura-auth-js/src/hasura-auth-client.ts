@@ -31,7 +31,8 @@ import {
   signInSmsPasswordlessPromise,
   signOutPromise,
   signUpEmailPasswordPromise,
-  signUpEmailSecurityKeyPromise
+  signUpEmailSecurityKeyPromise,
+  elevateEmailSecurityKeyPromise
 } from './promises'
 import { createPATPromise } from './promises/createPAT'
 import {
@@ -426,7 +427,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `nhost.auth.addSecurityKey to add a security key to the user, using the WebAuthn API.
+   * Use `nhost.auth.addSecurityKey` to add a security key to the user, using the WebAuthn API.
    * @param nickname optional human-readable nickname for the security key
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/add-security-key
@@ -436,6 +437,24 @@ export class HasuraAuthClient {
   ): Promise<{ error: AuthErrorPayload | null; key?: SecurityKey }> {
     const { error, key } = await addSecurityKeyPromise(this._client, nickname)
     return { error, key }
+  }
+
+  /**
+   * Use `nhost.auth.elevateWithSecurityKey` to get a temporary elevated auth permissions to run sensitive operations.
+   * @param email user email
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/elevate-security-key
+   */
+  async elevateWebAuthn(
+    email: string
+  ): Promise<SignInResponse & { providerUrl?: string; provider?: string }> {
+    if (!email) {
+      throw Error('A user email is required')
+    }
+
+    const res = await elevateEmailSecurityKeyPromise(this._client, email)
+
+    return { ...getAuthenticationResult(res), mfa: null }
   }
 
   /**
@@ -603,7 +622,6 @@ export class HasuraAuthClient {
    * const decodedAccessToken = nhost.auth.getDecodedAccessToken();
    * ```
    *
-   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
    * @docs https://docs.nhost.io/reference/javascript/auth/get-decoded-access-token
    */
   public getDecodedAccessToken(): JWTClaims | null {
@@ -620,7 +638,6 @@ export class HasuraAuthClient {
    * const hasuraClaims = nhost.auth.getHasuraClaims();
    * ```
    *
-   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
    * @docs https://docs.nhost.io/reference/javascript/auth/get-hasura-claims
    */
   public getHasuraClaims(): JWTHasuraClaims | null {
@@ -633,12 +650,11 @@ export class HasuraAuthClient {
    * @example
    * ```ts
    * // if `x-hasura-company-id` exists as a custom claim
-   * const companyId = nhost.auth.getHsauraClaim('company-id')
+   * const companyId = nhost.auth.getHasuraClaim('company-id')
    * ```
    *
    * @param name Name of the variable. You don't have to specify `x-hasura-`.
    *
-   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
    * @docs https://docs.nhost.io/reference/javascript/auth/get-hasura-claim
    */
   public getHasuraClaim(name: string): string | string[] | null {

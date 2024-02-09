@@ -1,0 +1,15 @@
+---
+title: NhostSessionResponse
+sidebarTitle: NhostSessionResponse
+description: session payload from common hasura-auth responses
+---
+
+# `NhostSessionResponse`
+
+session payload from common hasura-auth responses
+
+```ts
+type NhostSessionResponse =
+  | { session: null; error: AuthErrorPayload }
+  | { session: NhostSession | null; error: null }
+```

@@ -1,5 +1,46 @@
 # @nhost/docs
 
+## 2.3.0
+
+### Minor Changes
+
+- d3d1424: feat: Add support for authenticated download of files
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+- 2ae5ea8: fix: indicate that custom domains for postgres doesn't require configuration
+
+## 2.2.0
+
+### Minor Changes
+
+- 5c9b8f0: feat: added docs regarding local development for Run services
+
+## 2.1.0
+
+### Minor Changes
+
+- 65b6a48d5: feat: added graphite/cli documentation
+
+## 2.0.0
+
+### Major Changes
+
+- 6d08b3430: New Docs powered by Mintlify
+
+## 0.7.5
+
+### Patch Changes
+
+- 7c977e714: chore: change `Allowed Roles` to `Default Allowed Roles`
+
+## 0.7.4
+
+### Patch Changes
+
+- 2a04bc9e5: added functions to custom domains documentation
+
 ## 0.7.3
 
 ### Patch Changes

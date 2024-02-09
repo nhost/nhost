@@ -1,0 +1,19 @@
+---
+title: useHasuraClaim()
+sidebarTitle: useHasuraClaim()
+---
+
+Use the composable `useHasuraClaim` to get the value of a specific Hasura claim of the user.
+
+```tsx
+// if `x-hasura-company-id` exists as a custom claim
+const companyId = useHasuraClaim('company-id')
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">name</span>** <span className="optional-status">required</span> <code>RefOrValue&lt;string&gt;</code>
+
+---

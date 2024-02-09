@@ -1,95 +1,20 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nix-filter.url = "github:numtide/nix-filter";
-    flake-utils.url = "github:numtide/flake-utils";
+    nixops.url = "github:nhost/nixops";
+    nixpkgs.follows = "nixops/nixpkgs";
+    flake-utils.follows = "nixops/flake-utils";
+    nix-filter.follows = "nixops/nix-filter";
   };
 
-  outputs = { self, nixpkgs, flake-utils, nix-filter }:
+  outputs = { self, nixops, nixpkgs, flake-utils, nix-filter }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        version = "v1.5.2";
-        dist = {
-          aarch64-darwin = rec {
-            url = "https://github.com/nhost/cli/releases/download/${version}/cli-${version}-darwin-arm64.tar.gz";
-            sha256 = "0rakx9lpbj5m3jfra5r2iw065x800i951843l3mxbwk9m1hzm185";
-          };
-          x86_64-linux = rec {
-            url = "https://github.com/nhost/cli/releases/download/${version}/cli-${version}-linux-amd64.tar.gz";
-            sha256 = "19x83fpvazwzpnrxi0qh6mh14wwhlw77qd7vvc3633dxa5hdigc4";
-          };
-        };
-        overlays = [
-          (final: prev: rec {
-            hasura-cli = prev.hasura-cli.override {
-              buildGoModule = args: final.buildGoModule (args // rec {
-                version = "2.15.2";
-                src = final.fetchFromGitHub {
-                  owner = "hasura";
-                  repo = "graphql-engine";
-                  rev = "v${version}";
-                  sha256 = "sha256-q5Pk8K6WlkPMsegdKAqXXTFtPlN65Y1luoAsvjoW+20=";
-                };
-
-                ldflags = [
-                  "-X github.com/hasura/graphql-engine/cli/v2/version.BuildVersion=${version}"
-                  "-X github.com/hasura/graphql-engine/cli/v2/plugins.IndexBranchRef=master"
-                  "-s"
-                  "-w"
-                  "-extldflags"
-                  "\"-static\""
-                ];
-                vendorSha256 = "sha256-vZKPVQ/FTHnEBsRI5jOT6qm7noGuGukWpmrF8fK0Mgs=";
-              });
-            };
-
-            nhost = final.stdenvNoCC.mkDerivation rec {
-              pname = "nhost-cli";
-              inherit version;
-
-              src = final.fetchurl {
-                inherit (dist.${final.stdenvNoCC.hostPlatform.system} or
-                  (throw "Unsupported system: ${final.stdenvNoCC.hostPlatform.system}")) url sha256;
-              };
-
-
-              sourceRoot = ".";
-
-              nativeBuildInputs = [
-                final.makeWrapper
-                final.installShellFiles
-              ];
-
-              installPhase = ''
-                runHook preInstall
-
-                mkdir -p $out/bin
-                mv cli $out/bin/nhost
-
-                wrapProgram $out/bin/nhost --set HASURACLI ${final.hasura-cli}/bin/hasura
-
-                installShellCompletion --cmd nhost \
-                  --bash <($out/bin/nhost completion bash) \
-                  --fish <($out/bin/nhost completion fish) \
-                  --zsh <($out/bin/nhost completion zsh)
-
-                runHook postInstall
-              '';
-
-              meta = with final.lib; {
-                description = "Nhost CLI";
-                homepage = "https://nhost.io";
-                license = licenses.mit;
-                maintainers = [ "@nhost" ];
-              };
-
-
-            };
-          }
-          )
-        ];
         pkgs = import nixpkgs {
-          inherit system overlays;
+          inherit system;
+          overlays = [
+            nixops.overlays.default
+            (import ./nix/overlay.nix)
+          ];
         };
 
         nix-src = nix-filter.lib.filter {
@@ -104,6 +29,87 @@
 
         nativeBuildInputs = with pkgs; [
         ];
+
+        node_modules = pkgs.stdenv.mkDerivation {
+          version = "0.0.0-dev";
+
+          pname = "node_modules";
+
+          nativeBuildInputs = with pkgs; [
+            nodePackages.pnpm
+            cacert
+            nodejs
+          ];
+
+          src = nix-filter.lib.filter {
+            root = ./.;
+            include = [
+              ./.npmrc
+              ./pnpm-workspace.yaml
+              # find . -name package.json | grep -v node_modules
+              ./docs/package.json
+              ./dashboard/package.json
+              ./integrations/stripe-graphql-js/package.json
+              ./integrations/google-translation/package.json
+              ./integrations/react-urql/package.json
+              ./integrations/react-apollo/package.json
+              ./integrations/apollo/package.json
+              ./package.json
+              ./examples/react-gqty/package.json
+              ./examples/cli/package.json
+              ./examples/vue-quickstart/package.json
+              ./examples/serverless-functions/package.json
+              ./examples/vue-apollo/package.json
+              ./examples/codegen-react-urql/package.json
+              ./examples/react-apollo/package.json
+              ./examples/multi-tenant-one-to-many/package.json
+              ./examples/node-storage/package.json
+              ./examples/nextjs/package.json
+              ./examples/codegen-react-query/package.json
+              ./examples/docker-compose/package.json
+              ./examples/docker-compose/functions/package.json
+              ./examples/seed-data-storage/package.json
+              ./examples/codegen-react-apollo/package.json
+              ./examples/quickstarts/nhost-backend/functions/package.json
+              ./examples/quickstarts/nextjs-server-components/package.json
+              ./examples/quickstarts/sveltekit/package.json
+              ./packages/graphql-js/package.json
+              ./packages/nhost-js/package.json
+              ./packages/nhost-js/functions/package.json
+              ./packages/vue/package.json
+              ./packages/hasura-storage-js/package.json
+              ./packages/hasura-storage-js/functions/package.json
+              ./packages/sync-versions/package.json
+              ./packages/nextjs/package.json
+              ./packages/docgen/package.json
+              ./packages/hasura-auth-js/package.json
+              ./packages/hasura-auth-js/functions/package.json
+              ./packages/react/package.json
+              #find . -name pnpm-lock.yaml | grep -v node_modules
+              ./pnpm-lock.yaml
+              ./examples/cli/pnpm-lock.yaml
+              ./examples/vue-apollo/pnpm-lock.yaml
+              ./examples/react-apollo/pnpm-lock.yaml
+              ./examples/node-storage/pnpm-lock.yaml
+              ./examples/nextjs/pnpm-lock.yaml
+              ./examples/quickstarts/nhost-backend/functions/pnpm-lock.yaml
+              ./examples/quickstarts/sveltekit/pnpm-lock.yaml
+              ./packages/nhost-js/functions/pnpm-lock.yaml
+              ./packages/hasura-storage-js/functions/pnpm-lock.yaml
+              ./packages/hasura-auth-js/functions/pnpm-lock.yaml
+            ];
+          };
+
+          buildPhase = ''
+            pnpm --version
+            pnpm install --frozen-lockfile
+          '';
+
+          installPhase = ''
+            mkdir -p $out
+            cp -r node_modules $out
+          '';
+        };
       in
       {
         checks = {
@@ -123,10 +129,15 @@
         devShells = flake-utils.lib.flattenTree rec {
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
-              nhost
-              nodejs_18
+              nhost-cli
+              nodejs
               nodePackages.pnpm
             ] ++ buildInputs ++ nativeBuildInputs;
+
+            # shellHook = ''
+            #   rm -rf node_modules
+            #   ln -sf ${node_modules}/node_modules/ node_modules
+            # '';
           };
         };
 

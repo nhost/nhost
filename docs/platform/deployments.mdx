@@ -1,0 +1,38 @@
+---
+title: 'Deployments'
+description: 'As simple as pushing your code to source control'
+icon: code-pull-request-closed
+---
+
+## Automatic Deploys
+
+Nhost deploys your project everytime new code is pushed to the branch connected to it. 
+
+## Pipeline
+
+During a deployment, the following happens:
+
+
+<Steps>
+  <Step title="Pull Repository">
+    Nhost pulls down your connected repository, and deletes it after the deployment completes.
+  </Step>
+
+  <Step title="Update Configuration">
+    Nhost makes sure the state of your cloud instance reflects the one described in `./nhost/nhost.toml`.
+  </Step>
+
+  <Step title="Apply Database Migrations">
+    New migrations present in `./nhost/migrations` are applied to your PostgreSQL instance.
+  </Step>
+
+  <Step title="Apply Metadata Changes">
+    Metadata changes from  `./nhost/metadata` are applied to the Hasura Instance.
+  </Step>
+
+  <Step title="Deploy Functions">
+    Functions inside `./functions` are deployed.
+  </Step>
+</Steps>
+
+

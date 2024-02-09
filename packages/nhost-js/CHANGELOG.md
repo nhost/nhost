@@ -1,5 +1,39 @@
 # @nhost/nhost-js
 
+## 3.0.3
+
+### Patch Changes
+
+- Updated dependencies [1a61c65]
+- Updated dependencies [e5bab6a]
+- Updated dependencies [d3d1424]
+  - @nhost/hasura-auth-js@2.2.0
+  - @nhost/hasura-storage-js@2.3.0
+  - @nhost/graphql-js@0.1.5
+
+## 3.0.2
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+- Updated dependencies [8d91f71]
+  - @nhost/hasura-storage-js@2.2.6
+  - @nhost/hasura-auth-js@2.1.11
+  - @nhost/graphql-js@0.1.5
+
+## 3.0.1
+
+### Patch Changes
+
+- Updated dependencies [b338793d6]
+  - @nhost/hasura-auth-js@2.1.10
+
+## 3.0.0
+
+### Major Changes
+
+- bc9eff6e4: chore: remove support for using backendUrl when instantiating the Nhost client
+
 ## 2.2.18
 
 ### Patch Changes

@@ -30,7 +30,7 @@ test('should show a sidebar with menu items', async () => {
   const navLocator = page.getByRole('navigation', { name: /main navigation/i });
   await expect(navLocator).toBeVisible();
   await expect(navLocator.getByRole('list').getByRole('listitem')).toHaveCount(
-    12,
+    13,
   );
   await expect(
     navLocator.getByRole('link', { name: /overview/i }),
@@ -93,7 +93,7 @@ test("should show the project's region and subdomain", async () => {
 
 test('should not have a GitHub repository connected', async () => {
   await expect(
-    page.getByRole('button', { name: /connect to github/i }),
+    page.getByRole('button', { name: /connect to github/i }).first(),
   ).toBeVisible();
 });
 

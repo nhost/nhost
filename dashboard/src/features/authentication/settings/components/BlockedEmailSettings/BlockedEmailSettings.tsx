@@ -9,11 +9,9 @@ import {
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
@@ -110,23 +108,20 @@ export default function BlockedEmailSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Blocked email and domain settings are being updated...`,
-          success: `Blocked email and domain settings have been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update the project's blocked email and domain settings.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(values);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(values);
+      },
+      {
+        loadingMessage:
+          'Blocked email and domain settings are being updated...',
+        successMessage:
+          'Blocked email and domain settings have been updated successfully.',
+        errorMessage:
+          "An error occurred while trying to update the project's blocked email and domain settings.",
+      },
+    );
   };
 
   return (

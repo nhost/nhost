@@ -1,0 +1,78 @@
+---
+title: signIn()
+sidebarTitle: signIn()
+---
+
+Use `nhost.auth.signIn` to sign in a user using email and password, passwordless (email or sms) or an external provider. `signIn` can be used to sign in a user in various ways depending on the parameters.
+
+```ts
+nhost.auth.signIn({
+  email: 'joe@example.com',
+  password: 'secret-password'
+})
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">params</span>** <span className="optional-status">optional</span> [`SignInParams`](/reference/javascript/auth/types/sign-in-params)
+
+---
+
+## Examples
+
+### Sign in a user using email and password
+
+```ts
+nhost.auth.signIn({
+  email: 'joe@example.com',
+  password: 'secret-password'
+})
+```
+
+### Sign in a user using an OAuth provider (e.g: Google or Facebook)
+
+```ts
+nhost.auth.signIn({ provider: 'google' })
+```
+
+### Sign in a user using passwordless email (Magic Link)
+
+```ts
+nhost.auth.signIn({ email: 'joe@example.com' })
+```
+
+### Sign in a user using passwordless SMS
+
+```ts
+// [step 1/2] Passwordless sign in using SMS
+nhost.auth.signIn({ phoneNumber: '+11233213123' })
+
+// [step 2/2] Finish passwordless sign in using SMS (OTP)
+nhost.auth.signIn({ phoneNumber: '+11233213123', otp: '123456' })
+```
+
+### Sign in anonymously
+
+```ts
+// Sign in anonymously
+nhost.auth.signIn()
+
+// Later in the application, the user can complete their registration
+nhost.auth.signUp({
+  email: 'joe@example.com',
+  password: 'secret-password'
+})
+```
+
+### Sign in with a security key
+
+```ts
+nhost.auth.signIn({
+  email: 'joe@example.com',
+  securityKey: true
+})
+
+@docs https://docs.nhost.io/reference/javascript/auth/sign-in
+```

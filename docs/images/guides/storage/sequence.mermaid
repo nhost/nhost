@@ -1,0 +1,11 @@
+sequenceDiagram
+    actor User
+    User ->> storage: upload file
+    storage ->>clamav: check for virus
+    alt virus found
+        storage-->s3: abort upload
+        storage->>graphql: insert row in virus table
+    else virus not found
+        storage->>s3: upload
+        storage->>graphql: update metadata
+    end

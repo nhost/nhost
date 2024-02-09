@@ -1,0 +1,80 @@
+---
+title: 'Seeds'
+description: Learn about using seeds to populate your local database
+icon: peapod
+---
+
+When developing locally, it is very useful to work with a known set of data as it can simplify testing and development, especially when working in larger teams with multiple developers.
+
+With the CLI, it is easy to extract data from an existing environment and generate a "seed" that can be shared and used to pre-populate any development environment as it initializes.
+
+As mentioned before, you can create a seed from any environment. In this guide, we will assume that we have already started a local development with a table called "animals". At this point, we can add some data ourselves as usual. Once we are satisfied and have the data we want, we can run the following command to create a seed:
+
+```bash
+$ nhost dev hasura seed create some-initial-data \
+    --endpoint https://local.hasura.nhost.run \
+    --admin-secret nhost-admin-secret \
+    --database-name default \
+    --from-table animals
+
+INFO created seed file successfully                file=/app/seeds/default/1685692310174_some-initial-data.sql
+```
+
+<Info>In the previous command, we instructed the CLI to create a seed named `some-initial-data` while specifying the connection parameters for our local environment. You could also extract data from a cloud project by specifying the correct parameters. Finally, we are only extracting data from the `animals` table, but you could also extract data from any other table or even from all tables.</Info>
+
+We can now inspect the file and see its contents:
+
+```bash
+$ cat nhost/seeds/default/1685692310174_some-initial-data.sql
+SET check_function_bodies = false;
+INSERT INTO public.animals (id, created_at, updated_at, name) VALUES ('d50ff2e8-ec2a-496b-a2e6-a50eecccdb16', '2023-05-16 14:01:59.072576+00', '2023-05-16 14:01:59.072576+00', 'dog');
+INSERT INTO public.animals (id, created_at, updated_at, name) VALUES ('8224ec02-6fed-48ff-8c06-6c36298d0fd0', '2023-05-16 14:02:06.300074+00', '2023-05-16 14:02:06.300074+00', 'cat');
+```
+
+Now, when you start a new development environment you can pass the `--apply-seeds` argument to pre-populate your environment with the seeds:
+
+```bash
+$ nhost up --apply-seeds
+Setting up Nhost development environment...
+Starting Nhost development environment...
+
+(...) omitted for brevity
+
+Applying migrations...
+INFO migrations applied on database: default
+Applying metadata...
+INFO Metadata applied
+Applying seeds...
+INFO Seed data planted for database: default
+
+(...) omitted for brevity
+```
+
+Or you could also apply the seeds yourself after starting nhost:
+
+```bash
+$ nhost up
+Setting up Nhost development environment...
+Starting Nhost development environment...
+
+(...) omitted for brevity
+
+Applying migrations...
+INFO migrations applied on database: default
+Applying metadata...
+INFO Metadata applied
+
+(...) omitted for brevity
+
+$ nhost dev hasura seed apply \
+    --endpoint https://local.hasura.nhost.run \
+    --admin-secret nhost-admin-secret \
+    --database-name default
+INFO Help us improve Hasura! The cli collects anonymized usage stats which
+allow us to keep improving Hasura at warp speed. To opt-out or read more,
+visit https://hasura.io/docs/latest/graphql/core/guides/telemetry.html
+INFO Seeds planted
+```
+
+<Info>Seeds are different from migrations because seeds are not automatically applied. If there is data that you want to have in all of your environments, it is best to use a database migration.</Info>
+

@@ -3,7 +3,6 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { filterOptions } from '@/components/ui/v2/Autocomplete';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   GetStorageSettingsDocument,
@@ -12,11 +11,9 @@ import {
   useGetStorageSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import { getToastStyleProps } from '@/utils/constants/settings';
-import { getServerError } from '@/utils/getServerError';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
@@ -98,23 +95,18 @@ export default function StorageServiceVersionSettings() {
       },
     });
 
-    try {
-      await toast.promise(
-        updateConfigPromise,
-        {
-          loading: `Storage version is being updated...`,
-          success: `Storage version has been updated successfully.`,
-          error: getServerError(
-            `An error occurred while trying to update Storage version.`,
-          ),
-        },
-        getToastStyleProps(),
-      );
-
-      form.reset(formValues);
-    } catch {
-      // Note: The toast will handle the error.
-    }
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+        form.reset(formValues);
+      },
+      {
+        loadingMessage: 'Storage version is being updated...',
+        successMessage: 'Storage version has been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update Storage version.',
+      },
+    );
   };
 
   return (
@@ -131,17 +123,31 @@ export default function StorageServiceVersionSettings() {
           }}
           docsLink="https://github.com/nhost/hasura-storage/releases"
           docsTitle="the latest releases"
-          className="grid grid-flow-row gap-y-2 gap-x-4 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
         >
           <ControlledAutocomplete
             id="version"
             name="version"
-            filterOptions={(options, state) => {
-              if (state.inputValue === version) {
-                return options;
-              }
+            autoHighlight
+            isOptionEqualToValue={() => false}
+            filterOptions={(options, { inputValue }) => {
+              const inputValueLower = inputValue.toLowerCase();
+              const matched = [];
+              const otherOptions = [];
 
-              return filterOptions(options, state);
+              options.forEach((option) => {
+                const optionLabelLower = option.label.toLowerCase();
+
+                if (optionLabelLower.startsWith(inputValueLower)) {
+                  matched.push(option);
+                } else {
+                  otherOptions.push(option);
+                }
+              });
+
+              const result = [...matched, ...otherOptions];
+
+              return result;
             }}
             fullWidth
             className="lg:col-span-2"

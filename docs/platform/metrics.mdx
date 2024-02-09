@@ -1,0 +1,38 @@
+---
+title: 'Metrics'
+description: 'Grafana Instance configured and tailored to your project'
+icon: monitor-waveform
+---
+
+Insights such as response times, resource usage, and error rates, to help you assess the **performance** and **health** of your services.
+
+Metrics helps you analyze the performance of your infrastructure, while identifying bottlenecks and optimizing your applications.
+
+<Tip>Read more about [compute resources](/platform/compute-resources) and [service replicas](/platform/service-replicas)</Tip>
+
+## Managed Grafana
+
+Your Grafana instance comes pre-defined with dashboards that cover backend services, functions, and networking:
+
+- vCPU/memory usage by Service replica for all services
+- Throttling time / percentage
+- Postgres volume usage
+- Networking errors
+- Functions metrics like calls, response times, errors
+- and others, we keep adding new metrics and dashboards
+
+![Grafana](/images/platform/metrics/grafana.png)
+
+### Nhost Dashboard
+
+You can find the link to Grafana in your project's dashboard, under **Metrics**. 
+
+![Project Metrics](/images/platform/metrics/nhost-dashboard-metrics.png)
+
+## Beta
+
+Metrics is in beta, its functionality and pricing might change.
+
+### Limitations
+
+- Dashboards can be updated or created, but they won't persist after a deployment.

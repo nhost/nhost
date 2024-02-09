@@ -2,8 +2,14 @@ table:
   name: provider_requests
   schema: auth
 configuration:
-  column_config: {}
-  custom_column_names: {}
+  column_config:
+    id:
+      custom_name: id
+    options:
+      custom_name: options
+  custom_column_names:
+    id: id
+    options: options
   custom_name: authProviderRequests
   custom_root_fields:
     delete: deleteAuthProviderRequests

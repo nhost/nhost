@@ -1,5 +1,17 @@
 # @nhost/docgen
 
+## 0.1.13
+
+### Patch Changes
+
+- e5bab6a: chore: update dependencies
+
+## 0.1.12
+
+### Patch Changes
+
+- 8d91f71: chore: update deps and enable pnpm audit
+
 ## 0.1.11
 
 ### Patch Changes
