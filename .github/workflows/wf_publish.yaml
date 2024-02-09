@@ -73,12 +73,16 @@ jobs:
 
           mkdir upload
 
-          tar cvzf upload/cli-$VERSION-darwin-amd64.tar.gz ~/artifacts/cli-$VERSION-darwin-amd64/nhost-cli
-          tar cvzf upload/cli-$VERSION-darwin-arm64.tar.gz ~/artifacts/cli-$VERSION-darwin-arm64/nhost-cli
-          tar cvzf upload/cli-$VERSION-linux-amd64.tar.gz ~/artifacts/cli-$VERSION-linux-amd64/nhost-cli
-          tar cvzf upload/cli-$VERSION-linux-arm64.tar.gz ~/artifacts/cli-$VERSION-linux-arm64/nhost-cli
+          find ~/artifacts -type f -name "nhost-cli" -exec bash -c 'mv "$0" "${0//nhost-cli/cli}"' {} \;
 
-          find upload/ -type f -exec sha256sum {} + > checksums.txt
+          tar cvzf upload/cli-$VERSION-darwin-amd64.tar.gz -C ~/artifacts/cli-$VERSION-darwin-amd64 cli
+          tar cvzf upload/cli-$VERSION-darwin-arm64.tar.gz -C ~/artifacts/cli-$VERSION-darwin-arm64 cli
+          tar cvzf upload/cli-$VERSION-linux-amd64.tar.gz -C ~/artifacts/cli-$VERSION-linux-amd64 cli
+          tar cvzf upload/cli-$VERSION-linux-arm64.tar.gz -C ~/artifacts/cli-$VERSION-linux-arm64 cli
+
+          cd upload
+          find . -type f -exec sha256sum {} + > checksums.txt
+          cd ..
 
           cat checksums.txt
 
