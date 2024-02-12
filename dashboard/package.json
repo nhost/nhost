@@ -19,7 +19,7 @@
     "e2e": "pnpm install-browsers && pnpm playwright test"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.1",
+    "@apollo/client": "^3.9.4",
     "@codemirror/lang-sql": "^6.5.5",
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.3",

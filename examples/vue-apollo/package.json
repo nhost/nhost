@@ -14,7 +14,7 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.1",
+    "@apollo/client": "^3.9.4",
     "@mdi/font": "5.9.55",
     "@nhost/apollo": "workspace:^",
     "@nhost/nhost-js": "workspace:^",

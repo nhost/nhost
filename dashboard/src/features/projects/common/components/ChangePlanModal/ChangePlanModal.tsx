@@ -286,7 +286,7 @@ export default function ChangePlanModal({ onCancel }: ChangePlanModalProps) {
       workspaceSlug: workspaceSlug as string,
       appSlug: appSlug as string,
     },
-    fetchPolicy: 'cache-and-network',
+    fetchPolicy: 'cache-first',
   });
 
   console.log('test');

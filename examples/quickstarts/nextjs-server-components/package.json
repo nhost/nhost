@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.1",
+    "@apollo/client": "^3.9.4",
     "@nhost/nhost-js": "workspace:^",
     "autoprefixer": "10.4.15",
     "cookies-next": "^3.0.0",
