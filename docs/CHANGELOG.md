@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.4.0
+
+### Minor Changes
+
+- 791b729: fix: remove auth method
+
 ## 2.3.0
 
 ### Minor Changes
