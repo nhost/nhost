@@ -687,9 +687,16 @@ export const createAuthMachine = ({
         isAutoRefreshDisabled: () => !autoRefreshToken,
         refreshTimerShouldRefresh: (ctx) => {
           const { expiresAt } = ctx.accessToken
+
           if (!expiresAt) {
             return false
           }
+
+          // This happens when either the computer goes to sleep or when Chrome descides to suspend the tab
+          if (expiresAt.getTime() < Date.now()) {
+            return true
+          }
+
           if (ctx.refreshTimer.lastAttempt) {
             // * If the refresh timer reached the maximum number of attempts, we should not try again
             if (ctx.refreshTimer.attempts > REFRESH_TOKEN_MAX_ATTEMPTS) {
