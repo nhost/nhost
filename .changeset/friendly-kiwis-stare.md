@@ -2,4 +2,4 @@
 '@nhost/dashboard': patch
 ---
 
-fix(dashboard): resolve cache issue when upgrading a project's plan
+fix: update `@apollo/client` to `3.9.4` to fix a cache bug
