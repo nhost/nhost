@@ -289,6 +289,8 @@ export default function ChangePlanModal({ onCancel }: ChangePlanModalProps) {
     fetchPolicy: 'cache-and-network',
   });
 
+  console.log('test');
+
   if (error) {
     throw error;
   }
@@ -301,6 +303,8 @@ export default function ChangePlanModal({ onCancel }: ChangePlanModalProps) {
 
   const { apps, plans } = data;
   const app = apps[0];
+
+  console.log({ app });
 
   return <ChangePlanModalWithData app={app} plans={plans} close={onCancel} />;
 }
