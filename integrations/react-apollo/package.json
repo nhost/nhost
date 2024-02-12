@@ -71,7 +71,7 @@
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@apollo/client": "^3.9.1",
+    "@apollo/client": "^3.9.4",
     "@nhost/react": "workspace:*",
     "@types/react": "^18.2.50",
     "graphql": "16.8.1",

@@ -25,12 +25,12 @@ function Plan({ planName, price, setPlan, planId, selectedPlanId }: any) {
   return (
     <button
       type="button"
-      className="my-4 grid w-full grid-flow-col items-center justify-between gap-2 px-1"
+      className="grid items-center justify-between w-full grid-flow-col gap-2 px-1 my-4"
       onClick={setPlan}
       tabIndex={-1}
     >
       <div className="grid grid-flow-row gap-y-0.5">
-        <div className="grid grid-flow-col items-center justify-start gap-2">
+        <div className="grid items-center justify-start grid-flow-col gap-2">
           <Checkbox
             onChange={setPlan}
             checked={selectedPlanId === planId}
@@ -40,7 +40,7 @@ function Plan({ planName, price, setPlan, planId, selectedPlanId }: any) {
           <Text
             variant="h3"
             component="p"
-            className="self-center text-left font-medium"
+            className="self-center font-medium text-left"
           >
             Upgrade to {planName}
           </Text>
@@ -156,7 +156,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
 
   if (pollingCurrentProject) {
     return (
-      <Box className="mx-auto w-full max-w-xl rounded-lg p-6 text-left">
+      <Box className="w-full max-w-xl p-6 mx-auto text-left rounded-lg">
         <div className="flex flex-col">
           <div className="mx-auto">
             <Image
@@ -179,7 +179,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
           <Button
             variant="outlined"
             color="secondary"
-            className="mx-auto mt-4 w-full max-w-sm"
+            className="w-full max-w-sm mx-auto mt-4"
             onClick={() => {
               if (close) {
                 close();
@@ -196,7 +196,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
   }
 
   return (
-    <Box className="w-full max-w-xl rounded-lg p-6 text-left">
+    <Box className="w-full max-w-xl p-6 text-left rounded-lg">
       <BaseDialog
         open={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
@@ -241,7 +241,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
             ))}
         </div>
 
-        <div className="mt-2 grid grid-flow-row gap-2">
+        <div className="grid grid-flow-row gap-2 mt-2">
           <Button
             onClick={handleChangePlanClick}
             disabled={!selectedPlan}

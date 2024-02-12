@@ -15,7 +15,7 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.1",
+    "@apollo/client": "^3.9.4",
     "@mantine/core": "^4.2.12",
     "@mantine/hooks": "^4.2.12",
     "@mantine/next": "^4.2.12",

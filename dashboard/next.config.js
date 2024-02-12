@@ -4,7 +4,6 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 const { version } = require('./package.json');
 
-
 const cspHeader = `
     default-src 'self' *.nhost.run ws://*.nhost.run nhost.run ws://nhost.run;
     script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.segment.com js.stripe.com;
@@ -19,7 +18,7 @@ const cspHeader = `
     frame-src 'self' js.stripe.com;
     block-all-mixed-content;
     upgrade-insecure-requests;
-`
+`;
 
 module.exports = withBundleAnalyzer({
   reactStrictMode: true,
@@ -41,7 +40,7 @@ module.exports = withBundleAnalyzer({
         headers: [
           {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
+            value: 'SAMEORIGIN',
           },
           {
             key: 'Content-Security-Policy',
@@ -49,7 +48,7 @@ module.exports = withBundleAnalyzer({
           },
         ],
       },
-    ]
+    ];
   },
   async redirects() {
     return [

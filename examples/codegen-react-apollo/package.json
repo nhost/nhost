@@ -15,7 +15,7 @@
     ]
   },
   "dependencies": {
-    "@apollo/client": "^3.9.1",
+    "@apollo/client": "^3.9.4",
     "@nhost/react": "workspace:^",
     "@nhost/react-apollo": "workspace:^",
     "clsx": "^1.2.1",
