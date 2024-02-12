@@ -23,7 +23,6 @@ const cspHeader = `
 module.exports = withBundleAnalyzer({
   reactStrictMode: true,
   swcMinify: false,
-  productionBrowserSourceMaps: true,
   output: 'standalone',
   experimental: {
     outputFileTracingRoot: path.join(__dirname, '../../'),
