@@ -2,11 +2,11 @@ import Image from 'next/image'
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
-  title: 'IPv6 Support',
+  title: 'IPv6 Support (and IPv4)',
   description:
     'IPv6',
   image: '/images/blog/ipv6/ipv6.png',
-  date: '2024-02-10',
+  date: '2024-02-12',
   authors: [
     {
       name: 'Nuno Pato',
@@ -20,21 +20,21 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-AWS has started to charge $0.005 per IP per hour (~$3.6/month) for all public IPv4 addresses on February 1st. This decision was announced back in July last year and has sent ripples through the industry with good reason: there is a considerable amount of infrastructure companies that rely on AWS as their backbone and depending on their cloud setup, this change could mean a much, much higher bill at the end of the month.
+AWS has started to charge $0.005 per IP per hour (~$3.6/month) for all public IPv4 addresses on February 1st. This decision was [announced back in July last year](https://aws.amazon.com/blogs/aws/new-aws-public-ipv4-address-charge-public-ip-insights) and has sent ripples through the industry with good reason: there is a considerable amount of infrastructure companies that rely on AWS as their backbone and depending on their cloud setup, this change could mean a much, much higher bill at the end of the month.
 
 Our infrastructure strategy and the decisions we took early on are the reason why we navigated these changes without much trouble and, most importantly, without offloading the additional cost to users.
 
 ### IPv4 vs IPv6
 
-Imagine the internet as a big address book. IPv4 is like an old version of that book that's almost full because it only has space for about 4 billion addresses. The problem of "running out of addresses" is the reason why AWS decided to start charging for them. An IPv4 looks like this: `192.168.10.150`.
+Imagine the internet as a big address book. IPv4 is like an old version of that book that's almost full because it only has space for about 4 billion addresses. The problem of "running out of addresses" is the reason why AWS decided to start charging for public IPv4 addresses. An IPv4 looks like this: `192.168.10.150`.
 
-IPv6 is like a new, much, much bigger address book (128-bit address vs 32-bit in IPv4), so we won't run out of addresses anytime soon. An IPv6 looks like this: `2001:db8:0000:0000:0000:ee00:0033:6778`.
+IPv6 is like a new, much, much bigger address book (128-bit address vs 32-bit in IPv4), so we won't run out of addresses anytime soon. An IPv6 looks like this: `2001:db8::ee00:33:6778`.
 
-It's important to note that these are different and incompatible protocols. You cannot have a IPv4-only machine talking to an IPv6-only machine and vice-versa without having an expensive and fragile translation in between - this incompatibility is the reason why the process of moving entirely to IPv6 is extremely time-consuming - tooling and internet providers need to catch up.
+It's important to note that these are different and incompatible protocols. You cannot have a IPv4-only machine talking to an IPv6-only machine and vice-versa without having an expensive and fragile translation in between - this incompatibility is the reason why the process of moving entirely to IPv6 is very time-consuming - tooling and internet providers need to catch up.
 
-### Future-proof Cloud Strategy 
+### IPv4 Support
 
-I've noticed some of our peers struggling with the new cost implications, it's a stark reminder of the importance of adaptability and foresight in cloud architecture.
+I've noticed some of our peers struggling with the new cost implications, it's a strong reminder of the importance of adaptability and foresight in cloud architecture.
 
 #### Kubernetes, NLBs, and Efficient IP Usage
 
@@ -42,9 +42,13 @@ Unlike traditional virtual machine (VM) environments, where each instance usuall
 
 Kubernetes improves on this efficiency by enabling multiple services to be exposed through a singular IP address - this is achieved with a strategic integration of network load balancers and ingress controllers for the management and allocation of IP resources.
 
-### IPv6 Support
+#### So, nothing changes?
 
-To migrate to IPv6 you have to, well ... do nothing. We already did all the work for you without you noticing it! DNS changes, service updates, CIDR blocks, "dualstack" configuration, etc.
+Because our cloud setup allows us to operate with a very small pool of IPs, we're happy to absorb its costs so that you can continue to use IPv4 for free and without having to change anything! 
+
+### Hello IPv6
+
+Our platform already supports the new protocol and to migrate you have to, well ... do nothing. We already did all the work for you without you noticing it! DNS changes, service updates, CIDR blocks, "dualstack" configuration, etc.
 
 You can use a tool like `Dig` to ensure the domains for your project correctly resolve to an IPv6 address. If they do, you will see a section "ANSWER" with a couple of AAAA records. 
 
@@ -76,10 +80,5 @@ chavdxivhpthsshbpvut.db.eu-central-1.nhost.run.	60 IN AAAA 2a05:d014:807:5804:22
 
 If your ISP supports IPv6, or you are running on a VPN that supports it, you can use cURL, with `curl -6`, to query your Nhost endpoints directly using IPv6.
 
-### What about IPv4?
-
-Because our cloud setup allows us to operate with a very small pool of IPs, we are absorbing the costs so that you can still use IPv4 for free and without having to change anything! 
-
-You can thank us later.
 
 
