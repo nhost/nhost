@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.6.7
+
+### Patch Changes
+
+- 5ef5189: fix: update `@apollo/client` to `3.9.4` to fix a cache bug
+
 ## 1.6.6
 
 ### Patch Changes
