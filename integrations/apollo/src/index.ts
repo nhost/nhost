@@ -12,6 +12,7 @@ import { setContext } from '@apollo/client/link/context'
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { AuthContext, NhostClient } from '@nhost/nhost-js'
+import jwtDecode, { JwtPayload } from 'jwt-decode'
 
 import { createRestartableClient } from './ws'
 const isBrowser = typeof window !== 'undefined'
@@ -58,8 +59,21 @@ export const createApolloClient = ({
 
   let accessToken: AuthContext['accessToken'] | null = null
 
+  const isJwtValid = () => {
+    if (!accessToken?.value) {
+      return
+    }
+
+    let decodedToken: JwtPayload = jwtDecode(accessToken.value)
+
+    return decodedToken.exp! * 1_000 > Date.now()
+  }
+
   const isTokenValid = () =>
-    !!accessToken?.value && !!accessToken?.expiresAt && accessToken?.expiresAt > new Date()
+    !!accessToken?.value &&
+    !!accessToken?.expiresAt &&
+    accessToken?.expiresAt > new Date() &&
+    isJwtValid()
 
   const isTokenValidOrNull = () => !accessToken || isTokenValid()
 
