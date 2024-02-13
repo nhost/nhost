@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"golang.org/x/mod/semver"
 )
 
 type Manager struct {
@@ -23,13 +25,13 @@ func NewManager() *Manager {
 	}
 }
 
-func (mgr *Manager) GetReleases(ctx context.Context) (Releases, error) {
+func (mgr *Manager) GetReleases(ctx context.Context, version string) (Releases, error) {
 	var releases Releases
 
 	req, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodGet,
-		"https://api.github.com/repos/nhost/cli/releases",
+		"https://api.github.com/repos/nhost/cli/releases?per_page=100",
 		nil,
 	)
 	if err != nil {
@@ -58,14 +60,25 @@ func (mgr *Manager) GetReleases(ctx context.Context) (Releases, error) {
 		return nil, fmt.Errorf("failed to unmarshal releases: %w", err)
 	}
 
-	mgr.cache = releases
+	// filter pre-releases and older releases
+	r := make(Releases, 0, len(releases))
+	for _, release := range releases {
+		switch {
+		case release.Prerelease:
+		case semver.Compare(version, release.TagName) > 0:
+		default:
+			r = append(r, release)
+		}
+	}
 
-	return releases, nil
+	mgr.cache = r
+
+	return r, nil
 }
 
-func (mgr *Manager) LatestRelease(ctx context.Context) (Release, error) {
+func (mgr *Manager) LatestRelease(ctx context.Context, version string) (Release, error) {
 	if mgr.cache == nil {
-		if _, err := mgr.GetReleases(ctx); err != nil {
+		if _, err := mgr.GetReleases(ctx, version); err != nil {
 			return Release{}, err
 		}
 	}

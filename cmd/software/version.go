@@ -24,7 +24,7 @@ func commandVersion(cCtx *cli.Context) error {
 	ce.Infoln("Nhost CLI %s for %s-%s", cCtx.App.Version, runtime.GOOS, runtime.GOARCH)
 
 	mgr := software.NewManager()
-	releases, err := mgr.GetReleases(cCtx.Context)
+	releases, err := mgr.GetReleases(cCtx.Context, cCtx.App.Version)
 	if err != nil {
 		return fmt.Errorf("failed to get releases: %w", err)
 	}

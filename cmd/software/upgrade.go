@@ -23,7 +23,7 @@ func commandUpgrade(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
 	mgr := software.NewManager()
-	releases, err := mgr.GetReleases(cCtx.Context)
+	releases, err := mgr.GetReleases(cCtx.Context, cCtx.App.Version)
 	if err != nil {
 		return fmt.Errorf("failed to get releases: %w", err)
 	}
