@@ -66,11 +66,6 @@ export const createApolloClient = ({
 
     let decodedToken: JwtPayload = jwtDecode(accessToken.value)
 
-    console.log({
-      accessTokenExp: new Date(decodedToken.exp! * 1_000),
-      currentTime: new Date()
-    })
-
     return decodedToken.exp! * 1_000 > Date.now()
   }
 
@@ -84,25 +79,32 @@ export const createApolloClient = ({
 
   const awaitValidTokenOrNull = () => {
     if (isTokenValidOrNull()) {
-      return
+      return Promise.resolve()
     }
 
     console.log('isTokenValidOrNull()', isTokenValidOrNull())
 
-    return new Promise((resolve) => {
-      // doing this as an interval to avoid race conditions.
-      const interval = setInterval(() => {
-        if (isTokenValidOrNull()) {
-          clearInterval(interval)
-          resolve(true)
-        }
-      }, 100)
-    })
+    const waitForValidToken = () => {
+      if (isTokenValidOrNull()) {
+        return Promise.resolve(true)
+      }
+      return new Promise((resolve) => {
+        setTimeout(() => resolve(waitForValidToken()), 100)
+      })
+    }
+
+    return waitForValidToken()
   }
 
   const getAuthHeaders = async () => {
     // wait for valid access token
     await awaitValidTokenOrNull()
+
+    console.log({
+      accessToken,
+      now: Date.now(),
+      isJWTValid: isJwtValid()
+    })
 
     // add headers
     const resHeaders = {
