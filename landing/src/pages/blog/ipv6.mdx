@@ -1,0 +1,84 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'IPv6 Support (and IPv4)',
+  description:
+    'IPv6',
+  image: '/images/blog/ipv6/ipv6.png',
+  date: '2024-02-12',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'IPv6', 'IPv4'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+AWS has started to charge $0.005 per IP per hour (~$3.6/month) for all public IPv4 addresses on February 1st. This decision was [announced back in July last year](https://aws.amazon.com/blogs/aws/new-aws-public-ipv4-address-charge-public-ip-insights) and has sent ripples through the industry with good reason: there is a considerable amount of infrastructure companies that rely on AWS as their backbone and depending on their cloud setup, this change could mean a much, much higher bill at the end of the month.
+
+Our infrastructure strategy and the decisions we took early on are the reason why we navigated these changes without much trouble and, most importantly, without offloading the additional cost to users.
+
+### IPv4 vs IPv6
+
+Imagine the internet as a big address book. IPv4 is like an old version of that book that's almost full because it only has space for about 4 billion addresses. The problem of "running out of addresses" is the reason why AWS decided to start charging for public IPv4 addresses. An IPv4 looks like this: `192.168.10.150`.
+
+IPv6 is like a new, much, much bigger address book (128-bit address vs 32-bit in IPv4), so we won't run out of addresses anytime soon. An IPv6 looks like this: `2001:db8::ee00:33:6778`.
+
+It's important to note that these are different and incompatible protocols. You cannot have a IPv4-only machine talking to an IPv6-only machine and vice-versa without having an expensive and fragile translation in between - this incompatibility is the reason why the process of moving entirely to IPv6 is very time-consuming - tooling and internet providers need to catch up.
+
+### IPv4 Support
+
+I've noticed some of our peers struggling with the new cost implications, it's a strong reminder of the importance of adaptability and foresight in cloud architecture.
+
+#### Kubernetes, NLBs, and Efficient IP Usage
+
+Unlike traditional virtual machine (VM) environments, where each instance usually requires a dedicated public IP address, Network Load Balancers (NLBs) offer a more efficient approach. They serve as resilient and extremely performant intermediaries, directing traffic to various services using a considerably reduced pool of IP addresses.
+
+Kubernetes improves on this efficiency by enabling multiple services to be exposed through a singular IP address - this is achieved with a strategic integration of network load balancers and ingress controllers for the management and allocation of IP resources.
+
+#### So, nothing changes?
+
+Because our cloud setup allows us to operate with a very small pool of IPs, we're happy to absorb its costs so that you can continue to use IPv4 for free and without having to change anything! 
+
+### Hello IPv6
+
+Our platform already supports the new protocol and to migrate you have to, well ... do nothing. We already did all the work for you without you noticing it! DNS changes, service updates, CIDR blocks, "dualstack" configuration, etc.
+
+You can use a tool like `Dig` to ensure the domains for your project correctly resolve to an IPv6 address. If they do, you will see a section "ANSWER" with a couple of AAAA records. 
+
+In the following example I am looking for the records of my database service:
+
+```bash
+> dig AAAA chavdxivhpthsshbpvut.db.eu-central-1.nhost.run
+
+; <<>> DiG 9.10.6 <<>> AAAA chavdxivhpthsshbpvut.db.eu-central-1.nhost.run
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 15435
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 512
+;; QUESTION SECTION:
+;chavdxivhpthsshbpvut.db.eu-central-1.nhost.run.	IN AAAA
+
+;; ANSWER SECTION:
+chavdxivhpthsshbpvut.db.eu-central-1.nhost.run.	60 IN AAAA 2a05:d014:807:5803:273:2c64:792e:6572
+chavdxivhpthsshbpvut.db.eu-central-1.nhost.run.	60 IN AAAA 2a05:d014:807:5804:2282:b76c:792:ea
+
+;; Query time: 171 msec
+;; SERVER: 8.8.8.8#53(8.8.8.8)
+;; WHEN: Wed Feb 07 23:16:27 -01 2024
+;; MSG SIZE  rcvd: 131
+```
+
+If your ISP supports IPv6, or you are running on a VPN that supports it, you can use cURL, with `curl -6`, to query your Nhost endpoints directly using IPv6.
+
+
+
