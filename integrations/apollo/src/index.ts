@@ -66,6 +66,11 @@ export const createApolloClient = ({
 
     let decodedToken: JwtPayload = jwtDecode(accessToken.value)
 
+    console.log({
+      accessTokenExp: new Date(decodedToken.exp! * 1_000),
+      currentTime: new Date()
+    })
+
     return decodedToken.exp! * 1_000 > Date.now()
   }
 
@@ -81,6 +86,8 @@ export const createApolloClient = ({
     if (isTokenValidOrNull()) {
       return
     }
+
+    console.log('isTokenValidOrNull()', isTokenValidOrNull())
 
     return new Promise((resolve) => {
       // doing this as an interval to avoid race conditions.
