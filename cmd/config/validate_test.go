@@ -55,6 +55,9 @@ func expectedConfig() *model.ConfigConfig {
 		Functions: &model.ConfigFunctions{Node: &model.ConfigFunctionsNode{Version: ptr(18)}},
 		Auth: &model.ConfigAuth{
 			Version: ptr("0.20.0"),
+			ElevatedPrivileges: &model.ConfigAuthElevatedPrivileges{
+				Mode: ptr("disabled"),
+			},
 			Redirections: &model.ConfigAuthRedirections{
 				ClientUrl:   ptr("http://localhost:3000"),
 				AllowedUrls: []string{},

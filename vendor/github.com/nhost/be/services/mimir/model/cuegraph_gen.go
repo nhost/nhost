@@ -935,6 +935,8 @@ type ConfigAuth struct {
 	// Resources for the service
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
 
+	ElevatedPrivileges *ConfigAuthElevatedPrivileges `json:"elevatedPrivileges,omitempty" toml:"elevatedPrivileges,omitempty"`
+
 	Redirections *ConfigAuthRedirections `json:"redirections,omitempty" toml:"redirections,omitempty"`
 
 	SignUp *ConfigAuthSignUp `json:"signUp,omitempty" toml:"signUp,omitempty"`
@@ -955,6 +957,9 @@ func (o *ConfigAuth) MarshalJSON() ([]byte, error) {
 	}
 	if o.Resources != nil {
 		m["resources"] = o.Resources
+	}
+	if o.ElevatedPrivileges != nil {
+		m["elevatedPrivileges"] = o.ElevatedPrivileges
 	}
 	if o.Redirections != nil {
 		m["redirections"] = o.Redirections
@@ -989,6 +994,13 @@ func (o *ConfigAuth) GetResources() *ConfigResources {
 		return nil
 	}
 	return o.Resources
+}
+
+func (o *ConfigAuth) GetElevatedPrivileges() *ConfigAuthElevatedPrivileges {
+	if o == nil {
+		return nil
+	}
+	return o.ElevatedPrivileges
 }
 
 func (o *ConfigAuth) GetRedirections() *ConfigAuthRedirections {
@@ -1034,22 +1046,24 @@ func (o *ConfigAuth) GetTotp() *ConfigAuthTotp {
 }
 
 type ConfigAuthUpdateInput struct {
-	Version           *string                            `json:"version,omitempty" toml:"version,omitempty"`
-	IsSetVersion      bool                               `json:"-"`
-	Resources         *ConfigResourcesUpdateInput        `json:"resources,omitempty" toml:"resources,omitempty"`
-	IsSetResources    bool                               `json:"-"`
-	Redirections      *ConfigAuthRedirectionsUpdateInput `json:"redirections,omitempty" toml:"redirections,omitempty"`
-	IsSetRedirections bool                               `json:"-"`
-	SignUp            *ConfigAuthSignUpUpdateInput       `json:"signUp,omitempty" toml:"signUp,omitempty"`
-	IsSetSignUp       bool                               `json:"-"`
-	User              *ConfigAuthUserUpdateInput         `json:"user,omitempty" toml:"user,omitempty"`
-	IsSetUser         bool                               `json:"-"`
-	Session           *ConfigAuthSessionUpdateInput      `json:"session,omitempty" toml:"session,omitempty"`
-	IsSetSession      bool                               `json:"-"`
-	Method            *ConfigAuthMethodUpdateInput       `json:"method,omitempty" toml:"method,omitempty"`
-	IsSetMethod       bool                               `json:"-"`
-	Totp              *ConfigAuthTotpUpdateInput         `json:"totp,omitempty" toml:"totp,omitempty"`
-	IsSetTotp         bool                               `json:"-"`
+	Version                 *string                                  `json:"version,omitempty" toml:"version,omitempty"`
+	IsSetVersion            bool                                     `json:"-"`
+	Resources               *ConfigResourcesUpdateInput              `json:"resources,omitempty" toml:"resources,omitempty"`
+	IsSetResources          bool                                     `json:"-"`
+	ElevatedPrivileges      *ConfigAuthElevatedPrivilegesUpdateInput `json:"elevatedPrivileges,omitempty" toml:"elevatedPrivileges,omitempty"`
+	IsSetElevatedPrivileges bool                                     `json:"-"`
+	Redirections            *ConfigAuthRedirectionsUpdateInput       `json:"redirections,omitempty" toml:"redirections,omitempty"`
+	IsSetRedirections       bool                                     `json:"-"`
+	SignUp                  *ConfigAuthSignUpUpdateInput             `json:"signUp,omitempty" toml:"signUp,omitempty"`
+	IsSetSignUp             bool                                     `json:"-"`
+	User                    *ConfigAuthUserUpdateInput               `json:"user,omitempty" toml:"user,omitempty"`
+	IsSetUser               bool                                     `json:"-"`
+	Session                 *ConfigAuthSessionUpdateInput            `json:"session,omitempty" toml:"session,omitempty"`
+	IsSetSession            bool                                     `json:"-"`
+	Method                  *ConfigAuthMethodUpdateInput             `json:"method,omitempty" toml:"method,omitempty"`
+	IsSetMethod             bool                                     `json:"-"`
+	Totp                    *ConfigAuthTotpUpdateInput               `json:"totp,omitempty" toml:"totp,omitempty"`
+	IsSetTotp               bool                                     `json:"-"`
 }
 
 func (o *ConfigAuthUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -1083,6 +1097,16 @@ func (o *ConfigAuthUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Resources = t
 		}
 		o.IsSetResources = true
+	}
+	if x, ok := m["elevatedPrivileges"]; ok {
+		if x != nil {
+			t := &ConfigAuthElevatedPrivilegesUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.ElevatedPrivileges = t
+		}
+		o.IsSetElevatedPrivileges = true
 	}
 	if x, ok := m["redirections"]; ok {
 		if x != nil {
@@ -1169,6 +1193,13 @@ func (o *ConfigAuthUpdateInput) GetResources() *ConfigResourcesUpdateInput {
 	return o.Resources
 }
 
+func (o *ConfigAuthUpdateInput) GetElevatedPrivileges() *ConfigAuthElevatedPrivilegesUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.ElevatedPrivileges
+}
+
 func (o *ConfigAuthUpdateInput) GetRedirections() *ConfigAuthRedirectionsUpdateInput {
 	if o == nil {
 		return nil
@@ -1226,6 +1257,16 @@ func (s *ConfigAuth) Update(v *ConfigAuthUpdateInput) {
 				s.Resources = &ConfigResources{}
 			}
 			s.Resources.Update(v.Resources)
+		}
+	}
+	if v.IsSetElevatedPrivileges || v.ElevatedPrivileges != nil {
+		if v.ElevatedPrivileges == nil {
+			s.ElevatedPrivileges = nil
+		} else {
+			if s.ElevatedPrivileges == nil {
+				s.ElevatedPrivileges = &ConfigAuthElevatedPrivileges{}
+			}
+			s.ElevatedPrivileges.Update(v.ElevatedPrivileges)
 		}
 	}
 	if v.IsSetRedirections || v.Redirections != nil {
@@ -1291,14 +1332,15 @@ func (s *ConfigAuth) Update(v *ConfigAuthUpdateInput) {
 }
 
 type ConfigAuthInsertInput struct {
-	Version      *string                            `json:"version,omitempty" toml:"version,omitempty"`
-	Resources    *ConfigResourcesInsertInput        `json:"resources,omitempty" toml:"resources,omitempty"`
-	Redirections *ConfigAuthRedirectionsInsertInput `json:"redirections,omitempty" toml:"redirections,omitempty"`
-	SignUp       *ConfigAuthSignUpInsertInput       `json:"signUp,omitempty" toml:"signUp,omitempty"`
-	User         *ConfigAuthUserInsertInput         `json:"user,omitempty" toml:"user,omitempty"`
-	Session      *ConfigAuthSessionInsertInput      `json:"session,omitempty" toml:"session,omitempty"`
-	Method       *ConfigAuthMethodInsertInput       `json:"method,omitempty" toml:"method,omitempty"`
-	Totp         *ConfigAuthTotpInsertInput         `json:"totp,omitempty" toml:"totp,omitempty"`
+	Version            *string                                  `json:"version,omitempty" toml:"version,omitempty"`
+	Resources          *ConfigResourcesInsertInput              `json:"resources,omitempty" toml:"resources,omitempty"`
+	ElevatedPrivileges *ConfigAuthElevatedPrivilegesInsertInput `json:"elevatedPrivileges,omitempty" toml:"elevatedPrivileges,omitempty"`
+	Redirections       *ConfigAuthRedirectionsInsertInput       `json:"redirections,omitempty" toml:"redirections,omitempty"`
+	SignUp             *ConfigAuthSignUpInsertInput             `json:"signUp,omitempty" toml:"signUp,omitempty"`
+	User               *ConfigAuthUserInsertInput               `json:"user,omitempty" toml:"user,omitempty"`
+	Session            *ConfigAuthSessionInsertInput            `json:"session,omitempty" toml:"session,omitempty"`
+	Method             *ConfigAuthMethodInsertInput             `json:"method,omitempty" toml:"method,omitempty"`
+	Totp               *ConfigAuthTotpInsertInput               `json:"totp,omitempty" toml:"totp,omitempty"`
 }
 
 func (o *ConfigAuthInsertInput) GetVersion() *string {
@@ -1313,6 +1355,13 @@ func (o *ConfigAuthInsertInput) GetResources() *ConfigResourcesInsertInput {
 		return nil
 	}
 	return o.Resources
+}
+
+func (o *ConfigAuthInsertInput) GetElevatedPrivileges() *ConfigAuthElevatedPrivilegesInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.ElevatedPrivileges
 }
 
 func (o *ConfigAuthInsertInput) GetRedirections() *ConfigAuthRedirectionsInsertInput {
@@ -1365,6 +1414,12 @@ func (s *ConfigAuth) Insert(v *ConfigAuthInsertInput) {
 		}
 		s.Resources.Insert(v.Resources)
 	}
+	if v.ElevatedPrivileges != nil {
+		if s.ElevatedPrivileges == nil {
+			s.ElevatedPrivileges = &ConfigAuthElevatedPrivileges{}
+		}
+		s.ElevatedPrivileges.Insert(v.ElevatedPrivileges)
+	}
 	if v.Redirections != nil {
 		if s.Redirections == nil {
 			s.Redirections = &ConfigAuthRedirections{}
@@ -1411,6 +1466,7 @@ func (s *ConfigAuth) Clone() *ConfigAuth {
 	v := &ConfigAuth{}
 	v.Version = s.Version
 	v.Resources = s.Resources.Clone()
+	v.ElevatedPrivileges = s.ElevatedPrivileges.Clone()
 	v.Redirections = s.Redirections.Clone()
 	v.SignUp = s.SignUp.Clone()
 	v.User = s.User.Clone()
@@ -1421,17 +1477,18 @@ func (s *ConfigAuth) Clone() *ConfigAuth {
 }
 
 type ConfigAuthComparisonExp struct {
-	And          []*ConfigAuthComparisonExp           `json:"_and,omitempty"`
-	Not          *ConfigAuthComparisonExp             `json:"_not,omitempty"`
-	Or           []*ConfigAuthComparisonExp           `json:"_or,omitempty"`
-	Version      *ConfigStringComparisonExp           `json:"version,omitempty"`
-	Resources    *ConfigResourcesComparisonExp        `json:"resources,omitempty"`
-	Redirections *ConfigAuthRedirectionsComparisonExp `json:"redirections,omitempty"`
-	SignUp       *ConfigAuthSignUpComparisonExp       `json:"signUp,omitempty"`
-	User         *ConfigAuthUserComparisonExp         `json:"user,omitempty"`
-	Session      *ConfigAuthSessionComparisonExp      `json:"session,omitempty"`
-	Method       *ConfigAuthMethodComparisonExp       `json:"method,omitempty"`
-	Totp         *ConfigAuthTotpComparisonExp         `json:"totp,omitempty"`
+	And                []*ConfigAuthComparisonExp                 `json:"_and,omitempty"`
+	Not                *ConfigAuthComparisonExp                   `json:"_not,omitempty"`
+	Or                 []*ConfigAuthComparisonExp                 `json:"_or,omitempty"`
+	Version            *ConfigStringComparisonExp                 `json:"version,omitempty"`
+	Resources          *ConfigResourcesComparisonExp              `json:"resources,omitempty"`
+	ElevatedPrivileges *ConfigAuthElevatedPrivilegesComparisonExp `json:"elevatedPrivileges,omitempty"`
+	Redirections       *ConfigAuthRedirectionsComparisonExp       `json:"redirections,omitempty"`
+	SignUp             *ConfigAuthSignUpComparisonExp             `json:"signUp,omitempty"`
+	User               *ConfigAuthUserComparisonExp               `json:"user,omitempty"`
+	Session            *ConfigAuthSessionComparisonExp            `json:"session,omitempty"`
+	Method             *ConfigAuthMethodComparisonExp             `json:"method,omitempty"`
+	Totp               *ConfigAuthTotpComparisonExp               `json:"totp,omitempty"`
 }
 
 func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
@@ -1441,19 +1498,23 @@ func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
 
 	if o == nil {
 		o = &ConfigAuth{
-			Resources:    &ConfigResources{},
-			Redirections: &ConfigAuthRedirections{},
-			SignUp:       &ConfigAuthSignUp{},
-			User:         &ConfigAuthUser{},
-			Session:      &ConfigAuthSession{},
-			Method:       &ConfigAuthMethod{},
-			Totp:         &ConfigAuthTotp{},
+			Resources:          &ConfigResources{},
+			ElevatedPrivileges: &ConfigAuthElevatedPrivileges{},
+			Redirections:       &ConfigAuthRedirections{},
+			SignUp:             &ConfigAuthSignUp{},
+			User:               &ConfigAuthUser{},
+			Session:            &ConfigAuthSession{},
+			Method:             &ConfigAuthMethod{},
+			Totp:               &ConfigAuthTotp{},
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
 		return false
 	}
 	if !exp.Resources.Matches(o.Resources) {
+		return false
+	}
+	if !exp.ElevatedPrivileges.Matches(o.ElevatedPrivileges) {
 		return false
 	}
 	if !exp.Redirections.Matches(o.Redirections) {
@@ -1472,6 +1533,138 @@ func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
 		return false
 	}
 	if !exp.Totp.Matches(o.Totp) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthElevatedPrivileges struct {
+	Mode *string `json:"mode" toml:"mode"`
+}
+
+func (o *ConfigAuthElevatedPrivileges) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Mode != nil {
+		m["mode"] = o.Mode
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthElevatedPrivileges) GetMode() *string {
+	if o == nil {
+		o = &ConfigAuthElevatedPrivileges{}
+	}
+	return o.Mode
+}
+
+type ConfigAuthElevatedPrivilegesUpdateInput struct {
+	Mode      *string `json:"mode,omitempty" toml:"mode,omitempty"`
+	IsSetMode bool    `json:"-"`
+}
+
+func (o *ConfigAuthElevatedPrivilegesUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["mode"]; ok {
+		if v == nil {
+			o.Mode = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Mode = &x
+		}
+		o.IsSetMode = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthElevatedPrivilegesUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthElevatedPrivilegesUpdateInput) GetMode() *string {
+	if o == nil {
+		o = &ConfigAuthElevatedPrivilegesUpdateInput{}
+	}
+	return o.Mode
+}
+
+func (s *ConfigAuthElevatedPrivileges) Update(v *ConfigAuthElevatedPrivilegesUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetMode || v.Mode != nil {
+		s.Mode = v.Mode
+	}
+}
+
+type ConfigAuthElevatedPrivilegesInsertInput struct {
+	Mode *string `json:"mode,omitempty" toml:"mode,omitempty"`
+}
+
+func (o *ConfigAuthElevatedPrivilegesInsertInput) GetMode() *string {
+	if o == nil {
+		o = &ConfigAuthElevatedPrivilegesInsertInput{}
+	}
+	return o.Mode
+}
+
+func (s *ConfigAuthElevatedPrivileges) Insert(v *ConfigAuthElevatedPrivilegesInsertInput) {
+	s.Mode = v.Mode
+}
+
+func (s *ConfigAuthElevatedPrivileges) Clone() *ConfigAuthElevatedPrivileges {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthElevatedPrivileges{}
+	v.Mode = s.Mode
+	return v
+}
+
+type ConfigAuthElevatedPrivilegesComparisonExp struct {
+	And  []*ConfigAuthElevatedPrivilegesComparisonExp `json:"_and,omitempty"`
+	Not  *ConfigAuthElevatedPrivilegesComparisonExp   `json:"_not,omitempty"`
+	Or   []*ConfigAuthElevatedPrivilegesComparisonExp `json:"_or,omitempty"`
+	Mode *ConfigStringComparisonExp                   `json:"mode,omitempty"`
+}
+
+func (exp *ConfigAuthElevatedPrivilegesComparisonExp) Matches(o *ConfigAuthElevatedPrivileges) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthElevatedPrivileges{}
+	}
+	if o.Mode != nil && !exp.Mode.Matches(*o.Mode) {
 		return false
 	}
 

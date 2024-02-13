@@ -27,3 +27,9 @@ type ConfigRunServiceConfigWithID struct {
 	ServiceID string                  `json:"serviceID"`
 	Config    *ConfigRunServiceConfig `json:"config"`
 }
+
+type Mutation struct {
+}
+
+type Query struct {
+}

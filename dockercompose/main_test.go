@@ -24,6 +24,9 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 			WebhookSecret: "webhookSecret",
 		},
 		Auth: &model.ConfigAuth{
+			ElevatedPrivileges: &model.ConfigAuthElevatedPrivileges{
+				Mode: ptr("required"),
+			},
 			Resources: &model.ConfigResources{
 				Compute: &model.ConfigResourcesCompute{
 					Cpu:    1000,

@@ -13,14 +13,15 @@ import (
 )
 
 const (
-	authPort      = 4000
-	mailhogPort   = 8025
-	dashboardPort = 3000
-	storagePort   = 5000
-	functionsPort = 3000
-	hasuraPort    = 8080
-	consolePort   = 9695
-	postgresPort  = 5432
+	authPort         = 4000
+	mailhogPort      = 8025
+	dashboardPort    = 3000
+	storagePort      = 5000
+	functionsPort    = 3000
+	hasuraPort       = 8080
+	consolePort      = 9695
+	postgresPort     = 5432
+	configserverPort = 8088
 )
 
 const (
@@ -458,7 +459,8 @@ func getServices( //nolint: funlen,cyclop
 	ports ExposePorts,
 	branch string,
 	dashboardVersion string,
-	runServices ...*model.ConfigRunServiceConfig,
+	configserviceImage string,
+	runServices ...*RunService,
 ) (map[string]*Service, error) {
 	minio, err := minio(dataFolder)
 	if err != nil {
@@ -521,6 +523,12 @@ func getServices( //nolint: funlen,cyclop
 		"storage":  storage,
 		"mailhog":  mailhog,
 		"traefik":  traefik,
+		"configserver": configserver(
+			configserviceImage,
+			rootFolder,
+			nhostFolder,
+			useTLS,
+			runServices...),
 	}
 
 	if cfg.Ai != nil {
@@ -528,10 +536,15 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	for _, runService := range runServices {
-		services["run-"+runService.Name] = run(runService, branch)
+		services["run-"+runService.Config.Name] = run(runService.Config, branch)
 	}
 
 	return services, nil
+}
+
+type RunService struct {
+	Config *model.ConfigRunServiceConfig
+	Path   string
 }
 
 func ComposeFileFromConfig(
@@ -547,7 +560,8 @@ func ComposeFileFromConfig(
 	ports ExposePorts,
 	branch string,
 	dashboardVersion string,
-	runServices ...*model.ConfigRunServiceConfig,
+	configserverImage string,
+	runServices ...*RunService,
 ) (*ComposeFile, error) {
 	services, err := getServices(
 		cfg,
@@ -562,6 +576,7 @@ func ComposeFileFromConfig(
 		ports,
 		branch,
 		dashboardVersion,
+		configserverImage,
 		runServices...,
 	)
 	if err != nil {
@@ -575,8 +590,8 @@ func ComposeFileFromConfig(
 		pgVolumeName:                 {},
 	}
 	for _, runService := range runServices {
-		for _, s := range runService.GetResources().GetStorage() {
-			volumes[runVolumeName(runService.Name, s.GetName(), branch)] = struct{}{}
+		for _, s := range runService.Config.GetResources().GetStorage() {
+			volumes[runVolumeName(runService.Config.Name, s.GetName(), branch)] = struct{}{}
 		}
 	}
 

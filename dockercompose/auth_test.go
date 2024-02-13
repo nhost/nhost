@@ -103,6 +103,7 @@ func expectedAuth() *Service {
 			"AUTH_PROVIDER_WORKOS_DEFAULT_ORGANIZATION": "workosOrganization",
 			"AUTH_PROVIDER_WORKOS_ENABLED":              "true",
 			"AUTH_REFRESH_TOKEN_EXPIRES_IN":             "99",
+			"AUTH_REQUIRE_ELEVATED_CLAIM":               "required",
 			"AUTH_SERVER_URL":                           "http://local.auth.nhost.run:1336/v1",
 			"AUTH_SMS_PASSWORDLESS_ENABLED":             "true",
 			"AUTH_SMS_PROVIDER":                         "twilio",

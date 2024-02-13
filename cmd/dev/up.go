@@ -38,6 +38,7 @@ const (
 	flagsHasuraPort        = "hasura-port"
 	flagsHasuraConsolePort = "hasura-console-port"
 	flagDashboardVersion   = "dashboard-version"
+	flagConfigserverImage  = "configserver-image"
 	flagRunService         = "run-service"
 )
 
@@ -108,6 +109,12 @@ func CommandUp() *cli.Command { //nolint:funlen
 				Value:   "nhost/dashboard:1.6.7",
 				EnvVars: []string{"NHOST_DASHBOARD_VERSION"},
 			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagConfigserverImage,
+				Hidden:  true,
+				Value:   "",
+				EnvVars: []string{"NHOST_CONFIGSERVER_IMAGE"},
+			},
 			&cli.StringSliceFlag{ //nolint:exhaustruct
 				Name:    flagRunService,
 				Usage:   "Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: /path/to/run-service.toml[:overlay_name]", //nolint:lll
@@ -133,6 +140,11 @@ func commandUp(cCtx *cli.Context) error {
 		)
 	}
 
+	configserverImage := cCtx.String(flagConfigserverImage)
+	if configserverImage == "" {
+		configserverImage = "nhost/cli:" + cCtx.App.Version
+	}
+
 	applySeeds := cCtx.Bool(flagApplySeeds) || !clienv.PathExists(ce.Path.DotNhostFolder())
 	return Up(
 		cCtx.Context,
@@ -149,6 +161,7 @@ func commandUp(cCtx *cli.Context) error {
 			Functions: cCtx.Uint(flagsFunctionsPort),
 		},
 		cCtx.String(flagDashboardVersion),
+		configserverImage,
 		cCtx.StringSlice(flagRunService),
 	)
 }
@@ -230,8 +243,8 @@ func processRunServices(
 	ce *clienv.CliEnv,
 	runServices []string,
 	secrets model.Secrets,
-) ([]*model.ConfigRunServiceConfig, error) {
-	r := make([]*model.ConfigRunServiceConfig, 0, len(runServices))
+) ([]*dockercompose.RunService, error) {
+	r := make([]*dockercompose.RunService, 0, len(runServices))
 	for _, runService := range runServices {
 		cfgPath, overlayName, err := parseRunServiceConfigFlag(runService)
 		if err != nil {
@@ -243,7 +256,10 @@ func processRunServices(
 			return nil, fmt.Errorf("failed to validate run service %s: %w", cfgPath, err)
 		}
 
-		r = append(r, cfg)
+		r = append(r, &dockercompose.RunService{
+			Path:   cfgPath,
+			Config: cfg,
+		})
 	}
 
 	return r, nil
@@ -259,6 +275,7 @@ func up( //nolint:funlen,cyclop
 	applySeeds bool,
 	ports dockercompose.ExposePorts,
 	dashboardVersion string,
+	configserverImage string,
 	runServices []string,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
@@ -302,6 +319,7 @@ func up( //nolint:funlen,cyclop
 		ports,
 		ce.Branch(),
 		dashboardVersion,
+		configserverImage,
 		runServicesCfg...,
 	)
 	if err != nil {
@@ -350,7 +368,7 @@ func up( //nolint:funlen,cyclop
 func printInfo(
 	httpPort, postgresPort uint,
 	useTLS bool,
-	runServices []*model.ConfigRunServiceConfig,
+	runServices []*dockercompose.RunService,
 ) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0) //nolint:gomnd
 	fmt.Fprintf(w, "URLs:\n")
@@ -367,12 +385,12 @@ func printInfo(
 	fmt.Fprintf(w, "- Mailhog:\t\t%s\n", dockercompose.URL("mailhog", httpPort, useTLS))
 
 	for _, svc := range runServices {
-		for _, port := range svc.GetPorts() {
+		for _, port := range svc.Config.GetPorts() {
 			if deptr(port.GetPublish()) {
 				fmt.Fprintf(
 					w,
 					"- run-%s:\t\tFrom laptop:\t%s://localhost:%d\n",
-					svc.Name,
+					svc.Config.Name,
 					port.GetType(),
 					port.GetPort(),
 				)
@@ -380,7 +398,7 @@ func printInfo(
 					w,
 					"\t\tFrom services:\t%s://run-%s:%d\n",
 					port.GetType(),
-					svc.Name,
+					svc.Config.Name,
 					port.GetPort(),
 				)
 			}
@@ -408,12 +426,13 @@ func Up(
 	applySeeds bool,
 	ports dockercompose.ExposePorts,
 	dashboardVersion string,
+	configserverImage string,
 	runServices []string,
 ) error {
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
 	if err := up(
-		ctx, ce, dc, httpPort, useTLS, postgresPort, applySeeds, ports, dashboardVersion, runServices,
+		ctx, ce, dc, httpPort, useTLS, postgresPort, applySeeds, ports, dashboardVersion, configserverImage, runServices,
 	); err != nil {
 		ce.Warnln(err.Error())
 

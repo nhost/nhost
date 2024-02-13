@@ -69,6 +69,10 @@ type Query {
         resolve: Boolean!,
     ): ConfigRunServiceConfig
     runServiceConfigs(
+        appID: uuid! @hasAppVisibility(),
+        resolve: Boolean!,
+    ): [ConfigRunServiceConfigWithID!]!
+    runServiceConfigsAll(
         resolve: Boolean!,
         where: ConfigRunServiceConfigComparisonExp, @isAdmin(),
     ): [ConfigRunServiceConfigWithID!]!

@@ -8,6 +8,7 @@ import (
 	"github.com/Yamashou/gqlgenc/clientv2"
 	"github.com/nhost/cli/clienv"
 	"github.com/nhost/cli/cmd/config"
+	"github.com/nhost/cli/cmd/configserver"
 	"github.com/nhost/cli/cmd/dev"
 	"github.com/nhost/cli/cmd/dockercredentials"
 	"github.com/nhost/cli/cmd/project"
@@ -33,6 +34,7 @@ func main() {
 		Description:          "Nhost CLI tool",
 		Commands: []*cli.Command{
 			config.Command(),
+			configserver.Command(),
 			dev.Command(),
 			dev.CommandUp(),
 			dev.CommandDown(),

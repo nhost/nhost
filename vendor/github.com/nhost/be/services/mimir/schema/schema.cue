@@ -30,8 +30,8 @@ import (
 	// Configuration for storage service
 	storage: #Storage
 
-    // Configuration for graphite service
-    ai?: #AI
+	// Configuration for graphite service
+	ai?: #AI
 
 	// Configuration for observability service
 	observability: #Observability
@@ -172,7 +172,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.5.1"
+	version: string | *"0.6.0"
 
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
@@ -198,7 +198,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.6-20231218-1"
+	version: string | *"14.6-20240129-1"
 
 	// Resources for the service
 	resources?: {
@@ -230,7 +230,7 @@ import (
 		maxParallelWorkersPerGather:   int32 | *2
 		maxParallelWorkers:            int32 | *8
 		maxParallelMaintenanceWorkers: int32 | *2
-		walLevel:											 string | *"replica"
+		walLevel:                      string | *"replica"
 		maxWalSenders:                 int32 | *10
 		maxReplicationSlots:           int32 | *10
 	}
@@ -250,6 +250,10 @@ import (
 
 	// Resources for the service
 	resources?: #Resources
+
+	elevatedPrivileges: {
+		mode: "recommended" | "required" | *"disabled"
+	}
 
 	redirections: {
 		// AUTH_CLIENT_URL
@@ -271,7 +275,7 @@ import (
 			// AUTH_USER_DEFAULT_ROLE
 			default: #UserRole | *"user"
 			// AUTH_USER_DEFAULT_ALLOWED_ROLES
-			allowed: [ ...#UserRole] | *[default, "me"]
+			allowed: [...#UserRole] | *[default, "me"]
 		}
 		locale: {
 			// AUTH_LOCALE_DEFAULT
@@ -396,15 +400,15 @@ import (
 			enabled: bool | *false
 			if enabled {
 				relyingParty: {
-					id:      string | *""
-					name:    string
+					id:   string | *""
+					name: string
 					origins: [...#Url] | *[redirections.clientUrl]
 				}
 			}
 			if !enabled {
 				relyingParty?: {
-					id:       string | *""
-					name?:    string
+					id:    string | *""
+					name?: string
 					origins?: [...#Url] | *[redirections.clientUrl]
 				}
 			}
@@ -544,21 +548,21 @@ import (
 }
 
 #AI: {
-    version: string | *"0.1.0"
+	version: string | *"0.1.0"
 	resources: {
-        compute: #ComputeResources
-    }
+		compute: #ComputeResources
+	}
 
-    openai: {
-        organization?: string
-        apiKey: string
-    }
+	openai: {
+		organization?: string
+		apiKey:        string
+	}
 
-    autoEmbeddings: {
-        synchPeriodMinutes: uint32 | *5
-    }
+	autoEmbeddings: {
+		synchPeriodMinutes: uint32 | *5
+	}
 
-    webhookSecret: string
+	webhookSecret: string
 }
 
 #Observability: {
@@ -570,28 +574,26 @@ import (
 }
 
 #RunServicePort: {
-	port:                              #Port
-	type:                              "http" | "tcp" | "udp"
-	publish:                           bool | *false
-	ingresses:                         [#Ingress] | *[]
+	port:    #Port
+	type:    "http" | "tcp" | "udp"
+	publish: bool | *false
+	ingresses: [#Ingress] | *[]
 	_publish_supported_only_over_http: (
 						publish == false || type == "http" ) & true @cuegraph(skip)
 }
 
 #RunServiceName: =~"^[a-z]([-a-z0-9]*[a-z0-9])?$" & strings.MinRunes(1) & strings.MaxRunes(30)
 
-
 // Resource configuration for a service
 #ComputeResources: {
-    // milicpus, 1000 milicpus = 1 cpu
-    cpu: uint32 & >=62 & <=14000
-    // MiB: 128MiB to 30GiB
-    memory: uint32 & >=128 & <=28720
+	// milicpus, 1000 milicpus = 1 cpu
+	cpu: uint32 & >=62 & <=14000
+	// MiB: 128MiB to 30GiB
+	memory: uint32 & >=128 & <=28720
 
-    // validate memory steps of 128 MiB
-    _validateMemorySteps128: (mod(memory, 128) == 0) & true @cuegraph(skip)
+	// validate memory steps of 128 MiB
+	_validateMemorySteps128: (mod(memory, 128) == 0) & true @cuegraph(skip)
 }
-
 
 // Resource configuration for a service
 #RunServiceResources: {
@@ -602,8 +604,8 @@ import (
 		capacity: uint32 & >=1 & <=1000 // GiB
 		path:     string
 	}] | *[]
-	_storage_name_must_be_unique: list.UniqueItems([ for s in storage {s.name}]) & true @cuegraph(skip)
-	_storage_path_must_be_unique: list.UniqueItems([ for s in storage {s.path}]) & true @cuegraph(skip)
+	_storage_name_must_be_unique: list.UniqueItems([for s in storage {s.name}]) & true @cuegraph(skip)
+	_storage_path_must_be_unique: list.UniqueItems([for s in storage {s.path}]) & true @cuegraph(skip)
 
 	// Number of replicas for a service
 	replicas: uint8 & <=10
@@ -618,7 +620,7 @@ import (
 }
 
 #HealthCheck: {
-	port:    #Port
+	port:                #Port
 	initialDelaySeconds: int | *30
 	probePeriodSeconds:  int | *60
 }
@@ -627,8 +629,8 @@ import (
 	name:  #RunServiceName
 	image: #RunServiceImage
 	command: [...string]
-	environment:  [...#EnvironmentVariable] | *[]
-	ports?:       [...#RunServicePort] | *[]
+	environment: [...#EnvironmentVariable] | *[]
+	ports?: [...#RunServicePort] | *[]
 	resources:    #RunServiceResources
 	healthCheck?: #HealthCheck
 }

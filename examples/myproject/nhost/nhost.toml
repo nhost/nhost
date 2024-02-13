@@ -7,20 +7,6 @@ value = 'Sayonara'
 name = 'GREET_TYPE'
 value = '{{ secrets.GREET_TYPE }}'
 
-[ai]
-version = '0.3.1'
-webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
-
-[ai.resources.compute]
-cpu = 64
-memory = 128
-
-[ai.openai]
-apiKey = '{{ secrets.OPENAI_API_KEY }}'
-
-[ai.autoEmbeddings]
-synchPeriodMinutes = 10
-
 [hasura]
 version = 'v2.33.4-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
@@ -31,8 +17,8 @@ type = 'HS256'
 key = '{{ secrets.HASURA_GRAPHQL_JWT_SECRET }}'
 
 [hasura.settings]
-enableRemoteSchemaPermissions = false
 corsDomain = ['https://local.dashboard.nhost.run', 'https://app.nhost.io', 'https://staging.app.nhost.io', 'https://zero.app.io', 'https://one.app.io', 'https://two.app.io']
+enableRemoteSchemaPermissions = false
 liveQueriesMultiplexedRefetchInterval = 3000
 
 [functions]
@@ -153,7 +139,7 @@ sharedBuffers = '256MB'
 effectiveCacheSize = '768MB'
 maintenanceWorkMem = '64MB'
 checkpointCompletionTarget = 0.9
-walBuffers = "-1"
+walBuffers = '-1'
 defaultStatisticsTarget = 100
 randomPageCost = 1.1
 effectiveIOConcurrency = 200
@@ -170,6 +156,21 @@ maxParallelMaintenanceWorkers = 2
 
 [storage]
 version = '0.4.0'
+
+[ai]
+version = '0.3.1'
+webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
+
+[ai.resources]
+[ai.resources.compute]
+cpu = 64
+memory = 128
+
+[ai.openai]
+apiKey = '{{ secrets.OPENAI_API_KEY }}'
+
+[ai.autoEmbeddings]
+synchPeriodMinutes = 10
 
 [observability]
 [observability.grafana]

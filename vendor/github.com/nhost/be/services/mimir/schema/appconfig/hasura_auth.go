@@ -288,6 +288,14 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			IsSecret:   false,
 			SecretName: "",
 		},
+		{
+			Name: "AUTH_REQUIRE_ELEVATED_CLAIM",
+			Value: Stringify(
+				unptr(config.GetAuth().GetElevatedPrivileges().GetMode()),
+			),
+			IsSecret:   false,
+			SecretName: "",
+		},
 	}
 
 	env = append(env, []EnvVar{

@@ -8,7 +8,7 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 )
 
-func unptr[T any](t *T) T { //nolint:ireturn
+func unptr[T any](t *T) T {
 	if t == nil {
 		return *new(T)
 	}

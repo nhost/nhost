@@ -81,7 +81,7 @@ jobs:
           tar cvzf upload/cli-$VERSION-linux-arm64.tar.gz -C ~/artifacts/cli-$VERSION-linux-arm64 cli
 
           cd upload
-          find . -type f -exec sha256sum {} + > checksums.txt
+          find . -type f -exec sha256sum {} + > ../checksums.txt
           cd ..
 
           cat checksums.txt

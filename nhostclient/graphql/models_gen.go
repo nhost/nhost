@@ -75,14 +75,23 @@ type ConfigAIUpdateInput struct {
 }
 
 type ConfigAuth struct {
-	Method       *ConfigAuthMethod       `json:"method,omitempty"`
-	Redirections *ConfigAuthRedirections `json:"redirections,omitempty"`
-	Resources    *ConfigResources        `json:"resources,omitempty"`
-	Session      *ConfigAuthSession      `json:"session,omitempty"`
-	SignUp       *ConfigAuthSignUp       `json:"signUp,omitempty"`
-	Totp         *ConfigAuthTotp         `json:"totp,omitempty"`
-	User         *ConfigAuthUser         `json:"user,omitempty"`
-	Version      *string                 `json:"version,omitempty"`
+	ElevatedPrivileges *ConfigAuthElevatedPrivileges `json:"elevatedPrivileges,omitempty"`
+	Method             *ConfigAuthMethod             `json:"method,omitempty"`
+	Redirections       *ConfigAuthRedirections       `json:"redirections,omitempty"`
+	Resources          *ConfigResources              `json:"resources,omitempty"`
+	Session            *ConfigAuthSession            `json:"session,omitempty"`
+	SignUp             *ConfigAuthSignUp             `json:"signUp,omitempty"`
+	Totp               *ConfigAuthTotp               `json:"totp,omitempty"`
+	User               *ConfigAuthUser               `json:"user,omitempty"`
+	Version            *string                       `json:"version,omitempty"`
+}
+
+type ConfigAuthElevatedPrivileges struct {
+	Mode *string `json:"mode,omitempty"`
+}
+
+type ConfigAuthElevatedPrivilegesUpdateInput struct {
+	Mode *string `json:"mode,omitempty"`
 }
 
 type ConfigAuthMethod struct {
@@ -326,14 +335,15 @@ type ConfigAuthTotpUpdateInput struct {
 }
 
 type ConfigAuthUpdateInput struct {
-	Method       *ConfigAuthMethodUpdateInput       `json:"method,omitempty"`
-	Redirections *ConfigAuthRedirectionsUpdateInput `json:"redirections,omitempty"`
-	Resources    *ConfigResourcesUpdateInput        `json:"resources,omitempty"`
-	Session      *ConfigAuthSessionUpdateInput      `json:"session,omitempty"`
-	SignUp       *ConfigAuthSignUpUpdateInput       `json:"signUp,omitempty"`
-	Totp         *ConfigAuthTotpUpdateInput         `json:"totp,omitempty"`
-	User         *ConfigAuthUserUpdateInput         `json:"user,omitempty"`
-	Version      *string                            `json:"version,omitempty"`
+	ElevatedPrivileges *ConfigAuthElevatedPrivilegesUpdateInput `json:"elevatedPrivileges,omitempty"`
+	Method             *ConfigAuthMethodUpdateInput             `json:"method,omitempty"`
+	Redirections       *ConfigAuthRedirectionsUpdateInput       `json:"redirections,omitempty"`
+	Resources          *ConfigResourcesUpdateInput              `json:"resources,omitempty"`
+	Session            *ConfigAuthSessionUpdateInput            `json:"session,omitempty"`
+	SignUp             *ConfigAuthSignUpUpdateInput             `json:"signUp,omitempty"`
+	Totp               *ConfigAuthTotpUpdateInput               `json:"totp,omitempty"`
+	User               *ConfigAuthUserUpdateInput               `json:"user,omitempty"`
+	Version            *string                                  `json:"version,omitempty"`
 }
 
 type ConfigAuthUser struct {
@@ -798,6 +808,11 @@ type ConfigRunServiceConfigUpdateInput struct {
 	Name        *string                                 `json:"name,omitempty"`
 	Ports       []*ConfigRunServicePortUpdateInput      `json:"ports,omitempty"`
 	Resources   *ConfigRunServiceResourcesUpdateInput   `json:"resources,omitempty"`
+}
+
+type ConfigRunServiceConfigWithID struct {
+	Config    ConfigRunServiceConfig `json:"config"`
+	ServiceID string                 `json:"serviceID"`
 }
 
 type ConfigRunServiceImage struct {

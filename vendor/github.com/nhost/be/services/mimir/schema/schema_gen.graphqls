@@ -266,6 +266,10 @@ type ConfigAuth {
     """
 
     """
+    elevatedPrivileges: ConfigAuthElevatedPrivileges
+    """
+
+    """
     redirections: ConfigAuthRedirections
     """
 
@@ -292,6 +296,7 @@ type ConfigAuth {
 input ConfigAuthUpdateInput {
     version: String
     resources: ConfigResourcesUpdateInput
+    elevatedPrivileges: ConfigAuthElevatedPrivilegesUpdateInput
     redirections: ConfigAuthRedirectionsUpdateInput
     signUp: ConfigAuthSignUpUpdateInput
     user: ConfigAuthUserUpdateInput
@@ -303,6 +308,7 @@ input ConfigAuthUpdateInput {
 input ConfigAuthInsertInput {
     version: String
     resources: ConfigResourcesInsertInput
+    elevatedPrivileges: ConfigAuthElevatedPrivilegesInsertInput
     redirections: ConfigAuthRedirectionsInsertInput
     signUp: ConfigAuthSignUpInsertInput
     user: ConfigAuthUserInsertInput
@@ -317,12 +323,38 @@ input ConfigAuthComparisonExp {
     _or: [ConfigAuthComparisonExp!]
     version: ConfigStringComparisonExp
     resources: ConfigResourcesComparisonExp
+    elevatedPrivileges: ConfigAuthElevatedPrivilegesComparisonExp
     redirections: ConfigAuthRedirectionsComparisonExp
     signUp: ConfigAuthSignUpComparisonExp
     user: ConfigAuthUserComparisonExp
     session: ConfigAuthSessionComparisonExp
     method: ConfigAuthMethodComparisonExp
     totp: ConfigAuthTotpComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthElevatedPrivileges {
+    """
+
+    """
+    mode: String
+}
+
+input ConfigAuthElevatedPrivilegesUpdateInput {
+    mode: String
+}
+
+input ConfigAuthElevatedPrivilegesInsertInput {
+    mode: String
+}
+
+input ConfigAuthElevatedPrivilegesComparisonExp {
+    _and: [ConfigAuthElevatedPrivilegesComparisonExp!]
+    _not: ConfigAuthElevatedPrivilegesComparisonExp
+    _or: [ConfigAuthElevatedPrivilegesComparisonExp!]
+    mode: ConfigStringComparisonExp
 }
 
 """
