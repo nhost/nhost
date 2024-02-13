@@ -1,6 +1,8 @@
 import { RequestHandler } from 'express';
 import { ReasonPhrases } from 'http-status-codes';
 
+import { failsElevatedCheck } from '@/middleware/auth';
+
 import { gqlSdk, hashPassword, getUserByTicket } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, password } from '@/validation';
@@ -27,6 +29,11 @@ export const userPasswordHandler: RequestHandler<
     if (!req.auth?.userId) {
       return sendError(res, 'unauthenticated-user');
     }
+
+    if (await failsElevatedCheck(req.auth)) {
+        return sendError(res, 'elevated-claim-required');
+    }
+
     user = (await gqlSdk.user({ id: req.auth?.userId })).user;
   }
 

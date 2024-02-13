@@ -2,6 +2,7 @@ import { asyncWrapper as aw } from '@/utils';
 import { bodyValidator } from '@/validation';
 import { Router } from 'express';
 import { createPATHandler, createPATSchema } from './pat';
+import { authenticationGate } from '@/middleware/auth';
 
 const router = Router();
 
@@ -14,7 +15,12 @@ const router = Router();
  * @return {UnauthorizedError} 401 - Unauthenticated user or invalid token - application/json
  * @tags General
  */
-router.post('/pat', bodyValidator(createPATSchema), aw(createPATHandler));
+router.post(
+  '/pat',
+  authenticationGate(true),
+  bodyValidator(createPATSchema),
+  aw(createPATHandler),
+);
 
 const patRouter = router;
 export { patRouter };

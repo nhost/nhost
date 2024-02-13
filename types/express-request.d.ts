@@ -2,6 +2,7 @@ interface RequestAuth {
   userId: string;
   defaultRole: string;
   isAnonymous: boolean;
+  elevated: boolean;
 }
 
 declare namespace Express {

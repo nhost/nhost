@@ -131,6 +131,10 @@ export const ERRORS = asErrors({
     status: StatusCodes.UNAUTHORIZED,
     message: 'User is not logged in',
   },
+  'elevated-claim-required': {
+    status: StatusCodes.FORBIDDEN,
+    message: 'Elevated claim is required',
+  },
   'forbidden-endpoint-in-production': {
     status: StatusCodes.BAD_REQUEST,
     message: 'This endpoint is only available on test environments',

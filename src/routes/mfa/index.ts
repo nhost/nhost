@@ -17,7 +17,7 @@ const router = Router();
  */
 router.get(
   '/mfa/totp/generate',
-  authenticationGate,
+  authenticationGate(false),
   aw(mfatotpGenerateHandler)
 );
 

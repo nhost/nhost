@@ -236,6 +236,10 @@ export const ENV = {
     return castBooleanEnv('AUTH_DISABLE_SIGNUP', false);
   },
 
+  get AUTH_REQUIRE_ELEVATED_CLAIM() {
+    return castStringEnv('AUTH_REQUIRE_ELEVATED_CLAIM', 'disabled');
+  }
+
   // * See ../server.ts
   // get AUTH_SKIP_INIT() {
   //   return castBooleanEnv('AUTH_SKIP_INIT', false);

@@ -56,6 +56,7 @@
 | AUTH_WEBAUTHN_RP_ID                                   | Relying party id. If not set `AUTH_CLIENT_URL` will be used as a default.                                                                                                                                                               |                              |
 | AUTH_WEBAUTHN_RP_ORIGINS                              | Array of URLs where the registration is permitted and should have occurred on. `AUTH_CLIENT_URL` will be automatically added to the list of origins if is set.                                                                          |                              |
 | AUTH_WEBAUTHN_ATTESTATION_TIMEOUT                     | How long (in ms) the user can take to complete authentication.                                                                                                                                                                          | `60000` (1 minute)           |
+| AUTH_REQUIRE_ELEVATED_CLAIM                           | Require x-hasura-auth-elevated claim to perform certain actions: create PATs, change email and/or password, enable/disable MFA and add security keys. If set to `recommended` the claim check is only performed if the user has a security key attached. If set to `required` the only action that won't require the claim is setting a security key for the first time. | `disabled`  |
 
 # OAuth environment variables
 

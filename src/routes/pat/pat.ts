@@ -16,10 +16,6 @@ export const createPATHandler: RequestHandler<
   {},
   { metadata: object; expiresAt: Date }
 > = async (req, res) => {
-  if (!req.auth) {
-    return sendError(res, 'unauthenticated-user');
-  }
-
   try {
     const { userId } = req.auth as RequestAuth;
 
