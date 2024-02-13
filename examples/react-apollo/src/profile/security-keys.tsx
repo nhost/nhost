@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { FaMinus } from 'react-icons/fa'
 import { RemoveSecurityKeyMutation, SecurityKeysQuery } from 'src/generated'
 
-import { useMutation } from '@apollo/client'
+import { useApolloClient, useMutation } from '@apollo/client'
 import { ActionIcon, Button, Card, SimpleGrid, Table, TextInput, Title } from '@mantine/core'
 import { useInputState } from '@mantine/hooks'
 import { showNotification } from '@mantine/notifications'
@@ -11,8 +11,9 @@ import { useAuthQuery } from '@nhost/react-apollo'
 import { REMOVE_SECURITY_KEY, SECURITY_KEYS_LIST } from 'src/utils'
 
 export const SecurityKeys: React.FC = () => {
-  const { add } = useAddSecurityKey()
   const userId = useUserId()
+  const client = useApolloClient()
+  const { add } = useAddSecurityKey()
   // Nickname of the security key
   const [nickname, setNickname] = useInputState('')
   const [list, setList] = useState<{ id: string; nickname?: string | null }[]>([])
@@ -27,9 +28,10 @@ export const SecurityKeys: React.FC = () => {
 
   const addKey = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
     const { key, isError, error } = await add(nickname)
+
     if (isError) {
-      console.log(error)
       showNotification({
         color: 'red',
         title: 'Error',
@@ -37,6 +39,11 @@ export const SecurityKeys: React.FC = () => {
       })
     } else {
       setNickname('')
+
+      // refetch securityKeys so that we know if need to elevate in other components
+      await client.refetchQueries({
+        include: [SECURITY_KEYS_LIST]
+      })
     }
     if (key) {
       setList([...list, key])

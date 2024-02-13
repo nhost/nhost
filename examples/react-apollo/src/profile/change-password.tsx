@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Button, Card, Grid, PasswordInput, Title } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
@@ -17,16 +17,18 @@ export const ChangePassword: React.FC = () => {
   const userId = useUserId()
   const [password, setPassword] = useState('')
   const { changePassword } = useChangePassword()
-
   const { elevated, elevateEmailSecurityKey } = useElevateSecurityKeyEmail()
   const [userHasSecurityKey, setUserHasSecurityKey] = useState(false)
 
-  useAuthQuery<SecurityKeysQuery>(SECURITY_KEYS_LIST, {
-    variables: { userId },
-    onCompleted: ({ authUserSecurityKeys }) => {
-      setUserHasSecurityKey(authUserSecurityKeys?.length > 0)
+  const { data } = useAuthQuery<SecurityKeysQuery>(SECURITY_KEYS_LIST, { variables: { userId } })
+
+  useEffect(() => {
+    const authUserSecurityKeys = data?.authUserSecurityKeys
+
+    if (authUserSecurityKeys) {
+      setUserHasSecurityKey(authUserSecurityKeys.length > 0)
     }
-  })
+  }, [data])
 
   const change = async () => {
     if (!elevated && userHasSecurityKey) {
