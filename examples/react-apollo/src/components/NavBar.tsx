@@ -2,6 +2,7 @@ import { FaFile, FaHouseUser, FaQuestion, FaSignOutAlt, FaLock } from 'react-ico
 import { SiApollographql } from 'react-icons/si'
 import { useLocation, useNavigate } from 'react-router'
 import { Link } from 'react-router-dom'
+import { showNotification } from '@mantine/notifications'
 
 import {
   Button,
@@ -69,11 +70,36 @@ const data: MenuItemProps[] = [
 
 export default function NavBar() {
   const userData = useUserData()
+  const navigate = useNavigate()
+  const { signOut } = useSignOut()
   const authenticated = useAuthenticated()
   const { elevateEmailSecurityKey, elevated } = useElevateSecurityKeyEmail()
-  const { signOut } = useSignOut()
-  const navigate = useNavigate()
+
+  const handleElevate = async () => {
+    if (userData?.email) {
+      const { elevated, isError, error } = await elevateEmailSecurityKey(userData.email)
+
+      console.log({ isError, error })
+
+      if (elevated) {
+        showNotification({
+          title: 'Success',
+          message: 'You now have an elevated permission'
+        })
+      }
+
+      if (isError) {
+        showNotification({
+          color: 'red',
+          title: 'Failed',
+          message: 'Could not elevate permission'
+        })
+      }
+    }
+  }
+
   const links = data.map((link) => <MenuItem {...link} key={link.label} />)
+
   return (
     <Navbar width={{ sm: 300, lg: 400, base: 100 }} aria-label="main navigation">
       <Navbar.Section grow mt="md">
@@ -93,15 +119,7 @@ export default function NavBar() {
       <Card p="lg" m="sm">
         <Group position="apart">
           <span>Elevated permissions: {String(elevated)}</span>
-          <Button
-            onClick={async (e: React.MouseEvent) => {
-              if (userData?.email) {
-                await elevateEmailSecurityKey(userData.email)
-              }
-            }}
-          >
-            Elevate
-          </Button>
+          <Button onClick={handleElevate}>Elevate</Button>
         </Group>
       </Card>
     </Navbar>
