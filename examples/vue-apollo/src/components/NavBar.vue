@@ -20,20 +20,34 @@
 
     <v-card-text class="d-flex flex-column align-center justify-space-between align-self-end">
       <span>Elevated permissions: {{ elevated }}</span>
-      <v-btn variant="text" color="primary" @click="elevatePermission(user?.email)">
-        Elevate
-      </v-btn>
+      <v-btn variant="text" color="primary" @click="handleElevate(user?.email)"> Elevate </v-btn>
     </v-card-text>
   </v-list>
+
+  <v-snackbar :modelValue="showElevateSuccess">
+    You now have an elevated permission
+    <template v-slot:actions>
+      <v-btn color="indigo" variant="text" @click="showElevateError = false"> Close </v-btn>
+    </template>
+  </v-snackbar>
+  <v-snackbar :modelValue="showElevateError">
+    Could not elevate permission
+    <template v-slot:actions>
+      <v-btn color="indigo" variant="text" @click="showElevateError = false"> Close </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 import { useAuthenticated, useSignOut, useElevateSecurityKeyEmail, useUserData } from '@nhost/vue'
 
 const user = useUserData()
 const router = useRouter()
 const { signOut } = useSignOut()
+const showElevateError = ref(false)
+const showElevateSuccess = ref(false)
 const authenticated = useAuthenticated()
 const { elevated, elevateEmailSecurityKey } = useElevateSecurityKeyEmail()
 
@@ -42,9 +56,17 @@ const signOutHandler = async () => {
   router.push('/')
 }
 
-const elevatePermission = async (email: string | undefined) => {
+const handleElevate = async (email: string | undefined) => {
   if (email) {
-    await elevateEmailSecurityKey(email)
+    const { elevated, isError } = await elevateEmailSecurityKey(email)
+
+    if (elevated) {
+      showElevateSuccess.value = true
+    }
+
+    if (isError) {
+      showElevateError.value = true
+    }
   }
 }
 </script>
