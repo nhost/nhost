@@ -1,5 +1,11 @@
 ## Changelog
 
+## 0.26.0
+
+### Minor Changes
+
+- 0c52594: feat: added AUTH_REQUIRE_ELEVATED_CLAIM to require elevated permissions for certain action
+
 ## 0.25.0
 
 ### Minor Changes
