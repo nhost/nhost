@@ -53,8 +53,6 @@ export const elevateEmailSecurityKeyPromise = (authClient: AuthClient, email: st
         accessToken
       )
 
-      console.log({ signInError })
-
       if (session && !signInError) {
         authClient.interpreter?.send({
           type: 'SESSION_UPDATE',

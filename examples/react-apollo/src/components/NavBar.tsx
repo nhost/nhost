@@ -77,9 +77,7 @@ export default function NavBar() {
 
   const handleElevate = async () => {
     if (userData?.email) {
-      const { elevated, isError, error } = await elevateEmailSecurityKey(userData.email)
-
-      console.log({ isError, error })
+      const { elevated, isError } = await elevateEmailSecurityKey(userData.email)
 
       if (elevated) {
         showNotification({
