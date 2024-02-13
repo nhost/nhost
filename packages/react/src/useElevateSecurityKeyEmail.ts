@@ -35,14 +35,16 @@ export const useElevateSecurityKeyEmail = (): ElevateWithSecurityKeyHook => {
   const nhost = useNhostClient()
   const claims = useHasuraClaims()
 
-  const [elevated, setElevated] = useState(claims?.['x-hasura-auth-elevated'] === user?.id)
+  const hasElevatedClaim = user ? claims?.['x-hasura-auth-elevated'] === user?.id : false
+
+  const [elevated, setElevated] = useState(!!hasElevatedClaim)
 
   const elevateEmailSecurityKey: ElevateWithSecurityKeyHandler = (email: string) =>
     elevateEmailSecurityKeyPromise(nhost.auth.client, email)
 
   useEffect(() => {
-    setElevated(claims?.['x-hasura-auth-elevated'] === user?.id)
-  }, [claims, user])
+    setElevated(!!hasElevatedClaim)
+  }, [hasElevatedClaim])
 
   return {
     elevated,
