@@ -18,10 +18,7 @@
       @click="signOutHandler"
     />
 
-    <v-card-text
-      class="d-flex flex-column align-center justify-space-between align-self-end"
-      v-if="authenticated"
-    >
+    <v-card-text class="d-flex flex-column align-center justify-space-between align-self-end">
       <span>Elevated permissions: {{ elevated }}</span>
       <v-btn variant="text" color="primary" @click="elevatePermission(user?.email)">
         Elevate
