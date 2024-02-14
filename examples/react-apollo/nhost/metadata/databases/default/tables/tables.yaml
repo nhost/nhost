@@ -11,3 +11,4 @@
 - "!include public_todos.yaml"
 - "!include storage_buckets.yaml"
 - "!include storage_files.yaml"
+- "!include storage_virus.yaml"

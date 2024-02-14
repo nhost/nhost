@@ -1,10 +1,7 @@
 [global]
-[[global.environment]]
-name = 'AUTH_REQUIRE_ELEVATED_CLAIM'
-value = 'recommended'
 
 [hasura]
-version = 'v2.25.1-ce'
+version = 'v2.33.4-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
@@ -31,7 +28,10 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = 'local'
+version = '0.26.0'
+
+[auth.elevatedPrivileges]
+mode = 'required'
 
 [auth.redirections]
 clientUrl = 'http://localhost:5173'
@@ -69,7 +69,7 @@ expiresIn = 43200
 enabled = false
 
 [auth.method.emailPasswordless]
-enabled = false
+enabled = true
 
 [auth.method.emailPassword]
 hibpEnabled = false
@@ -140,12 +140,12 @@ timeout = 60000
 enabled = false
 
 [postgres]
-version = '14.6-20230406-2'
+version = '14.6-20240129-1'
 
 [provider]
 
 [storage]
-version = '0.3.4'
+version = '0.6.0'
 
 [observability]
 [observability.grafana]
