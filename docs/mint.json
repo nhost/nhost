@@ -228,6 +228,14 @@
                 "reference/auth/verfiy-adding-of-a-new-webauth-security-key-device-browser"
               ]
             },
+            {
+              "group": "Elevate",
+              "icon": "paper-plane",
+              "pages": [
+                "reference/auth/elevate-webauthn", 
+                "reference/auth/elevate-webauthn-verify"
+              ]
+            },
             "reference/auth/sign-out"
           ]
         },
