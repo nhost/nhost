@@ -1,7 +1,7 @@
 [global]
 
 [hasura]
-version = 'v2.25.1-ce'
+version = 'v2.33.4-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
@@ -28,7 +28,10 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.25.0'
+version = '0.26.0'
+
+[auth.elevatedPrivileges]
+mode = 'required'
 
 [auth.redirections]
 clientUrl = 'https://react-apollo.example.nhost.io/'
@@ -149,12 +152,12 @@ enabled = true
 issuer = 'nhost'
 
 [postgres]
-version = '14.6-20230406-2'
+version = '14.6-20240129-1'
 
 [provider]
 
 [storage]
-version = '0.3.4'
+version = '0.6.0'
 
 [observability]
 [observability.grafana]

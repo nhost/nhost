@@ -2,9 +2,19 @@ import { FaFile, FaHouseUser, FaQuestion, FaSignOutAlt, FaLock } from 'react-ico
 import { SiApollographql } from 'react-icons/si'
 import { useLocation, useNavigate } from 'react-router'
 import { Link } from 'react-router-dom'
+import { showNotification } from '@mantine/notifications'
 
-import { Group, MantineColor, Navbar, Text, ThemeIcon, UnstyledButton } from '@mantine/core'
-import { useAuthenticated, useSignOut } from '@nhost/react'
+import {
+  Button,
+  Card,
+  Group,
+  MantineColor,
+  Navbar,
+  Text,
+  ThemeIcon,
+  UnstyledButton
+} from '@mantine/core'
+import { useAuthenticated, useElevateSecurityKeyEmail, useSignOut, useUserData } from '@nhost/react'
 interface MenuItemProps {
   icon: React.ReactNode
   color?: MantineColor
@@ -59,10 +69,45 @@ const data: MenuItemProps[] = [
 ]
 
 export default function NavBar() {
-  const authenticated = useAuthenticated()
-  const { signOut } = useSignOut()
+  const userData = useUserData()
   const navigate = useNavigate()
+  const { signOut } = useSignOut()
+  const authenticated = useAuthenticated()
+  const { elevateEmailSecurityKey, elevated } = useElevateSecurityKeyEmail()
+
+  const handleElevate = async () => {
+    if (!authenticated) {
+      showNotification({
+        color: 'red',
+        title: 'Logged out',
+        message: 'Please login first'
+      })
+
+      return
+    }
+
+    if (userData?.email) {
+      const { elevated, isError } = await elevateEmailSecurityKey(userData.email)
+
+      if (elevated) {
+        showNotification({
+          title: 'Success',
+          message: 'You now have an elevated permission'
+        })
+      }
+
+      if (isError) {
+        showNotification({
+          color: 'red',
+          title: 'Failed',
+          message: 'Could not elevate permission'
+        })
+      }
+    }
+  }
+
   const links = data.map((link) => <MenuItem {...link} key={link.label} />)
+
   return (
     <Navbar width={{ sm: 300, lg: 400, base: 100 }} aria-label="main navigation">
       <Navbar.Section grow mt="md">
@@ -78,6 +123,13 @@ export default function NavBar() {
           />
         )}
       </Navbar.Section>
+
+      <Card p="lg" m="sm">
+        <Group position="apart">
+          <span>Elevated permissions: {String(elevated)}</span>
+          <Button onClick={handleElevate}>Elevate</Button>
+        </Group>
+      </Card>
     </Navbar>
   )
 }

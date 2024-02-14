@@ -46,4 +46,4 @@ delete_permissions:
     permission:
       filter:
         user_id:
-          _eq: X-Hasura-User-Id
+          _eq: x-hasura-auth-elevated

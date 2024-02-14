@@ -2,7 +2,7 @@ import {
   elevateEmailSecurityKeyPromise,
   ElevateWithSecurityKeyHandlerResult
 } from '@nhost/nhost-js'
-import { computed, ref, unref } from 'vue'
+import { computed, unref } from 'vue'
 import { RefOrValue } from './helpers'
 import { useHasuraClaims } from './useHasuraClaims'
 import { useNhostClient } from './useNhostClient'
@@ -39,7 +39,11 @@ export const useElevateSecurityKeyEmail = (): ElevateWithSecurityKeyResult => {
   const claims = useHasuraClaims()
   const { nhost } = useNhostClient()
 
-  const elevated = computed(() => claims.value?.['x-hasura-auth-elevated'] === user.value?.id)
+  const hasElevatedClaim = computed(() =>
+    user.value ? claims.value?.['x-hasura-auth-elevated'] === user.value?.id : false
+  )
+
+  const elevated = computed(() => !!hasElevatedClaim.value)
 
   const elevateEmailSecurityKey: ElevateWithSecurityKeyHandler = (email: RefOrValue<string>) =>
     elevateEmailSecurityKeyPromise(nhost.auth.client, unref(email))
