@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.3.0
+
+### Minor Changes
+
+- 017f1a6: feat: add elevated permission examples
+
 ## 2.2.0
 
 ### Minor Changes

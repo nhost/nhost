@@ -1,5 +1,17 @@
 # @nhost-examples/react-apollo
 
+## 0.3.0
+
+### Minor Changes
+
+- 017f1a6: feat: add elevated permission examples
+
+### Patch Changes
+
+- Updated dependencies [017f1a6]
+  - @nhost/react@3.2.0
+  - @nhost/react-apollo@9.0.0
+
 ## 0.2.1
 
 ### Patch Changes
