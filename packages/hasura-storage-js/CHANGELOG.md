@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.4.0
+
+### Minor Changes
+
+- 2505b2e: fix: fix headers sent with getPresignedUrl
+
 ## 2.3.0
 
 ### Minor Changes
