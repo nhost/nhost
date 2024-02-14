@@ -100,31 +100,31 @@
           cli = nixops-lib.go.package {
             inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
 
-            cgoEnabled = false;
+            cgoEnabled = 0;
           };
 
           cli-arm64-darwin = (nixops-lib.go.package {
             inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
 
-            cgoEnabled = false;
+            cgoEnabled = 0;
           }).overrideAttrs (old: old // { GOOS = "darwin"; GOARCH = "arm64"; });
 
           cli-amd64-darwin = (nixops-lib.go.package {
             inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
 
-            cgoEnabled = false;
+            cgoEnabled = 0;
           }).overrideAttrs (old: old // { GOOS = "darwin"; GOARCH = "amd64"; });
 
           cli-arm64-linux = (nixops-lib.go.package {
             inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
 
-            cgoEnabled = false;
+            cgoEnabled = 0;
           }).overrideAttrs (old: old // { GOOS = "linux"; GOARCH = "arm64"; });
 
           cli-amd64-linux = (nixops-lib.go.package {
             inherit name submodule description src version ldflags buildInputs nativeBuildInputs;
 
-            cgoEnabled = false;
+            cgoEnabled = 0;
           }).overrideAttrs (old: old // { GOOS = "linux"; GOARCH = "amd64"; });
 
           docker-image-arm64 = nixops-lib.go.docker-image {

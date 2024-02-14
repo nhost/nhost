@@ -1,9 +1,9 @@
 ifeq ($(shell uname -m),x86_64)
   HOST_ARCH?=x86_64
-  GOARCH?=amd64
+  ARCH?=amd64
 else ifeq ($(shell uname -m),arm64)
   HOST_ARCH?=aarch64
-  GOARCH?=arm64
+  ARCH?=arm64
 endif
 
 ifeq ($(shell uname -o),Darwin)
@@ -24,14 +24,14 @@ check:  ## Run nix flake check
 .PHONY: build
 build:  ## Build application and places the binary under ./result/bin
 	nix build $(docker-build-options) \
-		.\#cli-$(GOARCH)-$(OS) \
+		.\#cli-$(ARCH)-$(OS) \
 		--print-build-logs
 
 
 .PHONY: build-docker-image
 build-docker-image:  ## Build docker image
 	nix build $(docker-build-options) \
-		.\#packages.$(HOST_ARCH)-linux.docker-image-$(GOARCH) \
+		.\#packages.$(HOST_ARCH)-linux.docker-image-$(ARCH) \
 		--print-build-logs
 	docker load < result
 
