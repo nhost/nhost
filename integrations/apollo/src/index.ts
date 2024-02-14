@@ -61,12 +61,14 @@ export const createApolloClient = ({
 
   const isJwtValid = () => {
     if (!accessToken?.value) {
-      return
+      return false
     }
 
-    let decodedToken: JwtPayload = jwtDecode(accessToken.value)
+    const marginInSeconds = 3
+    const marginInMilliseconds = marginInSeconds * 1000
 
-    return decodedToken.exp! * 1_000 > Date.now()
+    let decodedToken: JwtPayload = jwtDecode(accessToken.value)
+    return decodedToken.exp! * 1000 > Date.now() - marginInMilliseconds
   }
 
   const isTokenValid = () =>
@@ -89,7 +91,7 @@ export const createApolloClient = ({
         return Promise.resolve(true)
       }
       return new Promise((resolve) => {
-        setTimeout(() => resolve(waitForValidToken()), 100)
+        setTimeout(() => waitForValidToken().then(resolve), 100)
       })
     }
 
