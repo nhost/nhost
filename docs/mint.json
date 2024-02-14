@@ -292,7 +292,6 @@
               "group": "Auth",
               "pages": [
                 "reference/javascript/auth/hasura-auth-client",
-                "reference/javascript/auth/add-security-key",
                 "reference/javascript/auth/change-email",
                 "reference/javascript/auth/change-password",
                 "reference/javascript/auth/create-pat",
@@ -313,7 +312,9 @@
                 "reference/javascript/auth/sign-in",
                 "reference/javascript/auth/sign-in-pat",
                 "reference/javascript/auth/sign-out",
-                "reference/javascript/auth/sign-up"
+                "reference/javascript/auth/sign-up",
+                "reference/javascript/auth/add-security-key",
+                "reference/javascript/auth/elevate-email-security-key"
               ]
             },
             {
@@ -381,6 +382,7 @@
             "reference/react/use-sign-out",
             "reference/react/use-sign-up-email-password",
             "reference/react/use-sign-up-email-security-key-email",
+            "reference/react/use-elevate-security-key-email",
             "reference/react/use-user-avatar-url",
             "reference/react/use-user-data",
             "reference/react/use-user-default-role",
@@ -427,6 +429,7 @@
             "reference/nextjs/use-sign-out",
             "reference/nextjs/use-sign-up-email-password",
             "reference/nextjs/use-sign-up-email-security-key-email",
+            "reference/nextjs/use-elevate-security-key-email",
             "reference/nextjs/use-user-avatar-url",
             "reference/nextjs/use-user-data",
             "reference/nextjs/use-user-default-role",
@@ -473,7 +476,11 @@
             "reference/vue/use-user-id",
             "reference/vue/use-user-is-anonymous",
             "reference/vue/use-user-locale",
-            "reference/vue/use-user-roles"
+            "reference/vue/use-user-roles",
+            "reference/vue/use-add-security-key",
+            "reference/vue/use-elevate-security-key-email",
+            "reference/vue/use-sign-in-email-security-key",
+            "reference/vue/use-sign-up-email-security-key"
           ]
         }
       ]

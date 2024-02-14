@@ -3,7 +3,7 @@ title: useSignUpEmailSecurityKeyEmail()
 sidebarTitle: useSignUpEmailSecurityKeyEmail()
 ---
 
-Use the hook `useSignUpEmailSecurityKey` to sign up a user with security key and an email using the WebAuthn API.
+Use the hook `useSignUpEmailSecurityKeyEmail` to sign up a user with security key and an email using the WebAuthn API.
 
 ```tsx
 const {
@@ -13,7 +13,7 @@ const {
   isSuccess,
   isError,
   error
-} = useSignUpEmailSecurityKey()
+} = useSignUpEmailSecurityKeyEmail()
 
 console.log({ needsEmailVerification, isLoading, isSuccess, isError, error })
 

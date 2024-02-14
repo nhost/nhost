@@ -440,10 +440,10 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `nhost.auth.elevateWithSecurityKey` to get a temporary elevated auth permissions to run sensitive operations.
+   * Use `nhost.auth.elevateEmailSecurityKey` to get a temporary elevated auth permissions to run sensitive operations.
    * @param email user email
    *
-   * @docs https://docs.nhost.io/reference/javascript/auth/elevate-security-key
+   * @docs https://docs.nhost.io/reference/javascript/auth/elevate-email-security-key
    */
   async elevateEmailSecurityKey(email: string) {
     if (!email) {
