@@ -213,10 +213,6 @@ const handleAddSecurityKey = async (e: Event) => {
 }
 
 const handleRemoveSecurityKey = async (id: string) => {
-  console.log({
-    id
-  })
-
   try {
     await checkElevatedPermission()
   } catch (error) {
