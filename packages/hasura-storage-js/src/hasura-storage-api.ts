@@ -99,12 +99,6 @@ export class HasuraStorageApi {
   async downloadFile(params: StorageDownloadFileParams): Promise<StorageDownloadFileResponse> {
     try {
       const { fileId, headers: customHeaders = {}, ...imageTransformationParams } = params
-      const authHeaders = this.generateAuthHeaders()
-
-      const headers = new Headers(customHeaders)
-      authHeaders.forEach((value, key) => {
-        headers?.append(key, value)
-      })
 
       const urlWithParams = appendImageTransformationParameters(
         `${this.url}/files/${fileId}`,
@@ -113,7 +107,7 @@ export class HasuraStorageApi {
 
       const response = await fetch(urlWithParams, {
         method: 'GET',
-        headers
+        headers: {...this.generateAuthHeaders(), ...customHeaders} 
       })
 
       if (!response.ok) {
@@ -131,6 +125,7 @@ export class HasuraStorageApi {
   async getPresignedUrl(params: ApiGetPresignedUrlParams): Promise<ApiGetPresignedUrlResponse> {
     try {
       const { fileId } = params
+      
       const response = await fetch(`${this.url}/files/${fileId}/presignedurl`, {
         method: 'GET',
         headers: this.generateAuthHeaders()
@@ -185,16 +180,19 @@ export class HasuraStorageApi {
     return this
   }
 
-  private generateAuthHeaders(): Headers {
-    const headers = new Headers()
+  private generateAuthHeaders(): HeadersInit | undefined {
+    if (!this.adminSecret && !this.accessToken) {
+      return undefined
+    }
 
     if (this.adminSecret) {
-      headers.append('x-hasura-admin-secret', this.adminSecret)
-    }
-    if (this.accessToken) {
-      headers.append('Authorization', `Bearer ${this.accessToken}`)
+      return {
+        'x-hasura-admin-secret': this.adminSecret
+      }
     }
 
-    return headers
+    return {
+      Authorization: `Bearer ${this.accessToken}`
+    }
   }
 }
