@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { FaMinus } from 'react-icons/fa'
 import { RemoveSecurityKeyMutation, SecurityKeysQuery } from 'src/generated'
 
-import { useApolloClient, useMutation } from '@apollo/client'
+import { ApolloError, useApolloClient, useMutation } from '@apollo/client'
 import { ActionIcon, Button, Card, SimpleGrid, Table, TextInput, Title } from '@mantine/core'
 import { useInputState } from '@mantine/hooks'
 import { showNotification } from '@mantine/notifications'
@@ -17,6 +17,7 @@ export const SecurityKeys: React.FC = () => {
   // Nickname of the security key
   const [nickname, setNickname] = useInputState('')
   const [list, setList] = useState<{ id: string; nickname?: string | null }[]>([])
+
   useAuthQuery<SecurityKeysQuery>(SECURITY_KEYS_LIST, {
     variables: { userId },
     onCompleted: ({ authUserSecurityKeys }) => {
@@ -49,6 +50,7 @@ export const SecurityKeys: React.FC = () => {
       setList([...list, key])
     }
   }
+
   const [removeKey] = useMutation<RemoveSecurityKeyMutation>(REMOVE_SECURITY_KEY, {
     onCompleted: ({ deleteAuthUserSecurityKey }) => {
       if (deleteAuthUserSecurityKey?.id) {
@@ -56,6 +58,25 @@ export const SecurityKeys: React.FC = () => {
       }
     }
   })
+
+  const handleRemoveKey = async (id: string) => {
+    try {
+      await removeKey({ variables: { id } })
+
+      // refetch securityKeys so that we know if need to elevate in other components
+      await client.refetchQueries({
+        include: [SECURITY_KEYS_LIST]
+      })
+    } catch (error) {
+      const e = error as ApolloError
+
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: e?.message
+      })
+    }
+  }
 
   return (
     <Card shadow="sm" p="lg" m="sm">
@@ -70,7 +91,7 @@ export const SecurityKeys: React.FC = () => {
             <tr key={id}>
               <td>{nickname || id}</td>
               <td>
-                <ActionIcon onClick={() => removeKey({ variables: { id } })} color="red">
+                <ActionIcon onClick={() => handleRemoveKey(id)} color="red">
                   <FaMinus />
                 </ActionIcon>
               </td>

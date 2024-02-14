@@ -76,6 +76,16 @@ export default function NavBar() {
   const { elevateEmailSecurityKey, elevated } = useElevateSecurityKeyEmail()
 
   const handleElevate = async () => {
+    if (!authenticated) {
+      showNotification({
+        color: 'red',
+        title: 'Logged out',
+        message: 'Please login first'
+      })
+
+      return
+    }
+
     if (userData?.email) {
       const { elevated, isError } = await elevateEmailSecurityKey(userData.email)
 

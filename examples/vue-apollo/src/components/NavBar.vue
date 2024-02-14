@@ -36,6 +36,12 @@
       <v-btn color="indigo" variant="text" @click="showElevateError = false"> Close </v-btn>
     </template>
   </v-snackbar>
+  <v-snackbar :modelValue="loggedOutWarning">
+    You are logged out. Please login first!
+    <template v-slot:actions>
+      <v-btn color="indigo" variant="text" @click="loggedOutWarning = false"> Close </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <script lang="ts" setup>
@@ -48,6 +54,7 @@ const router = useRouter()
 const { signOut } = useSignOut()
 const showElevateError = ref(false)
 const showElevateSuccess = ref(false)
+const loggedOutWarning = ref(false)
 const authenticated = useAuthenticated()
 const { elevated, elevateEmailSecurityKey } = useElevateSecurityKeyEmail()
 
@@ -57,6 +64,11 @@ const signOutHandler = async () => {
 }
 
 const handleElevate = async (email: string | undefined) => {
+  if (!authenticated.value) {
+    loggedOutWarning.value = true
+    return
+  }
+
   if (email) {
     const { elevated, isError } = await elevateEmailSecurityKey(email)
 

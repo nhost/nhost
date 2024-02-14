@@ -27,6 +27,11 @@
         <v-list-item v-for="(key, i) in securityKeysList" :key="i" :value="key.id">
           <div className="d-flex align-center justify-space-between">
             <v-list-item-title>{{ key.id }}</v-list-item-title>
+            <v-btn
+              variant="flat"
+              prepend-icon="mdi-delete"
+              @click="handleRemoveSecurityKey(key.id)"
+            />
           </div>
         </v-list-item>
       </v-list>
@@ -72,9 +77,19 @@
   <error-snack-bar :error="elevateError" />
   <error-snack-bar :error="changeEmailError" />
   <v-snackbar :modelValue="successSnackBar">OK</v-snackbar>
+
   <error-snack-bar v-model="showElevatePermissionError"
     >Could not elevate permission</error-snack-bar
   >
+
+  <error-snack-bar v-model="showRemoveKeyError"></error-snack-bar>
+  <v-snackbar v-model="showRemoveKeyError">
+    Could not remove key
+    <template #actions>
+      <v-btn color="blue" variant="text" @click="showRemoveKeyError = false"> Close </v-btn>
+    </template>
+  </v-snackbar>
+
   <verification-email-dialog v-model="emailVerificationDialog" :email="email" />
 </template>
 
@@ -88,7 +103,7 @@ import {
   useUserEmail,
   useUserId
 } from '@nhost/vue'
-import { useQuery } from '@vue/apollo-composable'
+import { useMutation, useQuery } from '@vue/apollo-composable'
 import { computed } from 'vue'
 import { ref, unref } from 'vue'
 
@@ -101,6 +116,7 @@ const userId = useUserId()
 const userEmail = useUserEmail()
 const emailVerificationDialog = ref(false)
 const showElevatePermissionError = ref(false)
+const showRemoveKeyError = ref(false)
 const addSecurityKeyError = ref(false)
 const elevateError = ref(null)
 const changeEmailError = ref(null)
@@ -118,7 +134,16 @@ const SECURITY_KEYS_LIST = gql`
   }
 `
 
+const REMOVE_SECURITY_KEY = gql`
+  mutation removeSecurityKey($id: uuid!) {
+    deleteAuthUserSecurityKey(id: $id) {
+      id
+    }
+  }
+`
+
 const { result: securityKeys, refetch } = useQuery(SECURITY_KEYS_LIST, { userId }, {})
+const { mutate: removeKey } = useMutation(REMOVE_SECURITY_KEY)
 
 const securityKeysList = computed(() => securityKeys.value?.authUserSecurityKeys || [])
 
@@ -143,7 +168,7 @@ const handleChangeEmail = async (e: Event) => {
     showElevatePermissionError.value = true
   }
 
-  const { error: changeEmailError, needsEmailVerification } = await changeEmail(email)
+  const { needsEmailVerification } = await changeEmail(email)
 
   if (needsEmailVerification) {
     emailVerificationDialog.value = true
@@ -184,6 +209,25 @@ const handleAddSecurityKey = async (e: Event) => {
   } else {
     nickname.value = ''
     refetch()
+  }
+}
+
+const handleRemoveSecurityKey = async (id: string) => {
+  console.log({
+    id
+  })
+
+  try {
+    await checkElevatedPermission()
+  } catch (error) {
+    showElevatePermissionError.value = true
+  }
+
+  try {
+    await removeKey({ id })
+    await refetch()
+  } catch (error) {
+    showRemoveKeyError.value = true
   }
 }
 </script>
