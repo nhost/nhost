@@ -1,5 +1,18 @@
 # @nhost-examples/vue-apollo
 
+## 0.2.0
+
+### Minor Changes
+
+- 017f1a6: feat: add elevated permission examples
+
+### Patch Changes
+
+- Updated dependencies [017f1a6]
+  - @nhost/vue@2.2.0
+  - @nhost/nhost-js@3.0.5
+  - @nhost/apollo@6.0.5
+
 ## 0.1.1
 
 ### Patch Changes
