@@ -42,7 +42,7 @@ Some user information needs to be changed via hasura-auth's API rather than via 
 - [/user/email/change](/reference/auth/change-the-current-users-email) for changing emails
 - [/user/mfa](/reference/auth/activatedeactivate-multi-factor-authentication) for enabling or disabling MFA
 - [/user/webauthn/add](/reference/auth/initialize-adding-of-a-new-webauthn-security-key-device-browser) for adding security keys
-- [/pat]() for PAT creation
+- [/pat](/reference/auth/create-personal-access-token-pat) for PAT creation
 
 To protect these endpoints and require the elevated claim you can use the following configuration option:
 
@@ -73,7 +73,7 @@ To demonstrate how the elevated claim can work for permissions you can check the
 
 ![view secret notes](/images/guides/auth/elevated-permissions/secret_notes_view.png)
 
-However, we are requiring elevated permissions to `insert`, `upadte` and `delete` with the permissions `notes.user_id eq x-hasura-auth-elevated`. In our example we automatically initiate the elevation process if the claim isn't already present:
+However, we are requiring elevated permissions to `insert`, `update` and `delete` with the permissions `notes.user_id eq x-hasura-auth-elevated`. In our example we automatically initiate the elevation process if the claim isn't already present:
 
 ![add secret notes](/images/guides/auth/elevated-permissions/secret_notes_add.png)
 
