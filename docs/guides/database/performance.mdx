@@ -16,6 +16,8 @@ In case your Postgres service is not meeting your performance expectations, you 
 
 4. Evaluate the usage of indexes in your database. Identify queries that could benefit from additional indexes and strategically add them to improve query performance.
 
+5. Increase the disk size to increase [disk performance](/platform/compute-resources#disk-performance). Keep in mind increasing the disk size isn't reversible and increasing the memory of the service may yield better results. This is mostly useful when your data is very volatile and the postgres cache can't work effectively. Only attempt to increase disk for performance reasons if your reads and writes are very high and increasing memory isn't effective.
+
 By implementing these steps, you can effectively address performance concerns and enhance the overall performance of your Postgres service.
 
 ## Upgrade to our latest postgres image

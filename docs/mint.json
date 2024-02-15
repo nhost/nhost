@@ -139,7 +139,7 @@
     },
     {
       "group": "Storage",
-      "pages": ["guides/storage/overview", "guides/storage/antivirus"]
+      "pages": ["guides/storage/overview", "guides/storage/cdn", "guides/storage/antivirus"]
     },
     {
       "group": "Functions",
