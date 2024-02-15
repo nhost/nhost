@@ -34,7 +34,8 @@ version = '0.26.0'
 mode = 'required'
 
 [auth.redirections]
-clientUrl = 'http://localhost:5173'
+clientUrl = 'https://vue-apollo.example.nhost.io'
+allowedUrls = ['https://vue-apollo.example.nhost.io/profile', 'http://localhost:5173']
 
 [auth.signUp]
 enabled = true
@@ -81,7 +82,11 @@ enabled = false
 
 [auth.method.oauth]
 [auth.method.oauth.apple]
-enabled = false
+enabled = true
+clientId = '{{ secrets.APPLE_SERVICE_IDENTIFIER }}'
+keyId = '{{ secrets.APPLE_KEY_ID }}'
+teamId = '{{ secrets.APPLE_TEAM_ID }}'
+privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
 
 [auth.method.oauth.azuread]
 tenant = 'common'
@@ -94,19 +99,27 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.facebook]
-enabled = false
+enabled = true
+clientId = '{{ secrets.FACEBOOK_APP_ID }}'
+clientSecret = '{{ secrets.FACEBOOK_APP_SECRET }}'
 
 [auth.method.oauth.github]
-enabled = false
+enabled = true
+clientId = '{{ secrets.GITHUB_CLIENT_ID }}'
+clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
 
 [auth.method.oauth.gitlab]
 enabled = false
 
 [auth.method.oauth.google]
-enabled = false
+enabled = true
+clientId = '{{ secrets.GOOGLE_CLIENT_ID }}'
+clientSecret = '{{ secrets.GOOGLE_CLIENT_SECRET }}'
 
 [auth.method.oauth.linkedin]
-enabled = false
+enabled = true
+clientId='{{ secrets.LINKEDIN_CLIENT_ID }}'
+clientSecret='{{ secrets.LINKEDIN_CLIENT_SECRET }}'
 
 [auth.method.oauth.spotify]
 enabled = false
@@ -131,7 +144,7 @@ enabled = true
 
 [auth.method.webauthn.relyingParty]
 name = 'apollo-example'
-origins = ['https://react-apollo.example.nhost.io']
+origins = ['https://vue-apollo.example.nhost.io']
 
 [auth.method.webauthn.attestation]
 timeout = 60000
