@@ -4,7 +4,7 @@ description: "Allocate CPU and Memory to your backend infrastructure"
 icon: server
 ---
 
-Compute resources are the fundamental units that represent the processing power and memory available to your projects. The primary compute resources are vCPU and RAM. 
+Compute resources are the fundamental units that represent the processing power and memory available to your projects. The primary compute resources are vCPU and RAM.
 
 This documentation outlines the key aspects of compute resources in the context of the Nhost Cloud Platform.
 
@@ -40,7 +40,7 @@ Projects on the pro tier have a total of 2 shared vCPUs and 2 GiB of RAM spread 
 
 ## Dedicated Compute
 
-For production workloads where latency is essential or consistent performance is non-negotiable, we strongly suggest the use of dedicated resources. 
+For production workloads where latency is essential or consistent performance is non-negotiable, we strongly suggest the use of dedicated resources.
 
 <Note>Compute/Dedicated resources are only available on the Pro plan</Note>
 
@@ -72,3 +72,21 @@ To setup dedicated resources for your project, you can either use the Dashboard 
   </Tab>
 </Tabs>
 
+## Disk Performance
+
+Services may require a disk provisioned to store data. For instance, [postgres](/guides/database/configuring-postgres#configuration-example) comes with a disk provisioned by default and [Nhost Run](/product/run) may [too](/guides/run/resources#storage). For these cases we provisioned SSD disks with the following performance:
+
+- Baseline: 3000 IOPS
+- Baseline: 125Mbps of thoughput
+- Every 50GB: +350 IOPS and +15Mbps of throughput
+
+For example, the following disk sizes will have the following performance:
+
+| Size | IOPS | Throughput |
+| ---- | ---- | ---------- |
+| 1 | 3000| 125 |
+| 10 | 3000| 125 |
+| 49 | 3000| 125 |
+| 50 | 3350| 140 |
+| 100 | 3700 | 155 |
+| 300 | 5100 | 215 |

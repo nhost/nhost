@@ -1,0 +1,28 @@
+---
+title: CDN
+description: Serving files lightning fast
+icon: bolt
+---
+
+The [storage](/product/storage) service integrates with a CDN service to cache files and serve them close to users. This leads to faster response times and lower load on the backend service. You can read our initial [announcement](https://nhost.io/blog/launching-nhost-cdn-nhost-storage-is-now-blazing-fast) for some general information about what a CDN is and the performance gains.
+
+# Security
+
+The primary function of a CDN is to deliver cached files quickly to users without relying on the backend. While this is effective for public files, we need to handle non-public files differently to ensure that only users with proper permissions can access those files. Instead of serving the file directly, a conditional fetch is performed, including the user's Authorization header. This allows the backend service to verify the user's permissions. By conducting this conditional check, the backend service only needs to confirm to the CDN that the file can be served to the specific user, eliminating the need to serve the file itself.
+
+# Cache invalidation
+
+If a file is modified or deleted, we instruct the CDN to immediately invalidate the cached files. This is done automatically by the storage service and requires no special handling.
+
+# Maximizing HITs
+
+In CDN terminology, a HIT occurs when a file is found in the cache and can be served to the user. Conversely, a MISS happens when the file is not yet cached and requires a round trip to the backend to retrieve it before it can be served to the user.
+
+To lower response times and backend load, we want to maximize HITs as much as possible. To do that here are some notes and recommendations:
+
+1. Links with different query arguments are treated as different files, even if they all point to the same underlying file.
+2. Due to (1), if you are using the image manipulation feature, each set of options (i.e. different sizes or qualities), will be treated as different files. Having too many different combinations may increase the number of MISSes and be counterproductive.
+3. Only use presigned URLs if you really must to and reuse if possible. Due to (1) as well, each presigned URL is different, which means they are treated by the CDN as different files, even if they all point to the same file.
+4. If possible, always prefer public files
+5. Authenticated files are your second best option. You can use [nhost.storage.download](/reference/javascript/storage/download) to download private files.
+6. If you are hosting large files, don't be afraid of using the [range header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range). The service should be able to cache and serve partial files too.
