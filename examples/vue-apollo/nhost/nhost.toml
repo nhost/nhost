@@ -28,7 +28,7 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.26.0'
+version = '0.27.0-beta1'
 
 [auth.elevatedPrivileges]
 mode = 'required'
@@ -82,11 +82,7 @@ enabled = false
 
 [auth.method.oauth]
 [auth.method.oauth.apple]
-enabled = true
-clientId = '{{ secrets.APPLE_SERVICE_IDENTIFIER }}'
-keyId = '{{ secrets.APPLE_KEY_ID }}'
-teamId = '{{ secrets.APPLE_TEAM_ID }}'
-privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
+enabled = false
 
 [auth.method.oauth.azuread]
 tenant = 'common'
@@ -99,9 +95,7 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.facebook]
-enabled = true
-clientId = '{{ secrets.FACEBOOK_APP_ID }}'
-clientSecret = '{{ secrets.FACEBOOK_APP_SECRET }}'
+enabled = false
 
 [auth.method.oauth.github]
 enabled = true
@@ -112,14 +106,10 @@ clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
 enabled = false
 
 [auth.method.oauth.google]
-enabled = true
-clientId = '{{ secrets.GOOGLE_CLIENT_ID }}'
-clientSecret = '{{ secrets.GOOGLE_CLIENT_SECRET }}'
+enabled = false
 
 [auth.method.oauth.linkedin]
-enabled = true
-clientId='{{ secrets.LINKEDIN_CLIENT_ID }}'
-clientSecret='{{ secrets.LINKEDIN_CLIENT_SECRET }}'
+enabled = false
 
 [auth.method.oauth.spotify]
 enabled = false
