@@ -28,13 +28,14 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.26.0'
+version = '0.27.0-beta1'
 
 [auth.elevatedPrivileges]
 mode = 'required'
 
 [auth.redirections]
-clientUrl = 'http://localhost:5173'
+clientUrl = 'https://vue-apollo.example.nhost.io'
+allowedUrls = ['https://vue-apollo.example.nhost.io/profile', 'http://localhost:5173']
 
 [auth.signUp]
 enabled = true
@@ -97,7 +98,9 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.github]
-enabled = false
+enabled = true
+clientId = '{{ secrets.GITHUB_CLIENT_ID }}'
+clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
 
 [auth.method.oauth.gitlab]
 enabled = false
@@ -131,7 +134,7 @@ enabled = true
 
 [auth.method.webauthn.relyingParty]
 name = 'apollo-example'
-origins = ['https://react-apollo.example.nhost.io']
+origins = ['https://vue-apollo.example.nhost.io']
 
 [auth.method.webauthn.attestation]
 timeout = 60000

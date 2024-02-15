@@ -53,7 +53,7 @@ if (devTools) {
 }
 
 const nhost = new NhostClient({
-  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN || 'localhost:1337',
+  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN,
   region: import.meta.env.VITE_NHOST_REGION,
   devTools
 })
