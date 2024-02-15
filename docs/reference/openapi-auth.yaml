@@ -1370,6 +1370,20 @@ components:
       example: 0.17.1
       type: string
 
+    CreatePATSchema:
+      type: object
+      properties:
+        expiresAt:
+          type: string
+          format: date-time
+          description: The expiration date and time of the personal access token
+          example: 
+        metadata:
+          type: object
+          description: Additional metadata associated with the personal access token
+          additionalProperties: true 
+      required:
+        - expiresAt
 
 paths:
   /healthz:
@@ -1921,7 +1935,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/DisabledEndpointError'
           description: The feature is not activated
-      security: []
+      security:
+        - BearerAuth: []
       summary: Elevate WebAuthn  
       tags:
         - Authentication
@@ -1961,7 +1976,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/DisabledEndpointError'
           description: The feature is not activated
-      security: []
+      security:
+        - BearerAuth: []
       summary: Elevate WebAuthn Verify 
       tags:
         - Authentication
@@ -2119,7 +2135,7 @@ paths:
           description: User is not authenticated
       security:
         - BearerAuth: []
-      summary: Get user information
+      summary: Get User Information
       tags:
         - User management
 
@@ -2294,7 +2310,7 @@ paths:
           description: User is not authenticated
       security:
         - BearerAuth: []
-      summary: Set a new password
+      summary: Set New Password
       tags:
         - User management
 
@@ -2429,6 +2445,42 @@ paths:
           description: The feature is not activated
       security: []
       summary: Verify Security Key
+      tags:
+        - User management
+
+  /pat:
+    post:
+      deprecated: false
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePATSchema'
+        description: ''
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: User successfully authenticated
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestError'
+          description: The payload format is invalid
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthenticatedUserError'
+          description: User is not authenticated
+      security:
+        - BearerAuth: []
+      summary: Create Personal Access Token (PAT) 
       tags:
         - User management
 

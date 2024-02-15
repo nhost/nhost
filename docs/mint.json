@@ -194,7 +194,9 @@
                 "reference/auth/sign-up-using-email-via-fido2-webauthn-authentication",
                 "reference/auth/verfiy-fido2-webauthn-authentication-and-complete-signup",
                 "reference/auth/sign-in-using-email-via-fido2-webauthn-authentication",
-                "reference/auth/verfiy-fido2-webauthn-authentication-using-public-key-cryptography"
+                "reference/auth/verfiy-fido2-webauthn-authentication-using-public-key-cryptography",
+                "reference/auth/elevate-webauthn", 
+                "reference/auth/elevate-webauthn-verify"
               ]
             },
             {
@@ -225,15 +227,8 @@
                 "reference/auth/get-user-information",
                 "reference/auth/refresh-the-oauth-access-tokens-of-a-given-user-you-must-be-an-admin-to-perform-this-operation",
                 "reference/auth/initialize-adding-of-a-new-webauthn-security-key-device-browser",
-                "reference/auth/verfiy-adding-of-a-new-webauth-security-key-device-browser"
-              ]
-            },
-            {
-              "group": "Elevate",
-              "icon": "paper-plane",
-              "pages": [
-                "reference/auth/elevate-webauthn", 
-                "reference/auth/elevate-webauthn-verify"
+                "reference/auth/verfiy-adding-of-a-new-webauth-security-key-device-browser",
+                "reference/auth/create-personal-access-token-pat"
               ]
             },
             "reference/auth/sign-out"
