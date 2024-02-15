@@ -1,0 +1,14 @@
+---
+title: useElevateSecurityKeyEmail()
+sidebarTitle: useElevateSecurityKeyEmail()
+---
+
+Use the hook `useElevateSecurityKeyEmail` to elevate the user auth permission in order to perform sensitive operations
+
+```tsx
+const { elevateEmailSecurityKey, elevated } = useElevateSecurityKeyEmail()
+
+console.log({ elevated })
+
+await elevateEmailSecurityKey('joe@example.com')
+```

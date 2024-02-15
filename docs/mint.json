@@ -130,6 +130,7 @@
         "guides/auth/sign-in-magic-link",
         "guides/auth/sign-in-phone-number",
         "guides/auth/sign-in-webauthn",
+        "guides/auth/elevated-permissions",
         "guides/auth/email-templates"
       ]
     },
@@ -193,7 +194,9 @@
                 "reference/auth/sign-up-using-email-via-fido2-webauthn-authentication",
                 "reference/auth/verfiy-fido2-webauthn-authentication-and-complete-signup",
                 "reference/auth/sign-in-using-email-via-fido2-webauthn-authentication",
-                "reference/auth/verfiy-fido2-webauthn-authentication-using-public-key-cryptography"
+                "reference/auth/verfiy-fido2-webauthn-authentication-using-public-key-cryptography",
+                "reference/auth/elevate-webauthn", 
+                "reference/auth/elevate-webauthn-verify"
               ]
             },
             {
@@ -224,7 +227,8 @@
                 "reference/auth/get-user-information",
                 "reference/auth/refresh-the-oauth-access-tokens-of-a-given-user-you-must-be-an-admin-to-perform-this-operation",
                 "reference/auth/initialize-adding-of-a-new-webauthn-security-key-device-browser",
-                "reference/auth/verfiy-adding-of-a-new-webauth-security-key-device-browser"
+                "reference/auth/verfiy-adding-of-a-new-webauth-security-key-device-browser",
+                "reference/auth/create-personal-access-token-pat"
               ]
             },
             "reference/auth/sign-out"
@@ -291,7 +295,6 @@
               "group": "Auth",
               "pages": [
                 "reference/javascript/auth/hasura-auth-client",
-                "reference/javascript/auth/add-security-key",
                 "reference/javascript/auth/change-email",
                 "reference/javascript/auth/change-password",
                 "reference/javascript/auth/create-pat",
@@ -312,7 +315,9 @@
                 "reference/javascript/auth/sign-in",
                 "reference/javascript/auth/sign-in-pat",
                 "reference/javascript/auth/sign-out",
-                "reference/javascript/auth/sign-up"
+                "reference/javascript/auth/sign-up",
+                "reference/javascript/auth/add-security-key",
+                "reference/javascript/auth/elevate-email-security-key"
               ]
             },
             {
@@ -380,6 +385,7 @@
             "reference/react/use-sign-out",
             "reference/react/use-sign-up-email-password",
             "reference/react/use-sign-up-email-security-key-email",
+            "reference/react/use-elevate-security-key-email",
             "reference/react/use-user-avatar-url",
             "reference/react/use-user-data",
             "reference/react/use-user-default-role",
@@ -426,6 +432,7 @@
             "reference/nextjs/use-sign-out",
             "reference/nextjs/use-sign-up-email-password",
             "reference/nextjs/use-sign-up-email-security-key-email",
+            "reference/nextjs/use-elevate-security-key-email",
             "reference/nextjs/use-user-avatar-url",
             "reference/nextjs/use-user-data",
             "reference/nextjs/use-user-default-role",
@@ -472,7 +479,11 @@
             "reference/vue/use-user-id",
             "reference/vue/use-user-is-anonymous",
             "reference/vue/use-user-locale",
-            "reference/vue/use-user-roles"
+            "reference/vue/use-user-roles",
+            "reference/vue/use-add-security-key",
+            "reference/vue/use-elevate-security-key-email",
+            "reference/vue/use-sign-in-email-security-key",
+            "reference/vue/use-sign-up-email-security-key"
           ]
         }
       ]

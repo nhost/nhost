@@ -18,7 +18,7 @@ interface ElevateWithSecurityKeyResult {
 }
 
 /**
- * Use the composable `useSignInEmailPassword` to elevate the user auth permission in order to perform sensitive operations
+ * Use the composable `useElevateSecurityKeyEmail` to elevate the user auth permission in order to perform sensitive operations
  *
  * @example
  * ```ts

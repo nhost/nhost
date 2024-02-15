@@ -1,0 +1,16 @@
+---
+title: useElevateSecurityKeyEmail()
+sidebarTitle: useElevateSecurityKeyEmail()
+---
+
+Use the composable `useElevateSecurityKeyEmail` to elevate the user auth permission in order to perform sensitive operations
+
+```ts
+const { elevateEmailSecurityKey, elevated } = useElevateSecurityKeyEmail()
+
+watchEffect(() => {
+  console.log(elevated)
+})
+
+await elevateEmailSecurityKey('joe@example.com')
+```

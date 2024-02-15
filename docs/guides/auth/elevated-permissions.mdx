@@ -1,0 +1,92 @@
+---
+title: Elevated Permissions
+sidebarTitle: Elevated Permissions
+description: Require extra permissions to perform critical operations
+icon: unlock
+---
+
+In some scenarios you may want to add an extra layer of security to perform certain actions or view certain data. For instance, you may wish to allow users to view their profile information after authenticating but you may want to require users to confirm changes to their profile by performing an extra validation step with a [security key](sign-in-webauthn).
+
+![overview-flow](/images/guides/auth/elevated-permissions/overview.png)
+
+This is accomplished by adding the claim `x-hasura-auth-elevated: $user-id` to the access token in response to the extra security challenge. With this new claim in mind you can start writing permissions that require this extra step.
+
+It is important to keep in mind the claim is added to the access token so, for as long as you have that access token, you will have elevated access. Once the access token is renewed (due to expiration or any other reason), the claim will be lost and a new security challenge will be required to add it back.
+
+# API Endpoints and SDK components
+
+To implement this functionality [auth](/product/authentication) [0.26.0](https://github.com/nhost/hasura-auth/releases/tag/0.26.0) introduces the new endpoint [/elevate/webauthn](/reference/auth/elevate-webauthn). This endpoint works the same way as [/signin/webauthn](/reference/auth/sign-in-using-email-via-fido2-webauthn-authentication) but it requires an Authorization header with a valid token to add the elevated claim to.
+
+In addition, a few methods and components have also been added to simplify it's usage:
+
+- [nhost.auth.elevateEmailSecurityKey](/reference/javascript/auth/elevate-email-security-key)
+- [React - useElevateSecurityKeyEmail](/reference/react/use-elevate-security-key-email)
+- [Next.js - useElevateSecurityKeyEmail](/reference/nextjs/use-elevate-security-key-email)
+- [Vue - useElevateSecurityKeyEmail](/reference/vue/use-elevate-security-key-email)
+
+# Protecting Hasura data
+
+You can use the claim `x-hasura-auth-elevated` in exactly the same way you would normally use `X-Hasura-User-Id` for added security. For instance, the following permissions would allow users to see their data without any extra security:
+
+![example-select-permissions](/images/guides/auth/elevated-permissions/select.png)
+
+While the following permissions would require them first to elevate their access in order to update them:
+
+![example-update-permissions](/images/guides/auth/elevated-permissions/update.png)
+
+# Protecting Auth data
+
+Some user information needs to be changed via hasura-auth's API rather than via graphql mutations. These endpoints are:
+
+- [/user/password](/reference/auth/set-a-new-password) for changing passwords
+- [/user/email/change](/reference/auth/change-the-current-users-email) for changing emails
+- [/user/mfa](/reference/auth/activatedeactivate-multi-factor-authentication) for enabling or disabling MFA
+- [/user/webauthn/add](/reference/auth/initialize-adding-of-a-new-webauthn-security-key-device-browser) for adding security keys
+- [/pat](/reference/auth/create-personal-access-token-pat) for PAT creation
+
+To protect these endpoints and require the elevated claim you can use the following configuration option:
+
+```toml
+[auth.elevatedPrivileges]
+mode = 'required'
+```
+
+The mode can be one of `disabled` (default), `required`, `recommended`.
+
+In `disabled` mode the elevated claim isn't required in any of the options above. This is the default behavior.
+
+In `required` mode, all of the endpoints above will require an access token with the elevated claim. There is only one exception to this rule. If the user has no security key, adding the first security key won't require the elevated claim. However, as the rest of the endpoints do require it, the user won't be able to perform any changes until it adds a security key and gets an access token with the elevated claim. Adding extra security keys after the first one has been added will require the elevated claim. Removing security keys always requires the elevated claim.
+
+In `recommended` mode, the elevated claim is only required if the user has a security key configured. If a user doesn't have a security key the elevated claim won't be required to perform the actions described above. If the user has one or more keys the elevated claims will be required. This mode provides flexibility for the users to choose if they want the extra security or not.
+
+<Warning>
+If you are allowing users to perform changes to auth data directly by performing graphql mutations (i.e. deleting security keys), don't forget to update the permissions to match the desired behavior.
+</Warning>
+
+## Example
+
+To demonstrate this functionality we have implemented them in our [react-apollo](https://react-apollo.example.nhost.io) ([source](https://github.com/nhost/nhost/tree/main/examples/react-apollo)) and [vue-apollo](https://vue-apollo.example.nhost.io) ([source](https://github.com/nhost/nhost/tree/main/examples/vue-apollo)) examples.
+
+### Secret Notes
+
+To demonstrate how the elevated claim can work for permissions you can check the "Secret Notes" example. In this example, we are allowing users to see their secret notes by giving the `select` permissions `notes.user_id eq X-Hasura-User-Id`
+
+![view secret notes](/images/guides/auth/elevated-permissions/secret_notes_view.png)
+
+However, we are requiring elevated permissions to `insert`, `update` and `delete` with the permissions `notes.user_id eq x-hasura-auth-elevated`. In our example we automatically initiate the elevation process if the claim isn't already present:
+
+![add secret notes](/images/guides/auth/elevated-permissions/secret_notes_add.png)
+
+Note that after elevating permissions the secret note is added and the elevated claim persists until there is a token refreshed.
+
+![after adding secret notes](/images/guides/auth/elevated-permissions/secret_notes_added.png)
+
+### Updating profile information
+
+In addition, to demonstrate the new `auth.elevatedPrivileges` setting, we have set it to `required` in this example requiring elevated access to perform certain changes. For instance, if you try to change your password you will first have to elevate your access:
+
+![change password](/images/guides/auth/elevated-permissions/password.png)
+
+After elevating access the password is changed:
+
+![password changed](/images/guides/auth/elevated-permissions/password_changed.png)

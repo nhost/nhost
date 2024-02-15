@@ -22,11 +22,11 @@ interface SignUpSecurityKeyHook {
 }
 
 /**
- * Use the hook `useSignUpEmailSecurityKey` to sign up a user with security key and an email using the WebAuthn API.
+ * Use the hook `useSignUpEmailSecurityKeyEmail` to sign up a user with security key and an email using the WebAuthn API.
  *
  * @example
  * ```tsx
- * const { signUpEmailSecurityKey, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignUpEmailSecurityKey()
+ * const { signUpEmailSecurityKey, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignUpEmailSecurityKeyEmail()
  *
  * console.log({ needsEmailVerification, isLoading, isSuccess, isError, error });
  *

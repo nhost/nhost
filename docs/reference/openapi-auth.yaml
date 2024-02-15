@@ -50,6 +50,35 @@ components:
         userVerification: "preferred"
         rpId: "react-apollo.example.nhost.io"
 
+    ElevateWebauthnSessionPayload:
+      type: object
+      properties:
+        challenge:
+          type: string
+        allowCredentials:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+        timeout:
+          type: integer
+        userVerification:
+          type: string
+        rpId:
+          type: string
+      example:
+        challenge: "KOGeoAfC2nrZ_SluhmU5RYYMvBsRDvzghjERGdXbbfQ"
+        allowCredentials:
+          - id: "zCnsWvxgtMrOCeX6eA_yqQ"
+            type: "public-key"
+        timeout: 60000
+        userVerification: "preferred"
+        rpId: "react-apollo.example.nhost.io"
+
     WebauthnSessionPayload:
       type: object
       properties:
@@ -752,7 +781,69 @@ components:
           example: john.smith@nhost.io
           format: email
           type: string
+        credential:
+          type: object
+          properties:
+            id:
+              type: string
+            rawId:
+              type: string
+            response:
+              type: object
+              properties:
+                authenticatorData:
+                  type: string
+                clientDataJSON:
+                  type: string
+                signature:
+                  type: string
+                userHandle:
+                  type: string
+                  format: uuid
+            type:
+              type: string
+            clientExtensionResults:
+              type: object
+        authenticatorAttachment:
+          type: string
+      example:
+        email: "nuno@nhost.io"
+        credential:
+          id: "zCnsWvxgtMrOCeX6eA_yqQ"
+          rawId: "zCnsWvxgtMrOCeX6eA_yqQ"
+          response:
+            authenticatorData: "0RE6Bmg2J-FxNrC8136ZQSeTWKWtdni_Lpfv5XR4bDsdAAAAAA"
+            clientDataJSON: "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiTkNSSVRVU1pjeFE1ZTFhdUtUcXVlNnA4R0ZacHdxUS1kZzM4bnlWa3NCRSIsIm9yaWdpbiI6Imh0dHBzOi8vcmVhY3QtYXBvbGxvLmV4YW1wbGUubmhvc3QuaW8ifQ"
+            signature: "MEUCIQDRXq3aY-gXWsuYJZhOzqqn6UpoRQfcPdNLP7hpZ7IdvQIgX5rY6TomkYUtqydu-w88fW7KeFm-0oE-5jTdLNHg9zw"
+            userHandle: "8881037a-8495-48ef-8a04-ebbdb69415db"
+          type: "public-key"
+          clientExtensionResults: {}
+        authenticatorAttachment: "platform"
+      required:
+        - email
+        - credential
 
+    ElevateWebauthnSchema:
+      additionalProperties: false
+      type: object
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+      required:
+        - email
+
+    ElevateVerifyWebauthnSchema:
+      additionalProperties: true
+      type: object
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
         credential:
           type: object
           properties:
@@ -1279,6 +1370,20 @@ components:
       example: 0.17.1
       type: string
 
+    CreatePATSchema:
+      type: object
+      properties:
+        expiresAt:
+          type: string
+          format: date-time
+          description: The expiration date and time of the personal access token
+          example: 
+        metadata:
+          type: object
+          description: Additional metadata associated with the personal access token
+          additionalProperties: true 
+      required:
+        - expiresAt
 
 paths:
   /healthz:
@@ -1449,7 +1554,6 @@ paths:
       summary: Sign Up WebAuthn Verify 
       tags:
         - Authentication
-
 
   /signin/anonymous:
     post:
@@ -1743,7 +1847,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SignInWebauthnSessionPayload'
-          description: The payload is invalid
+          description: Signed in successfully
         '400':
           content:
             application/json:
@@ -1799,6 +1903,82 @@ paths:
           description: The feature is not activated
       security: []
       summary: Sign In WebAuthn Verify
+      tags:
+        - Authentication
+
+  /elevate/webauthn:
+    post: 
+      description: Elevate access for an already signed in user using FIDO2 Webauthn
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElevateWebauthnSchema'
+        description: ''
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ElevateWebauthnSessionPayload'
+          description: Elevated Webauthn successfully 
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestError'
+          description: The payload is invalid
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisabledEndpointError'
+          description: The feature is not activated
+      security:
+        - BearerAuth: []
+      summary: Elevate WebAuthn  
+      tags:
+        - Authentication
+
+  /elevate/webauthn/verify:
+    post: 
+      description: Verify FIDO2 Webauthn authentication using public-key cryptography
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ElevateVerifyWebauthnSchema'
+        description: ''
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPayload'
+          description: Access elevated successfully
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestError'
+          description: The payload is invalid
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+          description: Invalid email or password, or user is not verified
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisabledEndpointError'
+          description: The feature is not activated
+      security:
+        - BearerAuth: []
+      summary: Elevate WebAuthn Verify 
       tags:
         - Authentication
 
@@ -1955,7 +2135,7 @@ paths:
           description: User is not authenticated
       security:
         - BearerAuth: []
-      summary: Get user information
+      summary: Get User Information
       tags:
         - User management
 
@@ -2130,7 +2310,7 @@ paths:
           description: User is not authenticated
       security:
         - BearerAuth: []
-      summary: Set a new password
+      summary: Set New Password
       tags:
         - User management
 
@@ -2265,6 +2445,42 @@ paths:
           description: The feature is not activated
       security: []
       summary: Verify Security Key
+      tags:
+        - User management
+
+  /pat:
+    post:
+      deprecated: false
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePATSchema'
+        description: ''
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: User successfully authenticated
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvalidRequestError'
+          description: The payload format is invalid
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthenticatedUserError'
+          description: User is not authenticated
+      security:
+        - BearerAuth: []
+      summary: Create Personal Access Token (PAT) 
       tags:
         - User management
 
