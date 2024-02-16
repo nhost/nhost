@@ -1,5 +1,16 @@
 # @nhost/docs
 
+## 2.5.0
+
+### Minor Changes
+
+- 0d8d0eb: Update docs and dashboard references
+
+### Patch Changes
+
+- 41617b9: feat: added elevated permissions docs
+- 7db095f: chore: added a note about disk performance and CDN information
+
 ## 2.4.0
 
 ### Minor Changes

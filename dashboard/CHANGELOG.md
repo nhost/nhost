@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.7.0
+
+### Minor Changes
+
+- 0d8d0eb: Update docs and dashboard references
+
 ## 1.6.9
 
 ### Patch Changes
