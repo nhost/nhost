@@ -111,7 +111,7 @@ export default function FacebookProviderSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-facebook"
+          docsLink="https://docs.nhost.io/guides/auth/social/sign-in-facebook"
           docsTitle="how to sign in users with Facebook"
           icon="/assets/brands/facebook.svg"
           switchId="enabled"

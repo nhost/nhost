@@ -111,7 +111,7 @@ export default function GoogleProviderSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-google"
+          docsLink="https://docs.nhost.io/guides/auth/social/sign-in-google"
           docsTitle="how to sign in users with Google"
           icon="/assets/brands/google.svg"
           switchId="enabled"

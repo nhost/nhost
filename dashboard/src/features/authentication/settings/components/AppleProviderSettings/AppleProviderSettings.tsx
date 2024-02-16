@@ -141,7 +141,7 @@ export default function AppleProviderSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/authentication/sign-in-with-apple"
+          docsLink="https://docs.nhost.io/guides/auth/social/sign-in-apple"
           docsTitle="how to sign in users with Apple"
           icon={
             theme.palette.mode === 'dark'

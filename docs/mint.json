@@ -111,6 +111,8 @@
     {
       "group": "Authentication",
       "pages": [
+        "guides/auth/overview",
+        "guides/auth/users",
         {
           "group": "Social Sign In",
           "icon": "at",

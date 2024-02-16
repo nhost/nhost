@@ -97,7 +97,7 @@ export default function MagicLinkSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/authentication/sign-in-with-magic-link"
+          docsLink="https://docs.nhost.io/guides/auth/sign-in-magic-link"
           docsTitle="how to sign in users with Magic Link"
           switchId="enabled"
           showSwitch

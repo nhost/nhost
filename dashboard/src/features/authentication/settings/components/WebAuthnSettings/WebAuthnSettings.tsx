@@ -101,7 +101,7 @@ export default function WebAuthnSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/authentication/sign-in-with-security-keys"
+          docsLink="https://docs.nhost.io/guides/auth/sign-in-webauthn"
           docsTitle="how to sign in users with security keys"
           switchId="enabled"
           showSwitch
