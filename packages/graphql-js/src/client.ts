@@ -232,11 +232,6 @@ export class NhostGraphqlClient {
       }
     }
     if (this.accessToken) {
-      console.log({
-        accessToken: this.accessToken,
-        now: new Date(Date.now())
-      })
-
       return {
         Authorization: `Bearer ${this.accessToken}`
       }

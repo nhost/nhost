@@ -84,8 +84,6 @@ export const createApolloClient = ({
       return Promise.resolve()
     }
 
-    console.log('isTokenValidOrNull()', isTokenValidOrNull())
-
     const waitForValidToken = () => {
       if (isTokenValidOrNull()) {
         return Promise.resolve(true)
@@ -101,12 +99,6 @@ export const createApolloClient = ({
   const getAuthHeaders = async () => {
     // wait for valid access token
     await awaitValidTokenOrNull()
-
-    console.log({
-      accessToken,
-      now: Date.now(),
-      isJWTValid: isJwtValid()
-    })
 
     // add headers
     const resHeaders = {
@@ -211,12 +203,7 @@ export const createApolloClient = ({
   })
 
   interpreter?.onTransition(async (state, event) => {
-    console.log({
-      'event.type': event.type,
-      now: new Date(Date.now())
-    })
-
-    if (['SIGNOUT', 'SIGNED_IN', 'TOKEN_CHANGED', 'SESSION_UPDATE'].includes(event.type)) {
+    if (['SIGNOUT', 'SIGNED_IN', 'TOKEN_CHANGED'].includes(event.type)) {
       if (
         event.type === 'SIGNOUT' ||
         (event.type === 'TOKEN_CHANGED' && state.context.accessToken.value === null)
