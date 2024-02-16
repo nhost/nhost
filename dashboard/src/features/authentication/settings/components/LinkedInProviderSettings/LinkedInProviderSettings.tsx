@@ -111,7 +111,7 @@ export default function LinkedInProviderSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-linkedin"
+          docsLink="https://docs.nhost.io/guides/auth/social/sign-in-linkedin"
           docsTitle="how to sign in users with LinkedIn"
           icon="/assets/brands/linkedin.svg"
           switchId="enabled"

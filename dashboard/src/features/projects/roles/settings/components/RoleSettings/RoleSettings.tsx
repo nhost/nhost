@@ -169,7 +169,7 @@ export default function RoleSettings() {
     <SettingsContainer
       title="Default Allowed Roles"
       description="Default Allowed Roles are roles users get automatically when they sign up."
-      docsLink="https://docs.nhost.io/authentication/users#allowed-roles"
+      docsLink="https://docs.nhost.io/guides/auth/users#allowed-roles"
       rootClassName="gap-0"
       className={twMerge(
         'my-2 px-0',

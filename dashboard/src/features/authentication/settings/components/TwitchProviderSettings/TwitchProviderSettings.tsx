@@ -113,7 +113,7 @@ export default function TwitchProviderSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-twitch"
+          docsLink="https://docs.nhost.io/guides/auth/social/sign-in-twitch"
           docsTitle="how to sign in users with Twitch"
           icon={
             theme.palette.mode === 'dark'

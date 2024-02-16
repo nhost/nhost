@@ -113,7 +113,7 @@ export default function GitHubProviderSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          docsLink="https://docs.nhost.io/platform/authentication/sign-in-with-github"
+          docsLink="https://docs.nhost.io/guides/auth/social/sign-in-github"
           docsTitle="how to sign in users with GitHub"
           icon={
             theme.palette.mode === 'dark'
