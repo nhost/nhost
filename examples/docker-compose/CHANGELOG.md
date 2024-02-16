@@ -1,5 +1,11 @@
 # @nhost-examples/docker-compose
 
+## 0.1.0
+
+### Minor Changes
+
+- ed9df85: updated docker-compose.yaml and .env-example
+
 ## 0.0.7
 
 ### Patch Changes

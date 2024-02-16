@@ -1,5 +1,11 @@
 # @nhost-examples/vue-apollo
 
+## 0.2.1
+
+### Patch Changes
+
+- c5c904b: fix: update signin methods settings
+
 ## 0.2.0
 
 ### Minor Changes
