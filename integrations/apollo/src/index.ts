@@ -211,7 +211,12 @@ export const createApolloClient = ({
   })
 
   interpreter?.onTransition(async (state, event) => {
-    if (['SIGNOUT', 'SIGNED_IN', 'TOKEN_CHANGED'].includes(event.type)) {
+    console.log({
+      'event.type': event.type,
+      now: new Date(Date.now())
+    })
+
+    if (['SIGNOUT', 'SIGNED_IN', 'TOKEN_CHANGED', 'SESSION_UPDATE'].includes(event.type)) {
       if (
         event.type === 'SIGNOUT' ||
         (event.type === 'TOKEN_CHANGED' && state.context.accessToken.value === null)
