@@ -1578,6 +1578,9 @@ importers:
       isomorphic-unfetch:
         specifier: ^3.1.0
         version: 3.1.0
+      jwt-decode:
+        specifier: ^3.1.2
+        version: 3.1.2
     devDependencies:
       '@nhost/docgen':
         specifier: workspace:*
