@@ -4,7 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import * as faker from 'faker';
 
 import { ENV } from '../../../src/utils/env';
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 import { SignInResponse } from '../../../src/types';
 import {
   expectUrlParameters,
@@ -21,6 +21,8 @@ describe('user email', () => {
   const password = faker.internet.password(8);
 
   beforeAll(async () => {
+    await resetEnvironment();
+
     client = new Client({
       connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
@@ -96,7 +98,7 @@ describe('user email', () => {
 
     // confirm change email
     const res2 = await request
-      .get(link.replace('http://localhost:4000', ''))
+      .get(link.replace('http://127.0.0.2:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     expectUrlParameters(res2).not.toIncludeAnyMembers([
@@ -159,7 +161,7 @@ describe('user email', () => {
 
     // wrong ticket should fail
     const res = await request
-      .get(link.replace('http://localhost:4000', ''))
+      .get(link.replace('http://127.0.0.2:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     const urlParams = getUrlParameters(res);
@@ -195,7 +197,7 @@ describe('user email', () => {
 
     // confirm change email
     const res = await request
-      .get(link.replace('http://localhost:4000', ''))
+      .get(link.replace('http://127.0.0.2:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     expectUrlParameters(res).not.toIncludeAnyMembers([
@@ -231,7 +233,7 @@ describe('user email', () => {
 
     // confirm change email
     const res2 = await request
-      .get(link.replace('http://localhost:4000', ''))
+      .get(link.replace('http://127.0.0.2:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
     expectUrlParameters(res2).not.toIncludeAnyMembers([
       'error',
@@ -259,7 +261,7 @@ describe('user email', () => {
     expect(redirectTo).toStrictEqual(options.redirectTo);
     // confirm change email
     const res = await request
-      .get(link.replace('http://localhost:4000', ''))
+      .get(link.replace('http://127.0.0.2:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
     expectUrlParameters(res).not.toIncludeAnyMembers([
       'error',

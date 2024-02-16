@@ -2,7 +2,7 @@ import { Client } from 'pg';
 import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 import { SignInResponse } from '../../../src/types';
 import {
   mailHogSearch,
@@ -15,6 +15,8 @@ describe('email-password', () => {
   let client: Client;
 
   beforeAll(async () => {
+    await resetEnvironment();
+
     client = new Client({
       connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
@@ -84,7 +86,7 @@ describe('email-password', () => {
 
     // should verify email using ticket from email
     const res = await request
-      .get(link.replace('http://localhost:4000', ''))
+      .get(link.replace('http://127.0.0.2:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     expectUrlParameters(res).not.toIncludeAnyMembers([
@@ -145,7 +147,7 @@ describe('email-password', () => {
 
     // verify
     const res = await request
-      .get(link.replace('http://localhost:4000', ''))
+      .get(link.replace('http://127.0.0.2:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     expectUrlParameters(res).not.toIncludeAnyMembers([
@@ -197,8 +199,8 @@ describe('email-password', () => {
   it('should fail to deanonymize user with already existing email', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      ANONYMOUS_USERS_ENABLED: true,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
     });
 
     const email = 'joedoe@example.com';

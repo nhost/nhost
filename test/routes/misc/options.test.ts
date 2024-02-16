@@ -2,7 +2,7 @@ import { Client } from 'pg';
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 import { ENV } from '../../../src/utils/env';
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 import {
   mailHogSearch,
   deleteAllMailHogEmails,
@@ -27,6 +27,8 @@ describe('Redirections', () => {
     });
     await client.connect();
     deleteAllMailHogEmails();
+
+    await resetEnvironment();
   });
 
   afterAll(async () => {
@@ -66,7 +68,7 @@ describe('Redirections', () => {
     const link = message.Content.Headers['X-Link'][0];
     const req = await request
       .get(
-        link.replace('http://localhost:4000', '') +
+        link.replace('http://127.0.0.2:4000', '') +
           '&another_unrelated_param=here-anyway'
       )
       .expect(StatusCodes.MOVED_TEMPORARILY);
@@ -98,7 +100,7 @@ describe('Redirections', () => {
     const link = message.Content.Headers['X-Link'][0];
 
     const res = await request
-      .get(link.replace('http://localhost:4000', ''))
+      .get(link.replace('http://127.0.0.2:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     const resParams = Object.fromEntries(getUrlParameters(res));

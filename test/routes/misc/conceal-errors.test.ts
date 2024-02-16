@@ -3,13 +3,15 @@ import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 import { deleteAllMailHogEmails } from '../../utils';
 
 describe('conceal error messages', () => {
   let client: Client;
 
   beforeAll(async () => {
+    await resetEnvironment();
+
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,

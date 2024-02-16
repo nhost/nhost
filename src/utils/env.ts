@@ -238,6 +238,10 @@ export const ENV = {
 
   get AUTH_REQUIRE_ELEVATED_CLAIM() {
     return castStringEnv('AUTH_REQUIRE_ELEVATED_CLAIM', 'disabled');
+  },
+
+  get AUTH_VERSION() {
+    return castStringEnv('AUTH_VERSION', '0.0.0-dev');
   }
 
   // * See ../server.ts

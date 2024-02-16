@@ -1,0 +1,110 @@
+{
+  "components": {
+    "parameters": {
+      "number": {
+        "in": "query",
+        "name": "someNumber",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "400": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        },
+        "description": "400 Bad Request"
+      }
+    },
+    "schemas": {
+      "Bar": {
+        "example": "bar",
+        "type": "string"
+      },
+      "Error":{
+        "title":"ErrorDetails",
+        "type":"object"
+      },
+      "Foo": {
+        "properties": {
+          "bar": {
+            "$ref": "#/components/schemas/Bar"
+          }
+        },
+        "type": "object"
+      },
+      "Foo2": {
+        "properties": {
+          "foo": {
+            "$ref": "#/components/schemas/Foo"
+          }
+        },
+        "type": "object"
+      },
+      "error":{
+        "title":"ErrorDetails",
+        "type":"object"
+      },
+      "Cat": {
+        "properties": {
+          "cat": {
+            "$ref": "#/components/schemas/Cat"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Recursive refs example",
+    "version": "1.0"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/double-ref-foo": {
+      "get": {
+        "description": "Reference response with double reference.",
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/400"
+          }
+        },
+        "summary": "Double ref response"
+      }
+    },
+    "/foo": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "foo2": {
+                      "$ref": "#/components/schemas/Foo2"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/number"
+        }
+      ]
+    }
+  }
+}

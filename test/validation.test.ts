@@ -1,4 +1,3 @@
-import { request } from './server';
 import { phoneNumber, redirectTo } from '@/validation';
 
 describe('Unit tests on field validation', () => {
@@ -63,23 +62,18 @@ describe('Unit tests on field validation', () => {
     const allowedRedirectUrls = `https://*-nhost.vercel.app,${diffDomainUrl},https://*.${host},https://no-wildcard.io`;
 
     beforeAll(async () => {
-      await request.post('/change-env').send({
-        AUTH_CLIENT_URL: clientUrl,
-        AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS: allowedRedirectUrls,
-      });
+      process.env.AUTH_CLIENT_URL = clientUrl;
+      process.env.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS = allowedRedirectUrls;
     });
 
     it('should validate any url when the client url is not set', async () => {
-      await request.post('/change-env').send({
-        AUTH_CLIENT_URL: '',
-      });
+      process.env.AUTH_CLIENT_URL = ''
+
       expect(
         redirectTo.validate('https://www.google.com/path?key=value').value
       ).toEqual('https://www.google.com/path?key=value');
 
-      await request.post('/change-env').send({
-        AUTH_CLIENT_URL: clientUrl,
-      });
+      process.env.AUTH_CLIENT_URL = clientUrl
     });
 
     it('should reject an invalid url', () => {

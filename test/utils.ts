@@ -146,7 +146,7 @@ export const verfiyUserTicket = async (email: string) => {
 
   // use ticket to verify email
   const res = await request
-    .get(link.replace('http://localhost:4000', ''))
+    .get(link.replace('http://127.0.0.2:4000', ''))
     .expect(StatusCodes.MOVED_TEMPORARILY);
 
   expectUrlParameters(res).not.toIncludeAnyMembers([
@@ -164,7 +164,7 @@ export const insertDbUser = async (
 ) => {
   const ticket = `verifyEmail:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60 * 24 * 30); // 30 days
-  const queryString = `INSERT INTO auth.users(display_name, email, password_hash, email_verified, disabled, locale, ticket, ticket_expires_at) 
+  const queryString = `INSERT INTO auth.users(display_name, email, password_hash, email_verified, disabled, locale, ticket, ticket_expires_at)
     VALUES('${email}', '${email}', '${hashPassword(
     password
   )}', '${verified}', '${disabled}','en', '${ticket}', '${ticketExpiresAt.toISOString()}'

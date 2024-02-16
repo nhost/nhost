@@ -2,7 +2,7 @@ import { ENV, hash } from '@/utils';
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 import { deleteAllMailHogEmails } from '../../utils';
 
 describe('personal access token', () => {
@@ -15,6 +15,7 @@ describe('personal access token', () => {
       connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
 
+    await resetEnvironment();
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,

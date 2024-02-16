@@ -2,7 +2,7 @@ import { Client } from 'pg';
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 import { ENV } from '../../../src/utils/env';
 import { mailHogSearch } from '../../utils';
 import { SignInResponse } from '@/types';
@@ -14,6 +14,8 @@ describe('user password', () => {
   const password = faker.internet.password();
 
   beforeAll(async () => {
+    await resetEnvironment();
+
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
@@ -79,7 +81,7 @@ describe('user password', () => {
 
     // use password reset link
     await request
-      .get(link.replace('http://localhost:4000', ''))
+      .get(link.replace('http://127.0.0.2:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     // TODO
@@ -197,7 +199,7 @@ describe('user password', () => {
 
     // use password reset link
     await request
-      .get(link.replace('http://localhost:4000', ''))
+      .get(link.replace('http://127.0.0.2:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     expect(redirectTo).toStrictEqual(options.redirectTo);

@@ -1,0 +1,4 @@
+type: object
+properties:
+  foo:
+    $ref: ../../openapi.yml#/components/schemas/Foo

@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
 import rfc2047 from 'rfc2047';
 import { ENV } from '../../../../src/utils/env';
-import { request } from '../../../server';
+import { request, resetEnvironment } from '../../../server';
 import {
   deleteAllMailHogEmails,
   expectUrlParameters,
@@ -14,6 +14,8 @@ describe('passwordless email (magic link)', () => {
   let client: Client;
 
   beforeAll(async () => {
+    await resetEnvironment();
+
     client = new Client({
       connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
@@ -58,7 +60,7 @@ describe('passwordless email (magic link)', () => {
 
     const link = message.Content.Headers['X-Link'][0];
     const res = await request
-      .get(link.replace('http://localhost:4000', ''))
+      .get(link.replace('http://127.0.0.2:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     expectUrlParameters(res).not.toIncludeAnyMembers([

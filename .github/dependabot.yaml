@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    open-pull-requests-limit: 10
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "04:00"
+    commit-message:
+      prefix: "chore"
+    labels:
+      - "dependencies"
+      - "github_actions"
+      - "chore"

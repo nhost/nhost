@@ -3,7 +3,7 @@ import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../../../src/utils/env';
-import { request } from '../../../../server';
+import { request, resetEnvironment } from '../../../../server';
 
 describe('passwordless sms', () => {
   let client: Client;
@@ -13,6 +13,7 @@ describe('passwordless sms', () => {
       connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
+    await resetEnvironment();
   });
 
   afterAll(async () => {

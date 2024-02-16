@@ -1,0 +1,4 @@
+name: someNumber
+in: query
+schema:
+  type: string

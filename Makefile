@@ -1,8 +1,21 @@
-PORT=4000
-TAG=local
-IMAGE=nhost/hasura-auth:$(TAG)
+ifdef VER
+VERSION=$(shell echo $(VER) | sed -e 's/^v//g' -e 's/\//_/g')
+else
+VERSION=$(shell grep -oP 'version\s*=\s*"\K[^"]+' flake.nix)
+endif
 
-.SILENT:
+ifeq ($(shell uname -m),x86_64)
+  ARCH?=x86_64
+else ifeq ($(shell uname -m),arm64)
+  ARCH?=aarch64
+endif
+
+ifeq ($(shell uname -o),Darwin)
+  OS?=darwin
+else
+  OS?=linux
+endif
+
 
 .PHONY: help
 help: ## Show this help.
@@ -13,60 +26,72 @@ help: ## Show this help.
 		split=($$line) ; \
 		command=`echo $${split[0]} | sed -e 's/^ *//' -e 's/ *$$//'` ; \
 		info=`echo $${split[2]} | sed -e 's/^ *//' -e 's/ *$$//'` ; \
-		printf "%-38s %s\n" $${command%:*} $$info ; \
+		printf "%-38s %s\n" $$command $$info ; \
 	done
 
 
 .PHONY: get-version
-get-version:  ## Return version.
-	jq -r ".version" package.json
+get-version:  ## Return version
+	@sed -i "s/version\s*=\s*\"[^\"]*\"/version = \"${VERSION}\"/" flake.nix
+	@echo $(VERSION)
 
 
-.PHONY: dev
-dev: check-port dev-env-up  ## Start development environment.
-	bash -c "trap 'make dev-env-down' EXIT; pnpm dev:start"
+.PHONY: check
+check:   ## Run nix flake check
+	./build/nix.sh flake check --print-build-logs
 
 
-.PHONY: test
-test: check-port dev-env-up ## Run end-to-end tests.
-	pnpx audit-ci --config ./audit-ci.jsonc
-	pnpm test
-
-.PHONY: check-port
-check-port:
-	[ -z $$(lsof -t -i tcp:$(PORT)) ] || (echo "The port $(PORT) is already in use"; exit 1;)
-
-.PHONY: docgen
-docgen: check-port dev-env-up ## Generate the openapi.json file.
-	AUTH_CLIENT_URL=https://my-app.com AUTH_LOG_LEVEL=error AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS= pnpm dev &
-	while [ "$$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:$(PORT)/healthz)" != "200" ]; do sleep 1; done
-	curl http://localhost:$(PORT)/openapi.json | json_pp > docs/openapi.json
-	kill -9 $$(lsof -t -i tcp:$(PORT))
-	make dev-env-down
+.PHONY: check-dry-run
+check-dry-run:  ## Run nix flake check
+	nix build \
+		--dry-run \
+		--json \
+		--print-build-logs \
+		.\#checks.$(ARCH)-$(OS).node-checks
 
 
-.PHONY: watch
-watch: check-port dev-env-up ## Start tests in watch mode.
-	bash -c "trap 'make dev-env-down' EXIT; pnpm test:watch"
+.PHONY: dev-env-up
+dev-env-up:  ## Starts development environment
+	cd build/dev/docker && docker compose \
+		--project-name auth-dev \
+		up \
+		--wait --wait-timeout 120 \
+
+
+.PHONY: dev-env-up-short
+dev-env-up-short:  ## Starts development environment without ai service
+	cd build/dev/docker && docker compose \
+		--project-name auth-dev \
+		up \
+		--wait --wait-timeout 120 \
+		postgres graphql mailhog
+
+
+.PHONY: dev-env-down
+dev-env-down:  ## Stops development environment
+	cd build/dev/docker && docker compose --project-name auth-dev down --volumes
 
 
 .PHONY: build
-build:
-	docker build -t $(IMAGE) .
+build:  ## Build application and places the binary under ./result/bin
+	./build/nix.sh build --print-build-logs
 
 
-.PHONY: dev-env-down
-dev-env-up: ## Start required services (Hasura, Postgres, Mailhog).
-	docker compose -f docker-compose.yaml up -d
-	while [ "$$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:8080/healthz)" != "200" ]; do sleep 1; done
-	@echo "Hasura is ready";
+.PHONY: build-dry-run
+build-dry-run:  ## Run nix flake check
+	nix build \
+		--dry-run \
+		--json \
+		--print-build-logs \
+		.\#packages.$(ARCH)-$(OS).default
 
 
-.PHONY: dev-env-down
-dev-env-down:  ## Stop required services (Hasura, Posgres, Mailhbg).
-	docker compose -f docker-compose.yaml down
+.PHONY: build-docker-image
+build-docker-image:  ## Build docker container for native architecture
+	./build/nix-docker-image.sh
+	docker tag hasura-auth:$(VERSION) nhost/hasura-auth:0.0.0-dev
 
 
-.PHONY: install
-install:
-	pnpm install
+.PHONY: migrations-add
+migrations-add:  ## add a migration with NAME in the migrations folder
+	migrate create -dir ./migrations/postgres -ext sql -seq $(MIGRATION_NAME)

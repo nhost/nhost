@@ -1,0 +1,30 @@
+---
+name: "check and build"
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  tests:
+    uses: ./.github/workflows/wf_check.yaml
+    with:
+      NAME: hasura-auth
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+
+
+  build_artifacts:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    with:
+      NAME: hasura-auth
+      VERSION: 0.0.0-dev # hardcoded to avoid rebuilding
+      DOCKER: true
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      SSH_PRIVATE_KEY: ${{ secrets.NIX_REMOTE_BUILD_ARM_SSH_KEY }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}

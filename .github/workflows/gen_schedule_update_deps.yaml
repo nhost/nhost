@@ -44,13 +44,17 @@ jobs:
     - name: Update nix flakes
       run: nix flake update
 
-    - name: Update golang dependencies
+    - name: Update dependencies
       run: |
         nix develop -c bash -c "
           go mod tidy
           go get -u ./...
           go mod tidy
           go mod vendor
+
+          pnpm dedupe
+          pnpm update -r
+          pnpm dedupe
         "
 
     - name: Create Pull Request

@@ -11,6 +11,7 @@ import { signUpRouter } from './signup';
 import { tokenRouter } from './token';
 import { userRouter } from './user';
 import { verifyRouter } from './verify';
+import { ENV } from '../utils/env';
 
 const router = express.Router();
 router.use(nocache());
@@ -22,7 +23,7 @@ router.use(nocache());
  * @tags General
  */
 router.get('/version', (_req, res) =>
-  res.json({ version: 'v' + process.env.npm_package_version })
+  res.json({ version: ENV.AUTH_VERSION })
 );
 
 // auth routes

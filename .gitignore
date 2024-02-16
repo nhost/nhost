@@ -8,4 +8,5 @@ yarn-error.log
 package-lock.json
 
 docker/data
-.env
+.env*
+result

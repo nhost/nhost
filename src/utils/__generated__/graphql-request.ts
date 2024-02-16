@@ -250,6 +250,7 @@ export type AuthProviderRequests_Updates = {
   _prepend?: InputMaybe<AuthProviderRequests_Prepend_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<AuthProviderRequests_Set_Input>;
+  /** filter the rows which have to be updated */
   where: AuthProviderRequests_Bool_Exp;
 };
 
@@ -406,6 +407,7 @@ export enum AuthProviders_Update_Column {
 export type AuthProviders_Updates = {
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<AuthProviders_Set_Input>;
+  /** filter the rows which have to be updated */
   where: AuthProviders_Bool_Exp;
 };
 
@@ -583,6 +585,7 @@ export enum AuthRefreshTokenTypes_Update_Column {
 export type AuthRefreshTokenTypes_Updates = {
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<AuthRefreshTokenTypes_Set_Input>;
+  /** filter the rows which have to be updated */
   where: AuthRefreshTokenTypes_Bool_Exp;
 };
 
@@ -861,6 +864,7 @@ export type AuthRefreshTokens_Updates = {
   _prepend?: InputMaybe<AuthRefreshTokens_Prepend_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<AuthRefreshTokens_Set_Input>;
+  /** filter the rows which have to be updated */
   where: AuthRefreshTokens_Bool_Exp;
 };
 
@@ -1045,6 +1049,7 @@ export enum AuthRoles_Update_Column {
 export type AuthRoles_Updates = {
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<AuthRoles_Set_Input>;
+  /** filter the rows which have to be updated */
   where: AuthRoles_Bool_Exp;
 };
 
@@ -1133,9 +1138,9 @@ export type AuthUserProviders_Bool_Exp = {
 export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserProvidersPkey = 'user_providers_pkey',
-  /** unique or primary key constraint on columns "provider_id", "provider_user_id" */
+  /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
   UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key',
-  /** unique or primary key constraint on columns "provider_id", "user_id" */
+  /** unique or primary key constraint on columns "user_id", "provider_id" */
   UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key'
 }
 
@@ -1313,6 +1318,7 @@ export enum AuthUserProviders_Update_Column {
 export type AuthUserProviders_Updates = {
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<AuthUserProviders_Set_Input>;
+  /** filter the rows which have to be updated */
   where: AuthUserProviders_Bool_Exp;
 };
 
@@ -1523,6 +1529,7 @@ export enum AuthUserRoles_Update_Column {
 export type AuthUserRoles_Updates = {
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<AuthUserRoles_Set_Input>;
+  /** filter the rows which have to be updated */
   where: AuthUserRoles_Bool_Exp;
 };
 
@@ -1844,6 +1851,7 @@ export type AuthUserSecurityKeys_Updates = {
   _inc?: InputMaybe<AuthUserSecurityKeys_Inc_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<AuthUserSecurityKeys_Set_Input>;
+  /** filter the rows which have to be updated */
   where: AuthUserSecurityKeys_Bool_Exp;
 };
 
@@ -3870,6 +3878,7 @@ export type Users_Updates = {
   _prepend?: InputMaybe<Users_Prepend_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<Users_Set_Input>;
+  /** filter the rows which have to be updated */
   where: Users_Bool_Exp;
 };
 

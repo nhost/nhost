@@ -3,7 +3,7 @@ import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 import { SignInResponse } from '../../../src/types';
 
 describe('user password', () => {
@@ -14,6 +14,8 @@ describe('user password', () => {
       connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
+
+    await resetEnvironment();
   });
 
   afterAll(async () => {

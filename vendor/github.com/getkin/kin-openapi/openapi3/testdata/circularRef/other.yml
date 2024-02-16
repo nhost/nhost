@@ -1,0 +1,10 @@
+openapi: "3.0.3"
+info:
+  title: Recursive cyclic refs example
+  version: "1.0"
+components:
+  schemas:
+    Foo2:
+      properties:
+        id:
+          type: string

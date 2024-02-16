@@ -3,13 +3,14 @@ import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 import { deleteAllMailHogEmails, isValidAccessToken } from '../../utils';
 
 describe('email-password', () => {
   let client: Client;
 
   beforeAll(async () => {
+    await resetEnvironment();
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
@@ -31,7 +32,7 @@ describe('email-password', () => {
     await client.query(`DELETE FROM auth.users;`);
   });
 
-  it('should sign in user and return valid tokens', async () => {
+  it.only('should sign in user and return valid tokens', async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
     await request

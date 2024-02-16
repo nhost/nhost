@@ -61,5 +61,5 @@ export const UnauthorizedErrorModel = Joi.object<ErrorPayload>({
 }).meta({ className: 'UnauthorizedError' });
 
 export const VersionModel = Joi.string()
-  .example(process.env.npm_package_version)
+  .example(process.env.AUTH_VERSION)
   .meta({ className: 'Version' });

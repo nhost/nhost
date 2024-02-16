@@ -24,6 +24,7 @@ app.use(helmet(), json(), cors());
 app.use(authMiddleware);
 app.use(ENV.AUTH_API_PREFIX, router);
 app.use(uncaughtErrorLogger, serverErrors);
+app.set('trust proxy', 'loopback');
 
 process.on('unhandledRejection', (reason) => {
   if (reason instanceof Error) {

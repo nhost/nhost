@@ -2,7 +2,7 @@ import { ENV } from '@/utils';
 import faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 import { deleteAllMailHogEmails, insertDbUser } from '../../utils';
 
 describe('webauthn', () => {
@@ -17,6 +17,8 @@ describe('webauthn', () => {
     });
     await client.connect();
     await deleteAllMailHogEmails();
+
+    await resetEnvironment();
   });
 
   afterAll(async () => {

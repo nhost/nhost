@@ -1,0 +1,263 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Nhost Auth
+  description: Service to Authenticate
+  termsOfService: http://swagger.io/terms/
+  contact:
+    name: Nhost's Support
+    email: support@nhost.io
+    url: https://nhost.io
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+paths:
+  /signin/email-password:
+    post:
+      description: Sign in and existing user using email and password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignInEmailPasswordSchema"
+        required: true
+      responses:
+        200:
+          description: Sign in was successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+      tags:
+        - signin
+        - email-and-password
+
+  /signup/email-password:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpEmailPasswordSchema'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPayload'
+          description: >-
+            Successfully registered. Null session means email verification is
+            pending
+      summary: Signup with email and password
+      tags:
+        - signup
+        - email-and-password
+
+components:
+  schemas:
+    SessionPayload:
+      type: object
+      properties:
+        mfa:
+          $ref: "#/components/schemas/MFA"
+        session:
+          $ref: "#/components/schemas/Session"
+
+    MFA:
+      type: object
+      properties:
+        ticket:
+          type: string
+    Session:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        accessTokenExpiresIn:
+          format: float
+          type: number
+        refreshToken:
+          description: Refresh token during authentication or when refreshing the JWT
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+        - accessToken
+        - accessTokenExpiresIn
+        - refreshToken
+
+    User:
+      additionalProperties: false
+      properties:
+        activeMfaType:
+          anyOf:
+            - enum:
+                - ''
+              type: string
+            - enum:
+                - totp
+              type: string
+          description: Multi-factor authentication type. A null value deactivates MFA
+          example: totp
+        avatarUrl:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        defaultRole:
+          default: user
+          enum:
+            - me
+            - user
+          example: user
+          type: string
+        displayName:
+          example: John Smith
+          type: string
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        emailVerified:
+          default: false
+          type: boolean
+        id:
+          description: Id of the user
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        isAnonymous:
+          default: false
+          type: boolean
+        locale:
+          default: en
+          description: A two-characters locale
+          example: en
+          maxLength: 2
+          minLength: 2
+          type: string
+        metadata:
+          additionalProperties: false
+          default: {}
+          example:
+            firstName: John
+            lastName: Smith
+          properties: {}
+          type: object
+        phoneNumber:
+          type: string
+        phoneNumberVerified:
+          default: false
+          type: boolean
+        roles:
+          default:
+            - me
+            - user
+          example:
+            - me
+            - user
+          items:
+            oneOf:
+              - enum:
+                  - me
+              - enum:
+                  - user
+          type: array
+      required:
+        - createdAt
+        - displayName
+        - avatarUrl
+        - locale
+        - email
+        - isAnonymous
+        - defaultRole
+        - metadata
+        - activeMfaType
+        - emailVerified
+        - phoneNumber
+        - phoneNumberVerified
+        - roles
+      type: object
+
+    SignInEmailPasswordSchema:
+      type: object
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        password:
+          example: Str0ngPassw#ord-94|%
+          type: string
+      required:
+        - email
+        - password
+
+    SignUpEmailPasswordSchema:
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          additionalProperties: false
+          properties:
+            allowedRoles:
+              default:
+                - me
+                - user
+              example:
+                - me
+                - user
+              items:
+                oneOf:
+                  - enum:
+                      - me
+                  - enum:
+                      - user
+              type: array
+            defaultRole:
+              default: user
+              enum:
+                - me
+                - user
+              example: user
+              type: string
+            displayName:
+              example: John Smith
+              type: string
+            locale:
+              default: en
+              description: A two-characters locale
+              example: en
+              maxLength: 2
+              minLength: 2
+              type: string
+            metadata:
+              additionalProperties: false
+              default: {}
+              example:
+                firstName: John
+                lastName: Smith
+              properties: {}
+              type: object
+            redirectTo:
+              default: https://my-app.com
+              example: https://my-app.com/catch-redirection
+              type: string
+          type: object
+        password:
+          description: A password of minimum 3 characters
+          example: Str0ngPassw#ord-94|%
+          minLength: 3
+          type: string
+      required:
+        - email
+        - password
+      type: object

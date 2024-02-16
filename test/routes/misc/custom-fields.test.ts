@@ -3,7 +3,7 @@ import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '@/utils';
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 
 describe('user metadata field', () => {
   const firstName = faker.name.firstName();
@@ -14,6 +14,8 @@ describe('user metadata field', () => {
       connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
+
+    await resetEnvironment();
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,

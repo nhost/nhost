@@ -1,0 +1,43 @@
+---
+linters:
+    enable-all: true
+    disable:
+      - varnamelen
+      - gomoddirectives
+      - nlreturn
+      - wsl
+      - tagliatelle
+      - exhaustivestruct # deprecated
+      - maligned  # deprecated
+      - scopelint  # deprecated
+      - interfacer  # deprecated
+      - golint  # deprecated
+      - structcheck  # deprecated
+      - deadcode  # deprecated
+      - nosnakecase  # deprecated
+      - ifshort  # deprecated
+      - varcheck  # deprecated
+      - musttag
+      - depguard
+      - gci    # we already check the linter did its magic
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - funlen
+        - ireturn
+
+    - linters:
+        - lll
+      source: "^//go:generate "
+
+    - linters:
+        - gochecknoglobals
+      text: "Version is a global variable"
+
+    - path: schema\.resolvers\.go
+      linters:
+        - ireturn
+        - lll
+        - gofumpt

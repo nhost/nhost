@@ -4,7 +4,7 @@ import * as faker from 'faker';
 import { patchMetadata } from '@/utils';
 import { escapeValueToPg, ENV } from '@/utils';
 
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 import { decodeAccessToken } from '../../utils';
 
 describe('custom JWT claims', () => {
@@ -13,6 +13,8 @@ describe('custom JWT claims', () => {
   const projects = [...Array(3).keys()].map(faker.datatype.uuid);
 
   beforeAll(async () => {
+    await resetEnvironment();
+
     client = new Client({
       connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
@@ -21,7 +23,7 @@ describe('custom JWT claims', () => {
       await client.query(`
       CREATE TABLE IF NOT EXISTS public.profiles (
         id uuid PRIMARY KEY
-            CONSTRAINT fk_user REFERENCES auth.users(id) 
+            CONSTRAINT fk_user REFERENCES auth.users(id)
             ON UPDATE CASCADE ON DELETE CASCADE,
         organisation_id uuid);
       CREATE TABLE public.organisations (id uuid primary key default gen_random_uuid());

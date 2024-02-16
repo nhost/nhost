@@ -3,7 +3,7 @@ import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 import {
   mailHogSearch,
   deleteAllMailHogEmails,
@@ -19,6 +19,8 @@ describe('email-password', () => {
     });
     await client.connect();
     await deleteAllMailHogEmails();
+
+    await resetEnvironment();
   });
 
   afterAll(async () => {

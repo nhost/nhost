@@ -150,7 +150,7 @@ export const oauthProviders = Router()
   .use((req, res, next) => {
     res.locals.grant = {
       dynamic: {
-        origin: `${req.protocol}://${req.headers.host}`,
+        origin: `${req.protocol}://${req.hostname}`,
       },
     };
     next();

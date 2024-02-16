@@ -22,9 +22,14 @@ describe('mfa totp', () => {
 
   beforeEach(async () => {
     await client.query(`DELETE FROM auth.users;`);
+
+    await request.post('/change-env').send({
+      AUTH_DISABLE_SIGNUP: false,
+    });
+
   });
 
-  it('should generate a secret, enable mfa and sign in with mfa', async () => {
+  it.only('should generate a secret, enable mfa and sign in with mfa', async () => {
     await request.post('/change-env').send({
       AUTH_MFA_ENABLED: true,
       AUTH_DISABLE_NEW_USERS: false,

@@ -1,0 +1,60 @@
+openapi: "3.0.3"
+info:
+  title: Deep recursive cyclic refs example
+  version: "1.0"
+paths:
+  /foo:
+    $ref: ./paths/foo.yml
+components:
+  schemas:
+    FilterColumnIncludes:
+      type: object
+      properties:
+        $includes:
+          $ref: '#/components/schemas/FilterPredicate'
+      additionalProperties: false
+      maxProperties: 1
+      minProperties: 1
+    FilterPredicate:
+      oneOf:
+        - $ref: '#/components/schemas/FilterValue'
+        - type: array
+          items:
+            $ref: '#/components/schemas/FilterPredicate'
+          minLength: 1
+        - $ref: '#/components/schemas/FilterPredicateOp'
+        - $ref: '#/components/schemas/FilterPredicateRangeOp'
+    FilterPredicateOp:
+      type: object
+      properties:
+        $any:
+          oneOf:
+            - type: array
+              items:
+                $ref: '#/components/schemas/FilterPredicate'
+        $none:
+          oneOf:
+            - $ref: '#/components/schemas/FilterPredicate'
+            - type: array
+              items:
+                $ref: '#/components/schemas/FilterPredicate'
+      additionalProperties: false
+      maxProperties: 1
+      minProperties: 1
+    FilterPredicateRangeOp:
+      type: object
+      properties:
+        $lt:
+          $ref: '#/components/schemas/FilterRangeValue'
+      additionalProperties: false
+      maxProperties: 2
+      minProperties: 2
+    FilterRangeValue:
+      oneOf:
+        - type: number
+        - type: string
+    FilterValue:
+      oneOf:
+        - type: number
+        - type: string
+        - type: boolean

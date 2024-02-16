@@ -2,13 +2,14 @@ import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
 
 import { ENV } from '../../../src/utils/env';
-import { request } from '../../server';
+import { request, resetEnvironment } from '../../server';
 import { isValidAccessToken } from '../../utils';
 
 describe('token', () => {
   let client: Client;
 
   beforeAll(async () => {
+    await resetEnvironment();
     client = new Client({
       connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
