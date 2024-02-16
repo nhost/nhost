@@ -8,9 +8,14 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:1337"
+      - "--entryPoints.admin.address=:3030"
     ports:
+      # hasura/services
       - "1337:1337"
+      # traefik interface
       - "9090:8080"
+      # dashboard
+      - "3030:3030"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
   postgres:
@@ -24,7 +29,7 @@ services:
     ports:
       - '5432:5432'
   graphql-engine:
-    image: hasura/graphql-engine:v2.15.2
+    image: hasura/graphql-engine:v2.35.1
     depends_on:
       - 'postgres'
     restart: always
@@ -39,10 +44,10 @@ services:
       HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.hasura.rule=Host(`localhost`) && PathPrefix(`/`)"
+      - "traefik.http.routers.hasura.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/`)"
       - "traefik.http.routers.hasura.entrypoints=web"
   auth:
-    image: nhost/hasura-auth:0.16.2
+    image: nhost/hasura-auth:0.24
     depends_on:
       - postgres
       - graphql-engine
@@ -66,11 +71,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.strip-auth.stripprefix.prefixes=/v1/auth"
-      - "traefik.http.routers.auth.rule=Host(`localhost`) && PathPrefix(`/v1/auth`)"
+      - "traefik.http.routers.auth.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/v1/auth`)"
       - "traefik.http.routers.auth.middlewares=strip-auth@docker"
       - "traefik.http.routers.auth.entrypoints=web"
   storage:
-    image: nhost/hasura-storage:0.3.1
+    image: nhost/hasura-storage:0.4.1
     depends_on:
       - postgres
       - graphql-engine
@@ -79,7 +84,7 @@ services:
     expose:
       - 8000
     environment:
-      PUBLIC_URL: http://localhost:${PROXY_PORT:-1337}
+      PUBLIC_URL: ${PROXY_URL}
       HASURA_METADATA: 1
       HASURA_ENDPOINT: http://graphql-engine:8080/v1
       HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
@@ -91,7 +96,7 @@ services:
       POSTGRES_MIGRATIONS_SOURCE: postgres://postgres:${POSTGRES_PASSWORD:-secretpgpassword}@postgres:5432/postgres?sslmode=disable
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.storage.rule=Host(`localhost`) && PathPrefix(`/v1/storage`)"
+      - "traefik.http.routers.storage.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/v1/storage`)"
       - "traefik.http.routers.storage.entrypoints=web"
       # Rewrite the path so it matches with the new storage API path introduced in hasura-storage 0.2
       - "traefik.http.middlewares.strip-suffix.replacepathregex.regex=^/v1/storage/(.*)"
@@ -99,11 +104,11 @@ services:
       - "traefik.http.routers.storage.middlewares=strip-suffix@docker"
     command: serve
   functions:
-    image: nhost/functions:0.1.8
+    image: nhost/functions:1.0.0
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.strip-functions.stripprefix.prefixes=/v1/functions"
-      - "traefik.http.routers.functions.rule=Host(`localhost`) && PathPrefix(`/v1/functions`)"
+      - "traefik.http.routers.functions.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/v1/functions`)"
       - "traefik.http.routers.functions.middlewares=strip-functions@docker"
       - "traefik.http.routers.functions.entrypoints=web"
     restart: always
@@ -140,8 +145,24 @@ services:
     volumes:
       - ./data/mailhog:/maildir
   dashboard:
-    image: nhost/dashboard:0.7.4
-    ports:
-      - "3030:3000"
+    image: nhost/dashboard:0.21.1
+    environment:
+      NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL: ${NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL}
+      NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL: ${NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL}
+      NEXT_PUBLIC_NHOST_HASURA_API_URL: ${NEXT_PUBLIC_NHOST_HASURA_API_URL}
+      NEXT_PUBLIC_NHOST_ADMIN_SECRET: ${NEXT_PUBLIC_NHOST_ADMIN_SECRET}
+      NEXT_PUBLIC_NHOST_AUTH_URL: ${NEXT_PUBLIC_NHOST_AUTH_URL}
+      NEXT_PUBLIC_NHOST_GRAPHQL_URL: ${NEXT_PUBLIC_NHOST_GRAPHQL_URL}
+      NEXT_PUBLIC_NHOST_STORAGE_URL: ${NEXT_PUBLIC_NHOST_STORAGE_URL}
+      NEXT_PUBLIC_NHOST_FUNCTIONS_URL: ${NEXT_PUBLIC_NHOST_FUNCTIONS_URL}
+    expose:
+     - 3000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nhost.rule=Host(`${NHOST_HOST}`)"
+      - "traefik.http.routers.nhost.entrypoints=admin"
+      # If you would like to protect your dashboard with a username and password if it is publicly-facing, uncomment and fill in the following lines below according to the documentation at https://doc.traefik.io/traefik/middlewares/http/basicauth/
+      #- "traefik.http.routers.nhost.middlewares=auth"
+      #- "traefik.http.middlewares.auth.basicauth.users=
 volumes:
   functions_node_modules:
