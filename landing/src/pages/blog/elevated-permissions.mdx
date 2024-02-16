@@ -4,7 +4,7 @@ import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 export const article = {
   title: 'Elevated Permissions',
   description:
-    'IPv6',
+    'Add an extra layer of security to your data and user workflows',
   image: '/images/blog/elevated-permissions/elevated-permissions.png',
   date: '2024-02-16',
   authors: [
@@ -15,16 +15,18 @@ export const article = {
       url: 'https://twitter.com/nunopato',
     },
   ],
-  tags: ['Product', 'Auth'],
+  tags: ['Product', 'Auth', 'Elevated Permissions'],
 }
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-Sometimes we want to add an extra layer of security for specific bits of data or certain user workflows like changing a user email or reseting a password. **Elevated Permissions** allows developers to require an extra validation step using a [Security Key](https://docs.nhost.io/guides/auth/sign-in-webauthn).
+Sometimes we want to add an extra layer of security for specific bits of data or certain user workflows like changing a user email or resetting a password. 
+
+**Elevated Permissions** is a new feature from Nhost Auth that allows developers to require an extra validation step using a [Security Key](https://docs.nhost.io/guides/auth/sign-in-webauthn).
 
 ### How does it work?
 
-A new claim `x-hasura-auth-elevated: $user-id` is added to the user's access token once the security challenge is passed and it is available for as long as the access token is valid. 
+A new claim `x-hasura-auth-elevated: $user-id` is added to the access token of an already logged in user once the extra security challenge is passed and it will be available for as long as the access token is valid. 
 
 #### GraphQL API
 
@@ -61,7 +63,7 @@ You can add the extra check for these Auth endpoints and require the elevated cl
   />
 </video>
 
-For a comprehensive overview of Elevated Permissions you can read the [documentation](https://docs.nhost.io/guides/auth/elevated-permissions) or check [one of our examples](https://github.com/nhost/nhost/tree/main/examples/react-apollo).
+For more detailed information on Elevated Permissions you can read the [documentation](https://docs.nhost.io/guides/auth/elevated-permissions) or check [one of our examples](https://github.com/nhost/nhost/tree/main/examples/react-apollo).
 
 
 
