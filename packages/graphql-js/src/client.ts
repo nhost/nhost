@@ -104,7 +104,10 @@ export class NhostGraphqlClient {
     const { headers, ...otherOptions } = config || {}
     const { query, operationName } = resolveRequestDocument(requestOptions.document)
 
-    await this.awaitForValidAccessToken()
+    if (!process.env.TEST_MODE) {
+      // We skip this while running unit tests because the accessToken is generated using faker
+      await this.awaitForValidAccessToken()
+    }
 
     try {
       const response = await fetch(this.httpUrl, {
