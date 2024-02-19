@@ -5,7 +5,7 @@ import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getToastBackgroundColor } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
-import { type ApolloError } from '@apollo/client';
+import { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/router';
@@ -28,7 +28,7 @@ export default function ErrorToast({
 }: {
   isVisible: boolean;
   errorMessage: string;
-  error: ApolloError;
+  error: ApolloError | Error;
   close: () => void;
 }) {
   const userData = useUserData();
@@ -37,25 +37,49 @@ export default function ErrorToast({
   const [showInfo, setShowInfo] = useState(false);
   const { currentProject } = useCurrentWorkspaceAndProject();
 
+  const getInternalErrorMessage = (
+    error: Error | ApolloError | undefined,
+  ): string | null => {
+    if (!error) return null;
+
+    if (error instanceof ApolloError) {
+      const internalError = error.graphQLErrors?.[0]?.extensions?.internal as
+        | { error: { message: string } }
+        | undefined;
+      return internalError?.error?.message || null;
+    }
+
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return null;
+  };
+
+  const errorToObject = (error: ApolloError | Error) => {
+    if (error instanceof ApolloError) {
+      return error;
+    }
+
+    if (error instanceof Error) {
+      return {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      };
+    }
+  };
+
   const errorDetails: ErrorDetails = {
     info: {
       projectId: currentProject?.id,
       userId: userData?.id || 'local',
       url: asPath,
     },
-    error,
+    error: errorToObject(error),
   };
 
-  const internalError = error?.graphQLErrors?.at(0)?.extensions?.internal as {
-    error: {
-      message: string;
-    };
-  };
-
-  const msg =
-    internalError?.error?.message ||
-    error?.graphQLErrors?.at(0).message ||
-    errorMessage;
+  const msg = getInternalErrorMessage(error) || errorMessage;
 
   return (
     <AnimatePresence>
