@@ -96,45 +96,52 @@ export default function DataGridHeader<T extends object>({
             }}
             key={column.id}
           >
-            <Dropdown.Trigger
-              className={twMerge(
-                'focus:outline-none motion-safe:transition-colors',
-              )}
-              disabled={
-                column.isDisabled ||
-                column.id === 'selection' ||
-                (column.disableSortBy && !onRemoveColumn)
-              }
-              hideChevron
-            >
+            {column.id === 'selection' ? (
               <span
                 {...headerProps}
                 className="relative grid w-full grid-flow-col items-center justify-between p-2"
               >
                 {column.render('Header')}
-
-                {allowSort && (
-                  <Box component="span" sx={{ color: 'text.primary' }}>
-                    {column.isSorted && !column.isSortedDesc && (
-                      <ArrowUpIcon className="h-3 w-3" />
-                    )}
-
-                    {column.isSorted && column.isSortedDesc && (
-                      <ArrowDownIcon className="h-3 w-3" />
-                    )}
-                  </Box>
-                )}
               </span>
-
-              {allowResize && !column.disableResizing && (
+            ) : (
+              <Dropdown.Trigger
+                className={twMerge(
+                  'focus:outline-none motion-safe:transition-colors',
+                )}
+                disabled={
+                  column.isDisabled || (column.disableSortBy && !onRemoveColumn)
+                }
+                hideChevron
+              >
                 <span
-                  {...column.getResizerProps({
-                    onClick: (event: Event) => event.stopPropagation(),
-                  })}
-                  className="absolute top-0 bottom-0 -right-0.5 z-10 h-full w-1.5 group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors"
-                />
-              )}
-            </Dropdown.Trigger>
+                  {...headerProps}
+                  className="relative grid w-full grid-flow-col items-center justify-between p-2"
+                >
+                  {column.render('Header')}
+
+                  {allowSort && (
+                    <Box component="span" sx={{ color: 'text.primary' }}>
+                      {column.isSorted && !column.isSortedDesc && (
+                        <ArrowUpIcon className="h-3 w-3" />
+                      )}
+
+                      {column.isSorted && column.isSortedDesc && (
+                        <ArrowDownIcon className="h-3 w-3" />
+                      )}
+                    </Box>
+                  )}
+                </span>
+
+                {allowResize && !column.disableResizing && (
+                  <span
+                    {...column.getResizerProps({
+                      onClick: (event: Event) => event.stopPropagation(),
+                    })}
+                    className="absolute -right-0.5 bottom-0 top-0 z-10 h-full w-1.5 group-hover:bg-slate-900 group-hover:bg-opacity-20 group-active:bg-slate-900 group-active:bg-opacity-20 motion-safe:transition-colors"
+                  />
+                )}
+              </Dropdown.Trigger>
+            )}
 
             <Dropdown.Content
               menu
