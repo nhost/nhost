@@ -20,6 +20,43 @@ interface ErrorDetails {
   error: any;
 }
 
+const getInternalErrorMessage = (
+  error: Error | ApolloError | undefined,
+): string | null => {
+  if (!error) {
+    return null;
+  }
+
+  if (error instanceof ApolloError) {
+    const internalError = error.graphQLErrors?.[0]?.extensions?.internal as
+      | { error: { message: string } }
+      | undefined;
+    return internalError?.error?.message || null;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return null;
+};
+
+const errorToObject = (error: ApolloError | Error) => {
+  if (error instanceof ApolloError) {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    };
+  }
+
+  return {};
+};
+
 export default function ErrorToast({
   isVisible,
   errorMessage,
@@ -36,39 +73,6 @@ export default function ErrorToast({
 
   const [showInfo, setShowInfo] = useState(false);
   const { currentProject } = useCurrentWorkspaceAndProject();
-
-  const getInternalErrorMessage = (
-    error: Error | ApolloError | undefined,
-  ): string | null => {
-    if (!error) return null;
-
-    if (error instanceof ApolloError) {
-      const internalError = error.graphQLErrors?.[0]?.extensions?.internal as
-        | { error: { message: string } }
-        | undefined;
-      return internalError?.error?.message || null;
-    }
-
-    if (error instanceof Error) {
-      return error.message;
-    }
-
-    return null;
-  };
-
-  const errorToObject = (error: ApolloError | Error) => {
-    if (error instanceof ApolloError) {
-      return error;
-    }
-
-    if (error instanceof Error) {
-      return {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      };
-    }
-  };
 
   const errorDetails: ErrorDetails = {
     info: {
