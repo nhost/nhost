@@ -1,10 +1,12 @@
+import { useDatabaseQuery } from '@/features/database/dataGrid/hooks/useDatabaseQuery';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getHasuraAdminSecret } from '@/utils/env';
 import { parseIdentifiersFromSQL } from '@/utils/sql';
-import toast from 'react-hot-toast';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function useRunSQL(
   sqlCode: string,
@@ -21,6 +23,14 @@ export default function useRunSQL(
   const [errorMessage, setErrorMessage] = useState('');
   const [columns, setColumns] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([[]]);
+
+  const router = useRouter();
+
+  const {
+    query: { dataSourceSlug },
+  } = router;
+
+  const { refetch } = useDatabaseQuery([dataSourceSlug as string]);
 
   const appUrl = generateAppServiceUrl(
     currentProject?.subdomain,
@@ -268,6 +278,9 @@ export default function useRunSQL(
         await updateMetadata(sqlCode);
       }
     }
+
+    // refresh the table list after running the sql
+    await refetch();
 
     setLoading(false);
   };
