@@ -1,4 +1,4 @@
-import jwt_decode from 'jwt-decode'
+import * as jose from 'jose'
 import { interpret } from 'xstate'
 import {
   EMAIL_NEEDS_VERIFICATION,
@@ -625,7 +625,7 @@ export class HasuraAuthClient {
   public getDecodedAccessToken(): JWTClaims | null {
     const jwt = this.getAccessToken()
     if (!jwt) return null
-    return jwt_decode<JWTClaims>(jwt)
+    return jose.decodeJwt<JWTClaims>(jwt)
   }
 
   /**
