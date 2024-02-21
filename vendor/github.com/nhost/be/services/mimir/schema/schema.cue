@@ -320,7 +320,7 @@ import (
 
 		refreshToken: {
 			// AUTH_REFRESH_TOKEN_EXPIRES_IN
-			expiresIn: uint32 | *43200
+			expiresIn: uint32 | *2592000
 		}
 
 	}

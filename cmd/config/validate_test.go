@@ -95,7 +95,7 @@ func expectedConfig() *model.ConfigConfig {
 					CustomClaims: []*model.ConfigAuthsessionaccessTokenCustomClaims{},
 				},
 				RefreshToken: &model.ConfigAuthSessionRefreshToken{
-					ExpiresIn: ptr(uint32(43200)),
+					ExpiresIn: ptr(uint32(2592000)),
 				},
 			},
 			Method: &model.ConfigAuthMethod{
