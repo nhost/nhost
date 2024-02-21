@@ -55,16 +55,17 @@ export default function SelectWorkspaceAndProject() {
 
   useEffect(() => () => handleFilterChange.cancel(), [handleFilterChange]);
 
-
   const goToProjectPage = async (project: {
     workspaceName: string;
     projectName: string;
     value: string;
   }) => {
-    const { slug } = router.query
+    const { slug } = router.query;
 
     await router.push({
-      pathname: `/${project.value}/${slug.join('/')}`,
+      pathname: `/${project.value}/${
+        Array.isArray(slug) ? slug.join('/') : slug
+      }`,
     });
   };
 
