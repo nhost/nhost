@@ -1,138 +1,47 @@
+import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { Form } from '@/components/form/Form';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ClockIcon } from '@/components/ui/v2/icons/ClockIcon';
+import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
+import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { LogsDatePicker } from '@/features/projects/logs/components/LogsDatePicker';
-import type { LogsCustomInterval } from '@/features/projects/logs/utils/constants/intervals';
-import { LOGS_AVAILABLE_INTERVALS } from '@/features/projects/logs/utils/constants/intervals';
-import type { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
-import { LOGS_AVAILABLE_SERVICES } from '@/features/projects/logs/utils/constants/services';
+import { LogsRangeSelector } from '@/features/projects/logs/components/LogsRangeSelector';
+import {
+  AvailableLogsService,
+  LOGS_AVAILABLE_SERVICES,
+} from '@/features/projects/logs/utils/constants/services';
 import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { subMinutes } from 'date-fns';
+import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from 'pages/[workspaceSlug]/[appSlug]/logs';
 import { useEffect, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 
 export interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
   /**
-   * The date to be displayed in the date picker for the from date.
+   *
+   * Function to be called when the user submits the filters form
    */
-  fromDate: Date;
-  /**
-   * The date to be displayed in the date picker for the to date.
-   */
-  toDate: Date | null;
-  /**
-   * Service to where to fetch logs from.
-   */
-  service: AvailableLogsService;
-  /**
-   * Function to be called when the user changes the from date.
-   */
-  onFromDateChange: (value: Date) => void;
-  /**
-   * Function to be called when the user changes the `to` date.
-   */
-  onToDateChange: (value: Date) => void;
-  /**
-   * Function to be called when the user changes service to which to query logs from.
-   */
-  onServiceChange: (value: AvailableLogsService) => void;
+  onSubmitFilterValues: (value: LogsFilterFormValues) => void;
 }
 
-type LogsToDatePickerLiveButtonProps = Pick<
-  LogsHeaderProps,
-  'fromDate' | 'toDate' | 'onToDateChange'
->;
+export const validationSchema = Yup.object({
+  from: Yup.date().max(new Date()),
+  to: Yup.date().min(new Date()).nullable(),
+  service: Yup.string().oneOf(Object.values(AvailableLogsService)),
+  regexFilter: Yup.string(),
+});
 
-function LogsToDatePickerLiveButton({
-  fromDate,
-  toDate,
-  onToDateChange,
-}: LogsToDatePickerLiveButtonProps) {
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const isLive = !toDate;
-
-  function handleLiveButtonClick() {
-    if (isLive) {
-      return;
-    }
-
-    onToDateChange(null);
-    setCurrentTime(new Date());
-  }
-
-  // if isLive is true, we want to update the current time every second
-  // and set the toDate to the current time.
-  useEffect(() => {
-    let interval = null;
-
-    if (!interval && isLive) {
-      interval = setInterval(() => {
-        setCurrentTime(new Date());
-      }, 1000);
-    }
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [isLive, onToDateChange]);
-
-  return (
-    <div className="text-greyscaleMedium grid grid-flow-col">
-      <LogsDatePicker
-        label="To"
-        value={!isLive ? toDate : currentTime}
-        disabled={isLive}
-        onChange={onToDateChange}
-        minDate={fromDate}
-        maxDate={toDate || new Date()}
-        componentsProps={{
-          button: {
-            className: twMerge(
-              'rounded-r-none pr-3',
-              isLive ? 'border-r-0 hover:border-r-0 z-0' : 'z-10',
-            ),
-            color: toDate ? 'inherit' : 'secondary',
-          },
-        }}
-      />
-
-      <Button
-        variant="outlined"
-        color={isLive ? 'primary' : 'secondary'}
-        sx={{
-          backgroundColor: (theme) =>
-            !isLive ? `${theme.palette.grey[200]} !important` : 'transparent',
-          color: !isLive ? 'text.secondary' : undefined,
-        }}
-        className={twMerge(
-          'min-w-[77px] rounded-l-none',
-          !isLive ? 'z-0 border-l-0 hover:border-l-0' : 'z-10',
-        )}
-        startIcon={<ClockIcon className="h-4 w-4 self-center align-middle" />}
-        onClick={handleLiveButtonClick}
-      >
-        Live
-      </Button>
-    </div>
-  );
-}
+export type LogsFilterFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function LogsHeader({
-  fromDate,
-  toDate,
-  service,
-  onFromDateChange,
-  onToDateChange,
-  onServiceChange,
+  onSubmitFilterValues,
   ...props
 }: LogsHeaderProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const applicationCreationDate = new Date(currentProject.createdAt);
-
   const [runServices, setRunServices] = useState<
     {
       label: string;
@@ -164,53 +73,40 @@ export default function LogsHeader({
     }
   }, [loading, data]);
 
-  /**
-   * Will subtract the `customInterval` time in minutes from the current date.
-   */
-  function handleIntervalChange({
-    minutesToDecreaseFromCurrentDate,
-  }: LogsCustomInterval) {
-    onFromDateChange(subMinutes(new Date(), minutesToDecreaseFromCurrentDate));
-    onToDateChange(new Date());
-  }
+  const form = useForm<LogsFilterFormValues>({
+    defaultValues: {
+      from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
+      to: new Date(),
+      regexFilter: '',
+      service: AvailableLogsService.ALL,
+    },
+    reValidateMode: 'onSubmit',
+    resolver: yupResolver(validationSchema),
+  });
+
+  const { register } = form;
+
+  const handleSubmit = (values: LogsFilterFormValues) =>
+    onSubmitFilterValues(values);
 
   return (
     <Box
-      className="sticky top-0 z-10 grid w-full grid-flow-row gap-x-6 gap-y-2 border-b py-2.5 px-4 lg:grid-flow-col lg:justify-between"
+      className="sticky top-0 z-10 grid w-full grid-flow-row gap-x-6 gap-y-2 border-b px-4 py-2.5 lg:grid-flow-col lg:justify-between"
       {...props}
     >
-      <Box className="grid w-full grid-flow-row items-center justify-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-start">
-        <div className="grid grid-flow-col items-center gap-3 md:justify-start">
-          <LogsDatePicker
-            label="From"
-            value={fromDate}
-            onChange={onFromDateChange}
-            minDate={applicationCreationDate}
-            maxDate={toDate || new Date()}
-          />
-
-          <LogsToDatePickerLiveButton
-            fromDate={fromDate}
-            toDate={toDate}
-            onToDateChange={onToDateChange}
-          />
-        </div>
-
-        <Box className="-my-2.5 px-0 py-2.5 lg:border-l lg:px-3">
-          <Select
+      <FormProvider {...form}>
+        <Form
+          onSubmit={handleSubmit}
+          className="grid w-full grid-flow-row items-center justify-end gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-start"
+        >
+          <ControlledSelect
+            {...register('service')}
             className="w-full text-sm font-normal"
             placeholder="All Services"
-            onChange={(_e, value) => {
-              if (typeof value !== 'string') {
-                return;
-              }
-              onServiceChange(value as AvailableLogsService);
-            }}
-            value={service}
             aria-label="Select service"
             hideEmptyHelperText
             slotProps={{
-              root: { className: 'min-h-[initial] h-9 leading-[initial]' },
+              root: { className: 'min-h-[initial] h-10 leading-[initial]' },
             }}
           >
             {[...LOGS_AVAILABLE_SERVICES, ...runServices].map(
@@ -224,23 +120,32 @@ export default function LogsHeader({
                 </Option>
               ),
             )}
-          </Select>
-        </Box>
-      </Box>
+          </ControlledSelect>
 
-      <Box className="hidden grid-flow-col items-center justify-center gap-3 md:grid lg:justify-end">
-        {LOGS_AVAILABLE_INTERVALS.map((logInterval) => (
-          <Button
-            key={logInterval.label}
-            variant="outlined"
-            color="secondary"
-            className="self-center"
-            onClick={() => handleIntervalChange(logInterval)}
-          >
-            {logInterval.label}
+          <LogsRangeSelector />
+
+          <Input
+            {...register('regexFilter')}
+            placeholder="Filter logs with a RegExp"
+            hideEmptyHelperText
+            autoComplete="off"
+            fullWidth
+            className="min-w-80"
+            startAdornment={
+              <Box
+                className="ml-1 rounded-sm px-2 py-1"
+                sx={{ backgroundColor: 'grey.300' }}
+              >
+                .*
+              </Box>
+            }
+          />
+
+          <Button type="submit" className="h-10" startIcon={<SearchIcon />}>
+            Search
           </Button>
-        ))}
-      </Box>
+        </Form>
+      </FormProvider>
     </Box>
   );
 }

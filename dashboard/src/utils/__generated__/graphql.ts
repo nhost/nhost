@@ -196,6 +196,7 @@ export type ConfigAppSystemConfig = {
  */
 export type ConfigAuth = {
   __typename?: 'ConfigAuth';
+  elevatedPrivileges?: Maybe<ConfigAuthElevatedPrivileges>;
   method?: Maybe<ConfigAuthMethod>;
   redirections?: Maybe<ConfigAuthRedirections>;
   /** Resources for the service */
@@ -219,6 +220,7 @@ export type ConfigAuthComparisonExp = {
   _and?: InputMaybe<Array<ConfigAuthComparisonExp>>;
   _not?: InputMaybe<ConfigAuthComparisonExp>;
   _or?: InputMaybe<Array<ConfigAuthComparisonExp>>;
+  elevatedPrivileges?: InputMaybe<ConfigAuthElevatedPrivilegesComparisonExp>;
   method?: InputMaybe<ConfigAuthMethodComparisonExp>;
   redirections?: InputMaybe<ConfigAuthRedirectionsComparisonExp>;
   resources?: InputMaybe<ConfigResourcesComparisonExp>;
@@ -229,7 +231,28 @@ export type ConfigAuthComparisonExp = {
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
+export type ConfigAuthElevatedPrivileges = {
+  __typename?: 'ConfigAuthElevatedPrivileges';
+  mode?: Maybe<Scalars['String']>;
+};
+
+export type ConfigAuthElevatedPrivilegesComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthElevatedPrivilegesComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthElevatedPrivilegesComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthElevatedPrivilegesComparisonExp>>;
+  mode?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigAuthElevatedPrivilegesInsertInput = {
+  mode?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigAuthElevatedPrivilegesUpdateInput = {
+  mode?: InputMaybe<Scalars['String']>;
+};
+
 export type ConfigAuthInsertInput = {
+  elevatedPrivileges?: InputMaybe<ConfigAuthElevatedPrivilegesInsertInput>;
   method?: InputMaybe<ConfigAuthMethodInsertInput>;
   redirections?: InputMaybe<ConfigAuthRedirectionsInsertInput>;
   resources?: InputMaybe<ConfigResourcesInsertInput>;
@@ -808,6 +831,7 @@ export type ConfigAuthTotpUpdateInput = {
 };
 
 export type ConfigAuthUpdateInput = {
+  elevatedPrivileges?: InputMaybe<ConfigAuthElevatedPrivilegesUpdateInput>;
   method?: InputMaybe<ConfigAuthMethodUpdateInput>;
   redirections?: InputMaybe<ConfigAuthRedirectionsUpdateInput>;
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
@@ -5238,9 +5262,9 @@ export type AuthUserProviders_Bool_Exp = {
 export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserProvidersPkey = 'user_providers_pkey',
-  /** unique or primary key constraint on columns "provider_id", "provider_user_id" */
+  /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
   UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key',
-  /** unique or primary key constraint on columns "provider_id", "user_id" */
+  /** unique or primary key constraint on columns "user_id", "provider_id" */
   UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key'
 }
 
@@ -15774,6 +15798,7 @@ export type Query_Root = {
   runServiceConfig?: Maybe<ConfigRunServiceConfig>;
   runServiceConfigRawJSON: Scalars['String'];
   runServiceConfigs: Array<ConfigRunServiceConfigWithId>;
+  runServiceConfigsAll: Array<ConfigRunServiceConfigWithId>;
   /** An array relationship */
   runServices: Array<Run_Service>;
   /** fetch aggregated fields from the table: "run_service" */
@@ -16755,6 +16780,12 @@ export type Query_RootRunServiceConfigRawJsonArgs = {
 
 
 export type Query_RootRunServiceConfigsArgs = {
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+};
+
+
+export type Query_RootRunServiceConfigsAllArgs = {
   resolve: Scalars['Boolean'];
   where?: InputMaybe<ConfigRunServiceConfigComparisonExp>;
 };
@@ -21355,7 +21386,7 @@ export type WorkspaceMemberInvites_Bool_Exp = {
 
 /** unique or primary key constraints on table "workspace_member_invites" */
 export enum WorkspaceMemberInvites_Constraint {
-  /** unique or primary key constraint on columns "email", "workspace_id" */
+  /** unique or primary key constraint on columns "workspace_id", "email" */
   WorkspaceMemberInvitesEmailWorkspaceIdKey = 'workspace_member_invites_email_workspace_id_key',
   /** unique or primary key constraint on columns "id" */
   WorkspaceMemberInvitesPkey = 'workspace_member_invites_pkey'
@@ -22772,6 +22803,7 @@ export type GetProjectLogsQueryVariables = Exact<{
   service?: InputMaybe<Scalars['String']>;
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
+  regexFilter?: InputMaybe<Scalars['String']>;
 }>;
 
 
@@ -22781,6 +22813,7 @@ export type GetLogsSubscriptionSubscriptionVariables = Exact<{
   appID: Scalars['String'];
   service?: InputMaybe<Scalars['String']>;
   from?: InputMaybe<Scalars['Timestamp']>;
+  regexFilter?: InputMaybe<Scalars['String']>;
 }>;
 
 
@@ -25558,8 +25591,14 @@ export function refetchGetGithubRepositoriesQuery(variables?: GetGithubRepositor
       return { query: GetGithubRepositoriesDocument, variables: variables }
     }
 export const GetProjectLogsDocument = gql`
-    query getProjectLogs($appID: String!, $service: String, $from: Timestamp, $to: Timestamp) {
-  logs(appID: $appID, service: $service, from: $from, to: $to) {
+    query getProjectLogs($appID: String!, $service: String, $from: Timestamp, $to: Timestamp, $regexFilter: String) {
+  logs(
+    appID: $appID
+    service: $service
+    from: $from
+    to: $to
+    regexFilter: $regexFilter
+  ) {
     log
     service
     timestamp
@@ -25583,6 +25622,7 @@ export const GetProjectLogsDocument = gql`
  *      service: // value for 'service'
  *      from: // value for 'from'
  *      to: // value for 'to'
+ *      regexFilter: // value for 'regexFilter'
  *   },
  * });
  */
@@ -25601,8 +25641,8 @@ export function refetchGetProjectLogsQuery(variables: GetProjectLogsQueryVariabl
       return { query: GetProjectLogsDocument, variables: variables }
     }
 export const GetLogsSubscriptionDocument = gql`
-    subscription getLogsSubscription($appID: String!, $service: String, $from: Timestamp) {
-  logs(appID: $appID, service: $service, from: $from) {
+    subscription getLogsSubscription($appID: String!, $service: String, $from: Timestamp, $regexFilter: String) {
+  logs(appID: $appID, service: $service, from: $from, regexFilter: $regexFilter) {
     log
     service
     timestamp
@@ -25625,6 +25665,7 @@ export const GetLogsSubscriptionDocument = gql`
  *      appID: // value for 'appID'
  *      service: // value for 'service'
  *      from: // value for 'from'
+ *      regexFilter: // value for 'regexFilter'
  *   },
  * });
  */

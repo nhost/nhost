@@ -26,4 +26,12 @@ export const LOGS_AVAILABLE_INTERVALS: LogsCustomInterval[] = [
     label: '60 min',
     minutesToDecreaseFromCurrentDate: 60,
   },
+  {
+    label: '12 hours',
+    minutesToDecreaseFromCurrentDate: 720,
+  },
+  {
+    label: '24 hours',
+    minutesToDecreaseFromCurrentDate: 1440,
+  },
 ];

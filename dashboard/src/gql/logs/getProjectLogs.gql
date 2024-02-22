@@ -3,8 +3,15 @@ query getProjectLogs(
   $service: String
   $from: Timestamp
   $to: Timestamp
+  $regexFilter: String
 ) {
-  logs(appID: $appID, service: $service, from: $from, to: $to) {
+  logs(
+    appID: $appID
+    service: $service
+    from: $from
+    to: $to
+    regexFilter: $regexFilter
+  ) {
     log
     service
     timestamp
@@ -15,8 +22,14 @@ subscription getLogsSubscription(
   $appID: String!
   $service: String
   $from: Timestamp
+  $regexFilter: String
 ) {
-  logs(appID: $appID, service: $service, from: $from) {
+  logs(
+    appID: $appID
+    service: $service
+    from: $from
+    regexFilter: $regexFilter
+  ) {
     log
     service
     timestamp

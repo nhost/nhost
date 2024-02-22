@@ -52,7 +52,7 @@ function LogsDatePicker({
           <Text
             htmlFor={label}
             component="label"
-            className="self-center text-sm+ font-normal"
+            className="min-w-14 self-center text-sm+ font-normal"
             color="secondary"
           >
             {label}
