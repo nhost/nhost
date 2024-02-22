@@ -35,12 +35,12 @@ jobs:
         with:
           fetch-depth: 0
       # * Install Node and dependencies. Package downloads will be cached for the next jobs.
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
-        with:
-          TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
-          TURBO_TEAM: ${{ env.TURBO_TEAM }}
-          BUILD: 'all'
+      # - name: Install Node and dependencies
+      #   uses: ./.github/actions/install-dependencies
+      #   with:
+      #     TURBO_TOKEN: ${{ env.TURBO_TOKEN }}
+      #     TURBO_TEAM: ${{ env.TURBO_TEAM }}
+      #     BUILD: 'all'
       - name: Check if the pnpm lockfile changed
         id: changed-lockfile
         uses: tj-actions/changed-files@v37

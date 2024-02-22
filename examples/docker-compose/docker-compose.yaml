@@ -42,6 +42,13 @@ services:
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
       HASURA_GRAPHQL_LOG_LEVEL: debug
       HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
+    healthcheck:
+        test:
+            - CMD-SHELL
+            - curl http://localhost:8080/healthz > /dev/null 2>&1
+        timeout: 60s
+        interval: 30s
+        start_period: 90s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.hasura.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/`)"
