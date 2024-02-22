@@ -42,6 +42,13 @@ services:
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
       HASURA_GRAPHQL_LOG_LEVEL: debug
       HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
+    healthcheck:
+        test:
+            - CMD-SHELL
+            - curl http://localhost:8080/healthz > /dev/null 2>&1
+        timeout: 60s
+        interval: 30s
+        start_period: 60s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.hasura.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/`)"
@@ -66,8 +73,18 @@ services:
       AUTH_SMTP_USER: user
       AUTH_SMTP_PASS: password
       AUTH_SMTP_SENDER: mail@example.com
-    expose: 
+    expose:
       - 4000
+    healthcheck:
+        test:
+            - CMD
+            - wget
+            - --spider
+            - -S
+            - http://localhost:4000/healthz
+        timeout: 60s
+        interval: 30s
+        start_period: 60s
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.strip-auth.stripprefix.prefixes=/v1/auth"
@@ -112,7 +129,7 @@ services:
       - "traefik.http.routers.functions.middlewares=strip-functions@docker"
       - "traefik.http.routers.functions.entrypoints=web"
     restart: always
-    expose: 
+    expose:
       - 3000
     volumes:
       - .:/opt/project
@@ -140,7 +157,7 @@ services:
       SMTP_SECURE: "${AUTH_SMTP_SECURE:-false}"
       SMTP_SENDER: ${AUTH_SMTP_SENDER:-hbp@hbp.com}
     ports:
-      - ${AUTH_SMTP_PORT:-1025}:1025 
+      - ${AUTH_SMTP_PORT:-1025}:1025
       - 8025:8025
     volumes:
       - ./data/mailhog:/maildir

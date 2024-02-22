@@ -11,8 +11,12 @@ describe(
     beforeAll(async () => {
       // * Start docker compose
       await promisifiedExec(
-        'docker compose -f docker-compose.yaml --env-file .env.example up --wait --quiet-pull'
+        'docker compose -f docker-compose.yaml --env-file .env.example up --wait --wait-timeout 300 --quiet-pull'
       )
+
+      // we wait a bit extra because sometimes traefik takes a bit to configure the services
+      setTimeout(() => {}, 30000);
+
     }, 5 * 60 * 1000)
 
     afterAll(async () => {

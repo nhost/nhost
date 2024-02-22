@@ -12,6 +12,8 @@ import {
   Variables
 } from './types'
 
+import jwtDecode, { JwtPayload } from 'jwt-decode'
+
 /**
  * @alias GraphQL
  */
@@ -26,6 +28,37 @@ export class NhostGraphqlClient {
     this._url = url
     this.accessToken = null
     this.adminSecret = adminSecret
+  }
+
+  private isAccessTokenValid = () => {
+    if (!this.accessToken) {
+      return false
+    }
+
+    try {
+      const decodedToken: JwtPayload = jwtDecode(this.accessToken)
+      return decodedToken.exp != null && decodedToken.exp * 1000 > Date.now()
+    } catch (error) {
+      console.error('Error decoding token:', error)
+      return false
+    }
+  }
+
+  private awaitForValidAccessToken = async () => {
+    if (this.isAccessTokenValid()) {
+      return true
+    }
+
+    const waitForValidToken = () => {
+      if (this.isAccessTokenValid()) {
+        return Promise.resolve(true)
+      }
+      return new Promise((resolve) => {
+        setTimeout(() => waitForValidToken().then(resolve), 100)
+      })
+    }
+
+    return waitForValidToken()
   }
 
   /**
@@ -70,6 +103,12 @@ export class NhostGraphqlClient {
 
     const { headers, ...otherOptions } = config || {}
     const { query, operationName } = resolveRequestDocument(requestOptions.document)
+
+    if (!process.env.TEST_MODE) {
+      // We skip this while running unit tests because the accessToken is generated using faker
+      await this.awaitForValidAccessToken()
+    }
+
     try {
       const response = await fetch(this.httpUrl, {
         method: 'POST',

@@ -12,6 +12,7 @@ import { setContext } from '@apollo/client/link/context'
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { AuthContext, NhostClient } from '@nhost/nhost-js'
+import jwtDecode, { JwtPayload } from 'jwt-decode'
 
 import { createRestartableClient } from './ws'
 const isBrowser = typeof window !== 'undefined'
@@ -58,25 +59,41 @@ export const createApolloClient = ({
 
   let accessToken: AuthContext['accessToken'] | null = null
 
+  const isJwtValid = () => {
+    if (!accessToken?.value) {
+      return false
+    }
+
+    const marginInSeconds = 3
+    const marginInMilliseconds = marginInSeconds * 1000
+
+    let decodedToken: JwtPayload = jwtDecode(accessToken.value)
+    return decodedToken.exp! * 1000 > Date.now() - marginInMilliseconds
+  }
+
   const isTokenValid = () =>
-    !!accessToken?.value && !!accessToken?.expiresAt && accessToken?.expiresAt > new Date()
+    !!accessToken?.value &&
+    !!accessToken?.expiresAt &&
+    accessToken?.expiresAt > new Date() &&
+    isJwtValid()
 
   const isTokenValidOrNull = () => !accessToken || isTokenValid()
 
   const awaitValidTokenOrNull = () => {
     if (isTokenValidOrNull()) {
-      return
+      return Promise.resolve()
     }
 
-    return new Promise((resolve) => {
-      // doing this as an interval to avoid race conditions.
-      const interval = setInterval(() => {
-        if (isTokenValidOrNull()) {
-          clearInterval(interval)
-          resolve(true)
-        }
-      }, 100)
-    })
+    const waitForValidToken = () => {
+      if (isTokenValidOrNull()) {
+        return Promise.resolve(true)
+      }
+      return new Promise((resolve) => {
+        setTimeout(() => waitForValidToken().then(resolve), 100)
+      })
+    }
+
+    return waitForValidToken()
   }
 
   const getAuthHeaders = async () => {

@@ -65,7 +65,8 @@
   },
   "dependencies": {
     "graphql": "16.8.1",
-    "graphql-ws": "^5.14.3"
+    "graphql-ws": "^5.14.3",
+    "jwt-decode": "^3.1.2"
   },
   "devDependencies": {
     "@apollo/client": "^3.9.4",

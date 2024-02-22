@@ -1407,6 +1407,9 @@ importers:
       graphql-ws:
         specifier: ^5.14.3
         version: 5.14.3(graphql@16.8.1)
+      jwt-decode:
+        specifier: ^3.1.2
+        version: 3.1.2
     devDependencies:
       '@apollo/client':
         specifier: ^3.9.4
@@ -1575,6 +1578,9 @@ importers:
       isomorphic-unfetch:
         specifier: ^3.1.0
         version: 3.1.0
+      jwt-decode:
+        specifier: ^3.1.2
+        version: 3.1.2
     devDependencies:
       '@nhost/docgen':
         specifier: workspace:*
@@ -5938,7 +5944,7 @@ packages:
   /@graphql-tools/utils@8.13.1(graphql@16.8.1):
     resolution: {integrity: sha512-qIh9yYpdUFmctVqovwMdheVNJqFh+DQNWIhX87FJStfXYnmweBUDATok9fWPleKeFwxnW8IapKmY8m8toJEkAw==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       graphql: 16.8.1
       tslib: 2.6.2

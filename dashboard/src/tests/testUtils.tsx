@@ -29,6 +29,7 @@ import { Toaster } from 'react-hot-toast';
 const emotionCache = createEmotionCache();
 
 process.env = {
+  TEST_MODE: 'true',
   NODE_ENV: 'development',
   NEXT_PUBLIC_NHOST_PLATFORM: 'false',
   NEXT_PUBLIC_ENV: 'dev',
