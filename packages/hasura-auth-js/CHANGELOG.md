@@ -1,5 +1,12 @@
 # @nhost/hasura-auth-js
 
+## 2.3.1
+
+### Patch Changes
+
+- 7baee8a: fix(hasura-auth-js): replace `jwt-decode` with `jose` for decoding access tokens that works on both the browser and Node.js
+- e0ab6d9: fix: add extra logic to check and wait for a valid JWT
+
 ## 2.3.0
 
 ### Minor Changes

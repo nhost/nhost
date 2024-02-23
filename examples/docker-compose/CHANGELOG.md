@@ -1,5 +1,11 @@
 # @nhost-examples/docker-compose
 
+## 0.1.1
+
+### Patch Changes
+
+- aff059e: fix: timers
+
 ## 0.1.0
 
 ### Minor Changes
