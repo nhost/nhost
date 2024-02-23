@@ -1,5 +1,19 @@
 # @nhost/dashboard
 
+## 1.8.0
+
+### Minor Changes
+
+- 713d53c: feat: add catch-all route for workspace/project - useful for documentation
+
+### Patch Changes
+
+- 3db2999: fix: refresh table list after running SQL using the editor
+- 3c4dd55: fix: handle `Error` objects properly in the `ErrorToast` component
+- 92b434e: fix: resolve an issue where the checkbox in the data-grid header did not select all rows
+  - @nhost/react-apollo@9.0.1
+  - @nhost/nextjs@2.1.3
+
 ## 1.7.0
 
 ### Minor Changes

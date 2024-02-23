@@ -1,5 +1,11 @@
 # @nhost/graphql-js
 
+## 0.1.6
+
+### Patch Changes
+
+- e0ab6d9: fix: add extra logic to check and wait for a valid JWT
+
 ## 0.1.5
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @nhost/apollo
 
+## 6.0.6
+
+### Patch Changes
+
+- e0ab6d9: fix: add extra logic to check and wait for a valid JWT
+  - @nhost/nhost-js@3.0.6
+
 ## 6.0.5
 
 ### Patch Changes
