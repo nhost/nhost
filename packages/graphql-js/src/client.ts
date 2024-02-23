@@ -30,9 +30,9 @@ export class NhostGraphqlClient {
     this.adminSecret = adminSecret
   }
 
-  private isAccessTokenValid = () => {
+  private isAccessTokenValidOrNull = () => {
     if (!this.accessToken) {
-      return false
+      return true
     }
 
     try {
@@ -44,21 +44,21 @@ export class NhostGraphqlClient {
     }
   }
 
-  private awaitForValidAccessToken = async () => {
-    if (this.isAccessTokenValid()) {
+  private awaitForValidAccessTokenOrNull = async () => {
+    if (this.isAccessTokenValidOrNull()) {
       return true
     }
 
-    const waitForValidToken = () => {
-      if (this.isAccessTokenValid()) {
+    const waitForValidTokenOrNull = () => {
+      if (this.isAccessTokenValidOrNull()) {
         return Promise.resolve(true)
       }
       return new Promise((resolve) => {
-        setTimeout(() => waitForValidToken().then(resolve), 100)
+        setTimeout(() => waitForValidTokenOrNull().then(resolve), 100)
       })
     }
 
-    return waitForValidToken()
+    return waitForValidTokenOrNull()
   }
 
   /**
@@ -106,7 +106,7 @@ export class NhostGraphqlClient {
 
     if (!process.env.TEST_MODE) {
       // We skip this while running unit tests because the accessToken is generated using faker
-      await this.awaitForValidAccessToken()
+      await this.awaitForValidAccessTokenOrNull()
     }
 
     try {
