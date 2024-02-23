@@ -1,5 +1,12 @@
 # @nhost/nhost-js
 
+## 3.0.7
+
+### Patch Changes
+
+- Updated dependencies [2d68fee]
+  - @nhost/graphql-js@0.1.7
+
 ## 3.0.6
 
 ### Patch Changes

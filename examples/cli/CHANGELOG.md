@@ -1,5 +1,11 @@
 # @nhost-examples/cli
 
+## 0.1.8
+
+### Patch Changes
+
+- @nhost/nhost-js@3.0.7
+
 ## 0.1.7
 
 ### Patch Changes
