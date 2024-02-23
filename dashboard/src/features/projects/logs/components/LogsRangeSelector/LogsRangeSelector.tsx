@@ -9,9 +9,10 @@ import {
   LOGS_AVAILABLE_INTERVALS,
   type LogsCustomInterval,
 } from '@/features/projects/logs/utils/constants/intervals';
+import { useInterval } from '@/hooks/useInterval';
 import { ChevronDownIcon } from '@graphiql/react';
 import { formatDistanceStrict, subMinutes } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
@@ -24,6 +25,8 @@ function LogsToDatePickerLiveButton() {
 
   function handleLiveButtonClick() {
     if (isLive) {
+      setValue('from', subMinutes(new Date(), 20));
+      setValue('to', new Date());
       return;
     }
 
@@ -31,41 +34,27 @@ function LogsToDatePickerLiveButton() {
     setCurrentTime(new Date());
   }
 
-  // if isLive is true, we want to update the current time every second
-  // and set the toDate to the current time.
-  useEffect(() => {
-    let interval = null;
-
-    if (!interval && isLive) {
-      interval = setInterval(() => {
-        setCurrentTime(new Date());
-      }, 1000);
-    }
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [isLive]);
+  // TODO double check if this actually works
+  useInterval(() => setCurrentTime(new Date()), isLive ? 1000 : 0);
 
   return (
-    <div className="text-greyscaleMedium grid grid-flow-col">
-      <LogsDatePicker
-        label="To"
-        value={!isLive ? to : currentTime}
-        disabled={isLive}
-        onChange={(date: Date) => setValue('to', date)}
-        minDate={from}
-        maxDate={to || new Date()}
-        componentsProps={{
-          button: {
-            className: twMerge(
-              'rounded-r-none',
-              isLive ? 'border-r-0 hover:border-r-0 z-0' : 'z-10',
-            ),
-            color: to ? 'inherit' : 'secondary',
-          },
-        }}
-      />
+    <div className="text-greyscaleMedium flex flex-col">
+      {!isLive && (
+        <LogsDatePicker
+          label="To"
+          value={!isLive ? to : currentTime}
+          disabled={isLive}
+          onChange={(date: Date) => setValue('to', date)}
+          minDate={from}
+          maxDate={to || new Date()}
+          componentsProps={{
+            button: {
+              className: twMerge('rounded-r-none', isLive ? 'z-0' : 'z-10'),
+              color: to ? 'inherit' : 'secondary',
+            },
+          }}
+        />
+      )}
 
       <Button
         variant="outlined"
@@ -75,10 +64,7 @@ function LogsToDatePickerLiveButton() {
             !isLive ? `${theme.palette.grey[200]} !important` : 'transparent',
           color: !isLive ? 'text.secondary' : undefined,
         }}
-        className={twMerge(
-          'min-w-[77px] rounded-l-none',
-          !isLive ? 'z-0 border-l-0 hover:border-l-0' : 'z-10',
-        )}
+        className={twMerge(!isLive ? 'z-0 mt-4' : 'z-10')}
         startIcon={<ClockIcon className="h-4 w-4 self-center align-middle" />}
         onClick={handleLiveButtonClick}
       >
@@ -103,10 +89,7 @@ export default function LogsRangeSelector() {
   function handleIntervalChange({
     minutesToDecreaseFromCurrentDate,
   }: LogsCustomInterval) {
-    // onFromDateChange(subMinutes(new Date(), minutesToDecreaseFromCurrentDate));
     setValue('from', subMinutes(new Date(), minutesToDecreaseFromCurrentDate));
-
-    // onToDateChange(new Date());
     setValue('to', new Date());
   }
 
@@ -114,6 +97,7 @@ export default function LogsRangeSelector() {
     <Dropdown.Root>
       <Dropdown.Trigger hideChevron className="rounded-full">
         <Button
+          component="a"
           className="min-w-md h-10 items-center justify-center space-x-2"
           variant="outlined"
         >

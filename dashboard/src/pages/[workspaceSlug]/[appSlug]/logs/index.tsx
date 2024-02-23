@@ -41,7 +41,7 @@ export default function LogsPage() {
     service: AvailableLogsService.ALL,
   });
 
-  const { data, loading, error, subscribeToMore, client } =
+  const { data, loading, error, subscribeToMore, client, refetch } =
     useGetProjectLogsQuery({
       variables: { appID: currentProject.id, ...filters },
       client: clientWithSplit,
@@ -120,7 +120,13 @@ export default function LogsPage() {
     <div className="flex h-full w-full flex-col">
       <RetryableErrorBoundary>
         <LogsHeader
-          onSubmitFilterValues={(values) => setFilters(values as LogsFilters)}
+          onSubmitFilterValues={async (values) => {
+            setFilters(values as LogsFilters);
+            await refetch({
+              appID: currentProject.id,
+              ...values,
+            });
+          }}
         />
         <LogsBody error={error} loading={loading} logsData={data} />
       </RetryableErrorBoundary>

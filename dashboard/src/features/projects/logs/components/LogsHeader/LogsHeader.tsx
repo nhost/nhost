@@ -8,11 +8,8 @@ import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { LogsRangeSelector } from '@/features/projects/logs/components/LogsRangeSelector';
-import {
-  AvailableLogsService,
-  LOGS_AVAILABLE_SERVICES,
-} from '@/features/projects/logs/utils/constants/services';
-import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
+import { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
+import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { subMinutes } from 'date-fns';
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from 'pages/[workspaceSlug]/[appSlug]/logs';
@@ -42,34 +39,17 @@ export default function LogsHeader({
   ...props
 }: LogsHeaderProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const [runServices, setRunServices] = useState<
-    {
-      label: string;
-      value: string;
-    }[]
+  const [serviceLabels, setServiceLabels] = useState<
+    { label: string; value: string }[]
   >([]);
-
-  const { data, loading } = useGetRunServicesQuery({
-    variables: {
-      appID: currentProject.id,
-      resolve: false,
-      limit: 1000,
-      offset: 0,
-    },
+  const { data, loading } = useGetServiceLabelValuesQuery({
+    variables: { appID: currentProject.id },
   });
 
   useEffect(() => {
     if (!loading) {
-      const services = data.app?.runServices ?? [];
-
-      setRunServices(
-        services
-          .filter((s) => !!s.config?.name)
-          .map((s) => ({
-            label: s.config.name,
-            value: `run-${s.config.name}`,
-          })),
-      );
+      const labels = data.getServiceLabelValues ?? [];
+      setServiceLabels(labels.map((l) => ({ label: l, value: l })));
     }
   }, [loading, data]);
 
@@ -109,12 +89,12 @@ export default function LogsHeader({
               root: { className: 'min-h-[initial] h-10 leading-[initial]' },
             }}
           >
-            {[...LOGS_AVAILABLE_SERVICES, ...runServices].map(
+            {[{ label: 'All services', value: '' }, ...serviceLabels].map(
               ({ value, label }) => (
                 <Option
                   key={value}
                   value={value}
-                  className="text-sm+ font-medium"
+                  className="text-sm+ font-medium capitalize"
                 >
                   {label}
                 </Option>

@@ -22819,6 +22819,13 @@ export type GetLogsSubscriptionSubscriptionVariables = Exact<{
 
 export type GetLogsSubscriptionSubscription = { __typename?: 'subscription_root', logs: Array<{ __typename?: 'Log', log: string, service: string, timestamp: any }> };
 
+export type GetServiceLabelValuesQueryVariables = Exact<{
+  appID: Scalars['String'];
+}>;
+
+
+export type GetServiceLabelValuesQuery = { __typename?: 'query_root', getServiceLabelValues: Array<string> };
+
 export type DeletePaymentMethodMutationVariables = Exact<{
   paymentMethodId: Scalars['uuid'];
 }>;
@@ -25675,6 +25682,42 @@ export function useGetLogsSubscriptionSubscription(baseOptions: Apollo.Subscript
       }
 export type GetLogsSubscriptionSubscriptionHookResult = ReturnType<typeof useGetLogsSubscriptionSubscription>;
 export type GetLogsSubscriptionSubscriptionResult = Apollo.SubscriptionResult<GetLogsSubscriptionSubscription>;
+export const GetServiceLabelValuesDocument = gql`
+    query getServiceLabelValues($appID: String!) {
+  getServiceLabelValues(appID: $appID)
+}
+    `;
+
+/**
+ * __useGetServiceLabelValuesQuery__
+ *
+ * To run a query within a React component, call `useGetServiceLabelValuesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServiceLabelValuesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServiceLabelValuesQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *   },
+ * });
+ */
+export function useGetServiceLabelValuesQuery(baseOptions: Apollo.QueryHookOptions<GetServiceLabelValuesQuery, GetServiceLabelValuesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetServiceLabelValuesQuery, GetServiceLabelValuesQueryVariables>(GetServiceLabelValuesDocument, options);
+      }
+export function useGetServiceLabelValuesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetServiceLabelValuesQuery, GetServiceLabelValuesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetServiceLabelValuesQuery, GetServiceLabelValuesQueryVariables>(GetServiceLabelValuesDocument, options);
+        }
+export type GetServiceLabelValuesQueryHookResult = ReturnType<typeof useGetServiceLabelValuesQuery>;
+export type GetServiceLabelValuesLazyQueryHookResult = ReturnType<typeof useGetServiceLabelValuesLazyQuery>;
+export type GetServiceLabelValuesQueryResult = Apollo.QueryResult<GetServiceLabelValuesQuery, GetServiceLabelValuesQueryVariables>;
+export function refetchGetServiceLabelValuesQuery(variables: GetServiceLabelValuesQueryVariables) {
+      return { query: GetServiceLabelValuesDocument, variables: variables }
+    }
 export const DeletePaymentMethodDocument = gql`
     mutation deletePaymentMethod($paymentMethodId: uuid!) {
   deletePaymentMethod(id: $paymentMethodId) {
