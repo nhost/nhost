@@ -17,14 +17,6 @@ import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
-export interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
-  /**
-   *
-   * Function to be called when the user submits the filters form
-   */
-  onSubmitFilterValues: (value: LogsFilterFormValues) => void;
-}
-
 export const validationSchema = Yup.object({
   from: Yup.date().max(new Date()),
   to: Yup.date().min(new Date()).nullable(),
@@ -33,6 +25,14 @@ export const validationSchema = Yup.object({
 });
 
 export type LogsFilterFormValues = Yup.InferType<typeof validationSchema>;
+
+interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
+  /**
+   *
+   * Function to be called when the user submits the filters form
+   */
+  onSubmitFilterValues: (value: LogsFilterFormValues) => void;
+}
 
 export default function LogsHeader({
   onSubmitFilterValues,
@@ -77,32 +77,35 @@ export default function LogsHeader({
       <FormProvider {...form}>
         <Form
           onSubmit={handleSubmit}
-          className="grid w-full grid-flow-row items-center justify-end gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-start"
+          className="grid w-full grid-flow-row items-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-start"
         >
-          <ControlledSelect
-            {...register('service')}
-            className="w-full text-sm font-normal"
-            placeholder="All Services"
-            aria-label="Select service"
-            hideEmptyHelperText
-            slotProps={{
-              root: { className: 'min-h-[initial] h-10 leading-[initial]' },
-            }}
-          >
-            {[{ label: 'All services', value: '' }, ...serviceLabels].map(
-              ({ value, label }) => (
-                <Option
-                  key={value}
-                  value={value}
-                  className="text-sm+ font-medium capitalize"
-                >
-                  {label}
-                </Option>
-              ),
-            )}
-          </ControlledSelect>
-
-          <LogsRangeSelector />
+          <Box className="flex flex-row space-x-2">
+            <ControlledSelect
+              {...register('service')}
+              className="w-full text-sm font-normal"
+              placeholder="All Services"
+              aria-label="Select service"
+              hideEmptyHelperText
+              slotProps={{
+                root: { className: 'min-h-[initial] h-10 leading-[initial]' },
+              }}
+            >
+              {[{ label: 'All services', value: '' }, ...serviceLabels].map(
+                ({ value, label }) => (
+                  <Option
+                    key={value}
+                    value={value}
+                    className="text-sm+ font-medium capitalize"
+                  >
+                    {label}
+                  </Option>
+                ),
+              )}
+            </ControlledSelect>
+            <div className="w-full min-w-fit">
+              <LogsRangeSelector />
+            </div>
+          </Box>
 
           <Input
             {...register('regexFilter')}

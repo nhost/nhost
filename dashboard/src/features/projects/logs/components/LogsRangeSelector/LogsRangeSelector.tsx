@@ -95,10 +95,10 @@ export default function LogsRangeSelector() {
 
   return (
     <Dropdown.Root>
-      <Dropdown.Trigger hideChevron className="rounded-full">
+      <Dropdown.Trigger hideChevron className="flex w-full rounded-full">
         <Button
           component="a"
-          className="min-w-md h-10 items-center justify-center space-x-2"
+          className="h-10 w-full items-center justify-center space-x-2"
           variant="outlined"
         >
           <span>

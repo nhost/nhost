@@ -1,1 +1,1 @@
-export { default as LogsHeader } from './LogsHeader';
+export { default as LogsHeader, type LogsFilterFormValues } from './LogsHeader';
