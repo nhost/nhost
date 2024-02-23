@@ -66,3 +66,8 @@ export const RESOURCE_VCPU_PRICE_PER_MINUTE = 0.0012;
  * Maximum number of free projects a user is allowed to have.
  */
 export const MAX_FREE_PROJECTS = 1;
+
+/**
+ * Default value in minutes to use for querying the logs
+ */
+export const MINUTES_TO_DECREASE_FROM_CURRENT_DATE = 20;

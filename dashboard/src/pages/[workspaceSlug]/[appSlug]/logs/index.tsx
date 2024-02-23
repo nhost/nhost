@@ -5,6 +5,7 @@ import { LogsBody } from '@/features/projects/logs/components/LogsBody';
 import { LogsHeader } from '@/features/projects/logs/components/LogsHeader';
 import { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
 import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
+import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import {
   GetLogsSubscriptionDocument,
   useGetProjectLogsQuery,
@@ -17,8 +18,6 @@ import {
   useState,
   type ReactElement,
 } from 'react';
-
-export const MINUTES_TO_DECREASE_FROM_CURRENT_DATE = 20;
 
 interface LogsFilters {
   from: Date;
