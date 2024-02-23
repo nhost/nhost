@@ -1,5 +1,11 @@
 # @nhost/graphql-js
 
+## 0.1.7
+
+### Patch Changes
+
+- 2d68fee: fix: resolve an issue where unauthenticated graphql requests are not sent
+
 ## 0.1.6
 
 ### Patch Changes
