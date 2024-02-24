@@ -10,6 +10,7 @@ import {
   GetLogsSubscriptionDocument,
   useGetProjectLogsQuery,
 } from '@/utils/__generated__/graphql';
+import { NetworkStatus } from '@apollo/client';
 import { subMinutes } from 'date-fns';
 import {
   useCallback,
@@ -46,13 +47,12 @@ export default function LogsPage() {
       client: clientWithSplit,
     });
 
-  // when the graphql request is sent for the first time, then the networkStatus = 1
-  // if a refetch happens then the networkStatus = 4
-  // so a loading would be either networkStatus = 1 || 4
+  // Make sure to show the loading indicator when it's the first time
+  // sending the request or when a refetch happens
   // see more here -> https://github.com/apollographql/apollo-client/blob/main/src/core/networkStatus.ts#L10
-  const loading = networkStatus === 1 || networkStatus === 4;
-
-  // This should retrigger once the user pushes on the Search button with new data from the filters
+  const loading =
+    networkStatus === NetworkStatus.loading ||
+    networkStatus === NetworkStatus.refetch;
 
   const subscribeToMoreLogs = useCallback(
     () =>
