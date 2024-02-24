@@ -1,6 +1,6 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
+import { Dropdown, useDropdown } from '@/components/ui/v2/Dropdown';
 import { ClockIcon } from '@/components/ui/v2/icons/ClockIcon';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { LogsDatePicker } from '@/features/projects/logs/components/LogsDatePicker';
@@ -11,7 +11,7 @@ import {
 } from '@/features/projects/logs/utils/constants/intervals';
 import { useInterval } from '@/hooks/useInterval';
 import { ChevronDownIcon } from '@graphiql/react';
-import { formatDistanceStrict, subMinutes } from 'date-fns';
+import { formatDistanceToNow, subMinutes } from 'date-fns';
 import { useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -34,7 +34,6 @@ function LogsToDatePickerLiveButton() {
     setCurrentTime(new Date());
   }
 
-  // TODO double check if this actually works
   useInterval(() => setCurrentTime(new Date()), isLive ? 1000 : 0);
 
   return (
@@ -74,14 +73,14 @@ function LogsToDatePickerLiveButton() {
   );
 }
 
-// export interface LogsRangeSelectorProps extends Omit<BoxProps, 'children'> {}
-
-export default function LogsRangeSelector() {
+function LogsRangeSelectorIntervalPickers() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const applicationCreationDate = new Date(currentProject.createdAt);
 
   const { setValue } = useFormContext<LogsFilterFormValues>();
   const { from, to } = useWatch<LogsFilterFormValues>();
+
+  const { handleClose } = useDropdown();
 
   /**
    * Will subtract the `customInterval` time in minutes from the current date.
@@ -94,48 +93,58 @@ export default function LogsRangeSelector() {
   }
 
   return (
+    <Box className="flex flex-col space-y-4">
+      <div className="flex flex-col space-y-4">
+        <LogsDatePicker
+          label="From"
+          value={from}
+          onChange={(date) => setValue('from', date)}
+          minDate={applicationCreationDate}
+          maxDate={to || new Date()}
+        />
+
+        <LogsToDatePickerLiveButton />
+      </div>
+
+      <Box className="grid grid-cols-2 gap-2">
+        {LOGS_AVAILABLE_INTERVALS.map((logInterval) => (
+          <Button
+            key={logInterval.label}
+            variant="outlined"
+            color="secondary"
+            className="self-center"
+            onClick={() => handleIntervalChange(logInterval)}
+          >
+            Last {logInterval.label}
+          </Button>
+        ))}
+      </Box>
+
+      <Button color="primary" variant="contained" onClick={handleClose}>
+        Apply
+      </Button>
+    </Box>
+  );
+}
+
+export default function LogsRangeSelector() {
+  const { from, to } = useWatch<LogsFilterFormValues>();
+
+  return (
     <Dropdown.Root>
       <Dropdown.Trigger hideChevron className="flex w-full rounded-full">
         <Button
           component="a"
-          className="h-10 w-full items-center justify-center space-x-2"
+          className="h-10 w-full min-w-40 items-center justify-between"
           variant="outlined"
         >
-          <span>
-            {to === null ? 'Live' : `Last ${formatDistanceStrict(to, from)}`}
-          </span>
+          <span>{to === null ? 'Live' : `${formatDistanceToNow(from)}`}</span>
           <ChevronDownIcon className="h-3 w-3" />
         </Button>
       </Dropdown.Trigger>
 
       <Dropdown.Content PaperProps={{ className: 'mt-1 max-w-xs w-full p-3' }}>
-        <Box className="flex flex-col space-y-4">
-          <div className="flex flex-col space-y-4">
-            <LogsDatePicker
-              label="From"
-              value={from}
-              onChange={(date) => setValue('from', date)}
-              minDate={applicationCreationDate}
-              maxDate={to || new Date()}
-            />
-
-            <LogsToDatePickerLiveButton />
-          </div>
-
-          <Box className="grid grid-cols-2 gap-2">
-            {LOGS_AVAILABLE_INTERVALS.map((logInterval) => (
-              <Button
-                key={logInterval.label}
-                variant="outlined"
-                color="secondary"
-                className="self-center"
-                onClick={() => handleIntervalChange(logInterval)}
-              >
-                Last {logInterval.label}
-              </Button>
-            ))}
-          </Box>
-        </Box>
+        <LogsRangeSelectorIntervalPickers />
       </Dropdown.Content>
     </Dropdown.Root>
   );

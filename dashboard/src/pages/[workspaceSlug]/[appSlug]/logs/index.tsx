@@ -40,11 +40,19 @@ export default function LogsPage() {
     service: AvailableLogsService.ALL,
   });
 
-  const { data, loading, error, subscribeToMore, client, refetch } =
+  const { data, error, subscribeToMore, client, refetch, networkStatus } =
     useGetProjectLogsQuery({
       variables: { appID: currentProject.id, ...filters },
       client: clientWithSplit,
     });
+
+  // when the graphql request is sent for the first time, then the networkStatus = 1
+  // if a refetch happens then the networkStatus = 4
+  // so a loading would be either networkStatus = 1 || 4
+  // see more here -> https://github.com/apollographql/apollo-client/blob/main/src/core/networkStatus.ts#L10
+  const loading = networkStatus === 1 || networkStatus === 4;
+
+  // This should retrigger once the user pushes on the Search button with new data from the filters
 
   const subscribeToMoreLogs = useCallback(
     () =>
@@ -119,8 +127,9 @@ export default function LogsPage() {
     <div className="flex h-full w-full flex-col">
       <RetryableErrorBoundary>
         <LogsHeader
+          loading={loading}
           onSubmitFilterValues={async (values) => {
-            setFilters(values as LogsFilters);
+            setFilters({ ...(values as LogsFilters) });
             await refetch({
               appID: currentProject.id,
               ...values,

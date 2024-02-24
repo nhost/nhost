@@ -1,20 +1,26 @@
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { Link } from '@/components/ui/v2/Link';
 import { Option } from '@/components/ui/v2/Option';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { LogsRangeSelector } from '@/features/projects/logs/components/LogsRangeSelector';
 import { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useTheme } from '@mui/system';
 import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
@@ -28,30 +34,55 @@ export type LogsFilterFormValues = Yup.InferType<typeof validationSchema>;
 
 interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
   /**
+   * This is used to indicate that a query is currently inflight
+   */
+  loading: boolean;
+  /**
    *
    * Function to be called when the user submits the filters form
    */
   onSubmitFilterValues: (value: LogsFilterFormValues) => void;
 }
 
+function ThemedCode({ snippet }: { snippet: string }) {
+  const theme = useTheme();
+
+  return (
+    <code
+      className={twMerge(
+        'rounded-md px-2 py-px',
+        theme.palette.mode === 'dark'
+          ? 'bg-brown text-copper'
+          : 'bg-slate-500 text-slate-100',
+      )}
+    >
+      {snippet}
+    </code>
+  );
+}
+
 export default function LogsHeader({
+  loading,
   onSubmitFilterValues,
   ...props
 }: LogsHeaderProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
+
   const [serviceLabels, setServiceLabels] = useState<
     { label: string; value: string }[]
   >([]);
-  const { data, loading } = useGetServiceLabelValuesQuery({
-    variables: { appID: currentProject.id },
-  });
+
+  const { data, loading: loadingServiceLabelValues } =
+    useGetServiceLabelValuesQuery({
+      variables: { appID: currentProject.id },
+    });
 
   useEffect(() => {
-    if (!loading) {
+    if (!loadingServiceLabelValues) {
       const labels = data.getServiceLabelValues ?? [];
       setServiceLabels(labels.map((l) => ({ label: l, value: l })));
     }
-  }, [loading, data]);
+  }, [loadingServiceLabelValues, data]);
 
   const form = useForm<LogsFilterFormValues>({
     defaultValues: {
@@ -71,23 +102,25 @@ export default function LogsHeader({
 
   return (
     <Box
-      className="sticky top-0 z-10 grid w-full grid-flow-row gap-x-6 gap-y-2 border-b px-4 py-2.5 lg:grid-flow-col lg:justify-between"
+      className="sticky top-0 z-10 grid w-full grid-flow-row gap-x-6 gap-y-2 border-b px-4 py-2.5 lg:grid-flow-col"
       {...props}
     >
       <FormProvider {...form}>
         <Form
           onSubmit={handleSubmit}
-          className="grid w-full grid-flow-row items-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-start"
+          className="grid w-full grid-flow-row items-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-end"
         >
           <Box className="flex flex-row space-x-2">
             <ControlledSelect
               {...register('service')}
-              className="w-full text-sm font-normal"
+              className="w-full min-w-fit text-sm font-normal"
               placeholder="All Services"
               aria-label="Select service"
               hideEmptyHelperText
               slotProps={{
-                root: { className: 'min-h-[initial] h-10 leading-[initial]' },
+                root: {
+                  className: 'min-h-[initial] h-10 leading-[initial]',
+                },
               }}
             >
               {[{ label: 'All services', value: '' }, ...serviceLabels].map(
@@ -95,7 +128,7 @@ export default function LogsHeader({
                   <Option
                     key={value}
                     value={value}
-                    className="text-sm+ font-medium capitalize"
+                    className="text-sm+ font-medium"
                   >
                     {label}
                   </Option>
@@ -115,16 +148,71 @@ export default function LogsHeader({
             fullWidth
             className="min-w-80"
             startAdornment={
-              <Box
-                className="ml-1 rounded-sm px-2 py-1"
-                sx={{ backgroundColor: 'grey.300' }}
+              <Tooltip
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      maxWidth: '30rem',
+                    },
+                  },
+                }}
+                title={
+                  <div className="space-y-4">
+                    <h2>Here are some useful RegExp patterns:</h2>
+                    <ul className="list-disc space-y-2 pl-3">
+                      <li>
+                        use <ThemedCode snippet="(?i)error" />
+                        to search for lines with the word <b>error</b> (cas
+                        insenstive)
+                      </li>
+                      <li>
+                        use <ThemedCode snippet="error" />
+                        to search for lines with the word <b>error</b> (case
+                        sensitive)
+                      </li>
+                      <li>
+                        use <ThemedCode snippet="/metadata.*error" />
+                        to search for errors in hasura&apos;s metadata endpoint
+                      </li>
+                      <li>
+                        See{' '}
+                        <Link
+                          href="https://github.com/google/re2/wiki/Syntax"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          underline="hover"
+                        >
+                          here
+                        </Link>{' '}
+                        for more patterns{' '}
+                      </li>
+                    </ul>
+                  </div>
+                }
               >
-                .*
-              </Box>
+                <Box className="ml-2 cursor-pointer rounded-full">
+                  <InfoIcon
+                    aria-label="Info"
+                    className="h-5 w-5"
+                    color="info"
+                  />
+                </Box>
+              </Tooltip>
             }
           />
 
-          <Button type="submit" className="h-10" startIcon={<SearchIcon />}>
+          <Button
+            type="submit"
+            className="h-10"
+            startIcon={
+              loading ? (
+                <ActivityIndicator className="h-4 w-4" />
+              ) : (
+                <SearchIcon />
+              )
+            }
+            disabled={loading}
+          >
             Search
           </Button>
         </Form>
