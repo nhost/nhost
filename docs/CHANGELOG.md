@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.6.0
+
+### Minor Changes
+
+- dc23dc0: fix: docs run references
+
 ## 2.5.0
 
 ### Minor Changes
