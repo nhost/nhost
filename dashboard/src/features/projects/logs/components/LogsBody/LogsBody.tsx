@@ -131,7 +131,7 @@ export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
     count: rows.length,
     getScrollElement: () => tableRef.current,
     estimateSize: () => 63,
-    overscan: 5,
+    overscan: 50,
   });
 
   if (loading && !error) {
@@ -214,7 +214,7 @@ export default function LogsBody({ logsData, loading, error }: LogsBodyProps) {
                   <TableCell
                     key={cell.id}
                     component="td"
-                    className="break-words py-2.5 px-2 align-top text-xs- font-normal tracking-tight"
+                    className="break-words px-2 py-2.5 align-top text-xs- font-normal tracking-tight"
                     style={{
                       width: cell.column.getSize() || 'auto',
                       minWidth: !cell.column.getSize() ? 300 : 'initial',
