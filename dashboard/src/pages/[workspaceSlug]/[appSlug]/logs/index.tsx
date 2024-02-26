@@ -2,7 +2,10 @@ import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { LogsBody } from '@/features/projects/logs/components/LogsBody';
-import { LogsHeader } from '@/features/projects/logs/components/LogsHeader';
+import {
+  LogsHeader,
+  type LogsFilterFormValues,
+} from '@/features/projects/logs/components/LogsHeader';
 import { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
 import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
@@ -123,18 +126,23 @@ export default function LogsPage() {
     return () => client.stop();
   }, [subscribeToMoreLogs, filters.to, client]);
 
+  const onSubmitFilterValues = useCallback(
+    async (values: LogsFilterFormValues) => {
+      setFilters({ ...(values as LogsFilters) });
+      await refetch({
+        appID: currentProject.id,
+        ...values,
+      });
+    },
+    [setFilters, refetch, currentProject.id],
+  );
+
   return (
     <div className="flex h-full w-full flex-col">
       <RetryableErrorBoundary>
         <LogsHeader
           loading={loading}
-          onSubmitFilterValues={async (values) => {
-            setFilters({ ...(values as LogsFilters) });
-            await refetch({
-              appID: currentProject.id,
-              ...values,
-            });
-          }}
+          onSubmitFilterValues={onSubmitFilterValues}
         />
         <LogsBody error={error} loading={loading} logsData={data} />
       </RetryableErrorBoundary>

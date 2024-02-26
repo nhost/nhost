@@ -76,19 +76,15 @@ export default function LogsHeader({
     resolver: yupResolver(validationSchema),
   });
 
-  const {
-    register,
-    watch,
-    formState: { errors },
-  } = form;
+  const { register, watch, getValues } = form;
 
   const service = watch('service');
   const from = watch('from');
   const to = watch('to');
 
   useEffect(() => {
-    onSubmitFilterValues(form.getValues());
-  }, [from, to, service]);
+    onSubmitFilterValues(getValues());
+  }, [from, to, service, getValues, onSubmitFilterValues]);
 
   const handleSubmit = (values: LogsFilterFormValues) =>
     onSubmitFilterValues(values);
