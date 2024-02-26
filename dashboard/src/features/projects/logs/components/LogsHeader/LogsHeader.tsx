@@ -16,16 +16,14 @@ import { AvailableLogsService } from '@/features/projects/logs/utils/constants/s
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useTheme } from '@mui/system';
 import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
-  from: Yup.date().max(new Date()),
-  to: Yup.date().min(new Date()).nullable(),
+  from: Yup.date(),
+  to: Yup.date().nullable(),
   service: Yup.string().oneOf(Object.values(AvailableLogsService)),
   regexFilter: Yup.string(),
 });
@@ -42,23 +40,6 @@ interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
    * Function to be called when the user submits the filters form
    */
   onSubmitFilterValues: (value: LogsFilterFormValues) => void;
-}
-
-function ThemedCode({ snippet }: { snippet: string }) {
-  const theme = useTheme();
-
-  return (
-    <code
-      className={twMerge(
-        'rounded-md px-2 py-px',
-        theme.palette.mode === 'dark'
-          ? 'bg-brown text-copper'
-          : 'bg-slate-500 text-slate-100',
-      )}
-    >
-      {snippet}
-    </code>
-  );
 }
 
 export default function LogsHeader({
@@ -95,7 +76,19 @@ export default function LogsHeader({
     resolver: yupResolver(validationSchema),
   });
 
-  const { register } = form;
+  const {
+    register,
+    watch,
+    formState: { errors },
+  } = form;
+
+  const service = watch('service');
+  const from = watch('from');
+  const to = watch('to');
+
+  useEffect(() => {
+    onSubmitFilterValues(form.getValues());
+  }, [from, to, service]);
 
   const handleSubmit = (values: LogsFilterFormValues) =>
     onSubmitFilterValues(values);
@@ -161,30 +154,40 @@ export default function LogsHeader({
                     <h2>Here are some useful RegExp patterns:</h2>
                     <ul className="list-disc space-y-2 pl-3">
                       <li>
-                        use <ThemedCode snippet="(?i)error" />
+                        use
+                        <code className="mx-1 rounded-md bg-slate-500 px-1 py-px text-slate-100">
+                          (?i)error
+                        </code>
                         to search for lines with the word <b>error</b> (cas
                         insenstive)
                       </li>
                       <li>
-                        use <ThemedCode snippet="error" />
+                        use
+                        <code className="mx-1 rounded-md bg-slate-500 px-1 py-px text-slate-100">
+                          error
+                        </code>
                         to search for lines with the word <b>error</b> (case
                         sensitive)
                       </li>
                       <li>
-                        use <ThemedCode snippet="/metadata.*error" />
+                        use
+                        <code className="mx-1 rounded-md bg-slate-500 px-1 py-px text-slate-100">
+                          /metadata.*error
+                        </code>
                         to search for errors in hasura&apos;s metadata endpoint
                       </li>
                       <li>
-                        See{' '}
+                        See
                         <Link
                           href="https://github.com/google/re2/wiki/Syntax"
                           target="_blank"
                           rel="noopener noreferrer"
                           underline="hover"
+                          className="mx-1"
                         >
                           here
-                        </Link>{' '}
-                        for more patterns{' '}
+                        </Link>
+                        for more patterns
                       </li>
                     </ul>
                   </div>
