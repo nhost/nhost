@@ -2,6 +2,8 @@
 
 Here is an example on how to reproduce the Nhost stack from a docker-compose file.
 
+Note that the Nhost instance produced will not allow you to do all the things available on Nhost Cloud. Some tabs like Settings may be greyed-out and you will need to configure them using envinoment variables or your own system. Additionally, the [Nhost CLI](https://github.com/nhost/cli) is [unable to be used](https://github.com/nhost/cli/issues/837#issuecomment-1963499492) with self-hosted instances.
+
 ## Configuration
 
 ```sh
