@@ -73,14 +73,25 @@ function LogsToDatePickerLiveButton() {
   );
 }
 
-function LogsRangeSelectorIntervalPickers() {
+interface LogsRangeSelectorProps {
+  onSubmitFilterValues: (value: LogsFilterFormValues) => void;
+}
+
+function LogsRangeSelectorIntervalPickers({
+  onSubmitFilterValues,
+}: LogsRangeSelectorProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const applicationCreationDate = new Date(currentProject.createdAt);
 
-  const { setValue } = useFormContext<LogsFilterFormValues>();
+  const { setValue, getValues } = useFormContext<LogsFilterFormValues>();
   const { from, to } = useWatch<LogsFilterFormValues>();
 
   const { handleClose } = useDropdown();
+
+  const handleApply = () => {
+    onSubmitFilterValues(getValues());
+    handleClose();
+  };
 
   /**
    * Will subtract the `customInterval` time in minutes from the current date.
@@ -120,14 +131,16 @@ function LogsRangeSelectorIntervalPickers() {
         ))}
       </Box>
 
-      <Button color="primary" variant="contained" onClick={handleClose}>
+      <Button color="primary" variant="contained" onClick={handleApply}>
         Apply
       </Button>
     </Box>
   );
 }
 
-export default function LogsRangeSelector() {
+export default function LogsRangeSelector({
+  onSubmitFilterValues,
+}: LogsRangeSelectorProps) {
   const { from, to } = useWatch<LogsFilterFormValues>();
 
   return (
@@ -144,7 +157,9 @@ export default function LogsRangeSelector() {
       </Dropdown.Trigger>
 
       <Dropdown.Content PaperProps={{ className: 'mt-1 max-w-xs w-full p-3' }}>
-        <LogsRangeSelectorIntervalPickers />
+        <LogsRangeSelectorIntervalPickers
+          onSubmitFilterValues={onSubmitFilterValues}
+        />
       </Dropdown.Content>
     </Dropdown.Root>
   );

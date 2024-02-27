@@ -79,12 +79,10 @@ export default function LogsHeader({
   const { register, watch, getValues } = form;
 
   const service = watch('service');
-  const from = watch('from');
-  const to = watch('to');
 
   useEffect(() => {
     onSubmitFilterValues(getValues());
-  }, [from, to, service, getValues, onSubmitFilterValues]);
+  }, [service, getValues, onSubmitFilterValues]);
 
   const handleSubmit = (values: LogsFilterFormValues) =>
     onSubmitFilterValues(values);
@@ -125,7 +123,7 @@ export default function LogsHeader({
               )}
             </ControlledSelect>
             <div className="w-full min-w-fit">
-              <LogsRangeSelector />
+              <LogsRangeSelector onSubmitFilterValues={onSubmitFilterValues} />
             </div>
           </Box>
 
