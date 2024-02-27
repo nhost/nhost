@@ -89,7 +89,7 @@ function LogsTimePicker({
         </Button>
 
         <Button variant="contained" color="primary" onClick={handleApply}>
-          Apply
+          Set
         </Button>
       </Box>
     </div>
