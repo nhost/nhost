@@ -11,7 +11,7 @@ import {
 } from '@/features/projects/logs/utils/constants/intervals';
 import { useInterval } from '@/hooks/useInterval';
 import { ChevronDownIcon } from '@graphiql/react';
-import { formatDistanceToNow, subMinutes } from 'date-fns';
+import { formatDistance, subMinutes } from 'date-fns';
 import { useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
@@ -45,7 +45,7 @@ function LogsToDatePickerLiveButton() {
           disabled={isLive}
           onChange={(date: Date) => setValue('to', date)}
           minDate={from}
-          maxDate={to || new Date()}
+          maxDate={new Date()}
           componentsProps={{
             button: {
               className: twMerge('rounded-r-none', isLive ? 'z-0' : 'z-10'),
@@ -84,7 +84,7 @@ function LogsRangeSelectorIntervalPickers({
   const applicationCreationDate = new Date(currentProject.createdAt);
 
   const { setValue, getValues } = useFormContext<LogsFilterFormValues>();
-  const { from, to } = useWatch<LogsFilterFormValues>();
+  const { from } = useWatch<LogsFilterFormValues>();
 
   const { handleClose } = useDropdown();
 
@@ -111,7 +111,7 @@ function LogsRangeSelectorIntervalPickers({
           value={from}
           onChange={(date) => setValue('from', date)}
           minDate={applicationCreationDate}
-          maxDate={to || new Date()}
+          maxDate={new Date()}
         />
 
         <LogsToDatePickerLiveButton />
@@ -151,7 +151,11 @@ export default function LogsRangeSelector({
           className="h-10 w-full min-w-40 items-center justify-between"
           variant="outlined"
         >
-          <span>{to === null ? 'Live' : `${formatDistanceToNow(from)}`}</span>
+          <span>
+            {to === null
+              ? 'Live'
+              : `${formatDistance(to.getTime(), from.getTime())}`}
+          </span>
           <ChevronDownIcon className="h-3 w-3" />
         </Button>
       </Dropdown.Trigger>
