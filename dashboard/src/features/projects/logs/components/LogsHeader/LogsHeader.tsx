@@ -65,6 +65,25 @@ export default function LogsHeader({
     }
   }, [loadingServiceLabelValues, data]);
 
+  useEffect(() => {
+    if (!loadingServiceLabelValues) {
+      const labels = data.getServiceLabelValues ?? [];
+
+      const labelMappings = {
+        'hasura-auth': 'Auth',
+        'hasura-storage': 'Storage',
+        postgres: 'Postgres',
+        functions: 'Functions',
+        hasura: 'Hasura',
+        grafana: 'Grafana',
+      };
+
+      setServiceLabels(
+        labels.map((l) => ({ label: labelMappings[l] ?? l, value: l })),
+      );
+    }
+  }, [loadingServiceLabelValues, data]);
+
   const form = useForm<LogsFilterFormValues>({
     defaultValues: {
       from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),

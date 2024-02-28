@@ -121,8 +121,6 @@ export default function LogsPage() {
     // This will open the websocket connection and it will return a function to close it.
     subscriptionReturn.current = subscribeToMoreLogs();
 
-    // get rid of the current apollo client instance (will also close the websocket if it's the live status)
-    // return () => client.stop();
     return () => {};
   }, [filters, subscribeToMoreLogs, client]);
 
