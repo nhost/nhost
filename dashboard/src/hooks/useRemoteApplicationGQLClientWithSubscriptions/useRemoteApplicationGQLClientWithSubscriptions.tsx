@@ -44,6 +44,13 @@ export default function useRemoteApplicationGQLClientWithSubscriptions() {
               },
             },
           },
+          Query: {
+            fields: {
+              logs: {
+                keyArgs: false,
+              },
+            },
+          },
         },
       }),
       connectToDevTools: true,

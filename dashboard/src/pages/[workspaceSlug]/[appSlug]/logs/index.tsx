@@ -13,7 +13,6 @@ import {
   GetLogsSubscriptionDocument,
   useGetProjectLogsQuery,
 } from '@/utils/__generated__/graphql';
-import { NetworkStatus } from '@apollo/client';
 import { subMinutes } from 'date-fns';
 import {
   useCallback,
@@ -44,18 +43,13 @@ export default function LogsPage() {
     service: AvailableLogsService.ALL,
   });
 
-  const { data, error, subscribeToMore, client, networkStatus } =
+  const { data, error, subscribeToMore, client, loading, refetch } =
     useGetProjectLogsQuery({
       variables: { appID: currentProject.id, ...filters },
       client: clientWithSplit,
+      fetchPolicy: 'cache-and-network',
+      notifyOnNetworkStatusChange: true,
     });
-
-  // Make sure to show the loading indicator when it's the first time
-  // sending the request or when a refetch happens
-  // see more here -> https://github.com/apollographql/apollo-client/blob/main/src/core/networkStatus.ts#L10
-  const loading =
-    networkStatus === NetworkStatus.loading ||
-    networkStatus === NetworkStatus.refetch;
 
   const subscribeToMoreLogs = useCallback(
     () =>
@@ -119,18 +113,25 @@ export default function LogsPage() {
       return () => {};
     }
 
+    if (subscriptionReturn.current) {
+      subscriptionReturn.current();
+      subscriptionReturn.current = null;
+    }
+
     // This will open the websocket connection and it will return a function to close it.
     subscriptionReturn.current = subscribeToMoreLogs();
 
     // get rid of the current apollo client instance (will also close the websocket if it's the live status)
-    return () => client.stop();
+    // return () => client.stop();
+    return () => {};
   }, [filters, subscribeToMoreLogs, client]);
 
   const onSubmitFilterValues = useCallback(
     async (values: LogsFilterFormValues) => {
       setFilters({ ...(values as LogsFilters) });
+      await refetch();
     },
-    [setFilters],
+    [setFilters, refetch],
   );
 
   return (
