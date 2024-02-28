@@ -44,7 +44,7 @@ export default function LogsPage() {
     service: AvailableLogsService.ALL,
   });
 
-  const { data, error, subscribeToMore, client, refetch, networkStatus } =
+  const { data, error, subscribeToMore, client, networkStatus } =
     useGetProjectLogsQuery({
       variables: { appID: currentProject.id, ...filters },
       client: clientWithSplit,
@@ -124,17 +124,13 @@ export default function LogsPage() {
 
     // get rid of the current apollo client instance (will also close the websocket if it's the live status)
     return () => client.stop();
-  }, [subscribeToMoreLogs, filters.to, client]);
+  }, [filters, subscribeToMoreLogs, client]);
 
   const onSubmitFilterValues = useCallback(
     async (values: LogsFilterFormValues) => {
       setFilters({ ...(values as LogsFilters) });
-      await refetch({
-        appID: currentProject.id,
-        ...values,
-      });
     },
-    [setFilters, refetch, currentProject.id],
+    [setFilters],
   );
 
   return (
