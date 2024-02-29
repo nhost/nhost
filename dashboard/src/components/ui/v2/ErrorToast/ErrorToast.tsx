@@ -27,10 +27,11 @@ const getInternalErrorMessage = (
     return null;
   }
 
-  if (error instanceof ApolloError) {
-    const internalError = error.graphQLErrors?.[0]?.extensions?.internal as
-      | { error: { message: string } }
-      | undefined;
+  if (error.name === 'ApolloError') {
+    // @ts-ignore
+    const internalError = error.graphQLErrors?.[0]?.extensions?.internal as {
+      error: { message: string };
+    };
     return internalError?.error?.message || null;
   }
 
@@ -92,7 +93,7 @@ export default function ErrorToast({
           style={{
             backgroundColor: getToastBackgroundColor(),
           }}
-          className="flex w-full max-w-xl flex-col space-y-4 rounded-lg p-4 text-white"
+          className="flex flex-col w-full max-w-xl p-4 space-y-4 text-white rounded-lg"
           initial={{
             opacity: 0,
             y: 100,
@@ -111,9 +112,9 @@ export default function ErrorToast({
             bounce: 0.1,
           }}
         >
-          <div className="flex w-full flex-row items-center justify-between space-x-4">
+          <div className="flex flex-row items-center justify-between w-full space-x-4">
             <button onClick={close} type="button" aria-label="Close">
-              <XIcon className="h-4 w-4 text-white" />
+              <XIcon className="w-4 h-4 text-white" />
             </button>
             <span>
               {msg ?? 'An unkown error has occured, please try again later!'}
@@ -126,9 +127,9 @@ export default function ErrorToast({
             >
               <span>Info</span>
               {showInfo ? (
-                <ChevronUpIcon className="h-3 w-3 text-white" />
+                <ChevronUpIcon className="w-3 h-3 text-white" />
               ) : (
-                <ChevronDownIcon className="h-3 w-3 text-white" />
+                <ChevronDownIcon className="w-3 h-3 text-white" />
               )}
             </button>
           </div>
@@ -151,7 +152,7 @@ export default function ErrorToast({
                     );
                   }}
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <CopyIcon className="w-4 h-4" />
                 </button>
               </div>
             </div>
