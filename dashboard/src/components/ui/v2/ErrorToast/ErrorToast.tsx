@@ -5,7 +5,7 @@ import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getToastBackgroundColor } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
-import { ApolloError } from '@apollo/client';
+import type { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/router';
@@ -43,7 +43,7 @@ const getInternalErrorMessage = (
 };
 
 const errorToObject = (error: ApolloError | Error) => {
-  if (error instanceof ApolloError) {
+  if (error.name === 'ApolloError') {
     return error;
   }
 
@@ -93,7 +93,7 @@ export default function ErrorToast({
           style={{
             backgroundColor: getToastBackgroundColor(),
           }}
-          className="flex flex-col w-full max-w-xl p-4 space-y-4 text-white rounded-lg"
+          className="flex w-full max-w-xl flex-col space-y-4 rounded-lg p-4 text-white"
           initial={{
             opacity: 0,
             y: 100,
@@ -112,9 +112,9 @@ export default function ErrorToast({
             bounce: 0.1,
           }}
         >
-          <div className="flex flex-row items-center justify-between w-full space-x-4">
+          <div className="flex w-full flex-row items-center justify-between space-x-4">
             <button onClick={close} type="button" aria-label="Close">
-              <XIcon className="w-4 h-4 text-white" />
+              <XIcon className="h-4 w-4 text-white" />
             </button>
             <span>
               {msg ?? 'An unkown error has occured, please try again later!'}
@@ -127,9 +127,9 @@ export default function ErrorToast({
             >
               <span>Info</span>
               {showInfo ? (
-                <ChevronUpIcon className="w-3 h-3 text-white" />
+                <ChevronUpIcon className="h-3 w-3 text-white" />
               ) : (
-                <ChevronDownIcon className="w-3 h-3 text-white" />
+                <ChevronDownIcon className="h-3 w-3 text-white" />
               )}
             </button>
           </div>
@@ -152,7 +152,7 @@ export default function ErrorToast({
                     );
                   }}
                 >
-                  <CopyIcon className="w-4 h-4" />
+                  <CopyIcon className="h-4 w-4" />
                 </button>
               </div>
             </div>
