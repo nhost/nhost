@@ -1,246 +1,240 @@
+import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { Form } from '@/components/form/Form';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ClockIcon } from '@/components/ui/v2/icons/ClockIcon';
+import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
+import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
+import { Input } from '@/components/ui/v2/Input';
+import { Link } from '@/components/ui/v2/Link';
 import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
+import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { LogsDatePicker } from '@/features/projects/logs/components/LogsDatePicker';
-import type { LogsCustomInterval } from '@/features/projects/logs/utils/constants/intervals';
-import { LOGS_AVAILABLE_INTERVALS } from '@/features/projects/logs/utils/constants/intervals';
-import type { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
-import { LOGS_AVAILABLE_SERVICES } from '@/features/projects/logs/utils/constants/services';
-import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
+import { LogsRangeSelector } from '@/features/projects/logs/components/LogsRangeSelector';
+import { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
+import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
+import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
+import { FormProvider, useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 
-export interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
+export const validationSchema = Yup.object({
+  from: Yup.date(),
+  to: Yup.date().nullable(),
+  service: Yup.string().oneOf(Object.values(AvailableLogsService)),
+  regexFilter: Yup.string(),
+});
+
+export type LogsFilterFormValues = Yup.InferType<typeof validationSchema>;
+
+interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
   /**
-   * The date to be displayed in the date picker for the from date.
+   * This is used to indicate that a query is currently inflight
    */
-  fromDate: Date;
+  loading: boolean;
   /**
-   * The date to be displayed in the date picker for the to date.
+   *
+   * Function to be called when the user submits the filters form
    */
-  toDate: Date | null;
-  /**
-   * Service to where to fetch logs from.
-   */
-  service: AvailableLogsService;
-  /**
-   * Function to be called when the user changes the from date.
-   */
-  onFromDateChange: (value: Date) => void;
-  /**
-   * Function to be called when the user changes the `to` date.
-   */
-  onToDateChange: (value: Date) => void;
-  /**
-   * Function to be called when the user changes service to which to query logs from.
-   */
-  onServiceChange: (value: AvailableLogsService) => void;
-}
-
-type LogsToDatePickerLiveButtonProps = Pick<
-  LogsHeaderProps,
-  'fromDate' | 'toDate' | 'onToDateChange'
->;
-
-function LogsToDatePickerLiveButton({
-  fromDate,
-  toDate,
-  onToDateChange,
-}: LogsToDatePickerLiveButtonProps) {
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const isLive = !toDate;
-
-  function handleLiveButtonClick() {
-    if (isLive) {
-      return;
-    }
-
-    onToDateChange(null);
-    setCurrentTime(new Date());
-  }
-
-  // if isLive is true, we want to update the current time every second
-  // and set the toDate to the current time.
-  useEffect(() => {
-    let interval = null;
-
-    if (!interval && isLive) {
-      interval = setInterval(() => {
-        setCurrentTime(new Date());
-      }, 1000);
-    }
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [isLive, onToDateChange]);
-
-  return (
-    <div className="text-greyscaleMedium grid grid-flow-col">
-      <LogsDatePicker
-        label="To"
-        value={!isLive ? toDate : currentTime}
-        disabled={isLive}
-        onChange={onToDateChange}
-        minDate={fromDate}
-        maxDate={toDate || new Date()}
-        componentsProps={{
-          button: {
-            className: twMerge(
-              'rounded-r-none pr-3',
-              isLive ? 'border-r-0 hover:border-r-0 z-0' : 'z-10',
-            ),
-            color: toDate ? 'inherit' : 'secondary',
-          },
-        }}
-      />
-
-      <Button
-        variant="outlined"
-        color={isLive ? 'primary' : 'secondary'}
-        sx={{
-          backgroundColor: (theme) =>
-            !isLive ? `${theme.palette.grey[200]} !important` : 'transparent',
-          color: !isLive ? 'text.secondary' : undefined,
-        }}
-        className={twMerge(
-          'min-w-[77px] rounded-l-none',
-          !isLive ? 'z-0 border-l-0 hover:border-l-0' : 'z-10',
-        )}
-        startIcon={<ClockIcon className="h-4 w-4 self-center align-middle" />}
-        onClick={handleLiveButtonClick}
-      >
-        Live
-      </Button>
-    </div>
-  );
+  onSubmitFilterValues: (value: LogsFilterFormValues) => void;
 }
 
 export default function LogsHeader({
-  fromDate,
-  toDate,
-  service,
-  onFromDateChange,
-  onToDateChange,
-  onServiceChange,
+  loading,
+  onSubmitFilterValues,
   ...props
 }: LogsHeaderProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const applicationCreationDate = new Date(currentProject.createdAt);
 
-  const [runServices, setRunServices] = useState<
-    {
-      label: string;
-      value: string;
-    }[]
+  const [serviceLabels, setServiceLabels] = useState<
+    { label: string; value: string }[]
   >([]);
 
-  const { data, loading } = useGetRunServicesQuery({
-    variables: {
-      appID: currentProject.id,
-      resolve: false,
-      limit: 1000,
-      offset: 0,
-    },
-  });
+  const { data, loading: loadingServiceLabelValues } =
+    useGetServiceLabelValuesQuery({
+      variables: { appID: currentProject.id },
+    });
 
   useEffect(() => {
-    if (!loading) {
-      const services = data.app?.runServices ?? [];
+    if (!loadingServiceLabelValues) {
+      const labels = data.getServiceLabelValues ?? [];
+      setServiceLabels(labels.map((l) => ({ label: l, value: l })));
+    }
+  }, [loadingServiceLabelValues, data]);
 
-      setRunServices(
-        services
-          .filter((s) => !!s.config?.name)
-          .map((s) => ({
-            label: s.config.name,
-            value: `run-${s.config.name}`,
-          })),
+  useEffect(() => {
+    if (!loadingServiceLabelValues) {
+      const labels = data.getServiceLabelValues ?? [];
+
+      const labelMappings = {
+        'hasura-auth': 'Auth',
+        'hasura-storage': 'Storage',
+        postgres: 'Postgres',
+        functions: 'Functions',
+        hasura: 'Hasura',
+        grafana: 'Grafana',
+        'job-backup': 'Backup Jobs',
+        ai: 'AI',
+      };
+
+      setServiceLabels(
+        labels.map((l) => ({ label: labelMappings[l] ?? l, value: l })),
       );
     }
-  }, [loading, data]);
+  }, [loadingServiceLabelValues, data]);
 
-  /**
-   * Will subtract the `customInterval` time in minutes from the current date.
-   */
-  function handleIntervalChange({
-    minutesToDecreaseFromCurrentDate,
-  }: LogsCustomInterval) {
-    onFromDateChange(subMinutes(new Date(), minutesToDecreaseFromCurrentDate));
-    onToDateChange(new Date());
-  }
+  const form = useForm<LogsFilterFormValues>({
+    defaultValues: {
+      from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
+      to: new Date(),
+      regexFilter: '',
+      service: AvailableLogsService.ALL,
+    },
+    reValidateMode: 'onSubmit',
+    resolver: yupResolver(validationSchema),
+  });
+
+  const { register, watch, getValues } = form;
+
+  const service = watch('service');
+
+  useEffect(() => {
+    onSubmitFilterValues(getValues());
+  }, [service, getValues, onSubmitFilterValues]);
+
+  const handleSubmit = (values: LogsFilterFormValues) =>
+    onSubmitFilterValues(values);
 
   return (
     <Box
-      className="sticky top-0 z-10 grid w-full grid-flow-row gap-x-6 gap-y-2 border-b py-2.5 px-4 lg:grid-flow-col lg:justify-between"
+      className="sticky top-0 z-10 grid w-full grid-flow-row gap-x-6 gap-y-2 border-b px-4 py-2.5 lg:grid-flow-col"
       {...props}
     >
-      <Box className="grid w-full grid-flow-row items-center justify-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-start">
-        <div className="grid grid-flow-col items-center gap-3 md:justify-start">
-          <LogsDatePicker
-            label="From"
-            value={fromDate}
-            onChange={onFromDateChange}
-            minDate={applicationCreationDate}
-            maxDate={toDate || new Date()}
-          />
+      <FormProvider {...form}>
+        <Form
+          onSubmit={handleSubmit}
+          className="grid w-full grid-flow-row items-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-end"
+        >
+          <Box className="flex flex-row space-x-2">
+            <ControlledSelect
+              {...register('service')}
+              className="w-full text-sm font-normal min-w-fit"
+              placeholder="All Services"
+              aria-label="Select service"
+              hideEmptyHelperText
+              slotProps={{
+                root: {
+                  className: 'min-h-[initial] h-10 leading-[initial]',
+                },
+              }}
+            >
+              {[{ label: 'All services', value: '' }, ...serviceLabels].map(
+                ({ value, label }) => (
+                  <Option
+                    key={value}
+                    value={value}
+                    className="text-sm+ font-medium"
+                  >
+                    {label}
+                  </Option>
+                ),
+              )}
+            </ControlledSelect>
+            <div className="w-full min-w-fit">
+              <LogsRangeSelector onSubmitFilterValues={onSubmitFilterValues} />
+            </div>
+          </Box>
 
-          <LogsToDatePickerLiveButton
-            fromDate={fromDate}
-            toDate={toDate}
-            onToDateChange={onToDateChange}
-          />
-        </div>
-
-        <Box className="-my-2.5 px-0 py-2.5 lg:border-l lg:px-3">
-          <Select
-            className="w-full text-sm font-normal"
-            placeholder="All Services"
-            onChange={(_e, value) => {
-              if (typeof value !== 'string') {
-                return;
-              }
-              onServiceChange(value as AvailableLogsService);
-            }}
-            value={service}
-            aria-label="Select service"
+          <Input
+            {...register('regexFilter')}
+            placeholder="Filter logs with a regular expression"
             hideEmptyHelperText
-            slotProps={{
-              root: { className: 'min-h-[initial] h-9 leading-[initial]' },
-            }}
-          >
-            {[...LOGS_AVAILABLE_SERVICES, ...runServices].map(
-              ({ value, label }) => (
-                <Option
-                  key={value}
-                  value={value}
-                  className="text-sm+ font-medium"
-                >
-                  {label}
-                </Option>
-              ),
-            )}
-          </Select>
-        </Box>
-      </Box>
+            autoComplete="off"
+            fullWidth
+            className="min-w-80"
+            startAdornment={
+              <Tooltip
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      maxWidth: '30rem',
+                    },
+                  },
+                }}
+                title={
+                  <div className="p-2 space-y-4">
+                    <h2>Here are some useful regular expressions:</h2>
+                    <ul className="pl-3 space-y-2 list-disc">
+                      <li>
+                        use
+                        <code className="px-1 py-px mx-1 rounded-md bg-slate-500 text-slate-100">
+                          (?i)error
+                        </code>
+                        to search for lines with the word <b>error</b> (case
+                        insenstive)
+                      </li>
+                      <li>
+                        use
+                        <code className="px-1 py-px mx-1 rounded-md bg-slate-500 text-slate-100">
+                          error
+                        </code>
+                        to search for lines with the word <b>error</b> (case
+                        sensitive)
+                      </li>
+                      <li>
+                        use
+                        <code className="px-1 py-px mx-1 rounded-md bg-slate-500 text-slate-100">
+                          /metadata.*error
+                        </code>
+                        to search for errors in hasura&apos;s metadata endpoint
+                      </li>
+                      <li>
+                        See
+                        <Link
+                          href="https://github.com/google/re2/wiki/Syntax"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          underline="hover"
+                          className="mx-1"
+                        >
+                          here
+                        </Link>
+                        for more patterns
+                      </li>
+                    </ul>
+                  </div>
+                }
+              >
+                <Box className="ml-2 rounded-full cursor-pointer">
+                  <InfoIcon
+                    aria-label="Info"
+                    className="w-5 h-5"
+                    color="info"
+                  />
+                </Box>
+              </Tooltip>
+            }
+          />
 
-      <Box className="hidden grid-flow-col items-center justify-center gap-3 md:grid lg:justify-end">
-        {LOGS_AVAILABLE_INTERVALS.map((logInterval) => (
           <Button
-            key={logInterval.label}
-            variant="outlined"
-            color="secondary"
-            className="self-center"
-            onClick={() => handleIntervalChange(logInterval)}
+            type="submit"
+            className="h-10"
+            startIcon={
+              loading ? (
+                <ActivityIndicator className="w-4 h-4" />
+              ) : (
+                <SearchIcon />
+              )
+            }
+            disabled={loading}
           >
-            {logInterval.label}
+            Search
           </Button>
-        ))}
-      </Box>
+        </Form>
+      </FormProvider>
     </Box>
   );
 }

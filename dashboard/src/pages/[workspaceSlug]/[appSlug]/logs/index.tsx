@@ -2,49 +2,53 @@ import { ProjectLayout } from '@/components/layout/ProjectLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { LogsBody } from '@/features/projects/logs/components/LogsBody';
-import { LogsHeader } from '@/features/projects/logs/components/LogsHeader';
+import {
+  LogsHeader,
+  type LogsFilterFormValues,
+} from '@/features/projects/logs/components/LogsHeader';
 import { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
 import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
+import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import {
   GetLogsSubscriptionDocument,
   useGetProjectLogsQuery,
 } from '@/utils/__generated__/graphql';
 import { subMinutes } from 'date-fns';
-import type { ReactElement } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactElement,
+} from 'react';
 
-const MINUTES_TO_DECREASE_FROM_CURRENT_DATE = 20;
+interface LogsFilters {
+  from: Date;
+  to: Date | null;
+  service: AvailableLogsService;
+  regexFilter: string;
+}
 
 export default function LogsPage() {
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const [fromDate, setFromDate] = useState<Date>(
-    subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
-  );
-  const [toDate, setToDate] = useState<Date | null>(new Date());
-  const [service, setService] = useState<AvailableLogsService>(
-    AvailableLogsService.ALL,
-  );
 
   // create a client that sends http requests to Hasura but websocket requests to Bragi
   const clientWithSplit = useRemoteApplicationGQLClientWithSubscriptions();
   const subscriptionReturn = useRef(null);
 
-  /**
-   * Will change the specific service from which we query logs.
-   */
-  function handleServiceChange(value: AvailableLogsService) {
-    setService(value);
-  }
+  const [filters, setFilters] = useState<LogsFilters>({
+    from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
+    to: new Date(),
+    regexFilter: '',
+    service: AvailableLogsService.ALL,
+  });
 
-  const { data, loading, error, subscribeToMore, client } =
+  const { data, error, subscribeToMore, client, loading, refetch } =
     useGetProjectLogsQuery({
-      variables: {
-        appID: currentProject.id,
-        from: fromDate,
-        to: toDate,
-        service,
-      },
+      variables: { appID: currentProject.id, ...filters },
       client: clientWithSplit,
+      fetchPolicy: 'cache-and-network',
+      notifyOnNetworkStatusChange: true,
     });
 
   const subscribeToMoreLogs = useCallback(
@@ -53,8 +57,9 @@ export default function LogsPage() {
         document: GetLogsSubscriptionDocument,
         variables: {
           appID: currentProject.id,
-          service,
-          from: fromDate,
+          service: filters.service,
+          from: filters.from,
+          regexFilter: filters.regexFilter,
         },
         updateQuery: (prev, { subscriptionData }) => {
           // if there is no new data, just return the previous data
@@ -93,40 +98,47 @@ export default function LogsPage() {
           };
         },
       }),
-    [subscribeToMore, currentProject.id, service, fromDate],
+    [subscribeToMore, currentProject.id, filters],
   );
 
   useEffect(() => {
-    if (toDate && subscriptionReturn.current !== null) {
+    if (filters.to && subscriptionReturn.current !== null) {
       subscriptionReturn.current();
       subscriptionReturn.current = null;
 
       return () => {};
     }
 
-    if (toDate) {
+    if (filters.to) {
       return () => {};
+    }
+
+    if (subscriptionReturn.current) {
+      subscriptionReturn.current();
+      subscriptionReturn.current = null;
     }
 
     // This will open the websocket connection and it will return a function to close it.
     subscriptionReturn.current = subscribeToMoreLogs();
 
-    // get rid of the current apollo client instance (will also close the websocket if it's the live status)
-    return () => client.stop();
-  }, [subscribeToMoreLogs, toDate, client]);
+    return () => {};
+  }, [filters, subscribeToMoreLogs, client]);
+
+  const onSubmitFilterValues = useCallback(
+    async (values: LogsFilterFormValues) => {
+      setFilters({ ...(values as LogsFilters) });
+      await refetch();
+    },
+    [setFilters, refetch],
+  );
 
   return (
     <div className="flex h-full w-full flex-col">
       <RetryableErrorBoundary>
         <LogsHeader
-          fromDate={fromDate}
-          toDate={toDate}
-          service={service}
-          onServiceChange={handleServiceChange}
-          onFromDateChange={setFromDate}
-          onToDateChange={setToDate}
+          loading={loading}
+          onSubmitFilterValues={onSubmitFilterValues}
         />
-
         <LogsBody error={error} loading={loading} logsData={data} />
       </RetryableErrorBoundary>
     </div>

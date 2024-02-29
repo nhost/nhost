@@ -21,6 +21,9 @@ module.exports = {
         copper: '#DD792D',
         paper: '#171d26',
         divider: '#2f363d',
+        'primary-main': '#0052cd',
+        'primary-light': '#ebf3ff',
+        'primary-dark': '#063799',
       },
       boxShadow: {
         outline: 'inset 0 0 0 2px rgba(0, 82, 205, 0.6)',

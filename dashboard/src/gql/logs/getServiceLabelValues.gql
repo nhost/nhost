@@ -1,0 +1,3 @@
+query getServiceLabelValues($appID: String!) {
+  getServiceLabelValues(appID: $appID)
+}

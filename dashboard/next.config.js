@@ -16,8 +16,6 @@ const cspHeader = `
     form-action 'self';
     frame-ancestors 'none';
     frame-src 'self' js.stripe.com;
-    block-all-mixed-content;
-    upgrade-insecure-requests;
 `;
 
 module.exports = withBundleAnalyzer({
@@ -41,10 +39,6 @@ module.exports = withBundleAnalyzer({
           {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: cspHeader.replace(/\n/g, ''),
           },
         ],
       },

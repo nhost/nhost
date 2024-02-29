@@ -35,7 +35,24 @@ export default function useRemoteApplicationGQLClientWithSubscriptions() {
     );
 
     return new ApolloClient({
-      cache: new InMemoryCache(),
+      cache: new InMemoryCache({
+        typePolicies: {
+          Subscription: {
+            fields: {
+              logs: {
+                keyArgs: false,
+              },
+            },
+          },
+          Query: {
+            fields: {
+              logs: {
+                keyArgs: false,
+              },
+            },
+          },
+        },
+      }),
       connectToDevTools: true,
       link: split(
         ({ query }) => {
