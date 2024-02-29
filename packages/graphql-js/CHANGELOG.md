@@ -1,5 +1,11 @@
 # @nhost/graphql-js
 
+## 0.1.8
+
+### Patch Changes
+
+- 407feea: fix: replace `jwt-decode` with `jose` to decode access tokens in a non browser environment
+
 ## 0.1.7
 
 ### Patch Changes
