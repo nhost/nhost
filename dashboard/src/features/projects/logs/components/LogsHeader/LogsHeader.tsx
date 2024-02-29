@@ -148,7 +148,7 @@ export default function LogsHeader({
 
           <Input
             {...register('regexFilter')}
-            placeholder="Filter logs with a RegExp"
+            placeholder="Filter logs with a regular expression"
             hideEmptyHelperText
             autoComplete="off"
             fullWidth
@@ -163,15 +163,15 @@ export default function LogsHeader({
                   },
                 }}
                 title={
-                  <div className="space-y-4">
-                    <h2>Here are some useful RegExp patterns:</h2>
+                  <div className="space-y-4 p-2">
+                    <h2>Here are some useful regular expressions:</h2>
                     <ul className="list-disc space-y-2 pl-3">
                       <li>
                         use
                         <code className="mx-1 rounded-md bg-slate-500 px-1 py-px text-slate-100">
                           (?i)error
                         </code>
-                        to search for lines with the word <b>error</b> (cas
+                        to search for lines with the word <b>error</b> (case
                         insenstive)
                       </li>
                       <li>
