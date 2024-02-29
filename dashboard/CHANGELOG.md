@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.8.2
+
+### Patch Changes
+
+- 6df4f02: fix: use custom error toast and show correct message when sending an invite
+
 ## 1.8.1
 
 ### Patch Changes
