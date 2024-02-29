@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.9.0
+
+### Minor Changes
+
+- d86e5c9: feat: add support for filtering the logs using a RegExp
+
 ## 1.8.3
 
 ### Patch Changes
