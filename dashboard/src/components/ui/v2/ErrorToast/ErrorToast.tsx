@@ -5,7 +5,7 @@ import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { getToastBackgroundColor } from '@/utils/constants/settings';
 import { copy } from '@/utils/copy';
-import { ApolloError } from '@apollo/client';
+import type { ApolloError } from '@apollo/client';
 import { useUserData } from '@nhost/nextjs';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/router';
@@ -27,10 +27,11 @@ const getInternalErrorMessage = (
     return null;
   }
 
-  if (error instanceof ApolloError) {
-    const internalError = error.graphQLErrors?.[0]?.extensions?.internal as
-      | { error: { message: string } }
-      | undefined;
+  if (error.name === 'ApolloError') {
+    // @ts-ignore
+    const internalError = error.graphQLErrors?.[0]?.extensions?.internal as {
+      error: { message: string };
+    };
     return internalError?.error?.message || null;
   }
 
@@ -42,7 +43,7 @@ const getInternalErrorMessage = (
 };
 
 const errorToObject = (error: ApolloError | Error) => {
-  if (error instanceof ApolloError) {
+  if (error.name === 'ApolloError') {
     return error;
   }
 

@@ -7,7 +7,7 @@ import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCur
 import { PendingWorkspaceMemberInvitation } from '@/features/projects/workspaces/components/PendingWorkspaceMemberInvitation';
 import { WorkspaceMember } from '@/features/projects/workspaces/components/WorkspaceMember';
 import { discordAnnounce } from '@/utils/discordAnnounce';
-import { getErrorMessage } from '@/utils/getErrorMessage';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { triggerToast } from '@/utils/toast';
 import {
   refetchGetWorkspaceMembersQuery,
@@ -52,38 +52,42 @@ function WorkspaceMemberInviteForm({
       return;
     }
 
-    try {
-      await insertWorkspaceMemberInvite({
-        variables: {
-          workspaceMemberInvite: {
-            workspaceId: currentWorkspace.id,
-            email,
-            memberType: 'member',
+    await execPromiseWithErrorToast(
+      async () => {
+        await insertWorkspaceMemberInvite({
+          variables: {
+            workspaceMemberInvite: {
+              workspaceId: currentWorkspace.id,
+              email,
+              memberType: 'member',
+            },
           },
-        },
-      });
-      triggerToast(
-        `Invite to join workspace ${currentWorkspace.name} sent to ${email}.`,
-      );
-    } catch (error) {
-      await discordAnnounce(
-        `Error trying to invite to ${email} to ${currentWorkspace.name} ${error.message}`,
-      );
-      if (
-        error.message ===
-        'Foreign key violation. insert or update on table "workspace_member_invites" violates foreign key constraint "workspace_member_invites_email_fkey"'
-      ) {
-        setWorkspaceInviteError(
-          'You can only invite users that are already registered at Nhost. Ask the person to register an account, then invite them again.',
+        });
+
+        triggerToast(
+          `Invite to join workspace ${currentWorkspace.name} sent to ${email}.`,
         );
+      },
+      {
+        loadingMessage: 'Sending invite...',
+        successMessage: 'The invite has been sent successfully.',
+        errorMessage: `Error trying to invite to ${email} to ${currentWorkspace.name}`,
+        onError: async (error) => {
+          await discordAnnounce(
+            `Error trying to invite to ${email} to ${currentWorkspace.name} ${error.message}`,
+          );
 
-        return;
-      }
-
-      setWorkspaceInviteError(getErrorMessage(error, 'invite'));
-
-      return;
-    }
+          if (
+            error.message ===
+            'Foreign key violation. insert or update on table "workspace_member_invites" violates foreign key constraint "workspace_member_invites_email_fkey"'
+          ) {
+            setWorkspaceInviteError(
+              'You can only invite users that are already registered at Nhost. Ask the person to register an account, then invite them again.',
+            );
+          }
+        },
+      },
+    );
 
     setEmail('');
   };
@@ -130,8 +134,8 @@ export default function WorkspaceMembers() {
   });
 
   return (
-    <div className="mx-auto mt-18 max-w-3xl font-display">
-      <div className="mb-2 grid grid-flow-row gap-1">
+    <div className="max-w-3xl mx-auto mt-18 font-display">
+      <div className="grid grid-flow-row gap-1 mb-2">
         <Text variant="h3">Members</Text>
         <Text color="secondary" className="text-sm">
           People in this workspace can manage all projects listed above.

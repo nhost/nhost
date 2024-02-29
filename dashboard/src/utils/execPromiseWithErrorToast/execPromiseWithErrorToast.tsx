@@ -29,6 +29,7 @@ export default async function execPromiseWithErrorToast(
     const result = await call();
 
     toast.dismiss(loadingToastId);
+
     toast.success(successMessage, {
       style: toastStyle.style,
       ...toastStyle.success,
