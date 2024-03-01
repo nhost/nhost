@@ -153,6 +153,11 @@ int set_jp2kload_options(VipsOperation *operation, LoadParams *params) {
   return 0;
 }
 
+int set_jxlload_options(VipsOperation *operation, LoadParams *params) {
+  // nothing need to do
+  return 0;
+}
+
 int set_magickload_options(VipsOperation *operation, LoadParams *params) {
   MAYBE_SET_INT(operation, params->page, "page");
   MAYBE_SET_INT(operation, params->n, "n");
@@ -285,6 +290,9 @@ int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
                       "near_lossless", params->webpNearLossless,
                       "reduction_effort", params->webpReductionEffort,
                       "profile", params->webpIccProfile ? params->webpIccProfile : "none",
+                      "min_size", params->webpMinSize,
+                      "kmin", params->webpKMin,
+                      "kmax", params->webpKMax,
                       NULL);
 
   if (!ret && params->quality) {
@@ -362,7 +370,7 @@ int set_heifsave_options(VipsOperation *operation, SaveParams *params) {
 
 // https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L653
 int set_avifsave_options(VipsOperation *operation, SaveParams *params) {
-  int ret = vips_object_set(VIPS_OBJECT(operation), "compression",
+  int ret = vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata, "compression",
                             VIPS_FOREIGN_HEIF_COMPRESSION_AV1, "lossless",
                             params->heifLossless, NULL);
 
@@ -391,6 +399,19 @@ int set_jp2ksave_options(VipsOperation *operation, SaveParams *params) {
       VIPS_OBJECT(operation), "subsample_mode", params->jpegSubsample,
       "tile_height", params->jp2kTileHeight, "tile_width", params->jp2kTileWidth,
       "lossless", params->jp2kLossless, NULL);
+
+  if (!ret && params->quality) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  }
+
+  return ret;
+}
+
+int set_jxlsave_options(VipsOperation *operation, SaveParams *params) {
+  int ret = vips_object_set(
+      VIPS_OBJECT(operation), "tier", params->jxlTier,
+      "distance", params->jxlDistance, "effort", params->jxlEffort,
+      "lossless", params->jxlLossless, NULL);
 
   if (!ret && params->quality) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
@@ -431,9 +452,12 @@ int load_from_buffer(LoadParams *params, void *buf, size_t len) {
     case AVIF:
       return load_buffer("heifload_buffer", buf, len, params,
                          set_heifload_options);
-   case JP2K:
+    case JP2K:
       return load_buffer("jp2kload_buffer", buf, len, params,
                           set_jp2kload_options);
+    case JXL:
+      return load_buffer("jxlload_buffer", buf, len, params,
+                          set_jxlload_options);
     default:
       g_warning("Unsupported input type given: %d", params->inputFormat);
   }
@@ -462,6 +486,8 @@ int save_to_buffer(SaveParams *params) {
       return save_buffer("heifsave_buffer", params, set_avifsave_options);
     case JP2K:
       return save_buffer("jp2ksave_buffer", params, set_jp2ksave_options);
+    case JXL:
+      return save_buffer("jxlsave_buffer", params, set_jxlsave_options);
     default:
       g_warning("Unsupported output type given: %d", params->outputFormat);
   }
@@ -519,6 +545,9 @@ static SaveParams defaultSaveParams = {
     .webpNearLossless = FALSE,
     .webpReductionEffort = 4,
     .webpIccProfile = NULL,
+    .webpKMax = 0,
+    .webpKMin = 0,
+    .webpMinSize = FALSE,
 
     .heifBitdepth = 8,
     .heifLossless = FALSE,

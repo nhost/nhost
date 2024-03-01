@@ -43,7 +43,7 @@ const (
 // Intent represents VIPS_INTENT type
 type Intent int
 
-//Intent enum
+// Intent enum
 const (
 	IntentPerceptual Intent = C.VIPS_INTENT_PERCEPTUAL
 	IntentRelative   Intent = C.VIPS_INTENT_RELATIVE

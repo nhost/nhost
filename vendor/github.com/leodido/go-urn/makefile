@@ -30,7 +30,7 @@ machine.go: snake2camel
 machine.go: removecomments
 
 machine.go:
-	$(RAGEL) -Z -G2 -e -o $@ $<
+	$(RAGEL) -Z -G1 -e -o $@ $<
 	@./removecomments $@
 	@./snake2camel $@
 	$(GOFMT) $@

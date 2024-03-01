@@ -40,7 +40,7 @@ func vipsDivide(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
 	return out, nil
 }
 
-//  https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear
+// https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear
 func vipsLinear(in *C.VipsImage, a, b []float64, n int) (*C.VipsImage, error) {
 	incOpCounter("linear")
 	var out *C.VipsImage
@@ -52,7 +52,7 @@ func vipsLinear(in *C.VipsImage, a, b []float64, n int) (*C.VipsImage, error) {
 	return out, nil
 }
 
-//  https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear1
+// https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear1
 func vipsLinear1(in *C.VipsImage, a, b float64) (*C.VipsImage, error) {
 	incOpCounter("linear1")
 	var out *C.VipsImage
@@ -113,4 +113,64 @@ func vipsGetPoint(in *C.VipsImage, n int, x int, y int) ([]float64, error) {
 
 	// maximum n is 4
 	return (*[4]float64)(unsafe.Pointer(out))[:n:n], nil
+}
+
+// https://www.libvips.org/API/current/libvips-arithmetic.html#vips-stats
+func vipsStats(in *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("stats")
+	var out *C.VipsImage
+
+	if err := C.stats(in, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://www.libvips.org/API/current/libvips-arithmetic.html#vips-hist-find
+func vipsHistFind(in *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("histFind")
+	var out *C.VipsImage
+
+	if err := C.hist_find(in, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://www.libvips.org/API/current/libvips-histogram.html#vips-hist-norm
+func vipsHistNorm(in *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("histNorm")
+	var out *C.VipsImage
+
+	if err := C.hist_norm(in, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://www.libvips.org/API/current/libvips-histogram.html#vips-hist-cum
+func vipsHistCum(in *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("histCum")
+	var out *C.VipsImage
+
+	if err := C.hist_cum(in, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://www.libvips.org/API/current/libvips-histogram.html#vips-hist-entropy
+func vipsHistEntropy(in *C.VipsImage) (float64, error) {
+	incOpCounter("histEntropy")
+	var out C.double
+
+	if err := C.hist_entropy(in, &out); err != 0 {
+		return 0, handleVipsError()
+	}
+
+	return float64(out), nil
 }

@@ -44,6 +44,7 @@ const (
 	ImageTypeBMP     ImageType = C.BMP
 	ImageTypeAVIF    ImageType = C.AVIF
 	ImageTypeJP2K    ImageType = C.JP2K
+	ImageTypeJXL     ImageType = C.JXL
 )
 
 var imageTypeExtensionMap = map[ImageType]string{
@@ -59,6 +60,7 @@ var imageTypeExtensionMap = map[ImageType]string{
 	ImageTypeBMP:    ".bmp",
 	ImageTypeAVIF:   ".avif",
 	ImageTypeJP2K:   ".jp2",
+	ImageTypeJXL:    ".jxl",
 }
 
 // ImageTypes defines the various image types supported by govips
@@ -75,6 +77,7 @@ var ImageTypes = map[ImageType]string{
 	ImageTypeBMP:    "bmp",
 	ImageTypeAVIF:   "heif",
 	ImageTypeJP2K:   "jp2k",
+	ImageTypeJXL:    "jxl",
 }
 
 // TiffCompression represents method for compressing a tiff at export
@@ -157,6 +160,8 @@ func DetermineImageType(buf []byte) ImageType {
 		return ImageTypeBMP
 	} else if isJP2K(buf) {
 		return ImageTypeJP2K
+	} else if isJXL(buf) {
+		return ImageTypeJXL
 	} else {
 		return ImageTypeUnknown
 	}
@@ -250,6 +255,12 @@ var jp2kHeader = []byte("\x00\x00\x00\x0C\x6A\x50\x20\x20\x0D\x0A\x87\x0A")
 // https://datatracker.ietf.org/doc/html/rfc3745
 func isJP2K(buf []byte) bool {
 	return bytes.HasPrefix(buf, jp2kHeader)
+}
+
+var jxlHeader = []byte("\xff\x0a")
+
+func isJXL(buf []byte) bool {
+	return bytes.HasPrefix(buf, jxlHeader)
 }
 
 func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageType, ImageType, error) {
@@ -377,6 +388,9 @@ func vipsSaveWebPToBuffer(in *C.VipsImage, params WebpExportParams) ([]byte, err
 	p.webpLossless = C.int(boolToInt(params.Lossless))
 	p.webpNearLossless = C.int(boolToInt(params.NearLossless))
 	p.webpReductionEffort = C.int(params.ReductionEffort)
+	p.webpMinSize = C.int(boolToInt(params.MinSize))
+	p.webpKMin = C.int(params.MinKeyFrames)
+	p.webpKMax = C.int(params.MaxKeyFrames)
 
 	if params.IccProfile != "" {
 		p.webpIccProfile = C.CString(params.IccProfile)
@@ -423,6 +437,7 @@ func vipsSaveAVIFToBuffer(in *C.VipsImage, params AvifExportParams) ([]byte, err
 
 	p := C.create_save_params(C.AVIF)
 	p.inputImage = in
+	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
 	p.outputFormat = C.AVIF
 	p.quality = C.int(params.Quality)
 	p.heifLossless = C.int(boolToInt(params.Lossless))
@@ -456,6 +471,21 @@ func vipsSaveGIFToBuffer(in *C.VipsImage, params GifExportParams) ([]byte, error
 	p.gifDither = C.double(params.Dither)
 	p.gifEffort = C.int(params.Effort)
 	p.gifBitdepth = C.int(params.Bitdepth)
+
+	return vipsSaveToBuffer(p)
+}
+
+func vipsSaveJxlToBuffer(in *C.VipsImage, params JxlExportParams) ([]byte, error) {
+	incOpCounter("save_jxl_buffer")
+
+	p := C.create_save_params(C.JXL)
+	p.inputImage = in
+	p.outputFormat = C.JXL
+	p.quality = C.int(params.Quality)
+	p.jxlLossless = C.int(boolToInt(params.Lossless))
+	p.jxlTier = C.int(params.Tier)
+	p.jxlDistance = C.double(params.Distance)
+	p.jxlEffort = C.int(params.Effort)
 
 	return vipsSaveToBuffer(p)
 }

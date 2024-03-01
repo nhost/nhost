@@ -173,6 +173,9 @@ func vipsDetermineImageTypeFromMetaLoader(in *C.VipsImage) ImageType {
 	if strings.HasPrefix(vipsLoader, "jp2k") {
 		return ImageTypeJP2K
 	}
+	if strings.HasPrefix(vipsLoader, "jxl") {
+		return ImageTypeJXL
+	}
 	if strings.HasPrefix(vipsLoader, "magick") {
 		return ImageTypeMagick
 	}

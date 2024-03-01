@@ -212,6 +212,18 @@ func vipsFlip(in *C.VipsImage, direction Direction) (*C.VipsImage, error) {
 	return out, nil
 }
 
+// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-recomb
+func vipsRecomb(in *C.VipsImage, m *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("recomb")
+	var out *C.VipsImage
+
+	if err := C.recomb_image(in, &out, m); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-extract-area
 func vipsExtractArea(in *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
 	incOpCounter("extractArea")
@@ -268,6 +280,18 @@ func vipsSmartCrop(in *C.VipsImage, width int, height int, interesting Interesti
 	var out *C.VipsImage
 
 	if err := C.smartcrop(in, &out, C.int(width), C.int(height), C.int(interesting)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// http://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-crop
+func vipsCrop(in *C.VipsImage, left int, top int, width int, height int) (*C.VipsImage, error) {
+	incOpCounter("crop")
+	var out *C.VipsImage
+
+	if err := C.crop(in, &out, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
 		return nil, handleImageError(out)
 	}
 

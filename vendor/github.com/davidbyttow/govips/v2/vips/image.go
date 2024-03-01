@@ -272,6 +272,8 @@ func NewPngExportParams() *PngExportParams {
 }
 
 // WebpExportParams are options when exporting a WEBP to file or buffer
+// see https://www.libvips.org/API/current/VipsForeignSave.html#vips-webpsave
+// for details on each parameter
 type WebpExportParams struct {
 	StripMetadata   bool
 	Quality         int
@@ -279,6 +281,9 @@ type WebpExportParams struct {
 	NearLossless    bool
 	ReductionEffort int
 	IccProfile      string
+	MinSize         bool
+	MinKeyFrames    int
+	MaxKeyFrames    int
 }
 
 // NewWebpExportParams creates default values for an export of a WEBP image.
@@ -382,6 +387,24 @@ func NewJp2kExportParams() *Jp2kExportParams {
 		Lossless:   false,
 		TileWidth:  512,
 		TileHeight: 512,
+	}
+}
+
+// JxlExportParams are options when exporting an JXL to file or buffer.
+type JxlExportParams struct {
+	Quality  int
+	Lossless bool
+	Tier     int
+	Distance float64
+	Effort   int
+}
+
+// NewJxlExportParams creates default values for an export of an JXL image.
+func NewJxlExportParams() *JxlExportParams {
+	return &JxlExportParams{
+		Quality:  75,
+		Lossless: false,
+		Effort:   7,
 	}
 }
 
@@ -844,6 +867,12 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 			Lossless:      params.Lossless,
 			Speed:         params.Speed,
 		})
+	case ImageTypeJXL:
+		return r.ExportJxl(&JxlExportParams{
+			Quality:  params.Quality,
+			Lossless: params.Lossless,
+			Effort:   params.Effort,
+		})
 	default:
 		format = ImageTypeJPEG
 		return r.ExportJpeg(&JpegExportParams{
@@ -879,6 +908,8 @@ func (r *ImageRef) ExportNative() ([]byte, *ImageMetadata, error) {
 		return r.ExportJp2k(NewJp2kExportParams())
 	case ImageTypeGIF:
 		return r.ExportGIF(NewGifExportParams())
+	case ImageTypeJXL:
+		return r.ExportJxl(NewJxlExportParams())
 	default:
 		return r.ExportJpeg(NewJpegExportParams())
 	}
@@ -997,6 +1028,20 @@ func (r *ImageRef) ExportJp2k(params *Jp2kExportParams) ([]byte, *ImageMetadata,
 	}
 
 	return buf, r.newMetadata(ImageTypeJP2K), nil
+}
+
+// ExportJxl exports the image as JPEG XL to a buffer.
+func (r *ImageRef) ExportJxl(params *JxlExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewJxlExportParams()
+	}
+
+	buf, err := vipsSaveJxlToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeJXL), nil
 }
 
 // CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.
@@ -1615,6 +1660,65 @@ func (r *ImageRef) GetPoint(x int, y int) ([]float64, error) {
 	return vipsGetPoint(r.image, n, x, y)
 }
 
+// Stats find many image statistics in a single pass through the data. Image is changed into a one-band
+// `BandFormatDouble` image of at least 10 columns by n + 1 (where n is number of bands in image in)
+// rows. Columns are statistics, and are, in order: minimum, maximum, sum, sum of squares, mean,
+// standard deviation, x coordinate of minimum, y coordinate of minimum, x coordinate of maximum,
+// y coordinate of maximum.
+//
+// Row 0 has statistics for all bands together, row 1 has stats for band 1, and so on.
+//
+// If there is more than one maxima or minima, one of them will be chosen at random.
+func (r *ImageRef) Stats() error {
+	out, err := vipsStats(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// HistogramFind find the histogram the image.
+// Find the histogram for all bands (producing a one-band histogram).
+// char and uchar images are cast to uchar before histogramming, all other image types are cast to ushort.
+func (r *ImageRef) HistogramFind() error {
+	out, err := vipsHistFind(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// HistogramCumulative form cumulative histogram.
+func (r *ImageRef) HistogramCumulative() error {
+	out, err := vipsHistCum(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// HistogramNormalise
+// The maximum of each band becomes equal to the maximum index, so for example the max for a uchar
+// image becomes 255. Normalise each band separately.
+func (r *ImageRef) HistogramNormalise() error {
+	out, err := vipsHistNorm(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// HistogramEntropy estimate image entropy from a histogram. Entropy is calculated as:
+// `-sum(p * log2(p))`
+// where p is histogram-value / sum-of-histogram-values.
+func (r *ImageRef) HistogramEntropy() (float64, error) {
+	return vipsHistEntropy(r.image)
+}
+
 // DrawRect draws an (optionally filled) rectangle with a single colour
 func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height int, fill bool) error {
 	err := vipsDrawRect(r.image, ink, left, top, width, height, fill)
@@ -1662,7 +1766,7 @@ func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error
 		if vScale != -1 {
 			scale = vScale
 		}
-		newPageHeight := int(float64(pageHeight) * scale)
+		newPageHeight := int(float64(pageHeight)*scale + 0.5)
 		if err := r.SetPageHeight(newPageHeight); err != nil {
 			return err
 		}
@@ -1774,6 +1878,55 @@ func (r *ImageRef) Flip(direction Direction) error {
 	return nil
 }
 
+// Recomb recombines the image bands using the matrix provided
+func (r *ImageRef) Recomb(matrix [][]float64) error {
+	numBands := r.Bands()
+	// Ensure the provided matrix is 3x3
+	if len(matrix) != 3 || len(matrix[0]) != 3 || len(matrix[1]) != 3 || len(matrix[2]) != 3 {
+		return errors.New("Invalid recombination matrix")
+	}
+	// If the image is RGBA, expand the matrix to 4x4
+	if numBands == 4 {
+		matrix = append(matrix, []float64{0, 0, 0, 1})
+		for i := 0; i < 3; i++ {
+			matrix[i] = append(matrix[i], 0)
+		}
+	} else if numBands != 3 {
+		return errors.New("Unsupported number of bands")
+	}
+
+	// Flatten the matrix
+	var matrixValues []float64
+	for _, row := range matrix {
+		for _, value := range row {
+			matrixValues = append(matrixValues, value)
+		}
+	}
+
+	// Convert the Go slice to a C array and get its size
+	matrixPtr := unsafe.Pointer(&matrixValues[0])
+	matrixSize := C.size_t(len(matrixValues) * 8) // 8 bytes for each float64
+
+	// Create a VipsImage from the matrix in memory
+	matrixImage := C.vips_image_new_from_memory(matrixPtr, matrixSize, C.int(numBands), C.int(numBands), 1, C.VIPS_FORMAT_DOUBLE)
+
+	// Check for any Vips errors
+	errMsg := C.GoString(C.vips_error_buffer())
+	if errMsg != "" {
+		C.vips_error_clear()
+		return errors.New("Vips error: " + errMsg)
+	}
+
+	// Recombine the image using the matrix
+	out, err := vipsRecomb(r.image, matrixImage)
+	if err != nil {
+		return err
+	}
+
+	r.setImage(out)
+	return nil
+}
+
 // Rotate rotates the image by multiples of 90 degrees. To rotate by arbitrary angles use Similarity.
 func (r *ImageRef) Rotate(angle Angle) error {
 	width := r.Width()
@@ -1838,6 +1991,16 @@ func (r *ImageRef) Grid(tileHeight, across, down int) error {
 // SmartCrop will crop the image based on interesting factor
 func (r *ImageRef) SmartCrop(width int, height int, interesting Interesting) error {
 	out, err := vipsSmartCrop(r.image, width, height, interesting)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Crop will crop the image based on coordinate and box size
+func (r *ImageRef) Crop(left int, top int, width int, height int) error {
+	out, err := vipsCrop(r.image, left, top, width, height)
 	if err != nil {
 		return err
 	}
