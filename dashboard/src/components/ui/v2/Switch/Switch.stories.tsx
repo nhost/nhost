@@ -8,7 +8,9 @@ export default {
   argTypes: {},
 } as Meta<typeof Switch>;
 
-const Template: StoryFn<SwitchProps> = (args: SwitchProps) => {
+const Template: StoryFn<SwitchProps> = function TemplateFunction(
+  args: SwitchProps,
+) {
   return <Switch label="Accept Rules" {...args} />;
 };
 

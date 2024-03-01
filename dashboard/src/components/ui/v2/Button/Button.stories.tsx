@@ -26,7 +26,9 @@ export default {
   },
 } as Meta<typeof Button>;
 
-const Template: StoryFn<ButtonProps> = (args) => {
+const Template: StoryFn<ButtonProps> = function TemplateFunction(
+  args: ButtonProps,
+) {
   return <Button {...args} />;
 };
 

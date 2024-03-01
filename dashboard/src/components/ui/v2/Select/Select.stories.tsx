@@ -9,7 +9,7 @@ export default {
   argTypes: {},
 } as Meta<typeof Select>;
 
-const Template: StoryFn<SelectProps<any>> = (args) => {
+const Template: StoryFn<SelectProps<any>> = function TemplateFunction(args) {
   return (
     <Select className="w-64" {...args}>
       <Option value="value1">Value 1</Option>
