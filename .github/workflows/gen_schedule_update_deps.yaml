@@ -52,6 +52,7 @@ jobs:
           pnpm update -r
           pnpm dedupe
         "
+        rm config/.husky/pre-commit
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6
