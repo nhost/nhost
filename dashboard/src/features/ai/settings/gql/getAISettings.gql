@@ -1,5 +1,8 @@
 query GetAISettings($appId: uuid!) {
   config(appID: $appId, resolve: false) {
+    postgres {
+      version
+    }
     ai {
       version
       webhookSecret
