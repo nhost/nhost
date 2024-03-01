@@ -3,7 +3,7 @@
   "version": "0.3.3",
   "private": true,
   "dependencies": {
-    "@apollo/client": "^3.9.4",
+    "@apollo/client": "^3.9.5",
     "@mantine/core": "^4.2.12",
     "@mantine/dropzone": "^4.2.12",
     "@mantine/hooks": "^4.2.12",
@@ -15,8 +15,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.12.0",
-    "react-router": "^6.21.3",
-    "react-router-dom": "^6.21.3",
+    "react-router": "^6.22.2",
+    "react-router-dom": "^6.22.2",
     "tabler-icons-react": "^1.56.0"
   },
   "scripts": {
@@ -54,17 +54,17 @@
     "@nuintun/qrcode": "^3.4.0",
     "@playwright/test": "1.31.0",
     "@types/pngjs": "^6.0.4",
-    "@types/react": "^18.2.50",
-    "@types/react-dom": "^18.2.18",
+    "@types/react": "^18.2.61",
+    "@types/react-dom": "^18.2.19",
     "@types/totp-generator": "^0.0.4",
     "@vitejs/plugin-react": "^3.1.0",
     "@xstate/inspect": "^0.6.5",
-    "dotenv": "^16.4.1",
+    "dotenv": "^16.4.5",
     "jsqr": "^1.4.0",
     "pngjs": "^7.0.0",
     "totp-generator": "^0.0.13",
     "typescript": "^4.9.5",
-    "vite": "^5.0.12",
+    "vite": "^5.1.4",
     "ws": "^8.16.0",
     "xstate": "^4.38.3"
   }

@@ -15,7 +15,7 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.4",
+    "@apollo/client": "^3.9.5",
     "@mantine/core": "^4.2.12",
     "@mantine/hooks": "^4.2.12",
     "@mantine/next": "^4.2.12",
@@ -31,8 +31,8 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^12.3.4",
-    "@types/node": "^16.18.78",
-    "@types/react": "^18.2.50",
+    "@types/node": "^16.18.86",
+    "@types/react": "^18.2.61",
     "@xstate/inspect": "^0.6.5",
     "eslint-config-next": "12.0.10",
     "typescript": "^4.9.5",

@@ -9,10 +9,10 @@
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",
     "commander": "^10.0.1",
-    "dotenv": "^16.4.1",
+    "dotenv": "^16.4.5",
     "graphql": "16.8.1",
     "graphql-tag": "^2.12.6",
-    "pino": "^8.17.2"
+    "pino": "^8.19.0"
   },
   "engines": {
     "node": ">=16.0.0"
