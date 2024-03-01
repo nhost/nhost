@@ -41,6 +41,13 @@ export const validationSchema = Yup.object({
       })
       .required(),
   ),
+  healthCheck: Yup.object()
+    .shape({
+      port: Yup.number().required(),
+      initialDelaySeconds: Yup.number().required(),
+      probePeriodSeconds: Yup.number().required(),
+    })
+    .nullable(),
 });
 
 export type ServiceFormValues = Yup.InferType<typeof validationSchema>;
