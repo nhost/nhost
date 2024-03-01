@@ -15,7 +15,6 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "prepare": "husky install config/.husky",
     "build": "pnpm run build:all --filter=!@nhost/dashboard --filter=!@nhost/docs --filter=!@nhost-examples/*",
     "build:dashboard": "turbo run build --filter=@nhost/dashboard",
     "build:docs": "turbo run build --filter=@nhost/docs",
@@ -77,7 +76,6 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-vue": "^9.22.0",
-    "husky": "^8.0.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
     "turbo": "1.11.3",
