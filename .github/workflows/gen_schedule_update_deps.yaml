@@ -1,7 +1,6 @@
 ---
 name: "gen: update depenendencies"
 on:
-  push:
   schedule:
     - cron: '0 2 1 * *'
 
