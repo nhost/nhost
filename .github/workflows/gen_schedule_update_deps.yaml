@@ -22,7 +22,7 @@ jobs:
     - name: Configure aws
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}:role/github-actions-nhost-be
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
         aws-region: eu-central-1
 
     - uses: nixbuild/nix-quick-install-action@v26
@@ -44,11 +44,19 @@ jobs:
     - name: Update nix flakes
       run: nix flake update
 
+    - uses: shaunco/ssh-agent@git-repo-mapping
+      with:
+        ssh-private-key: |
+          ${{ secrets.NHOST_BE_DEPLOY_SSH_PRIVATE_KEY}}
+        repo-mappings: |
+          github.com/nhost/be
+
     - name: Update golang dependencies
       run: |
+        export GOPRIVATE=github.com/nhost/be
         nix develop -c bash -c "
           go mod tidy
-          go get -u ./...
+          go get -u $(cat go.mod | grep nhost\/be | tr ' ' '@') ./...
           go mod tidy
           go mod vendor
         "
