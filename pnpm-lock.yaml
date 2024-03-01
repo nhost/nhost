@@ -115,6 +115,9 @@ importers:
       eslint-plugin-vue:
         specifier: ^9.22.0
         version: 9.22.0(eslint@8.57.0)
+      husky:
+        specifier: ^8.0.3
+        version: 8.0.3
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
@@ -18511,6 +18514,12 @@ packages:
   /human-signals@5.0.0:
     resolution: {integrity: sha512-AXcZb6vzzrFAUE61HnN4mpLqd/cSIwNQjtNWR0euPm6y0iqx3G4gOXaIDdtdDwZmhwe82LA6+zinmW4UBWVePQ==}
     engines: {node: '>=16.17.0'}
+    dev: true
+
+  /husky@8.0.3:
+    resolution: {integrity: sha512-+dQSyqPh4x1hlO1swXBiNb2HzTDN1I2IGLQx1GrBuiqFJfoMrnZWwVmatvSiO+Iz8fBUnf+lekwNo4c2LlXItg==}
+    engines: {node: '>=14'}
+    hasBin: true
     dev: true
 
   /iconv-lite@0.4.24:
