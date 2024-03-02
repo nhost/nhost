@@ -38,6 +38,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { parse } from 'shell-quote';
+import { HealthCheckFormSection } from './components/HealthCheckFormSection';
 import { ServiceConfirmationDialog } from './components/ServiceConfirmationDialog';
 import { ServiceDetailsDialog } from './components/ServiceDetailsDialog';
 
@@ -118,6 +119,13 @@ export default function ServiceForm({
         type: item.type,
         publish: item.publish,
       })),
+      healthCheck: values.healthCheck
+        ? {
+            port: values.healthCheck?.port,
+            initialDelaySeconds: values.healthCheck?.initialDelaySeconds,
+            probePeriodSeconds: values.healthCheck?.probePeriodSeconds,
+          }
+        : null,
     };
 
     return config;
@@ -374,6 +382,8 @@ export default function ServiceForm({
         <PortsFormSection />
 
         <StorageFormSection />
+
+        <HealthCheckFormSection />
 
         {createServiceFormError && (
           <Alert

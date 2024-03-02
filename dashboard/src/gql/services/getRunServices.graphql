@@ -40,6 +40,11 @@ query getRunServices(
             fqdn
           }
         }
+        healthCheck {
+          port
+          initialDelaySeconds
+          probePeriodSeconds
+        }
       }
     }
     runServices_aggregate {
