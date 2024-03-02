@@ -35,7 +35,7 @@ function InsertPlaceholderTableRow({
   ...props
 }: InsertPlaceholderTableRowProps) {
   return (
-    <Box className="h-12 border-r-1 border-b-1" {...props}>
+    <Box className="h-12 border-b-1 border-r-1" {...props}>
       <Button
         onClick={onInsertRow}
         variant="borderless"
@@ -209,7 +209,7 @@ export default function DataGridBody<T extends object>({
             />
           ) : (
             <Box
-              className="inline-flex h-12 items-center border-b-1 border-r-1 py-1.5 px-2 text-xs"
+              className="inline-flex h-12 items-center border-b-1 border-r-1 px-2 py-1.5 text-xs"
               sx={{ color: 'text.secondary' }}
               style={{
                 width: allowInsertColumn
@@ -281,8 +281,8 @@ export default function DataGridBody<T extends object>({
                     }}
                     className={twMerge(
                       'h-12 font-display text-xs motion-safe:transition-colors',
-                      'border-r-1 border-b-1',
-                      'scroll-mt-[57px] scroll-ml-8',
+                      'border-b-1 border-r-1',
+                      'scroll-ml-8 scroll-mt-[57px]',
                       column.id === 'selection' &&
                         'sticky left-0 z-20 justify-center px-0',
                     )}
@@ -296,7 +296,7 @@ export default function DataGridBody<T extends object>({
               })}
 
               {allowInsertColumn && (
-                <Box className="h-12 w-25 border-r-1 border-b-1" />
+                <Box className="h-12 w-25 border-b-1 border-r-1" />
               )}
             </div>
 

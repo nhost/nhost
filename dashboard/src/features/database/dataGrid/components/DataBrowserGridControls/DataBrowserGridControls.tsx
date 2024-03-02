@@ -85,6 +85,10 @@ export default function DataBrowserGridControls({
       return;
     }
 
+    console.log({
+      handleRowDelete: true,
+    });
+
     setSelectedRowsBeforeDelete(selectedRows);
 
     try {
@@ -96,6 +100,10 @@ export default function DataBrowserGridControls({
               column.isPrimary || column.isUnique,
           )
           .map((column) => column.id),
+      });
+
+      console.log({
+        numberOfRemovedRows,
       });
 
       triggerToast(
@@ -126,7 +134,7 @@ export default function DataBrowserGridControls({
           numberOfSelectedRows > 0 ? 'justify-between' : 'justify-end',
         )}
       >
-        {isSchemaEditable && numberOfSelectedRows > 0 && (
+        {numberOfSelectedRows > 0 && (
           <div className="grid grid-flow-col place-content-start items-center gap-2">
             <Chip
               size="small"

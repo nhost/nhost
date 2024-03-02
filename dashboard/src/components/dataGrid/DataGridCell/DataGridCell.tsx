@@ -8,7 +8,15 @@ import type {
   DataBrowserGridCellProps,
 } from '@/features/database/dataGrid/types/dataBrowser';
 import { triggerToast } from '@/utils/toast';
-import type { FocusEvent, JSXElementConstructor, KeyboardEvent, MouseEvent, ReactElement, ReactNode, ReactPortal } from 'react';
+import type {
+  FocusEvent,
+  JSXElementConstructor,
+  KeyboardEvent,
+  MouseEvent,
+  ReactElement,
+  ReactNode,
+  ReactPortal,
+} from 'react';
 import {
   Children,
   cloneElement,
@@ -308,7 +316,7 @@ function DataGridCellContent<TData extends object = {}, TValue = unknown>({
         isEditable &&
           'focus-within:outline-none focus-within:ring-0 focus:ring-0',
         isSelected && 'shadow-outline',
-        isEditing ? 'p-0.5 shadow-outline-dark' : 'py-1.5 px-2',
+        isEditing ? 'p-0.5 shadow-outline-dark' : 'px-2 py-1.5',
         className,
       )}
       onFocus={handleFocus}
@@ -320,20 +328,28 @@ function DataGridCellContent<TData extends object = {}, TValue = unknown>({
       sx={{ backgroundColor: 'transparent' }}
       {...props}
     >
-      {Children.map(children, (child: ReactNode | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>>) => {
-        if (!isValidElement(child)) {
-          return null;
-        }
+      {Children.map(
+        children,
+        (
+          child:
+            | ReactNode
+            | ReactPortal
+            | ReactElement<unknown, string | JSXElementConstructor<any>>,
+        ) => {
+          if (!isValidElement(child)) {
+            return null;
+          }
 
-        return cloneElement(child, {
-          ...child.props,
-          onSave: handleSave,
-          optimisticValue,
-          onOptimisticValueChange: setOptimisticValue,
-          temporaryValue,
-          onTemporaryValueChange: setTemporaryValue,
-        });
-      })}
+          return cloneElement(child, {
+            ...child.props,
+            onSave: handleSave,
+            optimisticValue,
+            onOptimisticValueChange: setOptimisticValue,
+            temporaryValue,
+            onTemporaryValueChange: setTemporaryValue,
+          });
+        },
+      )}
     </Box>
   );
 
