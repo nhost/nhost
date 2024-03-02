@@ -85,10 +85,6 @@ export default function DataBrowserGridControls({
       return;
     }
 
-    console.log({
-      handleRowDelete: true,
-    });
-
     setSelectedRowsBeforeDelete(selectedRows);
 
     try {
@@ -100,10 +96,6 @@ export default function DataBrowserGridControls({
               column.isPrimary || column.isUnique,
           )
           .map((column) => column.id),
-      });
-
-      console.log({
-        numberOfRemovedRows,
       });
 
       triggerToast(
