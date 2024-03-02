@@ -21,12 +21,16 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 import { DisableAIServiceConfirmationDialog } from './DisableAIServiceConfirmationDialog';
+
+const MIN_POSTGRES_VERSION_SUPPORTING_AI = '14.6-20231018-1';
 
 const validationSchema = Yup.object({
   version: Yup.object({
@@ -54,7 +58,9 @@ export default function AISettings() {
   const [aiServiceEnabled, setAIServiceEnabled] = useState(true);
 
   const {
-    data: { config: { ai } = {} } = {},
+    data: {
+      config: { ai, postgres: { version: postgresVersion } = {} } = {},
+    } = {},
     loading: loadingAiSettings,
     error: errorGettingAiSettings,
   } = useGetAiSettingsQuery({
@@ -150,6 +156,17 @@ export default function AISettings() {
   ]);
 
   const toggleAIService = async (enabled: boolean) => {
+    if (postgresVersion < MIN_POSTGRES_VERSION_SUPPORTING_AI) {
+      toast.error(
+        'In order to enable the AI service you need to update your database version to 14.6-20231018-1 or newer.',
+        {
+          style: getToastStyleProps().style,
+          ...getToastStyleProps().error,
+        },
+      );
+      return;
+    }
+
     setAIServiceEnabled(enabled);
 
     if (!enabled && ai) {
