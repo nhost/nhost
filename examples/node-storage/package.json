@@ -12,14 +12,14 @@
   "license": "ISC",
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",
-    "dotenv": "^16.4.1",
+    "dotenv": "^16.4.5",
     "form-data": "^4.0.0",
     "fs-extra": "^11.2.0",
     "node-fetch": "^3.3.2",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "@types/node": "^18.19.12",
+    "@types/node": "^18.19.21",
     "@types/uuid": "^9.0.8"
   }
 }

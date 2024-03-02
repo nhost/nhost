@@ -1,5 +1,5 @@
 import { Option } from '@/components/ui/v2/Option';
-import type { ComponentMeta, ComponentStory } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react';
 import type { SelectProps } from './Select';
 import Select from './Select';
 
@@ -7,11 +7,9 @@ export default {
   title: 'UI Library / Select',
   component: Select,
   argTypes: {},
-} as ComponentMeta<typeof Select>;
+} as Meta<typeof Select>;
 
-const Template: ComponentStory<typeof Select> = function Template(
-  args: SelectProps<any>,
-) {
+const Template: StoryFn<SelectProps<any>> = function TemplateFunction(args) {
   return (
     <Select className="w-64" {...args}>
       <Option value="value1">Value 1</Option>

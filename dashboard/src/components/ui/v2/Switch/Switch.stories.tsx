@@ -1,4 +1,4 @@
-import type { ComponentMeta, ComponentStory } from '@storybook/react';
+import type { Meta, StoryFn } from '@storybook/react';
 import type { SwitchProps } from './Switch';
 import Switch from './Switch';
 
@@ -6,9 +6,9 @@ export default {
   title: 'UI Library / Switch',
   component: Switch,
   argTypes: {},
-} as ComponentMeta<typeof Switch>;
+} as Meta<typeof Switch>;
 
-const Template: ComponentStory<typeof Switch> = function Template(
+const Template: StoryFn<SwitchProps> = function TemplateFunction(
   args: SwitchProps,
 ) {
   return <Switch label="Accept Rules" {...args} />;

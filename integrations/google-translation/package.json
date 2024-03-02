@@ -48,8 +48,8 @@
     "graphql-request": "^6.1.0"
   },
   "devDependencies": {
-    "@types/node": "^16.18.78",
-    "dotenv": "^16.4.1",
+    "@types/node": "^16.18.86",
+    "dotenv": "^16.4.5",
     "typescript": "^4.9.5"
   }
 }
