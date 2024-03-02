@@ -275,7 +275,7 @@ export default function DataBrowserGrid({
     () =>
       columns
         .map((column) => ({
-          ...createDataGridColumn(column, isSchemaEditable),
+          ...createDataGridColumn(column, true),
           onCellEdit: async (variables: UpdateRecordVariables) => {
             const result = await updateRow(variables);
             await queryClient.invalidateQueries([currentTablePath]);
@@ -288,7 +288,6 @@ export default function DataBrowserGrid({
     [
       columns,
       currentTablePath,
-      isSchemaEditable,
       optimisticlyRemovedColumnId,
       queryClient,
       removableColumnId,
@@ -422,7 +421,7 @@ export default function DataBrowserGrid({
       loading={status === 'loading'}
       sortBy={sortBy}
       className="pb-17 sm:pb-0"
-      onInsertRow={isSchemaEditable ? handleInsertRowClick : undefined}
+      onInsertRow={handleInsertRowClick}
       onInsertColumn={isSchemaEditable ? handleInsertColumnClick : undefined}
       onEditColumn={isSchemaEditable ? handleEditColumnClick : undefined}
       onRemoveColumn={isSchemaEditable ? handleColumnRemoveClick : undefined}
@@ -445,7 +444,7 @@ export default function DataBrowserGrid({
           onInsertColumnClick={
             isSchemaEditable ? handleInsertColumnClick : undefined
           }
-          onInsertRowClick={isSchemaEditable ? handleInsertRowClick : undefined}
+          onInsertRowClick={handleInsertRowClick}
           paginationProps={{
             currentPage: Math.max(currentPage, 1),
             totalPages: Math.max(numberOfPages, 1),
