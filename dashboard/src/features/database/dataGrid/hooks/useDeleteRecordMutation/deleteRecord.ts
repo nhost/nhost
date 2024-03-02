@@ -43,7 +43,13 @@ export default async function deleteRecord({
     (row) =>
       `(${primaryOrUniqueColumns
         .map((primaryOrUniqueColumn) =>
-          format('%I=%L', primaryOrUniqueColumn, row[primaryOrUniqueColumn]),
+          row[primaryOrUniqueColumn] === null
+            ? format('%I IS NULL', primaryOrUniqueColumn)
+            : format(
+                '%I=%L',
+                primaryOrUniqueColumn,
+                row[primaryOrUniqueColumn],
+              ),
         )
         .join(' AND ')})`,
   );
