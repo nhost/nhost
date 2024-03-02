@@ -12,11 +12,9 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { RowIcon } from '@/components/ui/v2/icons/RowIcon';
 import { useDeleteRecordMutation } from '@/features/database/dataGrid/hooks/useDeleteRecordMutation';
 import type { DataBrowserGridColumn } from '@/features/database/dataGrid/types/dataBrowser';
-import { isSchemaLocked } from '@/features/database/dataGrid/utils/schemaHelpers/isSchemaLocked';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { triggerToast } from '@/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 import type { Row } from 'react-table';
 import { twMerge } from 'tailwind-merge';
@@ -57,11 +55,6 @@ export default function DataBrowserGridControls({
 
   const { className: paginationClassName, ...restPaginationProps } =
     paginationProps || ({} as DataGridPaginationProps);
-
-  const {
-    query: { schemaSlug },
-  } = useRouter();
-  const isSchemaEditable = !isSchemaLocked(schemaSlug as string);
 
   const {
     selectedFlatRows: selectedRows,
@@ -126,7 +119,7 @@ export default function DataBrowserGridControls({
           numberOfSelectedRows > 0 ? 'justify-between' : 'justify-end',
         )}
       >
-        {isSchemaEditable && numberOfSelectedRows > 0 && (
+        {numberOfSelectedRows > 0 && (
           <div className="grid grid-flow-col place-content-start items-center gap-2">
             <Chip
               size="small"
