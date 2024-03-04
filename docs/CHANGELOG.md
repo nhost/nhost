@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.7.0
+
+### Minor Changes
+
+- 49a80c2: chore: update dependencies
+
 ## 2.6.0
 
 ### Minor Changes

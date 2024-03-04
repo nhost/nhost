@@ -1,5 +1,16 @@
 # @nhost/react-urql
 
+## 7.0.0
+
+### Minor Changes
+
+- 49a80c2: chore: update dependencies
+
+### Patch Changes
+
+- Updated dependencies [49a80c2]
+  - @nhost/react@3.3.0
+
 ## 6.0.3
 
 ### Patch Changes

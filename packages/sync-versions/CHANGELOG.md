@@ -1,5 +1,11 @@
 # @nhost/sync-versions
 
+## 0.1.0
+
+### Minor Changes
+
+- 49a80c2: chore: update dependencies
+
 ## 0.0.10
 
 ### Patch Changes

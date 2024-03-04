@@ -1,5 +1,20 @@
 # @nhost/dashboard
 
+## 1.10.0
+
+### Minor Changes
+
+- 49a80c2: chore: update dependencies
+- 150c04a: feat: add healthcheck config to run services
+
+### Patch Changes
+
+- e03f141: fix: allow insert, update and delete on tables in `auth` and `storage` schemas
+- 28676f4: feat: add min postgres version check to enable the ai service
+- Updated dependencies [49a80c2]
+  - @nhost/react-apollo@10.0.0
+  - @nhost/nextjs@2.1.6
+
 ## 1.9.0
 
 ### Minor Changes

@@ -1,5 +1,18 @@
 # @nhost-examples/nextjs
 
+## 0.2.0
+
+### Minor Changes
+
+- 49a80c2: chore: update dependencies
+
+### Patch Changes
+
+- Updated dependencies [49a80c2]
+  - @nhost/react-apollo@10.0.0
+  - @nhost/react@3.3.0
+  - @nhost/nextjs@2.1.6
+
 ## 0.1.19
 
 ### Patch Changes

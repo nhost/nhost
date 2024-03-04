@@ -1,5 +1,17 @@
 # @nhost-examples/react-apollo
 
+## 0.4.0
+
+### Minor Changes
+
+- 49a80c2: chore: update dependencies
+
+### Patch Changes
+
+- Updated dependencies [49a80c2]
+  - @nhost/react-apollo@10.0.0
+  - @nhost/react@3.3.0
+
 ## 0.3.3
 
 ### Patch Changes

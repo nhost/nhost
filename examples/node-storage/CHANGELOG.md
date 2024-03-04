@@ -1,5 +1,15 @@
 # @nhost-examples/node-storage
 
+## 0.1.0
+
+### Minor Changes
+
+- 49a80c2: chore: update dependencies
+
+### Patch Changes
+
+- @nhost/nhost-js@3.0.8
+
 ## 0.0.11
 
 ### Patch Changes
