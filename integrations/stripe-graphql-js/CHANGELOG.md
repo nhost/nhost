@@ -1,5 +1,11 @@
 # @nhost/stripe-graphql-js
 
+## 1.1.0
+
+### Minor Changes
+
+- 49a80c2: chore: update dependencies
+
 ## 1.0.7
 
 ### Patch Changes

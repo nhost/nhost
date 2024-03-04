@@ -1,5 +1,16 @@
 # @nhost-examples/codegen-react-query
 
+## 0.2.0
+
+### Minor Changes
+
+- 49a80c2: chore: update dependencies
+
+### Patch Changes
+
+- Updated dependencies [49a80c2]
+  - @nhost/react@3.3.0
+
 ## 0.1.18
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @nhost-examples/react-gqty
 
+## 1.1.0
+
+### Minor Changes
+
+- 49a80c2: chore: update dependencies
+
+### Patch Changes
+
+- Updated dependencies [49a80c2]
+  - @nhost/react@3.3.0
+
 ## 1.0.7
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nhost-examples/docker-compose
 
+## 0.2.0
+
+### Minor Changes
+
+- 49a80c2: chore: update dependencies
+
 ## 0.1.1
 
 ### Patch Changes
