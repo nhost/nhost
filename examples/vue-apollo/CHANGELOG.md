@@ -1,5 +1,11 @@
 # @nhost-examples/vue-apollo
 
+## 0.3.1
+
+### Patch Changes
+
+- 4f3fb34: fix: set redirectTo when doing sign in with github and include vercel previews in allowed redirect URLs
+
 ## 0.3.0
 
 ### Minor Changes
