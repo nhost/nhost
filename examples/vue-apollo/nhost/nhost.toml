@@ -35,7 +35,7 @@ mode = 'required'
 
 [auth.redirections]
 clientUrl = 'https://vue-apollo.example.nhost.io'
-allowedUrls = ['https://vue-apollo.example.nhost.io/profile', 'http://localhost:5173']
+allowedUrls = ['https://vue-apollo.example.nhost.io/profile', 'https://react-apollo.example.nhost.io/profile', 'https://*.vercel.app','http://localhost:5173']
 
 [auth.signUp]
 enabled = true
