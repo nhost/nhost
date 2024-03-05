@@ -6,7 +6,7 @@ import AuthLink from './AuthLink'
 
 export default function OauthLinks() {
   const { github, google, apple, linkedin } = useProviderLink({
-    redirectTo: window.location.origin
+    redirectTo: `${window.location.origin}/profile`
   })
 
   return (

@@ -15,5 +15,5 @@
 <script lang="ts" setup>
 import { useProviderLink } from '@nhost/vue'
 
-const { github } = useProviderLink({ redirectTo: window.location.origin })
+const { github } = useProviderLink({ redirectTo: `${window.location.origin}/profile` })
 </script>
