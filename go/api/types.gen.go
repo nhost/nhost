@@ -4,44 +4,44 @@
 package api
 
 import (
-	"encoding/json"
 	"time"
 
-	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-// Defines values for SignUpEmailPasswordSchemaOptionsDefaultRole.
+// Defines values for ErrorResponseError.
 const (
-	SignUpEmailPasswordSchemaOptionsDefaultRoleMe   SignUpEmailPasswordSchemaOptionsDefaultRole = "me"
-	SignUpEmailPasswordSchemaOptionsDefaultRoleUser SignUpEmailPasswordSchemaOptionsDefaultRole = "user"
+	DefaultRoleMustBeInAllowedRoles ErrorResponseError = "default-role-must-be-in-allowed-roles"
+	EmailAlreadyInUse               ErrorResponseError = "email-already-in-use"
+	InternalServerError             ErrorResponseError = "internal-server-error"
+	InvalidRequest                  ErrorResponseError = "invalid-request"
+	LocaleNotAllowed                ErrorResponseError = "locale-not-allowed"
+	PasswordInHibpDatabase          ErrorResponseError = "password-in-hibp-database"
+	PasswordTooShort                ErrorResponseError = "password-too-short"
+	RedirecToNotAllowed             ErrorResponseError = "redirecTo-not-allowed"
+	RoleNotAllowed                  ErrorResponseError = "role-not-allowed"
+	SignupDisabled                  ErrorResponseError = "signup-disabled"
 )
 
-// Defines values for UserActiveMfaType0.
-const (
-	Empty UserActiveMfaType0 = ""
-)
+// ErrorResponse defines model for ErrorResponse.
+type ErrorResponse struct {
+	// Error Error code that identifies the application error
+	Error ErrorResponseError `json:"error"`
 
-// Defines values for UserActiveMfaType1.
-const (
-	Totp UserActiveMfaType1 = "totp"
-)
+	// Message Human friendly error message
+	Message string `json:"message"`
 
-// Defines values for UserDefaultRole.
-const (
-	UserDefaultRoleMe   UserDefaultRole = "me"
-	UserDefaultRoleUser UserDefaultRole = "user"
-)
-
-// MFA defines model for MFA.
-type MFA struct {
-	Ticket *string `json:"ticket,omitempty"`
+	// Status HTTP status error code
+	Status int `json:"status"`
 }
+
+// ErrorResponseError Error code that identifies the application error
+type ErrorResponseError string
 
 // Session defines model for Session.
 type Session struct {
-	AccessToken          string  `json:"accessToken"`
-	AccessTokenExpiresIn float32 `json:"accessTokenExpiresIn"`
+	AccessToken          string `json:"accessToken"`
+	AccessTokenExpiresIn int64  `json:"accessTokenExpiresIn"`
 
 	// RefreshToken Refresh token during authentication or when refreshing the JWT
 	RefreshToken string `json:"refreshToken"`
@@ -50,58 +50,37 @@ type Session struct {
 
 // SessionPayload defines model for SessionPayload.
 type SessionPayload struct {
-	Mfa     *MFA     `json:"mfa,omitempty"`
 	Session *Session `json:"session,omitempty"`
-}
-
-// SignInEmailPasswordSchema defines model for SignInEmailPasswordSchema.
-type SignInEmailPasswordSchema struct {
-	// Email A valid email
-	Email    openapi_types.Email `json:"email"`
-	Password string              `json:"password"`
 }
 
 // SignUpEmailPasswordSchema defines model for SignUpEmailPasswordSchema.
 type SignUpEmailPasswordSchema struct {
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
-	Options *struct {
-		AllowedRoles *[]SignUpEmailPasswordSchema_Options_AllowedRoles_Item `json:"allowedRoles,omitempty"`
-		DefaultRole  *SignUpEmailPasswordSchemaOptionsDefaultRole           `json:"defaultRole,omitempty"`
-		DisplayName  *string                                                `json:"displayName,omitempty"`
-
-		// Locale A two-characters locale
-		Locale     *string                 `json:"locale,omitempty"`
-		Metadata   *map[string]interface{} `json:"metadata,omitempty"`
-		RedirectTo *string                 `json:"redirectTo,omitempty"`
-	} `json:"options,omitempty"`
+	Options *SignUpOptions      `json:"options,omitempty"`
 
 	// Password A password of minimum 3 characters
 	Password string `json:"password"`
 }
 
-// SignUpEmailPasswordSchemaOptionsAllowedRoles0 defines model for .
-type SignUpEmailPasswordSchemaOptionsAllowedRoles0 = interface{}
+// SignUpOptions defines model for SignUpOptions.
+type SignUpOptions struct {
+	AllowedRoles *[]string `json:"allowedRoles,omitempty"`
+	DefaultRole  *string   `json:"defaultRole,omitempty"`
+	DisplayName  *string   `json:"displayName,omitempty"`
 
-// SignUpEmailPasswordSchemaOptionsAllowedRoles1 defines model for .
-type SignUpEmailPasswordSchemaOptionsAllowedRoles1 = interface{}
-
-// SignUpEmailPasswordSchema_Options_AllowedRoles_Item defines model for SignUpEmailPasswordSchema.Options.AllowedRoles.Item.
-type SignUpEmailPasswordSchema_Options_AllowedRoles_Item struct {
-	union json.RawMessage
+	// Locale A two-characters locale
+	Locale     *string                 `json:"locale,omitempty"`
+	Metadata   *map[string]interface{} `json:"metadata,omitempty"`
+	RedirectTo *string                 `json:"redirectTo,omitempty"`
 }
-
-// SignUpEmailPasswordSchemaOptionsDefaultRole defines model for SignUpEmailPasswordSchema.Options.DefaultRole.
-type SignUpEmailPasswordSchemaOptionsDefaultRole string
 
 // User defines model for User.
 type User struct {
-	// ActiveMfaType Multi-factor authentication type. A null value deactivates MFA
-	ActiveMfaType User_ActiveMfaType `json:"activeMfaType"`
-	AvatarUrl     string             `json:"avatarUrl"`
-	CreatedAt     time.Time          `json:"createdAt"`
-	DefaultRole   UserDefaultRole    `json:"defaultRole"`
-	DisplayName   string             `json:"displayName"`
+	AvatarUrl   string    `json:"avatarUrl"`
+	CreatedAt   time.Time `json:"createdAt"`
+	DefaultRole string    `json:"defaultRole"`
+	DisplayName string    `json:"displayName"`
 
 	// Email A valid email
 	Email         openapi_types.Email `json:"email"`
@@ -116,222 +95,8 @@ type User struct {
 	Metadata            map[string]interface{} `json:"metadata"`
 	PhoneNumber         string                 `json:"phoneNumber"`
 	PhoneNumberVerified bool                   `json:"phoneNumberVerified"`
-	Roles               []User_Roles_Item      `json:"roles"`
+	Roles               []string               `json:"roles"`
 }
-
-// UserActiveMfaType0 defines model for User.ActiveMfaType.0.
-type UserActiveMfaType0 string
-
-// UserActiveMfaType1 defines model for User.ActiveMfaType.1.
-type UserActiveMfaType1 string
-
-// User_ActiveMfaType Multi-factor authentication type. A null value deactivates MFA
-type User_ActiveMfaType struct {
-	union json.RawMessage
-}
-
-// UserDefaultRole defines model for User.DefaultRole.
-type UserDefaultRole string
-
-// UserRoles0 defines model for .
-type UserRoles0 = interface{}
-
-// UserRoles1 defines model for .
-type UserRoles1 = interface{}
-
-// User_Roles_Item defines model for User.roles.Item.
-type User_Roles_Item struct {
-	union json.RawMessage
-}
-
-// PostSigninEmailPasswordJSONRequestBody defines body for PostSigninEmailPassword for application/json ContentType.
-type PostSigninEmailPasswordJSONRequestBody = SignInEmailPasswordSchema
 
 // PostSignupEmailPasswordJSONRequestBody defines body for PostSignupEmailPassword for application/json ContentType.
 type PostSignupEmailPasswordJSONRequestBody = SignUpEmailPasswordSchema
-
-// AsSignUpEmailPasswordSchemaOptionsAllowedRoles0 returns the union data inside the SignUpEmailPasswordSchema_Options_AllowedRoles_Item as a SignUpEmailPasswordSchemaOptionsAllowedRoles0
-func (t SignUpEmailPasswordSchema_Options_AllowedRoles_Item) AsSignUpEmailPasswordSchemaOptionsAllowedRoles0() (SignUpEmailPasswordSchemaOptionsAllowedRoles0, error) {
-	var body SignUpEmailPasswordSchemaOptionsAllowedRoles0
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromSignUpEmailPasswordSchemaOptionsAllowedRoles0 overwrites any union data inside the SignUpEmailPasswordSchema_Options_AllowedRoles_Item as the provided SignUpEmailPasswordSchemaOptionsAllowedRoles0
-func (t *SignUpEmailPasswordSchema_Options_AllowedRoles_Item) FromSignUpEmailPasswordSchemaOptionsAllowedRoles0(v SignUpEmailPasswordSchemaOptionsAllowedRoles0) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeSignUpEmailPasswordSchemaOptionsAllowedRoles0 performs a merge with any union data inside the SignUpEmailPasswordSchema_Options_AllowedRoles_Item, using the provided SignUpEmailPasswordSchemaOptionsAllowedRoles0
-func (t *SignUpEmailPasswordSchema_Options_AllowedRoles_Item) MergeSignUpEmailPasswordSchemaOptionsAllowedRoles0(v SignUpEmailPasswordSchemaOptionsAllowedRoles0) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsSignUpEmailPasswordSchemaOptionsAllowedRoles1 returns the union data inside the SignUpEmailPasswordSchema_Options_AllowedRoles_Item as a SignUpEmailPasswordSchemaOptionsAllowedRoles1
-func (t SignUpEmailPasswordSchema_Options_AllowedRoles_Item) AsSignUpEmailPasswordSchemaOptionsAllowedRoles1() (SignUpEmailPasswordSchemaOptionsAllowedRoles1, error) {
-	var body SignUpEmailPasswordSchemaOptionsAllowedRoles1
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromSignUpEmailPasswordSchemaOptionsAllowedRoles1 overwrites any union data inside the SignUpEmailPasswordSchema_Options_AllowedRoles_Item as the provided SignUpEmailPasswordSchemaOptionsAllowedRoles1
-func (t *SignUpEmailPasswordSchema_Options_AllowedRoles_Item) FromSignUpEmailPasswordSchemaOptionsAllowedRoles1(v SignUpEmailPasswordSchemaOptionsAllowedRoles1) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeSignUpEmailPasswordSchemaOptionsAllowedRoles1 performs a merge with any union data inside the SignUpEmailPasswordSchema_Options_AllowedRoles_Item, using the provided SignUpEmailPasswordSchemaOptionsAllowedRoles1
-func (t *SignUpEmailPasswordSchema_Options_AllowedRoles_Item) MergeSignUpEmailPasswordSchemaOptionsAllowedRoles1(v SignUpEmailPasswordSchemaOptionsAllowedRoles1) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t SignUpEmailPasswordSchema_Options_AllowedRoles_Item) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *SignUpEmailPasswordSchema_Options_AllowedRoles_Item) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsUserActiveMfaType0 returns the union data inside the User_ActiveMfaType as a UserActiveMfaType0
-func (t User_ActiveMfaType) AsUserActiveMfaType0() (UserActiveMfaType0, error) {
-	var body UserActiveMfaType0
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromUserActiveMfaType0 overwrites any union data inside the User_ActiveMfaType as the provided UserActiveMfaType0
-func (t *User_ActiveMfaType) FromUserActiveMfaType0(v UserActiveMfaType0) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeUserActiveMfaType0 performs a merge with any union data inside the User_ActiveMfaType, using the provided UserActiveMfaType0
-func (t *User_ActiveMfaType) MergeUserActiveMfaType0(v UserActiveMfaType0) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsUserActiveMfaType1 returns the union data inside the User_ActiveMfaType as a UserActiveMfaType1
-func (t User_ActiveMfaType) AsUserActiveMfaType1() (UserActiveMfaType1, error) {
-	var body UserActiveMfaType1
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromUserActiveMfaType1 overwrites any union data inside the User_ActiveMfaType as the provided UserActiveMfaType1
-func (t *User_ActiveMfaType) FromUserActiveMfaType1(v UserActiveMfaType1) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeUserActiveMfaType1 performs a merge with any union data inside the User_ActiveMfaType, using the provided UserActiveMfaType1
-func (t *User_ActiveMfaType) MergeUserActiveMfaType1(v UserActiveMfaType1) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t User_ActiveMfaType) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *User_ActiveMfaType) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsUserRoles0 returns the union data inside the User_Roles_Item as a UserRoles0
-func (t User_Roles_Item) AsUserRoles0() (UserRoles0, error) {
-	var body UserRoles0
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromUserRoles0 overwrites any union data inside the User_Roles_Item as the provided UserRoles0
-func (t *User_Roles_Item) FromUserRoles0(v UserRoles0) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeUserRoles0 performs a merge with any union data inside the User_Roles_Item, using the provided UserRoles0
-func (t *User_Roles_Item) MergeUserRoles0(v UserRoles0) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsUserRoles1 returns the union data inside the User_Roles_Item as a UserRoles1
-func (t User_Roles_Item) AsUserRoles1() (UserRoles1, error) {
-	var body UserRoles1
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromUserRoles1 overwrites any union data inside the User_Roles_Item as the provided UserRoles1
-func (t *User_Roles_Item) FromUserRoles1(v UserRoles1) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeUserRoles1 performs a merge with any union data inside the User_Roles_Item, using the provided UserRoles1
-func (t *User_Roles_Item) MergeUserRoles1(v UserRoles1) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t User_Roles_Item) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *User_Roles_Item) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}

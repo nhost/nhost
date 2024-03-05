@@ -31,6 +31,7 @@ describe('webauthn', () => {
 
     // set env vars
     await request.post('/change-env').send({
+      AUTH_DISABLE_SIGNUP: false,
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_WEBAUTHN_ENABLED: true,
       AUTH_SERVER_URL: serverUrl,

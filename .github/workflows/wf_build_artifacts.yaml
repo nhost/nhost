@@ -66,6 +66,11 @@ jobs:
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
           builders-use-substitutes = true
 
+    - name: Compute common env vars
+      id: vars
+      run: |
+        echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
+
     - name: "Verify if we need to build"
       id: verify-build
       run: |
@@ -112,11 +117,6 @@ jobs:
 
     - uses: docker/setup-qemu-action@v3
       if: ${{ ( matrix.platform == 'aarch64' ) }}
-
-    - name: Compute common env vars
-      id: vars
-      run: |
-        echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
 
     - name: "Wait for remote builder to be ready"
       run: |

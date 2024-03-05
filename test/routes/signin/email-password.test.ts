@@ -32,7 +32,7 @@ describe('email-password', () => {
     await client.query(`DELETE FROM auth.users;`);
   });
 
-  it.only('should sign in user and return valid tokens', async () => {
+  it('should sign in user and return valid tokens', async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
     await request

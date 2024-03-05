@@ -58,11 +58,20 @@ jobs:
     - name: "Verify if we need to build"
       id: verify-build
       run: |
-        export check_dry_run_output=$(make check-dry-run)
+        export check_dry_run_output=$(make check-dry-run-go)
         export drvPath=$(echo "$check_dry_run_output" | grep -oE '"out":.*"' | awk -F\" '{ print $4 }')
         nix store verify --store s3://nhost-nix-cache?region=eu-central-1 $drvPath \
           && export BUILD_NEEDED=no \
           || export BUILD_NEEDED=yes
+
+        if [ "$BUILD_NEEDED" != "yes" ]; then
+          export check_dry_run_output=$(make check-dry-run-node)
+          export drvPath=$(echo "$check_dry_run_output" | grep -oE '"out":.*"' | awk -F\" '{ print $4 }')
+          nix store verify --store s3://nhost-nix-cache?region=eu-central-1 $drvPath \
+            && export BUILD_NEEDED=no \
+            || export BUILD_NEEDED=yes
+        fi
+
         echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
 
     - name: Cache nix store

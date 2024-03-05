@@ -44,24 +44,42 @@ func getLogger(debug bool, formatTEXT bool) *slog.Logger {
 	return slog.New(handler)
 }
 
+func isSecret(name string) bool {
+	return strings.Contains(name, "pass") ||
+		strings.Contains(name, "token") ||
+		strings.Contains(name, "secret") ||
+		strings.Contains(name, "key") ||
+		strings.Contains(name, "license") ||
+		strings.Contains(name, "postgres")
+}
+
 func logFlags(logger *slog.Logger, cCtx *cli.Context) {
+	processed := make(map[string]struct{})
+
 	flags := make([]any, 0, len(cCtx.App.Flags)+len(cCtx.Command.Flags))
 	for _, flag := range cCtx.App.Flags {
 		name := flag.Names()[0]
-		flags = append(flags, slog.Any(name, cCtx.Generic(name)))
+		value := cCtx.Generic(name)
+
+		if isSecret(name) {
+			value = "********"
+		}
+		flags = append(flags, slog.Any(name, value))
+
+		processed[name] = struct{}{}
 	}
 
 	for _, flag := range cCtx.Command.Flags {
 		name := flag.Names()[0]
+		if _, ok := processed[name]; ok {
+			continue
+		}
 		value := cCtx.Generic(name)
-		if strings.Contains(name, "pass") ||
-			strings.Contains(name, "token") ||
-			strings.Contains(name, "secret") ||
-			strings.Contains(name, "key") ||
-			strings.Contains(name, "license") ||
-			name == "postgres" {
+
+		if isSecret(name) {
 			value = "********"
 		}
+
 		flags = append(flags, slog.Any(name, value))
 	}
 	logger.LogAttrs(cCtx.Context, slog.LevelInfo, "starting program", slog.Group("flags", flags...))

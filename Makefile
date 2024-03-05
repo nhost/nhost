@@ -41,13 +41,22 @@ check:   ## Run nix flake check
 	./build/nix.sh flake check --print-build-logs
 
 
-.PHONY: check-dry-run
-check-dry-run:  ## Run nix flake check
+.PHONY: check-dry-run-node
+check-dry-run-node:  ## Run nix flake check
 	nix build \
 		--dry-run \
 		--json \
 		--print-build-logs \
 		.\#checks.$(ARCH)-$(OS).node-checks
+
+
+.PHONY: check-dry-run-go
+check-dry-run-go:  ## Run nix flake check
+	nix build \
+		--dry-run \
+		--json \
+		--print-build-logs \
+		.\#checks.$(ARCH)-$(OS).go-checks
 
 
 .PHONY: dev-env-up

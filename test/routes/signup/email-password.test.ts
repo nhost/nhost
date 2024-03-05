@@ -75,14 +75,14 @@ describe('email-password', () => {
       AUTH_PASSWORD_HIBP_ENABLED: true,
     });
 
-    const result = await request
+    await request
       .post('/signup/email-password')
       .send({ email, password })
-      .expect(StatusCodes.BAD_REQUEST);
-
-    expect(result.body.message).toEqual(
-      'Password is too weak (it has been pwned)'
-    );
+      .expect(StatusCodes.BAD_REQUEST, {
+        error: 'password-in-hibp-database',
+        message: 'Password is in HIBP database',
+        status: 400
+      });
   });
 
   it('should succeed to sign up with different emails', async () => {
@@ -139,10 +139,16 @@ describe('email-password', () => {
       .send({
         email,
         password,
-        defaultRole: 'user',
-        allowedRoles: ['editor'],
+        options: {
+          defaultRole: 'user',
+          allowedRoles: ['editor'],
+        },
       })
-      .expect(StatusCodes.BAD_REQUEST);
+      .expect(StatusCodes.BAD_REQUEST, {
+        status: StatusCodes.BAD_REQUEST,
+        message:'Default role must be in allowed roles',
+        error: 'default-role-must-be-in-allowed-roles',
+      });
   });
 
   it('allowed roles must be subset of env var AUTH_USER_DEFAULT_ALLOWED_ROLES', async () => {
@@ -161,8 +167,8 @@ describe('email-password', () => {
       .expect(StatusCodes.BAD_REQUEST, {
         status: StatusCodes.BAD_REQUEST,
         message:
-          '"options.allowedRoles[1]" does not match any of the allowed types',
-        error: 'invalid-request',
+          'Role not allowed',
+        error: 'role-not-allowed',
       });
   });
 

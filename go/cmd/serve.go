@@ -14,24 +14,59 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/hasura-auth/go/api"
+	"github.com/nhost/hasura-auth/go/controller"
+	"github.com/nhost/hasura-auth/go/hibp"
 	"github.com/nhost/hasura-auth/go/middleware"
+	"github.com/nhost/hasura-auth/go/sql"
+	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 	"github.com/urfave/cli/v2"
 )
 
 const (
-	flagAPIPrefix          = "api-prefix"
-	flagPort               = "port"
-	flagDebug              = "debug"
-	flagLogFormatTEXT      = "log-format-text"
-	flagTrustedProxies     = "trusted-proxies"
-	flagPostgresConnection = "postgres"
-	flagNodeServerPath     = "node-server-path"
+	flagAPIPrefix                        = "api-prefix"
+	flagPort                             = "port"
+	flagDebug                            = "debug"
+	flagLogFormatTEXT                    = "log-format-text"
+	flagTrustedProxies                   = "trusted-proxies"
+	flagPostgresConnection               = "postgres"
+	flagNodeServerPath                   = "node-server-path"
+	flagDisableSignup                    = "disable-signup"
+	flagConcealErrors                    = "conceal-errors"
+	flagDefaultAllowedRoles              = "default-allowed-roles"
+	flagDefaultRole                      = "default-role"
+	flagDefaultLocale                    = "default-locale"
+	flagAllowedLocales                   = "allowed-locales"
+	flagDisableNewUsers                  = "disable-new-users"
+	flagGravatarEnabled                  = "gravatar-enabled"
+	flagGravatarDefault                  = "gravatar-default"
+	flagGravatarRating                   = "gravatar-rating"
+	flagRefreshTokenExpiresIn            = "refresh-token-expires-in"
+	flagAccessTokensExpiresIn            = "access-tokens-expires-in"
+	flagHasuraGraphqlJWTSecret           = "hasura-graphql-jwt-secret" //nolint:gosec
+	flagEmailSigninEmailVerifiedRequired = "email-verification-required"
+	flagSMTPHost                         = "smtp-host"
+	flagSMTPPort                         = "smtp-port"
+	flagSMTPUser                         = "smtp-user"
+	flagSMTPPassword                     = "smtp-password"
+	flagSMTPSender                       = "smtp-sender"
+	flagSMTPAPIHedaer                    = "smtp-api-header"
+	flagSMTPAuthMethod                   = "smtp-auth-method"
+	flagClientURL                        = "client-url"
+	flagServerURL                        = "server-url"
+	flagAllowRedirectURLs                = "allow-redirect-urls"
+	flagEnableChangeEnv                  = "enable-change-env"
+	flagCustomClaims                     = "custom-claims"
+	flagGraphqlURL                       = "graphql-url"
+	flagHasuraAdminSecret                = "hasura-admin-secret" //nolint:gosec
+	flagPasswordMinLength                = "password-min-length"
+	flagPasswordHIBPEnabled              = "password-hibp-enabled"
 )
 
-func CommandServe() *cli.Command {
+func CommandServe() *cli.Command { //nolint:funlen
 	return &cli.Command{ //nolint: exhaustruct
 		Name:  "serve",
 		Usage: "Serve the application",
+		//nolint:lll
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagAPIPrefix,
@@ -61,10 +96,10 @@ func CommandServe() *cli.Command {
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagPostgresConnection,
-				Usage:    "Postgres connection string",
+				Usage:    "PostgreSQL connection URI: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING. Required to inject the `auth` schema into the database.",
 				Value:    "postgres://postgres:postgres@localhost:5432/local?sslmode=disable",
 				Category: "postgres",
-				EnvVars:  []string{"POSTGRES_CONNECTION"},
+				EnvVars:  []string{"POSTGRES_CONNECTION", "HASURA_GRAPHQL_DATABASE_URL"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagNodeServerPath,
@@ -72,6 +107,228 @@ func CommandServe() *cli.Command {
 				Value:    ".",
 				Category: "node",
 				EnvVars:  []string{"NODE_SERVER_PATH"},
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagDisableSignup,
+				Usage:    "Disable signup",
+				Value:    false,
+				Category: "signup",
+				EnvVars:  []string{"AUTH_DISABLE_SIGNUP"},
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagConcealErrors,
+				Usage:    "Conceal errors",
+				Value:    false,
+				Category: "server",
+				EnvVars:  []string{"AUTH_CONCEAL_ERRORS"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagDefaultAllowedRoles,
+				Usage:    "Default allowed roles",
+				Category: "signup",
+				Value:    cli.NewStringSlice("user", "me"),
+				EnvVars:  []string{"AUTH_USER_DEFAULT_ALLOWED_ROLES"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagDefaultRole,
+				Usage:    "Default role",
+				Category: "signup",
+				Value:    "user",
+				EnvVars:  []string{"AUTH_USER_DEFAULT_ROLE"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagDefaultLocale,
+				Usage:    "Default locale",
+				Category: "signup",
+				Value:    "en",
+				EnvVars:  []string{"AUTH_LOCALE_DEFAULT"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagAllowedLocales,
+				Usage:    "Allowed locales",
+				Category: "signup",
+				Value:    cli.NewStringSlice("en"),
+				EnvVars:  []string{"AUTH_LOCALE_ALLOWED_LOCALES"},
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagDisableNewUsers,
+				Usage:    "Disable new users",
+				Category: "signup",
+				EnvVars:  []string{"AUTH_DISABLE_NEW_USERS"},
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagGravatarEnabled,
+				Usage:    "Enable gravatar",
+				Category: "signup",
+				Value:    true,
+				EnvVars:  []string{"AUTH_GRAVATAR_ENABLED"},
+			},
+			&cli.GenericFlag{ //nolint: exhaustruct
+				Name: flagGravatarDefault,
+				Value: &EnumValue{ //nolint: exhaustruct
+					Enum: []string{
+						"blank",
+						"identicon",
+						"monsterid",
+						"wavatar",
+						"retro",
+						"robohash",
+						"mp",
+						"404",
+					},
+					Default: "blank",
+				},
+				Usage:    "Gravatar default",
+				Category: "signup",
+				EnvVars:  []string{"AUTH_GRAVATAR_DEFAULT"},
+			},
+			&cli.GenericFlag{ //nolint: exhaustruct
+				Name: flagGravatarRating,
+				Value: &EnumValue{ //nolint: exhaustruct
+					Enum: []string{
+						"g",
+						"pg",
+						"r",
+						"x",
+					},
+					Default: "g",
+				},
+				Usage:    "Gravatar rating",
+				Category: "signup",
+				EnvVars:  []string{"AUTH_GRAVATAR_RATING"},
+			},
+			&cli.IntFlag{ //nolint: exhaustruct
+				Name:     flagRefreshTokenExpiresIn,
+				Usage:    "Refresh token expires in (seconds)",
+				Value:    2592000, //nolint:gomnd
+				Category: "jwt",
+				EnvVars:  []string{"AUTH_REFRESH_TOKEN_EXPIRES_IN"},
+			},
+			&cli.IntFlag{ //nolint: exhaustruct
+				Name:     flagAccessTokensExpiresIn,
+				Usage:    "Access tokens expires in (seconds)",
+				Value:    3600, //nolint:gomnd
+				Category: "jwt",
+				EnvVars:  []string{"AUTH_ACCESS_TOKENS_EXPIRES_IN"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagHasuraGraphqlJWTSecret,
+				Usage:    "Key used for generating JWTs. Must be `HMAC-SHA`-based and the same as configured in Hasura. More info: https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt.html#running-with-jwt",
+				Required: true,
+				Category: "jwt",
+				EnvVars:  []string{"HASURA_GRAPHQL_JWT_SECRET"},
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagEmailSigninEmailVerifiedRequired,
+				Usage:    "Require email to be verified for email signin",
+				Category: "signup",
+				EnvVars:  []string{"AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMTPHost,
+				Usage:    "SMTP Host",
+				Category: "smtp",
+				EnvVars:  []string{"AUTH_SMTP_HOST"},
+			},
+			&cli.UintFlag{ //nolint: exhaustruct
+				Name:     flagSMTPPort,
+				Usage:    "SMTP port",
+				Category: "smtp",
+				Value:    587, //nolint:gomnd
+				EnvVars:  []string{"AUTH_SMTP_PORT"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMTPUser,
+				Usage:    "SMTP user",
+				Category: "smtp",
+				EnvVars:  []string{"AUTH_SMTP_USER"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMTPPassword,
+				Usage:    "SMTP password",
+				Category: "smtp",
+				EnvVars:  []string{"AUTH_SMTP_PASS"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMTPSender,
+				Usage:    "SMTP sender",
+				Category: "smtp",
+				EnvVars:  []string{"AUTH_SMTP_SENDER"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMTPAPIHedaer,
+				Usage:    "SMTP API Header. Maps to header X-SMTPAPI",
+				Category: "smtp",
+				EnvVars:  []string{"AUTH_SMTP_X_SMTPAPI_HEADER"},
+			},
+			&cli.GenericFlag{ //nolint: exhaustruct
+				Name: flagSMTPAuthMethod,
+				Value: &EnumValue{ //nolint: exhaustruct
+					Enum: []string{
+						"LOGIN",
+						"PLAIN",
+						"CRAM-MD5",
+					},
+					Default: "PLAIN",
+				},
+				Usage:    "SMTP Authentication method",
+				Category: "smtp",
+				EnvVars:  []string{"AUTH_SMTP_AUTH_METHOD"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagClientURL,
+				Usage:    "Client URL",
+				Category: "application",
+				EnvVars:  []string{"AUTH_CLIENT_URL"},
+			},
+			&cli.StringSliceFlag{ //nolint:exhaustruct
+				Name:     flagAllowRedirectURLs,
+				Usage:    "Allowed redirect URLs",
+				Category: "application",
+				EnvVars:  []string{"AUTH_ALLOW_REDIRECT_URLS"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagServerURL,
+				Usage:    "Server URL",
+				Category: "server",
+				EnvVars:  []string{"AUTH_SERVER_URL"},
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagEnableChangeEnv,
+				Usage:    "Enable change env. Do not do this in production!",
+				Category: "server",
+				EnvVars:  []string{"AUTH_ENABLE_CHANGE_ENV"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagCustomClaims,
+				Usage:    "Custom claims",
+				Category: "jwt",
+				EnvVars:  []string{"AUTH_JWT_CUSTOM_CLAIMS"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagGraphqlURL,
+				Usage:    "Hasura GraphQL endpoint. Required for custom claims",
+				Category: "jwt",
+				EnvVars:  []string{"HASURA_GRAPHQL_GRAPHQL_URL"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagHasuraAdminSecret,
+				Usage:    "Hasura admin secret. Required for custom claims",
+				Category: "jwt",
+				EnvVars:  []string{"HASURA_GRAPHQL_ADMIN_SECRET"},
+			},
+			&cli.IntFlag{ //nolint: exhaustruct
+				Name:     flagPasswordMinLength,
+				Usage:    "Minimum password length",
+				Value:    3, //nolint:gomnd
+				Category: "signup",
+				EnvVars:  []string{"AUTH_PASSWORD_MIN_LENGTH"},
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagPasswordHIBPEnabled,
+				Usage:    "Check user's password against Pwned Passwords https://haveibeenpwned.com/Passwords",
+				Category: "signup",
+				EnvVars:  []string{"AUTH_PASSWORD_HIBP_ENABLED"},
 			},
 		},
 		Action: serve,
@@ -95,6 +352,10 @@ func getNodeServer(cCtx *cli.Context) *exec.Cmd {
 	env = append(env, "PWD="+cCtx.String(flagNodeServerPath))
 	env = append(env, "AUTH_VERSION="+cCtx.App.Version)
 
+	if cCtx.Bool(flagEnableChangeEnv) {
+		env = append(env, "NODE_ENV=development")
+	}
+
 	cmd := exec.CommandContext(cCtx.Context, "node", "./dist/start.js")
 	cmd.Dir = cCtx.String(flagNodeServerPath)
 	cmd.Stdout = os.Stdout
@@ -103,7 +364,9 @@ func getNodeServer(cCtx *cli.Context) *exec.Cmd {
 	return cmd
 }
 
-func getGoServer(cCtx *cli.Context, logger *slog.Logger) (*http.Server, error) {
+func getGoServer( //nolint:funlen
+	cCtx *cli.Context, db *sql.Queries, logger *slog.Logger,
+) (*http.Server, error) {
 	router := gin.New()
 
 	loader := openapi3.NewLoader()
@@ -118,28 +381,50 @@ func getGoServer(cCtx *cli.Context, logger *slog.Logger) (*http.Server, error) {
 	router.Use(
 		// ginmiddleware.OapiRequestValidator(doc),
 		gin.Recovery(),
+		cors(),
 		middleware.Logger(logger),
 	)
 
-	// auth := &controller.Auth{}
-	// handler := api.NewStrictHandler(auth, nil)
-	// mw := api.MiddlewareFunc(ginmiddleware.OapiRequestValidator(doc)),
+	emailer, err := getEmailer(cCtx, logger)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating emailer: %w", err)
+	}
 
-	// api.RegisterHandlersWithOptions(
-	// 	router,
-	// 	handler,
-	// 	api.GinServerOptions{
-	// 		BaseURL: cCtx.String(flagAPIPrefix),
-	// 		Middlewares: []api.MiddlewareFunc{mw},
-	// 		ErrorHandler: nil,
-	// 	},
-	// )
+	config, err := getConfig(cCtx)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating config: %w", err)
+	}
+
+	jwtGetter, err := getJWTGetter(cCtx)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating jwt getter: %w", err)
+	}
+
+	ctrl, err := controller.New(db, config, jwtGetter, emailer, hibp.NewClient())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create controller: %w", err)
+	}
+	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
+	mw := api.MiddlewareFunc(ginmiddleware.OapiRequestValidator(doc))
+	api.RegisterHandlersWithOptions(
+		router,
+		handler,
+		api.GinServerOptions{
+			BaseURL:      cCtx.String(flagAPIPrefix),
+			Middlewares:  []api.MiddlewareFunc{mw},
+			ErrorHandler: nil,
+		},
+	)
 
 	nodejsHandler, err := nodejsHandler()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create nodejs handler: %w", err)
 	}
 	router.NoRoute(nodejsHandler)
+
+	if cCtx.Bool(flagEnableChangeEnv) {
+		router.POST(cCtx.String(flagAPIPrefix)+"/change-env", ctrl.PostChangeEnv(nodejsHandler))
+	}
 
 	server := &http.Server{ //nolint:exhaustruct
 		Addr:              ":" + cCtx.String(flagPort),
@@ -166,7 +451,13 @@ func serve(cCtx *cli.Context) error {
 		}
 	}()
 
-	server, err := getGoServer(cCtx, logger)
+	pool, err := getDBPool(cCtx)
+	if err != nil {
+		return fmt.Errorf("failed to create database pool: %w", err)
+	}
+	defer pool.Close()
+
+	server, err := getGoServer(cCtx, sql.New(pool), logger)
 	if err != nil {
 		return fmt.Errorf("failed to create server: %w", err)
 	}

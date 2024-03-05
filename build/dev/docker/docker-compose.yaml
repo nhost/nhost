@@ -15,7 +15,7 @@ services:
               published: "4000"
               protocol: tcp
         environment:
-            NODE_ENV: development
+            AUTH_ENABLE_CHANGE_ENV: "true"
             AUTH_API_PREFIX: ""
             HASURA_GRAPHQL_DATABASE_URL: "postgres://postgres:postgres@postgres:5432/local"
             HASURA_GRAPHQL_JWT_SECRET: '{"type":"HS256", "key":"5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3","issuer":"hasura-auth"}'
@@ -24,7 +24,7 @@ services:
             AUTH_PORT: 4000
             AUTH_SERVER_URL: http://127.0.0.2:4000
             AUTH_USER_DEFAULT_ALLOWED_ROLES: 'me,user,editor'
-            AUTH_SMTP_AUTH_METHOD: LOGIN
+            AUTH_SMTP_AUTH_METHOD: PLAIN
             AUTH_SMTP_HOST: mailhog
             AUTH_SMTP_PASS: password
             AUTH_SMTP_PORT: "1025"

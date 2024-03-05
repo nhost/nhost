@@ -13,6 +13,7 @@ import {
 } from '@/validation';
 import { StatusCodes } from 'http-status-codes';
 import { Session, User } from '../types';
+import { ENV } from '../utils/env';
 
 // ******** THE FOLLOWING MODELS ARE USED FOR GENERATING OPENAPI SCHEMAS ******** //
 export const UserModel = Joi.object<User>({
@@ -61,5 +62,5 @@ export const UnauthorizedErrorModel = Joi.object<ErrorPayload>({
 }).meta({ className: 'UnauthorizedError' });
 
 export const VersionModel = Joi.string()
-  .example(process.env.AUTH_VERSION)
+  .example(ENV.AUTH_VERSION)
   .meta({ className: 'Version' });

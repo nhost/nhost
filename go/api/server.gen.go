@@ -22,9 +22,6 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-
-	// (POST /signin/email-password)
-	PostSigninEmailPassword(c *gin.Context)
 	// Signup with email and password
 	// (POST /signup/email-password)
 	PostSignupEmailPassword(c *gin.Context)
@@ -38,19 +35,6 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
-
-// PostSigninEmailPassword operation middleware
-func (siw *ServerInterfaceWrapper) PostSigninEmailPassword(c *gin.Context) {
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		middleware(c)
-		if c.IsAborted() {
-			return
-		}
-	}
-
-	siw.Handler.PostSigninEmailPassword(c)
-}
 
 // PostSignupEmailPassword operation middleware
 func (siw *ServerInterfaceWrapper) PostSignupEmailPassword(c *gin.Context) {
@@ -92,25 +76,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
-	router.POST(options.BaseURL+"/signin/email-password", wrapper.PostSigninEmailPassword)
 	router.POST(options.BaseURL+"/signup/email-password", wrapper.PostSignupEmailPassword)
-}
-
-type PostSigninEmailPasswordRequestObject struct {
-	Body *PostSigninEmailPasswordJSONRequestBody
-}
-
-type PostSigninEmailPasswordResponseObject interface {
-	VisitPostSigninEmailPasswordResponse(w http.ResponseWriter) error
-}
-
-type PostSigninEmailPassword200JSONResponse SessionPayload
-
-func (response PostSigninEmailPassword200JSONResponse) VisitPostSigninEmailPasswordResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
 }
 
 type PostSignupEmailPasswordRequestObject struct {
@@ -130,11 +96,26 @@ func (response PostSignupEmailPassword200JSONResponse) VisitPostSignupEmailPassw
 	return json.NewEncoder(w).Encode(response)
 }
 
+type PostSignupEmailPassword403JSONResponse ErrorResponse
+
+func (response PostSignupEmailPassword403JSONResponse) VisitPostSignupEmailPasswordResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostSignupEmailPassword409JSONResponse ErrorResponse
+
+func (response PostSignupEmailPassword409JSONResponse) VisitPostSignupEmailPasswordResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
-
-	// (POST /signin/email-password)
-	PostSigninEmailPassword(ctx context.Context, request PostSigninEmailPasswordRequestObject) (PostSigninEmailPasswordResponseObject, error)
 	// Signup with email and password
 	// (POST /signup/email-password)
 	PostSignupEmailPassword(ctx context.Context, request PostSignupEmailPasswordRequestObject) (PostSignupEmailPasswordResponseObject, error)
@@ -150,39 +131,6 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
-}
-
-// PostSigninEmailPassword operation middleware
-func (sh *strictHandler) PostSigninEmailPassword(ctx *gin.Context) {
-	var request PostSigninEmailPasswordRequestObject
-
-	var body PostSigninEmailPasswordJSONRequestBody
-	if err := ctx.ShouldBind(&body); err != nil {
-		ctx.Status(http.StatusBadRequest)
-		ctx.Error(err)
-		return
-	}
-	request.Body = &body
-
-	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.PostSigninEmailPassword(ctx, request.(PostSigninEmailPasswordRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostSigninEmailPassword")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		ctx.Error(err)
-		ctx.Status(http.StatusInternalServerError)
-	} else if validResponse, ok := response.(PostSigninEmailPasswordResponseObject); ok {
-		if err := validResponse.VisitPostSigninEmailPasswordResponse(ctx.Writer); err != nil {
-			ctx.Error(err)
-		}
-	} else if response != nil {
-		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
-	}
 }
 
 // PostSignupEmailPassword operation middleware
@@ -221,28 +169,29 @@ func (sh *strictHandler) PostSignupEmailPassword(ctx *gin.Context) {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"H4sIAAAAAAAC/9xYX2/bOBL/KgR7h3uxLNfx9Ro/XXYRYFN006B2dh+aPIzFkcWuSKqckR0j6+++ICXb",
+	"cqy0CFAUi32zyZnh/PnNj0M9ysyZylm0THL6KCkr0ED8eem98x+RKmcJwwIopVk7C+WNdxV61khymkNJ",
+	"OJBVZ+lRYtANPxRS5nUV1OS0MSkyp1BwASy0Qss610iCCxRQVaXOIAiLxsJAoq2NnH6S2jJ6C2VC6Ffo",
+	"k92+tisotUo8fqmRWA4k6aWtq0RpgkWJKtgwoMsESo+gNom2SU0oB7ICorXzKmHnEiqc5+6itkmhF1Wi",
+	"gGEBUcG7EhPrOIGydOtounQZnCwqzKEuOYnypiZOFhjstRJxnYI9VNpjNndH+vcDyZsK5VQSe22XcjuQ",
+	"BolgiacZ/aU2YEXuNVpVbpqsiZ10jyFi4Jp67MznN6LZbI2EKh0shPQv0cvtNrj9pdYeVShLa+/g4aCt",
+	"/SEKt/iMGYfDZ0gUj3sRliDLkGju/sCoeRJSZ//yodIe6SoK5s4b4Mb3N5OeUEIkuUcq9raPc/Kx2RUc",
+	"toWqw4ECai4CaFuYOi/WBVrRWgoSAcnvfp+HTDyAqcpw5jg7++/iTX6WZJPFeTJ5i2fJ+f/eQqImapS/",
+	"VpMxjicRfBxQLqfy7m7xaZScQ5LfP77d3t0tkv3fyfbZ312t1+Og1oeBmjD25r885nIqX6UHCkjb/k9v",
+	"qafY3Uo8k/cnOf0KCm5gUzpQLwQDHSD0Nfd3SAsRnDqgl/a2ugykcNN2+yzqvZTkgoVT2FyIyEii2e6i",
+	"4LMr7JCM5uL/tnDEQ+3k4IDTncJJwVw0Td8MOsb1oRXeHrisz8fdnnC5MNpqUxtxJrICPGSMno4cn7Ef",
+	"2WVM1qvAjeeTP/8del7b92iXXMjp2YnbT7CzC27v0/2zlflwCPclNNHQ58fIraE6O+8/SRNoKaL+fiA1",
+	"o6FeImkXwHvYhP8tjQeLRwYbUz11UpqqEjbXYJ4ovHOFFbNQ+D615g7pKxKvXXIoiWgFu5WJnWjgYVeH",
+	"8VFVxr1XCUO4055PL/saO2c8ylx74iaqGEq492C/0sTV12jt/cZzd5yOgrmiaZqaTQJVNcycSTPgrEh2",
+	"CiH+PkCdnHDbUtlLcLICBn/ry14MZB6BUV3w0Q2igDFhbXqv1B8Fkx9GN3HjN/RhMFOdLC2cKxFsENE9",
+	"nHIVuSTcfm3gf9PrT9OFdXZjXE39wf1j+7EqnMXr2iyapjlxpbP/9fL770WyTy6JQ/cdd8mg07X7+gz2",
+	"CO5W9LgfO+kNAwvrFf6awzz48BTnx+npT8Yu8tO7K0SibR6JLnOWIePOiCCprirnuduHtqnWdVj5D4lZ",
+	"IxFyGKhpz5F7jcg0XTjO0K90hoKduDgMpSGwUmfYvtnaUy4qyAoU4+Ho5ID1ej2EuD10fpm2upS+v/r5",
+	"8np2mYyHo2HBpozFQ2/oQ96e3BqZpimtYblEP9QujSJp6DvN5T7A6KEcyBX6ZnyTr4ej4agZbtBCpeVU",
+	"nsWlSANFBE/aPOXS5v3WnWYqRzG/oUniIH6l5FTeOOJZVDka7mQDMiT+yanNrkJoo4XOmzP9TM1kSftp",
+	"8NvjVt8YuT3GdejfuNA8pWNo49Ho+zlyPFDH059ApY6zel6X5UZ4XGpi9KiG4rouS9HO1MIgWGruEbGK",
+	"kG8fOZpEhVa1HTwZnX0314+/MfR5HsspDGYFWE0m+LJ/2Udnzn+cM2HaEGvNhVjqFdo2Ve13BYEPmpgi",
+	"p1FtDPjNwf+o1IpbtR++Q5vAkuJDOgoePlZYdQD8/Xa73f4VAAD//y11NsWqEQAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
