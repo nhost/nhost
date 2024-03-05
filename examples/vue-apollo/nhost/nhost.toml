@@ -35,8 +35,7 @@ version = '0.26.0'
 mode = 'required'
 
 [auth.redirections]
-# clientUrl = 'https://vue-apollo.example.nhost.io'
-clientUrl = 'http://localhost:5173'
+clientUrl = 'https://vue-apollo.example.nhost.io'
 allowedUrls = ['https://vue-apollo.example.nhost.io/profile', 'http://localhost:5173']
 
 [auth.signUp]
