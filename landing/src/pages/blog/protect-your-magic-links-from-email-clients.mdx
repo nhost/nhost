@@ -1,0 +1,100 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Protect your Magic Links from email clients',
+  description:
+    'Learn how to make sure your users never get expired Magick Links because of email clients.',
+  image: '/images/blog/protect-your-magic-links-from-email-clients/banner.png',
+  date: '2024-03-05',
+  authors: [
+    {
+      name: 'Hassan Ben Jobrane',
+      title: 'Software Engineer',
+      avatarUrl: '/images/avatars/hassan.png',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'Auth', 'Email', 'Magic Link'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+When working on a fresh project involving user authentication, incorporating email verification and password reset capabilities is essential. Making use of Magic links offers a highly efficient approach. These links facilitate passwordless login, enabling users to access their accounts by simply clicking on a link sent via email, rather than manually entering their credentials. Learn more Magic links with Nhost through our [docs](https://docs.nhost.io/guides/auth/sign-in-magic-link).
+
+In recent years, email clients have undergone significant evolution, introducing numerous features and security enhancements. However, these advancements can sometimes interfere with the integrity of your links, leading to unintended consequences. One such feature is the ability to crawl links within emails and generate inline previews.
+
+Since Magic Links are designed for **one-time** use, the preview effectively **invalidates the link** you've sent to your user even before they open their inbox. Consequently, your users would encounter a broken link, disrupting their intended access.
+
+To address this issue, you would need to implement an additional step by refraining from sending the magic link directly in the email. Instead, you could include a link to a specific page within your app that contains the required parameters in the URL. This setup would allow for redirection to the authentication service endpoint seamlessly.
+
+For instance, when a user performs a reset password flow, they usually would get sent an email with a link in this format:
+\
+`https://[subdomain].auth.[region].nhost.run/v1/verify?ticket=...&type=...&redirectTo=...`
+
+So instead of sending the above link we would send another that sends the user to your app that has the necessary params. Luckely we make it super easy to do this. You only have to edit the relevant email template in in your nhost folder under `nhost/emails/en/reset-passowrd/body.html`.
+
+```diff
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+</head>
+
+<body>
+  <h2>Reset Password</h2>
+  <p>Use this link to reset your password:</p>
+  <p>
+-    <a href="${link}">
++    <a href="${clientUrl}/verify?ticket=${ticket}&redirectTo=${redirectTo}&type=emailVerify">
+      Reset password
+    </a>
+  </p>
+</body>
+
+</html>
+```
+
+Then in your app you add another page that reads those params from the URL and then redirects the user to the auth service. The following is an example of such page in React.
+
+```tsx
+import { useSearchParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNhostClient } from '@nhost/react'
+import { Container } from '@mantine/core'
+
+const VerifyPage: React.FC = () => {
+  const nhost = useNhostClient()
+  const [loading, setLoading] = useState(false)
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    const ticket = searchParams.get('ticket')
+    const redirectTo = searchParams.get('redirectTo')
+    const type = searchParams.get('type')
+
+    if (ticket && redirectTo && type) {
+      window.location.href = `${nhost.auth.url}/verify?ticket=${ticket}&type=${type}&redirectTo=${redirectTo}`
+    }
+
+    setLoading(false)
+  }, [searchParams, nhost?.auth?.url])
+
+  if (loading) {
+    return null
+  }
+
+  return (
+    <div>
+      <span>Failed to authenticate with magick link</span>
+    </div>
+  )
+}
+
+export default VerifyPage
+```
+
+### Wrap up
+
+In conclusion, ensuring the effectiveness of Magic Links amidst the evolving landscape of email clients requires strategic adaptation. By addressing the issue of link preview interference, you can maintain the integrity of your authentication flow.
