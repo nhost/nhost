@@ -2,8 +2,20 @@
   <form @submit="handleSignIn">
     <v-text-field v-model="email" label="Email" />
     <v-text-field v-model="password" label="Password" type="password" />
-    <v-btn block color="primary" class="my-1" type="submit" :disabled="isLoading" :loading="isLoading"> Sign in </v-btn>
+    <v-btn
+      block
+      color="primary"
+      class="my-1"
+      type="submit"
+      :disabled="isLoading"
+      :loading="isLoading"
+    >
+      Sign in
+    </v-btn>
   </form>
+  <v-btn class="my-1" block variant="text" color="primary" to="/signin/forgot-password">
+    Forgot password?
+  </v-btn>
   <v-btn class="my-1" block variant="text" color="primary" to="/signin">
     &#8592; Other Sign-in Options
   </v-btn>

@@ -16,6 +16,7 @@ enableAllowList = false
 enableConsole = true
 enableRemoteSchemaPermissions = false
 enabledAPIs = ['metadata', 'graphql', 'pgdump', 'config']
+liveQueriesMultiplexedRefetchInterval = 1000
 
 [hasura.logs]
 level = 'warn'
@@ -28,17 +29,19 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.27.0-beta1'
+version = '0.26.0'
 
 [auth.elevatedPrivileges]
 mode = 'required'
 
 [auth.redirections]
-clientUrl = 'https://vue-apollo.example.nhost.io'
+# clientUrl = 'https://vue-apollo.example.nhost.io'
+clientUrl = 'http://localhost:5173'
 allowedUrls = ['https://vue-apollo.example.nhost.io/profile', 'http://localhost:5173']
 
 [auth.signUp]
 enabled = true
+disableNewUsers = false
 
 [auth.user]
 [auth.user.roles]
@@ -67,7 +70,7 @@ expiresIn = 43200
 
 [auth.method]
 [auth.method.anonymous]
-enabled = false
+enabled = true
 
 [auth.method.emailPasswordless]
 enabled = true
@@ -75,7 +78,7 @@ enabled = true
 [auth.method.emailPassword]
 hibpEnabled = false
 emailVerificationRequired = true
-passwordMinLength = 9
+passwordMinLength = 8
 
 [auth.method.smsPasswordless]
 enabled = false
