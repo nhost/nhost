@@ -237,7 +237,7 @@
             postInstall = ''
               wrapProgram $out/bin/hasura-auth \
                   --suffix PATH : ${pkgs.nodejs-slim_18}/bin \
-                  --prefix NODE_SERVER_PATH : ${node-auth}
+                  --prefix AUTH_NODE_SERVER_PATH : ${node-auth}
             '';
           };
 

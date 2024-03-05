@@ -60,6 +60,7 @@ const (
 	flagHasuraAdminSecret                = "hasura-admin-secret" //nolint:gosec
 	flagPasswordMinLength                = "password-min-length"
 	flagPasswordHIBPEnabled              = "password-hibp-enabled"
+	flagEmailTemplatesPath               = "templates-path"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen
@@ -86,13 +87,13 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Name:     flagDebug,
 				Usage:    "enable debug logging",
 				Category: "general",
-				EnvVars:  []string{"DEBUG"},
+				EnvVars:  []string{"AUTH_DEBUG"},
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagLogFormatTEXT,
 				Usage:    "format logs in plain text",
 				Category: "general",
-				EnvVars:  []string{"LOG_FORMAT_TEXT"},
+				EnvVars:  []string{"AUTH_LOG_FORMAT_TEXT"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagPostgresConnection,
@@ -106,7 +107,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Usage:    "Path to the node server",
 				Value:    ".",
 				Category: "node",
-				EnvVars:  []string{"NODE_SERVER_PATH"},
+				EnvVars:  []string{"AUTH_NODE_SERVER_PATH"},
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagDisableSignup,
@@ -330,6 +331,13 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Usage:    "Check user's password against Pwned Passwords https://haveibeenpwned.com/Passwords",
 				Category: "signup",
 				EnvVars:  []string{"AUTH_PASSWORD_HIBP_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagEmailTemplatesPath,
+				Usage:    "Path to the email templates. Default to included ones if path isn't found",
+				Value:    "/app/email-templates",
+				Category: "email",
+				EnvVars:  []string{"AUTH_EMAIL_TEMPLATES_PATH"},
 			},
 		},
 		Action: serve,
