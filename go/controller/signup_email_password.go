@@ -30,7 +30,7 @@ func hashPassword(password string) (string, error) {
 
 func hashRefreshToken(token []byte) string {
 	hash := sha256.Sum256(token)
-	return hex.EncodeToString(hash[:])
+	return "\\x" + hex.EncodeToString(hash[:])
 }
 
 func deptr[T any](x *T) T { //nolint:ireturn
@@ -179,7 +179,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithoutEmailVerification( //nolin
 			DefaultRole:           deptr(options.DefaultRole),
 			Metadata:              metadata,
 			Roles:                 deptr(options.AllowedRoles),
-			RefreshTokenHash:      sql.Text(hashRefreshToken(refreshToken[:])),
+			RefreshTokenHash:      sql.Text(hashRefreshToken([]byte(refreshToken.String()))),
 			RefreshTokenExpiresAt: sql.TimestampTz(expiresAt),
 		},
 	)

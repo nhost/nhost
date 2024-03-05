@@ -51,7 +51,7 @@
     "jose": "^5.2.2",
     "js-yaml": "3.13.1",
     "json-to-graphql-query": "^2.2.5",
-    "jsonata": "^1.8.6",
+    "jsonata": "^1.8.7",
     "jsonwebtoken": "^9.0.2",
     "jsrsasign": "11.0.0",
     "libphonenumber-js": "^1.10.57",
@@ -165,7 +165,8 @@
       "semver@<5.7.2": ">=5.7.2",
       "semver@>=7.0.0 <7.5.2": ">=7.5.2",
       "jsrsasign@<11.0.0": ">=11.0.0",
-      "nodemailer@<=6.9.8": ">=6.9.9"
+      "nodemailer@<=6.9.8": ">=6.9.9",
+      "jsonata@>=1.4.0 <1.8.7": ">=1.8.7"
     }
   }
 }

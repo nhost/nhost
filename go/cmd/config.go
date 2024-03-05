@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"net/url"
+	"slices"
 
 	"github.com/nhost/hasura-auth/go/controller"
 	"github.com/urfave/cli/v2"
@@ -29,6 +30,20 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) {
 		allowedRedirectURLs[i] = url
 	}
 
+	defaultRole := cCtx.String(flagDefaultRole)
+	allowedRoles := cCtx.StringSlice(flagDefaultAllowedRoles)
+	if !slices.Contains(allowedRoles, defaultRole) {
+		allowedRoles = append(allowedRoles, defaultRole)
+	}
+	allowedRoles = slices.DeleteFunc(allowedRoles, func(s string) bool { return s == "" })
+
+	defaultLocale := cCtx.String(flagDefaultLocale)
+	allowedLocales := cCtx.StringSlice(flagAllowedLocales)
+	if !slices.Contains(allowedLocales, defaultLocale) {
+		allowedLocales = append(allowedLocales, defaultLocale)
+	}
+	allowedLocales = slices.DeleteFunc(allowedLocales, func(s string) bool { return s == "" })
+
 	return controller.Config{
 		HasuraGraphqlURL:         cCtx.String(flagGraphqlURL),
 		HasuraAdminSecret:        cCtx.String(flagHasuraAdminSecret),
@@ -38,10 +53,10 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) {
 		ConcealErrors:            cCtx.Bool(flagConcealErrors),
 		DisableSignup:            cCtx.Bool(flagDisableSignup),
 		DisableNewUsers:          cCtx.Bool(flagDisableNewUsers),
-		DefaultAllowedRoles:      cCtx.StringSlice(flagDefaultAllowedRoles),
-		DefaultRole:              cCtx.String(flagDefaultRole),
-		DefaultLocale:            cCtx.String(flagDefaultLocale),
-		AllowedLocales:           cCtx.StringSlice(flagAllowedLocales),
+		DefaultAllowedRoles:      allowedRoles,
+		DefaultRole:              defaultRole,
+		DefaultLocale:            defaultLocale,
+		AllowedLocales:           allowedLocales,
 		GravatarEnabled:          cCtx.Bool(flagGravatarEnabled),
 		GravatarDefault:          GetEnumValue(cCtx, flagGravatarDefault),
 		GravatarRating:           cCtx.String(flagGravatarRating),

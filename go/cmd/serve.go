@@ -71,7 +71,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagAPIPrefix,
 				Usage:    "prefix for all routes",
-				Value:    "/v1",
+				Value:    "/",
 				Category: "server",
 				EnvVars:  []string{"AUTH_API_PREFIX"},
 			},
@@ -110,28 +110,28 @@ func CommandServe() *cli.Command { //nolint:funlen
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagDisableSignup,
-				Usage:    "Disable signup",
+				Usage:    "If set to true, all signup methods will throw an unauthorized error",
 				Value:    false,
 				Category: "signup",
 				EnvVars:  []string{"AUTH_DISABLE_SIGNUP"},
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagConcealErrors,
-				Usage:    "Conceal errors",
+				Usage:    "Conceal sensitive error messages to avoid leaking information about user accounts to attackers",
 				Value:    false,
 				Category: "server",
 				EnvVars:  []string{"AUTH_CONCEAL_ERRORS"},
 			},
 			&cli.StringSliceFlag{ //nolint: exhaustruct
 				Name:     flagDefaultAllowedRoles,
-				Usage:    "Default allowed roles",
+				Usage:    "Comma-separated list of default allowed user roles",
 				Category: "signup",
-				Value:    cli.NewStringSlice("user", "me"),
+				Value:    cli.NewStringSlice("me"),
 				EnvVars:  []string{"AUTH_USER_DEFAULT_ALLOWED_ROLES"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagDefaultRole,
-				Usage:    "Default role",
+				Usage:    "Default user role for registered users",
 				Category: "signup",
 				Value:    "user",
 				EnvVars:  []string{"AUTH_USER_DEFAULT_ROLE"},
@@ -152,7 +152,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagDisableNewUsers,
-				Usage:    "Disable new users",
+				Usage:    "If set, new users will be disabled after finishing registration and won't be able to sign in",
 				Category: "signup",
 				EnvVars:  []string{"AUTH_DISABLE_NEW_USERS"},
 			},
@@ -207,9 +207,9 @@ func CommandServe() *cli.Command { //nolint:funlen
 			&cli.IntFlag{ //nolint: exhaustruct
 				Name:     flagAccessTokensExpiresIn,
 				Usage:    "Access tokens expires in (seconds)",
-				Value:    3600, //nolint:gomnd
+				Value:    900, //nolint:gomnd
 				Category: "jwt",
-				EnvVars:  []string{"AUTH_ACCESS_TOKENS_EXPIRES_IN"},
+				EnvVars:  []string{"AUTH_ACCESS_TOKEN_EXPIRES_IN"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagHasuraGraphqlJWTSecret,
@@ -222,6 +222,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Name:     flagEmailSigninEmailVerifiedRequired,
 				Usage:    "Require email to be verified for email signin",
 				Category: "signup",
+				Value:    true,
 				EnvVars:  []string{"AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
@@ -277,7 +278,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagClientURL,
-				Usage:    "Client URL",
+				Usage:    "URL of your frontend application. Used to redirect users to the right page once actions based on emails or OAuth succeed",
 				Category: "application",
 				EnvVars:  []string{"AUTH_CLIENT_URL"},
 			},
@@ -285,11 +286,11 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Name:     flagAllowRedirectURLs,
 				Usage:    "Allowed redirect URLs",
 				Category: "application",
-				EnvVars:  []string{"AUTH_ALLOW_REDIRECT_URLS"},
+				EnvVars:  []string{"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagServerURL,
-				Usage:    "Server URL",
+				Usage:    "Server URL of where Hasura Backend Plus is running. This value is to used as a callback in email templates and for the OAuth authentication process",
 				Category: "server",
 				EnvVars:  []string{"AUTH_SERVER_URL"},
 			},
