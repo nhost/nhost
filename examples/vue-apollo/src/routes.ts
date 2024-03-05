@@ -14,12 +14,15 @@ import SignUpEmailPasword from './pages/sign-up/EmailPassword.vue'
 import SignUpEmailPaswordless from './pages/sign-up/EmailPasswordless.vue'
 import SignUpEmailSecurityKey from './pages/sign-up/SecurityKey.vue'
 import SignInEmailSecurityKey from './pages/sign-in/SecurityKey.vue'
+import ForgotPassword from './pages/sign-in/ForgotPassword.vue'
 import SignUp from './pages/sign-up/IndexPage.vue'
 import Signout from './pages/SignoutPage.vue'
 import StoragePage from './pages/StoragePage.vue'
+import VerifyPage from './pages/VerifyEmail.vue'
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', component: Index, meta: { auth: true } },
+  { path: '/verify', component: VerifyPage },
   { path: '/profile', component: Profile, meta: { auth: true } },
   { path: '/about', component: AboutPage },
   { path: '/signout', component: Signout },
@@ -39,6 +42,10 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'security-key',
         component: SignInEmailSecurityKey
+      },
+      {
+        path: 'forgot-password',
+        component: ForgotPassword
       }
     ]
   },

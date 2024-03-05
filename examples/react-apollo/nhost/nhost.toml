@@ -16,6 +16,7 @@ enableAllowList = false
 enableConsole = true
 enableRemoteSchemaPermissions = false
 enabledAPIs = ['metadata', 'graphql', 'pgdump', 'config']
+liveQueriesMultiplexedRefetchInterval = 1000
 
 [hasura.logs]
 level = 'warn'
@@ -28,7 +29,7 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.26.0'
+version = '0.27.0-beta13'
 
 [auth.elevatedPrivileges]
 mode = 'required'
@@ -39,6 +40,7 @@ allowedUrls = ['https://react-apollo.example.nhost.io', 'https://react-apollo.ex
 
 [auth.signUp]
 enabled = true
+disableNewUsers = false
 
 [auth.user]
 [auth.user.roles]

@@ -16,6 +16,7 @@ import { StoragePage } from './Storage'
 
 import './App.css?inline'
 import { NotesPage } from './components/notes'
+import VerifyPage from './Verify'
 const title = 'Nhost with React and Apollo'
 
 function App() {
@@ -70,6 +71,7 @@ function App() {
                 </AuthGate>
               }
             />
+            <Route path="/verify" element={<VerifyPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route
               path="/sign-in/*"
