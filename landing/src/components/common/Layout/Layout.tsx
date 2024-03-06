@@ -30,7 +30,12 @@ export default function Layout({
   ...props
 }: LayoutProps) {
   return (
-    <div className={twMerge('flex min-h-screen flex-col', inter.className)}>
+    <div
+      className={twMerge(
+        'flex min-h-screen flex-col p-4 pb-0',
+        inter.className,
+      )}
+    >
       <Header
         slotProps={{
           root: {

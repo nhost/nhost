@@ -121,7 +121,7 @@ export default function Header({
               height={22}
               alt="Nhost on GitHub"
             />
-            Star us on GitHub
+            <span className="truncate">Star us on GitHub</span>
           </a>
 
           <div className="hidden grid-flow-col gap-4 lg:grid">
