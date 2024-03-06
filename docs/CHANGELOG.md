@@ -1,5 +1,12 @@
 # @nhost/docs
 
+## 2.7.1
+
+### Patch Changes
+
+- 6cb2b63: feat: added nhost run env documentation
+- 40bd3e4: fix: fixed wrong links in documentation
+
 ## 2.7.0
 
 ### Minor Changes
