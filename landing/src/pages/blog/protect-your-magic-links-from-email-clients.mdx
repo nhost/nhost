@@ -39,7 +39,7 @@ When performing reset the password flow, users typically receive an email contai
 \
 `https://[subdomain].auth.[region].nhost.run/v1/verify?ticket=...&type=...&redirectTo=...`
 
-Instead of sending this link, you redirect users to your app with the all the required parameters. Fortunately we make it super easy to do this. You only have to edit the relevant email template in in your nhost folder under `nhost/emails/en/reset-passowrd/body.html`.
+Instead of sending this link, you redirect users to your app with the all the required parameters. Fortunately we make it super easy to do this. You only have to edit the relevant email template in your nhost folder under `nhost/emails/en/reset-password/body.html`.
 
 ```diff
 <!DOCTYPE html>
