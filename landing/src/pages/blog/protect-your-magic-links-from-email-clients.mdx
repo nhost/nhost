@@ -1,0 +1,113 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Protect your Magic Links from email clients',
+  description:
+    'Learn how to make sure your users never get expired Magick Links because of email clients.',
+  image: '/images/blog/protect-your-magic-links-from-email-clients/banner.png',
+  date: '2024-03-05',
+  authors: [
+    {
+      name: 'Hassan Ben Jobrane',
+      title: 'Software Engineer',
+      avatarUrl: '/images/avatars/hassan.png',
+      url: 'https://twitter.com/_onehassan',
+    },
+  ],
+  tags: ['Product', 'Auth', 'Email', 'Magic Link'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+When working on a project involving user authentication, it's crucial to incorporate email verification and password reset capabilities. Additionally, [Magic links](https://docs.nhost.io/guides/auth/sign-in-magic-link) provide a seamless mechanism by allowing users to log in without a password altogether. All of these methods share a common feature: they rely on sending a link to the user via email.
+
+In recent years, email clients have undergone significant evolution, introducing numerous features and security enhancements. However, these advancements can sometimes disrupt the integrity of embedded links, potentially resulting in unintended consequences. Notable among these features are the ability to crawl links within emails to generate inline previews and automated security scans that seek out malicious content.
+
+Since Magic Links are designed for **one-time** use, one of those features can occasionally render the links invalid. Consequently, your users would encounter a broken link, disrupting their intended access.
+
+Here's a sequence diagram to better explain what happens in the case of a reset password flow:
+
+<img
+  src="/images/blog/protect-your-magic-links-from-email-clients/magic-link-fail.svg"
+  alt="Reset password flow without redirect"
+/>
+
+To address this issue, you need to implement an additional step by refraining from sending the magic link directly in the email. Instead, you can include a link to a specific page within your app that contains the required parameters in the URL. This setup would allow for redirection to the authentication service endpoint seamlessly.
+
+When performing reset the password flow, users typically receive an email containing a link structured as follows:
+\
+`https://[subdomain].auth.[region].nhost.run/v1/verify?ticket=...&type=...&redirectTo=...`
+
+Instead of sending this link, you redirect users to your app with the all the required parameters. Fortunately we make it super easy to do this. You only have to edit the relevant email template in your nhost folder under `nhost/emails/en/reset-password/body.html`.
+
+```diff
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+</head>
+
+<body>
+  <h2>Reset Password</h2>
+  <p>Use this link to reset your password:</p>
+  <p>
+-    <a href="${link}">
++    <a href="${clientUrl}/verify?ticket=${ticket}&redirectTo=${redirectTo}&type=emailVerify">
+      Reset password
+    </a>
+  </p>
+</body>
+
+</html>
+```
+
+Then in your app you add another page that reads those parameters from the URL and then redirects the user to the auth service. The following is an example of such page in React.
+
+```tsx
+import { useEffect, useState } from 'react'
+import { useNhostClient } from '@nhost/react'
+import { useSearchParams } from 'react-router-dom'
+
+const VerifyPage: React.FC = () => {
+  const nhost = useNhostClient()
+  const [loading, setLoading] = useState(false)
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    const ticket = searchParams.get('ticket')
+    const redirectTo = searchParams.get('redirectTo')
+    const type = searchParams.get('type')
+
+    if (ticket && redirectTo && type) {
+      window.location.href = `${nhost.auth.url}/verify?ticket=${ticket}&type=${type}&redirectTo=${redirectTo}`
+    }
+
+    setLoading(false)
+  }, [searchParams, nhost?.auth?.url])
+
+  if (loading) {
+    return null
+  }
+
+  return (
+    <div>
+      <span>Failed to authenticate with magick link</span>
+    </div>
+  )
+}
+
+export default VerifyPage
+```
+
+Now here's the sequence diagram after applying the above strategy:
+
+<img
+  src="/images/blog/protect-your-magic-links-from-email-clients/magic-link-success.svg"
+  alt="Reset password flow with redirect"
+/>
+
+### Wrap up
+
+The strategy detailed in this blog post isn't limited to password reset flows but can also be applied in other use cases such as email verification and one-time file download links. By centralizing link handling within the application, the validity of such links remains intact across various email clients and scenarios.
