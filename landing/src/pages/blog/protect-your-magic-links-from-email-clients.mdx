@@ -66,10 +66,9 @@ Instead of sending this link, you redirect users to your app with the all the re
 Then in your app you add another page that reads those parameters from the URL and then redirects the user to the auth service. The following is an example of such page in React.
 
 ```tsx
-import { useSearchParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useNhostClient } from '@nhost/react'
-import { Container } from '@mantine/core'
+import { useSearchParams } from 'react-router-dom'
 
 const VerifyPage: React.FC = () => {
   const nhost = useNhostClient()
