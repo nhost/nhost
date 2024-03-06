@@ -107,7 +107,7 @@ export const performWebAuthn = async (userId: string) => {
     id: userId,
   });
 
-  const options = generateAuthenticationOptions({
+  const options = await generateAuthenticationOptions({
     rpID: getWebAuthnRelyingParty(),
     userVerification: 'preferred',
     timeout: ENV.AUTH_WEBAUTHN_ATTESTATION_TIMEOUT,

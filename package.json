@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@djgrant/postgres-migrations": "4.1.0-rc.1",
-    "@simplewebauthn/server": "^7.4.0",
+    "@simplewebauthn/server": "^9.0.3",
     "axios": "^1.6.7",
     "bcryptjs": "^2.4.3",
     "body-parser": "1.19.0",
@@ -80,7 +80,6 @@
     "@graphql-codegen/typescript-graphql-request": "^4.5.9",
     "@graphql-codegen/typescript-operations": "^2.5.13",
     "@simplewebauthn/types": "^9.0.1",
-    "@simplewebauthn/typescript-types": "^5.4.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/body-parser": "1.19.0",
     "@types/cors": "2.8.6",

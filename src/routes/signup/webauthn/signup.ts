@@ -10,7 +10,7 @@ import { generateRegistrationOptions } from '@simplewebauthn/server';
 import { v4 as uuidv4 } from 'uuid';
 import { RequestHandler } from 'express';
 
-import { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/typescript-types';
+import { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/types';
 import { email, Joi, registrationOptions } from '@/validation';
 import { UserRegistrationOptions } from '@/types';
 
@@ -52,7 +52,7 @@ export const signUpWebauthnHandler: RequestHandler<
   } = options;
 
   const userId = uuidv4();
-  const registrationOptions = generateRegistrationOptions({
+  const registrationOptions = await generateRegistrationOptions({
     rpID: getWebAuthnRelyingParty(),
     rpName: ENV.AUTH_WEBAUTHN_RP_NAME,
     userID: userId,

@@ -43,7 +43,7 @@ export const addSecurityKeyHandler: RequestHandler<
     id: userId,
   });
 
-  const options = generateRegistrationOptions({
+  const options = await generateRegistrationOptions({
     rpID: getWebAuthnRelyingParty(),
     rpName: ENV.AUTH_WEBAUTHN_RP_NAME,
     userID: userId,
