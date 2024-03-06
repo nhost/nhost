@@ -306,6 +306,11 @@ type ComplexityRoot struct {
 		Environment func(childComplexity int) int
 	}
 
+	ConfigGlobalEnvironmentVariable struct {
+		Name  func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
 	ConfigGrafana struct {
 		AdminPassword func(childComplexity int) int
 	}
@@ -1514,6 +1519,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigGlobal.Environment(childComplexity), true
+
+	case "ConfigGlobalEnvironmentVariable.name":
+		if e.complexity.ConfigGlobalEnvironmentVariable.Name == nil {
+			break
+		}
+
+		return e.complexity.ConfigGlobalEnvironmentVariable.Name(childComplexity), true
+
+	case "ConfigGlobalEnvironmentVariable.value":
+		if e.complexity.ConfigGlobalEnvironmentVariable.Value == nil {
+			break
+		}
+
+		return e.complexity.ConfigGlobalEnvironmentVariable.Value(childComplexity), true
 
 	case "ConfigGrafana.adminPassword":
 		if e.complexity.ConfigGrafana.AdminPassword == nil {
@@ -2772,6 +2791,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigFunctionsResourcesComparisonExp,
 		ec.unmarshalInputConfigFunctionsResourcesInsertInput,
 		ec.unmarshalInputConfigGlobalComparisonExp,
+		ec.unmarshalInputConfigGlobalEnvironmentVariableComparisonExp,
+		ec.unmarshalInputConfigGlobalEnvironmentVariableInsertInput,
 		ec.unmarshalInputConfigGlobalInsertInput,
 		ec.unmarshalInputConfigGrafanaComparisonExp,
 		ec.unmarshalInputConfigGrafanaInsertInput,
@@ -4778,22 +4799,54 @@ type ConfigGlobal {
     """
     User-defined environment variables that are spread over all services
     """
-    environment: [ConfigEnvironmentVariable!]
+    environment: [ConfigGlobalEnvironmentVariable!]
 }
 
 input ConfigGlobalUpdateInput {
-        environment: [ConfigEnvironmentVariableUpdateInput!]
+        environment: [ConfigGlobalEnvironmentVariableUpdateInput!]
 }
 
 input ConfigGlobalInsertInput {
-        environment: [ConfigEnvironmentVariableInsertInput!]
+        environment: [ConfigGlobalEnvironmentVariableInsertInput!]
 }
 
 input ConfigGlobalComparisonExp {
     _and: [ConfigGlobalComparisonExp!]
     _not: ConfigGlobalComparisonExp
     _or: [ConfigGlobalComparisonExp!]
-    environment: ConfigEnvironmentVariableComparisonExp
+    environment: ConfigGlobalEnvironmentVariableComparisonExp
+}
+
+"""
+
+"""
+type ConfigGlobalEnvironmentVariable {
+    """
+
+    """
+    name: String!
+    """
+    Value of the environment variable
+    """
+    value: String!
+}
+
+input ConfigGlobalEnvironmentVariableUpdateInput {
+    name: String
+    value: String
+}
+
+input ConfigGlobalEnvironmentVariableInsertInput {
+    name: String!
+    value: String!
+}
+
+input ConfigGlobalEnvironmentVariableComparisonExp {
+    _and: [ConfigGlobalEnvironmentVariableComparisonExp!]
+    _not: ConfigGlobalEnvironmentVariableComparisonExp
+    _or: [ConfigGlobalEnvironmentVariableComparisonExp!]
+    name: ConfigStringComparisonExp
+    value: ConfigStringComparisonExp
 }
 
 """
@@ -13025,9 +13078,9 @@ func (ec *executionContext) _ConfigGlobal_environment(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.ConfigEnvironmentVariable)
+	res := resTmp.([]*model.ConfigGlobalEnvironmentVariable)
 	fc.Result = res
-	return ec.marshalOConfigEnvironmentVariable2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableᚄ(ctx, field.Selections, res)
+	return ec.marshalOConfigGlobalEnvironmentVariable2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ConfigGlobal_environment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -13039,11 +13092,99 @@ func (ec *executionContext) fieldContext_ConfigGlobal_environment(ctx context.Co
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "name":
-				return ec.fieldContext_ConfigEnvironmentVariable_name(ctx, field)
+				return ec.fieldContext_ConfigGlobalEnvironmentVariable_name(ctx, field)
 			case "value":
-				return ec.fieldContext_ConfigEnvironmentVariable_value(ctx, field)
+				return ec.fieldContext_ConfigGlobalEnvironmentVariable_value(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type ConfigEnvironmentVariable", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ConfigGlobalEnvironmentVariable", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGlobalEnvironmentVariable_name(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGlobalEnvironmentVariable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGlobalEnvironmentVariable_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGlobalEnvironmentVariable_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGlobalEnvironmentVariable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGlobalEnvironmentVariable_value(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGlobalEnvironmentVariable) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGlobalEnvironmentVariable_value(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGlobalEnvironmentVariable_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGlobalEnvironmentVariable",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -26365,11 +26506,100 @@ func (ec *executionContext) unmarshalInputConfigGlobalComparisonExp(ctx context.
 			it.Or = data
 		case "environment":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environment"))
-			data, err := ec.unmarshalOConfigEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableComparisonExp(ctx, v)
+			data, err := ec.unmarshalOConfigGlobalEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExp(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Environment = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGlobalEnvironmentVariableComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGlobalEnvironmentVariableComparisonExp, error) {
+	var it model.ConfigGlobalEnvironmentVariableComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "name", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigGlobalEnvironmentVariableComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigGlobalEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigGlobalEnvironmentVariableComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "value":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGlobalEnvironmentVariableInsertInput(ctx context.Context, obj interface{}) (model.ConfigGlobalEnvironmentVariableInsertInput, error) {
+	var it model.ConfigGlobalEnvironmentVariableInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "value":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
 		}
 	}
 
@@ -26392,7 +26622,7 @@ func (ec *executionContext) unmarshalInputConfigGlobalInsertInput(ctx context.Co
 		switch k {
 		case "environment":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environment"))
-			data, err := ec.unmarshalOConfigEnvironmentVariableInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigEnvironmentVariableInsertInputᚄ(ctx, v)
+			data, err := ec.unmarshalOConfigGlobalEnvironmentVariableInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableInsertInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32801,6 +33031,50 @@ func (ec *executionContext) _ConfigGlobal(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var configGlobalEnvironmentVariableImplementors = []string{"ConfigGlobalEnvironmentVariable"}
+
+func (ec *executionContext) _ConfigGlobalEnvironmentVariable(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigGlobalEnvironmentVariable) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configGlobalEnvironmentVariableImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigGlobalEnvironmentVariable")
+		case "name":
+			out.Values[i] = ec._ConfigGlobalEnvironmentVariable_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "value":
+			out.Values[i] = ec._ConfigGlobalEnvironmentVariable_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var configGrafanaImplementors = []string{"ConfigGrafana"}
 
 func (ec *executionContext) _ConfigGrafana(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigGrafana) graphql.Marshaler {
@@ -35659,6 +35933,32 @@ func (ec *executionContext) unmarshalNConfigFunctionsResourcesComparisonExp2ᚖg
 func (ec *executionContext) unmarshalNConfigGlobalComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGlobalComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGlobalComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNConfigGlobalEnvironmentVariable2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariable(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGlobalEnvironmentVariable) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ConfigGlobalEnvironmentVariable(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNConfigGlobalEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGlobalEnvironmentVariableComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigGlobalEnvironmentVariableComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGlobalEnvironmentVariableInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableInsertInput(ctx context.Context, v interface{}) (*model.ConfigGlobalEnvironmentVariableInsertInput, error) {
+	res, err := ec.unmarshalInputConfigGlobalEnvironmentVariableInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGlobalEnvironmentVariableUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGlobalEnvironmentVariableUpdateInput, error) {
+	var res = new(model.ConfigGlobalEnvironmentVariableUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNConfigGrafana2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafana(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGrafana) graphql.Marshaler {
@@ -39060,6 +39360,121 @@ func (ec *executionContext) unmarshalOConfigGlobalComparisonExp2ᚖgithubᚗcom�
 	}
 	res, err := ec.unmarshalInputConfigGlobalComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigGlobalEnvironmentVariable2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigGlobalEnvironmentVariable) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNConfigGlobalEnvironmentVariable2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariable(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGlobalEnvironmentVariableComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGlobalEnvironmentVariableComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGlobalEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGlobalEnvironmentVariableComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGlobalEnvironmentVariableComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGlobalEnvironmentVariableInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGlobalEnvironmentVariableInsertInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGlobalEnvironmentVariableInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableInsertInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGlobalEnvironmentVariableUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGlobalEnvironmentVariableUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGlobalEnvironmentVariableUpdateInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGlobalEnvironmentVariableUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalEnvironmentVariableUpdateInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOConfigGlobalInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGlobalInsertInput(ctx context.Context, v interface{}) (*model.ConfigGlobalInsertInput, error) {

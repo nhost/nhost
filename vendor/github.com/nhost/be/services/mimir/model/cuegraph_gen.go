@@ -10393,7 +10393,7 @@ func (exp *ConfigFunctionsResourcesComparisonExp) Matches(o *ConfigFunctionsReso
 // Global configuration that applies to all services
 type ConfigGlobal struct {
 	// User-defined environment variables that are spread over all services
-	Environment []*ConfigEnvironmentVariable `json:"environment,omitempty" toml:"environment,omitempty"`
+	Environment []*ConfigGlobalEnvironmentVariable `json:"environment,omitempty" toml:"environment,omitempty"`
 }
 
 func (o *ConfigGlobal) MarshalJSON() ([]byte, error) {
@@ -10404,7 +10404,7 @@ func (o *ConfigGlobal) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
-func (o *ConfigGlobal) GetEnvironment() []*ConfigEnvironmentVariable {
+func (o *ConfigGlobal) GetEnvironment() []*ConfigGlobalEnvironmentVariable {
 	if o == nil {
 		o = &ConfigGlobal{}
 	}
@@ -10412,8 +10412,8 @@ func (o *ConfigGlobal) GetEnvironment() []*ConfigEnvironmentVariable {
 }
 
 type ConfigGlobalUpdateInput struct {
-	Environment      []*ConfigEnvironmentVariableUpdateInput `json:"environment,omitempty" toml:"environment,omitempty"`
-	IsSetEnvironment bool                                    `json:"-"`
+	Environment      []*ConfigGlobalEnvironmentVariableUpdateInput `json:"environment,omitempty" toml:"environment,omitempty"`
+	IsSetEnvironment bool                                          `json:"-"`
 }
 
 func (o *ConfigGlobalUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -10428,9 +10428,9 @@ func (o *ConfigGlobalUpdateInput) UnmarshalGQL(v interface{}) error {
 				return fmt.Errorf("Environment must be []interface{}, got %T", v)
 			}
 
-			l := make([]*ConfigEnvironmentVariableUpdateInput, len(x))
+			l := make([]*ConfigGlobalEnvironmentVariableUpdateInput, len(x))
 			for i, vv := range x {
-				t := &ConfigEnvironmentVariableUpdateInput{}
+				t := &ConfigGlobalEnvironmentVariableUpdateInput{}
 				if err := t.UnmarshalGQL(vv); err != nil {
 					return err
 				}
@@ -10451,7 +10451,7 @@ func (o *ConfigGlobalUpdateInput) MarshalGQL(w io.Writer) {
 	}
 }
 
-func (o *ConfigGlobalUpdateInput) GetEnvironment() []*ConfigEnvironmentVariableUpdateInput {
+func (o *ConfigGlobalUpdateInput) GetEnvironment() []*ConfigGlobalEnvironmentVariableUpdateInput {
 	if o == nil {
 		o = &ConfigGlobalUpdateInput{}
 	}
@@ -10466,9 +10466,9 @@ func (s *ConfigGlobal) Update(v *ConfigGlobalUpdateInput) {
 		if v.Environment == nil {
 			s.Environment = nil
 		} else {
-			s.Environment = make([]*ConfigEnvironmentVariable, len(v.Environment))
+			s.Environment = make([]*ConfigGlobalEnvironmentVariable, len(v.Environment))
 			for i, e := range v.Environment {
-				v := &ConfigEnvironmentVariable{}
+				v := &ConfigGlobalEnvironmentVariable{}
 				v.Update(e)
 				s.Environment[i] = v
 			}
@@ -10477,10 +10477,10 @@ func (s *ConfigGlobal) Update(v *ConfigGlobalUpdateInput) {
 }
 
 type ConfigGlobalInsertInput struct {
-	Environment []*ConfigEnvironmentVariableInsertInput `json:"environment,omitempty" toml:"environment,omitempty"`
+	Environment []*ConfigGlobalEnvironmentVariableInsertInput `json:"environment,omitempty" toml:"environment,omitempty"`
 }
 
-func (o *ConfigGlobalInsertInput) GetEnvironment() []*ConfigEnvironmentVariableInsertInput {
+func (o *ConfigGlobalInsertInput) GetEnvironment() []*ConfigGlobalEnvironmentVariableInsertInput {
 	if o == nil {
 		o = &ConfigGlobalInsertInput{}
 	}
@@ -10489,9 +10489,9 @@ func (o *ConfigGlobalInsertInput) GetEnvironment() []*ConfigEnvironmentVariableI
 
 func (s *ConfigGlobal) Insert(v *ConfigGlobalInsertInput) {
 	if v.Environment != nil {
-		s.Environment = make([]*ConfigEnvironmentVariable, len(v.Environment))
+		s.Environment = make([]*ConfigGlobalEnvironmentVariable, len(v.Environment))
 		for i, e := range v.Environment {
-			v := &ConfigEnvironmentVariable{}
+			v := &ConfigGlobalEnvironmentVariable{}
 			v.Insert(e)
 			s.Environment[i] = v
 		}
@@ -10505,7 +10505,7 @@ func (s *ConfigGlobal) Clone() *ConfigGlobal {
 
 	v := &ConfigGlobal{}
 	if s.Environment != nil {
-		v.Environment = make([]*ConfigEnvironmentVariable, len(s.Environment))
+		v.Environment = make([]*ConfigGlobalEnvironmentVariable, len(s.Environment))
 		for i, e := range s.Environment {
 			v.Environment[i] = e.Clone()
 		}
@@ -10514,10 +10514,10 @@ func (s *ConfigGlobal) Clone() *ConfigGlobal {
 }
 
 type ConfigGlobalComparisonExp struct {
-	And         []*ConfigGlobalComparisonExp            `json:"_and,omitempty"`
-	Not         *ConfigGlobalComparisonExp              `json:"_not,omitempty"`
-	Or          []*ConfigGlobalComparisonExp            `json:"_or,omitempty"`
-	Environment *ConfigEnvironmentVariableComparisonExp `json:"environment,omitempty"`
+	And         []*ConfigGlobalComparisonExp                  `json:"_and,omitempty"`
+	Not         *ConfigGlobalComparisonExp                    `json:"_not,omitempty"`
+	Or          []*ConfigGlobalComparisonExp                  `json:"_or,omitempty"`
+	Environment *ConfigGlobalEnvironmentVariableComparisonExp `json:"environment,omitempty"`
 }
 
 func (exp *ConfigGlobalComparisonExp) Matches(o *ConfigGlobal) bool {
@@ -10527,7 +10527,7 @@ func (exp *ConfigGlobalComparisonExp) Matches(o *ConfigGlobal) bool {
 
 	if o == nil {
 		o = &ConfigGlobal{
-			Environment: []*ConfigEnvironmentVariable{},
+			Environment: []*ConfigGlobalEnvironmentVariable{},
 		}
 	}
 	{
@@ -10541,6 +10541,193 @@ func (exp *ConfigGlobalComparisonExp) Matches(o *ConfigGlobal) bool {
 		if !found && exp.Environment != nil {
 			return false
 		}
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigGlobalEnvironmentVariable struct {
+	Name string `json:"name" toml:"name"`
+	// Value of the environment variable
+	Value string `json:"value" toml:"value"`
+}
+
+func (o *ConfigGlobalEnvironmentVariable) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["name"] = o.Name
+	m["value"] = o.Value
+	return json.Marshal(m)
+}
+
+func (o *ConfigGlobalEnvironmentVariable) GetName() string {
+	if o == nil {
+		o = &ConfigGlobalEnvironmentVariable{}
+	}
+	return o.Name
+}
+
+func (o *ConfigGlobalEnvironmentVariable) GetValue() string {
+	if o == nil {
+		o = &ConfigGlobalEnvironmentVariable{}
+	}
+	return o.Value
+}
+
+type ConfigGlobalEnvironmentVariableUpdateInput struct {
+	Name       *string `json:"name,omitempty" toml:"name,omitempty"`
+	IsSetName  bool    `json:"-"`
+	Value      *string `json:"value,omitempty" toml:"value,omitempty"`
+	IsSetValue bool    `json:"-"`
+}
+
+func (o *ConfigGlobalEnvironmentVariableUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["name"]; ok {
+		if v == nil {
+			o.Name = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Name = &x
+		}
+		o.IsSetName = true
+	}
+	if v, ok := m["value"]; ok {
+		if v == nil {
+			o.Value = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Value = &x
+		}
+		o.IsSetValue = true
+	}
+
+	return nil
+}
+
+func (o *ConfigGlobalEnvironmentVariableUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigGlobalEnvironmentVariableUpdateInput) GetName() *string {
+	if o == nil {
+		o = &ConfigGlobalEnvironmentVariableUpdateInput{}
+	}
+	return o.Name
+}
+
+func (o *ConfigGlobalEnvironmentVariableUpdateInput) GetValue() *string {
+	if o == nil {
+		o = &ConfigGlobalEnvironmentVariableUpdateInput{}
+	}
+	return o.Value
+}
+
+func (s *ConfigGlobalEnvironmentVariable) Update(v *ConfigGlobalEnvironmentVariableUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetName || v.Name != nil {
+		if v.Name != nil {
+			s.Name = *v.Name
+		}
+	}
+	if v.IsSetValue || v.Value != nil {
+		if v.Value != nil {
+			s.Value = *v.Value
+		}
+	}
+}
+
+type ConfigGlobalEnvironmentVariableInsertInput struct {
+	Name  string `json:"name,omitempty" toml:"name,omitempty"`
+	Value string `json:"value,omitempty" toml:"value,omitempty"`
+}
+
+func (o *ConfigGlobalEnvironmentVariableInsertInput) GetName() string {
+	if o == nil {
+		o = &ConfigGlobalEnvironmentVariableInsertInput{}
+	}
+	return o.Name
+}
+
+func (o *ConfigGlobalEnvironmentVariableInsertInput) GetValue() string {
+	if o == nil {
+		o = &ConfigGlobalEnvironmentVariableInsertInput{}
+	}
+	return o.Value
+}
+
+func (s *ConfigGlobalEnvironmentVariable) Insert(v *ConfigGlobalEnvironmentVariableInsertInput) {
+	s.Name = v.Name
+	s.Value = v.Value
+}
+
+func (s *ConfigGlobalEnvironmentVariable) Clone() *ConfigGlobalEnvironmentVariable {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigGlobalEnvironmentVariable{}
+	v.Name = s.Name
+	v.Value = s.Value
+	return v
+}
+
+type ConfigGlobalEnvironmentVariableComparisonExp struct {
+	And   []*ConfigGlobalEnvironmentVariableComparisonExp `json:"_and,omitempty"`
+	Not   *ConfigGlobalEnvironmentVariableComparisonExp   `json:"_not,omitempty"`
+	Or    []*ConfigGlobalEnvironmentVariableComparisonExp `json:"_or,omitempty"`
+	Name  *ConfigStringComparisonExp                      `json:"name,omitempty"`
+	Value *ConfigStringComparisonExp                      `json:"value,omitempty"`
+}
+
+func (exp *ConfigGlobalEnvironmentVariableComparisonExp) Matches(o *ConfigGlobalEnvironmentVariable) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigGlobalEnvironmentVariable{}
+	}
+	if !exp.Name.Matches(o.Name) {
+		return false
+	}
+	if !exp.Value.Matches(o.Value) {
+		return false
 	}
 
 	if exp.And != nil && !all(exp.And, o) {

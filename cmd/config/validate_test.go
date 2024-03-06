@@ -20,7 +20,7 @@ func expectedConfig() *model.ConfigConfig {
 	//nolint:exhaustruct
 	return &model.ConfigConfig{
 		Global: &model.ConfigGlobal{
-			Environment: []*model.ConfigEnvironmentVariable{
+			Environment: []*model.ConfigGlobalEnvironmentVariable{
 				{Name: "ENVIRONMENT", Value: "development"},
 				{Name: "FUNCTION_LOG_LEVEL", Value: "debug"},
 			},

@@ -15,6 +15,7 @@ func Command() *cli.Command {
 			CommandConfigPull(),
 			CommandConfigValidate(),
 			CommandConfigExample(),
+			CommandEnv(),
 		},
 	}
 }

@@ -69,10 +69,10 @@ import (
 // Global configuration that applies to all services
 #Global: {
 	// User-defined environment variables that are spread over all services
-	environment: [...#EnvironmentVariable] | *[]
+	environment: [...#GlobalEnvironmentVariable] | *[]
 }
 
-#EnvironmentVariable: {
+#GlobalEnvironmentVariable: {
 	// Name of the environment variable
 	name: =~"(?i)^[a-z_]{1,}[a-z0-9_]*" & !~"(?i)^NHOST_" & !~"(?i)^HASURA_"
 	// Value of the environment variable
@@ -467,7 +467,7 @@ import (
 	host:     string & net.FQDN | net.IP
 	port:     #Port
 	secure:   bool
-	method:   "LOGIN" | "GSSAPI" | "GSSAPI" | "DIGEST-MD5" | "MD5" | "CRAM-MD5" | "OAUTH10A" | "OAUTHBEARER" | "XOAUTH2" | "PLAIN"
+	method:   "LOGIN" | "CRAM-MD5" | "PLAIN"
 }
 
 #Sms: {
@@ -623,6 +623,13 @@ import (
 	port:                #Port
 	initialDelaySeconds: int | *30
 	probePeriodSeconds:  int | *60
+}
+
+#EnvironmentVariable: {
+	// Name of the environment variable
+	name: =~"(?i)^[a-z_]{1,}[a-z0-9_]*"
+	// Value of the environment variable
+	value: string
 }
 
 #RunServiceConfig: {

@@ -270,6 +270,12 @@ func HasuraEnv( //nolint:funlen
 	}
 
 	for _, e := range config.GetGlobal().GetEnvironment() {
+		for _, v := range env {
+			if v.Name == e.Name {
+				continue
+			}
+		}
+
 		env = append(env, EnvVar{ //nolint:exhaustruct
 			Name:  e.Name,
 			Value: e.Value,

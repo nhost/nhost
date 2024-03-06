@@ -207,7 +207,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 			Version: ptr("0.22.0"),
 		},
 		Global: &model.ConfigGlobal{
-			Environment: []*model.ConfigEnvironmentVariable{
+			Environment: []*model.ConfigGlobalEnvironmentVariable{
 				{
 					Name:  "ENV1",
 					Value: "VALUE1",

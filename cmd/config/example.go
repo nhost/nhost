@@ -28,7 +28,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 	//nolint:gomnd
 	cfg := model.ConfigConfig{
 		Global: &model.ConfigGlobal{
-			Environment: []*model.ConfigEnvironmentVariable{
+			Environment: []*model.ConfigGlobalEnvironmentVariable{
 				{
 					Name:  "NAME",
 					Value: "value",

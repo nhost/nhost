@@ -1682,22 +1682,54 @@ type ConfigGlobal {
     """
     User-defined environment variables that are spread over all services
     """
-    environment: [ConfigEnvironmentVariable!]
+    environment: [ConfigGlobalEnvironmentVariable!]
 }
 
 input ConfigGlobalUpdateInput {
-        environment: [ConfigEnvironmentVariableUpdateInput!]
+        environment: [ConfigGlobalEnvironmentVariableUpdateInput!]
 }
 
 input ConfigGlobalInsertInput {
-        environment: [ConfigEnvironmentVariableInsertInput!]
+        environment: [ConfigGlobalEnvironmentVariableInsertInput!]
 }
 
 input ConfigGlobalComparisonExp {
     _and: [ConfigGlobalComparisonExp!]
     _not: ConfigGlobalComparisonExp
     _or: [ConfigGlobalComparisonExp!]
-    environment: ConfigEnvironmentVariableComparisonExp
+    environment: ConfigGlobalEnvironmentVariableComparisonExp
+}
+
+"""
+
+"""
+type ConfigGlobalEnvironmentVariable {
+    """
+
+    """
+    name: String!
+    """
+    Value of the environment variable
+    """
+    value: String!
+}
+
+input ConfigGlobalEnvironmentVariableUpdateInput {
+    name: String
+    value: String
+}
+
+input ConfigGlobalEnvironmentVariableInsertInput {
+    name: String!
+    value: String!
+}
+
+input ConfigGlobalEnvironmentVariableComparisonExp {
+    _and: [ConfigGlobalEnvironmentVariableComparisonExp!]
+    _not: ConfigGlobalEnvironmentVariableComparisonExp
+    _or: [ConfigGlobalEnvironmentVariableComparisonExp!]
+    name: ConfigStringComparisonExp
+    value: ConfigStringComparisonExp
 }
 
 """
