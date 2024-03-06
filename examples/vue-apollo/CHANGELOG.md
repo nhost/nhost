@@ -1,5 +1,15 @@
 # @nhost-examples/vue-apollo
 
+## 0.4.0
+
+### Minor Changes
+
+- 08a7dd9: feat: add example workaround to the reset password ticket expired issue
+
+### Patch Changes
+
+- f0a994a: fix: update allowedUrls and redirectTo to point to the profile page
+
 ## 0.3.1
 
 ### Patch Changes
