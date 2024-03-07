@@ -1,0 +1,6 @@
+mutation updateUserDisplayName($id: uuid!, $displayName: String!) {
+  updateUser(pk_columns: { id: $id }, _set: { displayName: $displayName }) {
+    id
+    displayName
+  }
+}

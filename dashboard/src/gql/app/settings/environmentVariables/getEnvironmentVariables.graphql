@@ -1,4 +1,4 @@
-fragment EnvironmentVariable on ConfigEnvironmentVariable {
+fragment EnvironmentVariable on ConfigGlobalEnvironmentVariable {
   id: name
   name
   value
