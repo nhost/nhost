@@ -1272,22 +1272,47 @@ export type ConfigFunctionsUpdateInput = {
 export type ConfigGlobal = {
   __typename?: 'ConfigGlobal';
   /** User-defined environment variables that are spread over all services */
-  environment?: Maybe<Array<ConfigEnvironmentVariable>>;
+  environment?: Maybe<Array<ConfigGlobalEnvironmentVariable>>;
 };
 
 export type ConfigGlobalComparisonExp = {
   _and?: InputMaybe<Array<ConfigGlobalComparisonExp>>;
   _not?: InputMaybe<ConfigGlobalComparisonExp>;
   _or?: InputMaybe<Array<ConfigGlobalComparisonExp>>;
-  environment?: InputMaybe<ConfigEnvironmentVariableComparisonExp>;
+  environment?: InputMaybe<ConfigGlobalEnvironmentVariableComparisonExp>;
+};
+
+export type ConfigGlobalEnvironmentVariable = {
+  __typename?: 'ConfigGlobalEnvironmentVariable';
+  name: Scalars['String'];
+  /** Value of the environment variable */
+  value: Scalars['String'];
+};
+
+export type ConfigGlobalEnvironmentVariableComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGlobalEnvironmentVariableComparisonExp>>;
+  _not?: InputMaybe<ConfigGlobalEnvironmentVariableComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGlobalEnvironmentVariableComparisonExp>>;
+  name?: InputMaybe<ConfigStringComparisonExp>;
+  value?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigGlobalEnvironmentVariableInsertInput = {
+  name: Scalars['String'];
+  value: Scalars['String'];
+};
+
+export type ConfigGlobalEnvironmentVariableUpdateInput = {
+  name?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigGlobalInsertInput = {
-  environment?: InputMaybe<Array<ConfigEnvironmentVariableInsertInput>>;
+  environment?: InputMaybe<Array<ConfigGlobalEnvironmentVariableInsertInput>>;
 };
 
 export type ConfigGlobalUpdateInput = {
-  environment?: InputMaybe<Array<ConfigEnvironmentVariableUpdateInput>>;
+  environment?: InputMaybe<Array<ConfigGlobalEnvironmentVariableUpdateInput>>;
 };
 
 export type ConfigGrafana = {
@@ -22451,6 +22476,14 @@ export type DeletePersonalAccessTokenMutationVariables = Exact<{
 
 export type DeletePersonalAccessTokenMutation = { __typename?: 'mutation_root', deletePersonalAccessToken?: { __typename?: 'authRefreshTokens', id: any, metadata?: any | null } | null };
 
+export type UpdateUserDisplayNameMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  displayName: Scalars['String'];
+}>;
+
+
+export type UpdateUserDisplayNameMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any, displayName: string } | null };
+
 export type GetAiSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -22629,7 +22662,7 @@ export type DnsLookupCnameQueryVariables = Exact<{
 
 export type DnsLookupCnameQuery = { __typename?: 'query_root', dnsLookupCNAME: string };
 
-export type EnvironmentVariableFragment = { __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string };
+export type EnvironmentVariableFragment = { __typename?: 'ConfigGlobalEnvironmentVariable', name: string, value: string, id: string };
 
 export type JwtSecretFragment = { __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null };
 
@@ -22638,7 +22671,7 @@ export type GetEnvironmentVariablesQueryVariables = Exact<{
 }>;
 
 
-export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } | null };
+export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigGlobalEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } | null };
 
 export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
 
@@ -23227,7 +23260,7 @@ export const PrefetchNewAppWorkspaceFragmentDoc = gql`
 }
     `;
 export const EnvironmentVariableFragmentDoc = gql`
-    fragment EnvironmentVariable on ConfigEnvironmentVariable {
+    fragment EnvironmentVariable on ConfigGlobalEnvironmentVariable {
   id: name
   name
   value
@@ -23561,6 +23594,41 @@ export function useDeletePersonalAccessTokenMutation(baseOptions?: Apollo.Mutati
 export type DeletePersonalAccessTokenMutationHookResult = ReturnType<typeof useDeletePersonalAccessTokenMutation>;
 export type DeletePersonalAccessTokenMutationResult = Apollo.MutationResult<DeletePersonalAccessTokenMutation>;
 export type DeletePersonalAccessTokenMutationOptions = Apollo.BaseMutationOptions<DeletePersonalAccessTokenMutation, DeletePersonalAccessTokenMutationVariables>;
+export const UpdateUserDisplayNameDocument = gql`
+    mutation updateUserDisplayName($id: uuid!, $displayName: String!) {
+  updateUser(pk_columns: {id: $id}, _set: {displayName: $displayName}) {
+    id
+    displayName
+  }
+}
+    `;
+export type UpdateUserDisplayNameMutationFn = Apollo.MutationFunction<UpdateUserDisplayNameMutation, UpdateUserDisplayNameMutationVariables>;
+
+/**
+ * __useUpdateUserDisplayNameMutation__
+ *
+ * To run a mutation, you first call `useUpdateUserDisplayNameMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUserDisplayNameMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateUserDisplayNameMutation, { data, loading, error }] = useUpdateUserDisplayNameMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      displayName: // value for 'displayName'
+ *   },
+ * });
+ */
+export function useUpdateUserDisplayNameMutation(baseOptions?: Apollo.MutationHookOptions<UpdateUserDisplayNameMutation, UpdateUserDisplayNameMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateUserDisplayNameMutation, UpdateUserDisplayNameMutationVariables>(UpdateUserDisplayNameDocument, options);
+      }
+export type UpdateUserDisplayNameMutationHookResult = ReturnType<typeof useUpdateUserDisplayNameMutation>;
+export type UpdateUserDisplayNameMutationResult = Apollo.MutationResult<UpdateUserDisplayNameMutation>;
+export type UpdateUserDisplayNameMutationOptions = Apollo.BaseMutationOptions<UpdateUserDisplayNameMutation, UpdateUserDisplayNameMutationVariables>;
 export const GetAiSettingsDocument = gql`
     query GetAISettings($appId: uuid!) {
   config(appID: $appId, resolve: false) {
