@@ -11,7 +11,6 @@ import * as Yup from 'yup';
 const validationSchema = Yup.object({
   displayName: Yup.string()
     .label('Display Name')
-    .nullable()
     .required('This field is required.'),
 });
 
