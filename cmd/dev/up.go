@@ -251,7 +251,7 @@ func processRunServices(
 			return nil, err
 		}
 
-		cfg, err := run.Validate(ce, cfgPath, overlayName, secrets)
+		cfg, err := run.Validate(ce, cfgPath, overlayName, secrets, false)
 		if err != nil {
 			return nil, fmt.Errorf("failed to validate run service %s: %w", cfgPath, err)
 		}

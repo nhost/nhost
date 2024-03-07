@@ -519,11 +519,21 @@ type ConfigFunctionsUpdateInput struct {
 }
 
 type ConfigGlobal struct {
-	Environment []*ConfigEnvironmentVariable `json:"environment,omitempty"`
+	Environment []*ConfigGlobalEnvironmentVariable `json:"environment,omitempty"`
+}
+
+type ConfigGlobalEnvironmentVariable struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type ConfigGlobalEnvironmentVariableUpdateInput struct {
+	Name  *string `json:"name,omitempty"`
+	Value *string `json:"value,omitempty"`
 }
 
 type ConfigGlobalUpdateInput struct {
-	Environment []*ConfigEnvironmentVariableUpdateInput `json:"environment,omitempty"`
+	Environment []*ConfigGlobalEnvironmentVariableUpdateInput `json:"environment,omitempty"`
 }
 
 type ConfigGrafana struct {

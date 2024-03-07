@@ -50,6 +50,7 @@ func commandConfigShow(cCtx *cli.Context) error {
 		cCtx.String(flagConfig),
 		cCtx.String(flagOverlayName),
 		secrets,
+		false,
 	)
 	if err != nil {
 		return err

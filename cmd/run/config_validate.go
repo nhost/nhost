@@ -103,6 +103,7 @@ func Validate(
 	configPath string,
 	overlayName string,
 	secrets model.Secrets,
+	testSecretsOnly bool,
 ) (*model.ConfigRunServiceConfig, error) {
 	cfg, err := loadConfig(configPath)
 	if err != nil {
@@ -121,9 +122,12 @@ func Validate(
 		return nil, fmt.Errorf("failed to create schema: %w", err)
 	}
 
-	cfg, err = appconfig.SecretsResolver(cfg, secrets, schema.FillRunServiceConfig)
+	cfgSecretsResolved, err := appconfig.SecretsResolver(cfg, secrets, schema.FillRunServiceConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)
+	}
+	if !testSecretsOnly {
+		cfg = cfgSecretsResolved
 	}
 
 	return cfg, nil
@@ -190,6 +194,7 @@ func commandConfigValidate(cCtx *cli.Context) error {
 		cCtx.String(flagConfig),
 		overlayName,
 		secrets,
+		false,
 	); err != nil {
 		return err
 	}

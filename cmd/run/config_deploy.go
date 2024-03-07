@@ -66,6 +66,7 @@ func commandConfigDeploy(cCtx *cli.Context) error {
 		cCtx.String(flagConfig),
 		cCtx.String(flagServiceID),
 		secrets,
+		true,
 	)
 	if err != nil {
 		return err
