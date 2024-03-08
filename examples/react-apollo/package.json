@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
-    "@graphql-codegen/cli": "^2.16.5",
+    "@graphql-codegen/cli": "^5.0.2",
     "@nuintun/qrcode": "^3.4.0",
     "@playwright/test": "1.31.0",
     "@types/pngjs": "^6.0.4",
