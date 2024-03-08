@@ -104,8 +104,7 @@ import {
   useUserId
 } from '@nhost/vue'
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import { computed } from 'vue'
-import { ref, unref } from 'vue'
+import { ref, unref, computed } from 'vue'
 
 const email = ref('')
 const password = ref('')
