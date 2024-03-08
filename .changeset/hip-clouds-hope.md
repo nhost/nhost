@@ -2,4 +2,4 @@
 '@nhost/graphql-js': patch
 ---
 
-fix: add process is undefined error when running vitejs
+fix: resolve process is undefined error when running with vitejs
