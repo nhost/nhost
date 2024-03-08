@@ -1,5 +1,14 @@
 # @nhost-examples/vue-apollo
 
+## 0.4.1
+
+### Patch Changes
+
+- 7789469: chore: address linter errors and remove unnecessary imports
+  - @nhost/nhost-js@3.0.9
+  - @nhost/apollo@6.1.1
+  - @nhost/vue@2.3.1
+
 ## 0.4.0
 
 ### Minor Changes

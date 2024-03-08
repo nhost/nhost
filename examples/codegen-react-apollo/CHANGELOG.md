@@ -1,5 +1,16 @@
 # @nhost-examples/codegen-react-apollo
 
+## 0.3.0
+
+### Minor Changes
+
+- 7789469: chore: upgrade dependency `@graphql-codegen/cli` to `5.0.2` to address vulnerability
+
+### Patch Changes
+
+- @nhost/react@3.3.1
+- @nhost/react-apollo@10.0.1
+
 ## 0.2.0
 
 ### Minor Changes

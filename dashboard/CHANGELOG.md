@@ -1,5 +1,17 @@
 # @nhost/dashboard
 
+## 1.11.0
+
+### Minor Changes
+
+- 7789469: chore: upgrade dependency `@graphql-codegen/cli` to `5.0.2` to address vulnerability
+- 6c11b75: feat: add update user displayName section in account settings
+
+### Patch Changes
+
+- @nhost/react-apollo@10.0.1
+- @nhost/nextjs@2.1.7
+
 ## 1.10.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @nhost/stripe-graphql-js
 
+## 1.1.1
+
+### Patch Changes
+
+- 7789469: chore: address linter errors and remove unnecessary imports
+
 ## 1.1.0
 
 ### Minor Changes
