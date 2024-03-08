@@ -1,5 +1,15 @@
 # @nhost-examples/codegen-react-query
 
+## 0.3.0
+
+### Minor Changes
+
+- 7789469: chore: upgrade dependency `@graphql-codegen/cli` to `5.0.2` to address vulnerability
+
+### Patch Changes
+
+- @nhost/react@3.3.1
+
 ## 0.2.0
 
 ### Minor Changes

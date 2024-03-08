@@ -1,5 +1,12 @@
 # @nhost-examples/serverless-functions
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [7789469]
+  - @nhost/stripe-graphql-js@1.1.1
+
 ## 0.1.0
 
 ### Minor Changes

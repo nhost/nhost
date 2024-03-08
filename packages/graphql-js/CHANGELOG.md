@@ -1,5 +1,11 @@
 # @nhost/graphql-js
 
+## 0.1.9
+
+### Patch Changes
+
+- 7789469: fix: resolve process is undefined error when running with vitejs
+
 ## 0.1.8
 
 ### Patch Changes
