@@ -47,7 +47,8 @@ export const validationSchema = Yup.object({
       initialDelaySeconds: Yup.number().required(),
       probePeriodSeconds: Yup.number().required(),
     })
-    .nullable(),
+    .nullable()
+    .default(undefined),
 });
 
 export type ServiceFormValues = Yup.InferType<typeof validationSchema>;
