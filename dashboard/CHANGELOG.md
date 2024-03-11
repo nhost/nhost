@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.11.1
+
+### Patch Changes
+
+- 981404f: fix: set default value for healthCheck field validation
+
 ## 1.11.0
 
 ### Minor Changes
