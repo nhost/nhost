@@ -2,17 +2,25 @@ package controller
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/nhost/hasura-auth/go/api"
 )
 
+func logError(err error) slog.Attr {
+	return slog.String("error", err.Error())
+}
+
 func isSensitive(err api.ErrorResponseError) bool {
 	switch err {
 	case
+		api.DisabledUser,
 		api.EmailAlreadyInUse,
+		api.InvalidEmailPassword,
 		api.RoleNotAllowed,
-		api.SignupDisabled:
+		api.SignupDisabled,
+		api.UnverifiedUser:
 		return true
 	case
 		api.DefaultRoleMustBeInAllowedRoles,
@@ -39,13 +47,17 @@ func (response ErrorResponse) VisitPostSignupEmailPasswordResponse(w http.Respon
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitPostSigninEmailPasswordResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 	errType api.ErrorResponseError,
 ) ErrorResponse {
 	invalidRequest := ErrorResponse{
 		Status:  http.StatusBadRequest,
 		Error:   api.InvalidRequest,
-		Message: "invalid-request",
+		Message: "The request payload is incorrect",
 	}
 
 	if ctrl.config.ConcealErrors && isSensitive(errType) {
@@ -59,6 +71,12 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 			Error:   errType,
 			Message: "Default role must be in allowed roles",
 		}
+	case api.DisabledUser:
+		return ErrorResponse{
+			Status:  http.StatusForbidden,
+			Error:   errType,
+			Message: "User is disabled",
+		}
 	case api.EmailAlreadyInUse:
 		return ErrorResponse{
 			Status:  http.StatusConflict,
@@ -66,6 +84,12 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 			Message: "Email already in use",
 		}
 	case api.InternalServerError:
+	case api.InvalidEmailPassword:
+		return ErrorResponse{
+			Status:  http.StatusUnauthorized,
+			Error:   errType,
+			Message: "Incorrect email or password",
+		}
 	case api.InvalidRequest:
 	case api.LocaleNotAllowed:
 		return ErrorResponse{
@@ -102,6 +126,12 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 			Status:  http.StatusForbidden,
 			Error:   errType,
 			Message: "Sign up is disabled.",
+		}
+	case api.UnverifiedUser:
+		return ErrorResponse{
+			Status:  http.StatusUnauthorized,
+			Error:   errType,
+			Message: "User is not verified.",
 		}
 	}
 

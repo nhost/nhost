@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"context"
+	"log/slog"
 	"net/url"
 	"testing"
 
@@ -24,7 +25,11 @@ func getConfig() *controller.Config {
 	return &controller.Config{
 		HasuraGraphqlURL:         "http://localhost:8080/v1/graphql",
 		HasuraAdminSecret:        "nhost-admin-secret",
+		AllowedEmailDomains:      []string{},
+		AllowedEmails:            []string{},
 		AllowedRedirectURLs:      []*url.URL{},
+		BlockedEmailDomains:      []string{},
+		BlockedEmails:            []string{},
 		ClientURL:                clientURL,
 		CustomClaims:             "",
 		ConcealErrors:            false,
@@ -353,7 +358,9 @@ func TestValidatorPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			got, err := validator.PostSignupEmailPassword(context.Background(), tc.request)
+			got, err := validator.PostSignupEmailPassword(
+				context.Background(), tc.request, slog.Default(),
+			)
 			if diff := cmp.Diff(err, tc.expectedErr); diff != "" {
 				t.Errorf("unexpected error (-want +got):\n%s", diff)
 			}
@@ -463,6 +470,134 @@ func TestValidateRedirectTo(t *testing.T) {
 				if diff := cmp.Diff(got, tc.allowed); diff != "" {
 					t.Errorf("unexpected result for %s (-want +got):\n%s", redirectTo, diff)
 				}
+			}
+		})
+	}
+}
+
+func TestValidateEmail(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name           string
+		blockedDomains []string
+		blockedEmails  []string
+		allowedDomains []string
+		allowedEmails  []string
+		email          string
+		expected       bool
+	}{
+		{
+			name:           "empty",
+			blockedDomains: []string{},
+			blockedEmails:  []string{},
+			allowedDomains: []string{},
+			allowedEmails:  []string{},
+			email:          "test@acme.com",
+			expected:       true,
+		},
+
+		{
+			name:           "blocked domain matches",
+			blockedDomains: []string{"acme.com"},
+			blockedEmails:  []string{},
+			allowedDomains: []string{},
+			allowedEmails:  []string{},
+			email:          "test@acme.com",
+			expected:       false,
+		},
+
+		{
+			name:           "blocked domain doesnt match",
+			blockedDomains: []string{"acme.com"},
+			blockedEmails:  []string{},
+			allowedDomains: []string{},
+			allowedEmails:  []string{},
+			email:          "test@acme.se",
+			expected:       true,
+		},
+
+		{
+			name:           "blocked email matches",
+			blockedDomains: []string{},
+			blockedEmails:  []string{"test@acme.com"},
+			allowedDomains: []string{},
+			allowedEmails:  []string{},
+			email:          "test@acme.com",
+			expected:       false,
+		},
+
+		{
+			name:           "blocked email doesnt match",
+			blockedDomains: []string{},
+			blockedEmails:  []string{"test@acme.com"},
+			allowedDomains: []string{},
+			allowedEmails:  []string{},
+			email:          "test@acme.se",
+			expected:       true,
+		},
+
+		{
+			name:           "allowed domain matches",
+			blockedDomains: []string{},
+			blockedEmails:  []string{},
+			allowedDomains: []string{"acme.com"},
+			allowedEmails:  []string{},
+			email:          "test@acme.com",
+			expected:       true,
+		},
+
+		{
+			name:           "allowed domain doesnt match",
+			blockedDomains: []string{},
+			blockedEmails:  []string{},
+			allowedDomains: []string{"acme.com"},
+			allowedEmails:  []string{},
+			email:          "test@acme.se",
+			expected:       false,
+		},
+
+		{
+			name:           "allowed email matches",
+			blockedDomains: []string{},
+			blockedEmails:  []string{},
+			allowedDomains: []string{},
+			allowedEmails:  []string{"test@acme.com"},
+			email:          "test@acme.com",
+			expected:       true,
+		},
+
+		{
+			name:           "allowed email doesnt match",
+			blockedDomains: []string{},
+			blockedEmails:  []string{},
+			allowedDomains: []string{},
+			allowedEmails:  []string{"test@acme.com"},
+			email:          "test@acme.se",
+			expected:       false,
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			tc := tc
+
+			fn := controller.ValidateEmail(
+				tc.blockedDomains,
+				tc.blockedEmails,
+				tc.allowedDomains,
+				tc.allowedEmails,
+			)
+			got := fn(tc.email)
+			if tc.expected != got {
+				t.Errorf(
+					"unexpected result for %s: got %t, expected %t",
+					tc.email,
+					got,
+					tc.expected,
+				)
 			}
 		})
 	}

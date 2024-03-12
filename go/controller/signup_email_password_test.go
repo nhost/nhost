@@ -242,7 +242,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						DisplayName:         "jane@acme.com",
 						Email:               "jane@acme.com",
 						EmailVerified:       false,
-						Id:                  ptr("db477732-48fa-4289-b694-2886a646b6eb"),
+						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
 						Locale:              "en",
 						Metadata:            nil,
@@ -349,7 +349,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						DisplayName:         "Jane Doe",
 						Email:               "jane@acme.com",
 						EmailVerified:       false,
-						Id:                  ptr("db477732-48fa-4289-b694-2886a646b6eb"),
+						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
 						Locale:              "se",
 						Metadata:            map[string]any{"firstName": "Jane", "lastName": "Doe"},
@@ -608,7 +608,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 			},
 			expectedResponse: controller.ErrorResponse{
 				Error:   "invalid-request",
-				Message: "invalid-request",
+				Message: "The request payload is incorrect",
 				Status:  400,
 			},
 			expectedJWT: nil,
@@ -773,7 +773,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						DisplayName:         "jane@acme.com",
 						Email:               "jane@acme.com",
 						EmailVerified:       false,
-						Id:                  ptr("db477732-48fa-4289-b694-2886a646b6eb"),
+						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
 						Locale:              "en",
 						Metadata:            nil,
@@ -917,7 +917,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						DisplayName:         "jane@acme.com",
 						Email:               "jane@acme.com",
 						EmailVerified:       false,
-						Id:                  ptr("db477732-48fa-4289-b694-2886a646b6eb"),
+						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
 						Locale:              "en",
 						Metadata:            nil,
@@ -1017,7 +1017,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						DisplayName:         "jane@acme.com",
 						Email:               "jane@acme.com",
 						EmailVerified:       false,
-						Id:                  ptr("db477732-48fa-4289-b694-2886a646b6eb"),
+						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
 						Locale:              "en",
 						Metadata:            nil,
@@ -1043,12 +1043,9 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						"x-hasura-user-isAnonymous": "false",
 						"x-hasura-claim1":           "value1",
 						"x-hasura-claim2":           "value2",
-						"x-hasura-claimarray":       []any{"value1", "value2"},
-						"x-hasura-claimobject": map[string]any{
-							"key1": "value1",
-							"key2": "value2",
-						},
-						"x-hasura-claimnil": nil,
+						"x-hasura-claimarray":       `{"value1","value2"}`,
+						"x-hasura-claimobject":      `{"key1":"value1","key2":"value2"}`,
+						"x-hasura-claimnil":         "null",
 					},
 					"iat": float64(time.Now().Unix()),
 					"iss": "hasura-auth",
@@ -1148,6 +1145,46 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 			},
 			expectedResponse: api.PostSignupEmailPassword200JSONResponse{
 				Session: nil,
+			},
+			expectedJWT: nil,
+		},
+
+		{
+			name: "email not allowed",
+			config: func() *controller.Config {
+				cfg := getConfig()
+				cfg.AllowedEmails = []string{"not@anemail.blah"}
+				return cfg
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(), sql.Text("jane@acme.com"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+
+				return mock
+			},
+			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+				mock := mock.NewMockEmailer(ctrl)
+				return mock
+			},
+			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+				mock := mock.NewMockHIBPClient(ctrl)
+				return mock
+			},
+			customClaimer: nil,
+			request: api.PostSignupEmailPasswordRequestObject{
+				Body: &api.PostSignupEmailPasswordJSONRequestBody{
+					Email:    "jane@acme.com",
+					Password: "password",
+					Options:  nil,
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-email-password",
+				Message: "Incorrect email or password",
+				Status:  401,
 			},
 			expectedJWT: nil,
 		},

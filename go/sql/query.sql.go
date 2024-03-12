@@ -88,6 +88,55 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (AuthUs
 	return i, err
 }
 
+const getUserRoles = `-- name: GetUserRoles :many
+SELECT id, created_at, user_id, role FROM auth.user_roles
+WHERE user_id = $1
+`
+
+func (q *Queries) GetUserRoles(ctx context.Context, userID uuid.UUID) ([]AuthUserRole, error) {
+	rows, err := q.db.Query(ctx, getUserRoles, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuthUserRole
+	for rows.Next() {
+		var i AuthUserRole
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UserID,
+			&i.Role,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const insertRefreshtoken = `-- name: InsertRefreshtoken :one
+INSERT INTO auth.refresh_tokens (user_id, refresh_token_hash, expires_at)
+VALUES ($1, $2, $3)
+RETURNING id
+`
+
+type InsertRefreshtokenParams struct {
+	UserID           uuid.UUID
+	RefreshTokenHash pgtype.Text
+	ExpiresAt        pgtype.Timestamptz
+}
+
+func (q *Queries) InsertRefreshtoken(ctx context.Context, arg InsertRefreshtokenParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, insertRefreshtoken, arg.UserID, arg.RefreshTokenHash, arg.ExpiresAt)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const insertUser = `-- name: InsertUser :one
 WITH inserted_user AS (
     INSERT INTO auth.users (
@@ -226,4 +275,38 @@ func (q *Queries) InsertUserWithRefreshToken(ctx context.Context, arg InsertUser
 	var i InsertUserWithRefreshTokenRow
 	err := row.Scan(&i.UserID, &i.CreatedAt)
 	return i, err
+}
+
+const updateUserLastSeen = `-- name: UpdateUserLastSeen :one
+UPDATE auth.users
+SET last_seen = now()
+WHERE id = $1
+RETURNING last_seen
+`
+
+func (q *Queries) UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error) {
+	row := q.db.QueryRow(ctx, updateUserLastSeen, id)
+	var last_seen pgtype.Timestamptz
+	err := row.Scan(&last_seen)
+	return last_seen, err
+}
+
+const updateUserTicket = `-- name: UpdateUserTicket :one
+UPDATE auth.users
+SET (ticket, ticket_expires_at) = ($2, $3)
+WHERE id = $1
+RETURNING id
+`
+
+type UpdateUserTicketParams struct {
+	ID              uuid.UUID
+	Ticket          pgtype.Text
+	TicketExpiresAt pgtype.Timestamptz
+}
+
+func (q *Queries) UpdateUserTicket(ctx context.Context, arg UpdateUserTicketParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, updateUserTicket, arg.ID, arg.Ticket, arg.TicketExpiresAt)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }

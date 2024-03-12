@@ -12,8 +12,9 @@ func TestCustomClaims(t *testing.T) {
 
 	data := map[string]any{
 		"m": map[string]any{
-			"k": "v",
-			"l": []any{"a", "b", "c"},
+			"k":  "v",
+			"l":  []any{"a", "b", "c"},
+			"l2": []any{"a"},
 			"lm": []map[string]any{
 				{"id": 1},
 				{"id": 2},
@@ -40,19 +41,21 @@ func TestCustomClaims(t *testing.T) {
                 "array[]": "m.l[]",
                 "array[*]": "m.l[*]",
                 "array[].ids": "m.lm[*].id",
+                "arrayOneElement[]": "m.l2[]",
                 "metadata.m1": "metadata.m1",
                 "nonexistent": "nonexistent.nonexistent"
             }`,
-			expectedGraphql: "query GetClaims($id: uuid!) { user(id:$id) {m{k l lm{id }}metadata nonexistent{nonexistent }} }",
+			expectedGraphql: "query GetClaims($id: uuid!) { user(id:$id) {m{k l l2 lm{id }}metadata nonexistent{nonexistent }} }", //nolint:lll
 			expectedData: map[string]any{
-				"root":        data["m"],
-				"key":         "v",
-				"element":     "c",
-				"array[]":     []any{"a", "b", "c"},
-				"array[*]":    []any{"a", "b", "c"},
-				"array[].ids": []any{1, 2, 3},
-				"metadata.m1": 1,
-				"nonexistent": nil,
+				"root":              data["m"],
+				"key":               "v",
+				"element":           "c",
+				"arrayOneElement[]": []any{string("a")},
+				"array[]":           []any{"a", "b", "c"},
+				"array[*]":          []any{"a", "b", "c"},
+				"array[].ids":       []any{1, 2, 3},
+				"metadata.m1":       1,
+				"nonexistent":       nil,
 			},
 		},
 	}

@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/hasura-auth/go/notifications"
 	"github.com/nhost/hasura-auth/go/sql"
@@ -16,10 +17,14 @@ type Emailer interface {
 
 type DBClient interface {
 	GetUserByEmail(ctx context.Context, email pgtype.Text) (sql.AuthUser, error)
+	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error)
 	InsertUser(ctx context.Context, arg sql.InsertUserParams) (sql.InsertUserRow, error)
 	InsertUserWithRefreshToken(
 		ctx context.Context, arg sql.InsertUserWithRefreshTokenParams,
 	) (sql.InsertUserWithRefreshTokenRow, error)
+	InsertRefreshtoken(ctx context.Context, arg sql.InsertRefreshtokenParams) (uuid.UUID, error)
+	UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error)
+	UpdateUserTicket(ctx context.Context, arg sql.UpdateUserTicketParams) (uuid.UUID, error)
 }
 
 type Controller struct {

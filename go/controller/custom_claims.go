@@ -94,9 +94,18 @@ func claimsMapToGraphql(claims map[string]any) string {
 
 type RequestInterceptor func(*http.Request)
 
+type jsonPath struct {
+	path  string
+	jpath *jsonpath.JSONPath
+}
+
+func (j jsonPath) IsArrary() bool {
+	return strings.Contains(j.path, "[]") || strings.Contains(j.path, "[*]")
+}
+
 type CustomClaims struct {
 	graphqlQuery       string
-	jsonPaths          map[string]*jsonpath.JSONPath
+	jsonPaths          map[string]jsonPath
 	httpclient         *http.Client
 	graphqlURL         string
 	requestInterceptor []RequestInterceptor
@@ -120,7 +129,7 @@ func NewCustomClaims(
 	}
 
 	claims := make(map[string]any)
-	jsonPaths := make(map[string]*jsonpath.JSONPath)
+	jsonPaths := make(map[string]jsonPath)
 	for name, val := range raw {
 		parts := strings.Split(val, ".")
 		claims = mergeMaps(claims, parseClaims(parts))
@@ -130,7 +139,10 @@ func NewCustomClaims(
 		if err := j.Parse(jpath); err != nil {
 			return nil, fmt.Errorf("failed to parse jsonpath for claim '%s': %w", name, err)
 		}
-		jsonPaths[name] = j
+		jsonPaths[name] = jsonPath{
+			path:  val,
+			jpath: j,
+		}
 	}
 
 	query := fmt.Sprintf(
@@ -154,22 +166,23 @@ func (c *CustomClaims) GraphQLQuery() string {
 func (c *CustomClaims) ExtractClaims(data any) (map[string]any, error) {
 	claims := make(map[string]any)
 	for name, j := range c.jsonPaths {
-		v, err := j.FindResults(data)
+		v, err := j.jpath.FindResults(data)
 		if err != nil {
 			claims[name] = nil
 			continue
 		}
 
 		var got any
-		if len(v[0]) == 1 {
-			got = v[0][0].Interface()
-		} else {
+		if j.IsArrary() {
 			g := make([]any, len(v[0]))
 			for i, r := range v[0] {
 				g[i] = r.Interface()
 			}
 			got = g
+		} else {
+			got = v[0][0].Interface()
 		}
+
 		claims[name] = got
 	}
 	return claims, nil

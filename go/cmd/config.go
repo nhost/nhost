@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func getConfig(cCtx *cli.Context) (controller.Config, error) {
+func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 	serverURL, err := url.Parse(cCtx.String(flagServerURL))
 	if err != nil {
 		return controller.Config{}, fmt.Errorf("problem parsing server url: %w", err)
@@ -47,7 +47,11 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) {
 	return controller.Config{
 		HasuraGraphqlURL:         cCtx.String(flagGraphqlURL),
 		HasuraAdminSecret:        cCtx.String(flagHasuraAdminSecret),
+		AllowedEmailDomains:      cCtx.StringSlice(flagAllowedEmailDomains),
+		AllowedEmails:            cCtx.StringSlice(flagAllowedEmails),
 		AllowedRedirectURLs:      allowedRedirectURLs,
+		BlockedEmailDomains:      cCtx.StringSlice(flagBlockedEmailDomains),
+		BlockedEmails:            cCtx.StringSlice(flagBlockedEmails),
 		ClientURL:                clientURL,
 		CustomClaims:             cCtx.String(flagCustomClaims),
 		ConcealErrors:            cCtx.Bool(flagConcealErrors),

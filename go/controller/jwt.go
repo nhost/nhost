@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"reflect"
 	"strings"
 	"time"
 
@@ -72,6 +73,33 @@ func NewJWTGetter(
 	}, nil
 }
 
+func pgEncode(v any) (string, error) {
+	if v == nil {
+		return "null", nil
+	}
+
+	if reflect.TypeOf(v).Kind() == reflect.Slice {
+		b, err := json.Marshal(v)
+		if err != nil {
+			return "", fmt.Errorf("error marshalling: %w", err)
+		}
+		b[0] = '{'
+		b[len(b)-1] = '}'
+		return string(b), nil
+	}
+
+	switch v := v.(type) {
+	case string:
+		return v, nil
+	default:
+		b, err := json.Marshal(v)
+		if err != nil {
+			return "", fmt.Errorf("error marshalling: %w", err)
+		}
+		return string(b), nil
+	}
+}
+
 func (j *JWTGetter) GetToken(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -101,12 +129,17 @@ func (j *JWTGetter) GetToken(
 	}
 
 	for k, v := range customClaims {
+		value, err := pgEncode(v)
+		if err != nil {
+			return "", 0, fmt.Errorf("error encoding custom claim: %w", err)
+		}
+
 		k = strings.ToLower("x-hasura-" + k)
 		if _, ok := c[k]; ok {
 			// we do not allow custom claims to overwrite the default claims
 			continue
 		}
-		c[k] = v
+		c[k] = value
 	}
 
 	// Create the Claims

@@ -56,7 +56,7 @@ describe('email-password', () => {
     expect(await isValidAccessToken(accessToken)).toBe(true);
     expect(typeof accessTokenExpiresIn).toBe('number');
     expect(typeof refreshToken).toBe('string');
-    expect(mfa).toBe(null);
+    expect(mfa).toBe(undefined);
     expect(roles).toContainAllValues(['user', 'me', 'editor']);
   });
 
@@ -86,7 +86,7 @@ describe('email-password', () => {
     expect(await isValidAccessToken(accessToken)).toBe(true);
     expect(typeof accessTokenExpiresIn).toBe('number');
     expect(typeof refreshToken).toBe('string');
-    expect(mfa).toBe(null);
+    expect(mfa).toBe(undefined);
   });
 
   it('should only sign in users with allowed emails', async () => {
@@ -118,6 +118,6 @@ describe('email-password', () => {
     await request
       .post('/signin/email-password')
       .send(b)
-      .expect(StatusCodes.BAD_REQUEST);
+      .expect(StatusCodes.UNAUTHORIZED);
   });
 });

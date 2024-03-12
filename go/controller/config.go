@@ -7,10 +7,31 @@ import (
 	"strings"
 )
 
+type stringlice []string
+
+func (s *stringlice) UnmarshalJSON(b []byte) error {
+	var aux string
+	if err := json.Unmarshal(b, &aux); err != nil {
+		return fmt.Errorf("error unmarshalling stringlice: %w", err)
+	}
+
+	if aux == "" {
+		*s = []string{}
+		return nil
+	}
+
+	*s = strings.Split(aux, ",")
+	return nil
+}
+
 type Config struct {
 	HasuraGraphqlURL         string     `json:"HASURA_GRAPHQL_GRAPHQL_URL"`
 	HasuraAdminSecret        string     `json:"HASURA_GRAPHQL_ADMIN_SECRET"`
+	AllowedEmailDomains      stringlice `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS"`
+	AllowedEmails            stringlice `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAILS"`
 	AllowedRedirectURLs      []*url.URL `json:"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS"`
+	BlockedEmailDomains      stringlice `json:"AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS"`
+	BlockedEmails            stringlice `json:"AUTH_ACCESS_CONTROL_BLOCKED_EMAILS"`
 	ClientURL                *url.URL   `json:"AUTH_CLIENT_URL"`
 	CustomClaims             string     `json:"AUTH_JWT_CUSTOM_CLAIMS"`
 	ConcealErrors            bool       `json:"AUTH_CONCEAL_ERRORS"`

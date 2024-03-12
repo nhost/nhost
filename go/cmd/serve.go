@@ -61,9 +61,13 @@ const (
 	flagPasswordMinLength                = "password-min-length"
 	flagPasswordHIBPEnabled              = "password-hibp-enabled"
 	flagEmailTemplatesPath               = "templates-path"
+	flagBlockedEmailDomains              = "block-email-domains"
+	flagBlockedEmails                    = "block-emails"
+	flagAllowedEmailDomains              = "allowed-email-domains"
+	flagAllowedEmails                    = "allowed-emails"
 )
 
-func CommandServe() *cli.Command { //nolint:funlen
+func CommandServe() *cli.Command { //nolint:funlen,maintidx
 	return &cli.Command{ //nolint: exhaustruct
 		Name:  "serve",
 		Usage: "Serve the application",
@@ -338,6 +342,30 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Value:    "/app/email-templates",
 				Category: "email",
 				EnvVars:  []string{"AUTH_EMAIL_TEMPLATES_PATH"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagBlockedEmailDomains,
+				Usage:    "Comma-separated list of email domains that cannot register",
+				Category: "signup",
+				EnvVars:  []string{"AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagBlockedEmails,
+				Usage:    "Comma-separated list of email domains that cannot register",
+				Category: "signup",
+				EnvVars:  []string{"AUTH_ACCESS_CONTROL_BLOCKED_EMAILS"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagAllowedEmailDomains,
+				Usage:    "Comma-separated list of email domains that can register",
+				Category: "signup",
+				EnvVars:  []string{"AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagAllowedEmails,
+				Usage:    "Comma-separated list of emails that can register",
+				Category: "signup",
+				EnvVars:  []string{"AUTH_ACCESS_CONTROL_ALLOWED_EMAILS"},
 			},
 		},
 		Action: serve,

@@ -6,6 +6,10 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM auth.users
 WHERE email = $1 LIMIT 1;
 
+-- name: GetUserRoles :many
+SELECT * FROM auth.user_roles
+WHERE user_id = $1;
+
 -- name: InsertUser :one
 WITH inserted_user AS (
     INSERT INTO auth.users (
@@ -59,3 +63,20 @@ INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
     FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role)
 RETURNING user_id, (SELECT created_at FROM inserted_user WHERE id = user_id);
+
+-- name: InsertRefreshtoken :one
+INSERT INTO auth.refresh_tokens (user_id, refresh_token_hash, expires_at)
+VALUES ($1, $2, $3)
+RETURNING id;
+
+-- name: UpdateUserLastSeen :one
+UPDATE auth.users
+SET last_seen = now()
+WHERE id = $1
+RETURNING last_seen;
+
+-- name: UpdateUserTicket :one
+UPDATE auth.users
+SET (ticket, ticket_expires_at) = ($2, $3)
+WHERE id = $1
+RETURNING id;

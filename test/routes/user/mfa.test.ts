@@ -127,7 +127,7 @@ describe('mfa totp', () => {
       .send({ email, password })
       .expect(StatusCodes.OK);
 
-    expect(signInBodyThird.mfa).toBe(null);
+    expect(signInBodyThird.mfa).toBe(undefined);
   });
 
   it('shoud not be possible to generate MFA code when anonymous', async () => {

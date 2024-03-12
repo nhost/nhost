@@ -12,8 +12,10 @@ import (
 // Defines values for ErrorResponseError.
 const (
 	DefaultRoleMustBeInAllowedRoles ErrorResponseError = "default-role-must-be-in-allowed-roles"
+	DisabledUser                    ErrorResponseError = "disabled-user"
 	EmailAlreadyInUse               ErrorResponseError = "email-already-in-use"
 	InternalServerError             ErrorResponseError = "internal-server-error"
+	InvalidEmailPassword            ErrorResponseError = "invalid-email-password"
 	InvalidRequest                  ErrorResponseError = "invalid-request"
 	LocaleNotAllowed                ErrorResponseError = "locale-not-allowed"
 	PasswordInHibpDatabase          ErrorResponseError = "password-in-hibp-database"
@@ -21,6 +23,7 @@ const (
 	RedirecToNotAllowed             ErrorResponseError = "redirecTo-not-allowed"
 	RoleNotAllowed                  ErrorResponseError = "role-not-allowed"
 	SignupDisabled                  ErrorResponseError = "signup-disabled"
+	UnverifiedUser                  ErrorResponseError = "unverified-user"
 )
 
 // ErrorResponse defines model for ErrorResponse.
@@ -38,6 +41,11 @@ type ErrorResponse struct {
 // ErrorResponseError Error code that identifies the application error
 type ErrorResponseError string
 
+// MFAChallengePayload defines model for MFAChallengePayload.
+type MFAChallengePayload struct {
+	Ticket string `json:"ticket"`
+}
+
 // Session defines model for Session.
 type Session struct {
 	AccessToken          string `json:"accessToken"`
@@ -51,6 +59,21 @@ type Session struct {
 // SessionPayload defines model for SessionPayload.
 type SessionPayload struct {
 	Session *Session `json:"session,omitempty"`
+}
+
+// SignInEmailPasswordResponse defines model for SignInEmailPasswordResponse.
+type SignInEmailPasswordResponse struct {
+	Mfa     *MFAChallengePayload `json:"mfa,omitempty"`
+	Session *Session             `json:"session,omitempty"`
+}
+
+// SignInEmailPasswordSchema defines model for SignInEmailPasswordSchema.
+type SignInEmailPasswordSchema struct {
+	// Email A valid email
+	Email openapi_types.Email `json:"email"`
+
+	// Password A password of minimum 3 characters
+	Password string `json:"password"`
 }
 
 // SignUpEmailPasswordSchema defines model for SignUpEmailPasswordSchema.
@@ -87,8 +110,8 @@ type User struct {
 	EmailVerified bool                `json:"emailVerified"`
 
 	// Id Id of the user
-	Id          *string `json:"id,omitempty"`
-	IsAnonymous bool    `json:"isAnonymous"`
+	Id          string `json:"id"`
+	IsAnonymous bool   `json:"isAnonymous"`
 
 	// Locale A two-characters locale
 	Locale              string                 `json:"locale"`
@@ -97,6 +120,9 @@ type User struct {
 	PhoneNumberVerified bool                   `json:"phoneNumberVerified"`
 	Roles               []string               `json:"roles"`
 }
+
+// PostSigninEmailPasswordJSONRequestBody defines body for PostSigninEmailPassword for application/json ContentType.
+type PostSigninEmailPasswordJSONRequestBody = SignInEmailPasswordSchema
 
 // PostSignupEmailPasswordJSONRequestBody defines body for PostSignupEmailPassword for application/json ContentType.
 type PostSignupEmailPasswordJSONRequestBody = SignUpEmailPasswordSchema

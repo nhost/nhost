@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	pgtype "github.com/jackc/pgx/v5/pgtype"
 	notifications "github.com/nhost/hasura-auth/go/notifications"
 	sql "github.com/nhost/hasura-auth/go/sql"
@@ -94,6 +95,36 @@ func (mr *MockDBClientMockRecorder) GetUserByEmail(ctx, email any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockDBClient)(nil).GetUserByEmail), ctx, email)
 }
 
+// GetUserRoles mocks base method.
+func (m *MockDBClient) GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserRoles", ctx, userID)
+	ret0, _ := ret[0].([]sql.AuthUserRole)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserRoles indicates an expected call of GetUserRoles.
+func (mr *MockDBClientMockRecorder) GetUserRoles(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserRoles", reflect.TypeOf((*MockDBClient)(nil).GetUserRoles), ctx, userID)
+}
+
+// InsertRefreshtoken mocks base method.
+func (m *MockDBClient) InsertRefreshtoken(ctx context.Context, arg sql.InsertRefreshtokenParams) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertRefreshtoken", ctx, arg)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InsertRefreshtoken indicates an expected call of InsertRefreshtoken.
+func (mr *MockDBClientMockRecorder) InsertRefreshtoken(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertRefreshtoken", reflect.TypeOf((*MockDBClient)(nil).InsertRefreshtoken), ctx, arg)
+}
+
 // InsertUser mocks base method.
 func (m *MockDBClient) InsertUser(ctx context.Context, arg sql.InsertUserParams) (sql.InsertUserRow, error) {
 	m.ctrl.T.Helper()
@@ -122,4 +153,34 @@ func (m *MockDBClient) InsertUserWithRefreshToken(ctx context.Context, arg sql.I
 func (mr *MockDBClientMockRecorder) InsertUserWithRefreshToken(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserWithRefreshToken", reflect.TypeOf((*MockDBClient)(nil).InsertUserWithRefreshToken), ctx, arg)
+}
+
+// UpdateUserLastSeen mocks base method.
+func (m *MockDBClient) UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserLastSeen", ctx, id)
+	ret0, _ := ret[0].(pgtype.Timestamptz)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserLastSeen indicates an expected call of UpdateUserLastSeen.
+func (mr *MockDBClientMockRecorder) UpdateUserLastSeen(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserLastSeen", reflect.TypeOf((*MockDBClient)(nil).UpdateUserLastSeen), ctx, id)
+}
+
+// UpdateUserTicket mocks base method.
+func (m *MockDBClient) UpdateUserTicket(ctx context.Context, arg sql.UpdateUserTicketParams) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserTicket", ctx, arg)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserTicket indicates an expected call of UpdateUserTicket.
+func (mr *MockDBClientMockRecorder) UpdateUserTicket(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserTicket", reflect.TypeOf((*MockDBClient)(nil).UpdateUserTicket), ctx, arg)
 }

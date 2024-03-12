@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/url"
 	"regexp"
 	"slices"
@@ -38,6 +39,7 @@ type Validator struct {
 	db                   SQLQueries
 	hibp                 HIBPClient
 	redirectURLValidator func(redirectTo string) bool
+	emailValidator       func(email string) bool
 }
 
 func NewValidator(cfg *Config, db SQLQueries, hibp HIBPClient) (*Validator, error) {
@@ -52,27 +54,35 @@ func NewValidator(cfg *Config, db SQLQueries, hibp HIBPClient) (*Validator, erro
 		return nil, fmt.Errorf("error creating redirect URL validator: %w", err)
 	}
 
+	emailValidator := ValidateEmail(
+		cfg.BlockedEmailDomains,
+		cfg.BlockedEmails,
+		cfg.AllowedEmailDomains,
+		cfg.AllowedEmails,
+	)
+
 	return &Validator{
 		cfg:                  cfg,
 		db:                   db,
 		hibp:                 hibp,
 		redirectURLValidator: redirectURLValidator,
+		emailValidator:       emailValidator,
 	}, nil
 }
 
 func (validator *Validator) PostSignupEmailPassword(
-	ctx context.Context, req api.PostSignupEmailPasswordRequestObject,
+	ctx context.Context, req api.PostSignupEmailPasswordRequestObject, logger *slog.Logger,
 ) (api.PostSignupEmailPasswordRequestObject, error) {
-	if err := validator.postSignupEmailPasswordEmail(ctx, req.Body.Email); err != nil {
+	if err := validator.postSignupEmailPasswordEmail(ctx, req.Body.Email, logger); err != nil {
 		return api.PostSignupEmailPasswordRequestObject{}, err
 	}
 
-	if err := validator.postSignupEmailPasswordPassword(ctx, req.Body.Password); err != nil {
+	if err := validator.postSignupEmailPasswordPassword(ctx, req.Body.Password, logger); err != nil {
 		return api.PostSignupEmailPasswordRequestObject{}, err
 	}
 
 	options, err := validator.postSignupEmailPasswordOptions(
-		req.Body.Options, string(req.Body.Email),
+		req.Body.Options, string(req.Body.Email), logger,
 	)
 	if err != nil {
 		return api.PostSignupEmailPasswordRequestObject{}, err
@@ -83,31 +93,40 @@ func (validator *Validator) PostSignupEmailPassword(
 }
 
 func (validator *Validator) postSignupEmailPasswordEmail(
-	ctx context.Context,
-	email types.Email,
+	ctx context.Context, email types.Email, logger *slog.Logger,
 ) error {
 	_, err := validator.db.GetUserByEmail(ctx, sql.Text(email))
 	if err == nil {
+		logger.Warn("email already in use")
 		return &ValidationError{api.EmailAlreadyInUse}
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
+		logger.Error("error getting user by email", logError(err))
 		return fmt.Errorf("error getting user: %w", err)
+	}
+
+	if !validator.emailValidator(string(email)) {
+		logger.Warn("email didn't pass access control checks")
+		return &ValidationError{api.InvalidEmailPassword}
 	}
 
 	return nil
 }
 
 func (validator *Validator) postSignupEmailPasswordPassword(
-	ctx context.Context, password string,
+	ctx context.Context, password string, logger *slog.Logger,
 ) error {
 	if len(password) < validator.cfg.PasswordMinLength {
+		logger.Warn("password too short")
 		return &ValidationError{api.PasswordTooShort}
 	}
 
 	if validator.cfg.PasswordHIBPEnabled {
 		if pwned, err := validator.hibp.IsPasswordPwned(ctx, password); err != nil {
+			logger.Error("error checking password with HIBP", logError(err))
 			return fmt.Errorf("error checking password with HIBP: %w", err)
 		} else if pwned {
+			logger.Warn("password is in HIBP database")
 			return &ValidationError{api.PasswordInHibpDatabase}
 		}
 	}
@@ -116,7 +135,7 @@ func (validator *Validator) postSignupEmailPasswordPassword(
 }
 
 func (validator *Validator) postSignupEmailPasswordOptions( //nolint:cyclop
-	options *api.SignUpOptions, defaultName string,
+	options *api.SignUpOptions, defaultName string, logger *slog.Logger,
 ) (*api.SignUpOptions, error) {
 	if options == nil {
 		options = new(api.SignUpOptions)
@@ -131,12 +150,14 @@ func (validator *Validator) postSignupEmailPasswordOptions( //nolint:cyclop
 	} else {
 		for _, role := range deptr(options.AllowedRoles) {
 			if !slices.Contains(validator.cfg.DefaultAllowedRoles, role) {
+				logger.Warn("role not allowed", slog.String("role", role))
 				return nil, &ValidationError{api.RoleNotAllowed}
 			}
 		}
 	}
 
 	if !slices.Contains(deptr(options.AllowedRoles), deptr(options.DefaultRole)) {
+		logger.Warn("default role not in allowed roles")
 		return nil, &ValidationError{api.DefaultRoleMustBeInAllowedRoles}
 	}
 
@@ -148,16 +169,49 @@ func (validator *Validator) postSignupEmailPasswordOptions( //nolint:cyclop
 		options.Locale = ptr(validator.cfg.DefaultLocale)
 	}
 	if !slices.Contains(validator.cfg.AllowedLocales, deptr(options.Locale)) {
+		logger.Warn("locale not allowed", slog.String("locale", deptr(options.Locale)))
 		return nil, &ValidationError{api.LocaleNotAllowed}
 	}
 
 	if options.RedirectTo == nil {
 		options.RedirectTo = ptr(validator.cfg.ClientURL.String())
 	} else if !validator.redirectURLValidator(deptr(options.RedirectTo)) {
+		logger.Warn("redirect URL not allowed", slog.String("redirectTo", deptr(options.RedirectTo)))
 		return nil, &ValidationError{api.RedirecToNotAllowed}
 	}
 
 	return options, nil
+}
+
+func (validator *Validator) ValidateUserByEmail(
+	ctx context.Context,
+	email string,
+	logger *slog.Logger,
+) (sql.AuthUser, error) {
+	if !validator.emailValidator(email) {
+		logger.Warn("email didn't pass access control checks")
+		//nolint:exhaustruct
+		return sql.AuthUser{}, &ValidationError{api.InvalidEmailPassword}
+	}
+
+	user, err := validator.db.GetUserByEmail(ctx, sql.Text(email))
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.Warn("user not found")
+		//nolint:exhaustruct
+		return sql.AuthUser{}, &ValidationError{api.InvalidEmailPassword}
+	}
+	if err != nil {
+		logger.Error("error getting user by email", logError(err))
+		return sql.AuthUser{}, fmt.Errorf("error getting user by email: %w", err)
+	}
+
+	if user.Disabled {
+		logger.Warn("user is disabled")
+		//nolint:exhaustruct
+		return sql.AuthUser{}, &ValidationError{api.DisabledUser}
+	}
+
+	return user, nil
 }
 
 type urlMatcher struct {
@@ -248,4 +302,38 @@ func ValidateRedirectTo( //nolint:cyclop
 
 		return false
 	}, nil
+}
+
+func ValidateEmail(
+	blockedEmailDomains []string,
+	blockedEmails []string,
+	allowedEmailDomains []string,
+	allowedEmails []string,
+) func(email string) bool {
+	return func(email string) bool {
+		parts := strings.Split(email, "@")
+		if len(parts) != 2 { //nolint:gomnd
+			return false
+		}
+
+		domain := parts[1]
+
+		if slices.Contains(blockedEmailDomains, domain) {
+			return false
+		}
+
+		if slices.Contains(blockedEmails, email) {
+			return false
+		}
+
+		if len(allowedEmailDomains) > 0 && !slices.Contains(allowedEmailDomains, domain) {
+			return false
+		}
+
+		if len(allowedEmails) > 0 && !slices.Contains(allowedEmails, email) {
+			return false
+		}
+
+		return true
+	}
 }

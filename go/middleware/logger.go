@@ -16,7 +16,12 @@ func LoggerToContext(ctx context.Context, logger *slog.Logger) context.Context {
 }
 
 // Retrieves the logger from the context. It creates a new one if it can't be found.
-func LoggerFromContext(ctx context.Context) *slog.Logger {
+func LoggerFromContext(ctx context.Context) *slog.Logger { //nolint:contextcheck
+	ginCtx, ok := ctx.(*gin.Context)
+	if ok {
+		ctx = ginCtx.Request.Context()
+	}
+
 	logger, ok := ctx.Value(loggerCtxKey{}).(*slog.Logger)
 	if !ok {
 		return slog.Default()
@@ -30,39 +35,44 @@ func Logger(logger *slog.Logger) gin.HandlerFunc {
 
 		trace := TraceFromHTTPHeaders(ctx.Request.Header)
 
-		logger := logger.With(slog.Group(
-			"trace",
-			slog.String("trace_id", trace.TraceID),
-			slog.String("span_id", trace.SpanID),
-			slog.String("parent_span_id", trace.ParentSpanID),
-		))
+		clientIP := ctx.ClientIP()
+		reqMethod := ctx.Request.Method
+		reqURL := ctx.Request.RequestURI
+		logger := logger.With(
+			slog.Group(
+				"trace",
+				slog.String("trace_id", trace.TraceID),
+				slog.String("span_id", trace.SpanID),
+				slog.String("parent_span_id", trace.ParentSpanID),
+			),
+			slog.Group(
+				"request",
+				slog.String("client_ip", clientIP),
+				slog.String("method", reqMethod),
+				slog.String("url", reqURL),
+			),
+		)
 		ctx.Request = ctx.Request.WithContext(
-			LoggerToContext(ctx.Request.Context(), logger.WithGroup("workflow_data")),
+			LoggerToContext(ctx.Request.Context(), logger),
 		)
 		ctx.Next()
 
 		latencyTime := time.Since(startTime)
-		reqMethod := ctx.Request.Method
-		reqURL := ctx.Request.RequestURI
 		statusCode := ctx.Writer.Status()
-		clientIP := ctx.ClientIP()
 
-		fields := slog.Group(
-			"request",
+		logger = logger.With(slog.Group(
+			"response",
 			slog.Int("status_code", statusCode),
 			slog.Duration("latency_time", latencyTime),
-			slog.String("client_ip", clientIP),
-			slog.String("method", reqMethod),
-			slog.String("url", reqURL),
 			slog.Any("errors", ctx.Errors.Errors()),
-		)
+		))
 
 		TraceToHTTPHeaders(trace, ctx.Writer.Header())
 
 		if len(ctx.Errors.Errors()) > 0 {
-			logger.LogAttrs(ctx, slog.LevelError, "call completed with errors", fields)
+			logger.ErrorContext(ctx, "call completed with errors")
 		} else {
-			logger.LogAttrs(ctx, slog.LevelInfo, "call completed", fields)
+			logger.InfoContext(ctx, "call completed")
 		}
 	}
 }

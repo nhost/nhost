@@ -20,6 +20,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func verifyHashPassword(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
 func hashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -48,13 +53,14 @@ func (ctrl *Controller) PostSignupEmailPassword( //nolint:ireturn
 	ctx context.Context,
 	req api.PostSignupEmailPasswordRequestObject,
 ) (api.PostSignupEmailPasswordResponseObject, error) {
+	logger := middleware.LoggerFromContext(ctx).With(slog.String("email", string(req.Body.Email)))
+
 	if ctrl.config.DisableSignup {
+		logger.Warn("signup disabled")
 		return ctrl.sendError(api.SignupDisabled), nil
 	}
 
-	logger := middleware.LoggerFromContext(ctx)
-
-	req, err := ctrl.validator.PostSignupEmailPassword(ctx, req)
+	req, err := ctrl.validator.PostSignupEmailPassword(ctx, req, logger.WithGroup("validator"))
 	validationError := new(ValidationError)
 	if errors.As(err, &validationError) {
 		return ctrl.sendError(validationError.ErrorRespnseError), nil
@@ -65,11 +71,13 @@ func (ctrl *Controller) PostSignupEmailPassword( //nolint:ireturn
 
 	hashedPassword, err := hashPassword(req.Body.Password)
 	if err != nil {
+		logger.Error("error hashing password", logError(err))
 		return nil, fmt.Errorf("error hashing password: %w", err)
 	}
 
 	metadata, err := json.Marshal(req.Body.Options.Metadata)
 	if err != nil {
+		logger.Error("error marshaling metadata", logError(err))
 		return nil, fmt.Errorf("error marshaling metadata: %w", err)
 	}
 
@@ -77,7 +85,13 @@ func (ctrl *Controller) PostSignupEmailPassword( //nolint:ireturn
 
 	if ctrl.config.RequireEmailVerification || ctrl.config.DisableNewUsers {
 		return ctrl.postSignupEmailPasswordWithEmailVerificationOrUserDisabled(
-			ctx, sql.Text(req.Body.Email), hashedPassword, gravatarURL, req.Body.Options, metadata,
+			ctx,
+			sql.Text(req.Body.Email),
+			hashedPassword,
+			gravatarURL,
+			req.Body.Options,
+			metadata,
+			logger,
 		)
 	}
 
@@ -99,6 +113,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithEmailVerificationOrUserDisabl
 	gravatarURL string,
 	options *api.SignUpOptions,
 	metadata []byte,
+	logger *slog.Logger,
 ) (api.PostSignupEmailPasswordResponseObject, error) {
 	ticket := "verifyEmail:" + uuid.NewString()
 	_, err := ctrl.db.InsertUser(
@@ -118,6 +133,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithEmailVerificationOrUserDisabl
 		},
 	)
 	if err != nil {
+		logger.Error("error inserting user", logError(err))
 		return nil, fmt.Errorf("error inserting user: %w", err)
 	}
 
@@ -126,12 +142,10 @@ func (ctrl *Controller) postSignupEmailPasswordWithEmailVerificationOrUserDisabl
 	}
 
 	link, err := GenLink(
-		*ctrl.config.ServerURL,
-		LinkTypeEmailVerify,
-		ticket,
-		deptr(options.RedirectTo),
+		*ctrl.config.ServerURL, LinkTypeEmailVerify, ticket, deptr(options.RedirectTo),
 	)
 	if err != nil {
+		logger.Error("problem generating email verification link", logError(err))
 		return nil, fmt.Errorf("problem generating email verification link: %w", err)
 	}
 
@@ -148,6 +162,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithEmailVerificationOrUserDisabl
 			ClientURL:   ctrl.config.ClientURL.String(),
 		},
 	); err != nil {
+		logger.Error("problem sending email", logError(err))
 		return nil, fmt.Errorf("problem sending email: %w", err)
 	}
 
@@ -184,6 +199,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithoutEmailVerification( //nolin
 		},
 	)
 	if err != nil {
+		logger.Error("error inserting user", logError(err))
 		return nil, fmt.Errorf("error inserting user: %w", err)
 	}
 
@@ -191,6 +207,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithoutEmailVerification( //nolin
 		ctx, user.UserID, deptr(options.AllowedRoles), *options.DefaultRole, logger,
 	)
 	if err != nil {
+		logger.Error("error getting jwt", logError(err))
 		return nil, fmt.Errorf("error getting jwt: %w", err)
 	}
 
@@ -206,7 +223,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithoutEmailVerification( //nolin
 				DisplayName:         deptr(options.DisplayName),
 				Email:               openapi_types.Email(email.String),
 				EmailVerified:       false,
-				Id:                  ptr(user.UserID.String()),
+				Id:                  user.UserID.String(),
 				IsAnonymous:         false,
 				Locale:              deptr(options.Locale),
 				Metadata:            deptr(options.Metadata),

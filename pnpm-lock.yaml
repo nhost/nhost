@@ -16,6 +16,7 @@ overrides:
   jsrsasign@<11.0.0: '>=11.0.0'
   nodemailer@<=6.9.8: '>=6.9.9'
   jsonata@>=1.4.0 <1.8.7: '>=1.8.7'
+  jose@>=3.0.0 <=4.15.4: '>=4.15.5'
 
 dependencies:
   '@djgrant/postgres-migrations':
@@ -1937,7 +1938,7 @@ packages:
       graphql-request: 6.1.0(graphql@16.2.0)
       http-proxy-agent: 6.1.1
       https-proxy-agent: 6.2.1
-      jose: 4.15.4
+      jose: 5.2.2
       js-yaml: 4.1.0
       json-stable-stringify: 1.1.1
       lodash: 4.17.21
@@ -8124,13 +8125,8 @@ packages:
       '@sideway/pinpoint': 2.0.0
     dev: false
 
-  /jose@4.15.4:
-    resolution: {integrity: sha512-W+oqK4H+r5sITxfxpSU+MMdr/YSWGvgZMQDIsNoBDGGy4i7GBPTtvFKibQzW06n3U3TqHjhvBJsirShsEJ6eeQ==}
-    dev: true
-
   /jose@5.2.2:
     resolution: {integrity: sha512-/WByRr4jDcsKlvMd1dRJnPfS1GVO3WuKyaurJ/vvXcOaUQO8rnNObCQMlv/5uCceVQIq5Q4WLF44ohsdiTohdg==}
-    dev: false
 
   /js-stringify@1.0.2:
     resolution: {integrity: sha512-rtS5ATOo2Q5k1G+DADISilDA6lv79zIiwFd6CcjuIxGKLFm5C+RLImRscVap9k55i+MOZwgliw+NejvkLuGD5g==}

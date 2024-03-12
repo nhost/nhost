@@ -12,6 +12,27 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
 paths:
+  /signin/email-password:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInEmailPasswordSchema'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInEmailPasswordResponse'
+          description: >-
+            Successfully signed in. Null session means TOTP challenge is needed
+
+      summary: Sign in with email and password
+      tags:
+        - signin
+        - email-and-password
   /signup/email-password:
     post:
       requestBody:
@@ -65,20 +86,41 @@ components:
           description: Error code that identifies the application error
           type: string
           enum:
-            - internal-server-error
-            - invalid-request
-            - signup-disabled
+            - default-role-must-be-in-allowed-roles
+            - disabled-user
             - email-already-in-use
+            - internal-server-error
+            - invalid-email-password
+            - invalid-request
+            - locale-not-allowed
             - password-too-short
             - password-in-hibp-database
-            - role-not-allowed
-            - locale-not-allowed
-            - default-role-must-be-in-allowed-roles
             - redirecTo-not-allowed
+            - role-not-allowed
+            - signup-disabled
+            - unverified-user
       required:
         - status
         - message
         - error
+
+    SignInEmailPasswordResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        session:
+          $ref: "#/components/schemas/Session"
+        mfa:
+          $ref: "#/components/schemas/MFAChallengePayload"
+
+    MFAChallengePayload:
+      type: object
+      additionalProperties: false
+      properties:
+        ticket:
+          type: string
+      required:
+        - ticket
 
     SessionPayload:
       type: object
@@ -162,19 +204,37 @@ components:
           items:
             type: string
       required:
-        - createdAt
-        - displayName
         - avatarUrl
-        - locale
-        - email
-        - isAnonymous
+        - createdAt
         - defaultRole
-        - metadata
-        - activeMfaType
+        - displayName
+        - email
         - emailVerified
+        - id
+        - isAnonymous
+        - locale
+        - metadata
         - phoneNumber
         - phoneNumberVerified
         - roles
+
+    SignInEmailPasswordSchema:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        password:
+          description: A password of minimum 3 characters
+          example: Str0ngPassw#ord-94|%
+          minLength: 3
+          type: string
+      required:
+        - email
+        - password
 
     SignUpEmailPasswordSchema:
       type: object

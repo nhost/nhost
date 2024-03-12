@@ -45,6 +45,18 @@ func (ctrl *Controller) PostChangeEnv(fn gin.HandlerFunc) gin.HandlerFunc {
 
 		ctrl.validator.cfg.PasswordHIBPEnabled = ctrl.config.PasswordHIBPEnabled
 
+		if ctrl.config.BlockedEmailDomains != nil ||
+			ctrl.config.BlockedEmails != nil ||
+			ctrl.config.AllowedEmailDomains != nil ||
+			ctrl.config.AllowedEmails != nil {
+			ctrl.validator.emailValidator = ValidateEmail(
+				ctrl.config.BlockedEmailDomains,
+				ctrl.config.BlockedEmails,
+				ctrl.config.AllowedEmailDomains,
+				ctrl.config.AllowedEmails,
+			)
+		}
+
 		fn(c)
 	}
 }
