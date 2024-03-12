@@ -6,7 +6,7 @@ icon: gear
 
 You can customize and tweak the configuration of the Hasura GraphQL Engine using your project's configuration file.
 
-Below, you will find the official `CUE` schema and an example on how to configure your GraphQL service.
+Below,  you can find an example on how to configure your GraphQL service.
 
 ## Available Settings
 
@@ -44,6 +44,9 @@ Below, you will find the official `CUE` schema and an example on how to configur
 
 		// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
 		liveQueriesMultiplexedRefetchInterval: uint32 | *1000
+
+        // HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
+        stringifyNumericTypes: bool | *false
 	}
 
 	logs: {
@@ -83,6 +86,7 @@ enableConsole = true
 enableRemoteSchemaPermissions = true
 enabledAPIs = ['metadata']
 liveQueriesMultiplexedRefetchInterval = 1000
+stringifyNumericTypes: false
 
 [hasura.logs]
 level = 'warn'
