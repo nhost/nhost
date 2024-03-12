@@ -579,6 +579,7 @@ type ConfigHasuraSettings struct {
 	EnableRemoteSchemaPermissions         *bool    `json:"enableRemoteSchemaPermissions,omitempty"`
 	EnabledAPIs                           []string `json:"enabledAPIs,omitempty"`
 	LiveQueriesMultiplexedRefetchInterval *uint32  `json:"liveQueriesMultiplexedRefetchInterval,omitempty"`
+	StringifyNumericTypes                 *bool    `json:"stringifyNumericTypes,omitempty"`
 }
 
 type ConfigHasuraSettingsUpdateInput struct {
@@ -589,6 +590,7 @@ type ConfigHasuraSettingsUpdateInput struct {
 	EnableRemoteSchemaPermissions         *bool    `json:"enableRemoteSchemaPermissions,omitempty"`
 	EnabledAPIs                           []string `json:"enabledAPIs,omitempty"`
 	LiveQueriesMultiplexedRefetchInterval *uint32  `json:"liveQueriesMultiplexedRefetchInterval,omitempty"`
+	StringifyNumericTypes                 *bool    `json:"stringifyNumericTypes,omitempty"`
 }
 
 type ConfigHasuraUpdateInput struct {
