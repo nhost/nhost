@@ -8,9 +8,8 @@ import { Text } from '@/components/ui/v2/Text';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
-import { useSignInEmailPassword } from '@nhost/nextjs';
-import type { ReactElement } from 'react';
-import { useEffect } from 'react';
+import { useNhostClient, useSignInEmailPassword } from '@nhost/nextjs';
+import { useEffect, useState, type ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
@@ -31,6 +30,11 @@ const StyledInput = styled(Input)({
 
 export default function EmailSignUpPage() {
   const { signInEmailPassword, error } = useSignInEmailPassword();
+  const [isEmailVerified, setIsEmailVerified] = useState(true);
+  const [resendVerificationEmailLoading, setResendVerificationEmailLoading] =
+    useState(false);
+
+  const nhost = useNhostClient();
 
   const form = useForm<EmailSignUpFormValues>({
     reValidateMode: 'onSubmit',
@@ -41,7 +45,8 @@ export default function EmailSignUpPage() {
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState } = form;
+  const { register, formState, watch } = form;
+  const emailFormValue = watch('email');
 
   useEffect(() => {
     if (!error) {
@@ -56,7 +61,20 @@ export default function EmailSignUpPage() {
 
   async function handleSubmit({ email, password }: EmailSignUpFormValues) {
     try {
-      await signInEmailPassword(email, password);
+      const { needsEmailVerification } = await signInEmailPassword(
+        email,
+        password,
+      );
+
+      setIsEmailVerified(!needsEmailVerification);
+
+      if (needsEmailVerification) {
+        toast.error(
+          `An email has been sent to ${email}. Please follow the link to verify your email address and to
+        complete your registration.`,
+          getToastStyleProps(),
+        );
+      }
     } catch {
       toast.error(
         'An error occurred while signing in. Please try again.',
@@ -64,6 +82,26 @@ export default function EmailSignUpPage() {
       );
     }
   }
+
+  const resendVerificationEmail = async () => {
+    setResendVerificationEmailLoading(true);
+
+    try {
+      await nhost.auth.sendVerificationEmail({ email: emailFormValue });
+      toast.success(
+        `An new email has been sent to ${emailFormValue}. Please follow the link to verify your email address and to
+      complete your registration.`,
+        getToastStyleProps(),
+      );
+    } catch {
+      toast.error(
+        'An error occurred while sending the verification email. Please try again.',
+        getToastStyleProps(),
+      );
+    } finally {
+      setResendVerificationEmailLoading(false);
+    }
+  };
 
   return (
     <>
@@ -129,6 +167,19 @@ export default function EmailSignUpPage() {
             >
               Sign In
             </Button>
+
+            {!isEmailVerified && (
+              <Button
+                className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
+                size="large"
+                disabled={resendVerificationEmailLoading}
+                loading={resendVerificationEmailLoading}
+                type="button"
+                onClick={resendVerificationEmail}
+              >
+                Resend verification email
+              </Button>
+            )}
 
             <Text color="secondary" className="text-center">
               or{' '}

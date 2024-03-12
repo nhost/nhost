@@ -65,7 +65,19 @@ export default function SignUpPage() {
     displayName,
   }: SignUpFormValues) {
     try {
-      await signUpEmailPassword(email, password, { displayName });
+      const { needsEmailVerification } = await signUpEmailPassword(
+        email,
+        password,
+        { displayName },
+      );
+
+      if (needsEmailVerification) {
+        toast.success(
+          `An email has been sent to ${email}. Please follow the link to verify your email address and to
+        complete your registration.`,
+          getToastStyleProps(),
+        );
+      }
     } catch {
       toast.error(
         'An error occurred while signing up. Please try again.',
