@@ -262,6 +262,12 @@ func HasuraEnv( //nolint:funlen
 			SecretName: "",
 		},
 		{
+			Name:       "HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES",
+			Value:      Stringify(*config.GetHasura().GetSettings().GetStringifyNumericTypes()),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
 			Name:       "GRAPHITE_WEBHOOK_SECRET",
 			Value:      config.GetAi().GetWebhookSecret(),
 			IsSecret:   false,

@@ -267,6 +267,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 					"pgdump",
 				},
 				LiveQueriesMultiplexedRefetchInterval: ptr(uint32(1000)),
+				StringifyNumericTypes:                 ptr(false),
 			},
 			Logs: &model.ConfigHasuraLogs{
 				Level: ptr("info"),

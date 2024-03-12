@@ -72,6 +72,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 					"metadata",
 				},
 				LiveQueriesMultiplexedRefetchInterval: ptr(uint32(1000)),
+				StringifyNumericTypes:                 ptr(false),
 			},
 			Logs: &model.ConfigHasuraLogs{
 				Level: ptr("warn"),

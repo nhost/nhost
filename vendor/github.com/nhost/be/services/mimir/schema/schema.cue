@@ -103,7 +103,7 @@ import (
 	}
 
 	// Number of replicas for a service
-	replicas?: uint8 & >=1 & <=10 | *1
+	replicas: uint8 & >=1 & <=10 | *1
 
 	_validateMultipleReplicasRatioMustBe1For2: (
 							replicas == 1 |
@@ -145,6 +145,9 @@ import (
 
 		// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
 		liveQueriesMultiplexedRefetchInterval: uint32 | *1000
+
+        // HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
+        stringifyNumericTypes: bool | *false
 	}
 
 	logs: {

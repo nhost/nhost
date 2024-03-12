@@ -3598,6 +3598,16 @@ type UsersOrderBy struct {
 	WorkspaceMemberInvitesAggregate                  *WorkspaceMemberInvitesAggregateOrderBy `json:"workspace_member_invites_aggregate,omitempty"`
 }
 
+// primary key columns input for table: auth.users
+type UsersPkColumnsInput struct {
+	ID string `json:"id"`
+}
+
+// input type for updating data in table "auth.users"
+type UsersSetInput struct {
+	DisplayName *string `json:"displayName,omitempty"`
+}
+
 // Streaming cursor of the table "users"
 type UsersStreamCursorInput struct {
 	// Stream column input with initial value
@@ -3612,6 +3622,13 @@ type UsersStreamCursorValueInput struct {
 	DisplayName *string `json:"displayName,omitempty"`
 	Email       *string `json:"email,omitempty"`
 	ID          *string `json:"id,omitempty"`
+}
+
+type UsersUpdates struct {
+	// sets the columns of the filtered rows to the given values
+	Set *UsersSetInput `json:"_set,omitempty"`
+	// filter the rows which have to be updated
+	Where UsersBoolExp `json:"where"`
 }
 
 // columns and relationships of "users_usage"

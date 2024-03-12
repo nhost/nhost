@@ -48,6 +48,7 @@ func expectedConfig() *model.ConfigConfig {
 					"config",
 				},
 				LiveQueriesMultiplexedRefetchInterval: ptr(uint32(1000)),
+				StringifyNumericTypes:                 ptr(false),
 			},
 			Logs:   &model.ConfigHasuraLogs{Level: ptr("warn")},
 			Events: &model.ConfigHasuraEvents{HttpPoolSize: ptr(uint32(100))},

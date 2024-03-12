@@ -11769,6 +11769,8 @@ type ConfigHasuraSettings struct {
 	EnabledAPIs []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
 	// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
 	LiveQueriesMultiplexedRefetchInterval *uint32 `json:"liveQueriesMultiplexedRefetchInterval" toml:"liveQueriesMultiplexedRefetchInterval"`
+	// HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
+	StringifyNumericTypes *bool `json:"stringifyNumericTypes" toml:"stringifyNumericTypes"`
 }
 
 func (o *ConfigHasuraSettings) MarshalJSON() ([]byte, error) {
@@ -11793,6 +11795,9 @@ func (o *ConfigHasuraSettings) MarshalJSON() ([]byte, error) {
 	}
 	if o.LiveQueriesMultiplexedRefetchInterval != nil {
 		m["liveQueriesMultiplexedRefetchInterval"] = o.LiveQueriesMultiplexedRefetchInterval
+	}
+	if o.StringifyNumericTypes != nil {
+		m["stringifyNumericTypes"] = o.StringifyNumericTypes
 	}
 	return json.Marshal(m)
 }
@@ -11846,6 +11851,13 @@ func (o *ConfigHasuraSettings) GetLiveQueriesMultiplexedRefetchInterval() *uint3
 	return o.LiveQueriesMultiplexedRefetchInterval
 }
 
+func (o *ConfigHasuraSettings) GetStringifyNumericTypes() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettings{}
+	}
+	return o.StringifyNumericTypes
+}
+
 type ConfigHasuraSettingsUpdateInput struct {
 	CorsDomain                                 []string `json:"corsDomain,omitempty" toml:"corsDomain,omitempty"`
 	IsSetCorsDomain                            bool     `json:"-"`
@@ -11861,6 +11873,8 @@ type ConfigHasuraSettingsUpdateInput struct {
 	IsSetEnabledAPIs                           bool     `json:"-"`
 	LiveQueriesMultiplexedRefetchInterval      *uint32  `json:"liveQueriesMultiplexedRefetchInterval,omitempty" toml:"liveQueriesMultiplexedRefetchInterval,omitempty"`
 	IsSetLiveQueriesMultiplexedRefetchInterval bool     `json:"-"`
+	StringifyNumericTypes                      *bool    `json:"stringifyNumericTypes,omitempty" toml:"stringifyNumericTypes,omitempty"`
+	IsSetStringifyNumericTypes                 bool     `json:"-"`
 }
 
 func (o *ConfigHasuraSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -11983,6 +11997,23 @@ func (o *ConfigHasuraSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetLiveQueriesMultiplexedRefetchInterval = true
 	}
+	if v, ok := m["stringifyNumericTypes"]; ok {
+		if v == nil {
+			o.StringifyNumericTypes = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.StringifyNumericTypes = &x
+		}
+		o.IsSetStringifyNumericTypes = true
+	}
 
 	return nil
 }
@@ -12043,6 +12074,13 @@ func (o *ConfigHasuraSettingsUpdateInput) GetLiveQueriesMultiplexedRefetchInterv
 	return o.LiveQueriesMultiplexedRefetchInterval
 }
 
+func (o *ConfigHasuraSettingsUpdateInput) GetStringifyNumericTypes() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettingsUpdateInput{}
+	}
+	return o.StringifyNumericTypes
+}
+
 func (s *ConfigHasuraSettings) Update(v *ConfigHasuraSettingsUpdateInput) {
 	if v == nil {
 		return
@@ -12082,6 +12120,9 @@ func (s *ConfigHasuraSettings) Update(v *ConfigHasuraSettingsUpdateInput) {
 	if v.IsSetLiveQueriesMultiplexedRefetchInterval || v.LiveQueriesMultiplexedRefetchInterval != nil {
 		s.LiveQueriesMultiplexedRefetchInterval = v.LiveQueriesMultiplexedRefetchInterval
 	}
+	if v.IsSetStringifyNumericTypes || v.StringifyNumericTypes != nil {
+		s.StringifyNumericTypes = v.StringifyNumericTypes
+	}
 }
 
 type ConfigHasuraSettingsInsertInput struct {
@@ -12092,6 +12133,7 @@ type ConfigHasuraSettingsInsertInput struct {
 	EnableRemoteSchemaPermissions         *bool    `json:"enableRemoteSchemaPermissions,omitempty" toml:"enableRemoteSchemaPermissions,omitempty"`
 	EnabledAPIs                           []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
 	LiveQueriesMultiplexedRefetchInterval *uint32  `json:"liveQueriesMultiplexedRefetchInterval,omitempty" toml:"liveQueriesMultiplexedRefetchInterval,omitempty"`
+	StringifyNumericTypes                 *bool    `json:"stringifyNumericTypes,omitempty" toml:"stringifyNumericTypes,omitempty"`
 }
 
 func (o *ConfigHasuraSettingsInsertInput) GetCorsDomain() []string {
@@ -12143,6 +12185,13 @@ func (o *ConfigHasuraSettingsInsertInput) GetLiveQueriesMultiplexedRefetchInterv
 	return o.LiveQueriesMultiplexedRefetchInterval
 }
 
+func (o *ConfigHasuraSettingsInsertInput) GetStringifyNumericTypes() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettingsInsertInput{}
+	}
+	return o.StringifyNumericTypes
+}
+
 func (s *ConfigHasuraSettings) Insert(v *ConfigHasuraSettingsInsertInput) {
 	if v.CorsDomain != nil {
 		s.CorsDomain = make([]string, len(v.CorsDomain))
@@ -12161,6 +12210,7 @@ func (s *ConfigHasuraSettings) Insert(v *ConfigHasuraSettingsInsertInput) {
 		}
 	}
 	s.LiveQueriesMultiplexedRefetchInterval = v.LiveQueriesMultiplexedRefetchInterval
+	s.StringifyNumericTypes = v.StringifyNumericTypes
 }
 
 func (s *ConfigHasuraSettings) Clone() *ConfigHasuraSettings {
@@ -12182,6 +12232,7 @@ func (s *ConfigHasuraSettings) Clone() *ConfigHasuraSettings {
 		copy(v.EnabledAPIs, s.EnabledAPIs)
 	}
 	v.LiveQueriesMultiplexedRefetchInterval = s.LiveQueriesMultiplexedRefetchInterval
+	v.StringifyNumericTypes = s.StringifyNumericTypes
 	return v
 }
 
@@ -12196,6 +12247,7 @@ type ConfigHasuraSettingsComparisonExp struct {
 	EnableRemoteSchemaPermissions         *ConfigBooleanComparisonExp          `json:"enableRemoteSchemaPermissions,omitempty"`
 	EnabledAPIs                           *ConfigHasuraAPIsComparisonExp       `json:"enabledAPIs,omitempty"`
 	LiveQueriesMultiplexedRefetchInterval *ConfigUint32ComparisonExp           `json:"liveQueriesMultiplexedRefetchInterval,omitempty"`
+	StringifyNumericTypes                 *ConfigBooleanComparisonExp          `json:"stringifyNumericTypes,omitempty"`
 }
 
 func (exp *ConfigHasuraSettingsComparisonExp) Matches(o *ConfigHasuraSettings) bool {
@@ -12246,6 +12298,9 @@ func (exp *ConfigHasuraSettingsComparisonExp) Matches(o *ConfigHasuraSettings) b
 		}
 	}
 	if o.LiveQueriesMultiplexedRefetchInterval != nil && !exp.LiveQueriesMultiplexedRefetchInterval.Matches(*o.LiveQueriesMultiplexedRefetchInterval) {
+		return false
+	}
+	if o.StringifyNumericTypes != nil && !exp.StringifyNumericTypes.Matches(*o.StringifyNumericTypes) {
 		return false
 	}
 

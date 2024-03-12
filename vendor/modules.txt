@@ -515,7 +515,7 @@ github.com/muesli/reflow/wrap
 # github.com/muesli/termenv v0.15.2
 ## explicit; go 1.17
 github.com/muesli/termenv
-# github.com/nhost/be v0.0.0-20240305114941-524644a3df2c
+# github.com/nhost/be v0.0.0-20240312081531-52344015d18b
 ## explicit; go 1.21
 github.com/nhost/be/lib/graphql
 github.com/nhost/be/lib/graphql/context

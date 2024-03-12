@@ -342,6 +342,7 @@ type ComplexityRoot struct {
 		EnableRemoteSchemaPermissions         func(childComplexity int) int
 		EnabledAPIs                           func(childComplexity int) int
 		LiveQueriesMultiplexedRefetchInterval func(childComplexity int) int
+		StringifyNumericTypes                 func(childComplexity int) int
 	}
 
 	ConfigHealthCheck struct {
@@ -1659,6 +1660,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigHasuraSettings.LiveQueriesMultiplexedRefetchInterval(childComplexity), true
+
+	case "ConfigHasuraSettings.stringifyNumericTypes":
+		if e.complexity.ConfigHasuraSettings.StringifyNumericTypes == nil {
+			break
+		}
+
+		return e.complexity.ConfigHasuraSettings.StringifyNumericTypes(childComplexity), true
 
 	case "ConfigHealthCheck.initialDelaySeconds":
 		if e.complexity.ConfigHealthCheck.InitialDelaySeconds == nil {
@@ -5042,6 +5050,10 @@ type ConfigHasuraSettings {
     HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
     """
     liveQueriesMultiplexedRefetchInterval: ConfigUint32
+    """
+    HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
+    """
+    stringifyNumericTypes: Boolean
 }
 
 input ConfigHasuraSettingsUpdateInput {
@@ -5052,6 +5064,7 @@ input ConfigHasuraSettingsUpdateInput {
     enableRemoteSchemaPermissions: Boolean
         enabledAPIs: [ConfigHasuraAPIs!]
     liveQueriesMultiplexedRefetchInterval: ConfigUint32
+    stringifyNumericTypes: Boolean
 }
 
 input ConfigHasuraSettingsInsertInput {
@@ -5062,6 +5075,7 @@ input ConfigHasuraSettingsInsertInput {
     enableRemoteSchemaPermissions: Boolean
         enabledAPIs: [ConfigHasuraAPIs!]
     liveQueriesMultiplexedRefetchInterval: ConfigUint32
+    stringifyNumericTypes: Boolean
 }
 
 input ConfigHasuraSettingsComparisonExp {
@@ -5075,6 +5089,7 @@ input ConfigHasuraSettingsComparisonExp {
     enableRemoteSchemaPermissions: ConfigBooleanComparisonExp
     enabledAPIs: ConfigHasuraAPIsComparisonExp
     liveQueriesMultiplexedRefetchInterval: ConfigUint32ComparisonExp
+    stringifyNumericTypes: ConfigBooleanComparisonExp
 }
 
 """
@@ -13478,6 +13493,8 @@ func (ec *executionContext) fieldContext_ConfigHasura_settings(ctx context.Conte
 				return ec.fieldContext_ConfigHasuraSettings_enabledAPIs(ctx, field)
 			case "liveQueriesMultiplexedRefetchInterval":
 				return ec.fieldContext_ConfigHasuraSettings_liveQueriesMultiplexedRefetchInterval(ctx, field)
+			case "stringifyNumericTypes":
+				return ec.fieldContext_ConfigHasuraSettings_stringifyNumericTypes(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigHasuraSettings", field.Name)
 		},
@@ -13988,6 +14005,47 @@ func (ec *executionContext) fieldContext_ConfigHasuraSettings_liveQueriesMultipl
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ConfigUint32 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigHasuraSettings_stringifyNumericTypes(ctx context.Context, field graphql.CollectedField, obj *model.ConfigHasuraSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigHasuraSettings_stringifyNumericTypes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StringifyNumericTypes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigHasuraSettings_stringifyNumericTypes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigHasuraSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -27086,7 +27144,7 @@ func (ec *executionContext) unmarshalInputConfigHasuraSettingsComparisonExp(ctx 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "corsDomain", "devMode", "enableAllowList", "enableConsole", "enableRemoteSchemaPermissions", "enabledAPIs", "liveQueriesMultiplexedRefetchInterval"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "corsDomain", "devMode", "enableAllowList", "enableConsole", "enableRemoteSchemaPermissions", "enabledAPIs", "liveQueriesMultiplexedRefetchInterval", "stringifyNumericTypes"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27163,6 +27221,13 @@ func (ec *executionContext) unmarshalInputConfigHasuraSettingsComparisonExp(ctx 
 				return it, err
 			}
 			it.LiveQueriesMultiplexedRefetchInterval = data
+		case "stringifyNumericTypes":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stringifyNumericTypes"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StringifyNumericTypes = data
 		}
 	}
 
@@ -27176,7 +27241,7 @@ func (ec *executionContext) unmarshalInputConfigHasuraSettingsInsertInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"corsDomain", "devMode", "enableAllowList", "enableConsole", "enableRemoteSchemaPermissions", "enabledAPIs", "liveQueriesMultiplexedRefetchInterval"}
+	fieldsInOrder := [...]string{"corsDomain", "devMode", "enableAllowList", "enableConsole", "enableRemoteSchemaPermissions", "enabledAPIs", "liveQueriesMultiplexedRefetchInterval", "stringifyNumericTypes"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27232,6 +27297,13 @@ func (ec *executionContext) unmarshalInputConfigHasuraSettingsInsertInput(ctx co
 				return it, err
 			}
 			it.LiveQueriesMultiplexedRefetchInterval = data
+		case "stringifyNumericTypes":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stringifyNumericTypes"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StringifyNumericTypes = data
 		}
 	}
 
@@ -33267,6 +33339,8 @@ func (ec *executionContext) _ConfigHasuraSettings(ctx context.Context, sel ast.S
 			out.Values[i] = ec._ConfigHasuraSettings_enabledAPIs(ctx, field, obj)
 		case "liveQueriesMultiplexedRefetchInterval":
 			out.Values[i] = ec._ConfigHasuraSettings_liveQueriesMultiplexedRefetchInterval(ctx, field, obj)
+		case "stringifyNumericTypes":
+			out.Values[i] = ec._ConfigHasuraSettings_stringifyNumericTypes(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
