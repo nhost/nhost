@@ -60,8 +60,8 @@ export default function VerifyEmailPage() {
       <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <div className="relative py-2">
           <Text color="secondary" className="text-center text-sm">
-            An email has been sent to {email}. Please follow the link to verify
-            your email address and to complete your registration.
+            Please check your inbox for the verification email. Follow the link
+            to verify your email address and complete your registration.
           </Text>
         </div>
         <Button
