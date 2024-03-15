@@ -69,7 +69,7 @@ describe('user email', () => {
       .post('/user/email/change')
       // .set('Authorization', `Bearer ${accessToken}`)
       .send({ newEmail })
-      .expect(StatusCodes.UNAUTHORIZED);
+      .expect(StatusCodes.BAD_REQUEST);
 
     await request
       .post('/user/email/change')

@@ -12,7 +12,12 @@ import (
 )
 
 type Emailer interface {
-	SendEmailVerify(to string, locale string, data notifications.EmailVerifyData) error
+	SendEmail(
+		to string,
+		locale string,
+		templateName notifications.TemplateName,
+		data notifications.TemplateData,
+	) error
 }
 
 type DBClient interface {
@@ -23,6 +28,10 @@ type DBClient interface {
 		ctx context.Context, arg sql.InsertUserWithRefreshTokenParams,
 	) (sql.InsertUserWithRefreshTokenRow, error)
 	InsertRefreshtoken(ctx context.Context, arg sql.InsertRefreshtokenParams) (uuid.UUID, error)
+	UpdateUserChangeEmail(
+		ctx context.Context,
+		arg sql.UpdateUserChangeEmailParams,
+	) (sql.UpdateUserChangeEmailRow, error)
 	UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error)
 	UpdateUserTicket(ctx context.Context, arg sql.UpdateUserTicketParams) (uuid.UUID, error)
 }

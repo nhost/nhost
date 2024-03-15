@@ -10,9 +10,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 )
+
+const jwtContextKey = "nhost/auth/jwt"
 
 type JWTSecret struct {
 	Key             string `json:"key"`
@@ -174,4 +178,55 @@ func (j *JWTGetter) Validate(accessToken string) (*jwt.Token, error) {
 		return nil, fmt.Errorf("error parsing token: %w", err)
 	}
 	return jwtToken, nil
+}
+
+func (j *JWTGetter) FromContext(ctx context.Context) (*jwt.Token, bool) {
+	token, ok := ctx.Value(jwtContextKey).(*jwt.Token)
+	return token, ok
+}
+
+func (j *JWTGetter) ToContext(ctx context.Context, jwtToken *jwt.Token) context.Context {
+	return context.WithValue(ctx, jwtContextKey, jwtToken) //nolint:revive,staticcheck
+}
+
+func (j *JWTGetter) MiddlewareFunc(
+	ctx context.Context, input *openapi3filter.AuthenticationInput,
+) error {
+	authHeader := input.RequestValidationInput.Request.Header.Get("Authorization")
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return fmt.Errorf("invalid authorization header") //nolint:goerr113
+	}
+
+	jwtToken, err := j.Validate(parts[1])
+	if err != nil {
+		return fmt.Errorf("error validating token: %w", err)
+	}
+
+	if !jwtToken.Valid {
+		return fmt.Errorf("invalid token") //nolint:goerr113
+	}
+
+	c := ginmiddleware.GetGinContext(ctx)
+	c.Set(jwtContextKey, jwtToken)
+
+	return nil
+}
+
+func (j *JWTGetter) GetCustomClaim(token *jwt.Token, customClaim string) string {
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return ""
+	}
+	customClaims, ok := claims[j.claimsNamespace].(map[string]any)
+	if !ok {
+		return ""
+	}
+
+	v, ok := customClaims[customClaim].(string)
+	if !ok {
+		return ""
+	}
+
+	return v
 }

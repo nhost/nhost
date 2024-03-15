@@ -54,51 +54,6 @@ func getSigninUser(userID uuid.UUID) sql.AuthUser {
 	}
 }
 
-func cmpInsertRefreshToken(
-	i sql.InsertRefreshtokenParams,
-) any {
-	return testhelpers.GomockCmpOpts(
-		i,
-		cmp.Transformer("time", func(x pgtype.Timestamptz) time.Time {
-			return x.Time
-		}),
-		cmp.Transformer("text", func(x pgtype.Text) string {
-			return x.String
-		}),
-		testhelpers.FilterPathLast(
-			[]string{".ExpiresAt", "time()"}, cmpopts.EquateApproxTime(time.Minute),
-		),
-		testhelpers.FilterPathLast(
-			[]string{".RefreshTokenHash", "text()"},
-			cmp.Comparer(func(x, y string) bool {
-				return x != "" || y != ""
-			}),
-		),
-	)
-}
-
-func cmpUpdateUserTicketParams(
-	i sql.UpdateUserTicketParams,
-) any {
-	return testhelpers.GomockCmpOpts(
-		i,
-		cmp.Transformer("time", func(x pgtype.Timestamptz) time.Time {
-			return x.Time
-		}),
-		cmp.Transformer("text", func(x pgtype.Text) string {
-			return x.String
-		}),
-		testhelpers.FilterPathLast(
-			[]string{".Ticket", "text()"},
-			cmp.Comparer(cmpTicket("mfaTotp")),
-		),
-
-		testhelpers.FilterPathLast(
-			[]string{".TicketExpiresAt", "time()"}, cmpopts.EquateApproxTime(time.Minute),
-		),
-	)
-}
-
 func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cyclop
 	t.Parallel()
 
@@ -134,7 +89,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				mock.EXPECT().InsertRefreshtoken(
 					gomock.Any(),
-					cmpInsertRefreshToken(sql.InsertRefreshtokenParams{
+					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
 						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
@@ -343,7 +298,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				mock.EXPECT().InsertRefreshtoken(
 					gomock.Any(),
-					cmpInsertRefreshToken(sql.InsertRefreshtokenParams{
+					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
 						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
@@ -461,7 +416,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				mock.EXPECT().UpdateUserTicket(
 					gomock.Any(),
-					cmpUpdateUserTicketParams(sql.UpdateUserTicketParams{
+					cmpDBParams(sql.UpdateUserTicketParams{
 						ID:              userID,
 						Ticket:          sql.Text("mfaTotp:xxxx"),
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(5 * time.Minute)),
@@ -534,7 +489,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				),
 				testhelpers.FilterPathLast(
 					[]string{".Ticket"},
-					cmp.Comparer(cmpTicket("mfaTotp")),
+					cmp.Comparer(cmpTicket),
 				),
 				cmpopts.IgnoreFields(api.Session{}, "RefreshToken", "AccessToken"), //nolint:exhaustruct
 			); diff != "" {

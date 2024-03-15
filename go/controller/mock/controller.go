@@ -43,18 +43,18 @@ func (m *MockEmailer) EXPECT() *MockEmailerMockRecorder {
 	return m.recorder
 }
 
-// SendEmailVerify mocks base method.
-func (m *MockEmailer) SendEmailVerify(to, locale string, data notifications.EmailVerifyData) error {
+// SendEmail mocks base method.
+func (m *MockEmailer) SendEmail(to, locale string, templateName notifications.TemplateName, data notifications.TemplateData) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendEmailVerify", to, locale, data)
+	ret := m.ctrl.Call(m, "SendEmail", to, locale, templateName, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SendEmailVerify indicates an expected call of SendEmailVerify.
-func (mr *MockEmailerMockRecorder) SendEmailVerify(to, locale, data any) *gomock.Call {
+// SendEmail indicates an expected call of SendEmail.
+func (mr *MockEmailerMockRecorder) SendEmail(to, locale, templateName, data any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendEmailVerify", reflect.TypeOf((*MockEmailer)(nil).SendEmailVerify), to, locale, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendEmail", reflect.TypeOf((*MockEmailer)(nil).SendEmail), to, locale, templateName, data)
 }
 
 // MockDBClient is a mock of DBClient interface.
@@ -153,6 +153,21 @@ func (m *MockDBClient) InsertUserWithRefreshToken(ctx context.Context, arg sql.I
 func (mr *MockDBClientMockRecorder) InsertUserWithRefreshToken(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertUserWithRefreshToken", reflect.TypeOf((*MockDBClient)(nil).InsertUserWithRefreshToken), ctx, arg)
+}
+
+// UpdateUserChangeEmail mocks base method.
+func (m *MockDBClient) UpdateUserChangeEmail(ctx context.Context, arg sql.UpdateUserChangeEmailParams) (sql.UpdateUserChangeEmailRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserChangeEmail", ctx, arg)
+	ret0, _ := ret[0].(sql.UpdateUserChangeEmailRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserChangeEmail indicates an expected call of UpdateUserChangeEmail.
+func (mr *MockDBClientMockRecorder) UpdateUserChangeEmail(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserChangeEmail", reflect.TypeOf((*MockDBClient)(nil).UpdateUserChangeEmail), ctx, arg)
 }
 
 // UpdateUserLastSeen mocks base method.

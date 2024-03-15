@@ -277,6 +277,44 @@ func (q *Queries) InsertUserWithRefreshToken(ctx context.Context, arg InsertUser
 	return i, err
 }
 
+const updateUserChangeEmail = `-- name: UpdateUserChangeEmail :one
+UPDATE auth.users
+SET (ticket, ticket_expires_at, new_email) = ($2, $3, $4)
+WHERE id = $1
+RETURNING id, locale, display_name, email
+`
+
+type UpdateUserChangeEmailParams struct {
+	ID              uuid.UUID
+	Ticket          pgtype.Text
+	TicketExpiresAt pgtype.Timestamptz
+	NewEmail        pgtype.Text
+}
+
+type UpdateUserChangeEmailRow struct {
+	ID          uuid.UUID
+	Locale      string
+	DisplayName string
+	Email       pgtype.Text
+}
+
+func (q *Queries) UpdateUserChangeEmail(ctx context.Context, arg UpdateUserChangeEmailParams) (UpdateUserChangeEmailRow, error) {
+	row := q.db.QueryRow(ctx, updateUserChangeEmail,
+		arg.ID,
+		arg.Ticket,
+		arg.TicketExpiresAt,
+		arg.NewEmail,
+	)
+	var i UpdateUserChangeEmailRow
+	err := row.Scan(
+		&i.ID,
+		&i.Locale,
+		&i.DisplayName,
+		&i.Email,
+	)
+	return i, err
+}
+
 const updateUserLastSeen = `-- name: UpdateUserLastSeen :one
 UPDATE auth.users
 SET last_seen = now()

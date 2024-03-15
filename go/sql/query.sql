@@ -80,3 +80,9 @@ UPDATE auth.users
 SET (ticket, ticket_expires_at) = ($2, $3)
 WHERE id = $1
 RETURNING id;
+
+-- name: UpdateUserChangeEmail :one
+UPDATE auth.users
+SET (ticket, ticket_expires_at, new_email) = ($2, $3, $4)
+WHERE id = $1
+RETURNING id, locale, display_name, email;

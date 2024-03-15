@@ -10,6 +10,13 @@ import (
 	"github.com/valyala/fasttemplate"
 )
 
+type TemplateName string
+
+const (
+	TemplateNameEmailVerify        TemplateName = "email-verify"
+	TemplateNameEmailConfirmChange TemplateName = "email-confirm-change"
+)
+
 type Templates struct {
 	templates     map[string]*fasttemplate.Template
 	defaultLocale string
@@ -59,17 +66,17 @@ func (t *Templates) GetRawTemplates() map[string]*fasttemplate.Template {
 }
 
 func (t *Templates) GetTemplate(
-	templateName string, locale string,
+	templateName TemplateName, locale string,
 ) (
 	*fasttemplate.Template, *fasttemplate.Template, error,
 ) {
-	path := filepath.Join(locale, templateName, "body.html")
+	path := filepath.Join(locale, string(templateName), "body.html")
 	template, ok := t.templates[path]
 	if !ok {
 		return nil, nil, ErrTemplateNotFound
 	}
 
-	path = filepath.Join(locale, templateName, "subject.txt")
+	path = filepath.Join(locale, string(templateName), "subject.txt")
 	subject, ok := t.templates[path]
 	if !ok {
 		return nil, nil, ErrTemplateNotFound
@@ -78,23 +85,27 @@ func (t *Templates) GetTemplate(
 	return template, subject, nil
 }
 
-type EmailVerifyData struct {
+type TemplateData struct {
 	Link        string
 	DisplayName string
 	Email       string
+	NewEmail    string
 	Ticket      string
 	RedirectTo  string
+	Locale      string
 	ServerURL   string
 	ClientURL   string
 }
 
-func (data EmailVerifyData) ToMap(extra map[string]any) map[string]any {
+func (data TemplateData) ToMap(extra map[string]any) map[string]any {
 	m := map[string]any{
 		"link":        data.Link,
 		"displayName": data.DisplayName,
 		"email":       data.Email,
+		"newEmail":    data.NewEmail,
 		"ticket":      data.Ticket,
 		"redirectTo":  data.RedirectTo,
+		"locale":      data.Locale,
 		"serverUrl":   data.ServerURL,
 		"clientUrl":   data.ClientURL,
 	}
@@ -106,11 +117,12 @@ func (data EmailVerifyData) ToMap(extra map[string]any) map[string]any {
 	return m
 }
 
-func (t *Templates) RenderEmailVerify(
+func (t *Templates) Render(
 	locale string,
-	data EmailVerifyData,
+	templateName TemplateName,
+	data TemplateData,
 ) (string, string, error) {
-	bodyTemplate, subjectTemplate, err := t.GetTemplate("email-verify", locale)
+	bodyTemplate, subjectTemplate, err := t.GetTemplate(templateName, locale)
 	if errors.Is(err, ErrTemplateNotFound) {
 		locale = t.defaultLocale
 		t.logger.Warn("email-verify template not found, falling back to default locale",

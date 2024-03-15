@@ -18,7 +18,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignInEmailPasswordSchema'
+              $ref: '#/components/schemas/SignInEmailPasswordRequest'
         required: true
       responses:
         '200':
@@ -33,13 +33,14 @@ paths:
       tags:
         - signin
         - email-and-password
+
   /signup/email-password:
     post:
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SignUpEmailPasswordSchema'
+              $ref: '#/components/schemas/SignUpEmailPasswordRequest'
         required: true
       responses:
         '200':
@@ -70,7 +71,32 @@ paths:
         - signup
         - email-and-password
 
+  /user/email/change:
+    post:
+      summary: Change user email
+      tags:
+        - user
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEmailChangeRequest'
+      responses:
+        '200':
+          description: >-
+            Email change requested. An email with a verification link has been sent to the new address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserEmailChangeResponse'
+
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
   schemas:
     ErrorResponse:
       type: object
@@ -89,6 +115,7 @@ components:
             - default-role-must-be-in-allowed-roles
             - disabled-user
             - email-already-in-use
+            - forbidden-anonymous
             - internal-server-error
             - invalid-email-password
             - invalid-request
@@ -218,7 +245,32 @@ components:
         - phoneNumberVerified
         - roles
 
-    SignInEmailPasswordSchema:
+    UserEmailChangeRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        newEmail:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          type: object
+          additionalProperties: false
+          properties:
+            redirectTo:
+              example: https://my-app.com/catch-redirection
+              type: string
+      required:
+        - newEmail
+
+    UserEmailChangeResponse:
+      type: string
+      additionalProperties: false
+      enum:
+        - OK
+
+    SignInEmailPasswordRequest:
       type: object
       additionalProperties: false
       properties:
@@ -236,7 +288,7 @@ components:
         - email
         - password
 
-    SignUpEmailPasswordSchema:
+    SignUpEmailPasswordRequest:
       type: object
       additionalProperties: false
       properties:

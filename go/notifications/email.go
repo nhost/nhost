@@ -60,16 +60,18 @@ func (sm *Email) Send(to, subject, contents string, headers map[string]string) e
 	return nil
 }
 
-func (sm *Email) SendEmailVerify(to string, locale string, data EmailVerifyData) error {
-	body, subject, err := sm.templates.RenderEmailVerify(locale, data)
+func (sm *Email) SendEmail(
+	to string, locale string, templateName TemplateName, data TemplateData,
+) error {
+	body, subject, err := sm.templates.Render(locale, templateName, data)
 	if err != nil {
-		return fmt.Errorf("error rendering email verify template: %w", err)
+		return fmt.Errorf("error rendering email template: %w", err)
 	}
 
 	headers := map[string]string{
 		"X-Ticket":         data.Ticket,
 		"X-Redirect-To":    data.RedirectTo,
-		"X-Email-Template": "email-verify",
+		"X-Email-Template": string(templateName),
 		"X-Link":           data.Link,
 	}
 

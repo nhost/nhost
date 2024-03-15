@@ -9,11 +9,16 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
 // Defines values for ErrorResponseError.
 const (
 	DefaultRoleMustBeInAllowedRoles ErrorResponseError = "default-role-must-be-in-allowed-roles"
 	DisabledUser                    ErrorResponseError = "disabled-user"
 	EmailAlreadyInUse               ErrorResponseError = "email-already-in-use"
+	ForbiddenAnonymous              ErrorResponseError = "forbidden-anonymous"
 	InternalServerError             ErrorResponseError = "internal-server-error"
 	InvalidEmailPassword            ErrorResponseError = "invalid-email-password"
 	InvalidRequest                  ErrorResponseError = "invalid-request"
@@ -24,6 +29,11 @@ const (
 	RoleNotAllowed                  ErrorResponseError = "role-not-allowed"
 	SignupDisabled                  ErrorResponseError = "signup-disabled"
 	UnverifiedUser                  ErrorResponseError = "unverified-user"
+)
+
+// Defines values for UserEmailChangeResponse.
+const (
+	OK UserEmailChangeResponse = "OK"
 )
 
 // ErrorResponse defines model for ErrorResponse.
@@ -61,14 +71,8 @@ type SessionPayload struct {
 	Session *Session `json:"session,omitempty"`
 }
 
-// SignInEmailPasswordResponse defines model for SignInEmailPasswordResponse.
-type SignInEmailPasswordResponse struct {
-	Mfa     *MFAChallengePayload `json:"mfa,omitempty"`
-	Session *Session             `json:"session,omitempty"`
-}
-
-// SignInEmailPasswordSchema defines model for SignInEmailPasswordSchema.
-type SignInEmailPasswordSchema struct {
+// SignInEmailPasswordRequest defines model for SignInEmailPasswordRequest.
+type SignInEmailPasswordRequest struct {
 	// Email A valid email
 	Email openapi_types.Email `json:"email"`
 
@@ -76,8 +80,14 @@ type SignInEmailPasswordSchema struct {
 	Password string `json:"password"`
 }
 
-// SignUpEmailPasswordSchema defines model for SignUpEmailPasswordSchema.
-type SignUpEmailPasswordSchema struct {
+// SignInEmailPasswordResponse defines model for SignInEmailPasswordResponse.
+type SignInEmailPasswordResponse struct {
+	Mfa     *MFAChallengePayload `json:"mfa,omitempty"`
+	Session *Session             `json:"session,omitempty"`
+}
+
+// SignUpEmailPasswordRequest defines model for SignUpEmailPasswordRequest.
+type SignUpEmailPasswordRequest struct {
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *SignUpOptions      `json:"options,omitempty"`
@@ -121,8 +131,23 @@ type User struct {
 	Roles               []string               `json:"roles"`
 }
 
+// UserEmailChangeRequest defines model for UserEmailChangeRequest.
+type UserEmailChangeRequest struct {
+	// NewEmail A valid email
+	NewEmail openapi_types.Email `json:"newEmail"`
+	Options  *struct {
+		RedirectTo *string `json:"redirectTo,omitempty"`
+	} `json:"options,omitempty"`
+}
+
+// UserEmailChangeResponse defines model for UserEmailChangeResponse.
+type UserEmailChangeResponse string
+
 // PostSigninEmailPasswordJSONRequestBody defines body for PostSigninEmailPassword for application/json ContentType.
-type PostSigninEmailPasswordJSONRequestBody = SignInEmailPasswordSchema
+type PostSigninEmailPasswordJSONRequestBody = SignInEmailPasswordRequest
 
 // PostSignupEmailPasswordJSONRequestBody defines body for PostSignupEmailPassword for application/json ContentType.
-type PostSignupEmailPasswordJSONRequestBody = SignUpEmailPasswordSchema
+type PostSignupEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest
+
+// PostUserEmailChangeJSONRequestBody defines body for PostUserEmailChange for application/json ContentType.
+type PostUserEmailChangeJSONRequestBody = UserEmailChangeRequest

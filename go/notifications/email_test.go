@@ -68,17 +68,19 @@ func TestEmailSendEmailVerify(t *testing.T) {
 
 	cases := []struct {
 		name   string
-		data   notifications.EmailVerifyData
+		data   notifications.TemplateData
 		locale string
 	}{
 		{
 			name: "",
-			data: notifications.EmailVerifyData{
+			data: notifications.TemplateData{
 				Link:        "http://link",
 				DisplayName: "Display Name",
 				Email:       "user@email",
+				NewEmail:    "",
 				Ticket:      "ticket",
 				RedirectTo:  "http://redirect-to",
+				Locale:      "en",
 				ServerURL:   "http://servier-url",
 				ClientURL:   "http://client-url",
 			},
@@ -96,7 +98,9 @@ func TestEmailSendEmailVerify(t *testing.T) {
 				t.Fatalf("error creating mailer: %v", err)
 			}
 
-			if err := mail.SendEmailVerify("user@localhost", tc.locale, tc.data); err != nil {
+			if err := mail.SendEmail(
+				"user@localhost", tc.locale, notifications.TemplateNameEmailVerify, tc.data,
+			); err != nil {
 				t.Fatalf("error sending email: %v", err)
 			}
 		})

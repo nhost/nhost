@@ -42,25 +42,18 @@ func cmpHashedPassword(password string) func(x, y string) bool {
 	}
 }
 
-func cmpTicket(ticket string) func(x, y string) bool {
-	f := func(x string) bool {
-		parts := strings.Split(x, ":")
-		if len(parts) != 2 {
-			return false
-		}
-		return parts[0] == ticket
-	}
-	return func(x, y string) bool {
-		if x != "" {
-			return f(x)
-		}
-
-		if y != "" {
-			return f(y)
-		}
-
+func cmpTicket(x, y string) bool {
+	px := strings.Split(x, ":")
+	if len(px) != 2 {
 		return false
 	}
+
+	py := strings.Split(y, ":")
+	if len(py) != 2 {
+		return false
+	}
+
+	return px[0] == py[0]
 }
 
 func cmpLink(x, y string) bool { //nolint:cyclop
@@ -106,8 +99,8 @@ func cmpLink(x, y string) bool { //nolint:cyclop
 	return true
 }
 
-func cmpInsertUserWithRefreshToken(
-	i sql.InsertUserWithRefreshTokenParams,
+func cmpDBParams(
+	i any,
 ) any {
 	return testhelpers.GomockCmpOpts(
 		i,
@@ -117,7 +110,7 @@ func cmpInsertUserWithRefreshToken(
 		),
 		testhelpers.FilterPathLast(
 			[]string{".Ticket", "text()"},
-			cmp.Comparer(cmpTicket("verifyEmail")),
+			cmp.Comparer(cmpTicket),
 		),
 		cmp.Transformer("time", func(x pgtype.Timestamptz) time.Time {
 			return x.Time
@@ -132,35 +125,13 @@ func cmpInsertUserWithRefreshToken(
 			[]string{".RefreshTokenExpiresAt", "time()"}, cmpopts.EquateApproxTime(time.Minute),
 		),
 		testhelpers.FilterPathLast(
+			[]string{".ExpiresAt", "time()"}, cmpopts.EquateApproxTime(time.Minute),
+		),
+		testhelpers.FilterPathLast(
 			[]string{".RefreshTokenHash", "text()"},
 			cmp.Comparer(func(x, y string) bool {
 				return x != "" || y != ""
 			}),
-		),
-	)
-}
-
-func cmpInsertUser(
-	i sql.InsertUserParams,
-) any {
-	return testhelpers.GomockCmpOpts(
-		i,
-		testhelpers.FilterPathLast(
-			[]string{".PasswordHash", "text()"},
-			cmp.Comparer(cmpHashedPassword("password")),
-		),
-		testhelpers.FilterPathLast(
-			[]string{".Ticket", "text()"},
-			cmp.Comparer(cmpTicket("verifyEmail")),
-		),
-		cmp.Transformer("time", func(x pgtype.Timestamptz) time.Time {
-			return x.Time
-		}),
-		cmp.Transformer("text", func(x pgtype.Text) string {
-			return x.String
-		}),
-		testhelpers.FilterPathLast(
-			[]string{".TicketExpiresAt", "time()"}, cmpopts.EquateApproxTime(time.Minute),
 		),
 	)
 }
@@ -191,13 +162,13 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				mock.EXPECT().InsertUserWithRefreshToken(
 					gomock.Any(),
-					cmpInsertUserWithRefreshToken(sql.InsertUserWithRefreshTokenParams{
+					cmpDBParams(sql.InsertUserWithRefreshTokenParams{
 						Disabled:              false,
 						DisplayName:           "jane@acme.com",
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
 						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						Ticket:                sql.Text("verifyEmail:xxxx"),
 						TicketExpiresAt:       sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						EmailVerified:         false,
 						Locale:                "en",
@@ -288,13 +259,13 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				mock.EXPECT().InsertUserWithRefreshToken(
 					gomock.Any(),
-					cmpInsertUserWithRefreshToken(sql.InsertUserWithRefreshTokenParams{
+					cmpDBParams(sql.InsertUserWithRefreshTokenParams{
 						Disabled:              false,
 						DisplayName:           "Jane Doe",
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
 						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						Ticket:                sql.Text("verifyEmail:xxxx"),
 						TicketExpiresAt:       sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						EmailVerified:         false,
 						Locale:                "se",
@@ -435,13 +406,13 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpInsertUser(sql.InsertUserParams{
+					cmpDBParams(sql.InsertUserParams{
 						Disabled:        true,
 						DisplayName:     "jane@acme.com",
 						AvatarUrl:       "",
 						Email:           sql.Text("jane@acme.com"),
 						PasswordHash:    pgtype.Text{}, //nolint:exhaustruct
-						Ticket:          pgtype.Text{}, //nolint:exhaustruct
+						Ticket:          sql.Text("verifyEmail:xxxx"),
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						EmailVerified:   false,
 						Locale:          "en",
@@ -495,13 +466,13 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpInsertUser(sql.InsertUserParams{
+					cmpDBParams(sql.InsertUserParams{
 						Disabled:        true,
 						DisplayName:     "jane@acme.com",
 						AvatarUrl:       "",
 						Email:           sql.Text("jane@acme.com"),
 						PasswordHash:    pgtype.Text{}, //nolint:exhaustruct
-						Ticket:          pgtype.Text{}, //nolint:exhaustruct
+						Ticket:          sql.Text("verifyEmail:xxxx"),
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						EmailVerified:   false,
 						Locale:          "en",
@@ -716,13 +687,13 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				mock.EXPECT().InsertUserWithRefreshToken(
 					gomock.Any(),
-					cmpInsertUserWithRefreshToken(sql.InsertUserWithRefreshTokenParams{
+					cmpDBParams(sql.InsertUserWithRefreshTokenParams{
 						Disabled:              false,
 						DisplayName:           "jane@acme.com",
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
 						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						Ticket:                sql.Text("verifyEmail:xxxx"),
 						TicketExpiresAt:       sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						EmailVerified:         false,
 						Locale:                "en",
@@ -866,13 +837,13 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				mock.EXPECT().InsertUserWithRefreshToken(
 					gomock.Any(),
-					cmpInsertUserWithRefreshToken(sql.InsertUserWithRefreshTokenParams{
+					cmpDBParams(sql.InsertUserWithRefreshTokenParams{
 						Disabled:              false,
 						DisplayName:           "jane@acme.com",
 						AvatarUrl:             "https://www.gravatar.com/avatar/a6b55dc639dd4151e97efbc42ee1a28b?d=blank&r=g", //nolint:lll
 						Email:                 sql.Text("jane@acme.com"),
 						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						Ticket:                sql.Text("verifyEmail:xxxx"),
 						TicketExpiresAt:       sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						EmailVerified:         false,
 						Locale:                "en",
@@ -967,13 +938,13 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				mock.EXPECT().InsertUserWithRefreshToken(
 					gomock.Any(),
-					cmpInsertUserWithRefreshToken(sql.InsertUserWithRefreshTokenParams{
+					cmpDBParams(sql.InsertUserWithRefreshTokenParams{
 						Disabled:              false,
 						DisplayName:           "jane@acme.com",
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
 						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						Ticket:                sql.Text("verifyEmail:xxxx"),
 						TicketExpiresAt:       sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						EmailVerified:         false,
 						Locale:                "en",
@@ -1086,13 +1057,13 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpInsertUser(sql.InsertUserParams{
+					cmpDBParams(sql.InsertUserParams{
 						Disabled:        false,
 						DisplayName:     "jane@acme.com",
 						AvatarUrl:       "",
 						Email:           sql.Text("jane@acme.com"),
 						PasswordHash:    pgtype.Text{}, //nolint:exhaustruct
-						Ticket:          pgtype.Text{}, //nolint:exhaustruct
+						Ticket:          sql.Text("verifyEmail:xxxx"),
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						EmailVerified:   false,
 						Locale:          "en",
@@ -1109,21 +1080,24 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 			},
 			emailer: func(ctrl *gomock.Controller) controller.Emailer {
 				mock := mock.NewMockEmailer(ctrl)
-				mock.EXPECT().SendEmailVerify(
+				mock.EXPECT().SendEmail(
 					"jane@acme.com",
 					"en",
+					notifications.TemplateNameEmailVerify,
 					testhelpers.GomockCmpOpts(
-						notifications.EmailVerifyData{
+						notifications.TemplateData{
 							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3Ac2ee89db-095c-4904-b796-f6a507ee1260&type=emailVerify", //nolint:lll
 							DisplayName: "jane@acme.com",
 							Email:       "jane@acme.com",
+							NewEmail:    "",
 							Ticket:      "verifyEmail:c2ee89db-095c-4904-b796-f6a507ee1260",
 							RedirectTo:  "http://localhost:3000",
+							Locale:      "en",
 							ServerURL:   "https://local.auth.nhost.run",
 							ClientURL:   "http://localhost:3000",
 						},
 						testhelpers.FilterPathLast(
-							[]string{".Ticket"}, cmp.Comparer(cmpTicket("verifyEmail"))),
+							[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
 
 						testhelpers.FilterPathLast(
 							[]string{".Link"}, cmp.Comparer(cmpLink)),

@@ -20,7 +20,8 @@ func GravatarURLFunc(enabled bool, def string, rating string) func(string) strin
 type LinkType string
 
 const (
-	LinkTypeEmailVerify = "emailVerify"
+	LinkTypeEmailVerify        LinkType = "emailVerify"
+	LinkTypeEmailConfirmChange LinkType = "emailConfirmChange"
 )
 
 func GenLink(serverURL url.URL, typ LinkType, ticket, redirectTo string) (string, error) {

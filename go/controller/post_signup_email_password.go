@@ -141,29 +141,19 @@ func (ctrl *Controller) postSignupEmailPasswordWithEmailVerificationOrUserDisabl
 		return api.PostSignupEmailPassword200JSONResponse{Session: nil}, nil
 	}
 
-	link, err := GenLink(
-		*ctrl.config.ServerURL, LinkTypeEmailVerify, ticket, deptr(options.RedirectTo),
-	)
-	if err != nil {
-		logger.Error("problem generating email verification link", logError(err))
-		return nil, fmt.Errorf("problem generating email verification link: %w", err)
-	}
-
-	if err := ctrl.email.SendEmailVerify(
+	if err := ctrl.sendEmail(
 		email.String,
 		deptr(options.Locale),
-		notifications.EmailVerifyData{
-			Link:        link,
-			DisplayName: deptr(options.DisplayName),
-			Email:       email.String,
-			Ticket:      ticket,
-			RedirectTo:  deptr(options.RedirectTo),
-			ServerURL:   ctrl.config.ServerURL.String(),
-			ClientURL:   ctrl.config.ClientURL.String(),
-		},
+		LinkTypeEmailVerify,
+		ticket,
+		deptr(options.RedirectTo),
+		notifications.TemplateNameEmailVerify,
+		deptr(options.DisplayName),
+		email.String,
+		"",
+		logger,
 	); err != nil {
-		logger.Error("problem sending email", logError(err))
-		return nil, fmt.Errorf("problem sending email: %w", err)
+		return nil, err
 	}
 
 	return api.PostSignupEmailPassword200JSONResponse{Session: nil}, nil

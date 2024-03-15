@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/controller"
@@ -442,7 +443,15 @@ func getGoServer( //nolint:funlen
 		return nil, fmt.Errorf("failed to create controller: %w", err)
 	}
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
-	mw := api.MiddlewareFunc(ginmiddleware.OapiRequestValidator(doc))
+	mw := api.MiddlewareFunc(ginmiddleware.OapiRequestValidatorWithOptions(
+		doc,
+		&ginmiddleware.Options{ //nolint:exhaustruct
+			Options: openapi3filter.Options{ //nolint:exhaustruct
+				AuthenticationFunc: jwtGetter.MiddlewareFunc,
+			},
+			SilenceServersWarning: true,
+		},
+	))
 	api.RegisterHandlersWithOptions(
 		router,
 		handler,

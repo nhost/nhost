@@ -17,6 +17,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 	case
 		api.DisabledUser,
 		api.EmailAlreadyInUse,
+		api.ForbiddenAnonymous,
 		api.InvalidEmailPassword,
 		api.RoleNotAllowed,
 		api.SignupDisabled,
@@ -48,6 +49,10 @@ func (response ErrorResponse) VisitPostSignupEmailPasswordResponse(w http.Respon
 }
 
 func (response ErrorResponse) VisitPostSigninEmailPasswordResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostUserEmailChangeResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
@@ -83,7 +88,18 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 			Error:   errType,
 			Message: "Email already in use",
 		}
+	case api.ForbiddenAnonymous:
+		return ErrorResponse{
+			Status:  http.StatusForbidden,
+			Error:   errType,
+			Message: "Forbidden, user is anonymous.",
+		}
 	case api.InternalServerError:
+		return ErrorResponse{
+			Status:  http.StatusInternalServerError,
+			Error:   errType,
+			Message: "Internal server error",
+		}
 	case api.InvalidEmailPassword:
 		return ErrorResponse{
 			Status:  http.StatusUnauthorized,

@@ -116,19 +116,21 @@ func TestRenderEmailVerify(t *testing.T) {
 
 	cases := []struct {
 		name            string
-		data            notifications.EmailVerifyData
+		data            notifications.TemplateData
 		locale          string
 		expectedBody    string
 		expectedSubject string
 	}{
 		{
 			name: "success",
-			data: notifications.EmailVerifyData{
+			data: notifications.TemplateData{
 				Link:        "http://link.test",
 				DisplayName: "Jane Doe",
 				Email:       "jane@doe.com",
+				NewEmail:    "",
 				Ticket:      "email-verify:xxxxxxxx",
 				RedirectTo:  "http://redirect.test",
+				Locale:      "en",
 				ServerURL:   "http://server.test",
 				ClientURL:   "http://client.test",
 			},
@@ -138,12 +140,14 @@ func TestRenderEmailVerify(t *testing.T) {
 		},
 		{
 			name: "non-existent-locale",
-			data: notifications.EmailVerifyData{
+			data: notifications.TemplateData{
 				Link:        "http://link.test",
 				DisplayName: "Jane Doe",
 				Email:       "jane@doe.com",
+				NewEmail:    "",
 				Ticket:      "email-verify:xxxxxxxx",
 				RedirectTo:  "http://redirect.test",
+				Locale:      "en",
 				ServerURL:   "http://server.test",
 				ClientURL:   "http://client.test",
 			},
@@ -167,7 +171,9 @@ func TestRenderEmailVerify(t *testing.T) {
 				t.Fatalf("unexpected error: %s", err)
 			}
 
-			body, subject, err := templates.RenderEmailVerify(tc.locale, tc.data)
+			body, subject, err := templates.Render(
+				tc.locale, notifications.TemplateNameEmailVerify, tc.data,
+			)
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
