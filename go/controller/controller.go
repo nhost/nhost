@@ -43,6 +43,7 @@ type Controller struct {
 	gravatarURL func(string) string
 	jwtGetter   *JWTGetter
 	email       Emailer
+	version     string
 }
 
 func New(
@@ -51,6 +52,7 @@ func New(
 	jwtGetter *JWTGetter,
 	emailer Emailer,
 	hibp HIBPClient,
+	version string,
 ) (*Controller, error) {
 	validator, err := NewValidator(&config, db, hibp)
 	if err != nil {
@@ -66,5 +68,6 @@ func New(
 		),
 		jwtGetter: jwtGetter,
 		email:     emailer,
+		version:   version,
 	}, nil
 }

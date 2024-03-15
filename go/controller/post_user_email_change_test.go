@@ -442,6 +442,7 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				jwtGetter,
 				tc.emailer(ctrl),
 				nil,
+				"dev",
 			)
 			if err != nil {
 				t.Fatalf("failed to create controller: %v", err)

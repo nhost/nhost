@@ -12,6 +12,29 @@ info:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
 paths:
+  /healthz:
+    head:
+      summary: Health check
+      tags:
+        - health
+      responses:
+        '200':
+          description: >-
+            Service is healthy
+
+    get:
+      summary: Health check
+      tags:
+        - health
+      responses:
+        '200':
+          description: >-
+            Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
   /signin/email-password:
     post:
       summary: Sign in with email and password
@@ -138,6 +161,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OKResponse'
+
+  /version:
+    get:
+      summary: Get version
+      tags:
+        - version
+      responses:
+        '200':
+          description: >-
+            Version of the service
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  version:
+                    type: string
+                    example: 0.0.0-dev
+                required:
+                  - version
 
 components:
   securitySchemes:

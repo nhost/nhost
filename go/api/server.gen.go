@@ -22,6 +22,12 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Health check
+	// (GET /healthz)
+	GetHealthz(c *gin.Context)
+	// Health check
+	// (HEAD /healthz)
+	HeadHealthz(c *gin.Context)
 	// Sign in with email and password
 	// (POST /signin/email-password)
 	PostSigninEmailPassword(c *gin.Context)
@@ -37,6 +43,9 @@ type ServerInterface interface {
 	// Request a password reset. An email with a verification link will be sent to the user's address
 	// (POST /user/password/reset)
 	PostUserPasswordReset(c *gin.Context)
+	// Get version
+	// (GET /version)
+	GetVersion(c *gin.Context)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -47,6 +56,32 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
+
+// GetHealthz operation middleware
+func (siw *ServerInterfaceWrapper) GetHealthz(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetHealthz(c)
+}
+
+// HeadHealthz operation middleware
+func (siw *ServerInterfaceWrapper) HeadHealthz(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.HeadHealthz(c)
+}
 
 // PostSigninEmailPassword operation middleware
 func (siw *ServerInterfaceWrapper) PostSigninEmailPassword(c *gin.Context) {
@@ -115,6 +150,19 @@ func (siw *ServerInterfaceWrapper) PostUserPasswordReset(c *gin.Context) {
 	siw.Handler.PostUserPasswordReset(c)
 }
 
+// GetVersion operation middleware
+func (siw *ServerInterfaceWrapper) GetVersion(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetVersion(c)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -142,11 +190,45 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
+	router.GET(options.BaseURL+"/healthz", wrapper.GetHealthz)
+	router.HEAD(options.BaseURL+"/healthz", wrapper.HeadHealthz)
 	router.POST(options.BaseURL+"/signin/email-password", wrapper.PostSigninEmailPassword)
 	router.POST(options.BaseURL+"/signin/passwordless/email", wrapper.PostSigninPasswordlessEmail)
 	router.POST(options.BaseURL+"/signup/email-password", wrapper.PostSignupEmailPassword)
 	router.POST(options.BaseURL+"/user/email/change", wrapper.PostUserEmailChange)
 	router.POST(options.BaseURL+"/user/password/reset", wrapper.PostUserPasswordReset)
+	router.GET(options.BaseURL+"/version", wrapper.GetVersion)
+}
+
+type GetHealthzRequestObject struct {
+}
+
+type GetHealthzResponseObject interface {
+	VisitGetHealthzResponse(w http.ResponseWriter) error
+}
+
+type GetHealthz200JSONResponse OKResponse
+
+func (response GetHealthz200JSONResponse) VisitGetHealthzResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type HeadHealthzRequestObject struct {
+}
+
+type HeadHealthzResponseObject interface {
+	VisitHeadHealthzResponse(w http.ResponseWriter) error
+}
+
+type HeadHealthz200Response struct {
+}
+
+func (response HeadHealthz200Response) VisitHeadHealthzResponse(w http.ResponseWriter) error {
+	w.WriteHeader(200)
+	return nil
 }
 
 type PostSigninEmailPasswordRequestObject struct {
@@ -252,8 +334,32 @@ func (response PostUserPasswordReset200JSONResponse) VisitPostUserPasswordResetR
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetVersionRequestObject struct {
+}
+
+type GetVersionResponseObject interface {
+	VisitGetVersionResponse(w http.ResponseWriter) error
+}
+
+type GetVersion200JSONResponse struct {
+	Version string `json:"version"`
+}
+
+func (response GetVersion200JSONResponse) VisitGetVersionResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// Health check
+	// (GET /healthz)
+	GetHealthz(ctx context.Context, request GetHealthzRequestObject) (GetHealthzResponseObject, error)
+	// Health check
+	// (HEAD /healthz)
+	HeadHealthz(ctx context.Context, request HeadHealthzRequestObject) (HeadHealthzResponseObject, error)
 	// Sign in with email and password
 	// (POST /signin/email-password)
 	PostSigninEmailPassword(ctx context.Context, request PostSigninEmailPasswordRequestObject) (PostSigninEmailPasswordResponseObject, error)
@@ -269,6 +375,9 @@ type StrictServerInterface interface {
 	// Request a password reset. An email with a verification link will be sent to the user's address
 	// (POST /user/password/reset)
 	PostUserPasswordReset(ctx context.Context, request PostUserPasswordResetRequestObject) (PostUserPasswordResetResponseObject, error)
+	// Get version
+	// (GET /version)
+	GetVersion(ctx context.Context, request GetVersionRequestObject) (GetVersionResponseObject, error)
 }
 
 type StrictHandlerFunc = strictgin.StrictGinHandlerFunc
@@ -281,6 +390,56 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
+}
+
+// GetHealthz operation middleware
+func (sh *strictHandler) GetHealthz(ctx *gin.Context) {
+	var request GetHealthzRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetHealthz(ctx, request.(GetHealthzRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetHealthz")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(GetHealthzResponseObject); ok {
+		if err := validResponse.VisitGetHealthzResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// HeadHealthz operation middleware
+func (sh *strictHandler) HeadHealthz(ctx *gin.Context) {
+	var request HeadHealthzRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.HeadHealthz(ctx, request.(HeadHealthzRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "HeadHealthz")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(HeadHealthzResponseObject); ok {
+		if err := validResponse.VisitHeadHealthzResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // PostSigninEmailPassword operation middleware
@@ -448,42 +607,69 @@ func (sh *strictHandler) PostUserPasswordReset(ctx *gin.Context) {
 	}
 }
 
+// GetVersion operation middleware
+func (sh *strictHandler) GetVersion(ctx *gin.Context) {
+	var request GetVersionRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetVersion(ctx, request.(GetVersionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetVersion")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(GetVersionResponseObject); ok {
+		if err := validResponse.VisitGetVersionResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"6z8CAAD//5Dlgt6QIQAA",
+	"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",
+	"fwMAAP//hXyb9UskAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

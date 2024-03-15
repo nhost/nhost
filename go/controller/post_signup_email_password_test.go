@@ -1201,6 +1201,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				jwtGetter,
 				tc.emailer(ctrl),
 				tc.hibp(ctrl),
+				"dev",
 			)
 			if err != nil {
 				t.Fatalf("failed to create controller: %v", err)

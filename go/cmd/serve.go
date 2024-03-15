@@ -446,7 +446,7 @@ func getGoServer( //nolint:funlen
 		return nil, fmt.Errorf("problem creating jwt getter: %w", err)
 	}
 
-	ctrl, err := controller.New(db, config, jwtGetter, emailer, hibp.NewClient())
+	ctrl, err := controller.New(db, config, jwtGetter, emailer, hibp.NewClient(), cCtx.App.Version)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create controller: %w", err)
 	}
