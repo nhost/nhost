@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -111,12 +110,8 @@ func (ctrl *Controller) PostSigninEmailPassword( //nolint:ireturn
 	user, err := ctrl.validator.ValidateUserByEmail(
 		ctx, string(request.Body.Email), logger.WithGroup("validator"),
 	)
-	validationError := new(ValidationError)
-	if errors.As(err, &validationError) {
-		return ctrl.sendError(validationError.ErrorRespnseError), nil
-	}
 	if err != nil {
-		return nil, fmt.Errorf("error validating user email: %w", err)
+		return ctrl.respondWithError(err), nil
 	}
 
 	if !verifyHashPassword(request.Body.Password, user.PasswordHash.String) {
@@ -136,7 +131,7 @@ func (ctrl *Controller) PostSigninEmailPassword( //nolint:ireturn
 	session, err := ctrl.getNewSession(ctx, user, logger)
 	if err != nil {
 		logger.Error("error getting new session", logError(err))
-		return nil, fmt.Errorf("error getting new session: %w", err)
+		return ctrl.sendError(api.InternalServerError), nil
 	}
 
 	return api.PostSigninEmailPassword200JSONResponse{

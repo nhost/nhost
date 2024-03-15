@@ -16,6 +16,7 @@ const (
 // Defines values for ErrorResponseError.
 const (
 	DefaultRoleMustBeInAllowedRoles ErrorResponseError = "default-role-must-be-in-allowed-roles"
+	DisabledEndpoint                ErrorResponseError = "disabled-endpoint"
 	DisabledUser                    ErrorResponseError = "disabled-user"
 	EmailAlreadyInUse               ErrorResponseError = "email-already-in-use"
 	ForbiddenAnonymous              ErrorResponseError = "forbidden-anonymous"
@@ -31,9 +32,9 @@ const (
 	UnverifiedUser                  ErrorResponseError = "unverified-user"
 )
 
-// Defines values for UserEmailChangeResponse.
+// Defines values for OKResponse.
 const (
-	OK UserEmailChangeResponse = "OK"
+	OK OKResponse = "OK"
 )
 
 // ErrorResponse defines model for ErrorResponse.
@@ -55,6 +56,9 @@ type ErrorResponseError string
 type MFAChallengePayload struct {
 	Ticket string `json:"ticket"`
 }
+
+// OKResponse defines model for OKResponse.
+type OKResponse string
 
 // Session defines model for Session.
 type Session struct {
@@ -84,6 +88,13 @@ type SignInEmailPasswordRequest struct {
 type SignInEmailPasswordResponse struct {
 	Mfa     *MFAChallengePayload `json:"mfa,omitempty"`
 	Session *Session             `json:"session,omitempty"`
+}
+
+// SignInPasswordlessEmailRequest defines model for SignInPasswordlessEmailRequest.
+type SignInPasswordlessEmailRequest struct {
+	// Email A valid email
+	Email   openapi_types.Email `json:"email"`
+	Options *SignUpOptions      `json:"options,omitempty"`
 }
 
 // SignUpEmailPasswordRequest defines model for SignUpEmailPasswordRequest.
@@ -140,11 +151,11 @@ type UserEmailChangeRequest struct {
 	} `json:"options,omitempty"`
 }
 
-// UserEmailChangeResponse defines model for UserEmailChangeResponse.
-type UserEmailChangeResponse string
-
 // PostSigninEmailPasswordJSONRequestBody defines body for PostSigninEmailPassword for application/json ContentType.
 type PostSigninEmailPasswordJSONRequestBody = SignInEmailPasswordRequest
+
+// PostSigninPasswordlessEmailJSONRequestBody defines body for PostSigninPasswordlessEmail for application/json ContentType.
+type PostSigninPasswordlessEmailJSONRequestBody = SignInPasswordlessEmailRequest
 
 // PostSignupEmailPasswordJSONRequestBody defines body for PostSignupEmailPassword for application/json ContentType.
 type PostSignupEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest

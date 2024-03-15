@@ -242,7 +242,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 			expectedResponse: controller.ErrorResponse{
 				Error:   "disabled-user",
 				Message: "User is disabled",
-				Status:  403,
+				Status:  401,
 			},
 			expectedJWT: nil,
 		},

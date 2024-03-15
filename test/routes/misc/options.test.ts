@@ -117,22 +117,4 @@ describe('Redirections', () => {
     ]);
   });
 
-  it('should not allow a locale of more than two characters', async () => {
-    const email = faker.internet.email();
-
-    const { body } = await request
-      .post('/signin/passwordless/email')
-      .send({
-        email,
-        options: {
-          locale: 'en-us',
-        },
-      })
-      .expect(StatusCodes.BAD_REQUEST);
-
-    expect(body).toBeObject();
-    expect(body.message).toEqual(
-      '"options.locale" length must be 2 characters long'
-    );
-  });
 });

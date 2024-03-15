@@ -38,11 +38,20 @@ func cmpHashedPassword(password string) func(x, y string) bool {
 			}
 			return true
 		}
+
+		if x == "" && y == "" {
+			return true
+		}
+
 		return false
 	}
 }
 
 func cmpTicket(x, y string) bool {
+	if x == "" && y == "" {
+		return true
+	}
+
 	px := strings.Split(x, ":")
 	if len(px) != 2 {
 		return false

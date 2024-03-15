@@ -2,6 +2,8 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -25,6 +27,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 		return true
 	case
 		api.DefaultRoleMustBeInAllowedRoles,
+		api.DisabledEndpoint,
 		api.InternalServerError,
 		api.InvalidRequest,
 		api.LocaleNotAllowed,
@@ -34,6 +37,14 @@ func isSensitive(err api.ErrorResponseError) bool {
 		return false
 	}
 	return false
+}
+
+type APIError struct {
+	ErrorRespnseError api.ErrorResponseError
+}
+
+func (e *APIError) Error() string {
+	return fmt.Sprintf("error: %s", e.ErrorRespnseError)
 }
 
 type ErrorResponse api.ErrorResponse
@@ -53,6 +64,12 @@ func (response ErrorResponse) VisitPostSigninEmailPasswordResponse(w http.Respon
 }
 
 func (response ErrorResponse) VisitPostUserEmailChangeResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostSigninPasswordlessEmailResponse(
+	w http.ResponseWriter,
+) error {
 	return response.visit(w)
 }
 
@@ -78,9 +95,15 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 		}
 	case api.DisabledUser:
 		return ErrorResponse{
-			Status:  http.StatusForbidden,
+			Status:  http.StatusUnauthorized,
 			Error:   errType,
 			Message: "User is disabled",
+		}
+	case api.DisabledEndpoint:
+		return ErrorResponse{
+			Status:  http.StatusConflict,
+			Error:   errType,
+			Message: "This endpoint is disabled",
 		}
 	case api.EmailAlreadyInUse:
 		return ErrorResponse{
@@ -152,4 +175,12 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 	}
 
 	return invalidRequest
+}
+
+func (ctrl *Controller) respondWithError(err error) ErrorResponse {
+	validationError := new(APIError)
+	if errors.As(err, &validationError) {
+		return ctrl.sendError(validationError.ErrorRespnseError)
+	}
+	return ctrl.sendError(api.InternalServerError)
 }

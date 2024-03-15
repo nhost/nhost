@@ -61,6 +61,7 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 		DefaultRole:              defaultRole,
 		DefaultLocale:            defaultLocale,
 		AllowedLocales:           allowedLocales,
+		EmailPasswordlessEnabled: cCtx.Bool(flagEmailPasswordlessEnabled),
 		GravatarEnabled:          cCtx.Bool(flagGravatarEnabled),
 		GravatarDefault:          GetEnumValue(cCtx, flagGravatarDefault),
 		GravatarRating:           cCtx.String(flagGravatarRating),

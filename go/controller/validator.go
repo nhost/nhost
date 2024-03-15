@@ -18,14 +18,6 @@ import (
 	"github.com/oapi-codegen/runtime/types"
 )
 
-type ValidationError struct {
-	ErrorRespnseError api.ErrorResponseError
-}
-
-func (e *ValidationError) Error() string {
-	return fmt.Sprintf("validation error: %s", e.ErrorRespnseError)
-}
-
 type HIBPClient interface {
 	IsPasswordPwned(ctx context.Context, password string) (bool, error)
 }
@@ -81,7 +73,7 @@ func (validator *Validator) PostSignupEmailPassword(
 		return api.PostSignupEmailPasswordRequestObject{}, err
 	}
 
-	options, err := validator.postSignupEmailPasswordOptions(
+	options, err := validator.postSignUpOptions(
 		req.Body.Options, string(req.Body.Email), logger,
 	)
 	if err != nil {
@@ -98,7 +90,7 @@ func (validator *Validator) postSignupEmailPasswordEmail(
 	_, err := validator.db.GetUserByEmail(ctx, sql.Text(email))
 	if err == nil {
 		logger.Warn("email already in use")
-		return &ValidationError{api.EmailAlreadyInUse}
+		return &APIError{api.EmailAlreadyInUse}
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
 		logger.Error("error getting user by email", logError(err))
@@ -107,7 +99,7 @@ func (validator *Validator) postSignupEmailPasswordEmail(
 
 	if !validator.emailValidator(string(email)) {
 		logger.Warn("email didn't pass access control checks")
-		return &ValidationError{api.InvalidEmailPassword}
+		return &APIError{api.InvalidEmailPassword}
 	}
 
 	return nil
@@ -118,7 +110,7 @@ func (validator *Validator) postSignupEmailPasswordPassword(
 ) error {
 	if len(password) < validator.cfg.PasswordMinLength {
 		logger.Warn("password too short")
-		return &ValidationError{api.PasswordTooShort}
+		return &APIError{api.PasswordTooShort}
 	}
 
 	if validator.cfg.PasswordHIBPEnabled {
@@ -127,14 +119,14 @@ func (validator *Validator) postSignupEmailPasswordPassword(
 			return fmt.Errorf("error checking password with HIBP: %w", err)
 		} else if pwned {
 			logger.Warn("password is in HIBP database")
-			return &ValidationError{api.PasswordInHibpDatabase}
+			return &APIError{api.PasswordInHibpDatabase}
 		}
 	}
 
 	return nil
 }
 
-func (validator *Validator) postSignupEmailPasswordOptions( //nolint:cyclop
+func (validator *Validator) postSignUpOptions( //nolint:cyclop
 	options *api.SignUpOptions, defaultName string, logger *slog.Logger,
 ) (*api.SignUpOptions, error) {
 	if options == nil {
@@ -151,14 +143,14 @@ func (validator *Validator) postSignupEmailPasswordOptions( //nolint:cyclop
 		for _, role := range deptr(options.AllowedRoles) {
 			if !slices.Contains(validator.cfg.DefaultAllowedRoles, role) {
 				logger.Warn("role not allowed", slog.String("role", role))
-				return nil, &ValidationError{api.RoleNotAllowed}
+				return nil, &APIError{api.RoleNotAllowed}
 			}
 		}
 	}
 
 	if !slices.Contains(deptr(options.AllowedRoles), deptr(options.DefaultRole)) {
 		logger.Warn("default role not in allowed roles")
-		return nil, &ValidationError{api.DefaultRoleMustBeInAllowedRoles}
+		return nil, &APIError{api.DefaultRoleMustBeInAllowedRoles}
 	}
 
 	if options.DisplayName == nil {
@@ -169,15 +161,18 @@ func (validator *Validator) postSignupEmailPasswordOptions( //nolint:cyclop
 		options.Locale = ptr(validator.cfg.DefaultLocale)
 	}
 	if !slices.Contains(validator.cfg.AllowedLocales, deptr(options.Locale)) {
-		logger.Warn("locale not allowed", slog.String("locale", deptr(options.Locale)))
-		return nil, &ValidationError{api.LocaleNotAllowed}
+		logger.Warn(
+			"locale not allowed, using default",
+			slog.String("locale", deptr(options.Locale)),
+		)
+		options.Locale = ptr(validator.cfg.DefaultLocale)
 	}
 
 	if options.RedirectTo == nil {
 		options.RedirectTo = ptr(validator.cfg.ClientURL.String())
 	} else if !validator.redirectURLValidator(deptr(options.RedirectTo)) {
 		logger.Warn("redirect URL not allowed", slog.String("redirectTo", deptr(options.RedirectTo)))
-		return nil, &ValidationError{api.RedirecToNotAllowed}
+		return nil, &APIError{api.RedirecToNotAllowed}
 	}
 
 	return options, nil
@@ -191,14 +186,14 @@ func (validator *Validator) ValidateUserByEmail(
 	if !validator.emailValidator(email) {
 		logger.Warn("email didn't pass access control checks")
 		//nolint:exhaustruct
-		return sql.AuthUser{}, &ValidationError{api.InvalidEmailPassword}
+		return sql.AuthUser{}, &APIError{api.InvalidEmailPassword}
 	}
 
 	user, err := validator.db.GetUserByEmail(ctx, sql.Text(email))
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.Warn("user not found")
 		//nolint:exhaustruct
-		return sql.AuthUser{}, &ValidationError{api.InvalidEmailPassword}
+		return sql.AuthUser{}, &APIError{api.InvalidEmailPassword}
 	}
 	if err != nil {
 		logger.Error("error getting user by email", logError(err))
@@ -208,7 +203,7 @@ func (validator *Validator) ValidateUserByEmail(
 	if user.Disabled {
 		logger.Warn("user is disabled")
 		//nolint:exhaustruct
-		return sql.AuthUser{}, &ValidationError{api.DisabledUser}
+		return sql.AuthUser{}, &APIError{api.DisabledUser}
 	}
 
 	return user, nil

@@ -57,6 +57,10 @@ func (ctrl *Controller) PostChangeEnv(fn gin.HandlerFunc) gin.HandlerFunc {
 			)
 		}
 
+		if ctrl.config.AllowedLocales != nil {
+			ctrl.validator.cfg.AllowedLocales = ctrl.config.AllowedLocales
+		}
+
 		fn(c)
 	}
 }

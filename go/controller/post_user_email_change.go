@@ -15,8 +15,6 @@ import (
 	"github.com/nhost/hasura-auth/go/sql"
 )
 
-const ticketEmailConfirmChange = "emailConfirmChange"
-
 func (validator *Validator) PostUserEmailChange(
 	ctx context.Context,
 	request *api.PostUserEmailChangeRequestObject,
@@ -28,26 +26,26 @@ func (validator *Validator) PostUserEmailChange(
 		logger.Error(
 			"jwt token not found in context, this should not be possilble due to middleware",
 		)
-		return uuid.UUID{}, &ValidationError{api.InternalServerError}
+		return uuid.UUID{}, &APIError{api.InternalServerError}
 	}
 
 	sub, err := jwtToken.Claims.GetSubject()
 	if err != nil {
 		logger.Error("error getting user id from jwt token", logError(err))
-		return uuid.UUID{}, &ValidationError{api.InvalidRequest}
+		return uuid.UUID{}, &APIError{api.InvalidRequest}
 	}
 	logger = logger.With(slog.String("user_id", sub))
 
 	userID, err := uuid.Parse(sub)
 	if err != nil {
 		logger.Error("error parsing user id from jwt token's subject", logError(err))
-		return uuid.UUID{}, &ValidationError{api.InvalidRequest}
+		return uuid.UUID{}, &APIError{api.InvalidRequest}
 	}
 
 	isAnonymous := jwtGetter.GetCustomClaim(jwtToken, "x-hasura-user-isAnonymous")
 	if isAnonymous == "" || isAnonymous != "false" {
 		logger.Error("user is anonymous")
-		return uuid.UUID{}, &ValidationError{api.ForbiddenAnonymous}
+		return uuid.UUID{}, &APIError{api.ForbiddenAnonymous}
 	}
 
 	options := request.Body.Options
@@ -61,12 +59,12 @@ func (validator *Validator) PostUserEmailChange(
 		options.RedirectTo = ptr(validator.cfg.ClientURL.String())
 	} else if !validator.redirectURLValidator(deptr(options.RedirectTo)) {
 		logger.Warn("redirect URL not allowed", slog.String("redirectTo", deptr(options.RedirectTo)))
-		return uuid.UUID{}, &ValidationError{api.RedirecToNotAllowed}
+		return uuid.UUID{}, &APIError{api.RedirecToNotAllowed}
 	}
 
 	_, err = validator.db.GetUserByEmail(ctx, sql.Text(string(request.Body.NewEmail)))
 	if !errors.Is(err, pgx.ErrNoRows) {
-		return uuid.UUID{}, &ValidationError{api.EmailAlreadyInUse}
+		return uuid.UUID{}, &APIError{api.EmailAlreadyInUse}
 	}
 
 	return userID, nil
@@ -124,15 +122,11 @@ func (ctrl *Controller) PostUserEmailChange( //nolint:ireturn
 	logger := middleware.LoggerFromContext(ctx)
 
 	userID, err := ctrl.validator.PostUserEmailChange(ctx, &request, ctrl.jwtGetter, logger)
-	validationError := new(ValidationError)
-	if errors.As(err, &validationError) {
-		return ctrl.sendError(validationError.ErrorRespnseError), nil
-	}
 	if err != nil {
-		return nil, fmt.Errorf("error validating request: %w", err)
+		return ctrl.respondWithError(err), nil
 	}
 
-	ticket := fmt.Sprintf("%s:%s", ticketEmailConfirmChange, uuid.NewString())
+	ticket := newTicket(TicketTypeEmailConfirmChange)
 	ticketExpiresAt := time.Now().Add(time.Hour)
 
 	user, err := ctrl.db.UpdateUserChangeEmail(

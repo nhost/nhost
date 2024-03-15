@@ -14,6 +14,11 @@ info:
 paths:
   /signin/email-password:
     post:
+      summary: Sign in with email and password
+      tags:
+        - signin
+        - email-and-password
+
       requestBody:
         content:
           application/json:
@@ -29,10 +34,30 @@ paths:
           description: >-
             Successfully signed in. Null session means TOTP challenge is needed
 
-      summary: Sign in with email and password
+  /signin/passwordless/email:
+    post:
+      summary: >-
+        Sign in with magic link sent to user's email. If user doesn't exist, it will be created.
+        The options object is optional and can be used to set the user's when signing up a
+        new user. It is ignored if the user already exists.
       tags:
         - signin
-        - email-and-password
+        - signup
+        - passwordless
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInPasswordlessEmailRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            Magic link sent to user's email successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
 
   /signup/email-password:
     post:
@@ -90,7 +115,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserEmailChangeResponse'
+                $ref: '#/components/schemas/OKResponse'
 
 components:
   securitySchemes:
@@ -113,6 +138,7 @@ components:
           type: string
           enum:
             - default-role-must-be-in-allowed-roles
+            - disabled-endpoint
             - disabled-user
             - email-already-in-use
             - forbidden-anonymous
@@ -264,7 +290,7 @@ components:
       required:
         - newEmail
 
-    UserEmailChangeResponse:
+    OKResponse:
       type: string
       additionalProperties: false
       enum:
@@ -287,6 +313,20 @@ components:
       required:
         - email
         - password
+
+    SignInPasswordlessEmailRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - email
 
     SignUpEmailPasswordRequest:
       type: object

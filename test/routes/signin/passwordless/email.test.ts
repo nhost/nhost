@@ -38,6 +38,7 @@ describe('passwordless email (magic link)', () => {
       AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS: '',
       AUTH_ACCESS_CONTROL_BLOCKED_EMAILS: '',
       AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS: '',
+      AUTH_LOCALE_ALLOWED_LOCALES: 'en,fr',
     });
   });
 
@@ -160,7 +161,7 @@ describe('passwordless email (magic link)', () => {
       .send({
         email: faker.internet.email(),
       })
-      .expect(StatusCodes.BAD_REQUEST);
+      .expect(StatusCodes.UNAUTHORIZED);
   });
 
   it('should be able to sign in twice. First request will create the user', async () => {
@@ -204,8 +205,8 @@ describe('passwordless email (magic link)', () => {
       .expect(StatusCodes.BAD_REQUEST, {
         status: 400,
         message:
-          '"options.allowedRoles[0]" does not match any of the allowed types',
-        error: 'invalid-request',
+          'Role not allowed',
+        error: 'role-not-allowed',
       });
   });
 

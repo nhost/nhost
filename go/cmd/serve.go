@@ -66,6 +66,7 @@ const (
 	flagBlockedEmails                    = "block-emails"
 	flagAllowedEmailDomains              = "allowed-email-domains"
 	flagAllowedEmails                    = "allowed-emails"
+	flagEmailPasswordlessEnabled         = "email-passwordless-enabled"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -367,6 +368,13 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "Comma-separated list of emails that can register",
 				Category: "signup",
 				EnvVars:  []string{"AUTH_ACCESS_CONTROL_ALLOWED_EMAILS"},
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagEmailPasswordlessEnabled,
+				Usage:    "Enables passwordless authentication by email. SMTP must be configured",
+				Value:    false,
+				Category: "signin",
+				EnvVars:  []string{"AUTH_EMAIL_PASSWORDLESS_ENABLED"},
 			},
 		},
 		Action: serve,

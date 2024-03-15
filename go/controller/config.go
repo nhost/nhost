@@ -40,7 +40,7 @@ type Config struct {
 	DefaultAllowedRoles      []string   `json:"AUTH_DEFAULT_ALLOWED_ROLES"`
 	DefaultRole              string     `json:"AUTH_DEFAULT_ROLE"`
 	DefaultLocale            string     `json:"AUTH_DEFAULT_LOCALE"`
-	AllowedLocales           []string   `json:"AUTH_LOCALE_ALLOWED_LOCALES"`
+	AllowedLocales           stringlice `json:"AUTH_LOCALE_ALLOWED_LOCALES"`
 	GravatarEnabled          bool       `json:"AUTH_GRAVATAR_ENABLED"`
 	GravatarDefault          string     `json:"AUTH_GRAVATAR_DEFAULT"`
 	GravatarRating           string     `json:"AUTH_GRAVATAR_RATING"`
@@ -51,6 +51,7 @@ type Config struct {
 	JWTSecret                string     `json:"HASURA_GRAPHQL_JWT_SECRET"`
 	RequireEmailVerification bool       `json:"AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED"`
 	ServerURL                *url.URL   `json:"AUTH_SERVER_URL"`
+	EmailPasswordlessEnabled bool       `json:"AUTH_EMAIL_PASSWORDLESS_ENABLED"`
 }
 
 func (c *Config) UnmarshalJSON(b []byte) error {

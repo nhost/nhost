@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -61,12 +60,8 @@ func (ctrl *Controller) PostSignupEmailPassword( //nolint:ireturn
 	}
 
 	req, err := ctrl.validator.PostSignupEmailPassword(ctx, req, logger.WithGroup("validator"))
-	validationError := new(ValidationError)
-	if errors.As(err, &validationError) {
-		return ctrl.sendError(validationError.ErrorRespnseError), nil
-	}
 	if err != nil {
-		return nil, fmt.Errorf("error validating signup request: %w", err)
+		return ctrl.respondWithError(err), nil
 	}
 
 	hashedPassword, err := hashPassword(req.Body.Password)
@@ -115,7 +110,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithEmailVerificationOrUserDisabl
 	metadata []byte,
 	logger *slog.Logger,
 ) (api.PostSignupEmailPasswordResponseObject, error) {
-	ticket := "verifyEmail:" + uuid.NewString()
+	ticket := newTicket(TicketTypeVerifyEmail)
 	_, err := ctrl.db.InsertUser(
 		ctx, sql.InsertUserParams{
 			Disabled:        ctrl.config.DisableNewUsers,
