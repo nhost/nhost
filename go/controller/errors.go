@@ -23,7 +23,8 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.InvalidEmailPassword,
 		api.RoleNotAllowed,
 		api.SignupDisabled,
-		api.UnverifiedUser:
+		api.UnverifiedUser,
+		api.UserNotFound:
 		return true
 	case
 		api.DefaultRoleMustBeInAllowedRoles,
@@ -63,13 +64,17 @@ func (response ErrorResponse) VisitPostSigninEmailPasswordResponse(w http.Respon
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitPostSigninPasswordlessEmailResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
 func (response ErrorResponse) VisitPostUserEmailChangeResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
-func (response ErrorResponse) VisitPostSigninPasswordlessEmailResponse(
-	w http.ResponseWriter,
-) error {
+func (response ErrorResponse) VisitPostUserPasswordResetResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
@@ -171,6 +176,12 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 			Status:  http.StatusUnauthorized,
 			Error:   errType,
 			Message: "User is not verified.",
+		}
+	case api.UserNotFound:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   errType,
+			Message: "No user found",
 		}
 	}
 

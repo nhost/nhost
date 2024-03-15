@@ -101,6 +101,7 @@ paths:
       summary: Change user email
       tags:
         - user
+        - email-and-password
       security:
         - BearerAuth: []
       requestBody:
@@ -112,6 +113,27 @@ paths:
         '200':
           description: >-
             Email change requested. An email with a verification link has been sent to the new address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
+  /user/password/reset:
+    post:
+      summary: >-
+        Request a password reset. An email with a verification link will be sent to the user's address
+      tags:
+        - user
+        - email-and-password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPasswordResetRequest'
+      responses:
+        '200':
+          description: >-
+            Password reset requested
           content:
             application/json:
               schema:
@@ -152,6 +174,7 @@ components:
             - role-not-allowed
             - signup-disabled
             - unverified-user
+            - user-not-found
       required:
         - status
         - message
@@ -281,20 +304,37 @@ components:
           format: email
           type: string
         options:
-          type: object
-          additionalProperties: false
-          properties:
-            redirectTo:
-              example: https://my-app.com/catch-redirection
-              type: string
+          $ref: "#/components/schemas/OptionsRedirectTo"
       required:
         - newEmail
+
+    UserPasswordResetRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/OptionsRedirectTo"
+      required:
+        - email
 
     OKResponse:
       type: string
       additionalProperties: false
       enum:
         - OK
+
+    OptionsRedirectTo:
+      type: object
+      additionalProperties: false
+      properties:
+        redirectTo:
+          example: https://my-app.com/catch-redirection
+          type: string
 
     SignInEmailPasswordRequest:
       type: object

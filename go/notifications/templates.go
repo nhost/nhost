@@ -16,6 +16,7 @@ const (
 	TemplateNameEmailVerify        TemplateName = "email-verify"
 	TemplateNameEmailConfirmChange TemplateName = "email-confirm-change"
 	TemplateNameSigninPasswordless TemplateName = "signin-passwordless"
+	TemplateNamePasswordReset      TemplateName = "password-reset"
 )
 
 type Templates struct {

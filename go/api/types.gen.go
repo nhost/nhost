@@ -30,6 +30,7 @@ const (
 	RoleNotAllowed                  ErrorResponseError = "role-not-allowed"
 	SignupDisabled                  ErrorResponseError = "signup-disabled"
 	UnverifiedUser                  ErrorResponseError = "unverified-user"
+	UserNotFound                    ErrorResponseError = "user-not-found"
 )
 
 // Defines values for OKResponse.
@@ -59,6 +60,11 @@ type MFAChallengePayload struct {
 
 // OKResponse defines model for OKResponse.
 type OKResponse string
+
+// OptionsRedirectTo defines model for OptionsRedirectTo.
+type OptionsRedirectTo struct {
+	RedirectTo *string `json:"redirectTo,omitempty"`
+}
 
 // Session defines model for Session.
 type Session struct {
@@ -146,9 +152,14 @@ type User struct {
 type UserEmailChangeRequest struct {
 	// NewEmail A valid email
 	NewEmail openapi_types.Email `json:"newEmail"`
-	Options  *struct {
-		RedirectTo *string `json:"redirectTo,omitempty"`
-	} `json:"options,omitempty"`
+	Options  *OptionsRedirectTo  `json:"options,omitempty"`
+}
+
+// UserPasswordResetRequest defines model for UserPasswordResetRequest.
+type UserPasswordResetRequest struct {
+	// Email A valid email
+	Email   openapi_types.Email `json:"email"`
+	Options *OptionsRedirectTo  `json:"options,omitempty"`
 }
 
 // PostSigninEmailPasswordJSONRequestBody defines body for PostSigninEmailPassword for application/json ContentType.
@@ -162,3 +173,6 @@ type PostSignupEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest
 
 // PostUserEmailChangeJSONRequestBody defines body for PostUserEmailChange for application/json ContentType.
 type PostUserEmailChangeJSONRequestBody = UserEmailChangeRequest
+
+// PostUserPasswordResetJSONRequestBody defines body for PostUserPasswordReset for application/json ContentType.
+type PostUserPasswordResetJSONRequestBody = UserPasswordResetRequest

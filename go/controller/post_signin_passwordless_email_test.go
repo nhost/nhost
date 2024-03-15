@@ -598,7 +598,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 		},
 	}
 
-	for _, tc := range cases {
+	for _, tc := range cases { //nolint:dupl
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

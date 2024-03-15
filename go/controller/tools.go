@@ -23,6 +23,7 @@ const (
 	LinkTypeEmailVerify        LinkType = "emailVerify"
 	LinkTypeEmailConfirmChange LinkType = "emailConfirmChange"
 	LinkTypePasswordlessEmail  LinkType = "passwordlessEmail"
+	LinkTypePasswordReset      LinkType = "passwordReset"
 )
 
 func GenLink(serverURL url.URL, typ LinkType, ticket, redirectTo string) (string, error) {

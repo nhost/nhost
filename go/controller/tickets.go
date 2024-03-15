@@ -19,6 +19,7 @@ const (
 	TicketTypeEmailConfirmChange TicketType = "emailConfirmChange"
 	TicketTypePasswordLessEmail  TicketType = "passwordlessEmail"
 	TicketTypeVerifyEmail        TicketType = "verifyEmail"
+	TicketTypePasswordReset      TicketType = "passwordReset"
 )
 
 func newTicket(ticketType TicketType) string {

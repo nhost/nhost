@@ -33,6 +33,8 @@ services:
             AUTH_SMTP_USER: user
             AUTH_LOG_LEVEL: debug
             AUTH_CLIENT_URL: 'http://localhost:3000'
+            AUTH_LOG_FORMAT_TEXT: 'true'
+            AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: 'false'
         healthcheck:
             test:
                 - CMD
