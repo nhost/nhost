@@ -88,6 +88,54 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (AuthUs
 	return i, err
 }
 
+const getUserByRefreshTokenHash = `-- name: GetUserByRefreshTokenHash :one
+WITH refresh_token AS (
+    SELECT id, created_at, expires_at, user_id, metadata, type, refresh_token_hash FROM auth.refresh_tokens
+    WHERE refresh_token_hash = $1 AND type = $2 AND expires_at > now()
+    LIMIT 1
+)
+SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge FROM auth.users
+WHERE id = (SELECT user_id FROM refresh_token) LIMIT 1
+`
+
+type GetUserByRefreshTokenHashParams struct {
+	RefreshTokenHash pgtype.Text
+	Type             RefreshTokenType
+}
+
+func (q *Queries) GetUserByRefreshTokenHash(ctx context.Context, arg GetUserByRefreshTokenHashParams) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, getUserByRefreshTokenHash, arg.RefreshTokenHash, arg.Type)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastSeen,
+		&i.Disabled,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Locale,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.EmailVerified,
+		&i.PhoneNumberVerified,
+		&i.NewEmail,
+		&i.OtpMethodLastUsed,
+		&i.OtpHash,
+		&i.OtpHashExpiresAt,
+		&i.DefaultRole,
+		&i.IsAnonymous,
+		&i.TotpSecret,
+		&i.ActiveMfaType,
+		&i.Ticket,
+		&i.TicketExpiresAt,
+		&i.Metadata,
+		&i.WebauthnCurrentChallenge,
+	)
+	return i, err
+}
+
 const getUserRoles = `-- name: GetUserRoles :many
 SELECT id, created_at, user_id, role FROM auth.user_roles
 WHERE user_id = $1
@@ -119,8 +167,8 @@ func (q *Queries) GetUserRoles(ctx context.Context, userID uuid.UUID) ([]AuthUse
 }
 
 const insertRefreshtoken = `-- name: InsertRefreshtoken :one
-INSERT INTO auth.refresh_tokens (user_id, refresh_token_hash, expires_at)
-VALUES ($1, $2, $3)
+INSERT INTO auth.refresh_tokens (user_id, refresh_token_hash, expires_at, type, metadata)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id
 `
 
@@ -128,10 +176,18 @@ type InsertRefreshtokenParams struct {
 	UserID           uuid.UUID
 	RefreshTokenHash pgtype.Text
 	ExpiresAt        pgtype.Timestamptz
+	Type             RefreshTokenType
+	Metadata         []byte
 }
 
 func (q *Queries) InsertRefreshtoken(ctx context.Context, arg InsertRefreshtokenParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, insertRefreshtoken, arg.UserID, arg.RefreshTokenHash, arg.ExpiresAt)
+	row := q.db.QueryRow(ctx, insertRefreshtoken,
+		arg.UserID,
+		arg.RefreshTokenHash,
+		arg.ExpiresAt,
+		arg.Type,
+		arg.Metadata,
+	)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err

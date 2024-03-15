@@ -35,7 +35,7 @@ type AuthRefreshToken struct {
 	ExpiresAt        pgtype.Timestamptz
 	UserID           uuid.UUID
 	Metadata         []byte
-	Type             string
+	Type             RefreshTokenType
 	RefreshTokenHash pgtype.Text
 }
 

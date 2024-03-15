@@ -21,6 +21,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.EmailAlreadyInUse,
 		api.ForbiddenAnonymous,
 		api.InvalidEmailPassword,
+		api.InvalidPat,
 		api.RoleNotAllowed,
 		api.SignupDisabled,
 		api.UnverifiedUser,
@@ -70,11 +71,19 @@ func (response ErrorResponse) VisitPostSigninPasswordlessEmailResponse(
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitPostSigninPatResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func (response ErrorResponse) VisitPostUserEmailChangeResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
 func (response ErrorResponse) VisitPostUserPasswordResetResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostPatResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
@@ -133,6 +142,12 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 			Status:  http.StatusUnauthorized,
 			Error:   errType,
 			Message: "Incorrect email or password",
+		}
+	case api.InvalidPat:
+		return ErrorResponse{
+			Status:  http.StatusUnauthorized,
+			Error:   errType,
+			Message: "Invalid or expired personal access token",
 		}
 	case api.InvalidRequest:
 	case api.LocaleNotAllowed:

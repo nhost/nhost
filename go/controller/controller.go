@@ -21,7 +21,11 @@ type Emailer interface {
 }
 
 type DBClient interface {
+	GetUser(ctx context.Context, id uuid.UUID) (sql.AuthUser, error)
 	GetUserByEmail(ctx context.Context, email pgtype.Text) (sql.AuthUser, error)
+	GetUserByRefreshTokenHash(
+		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
+	) (sql.AuthUser, error)
 	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error)
 	InsertUser(ctx context.Context, arg sql.InsertUserParams) (sql.InsertUserRow, error)
 	InsertUserWithRefreshToken(

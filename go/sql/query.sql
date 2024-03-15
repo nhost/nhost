@@ -10,6 +10,15 @@ WHERE email = $1 LIMIT 1;
 SELECT * FROM auth.user_roles
 WHERE user_id = $1;
 
+-- name: GetUserByRefreshTokenHash :one
+WITH refresh_token AS (
+    SELECT * FROM auth.refresh_tokens
+    WHERE refresh_token_hash = $1 AND type = $2 AND expires_at > now()
+    LIMIT 1
+)
+SELECT * FROM auth.users
+WHERE id = (SELECT user_id FROM refresh_token) LIMIT 1;
+
 -- name: InsertUser :one
 WITH inserted_user AS (
     INSERT INTO auth.users (
@@ -65,8 +74,8 @@ INSERT INTO auth.user_roles (user_id, role)
 RETURNING user_id, (SELECT created_at FROM inserted_user WHERE id = user_id);
 
 -- name: InsertRefreshtoken :one
-INSERT INTO auth.refresh_tokens (user_id, refresh_token_hash, expires_at)
-VALUES ($1, $2, $3)
+INSERT INTO auth.refresh_tokens (user_id, refresh_token_hash, expires_at, type, metadata)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id;
 
 -- name: UpdateUserLastSeen :one

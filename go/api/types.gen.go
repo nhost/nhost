@@ -22,6 +22,7 @@ const (
 	ForbiddenAnonymous              ErrorResponseError = "forbidden-anonymous"
 	InternalServerError             ErrorResponseError = "internal-server-error"
 	InvalidEmailPassword            ErrorResponseError = "invalid-email-password"
+	InvalidPat                      ErrorResponseError = "invalid-pat"
 	InvalidRequest                  ErrorResponseError = "invalid-request"
 	LocaleNotAllowed                ErrorResponseError = "locale-not-allowed"
 	PasswordInHibpDatabase          ErrorResponseError = "password-in-hibp-database"
@@ -37,6 +38,22 @@ const (
 const (
 	OK OKResponse = "OK"
 )
+
+// CreatePATRequest defines model for CreatePATRequest.
+type CreatePATRequest struct {
+	// ExpiresAt Expiration date of the PAT
+	ExpiresAt time.Time               `json:"expiresAt"`
+	Metadata  *map[string]interface{} `json:"metadata,omitempty"`
+}
+
+// CreatePATResponse defines model for CreatePATResponse.
+type CreatePATResponse struct {
+	// Id ID of the PAT
+	Id string `json:"id"`
+
+	// PersonalAccessToken PAT
+	PersonalAccessToken string `json:"personalAccessToken"`
+}
 
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
@@ -94,6 +111,12 @@ type SignInEmailPasswordRequest struct {
 type SignInEmailPasswordResponse struct {
 	Mfa     *MFAChallengePayload `json:"mfa,omitempty"`
 	Session *Session             `json:"session,omitempty"`
+}
+
+// SignInPATRequest defines model for SignInPATRequest.
+type SignInPATRequest struct {
+	// PersonalAccessToken PAT
+	PersonalAccessToken string `json:"personalAccessToken"`
 }
 
 // SignInPasswordlessEmailRequest defines model for SignInPasswordlessEmailRequest.
@@ -162,11 +185,17 @@ type UserPasswordResetRequest struct {
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
 }
 
+// PostPatJSONRequestBody defines body for PostPat for application/json ContentType.
+type PostPatJSONRequestBody = CreatePATRequest
+
 // PostSigninEmailPasswordJSONRequestBody defines body for PostSigninEmailPassword for application/json ContentType.
 type PostSigninEmailPasswordJSONRequestBody = SignInEmailPasswordRequest
 
 // PostSigninPasswordlessEmailJSONRequestBody defines body for PostSigninPasswordlessEmail for application/json ContentType.
 type PostSigninPasswordlessEmailJSONRequestBody = SignInPasswordlessEmailRequest
+
+// PostSigninPatJSONRequestBody defines body for PostSigninPat for application/json ContentType.
+type PostSigninPatJSONRequestBody = SignInPATRequest
 
 // PostSignupEmailPasswordJSONRequestBody defines body for PostSignupEmailPassword for application/json ContentType.
 type PostSignupEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest

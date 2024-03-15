@@ -35,6 +35,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/OKResponse'
 
+  /pat:
+    post:
+      summary: Create a Personal Access Token (PAT)
+      tags:
+        - pat
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePATRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatePATResponse'
+          description: >-
+            Successfully created a Personal Access Token
+
   /signin/email-password:
     post:
       summary: Sign in with email and password
@@ -81,6 +103,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OKResponse'
+
+  /signin/pat:
+    post:
+      summary: >-
+        Sign in with Personal Access Token (PAT)
+      tags:
+        - signin
+        - pat
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInPATRequest'
+        required: true
+      responses:
+        '200':
+          description: >-
+            Successfully signed in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPayload'
 
   /signup/email-password:
     post:
@@ -188,7 +232,45 @@ components:
     BearerAuth:
       type: http
       scheme: bearer
+
   schemas:
+    CreatePATRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        expiresAt:
+          description: Expiration date of the PAT
+          format: date-time
+          type: string
+
+        metadata:
+          type: object
+          additionalProperties: true
+          example:
+            name: my-pat
+            used-by: my-app-cli
+          properties: {}
+      required:
+        - expiresAt
+
+    CreatePATResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          description: ID of the PAT
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+        personalAccessToken:
+          description: PAT
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+      required:
+        - id
+        - personalAccessToken
+
     ErrorResponse:
       type: object
       additionalProperties: false
@@ -219,6 +301,7 @@ components:
             - signup-disabled
             - unverified-user
             - user-not-found
+            - invalid-pat
       required:
         - status
         - message
@@ -269,6 +352,18 @@ components:
         - accessToken
         - accessTokenExpiresIn
         - refreshToken
+
+    SignInPATRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        personalAccessToken:
+          description: PAT
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+      required:
+        - personalAccessToken
 
     User:
       type: object

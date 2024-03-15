@@ -34,6 +34,8 @@ func (ctrl *Controller) getNewSession(
 		UserID:           user.ID,
 		RefreshTokenHash: sql.Text(hashRefreshToken([]byte(refreshToken.String()))),
 		ExpiresAt:        sql.TimestampTz(expiresAt),
+		Type:             sql.RefreshTokenTypeRegular,
+		Metadata:         nil,
 	}); err != nil {
 		return nil, fmt.Errorf("error inserting refresh token: %w", err)
 	}
@@ -53,7 +55,6 @@ func (ctrl *Controller) getNewSession(
 	if err := json.Unmarshal(user.Metadata, &metadata); err != nil {
 		return nil, fmt.Errorf("error unmarshalling user metadata: %w", err)
 	}
-
 	return &api.Session{
 		AccessToken:          accessToken,
 		AccessTokenExpiresIn: expiresIn,

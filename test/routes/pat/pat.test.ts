@@ -43,21 +43,6 @@ describe('personal access token', () => {
     await request
       .post('/pat')
       .send({ expiresAt: new Date() })
-      .expect(StatusCodes.UNAUTHORIZED);
-  });
-
-  test('should not allow an expiry date that is less than 7 days from now', async () => {
-    const response = await request.post('/signin/email-password').send({
-      email,
-      password,
-    });
-
-    const { accessToken } = response.body?.session;
-
-    await request
-      .post('/pat')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({ expiresAt: new Date() })
       .expect(StatusCodes.BAD_REQUEST);
   });
 

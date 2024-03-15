@@ -7,6 +7,13 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type RefreshTokenType string
+
+const (
+	RefreshTokenTypeRegular RefreshTokenType = "regular"
+	RefreshTokenTypePAT     RefreshTokenType = "pat"
+)
+
 func Text[T ~string](value T) pgtype.Text {
 	return pgtype.Text{
 		String: string(value),

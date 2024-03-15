@@ -21,3 +21,6 @@ sql:
           - column: auth.users.new_email
             go_type:
               type: "pgtype.Text"
+          - column: auth.refresh_tokens.type
+            go_type:
+              type: "RefreshTokenType"
