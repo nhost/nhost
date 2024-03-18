@@ -2,143 +2,79 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log/slog"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/middleware"
 	"github.com/nhost/hasura-auth/go/notifications"
-	"github.com/nhost/hasura-auth/go/sql"
 )
 
-func (ctrl *Controller) postSigninPasswordlessEmailCreateUser( //nolint:funlen
-	ctx context.Context,
-	email string,
-	options *api.SignUpOptions,
+func (ctrl *Controller) postSigninPasswordlessEmailValidateRequest(
+	request api.PostSigninPasswordlessEmailRequestObject,
 	logger *slog.Logger,
-) (sql.AuthUser, error) {
-	if ctrl.config.DisableSignup {
-		logger.Warn("signup disabled")
-		return sql.AuthUser{}, //nolint:exhaustruct
-			&APIError{api.SignupDisabled}
+) (*api.SignUpOptions, *APIError) {
+	if !ctrl.config.EmailPasswordlessEnabled {
+		logger.Warn("email passwordless signin is disabled")
+		return nil, ErrDisabledEndpoint
 	}
 
-	metadata, err := json.Marshal(options.Metadata)
-	if err != nil {
-		logger.Error("error marshaling metadata", logError(err))
-		return sql.AuthUser{}, //nolint:exhaustruct
-			&APIError{api.InternalServerError}
+	if !ctrl.wf.ValidateEmail(string(request.Body.Email)) {
+		logger.Warn("email didn't pass access control checks")
+		return nil, ErrInvalidEmailPassword
 	}
 
-	gravatarURL := ctrl.gravatarURL(email)
-
-	insertedUser, err := ctrl.db.InsertUser(
-		ctx, sql.InsertUserParams{
-			Disabled:        ctrl.config.DisableNewUsers,
-			DisplayName:     deptr(options.DisplayName),
-			AvatarUrl:       gravatarURL,
-			Email:           sql.Text(email),
-			PasswordHash:    pgtype.Text{}, //nolint:exhaustruct
-			Ticket:          pgtype.Text{}, //nolint:exhaustruct
-			TicketExpiresAt: sql.TimestampTz(time.Now()),
-			EmailVerified:   false,
-			Locale:          deptr(options.Locale),
-			DefaultRole:     deptr(options.DefaultRole),
-			Metadata:        metadata,
-			Roles:           deptr(options.AllowedRoles),
-		},
+	options, apiErr := ctrl.wf.ValidateSignUpOptions(
+		request.Body.Options, string(request.Body.Email), logger,
 	)
-	if err != nil {
-		logger.Error("error inserting user", logError(err))
-		return sql.AuthUser{}, //nolint:exhaustruct
-			&APIError{api.InternalServerError}
+	if apiErr != nil {
+		return nil, apiErr
 	}
 
-	return sql.AuthUser{
-		ID:                       insertedUser.UserID,
-		CreatedAt:                pgtype.Timestamptz{}, //nolint:exhaustruct
-		UpdatedAt:                pgtype.Timestamptz{}, //nolint:exhaustruct
-		LastSeen:                 pgtype.Timestamptz{}, //nolint:exhaustruct
-		Disabled:                 ctrl.config.DisableNewUsers,
-		DisplayName:              deptr(options.DisplayName),
-		AvatarUrl:                gravatarURL,
-		Locale:                   deptr(options.Locale),
-		Email:                    sql.Text(email),
-		PhoneNumber:              pgtype.Text{}, //nolint:exhaustruct
-		PasswordHash:             pgtype.Text{}, //nolint:exhaustruct
-		EmailVerified:            false,
-		PhoneNumberVerified:      false,
-		NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
-		OtpMethodLastUsed:        pgtype.Text{},        //nolint:exhaustruct
-		OtpHash:                  pgtype.Text{},        //nolint:exhaustruct
-		OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
-		DefaultRole:              deptr(options.DefaultRole),
-		IsAnonymous:              false,
-		TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
-		ActiveMfaType:            pgtype.Text{},        //nolint:exhaustruct
-		Ticket:                   pgtype.Text{},        //nolint:exhaustruct
-		TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
-		Metadata:                 metadata,
-		WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
-	}, nil
+	return options, nil
 }
 
-func (ctrl *Controller) PostSigninPasswordlessEmail( //nolint:ireturn,funlen
+func (ctrl *Controller) PostSigninPasswordlessEmail( //nolint:ireturn
 	ctx context.Context,
 	request api.PostSigninPasswordlessEmailRequestObject,
 ) (api.PostSigninPasswordlessEmailResponseObject, error) {
 	logger := middleware.LoggerFromContext(ctx).
 		With(slog.String("email", string(request.Body.Email)))
 
-	if !ctrl.config.EmailPasswordlessEnabled {
-		logger.Warn("email passwordless signin is disabled")
-		return ctrl.sendError(api.DisabledEndpoint), nil
+	options, apiErr := ctrl.postSigninPasswordlessEmailValidateRequest(request, logger)
+	if apiErr != nil {
+		return ctrl.respondWithError(apiErr), nil
 	}
 
-	if !ctrl.validator.emailValidator(string(request.Body.Email)) {
-		logger.Warn("email didn't pass access control checks")
-		return ctrl.sendError(api.InvalidEmailPassword), nil
-	}
+	user, apiErr := ctrl.wf.GetUserByEmail(ctx, string(request.Body.Email), logger)
+	ticket := generateTicket(TicketTypePasswordLessEmail)
+	expireAt := time.Now().Add(time.Hour)
 
-	options, err := ctrl.validator.postSignUpOptions(
-		request.Body.Options, string(request.Body.Email), logger,
-	)
-	if err != nil {
-		return ctrl.respondWithError(err), nil
-	}
-
-	user, err := ctrl.db.GetUserByEmail(ctx, sql.Text(request.Body.Email))
-	if errors.Is(err, pgx.ErrNoRows) {
+	switch {
+	case errors.Is(apiErr, ErrUserEmailNotFound):
 		logger.Info("user does not exist, creating user")
 
-		user, err = ctrl.postSigninPasswordlessEmailCreateUser(
-			ctx, string(request.Body.Email), options, logger,
+		user, apiErr = ctrl.wf.SignUpUser(
+			ctx,
+			string(request.Body.Email),
+			options,
+			logger,
+			SignupUserWithTicket(ticket, expireAt),
 		)
-		if err != nil {
-			logger.Error("error validating signup request", logError(err))
-			return ctrl.respondWithError(err), nil
+		if apiErr != nil {
+			return ctrl.respondWithError(apiErr), nil
+		}
+	case apiErr != nil:
+		logger.Error("error getting user by email", logError(apiErr))
+		return ctrl.respondWithError(apiErr), nil
+	default:
+		if apiErr = ctrl.wf.SetTicket(ctx, user.ID, ticket, expireAt, logger); apiErr != nil {
+			return ctrl.respondWithError(apiErr), nil
 		}
 	}
-	if err != nil {
-		logger.Error("error getting user by email", logError(err))
-		return ctrl.sendError(api.InternalServerError), nil
-	}
 
-	if user.Disabled {
-		logger.Warn("user is disabled")
-		return ctrl.sendError(api.DisabledUser), nil
-	}
-
-	ticket, err := ctrl.setTicket(ctx, user.ID, TicketTypePasswordLessEmail, logger)
-	if err != nil {
-		return ctrl.respondWithError(err), nil
-	}
-
-	if err := ctrl.sendEmail(
+	if err := ctrl.wf.SendEmail(
 		string(request.Body.Email),
 		user.Locale,
 		LinkTypePasswordlessEmail,

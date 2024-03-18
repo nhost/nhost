@@ -11,6 +11,17 @@ import (
 	"github.com/nhost/hasura-auth/go/sql"
 )
 
+func deptr[T any](x *T) T { //nolint:ireturn
+	if x == nil {
+		return *new(T)
+	}
+	return *x
+}
+
+func ptr[T any](x T) *T {
+	return &x
+}
+
 type Emailer interface {
 	SendEmail(
 		to string,
@@ -30,24 +41,20 @@ type DBClient interface {
 	InsertUser(ctx context.Context, arg sql.InsertUserParams) (sql.InsertUserRow, error)
 	InsertUserWithRefreshToken(
 		ctx context.Context, arg sql.InsertUserWithRefreshTokenParams,
-	) (sql.InsertUserWithRefreshTokenRow, error)
+	) (uuid.UUID, error)
 	InsertRefreshtoken(ctx context.Context, arg sql.InsertRefreshtokenParams) (uuid.UUID, error)
 	UpdateUserChangeEmail(
 		ctx context.Context,
 		arg sql.UpdateUserChangeEmailParams,
-	) (sql.UpdateUserChangeEmailRow, error)
+	) (sql.AuthUser, error)
 	UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error)
 	UpdateUserTicket(ctx context.Context, arg sql.UpdateUserTicketParams) (uuid.UUID, error)
 }
 
 type Controller struct {
-	db          DBClient
-	validator   *Validator
-	config      Config
-	gravatarURL func(string) string
-	jwtGetter   *JWTGetter
-	email       Emailer
-	version     string
+	wf      *Workflows
+	config  Config
+	version string
 }
 
 func New(
@@ -58,20 +65,23 @@ func New(
 	hibp HIBPClient,
 	version string,
 ) (*Controller, error) {
-	validator, err := NewValidator(&config, db, hibp)
+	validator, err := NewWorkflows(
+		&config,
+		*jwtGetter,
+		db,
+		hibp,
+		emailer,
+		GravatarURLFunc(
+			config.GravatarEnabled, config.GravatarDefault, config.GravatarRating,
+		),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("error creating validator: %w", err)
 	}
 
 	return &Controller{
-		db:        db,
-		config:    config,
-		validator: validator,
-		gravatarURL: GravatarURLFunc(
-			config.GravatarEnabled, config.GravatarDefault, config.GravatarRating,
-		),
-		jwtGetter: jwtGetter,
-		email:     emailer,
-		version:   version,
+		config:  config,
+		wf:      validator,
+		version: version,
 	}, nil
 }

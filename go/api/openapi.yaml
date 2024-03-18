@@ -300,7 +300,6 @@ components:
             - role-not-allowed
             - signup-disabled
             - unverified-user
-            - user-not-found
             - invalid-pat
       required:
         - status

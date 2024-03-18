@@ -286,7 +286,7 @@ WITH inserted_user AS (
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
     FROM inserted_user, unnest($12::TEXT[]) AS roles(role)
-RETURNING user_id, (SELECT created_at FROM inserted_user WHERE id = user_id)
+RETURNING user_id
 `
 
 type InsertUserWithRefreshTokenParams struct {
@@ -306,12 +306,7 @@ type InsertUserWithRefreshTokenParams struct {
 	RefreshTokenExpiresAt pgtype.Timestamptz
 }
 
-type InsertUserWithRefreshTokenRow struct {
-	UserID    uuid.UUID
-	CreatedAt pgtype.Timestamptz
-}
-
-func (q *Queries) InsertUserWithRefreshToken(ctx context.Context, arg InsertUserWithRefreshTokenParams) (InsertUserWithRefreshTokenRow, error) {
+func (q *Queries) InsertUserWithRefreshToken(ctx context.Context, arg InsertUserWithRefreshTokenParams) (uuid.UUID, error) {
 	row := q.db.QueryRow(ctx, insertUserWithRefreshToken,
 		arg.Disabled,
 		arg.DisplayName,
@@ -328,16 +323,16 @@ func (q *Queries) InsertUserWithRefreshToken(ctx context.Context, arg InsertUser
 		arg.RefreshTokenHash,
 		arg.RefreshTokenExpiresAt,
 	)
-	var i InsertUserWithRefreshTokenRow
-	err := row.Scan(&i.UserID, &i.CreatedAt)
-	return i, err
+	var user_id uuid.UUID
+	err := row.Scan(&user_id)
+	return user_id, err
 }
 
 const updateUserChangeEmail = `-- name: UpdateUserChangeEmail :one
 UPDATE auth.users
 SET (ticket, ticket_expires_at, new_email) = ($2, $3, $4)
 WHERE id = $1
-RETURNING id, locale, display_name, email
+RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge
 `
 
 type UpdateUserChangeEmailParams struct {
@@ -347,26 +342,40 @@ type UpdateUserChangeEmailParams struct {
 	NewEmail        pgtype.Text
 }
 
-type UpdateUserChangeEmailRow struct {
-	ID          uuid.UUID
-	Locale      string
-	DisplayName string
-	Email       pgtype.Text
-}
-
-func (q *Queries) UpdateUserChangeEmail(ctx context.Context, arg UpdateUserChangeEmailParams) (UpdateUserChangeEmailRow, error) {
+func (q *Queries) UpdateUserChangeEmail(ctx context.Context, arg UpdateUserChangeEmailParams) (AuthUser, error) {
 	row := q.db.QueryRow(ctx, updateUserChangeEmail,
 		arg.ID,
 		arg.Ticket,
 		arg.TicketExpiresAt,
 		arg.NewEmail,
 	)
-	var i UpdateUserChangeEmailRow
+	var i AuthUser
 	err := row.Scan(
 		&i.ID,
-		&i.Locale,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastSeen,
+		&i.Disabled,
 		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Locale,
 		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.EmailVerified,
+		&i.PhoneNumberVerified,
+		&i.NewEmail,
+		&i.OtpMethodLastUsed,
+		&i.OtpHash,
+		&i.OtpHashExpiresAt,
+		&i.DefaultRole,
+		&i.IsAnonymous,
+		&i.TotpSecret,
+		&i.ActiveMfaType,
+		&i.Ticket,
+		&i.TicketExpiresAt,
+		&i.Metadata,
+		&i.WebauthnCurrentChallenge,
 	)
 	return i, err
 }

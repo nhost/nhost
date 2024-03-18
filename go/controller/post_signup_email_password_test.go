@@ -2,14 +2,11 @@ package controller_test
 
 import (
 	"context"
-	"net/url"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -20,145 +17,14 @@ import (
 	"github.com/nhost/hasura-auth/go/sql"
 	"github.com/nhost/hasura-auth/go/testhelpers"
 	"go.uber.org/mock/gomock"
-	"golang.org/x/crypto/bcrypt"
 )
 
-func cmpHashedPassword(password string) func(x, y string) bool {
-	return func(x, y string) bool {
-		if x != "" {
-			if err := bcrypt.CompareHashAndPassword([]byte(x), []byte(password)); err != nil {
-				return false
-			}
-			return true
-		}
-
-		if y != "" {
-			if err := bcrypt.CompareHashAndPassword([]byte(y), []byte(password)); err != nil {
-				return false
-			}
-			return true
-		}
-
-		if x == "" && y == "" {
-			return true
-		}
-
-		return false
-	}
-}
-
-func cmpTicket(x, y string) bool {
-	if x == "" && y == "" {
-		return true
-	}
-
-	px := strings.Split(x, ":")
-	if len(px) != 2 {
-		return false
-	}
-
-	py := strings.Split(y, ":")
-	if len(py) != 2 {
-		return false
-	}
-
-	return px[0] == py[0]
-}
-
-func cmpLink(x, y string) bool { //nolint:cyclop
-	if x == y {
-		return true
-	}
-
-	ux, err := url.Parse(x)
-	if err != nil {
-		return false
-	}
-
-	uy, err := url.Parse(y)
-	if err != nil {
-		return false
-	}
-
-	if ux.Scheme != uy.Scheme {
-		return false
-	}
-
-	if ux.Host != uy.Host {
-		return false
-	}
-
-	if ux.Path != uy.Path {
-		return false
-	}
-
-	if len(ux.Query()) != len(uy.Query()) {
-		return false
-	}
-
-	for k, v := range ux.Query() {
-		if k == "ticket" {
-			continue
-		}
-		if uy.Query().Get(k) != v[0] {
-			return false
-		}
-	}
-
-	return true
-}
-
-func cmpDBParams(
-	i any,
-) any {
-	return testhelpers.GomockCmpOpts(
-		i,
-		testhelpers.FilterPathLast(
-			[]string{".PasswordHash", "text()"},
-			cmp.Comparer(cmpHashedPassword("password")),
-		),
-		testhelpers.FilterPathLast(
-			[]string{".Ticket", "text()"},
-			cmp.Comparer(cmpTicket),
-		),
-		cmp.Transformer("time", func(x pgtype.Timestamptz) time.Time {
-			return x.Time
-		}),
-		cmp.Transformer("text", func(x pgtype.Text) string {
-			return x.String
-		}),
-		testhelpers.FilterPathLast(
-			[]string{".TicketExpiresAt", "time()"}, cmpopts.EquateApproxTime(time.Minute),
-		),
-		testhelpers.FilterPathLast(
-			[]string{".RefreshTokenExpiresAt", "time()"}, cmpopts.EquateApproxTime(time.Minute),
-		),
-		testhelpers.FilterPathLast(
-			[]string{".ExpiresAt", "time()"}, cmpopts.EquateApproxTime(time.Minute),
-		),
-		testhelpers.FilterPathLast(
-			[]string{".RefreshTokenHash", "text()"},
-			cmp.Comparer(func(x, y string) bool {
-				return x != "" || y != ""
-			}),
-		),
-	)
-}
-
-func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cyclop
+func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
-	cases := []struct {
-		name             string
-		config           func() *controller.Config
-		db               func(ctrl *gomock.Controller) controller.DBClient
-		emailer          func(ctrl *gomock.Controller) controller.Emailer
-		hibp             func(ctrl *gomock.Controller) controller.HIBPClient
-		customClaimer    func(ctrl *gomock.Controller) controller.CustomClaimer
-		request          api.PostSignupEmailPasswordRequestObject
-		expectedResponse api.PostSignupEmailPasswordResponseObject
-		expectedJWT      *jwt.Token
-	}{
+	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
+
+	cases := []testRequest[api.PostSignupEmailPasswordRequestObject, api.PostSignupEmailPasswordResponseObject]{
 		{
 			name:   "simple",
 			config: getConfig,
@@ -177,8 +43,8 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
 						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                sql.Text("verifyEmail:xxxx"),
-						TicketExpiresAt:       sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "en",
 						DefaultRole:           "user",
@@ -187,18 +53,15 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
-				).Return(sql.InsertUserWithRefreshTokenRow{
-					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
-					CreatedAt: sql.TimestampTz(time.Now()),
-				}, nil)
+				).Return(userID, nil)
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -254,6 +117,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				Signature: []byte{},
 				Valid:     true,
 			},
+			jwtTokenFn: nil,
 		},
 
 		{
@@ -274,8 +138,8 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
 						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                sql.Text("verifyEmail:xxxx"),
-						TicketExpiresAt:       sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "se",
 						DefaultRole:           "me",
@@ -284,18 +148,15 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
-				).Return(sql.InsertUserWithRefreshTokenRow{
-					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
-					CreatedAt: sql.TimestampTz(time.Now()),
-				}, nil)
+				).Return(userID, nil)
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -361,6 +222,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				Signature: []byte{},
 				Valid:     true,
 			},
+			jwtTokenFn: nil,
 		},
 
 		{
@@ -375,11 +237,11 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -397,6 +259,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				Status:  403,
 			},
 			expectedJWT: nil,
+			jwtTokenFn:  nil,
 		},
 
 		{
@@ -436,11 +299,11 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -452,10 +315,11 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 					Options:  nil,
 				},
 			},
-			expectedResponse: api.PostSignupEmailPassword200JSONResponse{
-				Session: nil,
+			expectedResponse: controller.ErrorResponse{
+				Error: "disabled-user", Message: "User is disabled", Status: 401,
 			},
 			expectedJWT: nil,
+			jwtTokenFn:  nil,
 		},
 
 		{
@@ -496,11 +360,11 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -512,10 +376,11 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 					Options:  nil,
 				},
 			},
-			expectedResponse: api.PostSignupEmailPassword200JSONResponse{
-				Session: nil,
+			expectedResponse: controller.ErrorResponse{
+				Error: "disabled-user", Message: "User is disabled", Status: 401,
 			},
 			expectedJWT: nil,
+			jwtTokenFn:  nil,
 		},
 
 		{
@@ -530,11 +395,11 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -552,6 +417,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				Status:  409,
 			},
 			expectedJWT: nil,
+			jwtTokenFn:  nil,
 		},
 
 		{
@@ -570,11 +436,11 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -592,6 +458,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				Status:  400,
 			},
 			expectedJWT: nil,
+			jwtTokenFn:  nil,
 		},
 
 		{
@@ -610,11 +477,11 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -632,6 +499,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				Status:  400,
 			},
 			expectedJWT: nil,
+			jwtTokenFn:  nil,
 		},
 
 		{
@@ -650,11 +518,11 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 
 				mock.EXPECT().IsPasswordPwned(
@@ -678,6 +546,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				Status:  400,
 			},
 			expectedJWT: nil,
+			jwtTokenFn:  nil,
 		},
 
 		{
@@ -702,8 +571,8 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
 						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                sql.Text("verifyEmail:xxxx"),
-						TicketExpiresAt:       sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "en",
 						DefaultRole:           "user",
@@ -712,18 +581,15 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
-				).Return(sql.InsertUserWithRefreshTokenRow{
-					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
-					CreatedAt: sql.TimestampTz(time.Now()),
-				}, nil)
+				).Return(userID, nil)
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 
 				mock.EXPECT().IsPasswordPwned(
@@ -785,6 +651,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				Signature: []byte{},
 				Valid:     true,
 			},
+			jwtTokenFn: nil,
 		},
 
 		{
@@ -799,11 +666,11 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -828,6 +695,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				Status:  400,
 			},
 			expectedJWT: nil,
+			jwtTokenFn:  nil,
 		},
 
 		{
@@ -852,8 +720,8 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						AvatarUrl:             "https://www.gravatar.com/avatar/a6b55dc639dd4151e97efbc42ee1a28b?d=blank&r=g", //nolint:lll
 						Email:                 sql.Text("jane@acme.com"),
 						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                sql.Text("verifyEmail:xxxx"),
-						TicketExpiresAt:       sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "en",
 						DefaultRole:           "user",
@@ -862,18 +730,15 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
-				).Return(sql.InsertUserWithRefreshTokenRow{
-					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
-					CreatedAt: sql.TimestampTz(time.Now()),
-				}, nil)
+				).Return(userID, nil)
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -929,6 +794,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				Signature: []byte{},
 				Valid:     true,
 			},
+			jwtTokenFn: nil,
 		},
 
 		{
@@ -953,8 +819,8 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
 						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                sql.Text("verifyEmail:xxxx"),
-						TicketExpiresAt:       sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "en",
 						DefaultRole:           "user",
@@ -963,18 +829,15 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
-				).Return(sql.InsertUserWithRefreshTokenRow{
-					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
-					CreatedAt: sql.TimestampTz(time.Now()),
-				}, nil)
+				).Return(userID, nil)
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -1048,6 +911,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				}, nil)
 				return mock
 			},
+			jwtTokenFn: nil,
 		},
 
 		{
@@ -1087,7 +951,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				mock.EXPECT().SendEmail(
 					"jane@acme.com",
@@ -1114,7 +978,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -1130,6 +994,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				Session: nil,
 			},
 			expectedJWT: nil,
+			jwtTokenFn:  nil,
 		},
 
 		{
@@ -1148,11 +1013,11 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
-			hibp: func(ctrl *gomock.Controller) controller.HIBPClient {
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
 				mock := mock.NewMockHIBPClient(ctrl)
 				return mock
 			},
@@ -1170,6 +1035,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 				Status:  401,
 			},
 			expectedJWT: nil,
+			jwtTokenFn:  nil,
 		},
 	}
 
@@ -1181,70 +1047,19 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx,gocognit,cycl
 
 			ctrl := gomock.NewController(t)
 
-			var cc controller.CustomClaimer
-			if tc.customClaimer != nil {
-				cc = tc.customClaimer(ctrl)
-			}
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
+				customClaimer: tc.customClaimer,
+				emailer:       tc.emailer,
+				hibp:          tc.hibp,
+			})
 
-			jwtGetter, err := controller.NewJWTGetter(
-				jwtSecret,
-				time.Second*time.Duration(tc.config().AccessTokenExpiresIn),
-				cc,
+			resp := assertRequest(
+				context.Background(), t, c.PostSignupEmailPassword, tc.request, tc.expectedResponse,
 			)
-			if err != nil {
-				t.Fatalf("failed to create jwt getter: %v", err)
-			}
-
-			c, err := controller.New(
-				tc.db(ctrl),
-				*tc.config(),
-				jwtGetter,
-				tc.emailer(ctrl),
-				tc.hibp(ctrl),
-				"dev",
-			)
-			if err != nil {
-				t.Fatalf("failed to create controller: %v", err)
-			}
-
-			resp, err := c.PostSignupEmailPassword(context.Background(), tc.request)
-			if err != nil {
-				t.Fatalf("failed to post signup email password: %v", err)
-			}
-
-			if diff := cmp.Diff(
-				resp, tc.expectedResponse,
-				testhelpers.FilterPathLast(
-					[]string{".CreatedAt"}, cmpopts.EquateApproxTime(time.Minute),
-				),
-				cmp.Transformer("floatify", func(x int64) float64 {
-					return float64(x)
-				}),
-				cmpopts.EquateApprox(0, 10),
-				cmpopts.IgnoreFields(api.Session{}, "RefreshToken", "AccessToken"), //nolint:exhaustruct
-			); diff != "" {
-				t.Fatalf("unexpected response: %s", diff)
-			}
 
 			resp200, ok := resp.(api.PostSignupEmailPassword200JSONResponse)
-			if ok { //nolint:nestif
-				var token *jwt.Token
-				if resp200.Session == nil {
-					token = nil
-				} else {
-					token, err = jwtGetter.Validate(resp200.Session.AccessToken)
-					if err != nil {
-						t.Fatalf("failed to get claims: %v", err)
-					}
-				}
-				if diff := cmp.Diff(
-					token,
-					tc.expectedJWT,
-					cmpopts.IgnoreFields(jwt.Token{}, "Raw", "Signature"), //nolint:exhaustruct
-					cmpopts.EquateApprox(0, 10),
-				); diff != "" {
-					t.Fatalf("unexpected jwt: %s", diff)
-				}
+			if ok {
+				assertSession(t, jwtGetter, resp200.Session, tc.expectedJWT)
 			}
 		})
 	}

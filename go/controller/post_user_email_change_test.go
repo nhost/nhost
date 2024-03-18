@@ -2,13 +2,13 @@ package controller_test
 
 import (
 	"context"
+	"errors"
 	"net/url"
 	"testing"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/nhost/hasura-auth/go/api"
@@ -20,8 +20,11 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+//nolint:dupl
 func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 	t.Parallel()
+
+	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
 
 	jwtTokenFn := func() *jwt.Token {
 		return &jwt.Token{
@@ -48,20 +51,17 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 		}
 	}
 
-	cases := []struct {
-		name             string
-		config           func() *controller.Config
-		db               func(ctrl *gomock.Controller) controller.DBClient
-		emailer          func(ctrl *gomock.Controller) controller.Emailer
-		jwtTokenFn       func() *jwt.Token
-		request          api.PostUserEmailChangeRequestObject
-		expectedResponse api.PostUserEmailChangeResponseObject
-	}{
+	cases := []testRequest[api.PostUserEmailChangeRequestObject, api.PostUserEmailChangeResponseObject]{
 		{
 			name:   "simple",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(
+					gomock.Any(),
+					userID,
+				).Return(getSigninUser(userID), nil)
 
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
@@ -76,16 +76,17 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 						NewEmail:        sql.Text("newEmail@acme.com"),
 					}),
-				).Return(sql.UpdateUserChangeEmailRow{
+				).Return(sql.AuthUser{ //nolint:exhaustruct
 					ID:          uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb"),
 					Locale:      "en",
 					DisplayName: "Jane Doe",
 					Email:       sql.Text("oldEmail@acme.com"),
+					Ticket:      sql.Text("emailConfirmChange:xxxxx"),
 				}, nil)
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 
 				mock.EXPECT().SendEmail(
@@ -121,128 +122,9 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostUserEmailChange200JSONResponse(api.OK),
-		},
-
-		{
-			name:   "wrong subject",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			jwtTokenFn: func() *jwt.Token {
-				jwtToken := jwtTokenFn()
-				jwtToken.Claims.(jwt.MapClaims)["sub"] = "garbage" //nolint:forcetypeassert
-				return jwtToken
-			},
-			request: api.PostUserEmailChangeRequestObject{
-				Body: &api.UserEmailChangeRequest{
-					NewEmail: "newEmail@acme.com",
-					Options:  nil,
-				},
-			},
-			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-request",
-				Message: "The request payload is incorrect",
-				Status:  400,
-			},
-		},
-
-		{
-			name:   "missing anonymous claim",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			jwtTokenFn: func() *jwt.Token {
-				jwtToken := jwtTokenFn()
-				//nolint:forcetypeassert
-				cc := jwtToken.Claims.(jwt.MapClaims)["https://hasura.io/jwt/claims"].(map[string]any)
-				delete(cc, "x-hasura-user-isAnonymous")
-				return jwtToken
-			},
-			request: api.PostUserEmailChangeRequestObject{
-				Body: &api.UserEmailChangeRequest{
-					NewEmail: "newEmail@acme.com",
-					Options:  nil,
-				},
-			},
-			expectedResponse: controller.ErrorResponse{
-				Error:   "forbidden-anonymous",
-				Message: "Forbidden, user is anonymous.",
-				Status:  403,
-			},
-		},
-
-		{
-			name:   "anonymous claim is garbage",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			jwtTokenFn: func() *jwt.Token {
-				jwtToken := jwtTokenFn()
-				//nolint:forcetypeassert
-				cc := jwtToken.Claims.(jwt.MapClaims)["https://hasura.io/jwt/claims"].(map[string]any)
-				cc["x-hasura-user-isAnonymous"] = "garbage"
-				return jwtToken
-			},
-			request: api.PostUserEmailChangeRequestObject{
-				Body: &api.UserEmailChangeRequest{
-					NewEmail: "newEmail@acme.com",
-					Options:  nil,
-				},
-			},
-			expectedResponse: controller.ErrorResponse{
-				Error:   "forbidden-anonymous",
-				Message: "Forbidden, user is anonymous.",
-				Status:  403,
-			},
-		},
-
-		{
-			name:   "anonymous claim is true",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			jwtTokenFn: func() *jwt.Token {
-				jwtToken := jwtTokenFn()
-				//nolint:forcetypeassert
-				cc := jwtToken.Claims.(jwt.MapClaims)["https://hasura.io/jwt/claims"].(map[string]any)
-				cc["x-hasura-user-isAnonymous"] = "true"
-				return jwtToken
-			},
-			request: api.PostUserEmailChangeRequestObject{
-				Body: &api.UserEmailChangeRequest{
-					NewEmail: "newEmail@acme.com",
-					Options:  nil,
-				},
-			},
-			expectedResponse: controller.ErrorResponse{
-				Error:   "forbidden-anonymous",
-				Message: "Forbidden, user is anonymous.",
-				Status:  403,
-			},
+			customClaimer:    nil,
+			expectedJWT:      nil,
+			hibp:             nil,
 		},
 
 		{
@@ -251,14 +133,22 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
+				mock.EXPECT().GetUser(
+					gomock.Any(),
+					userID,
+				).Return(getSigninUser(userID), nil)
+
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("newEmail@acme.com"),
-				).Return(sql.AuthUser{}, nil) //nolint:exhaustruct
+				).Return(sql.AuthUser{ //nolint:exhaustruct
+					Email: sql.Text("newEmail@acme.com"),
+				}, nil)
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
@@ -274,6 +164,48 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				Message: "Email already in use",
 				Status:  409,
 			},
+			customClaimer: nil,
+			expectedJWT:   nil,
+			hibp:          nil,
+		},
+
+		{
+			name:   "failed to get user with newEmail",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUser(
+					gomock.Any(),
+					userID,
+				).Return(getSigninUser(userID), nil)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("newEmail@acme.com"),
+				).Return(sql.AuthUser{}, errors.New("some error")) //nolint:exhaustruct,goerr113
+
+				return mock
+			},
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
+				mock := mock.NewMockEmailer(ctrl)
+				return mock
+			},
+			jwtTokenFn: jwtTokenFn,
+			request: api.PostUserEmailChangeRequestObject{
+				Body: &api.UserEmailChangeRequest{
+					NewEmail: "newEmail@acme.com",
+					Options:  nil,
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
+			},
+			customClaimer: nil,
+			expectedJWT:   nil,
+			hibp:          nil,
 		},
 
 		{
@@ -288,6 +220,11 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
+				mock.EXPECT().GetUser(
+					gomock.Any(),
+					userID,
+				).Return(getSigninUser(userID), nil)
+
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("newEmail@acme.com"),
@@ -301,16 +238,17 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 						NewEmail:        sql.Text("newEmail@acme.com"),
 					}),
-				).Return(sql.UpdateUserChangeEmailRow{
+				).Return(sql.AuthUser{ //nolint:exhaustruct
 					ID:          uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb"),
 					Locale:      "en",
 					DisplayName: "Jane Doe",
 					Email:       sql.Text("oldEmail@acme.com"),
+					Ticket:      sql.Text("emailConfirmChange:xxxxx"),
 				}, nil)
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 
 				mock.EXPECT().SendEmail(
@@ -348,6 +286,9 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostUserEmailChange200JSONResponse(api.OK),
+			customClaimer:    nil,
+			expectedJWT:      nil,
+			hibp:             nil,
 		},
 
 		{
@@ -357,7 +298,7 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
@@ -375,47 +316,9 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				Message: `The value of "options.redirectTo" is not allowed.`,
 				Status:  400,
 			},
-		},
-
-		{
-			name:   "user not found",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(),
-					sql.Text("newEmail@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
-
-				mock.EXPECT().UpdateUserChangeEmail(
-					gomock.Any(),
-					cmpDBParams(sql.UpdateUserChangeEmailParams{
-						ID:              uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb"),
-						Ticket:          sql.Text("emailConfirmChange:xxxxx"),
-						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
-						NewEmail:        sql.Text("newEmail@acme.com"),
-					}),
-				).Return(sql.UpdateUserChangeEmailRow{}, pgx.ErrNoRows) //nolint:exhaustruct
-
-				return mock
-			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
-				mock := mock.NewMockEmailer(ctrl)
-				return mock
-			},
-			jwtTokenFn: jwtTokenFn,
-			request: api.PostUserEmailChangeRequestObject{
-				Body: &api.UserEmailChangeRequest{
-					NewEmail: "newEmail@acme.com",
-					Options:  nil,
-				},
-			},
-			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-request",
-				Message: "The request payload is incorrect",
-				Status:  400,
-			},
+			customClaimer: nil,
+			expectedJWT:   nil,
+			hibp:          nil,
 		},
 	}
 
@@ -427,46 +330,16 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			jwtGetter, err := controller.NewJWTGetter(
-				jwtSecret,
-				time.Second*time.Duration(tc.config().AccessTokenExpiresIn),
-				nil,
-			)
-			if err != nil {
-				t.Fatalf("failed to create jwt getter: %v", err)
-			}
-
-			c, err := controller.New(
-				tc.db(ctrl),
-				*tc.config(),
-				jwtGetter,
-				tc.emailer(ctrl),
-				nil,
-				"dev",
-			)
-			if err != nil {
-				t.Fatalf("failed to create controller: %v", err)
-			}
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
+				customClaimer: nil,
+				emailer:       tc.emailer,
+				hibp:          nil,
+			})
 
 			ctx := jwtGetter.ToContext(context.Background(), tc.jwtTokenFn())
-			resp, err := c.PostUserEmailChange(ctx, tc.request)
-			if err != nil {
-				t.Fatalf("failed to post signup email password: %v", err)
-			}
-
-			if diff := cmp.Diff(
-				resp, tc.expectedResponse,
-				testhelpers.FilterPathLast(
-					[]string{".CreatedAt"}, cmpopts.EquateApproxTime(time.Minute),
-				),
-				cmp.Transformer("floatify", func(x int64) float64 {
-					return float64(x)
-				}),
-				cmpopts.EquateApprox(0, 10),
-				cmpopts.IgnoreFields(api.Session{}, "RefreshToken", "AccessToken"), //nolint:exhaustruct
-			); diff != "" {
-				t.Fatalf("unexpected response: %s", diff)
-			}
+			assertRequest(
+				ctx, t, c.PostUserEmailChange, tc.request, tc.expectedResponse,
+			)
 		})
 	}
 }

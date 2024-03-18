@@ -71,7 +71,7 @@ WITH inserted_user AS (
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
     FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role)
-RETURNING user_id, (SELECT created_at FROM inserted_user WHERE id = user_id);
+RETURNING user_id;
 
 -- name: InsertRefreshtoken :one
 INSERT INTO auth.refresh_tokens (user_id, refresh_token_hash, expires_at, type, metadata)
@@ -94,4 +94,4 @@ RETURNING id;
 UPDATE auth.users
 SET (ticket, ticket_expires_at, new_email) = ($2, $3, $4)
 WHERE id = $1
-RETURNING id, locale, display_name, email;
+RETURNING *;

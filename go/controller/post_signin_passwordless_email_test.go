@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -31,14 +30,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
-	cases := []struct {
-		name             string
-		config           func() *controller.Config
-		db               func(ctrl *gomock.Controller) controller.DBClient
-		emailer          func(ctrl *gomock.Controller) controller.Emailer
-		request          api.PostSigninPasswordlessEmailRequestObject
-		expectedResponse api.PostSigninPasswordlessEmailResponseObject
-	}{
+	cases := []testRequest[api.PostSigninPasswordlessEmailRequestObject, api.PostSigninPasswordlessEmailResponseObject]{
 		{
 			name:   "signup required",
 			config: getConfig,
@@ -58,8 +50,8 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						AvatarUrl:       "",
 						Email:           sql.Text("jane@acme.com"),
 						PasswordHash:    pgtype.Text{}, //nolint:exhaustruct
-						Ticket:          pgtype.Text{}, //nolint:exhaustruct
-						TicketExpiresAt: sql.TimestampTz(time.Now()),
+						Ticket:          sql.Text("passwordlessEmail:xxx"),
+						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 						EmailVerified:   false,
 						Locale:          "en",
 						DefaultRole:     "user",
@@ -71,18 +63,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 					CreatedAt: sql.TimestampTz(time.Now()),
 				}, nil)
 
-				mock.EXPECT().UpdateUserTicket(
-					gomock.Any(),
-					cmpDBParams(sql.UpdateUserTicketParams{
-						ID:              userID,
-						Ticket:          sql.Text("passwordlessEmail:xxx"),
-						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
-					}),
-				).Return(userID, nil)
-
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 
 				mock.EXPECT().SendEmail(
@@ -117,6 +100,10 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostSigninPasswordlessEmail200JSONResponse(api.OK),
+			customClaimer:    nil,
+			hibp:             nil,
+			jwtTokenFn:       nil,
+			expectedJWT:      nil,
 		},
 
 		{
@@ -130,7 +117,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
@@ -145,6 +132,10 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				Message: "This endpoint is disabled",
 				Status:  409,
 			},
+			customClaimer: nil,
+			hibp:          nil,
+			jwtTokenFn:    nil,
+			expectedJWT:   nil,
 		},
 
 		{
@@ -158,7 +149,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 
 				return mock
@@ -174,6 +165,10 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				Message: "Incorrect email or password",
 				Status:  401,
 			},
+			customClaimer: nil,
+			hibp:          nil,
+			jwtTokenFn:    nil,
+			expectedJWT:   nil,
 		},
 
 		{
@@ -187,7 +182,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
@@ -209,6 +204,10 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				Message: "Role not allowed",
 				Status:  400,
 			},
+			customClaimer: nil,
+			hibp:          nil,
+			jwtTokenFn:    nil,
+			expectedJWT:   nil,
 		},
 
 		{
@@ -230,8 +229,8 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						AvatarUrl:       "",
 						Email:           sql.Text("jane@acme.com"),
 						PasswordHash:    pgtype.Text{}, //nolint:exhaustruct
-						Ticket:          pgtype.Text{}, //nolint:exhaustruct
-						TicketExpiresAt: sql.TimestampTz(time.Now()),
+						Ticket:          sql.Text("passwordlessEmail:xxx"),
+						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 						EmailVerified:   false,
 						Locale:          "en",
 						DefaultRole:     "user",
@@ -243,18 +242,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 					CreatedAt: sql.TimestampTz(time.Now()),
 				}, nil)
 
-				mock.EXPECT().UpdateUserTicket(
-					gomock.Any(),
-					cmpDBParams(sql.UpdateUserTicketParams{
-						ID:              userID,
-						Ticket:          sql.Text("passwordlessEmail:xxx"),
-						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
-					}),
-				).Return(userID, nil)
-
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 
 				mock.EXPECT().SendEmail(
@@ -296,6 +286,10 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostSigninPasswordlessEmail200JSONResponse(api.OK),
+			customClaimer:    nil,
+			hibp:             nil,
+			jwtTokenFn:       nil,
+			expectedJWT:      nil,
 		},
 
 		{
@@ -305,7 +299,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				return mock
 			},
@@ -327,6 +321,10 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				Message: `The value of "options.redirectTo" is not allowed.`,
 				Status:  400,
 			},
+			customClaimer: nil,
+			hibp:          nil,
+			jwtTokenFn:    nil,
+			expectedJWT:   nil,
 		},
 
 		{
@@ -354,8 +352,8 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						AvatarUrl:       "",
 						Email:           sql.Text("jane@acme.com"),
 						PasswordHash:    pgtype.Text{}, //nolint:exhaustruct
-						Ticket:          pgtype.Text{}, //nolint:exhaustruct
-						TicketExpiresAt: sql.TimestampTz(time.Now()),
+						Ticket:          sql.Text("passwordlessEmail:xxx"),
+						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
 						EmailVerified:   false,
 						Locale:          "fr",
 						DefaultRole:     "user",
@@ -367,18 +365,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 					CreatedAt: sql.TimestampTz(time.Now()),
 				}, nil)
 
-				mock.EXPECT().UpdateUserTicket(
-					gomock.Any(),
-					cmpDBParams(sql.UpdateUserTicketParams{
-						ID:              userID,
-						Ticket:          sql.Text("passwordlessEmail:xxx"),
-						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
-					}),
-				).Return(userID, nil)
-
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 
 				mock.EXPECT().SendEmail(
@@ -420,6 +409,10 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostSigninPasswordlessEmail200JSONResponse(api.OK),
+			customClaimer:    nil,
+			hibp:             nil,
+			jwtTokenFn:       nil,
+			expectedJWT:      nil,
 		},
 
 		{
@@ -439,7 +432,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 
 				return mock
@@ -455,6 +448,10 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				Message: "Sign up is disabled.",
 				Status:  403,
 			},
+			customClaimer: nil,
+			hibp:          nil,
+			jwtTokenFn:    nil,
+			expectedJWT:   nil,
 		},
 
 		{
@@ -505,7 +502,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 
 				mock.EXPECT().SendEmail(
@@ -540,6 +537,10 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: api.PostSigninPasswordlessEmail200JSONResponse(api.OK),
+			customClaimer:    nil,
+			hibp:             nil,
+			jwtTokenFn:       nil,
+			expectedJWT:      nil,
 		},
 
 		{
@@ -581,7 +582,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 				return mock
 			},
-			emailer: func(ctrl *gomock.Controller) controller.Emailer {
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 
 				return mock
@@ -595,10 +596,14 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			expectedResponse: controller.ErrorResponse{
 				Error: "disabled-user", Message: "User is disabled", Status: 401,
 			},
+			customClaimer: nil,
+			hibp:          nil,
+			jwtTokenFn:    nil,
+			expectedJWT:   nil,
 		},
 	}
 
-	for _, tc := range cases { //nolint:dupl
+	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -606,45 +611,19 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 
 			ctrl := gomock.NewController(t)
 
-			jwtGetter, err := controller.NewJWTGetter(
-				jwtSecret,
-				time.Second*time.Duration(tc.config().AccessTokenExpiresIn),
-				nil,
+			c, _ := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
+				customClaimer: nil,
+				emailer:       tc.emailer,
+				hibp:          nil,
+			})
+
+			assertRequest(
+				context.Background(),
+				t,
+				c.PostSigninPasswordlessEmail,
+				tc.request,
+				tc.expectedResponse,
 			)
-			if err != nil {
-				t.Fatalf("failed to create jwt getter: %v", err)
-			}
-
-			c, err := controller.New(
-				tc.db(ctrl),
-				*tc.config(),
-				jwtGetter,
-				tc.emailer(ctrl),
-				nil,
-				"dev",
-			)
-			if err != nil {
-				t.Fatalf("failed to create controller: %v", err)
-			}
-
-			resp, err := c.PostSigninPasswordlessEmail(context.Background(), tc.request)
-			if err != nil {
-				t.Fatalf("failed to post signup email password: %v", err)
-			}
-
-			if diff := cmp.Diff(
-				resp, tc.expectedResponse,
-				testhelpers.FilterPathLast(
-					[]string{".CreatedAt"}, cmpopts.EquateApproxTime(time.Minute),
-				),
-				cmp.Transformer("floatify", func(x int64) float64 {
-					return float64(x)
-				}),
-				cmpopts.EquateApprox(0, 10),
-				cmpopts.IgnoreFields(api.Session{}, "RefreshToken", "AccessToken"), //nolint:exhaustruct
-			); diff != "" {
-				t.Fatalf("unexpected response: %s", diff)
-			}
 		})
 	}
 }

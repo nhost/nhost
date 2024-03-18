@@ -2,50 +2,42 @@ package controller
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/middleware"
 	"github.com/nhost/hasura-auth/go/notifications"
-	"github.com/nhost/hasura-auth/go/sql"
-	openapi_types "github.com/oapi-codegen/runtime/types"
-	"golang.org/x/crypto/bcrypt"
 )
 
-func verifyHashPassword(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
+func (ctrl *Controller) postSignupEmailPasswordValidateRequest(
+	ctx context.Context, req api.PostSignupEmailPasswordRequestObject, logger *slog.Logger,
+) (api.PostSignupEmailPasswordRequestObject, *APIError) {
+	if ctrl.config.DisableSignup {
+		logger.Warn("signup disabled")
+		return api.PostSignupEmailPasswordRequestObject{}, ErrSignupDisabled //nolint:exhaustruct
+	}
 
-func hashPassword(password string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err := ctrl.wf.ValidateSignupEmail(ctx, req.Body.Email, logger); err != nil {
+		return api.PostSignupEmailPasswordRequestObject{}, err //nolint:exhaustruct
+	}
+
+	if err := ctrl.wf.ValidatePassword(ctx, req.Body.Password, logger); err != nil {
+		return api.PostSignupEmailPasswordRequestObject{}, err //nolint:exhaustruct
+	}
+
+	options, err := ctrl.wf.ValidateSignUpOptions(
+		req.Body.Options, string(req.Body.Email), logger,
+	)
 	if err != nil {
-		return "", fmt.Errorf("error hashing password: %w", err)
+		return api.PostSignupEmailPasswordRequestObject{}, err //nolint:exhaustruct
 	}
-	return string(hash), nil
-}
 
-func hashRefreshToken(token []byte) string {
-	hash := sha256.Sum256(token)
-	return "\\x" + hex.EncodeToString(hash[:])
-}
+	req.Body.Options = options
 
-func deptr[T any](x *T) T { //nolint:ireturn
-	if x == nil {
-		return *new(T)
-	}
-	return *x
-}
-
-func ptr[T any](x T) *T {
-	return &x
+	return req, nil
 }
 
 func (ctrl *Controller) PostSignupEmailPassword( //nolint:ireturn
@@ -54,97 +46,63 @@ func (ctrl *Controller) PostSignupEmailPassword( //nolint:ireturn
 ) (api.PostSignupEmailPasswordResponseObject, error) {
 	logger := middleware.LoggerFromContext(ctx).With(slog.String("email", string(req.Body.Email)))
 
-	if ctrl.config.DisableSignup {
-		logger.Warn("signup disabled")
-		return ctrl.sendError(api.SignupDisabled), nil
+	req, apiError := ctrl.postSignupEmailPasswordValidateRequest(ctx, req, logger)
+	if apiError != nil {
+		return ctrl.respondWithError(apiError), nil
 	}
-
-	req, err := ctrl.validator.PostSignupEmailPassword(ctx, req, logger.WithGroup("validator"))
-	if err != nil {
-		return ctrl.respondWithError(err), nil
-	}
-
-	hashedPassword, err := hashPassword(req.Body.Password)
-	if err != nil {
-		logger.Error("error hashing password", logError(err))
-		return nil, fmt.Errorf("error hashing password: %w", err)
-	}
-
-	metadata, err := json.Marshal(req.Body.Options.Metadata)
-	if err != nil {
-		logger.Error("error marshaling metadata", logError(err))
-		return nil, fmt.Errorf("error marshaling metadata: %w", err)
-	}
-
-	gravatarURL := ctrl.gravatarURL(string(req.Body.Email))
 
 	if ctrl.config.RequireEmailVerification || ctrl.config.DisableNewUsers {
 		return ctrl.postSignupEmailPasswordWithEmailVerificationOrUserDisabled(
 			ctx,
-			sql.Text(req.Body.Email),
-			hashedPassword,
-			gravatarURL,
+			string(req.Body.Email),
+			req.Body.Password,
 			req.Body.Options,
-			metadata,
 			logger,
 		)
 	}
 
 	return ctrl.postSignupEmailPasswordWithoutEmailVerification(
 		ctx,
-		sql.Text(req.Body.Email),
-		hashedPassword,
-		gravatarURL,
+		string(req.Body.Email),
+		req.Body.Password,
 		req.Body.Options,
-		metadata,
 		logger,
 	)
 }
 
 func (ctrl *Controller) postSignupEmailPasswordWithEmailVerificationOrUserDisabled( //nolint:ireturn
 	ctx context.Context,
-	email pgtype.Text,
-	hashedPassword string,
-	gravatarURL string,
+	email string,
+	password string,
 	options *api.SignUpOptions,
-	metadata []byte,
 	logger *slog.Logger,
 ) (api.PostSignupEmailPasswordResponseObject, error) {
-	ticket := newTicket(TicketTypeVerifyEmail)
-	_, err := ctrl.db.InsertUser(
-		ctx, sql.InsertUserParams{
-			Disabled:        ctrl.config.DisableNewUsers,
-			DisplayName:     deptr(options.DisplayName),
-			AvatarUrl:       gravatarURL,
-			Email:           email,
-			PasswordHash:    sql.Text(hashedPassword),
-			Ticket:          sql.Text(ticket),
-			TicketExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-			EmailVerified:   false,
-			Locale:          deptr(options.Locale),
-			DefaultRole:     deptr(options.DefaultRole),
-			Metadata:        metadata,
-			Roles:           deptr(options.AllowedRoles),
-		},
-	)
-	if err != nil {
-		logger.Error("error inserting user", logError(err))
-		return nil, fmt.Errorf("error inserting user: %w", err)
+	ticket := generateTicket(TicketTypeVerifyEmail)
+
+	if _, err := ctrl.wf.SignUpUser(
+		ctx,
+		email,
+		options,
+		logger,
+		SignupUserWithTicket(ticket, time.Now().Add(30*24*time.Hour)),
+		SignupUserWithPassword(password),
+	); err != nil {
+		return ctrl.respondWithError(err), nil
 	}
 
 	if ctrl.config.DisableNewUsers {
 		return api.PostSignupEmailPassword200JSONResponse{Session: nil}, nil
 	}
 
-	if err := ctrl.sendEmail(
-		email.String,
+	if err := ctrl.wf.SendEmail(
+		email,
 		deptr(options.Locale),
 		LinkTypeEmailVerify,
 		ticket,
 		deptr(options.RedirectTo),
 		notifications.TemplateNameEmailVerify,
 		deptr(options.DisplayName),
-		email.String,
+		email,
 		"",
 		logger,
 	); err != nil {
@@ -154,42 +112,25 @@ func (ctrl *Controller) postSignupEmailPasswordWithEmailVerificationOrUserDisabl
 	return api.PostSignupEmailPassword200JSONResponse{Session: nil}, nil
 }
 
-func (ctrl *Controller) postSignupEmailPasswordWithoutEmailVerification( //nolint:ireturn,funlen
+func (ctrl *Controller) postSignupEmailPasswordWithoutEmailVerification( //nolint:ireturn
 	ctx context.Context,
-	email pgtype.Text,
-	hashedPassword string,
-	gravatarURL string,
+	email string,
+	password string,
 	options *api.SignUpOptions,
-	metadata []byte,
 	logger *slog.Logger,
 ) (api.PostSignupEmailPasswordResponseObject, error) {
 	refreshToken := uuid.New()
 	expiresAt := time.Now().Add(time.Duration(ctrl.config.RefreshTokenExpiresIn) * time.Second)
-	user, err := ctrl.db.InsertUserWithRefreshToken(
-		ctx, sql.InsertUserWithRefreshTokenParams{
-			Disabled:              ctrl.config.DisableNewUsers,
-			DisplayName:           deptr(options.DisplayName),
-			AvatarUrl:             gravatarURL,
-			Email:                 email,
-			PasswordHash:          sql.Text(hashedPassword),
-			Ticket:                sql.Text("verifyEmail:" + uuid.NewString()),
-			TicketExpiresAt:       sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-			EmailVerified:         false,
-			Locale:                deptr(options.Locale),
-			DefaultRole:           deptr(options.DefaultRole),
-			Metadata:              metadata,
-			Roles:                 deptr(options.AllowedRoles),
-			RefreshTokenHash:      sql.Text(hashRefreshToken([]byte(refreshToken.String()))),
-			RefreshTokenExpiresAt: sql.TimestampTz(expiresAt),
-		},
+
+	userSession, userID, apiErr := ctrl.wf.SignupUserWithRefreshToken(
+		ctx, email, password, refreshToken, expiresAt, options, logger,
 	)
-	if err != nil {
-		logger.Error("error inserting user", logError(err))
-		return nil, fmt.Errorf("error inserting user: %w", err)
+	if apiErr != nil {
+		return ctrl.respondWithError(apiErr), nil
 	}
 
-	accessToken, expiresIn, err := ctrl.jwtGetter.GetToken(
-		ctx, user.UserID, deptr(options.AllowedRoles), *options.DefaultRole, logger,
+	accessToken, expiresIn, err := ctrl.wf.jwtGetter.GetToken(
+		ctx, userID, deptr(options.AllowedRoles), *options.DefaultRole, logger,
 	)
 	if err != nil {
 		logger.Error("error getting jwt", logError(err))
@@ -201,21 +142,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithoutEmailVerification( //nolin
 			AccessToken:          accessToken,
 			AccessTokenExpiresIn: expiresIn,
 			RefreshToken:         refreshToken.String(),
-			User: &api.User{
-				AvatarUrl:           gravatarURL,
-				CreatedAt:           user.CreatedAt.Time,
-				DefaultRole:         *options.DefaultRole,
-				DisplayName:         deptr(options.DisplayName),
-				Email:               openapi_types.Email(email.String),
-				EmailVerified:       false,
-				Id:                  user.UserID.String(),
-				IsAnonymous:         false,
-				Locale:              deptr(options.Locale),
-				Metadata:            deptr(options.Metadata),
-				PhoneNumber:         "",
-				PhoneNumberVerified: false,
-				Roles:               deptr(options.AllowedRoles),
-			},
+			User:                 userSession,
 		},
 	}, nil
 }

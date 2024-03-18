@@ -13,7 +13,6 @@ import (
 	"github.com/nhost/hasura-auth/go/controller"
 	"github.com/nhost/hasura-auth/go/controller/mock"
 	"github.com/nhost/hasura-auth/go/sql"
-	"github.com/nhost/hasura-auth/go/testhelpers"
 	"go.uber.org/mock/gomock"
 )
 
@@ -208,46 +207,22 @@ func TestPostPat(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 
-			jwtGetter, err := controller.NewJWTGetter(
-				jwtSecret,
-				time.Second*time.Duration(tc.config().AccessTokenExpiresIn),
-				nil,
-			)
-			if err != nil {
-				t.Fatalf("failed to create jwt getter: %v", err)
-			}
-
-			c, err := controller.New(
-				tc.db(ctrl),
-				*tc.config(),
-				jwtGetter,
-				nil,
-				nil,
-				"dev",
-			)
-			if err != nil {
-				t.Fatalf("failed to create controller: %v", err)
-			}
+			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, getControllerOpts{
+				customClaimer: nil,
+				emailer:       nil,
+				hibp:          nil,
+			})
 
 			ctx := jwtGetter.ToContext(context.Background(), tc.jwtTokenFn())
-			resp, err := c.PostPat(ctx, tc.request)
-			if err != nil {
-				t.Fatalf("failed to post signup email password: %v", err)
+
+			cmpopts := []cmp.Option{
+				cmpopts.IgnoreFields(
+					api.PostPat200JSONResponse{}, //nolint:exhaustruct
+					"PersonalAccessToken",
+				),
 			}
 
-			if diff := cmp.Diff(
-				resp, tc.expectedResponse,
-				testhelpers.FilterPathLast(
-					[]string{".CreatedAt"}, cmpopts.EquateApproxTime(time.Minute),
-				),
-				cmp.Transformer("floatify", func(x int64) float64 {
-					return float64(x)
-				}),
-				cmpopts.EquateApprox(0, 10),
-				cmpopts.IgnoreFields(api.PostPat200JSONResponse{}, "PersonalAccessToken"), //nolint:exhaustruct
-			); diff != "" {
-				t.Fatalf("unexpected response: %s", diff)
-			}
+			assertRequest(ctx, t, c.PostPat, tc.request, tc.expectedResponse, cmpopts...)
 		})
 	}
 }

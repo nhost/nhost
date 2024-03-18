@@ -171,10 +171,10 @@ func (mr *MockDBClientMockRecorder) InsertUser(ctx, arg any) *gomock.Call {
 }
 
 // InsertUserWithRefreshToken mocks base method.
-func (m *MockDBClient) InsertUserWithRefreshToken(ctx context.Context, arg sql.InsertUserWithRefreshTokenParams) (sql.InsertUserWithRefreshTokenRow, error) {
+func (m *MockDBClient) InsertUserWithRefreshToken(ctx context.Context, arg sql.InsertUserWithRefreshTokenParams) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertUserWithRefreshToken", ctx, arg)
-	ret0, _ := ret[0].(sql.InsertUserWithRefreshTokenRow)
+	ret0, _ := ret[0].(uuid.UUID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -186,10 +186,10 @@ func (mr *MockDBClientMockRecorder) InsertUserWithRefreshToken(ctx, arg any) *go
 }
 
 // UpdateUserChangeEmail mocks base method.
-func (m *MockDBClient) UpdateUserChangeEmail(ctx context.Context, arg sql.UpdateUserChangeEmailParams) (sql.UpdateUserChangeEmailRow, error) {
+func (m *MockDBClient) UpdateUserChangeEmail(ctx context.Context, arg sql.UpdateUserChangeEmailParams) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserChangeEmail", ctx, arg)
-	ret0, _ := ret[0].(sql.UpdateUserChangeEmailRow)
+	ret0, _ := ret[0].(sql.AuthUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

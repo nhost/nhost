@@ -31,7 +31,6 @@ const (
 	RoleNotAllowed                  ErrorResponseError = "role-not-allowed"
 	SignupDisabled                  ErrorResponseError = "signup-disabled"
 	UnverifiedUser                  ErrorResponseError = "unverified-user"
-	UserNotFound                    ErrorResponseError = "user-not-found"
 )
 
 // Defines values for OKResponse.
