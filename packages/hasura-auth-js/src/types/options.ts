@@ -33,6 +33,13 @@ export interface RedirectOption {
   redirectTo?: string
 }
 
+export interface OtherOptions {
+  /**
+   * Allows the client to specific if they are on the browser or not
+   */
+  isBrowser?: boolean;
+}
+
 export interface PasswordlessOptions extends RegistrationOptions, RedirectOption {}
 export interface SignUpOptions extends RegistrationOptions, RedirectOption {}
 export interface SignUpSecurityKeyOptions extends SignUpOptions {
@@ -48,7 +55,7 @@ export interface DeanonymizeOptions extends RegistrationOptions {
   password?: string
 }
 
-export interface CommonProviderOptions extends RegistrationOptions, RedirectOption {}
+export interface CommonProviderOptions extends RegistrationOptions, OtherOptions, RedirectOption {}
 export interface WorkOsOptions extends CommonProviderOptions {
   connection?: string
   organization?: string
