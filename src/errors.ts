@@ -111,6 +111,10 @@ export const ERRORS = asErrors({
     status: StatusCodes.BAD_REQUEST,
     message: 'Logged in user is not anonymous',
   },
+  'forbidden': {
+    status: StatusCodes.FORBIDDEN,
+    message: 'Forbidden',
+  },
   'forbidden-anonymous': {
     status: StatusCodes.FORBIDDEN,
     message: 'Anonymous users cannot access this endpoint',

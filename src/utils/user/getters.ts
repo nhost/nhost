@@ -63,6 +63,22 @@ export const getUser = async ({
   };
 };
 
+export const getUserById = async (id: string) => {
+  const { users } = await gqlSdk.users({
+    where: {
+      id: {
+        _eq: id,
+      },
+    },
+  });
+
+  if (users.length !== 1) {
+    return null;
+  }
+
+  return users[0];
+};
+
 export const getUserByEmail = async (email: string) => {
   const { users } = await gqlSdk.users({
     where: {

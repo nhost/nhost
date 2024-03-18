@@ -53,6 +53,7 @@ export type UserRegistrationOptions = {
   allowedRoles: string[];
   defaultRole: string;
   displayName?: string;
+  connect?: string;
   metadata: Metadata;
 };
 
