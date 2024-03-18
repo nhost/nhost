@@ -2,6 +2,8 @@
 
 Here is an example on how to reproduce the Nhost stack from a docker-compose file.
 
+NOTE: You may notice that some options in the dashboard are greyed-out. These include additional services like CI integration, configuration management, etc., offered by the Nhost Cloud and therefore are not accessible when self-hosting.
+
 ## Configuration
 
 ```sh
