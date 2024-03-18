@@ -45,7 +45,7 @@ jobs:
       with:
         mask-password: 'true'
 
-    - uses: nixbuild/nix-quick-install-action@v26
+    - uses: nixbuild/nix-quick-install-action@v27
       with:
         nix_version: 2.16.2
         nix_conf: |
