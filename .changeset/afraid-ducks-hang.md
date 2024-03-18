@@ -2,4 +2,4 @@
 '@nhost-examples/docker-compose': minor
 ---
 
-Note some features not available with docker-compose self hosted
+chore: clarification on greyed-out options in the dashboard when self-hosting```
