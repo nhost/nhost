@@ -17,7 +17,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - uses: nixbuild/nix-quick-install-action@v26
+    - uses: nixbuild/nix-quick-install-action@v27
       with:
         nix_version: 2.16.2
         nix_conf: |
