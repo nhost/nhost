@@ -1,8 +1,30 @@
 <template>
   <div className="d-flex align-center flex-column">
-    <v-card width="400">
+    <v-card width="400" class="mb-2">
       <v-card-title>Profile page</v-card-title>
       <v-card-text> {{ userEmail }} </v-card-text>
+    </v-card>
+
+    <v-card width="400">
+      <v-card-text>
+        <v-btn
+          class="my-1"
+          block
+          variant="text"
+          prepend-icon="mdi-github"
+          color="white"
+          style="background-color: #333"
+          :href="github"
+          v-if="!isGithubConnected"
+        >
+          Connect with GitHub
+        </v-btn>
+
+        <span v-if="isGithubConnected">
+          <v-icon>mdi-github</v-icon>
+          Github connected {{ isGithubConnected }}
+        </span>
+      </v-card-text>
     </v-card>
 
     <v-card width="400" class="mt-2 pa-4">
@@ -105,6 +127,7 @@ import {
 } from '@nhost/vue'
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { ref, unref, computed } from 'vue'
+import { useProviderLink } from '@nhost/vue'
 
 const email = ref('')
 const password = ref('')
@@ -123,6 +146,19 @@ const { changeEmail, isLoading: isChangeEmailLoading } = useChangeEmail()
 const { changePassword, isLoading: isChangePasswordLoading } = useChangePassword()
 const { elevated, elevateEmailSecurityKey } = useElevateSecurityKeyEmail()
 const { add } = useAddSecurityKey()
+const { github } = useProviderLink({
+  connect: true,
+  redirectTo: `${window.location.origin}/profile`
+})
+
+const AUTH_USER_PROVIDERS = gql`
+  query getAuthUserProviders {
+    authUserProviders {
+      id
+      providerId
+    }
+  }
+`
 
 const SECURITY_KEYS_LIST = gql`
   query securityKeys($userId: uuid!) {
@@ -140,6 +176,14 @@ const REMOVE_SECURITY_KEY = gql`
     }
   }
 `
+
+const { result: authUserProvidersQueryResult } = useQuery(AUTH_USER_PROVIDERS)
+
+const isGithubConnected = computed(() =>
+  authUserProvidersQueryResult.value?.authUserProviders.some(
+    (item: any) => item.providerId === 'github'
+  )
+)
 
 const { result: securityKeys, refetch } = useQuery(SECURITY_KEYS_LIST, { userId }, {})
 const { mutate: removeKey } = useMutation(REMOVE_SECURITY_KEY)

@@ -59,7 +59,8 @@ import {
   SignInResponse,
   SignOutResponse,
   SignUpParams,
-  SignUpResponse
+  SignUpResponse,
+  SignInWithProviderParams
 } from './types'
 import {
   encodeQueryParameters,
@@ -130,6 +131,45 @@ export class HasuraAuthClient {
     return getAuthenticationResult(
       await signUpEmailPasswordPromise(interpreter, email, params.password, options)
     )
+  }
+
+  /**
+   * Use `nhost.auth.connectProvider` to connect a social authentication provider to an existing user account
+   *
+   * @example
+   * ### Connect an authentication provider to an existing user account
+   * ```ts
+   * nhost.auth.connectProvider({
+   *   provider: 'github
+   *   options: {
+   *    redirectTo: window.location.href
+   *   }
+   * })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/connect-provider
+   */
+  async connectProvider(
+    params: SignInWithProviderParams
+  ): Promise<SignInResponse & { providerUrl?: string; provider?: string }> {
+    const interpreter = await this.waitUntilReady()
+    const accessToken = interpreter.getSnapshot().context.accessToken.value
+
+    const { provider, options } = params
+
+    const providerUrl = encodeQueryParameters(
+      `${this._client.backendUrl}/signin/provider/${provider}`,
+      rewriteRedirectTo(this._client.clientUrl, {
+        ...options,
+        connect: accessToken
+      } as any)
+    )
+
+    if (isBrowser()) {
+      window.location.href = providerUrl
+    }
+
+    return { providerUrl, provider, session: null, mfa: null, error: null }
   }
 
   /**
