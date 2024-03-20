@@ -52,10 +52,13 @@ export const useProviderLink = (options?: ProviderOptions): Record<Provider, str
     get(_, provider: string) {
       let providerLink = `${nhost.auth.client.backendUrl}/signin/provider/${provider}`
 
+      const connectOptions = options?.connect ? { connect: accessToken } : {}
+
       return encodeQueryParameters(
         providerLink,
         rewriteRedirectTo(isSSR ? undefined : nhost.auth.client.clientUrl, {
-          ...(options && { ...options, connect: options.connect ? accessToken : undefined })
+          ...options,
+          ...connectOptions
         } as any)
       )
     }
