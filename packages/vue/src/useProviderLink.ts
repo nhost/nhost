@@ -43,13 +43,14 @@ export const useProviderLink = (
     new Proxy({} as Record<Provider, string>, {
       get(_, provider: string) {
         const optionsValue = nestedUnref(options)
+
+        const connectOptions = optionsValue?.connect ? { connect: accessToken } : {}
+
         return encodeQueryParameters(
           `${nhost.auth.client.backendUrl}/signin/provider/${provider}`,
           rewriteRedirectTo(nhost.auth.client.clientUrl, {
-            ...(optionsValue && {
-              ...optionsValue,
-              connect: optionsValue.connect ? accessToken : undefined
-            })
+            ...optionsValue,
+            ...connectOptions
           } as any)
         )
       }
