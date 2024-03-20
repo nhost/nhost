@@ -2,11 +2,34 @@ import { gql } from '@apollo/client'
 import { Card, Group, Title } from '@mantine/core'
 import { useProviderLink } from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
+import { useEffect } from 'react'
 import { FaGithub } from 'react-icons/fa'
+import { useSearchParams } from 'react-router-dom'
 import AuthLink from 'src/components/AuthLink'
 import { AuthUserProviders } from 'src/generated'
+import { showNotification } from '@mantine/notifications'
 
 export const ConnectSocials: React.FC = () => {
+  let [searchParams, setSearchParams] = useSearchParams()
+
+  useEffect(() => {
+    const error = searchParams.get('error')
+    const errorDescription = searchParams.get('errorDescription')
+
+    if (error === 'bad-request' && errorDescription === 'social user already exists') {
+      showNotification({
+        color: 'red',
+        title: 'Bad request',
+        message: 'Social user already exists'
+      })
+
+      searchParams.delete('error')
+      searchParams.delete('errorDescription')
+
+      setSearchParams(searchParams)
+    }
+  }, [searchParams, setSearchParams])
+
   const { github } = useProviderLink({
     connect: true,
     redirectTo: `${window.location.origin}/profile`
