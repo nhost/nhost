@@ -40,7 +40,7 @@ overrides:
   semver@<5.7.2: '>=5.7.2'
   semver@>=6.0.0 <6.3.1: '>=6.3.1'
   semver@>=7.0.0 <7.5.2: '>=7.5.2'
-  follow-redirects@<1.15.4: '>=1.15.4'
+  follow-redirects@>1.15.6: '>=1.15.6'
 
 importers:
 
@@ -580,7 +580,7 @@ importers:
     devDependencies:
       mintlify:
         specifier: ^4.0.128
-        version: 4.0.128
+        version: 4.0.133
 
   examples/cli:
     dependencies:
@@ -6101,7 +6101,7 @@ packages:
   /@graphql-tools/utils@8.13.1(graphql@16.8.1):
     resolution: {integrity: sha512-qIh9yYpdUFmctVqovwMdheVNJqFh+DQNWIhX87FJStfXYnmweBUDATok9fWPleKeFwxnW8IapKmY8m8toJEkAw==}
     peerDependencies:
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
     dependencies:
       graphql: 16.8.1
       tslib: 2.6.2
@@ -6941,16 +6941,17 @@ packages:
     resolution: {integrity: sha512-9b8mPpKrfeGRuhFH5iO1iwCLeIIsV6+H1sRfxbkoGXIyQE2BTsPd9zqSqQJ+pv5sJ/hT5M1zvOFL02MnEezFug==}
     dev: true
 
-  /@mintlify/cli@4.0.128:
-    resolution: {integrity: sha512-20CArlOEZf9bxNXlnyl64/lPXvZA4YKBurrj0I0Lhed2vmOgT+p3crGHQHleZOkIEJ/IyH3ycB3Aw+NSt1L61w==}
+  /@mintlify/cli@4.0.133:
+    resolution: {integrity: sha512-RRsciqzgKeSXrw4XozTzfyhpX7zxsVGfh+Xdk4zTIKn12m5/sutmSD1W7axXpdWKTxNpvUyIFoU6M743FIB6jw==}
     engines: {node: '>=18.0.0'}
+    hasBin: true
     dependencies:
       '@apidevtools/swagger-parser': 10.1.0(openapi-types@12.1.3)
-      '@mintlify/link-rot': 3.0.141
-      '@mintlify/models': 0.0.70
-      '@mintlify/prebuild': 1.0.141
-      '@mintlify/previewing': 4.0.125
-      '@mintlify/validation': 0.1.127
+      '@mintlify/link-rot': 3.0.144
+      '@mintlify/models': 0.0.72
+      '@mintlify/prebuild': 1.0.144
+      '@mintlify/previewing': 4.0.130
+      '@mintlify/validation': 0.1.129
       chalk: 5.3.0
       detect-port: 1.5.1
       fs-extra: 11.2.0
@@ -6969,13 +6970,13 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@mintlify/common@1.0.73:
-    resolution: {integrity: sha512-Aae5YJGL5xBx9NOYnOav3zm0YesUoGt0EEIvDVQqGj7LlDG6aR9KA1y031SsfVVyHeC4tbXNLf/5vmv20DnXrw==}
+  /@mintlify/common@1.0.76:
+    resolution: {integrity: sha512-aM+E0u5rLKu+6z64eoCKsvnAB0WziBx+wnRStFrbRdTCSt/LpsSbW+bNdz9AJOQADtiQdS39cLFPUVow7IPi7w==}
     dependencies:
       '@apidevtools/swagger-parser': 10.1.0(openapi-types@12.1.3)
       '@mintlify/mdx': 0.0.44
-      '@mintlify/models': 0.0.70
-      '@mintlify/validation': 0.1.127
+      '@mintlify/models': 0.0.72
+      '@mintlify/validation': 0.1.129
       '@sindresorhus/slugify': 2.2.1
       acorn: 8.11.3
       acorn-jsx: 5.3.2(acorn@8.11.3)
@@ -7018,13 +7019,13 @@ packages:
       - supports-color
     dev: true
 
-  /@mintlify/link-rot@3.0.141:
-    resolution: {integrity: sha512-twAehDvcPP0Y+hVJmPPjiFIxBi7dLpur3w2u2ioLFkviSMT3uQ7o00YyGJNnjbtOq5W+mi2a7CWmGtH72D3PZg==}
+  /@mintlify/link-rot@3.0.144:
+    resolution: {integrity: sha512-uWlQPVzrQN081y8fT+5OUToLijpcA0q8JU2mWPe3upAlX1h7IsREcv/rk4Ce4wg2Eg3aXPsAvoFnTzywhnXpMw==}
     engines: {node: '>=18.0.0'}
     dependencies:
       '@apidevtools/swagger-parser': 10.1.0(openapi-types@12.1.3)
-      '@mintlify/common': 1.0.73
-      '@mintlify/prebuild': 1.0.141
+      '@mintlify/common': 1.0.76
+      '@mintlify/prebuild': 1.0.144
       chalk: 5.3.0
       fs-extra: 11.2.0
       gray-matter: 4.0.3
@@ -7055,8 +7056,8 @@ packages:
       - supports-color
     dev: true
 
-  /@mintlify/models@0.0.70:
-    resolution: {integrity: sha512-xeb0UnXmZg+e55osf6NxNUN6pet8f2EJrPQ+1J8EFjlUXSkDRmqxrYfl7eJo40NPLZEhry84Hjcbm8xcgDRZdQ==}
+  /@mintlify/models@0.0.72:
+    resolution: {integrity: sha512-nwwC/PT2ieB7eDFzwB8p8j/rm35dmzvaLf2+1bZiuCmgi3xMcx39QY0HH83lgV98YgUzPs4EvBeAmpwdn4mkdQ==}
     engines: {node: '>=18.0.0'}
     dependencies:
       axios: 1.6.7
@@ -7065,12 +7066,12 @@ packages:
       - debug
     dev: true
 
-  /@mintlify/prebuild@1.0.141:
-    resolution: {integrity: sha512-b7cQDUWZZwOTki1tdnjIrUQeqV7jEoNPq6lGik7HL/gBhQ6p4DMKWVwxQfvCk/1uydLNBZpMTv68rWiS/3C2yw==}
+  /@mintlify/prebuild@1.0.144:
+    resolution: {integrity: sha512-aEdNlK/vfyWQftYGgloDZy5c5G2SN3f3/2XMp1NBqipaG0Y6VQL0pGL1XP/Ksl8Ts+FlDeY+M+Z17qb05FzATA==}
     dependencies:
       '@apidevtools/swagger-parser': 10.1.0(openapi-types@12.1.3)
-      '@mintlify/common': 1.0.73
-      '@mintlify/validation': 0.1.127
+      '@mintlify/common': 1.0.76
+      '@mintlify/validation': 0.1.129
       favicons: 7.1.5
       fs-extra: 11.2.0
       gray-matter: 4.0.3
@@ -7085,14 +7086,14 @@ packages:
       - supports-color
     dev: true
 
-  /@mintlify/previewing@4.0.125:
-    resolution: {integrity: sha512-Y/m5pxLr+QZPicecEwu9PBtfRv1ilwZUkE5GAVeORa1EFctfP7wrmeLq8xjOisqqAQfahdn328pQdjP86GjRtg==}
+  /@mintlify/previewing@4.0.130:
+    resolution: {integrity: sha512-BzVgKgQ+xG2CVUiIisQWOnqlq2XxCrpO5vzgoOar5ZBjOrsOVeyKxH06w+s05Zlu/dzX5gE7yc85sTt6BFY2PA==}
     engines: {node: '>=18.0.0'}
     dependencies:
       '@apidevtools/swagger-parser': 10.1.0(openapi-types@12.1.3)
-      '@mintlify/common': 1.0.73
-      '@mintlify/prebuild': 1.0.141
-      '@mintlify/validation': 0.1.127
+      '@mintlify/common': 1.0.76
+      '@mintlify/prebuild': 1.0.144
+      '@mintlify/validation': 0.1.129
       '@octokit/rest': 19.0.13
       chalk: 5.3.0
       chokidar: 3.6.0
@@ -7119,10 +7120,10 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@mintlify/validation@0.1.127:
-    resolution: {integrity: sha512-unPdTch8pJO/ptxerTGbxVbl6o1KXzEX5n9vBcZX04XzbBcPXNqGVxKEnFkh7MSYG3Wv0WeTNKz3WWEaJjeMfg==}
+  /@mintlify/validation@0.1.129:
+    resolution: {integrity: sha512-xJ/G9rt0ryDwtRfcWuvkIeqHyfKdin/LEri/mRyS+caY/qACTWtRQBo/W99E++xPOq+ZRe/xppxmajXsTuU8Pg==}
     dependencies:
-      '@mintlify/models': 0.0.70
+      '@mintlify/models': 0.0.72
       lcm: 0.0.3
       lodash: 4.17.21
       openapi-types: 12.1.3
@@ -12783,6 +12784,7 @@ packages:
 
   /astring@1.8.6:
     resolution: {integrity: sha512-ISvCdHdlTDlH5IpxQJIex7BWBywFWgjJSVdwst+/iQCoEYnyOaQ95+X1JGshuBjGp6nxKUy1jMgE3zPqN7fQdg==}
+    hasBin: true
     dev: true
 
   /async-each@1.0.6:
@@ -12889,7 +12891,7 @@ packages:
   /axios@1.6.7:
     resolution: {integrity: sha512-/hDJGff6/c7u0hDkvkGxR/oy6CbCs8ziCsC7SqmhjfozqiJGc8Z11wrv9z9lYfY4K8l+H9TpjcMDX0xOZmx+RA==}
     dependencies:
-      follow-redirects: 1.15.5
+      follow-redirects: 1.15.6
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -14753,6 +14755,7 @@ packages:
 
   /detect-port@1.5.1:
     resolution: {integrity: sha512-aBzdj76lueB6uUst5iAs7+0H/oOjqI5D16XUWxlWMIMROhcM0rfsNVk93zTngq1dDNpoXRr++Sus7ETAExppAQ==}
+    hasBin: true
     dependencies:
       address: 1.2.2
       debug: 4.3.4
@@ -16961,8 +16964,8 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /follow-redirects@1.15.5:
-    resolution: {integrity: sha512-vSFWUON1B+yAw1VN4xMfxgn5fTUiaOzAJCKBwIIgT/+7CuGy9+r+5gITvP62j3RmaD5Ph65UaERdOSRGUzZtgw==}
+  /follow-redirects@1.15.6:
+    resolution: {integrity: sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -18800,6 +18803,7 @@ packages:
   /is-docker@2.2.1:
     resolution: {integrity: sha512-F+i2BKsFrH66iaUFc0woD8sLy8getkwTwtOBjvs56Cx4CgJDeKQeqfz8wAYiSb8JOprWhHH5p77PbmYCvvUuXQ==}
     engines: {node: '>=8'}
+    hasBin: true
     dev: true
 
   /is-dom@1.1.0:
@@ -19724,6 +19728,7 @@ packages:
 
   /katex@0.16.9:
     resolution: {integrity: sha512-fsSYjWS0EEOwvy81j3vRA8TEAhQhKiqO+FQaKWp0m39qwOzHVBgAUBIXWj1pB+O2W3fIpNa6Y9KSKCVbfPhyAQ==}
+    hasBin: true
     dependencies:
       commander: 8.3.0
     dev: true
@@ -20740,6 +20745,7 @@ packages:
 
   /mdast@3.0.0:
     resolution: {integrity: sha512-xySmf8g4fPKMeC07jXGz971EkLbWAJ83s4US2Tj9lEdnZ142UP5grN73H1Xd3HzrdbU5o9GYYP/y8F9ZSwLE9g==}
+    deprecated: '`mdast` was renamed to `remark`'
     dev: true
 
   /mdn-data@2.0.30:
@@ -21627,11 +21633,12 @@ packages:
       yallist: 4.0.0
     dev: true
 
-  /mintlify@4.0.128:
-    resolution: {integrity: sha512-jqHjnQ7dvE5mV2Gl8yAuFo5ckG+8KdXKGihOnHDOEPzNdNXl2hkiurCMNFkFLIMih5QZleHHl40lql2jkGt4qw==}
+  /mintlify@4.0.133:
+    resolution: {integrity: sha512-c4axsQP0/pJLV5uDdHO0ISs17ImZmnDH/y3LINPcvhuGAg6yDbZ/PiYm8ljYT7jfhtYFqnH+8p3SG6uDwYYC2g==}
     engines: {node: '>=18.0.0'}
+    hasBin: true
     dependencies:
-      '@mintlify/cli': 4.0.128
+      '@mintlify/cli': 4.0.133
     transitivePeerDependencies:
       - bufferutil
       - debug
@@ -27427,6 +27434,7 @@ packages:
   /uvu@0.5.6:
     resolution: {integrity: sha512-+g8ENReyr8YsOc6fv/NVJs2vFdHBnBNdfE49rshrTzDWOlUx4Gq7KOS2GD8eqhy2j+Ejq29+SbKH8yjkAqXqoA==}
     engines: {node: '>=8'}
+    hasBin: true
     dependencies:
       dequal: 2.0.3
       diff: 5.2.0
