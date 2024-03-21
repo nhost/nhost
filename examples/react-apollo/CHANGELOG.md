@@ -1,5 +1,17 @@
 # @nhost-examples/react-apollo
 
+## 0.7.0
+
+### Minor Changes
+
+- 311374e: feat: add example of how to connect a social auth provider to an existing account
+
+### Patch Changes
+
+- Updated dependencies [311374e]
+  - @nhost/react@3.3.2
+  - @nhost/react-apollo@10.0.2
+
 ## 0.6.0
 
 ### Minor Changes
