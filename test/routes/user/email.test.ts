@@ -248,7 +248,6 @@ describe('user email', () => {
 
     await request
       .post('/user/email/send-verification-email')
-      .set('Authorization', `Bearer ${accessToken}`)
       .send({ email, options })
       .expect(StatusCodes.OK);
 

@@ -4,11 +4,16 @@ package controller
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/hasura-auth/go/notifications"
 	"github.com/nhost/hasura-auth/go/sql"
+)
+
+const (
+	In30Days = 720 * time.Hour
 )
 
 func deptr[T any](x *T) T { //nolint:ireturn

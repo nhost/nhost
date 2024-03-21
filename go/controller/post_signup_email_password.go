@@ -106,7 +106,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithEmailVerificationOrUserDisabl
 		"",
 		logger,
 	); err != nil {
-		return nil, err
+		return ctrl.sendError(err), nil
 	}
 
 	return api.PostSignupEmailPassword200JSONResponse{Session: nil}, nil

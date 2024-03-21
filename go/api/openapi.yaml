@@ -168,7 +168,7 @@ paths:
       summary: Change user email
       tags:
         - user
-        - email-and-password
+        - email
       security:
         - BearerAuth: []
       requestBody:
@@ -185,13 +185,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/OKResponse'
 
+  /user/email/send-verification-email:
+    post:
+      summary: Send email verification email
+      tags:
+        - user
+        - email
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserEmailSendVerificationEmailRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+          description: >-
+            Email verification email sent successfully
+
   /user/password/reset:
     post:
       summary: >-
         Request a password reset. An email with a verification link will be sent to the user's address
       tags:
         - user
-        - email-and-password
+        - password
       requestBody:
         content:
           application/json:
@@ -289,6 +310,7 @@ components:
             - disabled-endpoint
             - disabled-user
             - email-already-in-use
+            - email-already-verified
             - forbidden-anonymous
             - internal-server-error
             - invalid-email-password
@@ -445,6 +467,20 @@ components:
           $ref: "#/components/schemas/OptionsRedirectTo"
       required:
         - newEmail
+
+    UserEmailSendVerificationEmailRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/OptionsRedirectTo"
+      required:
+        - email
 
     UserPasswordResetRequest:
       type: object

@@ -19,6 +19,7 @@ const (
 	DisabledEndpoint                ErrorResponseError = "disabled-endpoint"
 	DisabledUser                    ErrorResponseError = "disabled-user"
 	EmailAlreadyInUse               ErrorResponseError = "email-already-in-use"
+	EmailAlreadyVerified            ErrorResponseError = "email-already-verified"
 	ForbiddenAnonymous              ErrorResponseError = "forbidden-anonymous"
 	InternalServerError             ErrorResponseError = "internal-server-error"
 	InvalidEmailPassword            ErrorResponseError = "invalid-email-password"
@@ -177,6 +178,13 @@ type UserEmailChangeRequest struct {
 	Options  *OptionsRedirectTo  `json:"options,omitempty"`
 }
 
+// UserEmailSendVerificationEmailRequest defines model for UserEmailSendVerificationEmailRequest.
+type UserEmailSendVerificationEmailRequest struct {
+	// Email A valid email
+	Email   openapi_types.Email `json:"email"`
+	Options *OptionsRedirectTo  `json:"options,omitempty"`
+}
+
 // UserPasswordResetRequest defines model for UserPasswordResetRequest.
 type UserPasswordResetRequest struct {
 	// Email A valid email
@@ -201,6 +209,9 @@ type PostSignupEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest
 
 // PostUserEmailChangeJSONRequestBody defines body for PostUserEmailChange for application/json ContentType.
 type PostUserEmailChangeJSONRequestBody = UserEmailChangeRequest
+
+// PostUserEmailSendVerificationEmailJSONRequestBody defines body for PostUserEmailSendVerificationEmail for application/json ContentType.
+type PostUserEmailSendVerificationEmailJSONRequestBody = UserEmailSendVerificationEmailRequest
 
 // PostUserPasswordResetJSONRequestBody defines body for PostUserPasswordReset for application/json ContentType.
 type PostUserPasswordResetJSONRequestBody = UserPasswordResetRequest

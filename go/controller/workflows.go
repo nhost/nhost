@@ -245,7 +245,7 @@ func (wf *Workflows) GetUserByEmail(
 	}
 
 	if err := wf.ValidateUser(user, logger); err != nil {
-		return sql.AuthUser{}, err //nolint:exhaustruct
+		return user, err
 	}
 
 	return user, nil
@@ -446,7 +446,7 @@ func (wf *Workflows) SendEmail(
 	email string,
 	newEmail string,
 	logger *slog.Logger,
-) error {
+) *APIError {
 	link, err := GenLink(
 		*wf.config.ServerURL,
 		linkType,
@@ -455,7 +455,7 @@ func (wf *Workflows) SendEmail(
 	)
 	if err != nil {
 		logger.Error("problem generating email verification link", logError(err))
-		return fmt.Errorf("problem generating email verification link: %w", err)
+		return ErrInternalServerError
 	}
 
 	if err := wf.email.SendEmail(
@@ -475,7 +475,7 @@ func (wf *Workflows) SendEmail(
 		},
 	); err != nil {
 		logger.Error("problem sending email", logError(err))
-		return fmt.Errorf("problem sending email: %w", err)
+		return ErrInternalServerError
 	}
 
 	return nil

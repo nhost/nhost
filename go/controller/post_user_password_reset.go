@@ -51,7 +51,7 @@ func (ctrl *Controller) PostUserPasswordReset( //nolint:ireturn
 		"",
 		logger,
 	); err != nil {
-		return nil, err
+		return ctrl.sendError(err), nil
 	}
 
 	return api.PostUserPasswordReset200JSONResponse(api.OK), nil

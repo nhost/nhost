@@ -51,7 +51,7 @@ func (ctrl *Controller) PostUserEmailChange( //nolint:ireturn
 		string(request.Body.NewEmail),
 		logger,
 	); err != nil {
-		return nil, err
+		return ctrl.sendError(err), nil
 	}
 
 	return api.PostUserEmailChange200JSONResponse(api.OK), nil

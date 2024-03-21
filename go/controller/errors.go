@@ -33,6 +33,7 @@ var (
 	ErrInvalidRequest                  = &APIError{api.InvalidRequest}
 	ErrSignupDisabled                  = &APIError{api.SignupDisabled}
 	ErrDisabledEndpoint                = &APIError{api.DisabledEndpoint}
+	ErrEmailAlreadyVerified            = &APIError{api.EmailAlreadyVerified}
 )
 
 func logError(err error) slog.Attr {
@@ -73,6 +74,12 @@ func (response ErrorResponse) VisitPostUserPasswordResetResponse(w http.Response
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitPostUserEmailSendVerificationEmailResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
 func (response ErrorResponse) VisitPostPatResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
@@ -82,6 +89,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 	case
 		api.DisabledUser,
 		api.EmailAlreadyInUse,
+		api.EmailAlreadyVerified,
 		api.ForbiddenAnonymous,
 		api.InvalidEmailPassword,
 		api.InvalidPat,
@@ -140,6 +148,12 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 			Status:  http.StatusConflict,
 			Error:   err.t,
 			Message: "Email already in use",
+		}
+	case api.EmailAlreadyVerified:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "User's email is already verified",
 		}
 	case api.ForbiddenAnonymous:
 		return ErrorResponse{

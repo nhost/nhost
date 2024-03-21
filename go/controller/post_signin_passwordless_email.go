@@ -86,7 +86,7 @@ func (ctrl *Controller) PostSigninPasswordlessEmail( //nolint:ireturn
 		"",
 		logger,
 	); err != nil {
-		return nil, err
+		return ctrl.sendError(err), nil
 	}
 
 	return api.PostSigninPasswordlessEmail200JSONResponse(api.OK), nil
