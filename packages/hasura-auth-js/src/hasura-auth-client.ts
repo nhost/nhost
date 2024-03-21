@@ -19,11 +19,12 @@ import {
   addSecurityKeyPromise,
   changeEmailPromise,
   changePasswordPromise,
+  elevateEmailSecurityKeyPromise,
   resetPasswordPromise,
   sendVerificationEmailPromise,
   signInAnonymousPromise,
-  signInEmailPasswordPromise,
   signInEmailPasswordlessPromise,
+  signInEmailPasswordPromise,
   signInEmailSecurityKeyPromise,
   signInMfaTotpPromise,
   signInPATPromise,
@@ -31,8 +32,7 @@ import {
   signInSmsPasswordlessPromise,
   signOutPromise,
   signUpEmailPasswordPromise,
-  signUpEmailSecurityKeyPromise,
-  elevateEmailSecurityKeyPromise
+  signUpEmailSecurityKeyPromise
 } from './promises'
 import { createPATPromise } from './promises/createPAT'
 import {
@@ -42,6 +42,8 @@ import {
   ChangeEmailResponse,
   ChangePasswordParams,
   ChangePasswordResponse,
+  ConnectProviderParams,
+  ConnectProviderResponse,
   DeanonymizeParams,
   DeanonymizeResponse,
   JWTClaims,
@@ -54,13 +56,12 @@ import {
   SecurityKey,
   SendVerificationEmailParams,
   SendVerificationEmailResponse,
-  SignInPATResponse,
   SignInParams,
+  SignInPATResponse,
   SignInResponse,
   SignOutResponse,
   SignUpParams,
-  SignUpResponse,
-  SignInWithProviderParams
+  SignUpResponse
 } from './types'
 import {
   encodeQueryParameters,
@@ -149,9 +150,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/connect-provider
    */
-  async connectProvider(
-    params: SignInWithProviderParams
-  ): Promise<SignInResponse & { providerUrl?: string; provider?: string }> {
+  async connectProvider(params: ConnectProviderParams): Promise<ConnectProviderResponse> {
     const interpreter = await this.waitUntilReady()
     const accessToken = interpreter.getSnapshot().context.accessToken.value
 
@@ -169,7 +168,7 @@ export class HasuraAuthClient {
       window.location.href = providerUrl
     }
 
-    return { providerUrl, provider, session: null, mfa: null, error: null }
+    return { providerUrl }
   }
 
   /**
