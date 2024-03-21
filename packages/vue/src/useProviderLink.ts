@@ -44,7 +44,7 @@ export const useProviderLink = (
       get(_, provider: string) {
         const optionsValue = nestedUnref(options)
 
-        const connectOptions = optionsValue?.connect ? { connect: accessToken } : {}
+        const connectOptions = optionsValue?.connect ? { connect: accessToken.value } : {}
 
         return encodeQueryParameters(
           `${nhost.auth.client.backendUrl}/signin/provider/${provider}`,
