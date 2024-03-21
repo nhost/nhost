@@ -29,7 +29,7 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.27.0-beta13'
+version = '0.28.0-beta2'
 
 [auth.elevatedPrivileges]
 mode = 'required'

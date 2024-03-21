@@ -201,6 +201,73 @@ export type AuthRefreshTokensStreamCursorValueInput = {
   userId?: InputMaybe<Scalars['uuid']>;
 };
 
+/** Active providers for a given user. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type AuthUserProviders = {
+  __typename?: 'authUserProviders';
+  id: Scalars['uuid'];
+  providerId: Scalars['String'];
+  /** An object relationship */
+  user: Users;
+};
+
+/** order by aggregate values of table "auth.user_providers" */
+export type AuthUserProvidersAggregateOrderBy = {
+  count?: InputMaybe<OrderBy>;
+  max?: InputMaybe<AuthUserProvidersMaxOrderBy>;
+  min?: InputMaybe<AuthUserProvidersMinOrderBy>;
+};
+
+/** Boolean expression to filter rows from the table "auth.user_providers". All fields are combined with a logical 'AND'. */
+export type AuthUserProvidersBoolExp = {
+  _and?: InputMaybe<Array<AuthUserProvidersBoolExp>>;
+  _not?: InputMaybe<AuthUserProvidersBoolExp>;
+  _or?: InputMaybe<Array<AuthUserProvidersBoolExp>>;
+  id?: InputMaybe<UuidComparisonExp>;
+  providerId?: InputMaybe<StringComparisonExp>;
+  user?: InputMaybe<UsersBoolExp>;
+};
+
+/** order by max() on columns of table "auth.user_providers" */
+export type AuthUserProvidersMaxOrderBy = {
+  id?: InputMaybe<OrderBy>;
+  providerId?: InputMaybe<OrderBy>;
+};
+
+/** order by min() on columns of table "auth.user_providers" */
+export type AuthUserProvidersMinOrderBy = {
+  id?: InputMaybe<OrderBy>;
+  providerId?: InputMaybe<OrderBy>;
+};
+
+/** Ordering options when selecting data from "auth.user_providers". */
+export type AuthUserProvidersOrderBy = {
+  id?: InputMaybe<OrderBy>;
+  providerId?: InputMaybe<OrderBy>;
+  user?: InputMaybe<UsersOrderBy>;
+};
+
+/** select columns of table "auth.user_providers" */
+export enum AuthUserProvidersSelectColumn {
+  /** column name */
+  Id = 'id',
+  /** column name */
+  ProviderId = 'providerId'
+}
+
+/** Streaming cursor of the table "authUserProviders" */
+export type AuthUserProvidersStreamCursorInput = {
+  /** Stream column input with initial value */
+  initial_value: AuthUserProvidersStreamCursorValueInput;
+  /** cursor ordering */
+  ordering?: InputMaybe<CursorOrdering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthUserProvidersStreamCursorValueInput = {
+  id?: InputMaybe<Scalars['uuid']>;
+  providerId?: InputMaybe<Scalars['String']>;
+};
+
 /** User webauthn security keys. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthUserSecurityKeys = {
   __typename?: 'authUserSecurityKeys';
@@ -930,6 +997,10 @@ export type QueryRoot = {
   authRefreshToken?: Maybe<AuthRefreshTokens>;
   /** fetch data from the table: "auth.refresh_tokens" */
   authRefreshTokens: Array<AuthRefreshTokens>;
+  /** fetch data from the table: "auth.user_providers" using primary key columns */
+  authUserProvider?: Maybe<AuthUserProviders>;
+  /** fetch data from the table: "auth.user_providers" */
+  authUserProviders: Array<AuthUserProviders>;
   /** fetch data from the table: "auth.user_security_keys" using primary key columns */
   authUserSecurityKey?: Maybe<AuthUserSecurityKeys>;
   /** fetch data from the table: "auth.user_security_keys" */
@@ -968,6 +1039,20 @@ export type QueryRootAuthRefreshTokensArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<AuthRefreshTokensOrderBy>>;
   where?: InputMaybe<AuthRefreshTokensBoolExp>;
+};
+
+
+export type QueryRootAuthUserProviderArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type QueryRootAuthUserProvidersArgs = {
+  distinct_on?: InputMaybe<Array<AuthUserProvidersSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthUserProvidersOrderBy>>;
+  where?: InputMaybe<AuthUserProvidersBoolExp>;
 };
 
 
@@ -1066,6 +1151,12 @@ export type SubscriptionRoot = {
   authRefreshTokens: Array<AuthRefreshTokens>;
   /** fetch data from the table in a streaming manner: "auth.refresh_tokens" */
   authRefreshTokens_stream: Array<AuthRefreshTokens>;
+  /** fetch data from the table: "auth.user_providers" using primary key columns */
+  authUserProvider?: Maybe<AuthUserProviders>;
+  /** fetch data from the table: "auth.user_providers" */
+  authUserProviders: Array<AuthUserProviders>;
+  /** fetch data from the table in a streaming manner: "auth.user_providers" */
+  authUserProviders_stream: Array<AuthUserProviders>;
   /** fetch data from the table: "auth.user_security_keys" using primary key columns */
   authUserSecurityKey?: Maybe<AuthUserSecurityKeys>;
   /** fetch data from the table: "auth.user_security_keys" */
@@ -1121,6 +1212,27 @@ export type SubscriptionRootAuthRefreshTokensStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthRefreshTokensStreamCursorInput>>;
   where?: InputMaybe<AuthRefreshTokensBoolExp>;
+};
+
+
+export type SubscriptionRootAuthUserProviderArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type SubscriptionRootAuthUserProvidersArgs = {
+  distinct_on?: InputMaybe<Array<AuthUserProvidersSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthUserProvidersOrderBy>>;
+  where?: InputMaybe<AuthUserProvidersBoolExp>;
+};
+
+
+export type SubscriptionRootAuthUserProvidersStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthUserProvidersStreamCursorInput>>;
+  where?: InputMaybe<AuthUserProvidersBoolExp>;
 };
 
 
@@ -1444,6 +1556,8 @@ export type Users = {
   /** An array relationship */
   securityKeys: Array<AuthUserSecurityKeys>;
   updatedAt: Scalars['timestamptz'];
+  /** An array relationship */
+  userProviders: Array<AuthUserProviders>;
 };
 
 
@@ -1472,6 +1586,16 @@ export type UsersSecurityKeysArgs = {
   where?: InputMaybe<AuthUserSecurityKeysBoolExp>;
 };
 
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersUserProvidersArgs = {
+  distinct_on?: InputMaybe<Array<AuthUserProvidersSelectColumn>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthUserProvidersOrderBy>>;
+  where?: InputMaybe<AuthUserProvidersBoolExp>;
+};
+
 /** Boolean expression to filter rows from the table "auth.users". All fields are combined with a logical 'AND'. */
 export type UsersBoolExp = {
   _and?: InputMaybe<Array<UsersBoolExp>>;
@@ -1498,6 +1622,7 @@ export type UsersBoolExp = {
   refreshTokens?: InputMaybe<AuthRefreshTokensBoolExp>;
   securityKeys?: InputMaybe<AuthUserSecurityKeysBoolExp>;
   updatedAt?: InputMaybe<TimestamptzComparisonExp>;
+  userProviders?: InputMaybe<AuthUserProvidersBoolExp>;
 };
 
 /** Ordering options when selecting data from "auth.users". */
@@ -1523,6 +1648,7 @@ export type UsersOrderBy = {
   refreshTokens_aggregate?: InputMaybe<AuthRefreshTokensAggregateOrderBy>;
   securityKeys_aggregate?: InputMaybe<AuthUserSecurityKeysAggregateOrderBy>;
   updatedAt?: InputMaybe<OrderBy>;
+  userProviders_aggregate?: InputMaybe<AuthUserProvidersAggregateOrderBy>;
 };
 
 /** select columns of table "auth.users" */

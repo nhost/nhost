@@ -48,7 +48,9 @@ export interface DeanonymizeOptions extends RegistrationOptions {
   password?: string
 }
 
-export interface CommonProviderOptions extends RegistrationOptions, RedirectOption {}
+export interface CommonProviderOptions extends RegistrationOptions, RedirectOption {
+  connect?: boolean
+}
 export interface WorkOsOptions extends CommonProviderOptions {
   connection?: string
   organization?: string

@@ -67,6 +67,8 @@ export type SignInWithProviderParams =
   | { provider: Exclude<Provider, 'workos'>; options?: CommonProviderOptions }
   | { provider: 'workos'; options?: WorkOsOptions }
 
+export type ConnectProviderParams = SignInWithProviderParams
+
 export type SignInParams =
   | SignInEmailPasswordParams
   | SignInEmailPasswordOtpParams

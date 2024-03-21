@@ -960,15 +960,19 @@ export const createAuthMachine = ({
               }
             } else {
               const error = getParameterByName('error')
+              const errorDescription = getParameterByName('errorDescription')
+
               if (error) {
-                return Promise.reject<NhostSessionResponse>({
-                  session: null,
-                  error: {
-                    status: VALIDATION_ERROR_CODE,
-                    error,
-                    message: getParameterByName('errorDescription') || error
-                  }
-                })
+                if (errorDescription !== 'social user already exists') {
+                  return Promise.reject<NhostSessionResponse>({
+                    session: null,
+                    error: {
+                      status: VALIDATION_ERROR_CODE,
+                      error,
+                      message: errorDescription || error
+                    }
+                  })
+                }
               }
             }
           }
