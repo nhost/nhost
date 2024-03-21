@@ -1,5 +1,18 @@
 # @nhost-examples/vue-apollo
 
+## 0.5.0
+
+### Minor Changes
+
+- 311374e: feat: add example of how to connect a social auth provider to an existing account
+
+### Patch Changes
+
+- Updated dependencies [311374e]
+  - @nhost/vue@2.4.0
+  - @nhost/nhost-js@3.0.10
+  - @nhost/apollo@6.1.2
+
 ## 0.4.1
 
 ### Patch Changes

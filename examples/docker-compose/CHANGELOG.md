@@ -1,5 +1,11 @@
 # @nhost-examples/docker-compose
 
+## 0.3.0
+
+### Minor Changes
+
+- e40a452: chore: clarification on greyed-out options in the dashboard when self-hosting
+
 ## 0.2.0
 
 ### Minor Changes

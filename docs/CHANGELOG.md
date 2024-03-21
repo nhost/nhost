@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.7.2
+
+### Patch Changes
+
+- 5c47e8e: feat: added hasura's stringifyNumericTypes setting
+
 ## 2.7.1
 
 ### Patch Changes
