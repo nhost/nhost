@@ -105,6 +105,17 @@
   >
 
   <error-snack-bar v-model="showRemoveKeyError"></error-snack-bar>
+
+  <error-snack-bar v-model="showConnectProviderError" title="Bad request"
+    ><span class="text-white"></span
+  ></error-snack-bar>
+
+  <v-snackbar v-model="showConnectProviderError" vertical>
+    <div class="pb-2 text-subtitle-1">Bad request</div>
+
+    <p>Social user already exists</p>
+  </v-snackbar>
+
   <v-snackbar v-model="showRemoveKeyError">
     Could not remove key
     <template #actions>
@@ -128,11 +139,26 @@ import {
 import { useMutation, useQuery } from '@vue/apollo-composable'
 import { ref, unref, computed } from 'vue'
 import { useProviderLink } from '@nhost/vue'
+import { useRoute, useRouter } from 'vue-router'
+import { onMounted } from 'vue'
 
 const email = ref('')
 const password = ref('')
 const nickname = ref('')
 const successSnackBar = ref(false)
+const showConnectProviderError = ref(false)
+
+const router = useRouter()
+const route = useRoute()
+
+onMounted(() => {
+  const errorDescription = route.query.errorDescription
+
+  if (errorDescription === 'social user already exists') {
+    showConnectProviderError.value = true
+    router.replace({ query: undefined })
+  }
+})
 
 const userId = useUserId()
 const userEmail = useUserEmail()
