@@ -46,10 +46,10 @@ export default function SocialProvidersSettings() {
       {isGithubConnected ? (
         <Box
           sx={{ backgroundColor: 'grey.200' }}
-          className="flex flex-col items-center justify-start space-y-2 rounded-lg p-3"
+          className="flex flex-row items-center justify-start space-x-2 rounded-md p-2"
         >
-          <GitHubIcon className="h-5 w-5" />
-          <Text>Connected</Text>
+          <GitHubIcon />
+          <Text className="font-medium ">Connected</Text>
         </Box>
       ) : (
         <Box>
