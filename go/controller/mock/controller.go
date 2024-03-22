@@ -44,17 +44,17 @@ func (m *MockEmailer) EXPECT() *MockEmailerMockRecorder {
 }
 
 // SendEmail mocks base method.
-func (m *MockEmailer) SendEmail(to, locale string, templateName notifications.TemplateName, data notifications.TemplateData) error {
+func (m *MockEmailer) SendEmail(ctx context.Context, to, locale string, templateName notifications.TemplateName, data notifications.TemplateData) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendEmail", to, locale, templateName, data)
+	ret := m.ctrl.Call(m, "SendEmail", ctx, to, locale, templateName, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendEmail indicates an expected call of SendEmail.
-func (mr *MockEmailerMockRecorder) SendEmail(to, locale, templateName, data any) *gomock.Call {
+func (mr *MockEmailerMockRecorder) SendEmail(ctx, to, locale, templateName, data any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendEmail", reflect.TypeOf((*MockEmailer)(nil).SendEmail), to, locale, templateName, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendEmail", reflect.TypeOf((*MockEmailer)(nil).SendEmail), ctx, to, locale, templateName, data)
 }
 
 // MockDBClientGetUser is a mock of DBClientGetUser interface.

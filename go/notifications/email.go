@@ -2,6 +2,7 @@ package notifications
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/smtp"
 )
@@ -61,7 +62,7 @@ func (sm *Email) Send(to, subject, contents string, headers map[string]string) e
 }
 
 func (sm *Email) SendEmail(
-	to string, locale string, templateName TemplateName, data TemplateData,
+	_ context.Context, to string, locale string, templateName TemplateName, data TemplateData,
 ) error {
 	body, subject, err := sm.templates.Render(locale, templateName, data)
 	if err != nil {

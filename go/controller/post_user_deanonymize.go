@@ -118,6 +118,7 @@ func (ctrl *Controller) PostUserDeanonymize( //nolint:funlen
 
 	if ticket != "" {
 		if apiError = ctrl.wf.SendEmail(
+			ctx,
 			string(request.Body.Email),
 			*options.Locale,
 			linkType,

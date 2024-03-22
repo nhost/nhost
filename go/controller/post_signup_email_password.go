@@ -95,6 +95,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithEmailVerificationOrUserDisabl
 	}
 
 	if err := ctrl.wf.SendEmail(
+		ctx,
 		email,
 		deptr(options.Locale),
 		LinkTypeEmailVerify,

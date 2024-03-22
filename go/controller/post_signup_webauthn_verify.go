@@ -141,6 +141,7 @@ func (ctrl *Controller) postSignupWebauthnVerifyWithEmailVerificationOrUserDisab
 	}
 
 	if err := ctrl.wf.SendEmail(
+		ctx,
 		webauthnUser.Email,
 		deptr(options.Locale),
 		LinkTypeEmailVerify,

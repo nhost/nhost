@@ -115,7 +115,7 @@
         module = "github.com/nhost/hasura-auth/go";
         submodule = ".";
 
-        tags = [ "integration" ];
+        tags = [ ];
 
         ldflags = [
           "-X main.Version=${version}"

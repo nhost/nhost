@@ -79,6 +79,7 @@ func (ctrl *Controller) PostSigninPasswordlessEmail( //nolint:ireturn
 	}
 
 	if err := ctrl.wf.SendEmail(
+		ctx,
 		string(request.Body.Email),
 		user.Locale,
 		LinkTypePasswordlessEmail,

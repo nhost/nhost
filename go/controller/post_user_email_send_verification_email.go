@@ -41,6 +41,7 @@ func (ctrl *Controller) PostUserEmailSendVerificationEmail( //nolint:ireturn
 	}
 
 	if err := ctrl.wf.SendEmail(
+		ctx,
 		user.Email.String,
 		user.Locale,
 		LinkTypeEmailVerify,

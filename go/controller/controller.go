@@ -31,6 +31,7 @@ func ptr[T any](x T) *T {
 
 type Emailer interface {
 	SendEmail(
+		ctx context.Context,
 		to string,
 		locale string,
 		templateName notifications.TemplateName,

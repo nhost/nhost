@@ -40,6 +40,7 @@ func (ctrl *Controller) PostUserPasswordReset( //nolint:ireturn
 	}
 
 	if err := ctrl.wf.SendEmail(
+		ctx,
 		string(request.Body.Email),
 		user.Locale,
 		LinkTypePasswordReset,

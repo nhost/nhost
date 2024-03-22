@@ -58,6 +58,7 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockEmailer(ctrl)
 
 				mock.EXPECT().SendEmail(
+					gomock.Any(),
 					"jane@acme.com",
 					"en",
 					notifications.TemplateNamePasswordReset,
@@ -134,6 +135,7 @@ func TestPostUserPasswordReset(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockEmailer(ctrl)
 
 				mock.EXPECT().SendEmail(
+					gomock.Any(),
 					"jane@acme.com",
 					"en",
 					notifications.TemplateNamePasswordReset,

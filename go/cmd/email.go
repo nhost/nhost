@@ -8,11 +8,13 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/nhost/hasura-auth/go/controller"
 	"github.com/nhost/hasura-auth/go/notifications"
+	"github.com/nhost/hasura-auth/go/notifications/postmark"
 	"github.com/urfave/cli/v2"
 )
 
-func getEmailer(cCtx *cli.Context, logger *slog.Logger) (*notifications.Email, error) {
+func getSMTPEmailer(cCtx *cli.Context, logger *slog.Logger) (*notifications.Email, error) {
 	headers := make(map[string]string)
 	if cCtx.String(flagSMTPAPIHedaer) != "" {
 		headers["X-SMTPAPI"] = cCtx.String(flagSMTPAPIHedaer)
@@ -65,4 +67,15 @@ func getEmailer(cCtx *cli.Context, logger *slog.Logger) (*notifications.Email, e
 		headers,
 		templates,
 	), nil
+}
+
+func getEmailer( //nolint:ireturn
+	cCtx *cli.Context,
+	logger *slog.Logger,
+) (controller.Emailer, error) {
+	if cCtx.String(flagSMTPHost) == "postmark" {
+		return postmark.New(cCtx.String(flagSMTPSender), cCtx.String(flagSMTPPassword)), nil
+	}
+
+	return getSMTPEmailer(cCtx, logger)
 }

@@ -90,6 +90,7 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockEmailer(ctrl)
 
 				mock.EXPECT().SendEmail(
+					gomock.Any(),
 					"newEmail@acme.com",
 					"en",
 					notifications.TemplateNameEmailConfirmChange,
@@ -252,6 +253,7 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockEmailer(ctrl)
 
 				mock.EXPECT().SendEmail(
+					gomock.Any(),
 					"newEmail@acme.com",
 					"en",
 					notifications.TemplateNameEmailConfirmChange,

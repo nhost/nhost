@@ -462,6 +462,7 @@ func (wf *Workflows) ChangeEmail(
 }
 
 func (wf *Workflows) SendEmail(
+	ctx context.Context,
 	to string,
 	locale string,
 	linkType LinkType,
@@ -485,6 +486,7 @@ func (wf *Workflows) SendEmail(
 	}
 
 	if err := wf.email.SendEmail(
+		ctx,
 		to,
 		locale,
 		templateName,

@@ -240,7 +240,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagSMTPHost,
-				Usage:    "SMTP Host",
+				Usage:    "SMTP Host. If the host is 'postmark' then the Postmark API will be used. Use AUTH_SMTP_PASS as the server token, other SMTP options are ignored",
 				Category: "smtp",
 				EnvVars:  []string{"AUTH_SMTP_HOST"},
 			},

@@ -39,6 +39,7 @@ func (ctrl *Controller) PostUserEmailChange( //nolint:ireturn
 	}
 
 	if err := ctrl.wf.SendEmail(
+		ctx,
 		string(request.Body.NewEmail),
 		updatedUser.Locale,
 		LinkTypeEmailConfirmChange,

@@ -965,6 +965,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
 				mock := mock.NewMockEmailer(ctrl)
 				mock.EXPECT().SendEmail(
+					gomock.Any(),
 					"jane@acme.com",
 					"en",
 					notifications.TemplateNameEmailVerify,
