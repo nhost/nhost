@@ -84,7 +84,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithEmailVerificationOrUserDisabl
 		email,
 		options,
 		logger,
-		SignupUserWithTicket(ticket, time.Now().Add(30*24*time.Hour)),
+		SignupUserWithTicket(ticket, time.Now().Add(InAMonth)),
 		SignupUserWithPassword(password),
 	); err != nil {
 		return ctrl.respondWithError(err), nil

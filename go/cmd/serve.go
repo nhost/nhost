@@ -68,6 +68,11 @@ const (
 	flagAllowedEmails                    = "allowed-emails"
 	flagEmailPasswordlessEnabled         = "email-passwordless-enabled"
 	flagRequireElevatedClaim             = "require-elevated-claim"
+	flagWebauthnEnabled                  = "webauthn-enabled"
+	flagWebauhtnRPName                   = "webauthn-rp-name"
+	flagWebauthnRPID                     = "webauthn-rp-id"
+	flagWebauthnRPOrigins                = "webauthn-rp-origins"
+	flagWebauthnAttestationTimeout       = "webauthn-attestation-timeout"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -390,6 +395,38 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "Require x-hasura-auth-elevated claim to perform certain actions: create PATs, change email and/or password, enable/disable MFA and add security keys. If set to `recommended` the claim check is only performed if the user has a security key attached. If set to `required` the only action that won't require the claim is setting a security key for the first time.",
 				Category: "security",
 				EnvVars:  []string{"AUTH_REQUIRE_ELEVATED_CLAIM"},
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagWebauthnEnabled,
+				Usage:    "When enabled, passwordless Webauthn authentication can be done via device supported strong authenticators like fingerprint, Face ID, etc.",
+				Value:    false,
+				Category: "webauthn",
+				EnvVars:  []string{"AUTH_WEBAUTHN_ENABLED"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagWebauhtnRPName,
+				Usage:    "Relying party name. Friendly name visual to the user informing who requires the authentication. Probably your app's name",
+				Category: "webauthn",
+				EnvVars:  []string{"AUTH_WEBAUTHN_RP_NAME"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagWebauthnRPID,
+				Usage:    "Relying party id. If not set `AUTH_CLIENT_URL` will be used as a default",
+				Category: "webauthn",
+				EnvVars:  []string{"AUTH_WEBAUTHN_RP_ID"},
+			},
+			&cli.StringSliceFlag{ //nolint: exhaustruct
+				Name:     flagWebauthnRPOrigins,
+				Usage:    "Array of URLs where the registration is permitted and should have occurred on. `AUTH_CLIENT_URL` will be automatically added to the list of origins if is set",
+				Category: "webauthn",
+				EnvVars:  []string{"AUTH_WEBAUTHN_RP_ORIGINS"},
+			},
+			&cli.IntFlag{ //nolint: exhaustruct
+				Name:     flagWebauthnAttestationTimeout,
+				Usage:    "Timeout for the attestation process in milliseconds",
+				Value:    60000, //nolint:gomnd
+				Category: "webauthn",
+				EnvVars:  []string{"AUTH_WEBAUTHN_ATTESTATION_TIMEOUT"},
 			},
 		},
 		Action: serve,

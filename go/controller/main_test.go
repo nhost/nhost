@@ -106,9 +106,9 @@ func cmpLink(x, y string) bool { //nolint:cyclop
 
 func cmpDBParams(
 	i any,
+	options ...cmp.Option,
 ) any {
-	return testhelpers.GomockCmpOpts(
-		i,
+	opts := append([]cmp.Option{
 		testhelpers.FilterPathLast(
 			[]string{".PasswordHash", "text()"},
 			cmp.Comparer(cmpHashedPassword("password")),
@@ -138,6 +138,10 @@ func cmpDBParams(
 				return x != "" || y != ""
 			}),
 		),
+	}, options...)
+
+	return testhelpers.GomockCmpOpts(
+		i, opts...,
 	)
 }
 
@@ -163,11 +167,13 @@ type getControllerOpts struct {
 func getController(
 	t *testing.T,
 	ctrl *gomock.Controller,
-	config func() *controller.Config,
+	configFn func() *controller.Config,
 	db func(ctrl *gomock.Controller) controller.DBClient,
 	opts getControllerOpts,
 ) (*controller.Controller, *controller.JWTGetter) {
 	t.Helper()
+
+	config := *configFn()
 
 	var cc controller.CustomClaimer
 	if opts.customClaimer != nil {
@@ -176,7 +182,7 @@ func getController(
 
 	jwtGetter, err := controller.NewJWTGetter(
 		jwtSecret,
-		time.Second*time.Duration(config().AccessTokenExpiresIn),
+		time.Second*time.Duration(config.AccessTokenExpiresIn),
 		cc,
 		"",
 		nil,
@@ -197,7 +203,7 @@ func getController(
 
 	c, err := controller.New(
 		db(ctrl),
-		*config(),
+		config,
 		jwtGetter,
 		emailer,
 		hibp,

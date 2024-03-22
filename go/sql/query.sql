@@ -22,6 +22,7 @@ WHERE id = (SELECT user_id FROM refresh_token) LIMIT 1;
 -- name: InsertUser :one
 WITH inserted_user AS (
     INSERT INTO auth.users (
+        id,
         disabled,
         display_name,
         avatar_url,
@@ -34,7 +35,7 @@ WITH inserted_user AS (
         default_role,
         metadata
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
     )
     RETURNING *
 )
@@ -42,6 +43,72 @@ INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
     FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role)
 RETURNING user_id, (SELECT created_at FROM inserted_user WHERE id = user_id);
+
+-- name: InsertUserWithSecurityKeyAndRefreshToken :one
+WITH inserted_user AS (
+    INSERT INTO auth.users (
+        id,
+        disabled,
+        display_name,
+        avatar_url,
+        email,
+        ticket,
+        ticket_expires_at,
+        email_verified,
+        locale,
+        default_role,
+        metadata,
+        last_seen
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now()
+    )
+    RETURNING id
+), inserted_refresh_token AS (
+    INSERT INTO auth.refresh_tokens
+        (user_id, refresh_token_hash, expires_at)
+    VALUES
+        ($1, @refresh_token_hash, @refresh_token_expires_at)
+    RETURNING id AS refresh_token_id
+), inserted_security_key AS (
+    INSERT INTO auth.user_security_keys
+        (user_id, credential_id, credential_public_key, nickname)
+    VALUES
+        ($1, @credential_id, @credential_public_key, @nickname)
+)
+INSERT INTO auth.user_roles (user_id, role)
+    SELECT inserted_user.id, roles.role
+    FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role)
+RETURNING user_id;
+
+-- name: InsertUserWithSecurityKey :one
+WITH inserted_user AS (
+    INSERT INTO auth.users (
+        id,
+        disabled,
+        display_name,
+        avatar_url,
+        email,
+        ticket,
+        ticket_expires_at,
+        email_verified,
+        locale,
+        default_role,
+        metadata,
+        last_seen
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now()
+    )
+    RETURNING id
+), inserted_security_key AS (
+    INSERT INTO auth.user_security_keys
+        (user_id, credential_id, credential_public_key, nickname)
+    VALUES
+        ($1, @credential_id, @credential_public_key, @nickname)
+)
+INSERT INTO auth.user_roles (user_id, role)
+    SELECT inserted_user.id, roles.role
+    FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role)
+RETURNING user_id;
 
 -- name: InsertUserWithRefreshToken :one
 WITH inserted_user AS (

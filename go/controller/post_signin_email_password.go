@@ -16,7 +16,7 @@ func (ctrl *Controller) postSigninEmailPasswordWithTOTP( //nolint:ireturn
 	logger *slog.Logger,
 ) (api.PostSigninEmailPasswordResponseObject, error) {
 	ticket := "mfaTotp:" + uuid.NewString()
-	expiresAt := time.Now().Add(5 * time.Minute) //nolint:gomnd
+	expiresAt := time.Now().Add(In5Minutes)
 
 	if apiErr := ctrl.wf.SetTicket(ctx, userID, ticket, expiresAt, logger); apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil

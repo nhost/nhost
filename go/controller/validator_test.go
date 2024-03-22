@@ -3,6 +3,7 @@ package controller_test
 import (
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/hasura-auth/go/controller"
@@ -43,6 +44,13 @@ func getConfig() *controller.Config {
 		RequireEmailVerification: false,
 		ServerURL:                serverURL,
 		EmailPasswordlessEnabled: false,
+		WebauthnEnabled:          true,
+		WebauthnRPID:             "react-apollo.example.nhost.io",
+		WebauthnRPName:           "React Apollo Example",
+		WebauthnRPOrigins: []string{
+			"https://react-apollo.example.nhost.io",
+		},
+		WebauhtnAttestationTimeout: time.Minute,
 	}
 }
 

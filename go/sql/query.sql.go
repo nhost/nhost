@@ -228,6 +228,7 @@ func (q *Queries) InsertRefreshtoken(ctx context.Context, arg InsertRefreshtoken
 const insertUser = `-- name: InsertUser :one
 WITH inserted_user AS (
     INSERT INTO auth.users (
+        id,
         disabled,
         display_name,
         avatar_url,
@@ -240,17 +241,18 @@ WITH inserted_user AS (
         default_role,
         metadata
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
     )
     RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge
 )
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
-    FROM inserted_user, unnest($12::TEXT[]) AS roles(role)
+    FROM inserted_user, unnest($13::TEXT[]) AS roles(role)
 RETURNING user_id, (SELECT created_at FROM inserted_user WHERE id = user_id)
 `
 
 type InsertUserParams struct {
+	ID              uuid.UUID
 	Disabled        bool
 	DisplayName     string
 	AvatarUrl       string
@@ -272,6 +274,7 @@ type InsertUserRow struct {
 
 func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (InsertUserRow, error) {
 	row := q.db.QueryRow(ctx, insertUser,
+		arg.ID,
 		arg.Disabled,
 		arg.DisplayName,
 		arg.AvatarUrl,
@@ -354,6 +357,160 @@ func (q *Queries) InsertUserWithRefreshToken(ctx context.Context, arg InsertUser
 		arg.Roles,
 		arg.RefreshTokenHash,
 		arg.RefreshTokenExpiresAt,
+	)
+	var user_id uuid.UUID
+	err := row.Scan(&user_id)
+	return user_id, err
+}
+
+const insertUserWithSecurityKey = `-- name: InsertUserWithSecurityKey :one
+WITH inserted_user AS (
+    INSERT INTO auth.users (
+        id,
+        disabled,
+        display_name,
+        avatar_url,
+        email,
+        ticket,
+        ticket_expires_at,
+        email_verified,
+        locale,
+        default_role,
+        metadata,
+        last_seen
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now()
+    )
+    RETURNING id
+), inserted_security_key AS (
+    INSERT INTO auth.user_security_keys
+        (user_id, credential_id, credential_public_key, nickname)
+    VALUES
+        ($1, $13, $14, $15)
+)
+INSERT INTO auth.user_roles (user_id, role)
+    SELECT inserted_user.id, roles.role
+    FROM inserted_user, unnest($12::TEXT[]) AS roles(role)
+RETURNING user_id
+`
+
+type InsertUserWithSecurityKeyParams struct {
+	ID                  uuid.UUID
+	Disabled            bool
+	DisplayName         string
+	AvatarUrl           string
+	Email               pgtype.Text
+	Ticket              pgtype.Text
+	TicketExpiresAt     pgtype.Timestamptz
+	EmailVerified       bool
+	Locale              string
+	DefaultRole         string
+	Metadata            []byte
+	Roles               []string
+	CredentialID        string
+	CredentialPublicKey []byte
+	Nickname            pgtype.Text
+}
+
+func (q *Queries) InsertUserWithSecurityKey(ctx context.Context, arg InsertUserWithSecurityKeyParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, insertUserWithSecurityKey,
+		arg.ID,
+		arg.Disabled,
+		arg.DisplayName,
+		arg.AvatarUrl,
+		arg.Email,
+		arg.Ticket,
+		arg.TicketExpiresAt,
+		arg.EmailVerified,
+		arg.Locale,
+		arg.DefaultRole,
+		arg.Metadata,
+		arg.Roles,
+		arg.CredentialID,
+		arg.CredentialPublicKey,
+		arg.Nickname,
+	)
+	var user_id uuid.UUID
+	err := row.Scan(&user_id)
+	return user_id, err
+}
+
+const insertUserWithSecurityKeyAndRefreshToken = `-- name: InsertUserWithSecurityKeyAndRefreshToken :one
+WITH inserted_user AS (
+    INSERT INTO auth.users (
+        id,
+        disabled,
+        display_name,
+        avatar_url,
+        email,
+        ticket,
+        ticket_expires_at,
+        email_verified,
+        locale,
+        default_role,
+        metadata,
+        last_seen
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now()
+    )
+    RETURNING id
+), inserted_refresh_token AS (
+    INSERT INTO auth.refresh_tokens
+        (user_id, refresh_token_hash, expires_at)
+    VALUES
+        ($1, $13, $14)
+    RETURNING id AS refresh_token_id
+), inserted_security_key AS (
+    INSERT INTO auth.user_security_keys
+        (user_id, credential_id, credential_public_key, nickname)
+    VALUES
+        ($1, $15, $16, $17)
+)
+INSERT INTO auth.user_roles (user_id, role)
+    SELECT inserted_user.id, roles.role
+    FROM inserted_user, unnest($12::TEXT[]) AS roles(role)
+RETURNING user_id
+`
+
+type InsertUserWithSecurityKeyAndRefreshTokenParams struct {
+	ID                    uuid.UUID
+	Disabled              bool
+	DisplayName           string
+	AvatarUrl             string
+	Email                 pgtype.Text
+	Ticket                pgtype.Text
+	TicketExpiresAt       pgtype.Timestamptz
+	EmailVerified         bool
+	Locale                string
+	DefaultRole           string
+	Metadata              []byte
+	Roles                 []string
+	RefreshTokenHash      pgtype.Text
+	RefreshTokenExpiresAt pgtype.Timestamptz
+	CredentialID          string
+	CredentialPublicKey   []byte
+	Nickname              pgtype.Text
+}
+
+func (q *Queries) InsertUserWithSecurityKeyAndRefreshToken(ctx context.Context, arg InsertUserWithSecurityKeyAndRefreshTokenParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, insertUserWithSecurityKeyAndRefreshToken,
+		arg.ID,
+		arg.Disabled,
+		arg.DisplayName,
+		arg.AvatarUrl,
+		arg.Email,
+		arg.Ticket,
+		arg.TicketExpiresAt,
+		arg.EmailVerified,
+		arg.Locale,
+		arg.DefaultRole,
+		arg.Metadata,
+		arg.Roles,
+		arg.RefreshTokenHash,
+		arg.RefreshTokenExpiresAt,
+		arg.CredentialID,
+		arg.CredentialPublicKey,
+		arg.Nickname,
 	)
 	var user_id uuid.UUID
 	err := row.Scan(&user_id)

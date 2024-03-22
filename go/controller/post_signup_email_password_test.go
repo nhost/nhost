@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -279,6 +280,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(sql.InsertUserParams{
+						ID:              uuid.UUID{},
 						Disabled:        true,
 						DisplayName:     "jane@acme.com",
 						AvatarUrl:       "",
@@ -291,7 +293,10 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						DefaultRole:     "user",
 						Metadata:        []byte("null"),
 						Roles:           []string{"user", "me"},
-					}),
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+
+					),
 				).Return(sql.InsertUserRow{
 					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
 					CreatedAt: sql.TimestampTz(time.Now()),
@@ -340,6 +345,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(sql.InsertUserParams{
+						ID:              uuid.UUID{},
 						Disabled:        true,
 						DisplayName:     "jane@acme.com",
 						AvatarUrl:       "",
@@ -352,7 +358,9 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						DefaultRole:     "user",
 						Metadata:        []byte("null"),
 						Roles:           []string{"user", "me"},
-					}),
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+					),
 				).Return(sql.InsertUserRow{
 					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
 					CreatedAt: sql.TimestampTz(time.Now()),
@@ -931,6 +939,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(sql.InsertUserParams{
+						ID:              uuid.UUID{},
 						Disabled:        false,
 						DisplayName:     "jane@acme.com",
 						AvatarUrl:       "",
@@ -943,7 +952,9 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						DefaultRole:     "user",
 						Metadata:        []byte("null"),
 						Roles:           []string{"user", "me"},
-					}),
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+					),
 				).Return(sql.InsertUserRow{
 					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
 					CreatedAt: sql.TimestampTz(time.Now()),

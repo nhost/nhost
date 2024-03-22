@@ -312,7 +312,7 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "redirecTo-not-allowed",
+				Error:   "redirectTo-not-allowed",
 				Message: `The value of "options.redirectTo" is not allowed.`,
 				Status:  400,
 			},

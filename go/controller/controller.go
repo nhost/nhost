@@ -13,7 +13,9 @@ import (
 )
 
 const (
-	In30Days = 720 * time.Hour
+	In30Days   = 720 * time.Hour
+	InAMonth   = 30 * 24 * time.Hour
+	In5Minutes = 5 * time.Minute //nolint:revive
 )
 
 func deptr[T any](x *T) T { //nolint:ireturn
@@ -36,12 +38,23 @@ type Emailer interface {
 	) error
 }
 
+type DBClientGetUser interface {
+	GetUser(ctx context.Context, id uuid.UUID) (sql.AuthUser, error)
+	GetUserByEmail(ctx context.Context, email pgtype.Text) (sql.AuthUser, error)
+	GetUserByRefreshTokenHash(
+		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
+	) (sql.AuthUser, error)
+}
+
 type DBClientInsertUser interface {
 	InsertUser(ctx context.Context, arg sql.InsertUserParams) (sql.InsertUserRow, error)
 	InsertUserWithRefreshToken(
 		ctx context.Context, arg sql.InsertUserWithRefreshTokenParams,
 	) (uuid.UUID, error)
-	InsertRefreshtoken(ctx context.Context, arg sql.InsertRefreshtokenParams) (uuid.UUID, error)
+	InsertUserWithSecurityKeyAndRefreshToken(
+		ctx context.Context,
+		arg sql.InsertUserWithSecurityKeyAndRefreshTokenParams,
+	) (uuid.UUID, error)
 }
 
 type DBClientUpdateUser interface {
@@ -52,27 +65,30 @@ type DBClientUpdateUser interface {
 	UpdateUserDeanonymize(ctx context.Context, arg sql.UpdateUserDeanonymizeParams) error
 	UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error)
 	UpdateUserTicket(ctx context.Context, arg sql.UpdateUserTicketParams) (uuid.UUID, error)
+	InsertUserWithSecurityKey(
+		ctx context.Context, arg sql.InsertUserWithSecurityKeyParams,
+	) (uuid.UUID, error)
 }
 
 type DBClient interface {
+	DBClientGetUser
 	DBClientInsertUser
 	DBClientUpdateUser
 
 	CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error)
 	DeleteRefreshTokens(ctx context.Context, userID uuid.UUID) error
 	DeleteUserRoles(ctx context.Context, userID uuid.UUID) error
-	GetUser(ctx context.Context, id uuid.UUID) (sql.AuthUser, error)
-	GetUserByEmail(ctx context.Context, email pgtype.Text) (sql.AuthUser, error)
-	GetUserByRefreshTokenHash(
-		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
-	) (sql.AuthUser, error)
+
 	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error)
+
+	InsertRefreshtoken(ctx context.Context, arg sql.InsertRefreshtokenParams) (uuid.UUID, error)
 }
 
 type Controller struct {
-	wf      *Workflows
-	config  Config
-	version string
+	wf       *Workflows
+	config   Config
+	Webauthn *Webauthn
+	version  string
 }
 
 func New(
@@ -97,9 +113,15 @@ func New(
 		return nil, fmt.Errorf("error creating validator: %w", err)
 	}
 
+	wa, err := NewWebAuthn(config)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Controller{
-		config:  config,
-		wf:      validator,
-		version: version,
+		config:   config,
+		wf:       validator,
+		Webauthn: wa,
+		version:  version,
 	}, nil
 }

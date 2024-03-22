@@ -270,12 +270,12 @@ func TestGetJWTFunc(t *testing.T) {
 func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
-	userID := uuid.MustParse("8b3107c8-8b1c-4f14-a403-c1c446e36ec3")
+	userID := uuid.MustParse("f90782de-f0a3-41fe-b778-01e4f80c2413")
 
 	//nolint:lll,gosec
-	nonElevatedToken := `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwNzExMTEyMzA4LCJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIiwiZWRpdG9yIl0sIngtaGFzdXJhLWRlZmF1bHQtcm9sZSI6InVzZXIiLCJ4LWhhc3VyYS11c2VyLWlkIjoiOGIzMTA3YzgtOGIxYy00ZjE0LWE0MDMtYzFjNDQ2ZTM2ZWMzIiwieC1oYXN1cmEtdXNlci1pc0Fub255bW91cyI6ImZhbHNlIn0sImlhdCI6MTcxMTExMjMwOCwiaXNzIjoiaGFzdXJhLWF1dGgiLCJzdWIiOiI4YjMxMDdjOC04YjFjLTRmMTQtYTQwMy1jMWM0NDZlMzZlYzMifQ.vryKygEgosBsRZDQDxpAdbpU_HEA4E8p6Rg0KOtrLV4`
+	nonElevatedToken := `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwNzExMTE4MDI0LCJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIiwiZWRpdG9yIl0sIngtaGFzdXJhLWRlZmF1bHQtcm9sZSI6InVzZXIiLCJ4LWhhc3VyYS11c2VyLWlkIjoiZjkwNzgyZGUtZjBhMy00MWZlLWI3NzgtMDFlNGY4MGMyNDEzIiwieC1oYXN1cmEtdXNlci1pcy1hbm9ueW1vdXMiOiJmYWxzZSJ9LCJpYXQiOjE3MTExMTgwMjQsImlzcyI6Imhhc3VyYS1hdXRoIiwic3ViIjoiZjkwNzgyZGUtZjBhMy00MWZlLWI3NzgtMDFlNGY4MGMyNDEzIn0.wms_3kNeVVeqxQvSMcM2l7By1BTz4uteKSAGmVgafYY`
 	//nolint:lll
-	elevatedToken := `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwNzExMTEyMzk1LCJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIiwiZWRpdG9yIl0sIngtaGFzdXJhLWF1dGgtZWxldmF0ZWQiOiI4YjMxMDdjOC04YjFjLTRmMTQtYTQwMy1jMWM0NDZlMzZlYzMiLCJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJ1c2VyIiwieC1oYXN1cmEtdXNlci1pZCI6IjhiMzEwN2M4LThiMWMtNGYxNC1hNDAzLWMxYzQ0NmUzNmVjMyIsIngtaGFzdXJhLXVzZXItaXNBbm9ueW1vdXMiOiJmYWxzZSJ9LCJpYXQiOjE3MTExMTIzOTUsImlzcyI6Imhhc3VyYS1hdXRoIiwic3ViIjoiOGIzMTA3YzgtOGIxYy00ZjE0LWE0MDMtYzFjNDQ2ZTM2ZWMzIn0.ySwnKlt5_7R112OMkJrzUi5v9jE3nbaAbZTmLILKCYE` //nolint:gosec
+	elevatedToken := `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwNzExMTE4MDc2LCJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIiwiZWRpdG9yIl0sIngtaGFzdXJhLWF1dGgtZWxldmF0ZWQiOiJmOTA3ODJkZS1mMGEzLTQxZmUtYjc3OC0wMWU0ZjgwYzI0MTMiLCJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJ1c2VyIiwieC1oYXN1cmEtdXNlci1pZCI6ImY5MDc4MmRlLWYwYTMtNDFmZS1iNzc4LTAxZTRmODBjMjQxMyIsIngtaGFzdXJhLXVzZXItaXMtYW5vbnltb3VzIjoiZmFsc2UifSwiaWF0IjoxNzExMTE4MDc2LCJpc3MiOiJoYXN1cmEtYXV0aCIsInN1YiI6ImY5MDc4MmRlLWYwYTMtNDFmZS1iNzc4LTAxZTRmODBjMjQxMyJ9.hxnECqwk1ZO64kZtA4g71GyYGFIeidGw-u9HUmBC7Xk` //nolint:gosec
 
 	cases := []struct {
 		name         string
@@ -310,16 +310,18 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				Method: jwt.SigningMethodHS256,
 				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
 				Claims: jwt.MapClaims{
-					"exp": float64(1.0711112308e+10),
+					"exp": float64(1.0711118024e+10),
 					"https://hasura.io/jwt/claims": map[string]any{
-						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
-						"x-hasura-default-role":     string("user"),
-						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
-						"x-hasura-user-isAnonymous": string("false"),
+						"x-hasura-allowed-roles": []any{"me", "user", "editor"},
+						"x-hasura-default-role":  string("user"),
+						"x-hasura-user-id": string(
+							"f90782de-f0a3-41fe-b778-01e4f80c2413",
+						),
+						"x-hasura-user-is-anonymous": string("false"),
 					},
-					"iat": float64(1.711112308e+09),
+					"iat": float64(1.711118024e+09),
 					"iss": string("hasura-auth"),
-					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+					"sub": string("f90782de-f0a3-41fe-b778-01e4f80c2413"),
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -352,16 +354,18 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				Method: jwt.SigningMethodHS256,
 				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
 				Claims: jwt.MapClaims{
-					"exp": float64(1.0711112308e+10),
+					"exp": float64(1.0711118024e+10),
 					"https://hasura.io/jwt/claims": map[string]any{
-						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
-						"x-hasura-default-role":     string("user"),
-						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
-						"x-hasura-user-isAnonymous": string("false"),
+						"x-hasura-allowed-roles": []any{"me", "user", "editor"},
+						"x-hasura-default-role":  string("user"),
+						"x-hasura-user-id": string(
+							"f90782de-f0a3-41fe-b778-01e4f80c2413",
+						),
+						"x-hasura-user-is-anonymous": string("false"),
 					},
-					"iat": float64(1.711112308e+09),
+					"iat": float64(1.711118024e+09),
 					"iss": string("hasura-auth"),
-					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+					"sub": string("f90782de-f0a3-41fe-b778-01e4f80c2413"),
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -394,16 +398,18 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				Method: jwt.SigningMethodHS256,
 				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
 				Claims: jwt.MapClaims{
-					"exp": float64(1.0711112308e+10),
+					"exp": float64(1.0711118024e+10),
 					"https://hasura.io/jwt/claims": map[string]any{
-						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
-						"x-hasura-default-role":     string("user"),
-						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
-						"x-hasura-user-isAnonymous": string("false"),
+						"x-hasura-allowed-roles": []any{"me", "user", "editor"},
+						"x-hasura-default-role":  string("user"),
+						"x-hasura-user-id": string(
+							"f90782de-f0a3-41fe-b778-01e4f80c2413",
+						),
+						"x-hasura-user-is-anonymous": string("false"),
 					},
-					"iat": float64(1.711112308e+09),
+					"iat": float64(1.711118024e+09),
 					"iss": string("hasura-auth"),
-					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+					"sub": string("f90782de-f0a3-41fe-b778-01e4f80c2413"),
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -436,16 +442,18 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				Method: jwt.SigningMethodHS256,
 				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
 				Claims: jwt.MapClaims{
-					"exp": float64(1.0711112308e+10),
+					"exp": float64(1.0711118024e+10),
 					"https://hasura.io/jwt/claims": map[string]any{
-						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
-						"x-hasura-default-role":     string("user"),
-						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
-						"x-hasura-user-isAnonymous": string("false"),
+						"x-hasura-allowed-roles": []any{"me", "user", "editor"},
+						"x-hasura-default-role":  string("user"),
+						"x-hasura-user-id": string(
+							"f90782de-f0a3-41fe-b778-01e4f80c2413",
+						),
+						"x-hasura-user-is-anonymous": string("false"),
 					},
-					"iat": float64(1.711112308e+09),
+					"iat": float64(1.711118024e+09),
 					"iss": string("hasura-auth"),
-					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+					"sub": string("f90782de-f0a3-41fe-b778-01e4f80c2413"),
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -479,16 +487,18 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				Method: jwt.SigningMethodHS256,
 				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
 				Claims: jwt.MapClaims{
-					"exp": float64(1.0711112308e+10),
+					"exp": float64(1.0711118024e+10),
 					"https://hasura.io/jwt/claims": map[string]any{
-						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
-						"x-hasura-default-role":     string("user"),
-						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
-						"x-hasura-user-isAnonymous": string("false"),
+						"x-hasura-allowed-roles": []any{"me", "user", "editor"},
+						"x-hasura-default-role":  string("user"),
+						"x-hasura-user-id": string(
+							"f90782de-f0a3-41fe-b778-01e4f80c2413",
+						),
+						"x-hasura-user-is-anonymous": string("false"),
 					},
-					"iat": float64(1.711112308e+09),
+					"iat": float64(1.711118024e+09),
 					"iss": string("hasura-auth"),
-					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+					"sub": string("f90782de-f0a3-41fe-b778-01e4f80c2413"),
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -571,17 +581,21 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				Method: jwt.SigningMethodHS256,
 				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
 				Claims: jwt.MapClaims{
-					"exp": float64(1.0711112395e+10),
+					"exp": float64(1.0711118076e+10),
 					"https://hasura.io/jwt/claims": map[string]any{
-						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
-						"x-hasura-auth-elevated":    string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
-						"x-hasura-default-role":     string("user"),
-						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
-						"x-hasura-user-isAnonymous": string("false"),
+						"x-hasura-allowed-roles": []any{"me", "user", "editor"},
+						"x-hasura-auth-elevated": string(
+							"f90782de-f0a3-41fe-b778-01e4f80c2413",
+						),
+						"x-hasura-default-role": string("user"),
+						"x-hasura-user-id": string(
+							"f90782de-f0a3-41fe-b778-01e4f80c2413",
+						),
+						"x-hasura-user-is-anonymous": string("false"),
 					},
-					"iat": float64(1.711112395e+09),
+					"iat": float64(1.711118076e+09),
 					"iss": string("hasura-auth"),
-					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+					"sub": string("f90782de-f0a3-41fe-b778-01e4f80c2413"),
 				},
 				Signature: []uint8{},
 				Valid:     true,
@@ -614,17 +628,21 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				Method: jwt.SigningMethodHS256,
 				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
 				Claims: jwt.MapClaims{
-					"exp": float64(1.0711112395e+10),
+					"exp": float64(1.0711118076e+10),
 					"https://hasura.io/jwt/claims": map[string]any{
-						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
-						"x-hasura-auth-elevated":    string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
-						"x-hasura-default-role":     string("user"),
-						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
-						"x-hasura-user-isAnonymous": string("false"),
+						"x-hasura-allowed-roles": []any{"me", "user", "editor"},
+						"x-hasura-auth-elevated": string(
+							"f90782de-f0a3-41fe-b778-01e4f80c2413",
+						),
+						"x-hasura-default-role": string("user"),
+						"x-hasura-user-id": string(
+							"f90782de-f0a3-41fe-b778-01e4f80c2413",
+						),
+						"x-hasura-user-is-anonymous": string("false"),
 					},
-					"iat": float64(1.711112395e+09),
+					"iat": float64(1.711118076e+09),
 					"iss": string("hasura-auth"),
-					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+					"sub": string("f90782de-f0a3-41fe-b778-01e4f80c2413"),
 				},
 				Signature: []uint8{},
 				Valid:     true,

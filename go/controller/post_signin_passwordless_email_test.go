@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -45,6 +46,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(sql.InsertUserParams{
+						ID:              uuid.UUID{},
 						Disabled:        false,
 						DisplayName:     "jane@acme.com",
 						AvatarUrl:       "",
@@ -57,7 +59,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						DefaultRole:     "user",
 						Metadata:        []byte("null"),
 						Roles:           []string{"user", "me"},
-					}),
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+					),
 				).Return(sql.InsertUserRow{
 					UserID:    userID,
 					CreatedAt: sql.TimestampTz(time.Now()),
@@ -224,6 +228,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(sql.InsertUserParams{
+						ID:              uuid.UUID{},
 						Disabled:        false,
 						DisplayName:     "jane@acme.com",
 						AvatarUrl:       "",
@@ -236,7 +241,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						DefaultRole:     "user",
 						Metadata:        []byte("null"),
 						Roles:           []string{"user", "me"},
-					}),
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+					),
 				).Return(sql.InsertUserRow{
 					UserID:    userID,
 					CreatedAt: sql.TimestampTz(time.Now()),
@@ -317,7 +324,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "redirecTo-not-allowed",
+				Error:   "redirectTo-not-allowed",
 				Message: `The value of "options.redirectTo" is not allowed.`,
 				Status:  400,
 			},
@@ -347,6 +354,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(sql.InsertUserParams{
+						ID:              uuid.UUID{},
 						Disabled:        false,
 						DisplayName:     "Jane Doe",
 						AvatarUrl:       "",
@@ -359,7 +367,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 						DefaultRole:     "user",
 						Metadata:        []byte(`{"asd":"asd"}`),
 						Roles:           []string{"user"},
-					}),
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+					),
 				).Return(sql.InsertUserRow{
 					UserID:    userID,
 					CreatedAt: sql.TimestampTz(time.Now()),

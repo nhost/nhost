@@ -163,6 +163,51 @@ paths:
         - signup
         - email-and-password
 
+  /signup/webauthn:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpWebauthnRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignUpWebauthnResponse'
+          description: >-
+            Challenge sent
+
+      summary: Signup with webauthn
+      tags:
+        - signup
+        - webauthn
+
+  /signup/webauthn/verify:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpWebauthnVerifyRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPayload'
+          description: >-
+            Sign up successful
+
+      summary: Verify webauthn signup
+      tags:
+        - signup
+        - webauthn
+        - verify
+
   /user/deanonymize:
     post:
       summary: >-
@@ -346,7 +391,7 @@ components:
             - locale-not-allowed
             - password-too-short
             - password-in-hibp-database
-            - redirecTo-not-allowed
+            - redirectTo-not-allowed
             - role-not-allowed
             - signup-disabled
             - unverified-user
@@ -654,3 +699,47 @@ components:
         redirectTo:
           example: https://my-app.com/catch-redirection
           type: string
+
+    SignUpWebauthnRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - email
+
+    SignUpWebauthnResponse:
+      type: object
+      x-go-type-import:
+        name: protocol
+        path: github.com/go-webauthn/webauthn/protocol
+      x-go-type: protocol.PublicKeyCredentialCreationOptions
+
+    SignUpWebauthnVerifyRequest:
+      type: object
+      additionalProperties: true
+      properties:
+        credential:
+          type: object
+          additionalProperties: true
+          x-go-type-import:
+            name: protocol
+            path: github.com/go-webauthn/webauthn/protocol
+          x-go-type: protocol.CredentialCreationResponse
+        options:
+          type: object
+          additionalProperties: false
+          allOf:
+            - $ref: "#/components/schemas/SignUpOptions"
+            - type: object
+              additionalProperties: false
+              properties:
+                nickname:
+                  example: https://my-app.com/catch-redirection
+                  type: string

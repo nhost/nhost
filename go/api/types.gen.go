@@ -4,8 +4,11 @@
 package api
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 
+	protocol "github.com/go-webauthn/webauthn/protocol"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -29,7 +32,7 @@ const (
 	LocaleNotAllowed                ErrorResponseError = "locale-not-allowed"
 	PasswordInHibpDatabase          ErrorResponseError = "password-in-hibp-database"
 	PasswordTooShort                ErrorResponseError = "password-too-short"
-	RedirecToNotAllowed             ErrorResponseError = "redirecTo-not-allowed"
+	RedirectToNotAllowed            ErrorResponseError = "redirectTo-not-allowed"
 	RoleNotAllowed                  ErrorResponseError = "role-not-allowed"
 	SignupDisabled                  ErrorResponseError = "signup-disabled"
 	UnverifiedUser                  ErrorResponseError = "unverified-user"
@@ -156,6 +159,33 @@ type SignUpOptions struct {
 	RedirectTo *string                 `json:"redirectTo,omitempty"`
 }
 
+// SignUpWebauthnRequest defines model for SignUpWebauthnRequest.
+type SignUpWebauthnRequest struct {
+	// Email A valid email
+	Email   openapi_types.Email `json:"email"`
+	Options *SignUpOptions      `json:"options,omitempty"`
+}
+
+// SignUpWebauthnResponse defines model for SignUpWebauthnResponse.
+type SignUpWebauthnResponse = protocol.PublicKeyCredentialCreationOptions
+
+// SignUpWebauthnVerifyRequest defines model for SignUpWebauthnVerifyRequest.
+type SignUpWebauthnVerifyRequest struct {
+	Credential *protocol.CredentialCreationResponse `json:"credential,omitempty"`
+	Options    *struct {
+		AllowedRoles *[]string `json:"allowedRoles,omitempty"`
+		DefaultRole  *string   `json:"defaultRole,omitempty"`
+		DisplayName  *string   `json:"displayName,omitempty"`
+
+		// Locale A two-characters locale
+		Locale     *string                 `json:"locale,omitempty"`
+		Metadata   *map[string]interface{} `json:"metadata,omitempty"`
+		Nickname   *string                 `json:"nickname,omitempty"`
+		RedirectTo *string                 `json:"redirectTo,omitempty"`
+	} `json:"options,omitempty"`
+	AdditionalProperties map[string]interface{} `json:"-"`
+}
+
 // User defines model for User.
 type User struct {
 	AvatarUrl   string    `json:"avatarUrl"`
@@ -235,6 +265,12 @@ type PostSigninPatJSONRequestBody = SignInPATRequest
 // PostSignupEmailPasswordJSONRequestBody defines body for PostSignupEmailPassword for application/json ContentType.
 type PostSignupEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest
 
+// PostSignupWebauthnJSONRequestBody defines body for PostSignupWebauthn for application/json ContentType.
+type PostSignupWebauthnJSONRequestBody = SignUpWebauthnRequest
+
+// PostSignupWebauthnVerifyJSONRequestBody defines body for PostSignupWebauthnVerify for application/json ContentType.
+type PostSignupWebauthnVerifyJSONRequestBody = SignUpWebauthnVerifyRequest
+
 // PostUserDeanonymizeJSONRequestBody defines body for PostUserDeanonymize for application/json ContentType.
 type PostUserDeanonymizeJSONRequestBody = UserDeanonymizeRequest
 
@@ -246,3 +282,86 @@ type PostUserEmailSendVerificationEmailJSONRequestBody = UserEmailSendVerificati
 
 // PostUserPasswordResetJSONRequestBody defines body for PostUserPasswordReset for application/json ContentType.
 type PostUserPasswordResetJSONRequestBody = UserPasswordResetRequest
+
+// Getter for additional properties for SignUpWebauthnVerifyRequest. Returns the specified
+// element and whether it was found
+func (a SignUpWebauthnVerifyRequest) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for SignUpWebauthnVerifyRequest
+func (a *SignUpWebauthnVerifyRequest) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for SignUpWebauthnVerifyRequest to handle AdditionalProperties
+func (a *SignUpWebauthnVerifyRequest) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["credential"]; found {
+		err = json.Unmarshal(raw, &a.Credential)
+		if err != nil {
+			return fmt.Errorf("error reading 'credential': %w", err)
+		}
+		delete(object, "credential")
+	}
+
+	if raw, found := object["options"]; found {
+		err = json.Unmarshal(raw, &a.Options)
+		if err != nil {
+			return fmt.Errorf("error reading 'options': %w", err)
+		}
+		delete(object, "options")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for SignUpWebauthnVerifyRequest to handle AdditionalProperties
+func (a SignUpWebauthnVerifyRequest) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	if a.Credential != nil {
+		object["credential"], err = json.Marshal(a.Credential)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'credential': %w", err)
+		}
+	}
+
+	if a.Options != nil {
+		object["options"], err = json.Marshal(a.Options)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'options': %w", err)
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}

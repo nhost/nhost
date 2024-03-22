@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type stringlice []string
@@ -25,33 +26,38 @@ func (s *stringlice) UnmarshalJSON(b []byte) error {
 }
 
 type Config struct {
-	HasuraGraphqlURL         string     `json:"HASURA_GRAPHQL_GRAPHQL_URL"`
-	HasuraAdminSecret        string     `json:"HASURA_GRAPHQL_ADMIN_SECRET"`
-	AllowedEmailDomains      stringlice `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS"`
-	AllowedEmails            stringlice `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAILS"`
-	AllowedRedirectURLs      []*url.URL `json:"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS"`
-	BlockedEmailDomains      stringlice `json:"AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS"`
-	BlockedEmails            stringlice `json:"AUTH_ACCESS_CONTROL_BLOCKED_EMAILS"`
-	ClientURL                *url.URL   `json:"AUTH_CLIENT_URL"`
-	CustomClaims             string     `json:"AUTH_JWT_CUSTOM_CLAIMS"`
-	ConcealErrors            bool       `json:"AUTH_CONCEAL_ERRORS"`
-	DisableSignup            bool       `json:"AUTH_DISABLE_SIGNUP"`
-	DisableNewUsers          bool       `json:"AUTH_DISABLE_NEW_USERS"`
-	DefaultAllowedRoles      []string   `json:"AUTH_DEFAULT_ALLOWED_ROLES"`
-	DefaultRole              string     `json:"AUTH_DEFAULT_ROLE"`
-	DefaultLocale            string     `json:"AUTH_DEFAULT_LOCALE"`
-	AllowedLocales           stringlice `json:"AUTH_LOCALE_ALLOWED_LOCALES"`
-	GravatarEnabled          bool       `json:"AUTH_GRAVATAR_ENABLED"`
-	GravatarDefault          string     `json:"AUTH_GRAVATAR_DEFAULT"`
-	GravatarRating           string     `json:"AUTH_GRAVATAR_RATING"`
-	PasswordMinLength        int        `json:"AUTH_PASSWORD_MIN_LENGTH"`
-	PasswordHIBPEnabled      bool       `json:"AUTH_PASSWORD_HIBP_ENABLED"`
-	RefreshTokenExpiresIn    int        `json:"AUTH_REFRESH_TOKEN_EXPIRES_IN"`
-	AccessTokenExpiresIn     int        `json:"AUTH_ACCESS_TOKEN_EXPIRES_IN"`
-	JWTSecret                string     `json:"HASURA_GRAPHQL_JWT_SECRET"`
-	RequireEmailVerification bool       `json:"AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED"`
-	ServerURL                *url.URL   `json:"AUTH_SERVER_URL"`
-	EmailPasswordlessEnabled bool       `json:"AUTH_EMAIL_PASSWORDLESS_ENABLED"`
+	HasuraGraphqlURL           string        `json:"HASURA_GRAPHQL_GRAPHQL_URL"`
+	HasuraAdminSecret          string        `json:"HASURA_GRAPHQL_ADMIN_SECRET"`
+	AllowedEmailDomains        stringlice    `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS"`
+	AllowedEmails              stringlice    `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAILS"`
+	AllowedRedirectURLs        []*url.URL    `json:"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS"`
+	BlockedEmailDomains        stringlice    `json:"AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS"`
+	BlockedEmails              stringlice    `json:"AUTH_ACCESS_CONTROL_BLOCKED_EMAILS"`
+	ClientURL                  *url.URL      `json:"AUTH_CLIENT_URL"`
+	CustomClaims               string        `json:"AUTH_JWT_CUSTOM_CLAIMS"`
+	ConcealErrors              bool          `json:"AUTH_CONCEAL_ERRORS"`
+	DisableSignup              bool          `json:"AUTH_DISABLE_SIGNUP"`
+	DisableNewUsers            bool          `json:"AUTH_DISABLE_NEW_USERS"`
+	DefaultAllowedRoles        []string      `json:"AUTH_DEFAULT_ALLOWED_ROLES"`
+	DefaultRole                string        `json:"AUTH_DEFAULT_ROLE"`
+	DefaultLocale              string        `json:"AUTH_DEFAULT_LOCALE"`
+	AllowedLocales             stringlice    `json:"AUTH_LOCALE_ALLOWED_LOCALES"`
+	GravatarEnabled            bool          `json:"AUTH_GRAVATAR_ENABLED"`
+	GravatarDefault            string        `json:"AUTH_GRAVATAR_DEFAULT"`
+	GravatarRating             string        `json:"AUTH_GRAVATAR_RATING"`
+	PasswordMinLength          int           `json:"AUTH_PASSWORD_MIN_LENGTH"`
+	PasswordHIBPEnabled        bool          `json:"AUTH_PASSWORD_HIBP_ENABLED"`
+	RefreshTokenExpiresIn      int           `json:"AUTH_REFRESH_TOKEN_EXPIRES_IN"`
+	AccessTokenExpiresIn       int           `json:"AUTH_ACCESS_TOKEN_EXPIRES_IN"`
+	JWTSecret                  string        `json:"HASURA_GRAPHQL_JWT_SECRET"`
+	RequireEmailVerification   bool          `json:"AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED"`
+	ServerURL                  *url.URL      `json:"AUTH_SERVER_URL"`
+	EmailPasswordlessEnabled   bool          `json:"AUTH_EMAIL_PASSWORDLESS_ENABLED"`
+	WebauthnEnabled            bool          `json:"AUTH_WEBAUTHN_ENABLED"`
+	WebauthnRPID               string        `json:"AUTH_WEBAUTHN_RPID"`
+	WebauthnRPName             string        `json:"AUTH_WEBAUTHN_RPNAME"`
+	WebauthnRPOrigins          []string      `json:"AUTH_WEBAUTHN_RP_ORIGINS"`
+	WebauhtnAttestationTimeout time.Duration `json:"AUTH_WEBAUTHN_ATTESTATION_TIMEOUT"`
 }
 
 func (c *Config) UnmarshalJSON(b []byte) error {

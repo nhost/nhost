@@ -3,6 +3,7 @@ package controller
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -508,6 +509,13 @@ func (wf *Workflows) SendEmail(
 
 type SignUpFn func(input *sql.InsertUserParams) error
 
+func SignupUserWithID(id uuid.UUID) SignUpFn {
+	return func(input *sql.InsertUserParams) error {
+		input.ID = id
+		return nil
+	}
+}
+
 func SignupUserWithTicket(ticket string, expiresAt time.Time) SignUpFn {
 	return func(input *sql.InsertUserParams) error {
 		input.Ticket = sql.Text(ticket)
@@ -550,6 +558,7 @@ func (wf *Workflows) SignUpUser( //nolint:funlen
 	gravatarURL := wf.gravatarURL(email)
 
 	input := sql.InsertUserParams{
+		ID:              uuid.New(),
 		Disabled:        wf.config.DisableNewUsers,
 		DisplayName:     deptr(options.DisplayName),
 		AvatarUrl:       gravatarURL,
@@ -729,4 +738,146 @@ func (wf *Workflows) DeanonymizeUser(
 	}
 
 	return nil
+}
+
+func (wf *Workflows) SignupUserWithSecurityKeyAndRefreshToken( //nolint:funlen
+	ctx context.Context,
+	userID uuid.UUID,
+	email string,
+	refreshToken uuid.UUID,
+	expiresAt time.Time,
+	options *api.SignUpOptions,
+	credentialID []byte,
+	credentialPublicKey []byte,
+	nickname string,
+	logger *slog.Logger,
+) (*api.User, *APIError) {
+	if wf.config.DisableSignup {
+		logger.Warn("signup disabled")
+		return nil, ErrSignupDisabled
+	}
+
+	metadata, err := json.Marshal(options.Metadata)
+	if err != nil {
+		logger.Error("error marshaling metadata", logError(err))
+		return nil, ErrInternalServerError
+	}
+
+	gravatarURL := wf.gravatarURL(email)
+
+	if _, err := wf.db.InsertUserWithSecurityKeyAndRefreshToken(
+		ctx, sql.InsertUserWithSecurityKeyAndRefreshTokenParams{
+			ID:                    userID,
+			Disabled:              wf.config.DisableNewUsers,
+			DisplayName:           deptr(options.DisplayName),
+			AvatarUrl:             gravatarURL,
+			Email:                 sql.Text(email),
+			Ticket:                pgtype.Text{}, //nolint:exhaustruct
+			TicketExpiresAt:       sql.TimestampTz(time.Now()),
+			EmailVerified:         false,
+			Locale:                deptr(options.Locale),
+			DefaultRole:           deptr(options.DefaultRole),
+			Metadata:              metadata,
+			Roles:                 deptr(options.AllowedRoles),
+			RefreshTokenHash:      sql.Text(hashRefreshToken([]byte(refreshToken.String()))),
+			RefreshTokenExpiresAt: sql.TimestampTz(expiresAt),
+			CredentialID:          base64.RawURLEncoding.EncodeToString(credentialID),
+			CredentialPublicKey:   credentialPublicKey,
+			Nickname:              sql.Text(nickname),
+		},
+	); err != nil {
+		logger.Error("error inserting user", logError(err))
+		return nil, ErrInternalServerError
+	}
+
+	if wf.config.DisableNewUsers {
+		logger.Warn("new user disabled")
+		return nil, ErrDisabledUser
+	}
+
+	return &api.User{
+		AvatarUrl:           gravatarURL,
+		CreatedAt:           time.Now(),
+		DefaultRole:         *options.DefaultRole,
+		DisplayName:         deptr(options.DisplayName),
+		Email:               types.Email(email),
+		EmailVerified:       false,
+		Id:                  userID.String(),
+		IsAnonymous:         false,
+		Locale:              deptr(options.Locale),
+		Metadata:            deptr(options.Metadata),
+		PhoneNumber:         "",
+		PhoneNumberVerified: false,
+		Roles:               deptr(options.AllowedRoles),
+	}, nil
+}
+
+func (wf *Workflows) SignupUserWithSecurityKey( //nolint:funlen
+	ctx context.Context,
+	userID uuid.UUID,
+	email string,
+	ticket string,
+	ticketExpiresAt time.Time,
+	options *api.SignUpOptions,
+	credentialID []byte,
+	credentialPublicKey []byte,
+	nickname string,
+	logger *slog.Logger,
+) (*api.User, *APIError) {
+	if wf.config.DisableSignup {
+		logger.Warn("signup disabled")
+		return nil, ErrSignupDisabled
+	}
+
+	metadata, err := json.Marshal(options.Metadata)
+	if err != nil {
+		logger.Error("error marshaling metadata", logError(err))
+		return nil, ErrInternalServerError
+	}
+
+	gravatarURL := wf.gravatarURL(email)
+
+	if _, err := wf.db.InsertUserWithSecurityKey(
+		ctx, sql.InsertUserWithSecurityKeyParams{
+			ID:                  userID,
+			Disabled:            wf.config.DisableNewUsers,
+			DisplayName:         deptr(options.DisplayName),
+			AvatarUrl:           gravatarURL,
+			Email:               sql.Text(email),
+			Ticket:              sql.Text(ticket),
+			TicketExpiresAt:     sql.TimestampTz(ticketExpiresAt),
+			EmailVerified:       false,
+			Locale:              deptr(options.Locale),
+			DefaultRole:         deptr(options.DefaultRole),
+			Metadata:            metadata,
+			Roles:               deptr(options.AllowedRoles),
+			CredentialID:        base64.RawURLEncoding.EncodeToString(credentialID),
+			CredentialPublicKey: credentialPublicKey,
+			Nickname:            sql.Text(nickname),
+		},
+	); err != nil {
+		logger.Error("error inserting user", logError(err))
+		return nil, ErrInternalServerError
+	}
+
+	if wf.config.DisableNewUsers {
+		logger.Warn("new user disabled")
+		return nil, ErrDisabledUser
+	}
+
+	return &api.User{
+		AvatarUrl:           gravatarURL,
+		CreatedAt:           time.Now(),
+		DefaultRole:         *options.DefaultRole,
+		DisplayName:         deptr(options.DisplayName),
+		Email:               types.Email(email),
+		EmailVerified:       false,
+		Id:                  userID.String(),
+		IsAnonymous:         false,
+		Locale:              deptr(options.Locale),
+		Metadata:            deptr(options.Metadata),
+		PhoneNumber:         "",
+		PhoneNumberVerified: false,
+		Roles:               deptr(options.AllowedRoles),
+	}, nil
 }

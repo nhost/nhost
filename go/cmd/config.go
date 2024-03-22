@@ -44,33 +44,62 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 	}
 	allowedLocales = slices.DeleteFunc(allowedLocales, func(s string) bool { return s == "" })
 
+	allowedDomains := cCtx.StringSlice(flagAllowedEmailDomains)
+	allowedDomains = slices.DeleteFunc(allowedDomains, func(s string) bool { return s == "" })
+	blockedDomains := cCtx.StringSlice(flagBlockedEmailDomains)
+	blockedDomains = slices.DeleteFunc(blockedDomains, func(s string) bool { return s == "" })
+	allowedEmails := cCtx.StringSlice(flagAllowedEmails)
+	allowedEmails = slices.DeleteFunc(allowedEmails, func(s string) bool { return s == "" })
+	blockedEmails := cCtx.StringSlice(flagBlockedEmails)
+	blockedEmails = slices.DeleteFunc(blockedEmails, func(s string) bool { return s == "" })
+
+	webauhtnRPID := cCtx.String(flagWebauthnRPID)
+	if webauhtnRPID == "" {
+		webauhtnRPID = clientURL.Hostname()
+	}
+
+	webauhtnRPName := cCtx.String(flagWebauhtnRPName)
+	if webauhtnRPName == "" {
+		webauhtnRPName = webauhtnRPID
+	}
+
+	webauhtnRPOrigins := cCtx.StringSlice(flagWebauthnRPOrigins)
+	if !slices.Contains(webauhtnRPOrigins, cCtx.String(flagClientURL)) {
+		webauhtnRPOrigins = append(webauhtnRPOrigins, cCtx.String(flagClientURL))
+	}
+
 	return controller.Config{
-		HasuraGraphqlURL:         cCtx.String(flagGraphqlURL),
-		HasuraAdminSecret:        cCtx.String(flagHasuraAdminSecret),
-		AllowedEmailDomains:      cCtx.StringSlice(flagAllowedEmailDomains),
-		AllowedEmails:            cCtx.StringSlice(flagAllowedEmails),
-		AllowedRedirectURLs:      allowedRedirectURLs,
-		BlockedEmailDomains:      cCtx.StringSlice(flagBlockedEmailDomains),
-		BlockedEmails:            cCtx.StringSlice(flagBlockedEmails),
-		ClientURL:                clientURL,
-		CustomClaims:             cCtx.String(flagCustomClaims),
-		ConcealErrors:            cCtx.Bool(flagConcealErrors),
-		DisableSignup:            cCtx.Bool(flagDisableSignup),
-		DisableNewUsers:          cCtx.Bool(flagDisableNewUsers),
-		DefaultAllowedRoles:      allowedRoles,
-		DefaultRole:              defaultRole,
-		DefaultLocale:            defaultLocale,
-		AllowedLocales:           allowedLocales,
-		EmailPasswordlessEnabled: cCtx.Bool(flagEmailPasswordlessEnabled),
-		GravatarEnabled:          cCtx.Bool(flagGravatarEnabled),
-		GravatarDefault:          GetEnumValue(cCtx, flagGravatarDefault),
-		GravatarRating:           cCtx.String(flagGravatarRating),
-		PasswordMinLength:        cCtx.Int(flagPasswordMinLength),
-		PasswordHIBPEnabled:      cCtx.Bool(flagPasswordHIBPEnabled),
-		RefreshTokenExpiresIn:    cCtx.Int(flagRefreshTokenExpiresIn),
-		AccessTokenExpiresIn:     cCtx.Int(flagAccessTokensExpiresIn),
-		JWTSecret:                cCtx.String(flagHasuraGraphqlJWTSecret),
-		RequireEmailVerification: cCtx.Bool(flagEmailSigninEmailVerifiedRequired),
-		ServerURL:                serverURL,
+		HasuraGraphqlURL:           cCtx.String(flagGraphqlURL),
+		HasuraAdminSecret:          cCtx.String(flagHasuraAdminSecret),
+		AllowedEmailDomains:        allowedDomains,
+		AllowedEmails:              allowedEmails,
+		AllowedRedirectURLs:        allowedRedirectURLs,
+		BlockedEmailDomains:        blockedDomains,
+		BlockedEmails:              blockedEmails,
+		ClientURL:                  clientURL,
+		CustomClaims:               cCtx.String(flagCustomClaims),
+		ConcealErrors:              cCtx.Bool(flagConcealErrors),
+		DisableSignup:              cCtx.Bool(flagDisableSignup),
+		DisableNewUsers:            cCtx.Bool(flagDisableNewUsers),
+		DefaultAllowedRoles:        allowedRoles,
+		DefaultRole:                defaultRole,
+		DefaultLocale:              defaultLocale,
+		AllowedLocales:             allowedLocales,
+		GravatarEnabled:            cCtx.Bool(flagGravatarEnabled),
+		GravatarDefault:            GetEnumValue(cCtx, flagGravatarDefault),
+		GravatarRating:             cCtx.String(flagGravatarRating),
+		PasswordMinLength:          cCtx.Int(flagPasswordMinLength),
+		PasswordHIBPEnabled:        cCtx.Bool(flagPasswordHIBPEnabled),
+		RefreshTokenExpiresIn:      cCtx.Int(flagRefreshTokenExpiresIn),
+		AccessTokenExpiresIn:       cCtx.Int(flagAccessTokensExpiresIn),
+		JWTSecret:                  cCtx.String(flagHasuraGraphqlJWTSecret),
+		RequireEmailVerification:   cCtx.Bool(flagEmailSigninEmailVerifiedRequired),
+		ServerURL:                  serverURL,
+		EmailPasswordlessEnabled:   cCtx.Bool(flagEmailPasswordlessEnabled),
+		WebauthnEnabled:            cCtx.Bool(flagWebauthnEnabled),
+		WebauthnRPID:               webauhtnRPID,
+		WebauthnRPName:             webauhtnRPName,
+		WebauthnRPOrigins:          webauhtnRPOrigins,
+		WebauhtnAttestationTimeout: cCtx.Duration(flagWebauthnAttestationTimeout),
 	}, nil
 }
