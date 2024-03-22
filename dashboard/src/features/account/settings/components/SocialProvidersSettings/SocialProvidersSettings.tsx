@@ -66,7 +66,7 @@ export default function SocialProvidersSettings() {
               color="secondary"
               startIcon={<GitHubIcon />}
             >
-              Connect with Github
+              Connect with GitHub
             </Button>
           </NavLink>
         </Box>
