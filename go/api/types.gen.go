@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	BearerAuthScopes = "BearerAuth.Scopes"
+	BearerAuthElevatedScopes = "BearerAuthElevated.Scopes"
 )
 
 // Defines values for ErrorResponseError.

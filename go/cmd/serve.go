@@ -67,6 +67,7 @@ const (
 	flagAllowedEmailDomains              = "allowed-email-domains"
 	flagAllowedEmails                    = "allowed-emails"
 	flagEmailPasswordlessEnabled         = "email-passwordless-enabled"
+	flagRequireElevatedClaim             = "require-elevated-claim"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -376,6 +377,20 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Category: "signin",
 				EnvVars:  []string{"AUTH_EMAIL_PASSWORDLESS_ENABLED"},
 			},
+			&cli.GenericFlag{ //nolint: exhaustruct
+				Name: flagRequireElevatedClaim,
+				Value: &EnumValue{ //nolint: exhaustruct
+					Enum: []string{
+						"disabled",
+						"recommended",
+						"required",
+					},
+					Default: "disabled",
+				},
+				Usage:    "Require x-hasura-auth-elevated claim to perform certain actions: create PATs, change email and/or password, enable/disable MFA and add security keys. If set to `recommended` the claim check is only performed if the user has a security key attached. If set to `required` the only action that won't require the claim is setting a security key for the first time.",
+				Category: "security",
+				EnvVars:  []string{"AUTH_REQUIRE_ELEVATED_CLAIM"},
+			},
 		},
 		Action: serve,
 	}
@@ -441,7 +456,7 @@ func getGoServer( //nolint:funlen
 		return nil, fmt.Errorf("problem creating config: %w", err)
 	}
 
-	jwtGetter, err := getJWTGetter(cCtx)
+	jwtGetter, err := getJWTGetter(cCtx, db)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating jwt getter: %w", err)
 	}

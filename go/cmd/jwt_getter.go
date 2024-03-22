@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func getJWTGetter(cCtx *cli.Context) (*controller.JWTGetter, error) {
+func getJWTGetter(cCtx *cli.Context, db controller.DBClient) (*controller.JWTGetter, error) {
 	var customClaimer controller.CustomClaimer
 	var err error
 	if cCtx.String(flagCustomClaims) != "" {
@@ -28,6 +28,8 @@ func getJWTGetter(cCtx *cli.Context) (*controller.JWTGetter, error) {
 		[]byte(cCtx.String(flagHasuraGraphqlJWTSecret)),
 		time.Duration(cCtx.Int(flagAccessTokensExpiresIn))*time.Second,
 		customClaimer,
+		cCtx.String(flagRequireElevatedClaim),
+		db,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error creating jwt getter: %w", err)

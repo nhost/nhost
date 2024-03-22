@@ -178,6 +178,8 @@ func getController(
 		jwtSecret,
 		time.Second*time.Duration(config().AccessTokenExpiresIn),
 		cc,
+		"",
+		nil,
 	)
 	if err != nil {
 		t.Fatalf("failed to create jwt getter: %v", err)

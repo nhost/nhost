@@ -3,16 +3,21 @@ package controller_test
 import (
 	"context"
 	"crypto"
+	"errors"
 	"log/slog"
+	"net/http"
 	"testing"
 	"time"
 
+	"github.com/getkin/kin-openapi/openapi3filter"
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/nhost/hasura-auth/go/controller"
 	"github.com/nhost/hasura-auth/go/controller/mock"
+	ginmiddleware "github.com/oapi-codegen/gin-middleware"
 	"go.uber.org/mock/gomock"
 )
 
@@ -224,7 +229,7 @@ func TestGetJWTFunc(t *testing.T) {
 			if tc.customClaimer != nil {
 				customClaimer = tc.customClaimer(ctrl)
 			}
-			jwtGetter, err := controller.NewJWTGetter(tc.key, tc.expiresIn, customClaimer)
+			jwtGetter, err := controller.NewJWTGetter(tc.key, tc.expiresIn, customClaimer, "", nil)
 			if err != nil {
 				t.Fatalf("GetJWTFunc() err = %v; want nil", err)
 			}
@@ -250,6 +255,411 @@ func TestGetJWTFunc(t *testing.T) {
 			}
 			if diff := cmp.Diff(decodedToken, tc.expectedToken, cmpopts...); diff != "" {
 				t.Errorf("decodedToken mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+//nolint:dupl,goconst
+func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
+	t.Parallel()
+
+	userID := uuid.MustParse("8b3107c8-8b1c-4f14-a403-c1c446e36ec3")
+
+	//nolint:lll,gosec
+	nonElevatedToken := `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwNzExMTEyMzA4LCJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIiwiZWRpdG9yIl0sIngtaGFzdXJhLWRlZmF1bHQtcm9sZSI6InVzZXIiLCJ4LWhhc3VyYS11c2VyLWlkIjoiOGIzMTA3YzgtOGIxYy00ZjE0LWE0MDMtYzFjNDQ2ZTM2ZWMzIiwieC1oYXN1cmEtdXNlci1pc0Fub255bW91cyI6ImZhbHNlIn0sImlhdCI6MTcxMTExMjMwOCwiaXNzIjoiaGFzdXJhLWF1dGgiLCJzdWIiOiI4YjMxMDdjOC04YjFjLTRmMTQtYTQwMy1jMWM0NDZlMzZlYzMifQ.vryKygEgosBsRZDQDxpAdbpU_HEA4E8p6Rg0KOtrLV4`
+	//nolint:lll
+	elevatedToken := `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwNzExMTEyMzk1LCJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIiwiZWRpdG9yIl0sIngtaGFzdXJhLWF1dGgtZWxldmF0ZWQiOiI4YjMxMDdjOC04YjFjLTRmMTQtYTQwMy1jMWM0NDZlMzZlYzMiLCJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJ1c2VyIiwieC1oYXN1cmEtdXNlci1pZCI6IjhiMzEwN2M4LThiMWMtNGYxNC1hNDAzLWMxYzQ0NmUzNmVjMyIsIngtaGFzdXJhLXVzZXItaXNBbm9ueW1vdXMiOiJmYWxzZSJ9LCJpYXQiOjE3MTExMTIzOTUsImlzcyI6Imhhc3VyYS1hdXRoIiwic3ViIjoiOGIzMTA3YzgtOGIxYy00ZjE0LWE0MDMtYzFjNDQ2ZTM2ZWMzIn0.ySwnKlt5_7R112OMkJrzUi5v9jE3nbaAbZTmLILKCYE` //nolint:gosec
+
+	cases := []struct {
+		name         string
+		elevatedMode string
+		db           func(ctrl *gomock.Controller) *mock.MockDBClient
+		request      *openapi3filter.AuthenticationInput
+		expected     *jwt.Token
+		expectedErr  error
+	}{
+		{
+			name:         "BearerAuth: elevated disabled",
+			elevatedMode: "disabled",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				return mock
+			},
+			//nolint:exhaustruct
+			request: &openapi3filter.AuthenticationInput{
+				RequestValidationInput: &openapi3filter.RequestValidationInput{
+					Request: &http.Request{
+						Header: http.Header{
+							"Authorization": []string{"Bearer " + nonElevatedToken},
+						},
+					},
+				},
+				SecuritySchemeName: "BearerAuth",
+				SecurityScheme:     nil,
+				Scopes:             []string{},
+			},
+			expected: &jwt.Token{
+				Raw:    nonElevatedToken,
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Claims: jwt.MapClaims{
+					"exp": float64(1.0711112308e+10),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
+						"x-hasura-default-role":     string("user"),
+						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+						"x-hasura-user-isAnonymous": string("false"),
+					},
+					"iat": float64(1.711112308e+09),
+					"iss": string("hasura-auth"),
+					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+				},
+				Signature: []uint8{},
+				Valid:     true,
+			},
+			expectedErr: nil,
+		},
+
+		{
+			name:         "BearerAuth: elevated recommended, no security keys, claim not present",
+			elevatedMode: "recommended",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				return mock
+			},
+			//nolint:exhaustruct
+			request: &openapi3filter.AuthenticationInput{
+				RequestValidationInput: &openapi3filter.RequestValidationInput{
+					Request: &http.Request{
+						Header: http.Header{
+							"Authorization": []string{"Bearer " + nonElevatedToken},
+						},
+					},
+				},
+				SecuritySchemeName: "BearerAuth",
+				SecurityScheme:     nil,
+				Scopes:             []string{},
+			},
+			expected: &jwt.Token{
+				Raw:    nonElevatedToken,
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Claims: jwt.MapClaims{
+					"exp": float64(1.0711112308e+10),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
+						"x-hasura-default-role":     string("user"),
+						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+						"x-hasura-user-isAnonymous": string("false"),
+					},
+					"iat": float64(1.711112308e+09),
+					"iss": string("hasura-auth"),
+					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+				},
+				Signature: []uint8{},
+				Valid:     true,
+			},
+			expectedErr: nil,
+		},
+
+		{
+			name:         "BearerAuth: elevated required, no security keys, claim not present",
+			elevatedMode: "required",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				return mock
+			},
+			//nolint:exhaustruct
+			request: &openapi3filter.AuthenticationInput{
+				RequestValidationInput: &openapi3filter.RequestValidationInput{
+					Request: &http.Request{
+						Header: http.Header{
+							"Authorization": []string{"Bearer " + nonElevatedToken},
+						},
+					},
+				},
+				SecuritySchemeName: "BearerAuth",
+				SecurityScheme:     nil,
+				Scopes:             []string{},
+			},
+			expected: &jwt.Token{
+				Raw:    nonElevatedToken,
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Claims: jwt.MapClaims{
+					"exp": float64(1.0711112308e+10),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
+						"x-hasura-default-role":     string("user"),
+						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+						"x-hasura-user-isAnonymous": string("false"),
+					},
+					"iat": float64(1.711112308e+09),
+					"iss": string("hasura-auth"),
+					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+				},
+				Signature: []uint8{},
+				Valid:     true,
+			},
+			expectedErr: nil,
+		},
+
+		{
+			name:         "BearerAuthElevated: elevated disabled",
+			elevatedMode: "disabled",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				return mock
+			},
+			//nolint:exhaustruct
+			request: &openapi3filter.AuthenticationInput{
+				RequestValidationInput: &openapi3filter.RequestValidationInput{
+					Request: &http.Request{
+						Header: http.Header{
+							"Authorization": []string{"Bearer " + nonElevatedToken},
+						},
+					},
+				},
+				SecuritySchemeName: "BearerAuthElevated",
+				SecurityScheme:     nil,
+				Scopes:             []string{},
+			},
+			expected: &jwt.Token{
+				Raw:    nonElevatedToken,
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Claims: jwt.MapClaims{
+					"exp": float64(1.0711112308e+10),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
+						"x-hasura-default-role":     string("user"),
+						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+						"x-hasura-user-isAnonymous": string("false"),
+					},
+					"iat": float64(1.711112308e+09),
+					"iss": string("hasura-auth"),
+					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+				},
+				Signature: []uint8{},
+				Valid:     true,
+			},
+			expectedErr: nil,
+		},
+
+		{
+			name:         "BearerAuthElevated: elevated recommended, no security keys, claim not present",
+			elevatedMode: "recommended",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				return mock
+			},
+			//nolint:exhaustruct
+			request: &openapi3filter.AuthenticationInput{
+				RequestValidationInput: &openapi3filter.RequestValidationInput{
+					Request: &http.Request{
+						Header: http.Header{
+							"Authorization": []string{"Bearer " + nonElevatedToken},
+						},
+					},
+				},
+				SecuritySchemeName: "BearerAuthElevated",
+				SecurityScheme:     nil,
+				Scopes:             []string{},
+			},
+			expected: &jwt.Token{
+				Raw:    nonElevatedToken,
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Claims: jwt.MapClaims{
+					"exp": float64(1.0711112308e+10),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
+						"x-hasura-default-role":     string("user"),
+						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+						"x-hasura-user-isAnonymous": string("false"),
+					},
+					"iat": float64(1.711112308e+09),
+					"iss": string("hasura-auth"),
+					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+				},
+				Signature: []uint8{},
+				Valid:     true,
+			},
+			expectedErr: nil,
+		},
+
+		{
+			name:         "BearerAuthElevated: elevated recommended, security keys, claim not present",
+			elevatedMode: "recommended",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
+				return mock
+			},
+			//nolint:exhaustruct
+			request: &openapi3filter.AuthenticationInput{
+				RequestValidationInput: &openapi3filter.RequestValidationInput{
+					Request: &http.Request{
+						Header: http.Header{
+							"Authorization": []string{"Bearer " + nonElevatedToken},
+						},
+					},
+				},
+				SecuritySchemeName: "BearerAuthElevated",
+				SecurityScheme:     nil,
+				Scopes:             []string{},
+			},
+			expected:    nil,
+			expectedErr: controller.ErrElevatedClaimRequired,
+		},
+
+		{
+			name:         "BearerAuthElevated: elevated required, no security keys, claim not present",
+			elevatedMode: "required",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				return mock
+			},
+			//nolint:exhaustruct
+			request: &openapi3filter.AuthenticationInput{
+				RequestValidationInput: &openapi3filter.RequestValidationInput{
+					Request: &http.Request{
+						Header: http.Header{
+							"Authorization": []string{"Bearer " + nonElevatedToken},
+						},
+					},
+				},
+				SecuritySchemeName: "BearerAuthElevated",
+				SecurityScheme:     nil,
+				Scopes:             []string{},
+			},
+			expected:    nil,
+			expectedErr: controller.ErrElevatedClaimRequired,
+		},
+
+		{
+			name:         "BearerAuthElevated: elevated recommended, security keys, claim present",
+			elevatedMode: "recommended",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
+				return mock
+			},
+			//nolint:exhaustruct
+			request: &openapi3filter.AuthenticationInput{
+				RequestValidationInput: &openapi3filter.RequestValidationInput{
+					Request: &http.Request{
+						Header: http.Header{
+							"Authorization": []string{"Bearer " + elevatedToken},
+						},
+					},
+				},
+				SecuritySchemeName: "BearerAuthElevated",
+				SecurityScheme:     nil,
+				Scopes:             []string{},
+			},
+			expected: &jwt.Token{
+				Raw:    elevatedToken,
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Claims: jwt.MapClaims{
+					"exp": float64(1.0711112395e+10),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
+						"x-hasura-auth-elevated":    string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+						"x-hasura-default-role":     string("user"),
+						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+						"x-hasura-user-isAnonymous": string("false"),
+					},
+					"iat": float64(1.711112395e+09),
+					"iss": string("hasura-auth"),
+					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+				},
+				Signature: []uint8{},
+				Valid:     true,
+			},
+			expectedErr: nil,
+		},
+
+		{
+			name:         "BearerAuthElevated: elevated required, security keys, claim present",
+			elevatedMode: "required",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				return mock
+			},
+			//nolint:exhaustruct
+			request: &openapi3filter.AuthenticationInput{
+				RequestValidationInput: &openapi3filter.RequestValidationInput{
+					Request: &http.Request{
+						Header: http.Header{
+							"Authorization": []string{"Bearer " + elevatedToken},
+						},
+					},
+				},
+				SecuritySchemeName: "BearerAuthElevated",
+				SecurityScheme:     nil,
+				Scopes:             []string{},
+			},
+			expected: &jwt.Token{
+				Raw:    elevatedToken,
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Claims: jwt.MapClaims{
+					"exp": float64(1.0711112395e+10),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles":    []any{"me", "user", "editor"},
+						"x-hasura-auth-elevated":    string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+						"x-hasura-default-role":     string("user"),
+						"x-hasura-user-id":          string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+						"x-hasura-user-isAnonymous": string("false"),
+					},
+					"iat": float64(1.711112395e+09),
+					"iss": string("hasura-auth"),
+					"sub": string("8b3107c8-8b1c-4f14-a403-c1c446e36ec3"),
+				},
+				Signature: []uint8{},
+				Valid:     true,
+			},
+			expectedErr: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			tc := tc
+
+			ctrl := gomock.NewController(t)
+
+			jwtGetter, err := controller.NewJWTGetter(
+				jwtSecret, time.Hour, nil, tc.elevatedMode, tc.db(ctrl),
+			)
+			if err != nil {
+				t.Fatalf("GetJWTFunc() err = %v; want nil", err)
+			}
+
+			//nolint
+			ctx := context.WithValue(
+				context.Background(),
+				ginmiddleware.GinContextKey,
+				&gin.Context{},
+			)
+			err = jwtGetter.MiddlewareFunc(ctx, tc.request)
+			if !errors.Is(err, tc.expectedErr) {
+				t.Errorf("err = %v; want %v", err, tc.expectedErr)
+			}
+
+			got, _ := jwtGetter.FromContext(ctx)
+
+			cmpopts := []cmp.Option{
+				cmpopts.IgnoreFields(jwt.Token{}, "Signature"), //nolint:exhaustruct
+			}
+			if diff := cmp.Diff(got, tc.expected, cmpopts...); diff != "" {
+				t.Errorf("got mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

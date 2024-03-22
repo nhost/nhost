@@ -36,7 +36,8 @@ type Emailer interface {
 	) error
 }
 
-type DBClient interface {
+type DBClient interface { //nolint:interfacebloat
+	CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error)
 	GetUser(ctx context.Context, id uuid.UUID) (sql.AuthUser, error)
 	GetUserByEmail(ctx context.Context, email pgtype.Text) (sql.AuthUser, error)
 	GetUserByRefreshTokenHash(

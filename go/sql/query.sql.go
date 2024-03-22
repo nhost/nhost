@@ -12,6 +12,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countSecurityKeysUser = `-- name: CountSecurityKeysUser :one
+SELECT COUNT(*) FROM auth.user_security_keys
+WHERE user_id = $1
+`
+
+func (q *Queries) CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countSecurityKeysUser, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge FROM auth.users
 WHERE id = $1 LIMIT 1

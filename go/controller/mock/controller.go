@@ -80,6 +80,21 @@ func (m *MockDBClient) EXPECT() *MockDBClientMockRecorder {
 	return m.recorder
 }
 
+// CountSecurityKeysUser mocks base method.
+func (m *MockDBClient) CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountSecurityKeysUser", ctx, userID)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountSecurityKeysUser indicates an expected call of CountSecurityKeysUser.
+func (mr *MockDBClientMockRecorder) CountSecurityKeysUser(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountSecurityKeysUser", reflect.TypeOf((*MockDBClient)(nil).CountSecurityKeysUser), ctx, userID)
+}
+
 // GetUser mocks base method.
 func (m *MockDBClient) GetUser(ctx context.Context, id uuid.UUID) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()

@@ -53,12 +53,16 @@ type JWTGetter struct {
 	method               jwt.SigningMethod
 	customClaimer        CustomClaimer
 	accessTokenExpiresIn time.Duration
+	elevatedClaimMode    string
+	db                   DBClient
 }
 
 func NewJWTGetter(
 	jwtSecretb []byte,
 	accessTokenExpiresIn time.Duration,
 	customClaimer CustomClaimer,
+	elevatedClaimMode string,
+	db DBClient,
 ) (*JWTGetter, error) {
 	jwtSecret, err := decodeJWTSecret(jwtSecretb)
 	if err != nil {
@@ -74,6 +78,8 @@ func NewJWTGetter(
 		method:               method,
 		customClaimer:        customClaimer,
 		accessTokenExpiresIn: accessTokenExpiresIn,
+		elevatedClaimMode:    elevatedClaimMode,
+		db:                   db,
 	}, nil
 }
 
@@ -182,11 +188,56 @@ func (j *JWTGetter) Validate(accessToken string) (*jwt.Token, error) {
 
 func (j *JWTGetter) FromContext(ctx context.Context) (*jwt.Token, bool) {
 	token, ok := ctx.Value(jwtContextKey).(*jwt.Token)
+	if !ok { //nolint:nestif
+		c := ginmiddleware.GetGinContext(ctx)
+		if c != nil {
+			a, ok := c.Get(jwtContextKey)
+			if !ok {
+				return nil, false
+			}
+
+			token, ok = a.(*jwt.Token)
+			if !ok {
+				return nil, false
+			}
+			return token, true
+		}
+	}
 	return token, ok
 }
 
 func (j *JWTGetter) ToContext(ctx context.Context, jwtToken *jwt.Token) context.Context {
 	return context.WithValue(ctx, jwtContextKey, jwtToken) //nolint:revive,staticcheck
+}
+
+func (j *JWTGetter) verifyElevatedClaim(ctx context.Context, token *jwt.Token) (bool, error) {
+	if j.elevatedClaimMode == "disabled" {
+		return true, nil
+	}
+
+	u, err := token.Claims.GetSubject()
+	if err != nil {
+		return false, fmt.Errorf("error getting user id from subject: %w", err)
+	}
+
+	if j.elevatedClaimMode == "recommended" {
+		userID, err := uuid.Parse(u)
+		if err != nil {
+			return false, fmt.Errorf("error parsing user id: %w", err)
+		}
+		n, err := j.db.CountSecurityKeysUser(ctx, userID)
+		if err != nil {
+			return false, fmt.Errorf("error checking if user has security keys: %w", err)
+		}
+
+		if n == 0 {
+			return true, nil
+		}
+	}
+
+	elevatedClaim := j.GetCustomClaim(token, "x-hasura-auth-elevated")
+
+	return elevatedClaim == u, nil
 }
 
 func (j *JWTGetter) MiddlewareFunc(
@@ -205,6 +256,16 @@ func (j *JWTGetter) MiddlewareFunc(
 
 	if !jwtToken.Valid {
 		return fmt.Errorf("invalid token") //nolint:goerr113
+	}
+
+	if input.SecuritySchemeName == "BearerAuthElevated" {
+		found, err := j.verifyElevatedClaim(ctx, jwtToken)
+		if err != nil {
+			return fmt.Errorf("error verifying elevated claim: %w", err)
+		}
+		if !found {
+			return ErrElevatedClaimRequired
+		}
 	}
 
 	c := ginmiddleware.GetGinContext(ctx)

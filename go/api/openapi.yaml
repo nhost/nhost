@@ -41,7 +41,7 @@ paths:
       tags:
         - pat
       security:
-        - BearerAuth: []
+        - BearerAuthElevated: []
       requestBody:
         content:
           application/json:
@@ -170,7 +170,7 @@ paths:
         - user
         - email
       security:
-        - BearerAuth: []
+        - BearerAuthElevated: []
       requestBody:
         content:
           application/json:
@@ -253,6 +253,12 @@ components:
     BearerAuth:
       type: http
       scheme: bearer
+    BearerAuthElevated:
+      type: http
+      scheme: bearer
+      description: >-
+        This endpoint may require elevated permissions, depending on server settings.
+        For details see https://docs.nhost.io/guides/auth/elevated-permissions
 
   schemas:
     CreatePATRequest:

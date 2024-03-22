@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -16,6 +17,8 @@ type APIError struct {
 func (e *APIError) Error() string {
 	return fmt.Sprintf("API error: %s", e.t)
 }
+
+var ErrElevatedClaimRequired = errors.New("elevated-claim-required")
 
 var (
 	ErrUserEmailNotFound               = &APIError{api.InvalidEmailPassword}

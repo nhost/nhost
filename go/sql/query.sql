@@ -95,3 +95,7 @@ UPDATE auth.users
 SET (ticket, ticket_expires_at, new_email) = ($2, $3, $4)
 WHERE id = $1
 RETURNING *;
+
+-- name: CountSecurityKeysUser :one
+SELECT COUNT(*) FROM auth.user_security_keys
+WHERE user_id = $1;
