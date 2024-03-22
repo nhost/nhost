@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"errors"
 
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/middleware"
@@ -25,13 +24,13 @@ func (ctrl *Controller) PostUserEmailChange( //nolint:ireturn
 		return ctrl.respondWithError(apiErr), nil
 	}
 
-	_, apiErr = ctrl.wf.GetUserByEmail(ctx, string(request.Body.NewEmail), logger)
-	if apiErr == nil {
+	exists, apiErr := ctrl.wf.UserByEmailExists(ctx, string(request.Body.NewEmail), logger)
+	if apiErr != nil {
+		return ctrl.respondWithError(apiErr), nil
+	}
+	if exists {
 		logger.Warn("email already exists")
 		return ctrl.sendError(ErrEmailAlreadyInUse), nil
-	} else if !errors.Is(apiErr, ErrUserEmailNotFound) {
-		logger.Error("error getting user by email", logError(apiErr))
-		return ctrl.respondWithError(apiErr), nil
 	}
 
 	updatedUser, apiErr := ctrl.wf.ChangeEmail(ctx, user.ID, string(request.Body.NewEmail), logger)

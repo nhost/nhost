@@ -132,10 +132,10 @@ func (j *JWTGetter) GetToken(
 	}
 
 	c := map[string]any{
-		"x-hasura-allowed-roles":    allowedRoles,
-		"x-hasura-default-role":     defaultRole,
-		"x-hasura-user-id":          userID.String(),
-		"x-hasura-user-isAnonymous": "false",
+		"x-hasura-allowed-roles":     allowedRoles,
+		"x-hasura-default-role":      defaultRole,
+		"x-hasura-user-id":           userID.String(),
+		"x-hasura-user-is-anonymous": "false",
 	}
 
 	for k, v := range customClaims {
@@ -290,4 +290,16 @@ func (j *JWTGetter) GetCustomClaim(token *jwt.Token, customClaim string) string 
 	}
 
 	return v
+}
+
+func (j *JWTGetter) IsAnonymous(token *jwt.Token) bool {
+	return j.GetCustomClaim(token, "x-hasura-user-is-anonymous") == "true"
+}
+
+func (j *JWTGetter) GetUserID(token *jwt.Token) (uuid.UUID, error) {
+	userID, err := uuid.Parse(j.GetCustomClaim(token, "x-hasura-user-id"))
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("error parsing user id: %w", err)
+	}
+	return userID, nil
 }

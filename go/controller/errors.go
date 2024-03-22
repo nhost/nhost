@@ -23,6 +23,7 @@ var ErrElevatedClaimRequired = errors.New("elevated-claim-required")
 var (
 	ErrUserEmailNotFound               = &APIError{api.InvalidEmailPassword}
 	ErrEmailAlreadyInUse               = &APIError{api.EmailAlreadyInUse}
+	ErrForbiddenAnonymous              = &APIError{api.ForbiddenAnonymous}
 	ErrInternalServerError             = &APIError{api.InternalServerError}
 	ErrInvalidEmailPassword            = &APIError{api.InvalidEmailPassword}
 	ErrPasswordTooShort                = &APIError{api.PasswordTooShort}
@@ -32,6 +33,7 @@ var (
 	ErrRedirecToNotAllowed             = &APIError{api.RedirecToNotAllowed}
 	ErrDisabledUser                    = &APIError{api.DisabledUser}
 	ErrUnverifiedUser                  = &APIError{api.UnverifiedUser}
+	ErrUserNotAnonymous                = &APIError{api.UserNotAnonymous}
 	ErrInvalidPat                      = &APIError{api.InvalidPat}
 	ErrInvalidRequest                  = &APIError{api.InvalidRequest}
 	ErrSignupDisabled                  = &APIError{api.SignupDisabled}
@@ -87,6 +89,10 @@ func (response ErrorResponse) VisitPostPatResponse(w http.ResponseWriter) error 
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitPostUserDeanonymizeResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func isSensitive(err api.ErrorResponseError) bool {
 	switch err {
 	case
@@ -108,7 +114,8 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.LocaleNotAllowed,
 		api.PasswordTooShort,
 		api.PasswordInHibpDatabase,
-		api.RedirecToNotAllowed:
+		api.RedirecToNotAllowed,
+		api.UserNotAnonymous:
 		return false
 	}
 	return false
@@ -224,6 +231,12 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 			Status:  http.StatusUnauthorized,
 			Error:   err.t,
 			Message: "User is not verified.",
+		}
+	case api.UserNotAnonymous:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "Logged in user is not anonymous",
 		}
 	}
 

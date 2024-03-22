@@ -181,6 +181,11 @@ func (wf *Workflows) ValidateUser(
 		return ErrDisabledUser
 	}
 
+	if user.IsAnonymous {
+		logger.Warn("user is anonymous")
+		return ErrForbiddenAnonymous
+	}
+
 	if !user.EmailVerified && wf.config.RequireEmailVerification {
 		logger.Warn("user is unverified")
 		return ErrUnverifiedUser
@@ -227,6 +232,24 @@ func (wf *Workflows) GetUser(
 	}
 
 	return user, nil
+}
+
+func (wf *Workflows) UserByEmailExists(
+	ctx context.Context,
+	email string,
+	logger *slog.Logger,
+) (bool, *APIError) {
+	_, err := wf.db.GetUserByEmail(ctx, sql.Text(email))
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.Warn("user not found")
+		return false, nil
+	}
+	if err != nil {
+		logger.Error("error getting user by email", logError(err))
+		return false, ErrInternalServerError
+	}
+
+	return true, nil
 }
 
 func (wf *Workflows) GetUserByEmail(
@@ -314,8 +337,10 @@ func (wf *Workflows) NewSession(
 	}
 
 	var metadata map[string]any
-	if err := json.Unmarshal(user.Metadata, &metadata); err != nil {
-		return nil, fmt.Errorf("error unmarshalling user metadata: %w", err)
+	if len(user.Metadata) > 0 {
+		if err := json.Unmarshal(user.Metadata, &metadata); err != nil {
+			return nil, fmt.Errorf("error unmarshalling user metadata: %w", err)
+		}
 	}
 	return &api.Session{
 		AccessToken:          accessToken,
@@ -643,4 +668,65 @@ func (wf *Workflows) SignupUserWithRefreshToken( //nolint:funlen
 		PhoneNumberVerified: false,
 		Roles:               deptr(options.AllowedRoles),
 	}, userID, nil
+}
+
+func (wf *Workflows) DeanonymizeUser(
+	ctx context.Context,
+	userID uuid.UUID,
+	email string,
+	password string,
+	ticket string,
+	ticketExpiresAt time.Time,
+	options *api.SignUpOptions,
+	deleteRefreshTokens bool,
+	logger *slog.Logger,
+) *APIError {
+	if err := wf.db.DeleteUserRoles(ctx, userID); err != nil {
+		logger.Error("error deleting user roles", logError(err))
+		return ErrInternalServerError
+	}
+
+	var metadatab []byte
+	var err error
+	if options.Metadata != nil {
+		metadatab, err = json.Marshal(options.Metadata)
+		if err != nil {
+			logger.Error("error marshalling metadata", logError(err))
+			return ErrInternalServerError
+		}
+	}
+
+	hashedPassword, err := hashPassword(password)
+	if err != nil {
+		logger.Error("error hashing password", logError(err))
+		return ErrInternalServerError
+	}
+
+	if err := wf.db.UpdateUserDeanonymize(
+		ctx,
+		sql.UpdateUserDeanonymizeParams{
+			Roles:           *options.AllowedRoles,
+			Email:           sql.Text(email),
+			DefaultRole:     sql.Text(*options.DefaultRole),
+			DisplayName:     sql.Text(*options.DisplayName),
+			Locale:          sql.Text(*options.Locale),
+			Metadata:        metadatab,
+			PasswordHash:    sql.Text(hashedPassword),
+			Ticket:          sql.Text(ticket),
+			TicketExpiresAt: sql.TimestampTz(ticketExpiresAt),
+			ID:              pgtype.UUID{Bytes: userID, Valid: true},
+		},
+	); err != nil {
+		logger.Error("error updating user", logError(err))
+		return ErrInternalServerError
+	}
+
+	if deleteRefreshTokens {
+		if err := wf.db.DeleteRefreshTokens(ctx, userID); err != nil {
+			logger.Error("error deleting refresh tokens", logError(err))
+			return ErrInternalServerError
+		}
+	}
+
+	return nil
 }

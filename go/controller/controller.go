@@ -36,25 +36,37 @@ type Emailer interface {
 	) error
 }
 
-type DBClient interface { //nolint:interfacebloat
+type DBClientInsertUser interface {
+	InsertUser(ctx context.Context, arg sql.InsertUserParams) (sql.InsertUserRow, error)
+	InsertUserWithRefreshToken(
+		ctx context.Context, arg sql.InsertUserWithRefreshTokenParams,
+	) (uuid.UUID, error)
+	InsertRefreshtoken(ctx context.Context, arg sql.InsertRefreshtokenParams) (uuid.UUID, error)
+}
+
+type DBClientUpdateUser interface {
+	UpdateUserChangeEmail(
+		ctx context.Context,
+		arg sql.UpdateUserChangeEmailParams,
+	) (sql.AuthUser, error)
+	UpdateUserDeanonymize(ctx context.Context, arg sql.UpdateUserDeanonymizeParams) error
+	UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error)
+	UpdateUserTicket(ctx context.Context, arg sql.UpdateUserTicketParams) (uuid.UUID, error)
+}
+
+type DBClient interface {
+	DBClientInsertUser
+	DBClientUpdateUser
+
 	CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error)
+	DeleteRefreshTokens(ctx context.Context, userID uuid.UUID) error
+	DeleteUserRoles(ctx context.Context, userID uuid.UUID) error
 	GetUser(ctx context.Context, id uuid.UUID) (sql.AuthUser, error)
 	GetUserByEmail(ctx context.Context, email pgtype.Text) (sql.AuthUser, error)
 	GetUserByRefreshTokenHash(
 		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
 	) (sql.AuthUser, error)
 	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error)
-	InsertUser(ctx context.Context, arg sql.InsertUserParams) (sql.InsertUserRow, error)
-	InsertUserWithRefreshToken(
-		ctx context.Context, arg sql.InsertUserWithRefreshTokenParams,
-	) (uuid.UUID, error)
-	InsertRefreshtoken(ctx context.Context, arg sql.InsertRefreshtokenParams) (uuid.UUID, error)
-	UpdateUserChangeEmail(
-		ctx context.Context,
-		arg sql.UpdateUserChangeEmailParams,
-	) (sql.AuthUser, error)
-	UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error)
-	UpdateUserTicket(ctx context.Context, arg sql.UpdateUserTicketParams) (uuid.UUID, error)
 }
 
 type Controller struct {

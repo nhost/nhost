@@ -14,6 +14,10 @@ func verifyHashPassword(password, hash string) bool {
 }
 
 func hashPassword(password string) (string, error) {
+	if password == "" {
+		return "", nil
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", fmt.Errorf("error hashing password: %w", err)

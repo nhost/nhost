@@ -24,6 +24,26 @@ func (q *Queries) CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (
 	return count, err
 }
 
+const deleteRefreshTokens = `-- name: DeleteRefreshTokens :exec
+DELETE FROM auth.refresh_tokens
+WHERE user_id = $1
+`
+
+func (q *Queries) DeleteRefreshTokens(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteRefreshTokens, userID)
+	return err
+}
+
+const deleteUserRoles = `-- name: DeleteUserRoles :exec
+DELETE FROM auth.user_roles
+WHERE user_id = $1
+`
+
+func (q *Queries) DeleteUserRoles(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUserRoles, userID)
+	return err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge FROM auth.users
 WHERE id = $1 LIMIT 1
@@ -390,6 +410,56 @@ func (q *Queries) UpdateUserChangeEmail(ctx context.Context, arg UpdateUserChang
 		&i.WebauthnCurrentChallenge,
 	)
 	return i, err
+}
+
+const updateUserDeanonymize = `-- name: UpdateUserDeanonymize :exec
+WITH inserted_user AS (
+    UPDATE auth.users
+    SET
+        is_anonymous = false,
+        email = $2,
+        default_role = $3,
+        display_name = $4,
+        locale = $5,
+        metadata = $6,
+        password_hash = $7,
+        ticket = $8,
+        ticket_expires_at = $9
+    WHERE id = $10
+    RETURNING id
+)
+INSERT INTO auth.user_roles (user_id, role)
+    SELECT inserted_user.id, roles.role
+    FROM inserted_user, unnest($1::TEXT[]) AS roles(role)
+`
+
+type UpdateUserDeanonymizeParams struct {
+	Roles           []string
+	Email           interface{}
+	DefaultRole     pgtype.Text
+	DisplayName     pgtype.Text
+	Locale          pgtype.Text
+	Metadata        []byte
+	PasswordHash    pgtype.Text
+	Ticket          pgtype.Text
+	TicketExpiresAt pgtype.Timestamptz
+	ID              pgtype.UUID
+}
+
+func (q *Queries) UpdateUserDeanonymize(ctx context.Context, arg UpdateUserDeanonymizeParams) error {
+	_, err := q.db.Exec(ctx, updateUserDeanonymize,
+		arg.Roles,
+		arg.Email,
+		arg.DefaultRole,
+		arg.DisplayName,
+		arg.Locale,
+		arg.Metadata,
+		arg.PasswordHash,
+		arg.Ticket,
+		arg.TicketExpiresAt,
+		arg.ID,
+	)
+	return err
 }
 
 const updateUserLastSeen = `-- name: UpdateUserLastSeen :one

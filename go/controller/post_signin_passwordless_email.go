@@ -65,6 +65,10 @@ func (ctrl *Controller) PostSigninPasswordlessEmail( //nolint:ireturn
 		if apiErr != nil {
 			return ctrl.respondWithError(apiErr), nil
 		}
+	case errors.Is(apiErr, ErrUnverifiedUser):
+		if apiErr = ctrl.wf.SetTicket(ctx, user.ID, ticket, expireAt, logger); apiErr != nil {
+			return ctrl.respondWithError(apiErr), nil
+		}
 	case apiErr != nil:
 		logger.Error("error getting user by email", logError(apiErr))
 		return ctrl.respondWithError(apiErr), nil

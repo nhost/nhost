@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	BearerAuthScopes         = "BearerAuth.Scopes"
 	BearerAuthElevatedScopes = "BearerAuthElevated.Scopes"
 )
 
@@ -32,11 +33,18 @@ const (
 	RoleNotAllowed                  ErrorResponseError = "role-not-allowed"
 	SignupDisabled                  ErrorResponseError = "signup-disabled"
 	UnverifiedUser                  ErrorResponseError = "unverified-user"
+	UserNotAnonymous                ErrorResponseError = "user-not-anonymous"
 )
 
 // Defines values for OKResponse.
 const (
 	OK OKResponse = "OK"
+)
+
+// Defines values for UserDeanonymizeRequestSignInMethod.
+const (
+	EmailPassword UserDeanonymizeRequestSignInMethod = "email-password"
+	Passwordless  UserDeanonymizeRequestSignInMethod = "passwordless"
 )
 
 // CreatePATRequest defines model for CreatePATRequest.
@@ -171,6 +179,26 @@ type User struct {
 	Roles               []string               `json:"roles"`
 }
 
+// UserDeanonymizeRequest defines model for UserDeanonymizeRequest.
+type UserDeanonymizeRequest struct {
+	// Connection Deprecated, will be ignored
+	// Deprecated:
+	Connection *string `json:"connection,omitempty"`
+
+	// Email A valid email
+	Email   openapi_types.Email `json:"email"`
+	Options *SignUpOptions      `json:"options,omitempty"`
+
+	// Password A password of minimum 3 characters
+	Password *string `json:"password,omitempty"`
+
+	// SignInMethod Which sign-in method to use
+	SignInMethod UserDeanonymizeRequestSignInMethod `json:"signInMethod"`
+}
+
+// UserDeanonymizeRequestSignInMethod Which sign-in method to use
+type UserDeanonymizeRequestSignInMethod string
+
 // UserEmailChangeRequest defines model for UserEmailChangeRequest.
 type UserEmailChangeRequest struct {
 	// NewEmail A valid email
@@ -206,6 +234,9 @@ type PostSigninPatJSONRequestBody = SignInPATRequest
 
 // PostSignupEmailPasswordJSONRequestBody defines body for PostSignupEmailPassword for application/json ContentType.
 type PostSignupEmailPasswordJSONRequestBody = SignUpEmailPasswordRequest
+
+// PostUserDeanonymizeJSONRequestBody defines body for PostUserDeanonymize for application/json ContentType.
+type PostUserDeanonymizeJSONRequestBody = UserDeanonymizeRequest
 
 // PostUserEmailChangeJSONRequestBody defines body for PostUserEmailChange for application/json ContentType.
 type PostUserEmailChangeJSONRequestBody = UserEmailChangeRequest

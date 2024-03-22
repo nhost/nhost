@@ -163,6 +163,28 @@ paths:
         - signup
         - email-and-password
 
+  /user/deanonymize:
+    post:
+      summary: >-
+        Deanonymize an anonymous user in adding missing email or email+password, depending on the chosen authentication method. Will send a confirmation email if the server is configured to do so
+      tags:
+        - anonymous
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDeanonymizeRequest'
+      responses:
+        '200':
+          description: >-
+            User deanonymized successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
   /user/email/change:
     post:
       summary: Change user email
@@ -328,6 +350,7 @@ components:
             - role-not-allowed
             - signup-disabled
             - unverified-user
+            - user-not-anonymous
             - invalid-pat
       required:
         - status
@@ -459,6 +482,36 @@ components:
         - phoneNumber
         - phoneNumberVerified
         - roles
+
+    UserDeanonymizeRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        signInMethod:
+          description: Which sign-in method to use
+          type: string
+          enum:
+            - email-password
+            - passwordless
+        email:
+          description: A valid email
+          example: john.smith@nhost.io
+          format: email
+          type: string
+        password:
+          description: A password of minimum 3 characters
+          example: Str0ngPassw#ord-94|%
+          minLength: 3
+          type: string
+        connection:
+          deprecated: true
+          description: Deprecated, will be ignored
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - signInMethod
+        - email
 
     UserEmailChangeRequest:
       type: object

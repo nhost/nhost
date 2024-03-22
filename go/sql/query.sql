@@ -99,3 +99,31 @@ RETURNING *;
 -- name: CountSecurityKeysUser :one
 SELECT COUNT(*) FROM auth.user_security_keys
 WHERE user_id = $1;
+
+-- name: UpdateUserDeanonymize :exec
+WITH inserted_user AS (
+    UPDATE auth.users
+    SET
+        is_anonymous = false,
+        email = @email,
+        default_role = @default_role,
+        display_name = @display_name,
+        locale = @locale,
+        metadata = @metadata,
+        password_hash = @password_hash,
+        ticket = @ticket,
+        ticket_expires_at = @ticket_expires_at
+    WHERE id = @id
+    RETURNING id
+)
+INSERT INTO auth.user_roles (user_id, role)
+    SELECT inserted_user.id, roles.role
+    FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role);
+
+-- name: DeleteRefreshTokens :exec
+DELETE FROM auth.refresh_tokens
+WHERE user_id = $1;
+
+-- name: DeleteUserRoles :exec
+DELETE FROM auth.user_roles
+WHERE user_id = $1;
