@@ -79,7 +79,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 					notifications.TemplateNameSigninPasswordless,
 					testhelpers.GomockCmpOpts(
 						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=passwordlessEmail", //nolint:lll
+							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
 							DisplayName: "jane@acme.com",
 							Email:       "jane@acme.com",
 							NewEmail:    "",
@@ -262,7 +262,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 					notifications.TemplateNameSigninPasswordless,
 					testhelpers.GomockCmpOpts(
 						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=passwordlessEmail", //nolint:lll
+							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
 							DisplayName: "jane@acme.com",
 							Email:       "jane@acme.com",
 							NewEmail:    "",
@@ -389,7 +389,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 					notifications.TemplateNameSigninPasswordless,
 					testhelpers.GomockCmpOpts(
 						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Fmyapp&ticket=passwordlessEmail%3Ac2d0203a-2117-4445-bade-0ed8d5f44f4f&type=passwordlessEmail", //nolint:lll
+							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Fmyapp&ticket=passwordlessEmail%3Ac2d0203a-2117-4445-bade-0ed8d5f44f4f&type=signinPasswordless", //nolint:lll
 							DisplayName: "Jane Doe",
 							Email:       "jane@acme.com",
 							NewEmail:    "",
@@ -525,7 +525,7 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 					notifications.TemplateNameSigninPasswordless,
 					testhelpers.GomockCmpOpts(
 						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=passwordlessEmail", //nolint:lll
+							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=signinPasswordless", //nolint:lll
 							DisplayName: "jane@acme.com",
 							Email:       "jane@acme.com",
 							NewEmail:    "",

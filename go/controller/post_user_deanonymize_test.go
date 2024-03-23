@@ -316,7 +316,7 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 					notifications.TemplateNameSigninPasswordless,
 					testhelpers.GomockCmpOpts(
 						notifications.TemplateData{
-							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ac000a5b3-d3af-4937-aa2e-cc86f19ee565&type=passwordlessEmail", //nolint:lll
+							Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordlessEmail%3Ac000a5b3-d3af-4937-aa2e-cc86f19ee565&type=signinPasswordless", //nolint:lll
 							DisplayName: "jane@acme.com",
 							Email:       "jane@acme.com",
 							NewEmail:    "",

@@ -58,7 +58,7 @@ type LinkType string
 const (
 	LinkTypeEmailVerify        LinkType = "emailVerify"
 	LinkTypeEmailConfirmChange LinkType = "emailConfirmChange"
-	LinkTypePasswordlessEmail  LinkType = "passwordlessEmail"
+	LinkTypePasswordlessEmail  LinkType = "signinPasswordless"
 	LinkTypePasswordReset      LinkType = "passwordReset"
 )
 
