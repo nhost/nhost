@@ -1453,6 +1453,8 @@ export type ConfigHasuraSettings = {
   enabledAPIs?: Maybe<Array<Scalars['ConfigHasuraAPIs']>>;
   /** HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL */
   liveQueriesMultiplexedRefetchInterval?: Maybe<Scalars['ConfigUint32']>;
+  /** HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES */
+  stringifyNumericTypes?: Maybe<Scalars['Boolean']>;
 };
 
 export type ConfigHasuraSettingsComparisonExp = {
@@ -1466,6 +1468,7 @@ export type ConfigHasuraSettingsComparisonExp = {
   enableRemoteSchemaPermissions?: InputMaybe<ConfigBooleanComparisonExp>;
   enabledAPIs?: InputMaybe<ConfigHasuraApIsComparisonExp>;
   liveQueriesMultiplexedRefetchInterval?: InputMaybe<ConfigUint32ComparisonExp>;
+  stringifyNumericTypes?: InputMaybe<ConfigBooleanComparisonExp>;
 };
 
 export type ConfigHasuraSettingsInsertInput = {
@@ -1476,6 +1479,7 @@ export type ConfigHasuraSettingsInsertInput = {
   enableRemoteSchemaPermissions?: InputMaybe<Scalars['Boolean']>;
   enabledAPIs?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
   liveQueriesMultiplexedRefetchInterval?: InputMaybe<Scalars['ConfigUint32']>;
+  stringifyNumericTypes?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type ConfigHasuraSettingsUpdateInput = {
@@ -1486,6 +1490,7 @@ export type ConfigHasuraSettingsUpdateInput = {
   enableRemoteSchemaPermissions?: InputMaybe<Scalars['Boolean']>;
   enabledAPIs?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
   liveQueriesMultiplexedRefetchInterval?: InputMaybe<Scalars['ConfigUint32']>;
+  stringifyNumericTypes?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type ConfigHasuraUpdateInput = {
@@ -2533,6 +2538,14 @@ export type Log = {
 export type Metrics = {
   __typename?: 'Metrics';
   value: Scalars['float64'];
+};
+
+export type StatsDailyLiveFreeApps = {
+  __typename?: 'StatsDailyLiveFreeApps';
+  avg: Scalars['Int'];
+  max: Scalars['Int'];
+  min: Scalars['Int'];
+  raw: Array<Scalars['Int']>;
 };
 
 export type StatsLiveApps = {
@@ -15847,6 +15860,12 @@ export type Query_Root = {
   /** fetch aggregated fields from the table: "software_versions" */
   softwareVersionsAggregate: Software_Versions_Aggregate;
   /**
+   * Returns the per-day number of free live apps in the given time range, as well as the min, max and avg.
+   *
+   * Requests that returned a 4xx or 5xx status code are not counted as live traffic.
+   */
+  statsDailyLiveFreeApps: StatsDailyLiveFreeApps;
+  /**
    * Returns lists of apps that have some live traffic in the give time range.
    * From defaults to 24 hours ago and to defaults to now.
    *
@@ -16900,6 +16919,12 @@ export type Query_RootSoftwareVersionsAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Software_Versions_Order_By>>;
   where?: InputMaybe<Software_Versions_Bool_Exp>;
+};
+
+
+export type Query_RootStatsDailyLiveFreeAppsArgs = {
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
@@ -22464,6 +22489,11 @@ export type DeleteUserAccountMutationVariables = Exact<{
 
 export type DeleteUserAccountMutation = { __typename?: 'mutation_root', deleteUser?: { __typename: 'users' } | null };
 
+export type GetAuthUserProvidersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAuthUserProvidersQuery = { __typename?: 'query_root', authUserProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
+
 export type GetPersonalAccessTokensQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -23517,6 +23547,44 @@ export function useDeleteUserAccountMutation(baseOptions?: Apollo.MutationHookOp
 export type DeleteUserAccountMutationHookResult = ReturnType<typeof useDeleteUserAccountMutation>;
 export type DeleteUserAccountMutationResult = Apollo.MutationResult<DeleteUserAccountMutation>;
 export type DeleteUserAccountMutationOptions = Apollo.BaseMutationOptions<DeleteUserAccountMutation, DeleteUserAccountMutationVariables>;
+export const GetAuthUserProvidersDocument = gql`
+    query getAuthUserProviders {
+  authUserProviders {
+    id
+    providerId
+  }
+}
+    `;
+
+/**
+ * __useGetAuthUserProvidersQuery__
+ *
+ * To run a query within a React component, call `useGetAuthUserProvidersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAuthUserProvidersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAuthUserProvidersQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAuthUserProvidersQuery(baseOptions?: Apollo.QueryHookOptions<GetAuthUserProvidersQuery, GetAuthUserProvidersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAuthUserProvidersQuery, GetAuthUserProvidersQueryVariables>(GetAuthUserProvidersDocument, options);
+      }
+export function useGetAuthUserProvidersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAuthUserProvidersQuery, GetAuthUserProvidersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAuthUserProvidersQuery, GetAuthUserProvidersQueryVariables>(GetAuthUserProvidersDocument, options);
+        }
+export type GetAuthUserProvidersQueryHookResult = ReturnType<typeof useGetAuthUserProvidersQuery>;
+export type GetAuthUserProvidersLazyQueryHookResult = ReturnType<typeof useGetAuthUserProvidersLazyQuery>;
+export type GetAuthUserProvidersQueryResult = Apollo.QueryResult<GetAuthUserProvidersQuery, GetAuthUserProvidersQueryVariables>;
+export function refetchGetAuthUserProvidersQuery(variables?: GetAuthUserProvidersQueryVariables) {
+      return { query: GetAuthUserProvidersDocument, variables: variables }
+    }
 export const GetPersonalAccessTokensDocument = gql`
     query GetPersonalAccessTokens {
   personalAccessTokens: authRefreshTokens(

@@ -128,19 +128,20 @@
 
 <script lang="ts" setup>
 import { gql } from '@apollo/client/core'
+
 import {
   useChangeEmail,
   useChangePassword,
   useElevateSecurityKeyEmail,
   useAddSecurityKey,
   useUserEmail,
-  useUserId
+  useUserId,
+  useProviderLink
 } from '@nhost/vue'
+
 import { useMutation, useQuery } from '@vue/apollo-composable'
-import { ref, unref, computed } from 'vue'
-import { useProviderLink } from '@nhost/vue'
+import { ref, unref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { onMounted } from 'vue'
 
 const email = ref('')
 const password = ref('')

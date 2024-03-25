@@ -5,6 +5,7 @@ import { DeleteAccount } from '@/features/account/settings/components/DeleteAcco
 import { DisplayNameSetting } from '@/features/account/settings/components/DisplayNameSetting';
 import { PasswordSettings } from '@/features/account/settings/components/PasswordSettings';
 import { PATSettings } from '@/features/account/settings/components/PATSettings';
+import { SocialProvidersSettings } from '@/features/account/settings/components/SocialProvidersSettings';
 import type { ReactElement } from 'react';
 
 export default function AccountSettingsPage() {
@@ -19,6 +20,10 @@ export default function AccountSettingsPage() {
 
       <RetryableErrorBoundary>
         <PasswordSettings />
+      </RetryableErrorBoundary>
+
+      <RetryableErrorBoundary>
+        <SocialProvidersSettings />
       </RetryableErrorBoundary>
 
       <RetryableErrorBoundary>
