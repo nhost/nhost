@@ -1,5 +1,11 @@
 # @nhost-examples/react-apollo
 
+## 0.7.1
+
+### Patch Changes
+
+- 863b37d: chore: bump hasura-auth
+
 ## 0.7.0
 
 ### Minor Changes
