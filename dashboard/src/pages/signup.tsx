@@ -12,6 +12,7 @@ import { nhost } from '@/utils/nhost';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
 import { useSignUpEmailPassword } from '@nhost/nextjs';
+import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -36,6 +37,7 @@ const StyledInput = styled(Input)({
 export default function SignUpPage() {
   const { signUpEmailPassword, error } = useSignUpEmailPassword();
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const form = useForm<SignUpFormValues>({
     reValidateMode: 'onSubmit',
@@ -65,7 +67,15 @@ export default function SignUpPage() {
     displayName,
   }: SignUpFormValues) {
     try {
-      await signUpEmailPassword(email, password, { displayName });
+      const { needsEmailVerification } = await signUpEmailPassword(
+        email,
+        password,
+        { displayName },
+      );
+
+      if (needsEmailVerification) {
+        router.push(`/email/verify?email=${email}`);
+      }
     } catch {
       toast.error(
         'An error occurred while signing up. Please try again.',
