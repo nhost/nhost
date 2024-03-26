@@ -33,4 +33,4 @@ docker run --rm -it \
     -w /build \
     --entrypoint sh \
     dbarroso/nix:2.6.0 \
-        -c "nix build .\\#packages.$IMAGE --print-build-logs && docker load < result"
+        -c "nix build .\\#$IMAGE --print-build-logs && docker load < result"
