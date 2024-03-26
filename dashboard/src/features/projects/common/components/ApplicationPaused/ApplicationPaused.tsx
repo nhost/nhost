@@ -47,7 +47,7 @@ export default function ApplicationPaused() {
   async function handleTriggerUnpausing() {
     await execPromiseWithErrorToast(
       async () => {
-        unpauseApplication({ variables: { appId: currentProject.id } });
+        await unpauseApplication({ variables: { appId: currentProject.id } });
         await refetchWorkspaceAndProject();
       },
       {
