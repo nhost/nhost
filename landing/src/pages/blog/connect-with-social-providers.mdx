@@ -1,0 +1,114 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Link multiple authentication providers to user accounts',
+  description:
+    'Learn how you can allow your users to sign in to your app using multiple authentication providers',
+  image: '/images/blog/connect-with-social-providers/banner.png',
+  date: '2024-04-25',
+  authors: [
+    {
+      name: 'Hassan Ben Jobrane',
+      title: 'Software Engineer',
+      avatarUrl: '/images/avatars/hassan.png',
+      url: 'https://twitter.com/_onehassan',
+    },
+  ],
+  tags: ['Product', 'Auth'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+You can now allow users to sign in to your app using multiple authentication providers by linking it to an existing user account. Users are identifiable by the same user ID regardless of the authentication provider they used to sign in. For example, a user who signed in with a password can link a GitHub account and sign in with both in the future. In a few easy steps you can enable this in your app.
+
+## 1. Enable the social auth provider you want your users to be able to link to their account
+
+For example in the screenshot below we enable Signin with GitHub which you can find when you click on **Sign-In Methods** under Settings.
+
+<img
+  src="/images/blog/connect-with-social-providers/enable-github-signin.png"
+  alt="Enable Sign-In with GitHub"
+/>
+
+## 2. Generate the link from our SDK's
+
+Once that's done, you just need to use our SDK to redirect the user to **hasura-auth** to communicate with the authentication provider.
+
+The following is an example of how to do that with React.
+
+```tsx
+import React from 'react'
+import { useProviderLink } from '@nhost/react'
+
+export const Profile: React.FC = () => {
+  const { github } = useProviderLink({
+    connect: true,
+    redirectTo: `${window.location.origin}/profile`,
+  })
+
+  return (
+    <div>
+      <a href={github}>Connect with GitHub</a>
+    </div>
+  )
+}
+```
+
+Notice we've added a new paramater that you must pass to the `useProviderLink` hook to generate the right link.
+
+```diff
+const { github } = useProviderLink({
++  connect: true,
+  redirectTo: `${window.location.origin}/profile`,
+})
+```
+
+Then in your app you add another page that reads those parameters from the URL and then redirects the user to the auth service. The following is an example of such page in React.
+
+```tsx
+import { useEffect, useState } from 'react'
+import { useNhostClient } from '@nhost/react'
+import { useSearchParams } from 'react-router-dom'
+
+const VerifyPage: React.FC = () => {
+  const nhost = useNhostClient()
+  const [loading, setLoading] = useState(false)
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    const ticket = searchParams.get('ticket')
+    const redirectTo = searchParams.get('redirectTo')
+    const type = searchParams.get('type')
+
+    if (ticket && redirectTo && type) {
+      window.location.href = `${nhost.auth.url}/verify?ticket=${ticket}&type=${type}&redirectTo=${redirectTo}`
+    }
+
+    setLoading(false)
+  }, [searchParams, nhost?.auth?.url])
+
+  if (loading) {
+    return null
+  }
+
+  return (
+    <div>
+      <span>Failed to authenticate with magick link</span>
+    </div>
+  )
+}
+
+export default VerifyPage
+```
+
+Now here's the sequence diagram after applying the above strategy:
+
+<img
+  src="/images/blog/protect-your-magic-links-from-email-clients/magic-link-success.svg"
+  alt="Reset password flow with redirect"
+/>
+
+### Wrap up
+
+The strategy detailed in this blog post isn't limited to password reset flows but can also be applied in other use cases such as email verification and one-time file download links. By centralizing link handling within the application, the validity of such links remains intact across various email clients and scenarios.
