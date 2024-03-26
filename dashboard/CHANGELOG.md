@@ -1,5 +1,15 @@
 # @nhost/dashboard
 
+## 1.12.0
+
+### Minor Changes
+
+- f242e4b: feat: add connect with github to the user's account settings
+
+### Patch Changes
+
+- 943831f: fix: resolve an error toast issue when unpausing a project
+
 ## 1.11.2
 
 ### Patch Changes
