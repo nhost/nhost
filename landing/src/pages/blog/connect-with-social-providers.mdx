@@ -64,51 +64,75 @@ const { github } = useProviderLink({
 })
 ```
 
-Then in your app you add another page that reads those parameters from the URL and then redirects the user to the auth service. The following is an example of such page in React.
+## 3. Verify that the provider was added to the user's account
+
+To verify that the provider was linked to the user's account we just need to query the `user_providers` table using the custom hook `useAuthQuery` exported from our React Apollo integration package. PS. make sure to install `@nhost/react-apollo` by running `npm install @nhost/react-apollo`.
 
 ```tsx
-import { useEffect, useState } from 'react'
-import { useNhostClient } from '@nhost/react'
-import { useSearchParams } from 'react-router-dom'
+import { useAuthQuery } from '@nhost/react-apollo'
 
-const VerifyPage: React.FC = () => {
-  const nhost = useNhostClient()
-  const [loading, setLoading] = useState(false)
-  const [searchParams] = useSearchParams()
-
-  useEffect(() => {
-    const ticket = searchParams.get('ticket')
-    const redirectTo = searchParams.get('redirectTo')
-    const type = searchParams.get('type')
-
-    if (ticket && redirectTo && type) {
-      window.location.href = `${nhost.auth.url}/verify?ticket=${ticket}&type=${type}&redirectTo=${redirectTo}`
+const {
+  data: { authUserProviders },
+} = useAuthQuery(gql`
+  query getAuthUserProviders {
+    authUserProviders {
+      id
+      providerId
     }
-
-    setLoading(false)
-  }, [searchParams, nhost?.auth?.url])
-
-  if (loading) {
-    return null
   }
+`)
+
+const isGithubLinked = authUserProviders?.some(
+  (item: { providerId: string }) => item.providerId === 'github',
+)
+
+console.log({
+  isGithubConnected,
+})
+```
+
+## 4. Putting it all together
+
+Here's what an example page in React looks like after following the steps above. Now we just to check if the user has already connected their github account and only show the link otherwise.
+
+```tsx
+import React from 'react'
+import { useProviderLink } from '@nhost/react'
+import { useAuthQuery } from '@nhost/react-apollo'
+
+export const Profile: React.FC = () => {
+  const { github } = useProviderLink({
+    connect: true,
+    redirectTo: `${window.location.origin}/profile`,
+  })
+
+  const {
+    data: { authUserProviders },
+  } = useAuthQuery(gql`
+    query getAuthUserProviders {
+      authUserProviders {
+        id
+        providerId
+      }
+    }
+  `)
+
+  const isGithubLinked = authUserProviders?.some(
+    (item: { providerId: string }) => item.providerId === 'github',
+  )
 
   return (
     <div>
-      <span>Failed to authenticate with magick link</span>
+      {isGithubConnected ? (
+        <span>GitHub connected</span>
+      ) : (
+        <a href={github}>Connect with GitHub</a>
+      )}
     </div>
   )
 }
-
-export default VerifyPage
 ```
-
-Now here's the sequence diagram after applying the above strategy:
-
-<img
-  src="/images/blog/protect-your-magic-links-from-email-clients/magic-link-success.svg"
-  alt="Reset password flow with redirect"
-/>
 
 ### Wrap up
 
-The strategy detailed in this blog post isn't limited to password reset flows but can also be applied in other use cases such as email verification and one-time file download links. By centralizing link handling within the application, the validity of such links remains intact across various email clients and scenarios.
+To enable additional social authentication providers like Facebook, Google, or LinkedIn, simply enable them in your app's dashboard settings. Afterwards, use our SDKs to generate the appropriate link for each provider, ensuring seamless integration. This allows for a diverse array of sign-in options, enhancing user accessibility and convenience.
