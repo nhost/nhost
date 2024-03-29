@@ -190,51 +190,78 @@ export default function useRunSQL(
     );
 
     const trackTablesOrViews = tablesOrViewEntities.map(({ name, schema }) => ({
-      type: 'pg_track_table',
-      args: {
-        source: 'default',
-        table: {
-          name,
-          schema,
+      name: `add_existing_table_or_view_${schema}_${name}`,
+      datasource: 'default',
+      down: [],
+      skip_execution: false,
+      up: [
+        {
+          type: 'pg_track_table',
+          args: {
+            table: { name, schema },
+            source: 'default',
+          },
         },
-      },
+      ],
     }));
 
     const trackFunctions = functionEntities.map(({ name, schema }) => ({
-      type: 'pg_track_function',
-      args: {
-        source: 'default',
-        function: {
-          name,
-          schema,
-          configuration: {},
+      name: `add_existing_function_or_view_${schema}_${name}`,
+      datasource: 'default',
+      down: [],
+      skip_execution: false,
+      up: [
+        {
+          type: 'pg_track_function',
+          args: {
+            function: { name, schema },
+            source: 'default',
+          },
         },
-      },
+      ],
     }));
 
-    const metaDataPayload = {
-      source: 'default',
-      type: 'bulk',
-      args: [...trackTablesOrViews, ...trackFunctions],
+    const trackAll = async function trackAll(
+      objects: any[],
+    ): Promise<Response[]> {
+      const responses: Response[] = await Promise.all(
+        objects.map((object) =>
+          fetch(`${appUrl}/apis/migrate`, {
+            method: 'POST',
+            headers: { 'x-hasura-admin-secret': adminSecret },
+            body: JSON.stringify(object),
+          }).then((response) => {
+            if (!response.ok) {
+              console.error('failed to track:', response);
+            }
+            return response;
+          }),
+        ),
+      ).catch((error) => {
+        console.error('Error in trackAll:', error);
+        throw error;
+      });
+
+      return responses;
     };
 
-    try {
-      if (entities.length > 0) {
-        const metadataApiResponse = await fetch(`${appUrl}/v1/metadata`, {
-          method: 'POST',
-          headers: { 'x-hasura-admin-secret': adminSecret },
-          body: JSON.stringify(metaDataPayload),
+    if (entities.length > 0) {
+      try {
+        await trackAll([...trackTablesOrViews, ...trackFunctions]).then(
+          (responses) => {
+            responses.forEach((response) => {
+              if (!response.ok) {
+                console.error('Error tracking table or view:', response);
+              }
+            });
+          },
+        );
+      } catch (error) {
+        toast.error('An error happened when calling the metadata API', {
+          style: toastStyle.style,
+          ...toastStyle.error,
         });
-
-        if (!metadataApiResponse.ok) {
-          throw new Error('Metadata API call failed');
-        }
       }
-    } catch (error) {
-      toast.error('An error happened when calling the metadata API', {
-        style: toastStyle.style,
-        ...toastStyle.error,
-      });
     }
   };
 
