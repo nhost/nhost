@@ -11,7 +11,6 @@ import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoun
 import { useProjectRoutes } from '@/features/projects/common/hooks/useProjectRoutes';
 import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export interface ProjectLayoutProps extends AuthenticatedLayoutProps {
@@ -48,15 +47,25 @@ function ProjectLayoutContent({
 
   useNotFoundRedirect();
 
-  useEffect(() => {
-    if (isPlatform || !router.isReady) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (isPlatform || !router.isReady) {
+  //     return;
+  //   }
 
-    if (isRestrictedPath) {
-      router.push('/local/local');
-    }
-  }, [isPlatform, isRestrictedPath, router]);
+  //   TODO // Double check what restricted path means here
+  //   if (isRestrictedPath) {
+  //     router.push('/local/local');
+  //   }
+  // }, [isPlatform, isRestrictedPath, router]);
+
+  console.log({
+    cond1: !isPlatform,
+    cond2: nhostRoutes.some((route) =>
+      pathWithoutWorkspaceAndProject.startsWith(
+        route.relativeMainPath || route.relativePath,
+      ),
+    ),
+  });
 
   if (isRestrictedPath || loading) {
     return <LoadingScreen />;
@@ -69,7 +78,7 @@ function ProjectLayoutContent({
   if (!isPlatform) {
     return (
       <>
-        <DesktopNav className="top-0 hidden w-20 shrink-0 flex-col items-start sm:flex" />
+        <DesktopNav className="top-0 flex-col items-start hidden w-20 shrink-0 sm:flex" />
 
         <Box
           component="main"
@@ -90,7 +99,7 @@ function ProjectLayoutContent({
   return (
     <>
       {shouldDisplayNav && (
-        <DesktopNav className="top-0 hidden w-20 shrink-0 flex-col items-start sm:flex" />
+        <DesktopNav className="top-0 flex-col items-start hidden w-20 shrink-0 sm:flex" />
       )}
 
       <Box

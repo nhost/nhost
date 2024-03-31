@@ -91,7 +91,7 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
   // Return a default project if working locally
   if (!isPlatform) {
     const localProject: Project = {
-      id: 'local',
+      id: '00000000-0000-0000-0000-000000000000',
       slug: 'local',
       name: 'local',
       appStates: [
