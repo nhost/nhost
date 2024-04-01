@@ -2,11 +2,11 @@ import Image from 'next/image'
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
-  title: 'Link multiple authentication providers to user accounts',
+  title: 'Connect social authentication providers to user accounts',
   description:
-    'Learn how you can allow your users to sign in to your app using multiple authentication providers',
+    'Learn how you can allow your users to connect additional social authentication providers, even if they initially registered with a different email address',
   image: '/images/blog/connect-with-social-providers/banner.png',
-  date: '2024-04-25',
+  date: '2024-04-02',
   authors: [
     {
       name: 'Hassan Ben Jobrane',
@@ -20,9 +20,9 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-You can now allow users to sign in to your app using multiple authentication providers by linking it to an existing user account. Users are identifiable by the same user ID regardless of the authentication provider they used to sign in. For example, a user who signed in with a password can link a GitHub account and sign in with both in the future. In a few easy steps you can enable this in your app.
+You can now allow existing users to connect different social logins to their account and use them alongside any other authentication mechanism, even if the email doesn't match the one they signed up with on your app. Users maintain the same user ID regardless of the authentication method they use. For instance, a user who initially signed in with a password can effortlessly link a GitHub account and utilize both for future logins. With just a few simple steps, you can seamlessly integrate this feature into your app.
 
-## 1. Enable the social auth provider you want your users to be able to link to their account
+## 1. Enable the social auth provider you want your users to be able to connect to their account
 
 For example in the screenshot below we enable Signin with GitHub which you can find when you click on **Sign-In Methods** under Settings.
 
@@ -135,4 +135,4 @@ export const Profile: React.FC = () => {
 
 ### Wrap up
 
-To enable additional social authentication providers like Facebook, Google, or LinkedIn, simply enable them in your app's dashboard settings. Afterwards, use our SDKs to generate the appropriate link for each provider, ensuring seamless integration. This allows for a diverse array of sign-in options, enhancing user accessibility and convenience.
+By following the steps outlined above, you can enable your users to connect their account with an authentication provider. This proves to be incredibly valuable when integrating features into your app that depend on using the authentication provider's APIs. With this feature, you can alleviate concerns about users having signed up with a different email previously.
