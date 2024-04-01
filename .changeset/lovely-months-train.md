@@ -2,4 +2,4 @@
 '@nhost/dashboard': minor
 ---
 
-fix: dashboard: fix SQL editor "Track this"
+fix: "Track this" option within the SQL editor now correctly updates the metadata
