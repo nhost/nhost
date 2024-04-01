@@ -14,7 +14,7 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.5",
+    "@apollo/client": "^3.9.9",
     "@mdi/font": "5.9.55",
     "@nhost/apollo": "workspace:^",
     "@nhost/nhost-js": "workspace:^",
@@ -37,7 +37,7 @@
     "@xstate/inspect": "^0.6.5",
     "sass": "1.32.0",
     "typescript": "4.9.4",
-    "vite": "^5.1.4",
+    "vite": "^5.2.7",
     "vue-tsc": "^0.38.9"
   },
   "eslintConfig": {

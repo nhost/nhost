@@ -11,7 +11,7 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.5",
+    "@apollo/client": "^3.9.9",
     "@nhost/apollo": "workspace:^",
     "@nhost/vue": "workspace:^",
     "@vue/apollo-composable": "4.0.0-alpha.18",
@@ -23,11 +23,11 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.23.1",
-    "@iconify-json/carbon": "^1.1.30",
-    "@types/node": "^16.18.86",
+    "@iconify-json/carbon": "^1.1.31",
+    "@types/node": "^16.18.93",
     "@unocss/reset": "^0.33.5",
     "@vitejs/plugin-vue": "^4.6.2",
-    "@vue/test-utils": "^2.4.4",
+    "@vue/test-utils": "^2.4.5",
     "eslint": "^8.57.0",
     "jsdom": "^19.0.0",
     "pnpm": "^7.33.7",
@@ -35,7 +35,7 @@
     "unocss": "^0.33.5",
     "unplugin-auto-import": "^0.17.5",
     "unplugin-vue-components": "^0.26.0",
-    "vite": "^5.1.4",
+    "vite": "^5.2.7",
     "vite-plugin-pages": "^0.28.0",
     "vue-tsc": "^0.38.9"
   }
