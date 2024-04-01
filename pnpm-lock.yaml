@@ -42,6 +42,10 @@ overrides:
   semver@>=7.0.0 <7.5.2: '>=7.5.2'
   follow-redirects@>1.15.6: '>=1.15.6'
   webpack-dev-middleware@<=5.3.3: '>=5.3.4'
+  katex@>=0.11.0 <0.16.10: '>=0.16.10'
+  katex@>=0.15.4 <0.16.10: '>=0.16.10'
+  katex@>=0.10.0-beta <0.16.10: '>=0.16.10'
+  express@<4.19.2: '>=4.19.2'
 
 importers:
 
@@ -819,8 +823,8 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       express:
-        specifier: ^4.18.3
-        version: 4.18.3
+        specifier: '>=4.19.2'
+        version: 4.19.2
       typescript:
         specifier: ^4.9.5
         version: 4.9.5
@@ -7098,7 +7102,7 @@ packages:
       '@octokit/rest': 19.0.13
       chalk: 5.3.0
       chokidar: 3.6.0
-      express: 4.18.3
+      express: 4.19.2
       fs-extra: 11.2.0
       got: 13.0.0
       gray-matter: 4.0.3
@@ -9508,7 +9512,7 @@ packages:
       babel-plugin-polyfill-corejs3: 0.1.7(@babel/core@7.24.0)
       chalk: 4.1.2
       core-js: 3.36.0
-      express: 4.18.3
+      express: 4.19.2
       file-system-cache: 1.1.0
       find-up: 5.0.0
       fork-ts-checker-webpack-plugin: 6.5.3(eslint@8.57.0)(typescript@4.9.5)(webpack@4.47.0)
@@ -9666,7 +9670,7 @@ packages:
       chalk: 4.1.2
       core-js: 3.36.0
       css-loader: 5.2.7(webpack@5.90.3)
-      express: 4.18.3
+      express: 4.19.2
       find-up: 5.0.0
       fs-extra: 9.1.0
       html-webpack-plugin: 5.6.0(webpack@5.90.3)
@@ -11477,7 +11481,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.23.3(@babel/core@7.24.0)
       magic-string: 0.27.0
       react-refresh: 0.14.0
-      vite: 5.1.4(@types/node@16.18.86)(sass@1.32.0)
+      vite: 5.1.4(@types/node@18.19.21)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -14158,6 +14162,11 @@ packages:
     engines: {node: '>= 0.6'}
     dev: true
 
+  /cookie@0.6.0:
+    resolution: {integrity: sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw==}
+    engines: {node: '>= 0.6'}
+    dev: true
+
   /cookies-next@3.0.0:
     resolution: {integrity: sha512-VaSrsjQJ8yHnGAGulV9zJxBr7hrKJ/O2mo87evsGIMF7XvJI3AJNguevotx0Gek1MMMBkZvZNWu2JueSNoSKEQ==}
     dependencies:
@@ -16618,8 +16627,8 @@ packages:
       jest-util: 29.7.0
     dev: true
 
-  /express@4.18.3:
-    resolution: {integrity: sha512-6VyCijWQ+9O7WuVMTRBTl+cjNNIzD5cY5mQ1WM8r/LEkI2u8EYpOotESNwzNlyCn3g+dmjKYI6BmNneSr/FSRw==}
+  /express@4.19.2:
+    resolution: {integrity: sha512-5T6nhjsT+EOMzuck8JjBHARTHfMht0POzlA60WV2pMD3gyXw2LZnZ+ueGdNxG+0calOJcWKbpFcuzLZ91YWq9Q==}
     engines: {node: '>= 0.10.0'}
     dependencies:
       accepts: 1.3.8
@@ -16627,7 +16636,7 @@ packages:
       body-parser: 1.20.2
       content-disposition: 0.5.4
       content-type: 1.0.5
-      cookie: 0.5.0
+      cookie: 0.6.0
       cookie-signature: 1.0.6
       debug: 2.6.9
       depd: 2.0.0
@@ -19738,8 +19747,8 @@ packages:
   /jwt-decode@3.1.2:
     resolution: {integrity: sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==}
 
-  /katex@0.16.9:
-    resolution: {integrity: sha512-fsSYjWS0EEOwvy81j3vRA8TEAhQhKiqO+FQaKWp0m39qwOzHVBgAUBIXWj1pB+O2W3fIpNa6Y9KSKCVbfPhyAQ==}
+  /katex@0.16.10:
+    resolution: {integrity: sha512-ZiqaC04tp2O5utMsl2TEZTXxa6WSC4yo0fv5ML++D3QZv/vx2Mct0mTlRx3O+uUkjfuAgOkzsCmq5MiUEsDDdA==}
     hasBin: true
     dependencies:
       commander: 8.3.0
@@ -21061,7 +21070,7 @@ packages:
     resolution: {integrity: sha512-es0CcOV89VNS9wFmyn+wyFTKweXGW4CEvdaAca6SWRWPyYCbBisnjaHLjWO4Nszuiud84jCpkHsqAJoa768Pvg==}
     dependencies:
       '@types/katex': 0.16.7
-      katex: 0.16.9
+      katex: 0.16.10
       micromark-factory-space: 1.1.0
       micromark-util-character: 1.2.0
       micromark-util-symbol: 1.1.0
@@ -21521,6 +21530,7 @@ packages:
   /mime@1.6.0:
     resolution: {integrity: sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==}
     engines: {node: '>=4'}
+    hasBin: true
     dev: true
 
   /mimic-fn@2.1.0:
@@ -24104,7 +24114,7 @@ packages:
       '@types/katex': 0.14.0
       hast-util-from-html-isomorphic: 1.0.0
       hast-util-to-text: 3.1.2
-      katex: 0.16.9
+      katex: 0.16.10
       unist-util-visit: 4.1.2
     dev: true
 
