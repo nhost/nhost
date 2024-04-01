@@ -182,7 +182,7 @@ export default function useRunSQL(
   };
 
   const trackAll = async (objects: any[]): Promise<Response[]> => {
-    const apiPath = isPlatform ? '/v1/query' : '/apis/migrate';
+    const apiPath = isPlatform ? '/v1/metadata' : '/apis/migrate';
     const responses: Response[] = await Promise.all(
       objects.map((object) =>
         fetch(`${appUrl}${apiPath}`, {
