@@ -2,12 +2,11 @@ import { useState } from 'react'
 import { FaMinus } from 'react-icons/fa'
 import { RemoveSecurityKeyMutation, SecurityKeysQuery } from 'src/generated'
 
-import { ApolloError, useApolloClient, useMutation } from '@apollo/client'
+import { ApolloError, useApolloClient, useMutation, useQuery } from '@apollo/client'
 import { ActionIcon, Button, Card, SimpleGrid, Table, TextInput, Title } from '@mantine/core'
 import { useInputState } from '@mantine/hooks'
 import { showNotification } from '@mantine/notifications'
 import { useAddSecurityKey, useUserId } from '@nhost/react'
-import { useAuthQuery } from '@nhost/react-apollo'
 import { REMOVE_SECURITY_KEY, SECURITY_KEYS_LIST } from 'src/utils'
 
 export const SecurityKeys: React.FC = () => {
@@ -18,7 +17,7 @@ export const SecurityKeys: React.FC = () => {
   const [nickname, setNickname] = useInputState('')
   const [list, setList] = useState<{ id: string; nickname?: string | null }[]>([])
 
-  useAuthQuery<SecurityKeysQuery>(SECURITY_KEYS_LIST, {
+  useQuery<SecurityKeysQuery>(SECURITY_KEYS_LIST, {
     variables: { userId },
     onCompleted: ({ authUserSecurityKeys }) => {
       if (authUserSecurityKeys) {
