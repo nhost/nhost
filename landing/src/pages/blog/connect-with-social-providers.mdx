@@ -66,28 +66,24 @@ const { github } = useProviderLink({
 
 ## 3. Verify that the provider was added to the user's account
 
-To verify that the provider was linked to the user's account we just need to query the `user_providers` table using the `useQuery` hook exported from `@apollo/client`. PS. make sure to install the apollo client package by running `npm install @apollo/client`.
+To verify that the provider was linked to the user's account we just need to query the `user_providers` table.
 
-```tsx
-import { useQuery } from '@apollo/client'
-
-const {
-  data: { authUserProviders },
-} = useQuery(gql`
-  query getAuthUserProviders {
-    authUserProviders {
-      id
-      providerId
+```ts
+const { error, data } = await nhost.graphql.request(
+  gql`
+    query getAuthUserProviders {
+      authUserProviders {
+        id
+        providerId
+      }
     }
-  }
-`)
-
-const isGithubLinked = authUserProviders?.some(
-  (item: { providerId: string }) => item.providerId === 'github',
+  `,
 )
 
 console.log({
-  isGithubConnected,
+  isGitHubConnected: data?.authUserProviders?.some(
+    (item) => item.providerId === 'github',
+  ),
 })
 ```
 
@@ -97,33 +93,48 @@ Here's what an example page in React looks like after following the steps above.
 
 ```tsx
 import React from 'react'
-import { useProviderLink } from '@nhost/react'
-import { useQuery } from '@apollo/client'
+import { useProviderLink, useNhostClient } from '@nhost/react'
 
 export const Profile: React.FC = () => {
+  const userId = useUserId()
+  const nhost = useNhostClient()
+  const [isGitHubConnected, setIsGitHubConnected] = useState(false)
+
   const { github } = useProviderLink({
     connect: true,
     redirectTo: `${window.location.origin}/profile`,
   })
 
-  const {
-    data: { authUserProviders },
-  } = useQuery(gql`
-    query getAuthUserProviders {
-      authUserProviders {
-        id
-        providerId
+  useEffect(() => {
+    const getSecurityKeys = async () => {
+      const { error, data } = await nhost.graphql.request<{
+        authUserProviders: AuthUserProviders[]
+      }>(
+        gql`
+          query getAuthUserProviders {
+            authUserProviders {
+              id
+              providerId
+            }
+          }
+        `,
+      )
+
+      if (!error) {
+        setIsGitHubConnected(
+          data?.authUserProviders?.some(
+            (item: AuthUserProviders) => item.providerId === 'github',
+          ),
+        )
       }
     }
-  `)
 
-  const isGithubLinked = authUserProviders?.some(
-    (item: { providerId: string }) => item.providerId === 'github',
-  )
+    getSecurityKeys()
+  }, [nhost])
 
   return (
     <div>
-      {isGithubConnected ? (
+      {isGitHubConnected ? (
         <span>GitHub connected</span>
       ) : (
         <a href={github}>Connect with GitHub</a>
