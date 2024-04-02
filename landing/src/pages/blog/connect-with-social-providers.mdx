@@ -1,0 +1,149 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Connect social authentication providers to user accounts',
+  description:
+    'Learn how you can allow your users to connect additional social authentication providers, even if they initially registered with a different email address',
+  image: '/images/blog/connect-with-social-providers/banner.png',
+  date: '2024-04-02',
+  authors: [
+    {
+      name: 'Hassan Ben Jobrane',
+      title: 'Software Engineer',
+      avatarUrl: '/images/avatars/hassan.png',
+      url: 'https://twitter.com/_onehassan',
+    },
+  ],
+  tags: ['Product', 'Auth'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+You can now allow existing users to connect different social logins to their account and use them alongside any other authentication mechanism, even if the email doesn't match the one they signed up with on your app. Users maintain the same user ID regardless of the authentication method they use. For instance, a user who initially signed in with a password can effortlessly link a GitHub account and utilize both for future logins. With just a few simple steps, you can seamlessly integrate this feature into your app.
+
+## 1. Enable the authentication provider
+
+The first thing you have to do, is enable the authentication provider you want your users to be able to connect to. For example, in the screenshot below we enable sign-in with GitHub which you can find when you click on [**Sign-In Methods**](https://app.nhost.io/_/_/settings/sign-in-methods).
+
+<img
+  src="/images/blog/connect-with-social-providers/enable-github-signin.png"
+  alt="Enable Sign-In with GitHub"
+/>
+
+## 2. Generate the link from our SDK's
+
+With the provider configured, you can use our SDK to redirect the user to **hasura-auth** to communicate with the authentication provider.
+
+The following is an example of how to do that with React.
+
+```tsx
+import React from 'react'
+import { useProviderLink } from '@nhost/react'
+
+export const Profile: React.FC = () => {
+  const { github } = useProviderLink({
+    connect: true,
+    redirectTo: `${window.location.origin}/profile`,
+  })
+
+  return (
+    <div>
+      <a href={github}>Connect with GitHub</a>
+    </div>
+  )
+}
+```
+
+Notice we've added a new paramater that you must pass to the `useProviderLink` hook to generate the right link.
+
+```diff
+const { github } = useProviderLink({
++  connect: true,
+  redirectTo: `${window.location.origin}/profile`,
+})
+```
+
+## 3. Verify that the provider was added to the user's account
+
+To verify that the provider was linked to the user's account we just need to query the `user_providers` table.
+
+```ts
+const { error, data } = await nhost.graphql.request(
+  gql`
+    query getAuthUserProviders {
+      authUserProviders {
+        id
+        providerId
+      }
+    }
+  `,
+)
+
+console.log({
+  isGitHubConnected: data?.authUserProviders?.some(
+    (item) => item.providerId === 'github',
+  ),
+})
+```
+
+## 4. Putting it all together
+
+Here's what an example page in React looks like after following the steps above. Now we just need to check if the user has already connected their GitHub account and only show the link otherwise.
+
+```tsx
+import React from 'react'
+import { useProviderLink, useNhostClient } from '@nhost/react'
+
+export const Profile: React.FC = () => {
+  const userId = useUserId()
+  const nhost = useNhostClient()
+  const [isGitHubConnected, setIsGitHubConnected] = useState(false)
+
+  const { github } = useProviderLink({
+    connect: true,
+    redirectTo: `${window.location.origin}/profile`,
+  })
+
+  useEffect(() => {
+    const getSecurityKeys = async () => {
+      const { error, data } = await nhost.graphql.request<{
+        authUserProviders: AuthUserProviders[]
+      }>(
+        gql`
+          query getAuthUserProviders {
+            authUserProviders {
+              id
+              providerId
+            }
+          }
+        `,
+      )
+
+      if (!error) {
+        setIsGitHubConnected(
+          data?.authUserProviders?.some(
+            (item: AuthUserProviders) => item.providerId === 'github',
+          ),
+        )
+      }
+    }
+
+    getSecurityKeys()
+  }, [nhost])
+
+  return (
+    <div>
+      {isGitHubConnected ? (
+        <span>GitHub connected</span>
+      ) : (
+        <a href={github}>Connect with GitHub</a>
+      )}
+    </div>
+  )
+}
+```
+
+### Wrap up
+
+By following the steps outlined above, you can enable your users to connect their account with an authentication provider. This proves to be incredibly valuable when integrating features into your app that depend on using the authentication provider's APIs. With this feature, you can alleviate concerns about users having signed up with a different email previously.
