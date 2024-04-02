@@ -22,9 +22,9 @@ export default (props) => <BlogPostLayout article={article} {...props} />
 
 You can now allow existing users to connect different social logins to their account and use them alongside any other authentication mechanism, even if the email doesn't match the one they signed up with on your app. Users maintain the same user ID regardless of the authentication method they use. For instance, a user who initially signed in with a password can effortlessly link a GitHub account and utilize both for future logins. With just a few simple steps, you can seamlessly integrate this feature into your app.
 
-## 1. Enable the social auth provider you want your users to be able to connect to their account
+## 1. Enable the authentication provider
 
-For example in the screenshot below we enable Signin with GitHub which you can find when you click on **Sign-In Methods** under Settings.
+The first thing you have to do, is enable the authentication provider you want your users to be able to connect to. For example, in the screenshot below we enable sign-in with GitHub which you can find when you click on [**Sign-In Methods**](https://app.nhost.io/_/_/settings/sign-in-methods).
 
 <img
   src="/images/blog/connect-with-social-providers/enable-github-signin.png"
@@ -33,7 +33,7 @@ For example in the screenshot below we enable Signin with GitHub which you can f
 
 ## 2. Generate the link from our SDK's
 
-Once that's done, you just need to use our SDK to redirect the user to **hasura-auth** to communicate with the authentication provider.
+With the provider configured, you can use our SDK to redirect the user to **hasura-auth** to communicate with the authentication provider.
 
 The following is an example of how to do that with React.
 
@@ -66,14 +66,14 @@ const { github } = useProviderLink({
 
 ## 3. Verify that the provider was added to the user's account
 
-To verify that the provider was linked to the user's account we just need to query the `user_providers` table using the custom hook `useAuthQuery` exported from our React Apollo integration package. PS. make sure to install `@nhost/react-apollo` by running `npm install @nhost/react-apollo`.
+To verify that the provider was linked to the user's account we just need to query the `user_providers` table using the `useQuery` hook exported from `@apollo/client`. PS. make sure to install the apollo client package by running `npm install @apollo/client`.
 
 ```tsx
-import { useAuthQuery } from '@nhost/react-apollo'
+import { useQuery } from '@apollo/client'
 
 const {
   data: { authUserProviders },
-} = useAuthQuery(gql`
+} = useQuery(gql`
   query getAuthUserProviders {
     authUserProviders {
       id
@@ -93,12 +93,12 @@ console.log({
 
 ## 4. Putting it all together
 
-Here's what an example page in React looks like after following the steps above. Now we just to check if the user has already connected their github account and only show the link otherwise.
+Here's what an example page in React looks like after following the steps above. Now we just need to check if the user has already connected their GitHub account and only show the link otherwise.
 
 ```tsx
 import React from 'react'
 import { useProviderLink } from '@nhost/react'
-import { useAuthQuery } from '@nhost/react-apollo'
+import { useQuery } from '@apollo/client'
 
 export const Profile: React.FC = () => {
   const { github } = useProviderLink({
@@ -108,7 +108,7 @@ export const Profile: React.FC = () => {
 
   const {
     data: { authUserProviders },
-  } = useAuthQuery(gql`
+  } = useQuery(gql`
     query getAuthUserProviders {
       authUserProviders {
         id
