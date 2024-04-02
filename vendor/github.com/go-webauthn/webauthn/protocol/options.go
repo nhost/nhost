@@ -184,7 +184,7 @@ const (
 )
 
 func (a *PublicKeyCredentialRequestOptions) GetAllowedCredentialIDs() [][]byte {
-	allowedCredentialIDs := make([][]byte, len(a.AllowedCredentials))
+	var allowedCredentialIDs = make([][]byte, len(a.AllowedCredentials))
 
 	for i, credential := range a.AllowedCredentials {
 		allowedCredentialIDs[i] = credential.CredentialID
