@@ -55,7 +55,7 @@
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
     "isomorphic-unfetch": "^3.1.0",
-    "jose": "^5.2.2"
+    "jose": "^5.2.3"
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
