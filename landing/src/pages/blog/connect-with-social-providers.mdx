@@ -107,9 +107,7 @@ export const Profile: React.FC = () => {
 
   useEffect(() => {
     const getSecurityKeys = async () => {
-      const { error, data } = await nhost.graphql.request<{
-        authUserProviders: AuthUserProviders[]
-      }>(
+      const { error, data } = await nhost.graphql.request(
         gql`
           query getAuthUserProviders {
             authUserProviders {
@@ -122,9 +120,7 @@ export const Profile: React.FC = () => {
 
       if (!error) {
         setIsGitHubConnected(
-          data?.authUserProviders?.some(
-            (item: AuthUserProviders) => item.providerId === 'github',
-          ),
+          data?.authUserProviders?.some((item) => item.providerId === 'github'),
         )
       }
     }
