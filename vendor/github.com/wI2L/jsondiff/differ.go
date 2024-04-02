@@ -9,14 +9,15 @@ import (
 // A Differ generates JSON Patch (RFC 6902).
 // The zero value is an empty generator ready to use.
 type Differ struct {
-	hashmap        map[uint64]jsonNode
-	opts           options
-	patch          Patch
-	targetBytes    []byte
-	ptr            pointer
-	hasher         hasher
-	isCompact      bool
-	compactInPlace bool
+	hashmap          map[uint64]jsonNode
+	opts             options
+	patch            Patch
+	snapshotPatchLen int
+	targetBytes      []byte
+	ptr              pointer
+	hasher           hasher
+	isCompact        bool
+	compactInPlace   bool
 }
 
 type (
@@ -264,7 +265,7 @@ func (d *Differ) compareObjects(ptr pointer, src, tgt map[string]interface{}, do
 			}
 		case !inOld && inNew:
 			if !d.isIgnored(ptr) {
-				d.add(ptr.copy(), tgt[k], doc)
+				d.add(ptr.copy(), tgt[k], doc, false)
 			}
 		}
 		ptr.rewind()
@@ -321,7 +322,7 @@ comparisons:
 		for i := ml; i < tl; i++ {
 			ptr.appendIndex(i)
 			if !d.isIgnored(ptr) {
-				d.add(p, tgt[i], doc)
+				d.add(p, tgt[i], doc, false)
 			}
 			ptr.rewind()
 		}
@@ -331,6 +332,7 @@ comparisons:
 func (d *Differ) compareArraysLCS(ptr pointer, src, tgt []interface{}, doc string) {
 	ptr.snapshot()
 	pairs := lcs(src, tgt)
+	d.snapshotPatchLen = len(d.patch)
 
 	var ai, bi int // src && tgt arrows
 	var add, remove int
@@ -380,7 +382,7 @@ func (d *Differ) compareArraysLCS(ptr pointer, src, tgt []interface{}, doc strin
 				// Opposite case of the previous condition.
 				ptr.appendIndex(bi)
 				if !d.isIgnored(ptr) {
-					d.add(ptr.copy(), tgt[bi], doc)
+					d.add(ptr.copy(), tgt[bi], doc, true)
 				}
 				ptr.rewind()
 				bi++
@@ -421,7 +423,7 @@ func (d *Differ) compareArraysLCS(ptr pointer, src, tgt []interface{}, doc strin
 		default: // bi < len(tgt)
 			ptr.appendIndex(bi)
 			if !d.isIgnored(ptr) {
-				d.add(ptr.copy(), tgt[bi], doc)
+				d.add(ptr.copy(), tgt[bi], doc, true)
 			}
 			ptr.rewind()
 			bi++
@@ -463,7 +465,7 @@ func (d *Differ) replace(path string, src, tgt interface{}, doc string) {
 	d.patch = d.patch.append(OperationReplace, emptyPointer, path, src, tgt, vl)
 }
 
-func (d *Differ) add(path string, v interface{}, doc string) {
+func (d *Differ) add(path string, v interface{}, doc string, lcs bool) {
 	if !d.opts.factorize {
 		d.patch = d.patch.append(OperationAdd, emptyPointer, path, nil, v, 0)
 		return
@@ -478,7 +480,11 @@ func (d *Differ) add(path string, v interface{}, doc string) {
 		// be moved into one of its children.
 		if !strings.HasPrefix(path, op.Path) {
 			d.patch = d.patch.remove(idx)
-			d.patch = d.patch.append(OperationMove, op.Path, path, v, v, 0)
+			if !lcs {
+				d.patch = d.patch.append(OperationMove, op.Path, path, v, v, 0)
+			} else {
+				d.patch = d.patch.prepend(d.snapshotPatchLen, OperationMove, op.Path, path, v, v, 0)
+			}
 		}
 		return
 	}

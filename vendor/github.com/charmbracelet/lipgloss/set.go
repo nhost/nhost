@@ -115,7 +115,7 @@ func (s Style) Height(i int) Style {
 //
 // With one argument, the position value is applied to the horizontal alignment.
 //
-// With two arguments, the value is applied to the vertical and horizontal
+// With two arguments, the value is applied to the horizontal and vertical
 // alignments, in that order.
 func (s Style) Align(p ...Position) Style {
 	if len(p) > 0 {
@@ -541,6 +541,18 @@ func (s Style) UnderlineSpaces(v bool) Style {
 // underlining the text itself.
 func (s Style) StrikethroughSpaces(v bool) Style {
 	s.set(strikethroughSpacesKey, v)
+	return s
+}
+
+// Transform applies a given function to a string at render time, allowing for
+// the string being rendered to be manipuated.
+//
+// Example:
+//
+//	s := NewStyle().Transform(strings.ToUpper)
+//	fmt.Println(s.Render("raow!") // "RAOW!"
+func (s Style) Transform(fn func(string) string) Style {
+	s.set(transformKey, fn)
 	return s
 }
 

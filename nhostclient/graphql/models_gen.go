@@ -1637,6 +1637,64 @@ type AuthRefreshTokensStreamCursorValueInput struct {
 	UserID    *string                    `json:"userId,omitempty"`
 }
 
+// Active providers for a given user. Don't modify its structure as Hasura Auth relies on it to function properly.
+type AuthUserProviders struct {
+	ID         string `json:"id"`
+	ProviderID string `json:"providerId"`
+	// An object relationship
+	User Users `json:"user"`
+}
+
+// order by aggregate values of table "auth.user_providers"
+type AuthUserProvidersAggregateOrderBy struct {
+	Count *OrderBy                     `json:"count,omitempty"`
+	Max   *AuthUserProvidersMaxOrderBy `json:"max,omitempty"`
+	Min   *AuthUserProvidersMinOrderBy `json:"min,omitempty"`
+}
+
+// Boolean expression to filter rows from the table "auth.user_providers". All fields are combined with a logical 'AND'.
+type AuthUserProvidersBoolExp struct {
+	And        []*AuthUserProvidersBoolExp `json:"_and,omitempty"`
+	Not        *AuthUserProvidersBoolExp   `json:"_not,omitempty"`
+	Or         []*AuthUserProvidersBoolExp `json:"_or,omitempty"`
+	ID         *UUIDComparisonExp          `json:"id,omitempty"`
+	ProviderID *StringComparisonExp        `json:"providerId,omitempty"`
+	User       *UsersBoolExp               `json:"user,omitempty"`
+}
+
+// order by max() on columns of table "auth.user_providers"
+type AuthUserProvidersMaxOrderBy struct {
+	ID         *OrderBy `json:"id,omitempty"`
+	ProviderID *OrderBy `json:"providerId,omitempty"`
+}
+
+// order by min() on columns of table "auth.user_providers"
+type AuthUserProvidersMinOrderBy struct {
+	ID         *OrderBy `json:"id,omitempty"`
+	ProviderID *OrderBy `json:"providerId,omitempty"`
+}
+
+// Ordering options when selecting data from "auth.user_providers".
+type AuthUserProvidersOrderBy struct {
+	ID         *OrderBy      `json:"id,omitempty"`
+	ProviderID *OrderBy      `json:"providerId,omitempty"`
+	User       *UsersOrderBy `json:"user,omitempty"`
+}
+
+// Streaming cursor of the table "authUserProviders"
+type AuthUserProvidersStreamCursorInput struct {
+	// Stream column input with initial value
+	InitialValue AuthUserProvidersStreamCursorValueInput `json:"initial_value"`
+	// cursor ordering
+	Ordering *CursorOrdering `json:"ordering,omitempty"`
+}
+
+// Initial value of the column from where the streaming should start
+type AuthUserProvidersStreamCursorValueInput struct {
+	ID         *string `json:"id,omitempty"`
+	ProviderID *string `json:"providerId,omitempty"`
+}
+
 // columns and relationships of "backups"
 type Backups struct {
 	// An object relationship
@@ -3385,6 +3443,12 @@ type SubscriptionRoot struct {
 	AuthRefreshTokens []*AuthRefreshTokens `json:"authRefreshTokens"`
 	// fetch data from the table in a streaming manner: "auth.refresh_tokens"
 	AuthRefreshTokensStream []*AuthRefreshTokens `json:"authRefreshTokens_stream"`
+	// fetch data from the table: "auth.user_providers" using primary key columns
+	AuthUserProvider *AuthUserProviders `json:"authUserProvider,omitempty"`
+	// fetch data from the table: "auth.user_providers"
+	AuthUserProviders []*AuthUserProviders `json:"authUserProviders"`
+	// fetch data from the table in a streaming manner: "auth.user_providers"
+	AuthUserProvidersStream []*AuthUserProviders `json:"authUserProviders_stream"`
 	// fetch data from the table: "backups" using primary key columns
 	Backup *Backups `json:"backup,omitempty"`
 	// An array relationship
@@ -3545,6 +3609,8 @@ type Users struct {
 	// An aggregate relationship
 	RunServicesAggregate RunServiceAggregate `json:"runServices_aggregate"`
 	// An array relationship
+	UserProviders []*AuthUserProviders `json:"userProviders"`
+	// An array relationship
 	WorkspaceMemberInvitesByInvitedByUserID []*WorkspaceMemberInvites `json:"workspaceMemberInvitesByInvitedByUserId"`
 	// An array relationship
 	WorkspaceMembers []*WorkspaceMembers `json:"workspaceMembers"`
@@ -3569,6 +3635,7 @@ type UsersBoolExp struct {
 	RefreshTokens                           *AuthRefreshTokensBoolExp      `json:"refreshTokens,omitempty"`
 	RunServices                             *RunServiceBoolExp             `json:"runServices,omitempty"`
 	RunServicesAggregate                    *RunServiceAggregateBoolExp    `json:"runServices_aggregate,omitempty"`
+	UserProviders                           *AuthUserProvidersBoolExp      `json:"userProviders,omitempty"`
 	WorkspaceMemberInvitesByInvitedByUserID *WorkspaceMemberInvitesBoolExp `json:"workspaceMemberInvitesByInvitedByUserId,omitempty"`
 	WorkspaceMembers                        *WorkspaceMembersBoolExp       `json:"workspaceMembers,omitempty"`
 	WorkspaceMemberInvites                  *WorkspaceMemberInvitesBoolExp `json:"workspace_member_invites,omitempty"`
@@ -3595,6 +3662,7 @@ type UsersOrderBy struct {
 	PaymentMethodsAggregate                          *PaymentMethodsAggregateOrderBy         `json:"payment_methods_aggregate,omitempty"`
 	RefreshTokensAggregate                           *AuthRefreshTokensAggregateOrderBy      `json:"refreshTokens_aggregate,omitempty"`
 	RunServicesAggregate                             *RunServiceAggregateOrderBy             `json:"runServices_aggregate,omitempty"`
+	UserProvidersAggregate                           *AuthUserProvidersAggregateOrderBy      `json:"userProviders_aggregate,omitempty"`
 	WorkspaceMemberInvitesByInvitedByUserIDAggregate *WorkspaceMemberInvitesAggregateOrderBy `json:"workspaceMemberInvitesByInvitedByUserId_aggregate,omitempty"`
 	WorkspaceMembersAggregate                        *WorkspaceMembersAggregateOrderBy       `json:"workspaceMembers_aggregate,omitempty"`
 	WorkspaceMemberInvitesAggregate                  *WorkspaceMemberInvitesAggregateOrderBy `json:"workspace_member_invites_aggregate,omitempty"`
@@ -4642,6 +4710,50 @@ func (e *AuthRefreshTokensSelectColumn) UnmarshalGQL(v interface{}) error {
 }
 
 func (e AuthRefreshTokensSelectColumn) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// select columns of table "auth.user_providers"
+type AuthUserProvidersSelectColumn string
+
+const (
+	// column name
+	AuthUserProvidersSelectColumnID AuthUserProvidersSelectColumn = "id"
+	// column name
+	AuthUserProvidersSelectColumnProviderID AuthUserProvidersSelectColumn = "providerId"
+)
+
+var AllAuthUserProvidersSelectColumn = []AuthUserProvidersSelectColumn{
+	AuthUserProvidersSelectColumnID,
+	AuthUserProvidersSelectColumnProviderID,
+}
+
+func (e AuthUserProvidersSelectColumn) IsValid() bool {
+	switch e {
+	case AuthUserProvidersSelectColumnID, AuthUserProvidersSelectColumnProviderID:
+		return true
+	}
+	return false
+}
+
+func (e AuthUserProvidersSelectColumn) String() string {
+	return string(e)
+}
+
+func (e *AuthUserProvidersSelectColumn) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AuthUserProvidersSelectColumn(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid authUserProviders_select_column", str)
+	}
+	return nil
+}
+
+func (e AuthUserProvidersSelectColumn) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

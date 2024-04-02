@@ -27,6 +27,8 @@ type QueryRoot struct {
 	Apps                           []*Apps                         "json:\"apps\" graphql:\"apps\""
 	AuthRefreshToken               *AuthRefreshTokens              "json:\"authRefreshToken,omitempty\" graphql:\"authRefreshToken\""
 	AuthRefreshTokens              []*AuthRefreshTokens            "json:\"authRefreshTokens\" graphql:\"authRefreshTokens\""
+	AuthUserProvider               *AuthUserProviders              "json:\"authUserProvider,omitempty\" graphql:\"authUserProvider\""
+	AuthUserProviders              []*AuthUserProviders            "json:\"authUserProviders\" graphql:\"authUserProviders\""
 	Backup                         *Backups                        "json:\"backup,omitempty\" graphql:\"backup\""
 	Backups                        []*Backups                      "json:\"backups\" graphql:\"backups\""
 	BillingGetNextInvoice          *InvoiceSummary                 "json:\"billingGetNextInvoice,omitempty\" graphql:\"billingGetNextInvoice\""

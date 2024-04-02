@@ -22,7 +22,8 @@ First, get the latest version of the library using the following command:
 $ go get github.com/wI2L/jsondiff@latest
 ```
 
-:warning: Requires Go1.21+, due to the usage of the [`hash/maphash`](https://golang.org/pkg/hash/maphash/) package, and the `any/min/max` keyword/builtins.
+> [!IMPORTANT]
+> Requires Go1.21+, due to the usage of the [`hash/maphash`](https://golang.org/pkg/hash/maphash/) package, and the `any/min/max` keyword/builtins.
 
 ### Example use cases
 
@@ -140,7 +141,17 @@ For example, if your webhook mutate `Service` resources, a user could set the fi
 
 If more control over the diff behaviour is required, you can pass a variadic list of functional options as the third argument of the `Compare` and `CompareJSON` functions.
 
-Note that any combination of options can be used without issues.
+Note that any combination of options can be used without issues, ***unless specified***.
+
+**Table of contents**
+
+- [Factorization](#operations-factorization)
+- [Rationalization](#operations-rationalization)
+- [Invertible patch](#invertible-patch)
+- [Equivalence](#equivalence)
+- [LCS (array comparison)](#lcs-longest-common-subsequence)
+- [Ignores](#ignores)
+- [Marshal/Unmarshal functions](#marshalfunc--unmarshalfunc)
 
 #### Operations factorization
 
@@ -245,7 +256,7 @@ When the `Rationalize()` option is enabled, the package pre-process the JSON inp
 
 ##### In-place compaction
 
-By default, the package will not modify the JSON documents given to the `CompareJSON` function. Instead, a copy of the `target` byte slice argument is created and then compacted to remove insignificant spaces.
+By default, the package will not modify the JSON documents given to the `CompareJSON*` function. Instead, a copy of the `target` byte slice argument is created and then compacted to remove insignificant spaces.
 
 To avoid an extra allocation, you can use the `InPlaceCompaction()` option to allow the package to *take ownership* of the `target` byte slice and modify it directly. **Note that you should not update it concurrently with a call to the `CompareJSON*` functions.**
 
@@ -319,9 +330,10 @@ For such situations, you can use the `Equivalent()` option to instruct the diff 
 
 #### LCS (Longest Common Subsequence)
 
-:construction: *This is an new/experimental option, which might be promoted as the default behavior in the future*.
-
-:warning: **Do not use in conjunction with the `Factorize()` option, it will lead to unexpected results**.
+> [!WARNING]
+> This is a new/experimental option, which might be promoted as the default behavior in the future.
+> 
+> **Do not use in conjunction with the `Factorize()` option, it will lead to unexpected results**.
 
 The default algorithm used to compare arrays is naive and can generate a lot of operations. For example, if a single element located *in the middle* of the array is deleted, all items to its right will be shifted one position to the left, generating one `replace` operation per item.
 
@@ -329,7 +341,8 @@ The `LCS()` option instruct the diff generator to compute the [Longest common su
 
 #### Ignores
 
-:construction: *This option is experimental and might be revised in the future.*
+> [!WARNING]
+> This option is experimental and might be revised in the future.
 
 The `Ignores()` option allows to exclude one or more JSON fields/values from the *generated diff*. The fields must be identified using the JSON Pointer (RFC6901) string syntax.
 

@@ -220,7 +220,7 @@ pattern to the margin and padding shorthand functions.
 lipgloss.NewStyle().
     Border(lipgloss.ThickBorder(), true, false)
 
-// Add a thick border to the right and bottom sides. Rules are set clockwise
+// Add a double border to the top and left sides. Rules are set clockwise
 // from top.
 lipgloss.NewStyle().
     Border(lipgloss.DoubleBorder(), true, false, false, true)
@@ -461,7 +461,7 @@ fmt.Println(t)
 
 ![Table Example](https://github.com/charmbracelet/lipgloss/assets/42545625/6e4b70c4-f494-45da-a467-bdd27df30d5d)
 
-For more on tables see [the docs](https://pkg.go.dev/github.com/charmbracelet/lipgloss?tab=doc).
+For more on tables see [the docs](https://pkg.go.dev/github.com/charmbracelet/lipgloss?tab=doc) and [examples](https://github.com/charmbracelet/lipgloss/tree/master/examples/table).
 
 ***
 

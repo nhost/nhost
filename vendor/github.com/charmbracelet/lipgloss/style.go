@@ -73,6 +73,8 @@ const (
 	tabWidthKey
 	underlineSpacesKey
 	strikethroughSpacesKey
+
+	transformKey
 )
 
 // A set of properties.
@@ -225,6 +227,8 @@ func (s Style) Render(strs ...string) string {
 
 		// Do we need to style spaces separately?
 		useSpaceStyler = underlineSpaces || strikethroughSpaces
+
+		transform = s.getAsTransform(transformKey)
 	)
 
 	if len(s.rules) == 0 {
@@ -401,6 +405,10 @@ func (s Style) Render(strs ...string) string {
 		str = strings.Join(lines[:min(maxHeight, len(lines))], "\n")
 	}
 
+	if transform != nil {
+		return transform(str)
+	}
+
 	return str
 }
 
@@ -456,36 +464,23 @@ func (s Style) applyMargins(str string, inline bool) string {
 
 // Apply left padding.
 func padLeft(str string, n int, style *termenv.Style) string {
-	if n == 0 {
-		return str
-	}
-
-	sp := strings.Repeat(" ", n)
-	if style != nil {
-		sp = style.Styled(sp)
-	}
-
-	b := strings.Builder{}
-	l := strings.Split(str, "\n")
-
-	for i := range l {
-		b.WriteString(sp)
-		b.WriteString(l[i])
-		if i != len(l)-1 {
-			b.WriteRune('\n')
-		}
-	}
-
-	return b.String()
+	return pad(str, -n, style)
 }
 
 // Apply right padding.
 func padRight(str string, n int, style *termenv.Style) string {
-	if n == 0 || str == "" {
+	return pad(str, n, style)
+}
+
+// pad adds padding to either the left or right side of a string.
+// Positive values add to the right side while negative values
+// add to the left side.
+func pad(str string, n int, style *termenv.Style) string {
+	if n == 0 {
 		return str
 	}
 
-	sp := strings.Repeat(" ", n)
+	sp := strings.Repeat(" ", abs(n))
 	if style != nil {
 		sp = style.Styled(sp)
 	}
@@ -494,8 +489,17 @@ func padRight(str string, n int, style *termenv.Style) string {
 	l := strings.Split(str, "\n")
 
 	for i := range l {
-		b.WriteString(l[i])
-		b.WriteString(sp)
+		switch {
+		// pad right
+		case n > 0:
+			b.WriteString(l[i])
+			b.WriteString(sp)
+		// pad left
+		default:
+			b.WriteString(sp)
+			b.WriteString(l[i])
+		}
+
 		if i != len(l)-1 {
 			b.WriteRune('\n')
 		}
@@ -516,4 +520,12 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func abs(a int) int {
+	if a < 0 {
+		return -a
+	}
+
+	return a
 }
