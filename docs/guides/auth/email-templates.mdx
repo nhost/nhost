@@ -10,7 +10,7 @@ Nhost Auth sends out transactional emails as part of certain authentication work
 
 ## Customize your emails
 
-Email Templates are deployed as part of a [Deployment](/platform/deployments) so your project must be connected to a Git repository. 
+Email Templates are deployed as part of a [Deployment](/platform/deployments) so your project must be connected to a Git repository.
 
 <Check>Learn how to connect a [Git Repository](/platform/git) to your project</Check>
 
@@ -87,7 +87,7 @@ The following variables are available to all email templates:
 | `email`       | The email of the user                                                                                                             |
 | `locale`      | Locale of the user as a two-letter language code (e.g. "en")                                                                       |
 
-Variables can be referenced by enclosing them with `${}` as in the following example: 
+Variables can be referenced by enclosing them with `${}` as in the following example:
 
 ```html
 <h2>Verify You Email</h2>
@@ -99,3 +99,40 @@ Variables can be referenced by enclosing them with `${}` as in the following exa
 </p>
 ```
 
+# Postmark Integration
+
+Alternatively, you can use postmark's native integration and leverage postmark's templates. To do so, you need to:
+
+1. Configure SMTP settings like below:
+
+```toml
+[provider.smtp]
+host = 'postmark'
+password = '{{ secrets.POSTMARK_API_KEY }}'
+sender = 'myapp@mydomain.com'
+```
+
+<Warning>
+It is very important that the `host` is set exactly to `postmark`.
+</Warning>
+
+2. In postmark you need to create thre templates for each locale with the following alias:
+
+- $locale.email-change
+- $locale.email-verify
+- $locale.password-reset
+
+For instance:
+
+- en.email-change
+- en.email-verify
+- en.password-reset
+- se.email-change
+- se.email-verify
+- se.password-reset
+
+After these two steps have been completed, the Auth service will leverage these templates instead of the ones described in the previous section.
+
+<Note>
+Postmark templates should have access to the same variables as described [previously](#template-variables)
+</Note>
