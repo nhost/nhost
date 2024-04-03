@@ -128,6 +128,7 @@
             "guides/auth/social/sign-in-workos"
           ]
         },
+        "guides/auth/social-connect",
         "guides/auth/sign-in-email-password",
         "guides/auth/sign-in-magic-link",
         "guides/auth/sign-in-phone-number",
@@ -197,7 +198,7 @@
                 "reference/auth/verfiy-fido2-webauthn-authentication-and-complete-signup",
                 "reference/auth/sign-in-using-email-via-fido2-webauthn-authentication",
                 "reference/auth/verfiy-fido2-webauthn-authentication-using-public-key-cryptography",
-                "reference/auth/elevate-webauthn", 
+                "reference/auth/elevate-webauthn",
                 "reference/auth/elevate-webauthn-verify"
               ]
             },
