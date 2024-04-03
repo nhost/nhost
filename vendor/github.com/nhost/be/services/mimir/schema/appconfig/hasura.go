@@ -14,7 +14,14 @@ const (
 	secretHasuraWebhookSecret      = "webhookSecret"
 )
 
-func HasuraEnv( //nolint:funlen
+func deptr[T any](x *T) T {
+	if x == nil {
+		return *new(T)
+	}
+	return *x
+}
+
+func HasuraEnv( //nolint:funlen,maintidx
 	config *model.ConfigConfig,
 	subdomain,
 	region,
@@ -39,12 +46,6 @@ func HasuraEnv( //nolint:funlen
 			Name:       "HASURA_GRAPHQL_ADMIN_SECRET",
 			Value:      config.GetHasura().GetAdminSecret(),
 			SecretName: secretHasuraHasuraAdminSecret,
-			IsSecret:   true,
-		},
-		{
-			Name:       "HASURA_GRAPHQL_JWT_SECRET",
-			Value:      string(jwtSecret),
-			SecretName: secretHasuraJWTSecret,
 			IsSecret:   true,
 		},
 		{
@@ -134,12 +135,6 @@ func HasuraEnv( //nolint:funlen
 			SecretName: "",
 		},
 		{
-			Name:       "HASURA_GRAPHQL_UNAUTHORIZED_ROLE",
-			Value:      "public",
-			IsSecret:   false,
-			SecretName: "",
-		},
-		{
 			Name:       "HASURA_GRAPHQL_CORS_DOMAIN",
 			Value:      Stringify(config.GetHasura().GetSettings().CorsDomain),
 			IsSecret:   false,
@@ -159,12 +154,6 @@ func HasuraEnv( //nolint:funlen
 		},
 		{
 			Name:       "HASURA_GRAPHQL_ENABLE_TELEMETRY",
-			Value:      "false",
-			IsSecret:   false,
-			SecretName: "",
-		},
-		{
-			Name:       "HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES",
 			Value:      "false",
 			IsSecret:   false,
 			SecretName: "",
@@ -287,5 +276,44 @@ func HasuraEnv( //nolint:funlen
 			Value: e.Value,
 		})
 	}
+
+	if config.GetHasura().GetAuthHook() != nil {
+		env = append(env,
+			EnvVar{
+				Name:       "HASURA_GRAPHQL_AUTH_HOOK",
+				Value:      config.GetHasura().GetAuthHook().GetUrl(),
+				IsSecret:   false,
+				SecretName: "",
+			},
+			EnvVar{
+				Name:       "HASURA_GRAPHQL_AUTH_HOOK_MODE",
+				Value:      deptr(config.GetHasura().GetAuthHook().GetMode()),
+				IsSecret:   false,
+				SecretName: "",
+			},
+			EnvVar{
+				Name:       "HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY",
+				Value:      Stringify(deptr(config.GetHasura().GetAuthHook().SendRequestBody)),
+				IsSecret:   false,
+				SecretName: "",
+			},
+		)
+	} else {
+		env = append(env,
+			EnvVar{
+				Name:       "HASURA_GRAPHQL_UNAUTHORIZED_ROLE",
+				Value:      "public",
+				IsSecret:   false,
+				SecretName: "",
+			},
+			EnvVar{
+				Name:       "HASURA_GRAPHQL_JWT_SECRET",
+				Value:      string(jwtSecret),
+				SecretName: secretHasuraJWTSecret,
+				IsSecret:   true,
+			},
+		)
+	}
+
 	return env, nil
 }

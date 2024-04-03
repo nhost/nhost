@@ -10892,6 +10892,8 @@ type ConfigHasura struct {
 	// Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
 	Settings *ConfigHasuraSettings `json:"settings,omitempty" toml:"settings,omitempty"`
 
+	AuthHook *ConfigHasuraAuthHook `json:"authHook,omitempty" toml:"authHook,omitempty"`
+
 	Logs *ConfigHasuraLogs `json:"logs,omitempty" toml:"logs,omitempty"`
 
 	Events *ConfigHasuraEvents `json:"events,omitempty" toml:"events,omitempty"`
@@ -10911,6 +10913,9 @@ func (o *ConfigHasura) MarshalJSON() ([]byte, error) {
 	m["webhookSecret"] = o.WebhookSecret
 	if o.Settings != nil {
 		m["settings"] = o.Settings
+	}
+	if o.AuthHook != nil {
+		m["authHook"] = o.AuthHook
 	}
 	if o.Logs != nil {
 		m["logs"] = o.Logs
@@ -10959,6 +10964,13 @@ func (o *ConfigHasura) GetSettings() *ConfigHasuraSettings {
 	return o.Settings
 }
 
+func (o *ConfigHasura) GetAuthHook() *ConfigHasuraAuthHook {
+	if o == nil {
+		return nil
+	}
+	return o.AuthHook
+}
+
 func (o *ConfigHasura) GetLogs() *ConfigHasuraLogs {
 	if o == nil {
 		return nil
@@ -10991,6 +11003,8 @@ type ConfigHasuraUpdateInput struct {
 	IsSetWebhookSecret bool                             `json:"-"`
 	Settings           *ConfigHasuraSettingsUpdateInput `json:"settings,omitempty" toml:"settings,omitempty"`
 	IsSetSettings      bool                             `json:"-"`
+	AuthHook           *ConfigHasuraAuthHookUpdateInput `json:"authHook,omitempty" toml:"authHook,omitempty"`
+	IsSetAuthHook      bool                             `json:"-"`
 	Logs               *ConfigHasuraLogsUpdateInput     `json:"logs,omitempty" toml:"logs,omitempty"`
 	IsSetLogs          bool                             `json:"-"`
 	Events             *ConfigHasuraEventsUpdateInput   `json:"events,omitempty" toml:"events,omitempty"`
@@ -11084,6 +11098,16 @@ func (o *ConfigHasuraUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetSettings = true
 	}
+	if x, ok := m["authHook"]; ok {
+		if x != nil {
+			t := &ConfigHasuraAuthHookUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.AuthHook = t
+		}
+		o.IsSetAuthHook = true
+	}
 	if x, ok := m["logs"]; ok {
 		if x != nil {
 			t := &ConfigHasuraLogsUpdateInput{}
@@ -11160,6 +11184,13 @@ func (o *ConfigHasuraUpdateInput) GetSettings() *ConfigHasuraSettingsUpdateInput
 	return o.Settings
 }
 
+func (o *ConfigHasuraUpdateInput) GetAuthHook() *ConfigHasuraAuthHookUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.AuthHook
+}
+
 func (o *ConfigHasuraUpdateInput) GetLogs() *ConfigHasuraLogsUpdateInput {
 	if o == nil {
 		return nil
@@ -11220,6 +11251,16 @@ func (s *ConfigHasura) Update(v *ConfigHasuraUpdateInput) {
 			s.Settings.Update(v.Settings)
 		}
 	}
+	if v.IsSetAuthHook || v.AuthHook != nil {
+		if v.AuthHook == nil {
+			s.AuthHook = nil
+		} else {
+			if s.AuthHook == nil {
+				s.AuthHook = &ConfigHasuraAuthHook{}
+			}
+			s.AuthHook.Update(v.AuthHook)
+		}
+	}
 	if v.IsSetLogs || v.Logs != nil {
 		if v.Logs == nil {
 			s.Logs = nil
@@ -11258,6 +11299,7 @@ type ConfigHasuraInsertInput struct {
 	AdminSecret   string                           `json:"adminSecret,omitempty" toml:"adminSecret,omitempty"`
 	WebhookSecret string                           `json:"webhookSecret,omitempty" toml:"webhookSecret,omitempty"`
 	Settings      *ConfigHasuraSettingsInsertInput `json:"settings,omitempty" toml:"settings,omitempty"`
+	AuthHook      *ConfigHasuraAuthHookInsertInput `json:"authHook,omitempty" toml:"authHook,omitempty"`
 	Logs          *ConfigHasuraLogsInsertInput     `json:"logs,omitempty" toml:"logs,omitempty"`
 	Events        *ConfigHasuraEventsInsertInput   `json:"events,omitempty" toml:"events,omitempty"`
 	Resources     *ConfigResourcesInsertInput      `json:"resources,omitempty" toml:"resources,omitempty"`
@@ -11296,6 +11338,13 @@ func (o *ConfigHasuraInsertInput) GetSettings() *ConfigHasuraSettingsInsertInput
 		return nil
 	}
 	return o.Settings
+}
+
+func (o *ConfigHasuraInsertInput) GetAuthHook() *ConfigHasuraAuthHookInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.AuthHook
 }
 
 func (o *ConfigHasuraInsertInput) GetLogs() *ConfigHasuraLogsInsertInput {
@@ -11337,6 +11386,12 @@ func (s *ConfigHasura) Insert(v *ConfigHasuraInsertInput) {
 		}
 		s.Settings.Insert(v.Settings)
 	}
+	if v.AuthHook != nil {
+		if s.AuthHook == nil {
+			s.AuthHook = &ConfigHasuraAuthHook{}
+		}
+		s.AuthHook.Insert(v.AuthHook)
+	}
 	if v.Logs != nil {
 		if s.Logs == nil {
 			s.Logs = &ConfigHasuraLogs{}
@@ -11373,6 +11428,7 @@ func (s *ConfigHasura) Clone() *ConfigHasura {
 	v.AdminSecret = s.AdminSecret
 	v.WebhookSecret = s.WebhookSecret
 	v.Settings = s.Settings.Clone()
+	v.AuthHook = s.AuthHook.Clone()
 	v.Logs = s.Logs.Clone()
 	v.Events = s.Events.Clone()
 	v.Resources = s.Resources.Clone()
@@ -11388,6 +11444,7 @@ type ConfigHasuraComparisonExp struct {
 	AdminSecret   *ConfigStringComparisonExp         `json:"adminSecret,omitempty"`
 	WebhookSecret *ConfigStringComparisonExp         `json:"webhookSecret,omitempty"`
 	Settings      *ConfigHasuraSettingsComparisonExp `json:"settings,omitempty"`
+	AuthHook      *ConfigHasuraAuthHookComparisonExp `json:"authHook,omitempty"`
 	Logs          *ConfigHasuraLogsComparisonExp     `json:"logs,omitempty"`
 	Events        *ConfigHasuraEventsComparisonExp   `json:"events,omitempty"`
 	Resources     *ConfigResourcesComparisonExp      `json:"resources,omitempty"`
@@ -11402,6 +11459,7 @@ func (exp *ConfigHasuraComparisonExp) Matches(o *ConfigHasura) bool {
 		o = &ConfigHasura{
 			JwtSecrets: []*ConfigJWTSecret{},
 			Settings:   &ConfigHasuraSettings{},
+			AuthHook:   &ConfigHasuraAuthHook{},
 			Logs:       &ConfigHasuraLogs{},
 			Events:     &ConfigHasuraEvents{},
 			Resources:  &ConfigResources{},
@@ -11429,6 +11487,9 @@ func (exp *ConfigHasuraComparisonExp) Matches(o *ConfigHasura) bool {
 		return false
 	}
 	if !exp.Settings.Matches(o.Settings) {
+		return false
+	}
+	if !exp.AuthHook.Matches(o.AuthHook) {
 		return false
 	}
 	if !exp.Logs.Matches(o.Logs) {
@@ -11481,6 +11542,249 @@ func (exp *ConfigHasuraAPIsComparisonExp) Matches(o string) bool {
 	}
 
 	if exp.Nin != nil && contains(exp.Nin, o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigHasuraAuthHook struct {
+	// HASURA_GRAPHQL_AUTH_HOOK
+	Url string `json:"url" toml:"url"`
+
+	Mode *string `json:"mode" toml:"mode"`
+	// HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
+	SendRequestBody *bool `json:"sendRequestBody" toml:"sendRequestBody"`
+}
+
+func (o *ConfigHasuraAuthHook) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["url"] = o.Url
+	if o.Mode != nil {
+		m["mode"] = o.Mode
+	}
+	if o.SendRequestBody != nil {
+		m["sendRequestBody"] = o.SendRequestBody
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigHasuraAuthHook) GetUrl() string {
+	if o == nil {
+		o = &ConfigHasuraAuthHook{}
+	}
+	return o.Url
+}
+
+func (o *ConfigHasuraAuthHook) GetMode() *string {
+	if o == nil {
+		o = &ConfigHasuraAuthHook{}
+	}
+	return o.Mode
+}
+
+func (o *ConfigHasuraAuthHook) GetSendRequestBody() *bool {
+	if o == nil {
+		o = &ConfigHasuraAuthHook{}
+	}
+	return o.SendRequestBody
+}
+
+type ConfigHasuraAuthHookUpdateInput struct {
+	Url                  *string `json:"url,omitempty" toml:"url,omitempty"`
+	IsSetUrl             bool    `json:"-"`
+	Mode                 *string `json:"mode,omitempty" toml:"mode,omitempty"`
+	IsSetMode            bool    `json:"-"`
+	SendRequestBody      *bool   `json:"sendRequestBody,omitempty" toml:"sendRequestBody,omitempty"`
+	IsSetSendRequestBody bool    `json:"-"`
+}
+
+func (o *ConfigHasuraAuthHookUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["url"]; ok {
+		if v == nil {
+			o.Url = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Url = &x
+		}
+		o.IsSetUrl = true
+	}
+	if v, ok := m["mode"]; ok {
+		if v == nil {
+			o.Mode = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Mode = &x
+		}
+		o.IsSetMode = true
+	}
+	if v, ok := m["sendRequestBody"]; ok {
+		if v == nil {
+			o.SendRequestBody = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.SendRequestBody = &x
+		}
+		o.IsSetSendRequestBody = true
+	}
+
+	return nil
+}
+
+func (o *ConfigHasuraAuthHookUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigHasuraAuthHookUpdateInput) GetUrl() *string {
+	if o == nil {
+		o = &ConfigHasuraAuthHookUpdateInput{}
+	}
+	return o.Url
+}
+
+func (o *ConfigHasuraAuthHookUpdateInput) GetMode() *string {
+	if o == nil {
+		o = &ConfigHasuraAuthHookUpdateInput{}
+	}
+	return o.Mode
+}
+
+func (o *ConfigHasuraAuthHookUpdateInput) GetSendRequestBody() *bool {
+	if o == nil {
+		o = &ConfigHasuraAuthHookUpdateInput{}
+	}
+	return o.SendRequestBody
+}
+
+func (s *ConfigHasuraAuthHook) Update(v *ConfigHasuraAuthHookUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetUrl || v.Url != nil {
+		if v.Url != nil {
+			s.Url = *v.Url
+		}
+	}
+	if v.IsSetMode || v.Mode != nil {
+		s.Mode = v.Mode
+	}
+	if v.IsSetSendRequestBody || v.SendRequestBody != nil {
+		s.SendRequestBody = v.SendRequestBody
+	}
+}
+
+type ConfigHasuraAuthHookInsertInput struct {
+	Url             string  `json:"url,omitempty" toml:"url,omitempty"`
+	Mode            *string `json:"mode,omitempty" toml:"mode,omitempty"`
+	SendRequestBody *bool   `json:"sendRequestBody,omitempty" toml:"sendRequestBody,omitempty"`
+}
+
+func (o *ConfigHasuraAuthHookInsertInput) GetUrl() string {
+	if o == nil {
+		o = &ConfigHasuraAuthHookInsertInput{}
+	}
+	return o.Url
+}
+
+func (o *ConfigHasuraAuthHookInsertInput) GetMode() *string {
+	if o == nil {
+		o = &ConfigHasuraAuthHookInsertInput{}
+	}
+	return o.Mode
+}
+
+func (o *ConfigHasuraAuthHookInsertInput) GetSendRequestBody() *bool {
+	if o == nil {
+		o = &ConfigHasuraAuthHookInsertInput{}
+	}
+	return o.SendRequestBody
+}
+
+func (s *ConfigHasuraAuthHook) Insert(v *ConfigHasuraAuthHookInsertInput) {
+	s.Url = v.Url
+	s.Mode = v.Mode
+	s.SendRequestBody = v.SendRequestBody
+}
+
+func (s *ConfigHasuraAuthHook) Clone() *ConfigHasuraAuthHook {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigHasuraAuthHook{}
+	v.Url = s.Url
+	v.Mode = s.Mode
+	v.SendRequestBody = s.SendRequestBody
+	return v
+}
+
+type ConfigHasuraAuthHookComparisonExp struct {
+	And             []*ConfigHasuraAuthHookComparisonExp `json:"_and,omitempty"`
+	Not             *ConfigHasuraAuthHookComparisonExp   `json:"_not,omitempty"`
+	Or              []*ConfigHasuraAuthHookComparisonExp `json:"_or,omitempty"`
+	Url             *ConfigStringComparisonExp           `json:"url,omitempty"`
+	Mode            *ConfigStringComparisonExp           `json:"mode,omitempty"`
+	SendRequestBody *ConfigBooleanComparisonExp          `json:"sendRequestBody,omitempty"`
+}
+
+func (exp *ConfigHasuraAuthHookComparisonExp) Matches(o *ConfigHasuraAuthHook) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigHasuraAuthHook{}
+	}
+	if !exp.Url.Matches(o.Url) {
+		return false
+	}
+	if o.Mode != nil && !exp.Mode.Matches(*o.Mode) {
+		return false
+	}
+	if o.SendRequestBody != nil && !exp.SendRequestBody.Matches(*o.SendRequestBody) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
 		return false
 	}
 

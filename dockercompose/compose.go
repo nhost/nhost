@@ -446,6 +446,17 @@ func sanitizeBranch(name string) string {
 	return strings.ToLower(re.ReplaceAllString(name, ""))
 }
 
+func IsJWTSecretCompatibleWithHasuraAuth(
+	jwtSecret *model.ConfigJWTSecret,
+) bool {
+	if jwtSecret != nil && jwtSecret.Type != nil && *jwtSecret.Type != "" && jwtSecret.Key != nil &&
+		*jwtSecret.Key != "" {
+		return *jwtSecret.Type == "HS256" || *jwtSecret.Type == "HS384" ||
+			*jwtSecret.Type == "HS512"
+	}
+	return false
+}
+
 func getServices( //nolint: funlen,cyclop
 	cfg *model.ConfigConfig,
 	projectName string,
@@ -463,11 +474,6 @@ func getServices( //nolint: funlen,cyclop
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
 	minio, err := minio(dataFolder)
-	if err != nil {
-		return nil, err
-	}
-
-	auth, err := auth(cfg, httpPort, useTLS, nhostFolder, ports.Auth)
 	if err != nil {
 		return nil, err
 	}
@@ -505,7 +511,6 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	services := map[string]*Service{
-		"auth":      auth,
 		"console":   console,
 		"dashboard": dashboard(cfg, dashboardVersion, httpPort, useTLS),
 		"functions": functions(
@@ -531,8 +536,18 @@ func getServices( //nolint: funlen,cyclop
 			runServices...),
 	}
 
-	if cfg.Ai != nil {
-		services["ai"] = ai(cfg)
+	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&
+		IsJWTSecretCompatibleWithHasuraAuth(cfg.GetHasura().GetJwtSecrets()[0]) &&
+		cfg.GetHasura().GetAuthHook() == nil {
+		auth, err := auth(cfg, httpPort, useTLS, nhostFolder, ports.Auth)
+		if err != nil {
+			return nil, err
+		}
+		services["auth"] = auth
+
+		if cfg.Ai != nil {
+			services["ai"] = ai(cfg)
+		}
 	}
 
 	for _, runService := range runServices {

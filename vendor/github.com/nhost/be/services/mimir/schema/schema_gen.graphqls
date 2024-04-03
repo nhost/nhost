@@ -1786,6 +1786,10 @@ type ConfigHasura {
     """
 
     """
+    authHook: ConfigHasuraAuthHook
+    """
+
+    """
     logs: ConfigHasuraLogs
     """
 
@@ -1803,6 +1807,7 @@ input ConfigHasuraUpdateInput {
     adminSecret: String
     webhookSecret: String
     settings: ConfigHasuraSettingsUpdateInput
+    authHook: ConfigHasuraAuthHookUpdateInput
     logs: ConfigHasuraLogsUpdateInput
     events: ConfigHasuraEventsUpdateInput
     resources: ConfigResourcesUpdateInput
@@ -1814,6 +1819,7 @@ input ConfigHasuraInsertInput {
     adminSecret: String!
     webhookSecret: String!
     settings: ConfigHasuraSettingsInsertInput
+    authHook: ConfigHasuraAuthHookInsertInput
     logs: ConfigHasuraLogsInsertInput
     events: ConfigHasuraEventsInsertInput
     resources: ConfigResourcesInsertInput
@@ -1828,6 +1834,7 @@ input ConfigHasuraComparisonExp {
     adminSecret: ConfigStringComparisonExp
     webhookSecret: ConfigStringComparisonExp
     settings: ConfigHasuraSettingsComparisonExp
+    authHook: ConfigHasuraAuthHookComparisonExp
     logs: ConfigHasuraLogsComparisonExp
     events: ConfigHasuraEventsComparisonExp
     resources: ConfigResourcesComparisonExp
@@ -1840,6 +1847,45 @@ input ConfigHasuraAPIsComparisonExp {
     _neq: ConfigHasuraAPIs
     _in: [ConfigHasuraAPIs!]
     _nin: [ConfigHasuraAPIs!]
+}
+
+"""
+
+"""
+type ConfigHasuraAuthHook {
+    """
+    HASURA_GRAPHQL_AUTH_HOOK
+    """
+    url: String!
+    """
+
+    """
+    mode: String
+    """
+    HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
+    """
+    sendRequestBody: Boolean
+}
+
+input ConfigHasuraAuthHookUpdateInput {
+    url: String
+    mode: String
+    sendRequestBody: Boolean
+}
+
+input ConfigHasuraAuthHookInsertInput {
+    url: String!
+    mode: String
+    sendRequestBody: Boolean
+}
+
+input ConfigHasuraAuthHookComparisonExp {
+    _and: [ConfigHasuraAuthHookComparisonExp!]
+    _not: ConfigHasuraAuthHookComparisonExp
+    _or: [ConfigHasuraAuthHookComparisonExp!]
+    url: ConfigStringComparisonExp
+    mode: ConfigStringComparisonExp
+    sendRequestBody: ConfigBooleanComparisonExp
 }
 
 """

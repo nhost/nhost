@@ -269,6 +269,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 				LiveQueriesMultiplexedRefetchInterval: ptr(uint32(1000)),
 				StringifyNumericTypes:                 ptr(false),
 			},
+			AuthHook: nil,
 			Logs: &model.ConfigHasuraLogs{
 				Level: ptr("info"),
 			},

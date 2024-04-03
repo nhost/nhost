@@ -202,9 +202,15 @@ func restart(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	dc *dockercompose.DockerCompose,
+	composeFile *dockercompose.ComposeFile,
 ) error {
 	ce.Infoln("Restarting services to reapply metadata if needed...")
-	if err := dc.Wrapper(ctx, "restart", "auth", "storage", "functions"); err != nil {
+
+	args := []string{"restart", "storage", "functions"}
+	if _, ok := composeFile.Services["auth"]; ok {
+		args = append(args, "auth")
+	}
+	if err := dc.Wrapper(ctx, args...); err != nil {
 		return fmt.Errorf("failed to restart services: %w", err)
 	}
 
@@ -338,7 +344,7 @@ func up( //nolint:funlen,cyclop
 		return err
 	}
 
-	if err := restart(ctx, ce, dc); err != nil {
+	if err := restart(ctx, ce, dc, composeFile); err != nil {
 		return err
 	}
 

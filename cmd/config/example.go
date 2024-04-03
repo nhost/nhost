@@ -74,6 +74,11 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				LiveQueriesMultiplexedRefetchInterval: ptr(uint32(1000)),
 				StringifyNumericTypes:                 ptr(false),
 			},
+			AuthHook: &model.ConfigHasuraAuthHook{
+				Url:             "https://customauth.example.com/hook",
+				Mode:            ptr("POST"),
+				SendRequestBody: ptr(true),
+			},
 			Logs: &model.ConfigHasuraLogs{
 				Level: ptr("warn"),
 			},

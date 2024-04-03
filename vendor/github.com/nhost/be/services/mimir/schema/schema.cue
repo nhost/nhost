@@ -150,6 +150,17 @@ import (
         stringifyNumericTypes: bool | *false
 	}
 
+    authHook?: {
+        // HASURA_GRAPHQL_AUTH_HOOK
+        url: string
+
+        // HASURA_GRAPHQL_AUTH_HOOK_MODE
+        mode: "GET"|*"POST"
+
+        // HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
+        sendRequestBody: bool | *true
+    }
+
 	logs: {
 		// HASURA_GRAPHQL_LOG_LEVEL
 		level: "debug" | "info" | "error" | *"warn"

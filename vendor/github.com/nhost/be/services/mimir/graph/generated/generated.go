@@ -317,6 +317,7 @@ type ComplexityRoot struct {
 
 	ConfigHasura struct {
 		AdminSecret   func(childComplexity int) int
+		AuthHook      func(childComplexity int) int
 		Events        func(childComplexity int) int
 		JwtSecrets    func(childComplexity int) int
 		Logs          func(childComplexity int) int
@@ -324,6 +325,12 @@ type ComplexityRoot struct {
 		Settings      func(childComplexity int) int
 		Version       func(childComplexity int) int
 		WebhookSecret func(childComplexity int) int
+	}
+
+	ConfigHasuraAuthHook struct {
+		Mode            func(childComplexity int) int
+		SendRequestBody func(childComplexity int) int
+		Url             func(childComplexity int) int
 	}
 
 	ConfigHasuraEvents struct {
@@ -1549,6 +1556,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigHasura.AdminSecret(childComplexity), true
 
+	case "ConfigHasura.authHook":
+		if e.complexity.ConfigHasura.AuthHook == nil {
+			break
+		}
+
+		return e.complexity.ConfigHasura.AuthHook(childComplexity), true
+
 	case "ConfigHasura.events":
 		if e.complexity.ConfigHasura.Events == nil {
 			break
@@ -1597,6 +1611,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigHasura.WebhookSecret(childComplexity), true
+
+	case "ConfigHasuraAuthHook.mode":
+		if e.complexity.ConfigHasuraAuthHook.Mode == nil {
+			break
+		}
+
+		return e.complexity.ConfigHasuraAuthHook.Mode(childComplexity), true
+
+	case "ConfigHasuraAuthHook.sendRequestBody":
+		if e.complexity.ConfigHasuraAuthHook.SendRequestBody == nil {
+			break
+		}
+
+		return e.complexity.ConfigHasuraAuthHook.SendRequestBody(childComplexity), true
+
+	case "ConfigHasuraAuthHook.url":
+		if e.complexity.ConfigHasuraAuthHook.Url == nil {
+			break
+		}
+
+		return e.complexity.ConfigHasuraAuthHook.Url(childComplexity), true
 
 	case "ConfigHasuraEvents.httpPoolSize":
 		if e.complexity.ConfigHasuraEvents.HttpPoolSize == nil {
@@ -2805,6 +2840,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigGrafanaComparisonExp,
 		ec.unmarshalInputConfigGrafanaInsertInput,
 		ec.unmarshalInputConfigHasuraAPIsComparisonExp,
+		ec.unmarshalInputConfigHasuraAuthHookComparisonExp,
+		ec.unmarshalInputConfigHasuraAuthHookInsertInput,
 		ec.unmarshalInputConfigHasuraComparisonExp,
 		ec.unmarshalInputConfigHasuraEventsComparisonExp,
 		ec.unmarshalInputConfigHasuraEventsInsertInput,
@@ -4911,6 +4948,10 @@ type ConfigHasura {
     """
 
     """
+    authHook: ConfigHasuraAuthHook
+    """
+
+    """
     logs: ConfigHasuraLogs
     """
 
@@ -4928,6 +4969,7 @@ input ConfigHasuraUpdateInput {
     adminSecret: String
     webhookSecret: String
     settings: ConfigHasuraSettingsUpdateInput
+    authHook: ConfigHasuraAuthHookUpdateInput
     logs: ConfigHasuraLogsUpdateInput
     events: ConfigHasuraEventsUpdateInput
     resources: ConfigResourcesUpdateInput
@@ -4939,6 +4981,7 @@ input ConfigHasuraInsertInput {
     adminSecret: String!
     webhookSecret: String!
     settings: ConfigHasuraSettingsInsertInput
+    authHook: ConfigHasuraAuthHookInsertInput
     logs: ConfigHasuraLogsInsertInput
     events: ConfigHasuraEventsInsertInput
     resources: ConfigResourcesInsertInput
@@ -4953,6 +4996,7 @@ input ConfigHasuraComparisonExp {
     adminSecret: ConfigStringComparisonExp
     webhookSecret: ConfigStringComparisonExp
     settings: ConfigHasuraSettingsComparisonExp
+    authHook: ConfigHasuraAuthHookComparisonExp
     logs: ConfigHasuraLogsComparisonExp
     events: ConfigHasuraEventsComparisonExp
     resources: ConfigResourcesComparisonExp
@@ -4965,6 +5009,45 @@ input ConfigHasuraAPIsComparisonExp {
     _neq: ConfigHasuraAPIs
     _in: [ConfigHasuraAPIs!]
     _nin: [ConfigHasuraAPIs!]
+}
+
+"""
+
+"""
+type ConfigHasuraAuthHook {
+    """
+    HASURA_GRAPHQL_AUTH_HOOK
+    """
+    url: String!
+    """
+
+    """
+    mode: String
+    """
+    HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
+    """
+    sendRequestBody: Boolean
+}
+
+input ConfigHasuraAuthHookUpdateInput {
+    url: String
+    mode: String
+    sendRequestBody: Boolean
+}
+
+input ConfigHasuraAuthHookInsertInput {
+    url: String!
+    mode: String
+    sendRequestBody: Boolean
+}
+
+input ConfigHasuraAuthHookComparisonExp {
+    _and: [ConfigHasuraAuthHookComparisonExp!]
+    _not: ConfigHasuraAuthHookComparisonExp
+    _or: [ConfigHasuraAuthHookComparisonExp!]
+    url: ConfigStringComparisonExp
+    mode: ConfigStringComparisonExp
+    sendRequestBody: ConfigBooleanComparisonExp
 }
 
 """
@@ -12439,6 +12522,8 @@ func (ec *executionContext) fieldContext_ConfigConfig_hasura(ctx context.Context
 				return ec.fieldContext_ConfigHasura_webhookSecret(ctx, field)
 			case "settings":
 				return ec.fieldContext_ConfigHasura_settings(ctx, field)
+			case "authHook":
+				return ec.fieldContext_ConfigHasura_authHook(ctx, field)
 			case "logs":
 				return ec.fieldContext_ConfigHasura_logs(ctx, field)
 			case "events":
@@ -13502,6 +13587,55 @@ func (ec *executionContext) fieldContext_ConfigHasura_settings(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigHasura_authHook(ctx context.Context, field graphql.CollectedField, obj *model.ConfigHasura) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigHasura_authHook(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthHook, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigHasuraAuthHook)
+	fc.Result = res
+	return ec.marshalOConfigHasuraAuthHook2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHook(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigHasura_authHook(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigHasura",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "url":
+				return ec.fieldContext_ConfigHasuraAuthHook_url(ctx, field)
+			case "mode":
+				return ec.fieldContext_ConfigHasuraAuthHook_mode(ctx, field)
+			case "sendRequestBody":
+				return ec.fieldContext_ConfigHasuraAuthHook_sendRequestBody(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigHasuraAuthHook", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigHasura_logs(ctx context.Context, field graphql.CollectedField, obj *model.ConfigHasura) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigHasura_logs(ctx, field)
 	if err != nil {
@@ -13636,6 +13770,132 @@ func (ec *executionContext) fieldContext_ConfigHasura_resources(ctx context.Cont
 				return ec.fieldContext_ConfigResources_networking(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigResources", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigHasuraAuthHook_url(ctx context.Context, field graphql.CollectedField, obj *model.ConfigHasuraAuthHook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigHasuraAuthHook_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Url, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigHasuraAuthHook_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigHasuraAuthHook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigHasuraAuthHook_mode(ctx context.Context, field graphql.CollectedField, obj *model.ConfigHasuraAuthHook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigHasuraAuthHook_mode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Mode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigHasuraAuthHook_mode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigHasuraAuthHook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigHasuraAuthHook_sendRequestBody(ctx context.Context, field graphql.CollectedField, obj *model.ConfigHasuraAuthHook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigHasuraAuthHook_sendRequestBody(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SendRequestBody, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigHasuraAuthHook_sendRequestBody(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigHasuraAuthHook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -26814,6 +27074,109 @@ func (ec *executionContext) unmarshalInputConfigHasuraAPIsComparisonExp(ctx cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputConfigHasuraAuthHookComparisonExp(ctx context.Context, obj interface{}) (model.ConfigHasuraAuthHookComparisonExp, error) {
+	var it model.ConfigHasuraAuthHookComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "url", "mode", "sendRequestBody"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigHasuraAuthHookComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigHasuraAuthHookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigHasuraAuthHookComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "url":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Url = data
+		case "mode":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mode"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Mode = data
+		case "sendRequestBody":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sendRequestBody"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SendRequestBody = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigHasuraAuthHookInsertInput(ctx context.Context, obj interface{}) (model.ConfigHasuraAuthHookInsertInput, error) {
+	var it model.ConfigHasuraAuthHookInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"url", "mode", "sendRequestBody"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "url":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Url = data
+		case "mode":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mode"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Mode = data
+		case "sendRequestBody":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sendRequestBody"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SendRequestBody = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigHasuraComparisonExp(ctx context.Context, obj interface{}) (model.ConfigHasuraComparisonExp, error) {
 	var it model.ConfigHasuraComparisonExp
 	asMap := map[string]interface{}{}
@@ -26821,7 +27184,7 @@ func (ec *executionContext) unmarshalInputConfigHasuraComparisonExp(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "jwtSecrets", "adminSecret", "webhookSecret", "settings", "logs", "events", "resources"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "jwtSecrets", "adminSecret", "webhookSecret", "settings", "authHook", "logs", "events", "resources"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -26884,6 +27247,13 @@ func (ec *executionContext) unmarshalInputConfigHasuraComparisonExp(ctx context.
 				return it, err
 			}
 			it.Settings = data
+		case "authHook":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authHook"))
+			data, err := ec.unmarshalOConfigHasuraAuthHookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthHook = data
 		case "logs":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("logs"))
 			data, err := ec.unmarshalOConfigHasuraLogsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraLogsComparisonExp(ctx, v)
@@ -26993,7 +27363,7 @@ func (ec *executionContext) unmarshalInputConfigHasuraInsertInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"version", "jwtSecrets", "adminSecret", "webhookSecret", "settings", "logs", "events", "resources"}
+	fieldsInOrder := [...]string{"version", "jwtSecrets", "adminSecret", "webhookSecret", "settings", "authHook", "logs", "events", "resources"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27035,6 +27405,13 @@ func (ec *executionContext) unmarshalInputConfigHasuraInsertInput(ctx context.Co
 				return it, err
 			}
 			it.Settings = data
+		case "authHook":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authHook"))
+			data, err := ec.unmarshalOConfigHasuraAuthHookInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthHook = data
 		case "logs":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("logs"))
 			data, err := ec.unmarshalOConfigHasuraLogsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraLogsInsertInput(ctx, v)
@@ -33213,12 +33590,57 @@ func (ec *executionContext) _ConfigHasura(ctx context.Context, sel ast.Selection
 			}
 		case "settings":
 			out.Values[i] = ec._ConfigHasura_settings(ctx, field, obj)
+		case "authHook":
+			out.Values[i] = ec._ConfigHasura_authHook(ctx, field, obj)
 		case "logs":
 			out.Values[i] = ec._ConfigHasura_logs(ctx, field, obj)
 		case "events":
 			out.Values[i] = ec._ConfigHasura_events(ctx, field, obj)
 		case "resources":
 			out.Values[i] = ec._ConfigHasura_resources(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configHasuraAuthHookImplementors = []string{"ConfigHasuraAuthHook"}
+
+func (ec *executionContext) _ConfigHasuraAuthHook(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigHasuraAuthHook) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configHasuraAuthHookImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigHasuraAuthHook")
+		case "url":
+			out.Values[i] = ec._ConfigHasuraAuthHook_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mode":
+			out.Values[i] = ec._ConfigHasuraAuthHook_mode(ctx, field, obj)
+		case "sendRequestBody":
+			out.Values[i] = ec._ConfigHasuraAuthHook_sendRequestBody(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -36078,6 +36500,11 @@ func (ec *executionContext) marshalNConfigHasuraAPIs2string(ctx context.Context,
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNConfigHasuraAuthHookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraAuthHookComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigHasuraAuthHookComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNConfigHasuraComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraComparisonExp, error) {
@@ -39665,6 +40092,58 @@ func (ec *executionContext) unmarshalOConfigHasuraAPIsComparisonExp2ᚖgithubᚗ
 	}
 	res, err := ec.unmarshalInputConfigHasuraAPIsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigHasuraAuthHook2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHook(ctx context.Context, sel ast.SelectionSet, v *model.ConfigHasuraAuthHook) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigHasuraAuthHook(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigHasuraAuthHookComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigHasuraAuthHookComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigHasuraAuthHookComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigHasuraAuthHookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigHasuraAuthHookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookComparisonExp(ctx context.Context, v interface{}) (*model.ConfigHasuraAuthHookComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigHasuraAuthHookComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigHasuraAuthHookInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookInsertInput(ctx context.Context, v interface{}) (*model.ConfigHasuraAuthHookInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigHasuraAuthHookInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigHasuraAuthHookUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraAuthHookUpdateInput(ctx context.Context, v interface{}) (*model.ConfigHasuraAuthHookUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigHasuraAuthHookUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOConfigHasuraComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasuraComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigHasuraComparisonExp, error) {

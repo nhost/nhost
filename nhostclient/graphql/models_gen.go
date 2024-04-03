@@ -546,6 +546,7 @@ type ConfigGrafanaUpdateInput struct {
 
 type ConfigHasura struct {
 	AdminSecret   string                `json:"adminSecret"`
+	AuthHook      *ConfigHasuraAuthHook `json:"authHook,omitempty"`
 	Events        *ConfigHasuraEvents   `json:"events,omitempty"`
 	JwtSecrets    []*ConfigJWTSecret    `json:"jwtSecrets,omitempty"`
 	Logs          *ConfigHasuraLogs     `json:"logs,omitempty"`
@@ -553,6 +554,18 @@ type ConfigHasura struct {
 	Settings      *ConfigHasuraSettings `json:"settings,omitempty"`
 	Version       *string               `json:"version,omitempty"`
 	WebhookSecret string                `json:"webhookSecret"`
+}
+
+type ConfigHasuraAuthHook struct {
+	Mode            *string `json:"mode,omitempty"`
+	SendRequestBody *bool   `json:"sendRequestBody,omitempty"`
+	URL             string  `json:"url"`
+}
+
+type ConfigHasuraAuthHookUpdateInput struct {
+	Mode            *string `json:"mode,omitempty"`
+	SendRequestBody *bool   `json:"sendRequestBody,omitempty"`
+	URL             *string `json:"url,omitempty"`
 }
 
 type ConfigHasuraEvents struct {
@@ -595,6 +608,7 @@ type ConfigHasuraSettingsUpdateInput struct {
 
 type ConfigHasuraUpdateInput struct {
 	AdminSecret   *string                          `json:"adminSecret,omitempty"`
+	AuthHook      *ConfigHasuraAuthHookUpdateInput `json:"authHook,omitempty"`
 	Events        *ConfigHasuraEventsUpdateInput   `json:"events,omitempty"`
 	JwtSecrets    []*ConfigJWTSecretUpdateInput    `json:"jwtSecrets,omitempty"`
 	Logs          *ConfigHasuraLogsUpdateInput     `json:"logs,omitempty"`
