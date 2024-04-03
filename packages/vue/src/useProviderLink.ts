@@ -18,6 +18,14 @@ import { useNhostClient } from './useNhostClient'
  * ```
  *
  * @example
+ *
+ *  Pass in the `connect` option to connect the user's account to the OAuth provider when different emails are used.
+ *
+ * ```js
+ * const providerLink = useProviderLink({ connect: true });
+ * ```
+ *
+ * @example
  * ```jsx
  * import { useProviderLink } from '@nhost/vue';
  *

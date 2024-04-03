@@ -319,7 +319,8 @@
                 "reference/javascript/auth/sign-out",
                 "reference/javascript/auth/sign-up",
                 "reference/javascript/auth/add-security-key",
-                "reference/javascript/auth/elevate-email-security-key"
+                "reference/javascript/auth/elevate-email-security-key",
+                "reference/javascript/auth/connect-provider"
               ]
             },
             {
