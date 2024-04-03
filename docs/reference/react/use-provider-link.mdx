@@ -23,6 +23,12 @@ const providerLink = useProviderLink()
 const providerLink = useProviderLink()
 ```
 
+Pass in the `connect` option to connect the user's account to the OAuth provider when different emails are used.
+
+```js
+const providerLink = useProviderLink({ connect: true })
+```
+
 ```jsx
 import { useProviderLink } from '@nhost/react'
 
