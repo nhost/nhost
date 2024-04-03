@@ -1,5 +1,16 @@
 # @nhost-examples/codegen-react-query
 
+## 0.4.0
+
+### Minor Changes
+
+- 768ca17: chore: update dependencies
+
+### Patch Changes
+
+- Updated dependencies [768ca17]
+  - @nhost/react@3.4.0
+
 ## 0.3.1
 
 ### Patch Changes
