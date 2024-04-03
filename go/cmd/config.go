@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
+func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen,cyclop
 	serverURL, err := url.Parse(cCtx.String(flagServerURL))
 	if err != nil {
 		return controller.Config{}, fmt.Errorf("problem parsing server url: %w", err)
@@ -20,18 +20,23 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 		return controller.Config{}, fmt.Errorf("problem parsing client url: %w", err)
 	}
 
-	allowedRedirectURLs := make([]*url.URL, len(cCtx.StringSlice(flagAllowRedirectURLs)))
-	for i, u := range cCtx.StringSlice(flagAllowRedirectURLs) {
+	allowedRedirectURLs := make([]*url.URL, 0, len(cCtx.StringSlice(flagAllowRedirectURLs)))
+	for _, u := range cCtx.StringSlice(flagAllowRedirectURLs) {
+		if u == "" {
+			continue
+		}
+
 		url, err := url.Parse(u)
 		if err != nil {
 			return controller.Config{}, fmt.Errorf("problem parsing allowed redirect url: %w", err)
 		}
 
-		allowedRedirectURLs[i] = url
+		allowedRedirectURLs = append(allowedRedirectURLs, url)
 	}
 
 	defaultRole := cCtx.String(flagDefaultRole)
 	allowedRoles := cCtx.StringSlice(flagDefaultAllowedRoles)
+	allowedRoles = slices.DeleteFunc(allowedRoles, func(s string) bool { return s == "" })
 	if !slices.Contains(allowedRoles, defaultRole) {
 		allowedRoles = append(allowedRoles, defaultRole)
 	}
@@ -39,6 +44,7 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 
 	defaultLocale := cCtx.String(flagDefaultLocale)
 	allowedLocales := cCtx.StringSlice(flagAllowedLocales)
+	allowedLocales = slices.DeleteFunc(allowedLocales, func(s string) bool { return s == "" })
 	if !slices.Contains(allowedLocales, defaultLocale) {
 		allowedLocales = append(allowedLocales, defaultLocale)
 	}
@@ -64,6 +70,7 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 	}
 
 	webauhtnRPOrigins := cCtx.StringSlice(flagWebauthnRPOrigins)
+	webauhtnRPOrigins = slices.DeleteFunc(webauhtnRPOrigins, func(s string) bool { return s == "" })
 	if !slices.Contains(webauhtnRPOrigins, cCtx.String(flagClientURL)) {
 		webauhtnRPOrigins = append(webauhtnRPOrigins, cCtx.String(flagClientURL))
 	}
