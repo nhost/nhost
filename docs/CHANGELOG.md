@@ -1,5 +1,15 @@
 # @nhost/docs
 
+## 2.8.0
+
+### Minor Changes
+
+- 768ca17: chore: update dependencies
+
+### Patch Changes
+
+- 9f2bf9e: chore: added hasura's authHook settings
+
 ## 2.7.2
 
 ### Patch Changes

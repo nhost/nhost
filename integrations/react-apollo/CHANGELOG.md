@@ -1,5 +1,17 @@
 # @nhost/react-apollo
 
+## 11.0.0
+
+### Minor Changes
+
+- 768ca17: chore: update dependencies
+
+### Patch Changes
+
+- Updated dependencies [768ca17]
+  - @nhost/apollo@6.2.0
+  - @nhost/react@3.4.0
+
 ## 10.0.2
 
 ### Patch Changes

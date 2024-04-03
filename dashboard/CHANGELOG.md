@@ -1,5 +1,21 @@
 # @nhost/dashboard
 
+## 1.12.0
+
+### Minor Changes
+
+- f242e4b: feat: add connect with github to the user's account settings
+- 768ca17: chore: update dependencies
+- d62bd0f: fix: "Track this" option within the SQL editor now correctly updates the metadata
+- 91c2bb6: feat: refactor sign-in and sign-up pages to enforce email verification
+
+### Patch Changes
+
+- 943831f: fix: resolve an error toast issue when unpausing a project
+- Updated dependencies [768ca17]
+  - @nhost/react-apollo@11.0.0
+  - @nhost/nextjs@2.1.9
+
 ## 1.11.2
 
 ### Patch Changes

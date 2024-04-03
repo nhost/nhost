@@ -1,5 +1,18 @@
 # @nhost-examples/vue-apollo
 
+## 0.6.0
+
+### Minor Changes
+
+- 768ca17: chore: update dependencies
+
+### Patch Changes
+
+- Updated dependencies [768ca17]
+  - @nhost/apollo@6.2.0
+  - @nhost/vue@2.5.0
+  - @nhost/nhost-js@3.0.10
+
 ## 0.5.0
 
 ### Minor Changes
