@@ -1,5 +1,15 @@
 # @nhost-examples/cli
 
+## 0.3.0
+
+### Minor Changes
+
+- 768ca17: chore: update dependencies
+
+### Patch Changes
+
+- @nhost/nhost-js@3.0.10
+
 ## 0.2.2
 
 ### Patch Changes

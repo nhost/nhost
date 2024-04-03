@@ -1,5 +1,18 @@
 # @nhost-examples/react-apollo
 
+## 0.8.0
+
+### Minor Changes
+
+- 768ca17: chore: update dependencies
+
+### Patch Changes
+
+- 863b37d: chore: bump hasura-auth
+- Updated dependencies [768ca17]
+  - @nhost/react-apollo@11.0.0
+  - @nhost/react@3.4.0
+
 ## 0.7.0
 
 ### Minor Changes

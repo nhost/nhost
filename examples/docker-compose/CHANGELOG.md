@@ -1,5 +1,11 @@
 # @nhost-examples/docker-compose
 
+## 0.4.0
+
+### Minor Changes
+
+- 768ca17: chore: update dependencies
+
 ## 0.3.0
 
 ### Minor Changes
