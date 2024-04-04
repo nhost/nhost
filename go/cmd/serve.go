@@ -47,6 +47,7 @@ const (
 	flagEmailSigninEmailVerifiedRequired = "email-verification-required"
 	flagSMTPHost                         = "smtp-host"
 	flagSMTPPort                         = "smtp-port"
+	flagSMTPSecure                       = "smtp-secure"
 	flagSMTPUser                         = "smtp-user"
 	flagSMTPPassword                     = "smtp-password"
 	flagSMTPSender                       = "smtp-sender"
@@ -250,6 +251,12 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Category: "smtp",
 				Value:    587, //nolint:gomnd
 				EnvVars:  []string{"AUTH_SMTP_PORT"},
+			},
+			&cli.BoolFlag{ //nolint: exhaustruct
+				Name:     flagSMTPSecure,
+				Usage:    "Connect over TLS. Deprecated: It is recommended to use port 587 with STARTTLS instead of this option.",
+				Category: "smtp",
+				EnvVars:  []string{"AUTH_SMTP_SECURE"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagSMTPUser,

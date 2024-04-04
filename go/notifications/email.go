@@ -8,29 +8,32 @@ import (
 )
 
 type Email struct {
-	from         string
-	address      string
-	extraHeaders map[string]string
-	auth         smtp.Auth
-	templates    *Templates
+	from             string
+	host             string
+	port             uint16
+	useTLSConnection bool
+	extraHeaders     map[string]string
+	auth             smtp.Auth
+	templates        *Templates
 }
 
 func NewEmail(
 	host string,
 	port uint16,
+	useTLSConnection bool,
 	auth smtp.Auth,
 	from string,
 	extraHeaders map[string]string,
 	templates *Templates,
 ) *Email {
-	address := fmt.Sprintf("%s:%d", host, port)
-
 	return &Email{
-		from:         from,
-		address:      address,
-		extraHeaders: extraHeaders,
-		auth:         auth,
-		templates:    templates,
+		from:             from,
+		host:             host,
+		port:             port,
+		useTLSConnection: useTLSConnection,
+		extraHeaders:     extraHeaders,
+		auth:             auth,
+		templates:        templates,
 	}
 }
 
@@ -49,8 +52,10 @@ func (sm *Email) Send(to, subject, contents string, headers map[string]string) e
 	buf.WriteString("\r\n")
 	buf.WriteString(contents + "\r\n")
 
-	if err := smtp.SendMail(
-		sm.address,
+	if err := sendMail(
+		sm.host,
+		sm.port,
+		sm.useTLSConnection,
 		sm.auth,
 		sm.from,
 		[]string{to},

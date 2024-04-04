@@ -29,6 +29,7 @@ func TestEmailSend(t *testing.T) {
 			mail := notifications.NewEmail(
 				"localhost",
 				1025,
+				false,
 				smtp.PlainAuth("", "user", "password", "localhost"),
 				"admin@localhost",
 				map[string]string{
@@ -59,6 +60,7 @@ func TestEmailSendEmailVerify(t *testing.T) {
 	mail := notifications.NewEmail(
 		"localhost",
 		1025,
+		false,
 		smtp.PlainAuth("", "user", "password", "localhost"),
 		"admin@localhost",
 		map[string]string{
