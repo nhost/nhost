@@ -1,5 +1,15 @@
 # @nhost/docs
 
+## 2.9.0
+
+### Minor Changes
+
+- 3c31657: chore: update docs with provider connect
+
+### Patch Changes
+
+- 992939c: feat: added social connect docs
+
 ## 2.8.0
 
 ### Minor Changes
