@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.4.1
+
+### Patch Changes
+
+- bcd889b: fix: change expiresAt format to RFC3339 in createPATPromise
+
 ## 2.4.0
 
 ### Minor Changes

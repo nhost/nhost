@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 1.12.1
+
+### Patch Changes
+
+- 93ebdf8: fix: use service urls when initilizaing NhostClient running local dashboard
+  - @nhost/react-apollo@11.0.1
+  - @nhost/nextjs@2.1.10
+
 ## 1.12.0
 
 ### Minor Changes
