@@ -150,7 +150,12 @@ func webAuthnWindowsHello(
 func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
+	refreshTokenID := uuid.MustParse("c3b747ef-76a9-4c56-8091-ed3e6b8afb2c")
 	userID := uuid.MustParse("cf91d1bc-875e-49bc-897f-fbccf32ede11")
+	insertResponse := sql.InsertUserWithSecurityKeyAndRefreshTokenRow{
+		UserID:         userID,
+		RefreshTokenID: refreshTokenID,
+	}
 
 	touchIDRequest, touchIDWebauthnChallenge := webAuthnTouchID(t)
 
@@ -186,7 +191,7 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 						},
 						Nickname: pgtype.Text{}, //nolint:exhaustruct
 					}),
-				).Return(userID, nil)
+				).Return(insertResponse, nil)
 
 				return mock
 			},
@@ -210,6 +215,7 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 				Session: &api.Session{
 					AccessToken:          "xxxxx",
 					AccessTokenExpiresIn: time.Now().Add(15 * time.Minute).Unix(),
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "ff0499a1-7935-4052-baea-6c3a573b1b6a",
 					User: &api.User{
 						AvatarUrl:           "",
@@ -281,7 +287,7 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 						},
 						Nickname: pgtype.Text{}, //nolint:exhaustruct
 					}),
-				).Return(userID, nil)
+				).Return(insertResponse, nil)
 
 				return mock
 			},
@@ -305,6 +311,7 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 				Session: &api.Session{
 					AccessToken:          "xxxxx",
 					AccessTokenExpiresIn: time.Now().Add(15 * time.Minute).Unix(),
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "ff0499a1-7935-4052-baea-6c3a573b1b6a",
 					User: &api.User{
 						AvatarUrl:           "",

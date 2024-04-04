@@ -321,7 +321,7 @@ WITH inserted_user AS (
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
     FROM inserted_user, unnest($12::TEXT[]) AS roles(role)
-RETURNING user_id
+RETURNING (SELECT refresh_token_id FROM inserted_refresh_token), user_id
 `
 
 type InsertUserWithRefreshTokenParams struct {
@@ -341,7 +341,12 @@ type InsertUserWithRefreshTokenParams struct {
 	RefreshTokenExpiresAt pgtype.Timestamptz
 }
 
-func (q *Queries) InsertUserWithRefreshToken(ctx context.Context, arg InsertUserWithRefreshTokenParams) (uuid.UUID, error) {
+type InsertUserWithRefreshTokenRow struct {
+	RefreshTokenID uuid.UUID
+	UserID         uuid.UUID
+}
+
+func (q *Queries) InsertUserWithRefreshToken(ctx context.Context, arg InsertUserWithRefreshTokenParams) (InsertUserWithRefreshTokenRow, error) {
 	row := q.db.QueryRow(ctx, insertUserWithRefreshToken,
 		arg.Disabled,
 		arg.DisplayName,
@@ -358,9 +363,9 @@ func (q *Queries) InsertUserWithRefreshToken(ctx context.Context, arg InsertUser
 		arg.RefreshTokenHash,
 		arg.RefreshTokenExpiresAt,
 	)
-	var user_id uuid.UUID
-	err := row.Scan(&user_id)
-	return user_id, err
+	var i InsertUserWithRefreshTokenRow
+	err := row.Scan(&i.RefreshTokenID, &i.UserID)
+	return i, err
 }
 
 const insertUserWithSecurityKey = `-- name: InsertUserWithSecurityKey :one
@@ -469,7 +474,7 @@ WITH inserted_user AS (
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
     FROM inserted_user, unnest($12::TEXT[]) AS roles(role)
-RETURNING user_id
+RETURNING (SELECT refresh_token_id FROM inserted_refresh_token), user_id
 `
 
 type InsertUserWithSecurityKeyAndRefreshTokenParams struct {
@@ -492,7 +497,12 @@ type InsertUserWithSecurityKeyAndRefreshTokenParams struct {
 	Nickname              pgtype.Text
 }
 
-func (q *Queries) InsertUserWithSecurityKeyAndRefreshToken(ctx context.Context, arg InsertUserWithSecurityKeyAndRefreshTokenParams) (uuid.UUID, error) {
+type InsertUserWithSecurityKeyAndRefreshTokenRow struct {
+	RefreshTokenID uuid.UUID
+	UserID         uuid.UUID
+}
+
+func (q *Queries) InsertUserWithSecurityKeyAndRefreshToken(ctx context.Context, arg InsertUserWithSecurityKeyAndRefreshTokenParams) (InsertUserWithSecurityKeyAndRefreshTokenRow, error) {
 	row := q.db.QueryRow(ctx, insertUserWithSecurityKeyAndRefreshToken,
 		arg.ID,
 		arg.Disabled,
@@ -512,9 +522,9 @@ func (q *Queries) InsertUserWithSecurityKeyAndRefreshToken(ctx context.Context, 
 		arg.CredentialPublicKey,
 		arg.Nickname,
 	)
-	var user_id uuid.UUID
-	err := row.Scan(&user_id)
-	return user_id, err
+	var i InsertUserWithSecurityKeyAndRefreshTokenRow
+	err := row.Scan(&i.RefreshTokenID, &i.UserID)
+	return i, err
 }
 
 const updateUserChangeEmail = `-- name: UpdateUserChangeEmail :one

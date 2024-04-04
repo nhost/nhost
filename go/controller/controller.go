@@ -51,11 +51,11 @@ type DBClientInsertUser interface {
 	InsertUser(ctx context.Context, arg sql.InsertUserParams) (sql.InsertUserRow, error)
 	InsertUserWithRefreshToken(
 		ctx context.Context, arg sql.InsertUserWithRefreshTokenParams,
-	) (uuid.UUID, error)
+	) (sql.InsertUserWithRefreshTokenRow, error)
 	InsertUserWithSecurityKeyAndRefreshToken(
 		ctx context.Context,
 		arg sql.InsertUserWithSecurityKeyAndRefreshTokenParams,
-	) (uuid.UUID, error)
+	) (sql.InsertUserWithSecurityKeyAndRefreshTokenRow, error)
 }
 
 type DBClientUpdateUser interface {

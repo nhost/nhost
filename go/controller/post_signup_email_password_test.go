@@ -23,7 +23,12 @@ import (
 func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
+	refreshTokenID := uuid.MustParse("c3b747ef-76a9-4c56-8091-ed3e6b8afb2c")
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
+	insertResponse := sql.InsertUserWithRefreshTokenRow{
+		UserID:         userID,
+		RefreshTokenID: refreshTokenID,
+	}
 
 	cases := []testRequest[api.PostSignupEmailPasswordRequestObject, api.PostSignupEmailPasswordResponseObject]{
 		{
@@ -54,7 +59,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
-				).Return(userID, nil)
+				).Return(insertResponse, nil)
 
 				return mock
 			},
@@ -78,6 +83,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Session: &api.Session{
 					AccessToken:          "",
 					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
 						AvatarUrl:           "",
@@ -149,7 +155,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
-				).Return(userID, nil)
+				).Return(insertResponse, nil)
 
 				return mock
 			},
@@ -183,6 +189,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Session: &api.Session{
 					AccessToken:          "",
 					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
 						AvatarUrl:           "",
@@ -589,7 +596,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
-				).Return(userID, nil)
+				).Return(insertResponse, nil)
 
 				return mock
 			},
@@ -619,6 +626,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Session: &api.Session{
 					AccessToken:          "",
 					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
 						AvatarUrl:           "",
@@ -738,7 +746,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
-				).Return(userID, nil)
+				).Return(insertResponse, nil)
 
 				return mock
 			},
@@ -762,6 +770,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Session: &api.Session{
 					AccessToken:          "",
 					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
 						AvatarUrl:           "https://www.gravatar.com/avatar/a6b55dc639dd4151e97efbc42ee1a28b?d=blank&r=g",
@@ -837,7 +846,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
-				).Return(userID, nil)
+				).Return(insertResponse, nil)
 
 				return mock
 			},
@@ -860,6 +869,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				Session: &api.Session{
 					AccessToken:          "",
 					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
 						AvatarUrl:           "",

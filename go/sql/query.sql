@@ -78,7 +78,7 @@ WITH inserted_user AS (
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
     FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role)
-RETURNING user_id;
+RETURNING (SELECT refresh_token_id FROM inserted_refresh_token), user_id;
 
 -- name: InsertUserWithSecurityKey :one
 WITH inserted_user AS (
@@ -138,7 +138,7 @@ WITH inserted_user AS (
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
     FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role)
-RETURNING user_id;
+RETURNING (SELECT refresh_token_id FROM inserted_refresh_token), user_id;
 
 -- name: InsertRefreshtoken :one
 INSERT INTO auth.refresh_tokens (user_id, refresh_token_hash, expires_at, type, metadata)

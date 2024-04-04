@@ -55,6 +55,7 @@ func getSigninUser(userID uuid.UUID) sql.AuthUser {
 func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
+	refreshTokenID := uuid.MustParse("c3b747ef-76a9-4c56-8091-ed3e6b8afb2c")
 	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
 
 	cases := []testRequest[api.PostSigninEmailPasswordRequestObject, api.PostSigninEmailPasswordResponseObject]{
@@ -84,7 +85,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
 					}),
-				).Return(uuid.New(), nil)
+				).Return(refreshTokenID, nil)
 
 				mock.EXPECT().UpdateUserLastSeen(
 					gomock.Any(), userID,
@@ -106,6 +107,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx
 				Session: &api.Session{
 					AccessToken:          "",
 					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
 						AvatarUrl:           "",
@@ -175,7 +177,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
 					}),
-				).Return(uuid.New(), nil)
+				).Return(refreshTokenID, nil)
 
 				mock.EXPECT().UpdateUserLastSeen(
 					gomock.Any(), userID,
@@ -210,6 +212,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx
 				Session: &api.Session{
 					AccessToken:          "",
 					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
 						AvatarUrl:           "",
@@ -412,7 +415,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
 					}),
-				).Return(uuid.New(), nil)
+				).Return(refreshTokenID, nil)
 
 				mock.EXPECT().UpdateUserLastSeen(
 					gomock.Any(), userID,
@@ -434,6 +437,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx
 				Session: &api.Session{
 					AccessToken:          "",
 					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
 						AvatarUrl:           "",

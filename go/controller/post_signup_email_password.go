@@ -123,7 +123,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithoutEmailVerification( //nolin
 	refreshToken := uuid.New()
 	expiresAt := time.Now().Add(time.Duration(ctrl.config.RefreshTokenExpiresIn) * time.Second)
 
-	userSession, userID, apiErr := ctrl.wf.SignupUserWithRefreshToken(
+	userSession, resp, apiErr := ctrl.wf.SignupUserWithRefreshToken(
 		ctx, email, password, refreshToken, expiresAt, options, logger,
 	)
 	if apiErr != nil {
@@ -131,7 +131,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithoutEmailVerification( //nolin
 	}
 
 	accessToken, expiresIn, err := ctrl.wf.jwtGetter.GetToken(
-		ctx, userID, deptr(options.AllowedRoles), *options.DefaultRole, logger,
+		ctx, resp.UserID, deptr(options.AllowedRoles), *options.DefaultRole, logger,
 	)
 	if err != nil {
 		logger.Error("error getting jwt", logError(err))
@@ -142,6 +142,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithoutEmailVerification( //nolin
 		Session: &api.Session{
 			AccessToken:          accessToken,
 			AccessTokenExpiresIn: expiresIn,
+			RefreshTokenId:       resp.RefreshTokenID.String(),
 			RefreshToken:         refreshToken.String(),
 			User:                 userSession,
 		},

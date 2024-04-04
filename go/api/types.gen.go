@@ -101,7 +101,10 @@ type Session struct {
 
 	// RefreshToken Refresh token during authentication or when refreshing the JWT
 	RefreshToken string `json:"refreshToken"`
-	User         *User  `json:"user,omitempty"`
+
+	// RefreshTokenId Refresh token id
+	RefreshTokenId string `json:"refreshTokenId"`
+	User           *User  `json:"user,omitempty"`
 }
 
 // SessionPayload defines model for SessionPayload.

@@ -164,10 +164,10 @@ func (mr *MockDBClientInsertUserMockRecorder) InsertUser(ctx, arg any) *gomock.C
 }
 
 // InsertUserWithRefreshToken mocks base method.
-func (m *MockDBClientInsertUser) InsertUserWithRefreshToken(ctx context.Context, arg sql.InsertUserWithRefreshTokenParams) (uuid.UUID, error) {
+func (m *MockDBClientInsertUser) InsertUserWithRefreshToken(ctx context.Context, arg sql.InsertUserWithRefreshTokenParams) (sql.InsertUserWithRefreshTokenRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertUserWithRefreshToken", ctx, arg)
-	ret0, _ := ret[0].(uuid.UUID)
+	ret0, _ := ret[0].(sql.InsertUserWithRefreshTokenRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -179,10 +179,10 @@ func (mr *MockDBClientInsertUserMockRecorder) InsertUserWithRefreshToken(ctx, ar
 }
 
 // InsertUserWithSecurityKeyAndRefreshToken mocks base method.
-func (m *MockDBClientInsertUser) InsertUserWithSecurityKeyAndRefreshToken(ctx context.Context, arg sql.InsertUserWithSecurityKeyAndRefreshTokenParams) (uuid.UUID, error) {
+func (m *MockDBClientInsertUser) InsertUserWithSecurityKeyAndRefreshToken(ctx context.Context, arg sql.InsertUserWithSecurityKeyAndRefreshTokenParams) (sql.InsertUserWithSecurityKeyAndRefreshTokenRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertUserWithSecurityKeyAndRefreshToken", ctx, arg)
-	ret0, _ := ret[0].(uuid.UUID)
+	ret0, _ := ret[0].(sql.InsertUserWithSecurityKeyAndRefreshTokenRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -447,10 +447,10 @@ func (mr *MockDBClientMockRecorder) InsertUser(ctx, arg any) *gomock.Call {
 }
 
 // InsertUserWithRefreshToken mocks base method.
-func (m *MockDBClient) InsertUserWithRefreshToken(ctx context.Context, arg sql.InsertUserWithRefreshTokenParams) (uuid.UUID, error) {
+func (m *MockDBClient) InsertUserWithRefreshToken(ctx context.Context, arg sql.InsertUserWithRefreshTokenParams) (sql.InsertUserWithRefreshTokenRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertUserWithRefreshToken", ctx, arg)
-	ret0, _ := ret[0].(uuid.UUID)
+	ret0, _ := ret[0].(sql.InsertUserWithRefreshTokenRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -477,10 +477,10 @@ func (mr *MockDBClientMockRecorder) InsertUserWithSecurityKey(ctx, arg any) *gom
 }
 
 // InsertUserWithSecurityKeyAndRefreshToken mocks base method.
-func (m *MockDBClient) InsertUserWithSecurityKeyAndRefreshToken(ctx context.Context, arg sql.InsertUserWithSecurityKeyAndRefreshTokenParams) (uuid.UUID, error) {
+func (m *MockDBClient) InsertUserWithSecurityKeyAndRefreshToken(ctx context.Context, arg sql.InsertUserWithSecurityKeyAndRefreshTokenParams) (sql.InsertUserWithSecurityKeyAndRefreshTokenRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertUserWithSecurityKeyAndRefreshToken", ctx, arg)
-	ret0, _ := ret[0].(uuid.UUID)
+	ret0, _ := ret[0].(sql.InsertUserWithSecurityKeyAndRefreshTokenRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

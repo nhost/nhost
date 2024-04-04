@@ -170,7 +170,7 @@ func (ctrl *Controller) postSignupWebauthnVerifyWithoutEmailVerificationOrUserDi
 	refreshToken := uuid.New()
 	expiresAt := time.Now().Add(time.Duration(ctrl.config.RefreshTokenExpiresIn) * time.Second)
 
-	user, apiErr := ctrl.wf.SignupUserWithSecurityKeyAndRefreshToken(
+	user, refreshTokenID, apiErr := ctrl.wf.SignupUserWithSecurityKeyAndRefreshToken(
 		ctx,
 		webauthnUser.ID,
 		webauthnUser.Email,
@@ -198,6 +198,7 @@ func (ctrl *Controller) postSignupWebauthnVerifyWithoutEmailVerificationOrUserDi
 		Session: &api.Session{
 			AccessToken:          accessToken,
 			AccessTokenExpiresIn: expiresIn,
+			RefreshTokenId:       refreshTokenID.String(),
 			RefreshToken:         refreshToken.String(),
 			User:                 user,
 		},

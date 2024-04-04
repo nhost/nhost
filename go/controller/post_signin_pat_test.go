@@ -20,6 +20,7 @@ import (
 func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
+	refreshTokenID := uuid.MustParse("c3b747ef-76a9-4c56-8091-ed3e6b8afb2c")
 	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
 	pat := uuid.MustParse("1fb17604-86c7-444e-b337-09a644465f2d")
 	hashedPat := `\x9698157153010b858587119503cbeef0cf288f11775e51cdb6bfd65e930d9310`
@@ -55,7 +56,7 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
 					}),
-				).Return(uuid.New(), nil)
+				).Return(refreshTokenID, nil)
 
 				mock.EXPECT().UpdateUserLastSeen(
 					gomock.Any(), userID,
@@ -73,6 +74,7 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 				Session: &api.Session{
 					AccessToken:          "",
 					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
 						AvatarUrl:           "",
@@ -148,7 +150,7 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
 					}),
-				).Return(uuid.New(), nil)
+				).Return(refreshTokenID, nil)
 
 				mock.EXPECT().UpdateUserLastSeen(
 					gomock.Any(), userID,
@@ -179,6 +181,7 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 				Session: &api.Session{
 					AccessToken:          "",
 					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
 						AvatarUrl:           "",
