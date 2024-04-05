@@ -8,7 +8,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { styled } from '@mui/material';
-import { useSignInEmailPassword } from '@nhost/nextjs';
+import { useNhostClient, useSignInEmailPassword } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 import { useEffect, type ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -30,8 +30,9 @@ const StyledInput = styled(Input)({
 });
 
 export default function EmailSignUpPage() {
-  const { signInEmailPassword, error } = useSignInEmailPassword();
   const router = useRouter();
+  const nhost = useNhostClient();
+  const { signInEmailPassword, error } = useSignInEmailPassword();
 
   const form = useForm<EmailSignUpFormValues>({
     reValidateMode: 'onSubmit',
@@ -63,6 +64,7 @@ export default function EmailSignUpPage() {
       );
 
       if (needsEmailVerification) {
+        await nhost.auth.sendVerificationEmail({ email: email as string });
         router.push(`/email/verify?email=${email}`);
       }
     } catch {
@@ -83,7 +85,7 @@ export default function EmailSignUpPage() {
         Sign In
       </Text>
 
-      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
+      <Box className="grid grid-flow-row gap-4 p-6 bg-transparent border rounded-md lg:p-12">
         <FormProvider {...form}>
           <Form
             onSubmit={handleSubmit}
@@ -123,7 +125,7 @@ export default function EmailSignUpPage() {
             <NavLink
               href="/reset-password"
               color="white"
-              className="justify-self-start font-semibold"
+              className="font-semibold justify-self-start"
             >
               Forgot password?
             </NavLink>
@@ -148,7 +150,7 @@ export default function EmailSignUpPage() {
         </FormProvider>
       </Box>
 
-      <Text color="secondary" className="text-center text-base lg:text-lg">
+      <Text color="secondary" className="text-base text-center lg:text-lg">
         Don&apos;t have an account?{' '}
         <NavLink href="/signup" color="white">
           Sign Up
