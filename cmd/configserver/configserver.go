@@ -6,10 +6,10 @@ import (
 	"os"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/nhost/be/services/mimir/graph"
+	cors "github.com/rs/cors/wrapper/gin"
 	"github.com/urfave/cli/v2"
 )
 
@@ -141,11 +141,7 @@ func serve(cCtx *cli.Context) error {
 		cCtx.App.Version,
 		[]graphql.FieldMiddleware{},
 		gin.Recovery(),
-		cors.New(cors.Config{ //nolint: exhaustruct
-			AllowOrigins:     []string{"https://local.dashboard.nhost.run"},
-			AllowMethods:     []string{"GET", "POST"},
-			AllowCredentials: true,
-		}),
+		cors.Default(),
 	)
 	if err := r.Run(cCtx.String(bindFlag)); err != nil {
 		return fmt.Errorf("failed to run gin: %w", err)

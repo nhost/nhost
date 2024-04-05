@@ -9,7 +9,6 @@ require (
 	github.com/Yamashou/gqlgenc v0.19.3
 	github.com/charmbracelet/lipgloss v0.10.0
 	github.com/creack/pty v1.1.21
-	github.com/gin-contrib/cors v1.7.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/google/go-cmp v0.6.0
@@ -17,6 +16,7 @@ require (
 	github.com/hashicorp/go-getter v1.7.3
 	github.com/nhost/be v0.0.0-20240403074641-7c96c314a29a
 	github.com/pelletier/go-toml/v2 v2.2.0
+	github.com/rs/cors/wrapper/gin v0.0.0-20240228164225-8d33ca4794ea
 	github.com/sirupsen/logrus v1.9.3
 	github.com/urfave/cli/v2 v2.27.1
 	github.com/wI2L/jsondiff v0.5.1
@@ -96,6 +96,7 @@ require (
 	github.com/prometheus/common v0.51.1 // indirect
 	github.com/prometheus/procfs v0.13.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/rs/cors v1.8.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/skeema/knownhosts v1.2.2 // indirect
