@@ -23,6 +23,16 @@ type Client struct {
 	retryer BasicRetryer
 }
 
+type RequestError struct {
+	Status    int    `json:"status"`
+	ErrorCode string `json:"error"`
+	Message   string `json:"message"`
+}
+
+func (e *RequestError) Error() string {
+	return fmt.Sprintf("status: %d, error: %s, message: %s", e.Status, e.ErrorCode, e.Message)
+}
+
 func New(domain string, interceptors ...clientv2.RequestInterceptor) *Client {
 	return &Client{
 		baseURL: fmt.Sprintf("https://%s/v1/auth", domain),

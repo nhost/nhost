@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -221,6 +222,22 @@ func (ce *CliEnv) loginMethod(ctx context.Context) (credentials.Credentials, err
 	return session, err
 }
 
+func (ce *CliEnv) verifyEmail(
+	ctx context.Context,
+	email string,
+) error {
+	ce.Infoln("Your email address is not verified")
+
+	cl := nhostclient.New(ce.Domain())
+	if err := cl.VerifyEmail(ctx, email); err != nil {
+		return fmt.Errorf("failed to send verification email: %w", err)
+	}
+
+	ce.Infoln("A verification email has been sent to %s", email)
+	ce.Infoln("Please verify your email address and try again")
+	return nil
+}
+
 func (ce *CliEnv) Login(
 	ctx context.Context,
 	pat string,
@@ -236,6 +253,11 @@ func (ce *CliEnv) Login(
 		session, err = ce.loginEmailPassword(ctx, email, password)
 	default:
 		session, err = ce.loginMethod(ctx)
+	}
+
+	var reqErr *nhostclient.RequestError
+	if errors.As(err, &reqErr) && reqErr.ErrorCode == "unverified-user" {
+		return credentials.Credentials{}, ce.verifyEmail(ctx, email)
 	}
 
 	if err != nil {

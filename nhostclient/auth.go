@@ -2,6 +2,7 @@ package nhostclient
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -36,7 +37,10 @@ func (n *Client) Login(ctx context.Context, email, password string) (credentials
 		func(resp *http.Response) error {
 			if resp.StatusCode != http.StatusOK {
 				b, _ := io.ReadAll(resp.Body)
-				return fmt.Errorf("unexpected status code: %d, message: %s", resp.StatusCode, string(b)) //nolint:goerr113
+
+				var reqErr *RequestError
+				_ = json.Unmarshal(b, &reqErr)
+				return reqErr
 			}
 			return nil
 		},
@@ -46,6 +50,40 @@ func (n *Client) Login(ctx context.Context, email, password string) (credentials
 	}
 
 	return resp, nil
+}
+
+type VerifyEmailRequest struct {
+	Email string `json:"email"`
+}
+
+func (n *Client) VerifyEmail(ctx context.Context, email string) error {
+	var resp any
+	if err := MakeJSONRequest(
+		ctx,
+		n.client,
+		fmt.Sprintf("%s%s", n.baseURL, "/user/email/send-verification-email"),
+		http.MethodPost,
+		VerifyEmailRequest{
+			Email: email,
+		},
+		http.Header{},
+		&resp,
+		func(resp *http.Response) error {
+			if resp.StatusCode != http.StatusOK {
+				b, _ := io.ReadAll(resp.Body)
+
+				var reqErr *RequestError
+				_ = json.Unmarshal(b, &reqErr)
+				return reqErr
+			}
+			return nil
+		},
+		n.retryer,
+	); err != nil {
+		return fmt.Errorf("failed to login: %w", err)
+	}
+
+	return nil
 }
 
 type LoginPATRequest struct {
