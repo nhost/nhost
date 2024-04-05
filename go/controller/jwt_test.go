@@ -241,7 +241,12 @@ func TestGetJWTFunc(t *testing.T) {
 			}
 
 			accessToken, _, err := jwtGetter.GetToken(
-				context.Background(), tc.userID, tc.allowedRoles, tc.defaultRole, slog.Default(),
+				context.Background(),
+				tc.userID,
+				false,
+				tc.allowedRoles,
+				tc.defaultRole,
+				slog.Default(),
 			)
 			if err != nil {
 				t.Fatalf("fn() err = %v; want nil", err)

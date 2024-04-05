@@ -16,6 +16,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+//nolint:dupl
 func getSigninUser(userID uuid.UUID) sql.AuthUser {
 	//nolint:exhaustruct
 	return sql.AuthUser{

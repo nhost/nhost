@@ -172,7 +172,7 @@ func (wf *Workflows) ValidateUser(
 	user sql.AuthUser,
 	logger *slog.Logger,
 ) *APIError {
-	if !wf.ValidateEmail(user.Email.String) {
+	if !user.IsAnonymous && !wf.ValidateEmail(user.Email.String) {
 		logger.Warn("email didn't pass access control checks")
 		return ErrInvalidEmailPassword
 	}
@@ -182,14 +182,14 @@ func (wf *Workflows) ValidateUser(
 		return ErrDisabledUser
 	}
 
-	if user.IsAnonymous {
-		logger.Warn("user is anonymous")
-		return ErrForbiddenAnonymous
-	}
-
 	if !user.EmailVerified && wf.config.RequireEmailVerification {
 		logger.Warn("user is unverified")
 		return ErrUnverifiedUser
+	}
+
+	if user.IsAnonymous {
+		logger.Warn("user is anonymous")
+		return ErrForbiddenAnonymous
 	}
 
 	return nil
@@ -290,7 +290,10 @@ func (wf *Workflows) GetUserByRefreshTokenHash(
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.Error("could not find user by refresh token")
-		return sql.AuthUser{}, ErrInvalidPat //nolint:exhaustruct
+		if refreshTokenType == sql.RefreshTokenTypePAT {
+			return sql.AuthUser{}, ErrInvalidPat //nolint:exhaustruct
+		}
+		return sql.AuthUser{}, ErrInvalidRefreshToken //nolint:exhaustruct
 	}
 	if err != nil {
 		logger.Error("could not get user by refresh token", logError(err))
@@ -298,10 +301,71 @@ func (wf *Workflows) GetUserByRefreshTokenHash(
 	}
 
 	if apiErr := wf.ValidateUser(user, logger); apiErr != nil {
-		return sql.AuthUser{}, apiErr //nolint:exhaustruct
+		return user, apiErr
 	}
 
 	return user, nil
+}
+
+func (wf *Workflows) UpdateSession(
+	ctx context.Context,
+	user sql.AuthUser,
+	refreshToken string,
+	logger *slog.Logger,
+) (*api.Session, *APIError) {
+	userRoles, err := wf.db.RefreshTokenAndGetUserRoles(ctx, sql.RefreshTokenAndGetUserRolesParams{
+		RefreshTokenHash: sql.Text(hashRefreshToken([]byte(refreshToken))),
+		ExpiresAt: sql.TimestampTz(
+			time.Now().Add(time.Duration(wf.config.RefreshTokenExpiresIn) * time.Second),
+		),
+	})
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.Warn("invalid refresh token")
+		return &api.Session{}, ErrInvalidRefreshToken //nolint:exhaustruct
+	}
+
+	allowedRoles := make([]string, len(userRoles))
+	for i, role := range userRoles {
+		allowedRoles[i] = role.Role
+	}
+
+	accessToken, expiresIn, err := wf.jwtGetter.GetToken(
+		ctx, user.ID, user.IsAnonymous, allowedRoles, user.DefaultRole, logger,
+	)
+	if err != nil {
+		logger.Error("error getting jwt", logError(err))
+		return nil, ErrInternalServerError
+	}
+
+	var metadata map[string]any
+	if len(user.Metadata) > 0 {
+		if err := json.Unmarshal(user.Metadata, &metadata); err != nil {
+			logger.Error("error unmarshalling user metadata", logError(err))
+			return nil, ErrInternalServerError
+		}
+	}
+
+	return &api.Session{
+		AccessToken:          accessToken,
+		AccessTokenExpiresIn: expiresIn,
+		RefreshToken:         refreshToken,
+		RefreshTokenId:       userRoles[0].RefreshTokenID.String(),
+		User: &api.User{
+			AvatarUrl:           user.AvatarUrl,
+			CreatedAt:           user.CreatedAt.Time,
+			DefaultRole:         user.DefaultRole,
+			DisplayName:         user.DisplayName,
+			Email:               types.Email(user.Email.String),
+			EmailVerified:       user.EmailVerified,
+			Id:                  user.ID.String(),
+			IsAnonymous:         user.IsAnonymous,
+			Locale:              user.Locale,
+			Metadata:            metadata,
+			PhoneNumber:         user.PhoneNumber.String,
+			PhoneNumberVerified: user.PhoneNumberVerified,
+			Roles:               allowedRoles,
+		},
+	}, nil
 }
 
 func (wf *Workflows) NewSession(
@@ -328,11 +392,11 @@ func (wf *Workflows) NewSession(
 	}
 
 	if _, err := wf.db.UpdateUserLastSeen(ctx, user.ID); err != nil {
-		return nil, fmt.Errorf("error updating last seen: %w", err)
+		return nil, fmt.Errorf("error updating user last seen: %w", err)
 	}
 
 	accessToken, expiresIn, err := wf.jwtGetter.GetToken(
-		ctx, user.ID, allowedRoles, user.DefaultRole, logger,
+		ctx, user.ID, user.IsAnonymous, allowedRoles, user.DefaultRole, logger,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("error getting jwt: %w", err)

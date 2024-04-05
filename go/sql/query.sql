@@ -145,6 +145,22 @@ INSERT INTO auth.refresh_tokens (user_id, refresh_token_hash, expires_at, type, 
 VALUES ($1, $2, $3, $4, $5)
 RETURNING id;
 
+-- name: RefreshTokenAndGetUserRoles :many
+WITH refreshed_token AS (
+    UPDATE auth.refresh_tokens
+    SET expires_at = $2
+    WHERE refresh_token_hash = $1
+    RETURNING id AS refresh_token_id, user_id
+),
+updated_user AS (
+    UPDATE auth.users
+    SET last_seen = now()
+    FROM refreshed_token
+    WHERE auth.users.id = refreshed_token.user_id
+)
+SELECT refreshed_token.refresh_token_id, role FROM auth.user_roles
+JOIN refreshed_token ON auth.user_roles.user_id = refreshed_token.user_id;
+
 -- name: UpdateUserLastSeen :one
 UPDATE auth.users
 SET last_seen = now()

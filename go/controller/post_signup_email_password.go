@@ -131,7 +131,7 @@ func (ctrl *Controller) postSignupEmailPasswordWithoutEmailVerification( //nolin
 	}
 
 	accessToken, expiresIn, err := ctrl.wf.jwtGetter.GetToken(
-		ctx, resp.UserID, deptr(options.AllowedRoles), *options.DefaultRole, logger,
+		ctx, resp.UserID, false, deptr(options.AllowedRoles), *options.DefaultRole, logger,
 	)
 	if err != nil {
 		logger.Error("error getting jwt", logError(err))

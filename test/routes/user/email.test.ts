@@ -282,6 +282,6 @@ describe('user email', () => {
       .post('/user/email/change')
       .set('Authorization', `Bearer ${body.session!.accessToken}`)
       .send({ newEmail: faker.internet.email() })
-      .expect(StatusCodes.UNAUTHORIZED);
+      .expect(StatusCodes.FORBIDDEN);
   });
 });

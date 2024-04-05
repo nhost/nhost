@@ -39,6 +39,7 @@ var (
 	ErrSignupDisabled                  = &APIError{api.SignupDisabled}
 	ErrDisabledEndpoint                = &APIError{api.DisabledEndpoint}
 	ErrEmailAlreadyVerified            = &APIError{api.EmailAlreadyVerified}
+	ErrInvalidRefreshToken             = &APIError{api.InvalidRefreshToken}
 )
 
 func logError(err error) slog.Attr {
@@ -101,6 +102,10 @@ func (response ErrorResponse) VisitPostSignupWebauthnVerifyResponse(w http.Respo
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitPostTokenResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func isSensitive(err api.ErrorResponseError) bool {
 	switch err {
 	case
@@ -112,7 +117,8 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.InvalidPat,
 		api.RoleNotAllowed,
 		api.SignupDisabled,
-		api.UnverifiedUser:
+		api.UnverifiedUser,
+		api.InvalidRefreshToken:
 		return true
 	case
 		api.DefaultRoleMustBeInAllowedRoles,
@@ -245,6 +251,12 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 			Status:  http.StatusBadRequest,
 			Error:   err.t,
 			Message: "Logged in user is not anonymous",
+		}
+	case api.InvalidRefreshToken:
+		return ErrorResponse{
+			Status:  http.StatusUnauthorized,
+			Error:   err.t,
+			Message: "Invalid or expired refresh token",
 		}
 	}
 

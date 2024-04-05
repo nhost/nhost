@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -113,6 +114,7 @@ func pgEncode(v any) (string, error) {
 func (j *JWTGetter) GetToken(
 	ctx context.Context,
 	userID uuid.UUID,
+	isAnonymous bool,
 	allowedRoles []string,
 	defaultRole string,
 	logger *slog.Logger,
@@ -135,7 +137,7 @@ func (j *JWTGetter) GetToken(
 		"x-hasura-allowed-roles":     allowedRoles,
 		"x-hasura-default-role":      defaultRole,
 		"x-hasura-user-id":           userID.String(),
-		"x-hasura-user-is-anonymous": "false",
+		"x-hasura-user-is-anonymous": strconv.FormatBool(isAnonymous),
 	}
 
 	for k, v := range customClaims {

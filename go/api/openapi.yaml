@@ -57,6 +57,28 @@ paths:
           description: >-
             Successfully created a Personal Access Token
 
+  /token:
+    post:
+      summary: Refresh the JWT access token
+      tags:
+        - token
+        - access-token
+        - jwt
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+          description: >-
+            Successfully refreshed the JWT access token
+
   /signin/email-password:
     post:
       summary: Sign in with email and password
@@ -328,6 +350,25 @@ components:
         For details see https://docs.nhost.io/guides/auth/elevated-permissions
 
   schemas:
+    RefreshTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        refreshToken:
+          description: Refresh Token
+          example: 2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24
+          pattern: \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
+          type: string
+      required:
+        - refreshToken
+
+    RefreshTokenResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        session:
+          $ref: "#/components/schemas/Session"
+
     CreatePATRequest:
       type: object
       additionalProperties: false
@@ -397,6 +438,7 @@ components:
             - unverified-user
             - user-not-anonymous
             - invalid-pat
+            - invalid-refresh-token
       required:
         - status
         - message
