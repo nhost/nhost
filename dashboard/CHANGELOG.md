@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.12.2
+
+### Patch Changes
+
+- c195c51: fix: send email upon signin for unverified users
+
 ## 1.12.1
 
 ### Patch Changes
