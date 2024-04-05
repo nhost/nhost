@@ -4,6 +4,7 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetPostgresSettingsDocument,
   Software_Type_Enum,
@@ -11,8 +12,10 @@ import {
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -30,6 +33,8 @@ export type DatabaseServiceVersionFormValues = Yup.InferType<
 >;
 
 export default function DatabaseServiceVersionSettings() {
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
@@ -38,16 +43,18 @@ export default function DatabaseServiceVersionSettings() {
 
   const { data, loading, error } = useGetPostgresSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data: databaseVersionsData } = useGetSoftwareVersionsQuery({
     variables: {
       software: Software_Type_Enum.PostgreSql,
     },
+    skip: !isPlatform,
   });
 
   const { version } = data?.config?.postgres || {};
+
   const databaseVersions = databaseVersionsData?.softwareVersions || [];
   const availableVersions = Array.from(
     new Set(databaseVersions.map((el) => el.version)).add(version),
@@ -64,6 +71,17 @@ export default function DatabaseServiceVersionSettings() {
     defaultValues: { version: { label: version, value: version } },
     resolver: yupResolver(validationSchema),
   });
+
+  useEffect(() => {
+    if (version) {
+      form.reset({
+        version: {
+          label: version,
+          value: version,
+        },
+      });
+    }
+  }, [version, form]);
 
   if (loading) {
     return (

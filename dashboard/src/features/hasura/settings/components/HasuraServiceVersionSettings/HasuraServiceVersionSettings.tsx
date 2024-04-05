@@ -4,6 +4,7 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetHasuraSettingsDocument,
   Software_Type_Enum,
@@ -11,8 +12,10 @@ import {
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -30,6 +33,8 @@ export type HasuraServiceVersionFormValues = Yup.InferType<
 >;
 
 export default function HasuraServiceVersionSettings() {
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
@@ -39,13 +44,14 @@ export default function HasuraServiceVersionSettings() {
 
   const { data, loading, error } = useGetHasuraSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data: hasuraVersionsData } = useGetSoftwareVersionsQuery({
     variables: {
       software: Software_Type_Enum.Hasura,
     },
+    skip: !isPlatform,
   });
 
   const { version } = data?.config?.hasura || {};
@@ -65,6 +71,17 @@ export default function HasuraServiceVersionSettings() {
     defaultValues: { version: { label: version, value: version } },
     resolver: yupResolver(validationSchema),
   });
+
+  useEffect(() => {
+    if (version) {
+      form.reset({
+        version: {
+          label: version,
+          value: version,
+        },
+      });
+    }
+  }, [version, form]);
 
   if (loading) {
     return (

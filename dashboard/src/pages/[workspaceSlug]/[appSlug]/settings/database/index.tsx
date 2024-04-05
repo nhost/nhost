@@ -6,20 +6,20 @@ import { DatabaseServiceVersionSettings } from '@/features/database/settings/com
 import { DatabaseStorageCapacity } from '@/features/database/settings/components/DatabaseStorageCapacity';
 import { ResetDatabasePasswordSettings } from '@/features/database/settings/components/ResetDatabasePasswordSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useGetPostgresSettingsQuery } from '@/generated/graphql';
 import useLocalMimirClient from '@/hooks/useLocalMimirClient/useLocalMimirClient';
 import type { ReactElement } from 'react';
 
 export default function DatabaseSettingsPage() {
-  // const isPlatform = useIsPlatform()
+  const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { loading, error } = useGetPostgresSettingsQuery({
     variables: { appId: currentProject?.id },
     skip: !currentProject,
-    // TODO only apply this client wehn running the dashboard locally
-    client: localMimirClient,
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (loading) {
@@ -38,13 +38,18 @@ export default function DatabaseSettingsPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
       <DatabaseServiceVersionSettings />
       <DatabaseStorageCapacity />
-      <DatabaseConnectionInfo />
-      <ResetDatabasePasswordSettings />
+
+      {isPlatform && (
+        <>
+          <DatabaseConnectionInfo />
+          <ResetDatabasePasswordSettings />
+        </>
+      )}
     </Container>
   );
 }

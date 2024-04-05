@@ -58,15 +58,6 @@ function ProjectLayoutContent({
   //   }
   // }, [isPlatform, isRestrictedPath, router]);
 
-  console.log({
-    cond1: !isPlatform,
-    cond2: nhostRoutes.some((route) =>
-      pathWithoutWorkspaceAndProject.startsWith(
-        route.relativeMainPath || route.relativePath,
-      ),
-    ),
-  });
-
   if (isRestrictedPath || loading) {
     return <LoadingScreen />;
   }
@@ -78,7 +69,7 @@ function ProjectLayoutContent({
   if (!isPlatform) {
     return (
       <>
-        <DesktopNav className="top-0 flex-col items-start hidden w-20 shrink-0 sm:flex" />
+        <DesktopNav className="top-0 hidden w-20 shrink-0 flex-col items-start sm:flex" />
 
         <Box
           component="main"
@@ -99,7 +90,7 @@ function ProjectLayoutContent({
   return (
     <>
       {shouldDisplayNav && (
-        <DesktopNav className="top-0 flex-col items-start hidden w-20 shrink-0 sm:flex" />
+        <DesktopNav className="top-0 hidden w-20 shrink-0 flex-col items-start sm:flex" />
       )}
 
       <Box

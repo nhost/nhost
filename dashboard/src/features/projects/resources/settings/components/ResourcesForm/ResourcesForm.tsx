@@ -7,6 +7,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Link } from '@/components/ui/v2/Link';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
 import { ResourcesConfirmationDialog } from '@/features/projects/resources/settings/components/ResourcesConfirmationDialog';
 import { ServiceResourcesFormFragment } from '@/features/projects/resources/settings/components/ServiceResourcesFormFragment';
@@ -14,6 +15,7 @@ import { TotalResourcesFormFragment } from '@/features/projects/resources/settin
 import { calculateBillableResources } from '@/features/projects/resources/settings/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
@@ -44,6 +46,8 @@ function getInitialServiceResources(
 }
 
 export default function ResourcesForm() {
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { openDialog, closeDialog } = useDialog();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
@@ -54,6 +58,7 @@ export default function ResourcesForm() {
   } = useGetResourcesQuery({
     variables: {
       appId: currentProject?.id,
+      ...(!isPlatform ? { client: localMimirClient } : {}),
     },
   });
 
