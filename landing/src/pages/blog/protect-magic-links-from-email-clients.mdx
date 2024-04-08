@@ -72,7 +72,7 @@ import { useSearchParams } from 'react-router-dom'
 
 const VerifyPage: React.FC = () => {
   const nhost = useNhostClient()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [searchParams] = useSearchParams()
 
   useEffect(() => {
