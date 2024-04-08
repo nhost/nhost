@@ -101,11 +101,6 @@ type RefreshTokenRequest struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
-// RefreshTokenResponse defines model for RefreshTokenResponse.
-type RefreshTokenResponse struct {
-	Session *Session `json:"session,omitempty"`
-}
-
 // Session defines model for Session.
 type Session struct {
 	AccessToken          string `json:"accessToken"`

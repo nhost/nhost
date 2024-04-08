@@ -82,7 +82,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			expectedResponse: api.PostSignupEmailPassword200JSONResponse{
 				Session: &api.Session{
 					AccessToken:          "",
-					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					AccessTokenExpiresIn: 900,
 					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
@@ -188,7 +188,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			expectedResponse: api.PostSignupEmailPassword200JSONResponse{
 				Session: &api.Session{
 					AccessToken:          "",
-					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					AccessTokenExpiresIn: 900,
 					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
@@ -625,7 +625,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			expectedResponse: api.PostSignupEmailPassword200JSONResponse{
 				Session: &api.Session{
 					AccessToken:          "",
-					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					AccessTokenExpiresIn: 900,
 					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
@@ -769,7 +769,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			expectedResponse: api.PostSignupEmailPassword200JSONResponse{
 				Session: &api.Session{
 					AccessToken:          "",
-					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					AccessTokenExpiresIn: 900,
 					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{
@@ -868,7 +868,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			expectedResponse: api.PostSignupEmailPassword200JSONResponse{
 				Session: &api.Session{
 					AccessToken:          "",
-					AccessTokenExpiresIn: time.Now().Add(900 * time.Second).Unix(),
+					AccessTokenExpiresIn: 900,
 					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
 					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
 					User: &api.User{

@@ -36,7 +36,5 @@ func (ctrl *Controller) PostToken( //nolint:ireturn
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 
-	return api.PostToken200JSONResponse{
-		Session: session,
-	}, nil
+	return api.PostToken200JSONResponse(*session), nil
 }

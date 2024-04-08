@@ -168,7 +168,7 @@ func (j *JWTGetter) GetToken(
 		return "", 0, fmt.Errorf("error signing token: %w", err)
 	}
 
-	return ss, exp, nil
+	return ss, int64(j.accessTokenExpiresIn.Seconds()), nil
 }
 
 func (j *JWTGetter) Validate(accessToken string) (*jwt.Token, error) {

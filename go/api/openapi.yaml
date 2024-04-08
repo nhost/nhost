@@ -75,7 +75,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RefreshTokenResponse'
+                $ref: '#/components/schemas/Session'
           description: >-
             Successfully refreshed the JWT access token
 
@@ -361,13 +361,6 @@ components:
           type: string
       required:
         - refreshToken
-
-    RefreshTokenResponse:
-      type: object
-      additionalProperties: false
-      properties:
-        session:
-          $ref: "#/components/schemas/Session"
 
     CreatePATRequest:
       type: object
