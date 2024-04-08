@@ -70,6 +70,7 @@ export default function ResourcesForm() {
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetResourcesDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const initialDatabaseResources = getInitialServiceResources(data, 'postgres');
@@ -266,7 +267,12 @@ export default function ResourcesForm() {
     }
   }
 
-  function handleConfirm(formValues: ResourceSettingsFormValues) {
+  async function handleConfirm(formValues: ResourceSettingsFormValues) {
+    if (!isPlatform) {
+      await handleSubmit(formValues);
+      return;
+    }
+
     openDialog({
       title: formValues.enabled
         ? 'Confirm Dedicated Resources'

@@ -30,6 +30,7 @@ export default function HasuraStorageAVSettings() {
     useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetHasuraSettingsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetStorageSettingsQuery({

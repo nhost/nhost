@@ -55,17 +55,18 @@ const validationSchema = Yup.object({
 export type WorkOsProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function WorkOsProviderSettings() {
-  const isPlaform = useIsPlatform();
+  const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentProject?.id },
-    ...(!isPlaform ? { client: localMimirClient } : {}),
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { clientId, clientSecret, organization, connection, enabled } =

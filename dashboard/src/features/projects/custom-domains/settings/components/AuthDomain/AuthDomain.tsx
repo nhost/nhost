@@ -29,10 +29,13 @@ export default function AuthDomain() {
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const [isVerified, setIsVerified] = useState(false);
+
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
 
-  const [updateConfig] = useUpdateConfigMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
 
   const form = useForm<Yup.InferType<typeof validationSchema>>({
     reValidateMode: 'onSubmit',

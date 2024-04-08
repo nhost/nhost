@@ -61,6 +61,7 @@ export default function EnvironmentVariableSettings() {
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetEnvironmentVariablesDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (loading) {

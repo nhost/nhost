@@ -38,6 +38,7 @@ export default function EmailAndPasswordSettings() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, error, loading } = useGetSignInMethodsQuery({

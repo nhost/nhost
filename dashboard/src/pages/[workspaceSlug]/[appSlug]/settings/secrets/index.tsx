@@ -45,6 +45,7 @@ export default function SecretsPage() {
 
   const [deleteSecret] = useDeleteSecretMutation({
     refetchQueries: [GetSecretsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (loading) {

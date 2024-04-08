@@ -53,6 +53,7 @@ export default function SMSSettings() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, error, loading } = useGetSignInMethodsQuery({

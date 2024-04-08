@@ -46,7 +46,9 @@ export default function AuthDomain() {
       currentProject?.plan?.featureMaxDbSize) ||
     0;
 
-  const [updateConfig] = useUpdateConfigMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
 
   const form = useForm<Yup.InferType<typeof validationSchema>>({
     reValidateMode: 'onSubmit',

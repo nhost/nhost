@@ -90,6 +90,7 @@ export default function SMTPSettingsPage() {
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSmtpSettingsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (isPlatform && currentProject?.plan?.isFree) {

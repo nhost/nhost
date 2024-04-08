@@ -21,11 +21,15 @@ import {
 } from '@/features/projects/common/utils/generateAppServiceUrl';
 import { EditJwtSecretForm } from '@/features/projects/environmentVariables/settings/components/EditJwtSecretForm';
 import { getJwtSecretsWithoutFalsyValues } from '@/features/projects/environmentVariables/settings/utils/getJwtSecretsWithoutFalsyValues';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { getHasuraConsoleServiceUrl } from '@/utils/env';
 import { useGetEnvironmentVariablesQuery } from '@/utils/__generated__/graphql';
 import { Fragment, useState } from 'react';
 
 export default function SystemEnvironmentVariableSettings() {
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
+
   const [showAdminSecret, setShowAdminSecret] = useState(false);
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
 
@@ -34,7 +38,7 @@ export default function SystemEnvironmentVariableSettings() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { jwtSecrets, webhookSecret, adminSecret } = data?.config?.hasura || {};
@@ -45,8 +49,6 @@ export default function SystemEnvironmentVariableSettings() {
     jwtSecretsWithoutFalsyValues.length === 1
       ? JSON.stringify(jwtSecretsWithoutFalsyValues[0], null, 2)
       : JSON.stringify(jwtSecretsWithoutFalsyValues, null, 2);
-
-  const isPlatform = useIsPlatform();
 
   const appClient = useAppClient();
 
@@ -124,10 +126,10 @@ export default function SystemEnvironmentVariableSettings() {
       description="System environment variables are automatically generated from the configuration file and your project's subdomain and region."
       docsLink="https://docs.nhost.io/platform/environment-variables#system-environment-variables"
       rootClassName="gap-0"
-      className="mt-2 mb-2.5 px-0"
+      className="mb-2.5 mt-2 px-0"
       slotProps={{ submitButton: { className: 'hidden' } }}
     >
-      <Box className="grid grid-cols-3 gap-2 border-b-1 px-4 py-3">
+      <Box className="grid grid-cols-3 gap-2 px-4 py-3 border-b-1">
         <Text className="font-medium">Variable Name</Text>
         <Text className="font-medium lg:col-span-2">Value</Text>
       </Box>
@@ -136,7 +138,7 @@ export default function SystemEnvironmentVariableSettings() {
         <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
           <ListItem.Text>NHOST_ADMIN_SECRET</ListItem.Text>
 
-          <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
+          <div className="grid items-center justify-start grid-flow-col gap-2 lg:col-span-2">
             <Text className="truncate" color="secondary">
               {showAdminSecret ? (
                 <InlineCode className="!text-sm font-medium">
@@ -156,9 +158,9 @@ export default function SystemEnvironmentVariableSettings() {
               onClick={() => setShowAdminSecret((show) => !show)}
             >
               {showAdminSecret ? (
-                <EyeOffIcon className="h-5 w-5" />
+                <EyeOffIcon className="w-5 h-5" />
               ) : (
-                <EyeIcon className="h-5 w-5" />
+                <EyeIcon className="w-5 h-5" />
               )}
             </IconButton>
           </div>
@@ -169,7 +171,7 @@ export default function SystemEnvironmentVariableSettings() {
         <ListItem.Root className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
           <ListItem.Text>NHOST_WEBHOOK_SECRET</ListItem.Text>
 
-          <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
+          <div className="grid items-center justify-start grid-flow-col gap-2 lg:col-span-2">
             <Text className="truncate" color="secondary">
               {showWebhookSecret ? (
                 <InlineCode className="!text-sm font-medium">
@@ -191,9 +193,9 @@ export default function SystemEnvironmentVariableSettings() {
               onClick={() => setShowWebhookSecret((show) => !show)}
             >
               {showWebhookSecret ? (
-                <EyeOffIcon className="h-5 w-5" />
+                <EyeOffIcon className="w-5 h-5" />
               ) : (
-                <EyeIcon className="h-5 w-5" />
+                <EyeIcon className="w-5 h-5" />
               )}
             </IconButton>
           </div>
@@ -217,9 +219,9 @@ export default function SystemEnvironmentVariableSettings() {
           </Fragment>
         ))}
 
-        <Divider component="li" className="!mt-4 !mb-2.5" />
+        <Divider component="li" className="!mb-2.5 !mt-4" />
 
-        <ListItem.Root className="grid grid-cols-2 justify-start px-4 lg:grid-cols-3">
+        <ListItem.Root className="grid justify-start grid-cols-2 px-4 lg:grid-cols-3">
           <ListItem.Text>NHOST_JWT_SECRET</ListItem.Text>
 
           <div className="grid grid-flow-row items-center justify-center gap-1.5 text-center md:grid-flow-col lg:col-span-2 lg:justify-start lg:text-left">

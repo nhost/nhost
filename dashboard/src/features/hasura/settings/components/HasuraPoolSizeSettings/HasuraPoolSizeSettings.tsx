@@ -35,11 +35,11 @@ export default function HasuraPoolSizeSettings() {
     useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetHasuraSettingsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetHasuraSettingsQuery({
     variables: { appId: currentProject?.id },
-    // fetchPolicy: 'cache-first',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
