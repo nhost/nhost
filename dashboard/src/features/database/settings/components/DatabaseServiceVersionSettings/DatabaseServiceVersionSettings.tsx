@@ -68,12 +68,12 @@ export default function DatabaseServiceVersionSettings() {
 
   const form = useForm<DatabaseServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
-    defaultValues: { version: { label: version, value: version } },
+    defaultValues: { version: { label: '', value: '' } },
     resolver: yupResolver(validationSchema),
   });
 
   useEffect(() => {
-    if (version) {
+    if (!loading && version) {
       form.reset({
         version: {
           label: version,
@@ -81,7 +81,7 @@ export default function DatabaseServiceVersionSettings() {
         },
       });
     }
-  }, [version, form]);
+  }, [loading, version, form]);
 
   if (loading) {
     return (
@@ -141,12 +141,20 @@ export default function DatabaseServiceVersionSettings() {
           }}
           docsLink="https://hub.docker.com/r/nhost/postgres/tags"
           docsTitle="the latest releases"
-          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row px-4 gap-x-4 gap-y-2 lg:grid-cols-5"
         >
           <ControlledAutocomplete
             id="version"
             name="version"
             autoHighlight
+            freeSolo
+            getOptionLabel={(option) => {
+              if (typeof option === 'string') {
+                return option || '';
+              }
+
+              return option.value;
+            }}
             isOptionEqualToValue={() => false}
             filterOptions={(options, { inputValue }) => {
               const inputValueLower = inputValue.toLowerCase();

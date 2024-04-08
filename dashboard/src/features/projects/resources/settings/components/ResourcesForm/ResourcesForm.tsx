@@ -58,8 +58,8 @@ export default function ResourcesForm() {
   } = useGetResourcesQuery({
     variables: {
       appId: currentProject?.id,
-      ...(!isPlatform ? { client: localMimirClient } : {}),
     },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const {
@@ -118,7 +118,7 @@ export default function ResourcesForm() {
     resolver: yupResolver(resourceSettingsValidationSchema),
   });
 
-  if (!proPlan && !proPlanLoading) {
+  if (isPlatform && !proPlan && !proPlanLoading) {
     return (
       <Alert severity="error">
         Couldn&apos;t load the plan for this project. Please try again.
@@ -126,7 +126,7 @@ export default function ResourcesForm() {
     );
   }
 
-  if (loading || proPlanLoading) {
+  if (isPlatform && (loading || proPlanLoading)) {
     return (
       <ActivityIndicator
         label="Loading resource settings..."
@@ -161,9 +161,10 @@ export default function ResourcesForm() {
     },
   );
 
-  const initialPrice =
-    proPlan.price +
-    (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE;
+  const initialPrice = isPlatform
+    ? proPlan.price +
+      (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
+    : 0;
 
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
     const updateConfigPromise = updateConfig({

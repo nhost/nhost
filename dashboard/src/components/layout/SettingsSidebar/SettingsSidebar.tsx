@@ -7,6 +7,7 @@ import { List } from '@/components/ui/v2/List';
 import type { ListItemButtonProps } from '@/components/ui/v2/ListItem';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -61,6 +62,7 @@ export default function SettingsSidebar({
   className,
   ...props
 }: SettingsSidebarProps) {
+  const isPlatform = useIsPlatform();
   const [expanded, setExpanded] = useState(false);
   const { currentProject } = useCurrentWorkspaceAndProject();
 
@@ -181,7 +183,12 @@ export default function SettingsSidebar({
               SMTP
             </SettingsNavLink>
 
-            <SettingsNavLink href="/git" exact={false} onClick={handleSelect}>
+            <SettingsNavLink
+              href="/git"
+              exact={false}
+              onClick={handleSelect}
+              disabled={!isPlatform}
+            >
               Git
             </SettingsNavLink>
 

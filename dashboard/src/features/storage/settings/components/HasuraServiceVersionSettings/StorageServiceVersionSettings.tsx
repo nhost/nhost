@@ -4,6 +4,7 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetStorageSettingsDocument,
   Software_Type_Enum,
@@ -11,8 +12,10 @@ import {
   useGetStorageSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -31,6 +34,8 @@ export type StorageServiceVersionFormValues = Yup.InferType<
 
 export default function StorageServiceVersionSettings() {
   const { maintenanceActive } = useUI();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetStorageSettingsDocument],
@@ -38,13 +43,14 @@ export default function StorageServiceVersionSettings() {
 
   const { data, loading, error } = useGetStorageSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data: storageVersionsData } = useGetSoftwareVersionsQuery({
     variables: {
       software: Software_Type_Enum.Storage,
     },
+    skip: !isPlatform,
   });
 
   const { version } = data?.config?.storage || {};
@@ -52,6 +58,7 @@ export default function StorageServiceVersionSettings() {
   const availableVersions = Array.from(
     new Set(versions.map((el) => el.version)).add(version),
   )
+    .filter((v) => !!v)
     .sort()
     .reverse()
     .map((availableVersion) => ({
@@ -61,9 +68,20 @@ export default function StorageServiceVersionSettings() {
 
   const form = useForm<StorageServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
-    defaultValues: { version: { label: version, value: version } },
+    defaultValues: { version: { label: '', value: '' } },
     resolver: yupResolver(validationSchema),
   });
+
+  useEffect(() => {
+    if (!loading) {
+      form.reset({
+        version: {
+          label: version,
+          value: version,
+        },
+      });
+    }
+  }, [loading, version, form]);
 
   if (loading) {
     return (
@@ -123,12 +141,20 @@ export default function StorageServiceVersionSettings() {
           }}
           docsLink="https://github.com/nhost/hasura-storage/releases"
           docsTitle="the latest releases"
-          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row px-4 gap-x-4 gap-y-2 lg:grid-cols-5"
         >
           <ControlledAutocomplete
             id="version"
             name="version"
             autoHighlight
+            freeSolo
+            getOptionLabel={(option) => {
+              if (typeof option === 'string') {
+                return option || '';
+              }
+
+              return option.value;
+            }}
             isOptionEqualToValue={() => false}
             filterOptions={(options, { inputValue }) => {
               const inputValueLower = inputValue.toLowerCase();

@@ -12,22 +12,27 @@ import {
   baseProviderValidationSchema,
 } from '@/features/authentication/settings/components/BaseProviderSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { copy } from '@/utils/copy';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
 export default function GitHubProviderSettings() {
   const theme = useTheme();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -35,7 +40,7 @@ export default function GitHubProviderSettings() {
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { clientId, clientSecret, enabled } =
@@ -50,6 +55,16 @@ export default function GitHubProviderSettings() {
     },
     resolver: yupResolver(baseProviderValidationSchema),
   });
+
+  useEffect(() => {
+    if (!loading) {
+      form.reset({
+        clientId: clientId || '',
+        clientSecret: clientSecret || '',
+        enabled: enabled || false,
+      });
+    }
+  }, [loading, clientId, clientSecret, enabled, form]);
 
   if (loading) {
     return (
@@ -159,7 +174,7 @@ export default function GitHubProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <CopyIcon className="w-4 h-4" />
                 </IconButton>
               </InputAdornment>
             }

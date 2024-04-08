@@ -4,11 +4,13 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetHasuraSettingsDocument,
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -26,7 +28,9 @@ const validationSchema = Yup.object({
 export type HasuraPoolSizeFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function HasuraPoolSizeSettings() {
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
@@ -35,7 +39,8 @@ export default function HasuraPoolSizeSettings() {
 
   const { data, loading, error } = useGetHasuraSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-first',
+    // fetchPolicy: 'cache-first',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { httpPoolSize } = data?.config?.hasura.events || {};
@@ -104,7 +109,7 @@ export default function HasuraPoolSizeSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row px-4 gap-x-4 gap-y-2 lg:grid-cols-5"
         >
           <Input
             {...register('httpPoolSize')}

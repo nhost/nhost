@@ -7,15 +7,18 @@ import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { copy } from '@/utils/copy';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
@@ -40,6 +43,8 @@ export type TwitterProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function TwitterProviderSettings() {
   const { maintenanceActive } = useUI();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
@@ -47,7 +52,7 @@ export default function TwitterProviderSettings() {
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { consumerKey, consumerSecret, enabled } =
@@ -62,6 +67,16 @@ export default function TwitterProviderSettings() {
     },
     resolver: yupResolver(validationSchema),
   });
+
+  useEffect(() => {
+    if (!loading) {
+      form.reset({
+        consumerSecret: consumerSecret || '',
+        consumerKey: consumerKey || '',
+        enabled: enabled || false,
+      });
+    }
+  }, [loading, consumerKey, consumerSecret, enabled, form]);
 
   if (loading) {
     return (
@@ -185,7 +200,7 @@ export default function TwitterProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <CopyIcon className="w-4 h-4" />
                 </IconButton>
               </InputAdornment>
             }

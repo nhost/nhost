@@ -8,6 +8,8 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSmtpSettingsDocument,
@@ -45,11 +47,14 @@ const smtpValidationSchema = yup
 export type SmtpFormValues = yup.InferType<typeof smtpValidationSchema>;
 
 export default function SMTPSettingsPage() {
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { data, loading, error } = useGetSmtpSettingsQuery({
     variables: { appId: currentProject?.id },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { secure, host, port, user, method, sender } =
@@ -87,7 +92,7 @@ export default function SMTPSettingsPage() {
     refetchQueries: [GetSmtpSettingsDocument],
   });
 
-  if (currentProject.plan.isFree) {
+  if (isPlatform && currentProject?.plan?.isFree) {
     return (
       <Container
         className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"

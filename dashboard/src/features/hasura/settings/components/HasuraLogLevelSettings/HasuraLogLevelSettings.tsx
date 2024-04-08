@@ -14,6 +14,7 @@ import {
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -59,6 +60,17 @@ export default function HasuraLogLevelSettings() {
     },
     resolver: yupResolver(validationSchema),
   });
+
+  useEffect(() => {
+    if (!loading && level) {
+      form.reset({
+        logLevel: {
+          label: level,
+          value: level,
+        },
+      });
+    }
+  }, [form, loading, level]);
 
   if (loading) {
     return (
@@ -132,7 +144,7 @@ export default function HasuraLogLevelSettings() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row px-4 gap-x-4 gap-y-2 lg:grid-cols-5"
         >
           <ControlledAutocomplete
             id="logLevel"

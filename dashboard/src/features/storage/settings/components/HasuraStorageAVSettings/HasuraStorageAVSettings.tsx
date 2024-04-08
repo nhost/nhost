@@ -3,13 +3,16 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetHasuraSettingsDocument,
   useGetStorageSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -21,6 +24,8 @@ export type HasuraStorageAVFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function HasuraStorageAVSettings() {
   const { maintenanceActive } = useUI();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
@@ -29,7 +34,7 @@ export default function HasuraStorageAVSettings() {
 
   const { data, loading, error } = useGetStorageSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-first',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { server } = data?.config?.storage?.antivirus || {};
@@ -41,6 +46,14 @@ export default function HasuraStorageAVSettings() {
     },
     resolver: yupResolver(validationSchema),
   });
+
+  useEffect(() => {
+    if (!loading) {
+      form.reset({
+        enabled: !!server,
+      });
+    }
+  }, [loading, server, form]);
 
   if (loading) {
     return (

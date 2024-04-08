@@ -59,6 +59,7 @@ export default function HasuraServiceVersionSettings() {
   const availableVersions = Array.from(
     new Set(versions.map((el) => el.version)).add(version),
   )
+    .filter((v) => !!v)
     .sort()
     .reverse()
     .map((availableVersion) => ({
@@ -66,14 +67,16 @@ export default function HasuraServiceVersionSettings() {
       value: availableVersion,
     }));
 
+  // TODO make sure the network request is made in the parent component
+  // also this request should be made against cache only and the data should be available right away
   const form = useForm<HasuraServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
-    defaultValues: { version: { label: version, value: version } },
+    defaultValues: { version: { label: '', value: '' } },
     resolver: yupResolver(validationSchema),
   });
 
   useEffect(() => {
-    if (version) {
+    if (!loading && version) {
       form.reset({
         version: {
           label: version,
@@ -81,7 +84,7 @@ export default function HasuraServiceVersionSettings() {
         },
       });
     }
-  }, [version, form]);
+  }, [loading, version, form]);
 
   if (loading) {
     return (
@@ -140,11 +143,19 @@ export default function HasuraServiceVersionSettings() {
           }}
           docsLink="https://hub.docker.com/r/nhost/graphql-engine/tags"
           docsTitle="the latest releases"
-          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row px-4 gap-x-4 gap-y-2 lg:grid-cols-5"
         >
           <ControlledAutocomplete
             id="version"
             name="version"
+            freeSolo
+            getOptionLabel={(option) => {
+              if (typeof option === 'string') {
+                return option || '';
+              }
+
+              return option.value;
+            }}
             autoHighlight
             isOptionEqualToValue={() => false}
             filterOptions={(options, { inputValue }) => {

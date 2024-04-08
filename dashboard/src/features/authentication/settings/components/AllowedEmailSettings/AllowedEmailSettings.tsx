@@ -4,13 +4,16 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
@@ -26,7 +29,9 @@ export type AllowedEmailSettingsFormValues = Yup.InferType<
 >;
 
 export default function AllowedEmailDomainsSettings() {
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
@@ -34,7 +39,7 @@ export default function AllowedEmailDomainsSettings() {
 
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { email, emailDomains } = data?.config?.auth?.user || {};
@@ -53,6 +58,17 @@ export default function AllowedEmailDomainsSettings() {
   const enabled = watch('enabled');
 
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
+
+  useEffect(() => {
+    if (!loading && email && emailDomains) {
+      form.reset({
+        enabled:
+          email?.allowed?.length > 0 || emailDomains?.allowed?.length > 0,
+        allowedEmails: email?.allowed?.join(', ') || '',
+        allowedEmailDomains: emailDomains?.allowed?.join(', ') || '',
+      });
+    }
+  }, [loading, form, email, emailDomains]);
 
   if (loading) {
     return (
