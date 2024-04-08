@@ -16,8 +16,10 @@ import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { CreateSecretForm } from '@/features/projects/secrets/settings/components/CreateSecretForm';
 import { EditSecretForm } from '@/features/projects/secrets/settings/components/EditSecretForm';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import type { Secret } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
@@ -30,12 +32,15 @@ import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export default function SecretsPage() {
-  const { openDialog, openAlertDialog } = useDialog();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
+  const { openDialog, openAlertDialog } = useDialog();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { data, loading, error } = useGetSecretsQuery({
     variables: { appId: currentProject?.id },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const [deleteSecret] = useDeleteSecretMutation({
@@ -136,7 +141,7 @@ export default function SecretsPage() {
           footer: { className: 'hidden' },
         }}
       >
-        <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3">
+        <Box className="grid grid-cols-2 gap-2 px-4 py-3 border-b-1">
           <Text className="font-medium">Secret Name</Text>
         </Box>
 
@@ -152,7 +157,7 @@ export default function SecretsPage() {
                         <Dropdown.Trigger
                           asChild
                           hideChevron
-                          className="absolute right-4 top-1/2 -translate-y-1/2"
+                          className="absolute -translate-y-1/2 right-4 top-1/2"
                         >
                           <IconButton
                             variant="borderless"

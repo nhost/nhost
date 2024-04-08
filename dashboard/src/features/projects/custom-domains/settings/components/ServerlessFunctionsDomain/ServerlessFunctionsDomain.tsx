@@ -4,12 +4,14 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { VerifyDomain } from '@/features/projects/custom-domains/settings/components/VerifyDomain';
 import {
   useGetServerlessFunctionsSettingsQuery,
   useUpdateConfigMutation,
   type ConfigIngressUpdateInput,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
@@ -25,7 +27,9 @@ export type ServerlessFunctionsDomainFormValues = Yup.InferType<
 >;
 
 export default function ServerlessFunctionsDomain() {
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const [isVerified, setIsVerified] = useState(false);
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
@@ -42,6 +46,7 @@ export default function ServerlessFunctionsDomain() {
     variables: {
       appId: currentProject.id,
     },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { networking } = data?.config?.functions?.resources || {};
@@ -122,7 +127,7 @@ export default function ServerlessFunctionsDomain() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row px-4 gap-x-4 gap-y-4 lg:grid-cols-5"
         >
           <Input
             {...register('functions_fqdn')}

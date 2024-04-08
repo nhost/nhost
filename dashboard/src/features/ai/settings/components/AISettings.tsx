@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { ComputeFormSection } from '@/features/services/components/ServiceForm/components/ComputeFormSection';
 import {
@@ -20,6 +21,7 @@ import {
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
@@ -50,8 +52,10 @@ const validationSchema = Yup.object({
 export type AISettingsFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AISettings() {
-  const { maintenanceActive } = useUI();
+  const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
+  const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const [updateConfig] = useUpdateConfigMutation();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
@@ -67,6 +71,7 @@ export default function AISettings() {
     variables: {
       appId: currentProject.id,
     },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data: graphiteVersionsData, loading: loadingGraphiteVersionsData } =
@@ -74,6 +79,7 @@ export default function AISettings() {
       variables: {
         software: Software_Type_Enum.Graphite,
       },
+      skip: !isPlatform,
     });
 
   const graphiteVersions = graphiteVersionsData?.softwareVersions || [];
@@ -247,7 +253,7 @@ export default function AISettings() {
 
   return (
     <Box className="space-y-4" sx={{ backgroundColor: 'background.default' }}>
-      <Box className="flex flex-row items-center justify-between rounded-lg border-1 p-4">
+      <Box className="flex flex-row items-center justify-between p-4 rounded-lg border-1">
         <Text className="text-lg font-semibold">Enable AI service</Text>
         <Switch
           checked={aiServiceEnabled}
@@ -277,7 +283,7 @@ export default function AISettings() {
                       <Tooltip title="Version of the service to use.">
                         <InfoIcon
                           aria-label="Info"
-                          className="h-4 w-4"
+                          className="w-4 h-4"
                           color="primary"
                         />
                       </Tooltip>
@@ -327,7 +333,7 @@ export default function AISettings() {
                     <Tooltip title="Used to validate requests between postgres and the AI service. The AI service will also include the header X-Graphite-Webhook-Secret with this value set when calling external webhooks so the source of the request can be validated.">
                       <InfoIcon
                         aria-label="Info"
-                        className="h-4 w-4"
+                        className="w-4 h-4"
                         color="primary"
                       />
                     </Tooltip>
@@ -351,7 +357,7 @@ export default function AISettings() {
                     <Tooltip title="Dedicated resources allocated for the service.">
                       <InfoIcon
                         aria-label="Info"
-                        className="h-4 w-4"
+                        className="w-4 h-4"
                         color="primary"
                       />
                     </Tooltip>
@@ -389,7 +395,7 @@ export default function AISettings() {
                         <Tooltip title="Key to use for authenticating API requests to OpenAI">
                           <InfoIcon
                             aria-label="Info"
-                            className="h-4 w-4"
+                            className="w-4 h-4"
                             color="primary"
                           />
                         </Tooltip>
@@ -412,7 +418,7 @@ export default function AISettings() {
                         <Tooltip title="Optional. OpenAI organization to use.">
                           <InfoIcon
                             aria-label="Info"
-                            className="h-4 w-4"
+                            className="w-4 h-4"
                             color="primary"
                           />
                         </Tooltip>
@@ -440,7 +446,7 @@ export default function AISettings() {
                         <Tooltip title="How often to run the job that keeps embeddings up to date.">
                           <InfoIcon
                             aria-label="Info"
-                            className="h-4 w-4"
+                            className="w-4 h-4"
                             color="primary"
                           />
                         </Tooltip>

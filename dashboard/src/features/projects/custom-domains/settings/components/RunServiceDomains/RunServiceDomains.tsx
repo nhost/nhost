@@ -4,11 +4,15 @@ import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon'
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { RunServicePortDomain } from '@/features/projects/custom-domains/settings/components/RunServicePortDomain';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
 import { useMemo } from 'react';
 
 export default function RunServiceDomains() {
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject, currentWorkspace } = useCurrentWorkspaceAndProject();
 
   const {
@@ -22,6 +26,7 @@ export default function RunServiceDomains() {
       limit: 1000, // TODO consider pagination
       offset: 0,
     },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const services = useMemo(
@@ -58,7 +63,7 @@ export default function RunServiceDomains() {
                   underline="hover"
                   className="font-medium"
                 >
-                  <ArrowSquareOutIcon className="mb-1 ml-1 h-4 w-4" />
+                  <ArrowSquareOutIcon className="w-4 h-4 mb-1 ml-1" />
                 </Link>
               </div>
             }
@@ -72,7 +77,7 @@ export default function RunServiceDomains() {
                 className: 'hidden',
               },
             }}
-            className="grid gap-y-4 gap-x-4 px-4"
+            className="grid px-4 gap-x-4 gap-y-4"
           >
             {service.config?.ports?.map((port) => (
               <RunServicePortDomain
