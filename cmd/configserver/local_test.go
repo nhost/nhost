@@ -1,9 +1,8 @@
 package configserver_test
 
 import (
-	"bytes"
 	"context"
-	"io"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -75,16 +74,16 @@ func TestLocalGetApps(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name     string
-		configf  io.ReadWriter
-		secretsf io.ReadWriter
-		expected []*graph.App
+		name       string
+		configRaw  string
+		secretsRaw string
+		expected   []*graph.App
 	}{
 		{
-			name:     "works",
-			configf:  bytes.NewBufferString(rawConfig),
-			secretsf: bytes.NewBufferString(rawSecrets),
-			expected: []*graph.App{newApp()},
+			name:       "works",
+			configRaw:  rawConfig,
+			secretsRaw: rawSecrets,
+			expected:   []*graph.App{newApp()},
 		},
 	}
 
@@ -94,8 +93,32 @@ func TestLocalGetApps(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			st := configserver.NewLocal(tc.configf, tc.secretsf, nil)
-			got, err := st.GetApps(tc.configf, tc.secretsf, nil)
+			configF, err := os.CreateTemp("", "TestLocalGetApps")
+			if err != nil {
+				t.Fatalf("failed to create temp file: %v", err)
+			}
+			defer os.Remove(configF.Name())
+
+			if _, err := configF.WriteString(tc.configRaw); err != nil {
+				t.Fatalf("failed to write to temp file: %v", err)
+			}
+
+			secretsF, err := os.CreateTemp("", "TestLocalGetApps")
+			if err != nil {
+				t.Fatalf("failed to create temp file: %v", err)
+			}
+			defer os.Remove(secretsF.Name())
+
+			if _, err := secretsF.WriteString(tc.secretsRaw); err != nil {
+				t.Fatalf("failed to write to temp file: %v", err)
+			}
+
+			st := configserver.NewLocal(
+				configF.Name(),
+				secretsF.Name(),
+				nil,
+			)
+			got, err := st.GetApps(configF.Name(), secretsF.Name(), nil)
 			if err != nil {
 				t.Errorf("GetApps() got error: %v", err)
 			}
@@ -113,18 +136,18 @@ func TestLocalUpdateConfig(t *testing.T) { //nolint:dupl
 	t.Parallel()
 
 	cases := []struct {
-		name     string
-		configf  io.ReadWriter
-		secretsf io.ReadWriter
-		newApp   *graph.App
-		expected string
+		name       string
+		configRaw  string
+		secretsRaw string
+		newApp     *graph.App
+		expected   string
 	}{
 		{
-			name:     "works",
-			configf:  bytes.NewBufferString(rawConfig),
-			secretsf: bytes.NewBufferString(rawSecrets),
-			newApp:   newApp(),
-			expected: rawConfig,
+			name:       "works",
+			configRaw:  rawConfig,
+			secretsRaw: rawSecrets,
+			newApp:     newApp(),
+			expected:   rawConfig,
 		},
 	}
 
@@ -134,7 +157,31 @@ func TestLocalUpdateConfig(t *testing.T) { //nolint:dupl
 			t.Parallel()
 			tc := tc
 
-			st := configserver.NewLocal(tc.configf, tc.secretsf, nil)
+			configF, err := os.CreateTemp("", "TestLocalGetApps")
+			if err != nil {
+				t.Fatalf("failed to create temp file: %v", err)
+			}
+			defer os.Remove(configF.Name())
+
+			if _, err := configF.WriteString(tc.configRaw); err != nil {
+				t.Fatalf("failed to write to temp file: %v", err)
+			}
+
+			secretsF, err := os.CreateTemp("", "TestLocalGetApps")
+			if err != nil {
+				t.Fatalf("failed to create temp file: %v", err)
+			}
+			defer os.Remove(secretsF.Name())
+
+			if _, err := secretsF.WriteString(tc.secretsRaw); err != nil {
+				t.Fatalf("failed to write to temp file: %v", err)
+			}
+
+			st := configserver.NewLocal(
+				configF.Name(),
+				secretsF.Name(),
+				nil,
+			)
 
 			if err := st.UpdateConfig(
 				context.Background(),
@@ -145,7 +192,7 @@ func TestLocalUpdateConfig(t *testing.T) { //nolint:dupl
 				t.Errorf("UpdateConfig() got error: %v", err)
 			}
 
-			b, err := io.ReadAll(tc.configf)
+			b, err := os.ReadFile(configF.Name())
 			if err != nil {
 				t.Errorf("failed to read config file: %v", err)
 			}
@@ -161,18 +208,18 @@ func TestLocalUpdateSecrets(t *testing.T) { //nolint:dupl
 	t.Parallel()
 
 	cases := []struct {
-		name     string
-		configf  io.ReadWriter
-		secretsf io.ReadWriter
-		newApp   *graph.App
-		expected string
+		name       string
+		configRaw  string
+		secretsRaw string
+		newApp     *graph.App
+		expected   string
 	}{
 		{
-			name:     "works",
-			configf:  bytes.NewBufferString(rawConfig),
-			secretsf: bytes.NewBufferString(rawSecrets),
-			newApp:   newApp(),
-			expected: rawSecrets,
+			name:       "works",
+			configRaw:  rawConfig,
+			secretsRaw: rawSecrets,
+			newApp:     newApp(),
+			expected:   rawSecrets,
 		},
 	}
 
@@ -182,7 +229,31 @@ func TestLocalUpdateSecrets(t *testing.T) { //nolint:dupl
 			t.Parallel()
 			tc := tc
 
-			st := configserver.NewLocal(tc.configf, tc.secretsf, nil)
+			configF, err := os.CreateTemp("", "TestLocalGetApps")
+			if err != nil {
+				t.Fatalf("failed to create temp file: %v", err)
+			}
+			defer os.Remove(configF.Name())
+
+			if _, err := configF.WriteString(tc.configRaw); err != nil {
+				t.Fatalf("failed to write to temp file: %v", err)
+			}
+
+			secretsF, err := os.CreateTemp("", "TestLocalGetApps")
+			if err != nil {
+				t.Fatalf("failed to create temp file: %v", err)
+			}
+			defer os.Remove(secretsF.Name())
+
+			if _, err := secretsF.WriteString(tc.secretsRaw); err != nil {
+				t.Fatalf("failed to write to temp file: %v", err)
+			}
+
+			st := configserver.NewLocal(
+				configF.Name(),
+				secretsF.Name(),
+				nil,
+			)
 
 			if err := st.UpdateSecrets(
 				context.Background(),
@@ -193,7 +264,7 @@ func TestLocalUpdateSecrets(t *testing.T) { //nolint:dupl
 				t.Errorf("UpdateSecrets() got error: %v", err)
 			}
 
-			b, err := io.ReadAll(tc.secretsf)
+			b, err := os.ReadFile(secretsF.Name())
 			if err != nil {
 				t.Errorf("failed to read config file: %v", err)
 			}

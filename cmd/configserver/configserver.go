@@ -3,7 +3,6 @@ package configserver
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/gin-gonic/gin"
@@ -54,14 +53,14 @@ func Command() *cli.Command {
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     storageLocalConfigPath,
 				Usage:    "Path to the local mimir config file",
-				Value:    "/tmp/config.toml",
+				Value:    "/tmp/root/nhost/nhost.toml",
 				Category: "plugins",
 				EnvVars:  []string{"STORAGE_LOCAL_CONFIG_PATH"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     storageLocalSecretsPath,
 				Usage:    "Path to the local mimir secrets file",
-				Value:    "/tmp/secrets.toml",
+				Value:    "/tmp/root/.secrets",
 				Category: "plugins",
 				EnvVars:  []string{"STORAGE_LOCAL_SECRETS_PATH"},
 			},
@@ -84,18 +83,14 @@ func dummyMiddleware(
 	return next(ctx)
 }
 
-func runServicesFiles(runServices ...string) (map[string]*os.File, error) {
-	m := make(map[string]*os.File)
+func runServicesFiles(runServices ...string) map[string]string {
+	m := make(map[string]string)
 	for _, path := range runServices {
 		id := uuid.NewString()
-		f, err := os.OpenFile(path, os.O_RDWR, 0o644) //nolint:gomnd
-		if err != nil {
-			return nil, fmt.Errorf("failed to open run service file: %w", err)
-		}
-		m[id] = f
+		m[id] = path
 	}
 
-	return m, nil
+	return m
 }
 
 func serve(cCtx *cli.Context) error {
@@ -103,25 +98,12 @@ func serve(cCtx *cli.Context) error {
 	logger.Info(cCtx.App.Name + " v" + cCtx.App.Version)
 	logFlags(logger, cCtx)
 
-	c, err := os.OpenFile(cCtx.String(storageLocalConfigPath), os.O_RDWR, 0o644) //nolint:gomnd
-	if err != nil {
-		return fmt.Errorf("failed to open config file: %w", err)
-	}
-	defer c.Close()
+	configFile := cCtx.String(storageLocalConfigPath)
+	secretsFile := cCtx.String(storageLocalSecretsPath)
+	runServices := runServicesFiles(cCtx.StringSlice(storageLocalRunServicesPath)...)
 
-	s, err := os.OpenFile(cCtx.String(storageLocalSecretsPath), os.O_RDWR, 0o644) //nolint:gomnd
-	if err != nil {
-		return fmt.Errorf("failed to open secrets file: %w", err)
-	}
-	defer s.Close()
-
-	runServices, err := runServicesFiles(cCtx.StringSlice(storageLocalRunServicesPath)...)
-	if err != nil {
-		return err
-	}
-
-	st := NewLocal(c, s, runServices)
-	data, err := st.GetApps(c, s, runServices)
+	st := NewLocal(configFile, secretsFile, runServices)
+	data, err := st.GetApps(configFile, secretsFile, runServices)
 	if err != nil {
 		return fmt.Errorf("failed to get data from plugin: %w", err)
 	}

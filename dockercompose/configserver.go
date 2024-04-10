@@ -1,6 +1,10 @@
 package dockercompose
 
-import "fmt"
+import (
+	"fmt"
+	"path/filepath"
+	"slices"
+)
 
 func configserver( //nolint: funlen
 	image,
@@ -9,17 +13,27 @@ func configserver( //nolint: funlen
 	useTLS bool,
 	runServices ...*RunService,
 ) *Service {
-	bindings := make([]Volume, len(runServices))
+	bindings := make([]Volume, 0, len(runServices))
 	extraArgs := make([]string, len(runServices))
+	mountedVolumes := make([]string, 0, len(runServices))
 	for i, runService := range runServices {
-		target := "/tmp/run-services/" + runService.Config.Name
-		bindings[i] = Volume{
+		source := filepath.Dir(runService.Path)
+		target := filepath.Join("/tmp", source)
+		targetFile := filepath.Join(target, filepath.Base(runService.Path))
+
+		extraArgs[i] = fmt.Sprintf("--storage-local-run-services-path=%s", targetFile)
+
+		if slices.Contains(mountedVolumes, source) {
+			continue
+		}
+		mountedVolumes = append(mountedVolumes, source)
+
+		bindings = append(bindings, Volume{
 			Type:     "bind",
-			Source:   runService.Path,
+			Source:   source,
 			Target:   target,
 			ReadOnly: new(bool),
-		}
-		extraArgs[i] = fmt.Sprintf("--storage-local-run-services-path=%s", target)
+		})
 	}
 
 	return &Service{
@@ -49,14 +63,14 @@ func configserver( //nolint: funlen
 			[]Volume{
 				{
 					Type:     "bind",
-					Source:   fmt.Sprintf("%s/nhost.toml", nhostPath),
-					Target:   "/tmp/config.toml",
+					Source:   nhostPath,
+					Target:   "/tmp/root/nhost",
 					ReadOnly: ptr(false),
 				},
 				{
 					Type:     "bind",
-					Source:   fmt.Sprintf("%s/.secrets", rootPath),
-					Target:   "/tmp/secrets.toml",
+					Source:   rootPath,
+					Target:   "/tmp/root",
 					ReadOnly: ptr(false),
 				},
 			},

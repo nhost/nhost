@@ -273,6 +273,8 @@ func dashboard(
 		EntryPoint: nil,
 		Command:    nil,
 		Environment: map[string]string{
+			"NEXT_PUBLIC_ENV":                "dev",
+			"NEXT_PUBLIC_NHOST_PLATFORM":     "false",
 			"NEXT_PUBLIC_NHOST_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 			"NEXT_PUBLIC_NHOST_AUTH_URL":     URL("auth", httpPort, useTLS) + "/v1",
 			"NEXT_PUBLIC_NHOST_FUNCTIONS_URL": URL(

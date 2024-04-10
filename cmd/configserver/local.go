@@ -1,11 +1,9 @@
 package configserver
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/nhost/be/services/mimir/graph"
@@ -20,12 +18,16 @@ const zeroUUID = "00000000-0000-0000-0000-000000000000"
 var ErrNotImpl = fmt.Errorf("not implemented")
 
 type Local struct {
-	config      io.Writer
-	secrets     io.Writer
-	runServices map[string]*os.File
+	// we use paths instead of readers/writers because the intention is that these
+	// files will be mounted as volumes in a container and if the file is changed
+	// outside of the container, the filedescriptor might just be pointing to the
+	// old file.
+	config      string
+	secrets     string
+	runServices map[string]string
 }
 
-func NewLocal(config, secrets io.Writer, runServices map[string]*os.File) *Local {
+func NewLocal(config, secrets string, runServices map[string]string) *Local {
 	return &Local{
 		config:      config,
 		secrets:     secrets,
@@ -47,38 +49,10 @@ func unmarshal[T any](config any) (*T, error) {
 	return &cfg, nil
 }
 
-func overwriteFile(wr io.Writer, b []byte) error {
-	if f, ok := wr.(*os.File); ok {
-		if _, err := f.Seek(0, 0); err != nil {
-			return fmt.Errorf("failed to seek file: %w", err)
-		}
-
-		if err := f.Truncate(0); err != nil {
-			return fmt.Errorf("failed to truncate file: %w", err)
-		}
-	}
-
-	if buf, ok := wr.(*bytes.Buffer); ok {
-		buf.Reset()
-	}
-
-	if _, err := wr.Write(b); err != nil {
-		return fmt.Errorf("failed to write file: %w", err)
-	}
-
-	if f, ok := wr.(*os.File); ok {
-		if err := f.Sync(); err != nil {
-			return fmt.Errorf("failed to sync file: %w", err)
-		}
-	}
-
-	return nil
-}
-
-func (l *Local) GetServices(runServices map[string]*os.File) (graph.Services, error) {
+func (l *Local) GetServices(runServices map[string]string) (graph.Services, error) {
 	services := make(graph.Services, 0, len(runServices))
 	for id, r := range runServices {
-		b, err := io.ReadAll(r)
+		b, err := os.ReadFile(r)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read run service file: %w", err)
 		}
@@ -98,9 +72,9 @@ func (l *Local) GetServices(runServices map[string]*os.File) (graph.Services, er
 }
 
 func (l *Local) GetApps(
-	configr, secretsr io.Reader, runServicesr map[string]*os.File,
+	configFile, secretsFile string, runServicesFiles map[string]string,
 ) ([]*graph.App, error) {
-	b, err := io.ReadAll(configr)
+	b, err := os.ReadFile(configFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
@@ -115,7 +89,7 @@ func (l *Local) GetApps(
 		return nil, fmt.Errorf("failed to fill config: %w", err)
 	}
 
-	b, err = io.ReadAll(secretsr)
+	b, err = os.ReadFile(secretsFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read secrets file: %w", err)
 	}
@@ -128,7 +102,7 @@ func (l *Local) GetApps(
 		)
 	}
 
-	services, err := l.GetServices(runServicesr)
+	services, err := l.GetServices(runServicesFiles)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get services: %w", err)
 	}
@@ -158,7 +132,7 @@ func (l *Local) UpdateConfig(_ context.Context, _, newApp *graph.App, _ logrus.F
 		return fmt.Errorf("failed to marshal app config: %w", err)
 	}
 
-	if err := overwriteFile(l.config, b); err != nil {
+	if err := os.WriteFile(l.config, b, 0o644); err != nil { //nolint:gosec,gomnd
 		return fmt.Errorf("failed to write config: %w", err)
 	}
 
@@ -180,7 +154,7 @@ func (l *Local) UpdateSecrets(_ context.Context, _, newApp *graph.App, _ logrus.
 		return fmt.Errorf("failed to marshal app secrets: %w", err)
 	}
 
-	if err := overwriteFile(l.secrets, b); err != nil {
+	if err := os.WriteFile(l.secrets, b, 0o644); err != nil { //nolint:gosec,gomnd
 		return fmt.Errorf("failed to write secrets: %w", err)
 	}
 
@@ -206,7 +180,7 @@ func (l *Local) UpdateRunServiceConfig(
 		return fmt.Errorf("failed to marshal run service config: %w", err)
 	}
 
-	if err := overwriteFile(wr, b); err != nil {
+	if err := os.WriteFile(wr, b, 0o644); err != nil { //nolint:gosec,gomnd
 		return fmt.Errorf("failed to write run service config: %w", err)
 	}
 
