@@ -52,6 +52,12 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 			},
 			WebhookSecret: "this-is-a-webhook-secret",
 		},
+		Graphql: &model.ConfigGraphql{
+			Security: &model.ConfigGraphqlSecurity{
+				ForbidAminSecret: ptr(true),
+				MaxDepthQueries:  ptr(uint(4)),
+			},
+		},
 		Hasura: &model.ConfigHasura{
 			Version: new(string),
 			JwtSecrets: []*model.ConfigJWTSecret{

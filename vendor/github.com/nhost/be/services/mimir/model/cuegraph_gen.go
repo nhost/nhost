@@ -9077,6 +9077,8 @@ type ConfigConfig struct {
 	Global *ConfigGlobal `json:"global,omitempty" toml:"global,omitempty"`
 	// Configuration for hasura
 	Hasura *ConfigHasura `json:"hasura,omitempty" toml:"hasura,omitempty"`
+	// Advanced configuration for GraphQL
+	Graphql *ConfigGraphql `json:"graphql,omitempty" toml:"graphql,omitempty"`
 	// Configuration for functions service
 	Functions *ConfigFunctions `json:"functions,omitempty" toml:"functions,omitempty"`
 	// Configuration for auth service
@@ -9100,6 +9102,9 @@ func (o *ConfigConfig) MarshalJSON() ([]byte, error) {
 	}
 	if o.Hasura != nil {
 		m["hasura"] = o.Hasura
+	}
+	if o.Graphql != nil {
+		m["graphql"] = o.Graphql
 	}
 	if o.Functions != nil {
 		m["functions"] = o.Functions
@@ -9137,6 +9142,13 @@ func (o *ConfigConfig) GetHasura() *ConfigHasura {
 		return nil
 	}
 	return o.Hasura
+}
+
+func (o *ConfigConfig) GetGraphql() *ConfigGraphql {
+	if o == nil {
+		return nil
+	}
+	return o.Graphql
 }
 
 func (o *ConfigConfig) GetFunctions() *ConfigFunctions {
@@ -9193,6 +9205,8 @@ type ConfigConfigUpdateInput struct {
 	IsSetGlobal        bool                            `json:"-"`
 	Hasura             *ConfigHasuraUpdateInput        `json:"hasura,omitempty" toml:"hasura,omitempty"`
 	IsSetHasura        bool                            `json:"-"`
+	Graphql            *ConfigGraphqlUpdateInput       `json:"graphql,omitempty" toml:"graphql,omitempty"`
+	IsSetGraphql       bool                            `json:"-"`
 	Functions          *ConfigFunctionsUpdateInput     `json:"functions,omitempty" toml:"functions,omitempty"`
 	IsSetFunctions     bool                            `json:"-"`
 	Auth               *ConfigAuthUpdateInput          `json:"auth,omitempty" toml:"auth,omitempty"`
@@ -9233,6 +9247,16 @@ func (o *ConfigConfigUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Hasura = t
 		}
 		o.IsSetHasura = true
+	}
+	if x, ok := m["graphql"]; ok {
+		if x != nil {
+			t := &ConfigGraphqlUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Graphql = t
+		}
+		o.IsSetGraphql = true
 	}
 	if x, ok := m["functions"]; ok {
 		if x != nil {
@@ -9329,6 +9353,13 @@ func (o *ConfigConfigUpdateInput) GetHasura() *ConfigHasuraUpdateInput {
 	return o.Hasura
 }
 
+func (o *ConfigConfigUpdateInput) GetGraphql() *ConfigGraphqlUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Graphql
+}
+
 func (o *ConfigConfigUpdateInput) GetFunctions() *ConfigFunctionsUpdateInput {
 	if o == nil {
 		return nil
@@ -9400,6 +9431,16 @@ func (s *ConfigConfig) Update(v *ConfigConfigUpdateInput) {
 				s.Hasura = &ConfigHasura{}
 			}
 			s.Hasura.Update(v.Hasura)
+		}
+	}
+	if v.IsSetGraphql || v.Graphql != nil {
+		if v.Graphql == nil {
+			s.Graphql = nil
+		} else {
+			if s.Graphql == nil {
+				s.Graphql = &ConfigGraphql{}
+			}
+			s.Graphql.Update(v.Graphql)
 		}
 	}
 	if v.IsSetFunctions || v.Functions != nil {
@@ -9477,6 +9518,7 @@ func (s *ConfigConfig) Update(v *ConfigConfigUpdateInput) {
 type ConfigConfigInsertInput struct {
 	Global        *ConfigGlobalInsertInput        `json:"global,omitempty" toml:"global,omitempty"`
 	Hasura        *ConfigHasuraInsertInput        `json:"hasura,omitempty" toml:"hasura,omitempty"`
+	Graphql       *ConfigGraphqlInsertInput       `json:"graphql,omitempty" toml:"graphql,omitempty"`
 	Functions     *ConfigFunctionsInsertInput     `json:"functions,omitempty" toml:"functions,omitempty"`
 	Auth          *ConfigAuthInsertInput          `json:"auth,omitempty" toml:"auth,omitempty"`
 	Postgres      *ConfigPostgresInsertInput      `json:"postgres,omitempty" toml:"postgres,omitempty"`
@@ -9498,6 +9540,13 @@ func (o *ConfigConfigInsertInput) GetHasura() *ConfigHasuraInsertInput {
 		return nil
 	}
 	return o.Hasura
+}
+
+func (o *ConfigConfigInsertInput) GetGraphql() *ConfigGraphqlInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Graphql
 }
 
 func (o *ConfigConfigInsertInput) GetFunctions() *ConfigFunctionsInsertInput {
@@ -9562,6 +9611,12 @@ func (s *ConfigConfig) Insert(v *ConfigConfigInsertInput) {
 		}
 		s.Hasura.Insert(v.Hasura)
 	}
+	if v.Graphql != nil {
+		if s.Graphql == nil {
+			s.Graphql = &ConfigGraphql{}
+		}
+		s.Graphql.Insert(v.Graphql)
+	}
 	if v.Functions != nil {
 		if s.Functions == nil {
 			s.Functions = &ConfigFunctions{}
@@ -9614,6 +9669,7 @@ func (s *ConfigConfig) Clone() *ConfigConfig {
 	v := &ConfigConfig{}
 	v.Global = s.Global.Clone()
 	v.Hasura = s.Hasura.Clone()
+	v.Graphql = s.Graphql.Clone()
 	v.Functions = s.Functions.Clone()
 	v.Auth = s.Auth.Clone()
 	v.Postgres = s.Postgres.Clone()
@@ -9630,6 +9686,7 @@ type ConfigConfigComparisonExp struct {
 	Or            []*ConfigConfigComparisonExp      `json:"_or,omitempty"`
 	Global        *ConfigGlobalComparisonExp        `json:"global,omitempty"`
 	Hasura        *ConfigHasuraComparisonExp        `json:"hasura,omitempty"`
+	Graphql       *ConfigGraphqlComparisonExp       `json:"graphql,omitempty"`
 	Functions     *ConfigFunctionsComparisonExp     `json:"functions,omitempty"`
 	Auth          *ConfigAuthComparisonExp          `json:"auth,omitempty"`
 	Postgres      *ConfigPostgresComparisonExp      `json:"postgres,omitempty"`
@@ -9648,6 +9705,7 @@ func (exp *ConfigConfigComparisonExp) Matches(o *ConfigConfig) bool {
 		o = &ConfigConfig{
 			Global:        &ConfigGlobal{},
 			Hasura:        &ConfigHasura{},
+			Graphql:       &ConfigGraphql{},
 			Functions:     &ConfigFunctions{},
 			Auth:          &ConfigAuth{},
 			Postgres:      &ConfigPostgres{},
@@ -9661,6 +9719,9 @@ func (exp *ConfigConfigComparisonExp) Matches(o *ConfigConfig) bool {
 		return false
 	}
 	if !exp.Hasura.Matches(o.Hasura) {
+		return false
+	}
+	if !exp.Graphql.Matches(o.Graphql) {
 		return false
 	}
 	if !exp.Functions.Matches(o.Functions) {
@@ -10859,6 +10920,332 @@ func (exp *ConfigGrafanaComparisonExp) Matches(o *ConfigGrafana) bool {
 		o = &ConfigGrafana{}
 	}
 	if !exp.AdminPassword.Matches(o.AdminPassword) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigGraphql struct {
+	Security *ConfigGraphqlSecurity `json:"security,omitempty" toml:"security,omitempty"`
+}
+
+func (o *ConfigGraphql) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Security != nil {
+		m["security"] = o.Security
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigGraphql) GetSecurity() *ConfigGraphqlSecurity {
+	if o == nil {
+		return nil
+	}
+	return o.Security
+}
+
+type ConfigGraphqlUpdateInput struct {
+	Security      *ConfigGraphqlSecurityUpdateInput `json:"security,omitempty" toml:"security,omitempty"`
+	IsSetSecurity bool                              `json:"-"`
+}
+
+func (o *ConfigGraphqlUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["security"]; ok {
+		if x != nil {
+			t := &ConfigGraphqlSecurityUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Security = t
+		}
+		o.IsSetSecurity = true
+	}
+
+	return nil
+}
+
+func (o *ConfigGraphqlUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigGraphqlUpdateInput) GetSecurity() *ConfigGraphqlSecurityUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Security
+}
+
+func (s *ConfigGraphql) Update(v *ConfigGraphqlUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetSecurity || v.Security != nil {
+		if v.Security == nil {
+			s.Security = nil
+		} else {
+			if s.Security == nil {
+				s.Security = &ConfigGraphqlSecurity{}
+			}
+			s.Security.Update(v.Security)
+		}
+	}
+}
+
+type ConfigGraphqlInsertInput struct {
+	Security *ConfigGraphqlSecurityInsertInput `json:"security,omitempty" toml:"security,omitempty"`
+}
+
+func (o *ConfigGraphqlInsertInput) GetSecurity() *ConfigGraphqlSecurityInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Security
+}
+
+func (s *ConfigGraphql) Insert(v *ConfigGraphqlInsertInput) {
+	if v.Security != nil {
+		if s.Security == nil {
+			s.Security = &ConfigGraphqlSecurity{}
+		}
+		s.Security.Insert(v.Security)
+	}
+}
+
+func (s *ConfigGraphql) Clone() *ConfigGraphql {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigGraphql{}
+	v.Security = s.Security.Clone()
+	return v
+}
+
+type ConfigGraphqlComparisonExp struct {
+	And      []*ConfigGraphqlComparisonExp       `json:"_and,omitempty"`
+	Not      *ConfigGraphqlComparisonExp         `json:"_not,omitempty"`
+	Or       []*ConfigGraphqlComparisonExp       `json:"_or,omitempty"`
+	Security *ConfigGraphqlSecurityComparisonExp `json:"security,omitempty"`
+}
+
+func (exp *ConfigGraphqlComparisonExp) Matches(o *ConfigGraphql) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigGraphql{
+			Security: &ConfigGraphqlSecurity{},
+		}
+	}
+	if !exp.Security.Matches(o.Security) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigGraphqlSecurity struct {
+	ForbidAminSecret *bool `json:"forbidAminSecret" toml:"forbidAminSecret"`
+
+	MaxDepthQueries *uint `json:"maxDepthQueries" toml:"maxDepthQueries"`
+}
+
+func (o *ConfigGraphqlSecurity) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.ForbidAminSecret != nil {
+		m["forbidAminSecret"] = o.ForbidAminSecret
+	}
+	if o.MaxDepthQueries != nil {
+		m["maxDepthQueries"] = o.MaxDepthQueries
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigGraphqlSecurity) GetForbidAminSecret() *bool {
+	if o == nil {
+		o = &ConfigGraphqlSecurity{}
+	}
+	return o.ForbidAminSecret
+}
+
+func (o *ConfigGraphqlSecurity) GetMaxDepthQueries() *uint {
+	if o == nil {
+		o = &ConfigGraphqlSecurity{}
+	}
+	return o.MaxDepthQueries
+}
+
+type ConfigGraphqlSecurityUpdateInput struct {
+	ForbidAminSecret      *bool `json:"forbidAminSecret,omitempty" toml:"forbidAminSecret,omitempty"`
+	IsSetForbidAminSecret bool  `json:"-"`
+	MaxDepthQueries       *uint `json:"maxDepthQueries,omitempty" toml:"maxDepthQueries,omitempty"`
+	IsSetMaxDepthQueries  bool  `json:"-"`
+}
+
+func (o *ConfigGraphqlSecurityUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["forbidAminSecret"]; ok {
+		if v == nil {
+			o.ForbidAminSecret = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ForbidAminSecret = &x
+		}
+		o.IsSetForbidAminSecret = true
+	}
+	if v, ok := m["maxDepthQueries"]; ok {
+		if v == nil {
+			o.MaxDepthQueries = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxDepthQueries = &x
+		}
+		o.IsSetMaxDepthQueries = true
+	}
+
+	return nil
+}
+
+func (o *ConfigGraphqlSecurityUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigGraphqlSecurityUpdateInput) GetForbidAminSecret() *bool {
+	if o == nil {
+		o = &ConfigGraphqlSecurityUpdateInput{}
+	}
+	return o.ForbidAminSecret
+}
+
+func (o *ConfigGraphqlSecurityUpdateInput) GetMaxDepthQueries() *uint {
+	if o == nil {
+		o = &ConfigGraphqlSecurityUpdateInput{}
+	}
+	return o.MaxDepthQueries
+}
+
+func (s *ConfigGraphqlSecurity) Update(v *ConfigGraphqlSecurityUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetForbidAminSecret || v.ForbidAminSecret != nil {
+		s.ForbidAminSecret = v.ForbidAminSecret
+	}
+	if v.IsSetMaxDepthQueries || v.MaxDepthQueries != nil {
+		s.MaxDepthQueries = v.MaxDepthQueries
+	}
+}
+
+type ConfigGraphqlSecurityInsertInput struct {
+	ForbidAminSecret *bool `json:"forbidAminSecret,omitempty" toml:"forbidAminSecret,omitempty"`
+	MaxDepthQueries  *uint `json:"maxDepthQueries,omitempty" toml:"maxDepthQueries,omitempty"`
+}
+
+func (o *ConfigGraphqlSecurityInsertInput) GetForbidAminSecret() *bool {
+	if o == nil {
+		o = &ConfigGraphqlSecurityInsertInput{}
+	}
+	return o.ForbidAminSecret
+}
+
+func (o *ConfigGraphqlSecurityInsertInput) GetMaxDepthQueries() *uint {
+	if o == nil {
+		o = &ConfigGraphqlSecurityInsertInput{}
+	}
+	return o.MaxDepthQueries
+}
+
+func (s *ConfigGraphqlSecurity) Insert(v *ConfigGraphqlSecurityInsertInput) {
+	s.ForbidAminSecret = v.ForbidAminSecret
+	s.MaxDepthQueries = v.MaxDepthQueries
+}
+
+func (s *ConfigGraphqlSecurity) Clone() *ConfigGraphqlSecurity {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigGraphqlSecurity{}
+	v.ForbidAminSecret = s.ForbidAminSecret
+	v.MaxDepthQueries = s.MaxDepthQueries
+	return v
+}
+
+type ConfigGraphqlSecurityComparisonExp struct {
+	And              []*ConfigGraphqlSecurityComparisonExp `json:"_and,omitempty"`
+	Not              *ConfigGraphqlSecurityComparisonExp   `json:"_not,omitempty"`
+	Or               []*ConfigGraphqlSecurityComparisonExp `json:"_or,omitempty"`
+	ForbidAminSecret *ConfigBooleanComparisonExp           `json:"forbidAminSecret,omitempty"`
+	MaxDepthQueries  *ConfigUintComparisonExp              `json:"maxDepthQueries,omitempty"`
+}
+
+func (exp *ConfigGraphqlSecurityComparisonExp) Matches(o *ConfigGraphqlSecurity) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigGraphqlSecurity{}
+	}
+	if o.ForbidAminSecret != nil && !exp.ForbidAminSecret.Matches(*o.ForbidAminSecret) {
+		return false
+	}
+	if o.MaxDepthQueries != nil && !exp.MaxDepthQueries.Matches(*o.MaxDepthQueries) {
 		return false
 	}
 
@@ -19999,6 +20386,8 @@ func (exp *ConfigStorageAntivirusComparisonExp) Matches(o *ConfigStorageAntiviru
 type ConfigSystemConfig struct {
 	Auth *ConfigSystemConfigAuth `json:"auth,omitempty" toml:"auth,omitempty"`
 
+	Graphql *ConfigSystemConfigGraphql `json:"graphql,omitempty" toml:"graphql,omitempty"`
+
 	Postgres *ConfigSystemConfigPostgres `json:"postgres,omitempty" toml:"postgres,omitempty"`
 }
 
@@ -20006,6 +20395,9 @@ func (o *ConfigSystemConfig) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	if o.Auth != nil {
 		m["auth"] = o.Auth
+	}
+	if o.Graphql != nil {
+		m["graphql"] = o.Graphql
 	}
 	if o.Postgres != nil {
 		m["postgres"] = o.Postgres
@@ -20020,6 +20412,13 @@ func (o *ConfigSystemConfig) GetAuth() *ConfigSystemConfigAuth {
 	return o.Auth
 }
 
+func (o *ConfigSystemConfig) GetGraphql() *ConfigSystemConfigGraphql {
+	if o == nil {
+		return nil
+	}
+	return o.Graphql
+}
+
 func (o *ConfigSystemConfig) GetPostgres() *ConfigSystemConfigPostgres {
 	if o == nil {
 		return nil
@@ -20030,6 +20429,8 @@ func (o *ConfigSystemConfig) GetPostgres() *ConfigSystemConfigPostgres {
 type ConfigSystemConfigUpdateInput struct {
 	Auth          *ConfigSystemConfigAuthUpdateInput     `json:"auth,omitempty" toml:"auth,omitempty"`
 	IsSetAuth     bool                                   `json:"-"`
+	Graphql       *ConfigSystemConfigGraphqlUpdateInput  `json:"graphql,omitempty" toml:"graphql,omitempty"`
+	IsSetGraphql  bool                                   `json:"-"`
 	Postgres      *ConfigSystemConfigPostgresUpdateInput `json:"postgres,omitempty" toml:"postgres,omitempty"`
 	IsSetPostgres bool                                   `json:"-"`
 }
@@ -20048,6 +20449,16 @@ func (o *ConfigSystemConfigUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Auth = t
 		}
 		o.IsSetAuth = true
+	}
+	if x, ok := m["graphql"]; ok {
+		if x != nil {
+			t := &ConfigSystemConfigGraphqlUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Graphql = t
+		}
+		o.IsSetGraphql = true
 	}
 	if x, ok := m["postgres"]; ok {
 		if x != nil {
@@ -20077,6 +20488,13 @@ func (o *ConfigSystemConfigUpdateInput) GetAuth() *ConfigSystemConfigAuthUpdateI
 	return o.Auth
 }
 
+func (o *ConfigSystemConfigUpdateInput) GetGraphql() *ConfigSystemConfigGraphqlUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Graphql
+}
+
 func (o *ConfigSystemConfigUpdateInput) GetPostgres() *ConfigSystemConfigPostgresUpdateInput {
 	if o == nil {
 		return nil
@@ -20098,6 +20516,16 @@ func (s *ConfigSystemConfig) Update(v *ConfigSystemConfigUpdateInput) {
 			s.Auth.Update(v.Auth)
 		}
 	}
+	if v.IsSetGraphql || v.Graphql != nil {
+		if v.Graphql == nil {
+			s.Graphql = nil
+		} else {
+			if s.Graphql == nil {
+				s.Graphql = &ConfigSystemConfigGraphql{}
+			}
+			s.Graphql.Update(v.Graphql)
+		}
+	}
 	if v.IsSetPostgres || v.Postgres != nil {
 		if v.Postgres == nil {
 			s.Postgres = nil
@@ -20112,6 +20540,7 @@ func (s *ConfigSystemConfig) Update(v *ConfigSystemConfigUpdateInput) {
 
 type ConfigSystemConfigInsertInput struct {
 	Auth     *ConfigSystemConfigAuthInsertInput     `json:"auth,omitempty" toml:"auth,omitempty"`
+	Graphql  *ConfigSystemConfigGraphqlInsertInput  `json:"graphql,omitempty" toml:"graphql,omitempty"`
 	Postgres *ConfigSystemConfigPostgresInsertInput `json:"postgres,omitempty" toml:"postgres,omitempty"`
 }
 
@@ -20120,6 +20549,13 @@ func (o *ConfigSystemConfigInsertInput) GetAuth() *ConfigSystemConfigAuthInsertI
 		return nil
 	}
 	return o.Auth
+}
+
+func (o *ConfigSystemConfigInsertInput) GetGraphql() *ConfigSystemConfigGraphqlInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Graphql
 }
 
 func (o *ConfigSystemConfigInsertInput) GetPostgres() *ConfigSystemConfigPostgresInsertInput {
@@ -20136,6 +20572,12 @@ func (s *ConfigSystemConfig) Insert(v *ConfigSystemConfigInsertInput) {
 		}
 		s.Auth.Insert(v.Auth)
 	}
+	if v.Graphql != nil {
+		if s.Graphql == nil {
+			s.Graphql = &ConfigSystemConfigGraphql{}
+		}
+		s.Graphql.Insert(v.Graphql)
+	}
 	if v.Postgres != nil {
 		if s.Postgres == nil {
 			s.Postgres = &ConfigSystemConfigPostgres{}
@@ -20151,6 +20593,7 @@ func (s *ConfigSystemConfig) Clone() *ConfigSystemConfig {
 
 	v := &ConfigSystemConfig{}
 	v.Auth = s.Auth.Clone()
+	v.Graphql = s.Graphql.Clone()
 	v.Postgres = s.Postgres.Clone()
 	return v
 }
@@ -20160,6 +20603,7 @@ type ConfigSystemConfigComparisonExp struct {
 	Not      *ConfigSystemConfigComparisonExp         `json:"_not,omitempty"`
 	Or       []*ConfigSystemConfigComparisonExp       `json:"_or,omitempty"`
 	Auth     *ConfigSystemConfigAuthComparisonExp     `json:"auth,omitempty"`
+	Graphql  *ConfigSystemConfigGraphqlComparisonExp  `json:"graphql,omitempty"`
 	Postgres *ConfigSystemConfigPostgresComparisonExp `json:"postgres,omitempty"`
 }
 
@@ -20171,10 +20615,14 @@ func (exp *ConfigSystemConfigComparisonExp) Matches(o *ConfigSystemConfig) bool 
 	if o == nil {
 		o = &ConfigSystemConfig{
 			Auth:     &ConfigSystemConfigAuth{},
+			Graphql:  &ConfigSystemConfigGraphql{},
 			Postgres: &ConfigSystemConfigPostgres{},
 		}
 	}
 	if !exp.Auth.Matches(o.Auth) {
+		return false
+	}
+	if !exp.Graphql.Matches(o.Graphql) {
 		return false
 	}
 	if !exp.Postgres.Matches(o.Postgres) {
@@ -20588,6 +21036,140 @@ func (exp *ConfigSystemConfigAuthEmailTemplatesComparisonExp) Matches(o *ConfigS
 		o = &ConfigSystemConfigAuthEmailTemplates{}
 	}
 	if o.S3Key != nil && !exp.S3Key.Matches(*o.S3Key) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigSystemConfigGraphql struct {
+	// manually enable graphi on a per-service basis
+	// by default it follows the plan
+	FeatureAdvancedGraphql *bool `json:"featureAdvancedGraphql" toml:"featureAdvancedGraphql"`
+}
+
+func (o *ConfigSystemConfigGraphql) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.FeatureAdvancedGraphql != nil {
+		m["featureAdvancedGraphql"] = o.FeatureAdvancedGraphql
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigSystemConfigGraphql) GetFeatureAdvancedGraphql() *bool {
+	if o == nil {
+		o = &ConfigSystemConfigGraphql{}
+	}
+	return o.FeatureAdvancedGraphql
+}
+
+type ConfigSystemConfigGraphqlUpdateInput struct {
+	FeatureAdvancedGraphql      *bool `json:"featureAdvancedGraphql,omitempty" toml:"featureAdvancedGraphql,omitempty"`
+	IsSetFeatureAdvancedGraphql bool  `json:"-"`
+}
+
+func (o *ConfigSystemConfigGraphqlUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["featureAdvancedGraphql"]; ok {
+		if v == nil {
+			o.FeatureAdvancedGraphql = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.FeatureAdvancedGraphql = &x
+		}
+		o.IsSetFeatureAdvancedGraphql = true
+	}
+
+	return nil
+}
+
+func (o *ConfigSystemConfigGraphqlUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigSystemConfigGraphqlUpdateInput) GetFeatureAdvancedGraphql() *bool {
+	if o == nil {
+		o = &ConfigSystemConfigGraphqlUpdateInput{}
+	}
+	return o.FeatureAdvancedGraphql
+}
+
+func (s *ConfigSystemConfigGraphql) Update(v *ConfigSystemConfigGraphqlUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetFeatureAdvancedGraphql || v.FeatureAdvancedGraphql != nil {
+		s.FeatureAdvancedGraphql = v.FeatureAdvancedGraphql
+	}
+}
+
+type ConfigSystemConfigGraphqlInsertInput struct {
+	FeatureAdvancedGraphql *bool `json:"featureAdvancedGraphql,omitempty" toml:"featureAdvancedGraphql,omitempty"`
+}
+
+func (o *ConfigSystemConfigGraphqlInsertInput) GetFeatureAdvancedGraphql() *bool {
+	if o == nil {
+		o = &ConfigSystemConfigGraphqlInsertInput{}
+	}
+	return o.FeatureAdvancedGraphql
+}
+
+func (s *ConfigSystemConfigGraphql) Insert(v *ConfigSystemConfigGraphqlInsertInput) {
+	s.FeatureAdvancedGraphql = v.FeatureAdvancedGraphql
+}
+
+func (s *ConfigSystemConfigGraphql) Clone() *ConfigSystemConfigGraphql {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigSystemConfigGraphql{}
+	v.FeatureAdvancedGraphql = s.FeatureAdvancedGraphql
+	return v
+}
+
+type ConfigSystemConfigGraphqlComparisonExp struct {
+	And                    []*ConfigSystemConfigGraphqlComparisonExp `json:"_and,omitempty"`
+	Not                    *ConfigSystemConfigGraphqlComparisonExp   `json:"_not,omitempty"`
+	Or                     []*ConfigSystemConfigGraphqlComparisonExp `json:"_or,omitempty"`
+	FeatureAdvancedGraphql *ConfigBooleanComparisonExp               `json:"featureAdvancedGraphql,omitempty"`
+}
+
+func (exp *ConfigSystemConfigGraphqlComparisonExp) Matches(o *ConfigSystemConfigGraphql) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigSystemConfigGraphql{}
+	}
+	if o.FeatureAdvancedGraphql != nil && !exp.FeatureAdvancedGraphql.Matches(*o.FeatureAdvancedGraphql) {
 		return false
 	}
 

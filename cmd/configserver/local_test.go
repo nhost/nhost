@@ -35,7 +35,8 @@ func ptr[T any](v T) *T {
 func newApp() *graph.App {
 	return &graph.App{
 		Config: &model.ConfigConfig{
-			Global: nil,
+			Global:  nil,
+			Graphql: nil,
 			Hasura: &model.ConfigHasura{ //nolint:exhaustruct
 				AdminSecret:   "hasuraAdminSecret",
 				WebhookSecret: "webhookSecret",

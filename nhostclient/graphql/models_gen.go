@@ -458,6 +458,7 @@ type ConfigConfig struct {
 	Auth          *ConfigAuth         `json:"auth,omitempty"`
 	Functions     *ConfigFunctions    `json:"functions,omitempty"`
 	Global        *ConfigGlobal       `json:"global,omitempty"`
+	Graphql       *ConfigGraphql      `json:"graphql,omitempty"`
 	Hasura        ConfigHasura        `json:"hasura"`
 	Observability ConfigObservability `json:"observability"`
 	Postgres      *ConfigPostgres     `json:"postgres,omitempty"`
@@ -470,6 +471,7 @@ type ConfigConfigUpdateInput struct {
 	Auth          *ConfigAuthUpdateInput          `json:"auth,omitempty"`
 	Functions     *ConfigFunctionsUpdateInput     `json:"functions,omitempty"`
 	Global        *ConfigGlobalUpdateInput        `json:"global,omitempty"`
+	Graphql       *ConfigGraphqlUpdateInput       `json:"graphql,omitempty"`
 	Hasura        *ConfigHasuraUpdateInput        `json:"hasura,omitempty"`
 	Observability *ConfigObservabilityUpdateInput `json:"observability,omitempty"`
 	Postgres      *ConfigPostgresUpdateInput      `json:"postgres,omitempty"`
@@ -542,6 +544,24 @@ type ConfigGrafana struct {
 
 type ConfigGrafanaUpdateInput struct {
 	AdminPassword *string `json:"adminPassword,omitempty"`
+}
+
+type ConfigGraphql struct {
+	Security *ConfigGraphqlSecurity `json:"security,omitempty"`
+}
+
+type ConfigGraphqlSecurity struct {
+	ForbidAminSecret *bool   `json:"forbidAminSecret,omitempty"`
+	MaxDepthQueries  *string `json:"maxDepthQueries,omitempty"`
+}
+
+type ConfigGraphqlSecurityUpdateInput struct {
+	ForbidAminSecret *bool   `json:"forbidAminSecret,omitempty"`
+	MaxDepthQueries  *string `json:"maxDepthQueries,omitempty"`
+}
+
+type ConfigGraphqlUpdateInput struct {
+	Security *ConfigGraphqlSecurityUpdateInput `json:"security,omitempty"`
 }
 
 type ConfigHasura struct {
@@ -992,6 +1012,7 @@ type ConfigStorageUpdateInput struct {
 
 type ConfigSystemConfig struct {
 	Auth     *ConfigSystemConfigAuth    `json:"auth,omitempty"`
+	Graphql  *ConfigSystemConfigGraphql `json:"graphql,omitempty"`
 	Postgres ConfigSystemConfigPostgres `json:"postgres"`
 }
 
@@ -1005,6 +1026,10 @@ type ConfigSystemConfigAuthEmail struct {
 
 type ConfigSystemConfigAuthEmailTemplates struct {
 	S3Key *string `json:"s3Key,omitempty"`
+}
+
+type ConfigSystemConfigGraphql struct {
+	FeatureAdvancedGraphql *bool `json:"featureAdvancedGraphql,omitempty"`
 }
 
 type ConfigSystemConfigPostgres struct {

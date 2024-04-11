@@ -1484,6 +1484,10 @@ type ConfigConfig {
     """
     hasura: ConfigHasura!
     """
+    Advanced configuration for GraphQL
+    """
+    graphql: ConfigGraphql
+    """
     Configuration for functions service
     """
     functions: ConfigFunctions
@@ -1516,6 +1520,7 @@ type ConfigConfig {
 input ConfigConfigUpdateInput {
     global: ConfigGlobalUpdateInput
     hasura: ConfigHasuraUpdateInput
+    graphql: ConfigGraphqlUpdateInput
     functions: ConfigFunctionsUpdateInput
     auth: ConfigAuthUpdateInput
     postgres: ConfigPostgresUpdateInput
@@ -1528,6 +1533,7 @@ input ConfigConfigUpdateInput {
 input ConfigConfigInsertInput {
     global: ConfigGlobalInsertInput
     hasura: ConfigHasuraInsertInput!
+    graphql: ConfigGraphqlInsertInput
     functions: ConfigFunctionsInsertInput
     auth: ConfigAuthInsertInput
     postgres: ConfigPostgresInsertInput
@@ -1543,6 +1549,7 @@ input ConfigConfigComparisonExp {
     _or: [ConfigConfigComparisonExp!]
     global: ConfigGlobalComparisonExp
     hasura: ConfigHasuraComparisonExp
+    graphql: ConfigGraphqlComparisonExp
     functions: ConfigFunctionsComparisonExp
     auth: ConfigAuthComparisonExp
     postgres: ConfigPostgresComparisonExp
@@ -1755,6 +1762,63 @@ input ConfigGrafanaComparisonExp {
     _not: ConfigGrafanaComparisonExp
     _or: [ConfigGrafanaComparisonExp!]
     adminPassword: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigGraphql {
+    """
+
+    """
+    security: ConfigGraphqlSecurity
+}
+
+input ConfigGraphqlUpdateInput {
+    security: ConfigGraphqlSecurityUpdateInput
+}
+
+input ConfigGraphqlInsertInput {
+    security: ConfigGraphqlSecurityInsertInput
+}
+
+input ConfigGraphqlComparisonExp {
+    _and: [ConfigGraphqlComparisonExp!]
+    _not: ConfigGraphqlComparisonExp
+    _or: [ConfigGraphqlComparisonExp!]
+    security: ConfigGraphqlSecurityComparisonExp
+}
+
+"""
+
+"""
+type ConfigGraphqlSecurity {
+    """
+
+    """
+    forbidAminSecret: Boolean
+    """
+
+    """
+    maxDepthQueries: ConfigUint
+}
+
+input ConfigGraphqlSecurityUpdateInput {
+    forbidAminSecret: Boolean
+    maxDepthQueries: ConfigUint
+}
+
+input ConfigGraphqlSecurityInsertInput {
+    forbidAminSecret: Boolean
+    maxDepthQueries: ConfigUint
+}
+
+input ConfigGraphqlSecurityComparisonExp {
+    _and: [ConfigGraphqlSecurityComparisonExp!]
+    _not: ConfigGraphqlSecurityComparisonExp
+    _or: [ConfigGraphqlSecurityComparisonExp!]
+    forbidAminSecret: ConfigBooleanComparisonExp
+    maxDepthQueries: ConfigUintComparisonExp
 }
 
 """
@@ -3123,16 +3187,22 @@ type ConfigSystemConfig {
     """
 
     """
+    graphql: ConfigSystemConfigGraphql
+    """
+
+    """
     postgres: ConfigSystemConfigPostgres!
 }
 
 input ConfigSystemConfigUpdateInput {
     auth: ConfigSystemConfigAuthUpdateInput
+    graphql: ConfigSystemConfigGraphqlUpdateInput
     postgres: ConfigSystemConfigPostgresUpdateInput
 }
 
 input ConfigSystemConfigInsertInput {
     auth: ConfigSystemConfigAuthInsertInput
+    graphql: ConfigSystemConfigGraphqlInsertInput
     postgres: ConfigSystemConfigPostgresInsertInput!
 }
 
@@ -3141,6 +3211,7 @@ input ConfigSystemConfigComparisonExp {
     _not: ConfigSystemConfigComparisonExp
     _or: [ConfigSystemConfigComparisonExp!]
     auth: ConfigSystemConfigAuthComparisonExp
+    graphql: ConfigSystemConfigGraphqlComparisonExp
     postgres: ConfigSystemConfigPostgresComparisonExp
 }
 
@@ -3217,6 +3288,32 @@ input ConfigSystemConfigAuthEmailTemplatesComparisonExp {
     _not: ConfigSystemConfigAuthEmailTemplatesComparisonExp
     _or: [ConfigSystemConfigAuthEmailTemplatesComparisonExp!]
     s3Key: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigSystemConfigGraphql {
+    """
+    manually enable graphi on a per-service basis
+    by default it follows the plan
+    """
+    featureAdvancedGraphql: Boolean
+}
+
+input ConfigSystemConfigGraphqlUpdateInput {
+    featureAdvancedGraphql: Boolean
+}
+
+input ConfigSystemConfigGraphqlInsertInput {
+    featureAdvancedGraphql: Boolean
+}
+
+input ConfigSystemConfigGraphqlComparisonExp {
+    _and: [ConfigSystemConfigGraphqlComparisonExp!]
+    _not: ConfigSystemConfigGraphqlComparisonExp
+    _or: [ConfigSystemConfigGraphqlComparisonExp!]
+    featureAdvancedGraphql: ConfigBooleanComparisonExp
 }
 
 """

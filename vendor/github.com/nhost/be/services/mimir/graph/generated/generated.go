@@ -277,6 +277,7 @@ type ComplexityRoot struct {
 		Auth          func(childComplexity int) int
 		Functions     func(childComplexity int) int
 		Global        func(childComplexity int) int
+		Graphql       func(childComplexity int) int
 		Hasura        func(childComplexity int) int
 		Observability func(childComplexity int) int
 		Postgres      func(childComplexity int) int
@@ -313,6 +314,15 @@ type ComplexityRoot struct {
 
 	ConfigGrafana struct {
 		AdminPassword func(childComplexity int) int
+	}
+
+	ConfigGraphql struct {
+		Security func(childComplexity int) int
+	}
+
+	ConfigGraphqlSecurity struct {
+		ForbidAminSecret func(childComplexity int) int
+		MaxDepthQueries  func(childComplexity int) int
 	}
 
 	ConfigHasura struct {
@@ -527,6 +537,7 @@ type ComplexityRoot struct {
 
 	ConfigSystemConfig struct {
 		Auth     func(childComplexity int) int
+		Graphql  func(childComplexity int) int
 		Postgres func(childComplexity int) int
 	}
 
@@ -540,6 +551,10 @@ type ComplexityRoot struct {
 
 	ConfigSystemConfigAuthEmailTemplates struct {
 		S3Key func(childComplexity int) int
+	}
+
+	ConfigSystemConfigGraphql struct {
+		FeatureAdvancedGraphql func(childComplexity int) int
 	}
 
 	ConfigSystemConfigPostgres struct {
@@ -1444,6 +1459,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigConfig.Global(childComplexity), true
 
+	case "ConfigConfig.graphql":
+		if e.complexity.ConfigConfig.Graphql == nil {
+			break
+		}
+
+		return e.complexity.ConfigConfig.Graphql(childComplexity), true
+
 	case "ConfigConfig.hasura":
 		if e.complexity.ConfigConfig.Hasura == nil {
 			break
@@ -1548,6 +1570,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigGrafana.AdminPassword(childComplexity), true
+
+	case "ConfigGraphql.security":
+		if e.complexity.ConfigGraphql.Security == nil {
+			break
+		}
+
+		return e.complexity.ConfigGraphql.Security(childComplexity), true
+
+	case "ConfigGraphqlSecurity.forbidAminSecret":
+		if e.complexity.ConfigGraphqlSecurity.ForbidAminSecret == nil {
+			break
+		}
+
+		return e.complexity.ConfigGraphqlSecurity.ForbidAminSecret(childComplexity), true
+
+	case "ConfigGraphqlSecurity.maxDepthQueries":
+		if e.complexity.ConfigGraphqlSecurity.MaxDepthQueries == nil {
+			break
+		}
+
+		return e.complexity.ConfigGraphqlSecurity.MaxDepthQueries(childComplexity), true
 
 	case "ConfigHasura.adminSecret":
 		if e.complexity.ConfigHasura.AdminSecret == nil {
@@ -2396,6 +2439,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigSystemConfig.Auth(childComplexity), true
 
+	case "ConfigSystemConfig.graphql":
+		if e.complexity.ConfigSystemConfig.Graphql == nil {
+			break
+		}
+
+		return e.complexity.ConfigSystemConfig.Graphql(childComplexity), true
+
 	case "ConfigSystemConfig.postgres":
 		if e.complexity.ConfigSystemConfig.Postgres == nil {
 			break
@@ -2423,6 +2473,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigSystemConfigAuthEmailTemplates.S3Key(childComplexity), true
+
+	case "ConfigSystemConfigGraphql.featureAdvancedGraphql":
+		if e.complexity.ConfigSystemConfigGraphql.FeatureAdvancedGraphql == nil {
+			break
+		}
+
+		return e.complexity.ConfigSystemConfigGraphql.FeatureAdvancedGraphql(childComplexity), true
 
 	case "ConfigSystemConfigPostgres.connectionString":
 		if e.complexity.ConfigSystemConfigPostgres.ConnectionString == nil {
@@ -2839,6 +2896,10 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigGlobalInsertInput,
 		ec.unmarshalInputConfigGrafanaComparisonExp,
 		ec.unmarshalInputConfigGrafanaInsertInput,
+		ec.unmarshalInputConfigGraphqlComparisonExp,
+		ec.unmarshalInputConfigGraphqlInsertInput,
+		ec.unmarshalInputConfigGraphqlSecurityComparisonExp,
+		ec.unmarshalInputConfigGraphqlSecurityInsertInput,
 		ec.unmarshalInputConfigHasuraAPIsComparisonExp,
 		ec.unmarshalInputConfigHasuraAuthHookComparisonExp,
 		ec.unmarshalInputConfigHasuraAuthHookInsertInput,
@@ -2912,6 +2973,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigSystemConfigAuthEmailTemplatesInsertInput,
 		ec.unmarshalInputConfigSystemConfigAuthInsertInput,
 		ec.unmarshalInputConfigSystemConfigComparisonExp,
+		ec.unmarshalInputConfigSystemConfigGraphqlComparisonExp,
+		ec.unmarshalInputConfigSystemConfigGraphqlInsertInput,
 		ec.unmarshalInputConfigSystemConfigInsertInput,
 		ec.unmarshalInputConfigSystemConfigPostgresComparisonExp,
 		ec.unmarshalInputConfigSystemConfigPostgresConnectionStringComparisonExp,
@@ -4646,6 +4709,10 @@ type ConfigConfig {
     """
     hasura: ConfigHasura!
     """
+    Advanced configuration for GraphQL
+    """
+    graphql: ConfigGraphql
+    """
     Configuration for functions service
     """
     functions: ConfigFunctions
@@ -4678,6 +4745,7 @@ type ConfigConfig {
 input ConfigConfigUpdateInput {
     global: ConfigGlobalUpdateInput
     hasura: ConfigHasuraUpdateInput
+    graphql: ConfigGraphqlUpdateInput
     functions: ConfigFunctionsUpdateInput
     auth: ConfigAuthUpdateInput
     postgres: ConfigPostgresUpdateInput
@@ -4690,6 +4758,7 @@ input ConfigConfigUpdateInput {
 input ConfigConfigInsertInput {
     global: ConfigGlobalInsertInput
     hasura: ConfigHasuraInsertInput!
+    graphql: ConfigGraphqlInsertInput
     functions: ConfigFunctionsInsertInput
     auth: ConfigAuthInsertInput
     postgres: ConfigPostgresInsertInput
@@ -4705,6 +4774,7 @@ input ConfigConfigComparisonExp {
     _or: [ConfigConfigComparisonExp!]
     global: ConfigGlobalComparisonExp
     hasura: ConfigHasuraComparisonExp
+    graphql: ConfigGraphqlComparisonExp
     functions: ConfigFunctionsComparisonExp
     auth: ConfigAuthComparisonExp
     postgres: ConfigPostgresComparisonExp
@@ -4917,6 +4987,63 @@ input ConfigGrafanaComparisonExp {
     _not: ConfigGrafanaComparisonExp
     _or: [ConfigGrafanaComparisonExp!]
     adminPassword: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigGraphql {
+    """
+
+    """
+    security: ConfigGraphqlSecurity
+}
+
+input ConfigGraphqlUpdateInput {
+    security: ConfigGraphqlSecurityUpdateInput
+}
+
+input ConfigGraphqlInsertInput {
+    security: ConfigGraphqlSecurityInsertInput
+}
+
+input ConfigGraphqlComparisonExp {
+    _and: [ConfigGraphqlComparisonExp!]
+    _not: ConfigGraphqlComparisonExp
+    _or: [ConfigGraphqlComparisonExp!]
+    security: ConfigGraphqlSecurityComparisonExp
+}
+
+"""
+
+"""
+type ConfigGraphqlSecurity {
+    """
+
+    """
+    forbidAminSecret: Boolean
+    """
+
+    """
+    maxDepthQueries: ConfigUint
+}
+
+input ConfigGraphqlSecurityUpdateInput {
+    forbidAminSecret: Boolean
+    maxDepthQueries: ConfigUint
+}
+
+input ConfigGraphqlSecurityInsertInput {
+    forbidAminSecret: Boolean
+    maxDepthQueries: ConfigUint
+}
+
+input ConfigGraphqlSecurityComparisonExp {
+    _and: [ConfigGraphqlSecurityComparisonExp!]
+    _not: ConfigGraphqlSecurityComparisonExp
+    _or: [ConfigGraphqlSecurityComparisonExp!]
+    forbidAminSecret: ConfigBooleanComparisonExp
+    maxDepthQueries: ConfigUintComparisonExp
 }
 
 """
@@ -6285,16 +6412,22 @@ type ConfigSystemConfig {
     """
 
     """
+    graphql: ConfigSystemConfigGraphql
+    """
+
+    """
     postgres: ConfigSystemConfigPostgres!
 }
 
 input ConfigSystemConfigUpdateInput {
     auth: ConfigSystemConfigAuthUpdateInput
+    graphql: ConfigSystemConfigGraphqlUpdateInput
     postgres: ConfigSystemConfigPostgresUpdateInput
 }
 
 input ConfigSystemConfigInsertInput {
     auth: ConfigSystemConfigAuthInsertInput
+    graphql: ConfigSystemConfigGraphqlInsertInput
     postgres: ConfigSystemConfigPostgresInsertInput!
 }
 
@@ -6303,6 +6436,7 @@ input ConfigSystemConfigComparisonExp {
     _not: ConfigSystemConfigComparisonExp
     _or: [ConfigSystemConfigComparisonExp!]
     auth: ConfigSystemConfigAuthComparisonExp
+    graphql: ConfigSystemConfigGraphqlComparisonExp
     postgres: ConfigSystemConfigPostgresComparisonExp
 }
 
@@ -6379,6 +6513,32 @@ input ConfigSystemConfigAuthEmailTemplatesComparisonExp {
     _not: ConfigSystemConfigAuthEmailTemplatesComparisonExp
     _or: [ConfigSystemConfigAuthEmailTemplatesComparisonExp!]
     s3Key: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigSystemConfigGraphql {
+    """
+    manually enable graphi on a per-service basis
+    by default it follows the plan
+    """
+    featureAdvancedGraphql: Boolean
+}
+
+input ConfigSystemConfigGraphqlUpdateInput {
+    featureAdvancedGraphql: Boolean
+}
+
+input ConfigSystemConfigGraphqlInsertInput {
+    featureAdvancedGraphql: Boolean
+}
+
+input ConfigSystemConfigGraphqlComparisonExp {
+    _and: [ConfigSystemConfigGraphqlComparisonExp!]
+    _not: ConfigSystemConfigGraphqlComparisonExp
+    _or: [ConfigSystemConfigGraphqlComparisonExp!]
+    featureAdvancedGraphql: ConfigBooleanComparisonExp
 }
 
 """
@@ -7893,6 +8053,8 @@ func (ec *executionContext) fieldContext_ConfigAppConfig_config(ctx context.Cont
 				return ec.fieldContext_ConfigConfig_global(ctx, field)
 			case "hasura":
 				return ec.fieldContext_ConfigConfig_hasura(ctx, field)
+			case "graphql":
+				return ec.fieldContext_ConfigConfig_graphql(ctx, field)
 			case "functions":
 				return ec.fieldContext_ConfigConfig_functions(ctx, field)
 			case "auth":
@@ -8093,6 +8255,8 @@ func (ec *executionContext) fieldContext_ConfigAppSystemConfig_systemConfig(ctx 
 			switch field.Name {
 			case "auth":
 				return ec.fieldContext_ConfigSystemConfig_auth(ctx, field)
+			case "graphql":
+				return ec.fieldContext_ConfigSystemConfig_graphql(ctx, field)
 			case "postgres":
 				return ec.fieldContext_ConfigSystemConfig_postgres(ctx, field)
 			}
@@ -12537,6 +12701,51 @@ func (ec *executionContext) fieldContext_ConfigConfig_hasura(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigConfig_graphql(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigConfig_graphql(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Graphql, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigGraphql)
+	fc.Result = res
+	return ec.marshalOConfigGraphql2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphql(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigConfig_graphql(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "security":
+				return ec.fieldContext_ConfigGraphql_security(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigGraphql", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigConfig_functions(ctx context.Context, field graphql.CollectedField, obj *model.ConfigConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigConfig_functions(ctx, field)
 	if err != nil {
@@ -13329,6 +13538,135 @@ func (ec *executionContext) fieldContext_ConfigGrafana_adminPassword(ctx context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGraphql_security(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGraphql) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGraphql_security(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Security, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigGraphqlSecurity)
+	fc.Result = res
+	return ec.marshalOConfigGraphqlSecurity2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurity(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGraphql_security(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGraphql",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "forbidAminSecret":
+				return ec.fieldContext_ConfigGraphqlSecurity_forbidAminSecret(ctx, field)
+			case "maxDepthQueries":
+				return ec.fieldContext_ConfigGraphqlSecurity_maxDepthQueries(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigGraphqlSecurity", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGraphqlSecurity_forbidAminSecret(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGraphqlSecurity) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGraphqlSecurity_forbidAminSecret(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ForbidAminSecret, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGraphqlSecurity_forbidAminSecret(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGraphqlSecurity",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGraphqlSecurity_maxDepthQueries(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGraphqlSecurity) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGraphqlSecurity_maxDepthQueries(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaxDepthQueries, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uint)
+	fc.Result = res
+	return ec.marshalOConfigUint2ᚖuint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGraphqlSecurity_maxDepthQueries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGraphqlSecurity",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigUint does not have child fields")
 		},
 	}
 	return fc, nil
@@ -14521,6 +14859,8 @@ func (ec *executionContext) fieldContext_ConfigInsertConfigResponse_config(ctx c
 				return ec.fieldContext_ConfigConfig_global(ctx, field)
 			case "hasura":
 				return ec.fieldContext_ConfigConfig_hasura(ctx, field)
+			case "graphql":
+				return ec.fieldContext_ConfigConfig_graphql(ctx, field)
 			case "functions":
 				return ec.fieldContext_ConfigConfig_functions(ctx, field)
 			case "auth":
@@ -14583,6 +14923,8 @@ func (ec *executionContext) fieldContext_ConfigInsertConfigResponse_systemConfig
 			switch field.Name {
 			case "auth":
 				return ec.fieldContext_ConfigSystemConfig_auth(ctx, field)
+			case "graphql":
+				return ec.fieldContext_ConfigSystemConfig_graphql(ctx, field)
 			case "postgres":
 				return ec.fieldContext_ConfigSystemConfig_postgres(ctx, field)
 			}
@@ -18703,6 +19045,51 @@ func (ec *executionContext) fieldContext_ConfigSystemConfig_auth(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigSystemConfig_graphql(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigSystemConfig_graphql(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Graphql, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigSystemConfigGraphql)
+	fc.Result = res
+	return ec.marshalOConfigSystemConfigGraphql2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphql(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigSystemConfig_graphql(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigSystemConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "featureAdvancedGraphql":
+				return ec.fieldContext_ConfigSystemConfigGraphql_featureAdvancedGraphql(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigSystemConfigGraphql", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigSystemConfig_postgres(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfig) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigSystemConfig_postgres(ctx, field)
 	if err != nil {
@@ -18881,6 +19268,47 @@ func (ec *executionContext) fieldContext_ConfigSystemConfigAuthEmailTemplates_s3
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigSystemConfigGraphql_featureAdvancedGraphql(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigGraphql) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigSystemConfigGraphql_featureAdvancedGraphql(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FeatureAdvancedGraphql, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigSystemConfigGraphql_featureAdvancedGraphql(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigSystemConfigGraphql",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -19244,6 +19672,8 @@ func (ec *executionContext) fieldContext_Mutation_updateConfig(ctx context.Conte
 				return ec.fieldContext_ConfigConfig_global(ctx, field)
 			case "hasura":
 				return ec.fieldContext_ConfigConfig_hasura(ctx, field)
+			case "graphql":
+				return ec.fieldContext_ConfigConfig_graphql(ctx, field)
 			case "functions":
 				return ec.fieldContext_ConfigConfig_functions(ctx, field)
 			case "auth":
@@ -19319,6 +19749,8 @@ func (ec *executionContext) fieldContext_Mutation_replaceConfig(ctx context.Cont
 				return ec.fieldContext_ConfigConfig_global(ctx, field)
 			case "hasura":
 				return ec.fieldContext_ConfigConfig_hasura(ctx, field)
+			case "graphql":
+				return ec.fieldContext_ConfigConfig_graphql(ctx, field)
 			case "functions":
 				return ec.fieldContext_ConfigConfig_functions(ctx, field)
 			case "auth":
@@ -19454,6 +19886,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteConfig(ctx context.Conte
 				return ec.fieldContext_ConfigConfig_global(ctx, field)
 			case "hasura":
 				return ec.fieldContext_ConfigConfig_hasura(ctx, field)
+			case "graphql":
+				return ec.fieldContext_ConfigConfig_graphql(ctx, field)
 			case "functions":
 				return ec.fieldContext_ConfigConfig_functions(ctx, field)
 			case "auth":
@@ -19707,6 +20141,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSystemConfig(ctx context
 			switch field.Name {
 			case "auth":
 				return ec.fieldContext_ConfigSystemConfig_auth(ctx, field)
+			case "graphql":
+				return ec.fieldContext_ConfigSystemConfig_graphql(ctx, field)
 			case "postgres":
 				return ec.fieldContext_ConfigSystemConfig_postgres(ctx, field)
 			}
@@ -20103,6 +20539,8 @@ func (ec *executionContext) fieldContext_Query_config(ctx context.Context, field
 				return ec.fieldContext_ConfigConfig_global(ctx, field)
 			case "hasura":
 				return ec.fieldContext_ConfigConfig_hasura(ctx, field)
+			case "graphql":
+				return ec.fieldContext_ConfigConfig_graphql(ctx, field)
 			case "functions":
 				return ec.fieldContext_ConfigConfig_functions(ctx, field)
 			case "auth":
@@ -20342,6 +20780,8 @@ func (ec *executionContext) fieldContext_Query_systemConfig(ctx context.Context,
 			switch field.Name {
 			case "auth":
 				return ec.fieldContext_ConfigSystemConfig_auth(ctx, field)
+			case "graphql":
+				return ec.fieldContext_ConfigSystemConfig_graphql(ctx, field)
 			case "postgres":
 				return ec.fieldContext_ConfigSystemConfig_postgres(ctx, field)
 			}
@@ -26183,7 +26623,7 @@ func (ec *executionContext) unmarshalInputConfigConfigComparisonExp(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "global", "hasura", "functions", "auth", "postgres", "provider", "storage", "ai", "observability"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "global", "hasura", "graphql", "functions", "auth", "postgres", "provider", "storage", "ai", "observability"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -26225,6 +26665,13 @@ func (ec *executionContext) unmarshalInputConfigConfigComparisonExp(ctx context.
 				return it, err
 			}
 			it.Hasura = data
+		case "graphql":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("graphql"))
+			data, err := ec.unmarshalOConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Graphql = data
 		case "functions":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("functions"))
 			data, err := ec.unmarshalOConfigFunctionsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsComparisonExp(ctx, v)
@@ -26287,7 +26734,7 @@ func (ec *executionContext) unmarshalInputConfigConfigInsertInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"global", "hasura", "functions", "auth", "postgres", "provider", "storage", "ai", "observability"}
+	fieldsInOrder := [...]string{"global", "hasura", "graphql", "functions", "auth", "postgres", "provider", "storage", "ai", "observability"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -26308,6 +26755,13 @@ func (ec *executionContext) unmarshalInputConfigConfigInsertInput(ctx context.Co
 				return it, err
 			}
 			it.Hasura = data
+		case "graphql":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("graphql"))
+			data, err := ec.unmarshalOConfigGraphqlInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Graphql = data
 		case "functions":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("functions"))
 			data, err := ec.unmarshalOConfigFunctionsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigFunctionsInsertInput(ctx, v)
@@ -27020,6 +27474,170 @@ func (ec *executionContext) unmarshalInputConfigGrafanaInsertInput(ctx context.C
 				return it, err
 			}
 			it.AdminPassword = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGraphqlComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGraphqlComparisonExp, error) {
+	var it model.ConfigGraphqlComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "security"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigGraphqlComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigGraphqlComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "security":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("security"))
+			data, err := ec.unmarshalOConfigGraphqlSecurityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Security = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGraphqlInsertInput(ctx context.Context, obj interface{}) (model.ConfigGraphqlInsertInput, error) {
+	var it model.ConfigGraphqlInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"security"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "security":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("security"))
+			data, err := ec.unmarshalOConfigGraphqlSecurityInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Security = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGraphqlSecurityComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGraphqlSecurityComparisonExp, error) {
+	var it model.ConfigGraphqlSecurityComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "forbidAminSecret", "maxDepthQueries"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigGraphqlSecurityComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigGraphqlSecurityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigGraphqlSecurityComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "forbidAminSecret":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("forbidAminSecret"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ForbidAminSecret = data
+		case "maxDepthQueries":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxDepthQueries"))
+			data, err := ec.unmarshalOConfigUintComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxDepthQueries = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGraphqlSecurityInsertInput(ctx context.Context, obj interface{}) (model.ConfigGraphqlSecurityInsertInput, error) {
+	var it model.ConfigGraphqlSecurityInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"forbidAminSecret", "maxDepthQueries"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "forbidAminSecret":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("forbidAminSecret"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ForbidAminSecret = data
+		case "maxDepthQueries":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxDepthQueries"))
+			data, err := ec.unmarshalOConfigUint2ᚖuint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxDepthQueries = data
 		}
 	}
 
@@ -31056,7 +31674,7 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigComparisonExp(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "auth", "postgres"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "auth", "graphql", "postgres"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31091,6 +31709,13 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigComparisonExp(ctx co
 				return it, err
 			}
 			it.Auth = data
+		case "graphql":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("graphql"))
+			data, err := ec.unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Graphql = data
 		case "postgres":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("postgres"))
 			data, err := ec.unmarshalOConfigSystemConfigPostgresComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresComparisonExp(ctx, v)
@@ -31104,6 +31729,81 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigComparisonExp(ctx co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputConfigSystemConfigGraphqlComparisonExp(ctx context.Context, obj interface{}) (model.ConfigSystemConfigGraphqlComparisonExp, error) {
+	var it model.ConfigSystemConfigGraphqlComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "featureAdvancedGraphql"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "featureAdvancedGraphql":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("featureAdvancedGraphql"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FeatureAdvancedGraphql = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigSystemConfigGraphqlInsertInput(ctx context.Context, obj interface{}) (model.ConfigSystemConfigGraphqlInsertInput, error) {
+	var it model.ConfigSystemConfigGraphqlInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"featureAdvancedGraphql"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "featureAdvancedGraphql":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("featureAdvancedGraphql"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FeatureAdvancedGraphql = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigSystemConfigInsertInput(ctx context.Context, obj interface{}) (model.ConfigSystemConfigInsertInput, error) {
 	var it model.ConfigSystemConfigInsertInput
 	asMap := map[string]interface{}{}
@@ -31111,7 +31811,7 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigInsertInput(ctx cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"auth", "postgres"}
+	fieldsInOrder := [...]string{"auth", "graphql", "postgres"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31125,6 +31825,13 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigInsertInput(ctx cont
 				return it, err
 			}
 			it.Auth = data
+		case "graphql":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("graphql"))
+			data, err := ec.unmarshalOConfigSystemConfigGraphqlInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Graphql = data
 		case "postgres":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("postgres"))
 			data, err := ec.unmarshalNConfigSystemConfigPostgresInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresInsertInput(ctx, v)
@@ -33250,6 +33957,8 @@ func (ec *executionContext) _ConfigConfig(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "graphql":
+			out.Values[i] = ec._ConfigConfig_graphql(ctx, field, obj)
 		case "functions":
 			out.Values[i] = ec._ConfigConfig_functions(ctx, field, obj)
 		case "auth":
@@ -33540,6 +34249,80 @@ func (ec *executionContext) _ConfigGrafana(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configGraphqlImplementors = []string{"ConfigGraphql"}
+
+func (ec *executionContext) _ConfigGraphql(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigGraphql) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configGraphqlImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigGraphql")
+		case "security":
+			out.Values[i] = ec._ConfigGraphql_security(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configGraphqlSecurityImplementors = []string{"ConfigGraphqlSecurity"}
+
+func (ec *executionContext) _ConfigGraphqlSecurity(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigGraphqlSecurity) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configGraphqlSecurityImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigGraphqlSecurity")
+		case "forbidAminSecret":
+			out.Values[i] = ec._ConfigGraphqlSecurity_forbidAminSecret(ctx, field, obj)
+		case "maxDepthQueries":
+			out.Values[i] = ec._ConfigGraphqlSecurity_maxDepthQueries(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -34938,6 +35721,8 @@ func (ec *executionContext) _ConfigSystemConfig(ctx context.Context, sel ast.Sel
 			out.Values[i] = graphql.MarshalString("ConfigSystemConfig")
 		case "auth":
 			out.Values[i] = ec._ConfigSystemConfig_auth(ctx, field, obj)
+		case "graphql":
+			out.Values[i] = ec._ConfigSystemConfig_graphql(ctx, field, obj)
 		case "postgres":
 			out.Values[i] = ec._ConfigSystemConfig_postgres(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -35051,6 +35836,42 @@ func (ec *executionContext) _ConfigSystemConfigAuthEmailTemplates(ctx context.Co
 			out.Values[i] = graphql.MarshalString("ConfigSystemConfigAuthEmailTemplates")
 		case "s3Key":
 			out.Values[i] = ec._ConfigSystemConfigAuthEmailTemplates_s3Key(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configSystemConfigGraphqlImplementors = []string{"ConfigSystemConfigGraphql"}
+
+func (ec *executionContext) _ConfigSystemConfigGraphql(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigSystemConfigGraphql) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configSystemConfigGraphqlImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigSystemConfigGraphql")
+		case "featureAdvancedGraphql":
+			out.Values[i] = ec._ConfigSystemConfigGraphql_featureAdvancedGraphql(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -36477,6 +37298,16 @@ func (ec *executionContext) unmarshalNConfigGrafanaInsertInput2ᚖgithubᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGraphqlComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigGraphqlComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGraphqlSecurityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGraphqlSecurityComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigGraphqlSecurityComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNConfigHasura2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigHasura(ctx context.Context, sel ast.SelectionSet, v *model.ConfigHasura) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -37005,6 +37836,11 @@ func (ec *executionContext) unmarshalNConfigSystemConfigAuthEmailTemplatesCompar
 
 func (ec *executionContext) unmarshalNConfigSystemConfigComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigSystemConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigGraphqlComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigSystemConfigGraphqlComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -40032,6 +40868,110 @@ func (ec *executionContext) unmarshalOConfigGrafanaUpdateInput2ᚖgithubᚗcom�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalOConfigGraphql2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphql(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGraphql) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigGraphql(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigGraphqlComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGraphqlComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGraphqlComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGraphqlComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGraphqlComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGraphqlInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlInsertInput(ctx context.Context, v interface{}) (*model.ConfigGraphqlInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGraphqlInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigGraphqlSecurity2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurity(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGraphqlSecurity) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigGraphqlSecurity(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigGraphqlSecurityComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGraphqlSecurityComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGraphqlSecurityComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGraphqlSecurityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGraphqlSecurityComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGraphqlSecurityComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGraphqlSecurityComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGraphqlSecurityInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityInsertInput(ctx context.Context, v interface{}) (*model.ConfigGraphqlSecurityInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGraphqlSecurityInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGraphqlSecurityUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlSecurityUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGraphqlSecurityUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigGraphqlSecurityUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGraphqlUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGraphqlUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigGraphqlUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOConfigHasuraAPIs2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
 	if v == nil {
 		return nil, nil
@@ -42342,6 +43282,58 @@ func (ec *executionContext) unmarshalOConfigSystemConfigComparisonExp2ᚖgithub�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalOConfigSystemConfigGraphql2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphql(ctx context.Context, sel ast.SelectionSet, v *model.ConfigSystemConfigGraphql) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigSystemConfigGraphql(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSystemConfigGraphqlComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigSystemConfigGraphqlComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigSystemConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigGraphqlComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigSystemConfigGraphqlComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlInsertInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigGraphqlInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigSystemConfigGraphqlInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigSystemConfigGraphqlUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigGraphqlUpdateInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigGraphqlUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigSystemConfigGraphqlUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOConfigSystemConfigPostgresComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSystemConfigPostgresComparisonExp, error) {
 	if v == nil {
 		return nil, nil
@@ -42699,6 +43691,14 @@ func (ec *executionContext) unmarshalOConfigUint8ComparisonExp2ᚖgithubᚗcom�
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputConfigUint8ComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigUintComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v interface{}) (*model.GenericComparisonExp[uint], error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigUintComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

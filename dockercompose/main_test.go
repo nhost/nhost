@@ -6,6 +6,7 @@ import (
 
 func getConfig() *model.ConfigConfig { //nolint:maintidx
 	return &model.ConfigConfig{
+		Graphql: nil,
 		Ai: &model.ConfigAI{
 			Version: ptr("0.2.5"),
 			Resources: &model.ConfigAIResources{

@@ -15,6 +15,9 @@ import (
 	// Configuration for hasura
 	hasura: #Hasura
 
+	// Advanced configuration for GraphQL
+	graphql?: #Graphql
+
 	// Configuration for functions service
 	functions: #Functions
 
@@ -77,6 +80,15 @@ import (
 	name: =~"(?i)^[a-z_]{1,}[a-z0-9_]*" & !~"(?i)^NHOST_" & !~"(?i)^HASURA_"
 	// Value of the environment variable
 	value: string
+}
+
+#Graphql: {
+	security: #GraphqlSecurity
+}
+
+#GraphqlSecurity: {
+	forbidAminSecret: bool | *false
+	maxDepthQueries:  uint | *0 // 0 disables the check
 }
 
 #Networking: {
@@ -146,20 +158,20 @@ import (
 		// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
 		liveQueriesMultiplexedRefetchInterval: uint32 | *1000
 
-        // HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
-        stringifyNumericTypes: bool | *false
+		// HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
+		stringifyNumericTypes: bool | *false
 	}
 
-    authHook?: {
-        // HASURA_GRAPHQL_AUTH_HOOK
-        url: string
+	authHook?: {
+		// HASURA_GRAPHQL_AUTH_HOOK
+		url: string
 
-        // HASURA_GRAPHQL_AUTH_HOOK_MODE
-        mode: "GET"|*"POST"
+		// HASURA_GRAPHQL_AUTH_HOOK_MODE
+		mode: "GET" | *"POST"
 
-        // HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
-        sendRequestBody: bool | *true
-    }
+		// HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
+		sendRequestBody: bool | *true
+	}
 
 	logs: {
 		// HASURA_GRAPHQL_LOG_LEVEL
@@ -543,6 +555,12 @@ import (
 			}
 		}
 	}
+
+    graphql: {
+        // manually enable graphi on a per-service basis
+        // by default it follows the plan
+        featureAdvancedGraphql: bool | *false
+    }
 
 	postgres: {
 		enabled: bool | *true
