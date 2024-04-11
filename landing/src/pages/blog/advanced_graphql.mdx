@@ -1,0 +1,122 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Advanced GraphQL Features',
+  description:
+    'Better visibility into your GraphQL API and extra security features',
+  image: '/images/blog/connect-with-social-providers/banner.png',
+  date: '2024-04-11',
+  authors: [
+    {
+      name: 'David Barroso',
+      title: 'CTO',
+      avatarUrl: '/images/avatars/david.jpeg',
+      url: 'https://twitter.com/dbarrosop',
+    },
+  ],
+  tags: ['Product', 'Auth'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Today, we are happy to announce our new set of advanced features to improve the visibility of your GraphQL API and help secure it.
+
+# Observability
+
+To help you better understand what your application is doing, its overall health, and response times, we are adding a new dashboard to our observability offering called "GraphQL." This dashboard will feature important metrics like request rate, duration, failure rate, number of subscriptions, etc., all broken down by operation type, name, and fields included. For example, below is a screenshot of our staging application:
+
+![observability](/images/blog/a-beginners-guide-to-graphql/advanced_graphql_observability.png)
+
+As you can see, we can quickly observe the application's activities, the number of active subscriptions over time, some requests taking considerably longer than others, and others failing at a constant rate.
+We believe this new addition will help you identify bottlenecks and problems faster than ever before.
+
+# Security
+
+Securing your application is crucial. Therefore, we are introducing two new advanced security features: the ability to completely disable Hasura's admin secret and the option to limit the allowed depth of your GraphQL queries
+
+## Disabling the Admin Secret
+
+The admin secret is an extremely powerful and convenient tool; however, as our favorite uncle said, "with great power comes great responsibility." If the admin secret were to somehow leak and be known to an attacker, the attacker would gain full access to your application. This attacker could steal as much data as they wanted, poison it, corrupt it, modify the underlying structure, and do anything they wanted.
+
+For this reason, we are adding this feature for people who would rather choose peace of mind over convenience. With just two lines in your config, you can quickly ensure that any request containing the admin secret is promptly rejected.
+
+```toml
+[graphql.security]
+forbidAminSecret = true
+```
+
+Resulting in:
+
+```bash
+> curl -X POST \
+    -H "X-Hasura-Admin-Secret: s3cur34dm1n53cr3t" \
+    -d '{"query": "{a{b}}"}' \
+    https://arpbfgrkgycpeutkycgw.graphql.eu-central-1.nhost.run/v1
+< HTTP/1.1 403 Forbidden
+< {"message":"admin secret is not allowed"}%
+```
+
+## Maximum Query Depth
+
+GraphQL queries can be deeply nested, sometimes infinitely so, especially when you add a reciprocal relationship between two objects. For example, you may have an object "pet" that is related to "owner" and an object "owner" with a relationship pointing to "pets." This setup allows you to construct an infinite query like:
+
+```graphql
+{
+    pets {
+        name
+        owner {
+            name
+            pets {
+                name
+                owner {
+                    name
+                    pets {
+                        ...
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+If you have built a GraphQL application, you probably know that reaching this level of nesting is common even without reciprocal relationships; it is simply the nature of most data structures.
+
+As deeply nested queries can consume significant resources and potentially lead to denial of service, we are introducing a new feature to limit the depth of queries. You can configure the maximum allowed depth of queries with the following configuration option:
+
+```toml
+[graphql.security]
+maxDepthQueries = 4
+```
+
+Which will then reject any query deeper than 4 levels:
+
+```bash
+> curl -X POST \
+    -d '{"query": "{a{b{c{d{e}}}}}"}' \
+    https://arpbfgrkgycpeutkycgw.graphql.eu-central-1.nhost.run/v1
+< HTTP/1.1 400 Bad Request
+< {"message":"max depth exceeded: 5 > 4"}
+```
+
+# Future Work
+
+This work is far from over; we have several ideas in this space to enhance performance, visibility, and security even further. For instance, some ideas we are discussing include, but are not limited to:
+
+- Caching
+- Accounting (recording which queries and mutations were performed by whom)
+- Replacing/Enhancing the admin secret with 2FA
+- Etc.
+
+If you have any ideas/requirements in this space don't hesitate to contact us.
+
+# Pricing and Availability
+
+For now this is in limited availability. We will be working with the members of our Teams and Enterprise plans to gradually roll it out to them. If you are not part of these plans and are interested on these set of features don't hesitate to reach out for further discussion.
+
+# Further Reading
+
+If you want to read the official documentation you can find it here:
+
+https://docs.nhost.io/guides/api/advanced_features
