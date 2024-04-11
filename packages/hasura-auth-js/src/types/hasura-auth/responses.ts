@@ -60,3 +60,5 @@ export type PasswordlessSmsOtpResponse = NhostSessionResponse
 
 /** payload from hasura-auth endpoint /signin/mfa/totp */
 export type SignInMfaTotpResponse = NhostSessionResponse
+
+export type ConnectProviderResponse = { providerUrl?: string }

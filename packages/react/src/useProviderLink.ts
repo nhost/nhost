@@ -6,6 +6,7 @@ import {
 } from '@nhost/nhost-js'
 import { useContext, useEffect, useState } from 'react'
 import { NhostReactContext } from './provider'
+import { useAccessToken } from './useAccessToken'
 
 /**
  *  Use the hook `useProviderLink` to get an OAuth provider URL that can be used to sign in users.
@@ -13,6 +14,14 @@ import { NhostReactContext } from './provider'
  * @example
  * ```js
  * const providerLink = useProviderLink();
+ * ```
+ *
+ * @example
+ *
+ *  Pass in the `connect` option to connect the user's account to the OAuth provider when different emails are used.
+ *
+ * ```js
+ * const providerLink = useProviderLink({ connect: true });
  * ```
  *
  * @example
@@ -39,6 +48,7 @@ export const useProviderLink = (options?: ProviderOptions): Record<Provider, str
    * the React/Nextjs context.
    */
   const [isSSR, setIsSSR] = useState(true)
+  const accessToken = useAccessToken()
 
   useEffect(() => {
     setIsSSR(false)
@@ -48,9 +58,16 @@ export const useProviderLink = (options?: ProviderOptions): Record<Provider, str
 
   return new Proxy({} as Record<Provider, string>, {
     get(_, provider: string) {
+      let providerLink = `${nhost.auth.client.backendUrl}/signin/provider/${provider}`
+
+      const connectOptions = options?.connect ? { connect: accessToken } : {}
+
       return encodeQueryParameters(
-        `${nhost.auth.client.backendUrl}/signin/provider/${provider}`,
-        rewriteRedirectTo(isSSR ? undefined : nhost.auth.client.clientUrl, options as any)
+        providerLink,
+        rewriteRedirectTo(isSSR ? undefined : nhost.auth.client.clientUrl, {
+          ...options,
+          ...connectOptions
+        } as any)
       )
     }
   })

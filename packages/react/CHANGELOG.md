@@ -1,5 +1,28 @@
 # @nhost/react
 
+## 3.4.1
+
+### Patch Changes
+
+- @nhost/nhost-js@3.0.11
+
+## 3.4.0
+
+### Minor Changes
+
+- 768ca17: chore: update dependencies
+
+### Patch Changes
+
+- @nhost/nhost-js@3.0.10
+
+## 3.3.2
+
+### Patch Changes
+
+- 311374e: feat: add `connect` param to `useProviderLink` hook
+  - @nhost/nhost-js@3.0.10
+
 ## 3.3.1
 
 ### Patch Changes

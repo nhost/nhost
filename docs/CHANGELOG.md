@@ -1,5 +1,31 @@
 # @nhost/docs
 
+## 2.9.0
+
+### Minor Changes
+
+- 3c31657: chore: update docs with provider connect
+
+### Patch Changes
+
+- 992939c: feat: added social connect docs
+
+## 2.8.0
+
+### Minor Changes
+
+- 768ca17: chore: update dependencies
+
+### Patch Changes
+
+- 9f2bf9e: chore: added hasura's authHook settings
+
+## 2.7.2
+
+### Patch Changes
+
+- 5c47e8e: feat: added hasura's stringifyNumericTypes setting
+
 ## 2.7.1
 
 ### Patch Changes

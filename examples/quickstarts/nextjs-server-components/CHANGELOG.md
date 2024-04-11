@@ -1,5 +1,27 @@
 # @nhost-examples/nextjs-server-components
 
+## 0.4.1
+
+### Patch Changes
+
+- @nhost/nhost-js@3.0.11
+
+## 0.4.0
+
+### Minor Changes
+
+- 768ca17: chore: update dependencies
+
+### Patch Changes
+
+- @nhost/nhost-js@3.0.10
+
+## 0.3.2
+
+### Patch Changes
+
+- @nhost/nhost-js@3.0.10
+
 ## 0.3.1
 
 ### Patch Changes

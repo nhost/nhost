@@ -19,11 +19,12 @@ import {
   addSecurityKeyPromise,
   changeEmailPromise,
   changePasswordPromise,
+  elevateEmailSecurityKeyPromise,
   resetPasswordPromise,
   sendVerificationEmailPromise,
   signInAnonymousPromise,
-  signInEmailPasswordPromise,
   signInEmailPasswordlessPromise,
+  signInEmailPasswordPromise,
   signInEmailSecurityKeyPromise,
   signInMfaTotpPromise,
   signInPATPromise,
@@ -31,8 +32,7 @@ import {
   signInSmsPasswordlessPromise,
   signOutPromise,
   signUpEmailPasswordPromise,
-  signUpEmailSecurityKeyPromise,
-  elevateEmailSecurityKeyPromise
+  signUpEmailSecurityKeyPromise
 } from './promises'
 import { createPATPromise } from './promises/createPAT'
 import {
@@ -42,6 +42,8 @@ import {
   ChangeEmailResponse,
   ChangePasswordParams,
   ChangePasswordResponse,
+  ConnectProviderParams,
+  ConnectProviderResponse,
   DeanonymizeParams,
   DeanonymizeResponse,
   JWTClaims,
@@ -54,8 +56,8 @@ import {
   SecurityKey,
   SendVerificationEmailParams,
   SendVerificationEmailResponse,
-  SignInPATResponse,
   SignInParams,
+  SignInPATResponse,
   SignInResponse,
   SignOutResponse,
   SignUpParams,
@@ -130,6 +132,43 @@ export class HasuraAuthClient {
     return getAuthenticationResult(
       await signUpEmailPasswordPromise(interpreter, email, params.password, options)
     )
+  }
+
+  /**
+   * Use `nhost.auth.connectProvider` to connect a social authentication provider to an existing user account
+   *
+   * @example
+   * ### Connect an authentication provider to an existing user account
+   * ```ts
+   * nhost.auth.connectProvider({
+   *   provider: 'github
+   *   options: {
+   *    redirectTo: window.location.href
+   *   }
+   * })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/connect-provider
+   */
+  async connectProvider(params: ConnectProviderParams): Promise<ConnectProviderResponse> {
+    const interpreter = await this.waitUntilReady()
+    const accessToken = interpreter.getSnapshot().context.accessToken.value
+
+    const { provider, options } = params
+
+    const providerUrl = encodeQueryParameters(
+      `${this._client.backendUrl}/signin/provider/${provider}`,
+      rewriteRedirectTo(this._client.clientUrl, {
+        ...options,
+        connect: accessToken
+      } as any)
+    )
+
+    if (isBrowser()) {
+      window.location.href = providerUrl
+    }
+
+    return { providerUrl }
   }
 
   /**

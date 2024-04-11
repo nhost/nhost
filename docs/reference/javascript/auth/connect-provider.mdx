@@ -1,0 +1,23 @@
+---
+title: connectProvider()
+sidebarTitle: connectProvider()
+---
+
+Use `nhost.auth.connectProvider` to connect a social authentication provider to an existing user account
+
+```ts
+nhost.auth.connectProvider({
+  provider: 'github
+  options: {
+   redirectTo: window.location.href
+  }
+})
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`SignInWithProviderParams`](/reference/javascript/auth/types/sign-in-with-provider-params)
+
+---

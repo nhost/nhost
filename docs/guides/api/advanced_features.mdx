@@ -1,0 +1,93 @@
+---
+title: "Advanced Features"
+description: "Better visibility and security for your GraphQL API"
+icon: arrow-progress
+---
+
+In this document you can find information about the advanced GraphQL features available in some of our plans (see our [pricing page](https://nhost.io/pricing) for details).
+
+<Note>
+If you are interested in other advanced security features or observability capabilities don't hesitate to let us know.
+</Note>
+
+## Observability
+
+In addition to resource utilization, as part of this set of advanced GraphQL features, you have extra visibility at the query level:
+
+- CPU and Memory resources consumed by each replica (`hasura-graphi` is the process responsible for these features)
+- Rate of requests
+- Failure rate
+- Requests duration
+
+All of the added GraphQL metrics are broken down per:
+
+- Operation (query/mutation)
+- Name of the GraphQL request
+- Types included in the request
+
+For instance, below you can see a screenshot from our own staging application:
+
+![observability](/images/guides/graphql/observability.png)
+
+## Security Features
+
+In addition, a few security features are made available.
+
+### Forbid admin secret
+
+This feature will block requests to any endpoint with the header `x-hasura-admin-secret`. To enable it:
+
+```toml
+[graphql.security]
+forbidAminSecret = true
+```
+
+<Warning>
+Enabling this can have the side effect of breaking deployments. If you plan to enable this feature we recommend contacting our support first.
+</Warning>
+
+### Maximum Query Depth
+
+Deeply nested queries can require lots of resources which, in turn, may lead to resource exhaustion. It can also make your application susceptible to DoS attacks. To prevent this, you can configure the maximum query depth you want to allow. For instance, you can limit the depth of your queries to 4 with:
+
+```
+[graphql.security]
+maxDepthQueries = 4
+```
+
+With the configuration above, the following query will be rejected:
+
+```graphql
+query SomeNestedQuery {
+    a {
+        b {
+            c {
+                d {
+                    e
+                }
+            }
+        }
+    }
+}
+```
+
+while:
+
+
+```graphql
+query NotSoNestedQuery {
+    a {
+        b {
+            c
+        }
+    }
+}
+```
+
+will work just fine.
+
+## Logs
+
+In addition to the logs you already have a new service will show in your "Logs" tab; `hasura-graphi`. Here you can see security events in the case you have enabled any of the security features mentioned above.
+
+![logs](/images/guides/graphql/logs.png)

@@ -128,6 +128,7 @@
             "guides/auth/social/sign-in-workos"
           ]
         },
+        "guides/auth/social-connect",
         "guides/auth/sign-in-email-password",
         "guides/auth/sign-in-magic-link",
         "guides/auth/sign-in-phone-number",
@@ -138,7 +139,11 @@
     },
     {
       "group": "API / Hasura",
-      "pages": ["guides/api/configuring-hasura", "guides/api/permissions"]
+      "pages": [
+          "guides/api/configuring-hasura",
+          "guides/api/permissions",
+          "guides/api/advanced_features"
+      ]
     },
     {
       "group": "Storage",
@@ -197,7 +202,7 @@
                 "reference/auth/verfiy-fido2-webauthn-authentication-and-complete-signup",
                 "reference/auth/sign-in-using-email-via-fido2-webauthn-authentication",
                 "reference/auth/verfiy-fido2-webauthn-authentication-using-public-key-cryptography",
-                "reference/auth/elevate-webauthn", 
+                "reference/auth/elevate-webauthn",
                 "reference/auth/elevate-webauthn-verify"
               ]
             },
@@ -319,7 +324,8 @@
                 "reference/javascript/auth/sign-out",
                 "reference/javascript/auth/sign-up",
                 "reference/javascript/auth/add-security-key",
-                "reference/javascript/auth/elevate-email-security-key"
+                "reference/javascript/auth/elevate-email-security-key",
+                "reference/javascript/auth/connect-provider"
               ]
             },
             {

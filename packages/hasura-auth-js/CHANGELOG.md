@@ -1,5 +1,21 @@
 # @nhost/hasura-auth-js
 
+## 2.4.1
+
+### Patch Changes
+
+- bcd889b: fix: change expiresAt format to RFC3339 in createPATPromise
+
+## 2.4.0
+
+### Minor Changes
+
+- 311374e: fix: ensure that the user remains signed in even after being redirected with an error following an attempt to connect with a social provider
+
+### Patch Changes
+
+- 1623e9b: chore: update `@simplewebauthn/browser` to `9.0.1`
+
 ## 2.3.1
 
 ### Patch Changes

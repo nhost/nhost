@@ -1,5 +1,37 @@
 # @nhost-examples/react-apollo
 
+## 0.8.1
+
+### Patch Changes
+
+- @nhost/react@3.4.1
+- @nhost/react-apollo@11.0.1
+
+## 0.8.0
+
+### Minor Changes
+
+- 768ca17: chore: update dependencies
+
+### Patch Changes
+
+- 863b37d: chore: bump hasura-auth
+- Updated dependencies [768ca17]
+  - @nhost/react-apollo@11.0.0
+  - @nhost/react@3.4.0
+
+## 0.7.0
+
+### Minor Changes
+
+- 311374e: feat: add example of how to connect a social auth provider to an existing account
+
+### Patch Changes
+
+- Updated dependencies [311374e]
+  - @nhost/react@3.3.2
+  - @nhost/react-apollo@10.0.2
+
 ## 0.6.0
 
 ### Minor Changes

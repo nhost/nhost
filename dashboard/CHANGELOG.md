@@ -1,5 +1,42 @@
 # @nhost/dashboard
 
+## 1.12.2
+
+### Patch Changes
+
+- c195c51: fix: send email upon signin for unverified users
+
+## 1.12.1
+
+### Patch Changes
+
+- 93ebdf8: fix: use service urls when initilizaing NhostClient running local dashboard
+  - @nhost/react-apollo@11.0.1
+  - @nhost/nextjs@2.1.10
+
+## 1.12.0
+
+### Minor Changes
+
+- f242e4b: feat: add connect with github to the user's account settings
+- 768ca17: chore: update dependencies
+- d62bd0f: fix: "Track this" option within the SQL editor now correctly updates the metadata
+- 91c2bb6: feat: refactor sign-in and sign-up pages to enforce email verification
+
+### Patch Changes
+
+- 943831f: fix: resolve an error toast issue when unpausing a project
+- Updated dependencies [768ca17]
+  - @nhost/react-apollo@11.0.0
+  - @nhost/nextjs@2.1.9
+
+## 1.11.2
+
+### Patch Changes
+
+- @nhost/react-apollo@10.0.2
+- @nhost/nextjs@2.1.8
+
 ## 1.11.1
 
 ### Patch Changes

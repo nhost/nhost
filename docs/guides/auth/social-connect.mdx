@@ -1,0 +1,43 @@
+---
+title: Social Provider Connect
+sidebarTitle: Social Provider Connect
+description: Add social sign in mechanism to existing users
+icon: link
+---
+
+With the social provider connect feature, users can link their social authentication method to their account, regardless of the initial sign-up method. It enables users to link different social authentication providers to their accounts, even if the email addresses do not match (e.g., linking a GitHub profile to an account registered with a different email). This feature offers flexibility, allowing users to streamline their login process by connecting multiple authentication methods.
+
+To add a social authentication method to an existing user you need to call the url `https://${subdomain}.auth.${region}.nhost.run/v1/signin/provider/${provider}?connect=${jwt}`. This is very easy to achieve with our SDK:
+
+``` js
+nhost.auth.connectProvider({
+  provider: 'github'
+})
+```
+
+In addition, hooks for react, vue and other frameworks may be provided. Check our [reference](/reference/overview#client-libraries) documentation for more details.
+
+<Note>
+Keep in mind that as we need a `JWT` the user needs to be logged in.
+</Note>
+
+## Viewing and Deleting Social Provider Authentication Mechanisms
+
+If you want to allow your users to view and/or delete social provider authentication mechanisms, you can provide the necessary permissions to the table `auth.user_providers` (i.e. `select` and/or `delete`) and then use the appropriate GraphQL query. For example, the following permissions should allow users to list their own social providers:
+
+![social connect permissions](/images/guides/auth/social-connect-permissions.png)
+
+Using the following GraphQL query:
+
+``` js
+const { error, data } = await nhost.graphql.request(
+  gql`
+    query getAuthUserProviders {
+      authUserProviders {
+        id
+        providerId
+      }
+    }
+  `,
+)
+```

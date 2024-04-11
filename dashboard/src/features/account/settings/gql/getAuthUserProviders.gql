@@ -1,0 +1,6 @@
+query getAuthUserProviders {
+  authUserProviders {
+    id
+    providerId
+  }
+}

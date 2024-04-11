@@ -6,6 +6,7 @@ import { DisplayNameSetting } from '@/features/account/settings/components/Displ
 import { EmailSetting } from '@/features/account/settings/components/EmailSetting';
 import { PasswordSettings } from '@/features/account/settings/components/PasswordSettings';
 import { PATSettings } from '@/features/account/settings/components/PATSettings';
+import { SocialProvidersSettings } from '@/features/account/settings/components/SocialProvidersSettings';
 import type { ReactElement } from 'react';
 
 export default function AccountSettingsPage() {
@@ -24,6 +25,10 @@ export default function AccountSettingsPage() {
 
       <RetryableErrorBoundary>
         <PasswordSettings />
+      </RetryableErrorBoundary>
+
+      <RetryableErrorBoundary>
+        <SocialProvidersSettings />
       </RetryableErrorBoundary>
 
       <RetryableErrorBoundary>
