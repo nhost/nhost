@@ -139,7 +139,11 @@
     },
     {
       "group": "API / Hasura",
-      "pages": ["guides/api/configuring-hasura", "guides/api/permissions"]
+      "pages": [
+          "guides/api/configuring-hasura",
+          "guides/api/permissions",
+          "guides/api/advanced_features"
+      ]
     },
     {
       "group": "Storage",
