@@ -1,3 +1,4 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -261,6 +262,18 @@ export default function ResourcesForm() {
         });
       } else {
         form.reset(null, { keepValues: true, keepDirty: false });
+      }
+
+      if (!isPlatform) {
+        openDialog({
+          title: 'Apply your changes',
+          component: <ApplyLocalSettingsDialog />,
+          props: {
+            PaperProps: {
+              className: 'max-w-2xl',
+            },
+          },
+        });
       }
     } catch {
       // Note: The error has already been handled by the toast.

@@ -1,3 +1,4 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -12,6 +13,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useHostName } from '@/features/projects/common/hooks/useHostName';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { ComputeFormSection } from '@/features/services/components/ServiceForm/components/ComputeFormSection';
@@ -25,6 +27,7 @@ import {
   type ServiceFormProps,
   type ServiceFormValues,
 } from '@/features/services/components/ServiceForm/ServiceFormTypes';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
@@ -50,11 +53,15 @@ export default function ServiceForm({
   location,
 }: ServiceFormProps) {
   const hostName = useHostName();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { onDirtyStateChange, openDialog, closeDialog } = useDialog();
   const [insertRunService] = useInsertRunServiceMutation();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [insertRunServiceConfig] = useInsertRunServiceConfigMutation();
-  const [replaceRunServiceConfig] = useReplaceRunServiceConfigMutation();
+  const [replaceRunServiceConfig] = useReplaceRunServiceConfigMutation({
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
   const [detailsServiceId, setDetailsServiceId] = useState('');
   const [detailsServiceSubdomain, setDetailsServiceSubdomain] = useState(
     initialData?.subdomain,
@@ -145,6 +152,18 @@ export default function ServiceForm({
       });
 
       setDetailsServiceId(serviceID);
+
+      if (!isPlatform) {
+        openDialog({
+          title: 'Apply your changes',
+          component: <ApplyLocalSettingsDialog />,
+          props: {
+            PaperProps: {
+              className: 'max-w-2xl',
+            },
+          },
+        });
+      }
     } else {
       // Insert service config
       const {
@@ -197,7 +216,12 @@ export default function ServiceForm({
     );
   };
 
-  const handleConfirm = (values: ServiceFormValues) => {
+  const handleConfirm = async (values: ServiceFormValues) => {
+    if (!isPlatform) {
+      await handleSubmit(formValues);
+      return;
+    }
+
     openDialog({
       title: 'Confirm Resources',
       component: (
@@ -213,26 +237,34 @@ export default function ServiceForm({
   };
 
   useEffect(() => {
-    (async () => {
-      if (detailsServiceId) {
-        openDialog({
-          title: 'Service Details',
-          component: (
-            <ServiceDetailsDialog
-              serviceID={detailsServiceId}
-              subdomain={detailsServiceSubdomain}
-              ports={formValues.ports}
-            />
-          ),
-          props: {
-            PaperProps: {
-              className: 'max-w-2xl',
-            },
+    if (!isPlatform) {
+      return;
+    }
+
+    if (detailsServiceId) {
+      openDialog({
+        title: 'Service Details',
+        component: (
+          <ServiceDetailsDialog
+            serviceID={detailsServiceId}
+            subdomain={detailsServiceSubdomain}
+            ports={formValues.ports}
+          />
+        ),
+        props: {
+          PaperProps: {
+            className: 'max-w-2xl',
           },
-        });
-      }
-    })();
-  }, [detailsServiceId, detailsServiceSubdomain, formValues, openDialog]);
+        },
+      });
+    }
+  }, [
+    detailsServiceId,
+    detailsServiceSubdomain,
+    formValues,
+    openDialog,
+    isPlatform,
+  ]);
 
   const pricingExplanation = () => {
     const vCPUs = `${formValues.compute.cpu / RESOURCE_VCPU_MULTIPLIER} vCPUs`;
@@ -271,7 +303,7 @@ export default function ServiceForm({
               <Tooltip title="Name of the service, must be unique per project.">
                 <InfoIcon
                   aria-label="Info"
-                  className="h-4 w-4"
+                  className="w-4 h-4"
                   color="primary"
                 />
               </Tooltip>
@@ -311,7 +343,7 @@ export default function ServiceForm({
               >
                 <InfoIcon
                   aria-label="Info"
-                  className="h-4 w-4"
+                  className="w-4 h-4"
                   color="primary"
                 />
               </Tooltip>
@@ -325,8 +357,8 @@ export default function ServiceForm({
           autoComplete="off"
         />
 
-        {/* This shows only when trying to edit a service */}
-        {serviceID && serviceImage && (
+        {/* This shows only when trying to edit a service and when running against the nhost platform */}
+        {isPlatform && serviceID && serviceImage && (
           <InfoCard
             title="Private registry"
             value={`registry.${currentProject.region.awsName}.${currentProject.region.domain}/${serviceID}`}
@@ -342,7 +374,7 @@ export default function ServiceForm({
               <Tooltip title="Command to run when to start the service. This is optional as the image may already have a baked-in command.">
                 <InfoIcon
                   aria-label="Info"
-                  className="h-4 w-4"
+                  className="w-4 h-4"
                   color="primary"
                 />
               </Tooltip>
@@ -356,22 +388,24 @@ export default function ServiceForm({
           autoComplete="off"
         />
 
-        <Alert
-          severity="info"
-          className="flex items-center justify-between space-x-2"
-        >
-          <span>{pricingExplanation()}</span>
-          <b>
-            $
-            {parseFloat(
-              (
-                formValues.compute.cpu *
-                formValues.replicas *
-                COST_PER_VCPU
-              ).toFixed(2),
-            )}
-          </b>
-        </Alert>
+        {isPlatform ? (
+          <Alert
+            severity="info"
+            className="flex items-center justify-between space-x-2"
+          >
+            <span>{pricingExplanation()}</span>
+            <b>
+              $
+              {parseFloat(
+                (
+                  formValues.compute.cpu *
+                  formValues.replicas *
+                  COST_PER_VCPU
+                ).toFixed(2),
+              )}
+            </b>
+          </Alert>
+        ) : null}
 
         <ComputeFormSection showTooltip />
 
@@ -388,7 +422,7 @@ export default function ServiceForm({
         {createServiceFormError && (
           <Alert
             severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            className="grid items-center justify-between grid-flow-col px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {createServiceFormError.message}

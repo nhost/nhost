@@ -89,7 +89,7 @@ export default function useProjectRoutes() {
       label: 'Metrics',
       icon: <GaugeIcon />,
       disabled: !isPlatform,
-    }
+    },
   ];
 
   const allRoutes: ProjectRoute[] = [
@@ -135,7 +135,6 @@ export default function useProjectRoutes() {
       exact: false,
       label: 'Run',
       icon: <ServicesIcon />,
-      disabled: !isPlatform,
     },
     {
       relativeMainPath: '/ai',
