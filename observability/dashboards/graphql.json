@@ -25,6 +25,12 @@
     },
     {
       "type": "panel",
+      "id": "text",
+      "name": "Text",
+      "version": ""
+    },
+    {
+      "type": "panel",
       "id": "timeseries",
       "name": "Time series",
       "version": ""
@@ -60,11 +66,36 @@
   "liveNow": false,
   "panels": [
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "description": "",
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 14,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "This dashboard is part of our \"Advanced GraphQL\" product. You can refer to our [documentation](https://docs.nhost.io/guides/api/advanced_features) for further details.",
+        "mode": "markdown"
+      },
+      "pluginVersion": "9.2.0",
+      "type": "text"
+    },
+    {
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 2
       },
       "id": 9,
       "title": "Resource Utilization",
@@ -131,7 +162,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 1
+        "y": 3
       },
       "id": 11,
       "options": {
@@ -225,7 +256,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 1
+        "y": 3
       },
       "id": 12,
       "options": {
@@ -262,7 +293,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 11
       },
       "id": 7,
       "title": "GraphQL Metrics",
@@ -329,7 +360,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 10
+        "y": 12
       },
       "id": 2,
       "options": {
@@ -435,7 +466,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 10
+        "y": 12
       },
       "id": 3,
       "options": {
@@ -554,7 +585,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 18
+        "y": 20
       },
       "id": 4,
       "options": {
@@ -647,7 +678,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 20
       },
       "id": 5,
       "options": {
@@ -687,13 +718,13 @@
     "list": []
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "GraphQL",
   "uid": "LQWllVaSk",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }
