@@ -325,6 +325,9 @@ export default function PricingPage() {
                 title: 'Connect to external databases',
               },
               {
+                title: 'Advanced GraphQL features',
+              },
+              {
                 title: 'SOC2 (coming soon)',
               },
             ]}
@@ -536,6 +539,15 @@ export default function PricingPage() {
               title="Role based authorization"
               starterIcon="check"
               proIcon="check"
+              teamIcon="check"
+              enterpriseIcon="check"
+            />
+
+            <PricingListItem
+              title="Advanced GraphQL features"
+              titleTooltip="Observability metrics include request rate, duration, and failure rate, alongside security features such as disabling the admin secret and limiting query depth."
+              starterIcon="x"
+              proIcon="x"
               teamIcon="check"
               enterpriseIcon="check"
             />
