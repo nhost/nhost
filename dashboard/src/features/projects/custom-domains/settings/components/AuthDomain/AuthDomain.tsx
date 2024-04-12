@@ -127,6 +127,14 @@ export default function AuthDomain() {
     );
   }
 
+  const isDisabled = () => {
+    if (!isPlatform) {
+      return !isDirty || maintenanceActive;
+    }
+
+    return !isDirty || maintenanceActive || (!isVerified && !initialValue);
+  };
+
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
@@ -135,8 +143,7 @@ export default function AuthDomain() {
           description="Enter below your custom domain for the authentication service."
           slotProps={{
             submitButton: {
-              disabled:
-                !isDirty || maintenanceActive || (!isVerified && !initialValue),
+              disabled: isDisabled(),
               loading: formState.isSubmitting,
             },
           }}

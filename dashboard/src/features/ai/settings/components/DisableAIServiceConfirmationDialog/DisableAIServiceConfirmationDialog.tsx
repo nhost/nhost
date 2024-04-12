@@ -1,8 +1,11 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useUpdateConfigMutation } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
@@ -23,11 +26,14 @@ export default function DisableAIServiceConfirmationDialog({
   onCancel,
   onServiceDisabled,
 }: DisableAIServiceConfirmationDialogProps) {
-  const { closeDialog } = useDialog();
+  const isPlatform = useIsPlatform();
+  const { openDialog, closeDialog } = useDialog();
+  const localMimirClient = useLocalMimirClient();
   const [loading, setLoading] = useState(false);
   const { currentProject } = useCurrentWorkspaceAndProject();
-
-  const [updateConfig] = useUpdateConfigMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
 
   async function handleClick() {
     setLoading(true);
@@ -45,6 +51,18 @@ export default function DisableAIServiceConfirmationDialog({
 
         onServiceDisabled();
         closeDialog();
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Disabling the AI service...',

@@ -37,7 +37,9 @@ export default function ServerlessFunctionsDomain() {
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
 
-  const [updateConfig] = useUpdateConfigMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
 
   const form = useForm<ServerlessFunctionsDomainFormValues>({
     reValidateMode: 'onSubmit',
@@ -129,6 +131,14 @@ export default function ServerlessFunctionsDomain() {
     );
   }
 
+  const isDisabled = () => {
+    if (!isPlatform) {
+      return !isDirty || maintenanceActive;
+    }
+
+    return !isDirty || maintenanceActive || (!isVerified && !initialValue);
+  };
+
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
@@ -137,8 +147,7 @@ export default function ServerlessFunctionsDomain() {
           description="Enter below your custom domain for Serverless Functions."
           slotProps={{
             submitButton: {
-              disabled:
-                !isDirty || maintenanceActive || (!isVerified && !initialValue),
+              disabled: isDisabled(),
               loading: formState.isSubmitting,
             },
           }}

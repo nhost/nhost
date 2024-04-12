@@ -129,6 +129,14 @@ export default function HasuraDomain() {
     );
   }
 
+  const isDisabled = () => {
+    if (!isPlatform) {
+      return !isDirty || maintenanceActive;
+    }
+
+    return !isDirty || maintenanceActive || (!isVerified && !initialValue);
+  };
+
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
@@ -137,8 +145,7 @@ export default function HasuraDomain() {
           description="Enter below your custom domain for the Hasura/GraphQL service."
           slotProps={{
             submitButton: {
-              disabled:
-                !isDirty || maintenanceActive || (!isVerified && !initialValue),
+              disabled: isDisabled(),
               loading: formState.isSubmitting,
             },
           }}

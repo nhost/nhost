@@ -57,7 +57,9 @@ export default function AISettings() {
   const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const [updateConfig] = useUpdateConfigMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const [aiServiceEnabled, setAIServiceEnabled] = useState(true);
@@ -105,8 +107,8 @@ export default function AISettings() {
     reValidateMode: 'onSubmit',
     defaultValues: {
       version: {
-        label: ai?.version ?? availableVersions?.at(0)?.label,
-        value: ai?.version ?? availableVersions?.at(0)?.value,
+        label: ai?.version || availableVersions?.at(0)?.label || '',
+        value: ai?.version || availableVersions?.at(0)?.value || '',
       },
       webhookSecret: '',
       organization: '',
@@ -289,54 +291,58 @@ export default function AISettings() {
               className="flex flex-col"
             >
               <Box className="space-y-4">
-                {availableVersions.length > 0 && (
-                  <Box className="space-y-2">
-                    <Box className="flex flex-row items-center space-x-2">
-                      <Text className="text-lg font-semibold">Version</Text>
-                      <Tooltip title="Version of the service to use.">
-                        <InfoIcon
-                          aria-label="Info"
-                          className="w-4 h-4"
-                          color="primary"
-                        />
-                      </Tooltip>
-                    </Box>
-                    <ControlledAutocomplete
-                      id="version"
-                      name="version"
-                      autoHighlight
-                      isOptionEqualToValue={() => false}
-                      filterOptions={(options, { inputValue }) => {
-                        const inputValueLower = inputValue.toLowerCase();
-                        const matched = [];
-                        const otherOptions = [];
-
-                        options.forEach((option) => {
-                          const optionLabelLower = option.label.toLowerCase();
-
-                          if (optionLabelLower.startsWith(inputValueLower)) {
-                            matched.push(option);
-                          } else {
-                            otherOptions.push(option);
-                          }
-                        });
-
-                        const result = [...matched, ...otherOptions];
-
-                        return result;
-                      }}
-                      fullWidth
-                      className="col-span-4"
-                      options={availableVersions}
-                      error={!!formState.errors?.version?.message}
-                      helperText={formState.errors?.version?.message}
-                      showCustomOption="auto"
-                      customOptionLabel={(value) =>
-                        `Use custom value: "${value}"`
-                      }
-                    />
+                <Box className="space-y-2">
+                  <Box className="flex flex-row items-center space-x-2">
+                    <Text className="text-lg font-semibold">Version</Text>
+                    <Tooltip title="Version of the service to use.">
+                      <InfoIcon
+                        aria-label="Info"
+                        className="w-4 h-4"
+                        color="primary"
+                      />
+                    </Tooltip>
                   </Box>
-                )}
+                  <ControlledAutocomplete
+                    id="version"
+                    name="version"
+                    autoHighlight
+                    isOptionEqualToValue={() => false}
+                    filterOptions={(options, { inputValue }) => {
+                      const inputValueLower = inputValue.toLowerCase();
+                      const matched = [];
+                      const otherOptions = [];
+
+                      options.forEach((option) => {
+                        const optionLabelLower = option.label.toLowerCase();
+
+                        if (optionLabelLower.startsWith(inputValueLower)) {
+                          matched.push(option);
+                        } else {
+                          otherOptions.push(option);
+                        }
+                      });
+
+                      const result = [...matched, ...otherOptions];
+
+                      return result;
+                    }}
+                    fullWidth
+                    className="col-span-4"
+                    options={availableVersions}
+                    error={
+                      !!formState.errors?.version?.message ||
+                      !!formState.errors?.version?.value?.message
+                    }
+                    helperText={
+                      formState.errors?.version?.message ||
+                      formState.errors?.version?.value?.message
+                    }
+                    showCustomOption="auto"
+                    customOptionLabel={(value) =>
+                      `Use custom value: "${value}"`
+                    }
+                  />
+                </Box>
 
                 <Box className="space-y-2">
                   <Box className="flex flex-row items-center space-x-2">

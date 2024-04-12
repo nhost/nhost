@@ -4,35 +4,13 @@ import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon'
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { RunServicePortDomain } from '@/features/projects/custom-domains/settings/components/RunServicePortDomain';
-import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
-import { useMemo } from 'react';
+import { useRunServices } from '@/hooks/useRunServices';
 
 export default function RunServiceDomains() {
-  const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
   const { currentProject, currentWorkspace } = useCurrentWorkspaceAndProject();
 
-  const {
-    data,
-    loading,
-    // refetch: refetchServices, // TODO refetch after update
-  } = useGetRunServicesQuery({
-    variables: {
-      appID: currentProject.id,
-      resolve: false,
-      limit: 1000, // TODO consider pagination
-      offset: 0,
-    },
-    ...(!isPlatform ? { client: localMimirClient } : {}),
-  });
-
-  const services = useMemo(
-    () => data?.app?.runServices.map((service) => service) ?? [],
-    [data],
-  );
+  const { services, loading } = useRunServices();
 
   if (loading) {
     return (
@@ -50,7 +28,7 @@ export default function RunServiceDomains() {
         .filter((service) => service.config?.ports?.length > 0)
         .map((service) => (
           <SettingsContainer
-            key={service.id}
+            key={service.id ?? service.serviceID}
             title={
               <div className="flex flex-row items-center">
                 <Text className="text-lg font-semibold">

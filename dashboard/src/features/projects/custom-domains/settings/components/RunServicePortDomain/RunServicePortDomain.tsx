@@ -68,7 +68,7 @@ export default function RunServicePortDomain({
         await updateRunServiceConfig({
           variables: {
             appID: currentProject.id,
-            serviceID: service.id,
+            serviceID: service.id ?? service.serviceID,
             config: {
               ports: service?.config?.ports?.map((p) => {
                 // exclude the `__typename` because the mutation will fail otherwise
@@ -87,7 +87,7 @@ export default function RunServicePortDomain({
                 return {
                   ...rest,
                   // exclude the `__typename` because the mutation will fail otherwise
-                  ingresses: rest.ingresses.map((item) => ({
+                  ingresses: rest?.ingresses?.map((item) => ({
                     fqdn: item.fqdn,
                   })),
                 };
@@ -120,6 +120,16 @@ export default function RunServicePortDomain({
     setLoading(false);
   }
 
+  const isDisabled = () => {
+    if (!isPlatform) {
+      return loading || !isDirty || maintenanceActive;
+    }
+
+    return (
+      loading || !isDirty || maintenanceActive || (!isVerified && !initialValue)
+    );
+  };
+
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
@@ -142,16 +152,7 @@ export default function RunServicePortDomain({
                 inputRoot: { min: 1, max: 100 },
               }}
             />
-            <Button
-              variant="outlined"
-              type="submit"
-              disabled={
-                loading ||
-                !isDirty ||
-                maintenanceActive ||
-                (!isVerified && !initialValue)
-              }
-            >
+            <Button variant="outlined" type="submit" disabled={isDisabled()}>
               Save
             </Button>
           </div>
