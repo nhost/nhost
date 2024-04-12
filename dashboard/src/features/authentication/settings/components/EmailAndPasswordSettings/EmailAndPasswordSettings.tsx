@@ -1,3 +1,5 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { Form } from '@/components/form/Form';
@@ -32,6 +34,7 @@ const validationSchema = Yup.object({
 export type EmailAndPasswordFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function EmailAndPasswordSettings() {
+  const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
@@ -43,7 +46,6 @@ export default function EmailAndPasswordSettings() {
 
   const { data, error, loading } = useGetSignInMethodsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -63,9 +65,9 @@ export default function EmailAndPasswordSettings() {
   useEffect(() => {
     if (!loading) {
       form.reset({
-        hibpEnabled: hibpEnabled || false,
-        emailVerificationRequired: emailVerificationRequired || false,
-        passwordMinLength: passwordMinLength || 9,
+        hibpEnabled,
+        emailVerificationRequired,
+        passwordMinLength,
       });
     }
   }, [
@@ -110,6 +112,18 @@ export default function EmailAndPasswordSettings() {
       async () => {
         await updateConfigPromise;
         form.reset(formValues);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: `Email and password sign-in settings are being updated...`,

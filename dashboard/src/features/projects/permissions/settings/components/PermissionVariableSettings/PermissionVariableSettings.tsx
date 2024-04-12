@@ -1,3 +1,4 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -37,7 +38,7 @@ export default function PermissionVariableSettings() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error } = useGetRolesPermissionsQuery({
+  const { data, loading, error, refetch } = useGetRolesPermissionsQuery({
     variables: { appId: currentProject?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -58,6 +59,20 @@ export default function PermissionVariableSettings() {
 
   if (error) {
     throw error;
+  }
+
+  function showApplyChangesDialog() {
+    if (!isPlatform) {
+      openDialog({
+        title: 'Apply your changes',
+        component: <ApplyLocalSettingsDialog />,
+        props: {
+          PaperProps: {
+            className: 'max-w-2xl',
+          },
+        },
+      });
+    }
   }
 
   async function handleDeleteVariable({ id }: PermissionVariable) {
@@ -84,6 +99,7 @@ export default function PermissionVariableSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        showApplyChangesDialog();
       },
       {
         loadingMessage: 'Deleting permission variable...',
@@ -97,7 +113,7 @@ export default function PermissionVariableSettings() {
   function handleOpenCreator() {
     openDialog({
       title: 'Create Permission Variable',
-      component: <CreatePermissionVariableForm />,
+      component: <CreatePermissionVariableForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -109,7 +125,10 @@ export default function PermissionVariableSettings() {
     openDialog({
       title: 'Edit Permission Variable',
       component: (
-        <EditPermissionVariableForm originalVariable={originalVariable} />
+        <EditPermissionVariableForm
+          originalVariable={originalVariable}
+          onSubmit={refetch}
+        />
       ),
       props: {
         titleProps: { className: '!pb-0' },

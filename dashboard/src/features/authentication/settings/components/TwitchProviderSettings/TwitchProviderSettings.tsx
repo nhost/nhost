@@ -1,3 +1,5 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -30,6 +32,7 @@ import { twMerge } from 'tailwind-merge';
 
 export default function TwitchProviderSettings() {
   const theme = useTheme();
+  const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
@@ -107,6 +110,18 @@ export default function TwitchProviderSettings() {
       async () => {
         await updateConfigPromise;
         form.reset(formValues);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Twitch settings are being updated...',

@@ -1,3 +1,5 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
@@ -32,6 +34,7 @@ export type HasuraLogLevelFormValues = Yup.InferType<typeof validationSchema>;
 const AVAILABLE_HASURA_LOG_LEVELS = ['debug', 'info', 'warn', 'error'];
 
 export default function HasuraLogLevelSettings() {
+  const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
@@ -114,6 +117,18 @@ export default function HasuraLogLevelSettings() {
         await updateConfigPromise;
         form.reset(formValues);
         await refetchWorkspaceAndProject();
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Log level is being updated...',

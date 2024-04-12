@@ -1,3 +1,5 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
@@ -33,8 +35,9 @@ export type StorageServiceVersionFormValues = Yup.InferType<
 >;
 
 export default function StorageServiceVersionSettings() {
-  const { maintenanceActive } = useUI();
+  const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
+  const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
@@ -118,6 +121,18 @@ export default function StorageServiceVersionSettings() {
       async () => {
         await updateConfigPromise;
         form.reset(formValues);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Storage version is being updated...',

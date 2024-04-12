@@ -1,3 +1,5 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -12,6 +14,7 @@ import {
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -24,6 +27,7 @@ export type HasuraRemoteSchemaPermissionsFormValues = Yup.InferType<
 >;
 
 export default function HasuraRemoteSchemaPermissionsSettings() {
+  const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
@@ -49,6 +53,14 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
     resolver: yupResolver(validationSchema),
   });
 
+  useEffect(() => {
+    if (!loading) {
+      form.reset({
+        enabled: enableRemoteSchemaPermissions,
+      });
+    }
+  }, [loading, enableRemoteSchemaPermissions, form]);
+
   if (loading) {
     return (
       <ActivityIndicator
@@ -72,7 +84,7 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
         config: {
           hasura: {
             settings: {
-              enableConsole: formValues.enabled,
+              enableRemoteSchemaPermissions: formValues.enabled,
             },
           },
         },
@@ -84,6 +96,18 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
         await updateConfigPromise;
         form.reset(formValues);
         await refetchWorkspaceAndProject();
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage:

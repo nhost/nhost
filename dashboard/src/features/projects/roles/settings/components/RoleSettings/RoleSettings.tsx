@@ -1,3 +1,4 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -48,7 +49,7 @@ export default function RoleSettings() {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error } = useGetRolesPermissionsQuery({
+  const { data, loading, error, refetch } = useGetRolesPermissionsQuery({
     variables: { appId: currentProject?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -67,6 +68,20 @@ export default function RoleSettings() {
 
   if (error) {
     throw error;
+  }
+
+  async function showApplyChangesDialog() {
+    if (!isPlatform) {
+      openDialog({
+        title: 'Apply your changes',
+        component: <ApplyLocalSettingsDialog />,
+        props: {
+          PaperProps: {
+            className: 'max-w-2xl',
+          },
+        },
+      });
+    }
   }
 
   async function handleSetAsDefault({ name }: Role) {
@@ -89,6 +104,7 @@ export default function RoleSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        showApplyChangesDialog();
       },
       {
         loadingMessage: 'Updating default role...',
@@ -119,6 +135,7 @@ export default function RoleSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        showApplyChangesDialog();
       },
       {
         loadingMessage: 'Deleting allowed role...',
@@ -132,7 +149,7 @@ export default function RoleSettings() {
   function handleOpenCreator() {
     openDialog({
       title: 'Create Allowed Role',
-      component: <CreateRoleForm />,
+      component: <CreateRoleForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -143,7 +160,9 @@ export default function RoleSettings() {
   function handleOpenEditor(originalRole: Role) {
     openDialog({
       title: 'Edit Allowed Role',
-      component: <EditRoleForm originalRole={originalRole} />,
+      component: (
+        <EditRoleForm originalRole={originalRole} onSubmit={refetch} />
+      ),
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },

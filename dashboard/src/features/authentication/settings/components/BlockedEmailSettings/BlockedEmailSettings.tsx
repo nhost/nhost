@@ -1,3 +1,5 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -27,18 +29,19 @@ const validationSchema = Yup.object({
 export type BlockedEmailFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function BlockedEmailSettings() {
-  const isPlaform = useIsPlatform();
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
-    ...(!isPlaform ? { client: localMimirClient } : {}),
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: currentProject?.id },
-    ...(!isPlaform ? { client: localMimirClient } : {}),
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { email, emailDomains } = data?.config?.auth?.user || {};
@@ -66,7 +69,7 @@ export default function BlockedEmailSettings() {
         blockedEmailDomains: emailDomains?.blocked?.join(', ') || '',
       });
     }
-  }, [loading, email, emailDomains]);
+  }, [loading, email, emailDomains, form]);
 
   if (loading) {
     return (
@@ -129,6 +132,18 @@ export default function BlockedEmailSettings() {
       async () => {
         await updateConfigPromise;
         form.reset(values);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage:

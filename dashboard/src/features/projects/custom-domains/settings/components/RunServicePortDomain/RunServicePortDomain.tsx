@@ -1,14 +1,18 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { VerifyDomain } from '@/features/projects/custom-domains/settings/components/VerifyDomain';
 import { useUpdateRunServiceConfigMutation } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import { type RunService } from '@/hooks/useRunServices';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { type RunService } from 'pages/[workspaceSlug]/[appSlug]/services';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -28,12 +32,17 @@ export default function RunServicePortDomain({
   service,
   port,
 }: RunServicePortProps) {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const [loading, setLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const [updateRunServiceConfig] = useUpdateRunServiceConfigMutation();
+  const [updateRunServiceConfig] = useUpdateRunServiceConfigMutation({
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
 
   const runServicePort = service.config.ports.find((p) => p.port === port);
   const initialValue = runServicePort?.ingresses?.[0]?.fqdn?.[0];
@@ -88,6 +97,18 @@ export default function RunServicePortDomain({
         });
 
         form.reset(formValues);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: `Port ${port} is being updated...`,

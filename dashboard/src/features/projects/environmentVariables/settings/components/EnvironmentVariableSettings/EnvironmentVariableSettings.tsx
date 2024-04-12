@@ -1,3 +1,4 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -40,7 +41,7 @@ export default function EnvironmentVariableSettings() {
   const localMimirClient = useLocalMimirClient();
   const { openDialog, openAlertDialog } = useDialog();
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const { data, loading, error } = useGetEnvironmentVariablesQuery({
+  const { data, loading, error, refetch } = useGetEnvironmentVariablesQuery({
     variables: { appId: currentProject?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -97,6 +98,18 @@ export default function EnvironmentVariableSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Deleting environment variable...',
@@ -110,7 +123,7 @@ export default function EnvironmentVariableSettings() {
   function handleOpenCreator() {
     openDialog({
       title: 'Create Environment Variable',
-      component: <CreateEnvironmentVariableForm />,
+      component: <CreateEnvironmentVariableForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'gap-2 max-w-sm' },
@@ -124,6 +137,7 @@ export default function EnvironmentVariableSettings() {
       component: (
         <EditEnvironmentVariableForm
           originalEnvironmentVariable={originalVariable}
+          onSubmit={refetch}
         />
       ),
       props: {

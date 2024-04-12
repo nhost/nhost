@@ -1,3 +1,4 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
@@ -231,6 +232,18 @@ export default function AISettings() {
         });
 
         form.reset(formValues);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'AI settings are being updated...',
@@ -363,20 +376,22 @@ export default function AISettings() {
                     </Tooltip>
                   </Box>
 
-                  <Alert
-                    severity="info"
-                    className="flex items-center justify-between space-x-2"
-                  >
-                    <span>{getAIResourcesCost()}</span>
-                    <b>
-                      $
-                      {parseFloat(
-                        (
-                          aiSettingsFormValues.compute.cpu * COST_PER_VCPU
-                        ).toFixed(2),
-                      )}
-                    </b>
-                  </Alert>
+                  {isPlatform ? (
+                    <Alert
+                      severity="info"
+                      className="flex items-center justify-between space-x-2"
+                    >
+                      <span>{getAIResourcesCost()}</span>
+                      <b>
+                        $
+                        {parseFloat(
+                          (
+                            aiSettingsFormValues.compute.cpu * COST_PER_VCPU
+                          ).toFixed(2),
+                        )}
+                      </b>
+                    </Alert>
+                  ) : null}
 
                   <ComputeFormSection />
                 </Box>

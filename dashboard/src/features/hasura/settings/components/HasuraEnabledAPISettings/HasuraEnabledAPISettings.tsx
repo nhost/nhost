@@ -1,3 +1,5 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
@@ -33,9 +35,10 @@ export type HasuraEnabledAPIFormValues = Yup.InferType<typeof validationSchema>;
 const AVAILABLE_HASURA_APIS = ['metadata', 'graphql', 'pgdump', 'config'];
 
 export default function HasuraEnabledAPISettings() {
+  const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
-  const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
@@ -53,17 +56,16 @@ export default function HasuraEnabledAPISettings() {
   const form = useForm<HasuraEnabledAPIFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabledAPIs: enabledAPIs.map((api) => ({
-        label: api,
-        value: api,
-      })),
+      enabledAPIs: [],
     },
     resolver: yupResolver(validationSchema),
   });
 
   useEffect(() => {
     if (enabledAPIs && !loading) {
-      form.reset({ enabledAPIs });
+      form.reset({
+        enabledAPIs: enabledAPIs.map((api) => ({ label: api, value: api })),
+      });
     }
   }, [form, enabledAPIs, loading]);
 
@@ -108,6 +110,18 @@ export default function HasuraEnabledAPISettings() {
         await updateConfigPromise;
         form.reset(formValues);
         await refetchWorkspaceAndProject();
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Enabled APIs are being updated...',

@@ -1,3 +1,4 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Container } from '@/components/layout/Container';
@@ -38,7 +39,7 @@ export default function SecretsPage() {
   const { openDialog, openAlertDialog } = useDialog();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const { data, loading, error } = useGetSecretsQuery({
+  const { data, loading, error, refetch } = useGetSecretsQuery({
     variables: { appId: currentProject?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -67,6 +68,19 @@ export default function SecretsPage() {
     await execPromiseWithErrorToast(
       async () => {
         await deleteSecretPromise;
+        await refetch();
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Deleting secret...',
@@ -79,7 +93,7 @@ export default function SecretsPage() {
   function handleOpenCreator() {
     openDialog({
       title: 'Create Secret',
-      component: <CreateSecretForm />,
+      component: <CreateSecretForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'gap-2 max-w-md' },

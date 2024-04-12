@@ -225,6 +225,18 @@ export default function ResourcesForm() {
       await execPromiseWithErrorToast(
         async () => {
           await updateConfigPromise;
+
+          if (!isPlatform) {
+            openDialog({
+              title: 'Apply your changes',
+              component: <ApplyLocalSettingsDialog />,
+              props: {
+                PaperProps: {
+                  className: 'max-w-2xl',
+                },
+              },
+            });
+          }
         },
         {
           loadingMessage: 'Updating resources...',
@@ -262,18 +274,6 @@ export default function ResourcesForm() {
         });
       } else {
         form.reset(null, { keepValues: true, keepDirty: false });
-      }
-
-      if (!isPlatform) {
-        openDialog({
-          title: 'Apply your changes',
-          component: <ApplyLocalSettingsDialog />,
-          props: {
-            PaperProps: {
-              className: 'max-w-2xl',
-            },
-          },
-        });
       }
     } catch {
       // Note: The error has already been handled by the toast.
