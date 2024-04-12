@@ -70,7 +70,7 @@ func sendMail( //nolint:funlen,cyclop
 		return err //nolint:wrapcheck
 	}
 	if ok, _ := c.Extension("STARTTLS"); ok {
-		config := &tls.Config{ServerName: addr} //nolint:gosec,exhaustruct
+		config := &tls.Config{ServerName: host} //nolint:gosec,exhaustruct
 		if err = c.StartTLS(config); err != nil {
 			return err //nolint:wrapcheck
 		}
