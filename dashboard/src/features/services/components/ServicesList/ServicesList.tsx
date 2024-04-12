@@ -14,9 +14,9 @@ import { DeleteServiceModal } from '@/features/projects/common/components/Delete
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ServiceForm } from '@/features/services/components/ServiceForm';
 import { type PortTypes } from '@/features/services/components/ServiceForm/components/PortsFormSection/PortsFormSectionTypes';
+import { type RunService } from '@/hooks/useRunServices';
 import { copy } from '@/utils/copy';
 import { formatDistanceToNow } from 'date-fns';
-import type { RunService } from 'pages/[workspaceSlug]/[appSlug]/services';
 
 interface ServicesListProps {
   /**
