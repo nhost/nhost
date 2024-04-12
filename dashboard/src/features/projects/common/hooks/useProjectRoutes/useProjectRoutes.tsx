@@ -143,6 +143,7 @@ export default function useProjectRoutes() {
       label: 'AI',
       icon: <AIIcon />,
     },
+    ...nhostRoutes,
     {
       relativeMainPath: '/settings',
       relativePath: '/settings/general',
@@ -151,7 +152,6 @@ export default function useProjectRoutes() {
       icon: <CogIcon />,
       disabled: maintenanceActive,
     },
-    ...nhostRoutes,
   ];
 
   return {
