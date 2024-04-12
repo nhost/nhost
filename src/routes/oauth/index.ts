@@ -150,11 +150,15 @@ export const oauthProviders = Router()
    * @see {@link file://./config/index.ts}
    */
   .use((req, res, next) => {
-    res.locals.grant = {
-      dynamic: {
-        origin: `${req.protocol}://${req.hostname}`,
-      },
-    };
+    if (!res.locals.grant) {
+        res.locals.grant = {};
+    }
+
+    if (!res.locals.grant.dynamic) {
+        res.locals.grant.dynamic = {};
+    }
+    res.locals.grant.dynamic['origin'] = `${req.protocol}://${req.hostname}`;
+
     next();
   })
   .use(grant.express(grantConfig))
