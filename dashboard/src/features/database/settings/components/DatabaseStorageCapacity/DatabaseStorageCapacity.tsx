@@ -20,7 +20,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  capacity: Yup.number().required(),
+  capacity: Yup.number().required().min(10),
 });
 
 export type AuthDomainFormValues = Yup.InferType<typeof validationSchema>;
