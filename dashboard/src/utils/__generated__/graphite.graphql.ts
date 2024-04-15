@@ -16,13 +16,12 @@ export type Scalars = {
   bigint: any;
   bytea: any;
   citext: any;
-  graphitetimestampz: any;
-  graphiteuuid: any;
+  embedding_model_enum: any;
   jsonb: any;
-  numeric: any;
+  timestamp: any;
   timestamptz: any;
+  timestampz: any;
   uuid: any;
-  vector: any;
 };
 
 /** Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'. */
@@ -89,9 +88,16 @@ export type _GraphiteAssistants = {
   __typename?: '_graphiteAssistants';
   assistantID?: Maybe<Scalars['String']>;
   createdAt: Scalars['timestamptz'];
+  data?: Maybe<Scalars['jsonb']>;
   id: Scalars['uuid'];
   updatedAt: Scalars['timestamptz'];
   user_id?: Maybe<Scalars['uuid']>;
+};
+
+
+/** columns and relationships of "graphite.assistants" */
+export type _GraphiteAssistantsDataArgs = {
+  path?: InputMaybe<Scalars['String']>;
 };
 
 /** aggregated selection of "graphite.assistants" */
@@ -116,6 +122,11 @@ export type _GraphiteAssistants_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type _GraphiteAssistants_Append_Input = {
+  data?: InputMaybe<Scalars['jsonb']>;
+};
+
 /** Boolean expression to filter rows from the table "graphite.assistants". All fields are combined with a logical 'AND'. */
 export type _GraphiteAssistants_Bool_Exp = {
   _and?: InputMaybe<Array<_GraphiteAssistants_Bool_Exp>>;
@@ -123,6 +134,7 @@ export type _GraphiteAssistants_Bool_Exp = {
   _or?: InputMaybe<Array<_GraphiteAssistants_Bool_Exp>>;
   assistantID?: InputMaybe<String_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  data?: InputMaybe<Jsonb_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   user_id?: InputMaybe<Uuid_Comparison_Exp>;
@@ -136,10 +148,26 @@ export enum _GraphiteAssistants_Constraint {
   AssistantsPkey = 'assistants_pkey'
 }
 
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type _GraphiteAssistants_Delete_At_Path_Input = {
+  data?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type _GraphiteAssistants_Delete_Elem_Input = {
+  data?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type _GraphiteAssistants_Delete_Key_Input = {
+  data?: InputMaybe<Scalars['String']>;
+};
+
 /** input type for inserting data into table "graphite.assistants" */
 export type _GraphiteAssistants_Insert_Input = {
   assistantID?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  data?: InputMaybe<Scalars['jsonb']>;
   id?: InputMaybe<Scalars['uuid']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   user_id?: InputMaybe<Scalars['uuid']>;
@@ -185,6 +213,7 @@ export type _GraphiteAssistants_On_Conflict = {
 export type _GraphiteAssistants_Order_By = {
   assistantID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  data?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
   user_id?: InputMaybe<Order_By>;
@@ -195,12 +224,19 @@ export type _GraphiteAssistants_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
 
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type _GraphiteAssistants_Prepend_Input = {
+  data?: InputMaybe<Scalars['jsonb']>;
+};
+
 /** select columns of table "graphite.assistants" */
 export enum _GraphiteAssistants_Select_Column {
   /** column name */
   AssistantId = 'assistantID',
   /** column name */
   CreatedAt = 'createdAt',
+  /** column name */
+  Data = 'data',
   /** column name */
   Id = 'id',
   /** column name */
@@ -213,6 +249,7 @@ export enum _GraphiteAssistants_Select_Column {
 export type _GraphiteAssistants_Set_Input = {
   assistantID?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  data?: InputMaybe<Scalars['jsonb']>;
   id?: InputMaybe<Scalars['uuid']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   user_id?: InputMaybe<Scalars['uuid']>;
@@ -230,6 +267,7 @@ export type _GraphiteAssistants_Stream_Cursor_Input = {
 export type _GraphiteAssistants_Stream_Cursor_Value_Input = {
   assistantID?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  data?: InputMaybe<Scalars['jsonb']>;
   id?: InputMaybe<Scalars['uuid']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
   user_id?: InputMaybe<Scalars['uuid']>;
@@ -242,6 +280,8 @@ export enum _GraphiteAssistants_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
+  Data = 'data',
+  /** column name */
   Id = 'id',
   /** column name */
   UpdatedAt = 'updatedAt',
@@ -250,6 +290,16 @@ export enum _GraphiteAssistants_Update_Column {
 }
 
 export type _GraphiteAssistants_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<_GraphiteAssistants_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<_GraphiteAssistants_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<_GraphiteAssistants_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<_GraphiteAssistants_Delete_Key_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<_GraphiteAssistants_Prepend_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<_GraphiteAssistants_Set_Input>;
   /** filter the rows which have to be updated */
@@ -1497,9 +1547,9 @@ export type AuthUserProviders_Bool_Exp = {
 export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserProvidersPkey = 'user_providers_pkey',
-  /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
+  /** unique or primary key constraint on columns "provider_id", "provider_user_id" */
   UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key',
-  /** unique or primary key constraint on columns "user_id", "provider_id" */
+  /** unique or primary key constraint on columns "provider_id", "user_id" */
   UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key'
 }
 
@@ -2634,6 +2684,19 @@ export enum Cursor_Ordering {
   Desc = 'DESC'
 }
 
+/** Boolean expression to compare columns of type "embedding_model_enum". All fields are combined with logical 'AND'. */
+export type Embedding_Model_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars['embedding_model_enum']>;
+  _gt?: InputMaybe<Scalars['embedding_model_enum']>;
+  _gte?: InputMaybe<Scalars['embedding_model_enum']>;
+  _in?: InputMaybe<Array<Scalars['embedding_model_enum']>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _lt?: InputMaybe<Scalars['embedding_model_enum']>;
+  _lte?: InputMaybe<Scalars['embedding_model_enum']>;
+  _neq?: InputMaybe<Scalars['embedding_model_enum']>;
+  _nin?: InputMaybe<Array<Scalars['embedding_model_enum']>>;
+};
+
 /** columns and relationships of "storage.files" */
 export type Files = {
   __typename?: 'files';
@@ -3234,6 +3297,7 @@ export type GraphiteAutoEmbeddingsConfiguration = {
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   lastRun?: Maybe<Scalars['timestamptz']>;
+  model: Scalars['embedding_model_enum'];
   mutation?: Maybe<Scalars['String']>;
   name: Scalars['String'];
   query?: Maybe<Scalars['String']>;
@@ -3273,6 +3337,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Bool_Exp = {
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   lastRun?: InputMaybe<Timestamptz_Comparison_Exp>;
+  model?: InputMaybe<Embedding_Model_Enum_Comparison_Exp>;
   mutation?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   query?: InputMaybe<String_Comparison_Exp>;
@@ -3287,7 +3352,7 @@ export enum GraphiteAutoEmbeddingsConfiguration_Constraint {
   AutoEmbeddingsConfigurationNameKey = 'auto_embeddings_configuration_name_key',
   /** unique or primary key constraint on columns "id" */
   AutoEmbeddingsConfigurationPkey = 'auto_embeddings_configuration_pkey',
-  /** unique or primary key constraint on columns "column_name", "schema_name", "table_name" */
+  /** unique or primary key constraint on columns "table_name", "column_name", "schema_name" */
   AutoEmbeddingsConfigurationSchemaNameTableNameColumnKey = 'auto_embeddings_configuration_schema_name_table_name_column_key'
 }
 
@@ -3297,6 +3362,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   lastRun?: InputMaybe<Scalars['timestamptz']>;
+  model?: InputMaybe<Scalars['embedding_model_enum']>;
   mutation?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   query?: InputMaybe<Scalars['String']>;
@@ -3312,6 +3378,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   lastRun?: Maybe<Scalars['timestamptz']>;
+  model?: Maybe<Scalars['embedding_model_enum']>;
   mutation?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   query?: Maybe<Scalars['String']>;
@@ -3327,6 +3394,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   lastRun?: Maybe<Scalars['timestamptz']>;
+  model?: Maybe<Scalars['embedding_model_enum']>;
   mutation?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   query?: Maybe<Scalars['String']>;
@@ -3357,6 +3425,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   lastRun?: InputMaybe<Order_By>;
+  model?: InputMaybe<Order_By>;
   mutation?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   query?: InputMaybe<Order_By>;
@@ -3381,6 +3450,8 @@ export enum GraphiteAutoEmbeddingsConfiguration_Select_Column {
   /** column name */
   LastRun = 'lastRun',
   /** column name */
+  Model = 'model',
+  /** column name */
   Mutation = 'mutation',
   /** column name */
   Name = 'name',
@@ -3400,6 +3471,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   lastRun?: InputMaybe<Scalars['timestamptz']>;
+  model?: InputMaybe<Scalars['embedding_model_enum']>;
   mutation?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   query?: InputMaybe<Scalars['String']>;
@@ -3422,6 +3494,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   lastRun?: InputMaybe<Scalars['timestamptz']>;
+  model?: InputMaybe<Scalars['embedding_model_enum']>;
   mutation?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   query?: InputMaybe<Scalars['String']>;
@@ -3440,6 +3513,8 @@ export enum GraphiteAutoEmbeddingsConfiguration_Update_Column {
   Id = 'id',
   /** column name */
   LastRun = 'lastRun',
+  /** column name */
+  Model = 'model',
   /** column name */
   Mutation = 'mutation',
   /** column name */
@@ -3464,7 +3539,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Updates = {
 export type GraphiteMessage = {
   __typename?: 'graphiteMessage';
   /** Timestamp of when the message was sent */
-  createdAt: Scalars['graphitetimestampz'];
+  createdAt: Scalars['timestampz'];
   /** ID of the message */
   id: Scalars['String'];
   /** Message content */
@@ -3484,9 +3559,9 @@ export type GraphiteMessageResponse = {
 export type GraphiteMutation = {
   __typename?: 'graphiteMutation';
   /**
-   * Update an assistant
+   * Delete an assistant
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
    * select (assistants):
    * - assistant_id
@@ -3496,7 +3571,7 @@ export type GraphiteMutation = {
   /**
    * Delete a session
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
    * select (sessions):
    * - assistant_id
@@ -3506,24 +3581,25 @@ export type GraphiteMutation = {
   /**
    * Create an assistant
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
    * select (assistants):
    * - id
    * insert (assistants):
    * - user_id
+   * update (assistants):
+   * - assistant_id
+   * - data
    */
   insertAssistant: GraphiteAssistant;
   /**
    * Send a message to a developer session.
-   * If prevMessageID is "", return all messages in the session.
-   * If prevMessageID is not "", return all messages after prevMessageID.
+   * If prevMessageID is `""`, return all messages in the session.
+   * If prevMessageID is not `""`, return all messages after prevMessageID.
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
-   * Permissions are not enforced for developer sessions
-   * we recommend enforcing permissions via remote schema permissions
-   * and allow only admins to perform this mutation
+   * Only admins can send messages to developer sessions
    */
   sendDevMessage: GraphiteMessageResponse;
   /**
@@ -3531,46 +3607,53 @@ export type GraphiteMutation = {
    * If prevMessageID is "", return all messages in the session.
    * If prevMessageID is not "", return all messages after prevMessageID.
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
    * select (sessions):
    * - id
    * - session_id
+   * - assistant_id
    * update (sessions):
    * - update_at
+   * select (assistants):
+   * - id
+   * - data
    */
   sendMessage: GraphiteMessageResponse;
   /**
    * Create a developer session
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
-   * Permissions are not enforced for developer sessions
-   * we recommend enforcing permissions via remote schema permissions
-   * and allow only admins to perform this mutation
+   * Only admins can create developer sessions
    */
   startDevSession: GraphiteSession;
   /**
    * Create a session with a given assistant
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
    * select (sessions):
    * - id
    * insert (sessions):
    * - user_id
    * - assistant_id
+   *
+   * select (assistants):
+   * - id
+   * - data
    */
   startSession: GraphiteSession;
   /**
    * Update an assistant
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
    * select (assistants):
    * - assistant_id
    * update (assistants):
    * - update_at
+   * - data
    */
   updateAssistant: GraphiteAssistant;
 };
@@ -3620,27 +3703,29 @@ export type GraphiteQuery = {
   /**
    * Retrieve an assistant
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
    * select (assistants):
    * - id
    * - assistantID
+   * - data
    */
   assistant?: Maybe<GraphiteAssistant>;
   /**
    * Retrieve all assistants
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
    * select (assistants):
    * - id
    * - assistant_id
+   * - data
    */
   assistants: Array<GraphiteAssistant>;
   /**
    * Retrieve a session
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
    * select (sessions):
    * - id
@@ -3652,7 +3737,7 @@ export type GraphiteQuery = {
   /**
    * Retrieve all messages for a session
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
    * select (sessions):
    * - id
@@ -3664,7 +3749,7 @@ export type GraphiteQuery = {
   /**
    * Retrieve all sessions
    *
-   * #### Permissions needed
+   * ## Permissions needed
    *
    * select (sessions):
    * - id
@@ -3695,21 +3780,11 @@ export type GraphiteSession = {
   /** ID of the assistant used in this session */
   assistantID: Scalars['String'];
   /** Messages in this session */
-  createdAt: Scalars['graphitetimestampz'];
+  createdAt: Scalars['timestampz'];
   /** ID of the session */
   sessionID: Scalars['String'];
   /** ID of the user who started this session */
-  userID: Scalars['graphiteuuid'];
-};
-
-export type Graphite_Search_Movies_Args = {
-  amount?: InputMaybe<Scalars['Int']>;
-  query?: InputMaybe<Scalars['String']>;
-};
-
-export type Graphite_Similar_Movies_Args = {
-  amount?: InputMaybe<Scalars['Int']>;
-  id?: InputMaybe<Scalars['uuid']>;
+  userID: Scalars['uuid'];
 };
 
 export type Jsonb_Cast_Exp = {
@@ -3738,348 +3813,6 @@ export type Jsonb_Comparison_Exp = {
   _lte?: InputMaybe<Scalars['jsonb']>;
   _neq?: InputMaybe<Scalars['jsonb']>;
   _nin?: InputMaybe<Array<Scalars['jsonb']>>;
-};
-
-/** columns and relationships of "movies" */
-export type Movies = {
-  __typename?: 'movies';
-  budget: Scalars['bigint'];
-  country: Scalars['String'];
-  createdAt: Scalars['timestamptz'];
-  crew: Scalars['String'];
-  embeddings?: Maybe<Scalars['vector']>;
-  genre: Scalars['String'];
-  id: Scalars['uuid'];
-  name: Scalars['String'];
-  outdated?: Maybe<Scalars['Boolean']>;
-  overview: Scalars['String'];
-  revenue: Scalars['bigint'];
-  score: Scalars['numeric'];
-  updatedAt: Scalars['timestamptz'];
-};
-
-export type Movies_Aggregate = {
-  __typename?: 'movies_aggregate';
-  aggregate?: Maybe<Movies_Aggregate_Fields>;
-  nodes: Array<Movies>;
-};
-
-/** aggregate fields of "movies" */
-export type Movies_Aggregate_Fields = {
-  __typename?: 'movies_aggregate_fields';
-  avg?: Maybe<Movies_Avg_Fields>;
-  count: Scalars['Int'];
-  max?: Maybe<Movies_Max_Fields>;
-  min?: Maybe<Movies_Min_Fields>;
-  stddev?: Maybe<Movies_Stddev_Fields>;
-  stddev_pop?: Maybe<Movies_Stddev_Pop_Fields>;
-  stddev_samp?: Maybe<Movies_Stddev_Samp_Fields>;
-  sum?: Maybe<Movies_Sum_Fields>;
-  var_pop?: Maybe<Movies_Var_Pop_Fields>;
-  var_samp?: Maybe<Movies_Var_Samp_Fields>;
-  variance?: Maybe<Movies_Variance_Fields>;
-};
-
-
-/** aggregate fields of "movies" */
-export type Movies_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Movies_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** aggregate avg on columns */
-export type Movies_Avg_Fields = {
-  __typename?: 'movies_avg_fields';
-  budget?: Maybe<Scalars['Float']>;
-  revenue?: Maybe<Scalars['Float']>;
-  score?: Maybe<Scalars['Float']>;
-};
-
-/** Boolean expression to filter rows from the table "movies". All fields are combined with a logical 'AND'. */
-export type Movies_Bool_Exp = {
-  _and?: InputMaybe<Array<Movies_Bool_Exp>>;
-  _not?: InputMaybe<Movies_Bool_Exp>;
-  _or?: InputMaybe<Array<Movies_Bool_Exp>>;
-  budget?: InputMaybe<Bigint_Comparison_Exp>;
-  country?: InputMaybe<String_Comparison_Exp>;
-  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  crew?: InputMaybe<String_Comparison_Exp>;
-  embeddings?: InputMaybe<Vector_Comparison_Exp>;
-  genre?: InputMaybe<String_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  name?: InputMaybe<String_Comparison_Exp>;
-  outdated?: InputMaybe<Boolean_Comparison_Exp>;
-  overview?: InputMaybe<String_Comparison_Exp>;
-  revenue?: InputMaybe<Bigint_Comparison_Exp>;
-  score?: InputMaybe<Numeric_Comparison_Exp>;
-  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "movies" */
-export enum Movies_Constraint {
-  /** unique or primary key constraint on columns "id" */
-  MoviesPkey = 'movies_pkey'
-}
-
-/** input type for incrementing numeric columns in table "movies" */
-export type Movies_Inc_Input = {
-  budget?: InputMaybe<Scalars['bigint']>;
-  revenue?: InputMaybe<Scalars['bigint']>;
-  score?: InputMaybe<Scalars['numeric']>;
-};
-
-/** input type for inserting data into table "movies" */
-export type Movies_Insert_Input = {
-  budget?: InputMaybe<Scalars['bigint']>;
-  country?: InputMaybe<Scalars['String']>;
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  crew?: InputMaybe<Scalars['String']>;
-  embeddings?: InputMaybe<Scalars['vector']>;
-  genre?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  name?: InputMaybe<Scalars['String']>;
-  outdated?: InputMaybe<Scalars['Boolean']>;
-  overview?: InputMaybe<Scalars['String']>;
-  revenue?: InputMaybe<Scalars['bigint']>;
-  score?: InputMaybe<Scalars['numeric']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** aggregate max on columns */
-export type Movies_Max_Fields = {
-  __typename?: 'movies_max_fields';
-  budget?: Maybe<Scalars['bigint']>;
-  country?: Maybe<Scalars['String']>;
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  crew?: Maybe<Scalars['String']>;
-  genre?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['uuid']>;
-  name?: Maybe<Scalars['String']>;
-  overview?: Maybe<Scalars['String']>;
-  revenue?: Maybe<Scalars['bigint']>;
-  score?: Maybe<Scalars['numeric']>;
-  updatedAt?: Maybe<Scalars['timestamptz']>;
-};
-
-/** aggregate min on columns */
-export type Movies_Min_Fields = {
-  __typename?: 'movies_min_fields';
-  budget?: Maybe<Scalars['bigint']>;
-  country?: Maybe<Scalars['String']>;
-  createdAt?: Maybe<Scalars['timestamptz']>;
-  crew?: Maybe<Scalars['String']>;
-  genre?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['uuid']>;
-  name?: Maybe<Scalars['String']>;
-  overview?: Maybe<Scalars['String']>;
-  revenue?: Maybe<Scalars['bigint']>;
-  score?: Maybe<Scalars['numeric']>;
-  updatedAt?: Maybe<Scalars['timestamptz']>;
-};
-
-/** response of any mutation on the table "movies" */
-export type Movies_Mutation_Response = {
-  __typename?: 'movies_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Movies>;
-};
-
-/** on_conflict condition type for table "movies" */
-export type Movies_On_Conflict = {
-  constraint: Movies_Constraint;
-  update_columns?: Array<Movies_Update_Column>;
-  where?: InputMaybe<Movies_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "movies". */
-export type Movies_Order_By = {
-  budget?: InputMaybe<Order_By>;
-  country?: InputMaybe<Order_By>;
-  createdAt?: InputMaybe<Order_By>;
-  crew?: InputMaybe<Order_By>;
-  embeddings?: InputMaybe<Order_By>;
-  genre?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  name?: InputMaybe<Order_By>;
-  outdated?: InputMaybe<Order_By>;
-  overview?: InputMaybe<Order_By>;
-  revenue?: InputMaybe<Order_By>;
-  score?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: movies */
-export type Movies_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "movies" */
-export enum Movies_Select_Column {
-  /** column name */
-  Budget = 'budget',
-  /** column name */
-  Country = 'country',
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  Crew = 'crew',
-  /** column name */
-  Embeddings = 'embeddings',
-  /** column name */
-  Genre = 'genre',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Name = 'name',
-  /** column name */
-  Outdated = 'outdated',
-  /** column name */
-  Overview = 'overview',
-  /** column name */
-  Revenue = 'revenue',
-  /** column name */
-  Score = 'score',
-  /** column name */
-  UpdatedAt = 'updatedAt'
-}
-
-/** input type for updating data in table "movies" */
-export type Movies_Set_Input = {
-  budget?: InputMaybe<Scalars['bigint']>;
-  country?: InputMaybe<Scalars['String']>;
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  crew?: InputMaybe<Scalars['String']>;
-  embeddings?: InputMaybe<Scalars['vector']>;
-  genre?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  name?: InputMaybe<Scalars['String']>;
-  outdated?: InputMaybe<Scalars['Boolean']>;
-  overview?: InputMaybe<Scalars['String']>;
-  revenue?: InputMaybe<Scalars['bigint']>;
-  score?: InputMaybe<Scalars['numeric']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** aggregate stddev on columns */
-export type Movies_Stddev_Fields = {
-  __typename?: 'movies_stddev_fields';
-  budget?: Maybe<Scalars['Float']>;
-  revenue?: Maybe<Scalars['Float']>;
-  score?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate stddev_pop on columns */
-export type Movies_Stddev_Pop_Fields = {
-  __typename?: 'movies_stddev_pop_fields';
-  budget?: Maybe<Scalars['Float']>;
-  revenue?: Maybe<Scalars['Float']>;
-  score?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate stddev_samp on columns */
-export type Movies_Stddev_Samp_Fields = {
-  __typename?: 'movies_stddev_samp_fields';
-  budget?: Maybe<Scalars['Float']>;
-  revenue?: Maybe<Scalars['Float']>;
-  score?: Maybe<Scalars['Float']>;
-};
-
-/** Streaming cursor of the table "movies" */
-export type Movies_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Movies_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Movies_Stream_Cursor_Value_Input = {
-  budget?: InputMaybe<Scalars['bigint']>;
-  country?: InputMaybe<Scalars['String']>;
-  createdAt?: InputMaybe<Scalars['timestamptz']>;
-  crew?: InputMaybe<Scalars['String']>;
-  embeddings?: InputMaybe<Scalars['vector']>;
-  genre?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  name?: InputMaybe<Scalars['String']>;
-  outdated?: InputMaybe<Scalars['Boolean']>;
-  overview?: InputMaybe<Scalars['String']>;
-  revenue?: InputMaybe<Scalars['bigint']>;
-  score?: InputMaybe<Scalars['numeric']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-};
-
-/** aggregate sum on columns */
-export type Movies_Sum_Fields = {
-  __typename?: 'movies_sum_fields';
-  budget?: Maybe<Scalars['bigint']>;
-  revenue?: Maybe<Scalars['bigint']>;
-  score?: Maybe<Scalars['numeric']>;
-};
-
-/** update columns of table "movies" */
-export enum Movies_Update_Column {
-  /** column name */
-  Budget = 'budget',
-  /** column name */
-  Country = 'country',
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  Crew = 'crew',
-  /** column name */
-  Embeddings = 'embeddings',
-  /** column name */
-  Genre = 'genre',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Name = 'name',
-  /** column name */
-  Outdated = 'outdated',
-  /** column name */
-  Overview = 'overview',
-  /** column name */
-  Revenue = 'revenue',
-  /** column name */
-  Score = 'score',
-  /** column name */
-  UpdatedAt = 'updatedAt'
-}
-
-export type Movies_Updates = {
-  /** increments the numeric columns with given value of the filtered values */
-  _inc?: InputMaybe<Movies_Inc_Input>;
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Movies_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Movies_Bool_Exp;
-};
-
-/** aggregate var_pop on columns */
-export type Movies_Var_Pop_Fields = {
-  __typename?: 'movies_var_pop_fields';
-  budget?: Maybe<Scalars['Float']>;
-  revenue?: Maybe<Scalars['Float']>;
-  score?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate var_samp on columns */
-export type Movies_Var_Samp_Fields = {
-  __typename?: 'movies_var_samp_fields';
-  budget?: Maybe<Scalars['Float']>;
-  revenue?: Maybe<Scalars['Float']>;
-  score?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate variance on columns */
-export type Movies_Variance_Fields = {
-  __typename?: 'movies_variance_fields';
-  budget?: Maybe<Scalars['Float']>;
-  revenue?: Maybe<Scalars['Float']>;
-  score?: Maybe<Scalars['Float']>;
 };
 
 /** mutation root */
@@ -4157,10 +3890,6 @@ export type Mutation_Root = {
   deleteGraphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
   /** delete data from the table: "graphite.auto_embeddings_configuration" */
   deleteGraphiteAutoEmbeddingsConfigurations?: Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>;
-  /** delete single row from the table: "movies" */
-  deleteMovie?: Maybe<Movies>;
-  /** delete data from the table: "movies" */
-  deleteMovies?: Maybe<Movies_Mutation_Response>;
   /** delete single row from the table: "auth.users" */
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
@@ -4169,6 +3898,10 @@ export type Mutation_Root = {
   deleteVirus?: Maybe<Virus>;
   /** delete data from the table: "storage.virus" */
   deleteViruses?: Maybe<Virus_Mutation_Response>;
+  /** delete data from the table: "todos" */
+  delete_todos?: Maybe<Todos_Mutation_Response>;
+  /** delete single row from the table: "todos" */
+  delete_todos_by_pk?: Maybe<Todos>;
   graphite?: Maybe<GraphiteMutation>;
   /** insert a single row into the table: "auth.providers" */
   insertAuthProvider?: Maybe<AuthProviders>;
@@ -4214,10 +3947,6 @@ export type Mutation_Root = {
   insertGraphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
   /** insert data into the table: "graphite.auto_embeddings_configuration" */
   insertGraphiteAutoEmbeddingsConfigurations?: Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>;
-  /** insert a single row into the table: "movies" */
-  insertMovie?: Maybe<Movies>;
-  /** insert data into the table: "movies" */
-  insertMovies?: Maybe<Movies_Mutation_Response>;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
@@ -4226,6 +3955,10 @@ export type Mutation_Root = {
   insertVirus?: Maybe<Virus>;
   /** insert data into the table: "storage.virus" */
   insertViruses?: Maybe<Virus_Mutation_Response>;
+  /** insert data into the table: "todos" */
+  insert_todos?: Maybe<Todos_Mutation_Response>;
+  /** insert a single row into the table: "todos" */
+  insert_todos_one?: Maybe<Todos>;
   /** update single row of the table: "auth.providers" */
   updateAuthProvider?: Maybe<AuthProviders>;
   /** update single row of the table: "auth.provider_requests" */
@@ -4272,12 +4005,6 @@ export type Mutation_Root = {
   updateGraphiteAutoEmbeddingsConfigurations?: Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>;
   /** update multiples rows of table: "graphite.auto_embeddings_configuration" */
   updateManyGraphiteAutoEmbeddingsConfigurations?: Maybe<Array<Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>>>;
-  /** update single row of the table: "movies" */
-  updateMovie?: Maybe<Movies>;
-  /** update data of the table: "movies" */
-  updateMovies?: Maybe<Movies_Mutation_Response>;
-  /** update multiples rows of table: "movies" */
-  updateMoviesMany?: Maybe<Array<Maybe<Movies_Mutation_Response>>>;
   /** update single row of the table: "auth.users" */
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
@@ -4306,6 +4033,12 @@ export type Mutation_Root = {
   update_buckets_many?: Maybe<Array<Maybe<Buckets_Mutation_Response>>>;
   /** update multiples rows of table: "storage.files" */
   update_files_many?: Maybe<Array<Maybe<Files_Mutation_Response>>>;
+  /** update data of the table: "todos" */
+  update_todos?: Maybe<Todos_Mutation_Response>;
+  /** update single row of the table: "todos" */
+  update_todos_by_pk?: Maybe<Todos>;
+  /** update multiples rows of table: "todos" */
+  update_todos_many?: Maybe<Array<Maybe<Todos_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
   /** update multiples rows of table: "storage.virus" */
@@ -4367,6 +4100,11 @@ export type Mutation_Root_InsertGraphiteSessionsArgs = {
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteAssistantArgs = {
+  _append?: InputMaybe<_GraphiteAssistants_Append_Input>;
+  _delete_at_path?: InputMaybe<_GraphiteAssistants_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<_GraphiteAssistants_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<_GraphiteAssistants_Delete_Key_Input>;
+  _prepend?: InputMaybe<_GraphiteAssistants_Prepend_Input>;
   _set?: InputMaybe<_GraphiteAssistants_Set_Input>;
   pk_columns: _GraphiteAssistants_Pk_Columns_Input;
 };
@@ -4374,6 +4112,11 @@ export type Mutation_Root_UpdateGraphiteAssistantArgs = {
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteAssistantsArgs = {
+  _append?: InputMaybe<_GraphiteAssistants_Append_Input>;
+  _delete_at_path?: InputMaybe<_GraphiteAssistants_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<_GraphiteAssistants_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<_GraphiteAssistants_Delete_Key_Input>;
+  _prepend?: InputMaybe<_GraphiteAssistants_Prepend_Input>;
   _set?: InputMaybe<_GraphiteAssistants_Set_Input>;
   where: _GraphiteAssistants_Bool_Exp;
 };
@@ -4538,18 +4281,6 @@ export type Mutation_RootDeleteGraphiteAutoEmbeddingsConfigurationsArgs = {
 
 
 /** mutation root */
-export type Mutation_RootDeleteMovieArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteMoviesArgs = {
-  where: Movies_Bool_Exp;
-};
-
-
-/** mutation root */
 export type Mutation_RootDeleteUserArgs = {
   id: Scalars['uuid'];
 };
@@ -4570,6 +4301,18 @@ export type Mutation_RootDeleteVirusArgs = {
 /** mutation root */
 export type Mutation_RootDeleteVirusesArgs = {
   where: Virus_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_TodosArgs = {
+  where: Todos_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Todos_By_PkArgs = {
+  id: Scalars['uuid'];
 };
 
 
@@ -4728,20 +4471,6 @@ export type Mutation_RootInsertGraphiteAutoEmbeddingsConfigurationsArgs = {
 
 
 /** mutation root */
-export type Mutation_RootInsertMovieArgs = {
-  object: Movies_Insert_Input;
-  on_conflict?: InputMaybe<Movies_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertMoviesArgs = {
-  objects: Array<Movies_Insert_Input>;
-  on_conflict?: InputMaybe<Movies_On_Conflict>;
-};
-
-
-/** mutation root */
 export type Mutation_RootInsertUserArgs = {
   object: Users_Insert_Input;
   on_conflict?: InputMaybe<Users_On_Conflict>;
@@ -4766,6 +4495,20 @@ export type Mutation_RootInsertVirusArgs = {
 export type Mutation_RootInsertVirusesArgs = {
   objects: Array<Virus_Insert_Input>;
   on_conflict?: InputMaybe<Virus_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_TodosArgs = {
+  objects: Array<Todos_Insert_Input>;
+  on_conflict?: InputMaybe<Todos_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Todos_OneArgs = {
+  object: Todos_Insert_Input;
+  on_conflict?: InputMaybe<Todos_On_Conflict>;
 };
 
 
@@ -4966,28 +4709,6 @@ export type Mutation_RootUpdateManyGraphiteAutoEmbeddingsConfigurationsArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdateMovieArgs = {
-  _inc?: InputMaybe<Movies_Inc_Input>;
-  _set?: InputMaybe<Movies_Set_Input>;
-  pk_columns: Movies_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateMoviesArgs = {
-  _inc?: InputMaybe<Movies_Inc_Input>;
-  _set?: InputMaybe<Movies_Set_Input>;
-  where: Movies_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateMoviesManyArgs = {
-  updates: Array<Movies_Updates>;
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdateUserArgs = {
   _append?: InputMaybe<Users_Append_Input>;
   _delete_at_path?: InputMaybe<Users_Delete_At_Path_Input>;
@@ -5096,6 +4817,26 @@ export type Mutation_RootUpdate_Files_ManyArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdate_TodosArgs = {
+  _set?: InputMaybe<Todos_Set_Input>;
+  where: Todos_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Todos_By_PkArgs = {
+  _set?: InputMaybe<Todos_Set_Input>;
+  pk_columns: Todos_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Todos_ManyArgs = {
+  updates: Array<Todos_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdate_Users_ManyArgs = {
   updates: Array<Users_Updates>;
 };
@@ -5104,19 +4845,6 @@ export type Mutation_RootUpdate_Users_ManyArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Virus_ManyArgs = {
   updates: Array<Virus_Updates>;
-};
-
-/** Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'. */
-export type Numeric_Comparison_Exp = {
-  _eq?: InputMaybe<Scalars['numeric']>;
-  _gt?: InputMaybe<Scalars['numeric']>;
-  _gte?: InputMaybe<Scalars['numeric']>;
-  _in?: InputMaybe<Array<Scalars['numeric']>>;
-  _is_null?: InputMaybe<Scalars['Boolean']>;
-  _lt?: InputMaybe<Scalars['numeric']>;
-  _lte?: InputMaybe<Scalars['numeric']>;
-  _neq?: InputMaybe<Scalars['numeric']>;
-  _nin?: InputMaybe<Array<Scalars['numeric']>>;
 };
 
 /** column ordering options */
@@ -5216,20 +4944,12 @@ export type Query_Root = {
   graphiteAutoEmbeddingsConfigurationAggregate: GraphiteAutoEmbeddingsConfiguration_Aggregate;
   /** fetch data from the table: "graphite.auto_embeddings_configuration" */
   graphiteAutoEmbeddingsConfigurations: Array<GraphiteAutoEmbeddingsConfiguration>;
-  /** execute function "graphite_search_movies" which returns "movies" */
-  graphiteSearchMovies: Array<Movies>;
-  /** execute function "graphite_search_movies" and query aggregates on result of table type "movies" */
-  graphiteSearchMoviesAggregate: Movies_Aggregate;
-  /** execute function "graphite_similar_movies" which returns "movies" */
-  graphiteSimilarMovies: Array<Movies>;
-  /** execute function "graphite_similar_movies" and query aggregates on result of table type "movies" */
-  graphiteSimilarMoviesAggregate: Movies_Aggregate;
-  /** fetch data from the table: "movies" using primary key columns */
-  movie?: Maybe<Movies>;
-  /** fetch data from the table: "movies" */
-  movies: Array<Movies>;
-  /** fetch aggregated fields from the table: "movies" */
-  moviesAggregate: Movies_Aggregate;
+  /** fetch data from the table: "todos" */
+  todos: Array<Todos>;
+  /** fetch aggregated fields from the table: "todos" */
+  todos_aggregate: Todos_Aggregate;
+  /** fetch data from the table: "todos" using primary key columns */
+  todos_by_pk?: Maybe<Todos>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -5544,66 +5264,26 @@ export type Query_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
 };
 
 
-export type Query_RootGraphiteSearchMoviesArgs = {
-  args: Graphite_Search_Movies_Args;
-  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+export type Query_RootTodosArgs = {
+  distinct_on?: InputMaybe<Array<Todos_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Movies_Order_By>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
+  order_by?: InputMaybe<Array<Todos_Order_By>>;
+  where?: InputMaybe<Todos_Bool_Exp>;
 };
 
 
-export type Query_RootGraphiteSearchMoviesAggregateArgs = {
-  args: Graphite_Search_Movies_Args;
-  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+export type Query_RootTodos_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Todos_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Movies_Order_By>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
+  order_by?: InputMaybe<Array<Todos_Order_By>>;
+  where?: InputMaybe<Todos_Bool_Exp>;
 };
 
 
-export type Query_RootGraphiteSimilarMoviesArgs = {
-  args: Graphite_Similar_Movies_Args;
-  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Movies_Order_By>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
-};
-
-
-export type Query_RootGraphiteSimilarMoviesAggregateArgs = {
-  args: Graphite_Similar_Movies_Args;
-  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Movies_Order_By>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
-};
-
-
-export type Query_RootMovieArgs = {
+export type Query_RootTodos_By_PkArgs = {
   id: Scalars['uuid'];
-};
-
-
-export type Query_RootMoviesArgs = {
-  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Movies_Order_By>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
-};
-
-
-export type Query_RootMoviesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Movies_Order_By>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
 };
 
 
@@ -5758,22 +5438,14 @@ export type Subscription_Root = {
   graphiteAutoEmbeddingsConfigurationStream: Array<GraphiteAutoEmbeddingsConfiguration>;
   /** fetch data from the table: "graphite.auto_embeddings_configuration" */
   graphiteAutoEmbeddingsConfigurations: Array<GraphiteAutoEmbeddingsConfiguration>;
-  /** execute function "graphite_search_movies" which returns "movies" */
-  graphiteSearchMovies: Array<Movies>;
-  /** execute function "graphite_search_movies" and query aggregates on result of table type "movies" */
-  graphiteSearchMoviesAggregate: Movies_Aggregate;
-  /** execute function "graphite_similar_movies" which returns "movies" */
-  graphiteSimilarMovies: Array<Movies>;
-  /** execute function "graphite_similar_movies" and query aggregates on result of table type "movies" */
-  graphiteSimilarMoviesAggregate: Movies_Aggregate;
-  /** fetch data from the table: "movies" using primary key columns */
-  movie?: Maybe<Movies>;
-  /** fetch data from the table: "movies" */
-  movies: Array<Movies>;
-  /** fetch aggregated fields from the table: "movies" */
-  moviesAggregate: Movies_Aggregate;
-  /** fetch data from the table in a streaming manner: "movies" */
-  moviesStream: Array<Movies>;
+  /** fetch data from the table: "todos" */
+  todos: Array<Todos>;
+  /** fetch aggregated fields from the table: "todos" */
+  todos_aggregate: Todos_Aggregate;
+  /** fetch data from the table: "todos" using primary key columns */
+  todos_by_pk?: Maybe<Todos>;
+  /** fetch data from the table in a streaming manner: "todos" */
+  todos_stream: Array<Todos>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -6183,73 +5855,33 @@ export type Subscription_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
 };
 
 
-export type Subscription_RootGraphiteSearchMoviesArgs = {
-  args: Graphite_Search_Movies_Args;
-  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+export type Subscription_RootTodosArgs = {
+  distinct_on?: InputMaybe<Array<Todos_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Movies_Order_By>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
+  order_by?: InputMaybe<Array<Todos_Order_By>>;
+  where?: InputMaybe<Todos_Bool_Exp>;
 };
 
 
-export type Subscription_RootGraphiteSearchMoviesAggregateArgs = {
-  args: Graphite_Search_Movies_Args;
-  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+export type Subscription_RootTodos_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Todos_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Movies_Order_By>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
+  order_by?: InputMaybe<Array<Todos_Order_By>>;
+  where?: InputMaybe<Todos_Bool_Exp>;
 };
 
 
-export type Subscription_RootGraphiteSimilarMoviesArgs = {
-  args: Graphite_Similar_Movies_Args;
-  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Movies_Order_By>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
-};
-
-
-export type Subscription_RootGraphiteSimilarMoviesAggregateArgs = {
-  args: Graphite_Similar_Movies_Args;
-  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Movies_Order_By>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
-};
-
-
-export type Subscription_RootMovieArgs = {
+export type Subscription_RootTodos_By_PkArgs = {
   id: Scalars['uuid'];
 };
 
 
-export type Subscription_RootMoviesArgs = {
-  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Movies_Order_By>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
-};
-
-
-export type Subscription_RootMoviesAggregateArgs = {
-  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Movies_Order_By>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
-};
-
-
-export type Subscription_RootMoviesStreamArgs = {
+export type Subscription_RootTodos_StreamArgs = {
   batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Movies_Stream_Cursor_Input>>;
-  where?: InputMaybe<Movies_Bool_Exp>;
+  cursor: Array<InputMaybe<Todos_Stream_Cursor_Input>>;
+  where?: InputMaybe<Todos_Bool_Exp>;
 };
 
 
@@ -6312,6 +5944,19 @@ export type Subscription_RootVirusesAggregateArgs = {
   where?: InputMaybe<Virus_Bool_Exp>;
 };
 
+/** Boolean expression to compare columns of type "timestamp". All fields are combined with logical 'AND'. */
+export type Timestamp_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars['timestamp']>;
+  _gt?: InputMaybe<Scalars['timestamp']>;
+  _gte?: InputMaybe<Scalars['timestamp']>;
+  _in?: InputMaybe<Array<Scalars['timestamp']>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _lt?: InputMaybe<Scalars['timestamp']>;
+  _lte?: InputMaybe<Scalars['timestamp']>;
+  _neq?: InputMaybe<Scalars['timestamp']>;
+  _nin?: InputMaybe<Array<Scalars['timestamp']>>;
+};
+
 /** Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'. */
 export type Timestamptz_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['timestamptz']>;
@@ -6323,6 +5968,208 @@ export type Timestamptz_Comparison_Exp = {
   _lte?: InputMaybe<Scalars['timestamptz']>;
   _neq?: InputMaybe<Scalars['timestamptz']>;
   _nin?: InputMaybe<Array<Scalars['timestamptz']>>;
+};
+
+/** columns and relationships of "todos" */
+export type Todos = {
+  __typename?: 'todos';
+  /** An object relationship */
+  attachment?: Maybe<Files>;
+  createdAt: Scalars['timestamp'];
+  done: Scalars['Boolean'];
+  file_id?: Maybe<Scalars['uuid']>;
+  id: Scalars['uuid'];
+  title: Scalars['String'];
+  updatedAt: Scalars['timestamptz'];
+  /** An object relationship */
+  user: Users;
+  user_id: Scalars['uuid'];
+};
+
+/** aggregated selection of "todos" */
+export type Todos_Aggregate = {
+  __typename?: 'todos_aggregate';
+  aggregate?: Maybe<Todos_Aggregate_Fields>;
+  nodes: Array<Todos>;
+};
+
+/** aggregate fields of "todos" */
+export type Todos_Aggregate_Fields = {
+  __typename?: 'todos_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Todos_Max_Fields>;
+  min?: Maybe<Todos_Min_Fields>;
+};
+
+
+/** aggregate fields of "todos" */
+export type Todos_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Todos_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "todos". All fields are combined with a logical 'AND'. */
+export type Todos_Bool_Exp = {
+  _and?: InputMaybe<Array<Todos_Bool_Exp>>;
+  _not?: InputMaybe<Todos_Bool_Exp>;
+  _or?: InputMaybe<Array<Todos_Bool_Exp>>;
+  attachment?: InputMaybe<Files_Bool_Exp>;
+  createdAt?: InputMaybe<Timestamp_Comparison_Exp>;
+  done?: InputMaybe<Boolean_Comparison_Exp>;
+  file_id?: InputMaybe<Uuid_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  title?: InputMaybe<String_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user?: InputMaybe<Users_Bool_Exp>;
+  user_id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "todos" */
+export enum Todos_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  TodosPkey = 'todos_pkey'
+}
+
+/** input type for inserting data into table "todos" */
+export type Todos_Insert_Input = {
+  attachment?: InputMaybe<Files_Obj_Rel_Insert_Input>;
+  createdAt?: InputMaybe<Scalars['timestamp']>;
+  done?: InputMaybe<Scalars['Boolean']>;
+  file_id?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  title?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Todos_Max_Fields = {
+  __typename?: 'todos_max_fields';
+  createdAt?: Maybe<Scalars['timestamp']>;
+  file_id?: Maybe<Scalars['uuid']>;
+  id?: Maybe<Scalars['uuid']>;
+  title?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type Todos_Min_Fields = {
+  __typename?: 'todos_min_fields';
+  createdAt?: Maybe<Scalars['timestamp']>;
+  file_id?: Maybe<Scalars['uuid']>;
+  id?: Maybe<Scalars['uuid']>;
+  title?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "todos" */
+export type Todos_Mutation_Response = {
+  __typename?: 'todos_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Todos>;
+};
+
+/** on_conflict condition type for table "todos" */
+export type Todos_On_Conflict = {
+  constraint: Todos_Constraint;
+  update_columns?: Array<Todos_Update_Column>;
+  where?: InputMaybe<Todos_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "todos". */
+export type Todos_Order_By = {
+  attachment?: InputMaybe<Files_Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  done?: InputMaybe<Order_By>;
+  file_id?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  user?: InputMaybe<Users_Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: todos */
+export type Todos_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "todos" */
+export enum Todos_Select_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Done = 'done',
+  /** column name */
+  FileId = 'file_id',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Title = 'title',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'user_id'
+}
+
+/** input type for updating data in table "todos" */
+export type Todos_Set_Input = {
+  createdAt?: InputMaybe<Scalars['timestamp']>;
+  done?: InputMaybe<Scalars['Boolean']>;
+  file_id?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  title?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "todos" */
+export type Todos_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Todos_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Todos_Stream_Cursor_Value_Input = {
+  createdAt?: InputMaybe<Scalars['timestamp']>;
+  done?: InputMaybe<Scalars['Boolean']>;
+  file_id?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  title?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "todos" */
+export enum Todos_Update_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Done = 'done',
+  /** column name */
+  FileId = 'file_id',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Title = 'title',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'user_id'
+}
+
+export type Todos_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Todos_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Todos_Bool_Exp;
 };
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
@@ -7020,19 +6867,6 @@ export type Uuid_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['uuid']>>;
 };
 
-/** Boolean expression to compare columns of type "vector". All fields are combined with logical 'AND'. */
-export type Vector_Comparison_Exp = {
-  _eq?: InputMaybe<Scalars['vector']>;
-  _gt?: InputMaybe<Scalars['vector']>;
-  _gte?: InputMaybe<Scalars['vector']>;
-  _in?: InputMaybe<Array<Scalars['vector']>>;
-  _is_null?: InputMaybe<Scalars['Boolean']>;
-  _lt?: InputMaybe<Scalars['vector']>;
-  _lte?: InputMaybe<Scalars['vector']>;
-  _neq?: InputMaybe<Scalars['vector']>;
-  _nin?: InputMaybe<Array<Scalars['vector']>>;
-};
-
 /** columns and relationships of "storage.virus" */
 export type Virus = {
   __typename?: 'virus';
@@ -7316,10 +7150,11 @@ export type GetGraphiteAutoEmbeddingsConfigurationsQueryVariables = Exact<{
 }>;
 
 
-export type GetGraphiteAutoEmbeddingsConfigurationsQuery = { __typename?: 'query_root', graphiteAutoEmbeddingsConfigurations: Array<{ __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null, createdAt: any, updatedAt: any }>, graphiteAutoEmbeddingsConfigurationAggregate: { __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate', aggregate?: { __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate_fields', count: number } | null } };
+export type GetGraphiteAutoEmbeddingsConfigurationsQuery = { __typename?: 'query_root', graphiteAutoEmbeddingsConfigurations: Array<{ __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, model: any, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null, createdAt: any, updatedAt: any }>, graphiteAutoEmbeddingsConfigurationAggregate: { __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate', aggregate?: { __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate_fields', count: number } | null } };
 
 export type InsertGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   name?: InputMaybe<Scalars['String']>;
+  model?: InputMaybe<Scalars['embedding_model_enum']>;
   schemaName?: InputMaybe<Scalars['String']>;
   tableName?: InputMaybe<Scalars['String']>;
   columnName?: InputMaybe<Scalars['String']>;
@@ -7333,6 +7168,7 @@ export type InsertGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: '
 export type UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   id: Scalars['uuid'];
   name?: InputMaybe<Scalars['String']>;
+  model?: InputMaybe<Scalars['embedding_model_enum']>;
   schemaName?: InputMaybe<Scalars['String']>;
   tableName?: InputMaybe<Scalars['String']>;
   columnName?: InputMaybe<Scalars['String']>;
@@ -7341,7 +7177,7 @@ export type UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
 }>;
 
 
-export type UpdateGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: 'mutation_root', updateGraphiteAutoEmbeddingsConfiguration?: { __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null } | null };
+export type UpdateGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: 'mutation_root', updateGraphiteAutoEmbeddingsConfiguration?: { __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, model: any, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null } | null };
 
 export type SendDevMessageMutationVariables = Exact<{
   sessionId: Scalars['String'];
@@ -7604,6 +7440,7 @@ export const GetGraphiteAutoEmbeddingsConfigurationsDocument = gql`
   graphiteAutoEmbeddingsConfigurations(limit: $limit, offset: $offset) {
     id
     name
+    model
     schemaName
     tableName
     columnName
@@ -7652,9 +7489,9 @@ export function refetchGetGraphiteAutoEmbeddingsConfigurationsQuery(variables: G
       return { query: GetGraphiteAutoEmbeddingsConfigurationsDocument, variables: variables }
     }
 export const InsertGraphiteAutoEmbeddingsConfigurationDocument = gql`
-    mutation insertGraphiteAutoEmbeddingsConfiguration($name: String, $schemaName: String, $tableName: String, $columnName: String, $query: String, $mutation: String) {
+    mutation insertGraphiteAutoEmbeddingsConfiguration($name: String, $model: embedding_model_enum, $schemaName: String, $tableName: String, $columnName: String, $query: String, $mutation: String) {
   insertGraphiteAutoEmbeddingsConfiguration(
-    object: {name: $name, schemaName: $schemaName, tableName: $tableName, columnName: $columnName, query: $query, mutation: $mutation}
+    object: {name: $name, model: $model, schemaName: $schemaName, tableName: $tableName, columnName: $columnName, query: $query, mutation: $mutation}
   ) {
     id
   }
@@ -7676,6 +7513,7 @@ export type InsertGraphiteAutoEmbeddingsConfigurationMutationFn = Apollo.Mutatio
  * const [insertGraphiteAutoEmbeddingsConfigurationMutation, { data, loading, error }] = useInsertGraphiteAutoEmbeddingsConfigurationMutation({
  *   variables: {
  *      name: // value for 'name'
+ *      model: // value for 'model'
  *      schemaName: // value for 'schemaName'
  *      tableName: // value for 'tableName'
  *      columnName: // value for 'columnName'
@@ -7692,13 +7530,14 @@ export type InsertGraphiteAutoEmbeddingsConfigurationMutationHookResult = Return
 export type InsertGraphiteAutoEmbeddingsConfigurationMutationResult = Apollo.MutationResult<InsertGraphiteAutoEmbeddingsConfigurationMutation>;
 export type InsertGraphiteAutoEmbeddingsConfigurationMutationOptions = Apollo.BaseMutationOptions<InsertGraphiteAutoEmbeddingsConfigurationMutation, InsertGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 export const UpdateGraphiteAutoEmbeddingsConfigurationDocument = gql`
-    mutation updateGraphiteAutoEmbeddingsConfiguration($id: uuid!, $name: String, $schemaName: String, $tableName: String, $columnName: String, $query: String, $mutation: String) {
+    mutation updateGraphiteAutoEmbeddingsConfiguration($id: uuid!, $name: String, $model: embedding_model_enum, $schemaName: String, $tableName: String, $columnName: String, $query: String, $mutation: String) {
   updateGraphiteAutoEmbeddingsConfiguration(
     pk_columns: {id: $id}
-    _set: {name: $name, schemaName: $schemaName, tableName: $tableName, columnName: $columnName, query: $query, mutation: $mutation}
+    _set: {name: $name, model: $model, schemaName: $schemaName, tableName: $tableName, columnName: $columnName, query: $query, mutation: $mutation}
   ) {
     id
     name
+    model
     schemaName
     tableName
     columnName
@@ -7724,6 +7563,7 @@ export type UpdateGraphiteAutoEmbeddingsConfigurationMutationFn = Apollo.Mutatio
  *   variables: {
  *      id: // value for 'id'
  *      name: // value for 'name'
+ *      model: // value for 'model'
  *      schemaName: // value for 'schemaName'
  *      tableName: // value for 'tableName'
  *      columnName: // value for 'columnName'

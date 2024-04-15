@@ -29,9 +29,10 @@ const AUTO_EMBEDDINGS_MODELS = [
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name field is required.'),
-  model: Yup.string()
-    .oneOf(AUTO_EMBEDDINGS_MODELS)
-    .required('The model field is required'),
+  model: Yup.object({
+    label: Yup.string().required(),
+    value: Yup.string().required(),
+  }),
   schemaName: Yup.string().required('The schema field is required'),
   tableName: Yup.string().required('The table field is required'),
   columnName: Yup.string().required('The column field is required'),
@@ -50,7 +51,7 @@ export interface AutoEmbeddingsFormProps extends DialogFormProps {
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: AutoEmbeddingsFormValues;
+  initialData?: AutoEmbeddingsFormValues & { model: string };
 
   /**
    * Function to be called when the operation is cancelled.
@@ -84,7 +85,13 @@ export default function AutoEmbeddingsForm({
     });
 
   const form = useForm<AutoEmbeddingsFormValues>({
-    defaultValues: initialData,
+    defaultValues: {
+      ...initialData,
+      model: {
+        label: initialData?.model ?? 'text-embedding-ada-002',
+        value: initialData?.model ?? 'text-embedding-ada-002',
+      },
+    },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
   });
@@ -95,6 +102,11 @@ export default function AutoEmbeddingsForm({
   } = form;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
+
+  const availableModels = AUTO_EMBEDDINGS_MODELS.map((model) => ({
+    label: model,
+    value: model,
+  }));
 
   useEffect(() => {
     onDirtyStateChange(isDirty, location);
@@ -109,6 +121,7 @@ export default function AutoEmbeddingsForm({
         variables: {
           id: autoEmbeddingsId,
           ...values,
+          model: values.model.value,
         },
       });
 
@@ -116,7 +129,10 @@ export default function AutoEmbeddingsForm({
     }
 
     await insertGraphiteAutoEmbeddingsConfiguration({
-      variables: values,
+      variables: {
+        ...values,
+        model: values.model.value,
+      },
     });
   };
 
@@ -139,9 +155,9 @@ export default function AutoEmbeddingsForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex h-full flex-col gap-4 overflow-hidden"
+        className="flex flex-col h-full gap-4 overflow-hidden"
       >
-        <div className="flex flex-1 flex-col space-y-6 overflow-auto px-6">
+        <div className="flex flex-col flex-1 px-6 space-y-6 overflow-auto">
           <Input
             {...register('name')}
             id="name"
@@ -151,7 +167,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Name of the Auto-Embeddings">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
+                    className="w-4 h-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -169,7 +185,26 @@ export default function AutoEmbeddingsForm({
           <ControlledAutocomplete
             id="model"
             name="model"
-            autoHighlight
+            label={
+              <Box className="flex flex-row items-center space-x-2">
+                <Text>Model</Text>
+                <Tooltip title="Auto-Embeddings Model">
+                  <InfoIcon
+                    aria-label="Info"
+                    className="w-4 h-4"
+                    color="primary"
+                  />
+                </Tooltip>
+              </Box>
+            }
+            freeSolo
+            getOptionLabel={(option) => {
+              if (typeof option === 'string') {
+                return option || '';
+              }
+
+              return option.value;
+            }}
             isOptionEqualToValue={() => false}
             filterOptions={(options, { inputValue }) => {
               const inputValueLower = inputValue.toLowerCase();
@@ -192,15 +227,13 @@ export default function AutoEmbeddingsForm({
             }}
             fullWidth
             className="lg:col-span-2"
-            defaultValue={AUTO_EMBEDDINGS_MODELS.at(0)}
-            options={AUTO_EMBEDDINGS_MODELS.map((model) => ({
-              label: model,
-              value: model,
-            }))}
-            error={!!errors?.model?.message}
-            helperText={errors?.model?.message}
-            showCustomOption="auto"
-            customOptionLabel={(value) => `Use custom value: "${value}"`}
+            options={availableModels}
+            defaultValue={{
+              label: 'text-embedding-ada-002',
+              value: 'text-embedding-ada-002',
+            }}
+            error={!!errors?.model?.value?.message}
+            helperText={errors?.model?.value?.message}
           />
 
           <Input
@@ -212,7 +245,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title={<span>Schema where the table belongs to</span>}>
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
+                    className="w-4 h-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -234,7 +267,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Table Name">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
+                    className="w-4 h-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -256,7 +289,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Column name">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
+                    className="w-4 h-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -278,7 +311,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Query">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
+                    className="w-4 h-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -302,7 +335,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Mutation">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
+                    className="w-4 h-4"
                     color="primary"
                   />
                 </Tooltip>
@@ -319,7 +352,7 @@ export default function AutoEmbeddingsForm({
           />
         </div>
 
-        <Box className="flex w-full flex-row justify-between rounded border-t px-6 py-4">
+        <Box className="flex flex-row justify-between w-full px-6 py-4 border-t rounded">
           <Button variant="outlined" color="secondary" onClick={onCancel}>
             Cancel
           </Button>

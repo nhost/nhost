@@ -1,6 +1,7 @@
 mutation updateGraphiteAutoEmbeddingsConfiguration(
   $id: uuid!
   $name: String
+  $model: embedding_model_enum
   $schemaName: String
   $tableName: String
   $columnName: String
@@ -11,6 +12,7 @@ mutation updateGraphiteAutoEmbeddingsConfiguration(
     pk_columns: { id: $id }
     _set: {
       name: $name
+      model: $model
       schemaName: $schemaName
       tableName: $tableName
       columnName: $columnName
@@ -20,6 +22,7 @@ mutation updateGraphiteAutoEmbeddingsConfiguration(
   ) {
     id
     name
+    model
     schemaName
     tableName
     columnName
