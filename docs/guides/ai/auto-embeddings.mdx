@@ -147,6 +147,7 @@ mutation {
   insertGraphiteAutoEmbeddingsConfiguration(
     object: {
       name: "movies",
+      model: "text-embedding-3-small",
       schemaName: "public",
       tableName: "movies",
       columnName: "embeddings",
@@ -184,3 +185,7 @@ The second thing that will happen is that the queries `graphiteSearchMovies`, `g
 
 ![auto-embeddings-search](/images/guides/ai/auto-embeddings/search.png)
 ![auto-embeddings-similar](/images/guides/ai/auto-embeddings/similar.png)
+
+<Note>
+Both queries accept a third argument `maxDistance`. This argument allows you to filter responses that are too far from the query, useful for ensuring that very specific queries do not return entirely unrelated responses. The argument is a float between `0.0` (an exact match) and 1.0 (completely unrelated), with a default setting of `1.0`, ensuring the best matches are always returned even if they are unrelated to the query.
+</Note>
