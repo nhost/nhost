@@ -3,6 +3,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { Slider, sliderClasses } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
 import { getAllocatedResources } from '@/features/projects/resources/settings/utils/getAllocatedResources';
 import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
@@ -38,6 +39,8 @@ const StyledAvailableCpuSlider = styled(Slider)(({ theme }) => ({
 export default function TotalResourcesFormFragment({
   initialPrice,
 }: TotalResourcesFormFragmentProps) {
+  const isPlatform = useIsPlatform();
+
   const {
     data: proPlan,
     error: proPlanError,
@@ -46,7 +49,7 @@ export default function TotalResourcesFormFragment({
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
 
-  if (!proPlan && !proPlanLoading) {
+  if (isPlatform && !proPlan && !proPlanLoading) {
     return (
       <Alert severity="error">
         Couldn&apos;t load the plan for this projectee. Please try again.
@@ -62,7 +65,9 @@ export default function TotalResourcesFormFragment({
     (formValues.totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) *
     RESOURCE_VCPU_PRICE;
 
-  const updatedPrice = priceForTotalAvailableVCPU + proPlan.price;
+  const updatedPrice = isPlatform
+    ? priceForTotalAvailableVCPU + proPlan.price
+    : 0;
 
   const { vcpu: allocatedVCPU, memory: allocatedMemory } =
     getAllocatedResources(formValues);
@@ -102,8 +107,8 @@ export default function TotalResourcesFormFragment({
 
   return (
     <Box className="px-4 pb-4">
-      <Box className="rounded-md border">
-        <Box className="flex flex-col gap-4 bg-transparent p-4">
+      <Box className="border rounded-md">
+        <Box className="flex flex-col gap-4 p-4 bg-transparent">
           <Box className="flex flex-row items-center justify-between gap-4">
             <Text color="secondary">
               Total available compute for your project:
@@ -151,7 +156,7 @@ export default function TotalResourcesFormFragment({
           severity={
             hasUnusedResources || hasOverallocatedResources ? 'warning' : 'info'
           }
-          className="grid grid-flow-row gap-2 rounded-t-none rounded-b-[5px] text-left"
+          className="grid grid-flow-row gap-2 rounded-b-[5px] rounded-t-none text-left"
         >
           {hasUnusedResources && !hasOverallocatedResources && (
             <>

@@ -1,15 +1,19 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { VerifyDomain } from '@/features/projects/custom-domains/settings/components/VerifyDomain';
 import {
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
   type ConfigIngressUpdateInput,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
@@ -23,12 +27,18 @@ const validationSchema = Yup.object({
 export type AuthDomainFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AuthDomain() {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const [isVerified, setIsVerified] = useState(false);
+
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
 
-  const [updateConfig] = useUpdateConfigMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
 
   const form = useForm<Yup.InferType<typeof validationSchema>>({
     reValidateMode: 'onSubmit',
@@ -40,6 +50,7 @@ export default function AuthDomain() {
     variables: {
       appId: currentProject.id,
     },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { networking } = data?.config?.auth?.resources || {};
@@ -94,6 +105,18 @@ export default function AuthDomain() {
         await updateConfigPromise;
         form.reset(formValues);
         await refetchWorkspaceAndProject();
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Auth domain is being updated...',
@@ -104,6 +127,14 @@ export default function AuthDomain() {
     );
   }
 
+  const isDisabled = () => {
+    if (!isPlatform) {
+      return !isDirty || maintenanceActive;
+    }
+
+    return !isDirty || maintenanceActive || (!isVerified && !initialValue);
+  };
+
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleSubmit}>
@@ -112,12 +143,11 @@ export default function AuthDomain() {
           description="Enter below your custom domain for the authentication service."
           slotProps={{
             submitButton: {
-              disabled:
-                !isDirty || maintenanceActive || (!isVerified && !initialValue),
+              disabled: isDisabled(),
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row gap-x-4 gap-y-4 px-4 lg:grid-cols-5"
+          className="grid grid-flow-row px-4 gap-x-4 gap-y-4 lg:grid-cols-5"
         >
           <Input
             {...register('auth_fqdn')}

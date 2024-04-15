@@ -1,5 +1,8 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import type {
   BasePermissionVariableFormProps,
   BasePermissionVariableFormValues,
@@ -9,6 +12,7 @@ import {
   basePermissionVariableValidationSchema,
 } from '@/features/projects/permissions/settings/components/BasePermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import type { PermissionVariable } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
@@ -28,7 +32,7 @@ export interface EditPermissionVariableFormProps
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: () => Promise<void>;
+  onSubmit?: () => any;
 }
 
 export default function EditPermissionVariableForm({
@@ -36,11 +40,14 @@ export default function EditPermissionVariableForm({
   onSubmit,
   ...props
 }: EditPermissionVariableFormProps) {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { data, error, loading } = useGetRolesPermissionsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { customClaims: permissionVariables } =
@@ -57,6 +64,7 @@ export default function EditPermissionVariableForm({
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetRolesPermissionsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (loading) {
@@ -132,6 +140,19 @@ export default function EditPermissionVariableForm({
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        await onSubmit?.();
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Updating permission variable...',
@@ -140,8 +161,6 @@ export default function EditPermissionVariableForm({
           'An error occurred while trying to update the permission variable.',
       },
     );
-
-    await onSubmit?.();
   }
 
   return (

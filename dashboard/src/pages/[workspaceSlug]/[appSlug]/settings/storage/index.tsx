@@ -2,17 +2,22 @@ import { Container } from '@/components/layout/Container';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { StorageServiceVersionSettings } from '@/features/storage/settings/components/HasuraServiceVersionSettings';
 import { HasuraStorageAVSettings } from '@/features/storage/settings/components/HasuraStorageAVSettings';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { useGetStorageSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
 export default function StorageSettingsPage() {
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { loading, error } = useGetStorageSettingsQuery({
     variables: { appId: currentProject?.id },
     skip: !currentProject,
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (loading) {
@@ -31,7 +36,7 @@ export default function StorageSettingsPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
+      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
       rootClassName="bg-transparent"
     >
       <StorageServiceVersionSettings />

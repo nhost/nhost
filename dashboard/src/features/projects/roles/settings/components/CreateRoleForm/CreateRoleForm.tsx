@@ -1,5 +1,8 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import type {
   BaseRoleFormProps,
   BaseRoleFormValues,
@@ -9,6 +12,7 @@ import {
   baseRoleFormValidationSchema,
 } from '@/features/projects/roles/settings/components/BaseRoleForm';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetRolesPermissionsDocument,
@@ -23,17 +27,20 @@ export interface CreateRoleFormProps
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: () => Promise<void>;
+  onSubmit?: () => Promise<any>;
 }
 
 export default function CreateRoleForm({
   onSubmit,
   ...props
 }: CreateRoleFormProps) {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const { data, loading, error } = useGetRolesPermissionsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
   const { allowed: allowedRoles } = data?.config?.auth?.user?.roles || {};
 
@@ -45,6 +52,7 @@ export default function CreateRoleForm({
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetRolesPermissionsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (loading) {
@@ -85,7 +93,19 @@ export default function CreateRoleForm({
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
-        onSubmit?.();
+        await onSubmit?.();
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Creating role...',

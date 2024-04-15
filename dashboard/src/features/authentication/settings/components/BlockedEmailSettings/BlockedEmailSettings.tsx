@@ -1,16 +1,21 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
@@ -24,15 +29,19 @@ const validationSchema = Yup.object({
 export type BlockedEmailFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function BlockedEmailSettings() {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { email, emailDomains } = data?.config?.auth?.user || {};
@@ -50,6 +59,17 @@ export default function BlockedEmailSettings() {
   const { register, formState, watch } = form;
   const enabled = watch('enabled');
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
+
+  useEffect(() => {
+    if (!loading && email && emailDomains) {
+      form.reset({
+        enabled:
+          email?.blocked?.length > 0 || emailDomains?.blocked?.length > 0,
+        blockedEmails: email?.blocked?.join(', ') || '',
+        blockedEmailDomains: emailDomains?.blocked?.join(', ') || '',
+      });
+    }
+  }, [loading, email, emailDomains, form]);
 
   if (loading) {
     return (
@@ -112,6 +132,18 @@ export default function BlockedEmailSettings() {
       async () => {
         await updateConfigPromise;
         form.reset(values);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage:

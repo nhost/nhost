@@ -1,4 +1,7 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import type {
   BaseSecretFormProps,
   BaseSecretFormValues,
@@ -7,6 +10,7 @@ import {
   BaseSecretForm,
   baseSecretFormValidationSchema,
 } from '@/features/projects/secrets/settings/components/BaseSecretForm';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSecretsDocument,
@@ -20,13 +24,17 @@ export interface CreateSecretFormProps
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: () => Promise<void>;
+  onSubmit?: () => Promise<any>;
 }
 
 export default function CreateSecretForm({
   onSubmit,
   ...props
 }: CreateSecretFormProps) {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
+
   const form = useForm<BaseSecretFormValues>({
     defaultValues: {
       name: '',
@@ -39,6 +47,7 @@ export default function CreateSecretForm({
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [insertSecret] = useInsertSecretMutation({
     refetchQueries: [GetSecretsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   async function handleSubmit({ name, value }: BaseSecretFormValues) {
@@ -56,7 +65,19 @@ export default function CreateSecretForm({
       await execPromiseWithErrorToast(
         async () => {
           await insertSecretPromise;
-          onSubmit?.();
+          await onSubmit?.();
+
+          if (!isPlatform) {
+            openDialog({
+              title: 'Apply your changes',
+              component: <ApplyLocalSettingsDialog />,
+              props: {
+                PaperProps: {
+                  className: 'max-w-2xl',
+                },
+              },
+            });
+          }
         },
         {
           loadingMessage: 'Creating secret...',

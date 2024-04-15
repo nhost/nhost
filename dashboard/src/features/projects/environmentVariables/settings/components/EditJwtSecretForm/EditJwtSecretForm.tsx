@@ -3,6 +3,8 @@ import { Form } from '@/components/form/Form';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import type { DialogFormProps } from '@/types/common';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
@@ -63,9 +65,12 @@ export default function EditJwtSecretForm({
   submitButtonText = 'Save',
   location,
 }: EditJwtSecretFormProps) {
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetEnvironmentVariablesDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { onDirtyStateChange } = useDialog();
@@ -118,9 +123,9 @@ export default function EditJwtSecretForm({
     <FormProvider {...form}>
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-auto flex-col content-between overflow-hidden pb-4"
+        className="flex flex-col content-between flex-auto pb-4 overflow-hidden"
       >
-        <div className="flex-auto overflow-y-auto px-6">
+        <div className="flex-auto px-6 overflow-y-auto">
           <Input
             {...register('jwtSecret')}
             error={Boolean(errors.jwtSecret?.message)}

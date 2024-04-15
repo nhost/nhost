@@ -19,6 +19,7 @@ export type Scalars = {
   ConfigLocale: any;
   ConfigPort: any;
   ConfigRunServiceName: any;
+  ConfigUint: any;
   ConfigUint8: any;
   ConfigUint32: any;
   ConfigUrl: any;
@@ -1113,6 +1114,8 @@ export type ConfigConfig = {
   functions?: Maybe<ConfigFunctions>;
   /** Global configuration that applies to all services */
   global?: Maybe<ConfigGlobal>;
+  /** Advanced configuration for GraphQL */
+  graphql?: Maybe<ConfigGraphql>;
   /** Configuration for hasura */
   hasura: ConfigHasura;
   /** Configuration for observability service */
@@ -1133,6 +1136,7 @@ export type ConfigConfigComparisonExp = {
   auth?: InputMaybe<ConfigAuthComparisonExp>;
   functions?: InputMaybe<ConfigFunctionsComparisonExp>;
   global?: InputMaybe<ConfigGlobalComparisonExp>;
+  graphql?: InputMaybe<ConfigGraphqlComparisonExp>;
   hasura?: InputMaybe<ConfigHasuraComparisonExp>;
   observability?: InputMaybe<ConfigObservabilityComparisonExp>;
   postgres?: InputMaybe<ConfigPostgresComparisonExp>;
@@ -1145,6 +1149,7 @@ export type ConfigConfigInsertInput = {
   auth?: InputMaybe<ConfigAuthInsertInput>;
   functions?: InputMaybe<ConfigFunctionsInsertInput>;
   global?: InputMaybe<ConfigGlobalInsertInput>;
+  graphql?: InputMaybe<ConfigGraphqlInsertInput>;
   hasura: ConfigHasuraInsertInput;
   observability: ConfigObservabilityInsertInput;
   postgres?: InputMaybe<ConfigPostgresInsertInput>;
@@ -1157,6 +1162,7 @@ export type ConfigConfigUpdateInput = {
   auth?: InputMaybe<ConfigAuthUpdateInput>;
   functions?: InputMaybe<ConfigFunctionsUpdateInput>;
   global?: InputMaybe<ConfigGlobalUpdateInput>;
+  graphql?: InputMaybe<ConfigGraphqlUpdateInput>;
   hasura?: InputMaybe<ConfigHasuraUpdateInput>;
   observability?: InputMaybe<ConfigObservabilityUpdateInput>;
   postgres?: InputMaybe<ConfigPostgresUpdateInput>;
@@ -1335,11 +1341,56 @@ export type ConfigGrafanaUpdateInput = {
   adminPassword?: InputMaybe<Scalars['String']>;
 };
 
+export type ConfigGraphql = {
+  __typename?: 'ConfigGraphql';
+  security?: Maybe<ConfigGraphqlSecurity>;
+};
+
+export type ConfigGraphqlComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGraphqlComparisonExp>>;
+  _not?: InputMaybe<ConfigGraphqlComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGraphqlComparisonExp>>;
+  security?: InputMaybe<ConfigGraphqlSecurityComparisonExp>;
+};
+
+export type ConfigGraphqlInsertInput = {
+  security?: InputMaybe<ConfigGraphqlSecurityInsertInput>;
+};
+
+export type ConfigGraphqlSecurity = {
+  __typename?: 'ConfigGraphqlSecurity';
+  forbidAminSecret?: Maybe<Scalars['Boolean']>;
+  maxDepthQueries?: Maybe<Scalars['ConfigUint']>;
+};
+
+export type ConfigGraphqlSecurityComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGraphqlSecurityComparisonExp>>;
+  _not?: InputMaybe<ConfigGraphqlSecurityComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGraphqlSecurityComparisonExp>>;
+  forbidAminSecret?: InputMaybe<ConfigBooleanComparisonExp>;
+  maxDepthQueries?: InputMaybe<ConfigUintComparisonExp>;
+};
+
+export type ConfigGraphqlSecurityInsertInput = {
+  forbidAminSecret?: InputMaybe<Scalars['Boolean']>;
+  maxDepthQueries?: InputMaybe<Scalars['ConfigUint']>;
+};
+
+export type ConfigGraphqlSecurityUpdateInput = {
+  forbidAminSecret?: InputMaybe<Scalars['Boolean']>;
+  maxDepthQueries?: InputMaybe<Scalars['ConfigUint']>;
+};
+
+export type ConfigGraphqlUpdateInput = {
+  security?: InputMaybe<ConfigGraphqlSecurityUpdateInput>;
+};
+
 /** Configuration for hasura service */
 export type ConfigHasura = {
   __typename?: 'ConfigHasura';
   /** Admin secret */
   adminSecret: Scalars['String'];
+  authHook?: Maybe<ConfigHasuraAuthHook>;
   events?: Maybe<ConfigHasuraEvents>;
   /** JWT Secrets configuration */
   jwtSecrets?: Maybe<Array<ConfigJwtSecret>>;
@@ -1367,11 +1418,42 @@ export type ConfigHasuraApIsComparisonExp = {
   _nin?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
 };
 
+export type ConfigHasuraAuthHook = {
+  __typename?: 'ConfigHasuraAuthHook';
+  mode?: Maybe<Scalars['String']>;
+  /** HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY */
+  sendRequestBody?: Maybe<Scalars['Boolean']>;
+  /** HASURA_GRAPHQL_AUTH_HOOK */
+  url: Scalars['String'];
+};
+
+export type ConfigHasuraAuthHookComparisonExp = {
+  _and?: InputMaybe<Array<ConfigHasuraAuthHookComparisonExp>>;
+  _not?: InputMaybe<ConfigHasuraAuthHookComparisonExp>;
+  _or?: InputMaybe<Array<ConfigHasuraAuthHookComparisonExp>>;
+  mode?: InputMaybe<ConfigStringComparisonExp>;
+  sendRequestBody?: InputMaybe<ConfigBooleanComparisonExp>;
+  url?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigHasuraAuthHookInsertInput = {
+  mode?: InputMaybe<Scalars['String']>;
+  sendRequestBody?: InputMaybe<Scalars['Boolean']>;
+  url: Scalars['String'];
+};
+
+export type ConfigHasuraAuthHookUpdateInput = {
+  mode?: InputMaybe<Scalars['String']>;
+  sendRequestBody?: InputMaybe<Scalars['Boolean']>;
+  url?: InputMaybe<Scalars['String']>;
+};
+
 export type ConfigHasuraComparisonExp = {
   _and?: InputMaybe<Array<ConfigHasuraComparisonExp>>;
   _not?: InputMaybe<ConfigHasuraComparisonExp>;
   _or?: InputMaybe<Array<ConfigHasuraComparisonExp>>;
   adminSecret?: InputMaybe<ConfigStringComparisonExp>;
+  authHook?: InputMaybe<ConfigHasuraAuthHookComparisonExp>;
   events?: InputMaybe<ConfigHasuraEventsComparisonExp>;
   jwtSecrets?: InputMaybe<ConfigJwtSecretComparisonExp>;
   logs?: InputMaybe<ConfigHasuraLogsComparisonExp>;
@@ -1404,6 +1486,7 @@ export type ConfigHasuraEventsUpdateInput = {
 
 export type ConfigHasuraInsertInput = {
   adminSecret: Scalars['String'];
+  authHook?: InputMaybe<ConfigHasuraAuthHookInsertInput>;
   events?: InputMaybe<ConfigHasuraEventsInsertInput>;
   jwtSecrets?: InputMaybe<Array<ConfigJwtSecretInsertInput>>;
   logs?: InputMaybe<ConfigHasuraLogsInsertInput>;
@@ -1495,6 +1578,7 @@ export type ConfigHasuraSettingsUpdateInput = {
 
 export type ConfigHasuraUpdateInput = {
   adminSecret?: InputMaybe<Scalars['String']>;
+  authHook?: InputMaybe<ConfigHasuraAuthHookUpdateInput>;
   events?: InputMaybe<ConfigHasuraEventsUpdateInput>;
   jwtSecrets?: InputMaybe<Array<ConfigJwtSecretUpdateInput>>;
   logs?: InputMaybe<ConfigHasuraLogsUpdateInput>;
@@ -2333,6 +2417,7 @@ export type ConfigStringComparisonExp = {
 export type ConfigSystemConfig = {
   __typename?: 'ConfigSystemConfig';
   auth?: Maybe<ConfigSystemConfigAuth>;
+  graphql?: Maybe<ConfigSystemConfigGraphql>;
   postgres: ConfigSystemConfigPostgres;
 };
 
@@ -2401,11 +2486,37 @@ export type ConfigSystemConfigComparisonExp = {
   _not?: InputMaybe<ConfigSystemConfigComparisonExp>;
   _or?: InputMaybe<Array<ConfigSystemConfigComparisonExp>>;
   auth?: InputMaybe<ConfigSystemConfigAuthComparisonExp>;
+  graphql?: InputMaybe<ConfigSystemConfigGraphqlComparisonExp>;
   postgres?: InputMaybe<ConfigSystemConfigPostgresComparisonExp>;
+};
+
+export type ConfigSystemConfigGraphql = {
+  __typename?: 'ConfigSystemConfigGraphql';
+  /**
+   * manually enable graphi on a per-service basis
+   * by default it follows the plan
+   */
+  featureAdvancedGraphql?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigSystemConfigGraphqlComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSystemConfigGraphqlComparisonExp>>;
+  _not?: InputMaybe<ConfigSystemConfigGraphqlComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSystemConfigGraphqlComparisonExp>>;
+  featureAdvancedGraphql?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigSystemConfigGraphqlInsertInput = {
+  featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigSystemConfigGraphqlUpdateInput = {
+  featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type ConfigSystemConfigInsertInput = {
   auth?: InputMaybe<ConfigSystemConfigAuthInsertInput>;
+  graphql?: InputMaybe<ConfigSystemConfigGraphqlInsertInput>;
   postgres: ConfigSystemConfigPostgresInsertInput;
 };
 
@@ -2471,6 +2582,7 @@ export type ConfigSystemConfigPostgresUpdateInput = {
 
 export type ConfigSystemConfigUpdateInput = {
   auth?: InputMaybe<ConfigSystemConfigAuthUpdateInput>;
+  graphql?: InputMaybe<ConfigSystemConfigGraphqlUpdateInput>;
   postgres?: InputMaybe<ConfigSystemConfigPostgresUpdateInput>;
 };
 
@@ -2486,6 +2598,13 @@ export type ConfigUint32ComparisonExp = {
   _in?: InputMaybe<Array<Scalars['ConfigUint32']>>;
   _neq?: InputMaybe<Scalars['ConfigUint32']>;
   _nin?: InputMaybe<Array<Scalars['ConfigUint32']>>;
+};
+
+export type ConfigUintComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigUint']>;
+  _in?: InputMaybe<Array<Scalars['ConfigUint']>>;
+  _neq?: InputMaybe<Scalars['ConfigUint']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigUint']>>;
 };
 
 export type ConfigUrlComparisonExp = {
@@ -15011,6 +15130,7 @@ export type Plans = {
   apps_aggregate: Apps_Aggregate;
   createdAt: Scalars['timestamptz'];
   deprecated: Scalars['Boolean'];
+  featureAdvancedGraphql: Scalars['Boolean'];
   featureBackupEnabled: Scalars['Boolean'];
   featureCustomDomainsEnabled: Scalars['Boolean'];
   featureCustomEmailTemplatesEnabled: Scalars['Boolean'];
@@ -15113,6 +15233,7 @@ export type Plans_Bool_Exp = {
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deprecated?: InputMaybe<Boolean_Comparison_Exp>;
+  featureAdvancedGraphql?: InputMaybe<Boolean_Comparison_Exp>;
   featureBackupEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomDomainsEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Boolean_Comparison_Exp>;
@@ -15163,6 +15284,7 @@ export type Plans_Insert_Input = {
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   deprecated?: InputMaybe<Scalars['Boolean']>;
+  featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
@@ -15269,6 +15391,7 @@ export type Plans_Order_By = {
   apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   deprecated?: InputMaybe<Order_By>;
+  featureAdvancedGraphql?: InputMaybe<Order_By>;
   featureBackupEnabled?: InputMaybe<Order_By>;
   featureCustomDomainsEnabled?: InputMaybe<Order_By>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Order_By>;
@@ -15307,6 +15430,8 @@ export enum Plans_Select_Column {
   CreatedAt = 'createdAt',
   /** column name */
   Deprecated = 'deprecated',
+  /** column name */
+  FeatureAdvancedGraphql = 'featureAdvancedGraphql',
   /** column name */
   FeatureBackupEnabled = 'featureBackupEnabled',
   /** column name */
@@ -15363,6 +15488,7 @@ export enum Plans_Select_Column {
 export type Plans_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   deprecated?: InputMaybe<Scalars['Boolean']>;
+  featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
@@ -15444,6 +15570,7 @@ export type Plans_Stream_Cursor_Input = {
 export type Plans_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   deprecated?: InputMaybe<Scalars['Boolean']>;
+  featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
@@ -15493,6 +15620,8 @@ export enum Plans_Update_Column {
   CreatedAt = 'createdAt',
   /** column name */
   Deprecated = 'deprecated',
+  /** column name */
+  FeatureAdvancedGraphql = 'featureAdvancedGraphql',
   /** column name */
   FeatureBackupEnabled = 'featureBackupEnabled',
   /** column name */
@@ -23055,6 +23184,8 @@ export type GetRunServiceQueryVariables = Exact<{
 
 export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
 
+export type RunServiceConfigFragment = { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null };
+
 export type GetRunServicesQueryVariables = Exact<{
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
@@ -23064,6 +23195,14 @@ export type GetRunServicesQueryVariables = Exact<{
 
 
 export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
+
+export type GetLocalRunServiceConfigsQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetLocalRunServiceConfigsQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } }> };
 
 export type InsertRunServiceMutationVariables = Exact<{
   object: Run_Service_Insert_Input;
@@ -23493,6 +23632,44 @@ export const RemoteAppGetUsersFragmentDoc = gql`
     providerId
   }
   disabled
+}
+    `;
+export const RunServiceConfigFragmentDoc = gql`
+    fragment RunServiceConfig on ConfigRunServiceConfig {
+  name
+  image {
+    image
+  }
+  command
+  resources {
+    compute {
+      cpu
+      memory
+    }
+    storage {
+      name
+      path
+      capacity
+    }
+    replicas
+  }
+  environment {
+    name
+    value
+  }
+  ports {
+    port
+    type
+    publish
+    ingresses {
+      fqdn
+    }
+  }
+  healthCheck {
+    port
+    initialDelaySeconds
+    probePeriodSeconds
+  }
 }
     `;
 export const GetWorkspaceMembersWorkspaceMemberFragmentDoc = gql`
@@ -26771,40 +26948,7 @@ export const GetRunServicesDocument = gql`
       updatedAt
       subdomain
       config(resolve: $resolve) {
-        name
-        image {
-          image
-        }
-        command
-        resources {
-          compute {
-            cpu
-            memory
-          }
-          storage {
-            name
-            path
-            capacity
-          }
-          replicas
-        }
-        environment {
-          name
-          value
-        }
-        ports {
-          port
-          type
-          publish
-          ingresses {
-            fqdn
-          }
-        }
-        healthCheck {
-          port
-          initialDelaySeconds
-          probePeriodSeconds
-        }
+        ...RunServiceConfig
       }
     }
     runServices_aggregate {
@@ -26814,7 +26958,7 @@ export const GetRunServicesDocument = gql`
     }
   }
 }
-    `;
+    ${RunServiceConfigFragmentDoc}`;
 
 /**
  * __useGetRunServicesQuery__
@@ -26848,6 +26992,48 @@ export type GetRunServicesLazyQueryHookResult = ReturnType<typeof useGetRunServi
 export type GetRunServicesQueryResult = Apollo.QueryResult<GetRunServicesQuery, GetRunServicesQueryVariables>;
 export function refetchGetRunServicesQuery(variables: GetRunServicesQueryVariables) {
       return { query: GetRunServicesDocument, variables: variables }
+    }
+export const GetLocalRunServiceConfigsDocument = gql`
+    query getLocalRunServiceConfigs($appID: uuid!, $resolve: Boolean!) {
+  runServiceConfigs(appID: $appID, resolve: $resolve) {
+    serviceID
+    config {
+      ...RunServiceConfig
+    }
+  }
+}
+    ${RunServiceConfigFragmentDoc}`;
+
+/**
+ * __useGetLocalRunServiceConfigsQuery__
+ *
+ * To run a query within a React component, call `useGetLocalRunServiceConfigsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLocalRunServiceConfigsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLocalRunServiceConfigsQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetLocalRunServiceConfigsQuery(baseOptions: Apollo.QueryHookOptions<GetLocalRunServiceConfigsQuery, GetLocalRunServiceConfigsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLocalRunServiceConfigsQuery, GetLocalRunServiceConfigsQueryVariables>(GetLocalRunServiceConfigsDocument, options);
+      }
+export function useGetLocalRunServiceConfigsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLocalRunServiceConfigsQuery, GetLocalRunServiceConfigsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLocalRunServiceConfigsQuery, GetLocalRunServiceConfigsQueryVariables>(GetLocalRunServiceConfigsDocument, options);
+        }
+export type GetLocalRunServiceConfigsQueryHookResult = ReturnType<typeof useGetLocalRunServiceConfigsQuery>;
+export type GetLocalRunServiceConfigsLazyQueryHookResult = ReturnType<typeof useGetLocalRunServiceConfigsLazyQuery>;
+export type GetLocalRunServiceConfigsQueryResult = Apollo.QueryResult<GetLocalRunServiceConfigsQuery, GetLocalRunServiceConfigsQueryVariables>;
+export function refetchGetLocalRunServiceConfigsQuery(variables: GetLocalRunServiceConfigsQueryVariables) {
+      return { query: GetLocalRunServiceConfigsDocument, variables: variables }
     }
 export const InsertRunServiceDocument = gql`
     mutation insertRunService($object: run_service_insert_input!) {

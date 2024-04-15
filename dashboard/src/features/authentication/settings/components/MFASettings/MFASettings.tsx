@@ -1,16 +1,21 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
@@ -23,15 +28,19 @@ const validationSchema = Yup.object({
 export type MFASettingsFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function MFASettings() {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { enabled, issuer } = data?.config?.auth?.totp || {};
@@ -44,6 +53,15 @@ export default function MFASettings() {
     },
     resolver: yupResolver(validationSchema),
   });
+
+  useEffect(() => {
+    if (!loading && issuer && enabled) {
+      form.reset({
+        issuer,
+        enabled,
+      });
+    }
+  }, [loading, issuer, enabled, form]);
 
   if (loading) {
     return (
@@ -78,6 +96,18 @@ export default function MFASettings() {
       async () => {
         await updateConfigPromise;
         form.reset(values);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage:

@@ -7,6 +7,7 @@ import { List } from '@/components/ui/v2/List';
 import type { ListItemButtonProps } from '@/components/ui/v2/ListItem';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -61,6 +62,7 @@ export default function SettingsSidebar({
   className,
   ...props
 }: SettingsSidebarProps) {
+  const isPlatform = useIsPlatform();
   const [expanded, setExpanded] = useState(false);
   const { currentProject } = useCurrentWorkspaceAndProject();
 
@@ -95,7 +97,7 @@ export default function SettingsSidebar({
     <>
       <Backdrop
         open={expanded}
-        className="absolute top-0 left-0 bottom-0 right-0 z-[34] md:hidden"
+        className="absolute bottom-0 left-0 right-0 top-0 z-[34] md:hidden"
         role="button"
         tabIndex={-1}
         onClick={() => setExpanded(false)}
@@ -112,7 +114,7 @@ export default function SettingsSidebar({
       <Box
         component="aside"
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 px-2 pt-2 pb-17 motion-safe:transition-transform md:relative md:z-0 md:h-full md:py-2.5 md:transition-none',
+          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 px-2 pb-17 pt-2 motion-safe:transition-transform md:relative md:z-0 md:h-full md:py-2.5 md:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
           className,
         )}
@@ -181,7 +183,12 @@ export default function SettingsSidebar({
               SMTP
             </SettingsNavLink>
 
-            <SettingsNavLink href="/git" exact={false} onClick={handleSelect}>
+            <SettingsNavLink
+              href="/git"
+              exact={false}
+              onClick={handleSelect}
+              disabled={!isPlatform}
+            >
               Git
             </SettingsNavLink>
 

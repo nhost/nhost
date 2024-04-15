@@ -7,10 +7,12 @@ import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
@@ -18,13 +20,15 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  capacity: Yup.number().required(),
+  capacity: Yup.number().required().min(10),
 });
 
 export type AuthDomainFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AuthDomain() {
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const {
@@ -34,14 +38,17 @@ export default function AuthDomain() {
     refetch: refetchPostgresSettings,
   } = useGetPostgresSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const capacity =
-    data?.config?.postgres?.resources?.storage?.capacity ??
-    currentProject.plan.featureMaxDbSize;
+    (data?.config?.postgres?.resources?.storage?.capacity ??
+      currentProject?.plan?.featureMaxDbSize) ||
+    0;
 
-  const [updateConfig] = useUpdateConfigMutation();
+  const [updateConfig] = useUpdateConfigMutation({
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
 
   const form = useForm<Yup.InferType<typeof validationSchema>>({
     reValidateMode: 'onSubmit',
@@ -117,7 +124,7 @@ export default function AuthDomain() {
           }}
           className="flex flex-col"
         >
-          {currentProject.plan.isFree && (
+          {currentProject.plan?.isFree && (
             <UpgradeNotification message="Unlock by upgrading your project to the Pro plan." />
           )}
           <Box className="grid grid-flow-row lg:grid-cols-5">
@@ -127,7 +134,7 @@ export default function AuthDomain() {
               name="capacity"
               type="number"
               fullWidth
-              disabled={currentProject.plan.isFree}
+              disabled={currentProject.plan?.isFree}
               className="lg:col-span-2"
               error={Boolean(formState.errors.capacity?.message)}
               helperText={formState.errors.capacity?.message}
@@ -138,7 +145,7 @@ export default function AuthDomain() {
               }}
             />
           </Box>
-          {!currentProject.plan.isFree && (
+          {!currentProject.plan?.isFree && (
             <Alert severity="info" className="col-span-6 text-left">
               Note that volumes can only be increased (not decreased). Also, due
               to an AWS limitation, the same volume can only be increased once

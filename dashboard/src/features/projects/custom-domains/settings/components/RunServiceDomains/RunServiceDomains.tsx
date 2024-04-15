@@ -5,29 +5,12 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { RunServicePortDomain } from '@/features/projects/custom-domains/settings/components/RunServicePortDomain';
-import { useGetRunServicesQuery } from '@/utils/__generated__/graphql';
-import { useMemo } from 'react';
+import { useRunServices } from '@/hooks/useRunServices';
 
 export default function RunServiceDomains() {
   const { currentProject, currentWorkspace } = useCurrentWorkspaceAndProject();
 
-  const {
-    data,
-    loading,
-    // refetch: refetchServices, // TODO refetch after update
-  } = useGetRunServicesQuery({
-    variables: {
-      appID: currentProject.id,
-      resolve: false,
-      limit: 1000, // TODO consider pagination
-      offset: 0,
-    },
-  });
-
-  const services = useMemo(
-    () => data?.app?.runServices.map((service) => service) ?? [],
-    [data],
-  );
+  const { services, loading } = useRunServices();
 
   if (loading) {
     return (
@@ -45,7 +28,7 @@ export default function RunServiceDomains() {
         .filter((service) => service.config?.ports?.length > 0)
         .map((service) => (
           <SettingsContainer
-            key={service.id}
+            key={service.id ?? service.serviceID}
             title={
               <div className="flex flex-row items-center">
                 <Text className="text-lg font-semibold">
@@ -58,7 +41,7 @@ export default function RunServiceDomains() {
                   underline="hover"
                   className="font-medium"
                 >
-                  <ArrowSquareOutIcon className="mb-1 ml-1 h-4 w-4" />
+                  <ArrowSquareOutIcon className="w-4 h-4 mb-1 ml-1" />
                 </Link>
               </div>
             }
@@ -72,7 +55,7 @@ export default function RunServiceDomains() {
                 className: 'hidden',
               },
             }}
-            className="grid gap-y-4 gap-x-4 px-4"
+            className="grid px-4 gap-x-4 gap-y-4"
           >
             {service.config?.ports?.map((port) => (
               <RunServicePortDomain

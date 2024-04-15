@@ -1,15 +1,20 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -20,15 +25,19 @@ const validationSchema = Yup.object({
 export type WebAuthnFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function WebAuthnSettings() {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { enabled } = data?.config?.auth?.method?.webauthn || {};
@@ -40,6 +49,12 @@ export default function WebAuthnSettings() {
     },
     resolver: yupResolver(validationSchema),
   });
+
+  useEffect(() => {
+    if (!loading) {
+      form.reset({ enabled });
+    }
+  }, [loading, enabled, form]);
 
   if (loading) {
     return (
@@ -80,6 +95,18 @@ export default function WebAuthnSettings() {
       async () => {
         await updateConfigPromise;
         form.reset(values);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'WebAuthn settings are being updated...',

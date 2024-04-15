@@ -90,14 +90,6 @@ export default function useProjectRoutes() {
       icon: <GaugeIcon />,
       disabled: !isPlatform,
     },
-    {
-      relativeMainPath: '/settings',
-      relativePath: '/settings/general',
-      exact: false,
-      label: 'Settings',
-      icon: <CogIcon />,
-      disabled: !isPlatform || maintenanceActive,
-    },
   ];
 
   const allRoutes: ProjectRoute[] = [
@@ -143,7 +135,6 @@ export default function useProjectRoutes() {
       exact: false,
       label: 'Run',
       icon: <ServicesIcon />,
-      disabled: !isPlatform,
     },
     {
       relativeMainPath: '/ai',
@@ -153,6 +144,14 @@ export default function useProjectRoutes() {
       icon: <AIIcon />,
     },
     ...nhostRoutes,
+    {
+      relativeMainPath: '/settings',
+      relativePath: '/settings/general',
+      exact: false,
+      label: 'Settings',
+      icon: <CogIcon />,
+      disabled: maintenanceActive,
+    },
   ];
 
   return {

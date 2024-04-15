@@ -1,3 +1,4 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -7,6 +8,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Link } from '@/components/ui/v2/Link';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
 import { ResourcesConfirmationDialog } from '@/features/projects/resources/settings/components/ResourcesConfirmationDialog';
 import { ServiceResourcesFormFragment } from '@/features/projects/resources/settings/components/ServiceResourcesFormFragment';
@@ -14,6 +16,7 @@ import { TotalResourcesFormFragment } from '@/features/projects/resources/settin
 import { calculateBillableResources } from '@/features/projects/resources/settings/utils/calculateBillableResources';
 import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { resourceSettingsValidationSchema } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
@@ -44,6 +47,8 @@ function getInitialServiceResources(
 }
 
 export default function ResourcesForm() {
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { openDialog, closeDialog } = useDialog();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
@@ -55,6 +60,7 @@ export default function ResourcesForm() {
     variables: {
       appId: currentProject?.id,
     },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const {
@@ -65,6 +71,7 @@ export default function ResourcesForm() {
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetResourcesDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const initialDatabaseResources = getInitialServiceResources(data, 'postgres');
@@ -113,7 +120,7 @@ export default function ResourcesForm() {
     resolver: yupResolver(resourceSettingsValidationSchema),
   });
 
-  if (!proPlan && !proPlanLoading) {
+  if (isPlatform && !proPlan && !proPlanLoading) {
     return (
       <Alert severity="error">
         Couldn&apos;t load the plan for this project. Please try again.
@@ -121,7 +128,7 @@ export default function ResourcesForm() {
     );
   }
 
-  if (loading || proPlanLoading) {
+  if (isPlatform && (loading || proPlanLoading)) {
     return (
       <ActivityIndicator
         label="Loading resource settings..."
@@ -156,9 +163,10 @@ export default function ResourcesForm() {
     },
   );
 
-  const initialPrice =
-    proPlan.price +
-    (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE;
+  const initialPrice = isPlatform
+    ? proPlan.price +
+      (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
+    : 0;
 
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
     const updateConfigPromise = updateConfig({
@@ -217,6 +225,18 @@ export default function ResourcesForm() {
       await execPromiseWithErrorToast(
         async () => {
           await updateConfigPromise;
+
+          if (!isPlatform) {
+            openDialog({
+              title: 'Apply your changes',
+              component: <ApplyLocalSettingsDialog />,
+              props: {
+                PaperProps: {
+                  className: 'max-w-2xl',
+                },
+              },
+            });
+          }
         },
         {
           loadingMessage: 'Updating resources...',
@@ -260,7 +280,12 @@ export default function ResourcesForm() {
     }
   }
 
-  function handleConfirm(formValues: ResourceSettingsFormValues) {
+  async function handleConfirm(formValues: ResourceSettingsFormValues) {
+    if (!isPlatform) {
+      await handleSubmit(formValues);
+      return;
+    }
+
     openDialog({
       title: formValues.enabled
         ? 'Confirm Dedicated Resources'

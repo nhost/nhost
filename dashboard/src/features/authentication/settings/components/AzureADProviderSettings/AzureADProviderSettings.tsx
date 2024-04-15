@@ -1,3 +1,5 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -8,15 +10,18 @@ import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { BaseProviderSettings } from '@/features/authentication/settings/components/BaseProviderSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { copy } from '@/utils/copy';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
@@ -46,15 +51,19 @@ const validationSchema = Yup.object({
 export type AzureADProviderFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AzureADProviderSettings() {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { maintenanceActive } = useUI();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetSignInMethodsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { clientId, clientSecret, tenant, enabled } =
@@ -70,6 +79,17 @@ export default function AzureADProviderSettings() {
     },
     resolver: yupResolver(validationSchema),
   });
+
+  useEffect(() => {
+    if (!loading) {
+      form.reset({
+        clientId: clientId || '',
+        clientSecret: clientSecret || '',
+        tenant: tenant || '',
+        enabled: enabled || false,
+      });
+    }
+  }, [loading, clientId, clientSecret, tenant, enabled, form]);
 
   if (loading) {
     return (
@@ -108,6 +128,18 @@ export default function AzureADProviderSettings() {
       async () => {
         await updateConfigPromise;
         form.reset(formValues);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Azure AD settings are being updated...',
@@ -182,7 +214,7 @@ export default function AzureADProviderSettings() {
                     );
                   }}
                 >
-                  <CopyIcon className="h-4 w-4" />
+                  <CopyIcon className="w-4 h-4" />
                 </IconButton>
               </InputAdornment>
             }

@@ -1,3 +1,4 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -15,9 +16,11 @@ import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { CreatePermissionVariableForm } from '@/features/projects/permissions/settings/components/CreatePermissionVariableForm';
 import { EditPermissionVariableForm } from '@/features/projects/permissions/settings/components/EditPermissionVariableForm';
 import { getAllPermissionVariables } from '@/features/projects/permissions/settings/utils/getAllPermissionVariables';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import type { PermissionVariable } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
@@ -29,13 +32,15 @@ import { Fragment } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 export default function PermissionVariableSettings() {
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error } = useGetRolesPermissionsQuery({
+  const { data, loading, error, refetch } = useGetRolesPermissionsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { customClaims: permissionVariables } =
@@ -43,6 +48,7 @@ export default function PermissionVariableSettings() {
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetRolesPermissionsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (loading) {
@@ -53,6 +59,20 @@ export default function PermissionVariableSettings() {
 
   if (error) {
     throw error;
+  }
+
+  function showApplyChangesDialog() {
+    if (!isPlatform) {
+      openDialog({
+        title: 'Apply your changes',
+        component: <ApplyLocalSettingsDialog />,
+        props: {
+          PaperProps: {
+            className: 'max-w-2xl',
+          },
+        },
+      });
+    }
   }
 
   async function handleDeleteVariable({ id }: PermissionVariable) {
@@ -79,6 +99,7 @@ export default function PermissionVariableSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        showApplyChangesDialog();
       },
       {
         loadingMessage: 'Deleting permission variable...',
@@ -92,7 +113,7 @@ export default function PermissionVariableSettings() {
   function handleOpenCreator() {
     openDialog({
       title: 'Create Permission Variable',
-      component: <CreatePermissionVariableForm />,
+      component: <CreatePermissionVariableForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -104,7 +125,10 @@ export default function PermissionVariableSettings() {
     openDialog({
       title: 'Edit Permission Variable',
       component: (
-        <EditPermissionVariableForm originalVariable={originalVariable} />
+        <EditPermissionVariableForm
+          originalVariable={originalVariable}
+          onSubmit={refetch}
+        />
       ),
       props: {
         titleProps: { className: '!pb-0' },
@@ -140,10 +164,10 @@ export default function PermissionVariableSettings() {
       description="Permission variables are used to define permission rules in the GraphQL API."
       docsLink="https://docs.nhost.io/guides/api/permissions#permission-variables"
       rootClassName="gap-0"
-      className="my-2 px-0"
+      className="px-0 my-2"
       slotProps={{ submitButton: { className: 'hidden' } }}
     >
-      <Box className="grid grid-cols-2 border-b-1 px-4 py-3">
+      <Box className="grid grid-cols-2 px-4 py-3 border-b-1">
         <Text className="font-medium">Field name</Text>
         <Text className="font-medium">Path</Text>
       </Box>
@@ -167,7 +191,7 @@ export default function PermissionVariableSettings() {
                         !permissionVariable.isSystemVariable
                       }
                       hasDisabledChildren={permissionVariable.isSystemVariable}
-                      className="absolute right-4 top-1/2 -translate-y-1/2"
+                      className="absolute -translate-y-1/2 right-4 top-1/2"
                     >
                       <Dropdown.Trigger asChild hideChevron>
                         <IconButton
@@ -224,7 +248,7 @@ export default function PermissionVariableSettings() {
                     <>
                       X-Hasura-{permissionVariable.key}{' '}
                       {permissionVariable.isSystemVariable && (
-                        <LockIcon className="h-4 w-4" />
+                        <LockIcon className="w-4 h-4" />
                       )}
                     </>
                   }

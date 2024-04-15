@@ -11,15 +11,20 @@ import { HasuraPoolSizeSettings } from '@/features/hasura/settings/components/Ha
 import { HasuraRemoteSchemaPermissionsSettings } from '@/features/hasura/settings/components/HasuraRemoteSchemaPermissionsSettings';
 import { HasuraServiceVersionSettings } from '@/features/hasura/settings/components/HasuraServiceVersionSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { useGetHasuraSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
 export default function HasuraSettingsPage() {
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { data, loading, error } = useGetHasuraSettingsQuery({
     variables: { appId: currentProject?.id },
     skip: !currentProject,
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (!data && loading) {
@@ -38,7 +43,7 @@ export default function HasuraSettingsPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
+      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
       rootClassName="bg-transparent"
     >
       <HasuraServiceVersionSettings />

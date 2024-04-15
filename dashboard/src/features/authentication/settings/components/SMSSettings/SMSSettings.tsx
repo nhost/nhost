@@ -1,3 +1,5 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -7,14 +9,17 @@ import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetSignInMethodsDocument,
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Image from 'next/image';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
@@ -44,15 +49,19 @@ const validationSchema = Yup.object({
 export type SMSSettingsFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function SMSSettings() {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSignInMethodsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, error, loading } = useGetSignInMethodsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { accountSid, authToken, messagingServiceId } =
@@ -69,6 +78,17 @@ export default function SMSSettings() {
     },
     resolver: yupResolver(validationSchema),
   });
+
+  useEffect(() => {
+    if (!loading) {
+      form.reset({
+        accountSid: accountSid || '',
+        authToken: authToken || '',
+        messagingServiceId: messagingServiceId || '',
+        enabled: enabled || false,
+      });
+    }
+  }, [loading, accountSid, authToken, messagingServiceId, enabled, form]);
 
   if (loading) {
     return (
@@ -114,6 +134,18 @@ export default function SMSSettings() {
       async () => {
         await updateConfigPromise;
         form.reset(values);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'SMS settings are being updated...',

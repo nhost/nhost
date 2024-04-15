@@ -3,10 +3,15 @@ import { UIProvider } from '@/components/common/UIProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+// eslint-disable-next-line import/extensions
 import '@/styles/fonts.css';
+// eslint-disable-next-line import/extensions
 import '@/styles/github-dark.css';
+// eslint-disable-next-line import/extensions
 import '@/styles/globals.css';
+// eslint-disable-next-line import/extensions
 import '@/styles/graphiql.min.css';
+// eslint-disable-next-line import/extensions
 import '@/styles/style.css';
 import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
 import { createEmotionCache } from '@/utils/createEmotionCache';

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useDeleteApplicationMutation,
@@ -42,6 +43,7 @@ export default function SettingsGeneralPage() {
     loading,
     refetch: refetchWorkspaceAndProject,
   } = useCurrentWorkspaceAndProject();
+
   const isOwner = useIsCurrentUserOwner();
   const { openDialog, openAlertDialog, closeDialog } = useDialog();
   const [updateApp] = useUpdateApplicationMutation();
@@ -55,6 +57,8 @@ export default function SettingsGeneralPage() {
   });
   const router = useRouter();
   const { maintenanceActive } = useUI();
+
+  const isPlatform = useIsPlatform();
 
   const form = useForm<ProjectNameValidationSchema>({
     mode: 'onSubmit',
@@ -173,7 +177,8 @@ export default function SettingsGeneralPage() {
             className="grid grid-flow-row px-4 lg:grid-cols-4"
             slotProps={{
               submitButton: {
-                disabled: !formState.isDirty || maintenanceActive,
+                disabled:
+                  !formState.isDirty || maintenanceActive || !isPlatform,
                 loading: formState.isSubmitting,
               },
             }}
@@ -194,7 +199,7 @@ export default function SettingsGeneralPage() {
         </Form>
       </FormProvider>
 
-      {currentProject?.plan.isFree && (
+      {currentProject?.plan?.isFree && (
         <SettingsContainer
           title="Pause Project"
           description="While your project is paused, it will not be accessible. You can wake it up anytime after."

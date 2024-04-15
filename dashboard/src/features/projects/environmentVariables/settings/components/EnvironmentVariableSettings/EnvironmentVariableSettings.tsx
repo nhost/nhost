@@ -1,3 +1,4 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -13,8 +14,10 @@ import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { CreateEnvironmentVariableForm } from '@/features/projects/environmentVariables/settings/components/CreateEnvironmentVariableForm';
 import { EditEnvironmentVariableForm } from '@/features/projects/environmentVariables/settings/components/EditEnvironmentVariableForm';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import type { EnvironmentVariable } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
@@ -33,12 +36,14 @@ export interface EnvironmentVariableSettingsFormValues {
 }
 
 export default function EnvironmentVariableSettings() {
-  const { openDialog, openAlertDialog } = useDialog();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
+  const { openDialog, openAlertDialog } = useDialog();
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const { data, loading, error } = useGetEnvironmentVariablesQuery({
+  const { data, loading, error, refetch } = useGetEnvironmentVariablesQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const availableEnvironmentVariables = [
@@ -57,6 +62,7 @@ export default function EnvironmentVariableSettings() {
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetEnvironmentVariablesDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (loading) {
@@ -92,6 +98,18 @@ export default function EnvironmentVariableSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Deleting environment variable...',
@@ -105,7 +123,7 @@ export default function EnvironmentVariableSettings() {
   function handleOpenCreator() {
     openDialog({
       title: 'Create Environment Variable',
-      component: <CreateEnvironmentVariableForm />,
+      component: <CreateEnvironmentVariableForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'gap-2 max-w-sm' },
@@ -119,6 +137,7 @@ export default function EnvironmentVariableSettings() {
       component: (
         <EditEnvironmentVariableForm
           originalEnvironmentVariable={originalVariable}
+          onSubmit={refetch}
         />
       ),
       props: {
@@ -159,7 +178,7 @@ export default function EnvironmentVariableSettings() {
       )}
       slotProps={{ submitButton: { className: 'hidden' } }}
     >
-      <Box className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3 lg:grid-cols-3">
+      <Box className="grid grid-cols-2 gap-2 px-4 py-3 border-b-1 lg:grid-cols-3">
         <Text className="font-medium">Variable Name</Text>
       </Box>
 
@@ -175,7 +194,7 @@ export default function EnvironmentVariableSettings() {
                       <Dropdown.Trigger
                         asChild
                         hideChevron
-                        className="absolute right-4 top-1/2 -translate-y-1/2"
+                        className="absolute -translate-y-1/2 right-4 top-1/2"
                       >
                         <IconButton
                           variant="borderless"

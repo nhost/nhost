@@ -1,3 +1,4 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
@@ -12,6 +13,7 @@ import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { ComputeFormSection } from '@/features/services/components/ServiceForm/components/ComputeFormSection';
 import {
@@ -20,6 +22,7 @@ import {
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
@@ -50,9 +53,13 @@ const validationSchema = Yup.object({
 export type AISettingsFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function AISettings() {
-  const { maintenanceActive } = useUI();
+  const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
-  const [updateConfig] = useUpdateConfigMutation();
+  const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
+  const [updateConfig] = useUpdateConfigMutation({
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const [aiServiceEnabled, setAIServiceEnabled] = useState(true);
@@ -67,6 +74,7 @@ export default function AISettings() {
     variables: {
       appId: currentProject.id,
     },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data: graphiteVersionsData, loading: loadingGraphiteVersionsData } =
@@ -74,6 +82,7 @@ export default function AISettings() {
       variables: {
         software: Software_Type_Enum.Graphite,
       },
+      skip: !isPlatform,
     });
 
   const graphiteVersions = graphiteVersionsData?.softwareVersions || [];
@@ -98,8 +107,8 @@ export default function AISettings() {
     reValidateMode: 'onSubmit',
     defaultValues: {
       version: {
-        label: ai?.version ?? availableVersions?.at(0)?.label,
-        value: ai?.version ?? availableVersions?.at(0)?.value,
+        label: ai?.version || availableVersions?.at(0)?.label || '',
+        value: ai?.version || availableVersions?.at(0)?.value || '',
       },
       webhookSecret: '',
       organization: '',
@@ -225,6 +234,18 @@ export default function AISettings() {
         });
 
         form.reset(formValues);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'AI settings are being updated...',
@@ -247,7 +268,7 @@ export default function AISettings() {
 
   return (
     <Box className="space-y-4" sx={{ backgroundColor: 'background.default' }}>
-      <Box className="flex flex-row items-center justify-between rounded-lg border-1 p-4">
+      <Box className="flex flex-row items-center justify-between p-4 rounded-lg border-1">
         <Text className="text-lg font-semibold">Enable AI service</Text>
         <Switch
           checked={aiServiceEnabled}
@@ -270,54 +291,58 @@ export default function AISettings() {
               className="flex flex-col"
             >
               <Box className="space-y-4">
-                {availableVersions.length > 0 && (
-                  <Box className="space-y-2">
-                    <Box className="flex flex-row items-center space-x-2">
-                      <Text className="text-lg font-semibold">Version</Text>
-                      <Tooltip title="Version of the service to use.">
-                        <InfoIcon
-                          aria-label="Info"
-                          className="h-4 w-4"
-                          color="primary"
-                        />
-                      </Tooltip>
-                    </Box>
-                    <ControlledAutocomplete
-                      id="version"
-                      name="version"
-                      autoHighlight
-                      isOptionEqualToValue={() => false}
-                      filterOptions={(options, { inputValue }) => {
-                        const inputValueLower = inputValue.toLowerCase();
-                        const matched = [];
-                        const otherOptions = [];
-
-                        options.forEach((option) => {
-                          const optionLabelLower = option.label.toLowerCase();
-
-                          if (optionLabelLower.startsWith(inputValueLower)) {
-                            matched.push(option);
-                          } else {
-                            otherOptions.push(option);
-                          }
-                        });
-
-                        const result = [...matched, ...otherOptions];
-
-                        return result;
-                      }}
-                      fullWidth
-                      className="col-span-4"
-                      options={availableVersions}
-                      error={!!formState.errors?.version?.message}
-                      helperText={formState.errors?.version?.message}
-                      showCustomOption="auto"
-                      customOptionLabel={(value) =>
-                        `Use custom value: "${value}"`
-                      }
-                    />
+                <Box className="space-y-2">
+                  <Box className="flex flex-row items-center space-x-2">
+                    <Text className="text-lg font-semibold">Version</Text>
+                    <Tooltip title="Version of the service to use.">
+                      <InfoIcon
+                        aria-label="Info"
+                        className="w-4 h-4"
+                        color="primary"
+                      />
+                    </Tooltip>
                   </Box>
-                )}
+                  <ControlledAutocomplete
+                    id="version"
+                    name="version"
+                    autoHighlight
+                    isOptionEqualToValue={() => false}
+                    filterOptions={(options, { inputValue }) => {
+                      const inputValueLower = inputValue.toLowerCase();
+                      const matched = [];
+                      const otherOptions = [];
+
+                      options.forEach((option) => {
+                        const optionLabelLower = option.label.toLowerCase();
+
+                        if (optionLabelLower.startsWith(inputValueLower)) {
+                          matched.push(option);
+                        } else {
+                          otherOptions.push(option);
+                        }
+                      });
+
+                      const result = [...matched, ...otherOptions];
+
+                      return result;
+                    }}
+                    fullWidth
+                    className="col-span-4"
+                    options={availableVersions}
+                    error={
+                      !!formState.errors?.version?.message ||
+                      !!formState.errors?.version?.value?.message
+                    }
+                    helperText={
+                      formState.errors?.version?.message ||
+                      formState.errors?.version?.value?.message
+                    }
+                    showCustomOption="auto"
+                    customOptionLabel={(value) =>
+                      `Use custom value: "${value}"`
+                    }
+                  />
+                </Box>
 
                 <Box className="space-y-2">
                   <Box className="flex flex-row items-center space-x-2">
@@ -327,7 +352,7 @@ export default function AISettings() {
                     <Tooltip title="Used to validate requests between postgres and the AI service. The AI service will also include the header X-Graphite-Webhook-Secret with this value set when calling external webhooks so the source of the request can be validated.">
                       <InfoIcon
                         aria-label="Info"
-                        className="h-4 w-4"
+                        className="w-4 h-4"
                         color="primary"
                       />
                     </Tooltip>
@@ -351,26 +376,28 @@ export default function AISettings() {
                     <Tooltip title="Dedicated resources allocated for the service.">
                       <InfoIcon
                         aria-label="Info"
-                        className="h-4 w-4"
+                        className="w-4 h-4"
                         color="primary"
                       />
                     </Tooltip>
                   </Box>
 
-                  <Alert
-                    severity="info"
-                    className="flex items-center justify-between space-x-2"
-                  >
-                    <span>{getAIResourcesCost()}</span>
-                    <b>
-                      $
-                      {parseFloat(
-                        (
-                          aiSettingsFormValues.compute.cpu * COST_PER_VCPU
-                        ).toFixed(2),
-                      )}
-                    </b>
-                  </Alert>
+                  {isPlatform ? (
+                    <Alert
+                      severity="info"
+                      className="flex items-center justify-between space-x-2"
+                    >
+                      <span>{getAIResourcesCost()}</span>
+                      <b>
+                        $
+                        {parseFloat(
+                          (
+                            aiSettingsFormValues.compute.cpu * COST_PER_VCPU
+                          ).toFixed(2),
+                        )}
+                      </b>
+                    </Alert>
+                  ) : null}
 
                   <ComputeFormSection />
                 </Box>
@@ -389,7 +416,7 @@ export default function AISettings() {
                         <Tooltip title="Key to use for authenticating API requests to OpenAI">
                           <InfoIcon
                             aria-label="Info"
-                            className="h-4 w-4"
+                            className="w-4 h-4"
                             color="primary"
                           />
                         </Tooltip>
@@ -412,7 +439,7 @@ export default function AISettings() {
                         <Tooltip title="Optional. OpenAI organization to use.">
                           <InfoIcon
                             aria-label="Info"
-                            className="h-4 w-4"
+                            className="w-4 h-4"
                             color="primary"
                           />
                         </Tooltip>
@@ -440,7 +467,7 @@ export default function AISettings() {
                         <Tooltip title="How often to run the job that keeps embeddings up to date.">
                           <InfoIcon
                             aria-label="Info"
-                            className="h-4 w-4"
+                            className="w-4 h-4"
                             color="primary"
                           />
                         </Tooltip>

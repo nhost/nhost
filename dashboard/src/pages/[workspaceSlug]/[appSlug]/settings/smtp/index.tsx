@@ -1,3 +1,5 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { Form } from '@/components/form/Form';
@@ -8,6 +10,8 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetSmtpSettingsDocument,
@@ -45,11 +49,15 @@ const smtpValidationSchema = yup
 export type SmtpFormValues = yup.InferType<typeof smtpValidationSchema>;
 
 export default function SMTPSettingsPage() {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { data, loading, error } = useGetSmtpSettingsQuery({
     variables: { appId: currentProject?.id },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { secure, host, port, user, method, sender } =
@@ -85,9 +93,10 @@ export default function SMTPSettingsPage() {
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSmtpSettingsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  if (currentProject.plan.isFree) {
+  if (isPlatform && currentProject?.plan?.isFree) {
     return (
       <Container
         className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"
@@ -129,6 +138,18 @@ export default function SMTPSettingsPage() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'SMTP settings are being updated...',

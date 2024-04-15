@@ -1,5 +1,8 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import type {
   BaseEnvironmentVariableFormProps,
   BaseEnvironmentVariableFormValues,
@@ -8,6 +11,7 @@ import {
   BaseEnvironmentVariableForm,
   baseEnvironmentVariableFormValidationSchema,
 } from '@/features/projects/environmentVariables/settings/components/BaseEnvironmentVariableForm';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import type { EnvironmentVariable } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
@@ -27,7 +31,7 @@ export interface EditEnvironmentVariableFormProps
   /**
    * Function to be called when the form is submitted.
    */
-  onSubmit?: () => Promise<void>;
+  onSubmit?: () => Promise<any>;
 }
 
 export default function EditEnvironmentVariableForm({
@@ -35,6 +39,10 @@ export default function EditEnvironmentVariableForm({
   onSubmit,
   ...props
 }: EditEnvironmentVariableFormProps) {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
+
   const form = useForm<BaseEnvironmentVariableFormValues>({
     defaultValues: {
       id: originalEnvironmentVariable.id || '',
@@ -49,13 +57,14 @@ export default function EditEnvironmentVariableForm({
 
   const { data, loading, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const availableEnvironmentVariables = data?.config?.global?.environment || [];
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetEnvironmentVariablesDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (loading) {
@@ -117,7 +126,19 @@ export default function EditEnvironmentVariableForm({
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
-        onSubmit?.();
+        await onSubmit?.();
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Updating environment variable...',

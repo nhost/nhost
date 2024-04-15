@@ -1,14 +1,19 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   GetAuthenticationSettingsDocument,
   useGetAuthenticationSettingsQuery,
   useUpdateConfigMutation,
 } from '@/utils/__generated__/graphql';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -19,15 +24,19 @@ const validationSchema = Yup.object({
 export type DisableNewUsersFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function DisableNewUsersSettings() {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetAuthenticationSettingsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const form = useForm<DisableNewUsersFormValues>({
@@ -36,6 +45,14 @@ export default function DisableNewUsersSettings() {
       disabled: !data?.config?.auth?.signUp?.enabled,
     },
   });
+
+  useEffect(() => {
+    if (!loading) {
+      form.reset({
+        disabled: !data?.config?.auth?.signUp?.enabled,
+      });
+    }
+  }, [loading, data, form]);
 
   if (loading) {
     return (
@@ -73,6 +90,18 @@ export default function DisableNewUsersSettings() {
       async () => {
         await updateConfigPromise;
         form.reset(values);
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Disabling new user sign ups...',

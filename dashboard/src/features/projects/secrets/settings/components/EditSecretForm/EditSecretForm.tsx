@@ -1,4 +1,5 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import type {
   BaseSecretFormProps,
   BaseSecretFormValues,
@@ -7,6 +8,7 @@ import {
   BaseSecretForm,
   baseSecretFormValidationSchema,
 } from '@/features/projects/secrets/settings/components/BaseSecretForm';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import type { Secret } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
@@ -33,6 +35,9 @@ export default function EditSecretForm({
   onSubmit,
   ...props
 }: EditSecretFormProps) {
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
+
   const form = useForm<BaseSecretFormValues>({
     defaultValues: {
       name: originalSecret.name,
@@ -45,6 +50,7 @@ export default function EditSecretForm({
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateSecret] = useUpdateSecretMutation({
     refetchQueries: [GetSecretsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   async function handleSubmit({ name, value }: BaseSecretFormValues) {

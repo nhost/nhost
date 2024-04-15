@@ -1,3 +1,40 @@
+fragment RunServiceConfig on ConfigRunServiceConfig {
+  name
+  image {
+    image
+  }
+  command
+  resources {
+    compute {
+      cpu
+      memory
+    }
+    storage {
+      name
+      path
+      capacity
+    }
+    replicas
+  }
+  environment {
+    name
+    value
+  }
+  ports {
+    port
+    type
+    publish
+    ingresses {
+      fqdn
+    }
+  }
+  healthCheck {
+    port
+    initialDelaySeconds
+    probePeriodSeconds
+  }
+}
+
 query getRunServices(
   $appID: uuid!
   $resolve: Boolean!
@@ -11,46 +48,22 @@ query getRunServices(
       updatedAt
       subdomain
       config(resolve: $resolve) {
-        name
-        image {
-          image
-        }
-        command
-        resources {
-          compute {
-            cpu
-            memory
-          }
-          storage {
-            name
-            path
-            capacity
-          }
-          replicas
-        }
-        environment {
-          name
-          value
-        }
-        ports {
-          port
-          type
-          publish
-          ingresses {
-            fqdn
-          }
-        }
-        healthCheck {
-          port
-          initialDelaySeconds
-          probePeriodSeconds
-        }
+        ...RunServiceConfig
       }
     }
     runServices_aggregate {
       aggregate {
         count
       }
+    }
+  }
+}
+
+query getLocalRunServiceConfigs($appID: uuid!, $resolve: Boolean!) {
+  runServiceConfigs(appID: $appID, resolve: $resolve) {
+    serviceID
+    config {
+      ...RunServiceConfig
     }
   }
 }

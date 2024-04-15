@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { copy } from '@/utils/copy';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useDnsLookupCnameLazyQuery } from '@/utils/__generated__/graphql';
@@ -21,6 +22,7 @@ export default function VerifyDomain({
   value,
   onHostNameVerified,
 }: VerifyDomainProps) {
+  const isPlatform = useIsPlatform();
   const [verificationFailed, setVerificationFailed] = useState(false);
   const [verificationSucceeded, setVerificationSucceeded] = useState(false);
 
@@ -72,8 +74,11 @@ export default function VerifyDomain({
           backgroundColor: 'success.light',
           color: 'success.dark',
         },
+        !isPlatform && {
+          backgroundColor: 'grey.300',
+        },
       ]}
-      className="flex flex-col space-y-4 rounded-md p-4"
+      className="flex flex-col p-4 space-y-4 rounded-md"
     >
       <div className="flex flex-row items-center justify-between">
         {!verificationFailed && !verificationSucceeded && (
@@ -110,23 +115,29 @@ export default function VerifyDomain({
         </div>
         <div className="flex flex-row space-x-2">
           <Text>Value:</Text>
-          <Text className="font-bold">{value}</Text>
-          <IconButton
-            aria-label="Copy Personal Access Token"
-            variant="borderless"
-            color="secondary"
-            onClick={() => copy(value, 'CNAME Value')}
-          >
-            <CopyIcon className="h-4 w-4" />
-          </IconButton>
+          {isPlatform ? (
+            <>
+              <Text className="font-bold">{value}</Text>
+              <IconButton
+                aria-label="Copy Personal Access Token"
+                variant="borderless"
+                color="secondary"
+                onClick={() => copy(value, 'CNAME Value')}
+              >
+                <CopyIcon className="w-4 h-4" />
+              </IconButton>
+            </>
+          ) : null}
         </div>
-        <Button
-          disabled={loading || !hostname}
-          onClick={handleVerifyDomain}
-          className="mt-4 sm:absolute sm:bottom-0 sm:right-0 sm:mt-0"
-        >
-          Verify
-        </Button>
+        {isPlatform ? (
+          <Button
+            disabled={loading || !hostname || isPlatform}
+            onClick={handleVerifyDomain}
+            className="mt-4 sm:absolute sm:bottom-0 sm:right-0 sm:mt-0"
+          >
+            Verify
+          </Button>
+        ) : null}
       </div>
     </Box>
   );

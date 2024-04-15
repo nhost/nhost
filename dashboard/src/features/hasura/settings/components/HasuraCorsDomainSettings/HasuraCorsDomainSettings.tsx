@@ -1,14 +1,18 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetHasuraSettingsDocument,
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -28,16 +32,20 @@ const validationSchema = Yup.object({
 export type HasuraCorsDomainFormValues = Yup.InferType<typeof validationSchema>;
 
 export default function HasuraCorsDomainSettings() {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetHasuraSettingsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetHasuraSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-first',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { corsDomain } = data?.config?.hasura.settings || {};
@@ -98,6 +106,18 @@ export default function HasuraCorsDomainSettings() {
         await updateConfigPromise;
         form.reset(formValues);
         await refetchWorkspaceAndProject();
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'CORS domain settings are being updated...',

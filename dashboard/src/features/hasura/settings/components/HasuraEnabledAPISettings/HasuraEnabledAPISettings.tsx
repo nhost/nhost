@@ -1,16 +1,21 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetHasuraSettingsDocument,
   useGetHasuraSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -30,30 +35,39 @@ export type HasuraEnabledAPIFormValues = Yup.InferType<typeof validationSchema>;
 const AVAILABLE_HASURA_APIS = ['metadata', 'graphql', 'pgdump', 'config'];
 
 export default function HasuraEnabledAPISettings() {
+  const { openDialog } = useDialog();
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetHasuraSettingsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { data, loading, error } = useGetHasuraSettingsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { enabledAPIs } = data?.config?.hasura.settings || {};
+  const { enabledAPIs = [] } = data?.config?.hasura?.settings || {};
 
   const form = useForm<HasuraEnabledAPIFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      enabledAPIs: enabledAPIs.map((api) => ({
-        label: api,
-        value: api,
-      })),
+      enabledAPIs: [],
     },
     resolver: yupResolver(validationSchema),
   });
+
+  useEffect(() => {
+    if (enabledAPIs && !loading) {
+      form.reset({
+        enabledAPIs: enabledAPIs.map((api) => ({ label: api, value: api })),
+      });
+    }
+  }, [form, enabledAPIs, loading]);
 
   if (loading) {
     return (
@@ -96,6 +110,18 @@ export default function HasuraEnabledAPISettings() {
         await updateConfigPromise;
         form.reset(formValues);
         await refetchWorkspaceAndProject();
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Enabled APIs are being updated...',
@@ -117,7 +143,7 @@ export default function HasuraEnabledAPISettings() {
               loading: formState.isSubmitting,
             },
           }}
-          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-6"
+          className="grid grid-flow-row px-4 gap-x-4 gap-y-2 lg:grid-cols-6"
         >
           <ControlledAutocomplete
             id="enabledAPIs"

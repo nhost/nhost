@@ -11,15 +11,20 @@ import { GravatarSettings } from '@/features/authentication/settings/components/
 import { MFASettings } from '@/features/authentication/settings/components/MFASettings';
 import { SessionSettings } from '@/features/authentication/settings/components/SessionSettings';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { useGetAuthenticationSettingsQuery } from '@/utils/__generated__/graphql';
 import type { ReactElement } from 'react';
 
 export default function SettingsAuthenticationPage() {
   const { currentProject } = useCurrentWorkspaceAndProject();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
 
   const { data, loading, error } = useGetAuthenticationSettingsQuery({
     variables: { appId: currentProject?.id },
     skip: !currentProject,
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (!data && loading) {
@@ -38,7 +43,7 @@ export default function SettingsAuthenticationPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
+      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
       rootClassName="bg-transparent"
     >
       <AuthServiceVersionSettings />

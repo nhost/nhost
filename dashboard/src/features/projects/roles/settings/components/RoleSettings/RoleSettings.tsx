@@ -1,3 +1,4 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -15,9 +16,11 @@ import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { CreateRoleForm } from '@/features/projects/roles/settings/components/CreateRoleForm';
 import { EditRoleForm } from '@/features/projects/roles/settings/components/EditRoleForm';
 import { getUserRoles } from '@/features/projects/roles/settings/utils/getUserRoles';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import type { Role } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
@@ -40,13 +43,15 @@ export interface RoleSettingsFormValues {
 }
 
 export default function RoleSettings() {
+  const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
+  const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const { openDialog, openAlertDialog } = useDialog();
 
-  const { data, loading, error } = useGetRolesPermissionsQuery({
+  const { data, loading, error, refetch } = useGetRolesPermissionsQuery({
     variables: { appId: currentProject?.id },
-    fetchPolicy: 'cache-only',
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { allowed: allowedRoles, default: defaultRole } =
@@ -54,6 +59,7 @@ export default function RoleSettings() {
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetRolesPermissionsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (loading) {
@@ -62,6 +68,20 @@ export default function RoleSettings() {
 
   if (error) {
     throw error;
+  }
+
+  async function showApplyChangesDialog() {
+    if (!isPlatform) {
+      openDialog({
+        title: 'Apply your changes',
+        component: <ApplyLocalSettingsDialog />,
+        props: {
+          PaperProps: {
+            className: 'max-w-2xl',
+          },
+        },
+      });
+    }
   }
 
   async function handleSetAsDefault({ name }: Role) {
@@ -84,6 +104,7 @@ export default function RoleSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        showApplyChangesDialog();
       },
       {
         loadingMessage: 'Updating default role...',
@@ -114,6 +135,7 @@ export default function RoleSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        showApplyChangesDialog();
       },
       {
         loadingMessage: 'Deleting allowed role...',
@@ -127,7 +149,7 @@ export default function RoleSettings() {
   function handleOpenCreator() {
     openDialog({
       title: 'Create Allowed Role',
-      component: <CreateRoleForm />,
+      component: <CreateRoleForm onSubmit={refetch} />,
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -138,7 +160,9 @@ export default function RoleSettings() {
   function handleOpenEditor(originalRole: Role) {
     openDialog({
       title: 'Edit Allowed Role',
-      component: <EditRoleForm originalRole={originalRole} />,
+      component: (
+        <EditRoleForm originalRole={originalRole} onSubmit={refetch} />
+      ),
       props: {
         titleProps: { className: '!pb-0' },
         PaperProps: { className: 'max-w-sm' },
@@ -177,7 +201,7 @@ export default function RoleSettings() {
       )}
       slotProps={{ submitButton: { className: 'hidden' } }}
     >
-      <Box className="border-b-1 px-4 py-3">
+      <Box className="px-4 py-3 border-b-1">
         <Text className="font-medium">Name</Text>
       </Box>
 
@@ -193,7 +217,7 @@ export default function RoleSettings() {
                       <Dropdown.Trigger
                         asChild
                         hideChevron
-                        className="absolute right-4 top-1/2 -translate-y-1/2"
+                        className="absolute -translate-y-1/2 right-4 top-1/2"
                       >
                         <IconButton
                           variant="borderless"
@@ -252,7 +276,7 @@ export default function RoleSettings() {
                       <>
                         {role.name}
 
-                        {role.isSystemRole && <LockIcon className="h-4 w-4" />}
+                        {role.isSystemRole && <LockIcon className="w-4 h-4" />}
 
                         {defaultRole === role.name && (
                           <Chip
