@@ -1,5 +1,15 @@
 # @nhost/docs
 
+## 2.10.0
+
+### Minor Changes
+
+- 87ae23b: feat: added "advanced graphql" documentation
+
+### Patch Changes
+
+- b2be364: feat: added postmark native integration
+
 ## 2.9.0
 
 ### Minor Changes

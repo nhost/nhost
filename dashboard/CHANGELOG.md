@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 1.13.0
+
+### Minor Changes
+
+- dd5d262: feat: add model field to the auto-embeddings form
+- 09962be: feat: enable settings and run services when running the dashboard locally
+- 9cdecb6: feat: enable users to update their email address from the account settings page
+
 ## 1.12.2
 
 ### Patch Changes
