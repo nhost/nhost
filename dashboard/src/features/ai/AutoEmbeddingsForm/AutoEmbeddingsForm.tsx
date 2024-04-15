@@ -101,6 +101,13 @@ export default function AutoEmbeddingsForm({
     formState: { errors, isSubmitting, dirtyFields },
   } = form;
 
+  useEffect(() => {
+    form.setValue('model', {
+      label: initialData?.model ?? 'text-embedding-ada-002',
+      value: initialData?.model ?? 'text-embedding-ada-002',
+    });
+  }, [initialData, form]);
+
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   const availableModels = AUTO_EMBEDDINGS_MODELS.map((model) => ({
@@ -228,10 +235,6 @@ export default function AutoEmbeddingsForm({
             fullWidth
             className="lg:col-span-2"
             options={availableModels}
-            defaultValue={{
-              label: 'text-embedding-ada-002',
-              value: 'text-embedding-ada-002',
-            }}
             error={!!errors?.model?.value?.message}
             helperText={errors?.model?.value?.message}
           />
