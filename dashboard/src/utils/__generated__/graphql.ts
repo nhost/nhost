@@ -19,6 +19,7 @@ export type Scalars = {
   ConfigLocale: any;
   ConfigPort: any;
   ConfigRunServiceName: any;
+  ConfigUint: any;
   ConfigUint8: any;
   ConfigUint32: any;
   ConfigUrl: any;
@@ -1113,6 +1114,8 @@ export type ConfigConfig = {
   functions?: Maybe<ConfigFunctions>;
   /** Global configuration that applies to all services */
   global?: Maybe<ConfigGlobal>;
+  /** Advanced configuration for GraphQL */
+  graphql?: Maybe<ConfigGraphql>;
   /** Configuration for hasura */
   hasura: ConfigHasura;
   /** Configuration for observability service */
@@ -1133,6 +1136,7 @@ export type ConfigConfigComparisonExp = {
   auth?: InputMaybe<ConfigAuthComparisonExp>;
   functions?: InputMaybe<ConfigFunctionsComparisonExp>;
   global?: InputMaybe<ConfigGlobalComparisonExp>;
+  graphql?: InputMaybe<ConfigGraphqlComparisonExp>;
   hasura?: InputMaybe<ConfigHasuraComparisonExp>;
   observability?: InputMaybe<ConfigObservabilityComparisonExp>;
   postgres?: InputMaybe<ConfigPostgresComparisonExp>;
@@ -1145,6 +1149,7 @@ export type ConfigConfigInsertInput = {
   auth?: InputMaybe<ConfigAuthInsertInput>;
   functions?: InputMaybe<ConfigFunctionsInsertInput>;
   global?: InputMaybe<ConfigGlobalInsertInput>;
+  graphql?: InputMaybe<ConfigGraphqlInsertInput>;
   hasura: ConfigHasuraInsertInput;
   observability: ConfigObservabilityInsertInput;
   postgres?: InputMaybe<ConfigPostgresInsertInput>;
@@ -1157,6 +1162,7 @@ export type ConfigConfigUpdateInput = {
   auth?: InputMaybe<ConfigAuthUpdateInput>;
   functions?: InputMaybe<ConfigFunctionsUpdateInput>;
   global?: InputMaybe<ConfigGlobalUpdateInput>;
+  graphql?: InputMaybe<ConfigGraphqlUpdateInput>;
   hasura?: InputMaybe<ConfigHasuraUpdateInput>;
   observability?: InputMaybe<ConfigObservabilityUpdateInput>;
   postgres?: InputMaybe<ConfigPostgresUpdateInput>;
@@ -1335,11 +1341,56 @@ export type ConfigGrafanaUpdateInput = {
   adminPassword?: InputMaybe<Scalars['String']>;
 };
 
+export type ConfigGraphql = {
+  __typename?: 'ConfigGraphql';
+  security?: Maybe<ConfigGraphqlSecurity>;
+};
+
+export type ConfigGraphqlComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGraphqlComparisonExp>>;
+  _not?: InputMaybe<ConfigGraphqlComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGraphqlComparisonExp>>;
+  security?: InputMaybe<ConfigGraphqlSecurityComparisonExp>;
+};
+
+export type ConfigGraphqlInsertInput = {
+  security?: InputMaybe<ConfigGraphqlSecurityInsertInput>;
+};
+
+export type ConfigGraphqlSecurity = {
+  __typename?: 'ConfigGraphqlSecurity';
+  forbidAminSecret?: Maybe<Scalars['Boolean']>;
+  maxDepthQueries?: Maybe<Scalars['ConfigUint']>;
+};
+
+export type ConfigGraphqlSecurityComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGraphqlSecurityComparisonExp>>;
+  _not?: InputMaybe<ConfigGraphqlSecurityComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGraphqlSecurityComparisonExp>>;
+  forbidAminSecret?: InputMaybe<ConfigBooleanComparisonExp>;
+  maxDepthQueries?: InputMaybe<ConfigUintComparisonExp>;
+};
+
+export type ConfigGraphqlSecurityInsertInput = {
+  forbidAminSecret?: InputMaybe<Scalars['Boolean']>;
+  maxDepthQueries?: InputMaybe<Scalars['ConfigUint']>;
+};
+
+export type ConfigGraphqlSecurityUpdateInput = {
+  forbidAminSecret?: InputMaybe<Scalars['Boolean']>;
+  maxDepthQueries?: InputMaybe<Scalars['ConfigUint']>;
+};
+
+export type ConfigGraphqlUpdateInput = {
+  security?: InputMaybe<ConfigGraphqlSecurityUpdateInput>;
+};
+
 /** Configuration for hasura service */
 export type ConfigHasura = {
   __typename?: 'ConfigHasura';
   /** Admin secret */
   adminSecret: Scalars['String'];
+  authHook?: Maybe<ConfigHasuraAuthHook>;
   events?: Maybe<ConfigHasuraEvents>;
   /** JWT Secrets configuration */
   jwtSecrets?: Maybe<Array<ConfigJwtSecret>>;
@@ -1367,11 +1418,42 @@ export type ConfigHasuraApIsComparisonExp = {
   _nin?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
 };
 
+export type ConfigHasuraAuthHook = {
+  __typename?: 'ConfigHasuraAuthHook';
+  mode?: Maybe<Scalars['String']>;
+  /** HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY */
+  sendRequestBody?: Maybe<Scalars['Boolean']>;
+  /** HASURA_GRAPHQL_AUTH_HOOK */
+  url: Scalars['String'];
+};
+
+export type ConfigHasuraAuthHookComparisonExp = {
+  _and?: InputMaybe<Array<ConfigHasuraAuthHookComparisonExp>>;
+  _not?: InputMaybe<ConfigHasuraAuthHookComparisonExp>;
+  _or?: InputMaybe<Array<ConfigHasuraAuthHookComparisonExp>>;
+  mode?: InputMaybe<ConfigStringComparisonExp>;
+  sendRequestBody?: InputMaybe<ConfigBooleanComparisonExp>;
+  url?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigHasuraAuthHookInsertInput = {
+  mode?: InputMaybe<Scalars['String']>;
+  sendRequestBody?: InputMaybe<Scalars['Boolean']>;
+  url: Scalars['String'];
+};
+
+export type ConfigHasuraAuthHookUpdateInput = {
+  mode?: InputMaybe<Scalars['String']>;
+  sendRequestBody?: InputMaybe<Scalars['Boolean']>;
+  url?: InputMaybe<Scalars['String']>;
+};
+
 export type ConfigHasuraComparisonExp = {
   _and?: InputMaybe<Array<ConfigHasuraComparisonExp>>;
   _not?: InputMaybe<ConfigHasuraComparisonExp>;
   _or?: InputMaybe<Array<ConfigHasuraComparisonExp>>;
   adminSecret?: InputMaybe<ConfigStringComparisonExp>;
+  authHook?: InputMaybe<ConfigHasuraAuthHookComparisonExp>;
   events?: InputMaybe<ConfigHasuraEventsComparisonExp>;
   jwtSecrets?: InputMaybe<ConfigJwtSecretComparisonExp>;
   logs?: InputMaybe<ConfigHasuraLogsComparisonExp>;
@@ -1404,6 +1486,7 @@ export type ConfigHasuraEventsUpdateInput = {
 
 export type ConfigHasuraInsertInput = {
   adminSecret: Scalars['String'];
+  authHook?: InputMaybe<ConfigHasuraAuthHookInsertInput>;
   events?: InputMaybe<ConfigHasuraEventsInsertInput>;
   jwtSecrets?: InputMaybe<Array<ConfigJwtSecretInsertInput>>;
   logs?: InputMaybe<ConfigHasuraLogsInsertInput>;
@@ -1495,6 +1578,7 @@ export type ConfigHasuraSettingsUpdateInput = {
 
 export type ConfigHasuraUpdateInput = {
   adminSecret?: InputMaybe<Scalars['String']>;
+  authHook?: InputMaybe<ConfigHasuraAuthHookUpdateInput>;
   events?: InputMaybe<ConfigHasuraEventsUpdateInput>;
   jwtSecrets?: InputMaybe<Array<ConfigJwtSecretUpdateInput>>;
   logs?: InputMaybe<ConfigHasuraLogsUpdateInput>;
@@ -2333,6 +2417,7 @@ export type ConfigStringComparisonExp = {
 export type ConfigSystemConfig = {
   __typename?: 'ConfigSystemConfig';
   auth?: Maybe<ConfigSystemConfigAuth>;
+  graphql?: Maybe<ConfigSystemConfigGraphql>;
   postgres: ConfigSystemConfigPostgres;
 };
 
@@ -2401,11 +2486,37 @@ export type ConfigSystemConfigComparisonExp = {
   _not?: InputMaybe<ConfigSystemConfigComparisonExp>;
   _or?: InputMaybe<Array<ConfigSystemConfigComparisonExp>>;
   auth?: InputMaybe<ConfigSystemConfigAuthComparisonExp>;
+  graphql?: InputMaybe<ConfigSystemConfigGraphqlComparisonExp>;
   postgres?: InputMaybe<ConfigSystemConfigPostgresComparisonExp>;
+};
+
+export type ConfigSystemConfigGraphql = {
+  __typename?: 'ConfigSystemConfigGraphql';
+  /**
+   * manually enable graphi on a per-service basis
+   * by default it follows the plan
+   */
+  featureAdvancedGraphql?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigSystemConfigGraphqlComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSystemConfigGraphqlComparisonExp>>;
+  _not?: InputMaybe<ConfigSystemConfigGraphqlComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSystemConfigGraphqlComparisonExp>>;
+  featureAdvancedGraphql?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigSystemConfigGraphqlInsertInput = {
+  featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigSystemConfigGraphqlUpdateInput = {
+  featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type ConfigSystemConfigInsertInput = {
   auth?: InputMaybe<ConfigSystemConfigAuthInsertInput>;
+  graphql?: InputMaybe<ConfigSystemConfigGraphqlInsertInput>;
   postgres: ConfigSystemConfigPostgresInsertInput;
 };
 
@@ -2471,6 +2582,7 @@ export type ConfigSystemConfigPostgresUpdateInput = {
 
 export type ConfigSystemConfigUpdateInput = {
   auth?: InputMaybe<ConfigSystemConfigAuthUpdateInput>;
+  graphql?: InputMaybe<ConfigSystemConfigGraphqlUpdateInput>;
   postgres?: InputMaybe<ConfigSystemConfigPostgresUpdateInput>;
 };
 
@@ -2486,6 +2598,13 @@ export type ConfigUint32ComparisonExp = {
   _in?: InputMaybe<Array<Scalars['ConfigUint32']>>;
   _neq?: InputMaybe<Scalars['ConfigUint32']>;
   _nin?: InputMaybe<Array<Scalars['ConfigUint32']>>;
+};
+
+export type ConfigUintComparisonExp = {
+  _eq?: InputMaybe<Scalars['ConfigUint']>;
+  _in?: InputMaybe<Array<Scalars['ConfigUint']>>;
+  _neq?: InputMaybe<Scalars['ConfigUint']>;
+  _nin?: InputMaybe<Array<Scalars['ConfigUint']>>;
 };
 
 export type ConfigUrlComparisonExp = {
@@ -15011,6 +15130,7 @@ export type Plans = {
   apps_aggregate: Apps_Aggregate;
   createdAt: Scalars['timestamptz'];
   deprecated: Scalars['Boolean'];
+  featureAdvancedGraphql: Scalars['Boolean'];
   featureBackupEnabled: Scalars['Boolean'];
   featureCustomDomainsEnabled: Scalars['Boolean'];
   featureCustomEmailTemplatesEnabled: Scalars['Boolean'];
@@ -15113,6 +15233,7 @@ export type Plans_Bool_Exp = {
   apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   deprecated?: InputMaybe<Boolean_Comparison_Exp>;
+  featureAdvancedGraphql?: InputMaybe<Boolean_Comparison_Exp>;
   featureBackupEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomDomainsEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Boolean_Comparison_Exp>;
@@ -15163,6 +15284,7 @@ export type Plans_Insert_Input = {
   apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   deprecated?: InputMaybe<Scalars['Boolean']>;
+  featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
@@ -15269,6 +15391,7 @@ export type Plans_Order_By = {
   apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   deprecated?: InputMaybe<Order_By>;
+  featureAdvancedGraphql?: InputMaybe<Order_By>;
   featureBackupEnabled?: InputMaybe<Order_By>;
   featureCustomDomainsEnabled?: InputMaybe<Order_By>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Order_By>;
@@ -15307,6 +15430,8 @@ export enum Plans_Select_Column {
   CreatedAt = 'createdAt',
   /** column name */
   Deprecated = 'deprecated',
+  /** column name */
+  FeatureAdvancedGraphql = 'featureAdvancedGraphql',
   /** column name */
   FeatureBackupEnabled = 'featureBackupEnabled',
   /** column name */
@@ -15363,6 +15488,7 @@ export enum Plans_Select_Column {
 export type Plans_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   deprecated?: InputMaybe<Scalars['Boolean']>;
+  featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
@@ -15444,6 +15570,7 @@ export type Plans_Stream_Cursor_Input = {
 export type Plans_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   deprecated?: InputMaybe<Scalars['Boolean']>;
+  featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
@@ -15493,6 +15620,8 @@ export enum Plans_Update_Column {
   CreatedAt = 'createdAt',
   /** column name */
   Deprecated = 'deprecated',
+  /** column name */
+  FeatureAdvancedGraphql = 'featureAdvancedGraphql',
   /** column name */
   FeatureBackupEnabled = 'featureBackupEnabled',
   /** column name */

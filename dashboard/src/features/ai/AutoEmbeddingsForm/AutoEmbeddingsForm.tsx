@@ -1,4 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -20,11 +21,20 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
+const AUTO_EMBEDDINGS_MODELS = [
+  'text-embedding-ada-002',
+  'text-embedding-3-small',
+  'text-embedding-3-large',
+];
+
 export const validationSchema = Yup.object({
-  name: Yup.string().required('The name is required.'),
-  schemaName: Yup.string().required('The schema is required'),
-  tableName: Yup.string().required('The table is required'),
-  columnName: Yup.string().required('The column is required'),
+  name: Yup.string().required('The name field is required.'),
+  model: Yup.string()
+    .oneOf(AUTO_EMBEDDINGS_MODELS)
+    .required('The model field is required'),
+  schemaName: Yup.string().required('The schema field is required'),
+  tableName: Yup.string().required('The table field is required'),
+  columnName: Yup.string().required('The column field is required'),
   query: Yup.string(),
   mutation: Yup.string(),
 });
@@ -155,6 +165,44 @@ export default function AutoEmbeddingsForm({
             autoComplete="off"
             autoFocus
           />
+
+          <ControlledAutocomplete
+            id="model"
+            name="model"
+            autoHighlight
+            isOptionEqualToValue={() => false}
+            filterOptions={(options, { inputValue }) => {
+              const inputValueLower = inputValue.toLowerCase();
+              const matched = [];
+              const otherOptions = [];
+
+              options.forEach((option) => {
+                const optionLabelLower = option.label.toLowerCase();
+
+                if (optionLabelLower.startsWith(inputValueLower)) {
+                  matched.push(option);
+                } else {
+                  otherOptions.push(option);
+                }
+              });
+
+              const result = [...matched, ...otherOptions];
+
+              return result;
+            }}
+            fullWidth
+            className="lg:col-span-2"
+            defaultValue={AUTO_EMBEDDINGS_MODELS.at(0)}
+            options={AUTO_EMBEDDINGS_MODELS.map((model) => ({
+              label: model,
+              value: model,
+            }))}
+            error={!!errors?.model?.message}
+            helperText={errors?.model?.message}
+            showCustomOption="auto"
+            customOptionLabel={(value) => `Use custom value: "${value}"`}
+          />
+
           <Input
             {...register('schemaName')}
             id="schemaName"
