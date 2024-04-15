@@ -1,5 +1,6 @@
 mutation insertGraphiteAutoEmbeddingsConfiguration(
   $name: String
+  $model: embedding_model_enum
   $schemaName: String
   $tableName: String
   $columnName: String
@@ -9,6 +10,7 @@ mutation insertGraphiteAutoEmbeddingsConfiguration(
   insertGraphiteAutoEmbeddingsConfiguration(
     object: {
       name: $name
+      model: $model
       schemaName: $schemaName
       tableName: $tableName
       columnName: $columnName
