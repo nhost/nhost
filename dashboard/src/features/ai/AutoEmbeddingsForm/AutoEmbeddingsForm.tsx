@@ -1,5 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -7,6 +7,7 @@ import { ArrowsClockwise } from '@/components/ui/v2/icons/ArrowsClockwise';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
@@ -29,10 +30,7 @@ const AUTO_EMBEDDINGS_MODELS = [
 
 export const validationSchema = Yup.object({
   name: Yup.string().required('The name field is required.'),
-  model: Yup.object({
-    label: Yup.string().required(),
-    value: Yup.string().required(),
-  }),
+  model: Yup.string().oneOf(AUTO_EMBEDDINGS_MODELS),
   schemaName: Yup.string().required('The schema field is required'),
   tableName: Yup.string().required('The table field is required'),
   columnName: Yup.string().required('The column field is required'),
@@ -87,10 +85,7 @@ export default function AutoEmbeddingsForm({
   const form = useForm<AutoEmbeddingsFormValues>({
     defaultValues: {
       ...initialData,
-      model: {
-        label: initialData?.model ?? 'text-embedding-ada-002',
-        value: initialData?.model ?? 'text-embedding-ada-002',
-      },
+      model: initialData?.model ?? 'text-embedding-ada-002',
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
@@ -101,19 +96,7 @@ export default function AutoEmbeddingsForm({
     formState: { errors, isSubmitting, dirtyFields },
   } = form;
 
-  useEffect(() => {
-    form.setValue('model', {
-      label: initialData?.model ?? 'text-embedding-ada-002',
-      value: initialData?.model ?? 'text-embedding-ada-002',
-    });
-  }, [initialData, form]);
-
   const isDirty = Object.keys(dirtyFields).length > 0;
-
-  const availableModels = AUTO_EMBEDDINGS_MODELS.map((model) => ({
-    label: model,
-    value: model,
-  }));
 
   useEffect(() => {
     onDirtyStateChange(isDirty, location);
@@ -128,7 +111,6 @@ export default function AutoEmbeddingsForm({
         variables: {
           id: autoEmbeddingsId,
           ...values,
-          model: values.model.value,
         },
       });
 
@@ -138,7 +120,6 @@ export default function AutoEmbeddingsForm({
     await insertGraphiteAutoEmbeddingsConfiguration({
       variables: {
         ...values,
-        model: values.model.value,
       },
     });
   };
@@ -189,7 +170,10 @@ export default function AutoEmbeddingsForm({
             autoFocus
           />
 
-          <ControlledAutocomplete
+          <ControlledSelect
+            slotProps={{
+              popper: { disablePortal: false, className: 'z-[10000]' },
+            }}
             id="model"
             name="model"
             label={
@@ -204,40 +188,16 @@ export default function AutoEmbeddingsForm({
                 </Tooltip>
               </Box>
             }
-            freeSolo
-            getOptionLabel={(option) => {
-              if (typeof option === 'string') {
-                return option || '';
-              }
-
-              return option.value;
-            }}
-            isOptionEqualToValue={() => false}
-            filterOptions={(options, { inputValue }) => {
-              const inputValueLower = inputValue.toLowerCase();
-              const matched = [];
-              const otherOptions = [];
-
-              options.forEach((option) => {
-                const optionLabelLower = option.label.toLowerCase();
-
-                if (optionLabelLower.startsWith(inputValueLower)) {
-                  matched.push(option);
-                } else {
-                  otherOptions.push(option);
-                }
-              });
-
-              const result = [...matched, ...otherOptions];
-
-              return result;
-            }}
             fullWidth
-            className="lg:col-span-2"
-            options={availableModels}
-            error={!!errors?.model?.value?.message}
-            helperText={errors?.model?.value?.message}
-          />
+            error={!!errors?.model?.message}
+            helperText={errors?.model?.message}
+          >
+            {AUTO_EMBEDDINGS_MODELS.map((model) => (
+              <Option key={model} value={model}>
+                {model}
+              </Option>
+            ))}
+          </ControlledSelect>
 
           <Input
             {...register('schemaName')}
