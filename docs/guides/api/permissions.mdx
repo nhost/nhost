@@ -7,7 +7,7 @@ icon: octagon-exclamation
 
 **Permissions** or authorization rules are used to control acess to data and are set per role and table for each of the **select**, **insert**, **update**, and **delete** database operations.
 
-Permissions follow a **Zero Trust** model, meaning that by default, no role, with the exception of **admin**, has any access. Access has to be explicitly granted. 
+Permissions follow a **Zero Trust** model, meaning that by default, no role, with the exception of **admin**, has any access. Access has to be explicitly granted.
 
 ![Permission Variables](/images/guides/graphql/dashboard-permissions.png)
 
@@ -39,13 +39,13 @@ query {
 }
 ```
 
-### Arrays
+### JSONPath
 
-You must add `[]` at the end of the path for permission variables that are arrays.
+We leverage [JSONPath](https://goessner.net/articles/JsonPath/) to extract the data which means you have a good amount of flexibility. To help you build your queries you can leverage the following [playground](https://jsonpath.com). Just remember to skip `$.` when configuring them.
 
-#### Example 
+#### Example
 
-Let's say you have a permission variable `x-hasura-organization-ids`, the path should be, e.g., `user.profile.organizations.id[]`.
+Let's say you have a permission variable `x-hasura-organization-ids`, the path should be, e.g., `user.profile.organizations[*].id`.
 
 This will result in the following GraphQL query internally:
 
@@ -69,6 +69,10 @@ And result in the following permission variable:
 }
 ```
 
+<Note>
+This example is very useful for those building multi-tenant applications.
+</Note>
+
 ### Limitation on JSON/JSONB columns
 
 JSON columns cannot be used in custom claims, except the `users.metadata` column.
@@ -77,7 +81,7 @@ JSON columns cannot be used in custom claims, except the `users.metadata` column
 
 To use permission variables locally, add your claims to `nhost.toml` as follows:
 
-#### Example 
+#### Example
 
 Add a permission variable `x-hasura-organization-id`:
 
@@ -95,7 +99,7 @@ Every GraphQL request resolves permissions using a **single role**.
 
 #### Default Role
 
-Every user has one **default role**. The default role is used to resolve permissions if no role is specified using the `x-hasura-role` header in the GraphQL request. 
+Every user has one **default role**. The default role is used to resolve permissions if no role is specified using the `x-hasura-role` header in the GraphQL request.
 
 `user` is the default role for authenticated users.
 
