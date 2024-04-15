@@ -177,6 +177,8 @@ func migrations(
 		if err := dc.ApplyMigrations(ctx); err != nil {
 			return fmt.Errorf("failed to apply migrations: %w", err)
 		}
+	} else {
+		ce.Warnln("No migrations found, make sure this is intentional or it could lead to unexpected behavior")
 	}
 
 	if clienv.PathExists(filepath.Join(ce.Path.NhostFolder(), "metadata", "version.yaml")) {
@@ -184,6 +186,8 @@ func migrations(
 		if err := dc.ApplyMetadata(ctx); err != nil {
 			return fmt.Errorf("failed to apply metadata: %w", err)
 		}
+	} else {
+		ce.Warnln("No metadata found, make sure this is intentional or it could lead to unexpected behavior")
 	}
 
 	if applySeeds {
