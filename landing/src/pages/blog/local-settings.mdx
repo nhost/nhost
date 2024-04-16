@@ -1,0 +1,62 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Local Settings Made Easier',
+  description:
+    'Local settings are now available on the dashboard!',
+  image: '/images/blog/og-local-settings.png',
+  date: '2024-04-15',
+  authors: [
+    {
+      name: 'David Barroso',
+      title: 'CTO',
+      avatarUrl: '/images/avatars/david.jpeg',
+      url: 'https://twitter.com/dbarrosop',
+    },
+  ],
+  tags: ['Product', 'Auth'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Today we are excited to announce that the settings page in our dashboard is finally available locally when developing with the CLI:
+
+![dashboard](/images/blog/local-settings.png)
+
+This was no easy feat. As you know we have always aimed at configuration correctness, IaC, and the ability to replicate environments so to make this possible we had to port some of our cloud functionality to the CLI.
+
+This addition comes with no downsides, only upsides. As you edit your settings in the dashboard you will start seeing your local files update automagically:
+
+```diff
+❯ git diff
+diff --git a/examples/myproject/nhost/nhost.toml b/examples/myproject/nhost/nhost.toml
+index 5704afe4..71516608 100644
+--- a/examples/myproject/nhost/nhost.toml
++++ b/examples/myproject/nhost/nhost.toml
+@@ -64,7 +64,7 @@ expiresIn = 2592000
+ enabled = false
+
+ [auth.method.emailPasswordless]
+-enabled = false
++enabled = true
+
+ [auth.method.emailPassword]
+ hibpEnabled = false
+```
+
+Ensuring you can still keep your settings safely stored and tracked on git.
+
+## Nhost Run
+
+To make things more interesting [Nhost Run](https://nhost.io/product/run) is also supported. Starting the local environment with the command `nhost up --run-service ../mysvc/nhost-run-service.toml --run-service ../mysvc2/nhost-run-service.toml` will not only start the relevant Nhost Run services, but it will also allow you to configure them using the dashboard as well:
+
+![dashboard](/images/blog/local-settings-run.png)
+
+## Secrets
+
+As you probably noticed in the previous screenshot, secrets are also supported, providing you with the tools you need to manage your settings via the dashboard without sacrificing any of the useful properties that managing your project with the `toml` file offers.
+
+## Further Work
+
+This is a significant milestone, and we have exciting plans ahead. We are actively working on achieving settings-parity with the `toml` and enhancing the overall usability of the settings page. Additionally, we look forward to enabling the editing of overlays through the dashboard in the future to simplify managing overlays even further.
