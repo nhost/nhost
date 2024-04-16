@@ -97,7 +97,7 @@ export default function ServicesPage() {
 
   const openCreateServiceDialog = () => {
     // creating services using the local dashboard is not supported
-    if (isPlatform) {
+    if (!isPlatform) {
       return;
     }
 
