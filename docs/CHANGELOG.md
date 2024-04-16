@@ -1,5 +1,12 @@
 # @nhost/docs
 
+## 2.10.1
+
+### Patch Changes
+
+- 9525fd7: fix: update AI docs for 0.5.0
+- 076fd4a: fix: update permissions page to indicate we use jsonpath
+
 ## 2.10.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.13.1
+
+### Patch Changes
+
+- 7e9a2ce: fix: resolve issue where run services form fails to open
+
 ## 1.13.0
 
 ### Minor Changes
