@@ -1,3 +1,4 @@
+import { getConfigServerUrl } from '@/utils/env';
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
 import { useMemo } from 'react';
 
@@ -11,7 +12,7 @@ export default function useLocalMimirClient() {
       new ApolloClient({
         cache: new InMemoryCache(),
         link: new HttpLink({
-          uri: 'https://local.dashboard.nhost.run/v1/configserver/graphql',
+          uri: getConfigServerUrl(),
         }),
       }),
     [],
