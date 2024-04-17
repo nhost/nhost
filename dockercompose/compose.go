@@ -277,6 +277,11 @@ func dashboard(
 			"NEXT_PUBLIC_NHOST_PLATFORM":     "false",
 			"NEXT_PUBLIC_NHOST_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 			"NEXT_PUBLIC_NHOST_AUTH_URL":     URL("auth", httpPort, useTLS) + "/v1",
+			"NEXT_PUBLIC_NHOST_CONFIGSERVER_URL": URL(
+				"dashboard",
+				httpPort,
+				useTLS,
+			) + "/v1/configserver/graphql",
 			"NEXT_PUBLIC_NHOST_FUNCTIONS_URL": URL(
 				"functions",
 				httpPort,
