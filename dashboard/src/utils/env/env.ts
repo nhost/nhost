@@ -87,3 +87,13 @@ export function getHasuraApiUrl() {
     'https://local.hasura.nhost.run'
   );
 }
+
+/**
+ * Custom URL of the config service.
+ */
+export function getConfigServerUrl() {
+  return (
+    process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL ||
+    'https://local.dashboard.nhost.run/v1/configserver/graphql'
+  );
+}
