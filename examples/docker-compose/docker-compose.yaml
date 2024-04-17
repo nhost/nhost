@@ -1,23 +1,23 @@
 version: '3.6'
 services:
   traefik:
-    image: "traefik:v2.5"
-    container_name: "traefik"
+    image: 'traefik:v2.5'
+    container_name: 'traefik'
     command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:1337"
-      - "--entryPoints.admin.address=:3030"
+      - '--api.insecure=true'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--entrypoints.web.address=:1337'
+      - '--entryPoints.admin.address=:3030'
     ports:
       # hasura/services
-      - "1337:1337"
+      - '1337:1337'
       # traefik interface
-      - "9090:8080"
+      - '9090:8080'
       # dashboard
-      - "3030:3030"
+      - '3030:3030'
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
   postgres:
     image: postgres
     restart: always
@@ -43,16 +43,16 @@ services:
       HASURA_GRAPHQL_LOG_LEVEL: debug
       HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
     healthcheck:
-        test:
-            - CMD-SHELL
-            - curl http://localhost:8080/healthz > /dev/null 2>&1
-        timeout: 60s
-        interval: 30s
-        start_period: 90s
+      test:
+        - CMD-SHELL
+        - curl http://localhost:8080/healthz > /dev/null 2>&1
+      timeout: 60s
+      interval: 30s
+      start_period: 90s
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.hasura.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/`)"
-      - "traefik.http.routers.hasura.entrypoints=web"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.hasura.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/`)'
+      - 'traefik.http.routers.hasura.entrypoints=web'
   auth:
     image: nhost/hasura-auth:0.24
     depends_on:
@@ -76,11 +76,11 @@ services:
     expose:
       - 4000
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.middlewares.strip-auth.stripprefix.prefixes=/v1/auth"
-      - "traefik.http.routers.auth.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/v1/auth`)"
-      - "traefik.http.routers.auth.middlewares=strip-auth@docker"
-      - "traefik.http.routers.auth.entrypoints=web"
+      - 'traefik.enable=true'
+      - 'traefik.http.middlewares.strip-auth.stripprefix.prefixes=/v1/auth'
+      - 'traefik.http.routers.auth.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/v1/auth`)'
+      - 'traefik.http.routers.auth.middlewares=strip-auth@docker'
+      - 'traefik.http.routers.auth.entrypoints=web'
   storage:
     image: nhost/hasura-storage:0.4.1
     depends_on:
@@ -102,22 +102,22 @@ services:
       POSTGRES_MIGRATIONS: 1
       POSTGRES_MIGRATIONS_SOURCE: postgres://postgres:${POSTGRES_PASSWORD:-secretpgpassword}@postgres:5432/postgres?sslmode=disable
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.storage.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/v1/storage`)"
-      - "traefik.http.routers.storage.entrypoints=web"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.storage.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/v1/storage`)'
+      - 'traefik.http.routers.storage.entrypoints=web'
       # Rewrite the path so it matches with the new storage API path introduced in hasura-storage 0.2
-      - "traefik.http.middlewares.strip-suffix.replacepathregex.regex=^/v1/storage/(.*)"
-      - "traefik.http.middlewares.strip-suffix.replacepathregex.replacement=/v1/$$1"
-      - "traefik.http.routers.storage.middlewares=strip-suffix@docker"
+      - 'traefik.http.middlewares.strip-suffix.replacepathregex.regex=^/v1/storage/(.*)'
+      - 'traefik.http.middlewares.strip-suffix.replacepathregex.replacement=/v1/$$1'
+      - 'traefik.http.routers.storage.middlewares=strip-suffix@docker'
     command: serve
   functions:
     image: nhost/functions:1.0.0
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.middlewares.strip-functions.stripprefix.prefixes=/v1/functions"
-      - "traefik.http.routers.functions.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/v1/functions`)"
-      - "traefik.http.routers.functions.middlewares=strip-functions@docker"
-      - "traefik.http.routers.functions.entrypoints=web"
+      - 'traefik.enable=true'
+      - 'traefik.http.middlewares.strip-functions.stripprefix.prefixes=/v1/functions'
+      - 'traefik.http.routers.functions.rule=Host(`${PROXY_HOST}`, `localhost`) && PathPrefix(`/v1/functions`)'
+      - 'traefik.http.routers.functions.middlewares=strip-functions@docker'
+      - 'traefik.http.routers.functions.entrypoints=web'
     restart: always
     expose:
       - 3000
@@ -144,7 +144,7 @@ services:
       SMTP_PORT: ${AUTH_SMTP_PORT:-1025}
       SMTP_PASS: ${AUTH_SMTP_PASS:-password}
       SMTP_USER: ${AUTH_SMTP_USER:-user}
-      SMTP_SECURE: "${AUTH_SMTP_SECURE:-false}"
+      SMTP_SECURE: '${AUTH_SMTP_SECURE:-false}'
       SMTP_SENDER: ${AUTH_SMTP_SENDER:-hbp@hbp.com}
     ports:
       - ${AUTH_SMTP_PORT:-1025}:1025
@@ -162,12 +162,13 @@ services:
       NEXT_PUBLIC_NHOST_GRAPHQL_URL: ${NEXT_PUBLIC_NHOST_GRAPHQL_URL}
       NEXT_PUBLIC_NHOST_STORAGE_URL: ${NEXT_PUBLIC_NHOST_STORAGE_URL}
       NEXT_PUBLIC_NHOST_FUNCTIONS_URL: ${NEXT_PUBLIC_NHOST_FUNCTIONS_URL}
+      NEXT_PUBLIC_NHOST_CONFIGSERVER_URL: ${NEXT_PUBLIC_NHOST_CONFIGSERVER_URL}
     expose:
-     - 3000
+      - 3000
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.nhost.rule=Host(`${NHOST_HOST}`)"
-      - "traefik.http.routers.nhost.entrypoints=admin"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.nhost.rule=Host(`${NHOST_HOST}`)'
+      - 'traefik.http.routers.nhost.entrypoints=admin'
       # If you would like to protect your dashboard with a username and password if it is publicly-facing, uncomment and fill in the following lines below according to the documentation at https://doc.traefik.io/traefik/middlewares/http/basicauth/
       #- "traefik.http.routers.nhost.middlewares=auth"
       #- "traefik.http.middlewares.auth.basicauth.users=
