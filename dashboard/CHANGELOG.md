@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.13.2
+
+### Patch Changes
+
+- 026f84f: fix: use configuration server URL from environment variable
+
 ## 1.13.1
 
 ### Patch Changes
