@@ -124,14 +124,14 @@ export default function SMTPSettingsPage() {
   }
 
   const handleEditSMTPSettings = async (values: SmtpFormValues) => {
-    const { password, ...valuesWithoutPassword } = values;
+    const { password: newPassword, ...valuesWithoutPassword } = values;
 
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
         config: {
           provider: {
-            smtp: password ? values : valuesWithoutPassword,
+            smtp: newPassword ? values : valuesWithoutPassword,
           },
         },
       },
