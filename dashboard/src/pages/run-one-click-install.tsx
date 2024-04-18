@@ -82,7 +82,11 @@ export default function SelectWorkspaceAndProject() {
   );
 
   useEffect(() => {
-    checkConfigFromQuery(router.query?.config as string);
+    const config = router.query?.config as string;
+
+    if (config) {
+      checkConfigFromQuery(router.query?.config as string);
+    }
   }, [checkConfigFromQuery, router.query]);
 
   const goToServices = async (project: {
@@ -133,7 +137,7 @@ export default function SelectWorkspaceAndProject() {
 
   if (loading) {
     return (
-      <div className="flex w-full justify-center">
+      <div className="flex justify-center w-full">
         <ActivityIndicator
           delay={500}
           label="Loading workspaces and projects..."
@@ -156,7 +160,7 @@ export default function SelectWorkspaceAndProject() {
         />
 
         <div>
-          <div className="mb-2 flex w-full">
+          <div className="flex w-full mb-2">
             <Input
               placeholder="Search..."
               onChange={handleFilterChange}
@@ -166,11 +170,11 @@ export default function SelectWorkspaceAndProject() {
           </div>
           <RetryableErrorBoundary>
             {projectsToDisplay.length === 0 ? (
-              <Box className="h-import py-2">
+              <Box className="py-2 h-import">
                 <Text variant="subtitle2">No results found.</Text>
               </Box>
             ) : (
-              <List className="h-import overflow-y-auto">
+              <List className="overflow-y-auto h-import">
                 {projectsToDisplay.map((project, index) => (
                   <Fragment key={project.value}>
                     <ListItem.Root
@@ -186,7 +190,7 @@ export default function SelectWorkspaceAndProject() {
                       }
                     >
                       <ListItem.Avatar>
-                        <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
+                        <span className="inline-block w-6 h-6 overflow-hidden rounded-md">
                           <Image
                             src="/logos/new.svg"
                             alt="Nhost Logo"
