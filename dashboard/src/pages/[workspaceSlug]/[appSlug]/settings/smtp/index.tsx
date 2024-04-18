@@ -60,7 +60,7 @@ export default function SMTPSettingsPage() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { secure, host, port, user, method, sender } =
+  const { secure, host, port, user, method, sender, password } =
     data?.config?.provider?.smtp || {};
 
   const form = useForm<Optional<SmtpFormValues, 'password'>>({
@@ -71,6 +71,7 @@ export default function SMTPSettingsPage() {
       host: '',
       port: undefined,
       user: '',
+      password: '',
       method: '',
       sender: '',
     },
@@ -79,6 +80,7 @@ export default function SMTPSettingsPage() {
       host: host || '',
       port,
       user: user || '',
+      password: password || '',
       method: method || '',
       sender: sender || '',
     },
