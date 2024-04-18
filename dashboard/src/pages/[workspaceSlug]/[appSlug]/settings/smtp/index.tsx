@@ -60,7 +60,7 @@ export default function SMTPSettingsPage() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { secure, host, port, user, method, sender } =
+  const { secure, host, port, user, method, sender, password } =
     data?.config?.provider?.smtp || {};
 
   const form = useForm<Optional<SmtpFormValues, 'password'>>({
@@ -71,6 +71,7 @@ export default function SMTPSettingsPage() {
       host: '',
       port: undefined,
       user: '',
+      password: '',
       method: '',
       sender: '',
     },
@@ -79,6 +80,7 @@ export default function SMTPSettingsPage() {
       host: host || '',
       port,
       user: user || '',
+      password: password || '',
       method: method || '',
       sender: sender || '',
     },
@@ -122,14 +124,14 @@ export default function SMTPSettingsPage() {
   }
 
   const handleEditSMTPSettings = async (values: SmtpFormValues) => {
-    const { password, ...valuesWithoutPassword } = values;
+    const { password: newPassword, ...valuesWithoutPassword } = values;
 
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
         config: {
           provider: {
-            smtp: password ? values : valuesWithoutPassword,
+            smtp: newPassword ? values : valuesWithoutPassword,
           },
         },
       },

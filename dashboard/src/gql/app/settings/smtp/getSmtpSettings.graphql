@@ -12,6 +12,7 @@ query GetSmtpSettings($appId: uuid!) {
         secure
         sender
         user
+        password
       }
     }
   }

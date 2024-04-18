@@ -22886,7 +22886,7 @@ export type GetSmtpSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetSmtpSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', smtp?: { __typename?: 'ConfigSmtp', host: string, method: string, port: any, secure: boolean, sender: string, user: string } | null } | null } | null };
+export type GetSmtpSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', provider?: { __typename: 'ConfigProvider', id: 'ConfigProvider', smtp?: { __typename?: 'ConfigSmtp', host: string, method: string, port: any, secure: boolean, sender: string, user: string, password: string } | null } | null } | null };
 
 export type UpdateConfigMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -25353,6 +25353,7 @@ export const GetSmtpSettingsDocument = gql`
         secure
         sender
         user
+        password
       }
     }
   }
