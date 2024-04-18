@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 1.13.3
+
+### Patch Changes
+
+- 5924bc3: fix: include password in `GetSmtpSettings` query
+- c5ad634: fix: resolved an issue where one-click install links were broken on Safari
+- 7278991: fix: update graphql auto-embeddings configuration to use String type for model field
+
 ## 1.13.2
 
 ### Patch Changes
