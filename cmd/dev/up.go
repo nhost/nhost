@@ -214,6 +214,11 @@ func restart(
 	if _, ok := composeFile.Services["auth"]; ok {
 		args = append(args, "auth")
 	}
+
+	if _, ok := composeFile.Services["ai"]; ok {
+		args = append(args, "ai")
+	}
+
 	if err := dc.Wrapper(ctx, args...); err != nil {
 		return fmt.Errorf("failed to restart services: %w", err)
 	}
