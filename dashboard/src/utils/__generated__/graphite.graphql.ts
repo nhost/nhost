@@ -16,9 +16,7 @@ export type Scalars = {
   bigint: any;
   bytea: any;
   citext: any;
-  embedding_model_enum: any;
   jsonb: any;
-  timestamp: any;
   timestamptz: any;
   timestampz: any;
   uuid: any;
@@ -1547,9 +1545,9 @@ export type AuthUserProviders_Bool_Exp = {
 export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserProvidersPkey = 'user_providers_pkey',
-  /** unique or primary key constraint on columns "provider_id", "provider_user_id" */
+  /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
   UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key',
-  /** unique or primary key constraint on columns "provider_id", "user_id" */
+  /** unique or primary key constraint on columns "user_id", "provider_id" */
   UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key'
 }
 
@@ -2684,19 +2682,6 @@ export enum Cursor_Ordering {
   Desc = 'DESC'
 }
 
-/** Boolean expression to compare columns of type "embedding_model_enum". All fields are combined with logical 'AND'. */
-export type Embedding_Model_Enum_Comparison_Exp = {
-  _eq?: InputMaybe<Scalars['embedding_model_enum']>;
-  _gt?: InputMaybe<Scalars['embedding_model_enum']>;
-  _gte?: InputMaybe<Scalars['embedding_model_enum']>;
-  _in?: InputMaybe<Array<Scalars['embedding_model_enum']>>;
-  _is_null?: InputMaybe<Scalars['Boolean']>;
-  _lt?: InputMaybe<Scalars['embedding_model_enum']>;
-  _lte?: InputMaybe<Scalars['embedding_model_enum']>;
-  _neq?: InputMaybe<Scalars['embedding_model_enum']>;
-  _nin?: InputMaybe<Array<Scalars['embedding_model_enum']>>;
-};
-
 /** columns and relationships of "storage.files" */
 export type Files = {
   __typename?: 'files';
@@ -3297,7 +3282,7 @@ export type GraphiteAutoEmbeddingsConfiguration = {
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   lastRun?: Maybe<Scalars['timestamptz']>;
-  model: Scalars['embedding_model_enum'];
+  model: Scalars['String'];
   mutation?: Maybe<Scalars['String']>;
   name: Scalars['String'];
   query?: Maybe<Scalars['String']>;
@@ -3337,7 +3322,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Bool_Exp = {
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   lastRun?: InputMaybe<Timestamptz_Comparison_Exp>;
-  model?: InputMaybe<Embedding_Model_Enum_Comparison_Exp>;
+  model?: InputMaybe<String_Comparison_Exp>;
   mutation?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   query?: InputMaybe<String_Comparison_Exp>;
@@ -3352,7 +3337,7 @@ export enum GraphiteAutoEmbeddingsConfiguration_Constraint {
   AutoEmbeddingsConfigurationNameKey = 'auto_embeddings_configuration_name_key',
   /** unique or primary key constraint on columns "id" */
   AutoEmbeddingsConfigurationPkey = 'auto_embeddings_configuration_pkey',
-  /** unique or primary key constraint on columns "table_name", "column_name", "schema_name" */
+  /** unique or primary key constraint on columns "column_name", "schema_name", "table_name" */
   AutoEmbeddingsConfigurationSchemaNameTableNameColumnKey = 'auto_embeddings_configuration_schema_name_table_name_column_key'
 }
 
@@ -3362,7 +3347,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   lastRun?: InputMaybe<Scalars['timestamptz']>;
-  model?: InputMaybe<Scalars['embedding_model_enum']>;
+  model?: InputMaybe<Scalars['String']>;
   mutation?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   query?: InputMaybe<Scalars['String']>;
@@ -3378,7 +3363,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   lastRun?: Maybe<Scalars['timestamptz']>;
-  model?: Maybe<Scalars['embedding_model_enum']>;
+  model?: Maybe<Scalars['String']>;
   mutation?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   query?: Maybe<Scalars['String']>;
@@ -3394,7 +3379,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   lastRun?: Maybe<Scalars['timestamptz']>;
-  model?: Maybe<Scalars['embedding_model_enum']>;
+  model?: Maybe<Scalars['String']>;
   mutation?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
   query?: Maybe<Scalars['String']>;
@@ -3471,7 +3456,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   lastRun?: InputMaybe<Scalars['timestamptz']>;
-  model?: InputMaybe<Scalars['embedding_model_enum']>;
+  model?: InputMaybe<Scalars['String']>;
   mutation?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   query?: InputMaybe<Scalars['String']>;
@@ -3494,7 +3479,7 @@ export type GraphiteAutoEmbeddingsConfiguration_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   lastRun?: InputMaybe<Scalars['timestamptz']>;
-  model?: InputMaybe<Scalars['embedding_model_enum']>;
+  model?: InputMaybe<Scalars['String']>;
   mutation?: InputMaybe<Scalars['String']>;
   name?: InputMaybe<Scalars['String']>;
   query?: InputMaybe<Scalars['String']>;
@@ -3898,10 +3883,6 @@ export type Mutation_Root = {
   deleteVirus?: Maybe<Virus>;
   /** delete data from the table: "storage.virus" */
   deleteViruses?: Maybe<Virus_Mutation_Response>;
-  /** delete data from the table: "todos" */
-  delete_todos?: Maybe<Todos_Mutation_Response>;
-  /** delete single row from the table: "todos" */
-  delete_todos_by_pk?: Maybe<Todos>;
   graphite?: Maybe<GraphiteMutation>;
   /** insert a single row into the table: "auth.providers" */
   insertAuthProvider?: Maybe<AuthProviders>;
@@ -3955,10 +3936,6 @@ export type Mutation_Root = {
   insertVirus?: Maybe<Virus>;
   /** insert data into the table: "storage.virus" */
   insertViruses?: Maybe<Virus_Mutation_Response>;
-  /** insert data into the table: "todos" */
-  insert_todos?: Maybe<Todos_Mutation_Response>;
-  /** insert a single row into the table: "todos" */
-  insert_todos_one?: Maybe<Todos>;
   /** update single row of the table: "auth.providers" */
   updateAuthProvider?: Maybe<AuthProviders>;
   /** update single row of the table: "auth.provider_requests" */
@@ -4033,12 +4010,6 @@ export type Mutation_Root = {
   update_buckets_many?: Maybe<Array<Maybe<Buckets_Mutation_Response>>>;
   /** update multiples rows of table: "storage.files" */
   update_files_many?: Maybe<Array<Maybe<Files_Mutation_Response>>>;
-  /** update data of the table: "todos" */
-  update_todos?: Maybe<Todos_Mutation_Response>;
-  /** update single row of the table: "todos" */
-  update_todos_by_pk?: Maybe<Todos>;
-  /** update multiples rows of table: "todos" */
-  update_todos_many?: Maybe<Array<Maybe<Todos_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
   /** update multiples rows of table: "storage.virus" */
@@ -4305,18 +4276,6 @@ export type Mutation_RootDeleteVirusesArgs = {
 
 
 /** mutation root */
-export type Mutation_RootDelete_TodosArgs = {
-  where: Todos_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootDelete_Todos_By_PkArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
 export type Mutation_RootInsertAuthProviderArgs = {
   object: AuthProviders_Insert_Input;
   on_conflict?: InputMaybe<AuthProviders_On_Conflict>;
@@ -4495,20 +4454,6 @@ export type Mutation_RootInsertVirusArgs = {
 export type Mutation_RootInsertVirusesArgs = {
   objects: Array<Virus_Insert_Input>;
   on_conflict?: InputMaybe<Virus_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsert_TodosArgs = {
-  objects: Array<Todos_Insert_Input>;
-  on_conflict?: InputMaybe<Todos_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsert_Todos_OneArgs = {
-  object: Todos_Insert_Input;
-  on_conflict?: InputMaybe<Todos_On_Conflict>;
 };
 
 
@@ -4817,26 +4762,6 @@ export type Mutation_RootUpdate_Files_ManyArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdate_TodosArgs = {
-  _set?: InputMaybe<Todos_Set_Input>;
-  where: Todos_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdate_Todos_By_PkArgs = {
-  _set?: InputMaybe<Todos_Set_Input>;
-  pk_columns: Todos_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdate_Todos_ManyArgs = {
-  updates: Array<Todos_Updates>;
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdate_Users_ManyArgs = {
   updates: Array<Users_Updates>;
 };
@@ -4944,12 +4869,6 @@ export type Query_Root = {
   graphiteAutoEmbeddingsConfigurationAggregate: GraphiteAutoEmbeddingsConfiguration_Aggregate;
   /** fetch data from the table: "graphite.auto_embeddings_configuration" */
   graphiteAutoEmbeddingsConfigurations: Array<GraphiteAutoEmbeddingsConfiguration>;
-  /** fetch data from the table: "todos" */
-  todos: Array<Todos>;
-  /** fetch aggregated fields from the table: "todos" */
-  todos_aggregate: Todos_Aggregate;
-  /** fetch data from the table: "todos" using primary key columns */
-  todos_by_pk?: Maybe<Todos>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -5264,29 +5183,6 @@ export type Query_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
 };
 
 
-export type Query_RootTodosArgs = {
-  distinct_on?: InputMaybe<Array<Todos_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Todos_Order_By>>;
-  where?: InputMaybe<Todos_Bool_Exp>;
-};
-
-
-export type Query_RootTodos_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Todos_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Todos_Order_By>>;
-  where?: InputMaybe<Todos_Bool_Exp>;
-};
-
-
-export type Query_RootTodos_By_PkArgs = {
-  id: Scalars['uuid'];
-};
-
-
 export type Query_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -5438,14 +5334,6 @@ export type Subscription_Root = {
   graphiteAutoEmbeddingsConfigurationStream: Array<GraphiteAutoEmbeddingsConfiguration>;
   /** fetch data from the table: "graphite.auto_embeddings_configuration" */
   graphiteAutoEmbeddingsConfigurations: Array<GraphiteAutoEmbeddingsConfiguration>;
-  /** fetch data from the table: "todos" */
-  todos: Array<Todos>;
-  /** fetch aggregated fields from the table: "todos" */
-  todos_aggregate: Todos_Aggregate;
-  /** fetch data from the table: "todos" using primary key columns */
-  todos_by_pk?: Maybe<Todos>;
-  /** fetch data from the table in a streaming manner: "todos" */
-  todos_stream: Array<Todos>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -5855,36 +5743,6 @@ export type Subscription_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
 };
 
 
-export type Subscription_RootTodosArgs = {
-  distinct_on?: InputMaybe<Array<Todos_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Todos_Order_By>>;
-  where?: InputMaybe<Todos_Bool_Exp>;
-};
-
-
-export type Subscription_RootTodos_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Todos_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Todos_Order_By>>;
-  where?: InputMaybe<Todos_Bool_Exp>;
-};
-
-
-export type Subscription_RootTodos_By_PkArgs = {
-  id: Scalars['uuid'];
-};
-
-
-export type Subscription_RootTodos_StreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<InputMaybe<Todos_Stream_Cursor_Input>>;
-  where?: InputMaybe<Todos_Bool_Exp>;
-};
-
-
 export type Subscription_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -5944,19 +5802,6 @@ export type Subscription_RootVirusesAggregateArgs = {
   where?: InputMaybe<Virus_Bool_Exp>;
 };
 
-/** Boolean expression to compare columns of type "timestamp". All fields are combined with logical 'AND'. */
-export type Timestamp_Comparison_Exp = {
-  _eq?: InputMaybe<Scalars['timestamp']>;
-  _gt?: InputMaybe<Scalars['timestamp']>;
-  _gte?: InputMaybe<Scalars['timestamp']>;
-  _in?: InputMaybe<Array<Scalars['timestamp']>>;
-  _is_null?: InputMaybe<Scalars['Boolean']>;
-  _lt?: InputMaybe<Scalars['timestamp']>;
-  _lte?: InputMaybe<Scalars['timestamp']>;
-  _neq?: InputMaybe<Scalars['timestamp']>;
-  _nin?: InputMaybe<Array<Scalars['timestamp']>>;
-};
-
 /** Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'. */
 export type Timestamptz_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['timestamptz']>;
@@ -5968,208 +5813,6 @@ export type Timestamptz_Comparison_Exp = {
   _lte?: InputMaybe<Scalars['timestamptz']>;
   _neq?: InputMaybe<Scalars['timestamptz']>;
   _nin?: InputMaybe<Array<Scalars['timestamptz']>>;
-};
-
-/** columns and relationships of "todos" */
-export type Todos = {
-  __typename?: 'todos';
-  /** An object relationship */
-  attachment?: Maybe<Files>;
-  createdAt: Scalars['timestamp'];
-  done: Scalars['Boolean'];
-  file_id?: Maybe<Scalars['uuid']>;
-  id: Scalars['uuid'];
-  title: Scalars['String'];
-  updatedAt: Scalars['timestamptz'];
-  /** An object relationship */
-  user: Users;
-  user_id: Scalars['uuid'];
-};
-
-/** aggregated selection of "todos" */
-export type Todos_Aggregate = {
-  __typename?: 'todos_aggregate';
-  aggregate?: Maybe<Todos_Aggregate_Fields>;
-  nodes: Array<Todos>;
-};
-
-/** aggregate fields of "todos" */
-export type Todos_Aggregate_Fields = {
-  __typename?: 'todos_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<Todos_Max_Fields>;
-  min?: Maybe<Todos_Min_Fields>;
-};
-
-
-/** aggregate fields of "todos" */
-export type Todos_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Todos_Select_Column>>;
-  distinct?: InputMaybe<Scalars['Boolean']>;
-};
-
-/** Boolean expression to filter rows from the table "todos". All fields are combined with a logical 'AND'. */
-export type Todos_Bool_Exp = {
-  _and?: InputMaybe<Array<Todos_Bool_Exp>>;
-  _not?: InputMaybe<Todos_Bool_Exp>;
-  _or?: InputMaybe<Array<Todos_Bool_Exp>>;
-  attachment?: InputMaybe<Files_Bool_Exp>;
-  createdAt?: InputMaybe<Timestamp_Comparison_Exp>;
-  done?: InputMaybe<Boolean_Comparison_Exp>;
-  file_id?: InputMaybe<Uuid_Comparison_Exp>;
-  id?: InputMaybe<Uuid_Comparison_Exp>;
-  title?: InputMaybe<String_Comparison_Exp>;
-  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  user?: InputMaybe<Users_Bool_Exp>;
-  user_id?: InputMaybe<Uuid_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "todos" */
-export enum Todos_Constraint {
-  /** unique or primary key constraint on columns "id" */
-  TodosPkey = 'todos_pkey'
-}
-
-/** input type for inserting data into table "todos" */
-export type Todos_Insert_Input = {
-  attachment?: InputMaybe<Files_Obj_Rel_Insert_Input>;
-  createdAt?: InputMaybe<Scalars['timestamp']>;
-  done?: InputMaybe<Scalars['Boolean']>;
-  file_id?: InputMaybe<Scalars['uuid']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  title?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
-  user_id?: InputMaybe<Scalars['uuid']>;
-};
-
-/** aggregate max on columns */
-export type Todos_Max_Fields = {
-  __typename?: 'todos_max_fields';
-  createdAt?: Maybe<Scalars['timestamp']>;
-  file_id?: Maybe<Scalars['uuid']>;
-  id?: Maybe<Scalars['uuid']>;
-  title?: Maybe<Scalars['String']>;
-  updatedAt?: Maybe<Scalars['timestamptz']>;
-  user_id?: Maybe<Scalars['uuid']>;
-};
-
-/** aggregate min on columns */
-export type Todos_Min_Fields = {
-  __typename?: 'todos_min_fields';
-  createdAt?: Maybe<Scalars['timestamp']>;
-  file_id?: Maybe<Scalars['uuid']>;
-  id?: Maybe<Scalars['uuid']>;
-  title?: Maybe<Scalars['String']>;
-  updatedAt?: Maybe<Scalars['timestamptz']>;
-  user_id?: Maybe<Scalars['uuid']>;
-};
-
-/** response of any mutation on the table "todos" */
-export type Todos_Mutation_Response = {
-  __typename?: 'todos_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Todos>;
-};
-
-/** on_conflict condition type for table "todos" */
-export type Todos_On_Conflict = {
-  constraint: Todos_Constraint;
-  update_columns?: Array<Todos_Update_Column>;
-  where?: InputMaybe<Todos_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "todos". */
-export type Todos_Order_By = {
-  attachment?: InputMaybe<Files_Order_By>;
-  createdAt?: InputMaybe<Order_By>;
-  done?: InputMaybe<Order_By>;
-  file_id?: InputMaybe<Order_By>;
-  id?: InputMaybe<Order_By>;
-  title?: InputMaybe<Order_By>;
-  updatedAt?: InputMaybe<Order_By>;
-  user?: InputMaybe<Users_Order_By>;
-  user_id?: InputMaybe<Order_By>;
-};
-
-/** primary key columns input for table: todos */
-export type Todos_Pk_Columns_Input = {
-  id: Scalars['uuid'];
-};
-
-/** select columns of table "todos" */
-export enum Todos_Select_Column {
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  Done = 'done',
-  /** column name */
-  FileId = 'file_id',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Title = 'title',
-  /** column name */
-  UpdatedAt = 'updatedAt',
-  /** column name */
-  UserId = 'user_id'
-}
-
-/** input type for updating data in table "todos" */
-export type Todos_Set_Input = {
-  createdAt?: InputMaybe<Scalars['timestamp']>;
-  done?: InputMaybe<Scalars['Boolean']>;
-  file_id?: InputMaybe<Scalars['uuid']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  title?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  user_id?: InputMaybe<Scalars['uuid']>;
-};
-
-/** Streaming cursor of the table "todos" */
-export type Todos_Stream_Cursor_Input = {
-  /** Stream column input with initial value */
-  initial_value: Todos_Stream_Cursor_Value_Input;
-  /** cursor ordering */
-  ordering?: InputMaybe<Cursor_Ordering>;
-};
-
-/** Initial value of the column from where the streaming should start */
-export type Todos_Stream_Cursor_Value_Input = {
-  createdAt?: InputMaybe<Scalars['timestamp']>;
-  done?: InputMaybe<Scalars['Boolean']>;
-  file_id?: InputMaybe<Scalars['uuid']>;
-  id?: InputMaybe<Scalars['uuid']>;
-  title?: InputMaybe<Scalars['String']>;
-  updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  user_id?: InputMaybe<Scalars['uuid']>;
-};
-
-/** update columns of table "todos" */
-export enum Todos_Update_Column {
-  /** column name */
-  CreatedAt = 'createdAt',
-  /** column name */
-  Done = 'done',
-  /** column name */
-  FileId = 'file_id',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Title = 'title',
-  /** column name */
-  UpdatedAt = 'updatedAt',
-  /** column name */
-  UserId = 'user_id'
-}
-
-export type Todos_Updates = {
-  /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<Todos_Set_Input>;
-  /** filter the rows which have to be updated */
-  where: Todos_Bool_Exp;
 };
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
@@ -7150,11 +6793,11 @@ export type GetGraphiteAutoEmbeddingsConfigurationsQueryVariables = Exact<{
 }>;
 
 
-export type GetGraphiteAutoEmbeddingsConfigurationsQuery = { __typename?: 'query_root', graphiteAutoEmbeddingsConfigurations: Array<{ __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, model: any, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null, createdAt: any, updatedAt: any }>, graphiteAutoEmbeddingsConfigurationAggregate: { __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate', aggregate?: { __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate_fields', count: number } | null } };
+export type GetGraphiteAutoEmbeddingsConfigurationsQuery = { __typename?: 'query_root', graphiteAutoEmbeddingsConfigurations: Array<{ __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, model: string, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null, createdAt: any, updatedAt: any }>, graphiteAutoEmbeddingsConfigurationAggregate: { __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate', aggregate?: { __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate_fields', count: number } | null } };
 
 export type InsertGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   name?: InputMaybe<Scalars['String']>;
-  model?: InputMaybe<Scalars['embedding_model_enum']>;
+  model?: InputMaybe<Scalars['String']>;
   schemaName?: InputMaybe<Scalars['String']>;
   tableName?: InputMaybe<Scalars['String']>;
   columnName?: InputMaybe<Scalars['String']>;
@@ -7168,7 +6811,7 @@ export type InsertGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: '
 export type UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   id: Scalars['uuid'];
   name?: InputMaybe<Scalars['String']>;
-  model?: InputMaybe<Scalars['embedding_model_enum']>;
+  model?: InputMaybe<Scalars['String']>;
   schemaName?: InputMaybe<Scalars['String']>;
   tableName?: InputMaybe<Scalars['String']>;
   columnName?: InputMaybe<Scalars['String']>;
@@ -7177,7 +6820,7 @@ export type UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
 }>;
 
 
-export type UpdateGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: 'mutation_root', updateGraphiteAutoEmbeddingsConfiguration?: { __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, model: any, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null } | null };
+export type UpdateGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: 'mutation_root', updateGraphiteAutoEmbeddingsConfiguration?: { __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, model: string, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null } | null };
 
 export type SendDevMessageMutationVariables = Exact<{
   sessionId: Scalars['String'];
@@ -7489,7 +7132,7 @@ export function refetchGetGraphiteAutoEmbeddingsConfigurationsQuery(variables: G
       return { query: GetGraphiteAutoEmbeddingsConfigurationsDocument, variables: variables }
     }
 export const InsertGraphiteAutoEmbeddingsConfigurationDocument = gql`
-    mutation insertGraphiteAutoEmbeddingsConfiguration($name: String, $model: embedding_model_enum, $schemaName: String, $tableName: String, $columnName: String, $query: String, $mutation: String) {
+    mutation insertGraphiteAutoEmbeddingsConfiguration($name: String, $model: String, $schemaName: String, $tableName: String, $columnName: String, $query: String, $mutation: String) {
   insertGraphiteAutoEmbeddingsConfiguration(
     object: {name: $name, model: $model, schemaName: $schemaName, tableName: $tableName, columnName: $columnName, query: $query, mutation: $mutation}
   ) {
@@ -7530,7 +7173,7 @@ export type InsertGraphiteAutoEmbeddingsConfigurationMutationHookResult = Return
 export type InsertGraphiteAutoEmbeddingsConfigurationMutationResult = Apollo.MutationResult<InsertGraphiteAutoEmbeddingsConfigurationMutation>;
 export type InsertGraphiteAutoEmbeddingsConfigurationMutationOptions = Apollo.BaseMutationOptions<InsertGraphiteAutoEmbeddingsConfigurationMutation, InsertGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 export const UpdateGraphiteAutoEmbeddingsConfigurationDocument = gql`
-    mutation updateGraphiteAutoEmbeddingsConfiguration($id: uuid!, $name: String, $model: embedding_model_enum, $schemaName: String, $tableName: String, $columnName: String, $query: String, $mutation: String) {
+    mutation updateGraphiteAutoEmbeddingsConfiguration($id: uuid!, $name: String, $model: String, $schemaName: String, $tableName: String, $columnName: String, $query: String, $mutation: String) {
   updateGraphiteAutoEmbeddingsConfiguration(
     pk_columns: {id: $id}
     _set: {name: $name, model: $model, schemaName: $schemaName, tableName: $tableName, columnName: $columnName, query: $query, mutation: $mutation}
