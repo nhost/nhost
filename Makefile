@@ -12,7 +12,7 @@ else
   OS?=linux
 endif
 
-VER=$(shell echo $(VERSION) | sed -e 's/^v//g' -e 's/\//_/g')
+VER=$(shell echo $(VERSION) | sed -e 's/\//_/g')
 
 
 .PHONY: check

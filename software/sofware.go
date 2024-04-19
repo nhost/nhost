@@ -65,7 +65,7 @@ func (mgr *Manager) GetReleases(ctx context.Context, version string) (Releases, 
 	for _, release := range releases {
 		switch {
 		case release.Prerelease:
-		case semver.Compare(version, release.TagName) > 0:
+		case semver.Compare(version, release.TagName) >= 0:
 		default:
 			r = append(r, release)
 		}
