@@ -944,6 +944,8 @@ PODS:
   - React-Mapbuffer (0.73.7):
     - glog
     - React-debug
+  - react-native-safe-area-context (4.9.0):
+    - React-Core
   - React-nativeconfig (0.73.7)
   - React-NativeModulesApple (0.73.7):
     - glog
@@ -1111,6 +1113,10 @@ PODS:
     - React-jsi (= 0.73.7)
     - React-logger (= 0.73.7)
     - React-perflogger (= 0.73.7)
+  - RNScreens (3.30.1):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
   - SocketRocket (0.6.1)
   - Yoga (1.14.0)
 
@@ -1167,6 +1173,7 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector-modern`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
+  - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -1187,6 +1194,7 @@ DEPENDENCIES:
   - React-runtimescheduler (from `../node_modules/react-native/ReactCommon/react/renderer/runtimescheduler`)
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - RNScreens (from `../node_modules/react-native-screens`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -1261,6 +1269,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/logger"
   React-Mapbuffer:
     :path: "../node_modules/react-native/ReactCommon"
+  react-native-safe-area-context:
+    :path: "../node_modules/react-native-safe-area-context"
   React-nativeconfig:
     :path: "../node_modules/react-native/ReactCommon"
   React-NativeModulesApple:
@@ -1301,6 +1311,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/utils"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNScreens:
+    :path: "../node_modules/react-native-screens"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -1344,6 +1356,7 @@ SPEC CHECKSUMS:
   React-jsinspector: f356e49aa086380d3a4892708ca173ad31ac69c1
   React-logger: 7b19bdfb254772a0332d6cd4d66eceb0678b6730
   React-Mapbuffer: 6f392912435adb8fbf4c3eee0e79a0a0b4e4b717
+  react-native-safe-area-context: b97eb6f9e3b7f437806c2ce5983f479f8eb5de4b
   React-nativeconfig: 754233aac2a769578f828093b672b399355582e6
   React-NativeModulesApple: a03b2da2b8e127d5f5ee29c683e0deba7a9e1575
   React-perflogger: 68ec84e2f858a3e35009aef8866b55893e5e0a1f
@@ -1364,6 +1377,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: a884a55560e2a90caa1cbe0b9eaa24a5add4fa2c
   React-utils: d07d009101c7dabff68b710da5c4a47b7a850d98
   ReactCommon: 8cae78d3c3eceff20ee4bbca8bb73b675a45fd5d
+  RNScreens: b6b64d956af3715adbfe84808694ae82d3fec74f
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Yoga: c716aea2ee01df6258550c7505fa61b248145ced
 
