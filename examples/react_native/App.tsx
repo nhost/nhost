@@ -1,13 +1,19 @@
 import React from 'react';
-import {SafeAreaView, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {SafeAreaView, ScrollView, StyleSheet, Text} from 'react-native';
+
+import {NhostProvider, NhostClient} from '@nhost/react';
+
+const nhost = new NhostClient({subdomain: 'local'});
 
 function App(): React.JSX.Element {
   return (
-    <SafeAreaView>
-      <ScrollView contentInsetAdjustmentBehavior="automatic">
-        <Text>Sign Up</Text>
-      </ScrollView>
-    </SafeAreaView>
+    <NhostProvider nhost={nhost}>
+      <SafeAreaView>
+        <ScrollView contentInsetAdjustmentBehavior="automatic">
+          <Text>Sign Up</Text>
+        </ScrollView>
+      </SafeAreaView>
+    </NhostProvider>
   );
 }
 

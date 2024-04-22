@@ -1229,6 +1229,9 @@ importers:
 
   examples/react_native:
     dependencies:
+      '@nhost/react':
+        specifier: workspace:*
+        version: link:../../packages/react
       react:
         specifier: 18.2.0
         version: 18.2.0
