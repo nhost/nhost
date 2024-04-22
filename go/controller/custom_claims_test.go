@@ -20,6 +20,16 @@ func TestCustomClaims(t *testing.T) {
 				{"id": 2},
 				{"id": 3},
 			},
+			"ln": []any{
+				[]any{
+					map[string]any{"id": 1},
+					map[string]any{"id": 2},
+				},
+				[]any{
+					map[string]any{"id": 3},
+					map[string]any{"id": 4},
+				},
+			},
 		},
 		"metadata": map[string]any{
 			"m1": 1,
@@ -40,7 +50,9 @@ func TestCustomClaims(t *testing.T) {
 				"element":           "m.l[2]",
 				"array[]":           "m.l[]",
 				"array[*]":          "m.l[*]",
-				"array[].ids":       "m.lm[*].id",
+				"array[].ids":       "m.lm[].id",
+				"array[*].ids":      "m.lm[*].id",
+				"array.ids[]":       "m.lm.id[]",
 				"arrayOneElement[]": "m.l2[]",
 				"metadata.m1":       "metadata.m1",
 				"nonexistent":       "nonexistent.nonexistent",
@@ -54,6 +66,8 @@ func TestCustomClaims(t *testing.T) {
 				"array[]":           []any{"a", "b", "c"},
 				"array[*]":          []any{"a", "b", "c"},
 				"array[].ids":       []any{1, 2, 3},
+				"array[*].ids":      []any{1, 2, 3},
+				"array.ids[]":       []any{1, 2, 3},
 				"metadata.m1":       1,
 				"nonexistent":       nil,
 			},

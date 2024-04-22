@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"sort"
 	"strings"
 
@@ -158,26 +159,57 @@ func (c *CustomClaims) GraphQLQuery() string {
 	return c.graphqlQuery
 }
 
+func (c *CustomClaims) getClaimsBackwardsCompatibility(data any, path []string) any {
+	if len(path) == 0 {
+		return data
+	}
+
+	curPath := strings.TrimRight(path[0], "[]")
+
+	value := reflect.ValueOf(data)
+	switch value.Kind() { //nolint:exhaustive
+	case reflect.Map:
+		for _, key := range value.MapKeys() {
+			if key.String() == curPath {
+				return c.getClaimsBackwardsCompatibility(value.MapIndex(key).Interface(), path[1:])
+			}
+		}
+	case reflect.Slice:
+		got := make([]any, value.Len())
+		for i := 0; i < value.Len(); i++ {
+			got[i] = c.getClaimsBackwardsCompatibility(value.Index(i).Interface(), path)
+		}
+		return got
+	default:
+		// we should not reach here
+	}
+
+	return nil
+}
+
 func (c *CustomClaims) ExtractClaims(data any) (map[string]any, error) {
 	claims := make(map[string]any)
 	for name, j := range c.jsonPaths {
-		v, err := j.jpath.FindResults(data)
-		if err != nil {
-			claims[name] = nil
-			continue
-		}
-
 		var got any
-		if j.IsArrary() {
-			g := make([]any, len(v[0]))
-			for i, r := range v[0] {
-				g[i] = r.Interface()
-			}
-			got = g
+		if strings.HasSuffix(j.path, "[]") {
+			got = c.getClaimsBackwardsCompatibility(data, strings.Split(j.path, "."))
 		} else {
-			got = v[0][0].Interface()
-		}
+			v, err := j.jpath.FindResults(data)
+			if err != nil {
+				claims[name] = nil
+				continue
+			}
 
+			if j.IsArrary() {
+				g := make([]any, len(v[0]))
+				for i, r := range v[0] {
+					g[i] = r.Interface()
+				}
+				got = g
+			} else {
+				got = v[0][0].Interface()
+			}
+		}
 		claims[name] = got
 	}
 	return claims, nil
