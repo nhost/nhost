@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/controller"
@@ -34,12 +34,8 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 		{
 			name:   "simple",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().InsertUserWithRefreshToken(
 					gomock.Any(),
@@ -132,10 +128,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().InsertUserWithRefreshToken(
 					gomock.Any(),
@@ -233,7 +225,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			jwtTokenFn: nil,
 		},
 
-		{
+		{ //nolint:dupl
 			name: "signup disabled",
 			config: func() *controller.Config {
 				c := getConfig()
@@ -279,10 +271,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
@@ -345,10 +333,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
-
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(sql.InsertUserParams{
@@ -404,9 +388,28 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, nil) //nolint:exhaustruct
+				mock.EXPECT().InsertUserWithRefreshToken(
+					gomock.Any(),
+					cmpDBParams(sql.InsertUserWithRefreshTokenParams{
+						Disabled:              false,
+						DisplayName:           "jane@acme.com",
+						AvatarUrl:             "",
+						Email:                 sql.Text("jane@acme.com"),
+						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
+						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:       sql.TimestampTz(time.Now()),
+						EmailVerified:         false,
+						Locale:                "en",
+						DefaultRole:           "user",
+						Metadata:              []byte("null"),
+						Roles:                 []string{"user", "me"},
+						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+					}),
+				).Return(
+					sql.InsertUserWithRefreshTokenRow{}, //nolint:exhaustruct
+					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:goerr113,lll
+				)
 
 				return mock
 			},
@@ -445,9 +448,28 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, nil) //nolint:exhaustruct
+				mock.EXPECT().InsertUserWithRefreshToken(
+					gomock.Any(),
+					cmpDBParams(sql.InsertUserWithRefreshTokenParams{
+						Disabled:              false,
+						DisplayName:           "jane@acme.com",
+						AvatarUrl:             "",
+						Email:                 sql.Text("jane@acme.com"),
+						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
+						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:       sql.TimestampTz(time.Now()),
+						EmailVerified:         false,
+						Locale:                "en",
+						DefaultRole:           "user",
+						Metadata:              []byte("null"),
+						Roles:                 []string{"user", "me"},
+						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+					}),
+				).Return(
+					sql.InsertUserWithRefreshTokenRow{}, //nolint:exhaustruct
+					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:goerr113,lll
+				)
 
 				return mock
 			},
@@ -476,7 +498,7 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			jwtTokenFn:  nil,
 		},
 
-		{
+		{ //nolint:dupl
 			name: "short password",
 			config: func() *controller.Config {
 				cfg := getConfig()
@@ -485,10 +507,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				return mock
 			},
@@ -526,10 +544,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				return mock
 			},
@@ -571,12 +585,8 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				cfg.PasswordHIBPEnabled = true
 				return cfg
 			},
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().InsertUserWithRefreshToken(
 					gomock.Any(),
@@ -676,10 +686,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
-
 				return mock
 			},
 			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
@@ -721,12 +727,8 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				c.GravatarEnabled = true
 				return c
 			},
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().InsertUserWithRefreshToken(
 					gomock.Any(),
@@ -821,12 +823,8 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 				c.CustomClaims = ``
 				return c
 			},
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				mock.EXPECT().InsertUserWithRefreshToken(
 					gomock.Any(),
@@ -942,10 +940,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
-
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(sql.InsertUserParams{
@@ -1028,10 +1022,6 @@ func TestPostSignupEmailPassword(t *testing.T) { //nolint:maintidx
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 				return mock
 			},

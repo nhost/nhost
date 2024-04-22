@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (ctrl *Controller) PostChangeEnv(fn gin.HandlerFunc) gin.HandlerFunc {
+func (ctrl *Controller) PostChangeEnv(fn gin.HandlerFunc) gin.HandlerFunc { //nolint:funlen,cyclop
 	return func(c *gin.Context) {
 		b, err := io.ReadAll(c.Request.Body)
 		if err != nil {
@@ -32,21 +32,30 @@ func (ctrl *Controller) PostChangeEnv(fn gin.HandlerFunc) gin.HandlerFunc {
 			return
 		}
 
-		if ctrl.config.CustomClaims == "" {
+		if ctrl.config.CustomClaims == "" { //nolint:nestif
 			ctrl.wf.jwtGetter.customClaimer = nil
 		} else {
-			cc, err := NewCustomClaims(
-				ctrl.config.CustomClaims,
-				&http.Client{}, //nolint:exhaustruct
-				ctrl.config.HasuraGraphqlURL,
-				CustomClaimerAddAdminSecret(ctrl.config.HasuraAdminSecret),
-			)
-			if err != nil {
-				_ = c.Error(err)
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-				return
+			var rawClaims map[string]string
+			if err := json.Unmarshal([]byte(ctrl.config.CustomClaims), &rawClaims); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"message": "failed to unmarhsal custom claims", "error": err.Error()})
 			}
-			ctrl.wf.jwtGetter.customClaimer = cc
+
+			if len(rawClaims) > 0 {
+				cc, err := NewCustomClaims(
+					rawClaims,
+					&http.Client{}, //nolint:exhaustruct
+					ctrl.config.HasuraGraphqlURL,
+					CustomClaimerAddAdminSecret(ctrl.config.HasuraAdminSecret),
+				)
+				if err != nil {
+					_ = c.Error(err)
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+					return
+				}
+				ctrl.wf.jwtGetter.customClaimer = cc
+			} else {
+				ctrl.wf.jwtGetter.customClaimer = nil
+			}
 		}
 
 		if ctrl.config.BlockedEmailDomains != nil ||

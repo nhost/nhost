@@ -20,7 +20,7 @@ func (ctrl *Controller) postSignupEmailPasswordValidateRequest(
 		return api.PostSignupEmailPasswordRequestObject{}, ErrSignupDisabled //nolint:exhaustruct
 	}
 
-	if err := ctrl.wf.ValidateSignupEmail(ctx, req.Body.Email, logger); err != nil {
+	if err := ctrl.wf.ValidateSignupEmail(req.Body.Email, logger); err != nil {
 		return api.PostSignupEmailPasswordRequestObject{}, err //nolint:exhaustruct
 	}
 

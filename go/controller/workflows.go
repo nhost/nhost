@@ -75,18 +75,8 @@ func NewWorkflows(
 }
 
 func (wf *Workflows) ValidateSignupEmail(
-	ctx context.Context, email types.Email, logger *slog.Logger,
+	email types.Email, logger *slog.Logger,
 ) *APIError {
-	_, err := wf.db.GetUserByEmail(ctx, sql.Text(email))
-	if err == nil {
-		logger.Warn("email already in use")
-		return ErrEmailAlreadyInUse
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		logger.Error("error getting user by email", logError(err))
-		return ErrInternalServerError
-	}
-
 	if !wf.ValidateEmail(string(email)) {
 		logger.Warn("email didn't pass access control checks")
 		return ErrInvalidEmailPassword
@@ -650,8 +640,7 @@ func (wf *Workflows) SignUpUser( //nolint:funlen
 
 	insertedUser, err := wf.db.InsertUser(ctx, input)
 	if err != nil {
-		logger.Error("error inserting user", logError(err))
-		return sql.AuthUser{}, ErrInternalServerError //nolint:exhaustruct
+		return sql.AuthUser{}, sqlErrIsDuplicatedEmail(err, logger) //nolint:exhaustruct
 	}
 
 	if wf.config.DisableNewUsers {
@@ -721,8 +710,8 @@ func (wf *Workflows) SignupUserWithRefreshToken( //nolint:funlen
 		},
 	)
 	if err != nil {
-		logger.Error("error inserting user", logError(err))
-		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrInternalServerError //nolint:exhaustruct
+		return nil, sql.InsertUserWithRefreshTokenRow{}, //nolint:exhaustruct
+			sqlErrIsDuplicatedEmail(err, logger)
 	}
 
 	if wf.config.DisableNewUsers {
@@ -855,8 +844,7 @@ func (wf *Workflows) SignupUserWithSecurityKeyAndRefreshToken( //nolint:funlen
 		},
 	)
 	if err != nil {
-		logger.Error("error inserting user", logError(err))
-		return nil, uuid.UUID{}, ErrInternalServerError
+		return nil, uuid.UUID{}, sqlErrIsDuplicatedEmail(err, logger)
 	}
 
 	if wf.config.DisableNewUsers {
@@ -925,8 +913,7 @@ func (wf *Workflows) SignupUserWithSecurityKey( //nolint:funlen
 			Nickname:            sql.Text(nickname),
 		},
 	); err != nil {
-		logger.Error("error inserting user", logError(err))
-		return nil, ErrInternalServerError
+		return nil, sqlErrIsDuplicatedEmail(err, logger)
 	}
 
 	if wf.config.DisableNewUsers {

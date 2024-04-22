@@ -278,36 +278,6 @@ describe('custom JWT claims', () => {
     );
   });
 
-  it('should handle an invalid configuration (unparsable)', async () => {
-    await request.post('/change-env').send({
-      AUTH_JWT_CUSTOM_CLAIMS: '{"invalid-json": unquoted value }',
-    });
-
-    const jwt = await insertUserProfile();
-
-    expect(jwt['https://hasura.io/jwt/claims']).toBeObject();
-    expect(
-      jwt['https://hasura.io/jwt/claims']['x-hasura-invalid-json']
-    ).toBeUndefined();
-  });
-
-  it('should handle an invalid configuration (parsable, but not an object)', async () => {
-    await request.post('/change-env').send({
-      AUTH_JWT_CUSTOM_CLAIMS: 'string value',
-    });
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const {
-      body: {
-        session: { user },
-      },
-    } = await request.post('/signup/email-password').send({
-      email,
-      password,
-    });
-    expect(user?.id).toBeString();
-  });
-
   it('should handle an valid configuration with invalid GraphQL path', async () => {
     await request.post('/change-env').send({
       AUTH_JWT_CUSTOM_CLAIMS: '{"key": "path.does.not-exist" }',

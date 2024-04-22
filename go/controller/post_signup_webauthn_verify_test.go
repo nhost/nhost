@@ -3,6 +3,7 @@ package controller_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 	"time"
 
@@ -572,6 +573,86 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 			},
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
+		},
+
+		{
+			name:   "user exists",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().InsertUserWithSecurityKeyAndRefreshToken(
+					gomock.Any(),
+					cmpDBParams(sql.InsertUserWithSecurityKeyAndRefreshTokenParams{
+						ID:                    userID,
+						Disabled:              false,
+						DisplayName:           "Jane Doe",
+						AvatarUrl:             "",
+						Email:                 sql.Text("jane@acme.com"),
+						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:       sql.TimestampTz(time.Now()),
+						EmailVerified:         false,
+						Locale:                "en",
+						DefaultRole:           "user",
+						Metadata:              []byte("null"),
+						Roles:                 []string{"user", "me"},
+						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						CredentialID:          "LychOomEPgZu4XNwiDvzlP5hd1U",
+						CredentialPublicKey: []uint8{
+							0xa5, 0x01, 0x02, 0x03, 0x26, 0x20, 0x01, 0x21, 0x58, 0x20, 0x57, 0xe1, 0xb5, 0x82, 0xa0, 0x95, 0xc4, 0x1a, 0xf3, 0x65, 0x9d, 0xdd, 0xc2, 0x68, 0xcf, 0x66, 0x35, 0x25, 0x32, 0xa5, 0x86, 0x22, 0xfb, 0xf7, 0xc6, 0xc6, 0x08, 0x6d, 0xa9, 0xc9, 0x64, 0x7f, 0x22, 0x58, 0x20, 0xa3, 0x50, 0x94, 0x11, 0xb8, 0x27, 0x52, 0xae, 0x46, 0xec, 0x56, 0x3a, 0x3b, 0x3a, 0x6d, 0x71, 0x24, 0x10, 0x66, 0xae, 0xb2, 0x57, 0x75, 0xd5, 0xbb, 0x98, 0x8c, 0xd0, 0xc5, 0x91, 0x1f, 0x65, //nolint:lll
+						},
+						Nickname: pgtype.Text{}, //nolint:exhaustruct
+					}),
+				).Return(sql.InsertUserWithSecurityKeyAndRefreshTokenRow{}, //nolint:exhaustruct
+					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:goerr113,lll
+				)
+
+				return mock
+			},
+			emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
+				mock := mock.NewMockEmailer(ctrl)
+				return mock
+			},
+			hibp: func(ctrl *gomock.Controller) *mock.MockHIBPClient {
+				mock := mock.NewMockHIBPClient(ctrl)
+				return mock
+			},
+			customClaimer: nil,
+			request: api.PostSignupWebauthnVerifyRequestObject{
+				Body: &api.SignUpWebauthnVerifyRequest{
+					Credential:           touchIDRequest,
+					Options:              nil,
+					AdditionalProperties: nil,
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "email-already-in-use",
+				Message: "Email already in use",
+				Status:  409,
+			},
+			expectedJWT: &jwt.Token{
+				Raw:    "",
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Claims: jwt.MapClaims{
+					"exp": float64(time.Now().Add(900 * time.Second).Unix()),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles": []any{"user", "me"},
+						"x-hasura-default-role":  string("user"),
+						"x-hasura-user-id": string(
+							"cf91d1bc-875e-49bc-897f-fbccf32ede11",
+						),
+						"x-hasura-user-is-anonymous": string("false"),
+					},
+					"iat": float64(time.Now().Unix()),
+					"iss": string("hasura-auth"),
+					"sub": string("cf91d1bc-875e-49bc-897f-fbccf32ede11"),
+				},
+				Signature: []uint8{},
+				Valid:     true,
+			},
+			jwtTokenFn: nil,
 		},
 	}
 

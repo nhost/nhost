@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,11 +11,19 @@ import (
 )
 
 func getJWTGetter(cCtx *cli.Context, db controller.DBClient) (*controller.JWTGetter, error) {
+	var rawClaims map[string]string
+
+	if cCtx.String(flagCustomClaims) != "" {
+		if err := json.Unmarshal([]byte(cCtx.String(flagCustomClaims)), &rawClaims); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal custom claims: %w", err)
+		}
+	}
+
 	var customClaimer controller.CustomClaimer
 	var err error
-	if cCtx.String(flagCustomClaims) != "" {
+	if len(rawClaims) > 0 {
 		customClaimer, err = controller.NewCustomClaims(
-			cCtx.String(flagCustomClaims),
+			rawClaims,
 			&http.Client{}, //nolint:exhaustruct
 			cCtx.String(flagGraphqlURL),
 			controller.CustomClaimerAddAdminSecret(cCtx.String(flagHasuraAdminSecret)),

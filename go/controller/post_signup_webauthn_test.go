@@ -10,11 +10,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/nhost/hasura-auth/go/api"
 	"github.com/nhost/hasura-auth/go/controller"
 	"github.com/nhost/hasura-auth/go/controller/mock"
-	"github.com/nhost/hasura-auth/go/sql"
 	"github.com/nhost/hasura-auth/go/testhelpers"
 	"go.uber.org/mock/gomock"
 )
@@ -37,10 +35,6 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 				config: getConfig,
 				db: func(ctrl *gomock.Controller) controller.DBClient {
 					mock := mock.NewMockDBClient(ctrl)
-
-					mock.EXPECT().GetUserByEmail(
-						gomock.Any(), sql.Text("jane@acme.com"),
-					).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 					return mock
 				},
@@ -134,10 +128,6 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 				config: getConfig,
 				db: func(ctrl *gomock.Controller) controller.DBClient {
 					mock := mock.NewMockDBClient(ctrl)
-
-					mock.EXPECT().GetUserByEmail(
-						gomock.Any(), sql.Text("jane@acme.com"),
-					).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
 
 					return mock
 				},
@@ -316,9 +306,7 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 				config: getConfig,
 				db: func(ctrl *gomock.Controller) controller.DBClient {
 					mock := mock.NewMockDBClient(ctrl)
-					mock.EXPECT().GetUserByEmail(
-						gomock.Any(), sql.Text("jane@acme.com"),
-					).Return(sql.AuthUser{}, nil) //nolint:exhaustruct
+
 					return mock
 				},
 				emailer: func(ctrl *gomock.Controller) *mock.MockEmailer {
@@ -336,15 +324,73 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 						Options: nil,
 					},
 				},
-				expectedResponse: controller.ErrorResponse{
-					Error:   "email-already-in-use",
-					Message: "Email already in use",
-					Status:  409,
+				expectedResponse: api.PostSignupWebauthn200JSONResponse{
+					RelyingParty: protocol.RelyingPartyEntity{
+						CredentialEntity: protocol.CredentialEntity{
+							Name: "React Apollo Example",
+							Icon: "",
+						},
+						ID: "react-apollo.example.nhost.io",
+					},
+					User: protocol.UserEntity{
+						CredentialEntity: protocol.CredentialEntity{
+							Name: "jane@acme.com",
+							Icon: "",
+						},
+						DisplayName: "jane@acme.com",
+						ID:          userID.String(),
+					},
+					Challenge: []byte{},
+					Parameters: []protocol.CredentialParameter{
+						{Type: "public-key", Algorithm: -7},
+						{Type: "public-key", Algorithm: -35},
+						{Type: "public-key", Algorithm: -36},
+						{Type: "public-key", Algorithm: -257},
+						{Type: "public-key", Algorithm: -258},
+						{Type: "public-key", Algorithm: -259},
+						{Type: "public-key", Algorithm: -37},
+						{Type: "public-key", Algorithm: -38},
+						{Type: "public-key", Algorithm: -39},
+						{Type: "public-key", Algorithm: -8},
+					},
+					Timeout:               60000,
+					CredentialExcludeList: nil,
+
+					AuthenticatorSelection: protocol.AuthenticatorSelection{
+						AuthenticatorAttachment: "",
+						RequireResidentKey:      ptr(false),
+						ResidentKey:             "preferred",
+						UserVerification:        "preferred",
+					},
+					Attestation: "indirect",
+					Extensions:  nil,
 				},
 				expectedJWT: nil,
 				jwtTokenFn:  nil,
 			},
-			savedChallenge: controller.WebauthnChallenge{}, //nolint:exhaustruct
+			savedChallenge: controller.WebauthnChallenge{
+				Session: webauthn.SessionData{
+					Challenge:            "xxx",
+					UserID:               []byte{},
+					AllowedCredentialIDs: nil,
+					Expires:              time.Now().Add(1 * time.Minute),
+					UserVerification:     "preferred",
+					Extensions:           nil,
+				},
+				User: controller.WebauthnUser{
+					ID:    uuid.UUID{},
+					Name:  "jane@acme.com",
+					Email: "jane@acme.com",
+				},
+				Options: &api.SignUpOptions{
+					AllowedRoles: &[]string{"user", "me"},
+					DefaultRole:  ptr("user"),
+					DisplayName:  ptr("jane@acme.com"),
+					Locale:       ptr("en"),
+					Metadata:     nil,
+					RedirectTo:   ptr("http://localhost:3000"),
+				},
+			},
 		},
 
 		{

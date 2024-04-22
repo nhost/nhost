@@ -10,7 +10,6 @@ import (
 )
 
 func (ctrl *Controller) postSignupWebauthnValidateRequest(
-	ctx context.Context,
 	request api.PostSignupWebauthnRequestObject,
 	logger *slog.Logger,
 ) (*api.SignUpOptions, *APIError) {
@@ -31,7 +30,7 @@ func (ctrl *Controller) postSignupWebauthnValidateRequest(
 		return nil, apiErr
 	}
 
-	if apiErr := ctrl.wf.ValidateSignupEmail(ctx, request.Body.Email, logger); apiErr != nil {
+	if apiErr := ctrl.wf.ValidateSignupEmail(request.Body.Email, logger); apiErr != nil {
 		return nil, apiErr
 	}
 
@@ -45,7 +44,7 @@ func (ctrl *Controller) PostSignupWebauthn( //nolint:ireturn
 	logger := middleware.LoggerFromContext(ctx).
 		With(slog.String("email", string(request.Body.Email)))
 
-	options, apiErr := ctrl.postSignupWebauthnValidateRequest(ctx, request, logger)
+	options, apiErr := ctrl.postSignupWebauthnValidateRequest(request, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}

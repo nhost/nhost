@@ -28,23 +28,23 @@ func TestCustomClaims(t *testing.T) {
 
 	cases := []struct {
 		name            string
-		claims          string
+		claims          map[string]string
 		expectedGraphql string
 		expectedData    map[string]any
 	}{
 		{
 			name: "",
-			claims: `{
-                "root": "m",
-                "key": "m.k",
-                "element": "m.l[2]",
-                "array[]": "m.l[]",
-                "array[*]": "m.l[*]",
-                "array[].ids": "m.lm[*].id",
-                "arrayOneElement[]": "m.l2[]",
-                "metadata.m1": "metadata.m1",
-                "nonexistent": "nonexistent.nonexistent"
-            }`,
+			claims: map[string]string{
+				"root":              "m",
+				"key":               "m.k",
+				"element":           "m.l[2]",
+				"array[]":           "m.l[]",
+				"array[*]":          "m.l[*]",
+				"array[].ids":       "m.lm[*].id",
+				"arrayOneElement[]": "m.l2[]",
+				"metadata.m1":       "metadata.m1",
+				"nonexistent":       "nonexistent.nonexistent",
+			},
 			expectedGraphql: "query GetClaims($id: uuid!) { user(id:$id) {m{k l l2 lm{id }}metadata nonexistent{nonexistent }} }", //nolint:lll
 			expectedData: map[string]any{
 				"root":              data["m"],

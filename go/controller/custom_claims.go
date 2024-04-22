@@ -118,19 +118,14 @@ func CustomClaimerAddAdminSecret(adminSecret string) RequestInterceptor {
 }
 
 func NewCustomClaims(
-	claimsString string,
+	rawClaims map[string]string,
 	httpclient *http.Client,
 	graphqlURL string,
 	requestInterceptor ...RequestInterceptor,
 ) (*CustomClaims, error) {
-	var raw map[string]string
-	if err := json.Unmarshal([]byte(claimsString), &raw); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal custom claims: %w", err)
-	}
-
 	claims := make(map[string]any)
 	jsonPaths := make(map[string]jsonPath)
-	for name, val := range raw {
+	for name, val := range rawClaims {
 		parts := strings.Split(val, ".")
 		claims = mergeMaps(claims, parseClaims(parts))
 

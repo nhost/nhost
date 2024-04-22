@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/nhost/hasura-auth/go/api"
 )
@@ -265,4 +266,19 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 
 func (ctrl *Controller) respondWithError(err *APIError) ErrorResponse {
 	return ctrl.sendError(err)
+}
+
+func sqlErrIsDuplicatedEmail(err error, logger *slog.Logger) *APIError {
+	if err == nil {
+		return nil
+	}
+
+	if strings.Contains(err.Error(), "SQLSTATE 23505") &&
+		strings.Contains(err.Error(), "\"users_email_key\"") {
+		logger.Error("email already in use", logError(err))
+		return ErrEmailAlreadyInUse
+	}
+
+	logger.Error("error inserting user", logError(err))
+	return &APIError{api.InternalServerError}
 }
