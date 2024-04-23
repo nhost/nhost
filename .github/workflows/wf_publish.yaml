@@ -75,10 +75,10 @@ jobs:
 
           find ~/artifacts -type f -name "nhost-cli" -exec bash -c 'chmod +x "$0" && mv "$0" "${0//nhost-cli/cli}"' {} \;
 
-          tar cvzf upload/cli-v$VERSION-darwin-amd64.tar.gz -C ~/artifacts/cli-$VERSION-darwin-amd64 cli
-          tar cvzf upload/cli-v$VERSION-darwin-arm64.tar.gz -C ~/artifacts/cli-$VERSION-darwin-arm64 cli
-          tar cvzf upload/cli-v$VERSION-linux-amd64.tar.gz -C ~/artifacts/cli-$VERSION-linux-amd64 cli
-          tar cvzf upload/cli-v$VERSION-linux-arm64.tar.gz -C ~/artifacts/cli-$VERSION-linux-arm64 cli
+          tar cvzf upload/cli-$VERSION-darwin-amd64.tar.gz -C ~/artifacts/cli-$VERSION-darwin-amd64 cli
+          tar cvzf upload/cli-$VERSION-darwin-arm64.tar.gz -C ~/artifacts/cli-$VERSION-darwin-arm64 cli
+          tar cvzf upload/cli-$VERSION-linux-amd64.tar.gz -C ~/artifacts/cli-$VERSION-linux-amd64 cli
+          tar cvzf upload/cli-$VERSION-linux-arm64.tar.gz -C ~/artifacts/cli-$VERSION-linux-arm64 cli
 
           cd upload
           find . -type f -exec sha256sum {} + > ../checksums.txt
