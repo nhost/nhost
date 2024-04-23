@@ -29,6 +29,11 @@ func commandVersion(cCtx *cli.Context) error {
 		return fmt.Errorf("failed to get releases: %w", err)
 	}
 
+	if len(releases) == 0 {
+		ce.Println("You already have the latest version of Nhost CLI installed.")
+		return nil
+	}
+
 	latest := releases[0]
 	if latest.TagName == cCtx.App.Version {
 		return nil
