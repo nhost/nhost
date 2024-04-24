@@ -32,21 +32,21 @@ export default function SignUp() {
       });
 
     if (isError) {
-      Alert.alert('An error has happened');
       console.log({error});
       return;
     }
 
     if (needsEmailVerification) {
       Alert.alert(
-        "Click on the link we've sent to your inbox to verify your account",
+        'Check your inbox',
+        "Click on the link we've sent to your inbox to verify your account and sign in",
       );
       return;
     }
 
-    // Everything went fine
-
-    console.log({user});
+    console.log({
+      user,
+    });
   };
 
   return (
