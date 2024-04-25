@@ -133,9 +133,9 @@ export default function PostmarkSettings() {
           <Input
             {...register('password')}
             id="password"
-            label="SMTP Password"
+            label="Password"
             type="password"
-            placeholder="Enter SMTP password"
+            placeholder="Enter password"
             className="lg:col-span-5"
             hideEmptyHelperText
             fullWidth
