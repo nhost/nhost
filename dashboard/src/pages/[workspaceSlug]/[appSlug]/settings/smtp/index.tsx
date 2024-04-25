@@ -46,7 +46,16 @@ const smtpValidationSchema = yup
   })
   .required();
 
+const postmarkValidationSchema = yup
+  .object({
+    password: yup.string().label('Password').required(),
+    sender: yup.string().label('SMTP Sender').email().required(),
+  })
+  .required();
+
 export type SmtpFormValues = yup.InferType<typeof smtpValidationSchema>;
+
+export type PostmarkFormValues = yup.InferType<typeof postmarkValidationSchema>;
 
 export default function SMTPSettingsPage() {
   const { openDialog } = useDialog();
@@ -63,7 +72,7 @@ export default function SMTPSettingsPage() {
   const { secure, host, port, user, method, sender, password } =
     data?.config?.provider?.smtp || {};
 
-  const form = useForm<Optional<SmtpFormValues, 'password'>>({
+  const smtpForm = useForm<Optional<SmtpFormValues, 'password'>>({
     reValidateMode: 'onSubmit',
     resolver: yupResolver(smtpValidationSchema),
     defaultValues: {
@@ -89,9 +98,39 @@ export default function SMTPSettingsPage() {
   });
 
   const {
-    register,
+    register: registerSmtp,
     formState: { errors, isDirty, isSubmitting },
-  } = form;
+  } = smtpForm;
+
+  const postmarkForm = useForm<Optional<PostmarkFormValues, 'password'>>({
+    reValidateMode: 'onSubmit',
+    resolver: yupResolver(postmarkValidationSchema),
+    defaultValues: {
+      password: '',
+      sender: '',
+    },
+    values: {
+      password: password || '',
+      sender: sender || '',
+    },
+    mode: 'onSubmit',
+    criteriaMode: 'all',
+  });
+
+  const {
+    register: registerPostmark,
+    formState: { errors: errorsPostmark, isDirty: isDirtyPostmark, isSubmitting: isSubmittingPostmark },
+  } = postmarkForm;
+
+  const deleteForm = useForm({
+    reValidateMode: 'onSubmit',
+    mode: 'onSubmit',
+    criteriaMode: 'all',
+  });
+
+  const {
+    formState: { isSubmitting: isSubmittingDelete },
+  } = deleteForm;
 
   const [updateConfig] = useUpdateConfigMutation({
     refetchQueries: [GetSmtpSettingsDocument],
@@ -162,12 +201,86 @@ export default function SMTPSettingsPage() {
     );
   };
 
+  const handleEditPostmarkSettings = async (values: PostmarkFormValues) => {
+    const updateConfigPromise = updateConfig({
+      variables: {
+        appId: currentProject.id,
+        config: {
+          provider: {
+            smtp: {method: 'LOGIN', host: 'postmark', ...values},
+          },
+        },
+      },
+    });
+
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
+      },
+      {
+        loadingMessage: 'Postmark settings are being updated...',
+        successMessage: 'Postmark settings have been updated successfully.',
+        errorMessage:
+          'An error occurred while trying to update your Postmark settings.',
+      },
+    );
+  };
+
+  const handleDeleteSMTPSettings = async () => {
+    const updateConfigPromise = updateConfig({
+      variables: {
+        appId: currentProject.id,
+        config: {
+          provider: {
+            smtp: null,
+          },
+        },
+      },
+    });
+
+    await execPromiseWithErrorToast(
+      async () => {
+        await updateConfigPromise;
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
+      },
+      {
+        loadingMessage: 'SMTP settings are being deleted...',
+        successMessage: 'SMTP settings have been deleted successfully.',
+        errorMessage:
+          'An error occurred while trying to delete the SMTP settings.',
+      },
+    );
+  };
+
   return (
     <Container
       className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"
       rootClassName="bg-transparent"
     >
-      <FormProvider {...form}>
+      <FormProvider {...smtpForm}>
         <Form onSubmit={handleEditSMTPSettings}>
           <SettingsContainer
             title="SMTP Settings"
@@ -182,7 +295,7 @@ export default function SMTPSettingsPage() {
             }}
           >
             <Input
-              {...register('sender')}
+              {...registerSmtp('sender')}
               id="sender"
               name="sender"
               label="From Email"
@@ -195,7 +308,7 @@ export default function SMTPSettingsPage() {
             />
 
             <Input
-              {...register('host')}
+              {...registerSmtp('host')}
               id="host"
               name="host"
               label="SMTP Host"
@@ -208,7 +321,7 @@ export default function SMTPSettingsPage() {
             />
 
             <Input
-              {...register('port')}
+              {...registerSmtp('port')}
               id="port"
               name="port"
               label="Port"
@@ -222,7 +335,7 @@ export default function SMTPSettingsPage() {
             />
 
             <Input
-              {...register('user')}
+              {...registerSmtp('user')}
               id="user"
               label="SMTP Username"
               placeholder="SMTP Username"
@@ -234,7 +347,7 @@ export default function SMTPSettingsPage() {
             />
 
             <Input
-              {...register('password')}
+              {...registerSmtp('password')}
               id="password"
               label="SMTP Password"
               type="password"
@@ -247,7 +360,7 @@ export default function SMTPSettingsPage() {
             />
 
             <Input
-              {...register('method')}
+              {...registerSmtp('method')}
               id="method"
               name="method"
               label="SMTP Auth Method"
@@ -265,6 +378,67 @@ export default function SMTPSettingsPage() {
               label="Use SSL"
               className="lg:col-span-9"
             />
+          </SettingsContainer>
+        </Form>
+      </FormProvider>
+
+      <FormProvider {...postmarkForm}>
+        <Form onSubmit={handleEditPostmarkSettings}>
+          <SettingsContainer
+            title="Postmark Settings"
+            description="Configure your SMTP settings to send emails from your email domain."
+            submitButtonText="Save"
+            className="grid grid-cols-9 gap-4"
+            slotProps={{
+              submitButton: {
+                disabled: !isDirtyPostmark || maintenanceActive,
+                loading: isSubmittingPostmark,
+              },
+            }}
+          >
+            <Input
+              {...registerPostmark('sender')}
+              id="sender"
+              name="sender"
+              label="From Email"
+              placeholder="noreply@nhost.app"
+              className="lg:col-span-4"
+              hideEmptyHelperText
+              fullWidth
+              error={Boolean(errorsPostmark.sender)}
+              helperText={errorsPostmark.sender?.message}
+            />
+
+            <Input
+              {...registerPostmark('password')}
+              id="password"
+              label="SMTP Password"
+              type="password"
+              placeholder="Enter SMTP password"
+              className="lg:col-span-5"
+              hideEmptyHelperText
+              fullWidth
+              error={Boolean(errorsPostmark.password)}
+              helperText={errorsPostmark.password?.message}
+            />
+         </SettingsContainer>
+        </Form>
+      </FormProvider>
+
+      <FormProvider {...deleteForm}>
+        <Form onSubmit={handleDeleteSMTPSettings}>
+          <SettingsContainer
+            title="Delete SMTP Settings"
+            description="Delete SMTP settings and revert to default values"
+            submitButtonText="Delete"
+            className="grid grid-cols-9 gap-4"
+            slotProps={{
+              submitButton: {
+                disabled: maintenanceActive,
+                loading: isSubmittingDelete,
+              },
+            }}
+          >
           </SettingsContainer>
         </Form>
       </FormProvider>
