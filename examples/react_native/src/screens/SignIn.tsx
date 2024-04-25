@@ -1,15 +1,6 @@
-import {useSignUpEmailPassword} from '@nhost/react';
-import {Controller, useForm} from 'react-hook-form';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import {useSignInEmailPassword, useSignUpEmailPassword} from '@nhost/react';
+import {useForm} from 'react-hook-form';
+import {Alert, SafeAreaView, ScrollView, Text, View} from 'react-native';
 import {ControlledInput} from '../components';
 import Button from '../components/Button';
 
@@ -20,20 +11,16 @@ interface SignUpFormValues {
   password: string;
 }
 
-export default function SignUp() {
+export default function SignIn() {
   const {control, handleSubmit} = useForm<SignUpFormValues>();
 
-  const {signUpEmailPassword, isLoading} = useSignUpEmailPassword();
+  const {signInEmailPassword, isLoading} = useSignInEmailPassword();
 
   const onSubmit = async (data: SignUpFormValues) => {
-    const {firstName, lastName, email, password} = data;
+    const {email, password} = data;
 
     const {isError, error, user, needsEmailVerification} =
-      await signUpEmailPassword(email, password, {
-        displayName: `${firstName} ${lastName}`,
-      });
-
-    Alert.alert('test');
+      await signInEmailPassword(email, password);
 
     if (isError) {
       console.log({error});
@@ -70,7 +57,7 @@ export default function SignUp() {
               fontSize: 30,
               fontWeight: 'bold',
             }}>
-            Sign Up
+            Sign In
           </Text>
         </View>
         <View
@@ -80,46 +67,14 @@ export default function SignUp() {
             paddingRight: 10,
             alignItems: 'center',
             justifyContent: 'center',
+            gap: 10,
           }}>
-          <ControlledInput
-            control={control}
-            name="firstName"
-            placeholder="First name"
-            style={{
-              width: '100%',
-              marginBottom: 10,
-              backgroundColor: 'ghostwhite',
-              padding: 12,
-              borderRadius: 10,
-            }}
-            rules={{
-              required: true,
-            }}
-          />
-
-          <ControlledInput
-            control={control}
-            name="lastName"
-            placeholder="Last name"
-            style={{
-              width: '100%',
-              marginBottom: 10,
-              backgroundColor: 'ghostwhite',
-              padding: 12,
-              borderRadius: 10,
-            }}
-            rules={{
-              required: true,
-            }}
-          />
-
           <ControlledInput
             control={control}
             name="email"
             placeholder="Email"
             style={{
               width: '100%',
-              marginBottom: 10,
               backgroundColor: 'ghostwhite',
               padding: 12,
               borderRadius: 10,
@@ -137,7 +92,6 @@ export default function SignUp() {
             placeholder="Password"
             style={{
               width: '100%',
-              marginBottom: 10,
               backgroundColor: 'ghostwhite',
               padding: 12,
               borderRadius: 10,
@@ -151,7 +105,14 @@ export default function SignUp() {
           <Button
             loading={isLoading}
             disabled={isLoading}
-            label="Sign Up"
+            label="Sign In"
+            onPress={handleSubmit(onSubmit)}
+          />
+
+          <Button
+            loading={isLoading}
+            disabled={isLoading}
+            label="Sign in with Apple"
             onPress={handleSubmit(onSubmit)}
           />
         </View>
