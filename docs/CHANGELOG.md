@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.10.2
+
+### Patch Changes
+
+- 9480489: fix: update docs performance info
+
 ## 2.10.1
 
 ### Patch Changes
