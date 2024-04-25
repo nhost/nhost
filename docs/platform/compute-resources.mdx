@@ -74,19 +74,4 @@ To setup dedicated resources for your project, you can either use the Dashboard 
 
 ## Disk Performance
 
-Services may require a disk provisioned to store data. For instance, [postgres](/guides/database/configuring-postgres#configuration-example) comes with a disk provisioned by default and [Nhost Run](/product/run) may [too](/guides/run/resources#storage). For these cases we provisioned SSD disks with the following performance:
-
-- Baseline: 3000 IOPS
-- Baseline: 125Mbps of thoughput
-- Every 50GB: +350 IOPS and +15Mbps of throughput
-
-For example, the following disk sizes will have the following performance:
-
-| Size | IOPS | Throughput |
-| ---- | ---- | ---------- |
-| 1 | 3000| 125 |
-| 10 | 3000| 125 |
-| 49 | 3000| 125 |
-| 50 | 3350| 140 |
-| 100 | 3700 | 155 |
-| 300 | 5100 | 215 |
+By default disks are provisioned but a capacity for 3000 IOPS and 125 Mbps of throughput. If you need higher performance don't hesitate to contact us.
