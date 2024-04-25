@@ -386,7 +386,7 @@ export default function SMTPSettingsPage() {
         <Form onSubmit={handleEditPostmarkSettings}>
           <SettingsContainer
             title="Postmark Settings"
-            description="Configure your SMTP settings to send emails from your email domain."
+            description="Configure postmark's native integration to send emails from your email domain."
             submitButtonText="Save"
             className="grid grid-cols-9 gap-4"
             slotProps={{
