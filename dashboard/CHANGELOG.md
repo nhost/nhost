@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.14.0
+
+### Minor Changes
+
+- a448d7d: feat: allow configuring postmark and delete SMTP settings
+
 ## 1.13.3
 
 ### Patch Changes
