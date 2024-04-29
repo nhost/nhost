@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/smtp"
+	"strings"
 )
 
 type Email struct {
@@ -37,6 +38,17 @@ func NewEmail(
 	}
 }
 
+func sanitize(s string) string {
+	return strings.Map(func(r rune) rune {
+		switch r {
+		case '\n', '\r':
+			return -1
+		default:
+			return r
+		}
+	}, s)
+}
+
 func (sm *Email) Send(to, subject, contents string, headers map[string]string) error {
 	buf := new(bytes.Buffer)
 	for k, v := range sm.extraHeaders {
@@ -46,8 +58,8 @@ func (sm *Email) Send(to, subject, contents string, headers map[string]string) e
 		fmt.Fprintf(buf, "%s: %s\r\n", k, v)
 	}
 	buf.WriteString("From: " + sm.from + "\r\n")
-	buf.WriteString("To: " + to + "\r\n")
-	buf.WriteString("Subject: " + subject + "\r\n")
+	buf.WriteString("To: " + sanitize(to) + "\r\n")
+	buf.WriteString("Subject: " + sanitize(subject) + "\r\n")
 	buf.WriteString("Content-Type: text/html; charset=UTF-8\r\n")
 	buf.WriteString("\r\n")
 	buf.WriteString(contents + "\r\n")
