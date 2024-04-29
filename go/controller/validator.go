@@ -110,25 +110,24 @@ func ValidateEmail(
 		if len(parts) != 2 { //nolint:gomnd
 			return false
 		}
-
 		domain := parts[1]
-
-		if slices.Contains(blockedEmailDomains, domain) {
-			return false
-		}
 
 		if slices.Contains(blockedEmails, email) {
 			return false
 		}
 
-		if len(allowedEmailDomains) > 0 && !slices.Contains(allowedEmailDomains, domain) {
+		if slices.Contains(allowedEmails, email) {
+			return true
+		}
+
+		if slices.Contains(blockedEmailDomains, domain) {
 			return false
 		}
 
-		if len(allowedEmails) > 0 && !slices.Contains(allowedEmails, email) {
-			return false
+		if slices.Contains(allowedEmailDomains, domain) {
+			return true
 		}
 
-		return true
+		return len(allowedEmailDomains) == 0 && len(allowedEmails) == 0
 	}
 }
