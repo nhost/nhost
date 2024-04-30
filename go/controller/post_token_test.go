@@ -83,8 +83,8 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 						),
 					}),
 				).Return([]sql.RefreshTokenAndGetUserRolesRow{
-					{Role: "user", RefreshTokenID: tokenID},
-					{Role: "me", RefreshTokenID: tokenID},
+					{Role: sql.Text("user"), RefreshTokenID: tokenID},
+					{Role: sql.Text("me"), RefreshTokenID: tokenID},
 				}, nil)
 
 				return mock
@@ -167,7 +167,7 @@ func TestPostToken(t *testing.T) { //nolint:maintidx
 						),
 					}),
 				).Return([]sql.RefreshTokenAndGetUserRolesRow{
-					{Role: "anonymous", RefreshTokenID: tokenID},
+					{Role: sql.Text("anonymous"), RefreshTokenID: tokenID},
 				}, nil)
 
 				return mock

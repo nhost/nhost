@@ -159,7 +159,7 @@ updated_user AS (
     WHERE auth.users.id = refreshed_token.user_id
 )
 SELECT refreshed_token.refresh_token_id, role FROM auth.user_roles
-JOIN refreshed_token ON auth.user_roles.user_id = refreshed_token.user_id;
+RIGHT JOIN refreshed_token ON auth.user_roles.user_id = refreshed_token.user_id;
 
 -- name: UpdateUserLastSeen :one
 UPDATE auth.users
