@@ -36,7 +36,7 @@ func main() {
 	fmt.Println(d.Minutes) // 30
 	fmt.Println(d.Seconds) // 5.5
 	
-	d, err = duration.Parse("T33.3S")
+	d, err = duration.Parse("PT33.3S")
 	if err != nil {
 		panic(err)
 	}

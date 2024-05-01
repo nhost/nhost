@@ -10,7 +10,9 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/Yamashou/gqlgenc/graphqljson"
@@ -182,7 +184,7 @@ func (c *Client) Post(ctx context.Context, operationName, query string, respData
 
 		headers = append(headers, header{key: "Content-Type", value: contentType})
 	} else {
-		requestBody, err := json.Marshal(r)
+		requestBody, err := MarshalJSON(r)
 		if err != nil {
 			return fmt.Errorf("encode: %w", err)
 		}
@@ -390,4 +392,245 @@ func (c *Client) unmarshal(data []byte, res interface{}) error {
 	}
 
 	return err
+}
+
+func MarshalJSON(v interface{}) ([]byte, error) {
+	if v == nil {
+		return []byte("null"), nil // Directly return "null" for nil interface{}
+	}
+
+	val := reflect.ValueOf(v)
+	if !val.IsValid() || (val.Kind() == reflect.Ptr && val.IsNil()) {
+		return []byte("null"), nil // Return "null" for nil pointer or invalid reflect value
+	}
+
+	return encode(val)
+}
+
+func checkImplements[I any](v reflect.Value) bool {
+	t := v.Type()
+	interfaceType := reflect.TypeOf((*I)(nil)).Elem()
+
+	// Check if the type implements the interface directly or as a pointer.
+	return t.Implements(interfaceType) || (t.Kind() == reflect.Ptr && reflect.PtrTo(t).Implements(interfaceType))
+}
+
+// encode returns an appropriate encoder function for the provided value.
+func encode(v reflect.Value) ([]byte, error) {
+	if checkImplements[graphql.Marshaler](v) {
+		return encodeGQLMarshaler(v.Interface())
+	}
+
+	if checkImplements[json.Marshaler](v) {
+		return encodeJsonMarshaler(v.Interface())
+	}
+
+	t := v.Type() // Get the type from the value
+	switch t.Kind() {
+	case reflect.Ptr:
+		return encodePtr(v)
+	case reflect.Struct:
+		return encodeStruct(v)
+	case reflect.Map:
+		return encodeMap(v)
+	case reflect.Slice:
+		return encodeSlice(v)
+	case reflect.Array:
+		return encodeArray(v)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return encodeInt(v)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return encodeUint(v)
+	case reflect.String:
+		return encodeString(v)
+	case reflect.Bool:
+		return encodeBool(v)
+	case reflect.Float32, reflect.Float64:
+		return encodeFloat(v)
+	case reflect.Interface:
+		return encodeInterface(v)
+	case reflect.Invalid, reflect.Complex64, reflect.Complex128, reflect.Chan, reflect.Func, reflect.UnsafePointer:
+		panic(fmt.Sprintf("unsupported type: %s", t))
+	default:
+		panic(fmt.Sprintf("unsupported type: %s", t))
+	}
+}
+
+func encodeGQLMarshaler(v any) ([]byte, error) {
+	var buf bytes.Buffer
+	if val, ok := v.(graphql.Marshaler); ok {
+		val.MarshalGQL(&buf)
+	} else {
+		return nil, fmt.Errorf("failed to encode graphql.Marshaler: %v", v)
+	}
+
+	return buf.Bytes(), nil
+}
+
+func encodeJsonMarshaler(v any) ([]byte, error) {
+	if val, ok := v.(json.Marshaler); ok {
+		return val.MarshalJSON()
+	} else {
+		return nil, fmt.Errorf("failed to encode json.Marshaler: %v", v)
+	}
+}
+
+func encodeBool(v reflect.Value) ([]byte, error) {
+	boolValue, err := json.Marshal(v.Bool())
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode bool: %v", v)
+	}
+	return boolValue, nil
+}
+
+func encodeInt(v reflect.Value) ([]byte, error) {
+	return []byte(fmt.Sprintf("%d", v.Int())), nil
+}
+
+func encodeUint(v reflect.Value) ([]byte, error) {
+	return []byte(fmt.Sprintf("%d", v.Uint())), nil
+}
+
+func encodeFloat(v reflect.Value) ([]byte, error) {
+	return []byte(fmt.Sprintf("%f", v.Float())), nil
+}
+
+func encodeString(v reflect.Value) ([]byte, error) {
+	stringValue, err := json.Marshal(v.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode string: %v", v)
+	}
+	return stringValue, nil
+}
+
+type fieldInfo struct {
+	name      string
+	jsonName  string
+	omitempty bool
+	typ       reflect.Type
+}
+
+func prepareFields(t reflect.Type) []fieldInfo {
+	num := t.NumField()
+	fields := make([]fieldInfo, 0, num)
+	for i := 0; i < num; i++ {
+		f := t.Field(i)
+		if f.PkgPath != "" && !f.Anonymous { // Skip unexported fields unless they are embedded
+			continue
+		}
+		jsonTag := f.Tag.Get("json")
+		if jsonTag == "-" {
+			continue // Skip fields explicitly marked to be ignored
+		}
+
+		jsonName := f.Name
+		if jsonTag != "" {
+			parts := strings.Split(jsonTag, ",")
+			jsonName = parts[0] // Use the name specified in the JSON tag
+		}
+
+		fi := fieldInfo{
+			name:     f.Name,
+			jsonName: jsonName,
+			typ:      f.Type,
+		}
+
+		if strings.Contains(jsonTag, "omitempty") {
+			fi.omitempty = true
+		}
+
+		fields = append(fields, fi)
+	}
+
+	return fields
+}
+
+func encodeStruct(v reflect.Value) ([]byte, error) {
+	fields := prepareFields(v.Type())
+	result := make(map[string]json.RawMessage)
+	for _, field := range fields {
+		fieldValue := v.FieldByName(field.name)
+		if !fieldValue.IsValid() || (fieldValue.Kind() == reflect.Ptr && fieldValue.IsNil()) {
+			continue // Skip invalid or nil pointers to avoid panics
+		}
+
+		if field.omitempty && fieldValue.IsZero() {
+			continue // Skip nil fields marked with omitempty
+		}
+
+		encodedValue, err := encode(fieldValue)
+		if err != nil {
+			return nil, err
+		}
+		result[field.jsonName] = encodedValue
+	}
+	return json.Marshal(result)
+}
+
+func trimQuotes(s string) string {
+	if len(s) > 1 && s[0] == '"' && s[len(s)-1] == '"' {
+		return s[1 : len(s)-1]
+	}
+
+	return s
+}
+
+func encodeMap(v reflect.Value) ([]byte, error) {
+	result := make(map[string]json.RawMessage)
+	for _, key := range v.MapKeys() {
+		encodedKey, err := encode(key)
+		if err != nil {
+			return nil, err
+		}
+		keyStr := string(encodedKey)
+		keyStr = trimQuotes(keyStr)
+
+		value := v.MapIndex(key)
+		encodedValue, err := encode(value)
+		if err != nil {
+			return nil, err
+		}
+		result[keyStr] = encodedValue
+	}
+	return json.Marshal(result)
+}
+
+func encodeSlice(v reflect.Value) ([]byte, error) {
+	result := make([]json.RawMessage, v.Len())
+	for i := 0; i < v.Len(); i++ {
+		encodedValue, err := encode(v.Index(i))
+		if err != nil {
+			return nil, err
+		}
+		result[i] = encodedValue
+	}
+	return json.Marshal(result)
+}
+
+func encodeArray(v reflect.Value) ([]byte, error) {
+	result := make([]json.RawMessage, v.Len())
+	for i := 0; i < v.Len(); i++ {
+		encodedValue, err := encode(v.Index(i))
+		if err != nil {
+			return nil, err
+		}
+		result[i] = encodedValue
+	}
+	return json.Marshal(result)
+}
+
+func encodePtr(v reflect.Value) ([]byte, error) {
+	if v.IsNil() {
+		return []byte("null"), nil
+	}
+
+	return encode(v.Elem())
+}
+
+func encodeInterface(v reflect.Value) ([]byte, error) {
+	if v.IsNil() {
+		return []byte("null"), nil
+	}
+	actualValue := v.Elem()
+	return encode(actualValue)
 }

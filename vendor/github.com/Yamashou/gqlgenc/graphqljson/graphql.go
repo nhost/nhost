@@ -49,7 +49,6 @@ func UnmarshalData(data json.RawMessage, v interface{}) error {
 		return fmt.Errorf(": %w", err)
 	}
 
-	// TODO: この処理が本当に必要かは今後検討
 	tok, err := d.jsonDecoder.Token()
 	switch err {
 	case io.EOF:

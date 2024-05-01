@@ -1,10 +1,12 @@
 package duration
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 	"unicode"
 )
@@ -47,6 +49,10 @@ var (
 // Parse attempts to parse the given duration string into a *Duration,
 // if parsing fails an error is returned instead
 func Parse(d string) (*Duration, error) {
+	if !strings.Contains(d, "P") {
+		return nil, ErrUnexpectedInput
+	}
+
 	state := parsingPeriod
 	duration := &Duration{}
 	num := ""
@@ -277,25 +283,24 @@ func (duration *Duration) String() string {
 	return d
 }
 
+// MarshalJSON satisfies the Marshaler interface by return a valid JSON string representation of the duration
 func (duration Duration) MarshalJSON() ([]byte, error) {
-	return []byte("\"" + duration.String() + "\""), nil
+	return json.Marshal(duration.String())
 }
 
+// UnmarshalJSON satisfies the Unmarshaler interface by return a valid JSON string representation of the duration
 func (duration *Duration) UnmarshalJSON(source []byte) error {
-	strVal := string(source)
-	if len(strVal) < 2 {
-		return fmt.Errorf("invalid ISO 8601 duration: %s", strVal)
-	}
-	strVal = strVal[1 : len(strVal)-1]
-
-	if strVal == "null" {
-		return nil
-	}
-
-	parsed, err := Parse(strVal)
+	durationString := ""
+	err := json.Unmarshal(source, &durationString)
 	if err != nil {
-		return fmt.Errorf("invalid ISO 8601 duration: %s", strVal)
+		return err
 	}
+
+	parsed, err := Parse(durationString)
+	if err != nil {
+		return fmt.Errorf("failed to parse duration: %w", err)
+	}
+
 	*duration = *parsed
 	return nil
 }
