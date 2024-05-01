@@ -200,7 +200,7 @@ func (g *GitGetter) clone(ctx context.Context, dst, sshKeyFile string, u *url.UR
 		args = append(args, "--depth", strconv.Itoa(depth))
 		args = append(args, "--branch", ref)
 	}
-	args = append(args, u.String(), dst)
+	args = append(args, "--", u.String(), dst)
 
 	cmd := exec.CommandContext(ctx, "git", args...)
 	setupGitEnv(cmd, sshKeyFile)
@@ -289,7 +289,7 @@ func findDefaultBranch(ctx context.Context, dst string) string {
 // default branch. "master" is returned if no HEAD symref exists.
 func findRemoteDefaultBranch(ctx context.Context, u *url.URL) string {
 	var stdoutbuf bytes.Buffer
-	cmd := exec.CommandContext(ctx, "git", "ls-remote", "--symref", u.String(), "HEAD")
+	cmd := exec.CommandContext(ctx, "git", "ls-remote", "--symref", "--", u.String(), "HEAD")
 	cmd.Stdout = &stdoutbuf
 	err := cmd.Run()
 	matches := lsRemoteSymRefRegexp.FindStringSubmatch(stdoutbuf.String())

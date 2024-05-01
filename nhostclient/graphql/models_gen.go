@@ -34,8 +34,8 @@ type BooleanComparisonExp struct {
 
 type ConfigAi struct {
 	AutoEmbeddings *ConfigAIAutoEmbeddings `json:"autoEmbeddings,omitempty"`
-	Openai         ConfigAIOpenai          `json:"openai"`
-	Resources      ConfigAIResources       `json:"resources"`
+	Openai         *ConfigAIOpenai         `json:"openai"`
+	Resources      *ConfigAIResources      `json:"resources"`
 	Version        *string                 `json:"version,omitempty"`
 	WebhookSecret  string                  `json:"webhookSecret"`
 }
@@ -59,7 +59,7 @@ type ConfigAIOpenaiUpdateInput struct {
 }
 
 type ConfigAIResources struct {
-	Compute ConfigComputeResources `json:"compute"`
+	Compute *ConfigComputeResources `json:"compute"`
 }
 
 type ConfigAIResourcesUpdateInput struct {
@@ -454,16 +454,16 @@ type ConfigComputeResourcesUpdateInput struct {
 }
 
 type ConfigConfig struct {
-	Ai            *ConfigAi           `json:"ai,omitempty"`
-	Auth          *ConfigAuth         `json:"auth,omitempty"`
-	Functions     *ConfigFunctions    `json:"functions,omitempty"`
-	Global        *ConfigGlobal       `json:"global,omitempty"`
-	Graphql       *ConfigGraphql      `json:"graphql,omitempty"`
-	Hasura        ConfigHasura        `json:"hasura"`
-	Observability ConfigObservability `json:"observability"`
-	Postgres      *ConfigPostgres     `json:"postgres,omitempty"`
-	Provider      *ConfigProvider     `json:"provider,omitempty"`
-	Storage       *ConfigStorage      `json:"storage,omitempty"`
+	Ai            *ConfigAi            `json:"ai,omitempty"`
+	Auth          *ConfigAuth          `json:"auth,omitempty"`
+	Functions     *ConfigFunctions     `json:"functions,omitempty"`
+	Global        *ConfigGlobal        `json:"global,omitempty"`
+	Graphql       *ConfigGraphql       `json:"graphql,omitempty"`
+	Hasura        *ConfigHasura        `json:"hasura"`
+	Observability *ConfigObservability `json:"observability"`
+	Postgres      *ConfigPostgres      `json:"postgres,omitempty"`
+	Provider      *ConfigProvider      `json:"provider,omitempty"`
+	Storage       *ConfigStorage       `json:"storage,omitempty"`
 }
 
 type ConfigConfigUpdateInput struct {
@@ -705,7 +705,7 @@ type ConfigNetworkingUpdateInput struct {
 }
 
 type ConfigObservability struct {
-	Grafana ConfigGrafana `json:"grafana"`
+	Grafana *ConfigGrafana `json:"grafana"`
 }
 
 type ConfigObservabilityUpdateInput struct {
@@ -830,20 +830,20 @@ type ConfigRunServiceConfig struct {
 	Command     []string                     `json:"command,omitempty"`
 	Environment []*ConfigEnvironmentVariable `json:"environment,omitempty"`
 	HealthCheck *ConfigHealthCheck           `json:"healthCheck,omitempty"`
-	Image       ConfigRunServiceImage        `json:"image"`
+	Image       *ConfigRunServiceImage       `json:"image"`
 	Name        string                       `json:"name"`
 	Ports       []*ConfigRunServicePort      `json:"ports,omitempty"`
-	Resources   ConfigRunServiceResources    `json:"resources"`
+	Resources   *ConfigRunServiceResources   `json:"resources"`
 }
 
 type ConfigRunServiceConfigInsertInput struct {
 	Command     []string                                `json:"command,omitempty"`
 	Environment []*ConfigEnvironmentVariableInsertInput `json:"environment,omitempty"`
 	HealthCheck *ConfigHealthCheckInsertInput           `json:"healthCheck,omitempty"`
-	Image       ConfigRunServiceImageInsertInput        `json:"image"`
+	Image       *ConfigRunServiceImageInsertInput       `json:"image"`
 	Name        string                                  `json:"name"`
 	Ports       []*ConfigRunServicePortInsertInput      `json:"ports,omitempty"`
-	Resources   ConfigRunServiceResourcesInsertInput    `json:"resources"`
+	Resources   *ConfigRunServiceResourcesInsertInput   `json:"resources"`
 }
 
 type ConfigRunServiceConfigUpdateInput struct {
@@ -857,8 +857,8 @@ type ConfigRunServiceConfigUpdateInput struct {
 }
 
 type ConfigRunServiceConfigWithID struct {
-	Config    ConfigRunServiceConfig `json:"config"`
-	ServiceID string                 `json:"serviceID"`
+	Config    *ConfigRunServiceConfig `json:"config"`
+	ServiceID string                  `json:"serviceID"`
 }
 
 type ConfigRunServiceImage struct {
@@ -895,13 +895,13 @@ type ConfigRunServicePortUpdateInput struct {
 }
 
 type ConfigRunServiceResources struct {
-	Compute  ConfigComputeResources              `json:"compute"`
+	Compute  *ConfigComputeResources             `json:"compute"`
 	Replicas uint32                              `json:"replicas"`
 	Storage  []*ConfigRunServiceResourcesStorage `json:"storage,omitempty"`
 }
 
 type ConfigRunServiceResourcesInsertInput struct {
-	Compute  ConfigComputeResourcesInsertInput              `json:"compute"`
+	Compute  *ConfigComputeResourcesInsertInput             `json:"compute"`
 	Replicas uint32                                         `json:"replicas"`
 	Storage  []*ConfigRunServiceResourcesStorageInsertInput `json:"storage,omitempty"`
 }
@@ -1011,9 +1011,9 @@ type ConfigStorageUpdateInput struct {
 }
 
 type ConfigSystemConfig struct {
-	Auth     *ConfigSystemConfigAuth    `json:"auth,omitempty"`
-	Graphql  *ConfigSystemConfigGraphql `json:"graphql,omitempty"`
-	Postgres ConfigSystemConfigPostgres `json:"postgres"`
+	Auth     *ConfigSystemConfigAuth     `json:"auth,omitempty"`
+	Graphql  *ConfigSystemConfigGraphql  `json:"graphql,omitempty"`
+	Postgres *ConfigSystemConfigPostgres `json:"postgres"`
 }
 
 type ConfigSystemConfigAuth struct {
@@ -1033,9 +1033,9 @@ type ConfigSystemConfigGraphql struct {
 }
 
 type ConfigSystemConfigPostgres struct {
-	ConnectionString ConfigSystemConfigPostgresConnectionString `json:"connectionString"`
-	Database         string                                     `json:"database"`
-	Enabled          *bool                                      `json:"enabled,omitempty"`
+	ConnectionString *ConfigSystemConfigPostgresConnectionString `json:"connectionString"`
+	Database         string                                      `json:"database"`
+	Enabled          *bool                                       `json:"enabled,omitempty"`
 }
 
 type ConfigSystemConfigPostgresConnectionString struct {
@@ -1148,7 +1148,7 @@ type AnnouncementsOrderBy struct {
 // Streaming cursor of the table "announcements"
 type AnnouncementsStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue AnnouncementsStreamCursorValueInput `json:"initial_value"`
+	InitialValue *AnnouncementsStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -1166,7 +1166,7 @@ type AnnouncementsStreamCursorValueInput struct {
 // columns and relationships of "app_state_history"
 type AppStateHistory struct {
 	// An object relationship
-	App       Apps      `json:"app"`
+	App       *Apps     `json:"app"`
 	AppID     string    `json:"appId"`
 	CreatedAt time.Time `json:"createdAt"`
 	ID        string    `json:"id"`
@@ -1253,7 +1253,7 @@ type AppStateHistoryStddevSampOrderBy struct {
 // Streaming cursor of the table "appStateHistory"
 type AppStateHistoryStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue AppStateHistoryStreamCursorValueInput `json:"initial_value"`
+	InitialValue *AppStateHistoryStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -1314,21 +1314,21 @@ type Apps struct {
 	Name               string                 `json:"name"`
 	NhostBaseFolder    string                 `json:"nhostBaseFolder"`
 	// An object relationship
-	Plan Plans `json:"plan"`
+	Plan *Plans `json:"plan"`
 	// An object relationship
-	Region                     Regions `json:"region"`
-	RepositoryProductionBranch string  `json:"repositoryProductionBranch"`
+	Region                     *Regions `json:"region"`
+	RepositoryProductionBranch string   `json:"repositoryProductionBranch"`
 	// An array relationship
 	RunServices []*RunService `json:"runServices"`
 	// An aggregate relationship
-	RunServicesAggregate RunServiceAggregate `json:"runServices_aggregate"`
-	Slug                 string              `json:"slug"`
-	Subdomain            string              `json:"subdomain"`
-	SystemConfig         *ConfigSystemConfig `json:"systemConfig,omitempty"`
-	UpdatedAt            time.Time           `json:"updatedAt"`
+	RunServicesAggregate *RunServiceAggregate `json:"runServices_aggregate"`
+	Slug                 string               `json:"slug"`
+	Subdomain            string               `json:"subdomain"`
+	SystemConfig         *ConfigSystemConfig  `json:"systemConfig,omitempty"`
+	UpdatedAt            time.Time            `json:"updatedAt"`
 	// An object relationship
-	Workspace   Workspaces `json:"workspace"`
-	WorkspaceID string     `json:"workspaceId"`
+	Workspace   *Workspaces `json:"workspace"`
+	WorkspaceID string      `json:"workspaceId"`
 }
 
 // order by aggregate values of table "apps"
@@ -1453,7 +1453,7 @@ type AppsMutationResponse struct {
 
 // input type for inserting object relation for remote table "apps"
 type AppsObjRelInsertInput struct {
-	Data AppsInsertInput `json:"data"`
+	Data *AppsInsertInput `json:"data"`
 	// upsert condition
 	OnConflict *AppsOnConflict `json:"on_conflict,omitempty"`
 }
@@ -1528,7 +1528,7 @@ type AppsStddevSampOrderBy struct {
 // Streaming cursor of the table "apps"
 type AppsStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue AppsStreamCursorValueInput `json:"initial_value"`
+	InitialValue *AppsStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -1563,7 +1563,7 @@ type AppsUpdates struct {
 	// sets the columns of the filtered rows to the given values
 	Set *AppsSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
-	Where AppsBoolExp `json:"where"`
+	Where *AppsBoolExp `json:"where"`
 }
 
 // order by var_pop() on columns of table "apps"
@@ -1598,7 +1598,7 @@ type AuthRefreshTokens struct {
 	Metadata  map[string]interface{}    `json:"metadata,omitempty"`
 	Type      AuthRefreshTokenTypesEnum `json:"type"`
 	// An object relationship
-	User   Users  `json:"user"`
+	User   *Users `json:"user"`
 	UserID string `json:"userId"`
 }
 
@@ -1661,7 +1661,7 @@ type AuthRefreshTokensOrderBy struct {
 // Streaming cursor of the table "authRefreshTokens"
 type AuthRefreshTokensStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue AuthRefreshTokensStreamCursorValueInput `json:"initial_value"`
+	InitialValue *AuthRefreshTokensStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -1681,7 +1681,7 @@ type AuthUserProviders struct {
 	ID         string `json:"id"`
 	ProviderID string `json:"providerId"`
 	// An object relationship
-	User Users `json:"user"`
+	User *Users `json:"user"`
 }
 
 // order by aggregate values of table "auth.user_providers"
@@ -1723,7 +1723,7 @@ type AuthUserProvidersOrderBy struct {
 // Streaming cursor of the table "authUserProviders"
 type AuthUserProvidersStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue AuthUserProvidersStreamCursorValueInput `json:"initial_value"`
+	InitialValue *AuthUserProvidersStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -1737,7 +1737,7 @@ type AuthUserProvidersStreamCursorValueInput struct {
 // columns and relationships of "backups"
 type Backups struct {
 	// An object relationship
-	App         Apps       `json:"app"`
+	App         *Apps      `json:"app"`
 	AppID       string     `json:"appId"`
 	CompletedAt *time.Time `json:"completedAt,omitempty"`
 	CreatedAt   time.Time  `json:"createdAt"`
@@ -1824,7 +1824,7 @@ type BackupsStddevSampOrderBy struct {
 // Streaming cursor of the table "backups"
 type BackupsStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue BackupsStreamCursorValueInput `json:"initial_value"`
+	InitialValue *BackupsStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -1943,7 +1943,7 @@ type CliTokens struct {
 	ID        string    `json:"id"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	// An object relationship
-	User Users `json:"user"`
+	User *Users `json:"user"`
 }
 
 // order by aggregate values of table "cli_tokens"
@@ -1997,7 +1997,7 @@ type CliTokensOrderBy struct {
 // Streaming cursor of the table "cliTokens"
 type CliTokensStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue CliTokensStreamCursorValueInput `json:"initial_value"`
+	InitialValue *CliTokensStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -2039,7 +2039,7 @@ type ContinentsOrderBy struct {
 // Streaming cursor of the table "continents"
 type ContinentsStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue ContinentsStreamCursorValueInput `json:"initial_value"`
+	InitialValue *ContinentsStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -2057,9 +2057,9 @@ type Countries struct {
 	// Two-letter country code (ISO 3166-1 alpha-2)
 	Code string `json:"code"`
 	// An object relationship
-	Continent     Continents `json:"continent"`
-	ContinentCode string     `json:"continentCode"`
-	EmojiFlag     *string    `json:"emojiFlag,omitempty"`
+	Continent     *Continents `json:"continent"`
+	ContinentCode string      `json:"continentCode"`
+	EmojiFlag     *string     `json:"emojiFlag,omitempty"`
 	// An array relationship
 	Locations []*Regions `json:"locations"`
 	// English country name
@@ -2123,7 +2123,7 @@ type CountriesOrderBy struct {
 // Streaming cursor of the table "countries"
 type CountriesStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue CountriesStreamCursorValueInput `json:"initial_value"`
+	InitialValue *CountriesStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -2142,10 +2142,10 @@ type CountriesStreamCursorValueInput struct {
 type DeploymentLogs struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// An object relationship
-	Deployment   Deployments `json:"deployment"`
-	DeploymentID string      `json:"deploymentId"`
-	ID           string      `json:"id"`
-	Message      string      `json:"message"`
+	Deployment   *Deployments `json:"deployment"`
+	DeploymentID string       `json:"deploymentId"`
+	ID           string       `json:"id"`
+	Message      string       `json:"message"`
 }
 
 // order by aggregate values of table "deployment_logs"
@@ -2195,7 +2195,7 @@ type DeploymentLogsOrderBy struct {
 // Streaming cursor of the table "deploymentLogs"
 type DeploymentLogsStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue DeploymentLogsStreamCursorValueInput `json:"initial_value"`
+	InitialValue *DeploymentLogsStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -2211,7 +2211,7 @@ type DeploymentLogsStreamCursorValueInput struct {
 // Table that keeps track of deployments done by watchtower
 type Deployments struct {
 	// An object relationship
-	App                 Apps       `json:"app"`
+	App                 *Apps      `json:"app"`
 	AppID               string     `json:"appId"`
 	CommitMessage       *string    `json:"commitMessage,omitempty"`
 	CommitSha           string     `json:"commitSHA"`
@@ -2372,7 +2372,7 @@ type DeploymentsOrderBy struct {
 // Streaming cursor of the table "deployments"
 type DeploymentsStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue DeploymentsStreamCursorValueInput `json:"initial_value"`
+	InitialValue *DeploymentsStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -2402,7 +2402,7 @@ type DeploymentsStreamCursorValueInput struct {
 // columns and relationships of "feature_flags"
 type FeatureFlags struct {
 	// An object relationship
-	App         Apps   `json:"app"`
+	App         *Apps  `json:"app"`
 	AppID       string `json:"appId"`
 	Description string `json:"description"`
 	ID          string `json:"id"`
@@ -2492,7 +2492,7 @@ type FeatureFlagsOrderBy struct {
 // Streaming cursor of the table "featureFlags"
 type FeatureFlagsStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue FeatureFlagsStreamCursorValueInput `json:"initial_value"`
+	InitialValue *FeatureFlagsStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -2608,7 +2608,7 @@ type GithubAppInstallationsPkColumnsInput struct {
 // Streaming cursor of the table "githubAppInstallations"
 type GithubAppInstallationsStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue GithubAppInstallationsStreamCursorValueInput `json:"initial_value"`
+	InitialValue *GithubAppInstallationsStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -2625,7 +2625,7 @@ type GithubAppInstallationsStreamCursorValueInput struct {
 
 type GithubAppInstallationsUpdates struct {
 	// filter the rows which have to be updated
-	Where GithubAppInstallationsBoolExp `json:"where"`
+	Where *GithubAppInstallationsBoolExp `json:"where"`
 }
 
 // columns and relationships of "github_repositories"
@@ -2635,11 +2635,11 @@ type GithubRepositories struct {
 	CreatedAt time.Time `json:"createdAt"`
 	FullName  string    `json:"fullName"`
 	// An object relationship
-	GithubAppInstallation GithubAppInstallations `json:"githubAppInstallation"`
-	ID                    string                 `json:"id"`
-	Name                  string                 `json:"name"`
-	Private               bool                   `json:"private"`
-	UpdatedAt             time.Time              `json:"updatedAt"`
+	GithubAppInstallation *GithubAppInstallations `json:"githubAppInstallation"`
+	ID                    string                  `json:"id"`
+	Name                  string                  `json:"name"`
+	Private               bool                    `json:"private"`
+	UpdatedAt             time.Time               `json:"updatedAt"`
 }
 
 // order by aggregate values of table "github_repositories"
@@ -2697,7 +2697,7 @@ type GithubRepositoriesOrderBy struct {
 // Streaming cursor of the table "githubRepositories"
 type GithubRepositoriesStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue GithubRepositoriesStreamCursorValueInput `json:"initial_value"`
+	InitialValue *GithubRepositoriesStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -2740,6 +2740,10 @@ type JsonbComparisonExp struct {
 	Nin        []map[string]interface{} `json:"_nin,omitempty"`
 }
 
+// mutation root
+type MutationRoot struct {
+}
+
 // columns and relationships of "payment_methods"
 type PaymentMethods struct {
 	AddedByUserID         string    `json:"addedByUserId"`
@@ -2752,10 +2756,10 @@ type PaymentMethods struct {
 	IsDefault             bool      `json:"isDefault"`
 	StripePaymentMethodID string    `json:"stripePaymentMethodId"`
 	// An object relationship
-	User Users `json:"user"`
+	User *Users `json:"user"`
 	// An object relationship
-	Workspace   Workspaces `json:"workspace"`
-	WorkspaceID string     `json:"workspaceId"`
+	Workspace   *Workspaces `json:"workspace"`
+	WorkspaceID string      `json:"workspaceId"`
 }
 
 // order by aggregate values of table "payment_methods"
@@ -2853,7 +2857,7 @@ type PaymentMethodsMutationResponse struct {
 
 // input type for inserting object relation for remote table "payment_methods"
 type PaymentMethodsObjRelInsertInput struct {
-	Data PaymentMethodsInsertInput `json:"data"`
+	Data *PaymentMethodsInsertInput `json:"data"`
 	// upsert condition
 	OnConflict *PaymentMethodsOnConflict `json:"on_conflict,omitempty"`
 }
@@ -2912,7 +2916,7 @@ type PaymentMethodsStddevSampOrderBy struct {
 // Streaming cursor of the table "paymentMethods"
 type PaymentMethodsStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue PaymentMethodsStreamCursorValueInput `json:"initial_value"`
+	InitialValue *PaymentMethodsStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -2941,7 +2945,7 @@ type PaymentMethodsUpdates struct {
 	// sets the columns of the filtered rows to the given values
 	Set *PaymentMethodsSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
-	Where PaymentMethodsBoolExp `json:"where"`
+	Where *PaymentMethodsBoolExp `json:"where"`
 }
 
 // order by var_pop() on columns of table "payment_methods"
@@ -3026,7 +3030,7 @@ type PlansOrderBy struct {
 // Streaming cursor of the table "plans"
 type PlansStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue PlansStreamCursorValueInput `json:"initial_value"`
+	InitialValue *PlansStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -3049,6 +3053,9 @@ type PlansStreamCursorValueInput struct {
 	UpatedAt                           *time.Time `json:"upatedAt,omitempty"`
 }
 
+type QueryRoot struct {
+}
+
 // Boolean expression to compare columns of type "region_type_enum". All fields are combined with logical 'AND'.
 type RegionTypeEnumComparisonExp struct {
 	Eq     *RegionTypeEnum  `json:"_eq,omitempty"`
@@ -3068,12 +3075,12 @@ type Regions struct {
 	AwsName string  `json:"awsName"`
 	City    string  `json:"city"`
 	// An object relationship
-	Country         Countries `json:"country"`
-	CountryCode     string    `json:"countryCode"`
-	Description     *string   `json:"description,omitempty"`
-	Domain          string    `json:"domain"`
-	ID              string    `json:"id"`
-	IsGdprCompliant bool      `json:"isGdprCompliant"`
+	Country         *Countries `json:"country"`
+	CountryCode     string     `json:"countryCode"`
+	Description     *string    `json:"description,omitempty"`
+	Domain          string     `json:"domain"`
+	ID              string     `json:"id"`
+	IsGdprCompliant bool       `json:"isGdprCompliant"`
 	// An array relationship
 	RegionsAllowedWorkspaces []*RegionsAllowedWorkspace `json:"regions_allowed_workspaces"`
 	Type                     RegionTypeEnum             `json:"type"`
@@ -3157,7 +3164,7 @@ type RegionsAllowedWorkspaceOrderBy struct {
 // Streaming cursor of the table "regions_allowed_workspace"
 type RegionsAllowedWorkspaceStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue RegionsAllowedWorkspaceStreamCursorValueInput `json:"initial_value"`
+	InitialValue *RegionsAllowedWorkspaceStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -3232,7 +3239,7 @@ type RegionsOrderBy struct {
 // Streaming cursor of the table "regions"
 type RegionsStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue RegionsStreamCursorValueInput `json:"initial_value"`
+	InitialValue *RegionsStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -3253,12 +3260,12 @@ type RegionsStreamCursorValueInput struct {
 // columns and relationships of "run_service"
 type RunService struct {
 	// An object relationship
-	App       Apps                    `json:"app"`
+	App       *Apps                   `json:"app"`
 	AppID     string                  `json:"appID"`
 	Config    *ConfigRunServiceConfig `json:"config,omitempty"`
 	CreatedAt time.Time               `json:"createdAt"`
 	// An object relationship
-	Creator       Users     `json:"creator"`
+	Creator       *Users    `json:"creator"`
 	CreatorUserID string    `json:"creatorUserId"`
 	ID            string    `json:"id"`
 	Subdomain     string    `json:"subdomain"`
@@ -3279,7 +3286,7 @@ type RunServiceAggregateBoolExpCount struct {
 	Arguments []RunServiceSelectColumn `json:"arguments,omitempty"`
 	Distinct  *bool                    `json:"distinct,omitempty"`
 	Filter    *RunServiceBoolExp       `json:"filter,omitempty"`
-	Predicate IntComparisonExp         `json:"predicate"`
+	Predicate *IntComparisonExp        `json:"predicate"`
 }
 
 // aggregate fields of "run_service"
@@ -3394,7 +3401,7 @@ type RunServiceOrderBy struct {
 // Streaming cursor of the table "run_service"
 type RunServiceStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue RunServiceStreamCursorValueInput `json:"initial_value"`
+	InitialValue *RunServiceStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -3445,7 +3452,7 @@ type SoftwareVersionsOrderBy struct {
 // Streaming cursor of the table "software_versions"
 type SoftwareVersionsStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue SoftwareVersionsStreamCursorValueInput `json:"initial_value"`
+	InitialValue *SoftwareVersionsStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -3567,7 +3574,7 @@ type SubscriptionRoot struct {
 	// An array relationship
 	RunServices []*RunService `json:"runServices"`
 	// fetch aggregated fields from the table: "run_service"
-	RunServicesAggregate RunServiceAggregate `json:"runServicesAggregate"`
+	RunServicesAggregate *RunServiceAggregate `json:"runServicesAggregate"`
 	// fetch data from the table in a streaming manner: "run_service"
 	RunServiceStream []*RunService `json:"run_service_stream"`
 	// fetch data from the table: "regions_allowed_workspace" using primary key columns
@@ -3646,7 +3653,7 @@ type Users struct {
 	// An array relationship
 	RunServices []*RunService `json:"runServices"`
 	// An aggregate relationship
-	RunServicesAggregate RunServiceAggregate `json:"runServices_aggregate"`
+	RunServicesAggregate *RunServiceAggregate `json:"runServices_aggregate"`
 	// An array relationship
 	UserProviders []*AuthUserProviders `json:"userProviders"`
 	// An array relationship
@@ -3720,7 +3727,7 @@ type UsersSetInput struct {
 // Streaming cursor of the table "users"
 type UsersStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue UsersStreamCursorValueInput `json:"initial_value"`
+	InitialValue *UsersStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -3737,7 +3744,7 @@ type UsersUpdates struct {
 	// sets the columns of the filtered rows to the given values
 	Set *UsersSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
-	Where UsersBoolExp `json:"where"`
+	Where *UsersBoolExp `json:"where"`
 }
 
 // columns and relationships of "users_usage"
@@ -3773,7 +3780,7 @@ type UsersUsageOrderBy struct {
 // Streaming cursor of the table "users_usage"
 type UsersUsageStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue UsersUsageStreamCursorValueInput `json:"initial_value"`
+	InitialValue *UsersUsageStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -3806,7 +3813,7 @@ type WorkspaceMemberInvites struct {
 	Email     string    `json:"email"`
 	ID        string    `json:"id"`
 	// An object relationship
-	InvitedByUser   Users  `json:"invitedByUser"`
+	InvitedByUser   *Users `json:"invitedByUser"`
 	InvitedByUserID string `json:"invitedByUserId"`
 	// owner or member
 	MemberType string    `json:"memberType"`
@@ -3814,8 +3821,8 @@ type WorkspaceMemberInvites struct {
 	// An object relationship
 	UserByEmail *Users `json:"userByEmail,omitempty"`
 	// An object relationship
-	Workspace   Workspaces `json:"workspace"`
-	WorkspaceID string     `json:"workspaceId"`
+	Workspace   *Workspaces `json:"workspace"`
+	WorkspaceID string      `json:"workspaceId"`
 }
 
 // order by aggregate values of table "workspace_member_invites"
@@ -3925,7 +3932,7 @@ type WorkspaceMemberInvitesSetInput struct {
 // Streaming cursor of the table "workspaceMemberInvites"
 type WorkspaceMemberInvitesStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue WorkspaceMemberInvitesStreamCursorValueInput `json:"initial_value"`
+	InitialValue *WorkspaceMemberInvitesStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -3946,7 +3953,7 @@ type WorkspaceMemberInvitesUpdates struct {
 	// sets the columns of the filtered rows to the given values
 	Set *WorkspaceMemberInvitesSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
-	Where WorkspaceMemberInvitesBoolExp `json:"where"`
+	Where *WorkspaceMemberInvitesBoolExp `json:"where"`
 }
 
 // columns and relationships of "workspace_members"
@@ -3957,11 +3964,11 @@ type WorkspaceMembers struct {
 	Type      string    `json:"type"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	// An object relationship
-	User   Users  `json:"user"`
+	User   *Users `json:"user"`
 	UserID string `json:"userId"`
 	// An object relationship
-	Workspace   Workspaces `json:"workspace"`
-	WorkspaceID string     `json:"workspaceId"`
+	Workspace   *Workspaces `json:"workspace"`
+	WorkspaceID string      `json:"workspaceId"`
 }
 
 // order by aggregate values of table "workspace_members"
@@ -4064,7 +4071,7 @@ type WorkspaceMembersSetInput struct {
 // Streaming cursor of the table "workspaceMembers"
 type WorkspaceMembersStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue WorkspaceMembersStreamCursorValueInput `json:"initial_value"`
+	InitialValue *WorkspaceMembersStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -4084,7 +4091,7 @@ type WorkspaceMembersUpdates struct {
 	// sets the columns of the filtered rows to the given values
 	Set *WorkspaceMembersSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
-	Where WorkspaceMembersBoolExp `json:"where"`
+	Where *WorkspaceMembersBoolExp `json:"where"`
 }
 
 // columns and relationships of "workspaces"
@@ -4246,7 +4253,7 @@ type WorkspacesMutationResponse struct {
 
 // input type for inserting object relation for remote table "workspaces"
 type WorkspacesObjRelInsertInput struct {
-	Data WorkspacesInsertInput `json:"data"`
+	Data *WorkspacesInsertInput `json:"data"`
 	// upsert condition
 	OnConflict *WorkspacesOnConflict `json:"on_conflict,omitempty"`
 }
@@ -4317,7 +4324,7 @@ type WorkspacesSetInput struct {
 // Streaming cursor of the table "workspaces"
 type WorkspacesStreamCursorInput struct {
 	// Stream column input with initial value
-	InitialValue WorkspacesStreamCursorValueInput `json:"initial_value"`
+	InitialValue *WorkspacesStreamCursorValueInput `json:"initial_value"`
 	// cursor ordering
 	Ordering *CursorOrdering `json:"ordering,omitempty"`
 }
@@ -4352,7 +4359,7 @@ type WorkspacesUpdates struct {
 	// sets the columns of the filtered rows to the given values
 	Set *WorkspacesSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
-	Where WorkspacesBoolExp `json:"where"`
+	Where *WorkspacesBoolExp `json:"where"`
 }
 
 // select columns of table "announcements"

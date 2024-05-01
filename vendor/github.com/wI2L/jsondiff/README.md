@@ -332,8 +332,6 @@ For such situations, you can use the `Equivalent()` option to instruct the diff 
 
 > [!WARNING]
 > This is a new/experimental option, which might be promoted as the default behavior in the future.
-> 
-> **Do not use in conjunction with the `Factorize()` option, it will lead to unexpected results**.
 
 The default algorithm used to compare arrays is naive and can generate a lot of operations. For example, if a single element located *in the middle* of the array is deleted, all items to its right will be shifted one position to the left, generating one `replace` operation per item.
 
