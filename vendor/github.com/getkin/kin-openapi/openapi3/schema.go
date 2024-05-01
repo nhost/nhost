@@ -27,6 +27,7 @@ const (
 	TypeNumber  = "number"
 	TypeObject  = "object"
 	TypeString  = "string"
+	TypeNull    = "null"
 
 	// constants for integer formats
 	formatMinInt32 = float64(math.MinInt32)
@@ -92,7 +93,7 @@ type Schema struct {
 	AnyOf        SchemaRefs    `json:"anyOf,omitempty" yaml:"anyOf,omitempty"`
 	AllOf        SchemaRefs    `json:"allOf,omitempty" yaml:"allOf,omitempty"`
 	Not          *SchemaRef    `json:"not,omitempty" yaml:"not,omitempty"`
-	Type         string        `json:"type,omitempty" yaml:"type,omitempty"`
+	Type         *Types        `json:"type,omitempty" yaml:"type,omitempty"`
 	Title        string        `json:"title,omitempty" yaml:"title,omitempty"`
 	Format       string        `json:"format,omitempty" yaml:"format,omitempty"`
 	Description  string        `json:"description,omitempty" yaml:"description,omitempty"`
@@ -138,9 +139,92 @@ type Schema struct {
 	Discriminator        *Discriminator       `json:"discriminator,omitempty" yaml:"discriminator,omitempty"`
 }
 
+type Types []string
+
+func (types *Types) Is(typ string) bool {
+	return types != nil && len(*types) == 1 && (*types)[0] == typ
+}
+
+func (types *Types) Slice() []string {
+	if types == nil {
+		return nil
+	}
+	return *types
+}
+
+func (pTypes *Types) Includes(typ string) bool {
+	if pTypes == nil {
+		return false
+	}
+	types := *pTypes
+	for _, candidate := range types {
+		if candidate == typ {
+			return true
+		}
+	}
+	return false
+}
+
+func (types *Types) Permits(typ string) bool {
+	if types == nil {
+		return true
+	}
+	return types.Includes(typ)
+}
+
+func (pTypes *Types) MarshalJSON() ([]byte, error) {
+	x, err := pTypes.MarshalYAML()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(x)
+}
+
+func (pTypes *Types) MarshalYAML() (interface{}, error) {
+	if pTypes == nil {
+		return nil, nil
+	}
+	types := *pTypes
+	switch len(types) {
+	case 0:
+		return nil, nil
+	case 1:
+		return types[0], nil
+	default:
+		return []string(types), nil
+	}
+}
+
+func (types *Types) UnmarshalJSON(data []byte) error {
+	var strings []string
+	if err := json.Unmarshal(data, &strings); err != nil {
+		var s string
+		if err := json.Unmarshal(data, &s); err != nil {
+			return unmarshalError(err)
+		}
+		strings = []string{s}
+	}
+	*types = strings
+	return nil
+}
+
 type AdditionalProperties struct {
 	Has    *bool
 	Schema *SchemaRef
+}
+
+// MarshalYAML returns the YAML encoding of AdditionalProperties.
+func (addProps AdditionalProperties) MarshalYAML() (interface{}, error) {
+	if x := addProps.Has; x != nil {
+		if *x {
+			return true, nil
+		}
+		return false, nil
+	}
+	if x := addProps.Schema; x != nil {
+		return x.Value, nil
+	}
+	return nil, nil
 }
 
 // MarshalJSON returns the JSON encoding of AdditionalProperties.
@@ -208,7 +292,7 @@ func (schema Schema) MarshalJSON() ([]byte, error) {
 	if x := schema.Not; x != nil {
 		m["not"] = x
 	}
-	if x := schema.Type; len(x) != 0 {
+	if x := schema.Type; x != nil {
 		m["type"] = x
 	}
 	if x := schema.Title; len(x) != 0 {
@@ -530,72 +614,72 @@ func NewAllOfSchema(schemas ...*Schema) *Schema {
 
 func NewBoolSchema() *Schema {
 	return &Schema{
-		Type: TypeBoolean,
+		Type: &Types{TypeBoolean},
 	}
 }
 
 func NewFloat64Schema() *Schema {
 	return &Schema{
-		Type: TypeNumber,
+		Type: &Types{TypeNumber},
 	}
 }
 
 func NewIntegerSchema() *Schema {
 	return &Schema{
-		Type: TypeInteger,
+		Type: &Types{TypeInteger},
 	}
 }
 
 func NewInt32Schema() *Schema {
 	return &Schema{
-		Type:   TypeInteger,
+		Type:   &Types{TypeInteger},
 		Format: "int32",
 	}
 }
 
 func NewInt64Schema() *Schema {
 	return &Schema{
-		Type:   TypeInteger,
+		Type:   &Types{TypeInteger},
 		Format: "int64",
 	}
 }
 
 func NewStringSchema() *Schema {
 	return &Schema{
-		Type: TypeString,
+		Type: &Types{TypeString},
 	}
 }
 
 func NewDateTimeSchema() *Schema {
 	return &Schema{
-		Type:   TypeString,
+		Type:   &Types{TypeString},
 		Format: "date-time",
 	}
 }
 
 func NewUUIDSchema() *Schema {
 	return &Schema{
-		Type:   TypeString,
+		Type:   &Types{TypeString},
 		Format: "uuid",
 	}
 }
 
 func NewBytesSchema() *Schema {
 	return &Schema{
-		Type:   TypeString,
+		Type:   &Types{TypeString},
 		Format: "byte",
 	}
 }
 
 func NewArraySchema() *Schema {
 	return &Schema{
-		Type: TypeArray,
+		Type: &Types{TypeArray},
 	}
 }
 
 func NewObjectSchema() *Schema {
 	return &Schema{
-		Type:       TypeObject,
+		Type:       &Types{TypeObject},
 		Properties: make(Schemas),
 	}
 }
@@ -770,9 +854,13 @@ func (schema *Schema) WithAdditionalProperties(v *Schema) *Schema {
 	return schema
 }
 
+func (schema *Schema) PermitsNull() bool {
+	return schema.Nullable || schema.Type.Includes("null")
+}
+
 // IsEmpty tells whether schema is equivalent to the empty schema `{}`.
 func (schema *Schema) IsEmpty() bool {
-	if schema.Type != "" || schema.Format != "" || len(schema.Enum) != 0 ||
+	if schema.Type != nil || schema.Format != "" || len(schema.Enum) != 0 ||
 		schema.UniqueItems || schema.ExclusiveMin || schema.ExclusiveMax ||
 		schema.Nullable || schema.ReadOnly || schema.WriteOnly || schema.AllowEmptyValue ||
 		schema.Min != nil || schema.Max != nil || schema.MultipleOf != nil ||
@@ -887,64 +975,64 @@ func (schema *Schema) validate(ctx context.Context, stack []*Schema) ([]*Schema,
 		}
 	}
 
-	schemaType := schema.Type
-	switch schemaType {
-	case "":
-	case TypeBoolean:
-	case TypeNumber:
-		if format := schema.Format; len(format) > 0 {
-			switch format {
-			case "float", "double":
-			default:
-				if validationOpts.schemaFormatValidationEnabled {
-					return stack, unsupportedFormat(format)
+	for _, schemaType := range schema.Type.Slice() {
+		switch schemaType {
+		case TypeBoolean:
+		case TypeNumber:
+			if format := schema.Format; len(format) > 0 {
+				switch format {
+				case "float", "double":
+				default:
+					if validationOpts.schemaFormatValidationEnabled {
+						return stack, unsupportedFormat(format)
+					}
 				}
 			}
-		}
-	case TypeInteger:
-		if format := schema.Format; len(format) > 0 {
-			switch format {
-			case "int32", "int64":
-			default:
-				if validationOpts.schemaFormatValidationEnabled {
-					return stack, unsupportedFormat(format)
+		case TypeInteger:
+			if format := schema.Format; len(format) > 0 {
+				switch format {
+				case "int32", "int64":
+				default:
+					if validationOpts.schemaFormatValidationEnabled {
+						return stack, unsupportedFormat(format)
+					}
 				}
 			}
-		}
-	case TypeString:
-		if format := schema.Format; len(format) > 0 {
-			switch format {
-			// Supported by OpenAPIv3.0.3:
-			// https://spec.openapis.org/oas/v3.0.3
-			case "byte", "binary", "date", "date-time", "password":
-			// In JSON Draft-07 (not validated yet though):
-			// https://json-schema.org/draft-07/json-schema-release-notes.html#formats
-			case "iri", "iri-reference", "uri-template", "idn-email", "idn-hostname":
-			case "json-pointer", "relative-json-pointer", "regex", "time":
-			// In JSON Draft 2019-09 (not validated yet though):
-			// https://json-schema.org/draft/2019-09/release-notes.html#format-vocabulary
-			case "duration", "uuid":
-			// Defined in some other specification
-			case "email", "hostname", "ipv4", "ipv6", "uri", "uri-reference":
-			default:
-				// Try to check for custom defined formats
-				if _, ok := SchemaStringFormats[format]; !ok && validationOpts.schemaFormatValidationEnabled {
-					return stack, unsupportedFormat(format)
+		case TypeString:
+			if format := schema.Format; len(format) > 0 {
+				switch format {
+				// Supported by OpenAPIv3.0.3:
+				// https://spec.openapis.org/oas/v3.0.3
+				case "byte", "binary", "date", "date-time", "password":
+				// In JSON Draft-07 (not validated yet though):
+				// https://json-schema.org/draft-07/json-schema-release-notes.html#formats
+				case "iri", "iri-reference", "uri-template", "idn-email", "idn-hostname":
+				case "json-pointer", "relative-json-pointer", "regex", "time":
+				// In JSON Draft 2019-09 (not validated yet though):
+				// https://json-schema.org/draft/2019-09/release-notes.html#format-vocabulary
+				case "duration", "uuid":
+				// Defined in some other specification
+				case "email", "hostname", "ipv4", "ipv6", "uri", "uri-reference":
+				default:
+					// Try to check for custom defined formats
+					if _, ok := SchemaStringFormats[format]; !ok && validationOpts.schemaFormatValidationEnabled {
+						return stack, unsupportedFormat(format)
+					}
 				}
 			}
-		}
-		if !validationOpts.schemaPatternValidationDisabled && schema.Pattern != "" {
-			if _, err := schema.compilePattern(); err != nil {
-				return stack, err
+			if !validationOpts.schemaPatternValidationDisabled && schema.Pattern != "" {
+				if _, err := schema.compilePattern(); err != nil {
+					return stack, err
+				}
 			}
+		case TypeArray:
+			if schema.Items == nil {
+				return stack, errors.New("when schema type is 'array', schema 'items' must be non-null")
+			}
+		case TypeObject:
+		default:
+			return stack, fmt.Errorf("unsupported 'type' value %q", schemaType)
 		}
-	case TypeArray:
-		if schema.Items == nil {
-			return stack, errors.New("when schema type is 'array', schema 'items' must be non-null")
-		}
-	case TypeObject:
-	default:
-		return stack, fmt.Errorf("unsupported 'type' value %q", schemaType)
 	}
 
 	if ref := schema.Items; ref != nil {
@@ -1053,7 +1141,7 @@ func (schema *Schema) visitJSON(settings *schemaValidationSettings, value interf
 	case nil:
 		// Don't use VisitJSONNull, as we still want to reach 'visitXOFOperations', since
 		// those could allow for a nullable value even though this one doesn't
-		if schema.Nullable {
+		if schema.PermitsNull() {
 			return
 		}
 	case float64:
@@ -1371,7 +1459,7 @@ func (schema *Schema) visitXOFOperations(settings *schemaValidationSettings, val
 // https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#data-types
 // https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#schema-object
 func (schema *Schema) visitJSONNull(settings *schemaValidationSettings) (err error) {
-	if schema.Nullable {
+	if schema.PermitsNull() {
 		return
 	}
 	if settings.failfast {
@@ -1392,7 +1480,7 @@ func (schema *Schema) VisitJSONBoolean(value bool) error {
 }
 
 func (schema *Schema) visitJSONBoolean(settings *schemaValidationSettings, value bool) (err error) {
-	if schemaType := schema.Type; schemaType != "" && schemaType != TypeBoolean {
+	if !schema.Type.Permits(TypeBoolean) {
 		return schema.expectedType(settings, value)
 	}
 	return
@@ -1406,7 +1494,9 @@ func (schema *Schema) VisitJSONNumber(value float64) error {
 func (schema *Schema) visitJSONNumber(settings *schemaValidationSettings, value float64) error {
 	var me MultiError
 	schemaType := schema.Type
-	if schemaType == TypeInteger {
+	requireInteger := false
+	if schemaType.Permits(TypeInteger) && !schemaType.Permits(TypeNumber) {
+		requireInteger = true
 		if bigFloat := big.NewFloat(value); !bigFloat.IsInt() {
 			if settings.failfast {
 				return errSchema
@@ -1423,12 +1513,12 @@ func (schema *Schema) visitJSONNumber(settings *schemaValidationSettings, value 
 			}
 			me = append(me, err)
 		}
-	} else if schemaType != "" && schemaType != TypeNumber {
+	} else if !(schemaType.Permits(TypeInteger) || schemaType.Permits(TypeNumber)) {
 		return schema.expectedType(settings, value)
 	}
 
 	// formats
-	if schemaType == TypeInteger && schema.Format != "" {
+	if requireInteger && schema.Format != "" {
 		formatMin := float64(0)
 		formatMax := float64(0)
 		switch schema.Format {
@@ -1568,7 +1658,7 @@ func (schema *Schema) VisitJSONString(value string) error {
 }
 
 func (schema *Schema) visitJSONString(settings *schemaValidationSettings, value string) error {
-	if schemaType := schema.Type; schemaType != "" && schemaType != TypeString {
+	if !schema.Type.Permits(TypeString) {
 		return schema.expectedType(settings, value)
 	}
 
@@ -1661,7 +1751,7 @@ func (schema *Schema) visitJSONString(settings *schemaValidationSettings, value 
 				}
 			case f.regexp == nil && f.callback != nil:
 				if err := f.callback(value); err != nil {
-					var schemaErr = &SchemaError{}
+					schemaErr := &SchemaError{}
 					if errors.As(err, &schemaErr) {
 						formatStrErr = fmt.Sprintf(`string doesn't match the format %q (%s)`, format, schemaErr.Reason)
 					} else {
@@ -1703,7 +1793,7 @@ func (schema *Schema) VisitJSONArray(value []interface{}) error {
 }
 
 func (schema *Schema) visitJSONArray(settings *schemaValidationSettings, value []interface{}) error {
-	if schemaType := schema.Type; schemaType != "" && schemaType != TypeArray {
+	if !schema.Type.Permits(TypeArray) {
 		return schema.expectedType(settings, value)
 	}
 
@@ -1802,7 +1892,7 @@ func (schema *Schema) VisitJSONObject(value map[string]interface{}) error {
 }
 
 func (schema *Schema) visitJSONObject(settings *schemaValidationSettings, value map[string]interface{}) error {
-	if schemaType := schema.Type; schemaType != "" && schemaType != TypeObject {
+	if !schema.Type.Permits(TypeObject) {
 		return schema.expectedType(settings, value)
 	}
 
@@ -1986,15 +2076,23 @@ func (schema *Schema) expectedType(settings *schemaValidationSettings, value int
 	}
 
 	a := "a"
-	switch schema.Type {
-	case TypeArray, TypeObject, TypeInteger:
-		a = "an"
+	var x string
+	schemaTypes := (*schema.Type)
+	if len(schemaTypes) == 1 {
+		x = schemaTypes[0]
+		switch x {
+		case TypeArray, TypeObject, TypeInteger:
+			a = "an"
+		}
+	} else {
+		a = "one of"
+		x = strings.Join(schemaTypes, ", ")
 	}
 	return &SchemaError{
 		Value:                 value,
 		Schema:                schema,
 		SchemaField:           "type",
-		Reason:                fmt.Sprintf("value must be %s %s", a, schema.Type),
+		Reason:                fmt.Sprintf("value must be %s %s", a, x),
 		customizeMessageError: settings.customizeMessageError,
 	}
 }

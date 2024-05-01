@@ -54,7 +54,7 @@ func (doc *T) JSONLookup(token string) (interface{}, error) {
 }
 
 // MarshalJSON returns the JSON encoding of T.
-func (doc T) MarshalJSON() ([]byte, error) {
+func (doc *T) MarshalJSON() ([]byte, error) {
 	m := make(map[string]interface{}, 4+len(doc.Extensions))
 	for k, v := range doc.Extensions {
 		m[k] = v

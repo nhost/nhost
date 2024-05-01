@@ -89,3 +89,9 @@ func (err *SecurityRequirementsError) Error() string {
 
 	return buff.String()
 }
+
+var _ interface{ Unwrap() []error } = SecurityRequirementsError{}
+
+func (err SecurityRequirementsError) Unwrap() []error {
+	return err.Errors
+}

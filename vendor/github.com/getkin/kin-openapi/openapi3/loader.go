@@ -126,9 +126,18 @@ func (loader *Loader) readURL(location *url.URL) ([]byte, error) {
 
 // LoadFromStdin loads a spec from stdin
 func (loader *Loader) LoadFromStdin() (*T, error) {
-	data, err := io.ReadAll(os.Stdin)
+	return loader.LoadFromIoReader(os.Stdin)
+}
+
+// LoadFromStdin loads a spec from io.Reader
+func (loader *Loader) LoadFromIoReader(reader io.Reader) (*T, error) {
+	if reader == nil {
+		return nil, fmt.Errorf("invalid reader: %v", reader)
+	}
+
+	data, err := io.ReadAll(reader)
 	if err != nil {
-		return nil, fmt.Errorf("read from stdin: %w", err)
+		return nil, err
 	}
 	return loader.LoadFromData(data)
 }

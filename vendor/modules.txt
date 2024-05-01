@@ -1,10 +1,9 @@
-# github.com/bytedance/sonic v1.11.3
+# github.com/bytedance/sonic v1.11.6
 ## explicit; go 1.16
 github.com/bytedance/sonic
 github.com/bytedance/sonic/ast
 github.com/bytedance/sonic/decoder
 github.com/bytedance/sonic/encoder
-github.com/bytedance/sonic/internal/abi
 github.com/bytedance/sonic/internal/caching
 github.com/bytedance/sonic/internal/cpu
 github.com/bytedance/sonic/internal/decoder
@@ -18,17 +17,21 @@ github.com/bytedance/sonic/internal/native/sse
 github.com/bytedance/sonic/internal/native/types
 github.com/bytedance/sonic/internal/resolver
 github.com/bytedance/sonic/internal/rt
-github.com/bytedance/sonic/loader
 github.com/bytedance/sonic/option
 github.com/bytedance/sonic/unquote
 github.com/bytedance/sonic/utf8
-# github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d
+# github.com/bytedance/sonic/loader v0.1.1
 ## explicit; go 1.16
-github.com/chenzhuoyu/base64x
-# github.com/chenzhuoyu/iasm v0.9.1
+github.com/bytedance/sonic/loader
+github.com/bytedance/sonic/loader/internal/abi
+github.com/bytedance/sonic/loader/internal/rt
+# github.com/cloudwego/base64x v0.1.4
 ## explicit; go 1.16
-github.com/chenzhuoyu/iasm/expr
-github.com/chenzhuoyu/iasm/x86_64
+github.com/cloudwego/base64x
+# github.com/cloudwego/iasm v0.2.0
+## explicit; go 1.16
+github.com/cloudwego/iasm/expr
+github.com/cloudwego/iasm/x86_64
 # github.com/cpuguy83/go-md2man/v2 v2.0.4
 ## explicit; go 1.11
 github.com/cpuguy83/go-md2man/v2/md2man
@@ -41,7 +44,7 @@ github.com/gabriel-vasile/mimetype
 github.com/gabriel-vasile/mimetype/internal/charset
 github.com/gabriel-vasile/mimetype/internal/json
 github.com/gabriel-vasile/mimetype/internal/magic
-# github.com/getkin/kin-openapi v0.123.0
+# github.com/getkin/kin-openapi v0.124.0
 ## explicit; go 1.20
 github.com/getkin/kin-openapi/openapi3
 github.com/getkin/kin-openapi/openapi3filter
@@ -72,7 +75,7 @@ github.com/go-playground/locales/currency
 # github.com/go-playground/universal-translator v0.18.1
 ## explicit; go 1.18
 github.com/go-playground/universal-translator
-# github.com/go-playground/validator/v10 v10.19.0
+# github.com/go-playground/validator/v10 v10.20.0
 ## explicit; go 1.18
 github.com/go-playground/validator/v10
 # github.com/go-webauthn/webauthn v0.10.2
@@ -118,7 +121,7 @@ github.com/google/uuid
 # github.com/gorilla/mux v1.8.1
 ## explicit; go 1.20
 github.com/gorilla/mux
-# github.com/invopop/yaml v0.2.0
+# github.com/invopop/yaml v0.3.1
 ## explicit; go 1.14
 github.com/invopop/yaml
 # github.com/jackc/pgpassfile v1.0.0
@@ -188,7 +191,7 @@ github.com/oapi-codegen/gin-middleware
 ## explicit; go 1.20
 github.com/oapi-codegen/runtime/strictmiddleware/gin
 github.com/oapi-codegen/runtime/types
-# github.com/pelletier/go-toml/v2 v2.2.0
+# github.com/pelletier/go-toml/v2 v2.2.1
 ## explicit; go 1.16
 github.com/pelletier/go-toml/v2
 github.com/pelletier/go-toml/v2/internal/characters
@@ -223,7 +226,7 @@ github.com/twitchyliquid64/golang-asm/unsafeheader
 # github.com/ugorji/go/codec v1.2.12
 ## explicit; go 1.11
 github.com/ugorji/go/codec
-# github.com/urfave/cli/v2 v2.27.1
+# github.com/urfave/cli/v2 v2.27.2
 ## explicit; go 1.18
 github.com/urfave/cli/v2
 # github.com/valyala/bytebufferpool v1.0.0
@@ -244,7 +247,7 @@ go.uber.org/mock/gomock
 # golang.org/x/arch v0.7.0
 ## explicit; go 1.18
 golang.org/x/arch/x86/x86asm
-# golang.org/x/crypto v0.21.0
+# golang.org/x/crypto v0.22.0
 ## explicit; go 1.18
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
@@ -252,7 +255,7 @@ golang.org/x/crypto/ed25519
 golang.org/x/crypto/ocsp
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/sha3
-# golang.org/x/net v0.23.0
+# golang.org/x/net v0.24.0
 ## explicit; go 1.18
 golang.org/x/net/html
 golang.org/x/net/html/atom
@@ -261,10 +264,10 @@ golang.org/x/net/http2
 golang.org/x/net/http2/h2c
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
-# golang.org/x/sync v0.6.0
+# golang.org/x/sync v0.7.0
 ## explicit; go 1.18
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.18.0
+# golang.org/x/sys v0.19.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
@@ -283,7 +286,7 @@ golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 golang.org/x/text/width
-# google.golang.org/protobuf v1.33.0
+# google.golang.org/protobuf v1.34.0
 ## explicit; go 1.17
 google.golang.org/protobuf/encoding/protowire
 google.golang.org/protobuf/internal/detrand
@@ -301,7 +304,7 @@ google.golang.org/protobuf/runtime/protoiface
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
-# k8s.io/client-go v0.29.3
-## explicit; go 1.21
+# k8s.io/client-go v0.30.0
+## explicit; go 1.22.0
 k8s.io/client-go/third_party/forked/golang/template
 k8s.io/client-go/util/jsonpath

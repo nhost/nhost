@@ -1,4 +1,0 @@
-type: object
-properties:
-  bar:
-    $ref: ../openapi.yml#/components/schemas/Bar

@@ -98,6 +98,21 @@ func (responses *Responses) Validate(ctx context.Context, opts ...ValidationOpti
 	return validateExtensions(ctx, responses.Extensions)
 }
 
+// Support YAML Marshaler interface for gopkg.in/yaml
+func (responses *Responses) MarshalYAML() (any, error) {
+	res := make(map[string]any, len(responses.Extensions)+len(responses.m))
+
+	for k, v := range responses.Extensions {
+		res[k] = v
+	}
+
+	for k, v := range responses.m {
+		res[k] = v
+	}
+
+	return res, nil
+}
+
 // Response is specified by OpenAPI/Swagger 3.0 standard.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#response-object
 type Response struct {

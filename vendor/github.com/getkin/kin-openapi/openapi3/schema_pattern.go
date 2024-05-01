@@ -5,11 +5,11 @@ import (
 	"regexp"
 )
 
-var patRewriteCodepoints = regexp.MustCompile(`[\][u]([0-9A-F]{4})`)
+var patRewriteCodepoints = regexp.MustCompile(`(?P<replaced_with_slash_x>\\u)(?P<code>[0-9A-F]{4})`)
 
 // See https://pkg.go.dev/regexp/syntax
 func intoGoRegexp(re string) string {
-	return patRewriteCodepoints.ReplaceAllString(re, `x{$1}`)
+	return patRewriteCodepoints.ReplaceAllString(re, `\x{${code}}`)
 }
 
 // NOTE: racey WRT [writes to schema.Pattern] vs [reads schema.Pattern then writes to compiledPatterns]

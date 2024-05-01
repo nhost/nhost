@@ -1,4 +1,0 @@
-type: object
-properties:
-  cat:
-    $ref: ../openapi.yml#/components/schemas/Cat

@@ -41,6 +41,13 @@ func (responses *Responses) Len() int {
 	return len(responses.m)
 }
 
+// Delete removes the entry associated with key 'key' from 'responses'.
+func (responses *Responses) Delete(key string) {
+	if responses != nil && responses.m != nil {
+		delete(responses.m, key)
+	}
+}
+
 // Map returns responses as a 'map'.
 // Note: iteration on Go maps is not ordered.
 func (responses *Responses) Map() (m map[string]*ResponseRef) {
@@ -153,6 +160,13 @@ func (callback *Callback) Len() int {
 	return len(callback.m)
 }
 
+// Delete removes the entry associated with key 'key' from 'callback'.
+func (callback *Callback) Delete(key string) {
+	if callback != nil && callback.m != nil {
+		delete(callback.m, key)
+	}
+}
+
 // Map returns callback as a 'map'.
 // Note: iteration on Go maps is not ordered.
 func (callback *Callback) Map() (m map[string]*PathItem) {
@@ -263,6 +277,13 @@ func (paths *Paths) Len() int {
 		return 0
 	}
 	return len(paths.m)
+}
+
+// Delete removes the entry associated with key 'key' from 'paths'.
+func (paths *Paths) Delete(key string) {
+	if paths != nil && paths.m != nil {
+		delete(paths.m, key)
+	}
 }
 
 // Map returns paths as a 'map'.

@@ -3,25 +3,28 @@ package openapi3filter
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 )
 
 func encodeBody(body interface{}, mediaType string) ([]byte, error) {
-	encoder, ok := bodyEncoders[mediaType]
-	if !ok {
-		return nil, &ParseError{
-			Kind:   KindUnsupportedFormat,
-			Reason: fmt.Sprintf("%s %q", prefixUnsupportedCT, mediaType),
-		}
+	if encoder := RegisteredBodyEncoder(mediaType); encoder != nil {
+		return encoder(body)
 	}
-	return encoder(body)
+	return nil, &ParseError{
+		Kind:   KindUnsupportedFormat,
+		Reason: fmt.Sprintf("%s %q", prefixUnsupportedCT, mediaType),
+	}
 }
 
+// BodyEncoder really is an (encoding/json).Marshaler
 type BodyEncoder func(body interface{}) ([]byte, error)
 
+var bodyEncodersM sync.RWMutex
 var bodyEncoders = map[string]BodyEncoder{
 	"application/json": json.Marshal,
 }
 
+// RegisterBodyEncoder enables package-wide decoding of contentType values
 func RegisterBodyEncoder(contentType string, encoder BodyEncoder) {
 	if contentType == "" {
 		panic("contentType is empty")
@@ -29,21 +32,27 @@ func RegisterBodyEncoder(contentType string, encoder BodyEncoder) {
 	if encoder == nil {
 		panic("encoder is not defined")
 	}
+	bodyEncodersM.Lock()
 	bodyEncoders[contentType] = encoder
+	bodyEncodersM.Unlock()
 }
 
-// This call is not thread-safe: body encoders should not be created/destroyed by multiple goroutines.
+// UnregisterBodyEncoder disables package-wide decoding of contentType values
 func UnregisterBodyEncoder(contentType string) {
 	if contentType == "" {
 		panic("contentType is empty")
 	}
+	bodyEncodersM.Lock()
 	delete(bodyEncoders, contentType)
+	bodyEncodersM.Unlock()
 }
 
 // RegisteredBodyEncoder returns the registered body encoder for the given content type.
 //
 // If no encoder was registered for the given content type, nil is returned.
-// This call is not thread-safe: body encoders should not be created/destroyed by multiple goroutines.
 func RegisteredBodyEncoder(contentType string) BodyEncoder {
-	return bodyEncoders[contentType]
+	bodyEncodersM.RLock()
+	mayBE := bodyEncoders[contentType]
+	bodyEncodersM.RUnlock()
+	return mayBE
 }
