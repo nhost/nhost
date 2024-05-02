@@ -1,14 +1,23 @@
-import React from 'react';
-import {ActivityIndicator, Pressable, PressableProps, Text} from 'react-native';
+import React, {ReactNode} from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  PressableProps,
+  StyleProp,
+  StyleSheet,
+  Text,
+  ViewStyle,
+} from 'react-native';
 
 interface ButtonProps extends PressableProps {
-  loading: boolean;
-  label: string;
+  loading?: boolean;
+  label: string | ReactNode;
   color?: string;
+  styles?: StyleProp<ViewStyle>;
 }
 
 export default function Button({
-  style,
+  styles,
   loading,
   label,
   color = 'royalblue',
@@ -16,24 +25,41 @@ export default function Button({
 }: ButtonProps) {
   return (
     <Pressable
-      style={({pressed}) => [
-        {
-          alignItems: 'center',
-          opacity: pressed ? 0.9 : 1,
-        },
-        {
-          width: '100%',
-          padding: 12,
-          borderRadius: 10,
-          backgroundColor: color,
-        },
-      ]}
+      style={({pressed}) => [buttonStyles(pressed, color).button, styles]}
       {...props}>
-      {loading ? (
-        <ActivityIndicator color="white" />
+      {loading && (
+        <ActivityIndicator
+          color="white"
+          style={buttonStyles().activityIndicator}
+        />
+      )}
+      {typeof label === 'string' ? (
+        <Text style={buttonStyles().buttonText}>{label}</Text>
       ) : (
-        <Text style={{color: 'white', fontWeight: 'bold'}}>{label}</Text>
+        label
       )}
     </Pressable>
   );
 }
+
+const buttonStyles = (pressed: boolean = false, color: string = 'royalblue') =>
+  StyleSheet.create({
+    button: {
+      width: '100%',
+      padding: 12,
+      borderRadius: 10,
+      alignItems: 'center',
+      backgroundColor: color,
+      opacity: pressed ? 0.9 : 1,
+    },
+    buttonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    activityIndicator: {
+      position: 'absolute',
+      right: 10,
+      top: '55%',
+    },
+  });

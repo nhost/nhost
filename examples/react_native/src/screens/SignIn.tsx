@@ -1,8 +1,18 @@
-import {useSignInEmailPassword, useSignUpEmailPassword} from '@nhost/react';
+import {useNhostClient, useSignInEmailPassword} from '@nhost/react';
+import {NavigationProp, ParamListBase} from '@react-navigation/native';
 import {useForm} from 'react-hook-form';
-import {Alert, SafeAreaView, ScrollView, Text, View} from 'react-native';
-import {ControlledInput} from '../components';
-import Button from '../components/Button';
+import {
+  Alert,
+  Linking,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
+import Button from '@components/Button';
+import ControlledInput from '@components/ControlledInput';
+import SignInWithAppleButton from '@components/SignInWithAppleButton';
+import SignInWithGoogleButton from '@components/SignInWithGoogleButton';
 
 interface SignUpFormValues {
   firstName: string;
@@ -11,19 +21,24 @@ interface SignUpFormValues {
   password: string;
 }
 
-export default function SignIn() {
+export default function SignIn({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}) {
+  const nhost = useNhostClient();
   const {control, handleSubmit} = useForm<SignUpFormValues>();
-
   const {signInEmailPassword, isLoading} = useSignInEmailPassword();
 
   const onSubmit = async (data: SignUpFormValues) => {
     const {email, password} = data;
 
-    const {isError, error, user, needsEmailVerification} =
-      await signInEmailPassword(email, password);
+    const {isError, error, needsEmailVerification} = await signInEmailPassword(
+      email,
+      password,
+    );
 
     if (isError) {
-      console.log({error});
       Alert.alert('Error', error?.message);
       return;
     }
@@ -35,10 +50,6 @@ export default function SignIn() {
       );
       return;
     }
-
-    console.log({
-      user,
-    });
   };
 
   return (
@@ -62,23 +73,16 @@ export default function SignIn() {
         </View>
         <View
           style={{
-            width: '100%',
-            paddingLeft: 10,
-            paddingRight: 10,
+            gap: 15,
+            paddingLeft: 30,
+            paddingRight: 30,
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 10,
           }}>
           <ControlledInput
             control={control}
             name="email"
             placeholder="Email"
-            style={{
-              width: '100%',
-              backgroundColor: 'ghostwhite',
-              padding: 12,
-              borderRadius: 10,
-            }}
             autoCapitalize="none"
             keyboardType="email-address"
             rules={{
@@ -90,12 +94,6 @@ export default function SignIn() {
             control={control}
             name="password"
             placeholder="Password"
-            style={{
-              width: '100%',
-              backgroundColor: 'ghostwhite',
-              padding: 12,
-              borderRadius: 10,
-            }}
             secureTextEntry
             rules={{
               required: true,
@@ -109,11 +107,21 @@ export default function SignIn() {
             onPress={handleSubmit(onSubmit)}
           />
 
+          <SignInWithAppleButton />
+          <SignInWithGoogleButton />
+
+          <View
+            style={{
+              height: 2,
+              backgroundColor: '#D3D3D3',
+              width: '50%',
+              marginVertical: 10,
+            }}
+          />
+
           <Button
-            loading={isLoading}
-            disabled={isLoading}
-            label="Sign in with Apple"
-            onPress={handleSubmit(onSubmit)}
+            label="Sign Up"
+            onPress={() => navigation.navigate('signup')}
           />
         </View>
       </ScrollView>

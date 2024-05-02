@@ -1,29 +1,66 @@
-import {useAuthenticationStatus} from '@nhost/react';
+import {useAuthenticationStatus, useNhostClient} from '@nhost/react';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import React from 'react';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
-import Profile from './Profile';
-import SignUp from './SignUp';
-import SignIn from './SignIn';
+import React, {useEffect} from 'react';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  View,
+  Linking,
+  Alert,
+} from 'react-native';
+import Profile from '@screens/Profile';
+import SignUp from '@screens/SignUp';
+import SignIn from '@screens/SignIn';
+import CustomDrawer from '@components/Drawer';
+import Todos from '@screens/Todos';
+import Storage from '@screens/Storage';
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
 
+function LoadingIndicatorView() {
+  return (
+    <View style={styles.loadingContainerWrapper}>
+      <ActivityIndicator size="large" />
+    </View>
+  );
+}
+
 function Main() {
+  const nhost = useNhostClient();
   const {isAuthenticated, isLoading} = useAuthenticationStatus();
 
+  useEffect(() => {
+    const getRefreshTokenFromUrl = (url: string) => {
+      const regex = /[?&]refreshToken(=([^&#]*)|&|#|$)/;
+      const results = regex.exec(url);
+      if (!results || !results[2]) return null;
+      return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    };
+
+    const handleDeepLink = async (event: {url: string}) => {
+      const refreshToken = getRefreshTokenFromUrl(event.url);
+      if (refreshToken) {
+        await nhost.auth.refreshSession(refreshToken);
+      }
+    };
+
+    const listener = Linking.addEventListener('url', handleDeepLink);
+    return () => listener.remove();
+  }, []);
+
   if (isLoading) {
-    return (
-      <View style={styles.loadingContainerWrapper}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingIndicatorView />;
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      linking={{
+        prefixes: ['myapp://'],
+      }}
+      fallback={<LoadingIndicatorView />}>
       <Stack.Navigator screenOptions={{headerShown: false}}>
         {!isAuthenticated ? (
           <>
@@ -40,8 +77,10 @@ function Main() {
 
 function DrawerNavigator() {
   return (
-    <Drawer.Navigator>
+    <Drawer.Navigator drawerContent={props => <CustomDrawer {...props} />}>
       <Drawer.Screen name="Profile" component={Profile} />
+      <Drawer.Screen name="Todos" component={Todos} />
+      <Drawer.Screen name="Storage" component={Storage} />
     </Drawer.Navigator>
   );
 }

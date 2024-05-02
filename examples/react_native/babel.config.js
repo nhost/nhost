@@ -3,5 +3,26 @@ module.exports = {
   plugins: [
     '@babel/plugin-transform-export-namespace-from',
     'react-native-reanimated/plugin',
+    [
+      'module-resolver',
+      {
+        extensions: [
+          '.ios.js',
+          '.android.js',
+          '.ios.jsx',
+          '.android.jsx',
+          '.js',
+          '.jsx',
+          '.json',
+          '.ts',
+          '.tsx',
+        ],
+        root: ['.'],
+        alias: {
+          '@components': './src/components',
+          '@screens': './src/screens',
+        },
+      },
+    ],
   ],
 };

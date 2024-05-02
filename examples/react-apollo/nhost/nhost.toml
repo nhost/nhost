@@ -29,14 +29,14 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.28.0-beta002'
+version = '0.30.0-beta0'
 
 [auth.elevatedPrivileges]
 mode = 'required'
 
 [auth.redirections]
 clientUrl = 'https://react-apollo.example.nhost.io/'
-allowedUrls = ['https://react-apollo.example.nhost.io', 'https://react-apollo.example.nhost.io/profile', 'https://vue-apollo.example.nhost.io', 'https://vue-apollo.example.nhost.io/profile', 'https://*.vercel.app', 'http://localhost:3000', 'http://localhost:3000/profile', 'http://localhost:5173', 'http://localhost:5173/profile']
+allowedUrls = ['https://react-apollo.example.nhost.io', 'https://react-apollo.example.nhost.io/profile', 'https://vue-apollo.example.nhost.io', 'https://vue-apollo.example.nhost.io/profile', 'https://*.vercel.app', 'http://localhost:3000', 'http://localhost:3000/profile', 'http://localhost:5173', 'http://localhost:5173/profile', 'https://google.com', 'myapp://']
 
 [auth.signUp]
 enabled = true

@@ -10,8 +10,9 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import {ControlledInput} from '../components';
 import Button from '../components/Button';
+import {NavigationProp, ParamListBase} from '@react-navigation/native';
+import ControlledInput from '../components/ControlledInput';
 
 interface SignUpFormValues {
   firstName: string;
@@ -20,7 +21,11 @@ interface SignUpFormValues {
   password: string;
 }
 
-export default function SignUp() {
+export default function SignUp({
+  navigation,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+}) {
   const {control, handleSubmit} = useForm<SignUpFormValues>();
 
   const {signUpEmailPassword, isLoading} = useSignUpEmailPassword();
@@ -32,8 +37,6 @@ export default function SignUp() {
       await signUpEmailPassword(email, password, {
         displayName: `${firstName} ${lastName}`,
       });
-
-    Alert.alert('test');
 
     if (isError) {
       console.log({error});
@@ -76,6 +79,7 @@ export default function SignUp() {
         <View
           style={{
             width: '100%',
+            gap: 10,
             paddingLeft: 10,
             paddingRight: 10,
             alignItems: 'center',
@@ -85,13 +89,6 @@ export default function SignUp() {
             control={control}
             name="firstName"
             placeholder="First name"
-            style={{
-              width: '100%',
-              marginBottom: 10,
-              backgroundColor: 'ghostwhite',
-              padding: 12,
-              borderRadius: 10,
-            }}
             rules={{
               required: true,
             }}
@@ -101,13 +98,6 @@ export default function SignUp() {
             control={control}
             name="lastName"
             placeholder="Last name"
-            style={{
-              width: '100%',
-              marginBottom: 10,
-              backgroundColor: 'ghostwhite',
-              padding: 12,
-              borderRadius: 10,
-            }}
             rules={{
               required: true,
             }}
@@ -117,13 +107,6 @@ export default function SignUp() {
             control={control}
             name="email"
             placeholder="Email"
-            style={{
-              width: '100%',
-              marginBottom: 10,
-              backgroundColor: 'ghostwhite',
-              padding: 12,
-              borderRadius: 10,
-            }}
             autoCapitalize="none"
             keyboardType="email-address"
             rules={{
@@ -135,13 +118,6 @@ export default function SignUp() {
             control={control}
             name="password"
             placeholder="Password"
-            style={{
-              width: '100%',
-              marginBottom: 10,
-              backgroundColor: 'ghostwhite',
-              padding: 12,
-              borderRadius: 10,
-            }}
             secureTextEntry
             rules={{
               required: true,
@@ -153,6 +129,11 @@ export default function SignUp() {
             disabled={isLoading}
             label="Sign Up"
             onPress={handleSubmit(onSubmit)}
+          />
+
+          <Button
+            label="Sign In"
+            onPress={() => navigation.navigate('signin')}
           />
         </View>
       </ScrollView>
