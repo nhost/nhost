@@ -27,7 +27,7 @@ jobs:
 
     - uses: nixbuild/nix-quick-install-action@v28
       with:
-        nix_version: 2.16.2
+        nix_version: 2.20.5
         nix_conf: |
           experimental-features = nix-command flakes
           sandbox = false
