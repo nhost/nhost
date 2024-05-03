@@ -1,7 +1,8 @@
 BEGIN;
 ALTER TABLE auth.refresh_tokens ALTER COLUMN type TYPE text;
 ALTER TABLE auth.refresh_tokens ALTER COLUMN type DROP DEFAULT;
-DROP TYPE refresh_token_type;
+DROP TYPE IF EXISTS refresh_token_type;
+DROP TYPE IF EXISTS auth.refresh_token_type;
 
 CREATE TABLE auth.refresh_token_types (
   value text PRIMARY KEY,

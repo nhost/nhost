@@ -15,23 +15,25 @@ export async function applyMigrations(): Promise<void> {
   const client = new Client(dbConfig);
   try {
     await client.connect();
-    /**
-     * We modified the migration 5 to remove the comment on the auth schema
-     * as the postgres user that runs hasura-auth is not necessary the owner
-     * of the schema - and thus cannot change the comment.
-     * As the migration 5 hash changed, we need to update it with the new hash.
-     */
     try {
       await client.query(`UPDATE "auth"."migrations"
         SET hash='78f76f88eff3b11ebab9be4f2469020dae017110'
         WHERE id='5' AND hash='2b4f130ec6284768ac8285d7afb7e4e607c48e70';`);
+
+      await client.query(`UPDATE "auth"."migrations"
+        SET hash='0937470d919981a2052e4a00dfaad34378477765'
+        WHERE id='13' AND hash='5f2472c56df4c4735f6add046782680eb27484e5';`);
+
+      await client.query(`UPDATE "auth"."migrations"
+        SET hash='e23fd094aef2ef926a06ac84000471a829548165'
+        WHERE id='14' AND hash='a059cb9fda67f286e6bd2765f8aa7ea1e4a7fd6c';`);
     } catch (e: any) {
       const log =
         e.message === 'relation "auth.migrations" does not exist'
           ? logger.debug
           : logger.warn;
       log(
-        `Could not update the hash of the migration 5 (comment on auth schema): ${e.message}`
+        `Could not update the hash of the migration (comment on auth schema): ${e.message}`
       );
     }
     await migrate({ client }, './migrations', {
