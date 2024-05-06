@@ -48,16 +48,32 @@ export class AuthClient {
       this.start({ devTools })
     }
 
-    if (typeof window !== 'undefined' && autoSignIn) {
+    if (typeof window !== 'undefined') {
       try {
-        // TODO listen to sign out
         // TODO the same refresh token is used and refreshed by all tabs
         // * Ideally, a single tab should autorefresh and share the new jwt
         this._channel = new BroadcastChannel('nhost')
-        this._channel.addEventListener('message', (token) => {
-          const existingToken = this.interpreter?.getSnapshot().context.refreshToken.value
-          if (this.interpreter && token.data !== existingToken) {
-            this.interpreter.send('TRY_TOKEN', { token: token.data })
+
+        if (autoSignIn) {
+          this._channel?.addEventListener('message', (event) => {
+            const { type, payload } = event.data
+
+            if (type === 'broadcast_token') {
+              const existingToken = this.interpreter?.getSnapshot().context.refreshToken.value
+              if (this.interpreter && payload.token.data !== existingToken) {
+                this.interpreter.send('TRY_TOKEN', { token: payload.token.data })
+              }
+            }
+          })
+        }
+
+        this._channel.addEventListener('message', (event) => {
+          const { type } = event.data
+
+          if (type === 'signout') {
+            if (this.interpreter) {
+              this.interpreter.send('SIGNOUT')
+            }
           }
         })
       } catch (error) {

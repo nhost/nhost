@@ -670,7 +670,12 @@ export const createAuthMachine = ({
             try {
               const channel = new BroadcastChannel('nhost')
               // ? broadcat session instead of token ?
-              channel.postMessage(context.refreshToken.value)
+              channel.postMessage({
+                type: 'broadcast_token',
+                payload: {
+                  token: context.refreshToken.value
+                }
+              })
             } catch (error) {
               // * BroadcastChannel is not available e.g. react-native
             }
@@ -866,11 +871,22 @@ export const createAuthMachine = ({
           })
           return { session, error: null }
         },
-        signout: (ctx, e) =>
-          postRequest('/signout', {
+        signout: async (ctx, e) => {
+          const signOutResponse = await postRequest('/signout', {
             refreshToken: ctx.refreshToken.value,
             all: !!e.all
-          }),
+          })
+
+          try {
+            const channel = new BroadcastChannel('nhost')
+            // ? broadcast the signout event to other tabs to remove the accessToken
+            channel.postMessage({ type: 'signout' })
+          } catch (error) {
+            // * BroadcastChannel is not available e.g. react-native
+          }
+
+          return signOutResponse
+        },
         signUpEmailPassword: async (context, { email, password, options }) => {
           if (!isValidEmail(email)) {
             return Promise.reject<SignUpResponse>({ error: INVALID_EMAIL_ERROR })
