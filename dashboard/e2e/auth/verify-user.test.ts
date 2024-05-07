@@ -7,7 +7,6 @@ import { createUser, generateTestEmail, openProject } from '@/e2e/utils';
 import { faker } from '@faker-js/faker';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-import { waitFor } from '@testing-library/react';
 
 let page: Page;
 
@@ -54,14 +53,9 @@ test('should be able to verify the email of a user', async () => {
 
   await page.getByRole('button', { name: /save/i }).click();
 
-  await waitFor(
-    () => {
-      expect(
-        page.getByText(/user settings have been updated successfully./i),
-      ).toBeVisible();
-    },
-    { timeout: 8000 },
-  );
+  await expect(
+    page.getByText(/user settings have been updated successfully./i),
+  ).toBeVisible();
 
   await page
     .getByRole('button', { name: `View ${email}`, exact: true })
