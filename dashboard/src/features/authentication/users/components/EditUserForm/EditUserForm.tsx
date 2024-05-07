@@ -81,6 +81,10 @@ export const EditUserFormValidationSchema = Yup.object({
     'is-valid-json',
     'Metadata must be valid JSON',
     (value) => {
+      if (!value) {
+        return true;
+      }
+
       try {
         JSON.parse(value);
         return true;
@@ -160,7 +164,7 @@ export default function EditUserForm({
   }, [setError]);
 
   const handleMetadataChange = useCallback(
-    (event) => {
+    (event: React.ChangeEvent<HTMLInputElement>) => {
       const { value } = event.target;
       try {
         JSON.parse(value);
