@@ -23,7 +23,7 @@ The following endpoints are now exposed:
 - `http://localhost:3030`: Nhost Dashboard
 - `http://localhost:1337`: Hasura Console
 - `http://localhost:8025`: Mailhog SMTP testing dashboard
-- `http://localhost:9090`: Traefik dashboad
+- `http://localhost:9090`: Traefik dashboard
 
 ## Running the Nhost dashboard locally
 
