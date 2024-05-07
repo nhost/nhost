@@ -101,6 +101,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
     values: EditUserFormValues,
     user: RemoteAppUser,
   ) {
+    const metadata = JSON.parse(values.metadata);
     const updateUserMutationPromise = updateUser({
       variables: {
         id: user.id,
@@ -113,6 +114,7 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
           phoneNumber: values.phoneNumber,
           phoneNumberVerified: values.phoneNumberVerified,
           locale: values.locale,
+          metadata,
         },
       },
     });

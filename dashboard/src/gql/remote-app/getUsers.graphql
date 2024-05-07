@@ -11,6 +11,7 @@ fragment RemoteAppGetUsers on users {
   defaultRole
   lastSeen
   locale
+  metadata
   roles {
     id
     role
