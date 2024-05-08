@@ -79,12 +79,11 @@ export const EditUserFormValidationSchema = Yup.object({
   roles: Yup.array().of(Yup.boolean()),
   metadata: Yup.string().test(
     'is-valid-json',
-    'Metadata must be valid JSON',
+    'Metadata must be valid JSON or empty',
     (value) => {
-      if (!value) {
+      if (value === '') {
         return true;
-      }
-
+      } // Allow empty string as valid input
       try {
         JSON.parse(value);
         return true;
@@ -166,12 +165,17 @@ export default function EditUserForm({
   const handleMetadataChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const { value } = event.target;
-      try {
-        JSON.parse(value);
-        clearErrors('metadata'); // Clear errors immediately when the user types valid JSON
-        handleMetadataError.cancel(); // Cancel any pending debounced error checks
-      } catch (error) {
-        handleMetadataError.call(value); // Call the debounced error setter
+      if (value === '') {
+        clearErrors('metadata'); // Clear errors when the input is explicitly cleared
+        handleMetadataError.cancel(); // Cancel any debounced error checks
+      } else {
+        try {
+          JSON.parse(value);
+          clearErrors('metadata'); // Clear errors when valid JSON is entered
+          handleMetadataError.cancel(); // Cancel pending debounced error checks
+        } catch (error) {
+          handleMetadataError.call(value); // Call the debounced error setter
+        }
       }
     },
     [clearErrors, handleMetadataError],
