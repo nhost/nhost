@@ -31,9 +31,10 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useTheme } from '@mui/material';
 import { format } from 'date-fns';
 import kebabCase from 'just-kebab-case';
+import debounce from 'lodash.debounce';
 import Image from 'next/image';
 import type { RemoteAppUser } from 'pages/[workspaceSlug]/[appSlug]/users';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -76,6 +77,21 @@ export const EditUserFormValidationSchema = Yup.object({
   locale: Yup.string(),
   defaultRole: Yup.string(),
   roles: Yup.array().of(Yup.boolean()),
+  metadata: Yup.string().test(
+    'is-valid-json',
+    'Metadata must be valid JSON or empty',
+    (value) => {
+      if (value === '') {
+        return true;
+      } // Allow empty string as valid input
+      try {
+        JSON.parse(value);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
+  ),
 });
 
 export type EditUserFormValues = Yup.InferType<
@@ -116,13 +132,54 @@ export default function EditUserForm({
       locale: user.locale,
       defaultRole: user.defaultRole,
       roles: roles.map((role) => Object.values(role)[0]),
+      metadata: user?.metadata ? JSON.stringify(user.metadata, null, 2) : '',
     },
   });
 
   const {
     register,
+    setError,
+    clearErrors,
     formState: { errors, dirtyFields, isSubmitting, isValidating },
   } = form;
+
+  const handleMetadataError = useMemo(() => {
+    const debouncedSetError = debounce((value) => {
+      try {
+        JSON.parse(value);
+        // Only set an error if JSON parsing fails
+      } catch (error) {
+        setError('metadata', {
+          type: 'manual',
+          message: 'Invalid JSON format',
+        });
+      }
+    }, 500);
+
+    return {
+      call: debouncedSetError,
+      cancel: debouncedSetError.cancel, // lodash debounce provides a cancel method to stop the delayed function
+    };
+  }, [setError]);
+
+  const handleMetadataChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target;
+      if (value === '') {
+        clearErrors('metadata'); // Clear errors when the input is explicitly cleared
+        handleMetadataError.cancel(); // Cancel any debounced error checks
+      } else {
+        try {
+          JSON.parse(value);
+          clearErrors('metadata'); // Clear errors when valid JSON is entered
+          handleMetadataError.cancel(); // Cancel pending debounced error checks
+        } catch (error) {
+          handleMetadataError.call(value); // Call the debounced error setter
+        }
+      }
+    },
+    [clearErrors, handleMetadataError],
+  );
 
   const isDirty = Object.keys(dirtyFields).length > 0;
 
@@ -467,6 +524,28 @@ export default function EditUserForm({
               </div>
             </Box>
           )}
+          <Box component="section" className="grid grid-flow-row gap-8 p-6">
+            <Input
+              {...register('metadata', { onChange: handleMetadataChange })}
+              id="metadata"
+              label="Metadata"
+              variant="inline"
+              hideEmptyHelperText
+              error={!!errors.metadata}
+              fullWidth
+              multiline
+              inputProps={{
+                className: 'resize-y min-h-[130px]',
+              }}
+              helperText={
+                errors.metadata
+                  ? errors.metadata.message
+                  : 'Enter valid JSON. This can be a number, boolean, array, or object.'
+              }
+              maxRows={100}
+              autoComplete="off"
+            />
+          </Box>
         </Box>
 
         <Box className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-between gap-3 place-self-end border-t-1 p-2">

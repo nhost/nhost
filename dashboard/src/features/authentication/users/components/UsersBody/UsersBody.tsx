@@ -113,6 +113,9 @@ export default function UsersBody({ users, onSubmit }: UsersBodyProps) {
           phoneNumber: values.phoneNumber,
           phoneNumberVerified: values.phoneNumberVerified,
           locale: values.locale,
+          ...(values?.metadata !== undefined && values.metadata !== ''
+            ? { metadata: JSON.parse(values.metadata) }
+            : { metadata: null }),
         },
       },
     });
