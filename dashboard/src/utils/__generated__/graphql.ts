@@ -2524,6 +2524,7 @@ export type ConfigSystemConfigPostgres = {
   __typename?: 'ConfigSystemConfigPostgres';
   connectionString: ConfigSystemConfigPostgresConnectionString;
   database: Scalars['String'];
+  disk?: Maybe<ConfigSystemConfigPostgresDisk>;
   enabled?: Maybe<Scalars['Boolean']>;
 };
 
@@ -2533,6 +2534,7 @@ export type ConfigSystemConfigPostgresComparisonExp = {
   _or?: InputMaybe<Array<ConfigSystemConfigPostgresComparisonExp>>;
   connectionString?: InputMaybe<ConfigSystemConfigPostgresConnectionStringComparisonExp>;
   database?: InputMaybe<ConfigStringComparisonExp>;
+  disk?: InputMaybe<ConfigSystemConfigPostgresDiskComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
 };
 
@@ -2568,15 +2570,41 @@ export type ConfigSystemConfigPostgresConnectionStringUpdateInput = {
   storage?: InputMaybe<Scalars['String']>;
 };
 
+export type ConfigSystemConfigPostgresDisk = {
+  __typename?: 'ConfigSystemConfigPostgresDisk';
+  iops?: Maybe<Scalars['ConfigUint32']>;
+  tput?: Maybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigSystemConfigPostgresDiskComparisonExp = {
+  _and?: InputMaybe<Array<ConfigSystemConfigPostgresDiskComparisonExp>>;
+  _not?: InputMaybe<ConfigSystemConfigPostgresDiskComparisonExp>;
+  _or?: InputMaybe<Array<ConfigSystemConfigPostgresDiskComparisonExp>>;
+  iops?: InputMaybe<ConfigUint32ComparisonExp>;
+  tput?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigSystemConfigPostgresDiskInsertInput = {
+  iops?: InputMaybe<Scalars['ConfigUint32']>;
+  tput?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
+export type ConfigSystemConfigPostgresDiskUpdateInput = {
+  iops?: InputMaybe<Scalars['ConfigUint32']>;
+  tput?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
 export type ConfigSystemConfigPostgresInsertInput = {
   connectionString: ConfigSystemConfigPostgresConnectionStringInsertInput;
   database: Scalars['String'];
+  disk?: InputMaybe<ConfigSystemConfigPostgresDiskInsertInput>;
   enabled?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type ConfigSystemConfigPostgresUpdateInput = {
   connectionString?: InputMaybe<ConfigSystemConfigPostgresConnectionStringUpdateInput>;
   database?: InputMaybe<Scalars['String']>;
+  disk?: InputMaybe<ConfigSystemConfigPostgresDiskUpdateInput>;
   enabled?: InputMaybe<Scalars['Boolean']>;
 };
 
@@ -23098,7 +23126,7 @@ export type GetRemoteAppMetricsQueryVariables = Exact<{ [key: string]: never; }>
 
 export type GetRemoteAppMetricsQuery = { __typename?: 'query_root', filesAggregate: { __typename?: 'files_aggregate', aggregate?: { __typename?: 'files_aggregate_fields', count: number, sum?: { __typename?: 'files_sum_fields', size?: number | null } | null } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
-export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
+export type RemoteAppGetUsersFragment = { __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> };
 
 export type RemoteAppGetUsersQueryVariables = Exact<{
   where: Users_Bool_Exp;
@@ -23107,7 +23135,7 @@ export type RemoteAppGetUsersQueryVariables = Exact<{
 }>;
 
 
-export type RemoteAppGetUsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, filteredUsersAggreggate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type RemoteAppGetUsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, filteredUsersAggreggate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null }, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
 export type RemoteAppGetUsersCustomQueryVariables = Exact<{
   where: Users_Bool_Exp;
@@ -23124,7 +23152,7 @@ export type RemoteAppGetUsersWholeQueryVariables = Exact<{
 }>;
 
 
-export type RemoteAppGetUsersWholeQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
+export type RemoteAppGetUsersWholeQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, displayName: string, avatarUrl: string, email?: any | null, emailVerified: boolean, phoneNumber?: string | null, phoneNumberVerified: boolean, disabled: boolean, defaultRole: string, lastSeen?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', id: any, role: string }>, userProviders: Array<{ __typename?: 'authUserProviders', id: any, providerId: string }> }>, usersAggregate: { __typename?: 'users_aggregate', aggregate?: { __typename?: 'users_aggregate_fields', count: number } | null } };
 
 export type TotalUsersQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -23623,6 +23651,7 @@ export const RemoteAppGetUsersFragmentDoc = gql`
   defaultRole
   lastSeen
   locale
+  metadata
   roles {
     id
     role
