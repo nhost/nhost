@@ -29,10 +29,10 @@ const getInternalErrorMessage = (
 
   if (error.name === 'ApolloError') {
     // @ts-ignore
-    const internalError = error.graphQLErrors?.[0]?.extensions?.internal as {
-      error: { message: string };
-    };
-    return internalError?.error?.message || null;
+    const graphqlError = error.graphQLErrors?.[0];
+    const graphqlExtensionsError = graphqlError?.extensions?.internal
+      ?.error as { message: string };
+    return graphqlError.message || graphqlExtensionsError?.message || null;
   }
 
   if (error instanceof Error) {
