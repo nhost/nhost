@@ -29,7 +29,6 @@
 - 🔐 JWT tokens and Refresh Tokens.
 - ✉️ Emails sent on various operations
 - ✅ Optional checking for Pwned Passwords.
-- 👨‍💻 Written 100% in TypeScript.
 
 ## Sign in methods
 
