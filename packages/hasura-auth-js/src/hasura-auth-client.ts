@@ -246,9 +246,7 @@ export class HasuraAuthClient {
         rewriteRedirectTo(this._client.clientUrl, options as any)
       )
 
-      // Check if the 'react-native' module exists
-      if (typeof require('react-native') === 'undefined') {
-        // Running in React Native
+      if (window && window.location) {
         window.location.href = providerUrl
       }
 
