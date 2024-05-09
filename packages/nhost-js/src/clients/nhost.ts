@@ -90,4 +90,20 @@ export class NhostClient {
     // this.functions.setAdminSecret(newValue)
     // this.graphql.setAdminSecret(newValue)
   }
+
+  /**
+   * Use `nhost.setRole` to set the user role for all subsequent graphql, storage and functions calls
+   *
+   * @example
+   * ```ts
+   * nhost.setRole('admin')
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/set-role
+   */
+  setRole(role: string) {
+    this.graphql.setHeaders({ 'x-hasura-role': role })
+    this.storage.setHeaders({ 'x-hasura-role': role })
+    this.functions.setHeaders({ 'x-hasura-role': role })
+  }
 }
