@@ -21,6 +21,7 @@ export class NhostGraphqlClient {
   readonly _url: string
   private accessToken: string | null
   private adminSecret?: string
+  private headers?: Record<string, string>
 
   constructor(params: NhostGraphqlConstructorParams) {
     const { url, adminSecret } = params
@@ -101,7 +102,7 @@ export class NhostGraphqlClient {
     const [variables, config] = variablesAndRequestHeaders
     const requestOptions = parseRequestArgs(documentOrOptions, variables, config)
 
-    const { headers, ...otherOptions } = config || {}
+    const { headers: extraHeaders, ...otherOptions } = config || {}
     const { query, operationName } = resolveRequestDocument(requestOptions.document)
 
     if (typeof process !== 'undefined' && !process.env.TEST_MODE) {
@@ -120,7 +121,8 @@ export class NhostGraphqlClient {
         headers: {
           'Content-Type': 'application/json',
           ...this.generateAccessTokenHeaders(),
-          ...headers
+          ...this.headers, // graphql client headers to be sent with all `request` calls
+          ...extraHeaders // extra headers to be sent with a specific call
         },
         ...otherOptions
       })
@@ -226,6 +228,22 @@ export class NhostGraphqlClient {
     }
 
     this.accessToken = accessToken
+  }
+
+  /**
+   * Use `nhost.graphql.setHeaders` to set global headers to be sent in all subsequent graphql requests
+   *
+   * @example
+   * ```ts
+   * nhost.graphql.setHeaders({
+   *  'x-hasura-role'
+   * })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/graphql/set-headers
+   */
+  setHeaders(headers?: Record<string, string>) {
+    this.headers = headers
   }
 
   private generateAccessTokenHeaders(): NhostGraphqlRequestConfig['headers'] {

@@ -30,6 +30,7 @@ export class HasuraStorageApi {
   private url: string
   private accessToken?: string
   private adminSecret?: string
+  private headers?: Record<string, string>
 
   constructor({ url }: { url: string }) {
     this.url = url
@@ -37,14 +38,18 @@ export class HasuraStorageApi {
 
   async uploadFormData({
     formData,
-    headers,
-    bucketId
+    bucketId,
+    headers: extraHeaders
   }: StorageUploadFormDataParams): Promise<StorageUploadFormDataResponse> {
     const { error, fileMetadata } = await fetchUpload(this.url, formData, {
-      accessToken: this.accessToken,
-      adminSecret: this.adminSecret,
       bucketId,
-      headers
+      headers: {
+        ...this.generateAuthHeaders(),
+        ...this.headers, // global nhost storage client headers to be sent with all `uploadFormData` calls
+        ...extraHeaders // extra headers to be sent with a specific call
+      },
+      accessToken: this.accessToken,
+      adminSecret: this.adminSecret
     })
 
     if (error) {
@@ -67,7 +72,8 @@ export class HasuraStorageApi {
     file,
     bucketId,
     id,
-    name
+    name,
+    headers: extraHeaders
   }: StorageUploadFileParams): Promise<StorageUploadFileResponse> {
     const formData = typeof window === 'undefined' ? new LegacyFormData() : new FormData()
 
@@ -79,7 +85,11 @@ export class HasuraStorageApi {
       adminSecret: this.adminSecret,
       bucketId,
       fileId: id,
-      name
+      name,
+      headers: {
+        ...this.headers,
+        ...extraHeaders // global nhost storage client headers to be sent with all `uploadFile` calls
+      }
     })
 
     if (error) {
@@ -98,7 +108,7 @@ export class HasuraStorageApi {
 
   async downloadFile(params: StorageDownloadFileParams): Promise<StorageDownloadFileResponse> {
     try {
-      const { fileId, headers: customHeaders = {}, ...imageTransformationParams } = params
+      const { fileId, headers: extraHeaders, ...imageTransformationParams } = params
 
       const urlWithParams = appendImageTransformationParameters(
         `${this.url}/files/${fileId}`,
@@ -107,7 +117,11 @@ export class HasuraStorageApi {
 
       const response = await fetch(urlWithParams, {
         method: 'GET',
-        headers: {...this.generateAuthHeaders(), ...customHeaders} 
+        headers: {
+          ...this.generateAuthHeaders(),
+          ...this.headers, // global nhost storage client headers to be sent with all `downloadFile` calls
+          ...extraHeaders
+        }
       })
 
       if (!response.ok) {
@@ -124,11 +138,15 @@ export class HasuraStorageApi {
 
   async getPresignedUrl(params: ApiGetPresignedUrlParams): Promise<ApiGetPresignedUrlResponse> {
     try {
-      const { fileId } = params
-      
+      const { fileId, headers: extraHeaders } = params
+
       const response = await fetch(`${this.url}/files/${fileId}/presignedurl`, {
         method: 'GET',
-        headers: this.generateAuthHeaders()
+        headers: {
+          ...this.generateAuthHeaders(),
+          ...this.headers, // global nhost storage client headers to be sent with all `getPresignedUrl` calls
+          ...extraHeaders
+        }
       })
       if (!response.ok) {
         throw new Error(await response.text())
@@ -142,10 +160,14 @@ export class HasuraStorageApi {
 
   async delete(params: ApiDeleteParams): Promise<ApiDeleteResponse> {
     try {
-      const { fileId } = params
+      const { fileId, headers: extraHeaders } = params
       const response = await fetch(`${this.url}/files/${fileId}`, {
         method: 'DELETE',
-        headers: this.generateAuthHeaders()
+        headers: {
+          ...this.generateAuthHeaders(),
+          ...this.headers, // global nhost storage client headers to be sent with all `delete` calls
+          ...extraHeaders
+        }
       })
       if (!response.ok) {
         throw new Error(await response.text())
@@ -177,6 +199,17 @@ export class HasuraStorageApi {
   setAdminSecret(adminSecret?: string): HasuraStorageApi {
     this.adminSecret = adminSecret
 
+    return this
+  }
+
+  /**
+   * Set global headers to be sent with all requests.
+   *
+   * @param headers a key value pair headers object
+   * @returns Hasura Storage API instance
+   */
+  setHeaders(headers?: Record<string, string>): HasuraStorageApi {
+    this.headers = headers
     return this
   }
 

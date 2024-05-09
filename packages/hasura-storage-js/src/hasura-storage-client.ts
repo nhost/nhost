@@ -229,4 +229,24 @@ export class HasuraStorageClient {
 
     return this
   }
+
+  /**
+   * Use `nhost.storage.setHeaders` to set global headers to be sent for all subsequent storage requests.
+   *
+   * @example
+   * ```ts
+   * nhost.storage.setHeaders({
+   *  "x-hasura-role": "admin"
+   * })
+   * ```
+   *
+   * @param headers key value headers object
+   *
+   * @docs https://docs.nhost.io/reference/javascript/storage/set-headers
+   */
+  setHeaders(headers?: Record<string, string>): HasuraStorageClient {
+    this.api.setHeaders(headers)
+
+    return this
+  }
 }
