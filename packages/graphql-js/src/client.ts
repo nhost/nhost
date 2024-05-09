@@ -236,7 +236,7 @@ export class NhostGraphqlClient {
    * @example
    * ```ts
    * nhost.graphql.setHeaders({
-   *  'x-hasura-role'
+   *  'x-hasura-role': 'admin'
    * })
    * ```
    *

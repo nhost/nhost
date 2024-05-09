@@ -236,7 +236,7 @@ export class HasuraStorageClient {
    * @example
    * ```ts
    * nhost.storage.setHeaders({
-   *  "x-hasura-role": "admin"
+   *  'x-hasura-role': 'admin'
    * })
    * ```
    *

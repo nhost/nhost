@@ -44,7 +44,6 @@ export class HasuraStorageApi {
     const { error, fileMetadata } = await fetchUpload(this.url, formData, {
       bucketId,
       headers: {
-        ...this.generateAuthHeaders(),
         ...this.headers, // global nhost storage client headers to be sent with all `uploadFormData` calls
         ...extraHeaders // extra headers to be sent with a specific call
       },
@@ -87,8 +86,8 @@ export class HasuraStorageApi {
       fileId: id,
       name,
       headers: {
-        ...this.headers,
-        ...extraHeaders // global nhost storage client headers to be sent with all `uploadFile` calls
+        ...this.headers, // global nhost storage client headers to be sent with all `uploadFile` calls
+        ...extraHeaders // extra headers to be sent with a specific call
       }
     })
 
@@ -120,7 +119,7 @@ export class HasuraStorageApi {
         headers: {
           ...this.generateAuthHeaders(),
           ...this.headers, // global nhost storage client headers to be sent with all `downloadFile` calls
-          ...extraHeaders
+          ...extraHeaders // extra headers to be sent with a specific call
         }
       })
 
@@ -145,7 +144,7 @@ export class HasuraStorageApi {
         headers: {
           ...this.generateAuthHeaders(),
           ...this.headers, // global nhost storage client headers to be sent with all `getPresignedUrl` calls
-          ...extraHeaders
+          ...extraHeaders // extra headers to be sent with a specific call
         }
       })
       if (!response.ok) {
@@ -166,7 +165,7 @@ export class HasuraStorageApi {
         headers: {
           ...this.generateAuthHeaders(),
           ...this.headers, // global nhost storage client headers to be sent with all `delete` calls
-          ...extraHeaders
+          ...extraHeaders // extra headers to be sent with a specific call
         }
       })
       if (!response.ok) {
