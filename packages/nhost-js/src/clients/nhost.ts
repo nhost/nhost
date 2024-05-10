@@ -92,7 +92,18 @@ export class NhostClient {
   }
 
   /**
-   * Use `nhost.setRole` to set the user role for all subsequent graphql, storage and functions calls
+   * Use `nhost.setRole` to set the user role for all subsequent GraphQL, storage, and functions calls.
+   * Underneath, this method sets the `x-hasura-role` header on the graphql, storage,
+   * and functions clients.
+   *
+   * ```ts
+   * nhost.graphql.setHeaders({ 'x-hasura-role': role })
+   * nhost.storage.setHeaders({ 'x-hasura-role': role })
+   * nhost.functions.setHeaders({ 'x-hasura-role': role })
+   * ```
+   *
+   * Note: Exercise caution when mixing the use of `setRole` along with `setHeaders` to set `x-hasura-role`,
+   * as it will be overridden by the last call.
    *
    * @example
    * ```ts
@@ -108,7 +119,10 @@ export class NhostClient {
   }
 
   /**
-   * Use `nhost.unsetRole` to unset the user role for all subsequent graphql, storage and functions calls
+   * Use `nhost.unsetRole` to unset the user role for all subsequent graphql, storage and functions calls.
+   * Underneath, this method removes the `x-hasura-role` header from the graphql, storage and functions clients.
+   *
+   * Note: Exercise caution when mixing the use of `nhost.unsetRole` along with `nhost.*.setHeaders`.
    *
    * @example
    * ```ts
