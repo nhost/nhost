@@ -21,7 +21,7 @@ export class NhostGraphqlClient {
   readonly _url: string
   private accessToken: string | null
   private adminSecret?: string
-  private headers?: Record<string, string>
+  private headers?: Record<string, string> = {}
 
   constructor(params: NhostGraphqlConstructorParams) {
     const { url, adminSecret } = params
@@ -243,7 +243,14 @@ export class NhostGraphqlClient {
    * @docs https://docs.nhost.io/reference/javascript/graphql/set-headers
    */
   setHeaders(headers?: Record<string, string>) {
-    this.headers = headers
+    if (!headers) {
+      return
+    }
+
+    this.headers = {
+      ...this.headers,
+      ...headers
+    }
   }
 
   private generateAccessTokenHeaders(): NhostGraphqlRequestConfig['headers'] {

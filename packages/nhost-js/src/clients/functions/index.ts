@@ -27,7 +27,7 @@ export class NhostFunctionsClient {
   readonly url: string
   private accessToken: string | null
   private adminSecret?: string
-  private headers?: Record<string, string>
+  private headers?: Record<string, string> = {}
 
   constructor(params: NhostFunctionsConstructorParams) {
     const { url, adminSecret } = params
@@ -175,7 +175,14 @@ export class NhostFunctionsClient {
    * @docs https://docs.nhost.io/reference/javascript/nhost-js/functions/set-headers
    */
   setHeaders(headers?: Record<string, string>) {
-    this.headers = headers
+    if (!headers) {
+      return
+    }
+
+    this.headers = {
+      ...this.headers,
+      ...headers
+    }
   }
 
   generateAccessTokenHeaders(): NhostFunctionCallConfig['headers'] {

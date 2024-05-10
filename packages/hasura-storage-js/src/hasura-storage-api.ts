@@ -30,7 +30,7 @@ export class HasuraStorageApi {
   private url: string
   private accessToken?: string
   private adminSecret?: string
-  private headers?: Record<string, string>
+  private headers?: Record<string, string> = {}
 
   constructor({ url }: { url: string }) {
     this.url = url
@@ -208,7 +208,15 @@ export class HasuraStorageApi {
    * @returns Hasura Storage API instance
    */
   setHeaders(headers?: Record<string, string>): HasuraStorageApi {
-    this.headers = headers
+    if (!headers) {
+      return this
+    }
+
+    this.headers = {
+      ...this.headers,
+      ...headers
+    }
+
     return this
   }
 
