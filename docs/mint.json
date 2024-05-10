@@ -298,6 +298,7 @@
           "group": "JavaScript",
           "icon": "js",
           "pages": [
+            "reference/javascript/nhost-js/nhost-client",
             {
               "group": "Auth",
               "pages": [
