@@ -106,4 +106,22 @@ export class NhostClient {
     this.storage.setHeaders({ 'x-hasura-role': role })
     this.functions.setHeaders({ 'x-hasura-role': role })
   }
+
+  /**
+   * Use `nhost.unsetRole` to unset the user role for all subsequent graphql, storage and functions calls
+   *
+   * @example
+   * ```ts
+   * nhost.unsetRole('admin')
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/set-role
+   */
+  unsetRole() {
+    this.graphql.setHeaders((({ 'x-hasura-role': _, ...rest }) => rest)(this.graphql.getHeaders()))
+    this.storage.setHeaders((({ 'x-hasura-role': _, ...rest }) => rest)(this.storage.getHeaders()))
+    this.functions.setHeaders(
+      (({ 'x-hasura-role': _, ...rest }) => rest)(this.functions.getHeaders())
+    )
+  }
 }

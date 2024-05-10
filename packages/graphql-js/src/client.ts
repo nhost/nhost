@@ -21,7 +21,7 @@ export class NhostGraphqlClient {
   readonly _url: string
   private accessToken: string | null
   private adminSecret?: string
-  private headers?: Record<string, string> = {}
+  private headers: Record<string, string> = {}
 
   constructor(params: NhostGraphqlConstructorParams) {
     const { url, adminSecret } = params
@@ -231,6 +231,20 @@ export class NhostGraphqlClient {
   }
 
   /**
+   * Use `nhost.graphql.getHeaders` to get the global headers sent with all graphql requests
+   *
+   * @example
+   * ```ts
+   * nhost.graphql.getHeaders()
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/graphql/get-headers
+   */
+  getHeaders(): Record<string, string> {
+    return this.headers
+  }
+
+  /**
    * Use `nhost.graphql.setHeaders` to set global headers to be sent in all subsequent graphql requests
    *
    * @example
@@ -251,6 +265,24 @@ export class NhostGraphqlClient {
       ...this.headers,
       ...headers
     }
+  }
+
+  /**
+   * Use `nhost.graphql.unsetHeaders` to remove global headers sent with all requests, except for the role header to preserve
+   * the role set by 'setRole' method.
+   *
+   * @example
+   * ```ts
+   * nhost.graphql.unsetHeaders()
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/graphql/unset-headers
+   */
+  unsetHeaders() {
+    const userRole = this.headers['x-hasura-role']
+
+    // preserve the user role header to avoid invalidating preceding 'setRole' call.
+    this.headers = userRole ? { 'x-hasura-role': userRole } : {}
   }
 
   private generateAccessTokenHeaders(): NhostGraphqlRequestConfig['headers'] {

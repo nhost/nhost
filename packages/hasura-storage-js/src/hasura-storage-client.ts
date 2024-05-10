@@ -231,6 +231,20 @@ export class HasuraStorageClient {
   }
 
   /**
+   * Use `nhost.storage.getHeaders` to get global headers sent with all storage requests.
+   *
+   * @example
+   * ```ts
+   * nhost.storage.getHeaders()
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/storage/get-headers
+   */
+  getHeaders(): Record<string, string> {
+    return this.getHeaders()
+  }
+
+  /**
    * Use `nhost.storage.setHeaders` to set global headers to be sent for all subsequent storage requests.
    *
    * @example
@@ -247,6 +261,23 @@ export class HasuraStorageClient {
   setHeaders(headers?: Record<string, string>): HasuraStorageClient {
     this.api.setHeaders(headers)
 
+    return this
+  }
+
+  /**
+   * Use `nhost.storage.unsetHeaders` to remove the global headers sent for all subsequent storage requests.
+   *
+   * @example
+   * ```ts
+   * nhost.storage.unsetHeaders()
+   * ```
+   *
+   * @param headers key value headers object
+   *
+   * @docs https://docs.nhost.io/reference/javascript/storage/unset-headers
+   */
+  unsetHeaders(): HasuraStorageClient {
+    this.api.unsetHeaders()
     return this
   }
 }

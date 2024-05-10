@@ -27,7 +27,7 @@ export class NhostFunctionsClient {
   readonly url: string
   private accessToken: string | null
   private adminSecret?: string
-  private headers?: Record<string, string> = {}
+  private headers: Record<string, string> = {}
 
   constructor(params: NhostFunctionsConstructorParams) {
     const { url, adminSecret } = params
@@ -163,6 +163,20 @@ export class NhostFunctionsClient {
   }
 
   /**
+   * Use `nhost.functions.getHeaders` to get the global headers sent with all functions requests.
+   *
+   * @example
+   * ```ts
+   * nhost.functions.getHeaders()
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/nhost-js/functions/get-headers
+   */
+  getHeaders(): Record<string, string> {
+    return this.headers
+  }
+
+  /**
    * Use `nhost.functions.setHeaders` to a set global headers to be sent in all subsequent functions requests.
    *
    * @example
@@ -183,6 +197,23 @@ export class NhostFunctionsClient {
       ...this.headers,
       ...headers
     }
+  }
+
+  /**
+   * Use `nhost.functions.unsetHeaders` to a unset global headers sent with all functions requests.
+   *
+   * @example
+   * ```ts
+   * nhost.functions.unsetHeaders()
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/nhost-js/functions/unset-headers
+   */
+  unsetHeaders() {
+    const userRole = this.headers['x-hasura-role']
+
+    // preserve the user role header to avoid invalidating preceding 'setRole' call.
+    this.headers = userRole ? { 'x-hasura-role': userRole } : {}
   }
 
   generateAccessTokenHeaders(): NhostFunctionCallConfig['headers'] {

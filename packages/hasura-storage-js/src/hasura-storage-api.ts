@@ -30,7 +30,7 @@ export class HasuraStorageApi {
   private url: string
   private accessToken?: string
   private adminSecret?: string
-  private headers?: Record<string, string> = {}
+  private headers: Record<string, string> = {}
 
   constructor({ url }: { url: string }) {
     this.url = url
@@ -202,6 +202,15 @@ export class HasuraStorageApi {
   }
 
   /**
+   * Get global headers sent with all requests.
+   *
+   * @returns Record<string, string>
+   */
+  getHeaders(): Record<string, string> {
+    return this.headers
+  }
+
+  /**
    * Set global headers to be sent with all requests.
    *
    * @param headers a key value pair headers object
@@ -216,6 +225,21 @@ export class HasuraStorageApi {
       ...this.headers,
       ...headers
     }
+
+    return this
+  }
+
+  /**
+   * Remove global headers sent with all requests, except for the role header to preserve
+   * the role set by 'setRole' method.
+   *
+   * @returns {HasuraStorageApi} - Hasura Storage API instance.
+   */
+  unsetHeaders(): HasuraStorageApi {
+    const userRole = this.headers['x-hasura-role']
+
+    // preserve the user role header to avoid invalidating preceding 'setRole' call.
+    this.headers = userRole ? { 'x-hasura-role': userRole } : {}
 
     return this
   }
