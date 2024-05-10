@@ -2,7 +2,6 @@ package controller_test
 
 import (
 	"context"
-	"net/url"
 	"testing"
 	"time"
 
@@ -339,10 +338,9 @@ func TestPostSigninPasswordlessEmail(t *testing.T) { //nolint:maintidx
 		{
 			name: "signup required - options",
 			config: func() *controller.Config {
-				u, _ := url.Parse("http://myapp")
 				config := getConfig()
 				config.AllowedLocales = []string{"en", "fr"}
-				config.AllowedRedirectURLs = []*url.URL{u}
+				config.AllowedRedirectURLs = []string{"http://myapp"}
 				return config
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

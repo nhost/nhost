@@ -3,7 +3,6 @@ package controller_test
 import (
 	"context"
 	"errors"
-	"net/url"
 	"testing"
 	"time"
 
@@ -179,8 +178,7 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			name: "success with redirctTo",
 			config: func() *controller.Config {
 				cfg := getConfig()
-				u, _ := url.Parse("https://myapp.com")
-				cfg.AllowedRedirectURLs = []*url.URL{u}
+				cfg.AllowedRedirectURLs = []string{"https://myapp.com"}
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -256,8 +254,7 @@ func TestPostUserEmailSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			name: "wrong redirctTo",
 			config: func() *controller.Config {
 				cfg := getConfig()
-				u, _ := url.Parse("https://myapp.com")
-				cfg.AllowedRedirectURLs = []*url.URL{u}
+				cfg.AllowedRedirectURLs = []string{"http://myapp"}
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

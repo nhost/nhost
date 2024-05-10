@@ -3,7 +3,6 @@ package controller_test
 import (
 	"context"
 	"errors"
-	"net/url"
 	"testing"
 	"time"
 
@@ -212,10 +211,8 @@ func TestPostUserEmailChange(t *testing.T) { //nolint:maintidx
 		{
 			name: "simple with redirect",
 			config: func() *controller.Config {
-				r, _ := url.Parse("https://myapp/redirect")
-
 				cfg := getConfig()
-				cfg.AllowedRedirectURLs = []*url.URL{r}
+				cfg.AllowedRedirectURLs = []string{"https://myapp/redirect"}
 				return cfg
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {

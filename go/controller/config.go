@@ -30,7 +30,7 @@ type Config struct {
 	HasuraAdminSecret          string        `json:"HASURA_GRAPHQL_ADMIN_SECRET"`
 	AllowedEmailDomains        stringlice    `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS"`
 	AllowedEmails              stringlice    `json:"AUTH_ACCESS_CONTROL_ALLOWED_EMAILS"`
-	AllowedRedirectURLs        []*url.URL    `json:"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS"`
+	AllowedRedirectURLs        []string      `json:"AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS"`
 	BlockedEmailDomains        stringlice    `json:"AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS"`
 	BlockedEmails              stringlice    `json:"AUTH_ACCESS_CONTROL_BLOCKED_EMAILS"`
 	ClientURL                  *url.URL      `json:"AUTH_CLIENT_URL"`
@@ -89,15 +89,7 @@ func (c *Config) UnmarshalJSON(b []byte) error {
 		}
 	}
 
-	allowedRedirectURLs := make([]*url.URL, 0, 10) //nolint:gomnd
-	for _, u := range strings.Split(aux.AllowedRedirectURLs, ",") {
-		url, err := url.Parse(u)
-		if err != nil {
-			return fmt.Errorf("error parsing allowed redirect url %s: %w", u, err)
-		}
-		allowedRedirectURLs = append(allowedRedirectURLs, url)
-	}
-	c.AllowedRedirectURLs = allowedRedirectURLs
+	c.AllowedRedirectURLs = strings.Split(aux.AllowedRedirectURLs, ",")
 
 	return nil
 }

@@ -132,7 +132,7 @@
           mockgen
           oapi-codegen
           sqlc
-          postgresql_146-client
+          postgresql_16_2-client
         ];
 
 

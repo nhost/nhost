@@ -9,7 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen,cyclop
+func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen
 	serverURL, err := url.Parse(cCtx.String(flagServerURL))
 	if err != nil {
 		return controller.Config{}, fmt.Errorf("problem parsing server url: %w", err)
@@ -20,18 +20,13 @@ func getConfig(cCtx *cli.Context) (controller.Config, error) { //nolint:funlen,c
 		return controller.Config{}, fmt.Errorf("problem parsing client url: %w", err)
 	}
 
-	allowedRedirectURLs := make([]*url.URL, 0, len(cCtx.StringSlice(flagAllowRedirectURLs)))
+	allowedRedirectURLs := make([]string, 0, len(cCtx.StringSlice(flagAllowRedirectURLs)))
 	for _, u := range cCtx.StringSlice(flagAllowRedirectURLs) {
 		if u == "" {
 			continue
 		}
 
-		url, err := url.Parse(u)
-		if err != nil {
-			return controller.Config{}, fmt.Errorf("problem parsing allowed redirect url: %w", err)
-		}
-
-		allowedRedirectURLs = append(allowedRedirectURLs, url)
+		allowedRedirectURLs = append(allowedRedirectURLs, u)
 	}
 
 	defaultRole := cCtx.String(flagDefaultRole)
