@@ -1,5 +1,19 @@
 # @nhost/nhost-js
 
+## 3.1.0
+
+### Minor Changes
+
+- 304065a: feat: add `setHeaders` method enabling global configuration of storage, graphql, and functions client headers, alongside added support for passing specific headers with individual calls
+
+### Patch Changes
+
+- Updated dependencies [68e0622]
+- Updated dependencies [304065a]
+  - @nhost/hasura-auth-js@2.4.2
+  - @nhost/hasura-storage-js@2.5.0
+  - @nhost/graphql-js@0.2.0
+
 ## 3.0.11
 
 ### Patch Changes

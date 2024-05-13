@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.4.2
+
+### Patch Changes
+
+- 68e0622: fix: resolved infinite loop occurring with requests to /token when a user logs out in one tab while other tabs are open
+
 ## 2.4.1
 
 ### Patch Changes

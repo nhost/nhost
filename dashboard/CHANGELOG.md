@@ -1,5 +1,17 @@
 # @nhost/dashboard
 
+## 1.15.0
+
+### Minor Changes
+
+- a7bde37: feat: send metadata in the edit form
+
+### Patch Changes
+
+- 1bc615b: feat: improve error message handling in `ErrorToast` component
+  - @nhost/react-apollo@11.0.2
+  - @nhost/nextjs@2.1.11
+
 ## 1.14.0
 
 ### Minor Changes

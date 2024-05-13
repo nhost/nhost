@@ -1,5 +1,11 @@
 # @nhost/graphql-js
 
+## 0.2.0
+
+### Minor Changes
+
+- 304065a: feat: add `setHeaders` method enabling global configuration of storage, graphql, and functions client headers, alongside added support for passing specific headers with individual calls
+
 ## 0.1.9
 
 ### Patch Changes
