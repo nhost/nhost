@@ -6,11 +6,14 @@ import { ArrowsClockwise } from '@/components/ui/v2/icons/ArrowsClockwise';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Input } from '@/components/ui/v2/Input';
+import { Option } from '@/components/ui/v2/Option';
+import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { GraphqlDataSourcesFormSection } from '@/features/ai/AssistantForm/components/GraphqlDataSourcesFormSection';
 import { WebhooksDataSourcesFormSection } from '@/features/ai/AssistantForm/components/WebhooksDataSourcesFormSection';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
+import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { removeTypename, type DeepRequired } from '@/utils/helpers';
@@ -18,8 +21,9 @@ import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
 } from '@/utils/__generated__/graphite.graphql';
+import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -174,6 +178,14 @@ export default function AssistantForm({
     );
   };
 
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
+
+  const { data: buckets } = useGetBucketsQuery({
+    client: remoteProjectGQLClient,
+  });
+
+  const [bucket, setBucket] = useState();
+
   return (
     <FormProvider {...form}>
       <Form
@@ -282,6 +294,36 @@ export default function AssistantForm({
             autoComplete="off"
             autoFocus
           />
+
+          <Select
+            {...register('bucket')}
+            id="bucket"
+            label={
+              <Box className="flex flex-row items-center space-x-2">
+                <Text>Bucket</Text>
+                <Tooltip title="Files in this bucket will be accessible to this assistant.">
+                  <InfoIcon
+                    aria-label="Info"
+                    className="h-4 w-4"
+                    color="primary"
+                  />
+                </Tooltip>
+              </Box>
+            }
+            slotProps={{
+              popper: { disablePortal: false, className: 'z-[10000]' },
+            }}
+            value={bucket}
+            onChange={(_, value) => setBucket(value as string)}
+            fullWidth
+          >
+            {buckets?.buckets.map((b) => (
+              <Option key={b.id} value={b.id}>
+                {b.id}
+              </Option>
+            ))}
+          </Select>
+
           <GraphqlDataSourcesFormSection />
           <WebhooksDataSourcesFormSection />
         </div>
