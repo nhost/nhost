@@ -124,8 +124,9 @@ export class HasuraStorageClient {
   async getPresignedUrl(
     params: StorageGetPresignedUrlParams
   ): Promise<StorageGetPresignedUrlResponse> {
-    const { fileId, ...imageTransformationParams } = params
+    const { fileId, headers, ...imageTransformationParams } = params
     const { presignedUrl, error } = await this.api.getPresignedUrl(params)
+
     if (error) {
       return { presignedUrl: null, error }
     }
