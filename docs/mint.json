@@ -298,7 +298,10 @@
           "group": "JavaScript",
           "icon": "js",
           "pages": [
-            "reference/javascript/nhost-js/nhost-client",
+            {
+              "group": "nhost-js",
+              "pages": ["reference/javascript/nhost-js/nhost-client", "reference/javascript/nhost-js/set-role", "reference/javascript/nhost-js/unset-role"]
+            },
             {
               "group": "Auth",
               "pages": [
@@ -339,7 +342,10 @@
                 "reference/javascript/storage/get-public-url",
                 "reference/javascript/storage/delete",
                 "reference/javascript/storage/set-access-token",
-                "reference/javascript/storage/set-admin-secret"
+                "reference/javascript/storage/set-admin-secret",
+                "reference/javascript/storage/set-headers",
+                "reference/javascript/storage/unset-headers",
+                "reference/javascript/storage/get-headers"
               ]
             },
             {
@@ -348,7 +354,10 @@
                 "reference/javascript/graphql/nhost-graphql-client",
                 "reference/javascript/graphql/get-url",
                 "reference/javascript/graphql/set-access-token",
-                "reference/javascript/graphql/request"
+                "reference/javascript/graphql/request",
+                "reference/javascript/graphql/set-headers",
+                "reference/javascript/graphql/unset-headers",
+                "reference/javascript/graphql/get-headers"
               ]
             },
             {

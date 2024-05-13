@@ -19,12 +19,13 @@ If no `bucketId` is specified the bucket `default` is used.
 
 **<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`StorageUploadFileParams`](/reference/javascript/storage/types/storage-upload-file-params)
 
-| Property                                                                                    | Type                | Required | Notes |
-| :------------------------------------------------------------------------------------------ | :------------------ | :------: | :---- |
-| <span className="parameter-name"><span className="light-grey">params.</span>file</span>     | <code>File</code>   |    ✔️    |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>bucketId</span> | <code>string</code> |          |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>name</span>     | <code>string</code> |          |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>id</span>       | <code>string</code> |          |       |
+| Property                                                                                    | Type                                      | Required | Notes |
+| :------------------------------------------------------------------------------------------ | :---------------------------------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">params.</span>file</span>     | <code>File</code>                         |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>bucketId</span> | <code>string</code>                       |          |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>name</span>     | <code>string</code>                       |          |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>id</span>       | <code>string</code>                       |          |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>headers</span>  | <code>Record&lt;string, string&gt;</code> |          |       |
 
 ---
 
@@ -64,7 +65,7 @@ await storage.upload({
 | Property                                                                                    | Type                                      | Required | Notes |
 | :------------------------------------------------------------------------------------------ | :---------------------------------------- | :------: | :---- |
 | <span className="parameter-name"><span className="light-grey">params.</span>formData</span> | <code>FormData &#124; FormData</code>     |    ✔️    |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>headers</span>  | <code>Record&lt;string, string&gt;</code> |          |       |
 | <span className="parameter-name"><span className="light-grey">params.</span>bucketId</span> | <code>string</code>                       |          |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>headers</span>  | <code>Record&lt;string, string&gt;</code> |          |       |
 
 ---
