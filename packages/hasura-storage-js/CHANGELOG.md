@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.5.0
+
+### Minor Changes
+
+- 304065a: feat: add `setHeaders` method enabling global configuration of storage, graphql, and functions client headers, alongside added support for passing specific headers with individual calls
+
 ## 2.4.0
 
 ### Minor Changes
