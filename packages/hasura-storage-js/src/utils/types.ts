@@ -77,11 +77,13 @@ export interface StorageImageTransformationParams {
   /** Image radius */
   // radius?: number
 }
-export interface StorageGetUrlParams extends StorageImageTransformationParams {
+export interface StorageGetUrlParams extends StorageImageTransformationParams, StorageHeadersParam {
   fileId: string
 }
 
-export interface StorageGetPresignedUrlParams extends StorageImageTransformationParams {
+export interface StorageGetPresignedUrlParams
+  extends StorageImageTransformationParams,
+    StorageHeadersParam {
   fileId: string
 }
 
