@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 2.5.1
+
+### Patch Changes
+
+- 8512a7f: fix: fix types StorageGetUrlParams and StorageGetPresignedUrlParams to include missing StorageHeadersParam
+
 ## 2.5.0
 
 ### Minor Changes
