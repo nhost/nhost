@@ -11,9 +11,7 @@ import {
  */
 export function createFunctionsClient(params: NhostClientConstructorParams) {
   const functionsUrl =
-    'subdomain' in params
-      ? urlFromSubdomain(params, 'functions')
-      : params.functionsUrl
+    'subdomain' in params ? urlFromSubdomain(params, 'functions') : params.functionsUrl
 
   if (!functionsUrl) {
     throw new Error('Please provide `subdomain` or `functionsUrl`.')
@@ -29,6 +27,7 @@ export class NhostFunctionsClient {
   readonly url: string
   private accessToken: string | null
   private adminSecret?: string
+  private headers: Record<string, string> = {}
 
   constructor(params: NhostFunctionsConstructorParams) {
     const { url, adminSecret } = params
@@ -87,7 +86,8 @@ export class NhostFunctionsClient {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...this.generateAccessTokenHeaders(),
-      ...config?.headers
+      ...config?.headers,
+      ...this.headers // nhost functions client headers to be sent with all calls
     }
 
     const fullUrl = buildUrl(this.url, url)
@@ -160,6 +160,60 @@ export class NhostFunctionsClient {
     }
 
     this.accessToken = accessToken
+  }
+
+  /**
+   * Use `nhost.functions.getHeaders` to get the global headers sent with all functions requests.
+   *
+   * @example
+   * ```ts
+   * nhost.functions.getHeaders()
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/nhost-js/functions/get-headers
+   */
+  getHeaders(): Record<string, string> {
+    return this.headers
+  }
+
+  /**
+   * Use `nhost.functions.setHeaders` to a set global headers to be sent in all subsequent functions requests.
+   *
+   * @example
+   * ```ts
+   * nhost.functions.setHeaders({
+   *  'x-hasura-role': 'admin'
+   * })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/nhost-js/functions/set-headers
+   */
+  setHeaders(headers?: Record<string, string>) {
+    if (!headers) {
+      return
+    }
+
+    this.headers = {
+      ...this.headers,
+      ...headers
+    }
+  }
+
+  /**
+   * Use `nhost.functions.unsetHeaders` to a unset global headers sent with all functions requests.
+   *
+   * @example
+   * ```ts
+   * nhost.functions.unsetHeaders()
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/nhost-js/functions/unset-headers
+   */
+  unsetHeaders() {
+    const userRole = this.headers['x-hasura-role']
+
+    // preserve the user role header to avoid invalidating preceding 'setRole' call.
+    this.headers = userRole ? { 'x-hasura-role': userRole } : {}
   }
 
   generateAccessTokenHeaders(): NhostFunctionCallConfig['headers'] {

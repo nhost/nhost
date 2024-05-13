@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.10.3
+
+### Patch Changes
+
+- a58c5cf: fix: broken link
+
 ## 2.10.2
 
 ### Patch Changes
