@@ -110,7 +110,7 @@ export class NhostClient {
    * nhost.setRole('admin')
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/set-role
+   * @docs https://docs.nhost.io/reference/javascript/nhost-js/set-role
    */
   setRole(role: string) {
     this.graphql.setHeaders({ 'x-hasura-role': role })
@@ -130,7 +130,7 @@ export class NhostClient {
    * nhost.unsetRole()
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/unset-role
+   * @docs https://docs.nhost.io/reference/javascript/nhost-js/unset-role
    */
   unsetRole() {
     this.graphql.setHeaders((({ 'x-hasura-role': _, ...rest }) => rest)(this.graphql.getHeaders()))
