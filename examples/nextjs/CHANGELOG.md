@@ -1,5 +1,13 @@
 # @nhost-examples/nextjs
 
+## 0.3.4
+
+### Patch Changes
+
+- @nhost/react@3.4.4
+- @nhost/react-apollo@11.0.4
+- @nhost/nextjs@2.1.13
+
 ## 0.3.3
 
 ### Patch Changes

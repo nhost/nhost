@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.11.0
+
+### Minor Changes
+
+- c6dc7f4: chore: docs: add Nhost client reference
+
 ## 2.10.3
 
 ### Patch Changes

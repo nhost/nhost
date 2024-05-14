@@ -1,5 +1,12 @@
 # @nhost/nhost-js
 
+## 3.1.2
+
+### Patch Changes
+
+- 4c35171: fix: update docstring to correctly reflect usage of nhost.unsetRole method
+- 3cea460: chore: update docs links for nhost-js setRole and unsetRole methods
+
 ## 3.1.1
 
 ### Patch Changes
