@@ -81,7 +81,9 @@ export interface StorageGetUrlParams extends StorageImageTransformationParams {
   fileId: string
 }
 
-export interface StorageGetPresignedUrlParams extends StorageImageTransformationParams {
+export interface StorageGetPresignedUrlParams
+  extends StorageImageTransformationParams,
+    StorageHeadersParam {
   fileId: string
 }
 
