@@ -12,7 +12,7 @@ import { setContext } from '@apollo/client/link/context'
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { AuthContext, NhostClient } from '@nhost/nhost-js'
-import jwtDecode, { JwtPayload } from 'jwt-decode'
+import { jwtDecode, JwtPayload } from 'jwt-decode'
 
 import { createRestartableClient } from './ws'
 const isBrowser = typeof window !== 'undefined'
@@ -67,7 +67,7 @@ export const createApolloClient = ({
     const marginInSeconds = 3
     const marginInMilliseconds = marginInSeconds * 1000
 
-    let decodedToken: JwtPayload = jwtDecode(accessToken.value)
+    let decodedToken = jwtDecode(accessToken.value) as JwtPayload
     return decodedToken.exp! * 1000 > Date.now() - marginInMilliseconds
   }
 

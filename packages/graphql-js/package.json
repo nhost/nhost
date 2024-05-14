@@ -54,14 +54,16 @@
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
+    "base-64": "^1.0.0",
     "isomorphic-unfetch": "^3.1.0",
-    "jose": "^5.2.3"
+    "jwt-decode": "^4.0.0"
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
+    "@types/base-64": "^1.0.2",
     "graphql": "16.8.1"
   }
 }

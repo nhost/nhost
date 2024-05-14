@@ -12,7 +12,14 @@ import {
   Variables
 } from './types'
 
-import * as jose from 'jose'
+import { jwtDecode, JwtPayload } from 'jwt-decode'
+import { decode } from 'base-64'
+
+// polyfill atob on react-native to decode accessTokens
+// see https://github.com/auth0/jwt-decode?tab=readme-ov-file#polyfilling-atob
+if (typeof window !== 'undefined' && !window.location) {
+  global.atob = decode
+}
 
 /**
  * @alias GraphQL
@@ -37,7 +44,7 @@ export class NhostGraphqlClient {
     }
 
     try {
-      const decodedToken = jose.decodeJwt<jose.JWTPayload>(this.accessToken)
+      const decodedToken = jwtDecode(this.accessToken) as JwtPayload
       return decodedToken.exp != null && decodedToken.exp * 1000 > Date.now()
     } catch (error) {
       console.error('Error decoding token:', error)
