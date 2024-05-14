@@ -18,11 +18,28 @@ export class NhostClient {
   readonly devTools?: boolean
 
   /**
-   * Nhost Client
    *
    * @example
    * ```ts
+   * // Create a new Nhost client from subdomain and region.
    * const nhost = new NhostClient({ subdomain, region });
+   * ```
+   *
+   *
+   * ```ts
+   * // Create a new Nhost client from individual service URLs (custom domains, self-hosting, etc).
+   * const nhost = new NhostClient({ 
+   *   authUrl: "my-auth-service-url",
+   *   storageUrl: "my-storage-service-url",
+   *   graphqlUrl: "my-graphql-service-url",
+   *   functionsUrl: "my-functions-service-url",
+   * });
+   * ```
+   *
+   *
+   * ```ts
+   * // Create a new Nhost client for local development.
+   * const nhost = new NhostClient({ subdomain: "local" });
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript

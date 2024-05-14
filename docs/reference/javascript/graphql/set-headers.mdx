@@ -1,0 +1,20 @@
+---
+title: setHeaders()
+sidebarTitle: setHeaders()
+---
+
+Use `nhost.graphql.setHeaders` to set global headers to be sent in all subsequent graphql requests
+
+```ts
+nhost.graphql.setHeaders({
+  'x-hasura-role': 'admin'
+})
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">headers</span>** <span className="optional-status">optional</span> <code>Record&lt;string, string&gt;</code>
+
+---

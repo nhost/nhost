@@ -1,0 +1,14 @@
+---
+title: unsetRole()
+sidebarTitle: unsetRole()
+---
+
+Use `nhost.unsetRole` to unset the user role for all subsequent graphql, storage and functions calls.
+Underneath, this method removes the `x-hasura-role` header from the graphql, storage and functions clients.
+
+Note: Exercise caution when mixing the use of `unsetRole` along with `setHeaders` when setting the
+`x-hasura-role` header, as the last call will override any previous ones.
+
+```ts
+nhost.unsetRole()
+```
