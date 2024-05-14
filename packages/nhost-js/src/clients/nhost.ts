@@ -127,10 +127,10 @@ export class NhostClient {
    *
    * @example
    * ```ts
-   * nhost.unsetRole('admin')
+   * nhost.unsetRole()
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/set-role
+   * @docs https://docs.nhost.io/reference/javascript/unset-role
    */
   unsetRole() {
     this.graphql.setHeaders((({ 'x-hasura-role': _, ...rest }) => rest)(this.graphql.getHeaders()))
