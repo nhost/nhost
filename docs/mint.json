@@ -96,7 +96,7 @@
     },
     {
       "group": "Database",
-      "pages": ["guides/database/configuring-postgres", "guides/database/extensions", "guides/database/performance"]
+      "pages": ["guides/database/configuring-postgres", "guides/database/access", "guides/database/extensions", "guides/database/performance"]
     },
     {
         "group": "AI",

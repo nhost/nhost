@@ -1,0 +1,43 @@
+---
+title: Accessing the Database
+description: How to access the database directly using the connection string
+icon: key
+---
+
+In most cases you will not need to access the database directly, choosing to interact with the data via the Graphql API, however, if you need direct access to postgres you can access it via the connection string.
+
+
+# Nhost Run
+
+You can find details on how to connect to the database from an [Nhost Run](/product/run) service [here](/guides/run/networking#connecting-to-the-nhost-stack). If you don't know the password you can set a new password in the dashboard:
+
+  **Project Dashboard -> Settings -> Database**
+
+![reset password](/images/guides/database/access/reset.png)
+
+# Public Access
+
+For security reasons, by default your database won't be accessible online. If you need to access it directly from the Internet, first you will need to enable public access (enabling public access will also show the connection details):
+
+<Tabs>
+<Tab title="Dashboard">
+  **Project Dashboard -> Settings -> Database**
+
+  ![public access](/images/guides/database/access/public.png)
+
+</Tab>
+<Tab title="Config">
+```toml
+[postgres.resources]
+enablePublicAccess = true
+```
+</Tab>
+</Tabs>
+
+<Note>
+Public access to your database utilizes [pgbouncer](http://www.pgbouncer.org). As this pooler is shared infrastructure the pooler will still be available even if your database has no public access configured. The pooler will simply not have access to your database.
+</Note>
+
+# Functions
+
+[Functions](/product/functions) run on a separate network, which means in order to access the database you will first need to [make it public](#public-access).
