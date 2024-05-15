@@ -1,5 +1,10 @@
 [
   {
+    "value": "disabled",
+    "op": "replace",
+    "path": "/auth/elevatedPrivileges/mode"
+  },
+  {
     "op": "remove",
     "path": "/auth/method/oauth/apple/clientId"
   },
