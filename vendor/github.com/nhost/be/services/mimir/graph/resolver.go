@@ -24,6 +24,8 @@ type Plugin interface {
 	UpdateSystemConfig(ctx context.Context, oldApp, newApp *App, logger logrus.FieldLogger) error
 	UpdateSecrets(ctx context.Context, oldApp, newApp *App, logger logrus.FieldLogger) error
 
+	ChangeDatabaseVersion(ctx context.Context, oldApp, newApp *App, logger logrus.FieldLogger) error
+
 	CreateRunServiceConfig(
 		ctx context.Context, appID string, svc *Service, logger logrus.FieldLogger,
 	) error

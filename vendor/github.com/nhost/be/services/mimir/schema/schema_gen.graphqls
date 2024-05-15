@@ -2364,6 +2364,10 @@ type ConfigPostgresResources {
 
     """
     storage: ConfigPostgresStorage
+    """
+
+    """
+    enablePublicAccess: Boolean
 }
 
 input ConfigPostgresResourcesUpdateInput {
@@ -2371,6 +2375,7 @@ input ConfigPostgresResourcesUpdateInput {
     replicas: ConfigUint8
     networking: ConfigNetworkingUpdateInput
     storage: ConfigPostgresStorageUpdateInput
+    enablePublicAccess: Boolean
 }
 
 input ConfigPostgresResourcesInsertInput {
@@ -2378,6 +2383,7 @@ input ConfigPostgresResourcesInsertInput {
     replicas: ConfigUint8
     networking: ConfigNetworkingInsertInput
     storage: ConfigPostgresStorageInsertInput
+    enablePublicAccess: Boolean
 }
 
 input ConfigPostgresResourcesComparisonExp {
@@ -2388,6 +2394,7 @@ input ConfigPostgresResourcesComparisonExp {
     replicas: ConfigUint8ComparisonExp
     networking: ConfigNetworkingComparisonExp
     storage: ConfigPostgresStorageComparisonExp
+    enablePublicAccess: ConfigBooleanComparisonExp
 }
 
 """
@@ -3327,23 +3334,35 @@ type ConfigSystemConfigPostgres {
     """
 
     """
-    database: String!
+    majorVersion: String
     """
 
     """
     connectionString: ConfigSystemConfigPostgresConnectionString!
+    """
+
+    """
+    database: String!
+    """
+
+    """
+    disk: ConfigSystemConfigPostgresDisk
 }
 
 input ConfigSystemConfigPostgresUpdateInput {
     enabled: Boolean
-    database: String
+    majorVersion: String
     connectionString: ConfigSystemConfigPostgresConnectionStringUpdateInput
+    database: String
+    disk: ConfigSystemConfigPostgresDiskUpdateInput
 }
 
 input ConfigSystemConfigPostgresInsertInput {
     enabled: Boolean
-    database: String!
+    majorVersion: String
     connectionString: ConfigSystemConfigPostgresConnectionStringInsertInput!
+    database: String!
+    disk: ConfigSystemConfigPostgresDiskInsertInput
 }
 
 input ConfigSystemConfigPostgresComparisonExp {
@@ -3351,8 +3370,10 @@ input ConfigSystemConfigPostgresComparisonExp {
     _not: ConfigSystemConfigPostgresComparisonExp
     _or: [ConfigSystemConfigPostgresComparisonExp!]
     enabled: ConfigBooleanComparisonExp
-    database: ConfigStringComparisonExp
+    majorVersion: ConfigStringComparisonExp
     connectionString: ConfigSystemConfigPostgresConnectionStringComparisonExp
+    database: ConfigStringComparisonExp
+    disk: ConfigSystemConfigPostgresDiskComparisonExp
 }
 
 """
@@ -3399,6 +3420,38 @@ input ConfigSystemConfigPostgresConnectionStringComparisonExp {
     hasura: ConfigStringComparisonExp
     auth: ConfigStringComparisonExp
     storage: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigSystemConfigPostgresDisk {
+    """
+
+    """
+    iops: ConfigUint32
+    """
+
+    """
+    tput: ConfigUint32
+}
+
+input ConfigSystemConfigPostgresDiskUpdateInput {
+    iops: ConfigUint32
+    tput: ConfigUint32
+}
+
+input ConfigSystemConfigPostgresDiskInsertInput {
+    iops: ConfigUint32
+    tput: ConfigUint32
+}
+
+input ConfigSystemConfigPostgresDiskComparisonExp {
+    _and: [ConfigSystemConfigPostgresDiskComparisonExp!]
+    _not: ConfigSystemConfigPostgresDiskComparisonExp
+    _or: [ConfigSystemConfigPostgresDiskComparisonExp!]
+    iops: ConfigUint32ComparisonExp
+    tput: ConfigUint32ComparisonExp
 }
 
 scalar ConfigUrl

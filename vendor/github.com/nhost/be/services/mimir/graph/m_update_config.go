@@ -40,6 +40,9 @@ func (r *mutationResolver) updateConfig(
 	if err := r.configValidate(oldApp, newApp); err != nil {
 		return nil, err
 	}
+	if err := newApp.ValidateConfig(r.schema); err != nil {
+		return nil, err
+	}
 
 	logger := nhcontext.LoggerFromContext(ctx).WithField("app_id", appID)
 	for _, p := range r.plugins {

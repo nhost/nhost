@@ -128,7 +128,7 @@ import (
 #Hasura: {
 	// Version of hasura, you can see available versions in the URL below:
 	// https://hub.docker.com/r/hasura/graphql-engine/tags
-	version: string | *"v2.33.4-ce"
+	version: string | *"v2.38.0-ce"
 
 	// JWT Secrets configuration
 	jwtSecrets: [#JWTSecret]
@@ -224,7 +224,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.6-20240129-1"
+	version: string | *"14.6-20240422-1"
 
 	// Resources for the service
 	resources?: {
@@ -232,6 +232,8 @@ import (
 		storage?: {
 			capacity: uint32 & >=10 & <=1000 | *10 // GiB
 		}
+
+        enablePublicAccess?: bool | *false
 	} & {
 		replicas:    1
 		networking?: null
@@ -272,7 +274,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.24.1"
+	version: string | *"0.29.2"
 
 	// Resources for the service
 	resources?: #Resources
@@ -424,20 +426,11 @@ import (
 
 		webauthn: {
 			enabled: bool | *false
-			if enabled {
-				relyingParty: {
-					id:   string | *""
-					name: string
-					origins: [...#Url] | *[redirections.clientUrl]
-				}
-			}
-			if !enabled {
-				relyingParty?: {
-					id:    string | *""
-					name?: string
-					origins?: [...#Url] | *[redirections.clientUrl]
-				}
-			}
+            relyingParty?: {
+                id:    string | *""
+                name?: string
+                origins?: [...#Url] | *[redirections.clientUrl]
+            }
 			attestation: {
 				timeout: uint32 | *60000
 			}
@@ -564,6 +557,7 @@ import (
 
 	postgres: {
 		enabled: bool | *true
+        majorVersion: "14"|"15"|"16" | *"14"
 		if enabled {
 			database: string
 		}
@@ -576,6 +570,11 @@ import (
 			auth:    string
 			storage: string
 		}
+
+        disk?: {
+            iops: uint32 | *3000
+            tput: uint32 | *125
+        }
 	}
 }
 

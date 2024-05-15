@@ -320,8 +320,9 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 					Cpu:    2000,
 					Memory: 4096,
 				},
-				Replicas:   ptr(uint8(1)),
-				Networking: nil,
+				EnablePublicAccess: ptr(true),
+				Replicas:           ptr(uint8(1)),
+				Networking:         nil,
 				Storage: &model.ConfigPostgresStorage{
 					Capacity: 20,
 				},

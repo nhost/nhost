@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema"
@@ -112,4 +113,25 @@ func (a *App) ResolveSystemConfig(sch *schema.Schema) (*model.ConfigSystemConfig
 		return nil, fmt.Errorf("failed to fill system config: %w", err)
 	}
 	return cfg, nil
+}
+
+func (a *App) ValidateConfig(sch *schema.Schema) error {
+	cfg, err := a.ResolveConfig(sch, false)
+	if err != nil {
+		return err
+	}
+
+	sysCfg, err := a.ResolveSystemConfig(sch)
+	if err != nil {
+		return err
+	}
+
+	if !strings.HasPrefix(
+		*cfg.GetPostgres().GetVersion(),
+		*sysCfg.GetPostgres().GetMajorVersion(),
+	) {
+		return fmt.Errorf("postgres: %w", ErrDatabaseVersionMismatch)
+	}
+
+	return nil
 }

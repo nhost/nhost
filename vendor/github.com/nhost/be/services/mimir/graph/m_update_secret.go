@@ -41,6 +41,9 @@ func (r *mutationResolver) updateSecret(
 	if _, err := newApp.ResolveConfig(r.schema, true); err != nil {
 		return nil, err
 	}
+	if err := newApp.ValidateConfig(r.schema); err != nil {
+		return nil, err
+	}
 
 	logger := nhcontext.LoggerFromContext(ctx).WithField("app_id", appID)
 	for _, p := range r.plugins {

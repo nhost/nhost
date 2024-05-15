@@ -1,6 +1,8 @@
 module github.com/nhost/cli
 
-go 1.21
+go 1.22.0
+
+toolchain go1.22.2
 
 replace cuelang.org/go => cuelang.org/go v0.4.3
 
@@ -14,7 +16,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-getter v1.7.4
-	github.com/nhost/be v0.0.0-20240410131435-0d88721f49bd
+	github.com/nhost/be v0.0.0-20240515083712-ff0d6ed8ebd1
 	github.com/pelletier/go-toml/v2 v2.2.1
 	github.com/rs/cors/wrapper/gin v0.0.0-20240429123903-3d336ea9b505
 	github.com/sirupsen/logrus v1.9.3
@@ -33,7 +35,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v1.1.7 // indirect
 	cloud.google.com/go/storage v1.40.0 // indirect
-	cuelang.org/go v0.7.1 // indirect
+	cuelang.org/go v0.8.2 // indirect
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect

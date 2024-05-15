@@ -71,9 +71,12 @@ func (r *mutationResolver) insertConfig(
 	if err != nil {
 		return nil, err
 	}
-
 	newApp.Config = config
 	newApp.SystemConfig = systemConfig
+
+	if err := newApp.ValidateConfig(r.schema); err != nil {
+		return nil, err
+	}
 
 	logger := nhcontext.LoggerFromContext(ctx).WithField("app_id", appID)
 	for _, p := range r.plugins {
@@ -83,7 +86,6 @@ func (r *mutationResolver) insertConfig(
 	}
 
 	r.data = append(r.data, newApp)
-
 	return &model.ConfigInsertConfigResponse{
 		Config:       newApp.Config,
 		SystemConfig: newApp.SystemConfig,

@@ -407,10 +407,11 @@ type ComplexityRoot struct {
 	}
 
 	ConfigPostgresResources struct {
-		Compute    func(childComplexity int) int
-		Networking func(childComplexity int) int
-		Replicas   func(childComplexity int) int
-		Storage    func(childComplexity int) int
+		Compute            func(childComplexity int) int
+		EnablePublicAccess func(childComplexity int) int
+		Networking         func(childComplexity int) int
+		Replicas           func(childComplexity int) int
+		Storage            func(childComplexity int) int
 	}
 
 	ConfigPostgresSettings struct {
@@ -560,7 +561,9 @@ type ComplexityRoot struct {
 	ConfigSystemConfigPostgres struct {
 		ConnectionString func(childComplexity int) int
 		Database         func(childComplexity int) int
+		Disk             func(childComplexity int) int
 		Enabled          func(childComplexity int) int
+		MajorVersion     func(childComplexity int) int
 	}
 
 	ConfigSystemConfigPostgresConnectionString struct {
@@ -570,7 +573,13 @@ type ComplexityRoot struct {
 		Storage func(childComplexity int) int
 	}
 
+	ConfigSystemConfigPostgresDisk struct {
+		Iops func(childComplexity int) int
+		Tput func(childComplexity int) int
+	}
+
 	Mutation struct {
+		ChangeDatabaseVersion   func(childComplexity int, appID string, version string, force *bool) int
 		DeleteConfig            func(childComplexity int, appID string) int
 		DeleteRunServiceConfig  func(childComplexity int, appID string, serviceID string) int
 		DeleteSecret            func(childComplexity int, appID string, key string) int
@@ -605,6 +614,7 @@ type MutationResolver interface {
 	ReplaceConfig(ctx context.Context, appID string, config model.ConfigConfigInsertInput) (*model.ConfigConfig, error)
 	InsertConfig(ctx context.Context, appID string, config model.ConfigConfigInsertInput, systemConfig model.ConfigSystemConfigInsertInput, secrets []*model.ConfigEnvironmentVariableInsertInput) (*model.ConfigInsertConfigResponse, error)
 	DeleteConfig(ctx context.Context, appID string) (*model.ConfigConfig, error)
+	ChangeDatabaseVersion(ctx context.Context, appID string, version string, force *bool) (bool, error)
 	InsertSecret(ctx context.Context, appID string, secret model.ConfigEnvironmentVariableInsertInput) (*model.ConfigEnvironmentVariable, error)
 	UpdateSecret(ctx context.Context, appID string, secret model.ConfigEnvironmentVariableInsertInput) (*model.ConfigEnvironmentVariable, error)
 	DeleteSecret(ctx context.Context, appID string, key string) (*model.ConfigEnvironmentVariable, error)
@@ -1914,6 +1924,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigPostgresResources.Compute(childComplexity), true
 
+	case "ConfigPostgresResources.enablePublicAccess":
+		if e.complexity.ConfigPostgresResources.EnablePublicAccess == nil {
+			break
+		}
+
+		return e.complexity.ConfigPostgresResources.EnablePublicAccess(childComplexity), true
+
 	case "ConfigPostgresResources.networking":
 		if e.complexity.ConfigPostgresResources.Networking == nil {
 			break
@@ -2495,12 +2512,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigSystemConfigPostgres.Database(childComplexity), true
 
+	case "ConfigSystemConfigPostgres.disk":
+		if e.complexity.ConfigSystemConfigPostgres.Disk == nil {
+			break
+		}
+
+		return e.complexity.ConfigSystemConfigPostgres.Disk(childComplexity), true
+
 	case "ConfigSystemConfigPostgres.enabled":
 		if e.complexity.ConfigSystemConfigPostgres.Enabled == nil {
 			break
 		}
 
 		return e.complexity.ConfigSystemConfigPostgres.Enabled(childComplexity), true
+
+	case "ConfigSystemConfigPostgres.majorVersion":
+		if e.complexity.ConfigSystemConfigPostgres.MajorVersion == nil {
+			break
+		}
+
+		return e.complexity.ConfigSystemConfigPostgres.MajorVersion(childComplexity), true
 
 	case "ConfigSystemConfigPostgresConnectionString.auth":
 		if e.complexity.ConfigSystemConfigPostgresConnectionString.Auth == nil {
@@ -2529,6 +2560,32 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigSystemConfigPostgresConnectionString.Storage(childComplexity), true
+
+	case "ConfigSystemConfigPostgresDisk.iops":
+		if e.complexity.ConfigSystemConfigPostgresDisk.Iops == nil {
+			break
+		}
+
+		return e.complexity.ConfigSystemConfigPostgresDisk.Iops(childComplexity), true
+
+	case "ConfigSystemConfigPostgresDisk.tput":
+		if e.complexity.ConfigSystemConfigPostgresDisk.Tput == nil {
+			break
+		}
+
+		return e.complexity.ConfigSystemConfigPostgresDisk.Tput(childComplexity), true
+
+	case "Mutation.changeDatabaseVersion":
+		if e.complexity.Mutation.ChangeDatabaseVersion == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_changeDatabaseVersion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ChangeDatabaseVersion(childComplexity, args["appID"].(string), args["version"].(string), args["force"].(*bool)), true
 
 	case "Mutation.deleteConfig":
 		if e.complexity.Mutation.DeleteConfig == nil {
@@ -2979,6 +3036,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigSystemConfigPostgresComparisonExp,
 		ec.unmarshalInputConfigSystemConfigPostgresConnectionStringComparisonExp,
 		ec.unmarshalInputConfigSystemConfigPostgresConnectionStringInsertInput,
+		ec.unmarshalInputConfigSystemConfigPostgresDiskComparisonExp,
+		ec.unmarshalInputConfigSystemConfigPostgresDiskInsertInput,
 		ec.unmarshalInputConfigSystemConfigPostgresInsertInput,
 		ec.unmarshalInputConfigUint16ComparisonExp,
 		ec.unmarshalInputConfigUint32ComparisonExp,
@@ -3183,6 +3242,11 @@ type Mutation {
     deleteConfig(
         appID: uuid! @hasAppVisibility(),
     ): ConfigConfig
+    changeDatabaseVersion(
+        appID: uuid! @hasAppVisibility(),
+        version: String!,
+        force: Boolean,
+    ): Boolean!
 
     insertSecret(
         appID: uuid! @hasAppVisibility(),
@@ -5589,6 +5653,10 @@ type ConfigPostgresResources {
 
     """
     storage: ConfigPostgresStorage
+    """
+
+    """
+    enablePublicAccess: Boolean
 }
 
 input ConfigPostgresResourcesUpdateInput {
@@ -5596,6 +5664,7 @@ input ConfigPostgresResourcesUpdateInput {
     replicas: ConfigUint8
     networking: ConfigNetworkingUpdateInput
     storage: ConfigPostgresStorageUpdateInput
+    enablePublicAccess: Boolean
 }
 
 input ConfigPostgresResourcesInsertInput {
@@ -5603,6 +5672,7 @@ input ConfigPostgresResourcesInsertInput {
     replicas: ConfigUint8
     networking: ConfigNetworkingInsertInput
     storage: ConfigPostgresStorageInsertInput
+    enablePublicAccess: Boolean
 }
 
 input ConfigPostgresResourcesComparisonExp {
@@ -5613,6 +5683,7 @@ input ConfigPostgresResourcesComparisonExp {
     replicas: ConfigUint8ComparisonExp
     networking: ConfigNetworkingComparisonExp
     storage: ConfigPostgresStorageComparisonExp
+    enablePublicAccess: ConfigBooleanComparisonExp
 }
 
 """
@@ -6552,23 +6623,35 @@ type ConfigSystemConfigPostgres {
     """
 
     """
-    database: String!
+    majorVersion: String
     """
 
     """
     connectionString: ConfigSystemConfigPostgresConnectionString!
+    """
+
+    """
+    database: String!
+    """
+
+    """
+    disk: ConfigSystemConfigPostgresDisk
 }
 
 input ConfigSystemConfigPostgresUpdateInput {
     enabled: Boolean
-    database: String
+    majorVersion: String
     connectionString: ConfigSystemConfigPostgresConnectionStringUpdateInput
+    database: String
+    disk: ConfigSystemConfigPostgresDiskUpdateInput
 }
 
 input ConfigSystemConfigPostgresInsertInput {
     enabled: Boolean
-    database: String!
+    majorVersion: String
     connectionString: ConfigSystemConfigPostgresConnectionStringInsertInput!
+    database: String!
+    disk: ConfigSystemConfigPostgresDiskInsertInput
 }
 
 input ConfigSystemConfigPostgresComparisonExp {
@@ -6576,8 +6659,10 @@ input ConfigSystemConfigPostgresComparisonExp {
     _not: ConfigSystemConfigPostgresComparisonExp
     _or: [ConfigSystemConfigPostgresComparisonExp!]
     enabled: ConfigBooleanComparisonExp
-    database: ConfigStringComparisonExp
+    majorVersion: ConfigStringComparisonExp
     connectionString: ConfigSystemConfigPostgresConnectionStringComparisonExp
+    database: ConfigStringComparisonExp
+    disk: ConfigSystemConfigPostgresDiskComparisonExp
 }
 
 """
@@ -6626,6 +6711,38 @@ input ConfigSystemConfigPostgresConnectionStringComparisonExp {
     storage: ConfigStringComparisonExp
 }
 
+"""
+
+"""
+type ConfigSystemConfigPostgresDisk {
+    """
+
+    """
+    iops: ConfigUint32
+    """
+
+    """
+    tput: ConfigUint32
+}
+
+input ConfigSystemConfigPostgresDiskUpdateInput {
+    iops: ConfigUint32
+    tput: ConfigUint32
+}
+
+input ConfigSystemConfigPostgresDiskInsertInput {
+    iops: ConfigUint32
+    tput: ConfigUint32
+}
+
+input ConfigSystemConfigPostgresDiskComparisonExp {
+    _and: [ConfigSystemConfigPostgresDiskComparisonExp!]
+    _not: ConfigSystemConfigPostgresDiskComparisonExp
+    _or: [ConfigSystemConfigPostgresDiskComparisonExp!]
+    iops: ConfigUint32ComparisonExp
+    tput: ConfigUint32ComparisonExp
+}
+
 scalar ConfigUrl
 
 input ConfigUrlComparisonExp {
@@ -6649,6 +6766,52 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_changeDatabaseVersion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["appID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasAppVisibility == nil {
+				return nil, errors.New("directive hasAppVisibility is not implemented")
+			}
+			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+		}
+	}
+	args["appID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["version"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("version"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["version"] = arg1
+	var arg2 *bool
+	if tmp, ok := rawArgs["force"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("force"))
+		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["force"] = arg2
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_deleteConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -15623,6 +15786,8 @@ func (ec *executionContext) fieldContext_ConfigPostgres_resources(ctx context.Co
 				return ec.fieldContext_ConfigPostgresResources_networking(ctx, field)
 			case "storage":
 				return ec.fieldContext_ConfigPostgresResources_storage(ctx, field)
+			case "enablePublicAccess":
+				return ec.fieldContext_ConfigPostgresResources_enablePublicAccess(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigPostgresResources", field.Name)
 		},
@@ -15888,6 +16053,47 @@ func (ec *executionContext) fieldContext_ConfigPostgresResources_storage(ctx con
 				return ec.fieldContext_ConfigPostgresStorage_capacity(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigPostgresStorage", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigPostgresResources_enablePublicAccess(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresResources) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigPostgresResources_enablePublicAccess(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnablePublicAccess, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigPostgresResources_enablePublicAccess(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigPostgresResources",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -19131,10 +19337,14 @@ func (ec *executionContext) fieldContext_ConfigSystemConfig_postgres(ctx context
 			switch field.Name {
 			case "enabled":
 				return ec.fieldContext_ConfigSystemConfigPostgres_enabled(ctx, field)
-			case "database":
-				return ec.fieldContext_ConfigSystemConfigPostgres_database(ctx, field)
+			case "majorVersion":
+				return ec.fieldContext_ConfigSystemConfigPostgres_majorVersion(ctx, field)
 			case "connectionString":
 				return ec.fieldContext_ConfigSystemConfigPostgres_connectionString(ctx, field)
+			case "database":
+				return ec.fieldContext_ConfigSystemConfigPostgres_database(ctx, field)
+			case "disk":
+				return ec.fieldContext_ConfigSystemConfigPostgres_disk(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigSystemConfigPostgres", field.Name)
 		},
@@ -19355,8 +19565,8 @@ func (ec *executionContext) fieldContext_ConfigSystemConfigPostgres_enabled(ctx 
 	return fc, nil
 }
 
-func (ec *executionContext) _ConfigSystemConfigPostgres_database(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigPostgres) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ConfigSystemConfigPostgres_database(ctx, field)
+func (ec *executionContext) _ConfigSystemConfigPostgres_majorVersion(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigPostgres) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigSystemConfigPostgres_majorVersion(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -19369,24 +19579,21 @@ func (ec *executionContext) _ConfigSystemConfigPostgres_database(ctx context.Con
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Database, nil
+		return obj.MajorVersion, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_ConfigSystemConfigPostgres_database(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ConfigSystemConfigPostgres_majorVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigSystemConfigPostgres",
 		Field:      field,
@@ -19448,6 +19655,97 @@ func (ec *executionContext) fieldContext_ConfigSystemConfigPostgres_connectionSt
 				return ec.fieldContext_ConfigSystemConfigPostgresConnectionString_storage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigSystemConfigPostgresConnectionString", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigSystemConfigPostgres_database(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigPostgres) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigSystemConfigPostgres_database(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Database, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigSystemConfigPostgres_database(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigSystemConfigPostgres",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigSystemConfigPostgres_disk(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigPostgres) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigSystemConfigPostgres_disk(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Disk, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigSystemConfigPostgresDisk)
+	fc.Result = res
+	return ec.marshalOConfigSystemConfigPostgresDisk2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDisk(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigSystemConfigPostgres_disk(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigSystemConfigPostgres",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "iops":
+				return ec.fieldContext_ConfigSystemConfigPostgresDisk_iops(ctx, field)
+			case "tput":
+				return ec.fieldContext_ConfigSystemConfigPostgresDisk_tput(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigSystemConfigPostgresDisk", field.Name)
 		},
 	}
 	return fc, nil
@@ -19624,6 +19922,88 @@ func (ec *executionContext) fieldContext_ConfigSystemConfigPostgresConnectionStr
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigSystemConfigPostgresDisk_iops(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigPostgresDisk) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigSystemConfigPostgresDisk_iops(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Iops, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uint32)
+	fc.Result = res
+	return ec.marshalOConfigUint322ᚖuint32(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigSystemConfigPostgresDisk_iops(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigSystemConfigPostgresDisk",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigUint32 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigSystemConfigPostgresDisk_tput(ctx context.Context, field graphql.CollectedField, obj *model.ConfigSystemConfigPostgresDisk) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigSystemConfigPostgresDisk_tput(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tput, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uint32)
+	fc.Result = res
+	return ec.marshalOConfigUint322ᚖuint32(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigSystemConfigPostgresDisk_tput(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigSystemConfigPostgresDisk",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigUint32 does not have child fields")
 		},
 	}
 	return fc, nil
@@ -19914,6 +20294,61 @@ func (ec *executionContext) fieldContext_Mutation_deleteConfig(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteConfig_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_changeDatabaseVersion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_changeDatabaseVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ChangeDatabaseVersion(rctx, fc.Args["appID"].(string), fc.Args["version"].(string), fc.Args["force"].(*bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_changeDatabaseVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_changeDatabaseVersion_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -29294,7 +29729,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesComparisonExp(c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "compute", "replicas", "networking", "storage"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "compute", "replicas", "networking", "storage", "enablePublicAccess"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -29350,6 +29785,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesComparisonExp(c
 				return it, err
 			}
 			it.Storage = data
+		case "enablePublicAccess":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enablePublicAccess"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EnablePublicAccess = data
 		}
 	}
 
@@ -29363,7 +29805,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"compute", "replicas", "networking", "storage"}
+	fieldsInOrder := [...]string{"compute", "replicas", "networking", "storage", "enablePublicAccess"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -29398,6 +29840,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx
 				return it, err
 			}
 			it.Storage = data
+		case "enablePublicAccess":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enablePublicAccess"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EnablePublicAccess = data
 		}
 	}
 
@@ -31852,7 +32301,7 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresComparisonEx
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "database", "connectionString"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "majorVersion", "connectionString", "database", "disk"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31887,13 +32336,13 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresComparisonEx
 				return it, err
 			}
 			it.Enabled = data
-		case "database":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("database"))
+		case "majorVersion":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("majorVersion"))
 			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Database = data
+			it.MajorVersion = data
 		case "connectionString":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("connectionString"))
 			data, err := ec.unmarshalOConfigSystemConfigPostgresConnectionStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringComparisonExp(ctx, v)
@@ -31901,6 +32350,20 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresComparisonEx
 				return it, err
 			}
 			it.ConnectionString = data
+		case "database":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("database"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Database = data
+		case "disk":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disk"))
+			data, err := ec.unmarshalOConfigSystemConfigPostgresDiskComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Disk = data
 		}
 	}
 
@@ -32024,6 +32487,95 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresConnectionSt
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresDiskComparisonExp(ctx context.Context, obj interface{}) (model.ConfigSystemConfigPostgresDiskComparisonExp, error) {
+	var it model.ConfigSystemConfigPostgresDiskComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "iops", "tput"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigSystemConfigPostgresDiskComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigSystemConfigPostgresDiskComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigSystemConfigPostgresDiskComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "iops":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iops"))
+			data, err := ec.unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Iops = data
+		case "tput":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tput"))
+			data, err := ec.unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Tput = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresDiskInsertInput(ctx context.Context, obj interface{}) (model.ConfigSystemConfigPostgresDiskInsertInput, error) {
+	var it model.ConfigSystemConfigPostgresDiskInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"iops", "tput"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "iops":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iops"))
+			data, err := ec.unmarshalOConfigUint322ᚖuint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Iops = data
+		case "tput":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tput"))
+			data, err := ec.unmarshalOConfigUint322ᚖuint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Tput = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresInsertInput(ctx context.Context, obj interface{}) (model.ConfigSystemConfigPostgresInsertInput, error) {
 	var it model.ConfigSystemConfigPostgresInsertInput
 	asMap := map[string]interface{}{}
@@ -32031,7 +32583,7 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresInsertInput(
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"enabled", "database", "connectionString"}
+	fieldsInOrder := [...]string{"enabled", "majorVersion", "connectionString", "database", "disk"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32045,13 +32597,13 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresInsertInput(
 				return it, err
 			}
 			it.Enabled = data
-		case "database":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("database"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+		case "majorVersion":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("majorVersion"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Database = data
+			it.MajorVersion = data
 		case "connectionString":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("connectionString"))
 			data, err := ec.unmarshalNConfigSystemConfigPostgresConnectionStringInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringInsertInput(ctx, v)
@@ -32059,6 +32611,20 @@ func (ec *executionContext) unmarshalInputConfigSystemConfigPostgresInsertInput(
 				return it, err
 			}
 			it.ConnectionString = data
+		case "database":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("database"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Database = data
+		case "disk":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disk"))
+			data, err := ec.unmarshalOConfigSystemConfigPostgresDiskInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Disk = data
 		}
 	}
 
@@ -34887,6 +35453,8 @@ func (ec *executionContext) _ConfigPostgresResources(ctx context.Context, sel as
 			out.Values[i] = ec._ConfigPostgresResources_networking(ctx, field, obj)
 		case "storage":
 			out.Values[i] = ec._ConfigPostgresResources_storage(ctx, field, obj)
+		case "enablePublicAccess":
+			out.Values[i] = ec._ConfigPostgresResources_enablePublicAccess(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35908,16 +36476,20 @@ func (ec *executionContext) _ConfigSystemConfigPostgres(ctx context.Context, sel
 			out.Values[i] = graphql.MarshalString("ConfigSystemConfigPostgres")
 		case "enabled":
 			out.Values[i] = ec._ConfigSystemConfigPostgres_enabled(ctx, field, obj)
-		case "database":
-			out.Values[i] = ec._ConfigSystemConfigPostgres_database(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
+		case "majorVersion":
+			out.Values[i] = ec._ConfigSystemConfigPostgres_majorVersion(ctx, field, obj)
 		case "connectionString":
 			out.Values[i] = ec._ConfigSystemConfigPostgres_connectionString(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "database":
+			out.Values[i] = ec._ConfigSystemConfigPostgres_database(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "disk":
+			out.Values[i] = ec._ConfigSystemConfigPostgres_disk(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35995,6 +36567,44 @@ func (ec *executionContext) _ConfigSystemConfigPostgresConnectionString(ctx cont
 	return out
 }
 
+var configSystemConfigPostgresDiskImplementors = []string{"ConfigSystemConfigPostgresDisk"}
+
+func (ec *executionContext) _ConfigSystemConfigPostgresDisk(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigSystemConfigPostgresDisk) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configSystemConfigPostgresDiskImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigSystemConfigPostgresDisk")
+		case "iops":
+			out.Values[i] = ec._ConfigSystemConfigPostgresDisk_iops(ctx, field, obj)
+		case "tput":
+			out.Values[i] = ec._ConfigSystemConfigPostgresDisk_tput(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -36039,6 +36649,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteConfig(ctx, field)
 			})
+		case "changeDatabaseVersion":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_changeDatabaseVersion(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "insertSecret":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_insertSecret(ctx, field)
@@ -37881,6 +38498,11 @@ func (ec *executionContext) unmarshalNConfigSystemConfigPostgresConnectionString
 
 func (ec *executionContext) unmarshalNConfigSystemConfigPostgresConnectionStringInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresConnectionStringInsertInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresConnectionStringInsertInput, error) {
 	res, err := ec.unmarshalInputConfigSystemConfigPostgresConnectionStringInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigSystemConfigPostgresDiskComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresDiskComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigSystemConfigPostgresDiskComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -43395,6 +44017,58 @@ func (ec *executionContext) unmarshalOConfigSystemConfigPostgresConnectionString
 		return nil, nil
 	}
 	var res = new(model.ConfigSystemConfigPostgresConnectionStringUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigSystemConfigPostgresDisk2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDisk(ctx context.Context, sel ast.SelectionSet, v *model.ConfigSystemConfigPostgresDisk) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigSystemConfigPostgresDisk(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigSystemConfigPostgresDiskComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigSystemConfigPostgresDiskComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigSystemConfigPostgresDiskComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskComparisonExp(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresDiskComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigSystemConfigPostgresDiskComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskInsertInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresDiskInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigSystemConfigPostgresDiskInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigSystemConfigPostgresDiskUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigSystemConfigPostgresDiskUpdateInput(ctx context.Context, v interface{}) (*model.ConfigSystemConfigPostgresDiskUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigSystemConfigPostgresDiskUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }

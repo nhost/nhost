@@ -36,7 +36,7 @@ cloud.google.com/go/storage
 cloud.google.com/go/storage/internal
 cloud.google.com/go/storage/internal/apiv2
 cloud.google.com/go/storage/internal/apiv2/storagepb
-# cuelang.org/go v0.7.1 => cuelang.org/go v0.4.3
+# cuelang.org/go v0.8.2 => cuelang.org/go v0.4.3
 ## explicit; go 1.17
 cuelang.org/go/cue
 cuelang.org/go/cue/ast
@@ -532,8 +532,8 @@ github.com/muesli/reflow/wrap
 # github.com/muesli/termenv v0.15.2
 ## explicit; go 1.17
 github.com/muesli/termenv
-# github.com/nhost/be v0.0.0-20240410131435-0d88721f49bd
-## explicit; go 1.21
+# github.com/nhost/be v0.0.0-20240515083712-ff0d6ed8ebd1
+## explicit; go 1.22.0
 github.com/nhost/be/lib/graphql
 github.com/nhost/be/lib/graphql/context
 github.com/nhost/be/lib/graphql/handler

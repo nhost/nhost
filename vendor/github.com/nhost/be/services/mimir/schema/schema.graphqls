@@ -97,6 +97,11 @@ type Mutation {
     deleteConfig(
         appID: uuid! @hasAppVisibility(),
     ): ConfigConfig
+    changeDatabaseVersion(
+        appID: uuid! @hasAppVisibility(),
+        version: String!,
+        force: Boolean,
+    ): Boolean!
 
     insertSecret(
         appID: uuid! @hasAppVisibility(),

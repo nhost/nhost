@@ -14759,6 +14759,8 @@ type ConfigPostgresResources struct {
 	Networking *ConfigNetworking `json:"networking,omitempty" toml:"networking,omitempty"`
 
 	Storage *ConfigPostgresStorage `json:"storage,omitempty" toml:"storage,omitempty"`
+
+	EnablePublicAccess *bool `json:"enablePublicAccess" toml:"enablePublicAccess"`
 }
 
 func (o *ConfigPostgresResources) MarshalJSON() ([]byte, error) {
@@ -14774,6 +14776,9 @@ func (o *ConfigPostgresResources) MarshalJSON() ([]byte, error) {
 	}
 	if o.Storage != nil {
 		m["storage"] = o.Storage
+	}
+	if o.EnablePublicAccess != nil {
+		m["enablePublicAccess"] = o.EnablePublicAccess
 	}
 	return json.Marshal(m)
 }
@@ -14806,15 +14811,24 @@ func (o *ConfigPostgresResources) GetStorage() *ConfigPostgresStorage {
 	return o.Storage
 }
 
+func (o *ConfigPostgresResources) GetEnablePublicAccess() *bool {
+	if o == nil {
+		o = &ConfigPostgresResources{}
+	}
+	return o.EnablePublicAccess
+}
+
 type ConfigPostgresResourcesUpdateInput struct {
-	Compute         *ConfigResourcesComputeUpdateInput `json:"compute,omitempty" toml:"compute,omitempty"`
-	IsSetCompute    bool                               `json:"-"`
-	Replicas        *uint8                             `json:"replicas,omitempty" toml:"replicas,omitempty"`
-	IsSetReplicas   bool                               `json:"-"`
-	Networking      *ConfigNetworkingUpdateInput       `json:"networking,omitempty" toml:"networking,omitempty"`
-	IsSetNetworking bool                               `json:"-"`
-	Storage         *ConfigPostgresStorageUpdateInput  `json:"storage,omitempty" toml:"storage,omitempty"`
-	IsSetStorage    bool                               `json:"-"`
+	Compute                 *ConfigResourcesComputeUpdateInput `json:"compute,omitempty" toml:"compute,omitempty"`
+	IsSetCompute            bool                               `json:"-"`
+	Replicas                *uint8                             `json:"replicas,omitempty" toml:"replicas,omitempty"`
+	IsSetReplicas           bool                               `json:"-"`
+	Networking              *ConfigNetworkingUpdateInput       `json:"networking,omitempty" toml:"networking,omitempty"`
+	IsSetNetworking         bool                               `json:"-"`
+	Storage                 *ConfigPostgresStorageUpdateInput  `json:"storage,omitempty" toml:"storage,omitempty"`
+	IsSetStorage            bool                               `json:"-"`
+	EnablePublicAccess      *bool                              `json:"enablePublicAccess,omitempty" toml:"enablePublicAccess,omitempty"`
+	IsSetEnablePublicAccess bool                               `json:"-"`
 }
 
 func (o *ConfigPostgresResourcesUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -14869,6 +14883,23 @@ func (o *ConfigPostgresResourcesUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetStorage = true
 	}
+	if v, ok := m["enablePublicAccess"]; ok {
+		if v == nil {
+			o.EnablePublicAccess = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.EnablePublicAccess = &x
+		}
+		o.IsSetEnablePublicAccess = true
+	}
 
 	return nil
 }
@@ -14908,6 +14939,13 @@ func (o *ConfigPostgresResourcesUpdateInput) GetStorage() *ConfigPostgresStorage
 	return o.Storage
 }
 
+func (o *ConfigPostgresResourcesUpdateInput) GetEnablePublicAccess() *bool {
+	if o == nil {
+		o = &ConfigPostgresResourcesUpdateInput{}
+	}
+	return o.EnablePublicAccess
+}
+
 func (s *ConfigPostgresResources) Update(v *ConfigPostgresResourcesUpdateInput) {
 	if v == nil {
 		return
@@ -14945,13 +14983,17 @@ func (s *ConfigPostgresResources) Update(v *ConfigPostgresResourcesUpdateInput) 
 			s.Storage.Update(v.Storage)
 		}
 	}
+	if v.IsSetEnablePublicAccess || v.EnablePublicAccess != nil {
+		s.EnablePublicAccess = v.EnablePublicAccess
+	}
 }
 
 type ConfigPostgresResourcesInsertInput struct {
-	Compute    *ConfigResourcesComputeInsertInput `json:"compute,omitempty" toml:"compute,omitempty"`
-	Replicas   *uint8                             `json:"replicas,omitempty" toml:"replicas,omitempty"`
-	Networking *ConfigNetworkingInsertInput       `json:"networking,omitempty" toml:"networking,omitempty"`
-	Storage    *ConfigPostgresStorageInsertInput  `json:"storage,omitempty" toml:"storage,omitempty"`
+	Compute            *ConfigResourcesComputeInsertInput `json:"compute,omitempty" toml:"compute,omitempty"`
+	Replicas           *uint8                             `json:"replicas,omitempty" toml:"replicas,omitempty"`
+	Networking         *ConfigNetworkingInsertInput       `json:"networking,omitempty" toml:"networking,omitempty"`
+	Storage            *ConfigPostgresStorageInsertInput  `json:"storage,omitempty" toml:"storage,omitempty"`
+	EnablePublicAccess *bool                              `json:"enablePublicAccess,omitempty" toml:"enablePublicAccess,omitempty"`
 }
 
 func (o *ConfigPostgresResourcesInsertInput) GetCompute() *ConfigResourcesComputeInsertInput {
@@ -14982,6 +15024,13 @@ func (o *ConfigPostgresResourcesInsertInput) GetStorage() *ConfigPostgresStorage
 	return o.Storage
 }
 
+func (o *ConfigPostgresResourcesInsertInput) GetEnablePublicAccess() *bool {
+	if o == nil {
+		o = &ConfigPostgresResourcesInsertInput{}
+	}
+	return o.EnablePublicAccess
+}
+
 func (s *ConfigPostgresResources) Insert(v *ConfigPostgresResourcesInsertInput) {
 	if v.Compute != nil {
 		if s.Compute == nil {
@@ -15002,6 +15051,7 @@ func (s *ConfigPostgresResources) Insert(v *ConfigPostgresResourcesInsertInput) 
 		}
 		s.Storage.Insert(v.Storage)
 	}
+	s.EnablePublicAccess = v.EnablePublicAccess
 }
 
 func (s *ConfigPostgresResources) Clone() *ConfigPostgresResources {
@@ -15014,17 +15064,19 @@ func (s *ConfigPostgresResources) Clone() *ConfigPostgresResources {
 	v.Replicas = s.Replicas
 	v.Networking = s.Networking.Clone()
 	v.Storage = s.Storage.Clone()
+	v.EnablePublicAccess = s.EnablePublicAccess
 	return v
 }
 
 type ConfigPostgresResourcesComparisonExp struct {
-	And        []*ConfigPostgresResourcesComparisonExp `json:"_and,omitempty"`
-	Not        *ConfigPostgresResourcesComparisonExp   `json:"_not,omitempty"`
-	Or         []*ConfigPostgresResourcesComparisonExp `json:"_or,omitempty"`
-	Compute    *ConfigResourcesComputeComparisonExp    `json:"compute,omitempty"`
-	Replicas   *ConfigUint8ComparisonExp               `json:"replicas,omitempty"`
-	Networking *ConfigNetworkingComparisonExp          `json:"networking,omitempty"`
-	Storage    *ConfigPostgresStorageComparisonExp     `json:"storage,omitempty"`
+	And                []*ConfigPostgresResourcesComparisonExp `json:"_and,omitempty"`
+	Not                *ConfigPostgresResourcesComparisonExp   `json:"_not,omitempty"`
+	Or                 []*ConfigPostgresResourcesComparisonExp `json:"_or,omitempty"`
+	Compute            *ConfigResourcesComputeComparisonExp    `json:"compute,omitempty"`
+	Replicas           *ConfigUint8ComparisonExp               `json:"replicas,omitempty"`
+	Networking         *ConfigNetworkingComparisonExp          `json:"networking,omitempty"`
+	Storage            *ConfigPostgresStorageComparisonExp     `json:"storage,omitempty"`
+	EnablePublicAccess *ConfigBooleanComparisonExp             `json:"enablePublicAccess,omitempty"`
 }
 
 func (exp *ConfigPostgresResourcesComparisonExp) Matches(o *ConfigPostgresResources) bool {
@@ -15049,6 +15101,9 @@ func (exp *ConfigPostgresResourcesComparisonExp) Matches(o *ConfigPostgresResour
 		return false
 	}
 	if !exp.Storage.Matches(o.Storage) {
+		return false
+	}
+	if o.EnablePublicAccess != nil && !exp.EnablePublicAccess.Matches(*o.EnablePublicAccess) {
 		return false
 	}
 
@@ -21191,9 +21246,13 @@ func (exp *ConfigSystemConfigGraphqlComparisonExp) Matches(o *ConfigSystemConfig
 type ConfigSystemConfigPostgres struct {
 	Enabled *bool `json:"enabled" toml:"enabled"`
 
-	Database string `json:"database" toml:"database"`
+	MajorVersion *string `json:"majorVersion" toml:"majorVersion"`
 
 	ConnectionString *ConfigSystemConfigPostgresConnectionString `json:"connectionString,omitempty" toml:"connectionString,omitempty"`
+
+	Database string `json:"database" toml:"database"`
+
+	Disk *ConfigSystemConfigPostgresDisk `json:"disk,omitempty" toml:"disk,omitempty"`
 }
 
 func (o *ConfigSystemConfigPostgres) MarshalJSON() ([]byte, error) {
@@ -21201,9 +21260,15 @@ func (o *ConfigSystemConfigPostgres) MarshalJSON() ([]byte, error) {
 	if o.Enabled != nil {
 		m["enabled"] = o.Enabled
 	}
-	m["database"] = o.Database
+	if o.MajorVersion != nil {
+		m["majorVersion"] = o.MajorVersion
+	}
 	if o.ConnectionString != nil {
 		m["connectionString"] = o.ConnectionString
+	}
+	m["database"] = o.Database
+	if o.Disk != nil {
+		m["disk"] = o.Disk
 	}
 	return json.Marshal(m)
 }
@@ -21215,11 +21280,11 @@ func (o *ConfigSystemConfigPostgres) GetEnabled() *bool {
 	return o.Enabled
 }
 
-func (o *ConfigSystemConfigPostgres) GetDatabase() string {
+func (o *ConfigSystemConfigPostgres) GetMajorVersion() *string {
 	if o == nil {
 		o = &ConfigSystemConfigPostgres{}
 	}
-	return o.Database
+	return o.MajorVersion
 }
 
 func (o *ConfigSystemConfigPostgres) GetConnectionString() *ConfigSystemConfigPostgresConnectionString {
@@ -21229,13 +21294,31 @@ func (o *ConfigSystemConfigPostgres) GetConnectionString() *ConfigSystemConfigPo
 	return o.ConnectionString
 }
 
+func (o *ConfigSystemConfigPostgres) GetDatabase() string {
+	if o == nil {
+		o = &ConfigSystemConfigPostgres{}
+	}
+	return o.Database
+}
+
+func (o *ConfigSystemConfigPostgres) GetDisk() *ConfigSystemConfigPostgresDisk {
+	if o == nil {
+		return nil
+	}
+	return o.Disk
+}
+
 type ConfigSystemConfigPostgresUpdateInput struct {
 	Enabled               *bool                                                  `json:"enabled,omitempty" toml:"enabled,omitempty"`
 	IsSetEnabled          bool                                                   `json:"-"`
-	Database              *string                                                `json:"database,omitempty" toml:"database,omitempty"`
-	IsSetDatabase         bool                                                   `json:"-"`
+	MajorVersion          *string                                                `json:"majorVersion,omitempty" toml:"majorVersion,omitempty"`
+	IsSetMajorVersion     bool                                                   `json:"-"`
 	ConnectionString      *ConfigSystemConfigPostgresConnectionStringUpdateInput `json:"connectionString,omitempty" toml:"connectionString,omitempty"`
 	IsSetConnectionString bool                                                   `json:"-"`
+	Database              *string                                                `json:"database,omitempty" toml:"database,omitempty"`
+	IsSetDatabase         bool                                                   `json:"-"`
+	Disk                  *ConfigSystemConfigPostgresDiskUpdateInput             `json:"disk,omitempty" toml:"disk,omitempty"`
+	IsSetDisk             bool                                                   `json:"-"`
 }
 
 func (o *ConfigSystemConfigPostgresUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -21260,6 +21343,33 @@ func (o *ConfigSystemConfigPostgresUpdateInput) UnmarshalGQL(v interface{}) erro
 		}
 		o.IsSetEnabled = true
 	}
+	if v, ok := m["majorVersion"]; ok {
+		if v == nil {
+			o.MajorVersion = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MajorVersion = &x
+		}
+		o.IsSetMajorVersion = true
+	}
+	if x, ok := m["connectionString"]; ok {
+		if x != nil {
+			t := &ConfigSystemConfigPostgresConnectionStringUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.ConnectionString = t
+		}
+		o.IsSetConnectionString = true
+	}
 	if v, ok := m["database"]; ok {
 		if v == nil {
 			o.Database = nil
@@ -21277,15 +21387,15 @@ func (o *ConfigSystemConfigPostgresUpdateInput) UnmarshalGQL(v interface{}) erro
 		}
 		o.IsSetDatabase = true
 	}
-	if x, ok := m["connectionString"]; ok {
+	if x, ok := m["disk"]; ok {
 		if x != nil {
-			t := &ConfigSystemConfigPostgresConnectionStringUpdateInput{}
+			t := &ConfigSystemConfigPostgresDiskUpdateInput{}
 			if err := t.UnmarshalGQL(x); err != nil {
 				return err
 			}
-			o.ConnectionString = t
+			o.Disk = t
 		}
-		o.IsSetConnectionString = true
+		o.IsSetDisk = true
 	}
 
 	return nil
@@ -21305,11 +21415,11 @@ func (o *ConfigSystemConfigPostgresUpdateInput) GetEnabled() *bool {
 	return o.Enabled
 }
 
-func (o *ConfigSystemConfigPostgresUpdateInput) GetDatabase() *string {
+func (o *ConfigSystemConfigPostgresUpdateInput) GetMajorVersion() *string {
 	if o == nil {
 		o = &ConfigSystemConfigPostgresUpdateInput{}
 	}
-	return o.Database
+	return o.MajorVersion
 }
 
 func (o *ConfigSystemConfigPostgresUpdateInput) GetConnectionString() *ConfigSystemConfigPostgresConnectionStringUpdateInput {
@@ -21319,6 +21429,20 @@ func (o *ConfigSystemConfigPostgresUpdateInput) GetConnectionString() *ConfigSys
 	return o.ConnectionString
 }
 
+func (o *ConfigSystemConfigPostgresUpdateInput) GetDatabase() *string {
+	if o == nil {
+		o = &ConfigSystemConfigPostgresUpdateInput{}
+	}
+	return o.Database
+}
+
+func (o *ConfigSystemConfigPostgresUpdateInput) GetDisk() *ConfigSystemConfigPostgresDiskUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Disk
+}
+
 func (s *ConfigSystemConfigPostgres) Update(v *ConfigSystemConfigPostgresUpdateInput) {
 	if v == nil {
 		return
@@ -21326,10 +21450,8 @@ func (s *ConfigSystemConfigPostgres) Update(v *ConfigSystemConfigPostgresUpdateI
 	if v.IsSetEnabled || v.Enabled != nil {
 		s.Enabled = v.Enabled
 	}
-	if v.IsSetDatabase || v.Database != nil {
-		if v.Database != nil {
-			s.Database = *v.Database
-		}
+	if v.IsSetMajorVersion || v.MajorVersion != nil {
+		s.MajorVersion = v.MajorVersion
 	}
 	if v.IsSetConnectionString || v.ConnectionString != nil {
 		if v.ConnectionString == nil {
@@ -21341,12 +21463,29 @@ func (s *ConfigSystemConfigPostgres) Update(v *ConfigSystemConfigPostgresUpdateI
 			s.ConnectionString.Update(v.ConnectionString)
 		}
 	}
+	if v.IsSetDatabase || v.Database != nil {
+		if v.Database != nil {
+			s.Database = *v.Database
+		}
+	}
+	if v.IsSetDisk || v.Disk != nil {
+		if v.Disk == nil {
+			s.Disk = nil
+		} else {
+			if s.Disk == nil {
+				s.Disk = &ConfigSystemConfigPostgresDisk{}
+			}
+			s.Disk.Update(v.Disk)
+		}
+	}
 }
 
 type ConfigSystemConfigPostgresInsertInput struct {
 	Enabled          *bool                                                  `json:"enabled,omitempty" toml:"enabled,omitempty"`
-	Database         string                                                 `json:"database,omitempty" toml:"database,omitempty"`
+	MajorVersion     *string                                                `json:"majorVersion,omitempty" toml:"majorVersion,omitempty"`
 	ConnectionString *ConfigSystemConfigPostgresConnectionStringInsertInput `json:"connectionString,omitempty" toml:"connectionString,omitempty"`
+	Database         string                                                 `json:"database,omitempty" toml:"database,omitempty"`
+	Disk             *ConfigSystemConfigPostgresDiskInsertInput             `json:"disk,omitempty" toml:"disk,omitempty"`
 }
 
 func (o *ConfigSystemConfigPostgresInsertInput) GetEnabled() *bool {
@@ -21356,11 +21495,11 @@ func (o *ConfigSystemConfigPostgresInsertInput) GetEnabled() *bool {
 	return o.Enabled
 }
 
-func (o *ConfigSystemConfigPostgresInsertInput) GetDatabase() string {
+func (o *ConfigSystemConfigPostgresInsertInput) GetMajorVersion() *string {
 	if o == nil {
 		o = &ConfigSystemConfigPostgresInsertInput{}
 	}
-	return o.Database
+	return o.MajorVersion
 }
 
 func (o *ConfigSystemConfigPostgresInsertInput) GetConnectionString() *ConfigSystemConfigPostgresConnectionStringInsertInput {
@@ -21370,14 +21509,35 @@ func (o *ConfigSystemConfigPostgresInsertInput) GetConnectionString() *ConfigSys
 	return o.ConnectionString
 }
 
+func (o *ConfigSystemConfigPostgresInsertInput) GetDatabase() string {
+	if o == nil {
+		o = &ConfigSystemConfigPostgresInsertInput{}
+	}
+	return o.Database
+}
+
+func (o *ConfigSystemConfigPostgresInsertInput) GetDisk() *ConfigSystemConfigPostgresDiskInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Disk
+}
+
 func (s *ConfigSystemConfigPostgres) Insert(v *ConfigSystemConfigPostgresInsertInput) {
 	s.Enabled = v.Enabled
-	s.Database = v.Database
+	s.MajorVersion = v.MajorVersion
 	if v.ConnectionString != nil {
 		if s.ConnectionString == nil {
 			s.ConnectionString = &ConfigSystemConfigPostgresConnectionString{}
 		}
 		s.ConnectionString.Insert(v.ConnectionString)
+	}
+	s.Database = v.Database
+	if v.Disk != nil {
+		if s.Disk == nil {
+			s.Disk = &ConfigSystemConfigPostgresDisk{}
+		}
+		s.Disk.Insert(v.Disk)
 	}
 }
 
@@ -21388,8 +21548,10 @@ func (s *ConfigSystemConfigPostgres) Clone() *ConfigSystemConfigPostgres {
 
 	v := &ConfigSystemConfigPostgres{}
 	v.Enabled = s.Enabled
-	v.Database = s.Database
+	v.MajorVersion = s.MajorVersion
 	v.ConnectionString = s.ConnectionString.Clone()
+	v.Database = s.Database
+	v.Disk = s.Disk.Clone()
 	return v
 }
 
@@ -21398,8 +21560,10 @@ type ConfigSystemConfigPostgresComparisonExp struct {
 	Not              *ConfigSystemConfigPostgresComparisonExp                 `json:"_not,omitempty"`
 	Or               []*ConfigSystemConfigPostgresComparisonExp               `json:"_or,omitempty"`
 	Enabled          *ConfigBooleanComparisonExp                              `json:"enabled,omitempty"`
-	Database         *ConfigStringComparisonExp                               `json:"database,omitempty"`
+	MajorVersion     *ConfigStringComparisonExp                               `json:"majorVersion,omitempty"`
 	ConnectionString *ConfigSystemConfigPostgresConnectionStringComparisonExp `json:"connectionString,omitempty"`
+	Database         *ConfigStringComparisonExp                               `json:"database,omitempty"`
+	Disk             *ConfigSystemConfigPostgresDiskComparisonExp             `json:"disk,omitempty"`
 }
 
 func (exp *ConfigSystemConfigPostgresComparisonExp) Matches(o *ConfigSystemConfigPostgres) bool {
@@ -21410,15 +21574,22 @@ func (exp *ConfigSystemConfigPostgresComparisonExp) Matches(o *ConfigSystemConfi
 	if o == nil {
 		o = &ConfigSystemConfigPostgres{
 			ConnectionString: &ConfigSystemConfigPostgresConnectionString{},
+			Disk:             &ConfigSystemConfigPostgresDisk{},
 		}
 	}
 	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
 		return false
 	}
-	if !exp.Database.Matches(o.Database) {
+	if o.MajorVersion != nil && !exp.MajorVersion.Matches(*o.MajorVersion) {
 		return false
 	}
 	if !exp.ConnectionString.Matches(o.ConnectionString) {
+		return false
+	}
+	if !exp.Database.Matches(o.Database) {
+		return false
+	}
+	if !exp.Disk.Matches(o.Disk) {
 		return false
 	}
 
@@ -21716,6 +21887,193 @@ func (exp *ConfigSystemConfigPostgresConnectionStringComparisonExp) Matches(o *C
 		return false
 	}
 	if !exp.Storage.Matches(o.Storage) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigSystemConfigPostgresDisk struct {
+	Iops *uint32 `json:"iops" toml:"iops"`
+
+	Tput *uint32 `json:"tput" toml:"tput"`
+}
+
+func (o *ConfigSystemConfigPostgresDisk) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Iops != nil {
+		m["iops"] = o.Iops
+	}
+	if o.Tput != nil {
+		m["tput"] = o.Tput
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigSystemConfigPostgresDisk) GetIops() *uint32 {
+	if o == nil {
+		o = &ConfigSystemConfigPostgresDisk{}
+	}
+	return o.Iops
+}
+
+func (o *ConfigSystemConfigPostgresDisk) GetTput() *uint32 {
+	if o == nil {
+		o = &ConfigSystemConfigPostgresDisk{}
+	}
+	return o.Tput
+}
+
+type ConfigSystemConfigPostgresDiskUpdateInput struct {
+	Iops      *uint32 `json:"iops,omitempty" toml:"iops,omitempty"`
+	IsSetIops bool    `json:"-"`
+	Tput      *uint32 `json:"tput,omitempty" toml:"tput,omitempty"`
+	IsSetTput bool    `json:"-"`
+}
+
+func (o *ConfigSystemConfigPostgresDiskUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["iops"]; ok {
+		if v == nil {
+			o.Iops = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Iops = &x
+		}
+		o.IsSetIops = true
+	}
+	if v, ok := m["tput"]; ok {
+		if v == nil {
+			o.Tput = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Tput = &x
+		}
+		o.IsSetTput = true
+	}
+
+	return nil
+}
+
+func (o *ConfigSystemConfigPostgresDiskUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigSystemConfigPostgresDiskUpdateInput) GetIops() *uint32 {
+	if o == nil {
+		o = &ConfigSystemConfigPostgresDiskUpdateInput{}
+	}
+	return o.Iops
+}
+
+func (o *ConfigSystemConfigPostgresDiskUpdateInput) GetTput() *uint32 {
+	if o == nil {
+		o = &ConfigSystemConfigPostgresDiskUpdateInput{}
+	}
+	return o.Tput
+}
+
+func (s *ConfigSystemConfigPostgresDisk) Update(v *ConfigSystemConfigPostgresDiskUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetIops || v.Iops != nil {
+		s.Iops = v.Iops
+	}
+	if v.IsSetTput || v.Tput != nil {
+		s.Tput = v.Tput
+	}
+}
+
+type ConfigSystemConfigPostgresDiskInsertInput struct {
+	Iops *uint32 `json:"iops,omitempty" toml:"iops,omitempty"`
+	Tput *uint32 `json:"tput,omitempty" toml:"tput,omitempty"`
+}
+
+func (o *ConfigSystemConfigPostgresDiskInsertInput) GetIops() *uint32 {
+	if o == nil {
+		o = &ConfigSystemConfigPostgresDiskInsertInput{}
+	}
+	return o.Iops
+}
+
+func (o *ConfigSystemConfigPostgresDiskInsertInput) GetTput() *uint32 {
+	if o == nil {
+		o = &ConfigSystemConfigPostgresDiskInsertInput{}
+	}
+	return o.Tput
+}
+
+func (s *ConfigSystemConfigPostgresDisk) Insert(v *ConfigSystemConfigPostgresDiskInsertInput) {
+	s.Iops = v.Iops
+	s.Tput = v.Tput
+}
+
+func (s *ConfigSystemConfigPostgresDisk) Clone() *ConfigSystemConfigPostgresDisk {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigSystemConfigPostgresDisk{}
+	v.Iops = s.Iops
+	v.Tput = s.Tput
+	return v
+}
+
+type ConfigSystemConfigPostgresDiskComparisonExp struct {
+	And  []*ConfigSystemConfigPostgresDiskComparisonExp `json:"_and,omitempty"`
+	Not  *ConfigSystemConfigPostgresDiskComparisonExp   `json:"_not,omitempty"`
+	Or   []*ConfigSystemConfigPostgresDiskComparisonExp `json:"_or,omitempty"`
+	Iops *ConfigUint32ComparisonExp                     `json:"iops,omitempty"`
+	Tput *ConfigUint32ComparisonExp                     `json:"tput,omitempty"`
+}
+
+func (exp *ConfigSystemConfigPostgresDiskComparisonExp) Matches(o *ConfigSystemConfigPostgresDisk) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigSystemConfigPostgresDisk{}
+	}
+	if o.Iops != nil && !exp.Iops.Matches(*o.Iops) {
+		return false
+	}
+	if o.Tput != nil && !exp.Tput.Matches(*o.Tput) {
 		return false
 	}
 

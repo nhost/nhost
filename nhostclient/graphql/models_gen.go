@@ -719,17 +719,19 @@ type ConfigPostgres struct {
 }
 
 type ConfigPostgresResources struct {
-	Compute    *ConfigResourcesCompute `json:"compute,omitempty"`
-	Networking *ConfigNetworking       `json:"networking,omitempty"`
-	Replicas   *uint32                 `json:"replicas,omitempty"`
-	Storage    *ConfigPostgresStorage  `json:"storage,omitempty"`
+	Compute            *ConfigResourcesCompute `json:"compute,omitempty"`
+	EnablePublicAccess *bool                   `json:"enablePublicAccess,omitempty"`
+	Networking         *ConfigNetworking       `json:"networking,omitempty"`
+	Replicas           *uint32                 `json:"replicas,omitempty"`
+	Storage            *ConfigPostgresStorage  `json:"storage,omitempty"`
 }
 
 type ConfigPostgresResourcesUpdateInput struct {
-	Compute    *ConfigResourcesComputeUpdateInput `json:"compute,omitempty"`
-	Networking *ConfigNetworkingUpdateInput       `json:"networking,omitempty"`
-	Replicas   *uint32                            `json:"replicas,omitempty"`
-	Storage    *ConfigPostgresStorageUpdateInput  `json:"storage,omitempty"`
+	Compute            *ConfigResourcesComputeUpdateInput `json:"compute,omitempty"`
+	EnablePublicAccess *bool                              `json:"enablePublicAccess,omitempty"`
+	Networking         *ConfigNetworkingUpdateInput       `json:"networking,omitempty"`
+	Replicas           *uint32                            `json:"replicas,omitempty"`
+	Storage            *ConfigPostgresStorageUpdateInput  `json:"storage,omitempty"`
 }
 
 type ConfigPostgresSettings struct {
@@ -1035,7 +1037,9 @@ type ConfigSystemConfigGraphql struct {
 type ConfigSystemConfigPostgres struct {
 	ConnectionString *ConfigSystemConfigPostgresConnectionString `json:"connectionString"`
 	Database         string                                      `json:"database"`
+	Disk             *ConfigSystemConfigPostgresDisk             `json:"disk,omitempty"`
 	Enabled          *bool                                       `json:"enabled,omitempty"`
+	MajorVersion     *string                                     `json:"majorVersion,omitempty"`
 }
 
 type ConfigSystemConfigPostgresConnectionString struct {
@@ -1043,6 +1047,11 @@ type ConfigSystemConfigPostgresConnectionString struct {
 	Backup  string `json:"backup"`
 	Hasura  string `json:"hasura"`
 	Storage string `json:"storage"`
+}
+
+type ConfigSystemConfigPostgresDisk struct {
+	Iops *uint32 `json:"iops,omitempty"`
+	Tput *uint32 `json:"tput,omitempty"`
 }
 
 // Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.

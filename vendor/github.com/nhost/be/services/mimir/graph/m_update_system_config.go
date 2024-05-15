@@ -37,6 +37,10 @@ func (r *mutationResolver) updateSystemConfig(
 		return nil, err
 	}
 
+	if err := newApp.ValidateConfig(r.schema); err != nil {
+		return nil, err
+	}
+
 	logger := nhcontext.LoggerFromContext(ctx).WithField("app_id", appID)
 	for _, p := range r.plugins {
 		if err := p.UpdateSystemConfig(ctx, oldApp, newApp, logger); err != nil {

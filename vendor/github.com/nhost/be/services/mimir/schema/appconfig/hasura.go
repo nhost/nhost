@@ -2,8 +2,8 @@ package appconfig
 
 import (
 	"fmt"
+	"strconv"
 
-	"cuelang.org/go/pkg/strconv"
 	"github.com/nhost/be/services/mimir/model"
 )
 
