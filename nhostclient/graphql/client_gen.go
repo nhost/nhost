@@ -245,6 +245,24 @@ func (t *GetRunServiceInfo_RunService) GetAppID() string {
 	return t.AppID
 }
 
+type GetSoftwareVersions_SoftwareVersions struct {
+	Software SoftwareTypeEnum "json:\"software\" graphql:\"software\""
+	Version  string           "json:\"version\" graphql:\"version\""
+}
+
+func (t *GetSoftwareVersions_SoftwareVersions) GetSoftware() *SoftwareTypeEnum {
+	if t == nil {
+		t = &GetSoftwareVersions_SoftwareVersions{}
+	}
+	return &t.Software
+}
+func (t *GetSoftwareVersions_SoftwareVersions) GetVersion() string {
+	if t == nil {
+		t = &GetSoftwareVersions_SoftwareVersions{}
+	}
+	return t.Version
+}
+
 type GetWorkspacesApps struct {
 	Workspaces []*GetWorkspacesApps_Workspaces "json:\"workspaces\" graphql:\"workspaces\""
 }
@@ -375,6 +393,17 @@ func (t *GetRunServiceConfigRawJSON) GetRunServiceConfigRawJSON() string {
 		t = &GetRunServiceConfigRawJSON{}
 	}
 	return t.RunServiceConfigRawJSON
+}
+
+type GetSoftwareVersions struct {
+	SoftwareVersions []*GetSoftwareVersions_SoftwareVersions "json:\"softwareVersions\" graphql:\"softwareVersions\""
+}
+
+func (t *GetSoftwareVersions) GetSoftwareVersions() []*GetSoftwareVersions_SoftwareVersions {
+	if t == nil {
+		t = &GetSoftwareVersions{}
+	}
+	return t.SoftwareVersions
 }
 
 const GetWorkspacesAppsDocument = `query GetWorkspacesApps {
@@ -689,6 +718,29 @@ func (c *Client) GetRunServiceConfigRawJSON(ctx context.Context, appID string, s
 	return &res, nil
 }
 
+const GetSoftwareVersionsDocument = `query GetSoftwareVersions {
+	softwareVersions {
+		software
+		version
+	}
+}
+`
+
+func (c *Client) GetSoftwareVersions(ctx context.Context, interceptors ...clientv2.RequestInterceptor) (*GetSoftwareVersions, error) {
+	vars := map[string]any{}
+
+	var res GetSoftwareVersions
+	if err := c.Client.Post(ctx, "GetSoftwareVersions", GetSoftwareVersionsDocument, &res, vars, interceptors...); err != nil {
+		if c.Client.ParseDataWhenErrors {
+			return &res, err
+		}
+
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 var DocumentOperationNames = map[string]string{
 	GetWorkspacesAppsDocument:          "GetWorkspacesApps",
 	GetHasuraAdminSecretDocument:       "GetHasuraAdminSecret",
@@ -702,4 +754,5 @@ var DocumentOperationNames = map[string]string{
 	ReplaceRunServiceConfigDocument:    "ReplaceRunServiceConfig",
 	GetRunServiceInfoDocument:          "GetRunServiceInfo",
 	GetRunServiceConfigRawJSONDocument: "GetRunServiceConfigRawJSON",
+	GetSoftwareVersionsDocument:        "GetSoftwareVersions",
 }

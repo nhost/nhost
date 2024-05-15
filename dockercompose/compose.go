@@ -55,7 +55,6 @@ func ports(host, container uint) []Port {
 }
 
 type ComposeFile struct {
-	Version  string              `yaml:"version"`
 	Services map[string]*Service `yaml:"services"`
 	Volumes  map[string]struct{} `yaml:"volumes"`
 }
@@ -618,7 +617,6 @@ func ComposeFileFromConfig(
 	}
 
 	return &ComposeFile{
-		Version:  "3.8",
 		Services: services,
 		Volumes:  volumes,
 	}, nil

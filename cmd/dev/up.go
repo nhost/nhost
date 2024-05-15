@@ -15,6 +15,7 @@ import (
 	"github.com/nhost/cli/clienv"
 	"github.com/nhost/cli/cmd/config"
 	"github.com/nhost/cli/cmd/run"
+	"github.com/nhost/cli/cmd/software"
 	"github.com/nhost/cli/dockercompose"
 	"github.com/nhost/cli/project/env"
 	"github.com/urfave/cli/v2"
@@ -149,6 +150,7 @@ func commandUp(cCtx *cli.Context) error {
 	return Up(
 		cCtx.Context,
 		ce,
+		cCtx.App.Version,
 		cCtx.Uint(flagHTTPPort),
 		!cCtx.Bool(flagDisableTLS),
 		cCtx.Uint(flagPostgresPort),
@@ -283,6 +285,7 @@ func processRunServices(
 func up( //nolint:funlen,cyclop
 	ctx context.Context,
 	ce *clienv.CliEnv,
+	appVersion string,
 	dc *dockercompose.DockerCompose,
 	httpPort uint,
 	useTLS bool,
@@ -313,6 +316,13 @@ func up( //nolint:funlen,cyclop
 	cfg, err := config.Validate(ce, "local", secrets)
 	if err != nil {
 		return fmt.Errorf("failed to validate config: %w", err)
+	}
+
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 5*time.Second) //nolint:gomnd
+	defer cancel()
+	ce.Infoln("Checking versions...")
+	if err := software.CheckVersions(ctxWithTimeout, ce, cfg, appVersion); err != nil {
+		ce.Warnln("Problem verifying recommended versions: %s", err.Error())
 	}
 
 	runServicesCfg, err := processRunServices(ce, runServices, secrets)
@@ -435,6 +445,7 @@ func printInfo(
 func Up(
 	ctx context.Context,
 	ce *clienv.CliEnv,
+	appVersion string,
 	httpPort uint,
 	useTLS bool,
 	postgresPort uint,
@@ -447,7 +458,8 @@ func Up(
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
 	if err := up(
-		ctx, ce, dc, httpPort, useTLS, postgresPort, applySeeds, ports, dashboardVersion, configserverImage, runServices,
+		ctx, ce, appVersion, dc, httpPort, useTLS, postgresPort,
+		applySeeds, ports, dashboardVersion, configserverImage, runServices,
 	); err != nil {
 		ce.Warnln(err.Error())
 

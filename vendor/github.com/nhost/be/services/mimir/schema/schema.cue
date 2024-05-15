@@ -224,7 +224,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.6-20240422-1"
+	version: string | *"14.11-20240515-1"
 
 	// Resources for the service
 	resources?: {
@@ -274,7 +274,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.29.2"
+	version: string | *"0.29.5"
 
 	// Resources for the service
 	resources?: #Resources
@@ -579,7 +579,7 @@ import (
 }
 
 #AI: {
-	version: string | *"0.1.0"
+	version: string | *"0.5.2"
 	resources: {
 		compute: #ComputeResources
 	}
