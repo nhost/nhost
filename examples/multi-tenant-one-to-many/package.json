@@ -1,7 +1,7 @@
 {
   "name": "@nhost-examples/multi-tenant-one-to-many",
   "private": true,
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "",
   "main": "index.js",
   "scripts": {},

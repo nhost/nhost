@@ -1,5 +1,11 @@
 # @nhost/graphql-js
 
+## 0.3.0
+
+### Minor Changes
+
+- d0c9f4c: fix: replace `jose` with `jwt-decode` version 4.0.0
+
 ## 0.2.0
 
 ### Minor Changes

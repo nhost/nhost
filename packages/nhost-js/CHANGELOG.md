@@ -1,5 +1,13 @@
 # @nhost/nhost-js
 
+## 3.1.3
+
+### Patch Changes
+
+- Updated dependencies [d0c9f4c]
+  - @nhost/hasura-auth-js@2.5.0
+  - @nhost/graphql-js@0.3.0
+
 ## 3.1.2
 
 ### Patch Changes

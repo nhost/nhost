@@ -1,5 +1,14 @@
 # @nhost-examples/react-apollo
 
+## 0.8.5
+
+### Patch Changes
+
+- aef4a0a: fix: resolve e2e test issues
+- Updated dependencies [d0c9f4c]
+  - @nhost/react@3.5.0
+  - @nhost/react-apollo@12.0.0
+
 ## 0.8.4
 
 ### Patch Changes
