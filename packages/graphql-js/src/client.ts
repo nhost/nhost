@@ -13,13 +13,6 @@ import {
 } from './types'
 
 import { jwtDecode, JwtPayload } from 'jwt-decode'
-import { decode } from 'base-64'
-
-// polyfill atob on react-native to decode accessTokens
-// see https://github.com/auth0/jwt-decode?tab=readme-ov-file#polyfilling-atob
-if (typeof window !== 'undefined' && !window.location) {
-  global.atob = decode
-}
 
 /**
  * @alias GraphQL
