@@ -1122,8 +1122,8 @@ importers:
         specifier: ^3.4.0
         version: 3.4.0
       '@playwright/test':
-        specifier: 1.31.0
-        version: 1.31.0
+        specifier: 1.41.0
+        version: 1.41.0
       '@types/pngjs':
         specifier: ^6.0.4
         version: 6.0.4
@@ -2001,7 +2001,7 @@ packages:
   /@apollo/client@3.9.9(@types/react@18.2.73)(graphql-ws@5.16.0)(graphql@16.8.1)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-/sMecU/M0WK9knrguts1lSLV8xFKzIgOMVb4mi6MOxgJXjliDB8PvOtmXhTqh2cVMMR4TzXgOnb+af/690zlQw==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
       graphql-ws: ^5.5.5
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
@@ -2040,7 +2040,7 @@ packages:
   /@apollo/client@3.9.9(graphql-ws@5.16.0)(graphql@16.8.1):
     resolution: {integrity: sha512-/sMecU/M0WK9knrguts1lSLV8xFKzIgOMVb4mi6MOxgJXjliDB8PvOtmXhTqh2cVMMR4TzXgOnb+af/690zlQw==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
       graphql-ws: ^5.5.5
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
@@ -2078,7 +2078,7 @@ packages:
     resolution: {integrity: sha512-9anThAaj1dQr6IGmzBMcfzOQKTa5artjuPmw8NYK/fiGEMjADbSguBY2FMDykt+QhilR3wc9VA/3yVju7JHg7Q==}
     hasBin: true
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       '@babel/core': 7.24.3
       '@babel/generator': 7.24.1
@@ -5302,7 +5302,7 @@ packages:
   /@graphql-codegen/plugin-helpers@4.2.0(graphql@16.8.1):
     resolution: {integrity: sha512-THFTCfg+46PXlXobYJ/OoCX6pzjI+9woQqCjdyKtgoI0tn3Xq2HUUCiidndxUpEYVrXb5pRiRXb7b/ZbMQqD0A==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       '@graphql-tools/utils': 9.2.1(graphql@16.8.1)
       change-case-all: 1.0.15
@@ -5551,7 +5551,7 @@ packages:
   /@graphql-codegen/visitor-plugin-common@3.1.1(encoding@0.1.13)(graphql@16.8.1):
     resolution: {integrity: sha512-uAfp+zu/009R3HUAuTK2AamR1bxIltM6rrYYI6EXSmkM3rFtFsLTuJhjUDj98HcUCszJZrADppz8KKLGRUVlNg==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       '@graphql-codegen/plugin-helpers': 4.2.0(graphql@16.8.1)
       '@graphql-tools/optimize': 1.4.0(graphql@16.8.1)
@@ -5909,7 +5909,7 @@ packages:
     resolution: {integrity: sha512-FeKv9lKLMwqDu0pQjPpF59GY3HReUkWXKsMIuMuJQOKh9BETu7zPEFUELvcw8w+lwZkl4ileJsHXC9+AnsT2Lw==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       '@graphql-tools/utils': 10.1.2(graphql@16.8.1)
       graphql: 16.8.1
@@ -5919,7 +5919,7 @@ packages:
   /@graphql-tools/optimize@1.4.0(graphql@16.8.1):
     resolution: {integrity: sha512-dJs/2XvZp+wgHH8T5J2TqptT9/6uVzIYvA6uFACha+ufvdMBedkfR4b4GbT8jAKLRARiqRTxy3dctnwkTM2tdw==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       graphql: 16.8.1
       tslib: 2.6.2
@@ -6004,7 +6004,7 @@ packages:
   /@graphql-tools/relay-operation-optimizer@6.5.18(encoding@0.1.13)(graphql@16.8.1):
     resolution: {integrity: sha512-mc5VPyTeV+LwiM+DNvoDQfPqwQYhPV/cl5jOBjTgSniyaq8/86aODfMkrE2OduhQ5E00hqrkuL2Fdrgk0w1QJg==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       '@ardatan/relay-compiler': 12.0.0(encoding@0.1.13)(graphql@16.8.1)
       '@graphql-tools/utils': 9.2.1(graphql@16.8.1)
@@ -6034,7 +6034,7 @@ packages:
     resolution: {integrity: sha512-p28Oh9EcOna6i0yLaCFOnkcBDQECVf3SCexT6ktb86QNj9idnkhI+tCxnwZDh58Qvjd2nURdkbevvoZkvxzCog==}
     engines: {node: '>=16.0.0'}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       '@graphql-tools/merge': 9.0.3(graphql@16.8.1)
       '@graphql-tools/utils': 10.1.2(graphql@16.8.1)
@@ -6046,7 +6046,7 @@ packages:
   /@graphql-tools/schema@9.0.19(graphql@16.8.1):
     resolution: {integrity: sha512-oBRPoNBtCkk0zbUsyP4GaIzCt8C0aCI4ycIRUL67KK5pOHljKLBBtGT+Jr6hkzA74C8Gco8bpZPe7aWFjiaK2w==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       '@graphql-tools/merge': 8.4.2(graphql@16.8.1)
       '@graphql-tools/utils': 9.2.1(graphql@16.8.1)
@@ -6133,7 +6133,7 @@ packages:
   /@graphql-tools/utils@9.2.1(graphql@16.8.1):
     resolution: {integrity: sha512-WUw506Ql6xzmOORlriNrD6Ugx+HjVgYxt9KCXD9mHAak+eaXSwuGGPyE60hy9xaDEoXKBsG7SkG69ybitaVl6A==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
       graphql: 16.8.1
@@ -6164,7 +6164,7 @@ packages:
   /@graphql-typed-document-node/core@3.2.0(graphql@16.8.1):
     resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       graphql: 16.8.1
 
@@ -7818,17 +7818,6 @@ packages:
     engines: {node: '>=14'}
     requiresBuild: true
     optional: true
-
-  /@playwright/test@1.31.0:
-    resolution: {integrity: sha512-Ys5s/06Dg9g3zAIdCIb/UOBYim3U7Zjb3DvC6XBtnRmnglH5O47iwYzmtxXu9fhSyzI2Jn28apkXIOD81GgCdw==}
-    engines: {node: '>=14'}
-    hasBin: true
-    dependencies:
-      '@types/node': 18.19.28
-      playwright-core: 1.31.0
-    optionalDependencies:
-      fsevents: 2.3.2
-    dev: true
 
   /@playwright/test@1.41.0:
     resolution: {integrity: sha512-Grvzj841THwtpBOrfiHOeYTJQxDRnKofMSzCiV8XeyLWu3o89qftQ4BCKfkziJhSUQRd0utKhrddtIsiraIwmw==}
@@ -11523,7 +11512,7 @@ packages:
     resolution: {integrity: sha512-AfgcRL8ZBhAlc3BFdigClmTUMISmmzHn7sB2h9U1odvc5U/MjWXsAaz18b/WoppUTDBzxOJwo2VdClfUcItu9g==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
-      vite: '>=4.3.9'
+      vite: '>=4.5.1'
     dependencies:
       '@babel/core': 7.24.3
       '@babel/plugin-transform-react-jsx-self': 7.24.1(@babel/core@7.24.3)
@@ -11539,7 +11528,7 @@ packages:
     resolution: {integrity: sha512-oojO9IDc4nCUUi8qIR11KoQm0XFFLIwsRBwHRR4d/88IWghn1y6ckz/bJ8GHDCsYEJee8mDzqtJxh15/cisJNQ==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
-      vite: '>=4.3.9'
+      vite: '>=4.5.1'
     dependencies:
       '@babel/core': 7.24.3
       '@babel/plugin-transform-react-jsx-self': 7.24.1(@babel/core@7.24.3)
@@ -11555,7 +11544,7 @@ packages:
     resolution: {integrity: sha512-kqf7SGFoG+80aZG6Pf+gsZIVvGSCKE98JbiWqcCV9cThtg91Jav0yvYFC9Zb+jKetNGF6ZKeoaxgZfND21fWKw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
-      vite: '>=4.3.9'
+      vite: '>=4.5.1'
       vue: ^3.2.25
     dependencies:
       vite: 5.2.7(@types/node@16.18.93)(sass@1.32.0)
@@ -11677,7 +11666,7 @@ packages:
     peerDependencies:
       '@apollo/client': ^3.4.13
       '@vue/composition-api': ^1.0.0
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
       vue: ^2.6.0 || ^3.1.0
     peerDependenciesMeta:
       '@vue/composition-api':
@@ -11698,7 +11687,7 @@ packages:
     peerDependencies:
       '@apollo/client': ^3.4.13
       '@vue/composition-api': ^1.0.0
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
       vue: ^2.6.0 || ^3.1.0
     peerDependenciesMeta:
       '@vue/composition-api':
@@ -17830,7 +17819,7 @@ packages:
     resolution: {integrity: sha512-o/ZgTS0pBxWm3hSF4+6GwiV1//DxzoLWEbS38+jqpzzy1d/QXBidwQuVYTOksclbtOJZ3KR/tZ8fi/tI6VpVMg==}
     hasBin: true
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       graphql: 16.8.1
       nullthrows: 1.1.1
@@ -17840,7 +17829,7 @@ packages:
   /graphql-request@6.1.0(encoding@0.1.13)(graphql@16.8.1):
     resolution: {integrity: sha512-p+XPfS4q7aIpKVcgmnZKhMNqhltk20hfXtkaIkTfjjmiKMJ5xrt5c743cL03y/K7y1rg3WrIC49xGiEQ4mxdNw==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
       cross-fetch: 3.1.8(encoding@0.1.13)
@@ -17862,7 +17851,7 @@ packages:
     resolution: {integrity: sha512-FdSNcu2QQcWnM2VNvSCCDCVS5PpPqpzgFT8+GXzqJuoDd0CBncxCY278u4mhRO7tMgo2JjgJA5aZ+nWSQ/Z+xg==}
     engines: {node: '>=10'}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       graphql: 16.8.1
       tslib: 2.6.2
@@ -17871,7 +17860,7 @@ packages:
     resolution: {integrity: sha512-Ju2RCU2dQMgSKtArPbEtsK5gNLnsQyTNIo/T7cZNp96niC1x0KdJNZV0TIoilceBPQwfb5itrGl8pkFeOUMl4A==}
     engines: {node: '>=10'}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       graphql: 16.8.1
 
@@ -22909,12 +22898,6 @@ packages:
       pathe: 1.1.2
     dev: true
 
-  /playwright-core@1.31.0:
-    resolution: {integrity: sha512-/KquBjS5DcASCh8cGeNVHuC0kyb7c9plKTwaKxgOGtxT7+DZO2fjmFvPDBSXslEIK5CeOO/2kk5rOCktFXKEdA==}
-    engines: {node: '>=14'}
-    hasBin: true
-    dev: true
-
   /playwright-core@1.41.0:
     resolution: {integrity: sha512-UGKASUhXmvqm2Lxa1fNr8sFwAtqjpgBRr9jQ7XBI8Rn5uFiEowGUGwrruUQsVPIom4bk7Lt+oLGpXobnXzrBIw==}
     engines: {node: '>=16'}
@@ -27780,7 +27763,7 @@ packages:
   /vite-tsconfig-paths@4.3.2(typescript@4.9.5)(vite@5.2.7):
     resolution: {integrity: sha512-0Vd/a6po6Q+86rPlntHye7F31zA2URZMbH8M3saAZ/xR9QoGN/L21bxEGfXdWmFdNkqPpRdxFT7nmNe12e9/uA==}
     peerDependencies:
-      vite: '>=4.3.9'
+      vite: '>=4.5.1'
     peerDependenciesMeta:
       vite:
         optional: true

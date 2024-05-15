@@ -119,7 +119,7 @@ export async function verifyMagicLink({
 
   await page
     .frameLocator('#preview-html')
-    .getByRole('link', { name: /sign in/i })
+    .getByRole('link', { name: /verify email/i })
     .click()
 
   const authenticatedPage = await authenticatedPagePromise
@@ -154,7 +154,7 @@ export async function resetPassword({
 
   await page
     .frameLocator('#preview-html')
-    .getByRole('link', { name: /reset password/i })
+    .getByRole('link', { name: /verify email/i })
     .click()
 
   const authenticatedPage = await authenticatedPagePromise
