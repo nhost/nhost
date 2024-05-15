@@ -1,5 +1,15 @@
 # @nhost/apollo
 
+## 7.1.0
+
+### Minor Changes
+
+- d0c9f4c: fix: replace `jose` with `jwt-decode` version 4.0.0
+
+### Patch Changes
+
+- @nhost/nhost-js@3.1.3
+
 ## 7.0.2
 
 ### Patch Changes

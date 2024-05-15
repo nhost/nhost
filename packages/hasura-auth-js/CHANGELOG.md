@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.5.0
+
+### Minor Changes
+
+- d0c9f4c: fix: replace `jose` with `jwt-decode` version 4.0.0
+
 ## 2.4.2
 
 ### Patch Changes

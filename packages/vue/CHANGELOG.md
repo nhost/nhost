@@ -1,5 +1,15 @@
 # @nhost/vue
 
+## 2.6.0
+
+### Minor Changes
+
+- d0c9f4c: fix: replace `jose` with `jwt-decode` version 4.0.0
+
+### Patch Changes
+
+- @nhost/nhost-js@3.1.3
+
 ## 2.5.4
 
 ### Patch Changes
