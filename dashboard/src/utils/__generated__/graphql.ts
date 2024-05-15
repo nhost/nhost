@@ -1804,6 +1804,7 @@ export type ConfigPostgresInsertInput = {
 export type ConfigPostgresResources = {
   __typename?: 'ConfigPostgresResources';
   compute?: Maybe<ConfigResourcesCompute>;
+  enablePublicAccess?: Maybe<Scalars['Boolean']>;
   networking?: Maybe<ConfigNetworking>;
   /** Number of replicas for a service */
   replicas?: Maybe<Scalars['ConfigUint8']>;
@@ -1815,6 +1816,7 @@ export type ConfigPostgresResourcesComparisonExp = {
   _not?: InputMaybe<ConfigPostgresResourcesComparisonExp>;
   _or?: InputMaybe<Array<ConfigPostgresResourcesComparisonExp>>;
   compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
+  enablePublicAccess?: InputMaybe<ConfigBooleanComparisonExp>;
   networking?: InputMaybe<ConfigNetworkingComparisonExp>;
   replicas?: InputMaybe<ConfigUint8ComparisonExp>;
   storage?: InputMaybe<ConfigPostgresStorageComparisonExp>;
@@ -1822,6 +1824,7 @@ export type ConfigPostgresResourcesComparisonExp = {
 
 export type ConfigPostgresResourcesInsertInput = {
   compute?: InputMaybe<ConfigResourcesComputeInsertInput>;
+  enablePublicAccess?: InputMaybe<Scalars['Boolean']>;
   networking?: InputMaybe<ConfigNetworkingInsertInput>;
   replicas?: InputMaybe<Scalars['ConfigUint8']>;
   storage?: InputMaybe<ConfigPostgresStorageInsertInput>;
@@ -1829,6 +1832,7 @@ export type ConfigPostgresResourcesInsertInput = {
 
 export type ConfigPostgresResourcesUpdateInput = {
   compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
+  enablePublicAccess?: InputMaybe<Scalars['Boolean']>;
   networking?: InputMaybe<ConfigNetworkingUpdateInput>;
   replicas?: InputMaybe<Scalars['ConfigUint8']>;
   storage?: InputMaybe<ConfigPostgresStorageUpdateInput>;
@@ -2526,6 +2530,7 @@ export type ConfigSystemConfigPostgres = {
   database: Scalars['String'];
   disk?: Maybe<ConfigSystemConfigPostgresDisk>;
   enabled?: Maybe<Scalars['Boolean']>;
+  majorVersion?: Maybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigPostgresComparisonExp = {
@@ -2536,6 +2541,7 @@ export type ConfigSystemConfigPostgresComparisonExp = {
   database?: InputMaybe<ConfigStringComparisonExp>;
   disk?: InputMaybe<ConfigSystemConfigPostgresDiskComparisonExp>;
   enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+  majorVersion?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigSystemConfigPostgresConnectionString = {
@@ -2599,6 +2605,7 @@ export type ConfigSystemConfigPostgresInsertInput = {
   database: Scalars['String'];
   disk?: InputMaybe<ConfigSystemConfigPostgresDiskInsertInput>;
   enabled?: InputMaybe<Scalars['Boolean']>;
+  majorVersion?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigPostgresUpdateInput = {
@@ -2606,6 +2613,7 @@ export type ConfigSystemConfigPostgresUpdateInput = {
   database?: InputMaybe<Scalars['String']>;
   disk?: InputMaybe<ConfigSystemConfigPostgresDiskUpdateInput>;
   enabled?: InputMaybe<Scalars['Boolean']>;
+  majorVersion?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigSystemConfigUpdateInput = {
@@ -2685,14 +2693,6 @@ export type Log = {
 export type Metrics = {
   __typename?: 'Metrics';
   value: Scalars['float64'];
-};
-
-export type StatsDailyLiveFreeApps = {
-  __typename?: 'StatsDailyLiveFreeApps';
-  avg: Scalars['Int'];
-  max: Scalars['Int'];
-  min: Scalars['Int'];
-  raw: Array<Scalars['Int']>;
 };
 
 export type StatsLiveApps = {
@@ -11826,6 +11826,7 @@ export type Mutation_Root = {
   billingUpdatePersistentVolume: Scalars['Boolean'];
   billingUpdateReports: Scalars['Boolean'];
   billingUploadReports: Scalars['Boolean'];
+  changeDatabaseVersion: Scalars['Boolean'];
   /** delete single row from the table: "apps" */
   deleteApp?: Maybe<Apps>;
   /** delete single row from the table: "app_states" */
@@ -12508,6 +12509,14 @@ export type Mutation_RootBillingUpdatePersistentVolumeArgs = {
 /** mutation root */
 export type Mutation_RootBillingUpdateReportsArgs = {
   reportTime?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+/** mutation root */
+export type Mutation_RootChangeDatabaseVersionArgs = {
+  appID: Scalars['uuid'];
+  force?: InputMaybe<Scalars['Boolean']>;
+  version: Scalars['String'];
 };
 
 
@@ -16017,12 +16026,6 @@ export type Query_Root = {
   /** fetch aggregated fields from the table: "software_versions" */
   softwareVersionsAggregate: Software_Versions_Aggregate;
   /**
-   * Returns the per-day number of free live apps in the given time range, as well as the min, max and avg.
-   *
-   * Requests that returned a 4xx or 5xx status code are not counted as live traffic.
-   */
-  statsDailyLiveFreeApps: StatsDailyLiveFreeApps;
-  /**
    * Returns lists of apps that have some live traffic in the give time range.
    * From defaults to 24 hours ago and to defaults to now.
    *
@@ -16031,6 +16034,8 @@ export type Query_Root = {
   statsLiveApps: StatsLiveApps;
   systemConfig?: Maybe<ConfigSystemConfig>;
   systemConfigs: Array<ConfigAppSystemConfig>;
+  /** Returns system logs for a given application */
+  systemLogs: Array<Log>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -17079,12 +17084,6 @@ export type Query_RootSoftwareVersionsAggregateArgs = {
 };
 
 
-export type Query_RootStatsDailyLiveFreeAppsArgs = {
-  from?: InputMaybe<Scalars['Timestamp']>;
-  to?: InputMaybe<Scalars['Timestamp']>;
-};
-
-
 export type Query_RootStatsLiveAppsArgs = {
   from?: InputMaybe<Scalars['Timestamp']>;
   to?: InputMaybe<Scalars['Timestamp']>;
@@ -17098,6 +17097,14 @@ export type Query_RootSystemConfigArgs = {
 
 export type Query_RootSystemConfigsArgs = {
   where?: InputMaybe<ConfigSystemConfigComparisonExp>;
+};
+
+
+export type Query_RootSystemLogsArgs = {
+  action: Scalars['String'];
+  appID: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
 };
 
 
@@ -22690,7 +22697,7 @@ export type GetPostgresSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', version?: string | null, resources?: { __typename?: 'ConfigPostgresResources', storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null } | null };
+export type GetPostgresSettingsQuery = { __typename?: 'query_root', systemConfig?: { __typename?: 'ConfigSystemConfig', postgres: { __typename?: 'ConfigSystemConfigPostgres', database: string } } | null, config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', version?: string | null, resources?: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null } | null };
 
 export type ResetDatabasePasswordMutationVariables = Exact<{
   appId: Scalars['String'];
@@ -22922,7 +22929,7 @@ export type UpdateConfigMutationVariables = Exact<{
 }>;
 
 
-export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null, ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', organization?: string | null, apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } };
+export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null, ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', organization?: string | null, apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } };
 
 export type UnpauseApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -24065,6 +24072,7 @@ export const GetPostgresSettingsDocument = gql`
         storage {
           capacity
         }
+        enablePublicAccess
       }
     }
   }
@@ -25428,6 +25436,7 @@ export const UpdateConfigDocument = gql`
         storage {
           capacity
         }
+        enablePublicAccess
       }
     }
     ai {

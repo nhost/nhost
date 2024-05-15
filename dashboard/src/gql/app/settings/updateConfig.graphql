@@ -6,6 +6,7 @@ mutation UpdateConfig($appId: uuid!, $config: ConfigConfigUpdateInput!) {
         storage {
           capacity
         }
+        enablePublicAccess
       }
     }
     ai {
