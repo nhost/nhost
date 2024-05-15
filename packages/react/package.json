@@ -64,7 +64,7 @@
   "dependencies": {
     "@nhost/nhost-js": "workspace:*",
     "@xstate/react": "^3.2.2",
-    "jwt-decode": "^3.1.2",
+    "jwt-decode": "^4.0.0",
     "react-dom": "^18.2.0",
     "xstate": "^4.38.3"
   },

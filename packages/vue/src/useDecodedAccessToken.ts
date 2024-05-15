@@ -1,5 +1,5 @@
 import { JWTClaims } from '@nhost/nhost-js'
-import jwt_decode from 'jwt-decode'
+import { jwtDecode } from 'jwt-decode'
 import { computed, ComputedRef } from 'vue'
 import { useAccessToken } from './useAccessToken'
 
@@ -15,5 +15,5 @@ import { useAccessToken } from './useAccessToken'
  */
 export const useDecodedAccessToken = (): ComputedRef<JWTClaims | null> => {
   const jwt = useAccessToken()
-  return computed(() => (jwt.value ? jwt_decode<JWTClaims>(jwt.value) : null))
+  return computed(() => (jwt.value ? jwtDecode<JWTClaims>(jwt.value) : null))
 }

@@ -1,5 +1,5 @@
 import { JWTClaims } from '@nhost/nhost-js'
-import jwt_decode from 'jwt-decode'
+import { jwtDecode } from 'jwt-decode'
 import { useAccessToken } from './useAccessToken'
 
 /**
@@ -14,5 +14,5 @@ import { useAccessToken } from './useAccessToken'
  */
 export const useDecodedAccessToken = (): JWTClaims | null => {
   const jwt = useAccessToken()
-  return jwt ? jwt_decode<JWTClaims>(jwt) : null
+  return jwt ? jwtDecode<JWTClaims>(jwt) : null
 }

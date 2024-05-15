@@ -1241,7 +1241,7 @@ packages:
       '@simplewebauthn/browser': 6.2.2
       fetch-ponyfill: 7.1.0
       js-cookie: 3.0.5
-      jwt-decode: 3.1.2
+      jwt-decode: 4.0.0
       xstate: 4.38.3
     transitivePeerDependencies:
       - encoding
@@ -1299,7 +1299,7 @@ packages:
     dependencies:
       '@nhost/nhost-js': 3.0.2(graphql@16.8.1)
       '@xstate/react': 3.2.2(@types/react@18.2.48)(react@18.2.0)(xstate@4.38.3)
-      jwt-decode: 3.1.2
+      jwt-decode: 4.0.0
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       xstate: 4.38.3

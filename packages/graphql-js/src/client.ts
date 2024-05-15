@@ -12,7 +12,7 @@ import {
   Variables
 } from './types'
 
-import * as jose from 'jose'
+import { jwtDecode, JwtPayload } from 'jwt-decode'
 
 /**
  * @alias GraphQL
@@ -37,7 +37,7 @@ export class NhostGraphqlClient {
     }
 
     try {
-      const decodedToken = jose.decodeJwt<jose.JWTPayload>(this.accessToken)
+      const decodedToken = jwtDecode(this.accessToken) as JwtPayload
       return decodedToken.exp != null && decodedToken.exp * 1000 > Date.now()
     } catch (error) {
       console.error('Error decoding token:', error)
