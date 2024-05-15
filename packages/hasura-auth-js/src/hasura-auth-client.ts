@@ -1,4 +1,4 @@
-import { jwtDecode, JwtPayload } from 'jwt-decode'
+import { jwtDecode } from 'jwt-decode'
 import { interpret } from 'xstate'
 import {
   EMAIL_NEEDS_VERIFICATION,
