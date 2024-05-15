@@ -6,4 +6,4 @@
 '@nhost/vue': minor
 ---
 
-fix: replace `jose` with `jwt-decode` version 4.0.0 and polyfill atob on react-native
+fix: replace `jose` with `jwt-decode` version 4.0.0
