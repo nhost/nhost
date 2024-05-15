@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.16.0
+
+### Minor Changes
+
+- c6d5c5c: feat: add toggle switch to enable/disable public access in the database settings
+
 ## 1.15.2
 
 ### Patch Changes
