@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.12.0
+
+### Minor Changes
+
+- d5077c7: feat: added docs about how to connect to postgres
+
 ## 2.11.0
 
 ### Minor Changes
