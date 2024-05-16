@@ -246,7 +246,7 @@ export class HasuraAuthClient {
         rewriteRedirectTo(this._client.clientUrl, options as any)
       )
 
-      if (window && window.location) {
+      if (isBrowser()) {
         window.location.href = providerUrl
       }
 
