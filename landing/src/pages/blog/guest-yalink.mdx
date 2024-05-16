@@ -5,14 +5,14 @@ export const article = {
   title: 'Guest Blog Post: Yalink',
   description:
     'Yalink, a company in the construction engineering freelance industry',
-  image: '/images/blog/og-advanced-graphql-features.png',
-  date: '2024-05-14',
+  image: '/images/blog/og-nhost-yalink.png',
+  date: '2024-05-15',
   authors: [
     {
       name: 'Alex',
-      title: 'CTO',
-      avatarUrl: '',
-      url: 'https://twitter.com/alex',
+      title: 'CTPO at Yalink',
+      avatarUrl: '/images/avatars/alex-yalink.jpg',
+      url: 'https://twitter.com/itsnotalexisit',
     },
   ],
   tags: ['Product', 'Customer'],
@@ -22,7 +22,7 @@ export default (props) => <BlogPostLayout article={article} {...props} />
 
 # Who are we?
 
-Yalink is a contech startup. We are developing a reliable and secure platform to enable construction engineering companies and design offices to call upon freelance construction engineers and technicians.
+[Yalink](https://www.yalink.fr) is a contech startup. We are developing a reliable and secure platform to enable construction engineering companies and design offices to call upon freelance construction engineers and technicians.
 
 At Yalink, we understand that in order to provide the best services to our clients, we need to attract the top talent in the construction engineering freelance industry. That's why we're currently building an all-in-one app that will make it easy for freelancers to stay up-to-date on potential opportunities and get help with the sales aspect of being a freelancer.
 
@@ -68,11 +68,11 @@ Thanks to Nhost, we're able to move beyond the POC phase and deliver a reliable 
 
 In total, it took us around three months to migrate from our old backend solution to Nhost. The process was relatively smooth and easy.
 
-We started by creating a dump of our database, restoring it on Nhost, and redirecting our Python backend traffic to the Nhost-managed database. 
+We started by creating a dump of our database, restoring it on Nhost, and redirecting our Python backend traffic to the Nhost-managed [database](https://nhost.io/product/database). 
 
-While we did experience a small hit to performance due to network latency between the two services (our Flask backend was hosted on Heroku), it was nothing unmanageable since we didn't have a lot of traffic at that time.
+While we did experience a small hit to performance due to network latency between the two services (our Flask backend was hosted on Heroku), it was nothing unmanageable since we didn't have a lot of traffic at that time. The performance hit was gone once the migration was over.
 
-Next, we replaced our authentication service from our Python backend to Nhost-managed authentication by creating users on the Nhost side. We shared the JWT secret between Nhost and Flask to verify the JWTs from one backend to the other, and the process worked seamlessly. This allowed us to gradually roll out new services on GraphQL in Hasura while still supporting old REST services in Flask.
+Next, we replaced our authentication service from our Python backend to Nhost-managed [authentication](https://nhost.io/product/auth) by creating users on the Nhost side. We shared the JWT secret between Nhost and Flask to verify the JWTs from one backend to the other, and the process worked seamlessly. This allowed us to gradually roll out new services on GraphQL in Hasura while still supporting old REST services in Flask.
 
 At the same time, we deprecated our React frontend in favor of a more modern and capable Next.js framework. We decided to put the serverless code in Next.js to have a single place for all our TypeScript codebase, so Nhost Functions is the only service we're not using today. However, this decision was made purely for developer convenience.
 
@@ -80,7 +80,7 @@ As we continued the migration process, we eventually reached a point where no le
 
 ### Nhost AI
 
-Nhost has recently released a new service as part of its AI toolkit that is now at the center of our product. Graphite has opened up a world of possibilities for us, enabling the creation of embeddings for specific columns in our PostgreSQL database and exposing these embeddings to similarity searches. I can't stress enough how easy Nhost has made this workflow with Graphite's Auto-Embeddings.
+Nhost has recently released a new service as part of its [AI toolkit](https://nhost.io/product/ai) that is now at the center of our product. Graphite has opened up a world of possibilities for us, enabling the creation of embeddings for specific columns in our PostgreSQL database and exposing these embeddings to similarity searches. I can't stress enough how easy Nhost has made this workflow with Graphite's Auto-Embeddings.
 
  By generating embeddings on our freelancer descriptions, experiences, and achievements, we can now use an AI assistant, also a feature of Graphite, to query our database and find the best freelancer for specific project needs.
 

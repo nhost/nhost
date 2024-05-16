@@ -69,7 +69,7 @@ mutation {
   },
 }
 
-export default function GraphitePage() {
+export default function AIPage() {
   const [selectedExample, setSelectedExample] =
     useState<keyof typeof codeSnippets>('nhost.toml')
 
@@ -165,7 +165,7 @@ export default function GraphitePage() {
       <Container component="section" className="mt-24 lg:mt-40">
         <SectionHeading
           title="Use cases"
-          subtitle="Graphite extends the Nhost stack providing AI super-powers to your application."
+          subtitle="The AI Toolkit extends the Nhost stack providing AI super-powers to your application."
           className="max-w-xl"
           slotProps={{
             subtitle: {
@@ -341,6 +341,6 @@ export default function GraphitePage() {
   )
 }
 
-GraphitePage.getLayout = function getLayout(page: ReactElement) {
+AIPage.getLayout = function getLayout(page: ReactElement) {
   return <Layout>{page}</Layout>
 }

@@ -1,0 +1,49 @@
+import Image from 'next/image'
+import { CustomerLayout } from '@/components/customers/CustomerLayout'
+
+export const customer = {
+  name: 'Yalink',
+  website: {
+    url: 'https://yalink.fr',
+    display: 'yalink.fr',
+  },
+  description:
+    "Yalink uses Nhost to build a reliable and secure platform to enable construction engineering companies to call upon freelance construction engineers and technicians.",
+  logo: { src: '/customers/yalink.png', width: 136, height: 42 },
+  ogImage: {
+    src: '/images/customers/yalink/og.png',
+    width: 1920,
+    height: 1080,
+  },
+  industry: 'ConTech',
+  location: 'Bordeaux, France',
+  timeToProduction: '3 months to migrate from Heroku',
+  problem:
+    'The team at Yalink was being held back by their Python+Flask application, the need to write an auth service and the infrastructure maintenance required for Redis and Celery.',
+  solution:
+    'Nhost has freed Yalink from the tedious tasks of building and maintaining APIs and infrastructure, allowing them to focus on what really matters: delivering value to their users.',
+}
+
+export default (props) => <CustomerLayout customer={customer} {...props} />
+
+## Introduction
+
+Yalink is a contech startup developing a reliable and secure platform to enable construction engineering companies and design offices to call upon freelance construction engineers and technicians. One of the standout features of the Yalink platform is a quotation tool powered by Nhost AI. 
+
+## Problem
+
+Yalink was using Python+Flask to build their backend (with SQLAlchemy as an ORM), S3 buckets managed by AWS CDK, and Redis+Celery for asynchronous work. While this setup was straightforward, it required a lot of manual coding and boilerplate tasks that were taking up valuable time and resources.
+
+## Solution
+
+After evaluating other BaaS providers like Supabase and Firebase, whose generated APIs weren't usable straight away from the client side, Yalink discovered Nhost's full offering with managed Postgres, Hasura, Auth, Storage, and AI Toolkit. 
+
+## Benefits of Nhost
+
+With Nhost, Yalink was able to replace most of their hand-rolled components and maintenance. The team is now focused on creating value to their users instead of writing CRUD APIs and managing infrastructure. Nhost's seamless experience whether working in a development environment or deploying to the cloud, has been a trouble-free and game-changer experience for Yalink. 
+
+
+## Conclusion
+
+
+The migration from Heroku to Nhost was a success. The use of Nhost provided the team at Yalink with a modern solution to seamlessly handle APIs, authentication, and embeddings.
