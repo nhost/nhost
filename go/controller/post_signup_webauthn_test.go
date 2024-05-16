@@ -456,6 +456,10 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 				cmpopts.IgnoreFields(protocol.UserEntity{}, "ID"),
 			)
 
+			if !tc.config().WebauthnEnabled {
+				return
+			}
+
 			var gotSavedChallenge controller.WebauthnChallenge
 			for _, v := range c.Webauthn.Storage {
 				gotSavedChallenge = v

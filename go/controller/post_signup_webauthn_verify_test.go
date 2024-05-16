@@ -670,6 +670,10 @@ func TestPostSignupWebauthnVerify(t *testing.T) { //nolint:maintidx
 				hibp:          tc.hibp,
 			})
 
+			if !tc.config().WebauthnEnabled {
+				return
+			}
+
 			c.Webauthn.Storage["zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI"] = touchIDWebauthnChallenge
 			c.Webauthn.Storage["zv9lPTJpOlgxzlrKWl-tG7AdxeUIbCwxqV8MFZZNRdA"] = windowsHelloWebauthnChallenge
 
