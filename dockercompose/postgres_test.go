@@ -19,10 +19,11 @@ func expectedPostgres(tmpdir string) *Service {
 		DependsOn:  nil,
 		EntryPoint: nil,
 		Environment: map[string]string{
-			"PGDATA":            "/var/lib/postgresql/data/pgdata",
-			"POSTGRES_DB":       "local",
-			"POSTGRES_PASSWORD": "postgres",
-			"POSTGRES_USER":     "postgres",
+			"PGDATA":                "/var/lib/postgresql/data/pgdata",
+			"POSTGRES_DB":           "local",
+			"POSTGRES_DEV_INSECURE": "true",
+			"POSTGRES_PASSWORD":     "postgres",
+			"POSTGRES_USER":         "postgres",
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway", "local.auth.nhost.run:host-gateway",
