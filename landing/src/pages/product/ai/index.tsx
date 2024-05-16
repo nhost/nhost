@@ -9,7 +9,7 @@ import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { GraphiteHeroSection } from '@/components/graphite/GraphiteHeroSection'
+import { AIHeroSection } from '@/components/ai/AIHeroSection'
 import { ProductSection } from '@/components/product/ProductSection'
 import { RunHeroSection } from '@/components/run/RunHeroSection'
 import Image from 'next/image'
@@ -75,7 +75,7 @@ export default function AIPage() {
 
   return (
     <>
-      <GraphiteHeroSection />
+      <AIHeroSection />
 
       <Container
         component="section"
@@ -333,7 +333,7 @@ export default function AIPage() {
             <SectionHeading title="Other features" />
           </div>
         }
-        disabledLink="graphite"
+        disabledLink="ai"
       />
 
       <CTASection />
