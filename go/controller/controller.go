@@ -116,9 +116,12 @@ func New(
 		return nil, fmt.Errorf("error creating validator: %w", err)
 	}
 
-	wa, err := NewWebAuthn(config)
-	if err != nil {
-		return nil, err
+	var wa *Webauthn
+	if config.WebauthnEnabled {
+		wa, err = NewWebAuthn(config)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Controller{
