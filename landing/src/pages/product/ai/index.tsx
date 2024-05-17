@@ -9,7 +9,7 @@ import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
-import { GraphiteHeroSection } from '@/components/graphite/GraphiteHeroSection'
+import { AIHeroSection } from '@/components/ai/AIHeroSection'
 import { ProductSection } from '@/components/product/ProductSection'
 import { RunHeroSection } from '@/components/run/RunHeroSection'
 import Image from 'next/image'
@@ -69,13 +69,13 @@ mutation {
   },
 }
 
-export default function GraphitePage() {
+export default function AIPage() {
   const [selectedExample, setSelectedExample] =
     useState<keyof typeof codeSnippets>('nhost.toml')
 
   return (
     <>
-      <GraphiteHeroSection />
+      <AIHeroSection />
 
       <Container
         component="section"
@@ -165,7 +165,7 @@ export default function GraphitePage() {
       <Container component="section" className="mt-24 lg:mt-40">
         <SectionHeading
           title="Use cases"
-          subtitle="Graphite extends the Nhost stack providing AI super-powers to your application."
+          subtitle="The AI Toolkit extends the Nhost stack providing AI super-powers to your application."
           className="max-w-xl"
           slotProps={{
             subtitle: {
@@ -333,7 +333,7 @@ export default function GraphitePage() {
             <SectionHeading title="Other features" />
           </div>
         }
-        disabledLink="graphite"
+        disabledLink="ai"
       />
 
       <CTASection />
@@ -341,6 +341,6 @@ export default function GraphitePage() {
   )
 }
 
-GraphitePage.getLayout = function getLayout(page: ReactElement) {
+AIPage.getLayout = function getLayout(page: ReactElement) {
   return <Layout>{page}</Layout>
 }

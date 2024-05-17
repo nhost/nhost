@@ -154,7 +154,7 @@ export default function ProductPopover({ children }: PropsWithChildren) {
 
                 <li>
                   <Button
-                    href="/product/graphite"
+                    href="/product/ai"
                     variant="borderless"
                     size="xs"
                     className="w-full text-opacity-65"

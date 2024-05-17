@@ -1,0 +1,90 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Guest Blog Post: Yalink',
+  description:
+    'Yalink, a company in the construction engineering freelance industry',
+  image: '/images/blog/og-nhost-yalink.png',
+  date: '2024-05-15',
+  authors: [
+    {
+      name: 'Alex',
+      title: 'CTPO at Yalink',
+      avatarUrl: '/images/avatars/alex-yalink.jpg',
+      url: 'https://twitter.com/itsnotalexisit',
+    },
+  ],
+  tags: ['Product', 'Customer'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+# Who are we?
+
+[Yalink](https://www.yalink.fr) is a contech startup. We are developing a reliable and secure platform to enable construction engineering companies and design offices to call upon freelance construction engineers and technicians.
+
+At Yalink, we understand that in order to provide the best services to our clients, we need to attract the top talent in the construction engineering freelance industry. That's why we're currently building an all-in-one app that will make it easy for freelancers to stay up-to-date on potential opportunities and get help with the sales aspect of being a freelancer.
+
+One of the standout features of our app is a quotation tool powered by generative AI. This tool will help freelancers create insightful and accurately priced quotes for our customers, taking the guesswork out of the process and ensuring that both parties are happy with the final result.
+
+But our support for freelancers doesn't stop once they've secured a job. We also offer an all-in-one follow-up service for ongoing jobs. This includes tracking the progress of the mission, handling invoicing, and taking care of any other follow-up tasks. And to top it all off, we offer a payment system that allows freelancers to be paid within 48 hours, rather than the usual 30 to 60 days upon invoice reception.
+
+With Yalink, freelancers can focus on what they do best - providing top-notch construction engineering services to our clients - while we take care of the rest. It's a win-win for everyone involved.
+
+# Infrastructure and Tech Stack
+
+When we first set out to build Yalink, we knew we wanted to create a platform that would revolutionize the way construction engineering companies and design offices work with freelance construction engineers. But as we began developing our minimum viable product (MVP), we quickly realized that our simple tech stack was holding us back.
+
+We were using PostgreSQL as our database, Python with Flask as our backend (with SQLAlchemy as an ORM), S3 buckets managed by AWS CDK, and a React application that interacted with our APIs. While this setup was straightforward, it required a lot of manual coding and boilerplate tasks that were taking up valuable time and resources. 
+
+From building an authentication system to implementing asynchronous processes with Celery and Redis, it felt like we were drowning in a sea of CRUD APIs. And the thought of integrating AI capabilities into our app seemed like a distant dream.
+
+
+## Evaluating BaaS providers
+
+It became clear that we needed a more robust solution that would allow us to focus on adding real business value to our app, rather than getting bogged down in the minutiae of backend development and infrastructure maintenance.
+
+
+As we evaluated different solutions to help us build and deploy our app, one of our top requirements was that it be open source. At Yalink, we're strong believers in the power of open source and love contributing to projects while building our own solutions.
+
+We considered a number of options including Supabase, Firebase, and Pocketbase. But after taking a closer look at Supabase, we realized that it wasn't the right fit for us.
+One of the main issues we had with Supabase was that the generated APIs weren't usable straight away from the client side. This meant that we would have had to recode an entire API layer on top, which would have added unnecessary complexity and slowed down our development process.
+
+We wanted a solution that would allow us to hit the ground running and focus on adding real business value to our app, rather than getting bogged down in the details of API development.
+
+
+## Nhost to the rescue
+
+That's when we discovered Nhost.
+Nhost is an open source backend-as-a-service solution that has completely transformed the way we build and deploy our app. With built-in authentication, database, storage, and a clever server called Hasura that automatically creates CRUD APIs in GraphQL straight from our database topology, Nhost has freed us from the tedious tasks of building and maintaining our backend infrastructure. This has allowed us to focus on what truly matters: creating a platform that delivers real value to our users.
+
+But the best part about Nhost is how seamlessly it manages and connects all of these different services. Whether we're working in a development environment or deploying to the cloud, Nhost provides a smooth and trouble-free experience that has been a game-changer for Yalink.
+
+Thanks to Nhost, we're able to move beyond the POC phase and deliver a reliable and performant v1 that is sure to impress our users. We couldn't be happier with our decision to switch to Nhost and can't wait to see what the future holds for Yalink.
+
+
+## Migrating to Nhost
+
+In total, it took us around three months to migrate from our old backend solution to Nhost. The process was relatively smooth and easy.
+
+We started by creating a dump of our database, restoring it on Nhost, and redirecting our Python backend traffic to the Nhost-managed [database](https://nhost.io/product/database). 
+
+While we did experience a small hit to performance due to network latency between the two services (our Flask backend was hosted on Heroku), it was nothing unmanageable since we didn't have a lot of traffic at that time. The performance hit was gone once the migration was over.
+
+Next, we replaced our authentication service from our Python backend to Nhost-managed [authentication](https://nhost.io/product/auth) by creating users on the Nhost side. We shared the JWT secret between Nhost and Flask to verify the JWTs from one backend to the other, and the process worked seamlessly. This allowed us to gradually roll out new services on GraphQL in Hasura while still supporting old REST services in Flask.
+
+At the same time, we deprecated our React frontend in favor of a more modern and capable Next.js framework. We decided to put the serverless code in Next.js to have a single place for all our TypeScript codebase, so Nhost Functions is the only service we're not using today. However, this decision was made purely for developer convenience.
+
+As we continued the migration process, we eventually reached a point where no legacy REST service was being called anymore and we were able to unplug it. It was a magical moment to see that the migration had gone as expected in just a few short months.
+
+### Nhost AI
+
+Nhost has recently released a new service as part of its [AI toolkit](https://nhost.io/product/ai) that is now at the center of our product. Graphite has opened up a world of possibilities for us, enabling the creation of embeddings for specific columns in our PostgreSQL database and exposing these embeddings to similarity searches. I can't stress enough how easy Nhost has made this workflow with Graphite's Auto-Embeddings.
+
+ By generating embeddings on our freelancer descriptions, experiences, and achievements, we can now use an AI assistant, also a feature of Graphite, to query our database and find the best freelancer for specific project needs.
+
+Initially, there was a limitation in the context we could submit to the assistant. We reported this to the Nhost dev team, who responded quickly with a code change that allowed for more detailed prompts. This improvement has made the AI assistant an even more valuable tool for Yalink, enabling us to provide a more efficient and accurate matching system for our clients and freelancers. 
+
+We look forward to exploring more of Nhost AI's capabilities in the future. Nhost really is a great platform.
+

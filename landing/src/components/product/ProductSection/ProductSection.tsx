@@ -20,7 +20,7 @@ export interface ProductSectionProps extends ContainerProps {
     | 'storage'
     | 'functions'
     | 'run'
-    | 'graphite'
+    | 'ai'
 }
 
 export default function ProductSection({
@@ -151,11 +151,11 @@ export default function ProductSection({
               priority
             />
           }
-          title="Graphite"
+          title="AI"
           description="Run AI workloads easily alongside your Nhost Stack."
           className="place-self-center"
-          href="/product/graphite"
-          disableLink={disabledLink === 'graphite'}
+          href="/product/ai"
+          disableLink={disabledLink === 'ai'}
         />
       </div>
     </Container>

@@ -20,7 +20,7 @@ const graphiteQuery = `query {
   }
 }`
 
-export default function GraphiteHeroSection() {
+export default function AIHeroSection() {
   return (
     <Container
       component="section"
@@ -40,7 +40,7 @@ export default function GraphiteHeroSection() {
 
         <div className="flex space-x-2">
           <h2 className="font-mona text-3.5xl font-semibold md:text-4.5xl">
-            Graphite
+            AI Toolkit
           </h2>
         </div>
 
