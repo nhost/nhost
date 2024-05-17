@@ -41,6 +41,7 @@ const (
 	flagDashboardVersion   = "dashboard-version"
 	flagConfigserverImage  = "configserver-image"
 	flagRunService         = "run-service"
+	flagDownOnError        = "down-on-error"
 )
 
 const (
@@ -121,6 +122,11 @@ func CommandUp() *cli.Command { //nolint:funlen
 				Usage:   "Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: /path/to/run-service.toml[:overlay_name]", //nolint:lll
 				EnvVars: []string{"NHOST_RUN_SERVICE"},
 			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:    flagDownOnError,
+				Usage:   "Skip confirmation",
+				EnvVars: []string{"NHOST_YES"},
+			},
 		},
 	}
 }
@@ -165,6 +171,7 @@ func commandUp(cCtx *cli.Context) error {
 		cCtx.String(flagDashboardVersion),
 		configserverImage,
 		cCtx.StringSlice(flagRunService),
+		cCtx.Bool(flagDownOnError),
 	)
 }
 
@@ -442,6 +449,37 @@ func printInfo(
 	w.Flush()
 }
 
+func upErr(
+	ce *clienv.CliEnv,
+	dc *dockercompose.DockerCompose,
+	downOnError bool,
+	err error,
+) error {
+	ce.Warnln(err.Error())
+
+	if !downOnError {
+		ce.PromptMessage("Do you want to stop Nhost's development environment? [y/N] ")
+		resp, err := ce.PromptInput(false)
+		if err != nil {
+			ce.Warnln("failed to read input: %s", err)
+			return nil
+		}
+		if resp != "y" && resp != "Y" {
+			return nil
+		}
+	}
+
+	ce.Infoln("Stopping Nhost development environment...")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	if err := dc.Stop(ctx, false); err != nil {
+		ce.Warnln("failed to stop Nhost development environment: %s", err)
+	}
+
+	return err
+}
+
 func Up(
 	ctx context.Context,
 	ce *clienv.CliEnv,
@@ -454,6 +492,7 @@ func Up(
 	dashboardVersion string,
 	configserverImage string,
 	runServices []string,
+	downOnError bool,
 ) error {
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
@@ -461,27 +500,7 @@ func Up(
 		ctx, ce, appVersion, dc, httpPort, useTLS, postgresPort,
 		applySeeds, ports, dashboardVersion, configserverImage, runServices,
 	); err != nil {
-		ce.Warnln(err.Error())
-
-		ce.PromptMessage("Do you want to stop Nhost's development environment? [y/N] ")
-		resp, err := ce.PromptInput(false)
-		if err != nil {
-			ce.Warnln("failed to read input: %s", err)
-			return nil
-		}
-		if resp != "y" && resp != "Y" {
-			return nil
-		}
-
-		ce.Infoln("Stopping Nhost development environment...")
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-		defer cancel()
-
-		if err := dc.Stop(ctx, false); err != nil { //nolint:contextcheck
-			ce.Warnln("failed to stop Nhost development environment: %s", err)
-		}
-
-		return err //nolint:wrapcheck
+		return upErr(ce, dc, downOnError, err) //nolint:contextcheck
 	}
 
 	return nil

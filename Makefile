@@ -17,7 +17,7 @@ VER=$(shell echo $(VERSION) | sed -e 's/\//_/g')
 
 .PHONY: check
 check:  ## Run nix flake check
-	sed -i 's/$$NHOST_PAT/$(NHOST_PAT)/' get_access_token.sh
+	@sed -i 's/$$NHOST_PAT/$(NHOST_PAT)/' get_access_token.sh
 	nix flake check --print-build-logs
 
 

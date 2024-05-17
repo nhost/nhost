@@ -24,6 +24,7 @@ jobs:
       GOARCH: ${{ matrix.GOARCH }}
       VERSION: ${{ github.ref_name }}
     secrets:
+      NHOST_PAT: ${{ secrets.NHOST_PAT }}
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       CERT_FULL_CHAIN: ${{ secrets.CERT_FULL_CHAIN }}
       CERT_PRIV_KEY: ${{ secrets.CERT_PRIV_KEY }}

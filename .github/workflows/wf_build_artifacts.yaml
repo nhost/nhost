@@ -15,6 +15,8 @@ on:
         type: string
         required: true
     secrets:
+      NHOST_PAT:
+        required: true
       AWS_ACCOUNT_ID:
         required: true
       CERT_FULL_CHAIN:
@@ -117,6 +119,19 @@ jobs:
           cp image ../result
       shell: bash
       if: ${{ ( inputs.GOOS == 'linux' && inputs.GOARCH == 'arm64' ) }}
+
+    - name: "Create a new project"
+      run: |
+        export NHOST_DOMAIN=staging.nhost.run
+        export NHOST_CONFIGSERVER_IMAGE=cli:${{ steps.vars.outputs.VERSION }}
+
+        mkdir new-project
+        cd new-project
+        ../nhost-cli login --pat ${{ secrets.NHOST_PAT }}
+        ../nhost-cli init
+        ../nhost-cli up --down-on-error
+        ../nhost-cli down
+      if: ${{ ( inputs.GOOS == 'linux' && inputs.GOARCH == 'amd64' ) }}
 
     - name: "Push docker-image to artifact repository"
       uses: actions/upload-artifact@v4
