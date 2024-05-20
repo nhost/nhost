@@ -87,63 +87,57 @@ export const redirectTo = Joi.string()
       }
     }
 
-    // * We allow any sub-path of the client url
-    // * With optional hash and query params
-    if (
-      new RegExp(`^${ENV.AUTH_CLIENT_URL}(/.*)?([?].*)?([#].*)?$`).test(value)
-    ) {
+    const regexpContainsPort = new RegExp(`https?://[^/]+(:\\d+)(.*)`);
+    const regexpAddPort = new RegExp(`(https?://[^/]+)(.*)`);
+
+    const matches: string[] = [];
+
+    for (let url of [
+      ...ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS,
+      ENV.AUTH_CLIENT_URL,
+    ]) {
+      switch (true) {
+        case url.endsWith('/**'):
+          break;
+        case url.endsWith('/*'):
+          url += '*';
+          break;
+        case url.endsWith('/'):
+          url += '**';
+          break;
+        default:
+          url += '/**';
+      }
+
+      let defaultPort = '80';
+      if (url.startsWith('https://')) {
+        defaultPort = '443';
+      }
+
+      // add default port
+      if (!regexpContainsPort.test(url)) {
+        matches.push(url.replace(regexpAddPort, `$1:${defaultPort}$2`));
+      }
+
+      matches.push(url);
+    }
+
+    if (matches.length === 0) {
       return value;
     }
 
-    // * Check if the value's hostname matches any allowed hostname
-    // * Required to avoid shadowing domains
-    const hostnames = ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.map(
-      (allowed) => {
-        return new URL(allowed).hostname;
-      }
-    );
+    const redirectToClean = value.split('#')[0].split('?')[0];
 
-    const valueUrl = new URL(value);
-    if (!micromatch.isMatch(valueUrl.hostname, hostnames, { nocase: true })) {
-      return helper.error('redirectTo');
+    for (const match of matches) {
+      if (
+        micromatch.isMatch(redirectToClean, match) ||
+        micromatch.isMatch(redirectToClean + '/', match)
+      ) {
+        return value;
+      }
     }
 
-    // * We allow any sub-path of the allowed redirect urls.
-    // * Allowed redirect urls also accepts wildcards and other micromatch patterns
-    const expressions = ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.map(
-      (allowed) => {
-        // * Replace all the `.` by `/` so micromatch will understand `.` as a path separator
-        allowed = allowed.replace(/[.]/g, '/');
-        // * Append `/**` to the end of the allowed URL to allow for any subpath
-        if (allowed.endsWith('/**')) {
-          return allowed;
-        }
-        if (allowed.endsWith('/*')) {
-          return `${allowed}*`;
-        }
-        if (allowed.endsWith('/')) {
-          return `${allowed}**`;
-        }
-        return `${allowed}/**`;
-      }
-    );
-
-    try {
-      // * Don't take the query parameters into account
-      // * And replace `.` with `/` because of micromatch
-      const urlWithoutParams = `${valueUrl.origin}${valueUrl.pathname}`.replace(
-        /[.]/g,
-        '/'
-      );
-      const match = micromatch.isMatch(urlWithoutParams, expressions, {
-        nocase: true,
-      });
-      if (match) return value;
-      return helper.error('redirectTo');
-    } catch {
-      // * value is not a valid URL
-      return helper.error('redirectTo');
-    }
+    return helper.error('redirectTo');
   })
   .example(`${ENV.AUTH_CLIENT_URL}/catch-redirection`);
 
@@ -186,7 +180,9 @@ export const registrationOptions =
     .custom((value, helper) => {
       const { allowedRoles, defaultRole } = value;
       if (!allowedRoles.includes(defaultRole)) {
-        return helper.message({custom:'Default role must be part of allowed roles'});
+        return helper.message({
+          custom: 'Default role must be part of allowed roles',
+        });
       }
       // check if allowedRoles is a subset of allowed user roles
       if (
@@ -194,7 +190,9 @@ export const registrationOptions =
           ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES.includes(role)
         )
       ) {
-        return helper.message({custom:'Allowed roles must be a subset of allowedRoles'});
+        return helper.message({
+          custom: 'Allowed roles must be a subset of allowedRoles',
+        });
       }
       return value;
     });

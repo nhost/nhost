@@ -57,23 +57,24 @@ describe('Unit tests on field validation', () => {
 
   describe('redirections', () => {
     const clientUrl = 'https://nhost.io';
-    const diffDomainUrl = 'https://myotherdomain.com'
-    const host = 'host.com'
-    const allowedRedirectUrls = `https://*-nhost.vercel.app,${diffDomainUrl},https://*.${host},https://no-wildcard.io`;
+    const diffDomainUrl = 'https://myotherdomain.com';
+    const host = 'host.com';
+    const allowedRedirectUrls = `https://*-nhost.vercel.app,${diffDomainUrl},https://*.${host},https://no-wildcard.io,myapp://`;
 
     beforeAll(async () => {
       process.env.AUTH_CLIENT_URL = clientUrl;
-      process.env.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS = allowedRedirectUrls;
+      process.env.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS =
+        allowedRedirectUrls;
     });
 
     it('should validate any url when the client url is not set', async () => {
-      process.env.AUTH_CLIENT_URL = ''
+      process.env.AUTH_CLIENT_URL = '';
 
       expect(
         redirectTo.validate('https://www.google.com/path?key=value').value
       ).toEqual('https://www.google.com/path?key=value');
 
-      process.env.AUTH_CLIENT_URL = clientUrl
+      process.env.AUTH_CLIENT_URL = clientUrl;
     });
 
     it('should reject an invalid url', () => {
@@ -83,24 +84,58 @@ describe('Unit tests on field validation', () => {
     it('should validate a value that matches the client url', () => {
       expect(redirectTo.validate(clientUrl).error).toBeUndefined();
       expect(redirectTo.validate(`${clientUrl}/path`).error).toBeUndefined();
-      expect(redirectTo.validate(`${clientUrl}?key=value`).error).toBeUndefined();
-      expect(redirectTo.validate(`${clientUrl}#key=value`).error).toBeUndefined();
+      expect(
+        redirectTo.validate(`${clientUrl}?key=value`).error
+      ).toBeUndefined();
+      expect(
+        redirectTo.validate(`${clientUrl}#key=value`).error
+      ).toBeUndefined();
     });
 
     it('should validate a value that matches an allowed redirect url', () => {
       expect(redirectTo.validate(diffDomainUrl).error).toBeUndefined();
-      expect(redirectTo.validate(`${diffDomainUrl}/path`).error).toBeUndefined();
-      expect(redirectTo.validate(`${diffDomainUrl}?key=value`).error).toBeUndefined();
-      expect(redirectTo.validate(`${diffDomainUrl}#key=value`).error).toBeUndefined();
+      expect(
+        redirectTo.validate(`${diffDomainUrl}/path`).error
+      ).toBeUndefined();
+      expect(
+        redirectTo.validate(`${diffDomainUrl}?key=value`).error
+      ).toBeUndefined();
+      expect(
+        redirectTo.validate(`${diffDomainUrl}#key=value`).error
+      ).toBeUndefined();
     });
 
     it('should validate a subdomain that matches an allowed redirect url with a wildcard', () => {
-      expect(redirectTo.validate(`https://subdomain.${host}`).error).toBeUndefined()
-      expect(redirectTo.validate(`https://subdomain.${host}/path`).error).toBeUndefined()
-      expect(redirectTo.validate(`https://subdomain.${host}?key=value`).error).toBeUndefined()
-      expect(redirectTo.validate(`https://subdomain.${host}#key=value`).error).toBeUndefined()
+      expect(
+        redirectTo.validate(`https://subdomain.${host}`).error
+      ).toBeUndefined();
+      expect(
+        redirectTo.validate(`https://subdomain.${host}/path`).error
+      ).toBeUndefined();
+      expect(
+        redirectTo.validate(`https://subdomain.${host}?key=value`).error
+      ).toBeUndefined();
+      expect(
+        redirectTo.validate(`https://subdomain.${host}#key=value`).error
+      ).toBeUndefined();
 
-      expect(redirectTo.validate(`https://docs-ger4gr-nhost.vercel.app`).error).toBeUndefined()
+      expect(
+        redirectTo.validate(`https://docs-ger4gr-nhost.vercel.app`).error
+      ).toBeUndefined();
+    });
+
+    it('should validate a deeplink that matches an allowed redirect url', () => {
+      expect(redirectTo.validate(`myapp://`).error).toBeUndefined();
+      expect(redirectTo.validate(`myapp://redirect`).error).toBeUndefined();
+      expect(redirectTo.validate(`myapp://home/profile`).error).toBeUndefined();
+    });
+
+    it('should reject a deeplink that doesn not match an allowed redirect url', () => {
+      expect(redirectTo.validate(`myotherapp://`).error).toBeObject();
+      expect(redirectTo.validate(`myotherapp://redirect`).error).toBeObject();
+      expect(
+        redirectTo.validate(`myotherapp://home/profile`).error
+      ).toBeObject();
     });
 
     it('should reject a subsubdomain if no wildcard', () => {
@@ -122,9 +157,7 @@ describe('Unit tests on field validation', () => {
         redirectTo.validate(`${diffDomainUrl}.example.com`).error
       ).toBeObject();
 
-      expect(
-        redirectTo.validate(`https://wwwanhost.com`).error
-      ).toBeObject();
+      expect(redirectTo.validate(`https://wwwanhost.com`).error).toBeObject();
     });
   });
 });
