@@ -7,40 +7,60 @@ import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import { WorkspaceAndProjectList } from '@/features/projects/common/components/WorkspaceAndProjectList';
 import { WorkspaceSidebar } from '@/features/projects/common/components/WorkspaceSidebar';
-import { useGetAllWorkspacesAndProjectsQuery } from '@/utils/__generated__/graphql';
+import {
+  useGetAllWorkspacesAndProjectsQuery,
+  type GetAllWorkspacesAndProjectsQuery,
+} from '@/utils/__generated__/graphql';
+import { NetworkStatus } from '@apollo/client';
 import { darken } from '@mui/system';
 import { useUserData } from '@nhost/nextjs';
 import NavLink from 'next/link';
-import type { ReactElement } from 'react';
-import { useEffect } from 'react';
+import { useState, type ReactElement } from 'react';
 
 export default function IndexPage() {
   const user = useUserData();
-  const { data, loading, startPolling, stopPolling } =
+  const [attempt, setAttempt] = useState(0);
+  const [pollInterval, setPollInterval] = useState(1_000);
+
+  // keep polling for workspaces until there is a workspace available.
+  // We do this because when a user signs up a workspace is created automatically
+  // and the serverless function can take some time to complete.
+  const { data, startPolling, stopPolling, networkStatus } =
     useGetAllWorkspacesAndProjectsQuery({
       skip: !user,
+      notifyOnNetworkStatusChange: true,
+      onError: () => {
+        // When there's an error (graphql, network error) apply an exponential backoff strategy
+        setPollInterval((prevInterval) => {
+          const newInterval = Math.min(60_000, prevInterval * 2);
+          setAttempt((prevAttemp) => prevAttemp + 1);
+          startPolling(newInterval);
+          return newInterval;
+        });
+      },
+      onCompleted: (queryData: GetAllWorkspacesAndProjectsQuery) => {
+        if (!queryData?.workspaces.length) {
+          setPollInterval(1000);
+          setAttempt(0);
+          startPolling(1000);
+        } else {
+          setPollInterval(0);
+          setAttempt(0);
+          stopPolling();
+        }
+      },
     });
+
+  // keep showing loading indicator while polling
+  const loading = networkStatus === NetworkStatus.loading;
+
+  console.log(`Polling interval: ${pollInterval} ms, Attempt: ${attempt}`);
 
   const numberOfProjects = data?.workspaces.reduce(
     (projectCount, currentWorkspace) =>
       projectCount + currentWorkspace.projects.length,
     0,
   );
-
-  // keep polling for workspaces until there is a workspace available.
-  // We do this because when a user signs up a workspace is created automatically
-  // and the serverless function can take some time to complete.
-  useEffect(() => {
-    startPolling(1000);
-  }, [startPolling]);
-
-  useEffect(() => {
-    if (!data?.workspaces.length) {
-      return;
-    }
-
-    stopPolling();
-  }, [data?.workspaces, stopPolling]);
 
   if ((!data && loading) || !user) {
     return <LoadingScreen />;
