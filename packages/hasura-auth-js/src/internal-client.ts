@@ -60,7 +60,7 @@ export class AuthClient {
 
             if (type === 'broadcast_token') {
               const existingToken = this.interpreter?.getSnapshot().context.refreshToken.value
-              if (this.interpreter && payload.token !== existingToken) {
+              if (this.interpreter && payload.token && payload.token !== existingToken) {
                 this.interpreter.send('TRY_TOKEN', { token: payload.token })
               }
             }
