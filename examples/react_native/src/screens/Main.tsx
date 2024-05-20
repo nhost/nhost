@@ -1,21 +1,15 @@
+import CustomDrawer from '@components/Drawer';
 import {useAuthenticationStatus, useNhostClient} from '@nhost/react';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import React, {useEffect} from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  View,
-  Linking,
-  Alert,
-} from 'react-native';
 import Profile from '@screens/Profile';
-import SignUp from '@screens/SignUp';
 import SignIn from '@screens/SignIn';
-import CustomDrawer from '@components/Drawer';
-import Todos from '@screens/Todos';
+import SignUp from '@screens/SignUp';
 import Storage from '@screens/Storage';
+import Todos from '@screens/Todos';
+import React from 'react';
+import {ActivityIndicator, StyleSheet, View} from 'react-native';
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -31,25 +25,6 @@ function LoadingIndicatorView() {
 function Main() {
   const nhost = useNhostClient();
   const {isAuthenticated, isLoading} = useAuthenticationStatus();
-
-  useEffect(() => {
-    const getRefreshTokenFromUrl = (url: string) => {
-      const regex = /[?&]refreshToken(=([^&#]*)|&|#|$)/;
-      const results = regex.exec(url);
-      if (!results || !results[2]) return null;
-      return decodeURIComponent(results[2].replace(/\+/g, ' '));
-    };
-
-    const handleDeepLink = async (event: {url: string}) => {
-      const refreshToken = getRefreshTokenFromUrl(event.url);
-      if (refreshToken) {
-        await nhost.auth.refreshSession(refreshToken);
-      }
-    };
-
-    const listener = Linking.addEventListener('url', handleDeepLink);
-    return () => listener.remove();
-  }, []);
 
   if (isLoading) {
     return <LoadingIndicatorView />;

@@ -1250,6 +1250,9 @@ importers:
       '@react-navigation/native-stack':
         specifier: ^6.9.26
         version: 6.9.26(@react-navigation/native@6.1.17)(react-native-safe-area-context@4.9.0)(react-native-screens@3.30.1)(react-native@0.73.7)(react@18.2.0)
+      base-64:
+        specifier: ^1.0.0
+        version: 1.0.0
       react:
         specifier: 18.2.0
         version: 18.2.0
@@ -1265,6 +1268,9 @@ importers:
       react-native-gesture-handler:
         specifier: ^2.16.0
         version: 2.16.0(react-native@0.73.7)(react@18.2.0)
+      react-native-inappbrowser-reborn:
+        specifier: ^3.7.0
+        version: 3.7.0(react-native@0.73.7)
       react-native-reanimated:
         specifier: ^3.8.1
         version: 3.8.1(@babel/core@7.24.3)(react-native@0.73.7)(react@18.2.0)
@@ -1302,6 +1308,9 @@ importers:
       '@react-native/typescript-config':
         specifier: 0.73.1
         version: 0.73.1
+      '@types/base-64':
+        specifier: ^1.0.2
+        version: 1.0.2
       '@types/react':
         specifier: ^18.2.6
         version: 18.2.73
@@ -24469,6 +24478,11 @@ packages:
     resolution: {integrity: sha512-N4YtSYJqghVu4iek2ZUvcN/0aqH1kRDuNqzcycDxhOUpg7GdvLa2F3DgS6yBNhInhv2r/6I0Flkn7CqL8+nIcw==}
     dev: true
 
+  /opencollective-postinstall@2.0.3:
+    resolution: {integrity: sha512-8AV/sCtuzUeTo8gQK5qDZzARrulB3egtLzFgteqB2tcT4Mw7B8Kt7JcDHmltjz6FOAHsvTevk70gZEbhM4ZS9Q==}
+    hasBin: true
+    dev: false
+
   /opener@1.5.2:
     resolution: {integrity: sha512-ur5UIdyw5Y7yEj9wLzhqXiy6GZ3Mwx0yGI+5sMn2r0N0v3cKJvUmFH5yPP+WXh9e0xfyzyJX95D8l088DNFj7A==}
     hasBin: true
@@ -24987,12 +25001,6 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       find-up: 3.0.0
-    dev: true
-
-  /playwright-core@1.31.0:
-    resolution: {integrity: sha512-/KquBjS5DcASCh8cGeNVHuC0kyb7c9plKTwaKxgOGtxT7+DZO2fjmFvPDBSXslEIK5CeOO/2kk5rOCktFXKEdA==}
-    engines: {node: '>=14'}
-    hasBin: true
     dev: true
 
   /playwright-core@1.41.0:
@@ -25944,6 +25952,17 @@ packages:
       lodash: 4.17.21
       prop-types: 15.8.1
       react: 18.2.0
+      react-native: 0.73.7(@babel/core@7.24.3)(@babel/preset-env@7.24.3)(react@18.2.0)
+    dev: false
+
+  /react-native-inappbrowser-reborn@3.7.0(react-native@0.73.7):
+    resolution: {integrity: sha512-Ia53jYNtFcbNaX5W3QfOmN25I7bcvuDiQmSY5zABXjy4+WI20bPc9ua09li55F8yDCjv3C99jX6vKms68mBV7g==}
+    requiresBuild: true
+    peerDependencies:
+      react-native: '>=0.56'
+    dependencies:
+      invariant: 2.2.4
+      opencollective-postinstall: 2.0.3
       react-native: 0.73.7(@babel/core@7.24.3)(@babel/preset-env@7.24.3)(react@18.2.0)
     dev: false
 

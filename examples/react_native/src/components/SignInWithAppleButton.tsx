@@ -1,31 +1,12 @@
 import Button from '@components/Button';
-import {useNhostClient} from '@nhost/react';
-import {Alert, Linking, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-export default function SignInWithAppleButton() {
-  const nhost = useNhostClient();
-
-  const handleSignInWithApple = async () => {
-    const {providerUrl} = await nhost.auth.signIn({
-      provider: 'apple',
-      options: {
-        redirectTo: 'myapp://',
-      },
-    });
-
-    if (providerUrl) {
-      try {
-        if (await Linking.canOpenURL(providerUrl)) {
-          Linking.openURL(providerUrl);
-        }
-      } catch (error) {
-        console.log(error);
-        Alert.alert('Error', 'An error occurred');
-      }
-    }
-  };
-
+export default function SignInWithAppleButton({
+  hanldeSignIn,
+}: {
+  hanldeSignIn?: () => Promise<void>;
+}) {
   return (
     <Button
       label={
@@ -35,7 +16,7 @@ export default function SignInWithAppleButton() {
         </View>
       }
       color="black"
-      onPress={handleSignInWithApple}
+      onPress={hanldeSignIn}
     />
   );
 }

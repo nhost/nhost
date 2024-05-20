@@ -1,31 +1,12 @@
 import Button from '@components/Button';
-import {useNhostClient} from '@nhost/react';
-import {Alert, Linking, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-export default function SignInWithGoogleButton() {
-  const nhost = useNhostClient();
-
-  const handleSignInWithGoogle = async () => {
-    const {providerUrl} = await nhost.auth.signIn({
-      provider: 'google',
-      options: {
-        redirectTo: 'myapp://',
-      },
-    });
-
-    if (providerUrl) {
-      try {
-        if (await Linking.canOpenURL(providerUrl)) {
-          Linking.openURL(providerUrl);
-        }
-      } catch (error) {
-        console.log(error);
-        Alert.alert('Error', 'An error occurred');
-      }
-    }
-  };
-
+export default function SignInWithGoogleButton({
+  handleSignIn,
+}: {
+  handleSignIn: () => Promise<void>;
+}) {
   return (
     <Button
       label={
@@ -35,7 +16,7 @@ export default function SignInWithGoogleButton() {
         </View>
       }
       color="#de5246"
-      onPress={handleSignInWithGoogle}
+      onPress={handleSignIn}
     />
   );
 }

@@ -1,4 +1,8 @@
-import {useNhostClient, useSignInEmailPassword} from '@nhost/react';
+import {
+  useNhostClient,
+  useProviderLink,
+  useSignInEmailPassword,
+} from '@nhost/react';
 import {NavigationProp, ParamListBase} from '@react-navigation/native';
 import {useForm} from 'react-hook-form';
 import {
@@ -13,6 +17,7 @@ import Button from '@components/Button';
 import ControlledInput from '@components/ControlledInput';
 import SignInWithAppleButton from '@components/SignInWithAppleButton';
 import SignInWithGoogleButton from '@components/SignInWithGoogleButton';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 
 interface SignUpFormValues {
   firstName: string;
@@ -27,6 +32,10 @@ export default function SignIn({
   navigation: NavigationProp<ParamListBase>;
 }) {
   const nhost = useNhostClient();
+  const {apple, google} = useProviderLink({
+    redirectTo: 'myapp://',
+  });
+
   const {control, handleSubmit} = useForm<SignUpFormValues>();
   const {signInEmailPassword, isLoading} = useSignInEmailPassword();
 
@@ -51,6 +60,32 @@ export default function SignIn({
       return;
     }
   };
+
+  const handleSignInWithOAuth = async (providerLink: string) => {
+    try {
+      const response = await InAppBrowser.openAuth(
+        providerLink,
+        'myapp://',
+        {},
+      );
+
+      if (response.type === 'success' && response.url) {
+        const refreshToken =
+          response.url.match(/refreshToken=([^&]*)/)?.at(1) ?? null;
+        if (refreshToken) {
+          await nhost.auth.refreshSession(refreshToken);
+        } else {
+          Alert.alert('Error', 'An error occurred during the sign-in process.');
+        }
+      }
+    } catch (error) {
+      console.log({error});
+      Alert.alert('Error', 'An error occurred during the sign-in process.');
+    }
+  };
+
+  const handleSignInWithApple = () => handleSignInWithOAuth(apple);
+  const handleSignInWithGoogle = () => handleSignInWithOAuth(google);
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -107,8 +142,8 @@ export default function SignIn({
             onPress={handleSubmit(onSubmit)}
           />
 
-          <SignInWithAppleButton />
-          <SignInWithGoogleButton />
+          <SignInWithAppleButton hanldeSignIn={handleSignInWithApple} />
+          <SignInWithGoogleButton handleSignIn={handleSignInWithGoogle} />
 
           <View
             style={{
