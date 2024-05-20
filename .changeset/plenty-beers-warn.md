@@ -2,4 +2,4 @@
 '@nhost/hasura-auth-js': patch
 ---
 
-fix: resolve social sign-in issue in React Native
+fix: improve environment/browser detection to support React Native
