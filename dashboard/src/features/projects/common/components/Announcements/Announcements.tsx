@@ -5,7 +5,9 @@ import { useGetAnnouncementsQuery } from '@/utils/__generated__/graphql';
 import formatDistance from 'date-fns/formatDistance';
 
 export default function Announcements() {
-  const { data, loading, error } = useGetAnnouncementsQuery();
+  const { data, loading, error } = useGetAnnouncementsQuery({
+    fetchPolicy: 'cache-first',
+  });
 
   const announcements = data?.announcements || [];
 
