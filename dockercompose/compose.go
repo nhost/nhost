@@ -345,7 +345,7 @@ func functions( //nolint:funlen
 	}
 
 	return &Service{
-		Image:       "nhost/functions:1.0.0",
+		Image:       "nhost/functions:1.0.1",
 		DependsOn:   nil,
 		EntryPoint:  nil,
 		Command:     nil,
