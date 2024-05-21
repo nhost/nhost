@@ -1,7 +1,7 @@
 [global]
 
 [hasura]
-version = 'v2.38.0-ce'
+version = 'v2.33.4-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
@@ -29,14 +29,14 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.30.0-beta1'
+version = '0.28.0-beta002'
 
 [auth.elevatedPrivileges]
 mode = 'required'
 
 [auth.redirections]
 clientUrl = 'https://react-apollo.example.nhost.io/'
-allowedUrls = ['https://react-apollo.example.nhost.io', 'https://react-apollo.example.nhost.io/profile', 'https://vue-apollo.example.nhost.io', 'https://vue-apollo.example.nhost.io/profile', 'https://*.vercel.app', 'http://localhost:3000', 'http://localhost:3000/profile', 'http://localhost:5173', 'http://localhost:5173/profile', 'https://google.com', 'myapp://']
+allowedUrls = ['https://react-apollo.example.nhost.io', 'https://react-apollo.example.nhost.io/profile', 'https://vue-apollo.example.nhost.io', 'https://vue-apollo.example.nhost.io/profile', 'https://*.vercel.app', 'http://localhost:3000', 'http://localhost:3000/profile', 'http://localhost:5173', 'http://localhost:5173/profile']
 
 [auth.signUp]
 enabled = true
@@ -154,7 +154,7 @@ enabled = true
 issuer = 'nhost'
 
 [postgres]
-version = '14.11-20240429-1'
+version = '14.6-20240129-1'
 
 [provider]
 
