@@ -72,14 +72,18 @@ export default function SignIn({
       if (response.type === 'success' && response.url) {
         const refreshToken =
           response.url.match(/refreshToken=([^&]*)/)?.at(1) ?? null;
+
         if (refreshToken) {
-          await nhost.auth.refreshSession(refreshToken);
+          const {error} = await nhost.auth.refreshSession(refreshToken);
+
+          if (error) {
+            throw error;
+          }
         } else {
-          Alert.alert('Error', 'An error occurred during the sign-in process.');
+          throw new Error('An error occurred during the sign-in process');
         }
       }
     } catch (error) {
-      console.log({error});
       Alert.alert('Error', 'An error occurred during the sign-in process.');
     }
   };
