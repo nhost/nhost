@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 1.16.2
+
+### Patch Changes
+
+- a9413af: fix: update `GetAllWorkspacesAndProjects` query polling to use exponential backoff
+  - @nhost/react-apollo@12.0.1
+  - @nhost/nextjs@2.1.15
+
 ## 1.16.1
 
 ### Patch Changes
