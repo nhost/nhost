@@ -1,5 +1,12 @@
 # @nhost/hasura-auth-js
 
+## 2.5.1
+
+### Patch Changes
+
+- f4f0353: fix: improve environment/browser detection to support React Native
+- defffd8: fix: resolve issue where `/token` endpoint is called with an empty token during sign-in
+
 ## 2.5.0
 
 ### Minor Changes

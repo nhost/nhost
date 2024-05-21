@@ -1,5 +1,11 @@
 # @nhost/react
 
+## 3.5.1
+
+### Patch Changes
+
+- @nhost/nhost-js@3.1.4
+
 ## 3.5.0
 
 ### Minor Changes

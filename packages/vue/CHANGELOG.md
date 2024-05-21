@@ -1,5 +1,11 @@
 # @nhost/vue
 
+## 2.6.1
+
+### Patch Changes
+
+- @nhost/nhost-js@3.1.4
+
 ## 2.6.0
 
 ### Minor Changes

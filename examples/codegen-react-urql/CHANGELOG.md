@@ -1,5 +1,12 @@
 # @nhost-examples/react-urql
 
+## 0.3.6
+
+### Patch Changes
+
+- @nhost/react@3.5.1
+- @nhost/react-urql@9.0.1
+
 ## 0.3.5
 
 ### Patch Changes
