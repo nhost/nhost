@@ -18,7 +18,7 @@ export interface AnnouncementContextProps {
   /**
    * The announcement to show.
    */
-  announcement?: Announcement
+  announcement?: Announcement | null
   /**
    * Whether or not to show the announcement.
    */
@@ -34,11 +34,7 @@ export interface AnnouncementContextProps {
 }
 
 // Note: You can define the active announcement here.
-const announcement: Announcement = {
-  id: '2023-dec-ai-week',
-  href: 'https://nhost.io/2023-dec-ai-week',
-  content: 'Nhost AI Week 🧠 Dec 18-22!',
-}
+const announcement: Announcement | null = null
 
 export const AnnouncementContext = createContext<AnnouncementContextProps>({})
 
@@ -60,7 +56,9 @@ export default function AnnouncementProvider({ children }: PropsWithChildren) {
 
   function handleClose() {
     setShowAnnouncement(false)
-    window.localStorage.setItem(announcement?.id, '1')
+    if (announcement) {
+      window.localStorage.setItem(announcement?.id, '1')
+    }
   }
 
   return (
