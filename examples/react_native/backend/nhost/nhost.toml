@@ -137,7 +137,11 @@ enabled = false
 enabled = false
 
 [auth.method.webauthn]
-enabled = false
+enabled = true
+
+[auth.method.webauthn.relyingParty]
+name = 'example-react-apollo-67ume4uol-nhost.vercel.app'
+origins = ['https://example-react-apollo-67ume4uol-nhost.vercel.app']
 
 [auth.method.webauthn.attestation]
 timeout = 60000
