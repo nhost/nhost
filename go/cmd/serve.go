@@ -30,6 +30,7 @@ const (
 	flagLogFormatTEXT                    = "log-format-text"
 	flagTrustedProxies                   = "trusted-proxies"
 	flagPostgresConnection               = "postgres"
+	flagPostgresMigrationsConnection     = "postgres-migrations"
 	flagNodeServerPath                   = "node-server-path"
 	flagDisableSignup                    = "disable-signup"
 	flagConcealErrors                    = "conceal-errors"
@@ -110,10 +111,16 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagPostgresConnection,
-				Usage:    "PostgreSQL connection URI: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING. Required to inject the `auth` schema into the database.",
+				Usage:    "PostgreSQL connection URI: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING",
 				Value:    "postgres://postgres:postgres@localhost:5432/local?sslmode=disable",
 				Category: "postgres",
 				EnvVars:  []string{"POSTGRES_CONNECTION", "HASURA_GRAPHQL_DATABASE_URL"},
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagPostgresMigrationsConnection,
+				Usage:    "PostgreSQL connection URI for running migrations: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING. Required to inject the `auth` schema into the database. If not specied, the `postgres connection will be used",
+				Category: "postgres",
+				EnvVars:  []string{"POSTGRES_MIGRATIONS_CONNECTION"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagNodeServerPath,
@@ -459,6 +466,16 @@ func getNodeServer(cCtx *cli.Context) *exec.Cmd {
 
 	if cCtx.Bool(flagEnableChangeEnv) {
 		env = append(env, "NODE_ENV=development")
+	}
+
+	if cCtx.String(flagPostgresMigrationsConnection) != "" {
+		for i, v := range env {
+			if strings.HasPrefix(v, "HASURA_GRAPHQL_DATABASE_URL=") {
+				env[i] = "HASURA_GRAPHQL_DATABASE_URL=" + cCtx.String(
+					flagPostgresMigrationsConnection,
+				)
+			}
+		}
 	}
 
 	cmd := exec.CommandContext(cCtx.Context, "node", "./dist/start.js")
