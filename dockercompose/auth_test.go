@@ -10,7 +10,7 @@ import (
 func expectedAuth() *Service {
 	//nolint:lll
 	return &Service{
-		Image:   "nhost/hasura-auth:0.22.0",
+		Image:   "nhost/hasura-auth:0.31.0",
 		Command: nil,
 		DependsOn: map[string]DependsOn{
 			"graphql":  {Condition: "service_healthy"},
@@ -127,7 +127,8 @@ func expectedAuth() *Service {
 			"ENV1":                                      "VALUE1",
 			"ENV2":                                      "VALUE2",
 			"HASURA_GRAPHQL_ADMIN_SECRET":               "adminSecret",
-			"HASURA_GRAPHQL_DATABASE_URL":               "postgres://nhost_auth_admin@postgres:5432/local",
+			"HASURA_GRAPHQL_DATABASE_URL":               "postgres://nhost_hasura@postgres:5432/local",
+			"POSTGRES_MIGRATIONS_CONNECTION":            "postgres://nhost_auth_admin@postgres:5432/local",
 			"HASURA_GRAPHQL_GRAPHQL_URL":                "http://graphql:8080/v1/graphql",
 			"HASURA_GRAPHQL_JWT_SECRET":                 `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}`,
 		},
@@ -195,6 +196,7 @@ func TestAuth(t *testing.T) {
 				svc.Labels["traefik.http.middlewares.replace-auth.replacepathregex.replacement"] = "/$$2"
 				svc.Labels["traefik.http.routers.auth.middlewares"] = "replace-auth"
 				svc.Labels["traefik.http.routers.auth.rule"] = "Host(`local.auth.nhost.run`) && PathPrefix(`/v1`)"
+				svc.Environment["HASURA_GRAPHQL_DATABASE_URL"] = "postgres://nhost_auth_admin@postgres:5432/local"
 				return svc
 			},
 		},

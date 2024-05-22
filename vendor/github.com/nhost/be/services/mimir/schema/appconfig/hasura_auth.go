@@ -9,6 +9,7 @@ import (
 
 const (
 	secretHasuraAuthGraphqlDatabaseURL      = "databaseUrl"
+	secretHasuraAuthDatabaseMigrationsURL   = "databaseMigrationsUrl"
 	secretHasuraAuthHasuraAdminSecret       = "adminSecret"
 	secretHasuraAuthJWTSecret               = "jwtSecret"
 	secretHasuraAuthGithubClientSecret      = "githubClientSecret" //nolint: gosec
@@ -35,6 +36,7 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 	hasuraGraphqlURL,
 	authServerURL,
 	databaseURL string,
+	databaseMigrationURL string,
 	smtpSettings *model.ConfigSmtp,
 ) ([]EnvVar, error) {
 	customClaims := make(
@@ -55,11 +57,22 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		return nil, fmt.Errorf("could not marshal JWT secret: %w", err)
 	}
 
+	dbURL := databaseURL
+	version := *config.GetAuth().GetVersion()
+	if version != "0.0.0-dev" && CompareVersions(version, "0.30.999999") <= 0 {
+		dbURL = databaseMigrationURL
+	}
 	env := []EnvVar{
 		{
 			Name:       "HASURA_GRAPHQL_DATABASE_URL",
 			SecretName: secretHasuraAuthGraphqlDatabaseURL,
-			Value:      databaseURL,
+			Value:      dbURL,
+			IsSecret:   true,
+		},
+		{
+			Name:       "POSTGRES_MIGRATIONS_CONNECTION",
+			SecretName: secretHasuraAuthDatabaseMigrationsURL,
+			Value:      databaseMigrationURL,
 			IsSecret:   true,
 		},
 		{

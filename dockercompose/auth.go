@@ -7,17 +7,14 @@ import (
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 )
 
-func authPatch022(svc Service, useTLS bool) *Service {
+func authPatchPre022(svc Service, useTLS bool) *Service {
 	svc.Labels = Ingresses{
 		{
-			Name: "auth",
-			TLS:  useTLS,
-			Rule: "Host(`local.auth.nhost.run`) && PathPrefix(`/v1`)",
-			Port: authPort,
-			Rewrite: &Rewrite{
-				Regex:       "/v1(/|$$)(.*)",
-				Replacement: "/$$2",
-			},
+			Name:    "auth",
+			TLS:     useTLS,
+			Rule:    "Host(`local.auth.nhost.run`)",
+			Port:    authPort,
+			Rewrite: nil,
 		},
 	}.Labels()
 
@@ -35,6 +32,7 @@ func auth( //nolint:funlen
 		cfg,
 		"http://graphql:8080/v1/graphql",
 		URL("auth", httpPort, useTLS)+"/v1", //nolint:goconst
+		"postgres://nhost_hasura@postgres:5432/local",
 		"postgres://nhost_auth_admin@postgres:5432/local",
 		&model.ConfigSmtp{
 			User:     "user",
@@ -76,11 +74,14 @@ func auth( //nolint:funlen
 		},
 		Labels: Ingresses{
 			{
-				Name:    "auth",
-				TLS:     useTLS,
-				Rule:    "Host(`local.auth.nhost.run`)",
-				Port:    authPort,
-				Rewrite: nil,
+				Name: "auth",
+				TLS:  useTLS,
+				Rule: "Host(`local.auth.nhost.run`) && PathPrefix(`/v1`)",
+				Port: authPort,
+				Rewrite: &Rewrite{
+					Regex:       "/v1(/|$$)(.*)",
+					Replacement: "/$$2",
+				},
 			},
 		}.Labels(),
 		Ports:   ports(port, authPort),
@@ -96,8 +97,9 @@ func auth( //nolint:funlen
 		WorkingDir: nil,
 	}
 
-	if appconfig.CompareVersions(*cfg.Auth.Version, "0.21.999999999") <= 0 {
-		svc = authPatch022(*svc, useTLS)
+	if *cfg.Auth.Version != "0.0.0-dev" &&
+		appconfig.CompareVersions(*cfg.Auth.Version, "0.22.0") >= 0 {
+		svc = authPatchPre022(*svc, useTLS)
 	}
 
 	return svc, nil
