@@ -1277,6 +1277,9 @@ importers:
       react-native-inappbrowser-reborn:
         specifier: ^3.7.0
         version: 3.7.0(react-native@0.73.7)
+      react-native-passkey:
+        specifier: ^2.1.1
+        version: 2.1.1(react-native@0.73.7)(react@18.2.0)
       react-native-reanimated:
         specifier: ^3.8.1
         version: 3.8.1(@babel/core@7.24.3)(react-native@0.73.7)(react@18.2.0)
@@ -26004,6 +26007,16 @@ packages:
     dependencies:
       invariant: 2.2.4
       opencollective-postinstall: 2.0.3
+      react-native: 0.73.7(@babel/core@7.24.3)(@babel/preset-env@7.24.3)(react@18.2.0)
+    dev: false
+
+  /react-native-passkey@2.1.1(react-native@0.73.7)(react@18.2.0):
+    resolution: {integrity: sha512-/SBlL+8aJOiAAyO4jmRhJAxo1LklMpjQijLyl1jZlt9bKtRnh4Uz94z7AYouBR2anTB+DaEycLIhunG7h8Xbwg==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
+    dependencies:
+      react: 18.2.0
       react-native: 0.73.7(@babel/core@7.24.3)(@babel/preset-env@7.24.3)(react@18.2.0)
     dev: false
 

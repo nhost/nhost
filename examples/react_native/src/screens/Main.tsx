@@ -1,5 +1,5 @@
 import CustomDrawer from '@components/Drawer';
-import {useAuthenticationStatus, useNhostClient} from '@nhost/react';
+import {useAuthenticationStatus} from '@nhost/react';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
@@ -10,6 +10,7 @@ import Storage from '@screens/Storage';
 import Todos from '@screens/Todos';
 import React from 'react';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -23,7 +24,6 @@ function LoadingIndicatorView() {
 }
 
 function Main() {
-  const nhost = useNhostClient();
   const {isAuthenticated, isLoading} = useAuthenticationStatus();
 
   if (isLoading) {
@@ -52,7 +52,19 @@ function Main() {
 
 function DrawerNavigator() {
   return (
-    <Drawer.Navigator drawerContent={props => <CustomDrawer {...props} />}>
+    <Drawer.Navigator
+      screenOptions={({navigation}) => ({
+        headerLeft: () => (
+          <Icon
+            name="menu"
+            size={30}
+            color="black"
+            onPress={navigation.toggleDrawer}
+            style={{marginLeft: 14}}
+          />
+        ),
+      })}
+      drawerContent={props => <CustomDrawer {...props} />}>
       <Drawer.Screen name="Profile" component={Profile} />
       <Drawer.Screen name="Todos" component={Todos} />
       <Drawer.Screen name="Storage" component={Storage} />

@@ -1,9 +1,9 @@
 import {gql, useMutation} from '@apollo/client';
 import {useForm} from 'react-hook-form';
 import {StyleSheet, View} from 'react-native';
-import Button from './Button';
-import ControlledInput from './ControlledInput';
-import {TODO_LIST} from '../screens/Todos';
+import Button from '@components/Button';
+import ControlledInput from '@components/ControlledInput';
+import {TODO_LIST} from '@screens/Todos';
 
 interface AddTodoFormValues {
   contents: string;
