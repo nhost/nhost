@@ -2,7 +2,7 @@ import Image from 'next/image'
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
-  title: 'Autoscaler',
+  title: 'Introducing the Nhost Autoscaler, a new powerful addition to the Nhost Platform.',
   description:
     'From 0 to 100',
   image: '/images/blog/og-auth-migration-to-go.png',
@@ -15,12 +15,12 @@ export const article = {
       url: 'https://twitter.com/dbarrosop',
     },
   ],
-  tags: ['Product', 'Auth'],
+  tags: ['Product', 'Platform', 'Serverless'],
 }
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-To provide you with greater flexibility in your deployment options and enable you to easily scale your application while minimizing costs, we have developed an autoscaler solution. This blog post aims to showcase the progress made thus far and offers a comparison of a fictional project with varying resource configurations across different load scenarios.
+To provide you with greater flexibility in your deployment options and enable you to easily scale your application while minimizing costs, we're releasing a powerful new tool to our platform: the Nhost Autoscaler. This blog post aims to showcase the progress made thus far and offers a comparison of a fictional project with varying resource configurations across different load scenarios.
 
 ## Workload
 
@@ -103,7 +103,7 @@ More notably, the spikes came back. Why? As we mentioned above, with dedicated c
 
 ### Autoscaler, 40 workers, max 10 replicas
 
-To make sure you don't have to rely on the availability of extra resources without having to overprovision your services we have developed the autoscaler. The autoscaler will automatically provision extra replicas of your services when needed and remove them when they are no longer needed.
+To make sure you don't have to rely on the availability of extra resources, nor you have to overprovision your services, you can now simply rely on the new autoscaler to automatically provision extra replicas of your services when needed and remove them when they are no longer needed.
 
 To see it in action we are going to repeat the previous test with 40 workers but after enabling the autoscaler and instructing it to scale up to 10 replicas.
 
