@@ -66,7 +66,7 @@ The results are quite good given the amount of shared compute assigned, speciall
 
 ### Dedicated resources, no autoscaler, 10 workers
 
-Now we are going to perform exactly the same test with the same number of workers but using [dedicated compute](https://docs.nhost.io/platform/compute-resources#dedicated-compute). With dedicated compute the resources you assign to each service is guaranteed and there is no throttling. To make it even more appealing, if resources are available we will allow you to exceed your assigned resources if they are available.
+Now we are going to perform exactly the same test with the same number of workers but using [dedicated compute](https://docs.nhost.io/platform/compute-resources#dedicated-compute). With dedicated compute the resources you assign to each service is guaranteed and there is no throttling. To make it even more appealing, if resources are available we will allow you to exceed your assigned resources if they are available (for more information on how this work, please, refer to our [docs](https://docs.nhost.io/platform/compute-resources#bursting-with-dedicated-compute).
 
 We are assigning the following dedicated compute to each service:
 
@@ -99,7 +99,7 @@ We can observe the following:
 - Our peak RPS went up by 3.3x, from 255 to 841
 - As load increased, P95 went slightly up, to 119ms
 
-More notably, the spikes came back. Why? As we mentioned above, with dedicated compute we allow you to exceed your allotted resources, however, only if they are available. If other users need them they may take priority so you shouldn't count on them on a sustained basis. You can observe when the extra resources weren't available for you in the form of those spikes.
+Most notably, the spikes came back. Why? As we mentioned above, with dedicated compute we allow you to temporarily exceed your allotted resources, however, only if they are available. In the graph above you can observe when the extra resources weren't available for you in the form of those spikes.
 
 ### Autoscaler, 40 workers, max 10 replicas
 
