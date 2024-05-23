@@ -4,7 +4,7 @@ import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 export const article = {
   title: 'Introducing the Nhost Autoscaler, a new powerful addition to the Nhost Platform.',
   description:
-    'From 0 to 100',
+    'From 0 to ludicrous speed',
   image: '/images/blog/og-auth-migration-to-go.png',
   date: '2024-05-21',
   authors: [
@@ -48,7 +48,7 @@ It's important to note that there are no optimizations or caching mechanisms imp
 
 ### No dedicated resources, no autoscaler, 10 workers
 
-We start by testing the application using a vanilla Pro project. Under this configuration the project is assigned [0.5 cores to each service](https://docs.nhost.io/platform/compute-resources#pro-plan) and, of course, there is no autoscaler.
+We start by testing the application using a vanilla Pro project. Under this configuration the project is assigned [0.5 cores to each service](https://docs.nhost.io/platform/compute-resources#pro-plan) and, of course, there is no autoscaler involved yet.
 
 It is important to note that with this configuration, the compute is shared. A quota mechanism is implemented to ensure that everyone uses these shared CPUs fairly. This mechanism may lead to "throttling", where a process might need to be paused for a number of milliseconds if the quota is exceeded.
 
@@ -112,7 +112,7 @@ To see it in action we are going to repeat the previous test with 40 workers but
 Now we can see how the same test behave differently from before:
 
 - Up from 184.1k requests for the period to 278.9k, this is a 1.5x increase
-- Our peak RPS went up from 841 to 1055, a 1.25x RPS. However, RPS remains more stable over time compared to the previous scenario.
+- Our peak RPS went up from 841 to 1055, a 1.25x increase in RPS. However, RPS remains more stable over time compared to the previous scenario.
 - P95 goes down to 114ms, but more importantly it is more stable than before.
 
 The main take away from this graph is that the system increased resources allowing your application to remain stable. There is an initial shock in the graph as the system goes from 0 to a lot of requests but once the autoscaler starts spinning replicas to cope with the extra load the system achieves stability.
