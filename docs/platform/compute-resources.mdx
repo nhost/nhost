@@ -72,6 +72,28 @@ To setup dedicated resources for your project, you can either use the Dashboard 
   </Tab>
 </Tabs>
 
+### Bursting with Dedicated Compute
+
+When using dedicated compute we allow your application to use more than its alloted CPU resources if those resources are available. This means what we are calling dedicated compute is, in fact, guaranteed compute. For instance:
+
+<div align="center">
+<img width="300" src="/images/platform/compute-resources/guaranteed-resources.png" alt="resource allocation" />
+</div>
+
+In the graph above we can see three applications assigned to the same node, each with its own dedicated compute (the solid lines block). However, all applications are allowed to use the non-solid region of compute as long as the rest of the projects are not using it:
+
+<div align="center">
+<img width="300" src="/images/platform/compute-resources/resource-utilization.png" alt="resource utilization" />
+</div>
+
+Above we can see three different scenarios:
+
+- In scenario A the green application is barely using its alloted CPU so if the other applications need it, they can borrow it.
+- Similarly, in scenario B the green application can borrow resources if it needs it from other applications if those aren't using them.
+- In the case all applications need to use all of their resources, nobody can steal from each other as resources are guaranteed per application.
+
+This borrowing of resources is convenient in case of short and unexpected bursts, however, as those are not guaranteed you shouldn't rely on them for sustained usage.
+
 ## Disk Performance
 
 By default disks are provisioned with a capacity for 3000 IOPS and 125 Mbps of throughput. If you need higher performance don't hesitate to contact us.
