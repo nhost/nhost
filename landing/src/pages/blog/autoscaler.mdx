@@ -46,9 +46,9 @@ It's important to note that there are no optimizations or caching mechanisms imp
 
 ## Scenarios
 
-### No dedicated resources, 10 workers
+### No dedicated resources, no autoscaler, 10 workers
 
-We start by testing the application using a vanilla Pro project. Under this configuration the project is assigned [0.5 cores to each service](https://docs.nhost.io/platform/compute-resources#pro-plan).
+We start by testing the application using a vanilla Pro project. Under this configuration the project is assigned [0.5 cores to each service](https://docs.nhost.io/platform/compute-resources#pro-plan) and, of course, there is no autoscaler.
 
 It is important to note that with this configuration, the compute is shared. A quota mechanism is implemented to ensure that everyone uses these shared CPUs fairly. This mechanism may lead to "throttling", where a process might need to be paused for a number of milliseconds if the quota is exceeded.
 
@@ -64,7 +64,7 @@ In the graph above we can observe a few things:
 
 The results are quite good given the amount of shared compute assigned, specially the P95 response time is quite impressive. However, something that isn't that great but it's expected are those spikes you can see in the response times. These spikes are a side-effect of the "throttling mechanism" we described before.
 
-### Dedicated resources, 10 workers
+### Dedicated resources, no autoscaler, 10 workers
 
 Now we are going to perform exactly the same test with the same number of workers but using [dedicated compute](https://docs.nhost.io/platform/compute-resources#dedicated-compute). With dedicated compute the resources you assign to each service is guaranteed and there is no throttling. To make it even more appealing, if resources are available we will allow you to exceed your assigned resources if they are available.
 
@@ -87,7 +87,7 @@ We can observe the following:
 
 What's important in this graph is to see that performance was not only almost double but it got more predictable, with no spikes on any of the graphs.
 
-### Dedicated resources, 40 workers
+### Dedicated resources, no autoscaler, 40 workers
 
 Now let's repeat the test but using 40 workers instead of 10:
 
@@ -143,8 +143,10 @@ If you want to see the autoscaler's work, here are the graphs:
 
 Totalling 15.5 cores.
 
+## Future work
+
+The autoscaler is still work in progress, we are working with a select group of customers to develop it and test it, if you are interested in being involved and/or get early access don't hesitate to let us know.
+
 ## Conclusion
 
 Scaling infrastructure is hard. However, we are doing a lot of work to simplify it so you don't have to care much about it and to make sure you can grow and survive being featured on hackernews or reddit without requiring a cristal ball and/or having to overprovision, saving you money and headaches.
-
-The autoscaler is still work in progress, we are working with a select group of customers to develop it and test it, if you are interested in being involved and/or get early access don't hesitate to let us know.
