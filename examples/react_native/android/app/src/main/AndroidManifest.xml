@@ -18,7 +18,7 @@
         <category android:name="android.intent.category.BROWSABLE" />
         <data android:scheme="http" />
         <data android:scheme="https" />
-        <data android:host="example-react-apollo-cpwsvq87l-nhost.vercel.app" />
+        <data android:host="example-react-apollo-d7nitgv9f-nhost.vercel.app" />
       </intent-filter>
     </activity>
   </application>
