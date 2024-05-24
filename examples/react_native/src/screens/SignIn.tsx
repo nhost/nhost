@@ -62,79 +62,6 @@ export default function SignIn({
     }
   };
 
-  const handleSignInWithSecurityKey = async () => {
-    const isSupported = Passkey.isSupported();
-
-    if (isSupported) {
-      try {
-        const res = await fetch(
-          'https://local.auth.nhost.run/v1/signup/webauthn',
-          {
-            method: 'POST',
-            headers: {
-              'content-type': 'application/json',
-            },
-            body: JSON.stringify({
-              email: 'hsanbenjobrane@gmail.com',
-            }),
-          },
-        );
-
-        if (!res.ok) {
-          throw new Error('Request to sign in failed');
-        }
-
-        const challengeRequest = await res.json();
-
-        console.log({
-          challengeRequest,
-        });
-
-        // Call the `register` method with the retrieved request in JSON format
-        // A native overlay will be displayed
-        const result: PasskeyRegistrationResult = await Passkey.register(
-          challengeRequest,
-        );
-
-        console.log({
-          result,
-        });
-
-        // const verification = await fetch(
-        //   'https://local.auth.nhost.run/signin/webauthn/verify',
-        //   {
-        //     headers: {
-        //       'content-type': 'application/json',
-        //     },
-        //     body: JSON.stringify({
-        //       email: 'hsanbenjobrane@gmail.com',
-        //       credential: result,
-        //     }),
-        //   },
-        // );
-
-        // if (!verification.ok) {
-        //   throw new Error('Verification failed');
-        // }
-
-        // const session = await verification.json();
-
-        // console.log({
-        //   session,
-        // });
-
-        // The `register` method returns a FIDO2 attestation result
-        // Pass it to your server for verification
-      } catch (error) {
-        console.log({error});
-        // Handle Error...
-        Alert.alert('webauthn', `An error has occurred`);
-      }
-    } else {
-      Alert.alert('webauthn', `${isSupported}`);
-    }
-  };
-
   const handleSignInWithOAuth = async (providerLink: string) => {
     try {
       const response = await InAppBrowser.openAuth(
@@ -162,6 +89,9 @@ export default function SignIn({
       Alert.alert('Error', 'An error occurred during the sign-in process.');
     }
   };
+
+  const navigateToSignUpWithPassKeys = () =>
+    navigation.navigate('signUpWithPassKeys');
 
   const handleSignInWithApple = () => handleSignInWithOAuth(apple);
   const handleSignInWithGoogle = () => handleSignInWithOAuth(google);
@@ -227,8 +157,8 @@ export default function SignIn({
           <Button
             loading={isLoading}
             disabled={isLoading}
-            label="Sign in with security key"
-            onPress={handleSignInWithSecurityKey}
+            label="Sign up with passkeys"
+            onPress={navigateToSignUpWithPassKeys}
           />
 
           <View
