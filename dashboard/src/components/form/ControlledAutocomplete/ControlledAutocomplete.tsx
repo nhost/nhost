@@ -40,8 +40,9 @@ function ControlledAutocomplete(
   const form = useFormContext();
   const { field } = useController({
     ...(controllerProps || {}),
-    name: controllerProps?.name || name || '',
+    name: controllerProps?.name || name || '' || 'version',
     control: controllerProps?.control || control,
+    defaultValue: { label: '', value: '' },
   });
 
   if (!form) {
@@ -49,12 +50,16 @@ function ControlledAutocomplete(
   }
 
   const { setValue } = form || {};
+  console.log('field.value:', field.value);
 
   return (
     <Autocomplete
       inputValue={
-        typeof field.value !== 'object' ? field.value.toString() : undefined
+        typeof field.value !== 'object' && field.value !== undefined
+          ? field.value.toString()
+          : ''
       }
+      value={field.value ? field.value : { label: '', value: null }}
       {...props}
       {...field}
       ref={mergeRefs([field.ref, ref])}
@@ -68,6 +73,7 @@ function ControlledAutocomplete(
         }
       }}
       onBlur={callAll(field.onBlur, props.onBlur)}
+      isOptionEqualToValue={(option, value) => option.value === value.value}
     />
   );
 }
