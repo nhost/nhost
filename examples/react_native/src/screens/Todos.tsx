@@ -1,3 +1,4 @@
+import React from 'react';
 import {useQuery} from '@apollo/client';
 import AddTodoForm from '@components/AddTodoForm';
 import Todo, {type TodoItem} from '@components/Todo';
@@ -12,7 +13,7 @@ export default function Todos() {
 
   useEffect(() => {
     return () => client.stop();
-  }, []);
+  }, [client]);
 
   if (loading) {
     return (
@@ -22,14 +23,17 @@ export default function Todos() {
     );
   }
 
+  const renderTodo = ({item}: {item: TodoItem}) => <Todo todo={item} />;
+  const itemSeperator = () => <View style={styles.separator} />;
+
   return (
     <View style={styles.wrapper}>
       <AddTodoForm />
       <FlatList
         data={todos}
         keyExtractor={item => item.id}
-        renderItem={({item}) => <Todo todo={item} />}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        renderItem={renderTodo}
+        ItemSeparatorComponent={itemSeperator}
       />
     </View>
   );

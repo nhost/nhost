@@ -1,3 +1,4 @@
+import React from 'react';
 import Button from '@components/Button';
 import ControlledInput from '@components/ControlledInput';
 import {useSignUpEmailPassword} from '@nhost/react';

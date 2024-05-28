@@ -1,3 +1,4 @@
+import React from 'react';
 import {useHasuraClaims, useUserData} from '@nhost/react';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 

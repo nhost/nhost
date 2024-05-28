@@ -1,6 +1,7 @@
-jest.useFakeTimers();
 import 'react-native-gesture-handler/jestSetup';
 import WebSocket from 'ws';
+
+jest.useFakeTimers();
 
 Object.assign(global, {
   WebSocket,

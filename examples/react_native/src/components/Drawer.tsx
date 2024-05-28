@@ -1,3 +1,4 @@
+import React from 'react';
 import {useNhostClient} from '@nhost/react';
 import {
   DrawerContentScrollView,
@@ -19,7 +20,9 @@ export default function Drawer(props: DrawerContentComponentProps) {
   };
 
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={{flex: 1}}>
+    <DrawerContentScrollView
+      {...props}
+      contentContainerStyle={styles.drawerContentScrollView}>
       <SafeAreaView style={styles.safeAreaView}>
         <View>
           <DrawerItemList {...props} />
@@ -45,5 +48,8 @@ const styles = StyleSheet.create({
   },
   signOutButtonWrapper: {
     paddingHorizontal: 10,
+  },
+  drawerContentScrollView: {
+    flex: 1,
   },
 });

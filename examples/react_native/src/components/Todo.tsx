@@ -1,3 +1,4 @@
+import React from 'react';
 import {useMutation} from '@apollo/client';
 import {DELETE_TODO, GET_TODOS} from '@graphql/todos';
 import {StyleSheet, Text, View} from 'react-native';
@@ -25,7 +26,7 @@ export default function Todo({todo: {id, contents}}: {todo: TodoItem}) {
         <Icon name="check" size={25} />
         <Text style={styles.todoContent}>{contents}</Text>
       </View>
-      <View style={{width: 50}}>
+      <View style={styles.buttonWrapper}>
         <Button
           label={<Icon name="trash-can-outline" size={20} />}
           color="#f1f1f1"
@@ -49,4 +50,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   todoContent: {flex: 1},
+  buttonWrapper: {
+    width: 50,
+  },
 });

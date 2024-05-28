@@ -1,3 +1,4 @@
+import React from 'react';
 import Button from '@components/Button';
 import {StyleSheet, Text, View} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';

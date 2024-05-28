@@ -1,3 +1,4 @@
+import React from 'react';
 import {Controller, ControllerProps, type Control} from 'react-hook-form';
 import {StyleSheet, TextInput, TextInputProps} from 'react-native';
 
@@ -14,7 +15,7 @@ export default function ControlledInput({control, name, ...props}: InputProps) {
         <TextInput
           value={value}
           onBlur={onBlur}
-          onChangeText={value => onChange(value)}
+          onChangeText={newValue => onChange(newValue)}
           style={styles.input}
           {...props}
         />
