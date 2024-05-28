@@ -5,7 +5,6 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Profile from '@screens/Profile';
 import SignIn from '@screens/SignIn';
-import SignUpWithPassKeys from '@screens/SignUpWithPassKeys';
 import SignUp from '@screens/SignUp';
 import Storage from '@screens/Storage';
 import Todos from '@screens/Todos';
@@ -42,10 +41,6 @@ function Main() {
           <>
             <Stack.Screen name="signin" component={SignIn} />
             <Stack.Screen name="signup" component={SignUp} />
-            <Stack.Screen
-              name="signUpWithPassKeys"
-              component={SignUpWithPassKeys}
-            />
           </>
         ) : (
           <Stack.Screen name="drawer" component={DrawerNavigator} />
@@ -82,7 +77,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'beige',
   },
 });
 

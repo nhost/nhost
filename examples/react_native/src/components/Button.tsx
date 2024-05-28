@@ -45,10 +45,12 @@ export default function Button({
 const buttonStyles = (pressed: boolean = false, color: string = 'royalblue') =>
   StyleSheet.create({
     button: {
-      width: '100%',
+      flexGrow: 1,
       padding: 12,
+      width: '100%',
       borderRadius: 10,
       alignItems: 'center',
+      justifyContent: 'center',
       backgroundColor: color,
       opacity: pressed ? 0.9 : 1,
     },

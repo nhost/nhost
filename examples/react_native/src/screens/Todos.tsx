@@ -1,22 +1,18 @@
-import {gql, useQuery} from '@apollo/client';
+import {useQuery} from '@apollo/client';
+import AddTodoForm from '@components/AddTodoForm';
+import Todo, {type TodoItem} from '@components/Todo';
+import {GET_TODOS} from '@graphql/todos';
+import {useEffect} from 'react';
 import {ActivityIndicator, FlatList, StyleSheet, View} from 'react-native';
-import AddTodoForm from '../components/AddTodoForm';
-import Todo, {type ITodo} from '../components/Todo';
-
-export const TODO_LIST = gql`
-  query TodoList {
-    todos(order_by: {createdAt: desc}) {
-      id
-      contents
-    }
-  }
-`;
 
 export default function Todos() {
-  // TODO handle error
-  const {loading, data} = useQuery<{todos: ITodo[]}>(TODO_LIST);
+  const {loading, data, client} = useQuery<{todos: TodoItem[]}>(GET_TODOS);
 
   const todos = data?.todos || [];
+
+  useEffect(() => {
+    return () => client.stop();
+  }, []);
 
   if (loading) {
     return (

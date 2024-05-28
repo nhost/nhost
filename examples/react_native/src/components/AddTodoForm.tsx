@@ -3,7 +3,7 @@ import {useForm} from 'react-hook-form';
 import {StyleSheet, View} from 'react-native';
 import Button from '@components/Button';
 import ControlledInput from '@components/ControlledInput';
-import {TODO_LIST} from '@screens/Todos';
+import {ADD_TODO, GET_TODOS} from '@graphql/todos';
 
 interface AddTodoFormValues {
   contents: string;
@@ -12,19 +12,9 @@ interface AddTodoFormValues {
 export default function AddTodoForm() {
   const {control, handleSubmit, reset} = useForm<AddTodoFormValues>();
 
-  const [addTodo, {loading}] = useMutation(
-    gql`
-      mutation AddItem($contents: String!) {
-        insertTodo(object: {contents: $contents}) {
-          id
-          contents
-        }
-      }
-    `,
-    {
-      refetchQueries: [{query: TODO_LIST}],
-    },
-  );
+  const [addTodo, {loading}] = useMutation(ADD_TODO, {
+    refetchQueries: [{query: GET_TODOS}],
+  });
 
   const onSubmit = async (values: AddTodoFormValues) => {
     const {contents} = values;

@@ -19,6 +19,7 @@ module.exports = {
         ],
         root: ['.'],
         alias: {
+          '@graphql': './src/graphql',
           '@components': './src/components',
           '@screens': './src/screens',
         },

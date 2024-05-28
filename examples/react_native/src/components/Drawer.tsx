@@ -41,6 +41,7 @@ const styles = StyleSheet.create({
   safeAreaView: {
     flex: 1,
     justifyContent: 'space-between',
+    paddingBottom: 10,
   },
   signOutButtonWrapper: {
     paddingHorizontal: 10,

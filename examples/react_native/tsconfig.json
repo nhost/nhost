@@ -6,6 +6,7 @@
     "paths": {
       "@components/*": ["src/components/*"],
       "@screens/*": ["src/screens/*"],
+      "@graphql/*": ["src/graphql/*"],
       "react": ["./node_modules/@types/react"]
     }
   }

@@ -1,26 +1,25 @@
+import Button from '@components/Button';
+import ControlledInput from '@components/ControlledInput';
+import SignInWithAppleButton from '@components/SignInWithAppleButton';
+import SignInWithGoogleButton from '@components/SignInWithGoogleButton';
 import {
   useNhostClient,
   useProviderLink,
   useSignInEmailPassword,
 } from '@nhost/react';
-import {Passkey, PasskeyRegistrationResult} from 'react-native-passkey';
 import {NavigationProp, ParamListBase} from '@react-navigation/native';
 import {useForm} from 'react-hook-form';
 import {
   Alert,
-  Linking,
   SafeAreaView,
   ScrollView,
+  StyleSheet,
   Text,
   View,
 } from 'react-native';
-import Button from '@components/Button';
-import ControlledInput from '@components/ControlledInput';
-import SignInWithAppleButton from '@components/SignInWithAppleButton';
-import SignInWithGoogleButton from '@components/SignInWithGoogleButton';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 
-interface SignUpFormValues {
+interface SignInFormValues {
   firstName: string;
   lastName: string;
   email: string;
@@ -37,10 +36,10 @@ export default function SignIn({
     redirectTo: 'myapp://',
   });
 
-  const {control, handleSubmit} = useForm<SignUpFormValues>();
+  const {control, handleSubmit} = useForm<SignInFormValues>();
   const {signInEmailPassword, isLoading} = useSignInEmailPassword();
 
-  const onSubmit = async (data: SignUpFormValues) => {
+  const onSubmit = async (data: SignInFormValues) => {
     const {email, password} = data;
 
     const {isError, error, needsEmailVerification} = await signInEmailPassword(
@@ -64,11 +63,7 @@ export default function SignIn({
 
   const handleSignInWithOAuth = async (providerLink: string) => {
     try {
-      const response = await InAppBrowser.openAuth(
-        providerLink,
-        'myapp://',
-        {},
-      );
+      const response = await InAppBrowser.openAuth(providerLink, 'myapp://');
 
       if (response.type === 'success' && response.url) {
         const refreshToken =
@@ -85,44 +80,24 @@ export default function SignIn({
         }
       }
     } catch (error) {
-      console.log({error});
       Alert.alert('Error', 'An error occurred during the sign-in process.');
     }
   };
 
-  const navigateToSignUpWithPassKeys = () =>
-    navigation.navigate('signUpWithPassKeys');
-
   const handleSignInWithApple = () => handleSignInWithOAuth(apple);
   const handleSignInWithGoogle = () => handleSignInWithOAuth(google);
 
+  const navigateToSignUp = () => navigation.navigate('signup');
+
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={styles.safeAreaView}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
-        style={{backgroundColor: 'white', flex: 1}}>
-        <View
-          style={{
-            height: 200,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <Text
-            style={{
-              fontSize: 30,
-              fontWeight: 'bold',
-            }}>
-            Sign In
-          </Text>
+        style={styles.scrollView}>
+        <View style={styles.header}>
+          <Text style={styles.signIn}>Sign In</Text>
         </View>
-        <View
-          style={{
-            gap: 15,
-            paddingLeft: 30,
-            paddingRight: 30,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
+        <View style={styles.formWrapper}>
           <ControlledInput
             control={control}
             name="email"
@@ -154,28 +129,38 @@ export default function SignIn({
           <SignInWithAppleButton hanldeSignIn={handleSignInWithApple} />
           <SignInWithGoogleButton handleSignIn={handleSignInWithGoogle} />
 
-          <Button
-            loading={isLoading}
-            disabled={isLoading}
-            label="Sign up with passkeys"
-            onPress={navigateToSignUpWithPassKeys}
-          />
+          <View style={styles.divider} />
 
-          <View
-            style={{
-              height: 2,
-              backgroundColor: '#D3D3D3',
-              width: '50%',
-              marginVertical: 10,
-            }}
-          />
-
-          <Button
-            label="Sign Up"
-            onPress={() => navigation.navigate('signup')}
-          />
+          <Button label="Sign Up" onPress={navigateToSignUp} />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeAreaView: {flex: 1},
+  scrollView: {backgroundColor: 'white', flex: 1},
+  header: {
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signIn: {
+    fontSize: 30,
+    fontWeight: 'bold',
+  },
+  formWrapper: {
+    gap: 15,
+    paddingLeft: 30,
+    paddingRight: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  divider: {
+    height: 1,
+    width: '50%',
+    backgroundColor: '#D3D3D3',
+    marginVertical: 10,
+  },
+});

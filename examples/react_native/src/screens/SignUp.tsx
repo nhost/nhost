@@ -1,18 +1,16 @@
+import Button from '@components/Button';
+import ControlledInput from '@components/ControlledInput';
 import {useSignUpEmailPassword} from '@nhost/react';
-import {Controller, useForm} from 'react-hook-form';
+import {NavigationProp, ParamListBase} from '@react-navigation/native';
+import {useForm} from 'react-hook-form';
 import {
-  ActivityIndicator,
   Alert,
-  Pressable,
   SafeAreaView,
   ScrollView,
+  StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
-import Button from '../components/Button';
-import {NavigationProp, ParamListBase} from '@react-navigation/native';
-import ControlledInput from '../components/ControlledInput';
 
 interface SignUpFormValues {
   firstName: string;
@@ -33,13 +31,15 @@ export default function SignUp({
   const onSubmit = async (data: SignUpFormValues) => {
     const {firstName, lastName, email, password} = data;
 
-    const {isError, error, user, needsEmailVerification} =
-      await signUpEmailPassword(email, password, {
+    const {isError, error, needsEmailVerification} = await signUpEmailPassword(
+      email,
+      password,
+      {
         displayName: `${firstName} ${lastName}`,
-      });
+      },
+    );
 
     if (isError) {
-      console.log({error});
       Alert.alert('Error', error?.message);
       return;
     }
@@ -51,40 +51,17 @@ export default function SignUp({
       );
       return;
     }
-
-    console.log({
-      user,
-    });
   };
 
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={styles.safeAreaView}>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
-        style={{backgroundColor: 'white', flex: 1}}>
-        <View
-          style={{
-            height: 200,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <Text
-            style={{
-              fontSize: 30,
-              fontWeight: 'bold',
-            }}>
-            Sign Up
-          </Text>
+        style={styles.scrollView}>
+        <View style={styles.header}>
+          <Text style={styles.signUp}>Sign Up</Text>
         </View>
-        <View
-          style={{
-            width: '100%',
-            gap: 10,
-            paddingLeft: 10,
-            paddingRight: 10,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
+        <View style={styles.formWrapper}>
           <ControlledInput
             control={control}
             name="firstName"
@@ -140,3 +117,25 @@ export default function SignUp({
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeAreaView: {flex: 1},
+  scrollView: {backgroundColor: 'white', flex: 1},
+  header: {
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signUp: {
+    fontSize: 30,
+    fontWeight: 'bold',
+  },
+  formWrapper: {
+    width: '100%',
+    gap: 15,
+    paddingLeft: 30,
+    paddingRight: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
