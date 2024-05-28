@@ -7,6 +7,7 @@ import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { OverviewDeployments } from '@/features/projects/overview/components/OverviewDeployments';
 import { OverviewDocumentation } from '@/features/projects/overview/components/OverviewDocumentation';
 import { OverviewMetrics } from '@/features/projects/overview/components/OverviewMetrics';
+import { OverviewProjectHealth } from '@/features/projects/overview/components/OverviewProjectHealth';
 import { OverviewProjectInfo } from '@/features/projects/overview/components/OverviewProjectInfo';
 import { OverviewRepository } from '@/features/projects/overview/components/OverviewRepository';
 import { OverviewTopBar } from '@/features/projects/overview/components/OverviewTopBar';
@@ -49,6 +50,8 @@ export default function ApplicationLive({
           </div>
 
           <div className="order-1 grid grid-flow-row content-start gap-8 lg:order-2 lg:col-span-1 lg:gap-12">
+            {/* <OverviewProjectHealth />
+            */}
             <OverviewProjectInfo />
             <Divider />
             <OverviewUsage />
@@ -92,6 +95,7 @@ export default function ApplicationLive({
         </div>
 
         <div className="grid grid-flow-row content-start gap-8 lg:col-span-1 lg:gap-12">
+          <OverviewProjectHealth />
           <OverviewProjectInfo />
           <Divider />
           <OverviewRepository />

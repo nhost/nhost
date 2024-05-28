@@ -17,6 +17,7 @@ enableConsole = true
 enableRemoteSchemaPermissions = false
 enabledAPIs = ['metadata', 'graphql', 'pgdump', 'config']
 liveQueriesMultiplexedRefetchInterval = 1000
+stringifyNumericTypes = false
 
 [hasura.logs]
 level = 'warn'
@@ -29,14 +30,13 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.28.0-beta002'
+version = '0.24.1'
 
 [auth.elevatedPrivileges]
-mode = 'required'
+mode = 'disabled'
 
 [auth.redirections]
-clientUrl = 'https://react-apollo.example.nhost.io/'
-allowedUrls = ['https://react-apollo.example.nhost.io', 'https://react-apollo.example.nhost.io/profile', 'https://vue-apollo.example.nhost.io', 'https://vue-apollo.example.nhost.io/profile', 'https://*.vercel.app', 'http://localhost:3000', 'http://localhost:3000/profile', 'http://localhost:5173', 'http://localhost:5173/profile']
+clientUrl = 'http://localhost:3000'
 
 [auth.signUp]
 enabled = true
@@ -65,30 +65,26 @@ rating = 'g'
 expiresIn = 900
 
 [auth.session.refreshToken]
-expiresIn = 43200
+expiresIn = 2592000
 
 [auth.method]
 [auth.method.anonymous]
-enabled = true
+enabled = false
 
 [auth.method.emailPasswordless]
-enabled = true
+enabled = false
 
 [auth.method.emailPassword]
 hibpEnabled = false
 emailVerificationRequired = true
-passwordMinLength = 8
+passwordMinLength = 9
 
 [auth.method.smsPasswordless]
 enabled = false
 
 [auth.method.oauth]
 [auth.method.oauth.apple]
-enabled = true
-clientId = '{{ secrets.APPLE_SERVICE_IDENTIFIER }}'
-keyId = '{{ secrets.APPLE_KEY_ID }}'
-teamId = '{{ secrets.APPLE_TEAM_ID }}'
-privateKey = '{{ secrets.APPLE_PRIVATE_KEY }}'
+enabled = false
 
 [auth.method.oauth.azuread]
 tenant = 'common'
@@ -104,22 +100,16 @@ enabled = false
 enabled = false
 
 [auth.method.oauth.github]
-enabled = true
-clientId = '{{ secrets.GITHUB_CLIENT_ID }}'
-clientSecret = '{{ secrets.GITHUB_CLIENT_SECRET }}'
+enabled = false
 
 [auth.method.oauth.gitlab]
 enabled = false
 
 [auth.method.oauth.google]
-enabled = true
-clientId = '{{ secrets.GOOGLE_CLIENT_ID }}'
-clientSecret = '{{ secrets.GOOGLE_CLIENT_SECRET }}'
+enabled = false
 
 [auth.method.oauth.linkedin]
-enabled = true
-clientId='{{ secrets.LINKEDIN_CLIENT_ID }}'
-clientSecret='{{ secrets.LINKEDIN_CLIENT_SECRET }}'
+enabled = false
 
 [auth.method.oauth.spotify]
 enabled = false
@@ -140,18 +130,13 @@ enabled = false
 enabled = false
 
 [auth.method.webauthn]
-enabled = true
-
-[auth.method.webauthn.relyingParty]
-name = 'apollo-example'
-origins = ['https://react-apollo.example.nhost.io']
+enabled = false
 
 [auth.method.webauthn.attestation]
 timeout = 60000
 
 [auth.totp]
-enabled = true
-issuer = 'nhost'
+enabled = false
 
 [postgres]
 version = '14.6-20240129-1'
