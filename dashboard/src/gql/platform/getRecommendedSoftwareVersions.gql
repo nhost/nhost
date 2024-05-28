@@ -1,0 +1,6 @@
+query getRecommendedVersions{
+  softwareVersions {
+    software
+    version
+  }
+}
