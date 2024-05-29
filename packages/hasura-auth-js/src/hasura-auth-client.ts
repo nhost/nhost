@@ -163,7 +163,6 @@ export class HasuraAuthClient {
         connect: accessToken
       } as any)
     )
-
     if (isBrowser()) {
       window.location.href = providerUrl
     }
@@ -245,11 +244,9 @@ export class HasuraAuthClient {
         `${this._client.backendUrl}/signin/provider/${provider}`,
         rewriteRedirectTo(this._client.clientUrl, options as any)
       )
-
       if (isBrowser()) {
         window.location.href = providerUrl
       }
-
       return { providerUrl, provider, session: null, mfa: null, error: null }
     }
 
