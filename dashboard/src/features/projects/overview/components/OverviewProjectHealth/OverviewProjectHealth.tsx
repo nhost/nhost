@@ -8,29 +8,29 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
 import { Box } from '@/components/ui/v2/Box';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
-import { useGetConfiguredVersionsQuery, useGetRecommendedVersionsQuery } from '@/generated/graphql';
+// import { useGetConfiguredVersionsQuery, useGetRecommendedVersionsQuery } from '@/generated/graphql';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 
 export default function OverviewProjectHealth() {
   const isPlatform = useIsPlatform();
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const { data: recommendedVersionsData, loading: loadingRecommendedVersions } = useGetRecommendedVersionsQuery({
-    skip: !isPlatform
-  });
+  // const { data: recommendedVersionsData, loading: loadingRecommendedVersions } = useGetRecommendedVersionsQuery({
+  //   skip: !isPlatform
+  // });
 
-  if (loadingRecommendedVersions) {
-    return (
-      <div className="grid grid-flow-row content-start gap-6">
-        <Text variant="h3">Project Health</Text>
-        <ActivityIndicator
-          delay={1000}
-          label="Loading Project Health..."
-          className="justify-center"
-        />
-      </div>
-    )
-  }
+  // if (loadingRecommendedVersions) {
+  //   return (
+  //     <div className="grid grid-flow-row content-start gap-6">
+  //       <Text variant="h3">Project Health</Text>
+  //       <ActivityIndicator
+  //         delay={1000}
+  //         label="Loading Project Health..."
+  //         className="justify-center"
+  //       />
+  //     </div>
+  //   )
+  // }
 
   const RunList = [...Array(10).keys()].map((i) =>
   (<li className="flex flex-row items-center gap-4 text-ellipsis text-nowrap leading-5">
