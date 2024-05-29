@@ -37,6 +37,7 @@
     "@babel/plugin-transform-export-namespace-from": "^7.24.1",
     "@babel/preset-env": "^7.20.0",
     "@babel/runtime": "^7.20.0",
+    "@jest/globals": "^29.7.0",
     "@react-native/babel-preset": "0.73.21",
     "@react-native/eslint-config": "0.73.2",
     "@react-native/metro-config": "0.73.5",

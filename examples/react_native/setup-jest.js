@@ -1,10 +1,13 @@
 import 'react-native-gesture-handler/jestSetup';
 import WebSocket from 'ws';
 
+import MockBroadcastChannel from './__mocks__/BroadcastChannel';
+
 jest.useFakeTimers();
 
 Object.assign(global, {
   WebSocket,
+  BroadcastChannel: MockBroadcastChannel,
 });
 
 jest.mock('@react-native-async-storage/async-storage', () =>
