@@ -1,10 +1,6 @@
 import { styled } from '@mui/material';
 import type { BadgeProps as MaterialBadgeProps } from '@mui/material/Badge';
-import MaterialBadge, {
-  badgeClasses,
-  getBadgeUtilityClass,
-} from '@mui/material/Badge';
-import { maxWidth, minWidth } from '@mui/system';
+import MaterialBadge from '@mui/material/Badge';
 import type { ElementType } from 'react';
 
 export interface BadgeProps extends MaterialBadgeProps {
@@ -20,26 +16,6 @@ const Badge = styled(MaterialBadge)<BadgeProps>(({ theme }) => ({
   lineHeight: theme.typography.pxToRem(16),
   fontWeight: 500,
   padding: 0,
-  // padding: theme.spacing(0, 0.25),
-  // '& .MuiTouchRipple-root': {
-  //   display: 'none',
-  // },
-  // [`&.${badgeClasses.colorInfo}`]: {
-  //   backgroundColor: theme.palette.primary.light,
-  //   color: theme.palette.primary.main,
-  // },
-  // [`&.${badgeClasses.colorWarning}`]: {
-  //   backgroundColor: theme.palette.warning.light,
-  //   color: theme.palette.warning.main,
-  // },
-  // [`&.${badgeClasses.colorSuccess}`]: {
-  //   backgroundColor: theme.palette.success.dark,
-  //   color:
-  //     theme.palette.mode === 'dark'
-  //       ? theme.palette.success.dark
-  //       : theme.palette.success.dark,
-  // },
-
   '& .MuiBadge-dot': {
     minWidth: '0.75rem',
     minHeight: '0.75rem',
@@ -64,9 +40,6 @@ const Badge = styled(MaterialBadge)<BadgeProps>(({ theme }) => ({
   '& .MuiBadge-colorSuccess': {
     backgroundColor: theme.palette.success.dark,
   },
-    // [`& .${getBadgeUtilityClass('deleteIconColorDefault')}`]: {
-  //   color: theme.palette.text.primary,
-  // },
 }));
 
 Badge.displayName = 'NhostBadge';

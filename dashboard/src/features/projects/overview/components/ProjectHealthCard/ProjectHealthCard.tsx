@@ -1,14 +1,12 @@
 import type { BoxProps } from '@/components/ui/v2/Box';
 import type { ReactElement } from 'react';
 import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { Badge } from '@/components/ui/v2/Badge';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { twMerge } from 'tailwind-merge';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
 import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import type { TooltipProps } from '@/components/ui/v2/Tooltip';
 
 export interface ProjectHealthCardProps extends BoxProps {
   /**
