@@ -22878,6 +22878,13 @@ export type GetProjectMetricsQueryVariables = Exact<{
 
 export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, functionsDuration: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
 
+export type GetProjectServicesHealthQueryVariables = Exact<{
+  appId: Scalars['String'];
+}>;
+
+
+export type GetProjectServicesHealthQuery = { __typename?: 'query_root', getProjectStatus: { __typename?: 'ProjectStatusResponse', Services: Array<{ __typename?: 'ServiceStatus', Name: string, State: ServiceState, Replicas: Array<{ __typename?: 'ReplicaStatus', Ready: boolean, Date: any, Errors: Array<{ __typename?: 'ContainerError', Name: string, LastError: { __typename?: 'LastError', Reason: string, ExitCode: number, Message: string } }> }> }> } };
+
 export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -24858,6 +24865,59 @@ export type GetProjectMetricsLazyQueryHookResult = ReturnType<typeof useGetProje
 export type GetProjectMetricsQueryResult = Apollo.QueryResult<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>;
 export function refetchGetProjectMetricsQuery(variables: GetProjectMetricsQueryVariables) {
       return { query: GetProjectMetricsDocument, variables: variables }
+    }
+export const GetProjectServicesHealthDocument = gql`
+    query getProjectServicesHealth($appId: String!) {
+  getProjectStatus(appID: $appId) {
+    Services {
+      Name
+      State
+      Replicas {
+        Ready
+        Date
+        Errors {
+          Name
+          LastError {
+            Reason
+            ExitCode
+            Message
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetProjectServicesHealthQuery__
+ *
+ * To run a query within a React component, call `useGetProjectServicesHealthQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectServicesHealthQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectServicesHealthQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetProjectServicesHealthQuery(baseOptions: Apollo.QueryHookOptions<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>(GetProjectServicesHealthDocument, options);
+      }
+export function useGetProjectServicesHealthLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>(GetProjectServicesHealthDocument, options);
+        }
+export type GetProjectServicesHealthQueryHookResult = ReturnType<typeof useGetProjectServicesHealthQuery>;
+export type GetProjectServicesHealthLazyQueryHookResult = ReturnType<typeof useGetProjectServicesHealthLazyQuery>;
+export type GetProjectServicesHealthQueryResult = Apollo.QueryResult<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>;
+export function refetchGetProjectServicesHealthQuery(variables: GetProjectServicesHealthQueryVariables) {
+      return { query: GetProjectServicesHealthDocument, variables: variables }
     }
 export const GetRemoteAppRolesDocument = gql`
     query getRemoteAppRoles {

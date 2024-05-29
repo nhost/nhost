@@ -63,7 +63,7 @@ export default function ProjectHealthCard({
 }: ProjectHealthCardProps) {
   return (
     // TODO: BUG 'arrow' prop stutters on hover 
-    <Tooltip title={versionMismatch ? tooltip : ""}
+    <Tooltip title={tooltip}
       slotProps={{
         tooltip: { className: '' },
       }}

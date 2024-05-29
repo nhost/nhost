@@ -8,10 +8,11 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
 import { Box } from '@/components/ui/v2/Box';
 import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
-import { useGetRecommendedSoftwareVersionsQuery, useGetConfiguredVersionsQuery } from '@/generated/graphql';
+import { useGetRecommendedSoftwareVersionsQuery, useGetConfiguredVersionsQuery, useGetProjectServicesHealthQuery, ServiceState } from '@/generated/graphql';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 
+// TODO: chore: remove hardcoded service names and versions, use data from graphql generated types
 const services = {
   auth: {
     displayName: "Auth",
@@ -62,6 +63,33 @@ function VersionMismatchTooltip({ serviceName, usedVersion, recommendedVersions 
   )
 }
 
+interface ServicesStatusTooltipProps {
+  servicesStatus?: Array<{
+    name: string,
+    state: ServiceState
+  }>
+}
+
+function ServicesStatusTooltip({ servicesStatus }: ServicesStatusTooltipProps) {
+  const colorMap = {
+    [ServiceState.Running]: "success.dark",
+    [ServiceState.Error]: "error.main",
+    [ServiceState.UpdateError]: "warning.dark",
+    [ServiceState.Updating]: "warning.dark",
+    [ServiceState.None]: "error.main",
+  } as const
+
+  return (<ol className="flex flex-col gap-3 px-4 py-6 m-0">
+    {servicesStatus.map(service =>
+    (<li key={service.name} className="flex flex-row items-center gap-4 text-ellipsis text-nowrap leading-5">
+      <Box sx={{ backgroundColor: colorMap[service.state] }} 
+      className={`flex-shrink-0 w-3 h-3 rounded-full ${service.state === ServiceState.Updating ? "animate-pulse" : ""}`} />
+      {service.name}
+    </li>))
+    }
+  </ol>)
+}
+
 export default function OverviewProjectHealth() {
   const isPlatform = useIsPlatform();
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -76,7 +104,14 @@ export default function OverviewProjectHealth() {
     skip: !isPlatform || !currentProject
   });
 
-  if (loadingRecommendedVersions || loadingConfiguredVersions) {
+  const { data: projectServicesHealthData, loading: loadingProjectServicesHealth } = useGetProjectServicesHealthQuery({
+    variables: {
+      appId: currentProject?.id
+    },
+    skip: !isPlatform || !currentProject
+  });
+
+  if (loadingRecommendedVersions || loadingConfiguredVersions || loadingProjectServicesHealth) {
     return (
       <div className="grid grid-flow-row content-start gap-6">
         <Text variant="h3">Project Health</Text>
@@ -126,13 +161,11 @@ export default function OverviewProjectHealth() {
     version => configuredVersionsData?.config?.ai?.version === version
   )
 
-  const RunList = [...Array(10).keys()].map((i) =>
-  (<li className="flex flex-row items-center gap-4 text-ellipsis text-nowrap leading-5">
-    <Box sx={{ backgroundColor: "success.dark" }} className="flex-shrink-0 w-3 h-3 bg-success rounded-full" />
-    {`nhost-run-x-y-${i + 1}`}
-  </li>)
-  );
-  const servicesTooltipElem = (<ol className="flex flex-col gap-3 px-4 py-6 m-0">{RunList}</ol>);
+  const servicesHealth = projectServicesHealthData?.getProjectStatus?.Services.map(service => ({
+    name: service.Name,
+    state: service.State
+  })
+  ) ?? null
 
   const mismatchAuthTooltipElem = isAuthVersionMismatch
     ? (<VersionMismatchTooltip
@@ -197,7 +230,7 @@ export default function OverviewProjectHealth() {
             versionMismatch={isHasuraVersionMismatch}
           />
           <ProjectHealthCard icon={<ServicesIcon className="h-6 w-6 m-1" />}
-            tooltip={servicesTooltipElem}
+            tooltip={<ServicesStatusTooltip servicesStatus={servicesHealth} />}
           />
           {isAIServiceEnabled &&
             <ProjectHealthCard icon={<AIIcon className="h-6 w-6 m-1" />}
