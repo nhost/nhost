@@ -1,5 +1,5 @@
 {
-  "name": "react_native",
+  "name": "@nhost-examples/react-native",
   "version": "0.0.1",
   "private": true,
   "scripts": {
