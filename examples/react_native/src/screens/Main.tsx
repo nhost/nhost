@@ -27,33 +27,6 @@ function LoadingIndicatorView() {
   );
 }
 
-function Main() {
-  const {isAuthenticated, isLoading} = useAuthenticationStatus();
-
-  if (isLoading) {
-    return <LoadingIndicatorView />;
-  }
-
-  return (
-    <NavigationContainer
-      linking={{
-        prefixes: ['myapp://'],
-      }}
-      fallback={<LoadingIndicatorView />}>
-      <Stack.Navigator screenOptions={{headerShown: false}}>
-        {!isAuthenticated ? (
-          <>
-            <Stack.Screen name="signin" component={SignIn} />
-            <Stack.Screen name="signup" component={SignUp} />
-          </>
-        ) : (
-          <Stack.Screen name="drawer" component={DrawerNavigator} />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-}
-
 const screenOptions = ({
   navigation,
 }: {
@@ -86,6 +59,33 @@ function DrawerNavigator() {
   );
 }
 
+export default function Main() {
+  const {isAuthenticated, isLoading} = useAuthenticationStatus();
+
+  if (isLoading) {
+    return <LoadingIndicatorView />;
+  }
+
+  return (
+    <NavigationContainer
+      linking={{
+        prefixes: ['myapp://'],
+      }}
+      fallback={<LoadingIndicatorView />}>
+      <Stack.Navigator screenOptions={{headerShown: false}}>
+        {!isAuthenticated ? (
+          <>
+            <Stack.Screen name="signin" component={SignIn} />
+            <Stack.Screen name="signup" component={SignUp} />
+          </>
+        ) : (
+          <Stack.Screen name="drawer" component={DrawerNavigator} />
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
 const styles = StyleSheet.create({
   loadingContainerWrapper: {
     flex: 1,
@@ -96,5 +96,3 @@ const styles = StyleSheet.create({
     marginLeft: 14,
   },
 });
-
-export default Main;
