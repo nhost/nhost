@@ -62,15 +62,15 @@ export default function ProjectHealthCard({
   ...props
 }: ProjectHealthCardProps) {
   return (
-    // TODO: BUG 'arrow' stutters on hover 
-    <Tooltip arrow title={versionMismatch ? tooltip : ""}
+    // TODO: BUG 'arrow' prop stutters on hover 
+    <Tooltip title={versionMismatch ? tooltip : ""}
       slotProps={{
         tooltip: { className: '' },
       }}
     >
       <Box
         className={twMerge(
-          'max-w-10 grid grid-flow-row gap-0 rounded-md p-0 aspect-square',
+          'min-w-12 max-w-14 grid grid-flow-row gap-0 rounded-md p-0 aspect-square',
           className,
         )}
         sx={{ backgroundColor: 'grey.200' }}
@@ -84,7 +84,7 @@ export default function ProjectHealthCard({
               vertical: 'bottom',
               horizontal: 'right',
             }}
-            badgeContent={<ExclamationIcon className="h-4 w-4" />}
+            badgeContent={<ExclamationIcon className="h-3 w-3" />}
             >
               <Badge color="warning" variant="dot" >
                 {iconIsComponent
@@ -100,7 +100,7 @@ export default function ProjectHealthCard({
                   )}
               </Badge>
             </Badge>
-          ) : (<Badge color="success" variant="standard" badgeContent={<CheckIcon className="w-3 h-3 stroke-2 text-white" />}>
+          ) : (<Badge color="success" variant="standard" badgeContent={<CheckIcon className="w-2 h-2 stroke-2 text-white" />}>
             {iconIsComponent
               ? icon
               : typeof icon === 'string' && (

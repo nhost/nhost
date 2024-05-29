@@ -131,9 +131,6 @@ export default function OverviewProjectHealth() {
     version => configuredVersionsData?.config?.ai?.version === version
   )
 
-  console.log(configuredVersionsData)
-  console.log(recommendedVersionsData)
-
   const RunList = [...Array(10).keys()].map((i) =>
   (<li className="flex flex-row items-center gap-4 text-ellipsis text-nowrap leading-5">
     <Box sx={{ backgroundColor: "success.dark" }} className="flex-shrink-0 w-3 h-3 bg-success rounded-full" />
@@ -187,28 +184,28 @@ export default function OverviewProjectHealth() {
       <Text variant="h3">Project Health</Text>
 
       {currentProject && (
-        <div className="grid grid-flow-row items-center gap-6 xs:grid-cols-3 lg:gap-3 xl:grid-cols-6">
-          <ProjectHealthCard icon={<UserIcon className="h-6 w-6" />}
+        <div className="grid grid-flow-row justify-center items-center gap-6 md:justify-start xs:grid-cols-3 lg:gap-2 xl:grid-cols-6">
+          <ProjectHealthCard icon={<UserIcon className="h-6 w-6 m-1" />}
             tooltip={mismatchAuthTooltipElem}
             versionMismatch={isAuthVersionMismatch}
           />
-          <ProjectHealthCard icon={<DatabaseIcon className="h-6 w-6" />}
+          <ProjectHealthCard icon={<DatabaseIcon className="h-6 w-6 m-1" />}
             tooltip={mismatchPostgresTooltipElem}
             versionMismatch={isPostgresVersionMismatch}
           />
-          <ProjectHealthCard icon={<StorageIcon className="h-6 w-6" />}
+          <ProjectHealthCard icon={<StorageIcon className="h-6 w-6 m-1" />}
             tooltip={mismatchStorageTooltipElem}
             versionMismatch={isStorageVersionMismatch}
           />
-          <ProjectHealthCard icon={<HasuraIcon className="h-6 w-6" />}
+          <ProjectHealthCard icon={<HasuraIcon className="h-6 w-6 m-1" />}
             tooltip={mismatchHasuraTooltipElem}
             versionMismatch={isHasuraVersionMismatch}
-            />
-          <ProjectHealthCard icon={<ServicesIcon className="h-6 w-6" />}
+          />
+          <ProjectHealthCard icon={<ServicesIcon className="h-6 w-6 m-1" />}
             tooltip={servicesTooltipElem}
           />
           {isAIServiceEnabled &&
-            <ProjectHealthCard icon={<AIIcon className="h-6 w-6" />}
+            <ProjectHealthCard icon={<AIIcon className="h-6 w-6 m-1" />}
               tooltip={mismatchAITooltipElem}
               versionMismatch={isAIVersionMismatch}
             />
