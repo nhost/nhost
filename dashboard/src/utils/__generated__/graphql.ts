@@ -22854,7 +22854,9 @@ export type GetApplicationStateQueryVariables = Exact<{
 
 export type GetApplicationStateQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, name: string, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> } | null };
 
-export type GetConfiguredVersionsQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetConfiguredVersionsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
 
 
 export type GetConfiguredVersionsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', version?: string | null } | null, postgres?: { __typename?: 'ConfigPostgres', version?: string | null } | null, hasura: { __typename?: 'ConfigHasura', version?: string | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null, storage?: { __typename?: 'ConfigStorage', version?: string | null } | null } | null };
@@ -24690,8 +24692,8 @@ export function refetchGetApplicationStateQuery(variables: GetApplicationStateQu
       return { query: GetApplicationStateDocument, variables: variables }
     }
 export const GetConfiguredVersionsDocument = gql`
-    query getConfiguredVersions {
-  config(appID: "$appid", resolve: true) {
+    query getConfiguredVersions($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
     auth {
       version
     }
@@ -24723,10 +24725,11 @@ export const GetConfiguredVersionsDocument = gql`
  * @example
  * const { data, loading, error } = useGetConfiguredVersionsQuery({
  *   variables: {
+ *      appId: // value for 'appId'
  *   },
  * });
  */
-export function useGetConfiguredVersionsQuery(baseOptions?: Apollo.QueryHookOptions<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>) {
+export function useGetConfiguredVersionsQuery(baseOptions: Apollo.QueryHookOptions<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>(GetConfiguredVersionsDocument, options);
       }
@@ -24737,7 +24740,7 @@ export function useGetConfiguredVersionsLazyQuery(baseOptions?: Apollo.LazyQuery
 export type GetConfiguredVersionsQueryHookResult = ReturnType<typeof useGetConfiguredVersionsQuery>;
 export type GetConfiguredVersionsLazyQueryHookResult = ReturnType<typeof useGetConfiguredVersionsLazyQuery>;
 export type GetConfiguredVersionsQueryResult = Apollo.QueryResult<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>;
-export function refetchGetConfiguredVersionsQuery(variables?: GetConfiguredVersionsQueryVariables) {
+export function refetchGetConfiguredVersionsQuery(variables: GetConfiguredVersionsQueryVariables) {
       return { query: GetConfiguredVersionsDocument, variables: variables }
     }
 export const GetProjectLocalesDocument = gql`

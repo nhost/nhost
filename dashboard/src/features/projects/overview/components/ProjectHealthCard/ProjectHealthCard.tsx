@@ -7,6 +7,7 @@ import { twMerge } from 'tailwind-merge';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
 import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
+import { ExclamationIcon } from '@/components/ui/v2/icons/ExclamationIcon';
 
 export interface ProjectHealthCardProps extends BoxProps {
   /**
@@ -20,7 +21,7 @@ export interface ProjectHealthCardProps extends BoxProps {
   /**
    * Tooltip of the card.
    */
-  tooltip?: ReactElement;
+  tooltip?: ReactElement | null;
   /**
    * Icon to display on the card.
    */
@@ -45,6 +46,8 @@ export interface ProjectHealthCardProps extends BoxProps {
   slotProps?: {
     imgIcon?: Partial<ImageProps>;
   }
+
+  versionMismatch?: boolean;
 }
 
 export default function ProjectHealthCard({
@@ -55,11 +58,12 @@ export default function ProjectHealthCard({
   iconIsComponent = true,
   className,
   slotProps = {},
+  versionMismatch = false,
   ...props
 }: ProjectHealthCardProps) {
   return (
     // TODO: BUG 'arrow' stutters on hover 
-    <Tooltip arrow title={tooltip}
+    <Tooltip arrow title={versionMismatch ? tooltip : ""}
       slotProps={{
         tooltip: { className: '' },
       }}
@@ -73,7 +77,30 @@ export default function ProjectHealthCard({
         {...props}
       >
         <div className="grid grid-flow-col items-center justify-center">
-          <Badge color="success" variant="standard" badgeContent={<CheckIcon className="w-2 h-2 stroke-2 text-white" />}>
+          {versionMismatch ? (
+            <Badge
+            variant="standard"
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            badgeContent={<ExclamationIcon className="h-4 w-4" />}
+            >
+              <Badge color="warning" variant="dot" >
+                {iconIsComponent
+                  ? icon
+                  : typeof icon === 'string' && (
+                    <Image
+                      src={icon}
+                      alt={alt}
+                      width={slotProps.imgIcon?.width}
+                      height={slotProps.imgIcon?.height}
+                      {...slotProps.imgIcon}
+                    />
+                  )}
+              </Badge>
+            </Badge>
+          ) : (<Badge color="success" variant="standard" badgeContent={<CheckIcon className="w-3 h-3 stroke-2 text-white" />}>
             {iconIsComponent
               ? icon
               : typeof icon === 'string' && (
@@ -85,7 +112,7 @@ export default function ProjectHealthCard({
                   {...slotProps.imgIcon}
                 />
               )}
-          </Badge>
+          </Badge>)}
         </div>
       </Box>
     </Tooltip>

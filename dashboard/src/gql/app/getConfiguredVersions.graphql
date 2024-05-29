@@ -1,5 +1,5 @@
-query getConfiguredVersions{
-  config(appID:"$appid", resolve: true) {
+query getConfiguredVersions($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
     auth {
       version
     }
