@@ -14,27 +14,22 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 
 const services = {
   auth: {
-    configName: "auth",
     displayName: "Auth",
     softwareVersionsName: "Auth"
   },
   hasura: {
-    configName: "hasura",
     displayName: "Hasura",
     softwareVersionsName: "Hasura",
   },
   postgres: {
-    configName: "postgres",
     displayName: "Postgres",
     softwareVersionsName: "PostgreSQL",
   },
   storage: {
-    configName: "storage",
     displayName: "Storage",
     softwareVersionsName: "Storage"
   },
   ai: {
-    configName: "ai",
     displayName: "Graphite",
     softwareVersionsName: "Graphite"
   }
