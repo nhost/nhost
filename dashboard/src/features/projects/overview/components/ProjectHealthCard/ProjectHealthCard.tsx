@@ -1,13 +1,59 @@
 import type { BoxProps } from '@/components/ui/v2/Box';
 import type { ReactElement } from 'react';
 import { Box } from '@/components/ui/v2/Box';
-import { Badge } from '@/components/ui/v2/Badge';
+import { Badge, type BadgeProps } from '@/components/ui/v2/Badge';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { twMerge } from 'tailwind-merge';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
 import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
 import { ExclamationFilledIcon } from '@/components/ui/v2/icons/ExclamationFilledIcon';
+
+interface HealthBadgeProps extends BadgeProps {
+  status?: "success" | "warning" | "error";
+  showExclamation?: boolean;
+}
+
+function HealthBadge({ status, showExclamation, children, ...props }: HealthBadgeProps) {
+  if (showExclamation) {
+    return (
+      <Badge
+        variant="standard"
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        badgeContent={<ExclamationFilledIcon sx={{
+          color: "grey.600",
+        }} className="h-3 w-3" />}
+      >
+        <Badge
+          color={status}
+          variant={status === "success" ? "standard" : "dot"}
+          badgeContent={status === "success"
+            ? <CheckIcon className="w-2 h-2 stroke-2 text-white" />
+            : null}
+          {...props}
+        >
+          {children}
+        </Badge>
+      </Badge>
+    )
+  }
+
+  return (
+    <Badge
+      color={status}
+      variant={status === "success" ? "standard" : "dot"}
+      badgeContent={status === "success"
+        ? <CheckIcon className="w-2 h-2 stroke-2 text-white" />
+        : null}
+      {...props}
+    >
+      {children}
+    </Badge>
+  );
+}
 
 export interface ProjectHealthCardProps extends BoxProps {
   /**
@@ -47,6 +93,8 @@ export interface ProjectHealthCardProps extends BoxProps {
     imgIcon?: Partial<ImageProps>;
   }
 
+  status?: "success" | "warning" | "error";
+
   versionMismatch?: boolean;
 }
 
@@ -59,6 +107,7 @@ export default function ProjectHealthCard({
   className,
   slotProps = {},
   versionMismatch = false,
+  status = "success",
   ...props
 }: ProjectHealthCardProps) {
   return (
@@ -77,32 +126,10 @@ export default function ProjectHealthCard({
         {...props}
       >
         <div className="grid grid-flow-col items-center justify-center">
-          {versionMismatch ? (
-            <Badge
-              variant="standard"
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "right",
-              }}
-              badgeContent={<ExclamationFilledIcon sx={{
-                color: "grey.600",
-              }} className="h-3 w-3" />}
-            >
-              <Badge color="warning" variant="dot" >
-                {iconIsComponent
-                  ? icon
-                  : typeof icon === 'string' && (
-                    <Image
-                      src={icon}
-                      alt={alt}
-                      width={slotProps.imgIcon?.width}
-                      height={slotProps.imgIcon?.height}
-                      {...slotProps.imgIcon}
-                    />
-                  )}
-              </Badge>
-            </Badge>
-          ) : (<Badge color="success" variant="standard" badgeContent={<CheckIcon className="w-2 h-2 stroke-2 text-white" />}>
+          <HealthBadge
+            status={status}
+            showExclamation={versionMismatch}
+          >
             {iconIsComponent
               ? icon
               : typeof icon === 'string' && (
@@ -114,7 +141,7 @@ export default function ProjectHealthCard({
                   {...slotProps.imgIcon}
                 />
               )}
-          </Badge>)}
+          </HealthBadge>
         </div>
       </Box>
     </Tooltip>

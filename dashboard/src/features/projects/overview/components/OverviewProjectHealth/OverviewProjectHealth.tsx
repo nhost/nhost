@@ -37,30 +37,31 @@ const services = {
   }
 } as const;
 
-interface VersionMismatchTooltipProps {
+interface VersionTooltipProps {
   serviceName?: string,
   usedVersion?: string,
+  recommendedVersionMismatch?: boolean,
   recommendedVersions?: string[]
 }
 
-function VersionMismatchTooltip({ serviceName, usedVersion, recommendedVersions }: VersionMismatchTooltipProps) {
+function VersionTooltip({ serviceName, usedVersion, recommendedVersionMismatch, recommendedVersions }: VersionTooltipProps) {
   const theme = useTheme();
   const recommendedVersionsStr = recommendedVersions.join(", ")
   return (
     <div className="flex flex-col gap-3 px-2 py-3">
-      <div className="flex flex-row justify-between gap-1">
+      <div className="flex flex-row justify-between gap-6">
         <Text variant="h4" component="p" className="text-white/70 font-bold" >service</Text>
         <Text variant="h4" component="p" className="text-white font-bold">{serviceName}</Text>
       </div>
-      <div className="flex flex-row justify-between gap-1">
+      <div className="flex flex-row justify-between gap-6">
         <Text variant="h4" component="p" className="text-white/70 font-bold" >version</Text>
         <Text variant="h4" component="p" className="text-white font-bold">{usedVersion}</Text>
       </div>
-      <Box sx={{ backgroundColor: theme.palette.mode === "dark" ? "grey.200" : "grey.600" }} className="rounded-md p-2">
+      {recommendedVersionMismatch && <Box sx={{ backgroundColor: theme.palette.mode === "dark" ? "grey.200" : "grey.600" }} className="rounded-md p-2">
         <Text variant="body1" component="p" className="text-white">
           {serviceName} is not using a recommended version. Recommended version(s): {recommendedVersionsStr}
         </Text>
-      </Box>
+      </Box>}
     </div>
   )
 }
@@ -169,45 +170,35 @@ export default function OverviewProjectHealth() {
   })
   ) ?? null
 
-  const mismatchAuthTooltipElem = isAuthVersionMismatch
-    ? (<VersionMismatchTooltip
+    const authTooltipElem = (<VersionTooltip
       serviceName={services.auth.displayName}
       usedVersion={configuredVersionsData?.config?.auth?.version ?? ""}
-      recommendedVersions={authRecommendedVersions}
-    />)
-    : null;
+      recommendedVersionMismatch={isAuthVersionMismatch}
+      recommendedVersions={authRecommendedVersions} />)
 
-  const mismatchHasuraTooltipElem = isHasuraVersionMismatch
-    ? (<VersionMismatchTooltip
+    const hasuraTooltipElem = (<VersionTooltip
       serviceName={services.hasura.displayName}
       usedVersion={configuredVersionsData?.config?.hasura?.version ?? ""}
-      recommendedVersions={hasuraRecommendedVersions}
-    />)
-    : null;
+      recommendedVersionMismatch={isHasuraVersionMismatch}
+      recommendedVersions={hasuraRecommendedVersions} />)
 
-  const mismatchPostgresTooltipElem = isPostgresVersionMismatch
-    ? (<VersionMismatchTooltip
+    const postgresTooltipElem = (<VersionTooltip
       serviceName={services.postgres.displayName}
       usedVersion={configuredVersionsData?.config?.postgres?.version ?? ""}
-      recommendedVersions={postgresRecommendedVersions}
-    />)
-    : null;
+      recommendedVersionMismatch={isPostgresVersionMismatch}
+      recommendedVersions={postgresRecommendedVersions} />)
 
-  const mismatchStorageTooltipElem = isStorageVersionMismatch
-    ? (<VersionMismatchTooltip
+    const storageTooltipElem = (<VersionTooltip
       serviceName={services.storage.displayName}
       usedVersion={configuredVersionsData?.config?.storage?.version ?? ""}
-      recommendedVersions={storageRecommendedVersions}
-    />)
-    : null;
+      recommendedVersionMismatch={isStorageVersionMismatch}
+      recommendedVersions={storageRecommendedVersions} />)
 
-  const mismatchAITooltipElem = isAIVersionMismatch
-    ? (<VersionMismatchTooltip
+    const aiTooltipElem = (<VersionTooltip
       serviceName={services.ai.displayName}
       usedVersion={configuredVersionsData?.config?.ai?.version ?? ""}
-      recommendedVersions={aiRecommendedVersions}
-    />)
-    : null;
+      recommendedVersionMismatch={isAIVersionMismatch}
+      recommendedVersions={aiRecommendedVersions} />)
 
   console.log(projectServicesHealthData)
 
@@ -218,19 +209,19 @@ export default function OverviewProjectHealth() {
       {currentProject && (
         <div className="grid grid-flow-row justify-center items-center gap-6 md:justify-start xs:grid-cols-3 lg:gap-2 xl:grid-cols-6">
           <ProjectHealthCard icon={<UserIcon className="h-6 w-6 m-1" />}
-            tooltip={mismatchAuthTooltipElem}
+            tooltip={authTooltipElem}
             versionMismatch={isAuthVersionMismatch}
           />
           <ProjectHealthCard icon={<DatabaseIcon className="h-6 w-6 m-1" />}
-            tooltip={mismatchPostgresTooltipElem}
+            tooltip={postgresTooltipElem}
             versionMismatch={isPostgresVersionMismatch}
           />
           <ProjectHealthCard icon={<StorageIcon className="h-6 w-6 m-1" />}
-            tooltip={mismatchStorageTooltipElem}
+            tooltip={storageTooltipElem}
             versionMismatch={isStorageVersionMismatch}
           />
           <ProjectHealthCard icon={<HasuraIcon className="h-6 w-6 m-1" />}
-            tooltip={mismatchHasuraTooltipElem}
+            tooltip={hasuraTooltipElem}
             versionMismatch={isHasuraVersionMismatch}
           />
           <ProjectHealthCard icon={<ServicesOutlinedIcon className="h-6 w-6 m-1" />}
@@ -238,7 +229,7 @@ export default function OverviewProjectHealth() {
           />
           {isAIServiceEnabled &&
             <ProjectHealthCard icon={<AIIcon className="h-6 w-6 m-1" />}
-              tooltip={mismatchAITooltipElem}
+              tooltip={aiTooltipElem}
               versionMismatch={isAIVersionMismatch}
             />
           }
