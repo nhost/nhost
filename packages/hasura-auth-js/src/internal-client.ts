@@ -1,5 +1,11 @@
 import { interpret } from 'xstate'
-import { AuthInterpreter, AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
+import {
+  AuthContext,
+  AuthInterpreter,
+  AuthMachine,
+  AuthMachineOptions,
+  createAuthMachine
+} from './machines'
 import { NhostSession } from './types'
 import { isBrowser } from './utils'
 
@@ -87,7 +93,17 @@ export class AuthClient {
     initialSession,
     interpreter
   }: { interpreter?: AuthInterpreter; initialSession?: NhostSession; devTools?: boolean } = {}) {
-    const context = { ...this.machine.context }
+    // Create a deep copy of the machine context to ensure that nested objects (such as accessToken and refreshToken) are not mutated in the original context.
+    const context: AuthContext = {
+      ...this.machine.context,
+      accessToken: {
+        ...this.machine.context.accessToken
+      },
+      refreshToken: {
+        ...this.machine.context.refreshToken
+      }
+    }
+
     if (initialSession) {
       context.user = initialSession.user
       context.refreshToken.value = initialSession.refreshToken ?? null
