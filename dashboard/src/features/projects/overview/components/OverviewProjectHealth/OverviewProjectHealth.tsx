@@ -11,6 +11,7 @@ import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { useGetRecommendedSoftwareVersionsQuery, useGetConfiguredVersionsQuery, useGetProjectServicesHealthQuery, ServiceState } from '@/generated/graphql';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { useTheme } from '@mui/material';
 
 // TODO: chore: remove hardcoded service names and versions, use data from graphql generated types
 const services = {
@@ -43,6 +44,7 @@ interface VersionMismatchTooltipProps {
 }
 
 function VersionMismatchTooltip({ serviceName, usedVersion, recommendedVersions }: VersionMismatchTooltipProps) {
+  const theme = useTheme();
   const recommendedVersionsStr = recommendedVersions.join(", ")
   return (
     <div className="flex flex-col gap-3 px-2 py-3">
@@ -54,7 +56,7 @@ function VersionMismatchTooltip({ serviceName, usedVersion, recommendedVersions 
         <Text variant="h4" component="p" className="text-white/70 font-bold" >version</Text>
         <Text variant="h4" component="p" className="text-white font-bold">{usedVersion}</Text>
       </div>
-      <Box sx={{ backgroundColor: "grey.600" }} className="rounded-md p-2">
+      <Box sx={{ backgroundColor: theme.palette.mode === "dark" ? "grey.200" : "grey.600" }} className="rounded-md p-2">
         <Text variant="body1" component="p" className="text-white">
           {serviceName} is not using a recommended version. Recommended version(s): {recommendedVersionsStr}
         </Text>
@@ -74,7 +76,7 @@ function ServicesStatusTooltip({ servicesStatus }: ServicesStatusTooltipProps) {
   const colorMap = {
     [ServiceState.Running]: "success.dark",
     [ServiceState.Error]: "error.main",
-    [ServiceState.UpdateError]: "warning.dark",
+    [ServiceState.UpdateError]: "error.main",
     [ServiceState.Updating]: "warning.dark",
     [ServiceState.None]: "error.main",
   } as const
@@ -82,8 +84,8 @@ function ServicesStatusTooltip({ servicesStatus }: ServicesStatusTooltipProps) {
   return (<ol className="flex flex-col gap-3 px-4 py-6 m-0">
     {servicesStatus.map(service =>
     (<li key={service.name} className="flex flex-row items-center gap-4 text-ellipsis text-nowrap leading-5">
-      <Box sx={{ backgroundColor: colorMap[service.state] }} 
-      className={`flex-shrink-0 w-3 h-3 rounded-full ${service.state === ServiceState.Updating ? "animate-pulse" : ""}`} />
+      <Box sx={{ backgroundColor: colorMap[service.state] }}
+        className={`flex-shrink-0 w-3 h-3 rounded-full ${service.state === ServiceState.Updating ? "animate-pulse" : ""}`} />
       {service.name}
     </li>))
     }
@@ -206,6 +208,8 @@ export default function OverviewProjectHealth() {
       recommendedVersions={aiRecommendedVersions}
     />)
     : null;
+
+  console.log(projectServicesHealthData)
 
   return (
     <div className="grid grid-flow-row content-start gap-6">

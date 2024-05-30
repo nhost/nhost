@@ -7,7 +7,7 @@ import { twMerge } from 'tailwind-merge';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
 import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { ExclamationIcon } from '@/components/ui/v2/icons/ExclamationIcon';
+import { ExclamationFilledIcon } from '@/components/ui/v2/icons/ExclamationFilledIcon';
 
 export interface ProjectHealthCardProps extends BoxProps {
   /**
@@ -84,7 +84,7 @@ export default function ProjectHealthCard({
               vertical: 'bottom',
               horizontal: 'right',
             }}
-            badgeContent={<ExclamationIcon className="h-3 w-3" />}
+            badgeContent={<ExclamationFilledIcon className="h-3 w-3" />}
             >
               <Badge color="warning" variant="dot" >
                 {iconIsComponent

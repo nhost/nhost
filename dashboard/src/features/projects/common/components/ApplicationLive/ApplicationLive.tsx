@@ -96,6 +96,7 @@ export default function ApplicationLive({
 
         <div className="grid grid-flow-row content-start gap-8 lg:col-span-1 lg:gap-12">
           <OverviewProjectHealth />
+          <Divider />
           <OverviewProjectInfo />
           <Divider />
           <OverviewRepository />
