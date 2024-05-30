@@ -32,8 +32,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 import { DisableAIServiceConfirmationDialog } from './DisableAIServiceConfirmationDialog';
-
-const MIN_POSTGRES_VERSION_SUPPORTING_AI = '14.6-20231018-1';
+import { isPostgresVersionValidForAI } from '@/features/ai/settings/utils/isPostgresVersionValidForAI';
 
 const validationSchema = Yup.object({
   version: Yup.object({
@@ -165,7 +164,7 @@ export default function AISettings() {
   ]);
 
   const toggleAIService = async (enabled: boolean) => {
-    if (postgresVersion < MIN_POSTGRES_VERSION_SUPPORTING_AI) {
+    if (!isPostgresVersionValidForAI(postgresVersion)) {
       toast.error(
         'In order to enable the AI service you need to update your database version to 14.6-20231018-1 or newer.',
         {
@@ -495,3 +494,4 @@ export default function AISettings() {
     </Box>
   );
 }
+
