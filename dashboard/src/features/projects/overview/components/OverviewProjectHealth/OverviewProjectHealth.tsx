@@ -7,11 +7,11 @@ import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
 import { Box } from '@/components/ui/v2/Box';
-import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
 import { useGetRecommendedSoftwareVersionsQuery, useGetConfiguredVersionsQuery, useGetProjectServicesHealthQuery, ServiceState } from '@/generated/graphql';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useTheme } from '@mui/material';
+import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
 
 // TODO: chore: remove hardcoded service names and versions, use data from graphql generated types
 const services = {
@@ -233,7 +233,7 @@ export default function OverviewProjectHealth() {
             tooltip={mismatchHasuraTooltipElem}
             versionMismatch={isHasuraVersionMismatch}
           />
-          <ProjectHealthCard icon={<ServicesIcon className="h-6 w-6 m-1" />}
+          <ProjectHealthCard icon={<ServicesOutlinedIcon className="h-6 w-6 m-1" />}
             tooltip={<ServicesStatusTooltip servicesStatus={servicesHealth} />}
           />
           {isAIServiceEnabled &&

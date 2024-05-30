@@ -79,12 +79,14 @@ export default function ProjectHealthCard({
         <div className="grid grid-flow-col items-center justify-center">
           {versionMismatch ? (
             <Badge
-            variant="standard"
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-            badgeContent={<ExclamationFilledIcon className="h-3 w-3" />}
+              variant="standard"
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              badgeContent={<ExclamationFilledIcon sx={{
+                color: "grey.600",
+              }} className="h-3 w-3" />}
             >
               <Badge color="warning" variant="dot" >
                 {iconIsComponent
