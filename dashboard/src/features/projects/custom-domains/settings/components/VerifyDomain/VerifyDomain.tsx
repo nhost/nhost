@@ -131,7 +131,7 @@ export default function VerifyDomain({
         </div>
         {isPlatform ? (
           <Button
-            disabled={loading || !hostname || isPlatform}
+            disabled={loading || !hostname}
             onClick={handleVerifyDomain}
             className="mt-4 sm:absolute sm:bottom-0 sm:right-0 sm:mt-0"
           >
