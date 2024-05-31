@@ -1,17 +1,17 @@
 query getProjectServicesHealth($appId: String!){
   getProjectStatus(appID: $appId) {
-    Services {
-      Name
-      State
-      Replicas {
-        Ready
-        Date
-        Errors {
-          Name
-          LastError {
-            Reason
-            ExitCode
-            Message
+    services {
+      name
+      state
+      replicas {
+        ready
+        date
+        errors {
+          name
+          lastError {
+            reason
+            exitCode
+            message
           }
         }
       }

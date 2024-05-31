@@ -2659,8 +2659,8 @@ export type ConfigUserRoleComparisonExp = {
 
 export type ContainerError = {
   __typename?: 'ContainerError';
-  LastError: LastError;
-  Name: Scalars['String'];
+  lastError: LastError;
+  name: Scalars['String'];
 };
 
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
@@ -2691,9 +2691,9 @@ export type InvoiceSummary = {
 
 export type LastError = {
   __typename?: 'LastError';
-  ExitCode: Scalars['Int'];
-  Message: Scalars['String'];
-  Reason: Scalars['String'];
+  exitCode: Scalars['Int'];
+  message: Scalars['String'];
+  reason: Scalars['String'];
 };
 
 export type Log = {
@@ -2710,14 +2710,14 @@ export type Metrics = {
 
 export type ProjectStatusResponse = {
   __typename?: 'ProjectStatusResponse';
-  Services: Array<ServiceStatus>;
+  services: Array<ServiceStatus>;
 };
 
 export type ReplicaStatus = {
   __typename?: 'ReplicaStatus';
-  Date: Scalars['Timestamp'];
-  Errors: Array<ContainerError>;
-  Ready: Scalars['Boolean'];
+  date: Scalars['Timestamp'];
+  errors: Array<ContainerError>;
+  ready: Scalars['Boolean'];
 };
 
 export enum ServiceState {
@@ -2730,9 +2730,9 @@ export enum ServiceState {
 
 export type ServiceStatus = {
   __typename?: 'ServiceStatus';
-  Name: Scalars['String'];
-  Replicas: Array<ReplicaStatus>;
-  State: ServiceState;
+  name: Scalars['String'];
+  replicas: Array<ReplicaStatus>;
+  state: ServiceState;
 };
 
 export type StatsLiveApps = {
@@ -22883,7 +22883,7 @@ export type GetProjectServicesHealthQueryVariables = Exact<{
 }>;
 
 
-export type GetProjectServicesHealthQuery = { __typename?: 'query_root', getProjectStatus: { __typename?: 'ProjectStatusResponse', Services: Array<{ __typename?: 'ServiceStatus', Name: string, State: ServiceState, Replicas: Array<{ __typename?: 'ReplicaStatus', Ready: boolean, Date: any, Errors: Array<{ __typename?: 'ContainerError', Name: string, LastError: { __typename?: 'LastError', Reason: string, ExitCode: number, Message: string } }> }> }> } };
+export type GetProjectServicesHealthQuery = { __typename?: 'query_root', getProjectStatus: { __typename?: 'ProjectStatusResponse', services: Array<{ __typename?: 'ServiceStatus', name: string, state: ServiceState, replicas: Array<{ __typename?: 'ReplicaStatus', ready: boolean, date: any, errors: Array<{ __typename?: 'ContainerError', name: string, lastError: { __typename?: 'LastError', reason: string, exitCode: number, message: string } }> }> }> } };
 
 export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -24869,18 +24869,18 @@ export function refetchGetProjectMetricsQuery(variables: GetProjectMetricsQueryV
 export const GetProjectServicesHealthDocument = gql`
     query getProjectServicesHealth($appId: String!) {
   getProjectStatus(appID: $appId) {
-    Services {
-      Name
-      State
-      Replicas {
-        Ready
-        Date
-        Errors {
-          Name
-          LastError {
-            Reason
-            ExitCode
-            Message
+    services {
+      name
+      state
+      replicas {
+        ready
+        date
+        errors {
+          name
+          lastError {
+            reason
+            exitCode
+            message
           }
         }
       }

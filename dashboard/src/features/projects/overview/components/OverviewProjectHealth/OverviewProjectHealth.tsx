@@ -37,6 +37,29 @@ const services = {
   }
 } as const;
 
+const baseServices = {
+  "hasura-auth": {
+    displayName: "Auth",
+    softwareVersionsName: "Auth",
+  },
+  postgres: {
+    displayName: "Postgres",
+    softwareVersionsName: "PostgreSQL",
+  },
+  "hasura-storage": {
+    displayName: "Storage",
+    softwareVersionsName: "Storage",
+  },
+  hasura: {
+    displayName: "Hasura",
+    softwareVersionsName: "Hasura",
+  },
+  ai: {
+    displayName: "Graphite",
+    softwareVersionsName: "Graphite"
+  }
+}
+
 interface VersionTooltipProps {
   serviceName?: string,
   usedVersion?: string,
@@ -46,7 +69,6 @@ interface VersionTooltipProps {
 
 function VersionTooltip({ serviceName, usedVersion, recommendedVersionMismatch, recommendedVersions }: VersionTooltipProps) {
   const theme = useTheme();
-  const recommendedVersionsStr = recommendedVersions.join(", ")
   return (
     <div className="flex flex-col gap-3 px-2 py-3">
       <div className="flex flex-row justify-between gap-6">
@@ -59,8 +81,17 @@ function VersionTooltip({ serviceName, usedVersion, recommendedVersionMismatch, 
       </div>
       {recommendedVersionMismatch && <Box sx={{ backgroundColor: theme.palette.mode === "dark" ? "grey.200" : "grey.600" }} className="rounded-md p-2">
         <Text variant="body1" component="p" className="text-white">
-          {serviceName} is not using a recommended version. Recommended version(s): {recommendedVersionsStr}
+          {serviceName} is not using a recommended version. Recommended version(s):
         </Text>
+        <ul className="list-disc text-white">
+          {recommendedVersions.map(version => (
+            <li className="ml-6 list-item" key={version}>
+              <Text variant="body1" component="p" className="text-white">
+                {version}
+              </Text>
+            </li>
+          ))}
+        </ul>
       </Box>}
     </div>
   )
@@ -164,43 +195,80 @@ export default function OverviewProjectHealth() {
     version => configuredVersionsData?.config?.ai?.version === version
   )
 
-  const servicesHealth = projectServicesHealthData?.getProjectStatus?.Services.map(service => ({
-    name: service.Name,
-    state: service.State
+  const servicesHealth = projectServicesHealthData?.getProjectStatus?.services.map(service => ({
+    name: service.name,
+    state: service.state
   })
   ) ?? null
 
-    const authTooltipElem = (<VersionTooltip
-      serviceName={services.auth.displayName}
-      usedVersion={configuredVersionsData?.config?.auth?.version ?? ""}
-      recommendedVersionMismatch={isAuthVersionMismatch}
-      recommendedVersions={authRecommendedVersions} />)
+  const getServiceHealthState = (serviceName: string): "success" | "error" | "warning" => {
+    const serviceHealth = servicesHealth?.find(service => service.name === serviceName)
+    if (!serviceHealth) {
+      return "error"
+    }
+    switch (serviceHealth.state) {
+      case ServiceState.Running:
+        return "success"
+      case ServiceState.Error:
+        return "error"
+      case ServiceState.UpdateError:
+        return "error"
+      case ServiceState.Updating:
+        return "warning"
+      default:
+        return "error"
+    }
+  }
 
-    const hasuraTooltipElem = (<VersionTooltip
-      serviceName={services.hasura.displayName}
-      usedVersion={configuredVersionsData?.config?.hasura?.version ?? ""}
-      recommendedVersionMismatch={isHasuraVersionMismatch}
-      recommendedVersions={hasuraRecommendedVersions} />)
+  const getUserRunServiceState = (runServices: Array<{ name: string, state: ServiceState }>): "success" | "error" | "warning" => {
+    if (runServices.some(service => service.state === ServiceState.Error 
+      || service.state === ServiceState.UpdateError
+      || service.state === ServiceState.None
+    )) {
+      return "error"
+    }
 
-    const postgresTooltipElem = (<VersionTooltip
-      serviceName={services.postgres.displayName}
-      usedVersion={configuredVersionsData?.config?.postgres?.version ?? ""}
-      recommendedVersionMismatch={isPostgresVersionMismatch}
-      recommendedVersions={postgresRecommendedVersions} />)
+    if (runServices.some(service => service.state === ServiceState.Updating)) {
+      return "warning"
+    }
 
-    const storageTooltipElem = (<VersionTooltip
-      serviceName={services.storage.displayName}
-      usedVersion={configuredVersionsData?.config?.storage?.version ?? ""}
-      recommendedVersionMismatch={isStorageVersionMismatch}
-      recommendedVersions={storageRecommendedVersions} />)
+    return "success"
+  }
 
-    const aiTooltipElem = (<VersionTooltip
-      serviceName={services.ai.displayName}
-      usedVersion={configuredVersionsData?.config?.ai?.version ?? ""}
-      recommendedVersionMismatch={isAIVersionMismatch}
-      recommendedVersions={aiRecommendedVersions} />)
+  const authTooltipElem = (<VersionTooltip
+    serviceName={services.auth.displayName}
+    usedVersion={configuredVersionsData?.config?.auth?.version ?? ""}
+    recommendedVersionMismatch={isAuthVersionMismatch}
+    recommendedVersions={authRecommendedVersions} />)
+
+  const hasuraTooltipElem = (<VersionTooltip
+    serviceName={services.hasura.displayName}
+    usedVersion={configuredVersionsData?.config?.hasura?.version ?? ""}
+    recommendedVersionMismatch={isHasuraVersionMismatch}
+    recommendedVersions={hasuraRecommendedVersions} />)
+
+  const postgresTooltipElem = (<VersionTooltip
+    serviceName={services.postgres.displayName}
+    usedVersion={configuredVersionsData?.config?.postgres?.version ?? ""}
+    recommendedVersionMismatch={isPostgresVersionMismatch}
+    recommendedVersions={postgresRecommendedVersions} />)
+
+  const storageTooltipElem = (<VersionTooltip
+    serviceName={services.storage.displayName}
+    usedVersion={configuredVersionsData?.config?.storage?.version ?? ""}
+    recommendedVersionMismatch={isStorageVersionMismatch}
+    recommendedVersions={storageRecommendedVersions} />)
+
+  const aiTooltipElem = (<VersionTooltip
+    serviceName={services.ai.displayName}
+    usedVersion={configuredVersionsData?.config?.ai?.version ?? ""}
+    recommendedVersionMismatch={isAIVersionMismatch}
+    recommendedVersions={aiRecommendedVersions} />)
+
 
   console.log(projectServicesHealthData)
+
+  const userRunServices = servicesHealth.filter(service => service.name.startsWith("run-"))
 
   return (
     <div className="grid grid-flow-row content-start gap-6">
@@ -211,22 +279,29 @@ export default function OverviewProjectHealth() {
           <ProjectHealthCard icon={<UserIcon className="h-6 w-6 m-1" />}
             tooltip={authTooltipElem}
             versionMismatch={isAuthVersionMismatch}
+            status={getServiceHealthState("hasura-auth")}
           />
           <ProjectHealthCard icon={<DatabaseIcon className="h-6 w-6 m-1" />}
             tooltip={postgresTooltipElem}
             versionMismatch={isPostgresVersionMismatch}
+            status={getServiceHealthState("postgres")}
           />
           <ProjectHealthCard icon={<StorageIcon className="h-6 w-6 m-1" />}
             tooltip={storageTooltipElem}
             versionMismatch={isStorageVersionMismatch}
+            status={getServiceHealthState("hasura-storage")}
           />
           <ProjectHealthCard icon={<HasuraIcon className="h-6 w-6 m-1" />}
             tooltip={hasuraTooltipElem}
             versionMismatch={isHasuraVersionMismatch}
+            status={getServiceHealthState("hasura")}
           />
+          {userRunServices.length > 0 &&
           <ProjectHealthCard icon={<ServicesOutlinedIcon className="h-6 w-6 m-1" />}
-            tooltip={<ServicesStatusTooltip servicesStatus={servicesHealth} />}
+            tooltip={<ServicesStatusTooltip servicesStatus={userRunServices} />}
+            status={getUserRunServiceState(userRunServices)}
           />
+          }
           {isAIServiceEnabled &&
             <ProjectHealthCard icon={<AIIcon className="h-6 w-6 m-1" />}
               tooltip={aiTooltipElem}
