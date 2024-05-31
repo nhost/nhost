@@ -12,7 +12,7 @@ test('greater than minimum version, minor version with two digits, should be val
 });
 
 test('less than minimum version, should be invalid', () => {
-    const postgresVersion = "14.5-20231018-1";
+    const postgresVersion = "14.6-20221110-1";
     expect(isPostgresVersionValidForAI(postgresVersion)).toBe(false);
 });
 
