@@ -10,9 +10,9 @@ export default function isPostgresVersionValidForAI(
   const MIN_POSTGRES_VERSION_SUPPORTING_AI = '14.6-20231018-1';
 
   if (/^14\.6-/.test(postgresVersion)) {
-     return postgresVersion >= MIN_POSTGRES_VERSION_SUPPORTING_AI
+    return postgresVersion >= MIN_POSTGRES_VERSION_SUPPORTING_AI;
   }
-  
+
   // Note: No need to account for versions less than 14.6
-  return true
+  return true;
 }
