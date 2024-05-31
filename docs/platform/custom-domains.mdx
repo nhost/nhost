@@ -18,7 +18,7 @@ The following examples assume we are configuring custom domains at `*.custom-dom
     1. Add a CNAME record in your DNS provider for each of the services you want a custom domain for, and click "Verify". The verification might take a few seconds to succeed.
     2. Once the verification succeeds, click "Save" to update your project.
 
-    ![Custom Domains](./images/platform/custom-domains/custom-domains.png)
+    ![Custom Domains](./images/platform/custom-domains/custom-domains-dashboard.png)
 
   </Tab>
 
@@ -62,3 +62,16 @@ fqdn = ['my-service.custom-domain.com']
   </Tab>
 </Tabs>
 
+
+<Note>
+After configuring your custom domains don't forget to update your Nhost client to make use of them. For instance, when using our [SDK](/reference/javascript/nhost-js/nhost-client):
+
+```js
+const nhost = new NhostClient({
+  authUrl: 'https://auth.custom-domain.com/v1',
+  storageUrl: 'https://subdomain.storage.region.nhost.run/v1',
+  graphqlUrl: 'https://hasura.custom-domain.com/v1/graphql',
+  functionsUrl: 'https://functions.custom-domain.com/v1'
+})
+```
+</Note>
