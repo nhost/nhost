@@ -9,7 +9,6 @@ import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
 import { Box } from '@/components/ui/v2/Box';
 import { useGetRecommendedSoftwareVersionsQuery, useGetConfiguredVersionsQuery, useGetProjectServicesHealthQuery, ServiceState } from '@/generated/graphql';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useTheme } from '@mui/material';
 import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
 
@@ -36,29 +35,6 @@ const services = {
     softwareVersionsName: "Graphite"
   }
 } as const;
-
-const baseServices = {
-  "hasura-auth": {
-    displayName: "Auth",
-    softwareVersionsName: "Auth",
-  },
-  postgres: {
-    displayName: "Postgres",
-    softwareVersionsName: "PostgreSQL",
-  },
-  "hasura-storage": {
-    displayName: "Storage",
-    softwareVersionsName: "Storage",
-  },
-  hasura: {
-    displayName: "Hasura",
-    softwareVersionsName: "Hasura",
-  },
-  ai: {
-    displayName: "Graphite",
-    softwareVersionsName: "Graphite"
-  }
-}
 
 interface VersionTooltipProps {
   serviceName?: string,
@@ -148,13 +124,21 @@ export default function OverviewProjectHealth() {
   if (loadingRecommendedVersions || loadingConfiguredVersions || loadingProjectServicesHealth) {
     return (
       <div className="grid grid-flow-row content-start gap-6">
-        <Text variant="h3">Project Health</Text>
-        <ActivityIndicator
-          delay={1000}
-          label="Loading Project Health..."
-          className="justify-center"
-        />
-      </div>
+      <Text variant="h3">Project Health</Text>
+
+      {currentProject && (
+        <div className="grid grid-flow-row justify-center items-center gap-6 md:justify-start xs:grid-cols-3 lg:gap-2 xl:grid-cols-6">
+          <ProjectHealthCard icon={<UserIcon className="h-6 w-6 m-1" />}
+          />
+          <ProjectHealthCard icon={<DatabaseIcon className="h-6 w-6 m-1" />}
+          />
+          <ProjectHealthCard icon={<StorageIcon className="h-6 w-6 m-1" />}
+          />
+          <ProjectHealthCard icon={<HasuraIcon className="h-6 w-6 m-1" />}
+          />
+        </div>
+      )}
+    </div>
     )
   }
 
@@ -266,8 +250,6 @@ export default function OverviewProjectHealth() {
     recommendedVersions={aiRecommendedVersions} />)
 
 
-  console.log(projectServicesHealthData)
-
   const userRunServices = servicesHealth.filter(service => service.name.startsWith("run-"))
 
   return (
@@ -303,9 +285,11 @@ export default function OverviewProjectHealth() {
           />
           }
           {isAIServiceEnabled &&
-            <ProjectHealthCard icon={<AIIcon className="h-6 w-6 m-1" />}
+            <ProjectHealthCard icon={<AIIcon 
+              className="h-6 w-6 m-1" />}
               tooltip={aiTooltipElem}
               versionMismatch={isAIVersionMismatch}
+              status={getServiceHealthState("ai")}
             />
           }
         </div>

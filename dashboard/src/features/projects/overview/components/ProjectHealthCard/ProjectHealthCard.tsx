@@ -15,6 +15,9 @@ interface HealthBadgeProps extends BadgeProps {
 }
 
 function HealthBadge({ status, showExclamation, children, ...props }: HealthBadgeProps) {
+  if (!status) {
+    return <div>{children}</div>
+  }
   if (showExclamation) {
     return (
       <Badge
@@ -107,16 +110,12 @@ export default function ProjectHealthCard({
   className,
   slotProps = {},
   versionMismatch = false,
-  status = "success",
+  status,
   ...props
 }: ProjectHealthCardProps) {
   return (
     // TODO: BUG 'arrow' prop stutters on hover 
-    <Tooltip title={tooltip}
-      slotProps={{
-        tooltip: { className: '' },
-      }}
-    >
+    <Tooltip title={tooltip}>
       <Box
         className={twMerge(
           'min-w-12 max-w-14 grid grid-flow-row gap-0 rounded-md p-0 aspect-square',
