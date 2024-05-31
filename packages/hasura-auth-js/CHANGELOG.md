@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.5.2
+
+### Patch Changes
+
+- a03fb2c: fix: deep clone machine context to prevent mutations in nested objects during initial session setup
+
 ## 2.5.1
 
 ### Patch Changes

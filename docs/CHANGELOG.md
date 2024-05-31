@@ -1,5 +1,12 @@
 # @nhost/docs
 
+## 2.13.0
+
+### Minor Changes
+
+- 6fb0cc2: fix: minor improvements to compute resources' docs
+- 66bd450: chore: various improvements
+
 ## 2.12.0
 
 ### Minor Changes

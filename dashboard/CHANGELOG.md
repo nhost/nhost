@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 1.16.3
+
+### Patch Changes
+
+- 87a37cf: fix: remove unnecessary isPlatform check from verify button disable logic on custom domains
+  - @nhost/react-apollo@12.0.2
+  - @nhost/nextjs@2.1.16
+
 ## 1.16.2
 
 ### Patch Changes
