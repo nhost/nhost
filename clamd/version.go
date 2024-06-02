@@ -10,7 +10,7 @@ type Version struct {
 }
 
 func parseVersion(response []byte) (Version, error) {
-	parts := strings.SplitN(string(response), " ", 2) //nolint:gomnd
+	parts := strings.SplitN(string(response), " ", 2) //nolint:mnd
 	return Version{
 		Version: parts[1],
 	}, nil

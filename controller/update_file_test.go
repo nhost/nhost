@@ -60,7 +60,6 @@ func TestUpdateFile(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -184,7 +183,7 @@ func TestUpdateFile(t *testing.T) {
 				body,
 			)
 
-			req.Header.Add("x-hasura-user-id", "some-valid-uuid")
+			req.Header.Add("X-Hasura-User-Id", "some-valid-uuid")
 
 			req.Header.Set("Content-Type", contentType)
 

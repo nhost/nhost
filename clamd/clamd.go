@@ -49,7 +49,7 @@ func sendCommand(conn net.Conn, command string) error {
 }
 
 func readResponse(conn net.Conn) ([]byte, error) {
-	buf := make([]byte, 1024) //nolint:gomnd
+	buf := make([]byte, 1024) //nolint:mnd
 	n, err := conn.Read(buf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
@@ -60,9 +60,9 @@ func readResponse(conn net.Conn) ([]byte, error) {
 func sendChunk(conn net.Conn, data []byte) error {
 	var buf [4]byte
 	lenData := len(data)
-	buf[0] = byte(lenData >> 24) //nolint:gomnd
-	buf[1] = byte(lenData >> 16) //nolint:gomnd
-	buf[2] = byte(lenData >> 8)  //nolint:gomnd
+	buf[0] = byte(lenData >> 24) //nolint:mnd
+	buf[1] = byte(lenData >> 16) //nolint:mnd
+	buf[2] = byte(lenData >> 8)  //nolint:mnd
 	buf[3] = byte(lenData >> 0)
 
 	a := buf

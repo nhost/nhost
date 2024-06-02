@@ -171,10 +171,7 @@ func TestUploadFile(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			tc := tc
-
 			got, err := uploadFiles(t, cl, tc.files...)
 
 			opts := cmp.Options{

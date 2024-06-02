@@ -41,7 +41,7 @@ func postMetadata(baseURL, hasuraSecret string, data interface{}) error {
 	}
 
 	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
-	req.Header.Set("X-Hasura-admin-secret", hasuraSecret)
+	req.Header.Set("X-Hasura-Admin-Secret", hasuraSecret)
 
 	resp, err := client.Do(req)
 	if err != nil {

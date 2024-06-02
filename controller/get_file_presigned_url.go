@@ -52,7 +52,7 @@ func (ctrl *Controller) getFilePresignedURL(
 	if apiErr != nil {
 		return GetFilePresignedURLResponse{},
 			apiErr.ExtendError(
-				fmt.Sprintf("problem creating presigned URL for file %s", fileMetadata.Name),
+				"problem creating presigned URL for file " + fileMetadata.Name,
 			)
 	}
 

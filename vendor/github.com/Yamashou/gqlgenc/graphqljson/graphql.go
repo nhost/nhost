@@ -34,6 +34,8 @@ import (
 	"io"
 	"reflect"
 	"strings"
+
+	"github.com/99designs/gqlgen/graphql"
 )
 
 // Reference: https://blog.gopheracademy.com/advent-2017/custom-json-unmarshaler-for-graphql-client/
@@ -104,7 +106,7 @@ func (d *Decoder) Decode(v interface{}) error {
 }
 
 // decode decodes a single JSON value from d.tokenizer into d.vs.
-func (d *Decoder) decode() error {
+func (d *Decoder) decode() error { //nolint:maintidx
 	// The loop invariant is that the top of each d.vs stack
 	// is where we try to unmarshal the next JSON value we see.
 	for len(d.vs) > 0 {
@@ -187,17 +189,59 @@ func (d *Decoder) decode() error {
 		}
 
 		switch tok := tok.(type) {
-		case string, json.Number, bool, nil, json.RawMessage, map[string]interface{}:
-			// Value.
-
+		case nil: // Handle null values correctly.
+			for i := range d.vs {
+				v := d.vs[i][len(d.vs[i])-1]
+				if !v.CanSet() {
+					// If v is not settable, skip the operation to prevent panicking.
+					continue
+				}
+				if v.Kind() == reflect.Ptr || v.Kind() == reflect.Slice {
+					// Set the pointer or slice to nil.
+					v.Set(reflect.Zero(v.Type()))
+				} else {
+					// For other types that cannot directly handle nil, continue to use default zero values.
+					v.Set(reflect.Zero(v.Type()))
+				}
+			}
+			d.popAllVs()
+			continue
+		case string, json.Number, bool, json.RawMessage, map[string]interface{}:
 			for i := range d.vs {
 				v := d.vs[i][len(d.vs[i])-1]
 				if !v.IsValid() {
 					continue
 				}
-				err := unmarshalValue(tok, v)
-				if err != nil {
-					return fmt.Errorf(": %w", err)
+
+				// Initialize the pointer if it is nil
+				if v.Kind() == reflect.Ptr && v.IsNil() {
+					v.Set(reflect.New(v.Type().Elem()))
+				}
+
+				// Handle both pointer and non-pointer types
+				target := v
+				if v.Kind() == reflect.Ptr {
+					target = v.Elem()
+				}
+
+				// Check if the type of target (or its address) implements graphql.Unmarshaler
+				var unmarshaler graphql.Unmarshaler
+				var ok bool
+				if target.CanAddr() {
+					unmarshaler, ok = target.Addr().Interface().(graphql.Unmarshaler)
+				} else if target.CanInterface() {
+					unmarshaler, ok = target.Interface().(graphql.Unmarshaler)
+				}
+
+				if ok {
+					if err := unmarshaler.UnmarshalGQL(tok); err != nil {
+						return fmt.Errorf("unmarshal gql error: %w", err)
+					}
+				} else {
+					// Use the standard unmarshal method for non-custom types
+					if err := unmarshalValue(tok, target); err != nil {
+						return fmt.Errorf(": %w", err)
+					}
 				}
 			}
 			d.popAllVs()

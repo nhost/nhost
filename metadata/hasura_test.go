@@ -80,10 +80,8 @@ func TestGetBucketByID(t *testing.T) {
 	hasura := metadata.NewHasura(hasuraURL)
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			bucket, err := hasura.GetBucketByID(context.Background(), tc.bucketID, tc.headers)
 
@@ -148,10 +146,8 @@ func TestInitializeFile(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			hasura := metadata.NewHasura(hasuraURL)
 
@@ -249,10 +245,8 @@ func TestPopulateMetadata(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			got, err := hasura.PopulateMetadata(
 				context.Background(),
@@ -362,10 +356,8 @@ func TestGetFileByID(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			got, err := hasura.GetFileByID(context.Background(), tc.fileID, tc.headers)
 
@@ -447,10 +439,8 @@ func TestSetIsUploaded(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			err := hasura.SetIsUploaded(context.Background(), tc.fileID, true, tc.headers)
 			if tc.expectedStatusCode != err.StatusCode() {
@@ -528,10 +518,8 @@ func TestDeleteFileByID(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			err := hasura.DeleteFileByID(context.Background(), tc.fileID, tc.headers)
 			if tc.expectedStatusCode != err.StatusCode() {
@@ -594,10 +582,7 @@ func TestListFiles(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			tc := tc
-
 			got, err := hasura.ListFiles(context.Background(), tc.headers)
 			if tc.expectedStatusCode != err.StatusCode() {
 				t.Errorf(

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -20,7 +19,7 @@ func GetUserSession(headers http.Header) map[string]any {
 		claims := jwt.MapClaims{}
 		_, _, err := p.ParseUnverified(authHeader[0][7:], claims)
 		if err != nil {
-			claims["error"] = fmt.Sprintf("error parsing jwt: %s", err.Error())
+			claims["error"] = "error parsing jwt: " + err.Error()
 		}
 		session["access_token_claims"] = claims
 	}

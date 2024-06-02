@@ -67,10 +67,8 @@ func TestManipulate(t *testing.T) {
 	transformer := image.NewTransformer()
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			orig, err := os.Open(tc.filename)
 			if err != nil {
@@ -99,7 +97,7 @@ func BenchmarkManipulate(b *testing.B) {
 		b.Fatal(err)
 	}
 	defer orig.Close()
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		_, _ = orig.Seek(0, 0)
 
 		if err := transformer.Run(

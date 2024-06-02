@@ -59,10 +59,8 @@ func TestIsAdmin(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			got := isAdmin("secret", tc.reqHeader)
 			if got != tc.isAdmin {

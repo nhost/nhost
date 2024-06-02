@@ -16,13 +16,13 @@ func (c *Client) DeleteFile(
 	req, err := http.NewRequestWithContext(
 		ctx,
 		"DELETE",
-		c.baseURL+"/files/"+fileID, //nolint:goconst
+		c.baseURL+"/files/"+fileID,
 		nil,
 	)
 	if err != nil {
 		return fmt.Errorf("problem creating request: %w", err)
 	}
-	req.Header.Set("Authorization", "Bearer "+c.jwt) //nolint:goconst
+	req.Header.Set("Authorization", "Bearer "+c.jwt)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

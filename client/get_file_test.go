@@ -309,10 +309,7 @@ func TestGetFile(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			tc := tc
-
 			got, err := cl.GetFile(context.Background(), tc.id, tc.opts...)
 
 			if !cmp.Equal(err, tc.expectedErr) {

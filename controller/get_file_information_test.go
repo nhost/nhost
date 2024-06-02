@@ -29,59 +29,59 @@ func getFileTestCases() []struct {
 			requestHeaders: http.Header{},
 		},
 		{
-			name:           "if-match matches",
+			name:           "If-Match matches",
 			expectedStatus: 200,
 			requestHeaders: http.Header{
-				"if-match": {"\"55af1e60-0f28-454e-885e-ea6aab2bb288\""},
+				"If-Match": {"\"55af1e60-0f28-454e-885e-ea6aab2bb288\""},
 			},
 		},
 		{
-			name:           "if-match doesn't match",
+			name:           "If-Match doesn't match",
 			expectedStatus: 412,
 			requestHeaders: http.Header{
-				"if-match": {"blah"},
+				"If-Match": {"blah"},
 			},
 		},
 		{
-			name:           "if-none-match matches",
+			name:           "If-None-Match matches",
 			expectedStatus: 304,
 			requestHeaders: http.Header{
-				"if-none-match": {"\"55af1e60-0f28-454e-885e-ea6aab2bb288\""},
+				"If-None-Match": {"\"55af1e60-0f28-454e-885e-ea6aab2bb288\""},
 			},
 		},
 		{
-			name:           "if-none-match doesn't match",
+			name:           "If-None-Match doesn't match",
 			expectedStatus: 200,
 			requestHeaders: http.Header{
-				"if-none-match": {"blah"},
+				"If-None-Match": {"blah"},
 			},
 		},
 		{
-			name:           "if-modified since matches",
+			name:           "If-Modified since matches",
 			expectedStatus: 200,
 			requestHeaders: http.Header{
-				"if-modified-since": {"Wed, 15 Jan 2020 10:00:00 UTC"},
+				"If-Modified-since": {"Wed, 15 Jan 2020 10:00:00 UTC"},
 			},
 		},
 		{
-			name:           "if-modified doesn't match",
+			name:           "If-Modified doesn't match",
 			expectedStatus: 304,
 			requestHeaders: http.Header{
-				"if-modified-since": {"Thu, 25 Jan 2024 10:00:00 UTC"},
+				"If-Modified-since": {"Thu, 25 Jan 2024 10:00:00 UTC"},
 			},
 		},
 		{
-			name:           "if-unmodified-since matches",
+			name:           "If-Unmodified-Since matches",
 			expectedStatus: 200,
 			requestHeaders: http.Header{
-				"if-unmodified-since": {"Thu, 25 Jan 2024 10:00:00 UTC"},
+				"If-Unmodified-Since": {"Thu, 25 Jan 2024 10:00:00 UTC"},
 			},
 		},
 		{
-			name:           "if-unmodified-since doesn't match",
+			name:           "If-Unmodified-Since doesn't match",
 			expectedStatus: 412,
 			requestHeaders: http.Header{
-				"if-unmodified-since": {"Wed, 15 Jan 2020 10:00:00 UTC"},
+				"If-Unmodified-Since": {"Wed, 15 Jan 2020 10:00:00 UTC"},
 			},
 		},
 	}
@@ -97,8 +97,6 @@ func TestGetFileInfo(t *testing.T) {
 	logger.SetLevel(logrus.ErrorLevel)
 
 	for _, tc := range cases {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -158,7 +156,7 @@ func TestGetFileInfo(t *testing.T) {
 				nil,
 			)
 
-			req.Header.Add("x-hasura-user-id", "some-valid-uuid")
+			req.Header.Add("X-Hasura-User-Id", "some-valid-uuid")
 			for k, v := range tc.requestHeaders {
 				for _, vv := range v {
 					req.Header.Add(k, vv)

@@ -139,7 +139,7 @@ func (ctrl *Controller) processFile(
 	)
 	if apiErr != nil {
 		return FileMetadata{}, apiErr.ExtendError(
-			fmt.Sprintf("problem populating file metadata for file %s", file.Name),
+			"problem populating file metadata for file " + file.Name,
 		)
 	}
 
@@ -217,21 +217,21 @@ func parseUploadRequestOld(ctx *gin.Context) (uploadFileRequest, *APIError) {
 
 	fileHeader := fileForm[0]
 
-	bucketID := ctx.Request.Header.Get("x-nhost-bucket-id")
+	bucketID := ctx.Request.Header.Get("X-Nhost-Bucket-Id")
 	if bucketID == "" {
 		bucketID = "default"
 	}
-	fileName := ctx.Request.Header.Get("x-nhost-file-name")
+	fileName := ctx.Request.Header.Get("X-Nhost-File-Name")
 	if fileName == "" {
 		fileName = fileHeader.Filename
 	}
-	fileID := ctx.Request.Header.Get("x-nhost-file-id")
+	fileID := ctx.Request.Header.Get("X-Nhost-File-Id")
 	if fileID == "" {
 		fileID = uuid.New().String()
 	}
 
 	ctx.Writer.Header().Add(
-		"X-deprecation-warning-old-upload-file-method",
+		"X-Deprecation-Warning-Old-Upload-File-Method",
 		"please, update the SDK to leverage new API endpoint or read the API docs to adapt your code",
 	)
 

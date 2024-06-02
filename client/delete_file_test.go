@@ -64,10 +64,7 @@ func TestDeleteFile(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			tc := tc
-
 			err := cl.DeleteFile(context.Background(), tc.fileID)
 
 			if !cmp.Equal(err, tc.expectedErr) {

@@ -38,8 +38,6 @@ func TestGetFilePresignedURL(t *testing.T) {
 	logger.SetLevel(logrus.ErrorLevel)
 
 	for _, tc := range cases {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

@@ -130,7 +130,7 @@ func (s *S3) GetFile(
 			// IfModifiedSince:   &time.Time{},
 			// IfNoneMatch:       new(string),
 			// IfUnmodifiedSince: &time.Time{},
-			Range: aws.String(headers.Get("range")),
+			Range: aws.String(headers.Get("Range")),
 		},
 	)
 	if err != nil {
@@ -185,7 +185,7 @@ func (s *S3) CreatePresignedURL(
 	}
 
 	parts := strings.Split(request.URL, "?")
-	if len(parts) != 2 { //nolint: gomnd
+	if len(parts) != 2 { //nolint: mnd
 		return "", controller.InternalServerError(
 			fmt.Errorf("problem generating pre-signed URL: %w", err),
 		)

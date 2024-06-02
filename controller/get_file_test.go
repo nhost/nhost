@@ -23,8 +23,6 @@ func TestGetFile(t *testing.T) {
 	logger.SetLevel(logrus.ErrorLevel)
 
 	for _, tc := range cases {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -99,7 +97,7 @@ func TestGetFile(t *testing.T) {
 				nil,
 			)
 
-			req.Header.Add("x-hasura-user-id", "some-valid-uuid")
+			req.Header.Add("X-Hasura-User-Id", "some-valid-uuid")
 			for k, v := range tc.requestHeaders {
 				for _, vv := range v {
 					req.Header.Add(k, vv)

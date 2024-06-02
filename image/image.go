@@ -49,7 +49,7 @@ func NewTransformer() *Transformer {
 	}
 
 	workers := make(chan struct{}, maxWorkers)
-	for i := 0; i < maxWorkers; i++ {
+	for range maxWorkers {
 		workers <- struct{}{}
 	}
 

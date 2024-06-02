@@ -29,10 +29,7 @@ func TestListOrphans(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			tc := tc
-
 			t.Parallel()
 
 			logger := logrus.New()

@@ -26,7 +26,7 @@ func (ctrl *Controller) listOrphans(ctx *gin.Context) ([]string, *APIError) {
 		return nil, apiErr
 	}
 
-	missing := make([]string, 0, 10) //nolint: gomnd
+	missing := make([]string, 0, 10) //nolint: mnd
 
 	for _, fileS3 := range filesInS3 {
 		found := false

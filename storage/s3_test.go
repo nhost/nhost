@@ -102,10 +102,8 @@ func TestDeleteFile(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 			err := s3.DeleteFile(context.TODO(), tc.filepath)
 			if err != nil {
 				t.Error(err)
@@ -129,7 +127,6 @@ func TestListFiles(t *testing.T) {
 	s3 := getS3()
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			got, err := s3.ListFiles(context.TODO())
 			if err != nil {
@@ -230,10 +227,8 @@ func TestGetFilePresignedURL(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 			signature, apiErr := s3.CreatePresignedURL(context.TODO(), tc.filepath, time.Second)
 			if apiErr != nil {
 				t.Error(apiErr)

@@ -63,10 +63,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			tc := tc
-
 			got, err := cl.GetFilePresignedURL(context.Background(), tc.id)
 			if !cmp.Equal(err, tc.expectedErr) {
 				t.Errorf(cmp.Diff(err, tc.expectedErr))

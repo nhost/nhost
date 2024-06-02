@@ -65,7 +65,7 @@ func WithRange(rangeV string) GetFileInformationOpt {
 func WithIfMatch(etags ...string) GetFileInformationOpt {
 	return func(req *http.Request) {
 		for _, e := range etags {
-			req.Header.Add("if-match", e)
+			req.Header.Add("If-Match", e)
 		}
 	}
 }
@@ -73,20 +73,20 @@ func WithIfMatch(etags ...string) GetFileInformationOpt {
 func WithNoneMatch(etags ...string) GetFileInformationOpt {
 	return func(req *http.Request) {
 		for _, e := range etags {
-			req.Header.Add("if-none-match", e)
+			req.Header.Add("If-None-Match", e)
 		}
 	}
 }
 
 func WithIfModifiedSince(modifiedSince string) GetFileInformationOpt {
 	return func(req *http.Request) {
-		req.Header.Add("if-modified-since", modifiedSince)
+		req.Header.Add("If-Modified-Since", modifiedSince)
 	}
 }
 
 func WithIfUnmodifiedSince(modifiedSince string) GetFileInformationOpt {
 	return func(req *http.Request) {
-		req.Header.Add("if-unmodified-since", modifiedSince)
+		req.Header.Add("If-Unmodified-Since", modifiedSince)
 	}
 }
 

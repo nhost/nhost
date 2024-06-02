@@ -144,7 +144,7 @@ func corsConfig(allowedOrigins []string) cors.Config {
 		ExposeHeaders: []string{
 			"Content-Length", "Content-Type", "Cache-Control", "ETag", "Last-Modified", "X-Error",
 		},
-		MaxAge: 12 * time.Hour, //nolint: gomnd
+		MaxAge: 12 * time.Hour, //nolint: mnd
 	}
 }
 
@@ -161,7 +161,7 @@ func (ctrl *Controller) SetupRouter(
 	}
 
 	// lower values make uploads slower but keeps service memory usage low
-	router.MaxMultipartMemory = 1 << 20 //nolint:gomnd  // 1 MB
+	router.MaxMultipartMemory = 1 << 20 //nolint:mnd  // 1 MB
 	router.Use(gin.Recovery())
 
 	for _, mw := range middleware {
