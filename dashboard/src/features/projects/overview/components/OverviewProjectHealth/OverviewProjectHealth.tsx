@@ -11,6 +11,8 @@ import { useGetRecommendedSoftwareVersionsQuery, useGetConfiguredVersionsQuery, 
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useTheme } from '@mui/material';
 import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 // TODO: chore: remove hardcoded service names and versions, use data from graphql generated types
 const services = {
@@ -40,26 +42,32 @@ interface VersionTooltipProps {
   serviceName?: string,
   usedVersion?: string,
   recommendedVersionMismatch?: boolean,
-  recommendedVersions?: string[]
+  recommendedVersions?: string[],
+  children?: React.ReactNode
 }
 
-function VersionTooltip({ serviceName, usedVersion, recommendedVersionMismatch, recommendedVersions }: VersionTooltipProps) {
+function VersionTooltip({ serviceName, usedVersion, recommendedVersionMismatch, recommendedVersions, children }: VersionTooltipProps) {
   const theme = useTheme();
   return (
     <div className="flex flex-col gap-3 px-2 py-3">
       <div className="flex flex-row justify-between gap-6">
-        <Text variant="h4" component="p" className="text-white/70 font-bold" >service</Text>
-        <Text variant="h4" component="p" className="text-white font-bold">{serviceName}</Text>
+        <Text variant="h4" component="p" className="text-white/70 text-sm+" >service</Text>
+        <Text variant="h4" component="p" className="text-white text-sm+ font-bold">{serviceName}</Text>
       </div>
+      {/* <div className="flex flex-row justify-between gap-6">
+        <Text variant="h4" component="p" className="text-white/70 font-bold" >status</Text>
+        <Text variant="h4" component="p" className="text-white font-bold">error</Text>
+      </div> */}
+      {/* {children} */}
       <div className="flex flex-row justify-between gap-6">
-        <Text variant="h4" component="p" className="text-white/70 font-bold" >version</Text>
-        <Text variant="h4" component="p" className="text-white font-bold">{usedVersion}</Text>
+        <Text variant="h4" component="p" className="text-white/70 text-sm+" >version</Text>
+        <Text variant="h4" component="p" className="text-white font-bold text-sm+">{usedVersion}</Text>
       </div>
       {recommendedVersionMismatch && <Box sx={{ backgroundColor: theme.palette.mode === "dark" ? "grey.200" : "grey.600" }} className="rounded-md p-2">
-        <Text variant="body1" component="p" className="text-white">
+        <Text variant="body1" component="p" className="text-white text-sm+">
           {serviceName} is not using a recommended version. Recommended version(s):
         </Text>
-        <ul className="list-disc text-white">
+        <ul className="list-disc text-white text-sm+">
           {recommendedVersions.map(version => (
             <li className="ml-6 list-item" key={version}>
               <Text variant="body1" component="p" className="text-white">
@@ -106,6 +114,13 @@ export default function OverviewProjectHealth() {
   const { data: recommendedVersionsData, loading: loadingRecommendedVersions } = useGetRecommendedSoftwareVersionsQuery({
     skip: !isPlatform || !currentProject
   });
+
+  const router = useRouter();
+
+  const {
+    asPath,
+    query: { workspaceSlug, appSlug, dataSourceSlug, schemaSlug, tableSlug },
+  } = router;
 
   const { data: configuredVersionsData, loading: loadingConfiguredVersions } = useGetConfiguredVersionsQuery({
     variables: {
@@ -219,11 +234,26 @@ export default function OverviewProjectHealth() {
     return "success"
   }
 
+  const redirectHref = `/${workspaceSlug}/${appSlug}/logs`
+
+
   const authTooltipElem = (<VersionTooltip
     serviceName={services.auth.displayName}
     usedVersion={configuredVersionsData?.config?.auth?.version ?? ""}
     recommendedVersionMismatch={isAuthVersionMismatch}
-    recommendedVersions={authRecommendedVersions} />)
+    recommendedVersions={authRecommendedVersions} >
+        <Link
+          href={{
+            pathname: redirectHref,
+            query: {
+              selectedFilter: "auth"
+            }
+          }}
+          underline="hover"
+        >
+          Redirect to logs
+        </Link>
+    </VersionTooltip>)
 
   const hasuraTooltipElem = (<VersionTooltip
     serviceName={services.hasura.displayName}
