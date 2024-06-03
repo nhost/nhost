@@ -3,7 +3,6 @@ package graphql
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/Yamashou/gqlgenc/clientv2"
@@ -17,7 +16,7 @@ func WithAccessToken(accessToken string) clientv2.RequestInterceptor {
 		res interface{},
 		next clientv2.RequestInterceptorFunc,
 	) error {
-		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		req.Header.Add("Authorization", "Bearer "+accessToken)
 		return next(ctx, req, gqlInfo, res)
 	}
 }

@@ -2,6 +2,7 @@ package nhcontext
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -29,13 +30,13 @@ func GinContextToContextMiddleware(c *gin.Context) {
 func GinContextFromContext(ctx context.Context) (*gin.Context, error) {
 	ginContext := ctx.Value(ginContextKey)
 	if ginContext == nil {
-		err := fmt.Errorf("could not retrieve gin.Context") //nolint: goerr113
+		err := errors.New("could not retrieve gin.Context") //nolint: goerr113
 		return nil, err
 	}
 
 	gc, ok := ginContext.(*gin.Context)
 	if !ok {
-		err := fmt.Errorf("gin.Context has wrong type") //nolint: goerr113
+		err := errors.New("gin.Context has wrong type") //nolint: goerr113
 		return nil, err
 	}
 	return gc, nil

@@ -3,7 +3,7 @@ package lipgloss
 import (
 	"strings"
 
-	"github.com/muesli/reflow/ansi"
+	"github.com/charmbracelet/x/ansi"
 	"github.com/muesli/termenv"
 	"github.com/rivo/uniseg"
 )
@@ -376,16 +376,12 @@ func (s Style) applyBorder(str string) string {
 
 // Render the horizontal (top or bottom) portion of a border.
 func renderHorizontalEdge(left, middle, right string, width int) string {
-	if width < 1 {
-		return ""
-	}
-
 	if middle == "" {
 		middle = " "
 	}
 
-	leftWidth := ansi.PrintableRuneWidth(left)
-	rightWidth := ansi.PrintableRuneWidth(right)
+	leftWidth := ansi.StringWidth(left)
+	rightWidth := ansi.StringWidth(right)
 
 	runes := []rune(middle)
 	j := 0
@@ -398,7 +394,7 @@ func renderHorizontalEdge(left, middle, right string, width int) string {
 		if j >= len(runes) {
 			j = 0
 		}
-		i += ansi.PrintableRuneWidth(string(runes[j]))
+		i += ansi.StringWidth(string(runes[j]))
 	}
 	out.WriteString(right)
 

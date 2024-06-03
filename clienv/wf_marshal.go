@@ -1,15 +1,16 @@
 package clienv
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 )
 
-var ErrNoContent = fmt.Errorf("no content")
+var ErrNoContent = errors.New("no content")
 
 func UnmarshalFile(filepath string, v any, f func([]byte, any) error) error {
-	r, err := os.OpenFile(filepath, os.O_RDONLY, 0o600) //nolint:gomnd
+	r, err := os.OpenFile(filepath, os.O_RDONLY, 0o600) //nolint:mnd
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}
@@ -32,7 +33,7 @@ func UnmarshalFile(filepath string, v any, f func([]byte, any) error) error {
 }
 
 func MarshalFile(v any, filepath string, fn func(any) ([]byte, error)) error {
-	f, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600) //nolint:gomnd
+	f, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600) //nolint:mnd
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}

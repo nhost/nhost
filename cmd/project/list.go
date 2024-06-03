@@ -2,6 +2,7 @@ package project
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -27,7 +28,7 @@ func commandList(cCtx *cli.Context) error {
 
 func printlist(ce *clienv.CliEnv, workspaces []*graphql.GetWorkspacesApps_Workspaces) error {
 	if len(workspaces) == 0 {
-		return fmt.Errorf("no workspaces found") //nolint:goerr113
+		return errors.New("no workspaces found") //nolint:goerr113
 	}
 
 	num := clienv.Column{

@@ -3,6 +3,7 @@ package clienv
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -12,7 +13,7 @@ import (
 
 func printlist(ce *CliEnv, workspaces []*graphql.GetWorkspacesApps_Workspaces) error {
 	if len(workspaces) == 0 {
-		return fmt.Errorf("no workspaces found") //nolint:goerr113
+		return errors.New("no workspaces found") //nolint:goerr113
 	}
 
 	num := Column{
@@ -59,7 +60,7 @@ func confirmApp(ce *CliEnv, app *graphql.GetWorkspacesApps_Workspaces_Apps) erro
 	}
 
 	if confirm != app.Subdomain {
-		return fmt.Errorf("input doesn't match the subdomain") //nolint:goerr113
+		return errors.New("input doesn't match the subdomain") //nolint:goerr113
 	}
 
 	return nil
@@ -84,7 +85,7 @@ OUTER:
 	}
 
 	if app == nil {
-		return nil, fmt.Errorf("invalid input") //nolint:goerr113
+		return nil, errors.New("invalid input") //nolint:goerr113
 	}
 
 	return app, nil
@@ -101,7 +102,7 @@ func (ce *CliEnv) Link(ctx context.Context) (*graphql.GetWorkspacesApps_Workspac
 	}
 
 	if len(workspaces.GetWorkspaces()) == 0 {
-		return nil, fmt.Errorf("no workspaces found") //nolint:goerr113
+		return nil, errors.New("no workspaces found") //nolint:goerr113
 	}
 
 	if err := printlist(ce, workspaces.GetWorkspaces()); err != nil {
@@ -123,7 +124,7 @@ func (ce *CliEnv) Link(ctx context.Context) (*graphql.GetWorkspacesApps_Workspac
 		return nil, err
 	}
 
-	if err := os.MkdirAll(ce.Path.DotNhostFolder(), 0o755); err != nil { //nolint:gomnd
+	if err := os.MkdirAll(ce.Path.DotNhostFolder(), 0o755); err != nil { //nolint:mnd
 		return nil, fmt.Errorf("failed to create .nhost folder: %w", err)
 	}
 

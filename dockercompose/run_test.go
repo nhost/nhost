@@ -118,10 +118,8 @@ func TestRun(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			got := run(tc.cfg(), "branch")
 			if diff := cmp.Diff(tc.expected(), got); diff != "" {

@@ -13,7 +13,7 @@ func (r *queryResolver) systemConfigs(
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	res := make([]*model.ConfigAppSystemConfig, 0, 10) //nolint:gomnd
+	res := make([]*model.ConfigAppSystemConfig, 0, 10) //nolint:mnd
 	for _, app := range r.data {
 		cfg, err := app.ResolveSystemConfig(r.schema)
 		if err != nil {

@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -76,14 +77,14 @@ func commandPull(cCtx *cli.Context) error {
 func verifyFile(ce *clienv.CliEnv, name string) error {
 	if clienv.PathExists(name) {
 		ce.PromptMessage(
-			fmt.Sprintf("%s already exists. Do you want to overwrite it? [y/N] ", name),
+			name + " already exists. Do you want to overwrite it? [y/N] ",
 		)
 		resp, err := ce.PromptInput(false)
 		if err != nil {
 			return fmt.Errorf("failed to read input: %w", err)
 		}
 		if resp != "y" && resp != "Y" {
-			return fmt.Errorf("aborting") //nolint:goerr113
+			return errors.New("aborting") //nolint:goerr113
 		}
 	}
 	return nil
@@ -168,7 +169,7 @@ func Pull(
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:gomnd
+	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd
 		return nil, fmt.Errorf("failed to create nhost directory: %w", err)
 	}
 

@@ -2,6 +2,7 @@ package project
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -43,10 +44,10 @@ func commandInit(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
 	if clienv.PathExists(ce.Path.NhostFolder()) {
-		return fmt.Errorf("nhost folder already exists") //nolint:goerr113
+		return errors.New("nhost folder already exists") //nolint:goerr113
 	}
 
-	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:gomnd
+	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create nhost folder: %w", err)
 	}
 
@@ -81,7 +82,7 @@ func initInit(
 		return err
 	}
 
-	gitingoref, err := os.OpenFile(".gitignore", os.O_RDWR|os.O_CREATE, 0o600) //nolint:gomnd
+	gitingoref, err := os.OpenFile(".gitignore", os.O_RDWR|os.O_CREATE, 0o600) //nolint:mnd
 	if err != nil {
 		return fmt.Errorf("failed to open .gitignore file: %w", err)
 	}
@@ -122,7 +123,7 @@ func initFolders(fs *clienv.PathStructure) error {
 		filepath.Join(fs.NhostFolder(), "emails"),
 	}
 	for _, f := range folders {
-		if err := os.MkdirAll(f, 0o755); err != nil { //nolint:gomnd
+		if err := os.MkdirAll(f, 0o755); err != nil { //nolint:mnd
 			return fmt.Errorf("failed to create folder %s: %w", f, err)
 		}
 	}

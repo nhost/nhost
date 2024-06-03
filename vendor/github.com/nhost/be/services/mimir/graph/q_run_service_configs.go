@@ -18,7 +18,7 @@ func (r *queryResolver) runServiceConfigs(
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	services := make([]*model.ConfigRunServiceConfigWithID, 0, 10) //nolint:gomnd
+	services := make([]*model.ConfigRunServiceConfigWithID, 0, 10) //nolint:mnd
 	for _, app := range r.data {
 		if appID != nil && app.AppID != *appID {
 			continue

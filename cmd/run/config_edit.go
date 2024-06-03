@@ -58,7 +58,7 @@ func commandConfigEdit(cCtx *cli.Context) error {
 
 	if err := os.MkdirAll(ce.Path.RunServiceOverlaysFolder(
 		cCtx.String(flagConfig),
-	), 0o755); err != nil { //nolint:gomnd
+	), 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create json patches directory: %w", err)
 	}
 

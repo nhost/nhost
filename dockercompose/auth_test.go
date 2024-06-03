@@ -203,10 +203,8 @@ func TestAuth(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			got, err := auth(tc.cfg(), 1336, tc.useTlS, "/tmp/nhost", 0)
 			if err != nil {

@@ -24,7 +24,7 @@ func CommandDefault() *cli.Command {
 func commandDefault(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
-	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:gomnd
+	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create nhost folder: %w", err)
 	}
 

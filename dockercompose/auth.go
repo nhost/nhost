@@ -31,7 +31,7 @@ func auth( //nolint:funlen
 	envars, err := appconfig.HasuraAuthEnv(
 		cfg,
 		"http://graphql:8080/v1/graphql",
-		URL("auth", httpPort, useTLS)+"/v1", //nolint:goconst
+		URL("auth", httpPort, useTLS)+"/v1",
 		"postgres://nhost_hasura@postgres:5432/local",
 		"postgres://nhost_auth_admin@postgres:5432/local",
 		&model.ConfigSmtp{
@@ -39,7 +39,7 @@ func auth( //nolint:funlen
 			Password: "password",
 			Sender:   "hasura-auth@example.com",
 			Host:     "mailhog",
-			Port:     1025, //nolint:gomnd
+			Port:     1025, //nolint:mnd
 			Secure:   false,
 			Method:   "LOGIN",
 		},
@@ -53,7 +53,7 @@ func auth( //nolint:funlen
 		env[v.Name] = v.Value
 	}
 	svc := &Service{
-		Image: fmt.Sprintf("nhost/hasura-auth:%s", *cfg.Auth.Version),
+		Image: "nhost/hasura-auth:" + *cfg.Auth.Version,
 		DependsOn: map[string]DependsOn{
 			"graphql": {
 				Condition: "service_healthy",
@@ -89,7 +89,7 @@ func auth( //nolint:funlen
 		Volumes: []Volume{
 			{
 				Type:     "bind",
-				Source:   fmt.Sprintf("%s/emails", nhostFolder),
+				Source:   nhostFolder + "/emails",
 				Target:   "/app/email-templates",
 				ReadOnly: ptr(false),
 			},

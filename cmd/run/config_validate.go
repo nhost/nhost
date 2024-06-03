@@ -2,6 +2,7 @@ package run
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -158,7 +159,7 @@ func commandConfigValidate(cCtx *cli.Context) error {
 	var serviceID string
 	switch {
 	case cCtx.String(flagServiceID) != "" && cCtx.String(flagOverlayName) != "":
-		return fmt.Errorf("cannot specify both service id and overlay name") //nolint:goerr113
+		return errors.New("cannot specify both service id and overlay name") //nolint:goerr113
 	case cCtx.String(flagServiceID) != "":
 		serviceID = cCtx.String(flagServiceID)
 		overlayName = serviceID

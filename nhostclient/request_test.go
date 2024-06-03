@@ -34,7 +34,7 @@ func TestMakeJSONRequest(t *testing.T) {
 				"Accept-Encoding": []string{"gzip"},
 				"User-Agent":      []string{"Go-http-client/1.1"},
 			},
-			responseValidator: func(resp *http.Response) error {
+			responseValidator: func(_ *http.Response) error {
 				return nil
 			},
 			retryer:                 nhostclient.NewBasicRetryer(1, 1),
@@ -50,7 +50,7 @@ func TestMakeJSONRequest(t *testing.T) {
 				"Accept-Encoding": []string{"gzip"},
 				"User-Agent":      []string{"Go-http-client/1.1"},
 			},
-			responseValidator: func(resp *http.Response) error {
+			responseValidator: func(_ *http.Response) error {
 				return errTest
 			},
 			retryer:                 nhostclient.NewBasicRetryer(2, 2),
@@ -61,10 +61,8 @@ func TestMakeJSONRequest(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.Method != tc.expectedRequestMethod {

@@ -125,7 +125,7 @@ func extractTarGz(gzipStream io.Reader, dst io.Writer) error {
 
 		switch header.Typeflag {
 		case tar.TypeDir:
-			return fmt.Errorf( //nolint:goerr113
+			return errors.New( //nolint:goerr113
 				"expected a file inside tarball, found a directory instead",
 			)
 		case tar.TypeReg:
@@ -143,5 +143,5 @@ func extractTarGz(gzipStream io.Reader, dst io.Writer) error {
 		}
 	}
 
-	return fmt.Errorf("no file found in tarball") //nolint:goerr113
+	return errors.New("no file found in tarball") //nolint:goerr113
 }

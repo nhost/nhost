@@ -84,7 +84,7 @@ func install(cCtx *cli.Context, ce *clienv.CliEnv, tmpFile string) error {
 	}
 
 	ce.Infoln("Setting permissions...")
-	if err := os.Chmod(curBin, 0o755); err != nil { //nolint:gomnd
+	if err := os.Chmod(curBin, 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to set permissions on %s: %w", curBin, err)
 	}
 

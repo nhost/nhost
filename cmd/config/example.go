@@ -25,7 +25,7 @@ func ptr[T any](v T) *T { return &v }
 func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 	ce := clienv.FromCLI(cCtx)
 
-	//nolint:gomnd
+	//nolint:mnd
 	cfg := model.ConfigConfig{
 		Global: &model.ConfigGlobal{
 			Environment: []*model.ConfigGlobalEnvironmentVariable{
@@ -357,7 +357,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				Password: "smtpPassword",
 				Sender:   "smtpSender",
 				Host:     "smtpHost",
-				Port:     587, //nolint:gomnd
+				Port:     587, //nolint:mnd
 				Secure:   true,
 				Method:   "LOGIN",
 			},

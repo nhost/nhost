@@ -89,10 +89,8 @@ func TestLocalGetApps(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			configF, err := os.CreateTemp("", "TestLocalGetApps")
 			if err != nil {
@@ -153,10 +151,8 @@ func TestLocalUpdateConfig(t *testing.T) { //nolint:dupl
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			configF, err := os.CreateTemp("", "TestLocalGetApps")
 			if err != nil {
@@ -225,10 +221,8 @@ func TestLocalUpdateSecrets(t *testing.T) { //nolint:dupl
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			configF, err := os.CreateTemp("", "TestLocalGetApps")
 			if err != nil {

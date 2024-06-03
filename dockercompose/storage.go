@@ -43,7 +43,7 @@ func storage( //nolint:funlen
 	}
 
 	return &Service{
-		Image: fmt.Sprintf("nhost/hasura-storage:%s", *cfg.GetStorage().GetVersion()),
+		Image: "nhost/hasura-storage:" + *cfg.GetStorage().GetVersion(),
 		DependsOn: map[string]DependsOn{
 			"minio": {
 				Condition: "service_started",

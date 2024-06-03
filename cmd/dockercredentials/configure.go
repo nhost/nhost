@@ -35,7 +35,7 @@ func CommandConfigure() *cli.Command {
 				Name:    flagDockerConfig,
 				Usage:   "Path to docker config file",
 				EnvVars: []string{"DOCKER_CONFIG"},
-				Value:   fmt.Sprintf("%s/.docker/config.json", home),
+				Value:   home + "/.docker/config.json",
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagNoInteractive,
@@ -78,7 +78,7 @@ func writeScript(ctx context.Context, ce *clienv.CliEnv) error {
 		return fmt.Errorf("could not write to temporary file: %w", err)
 	}
 
-	if err := tmpfile.Chmod(0o755); err != nil { //nolint:gomnd
+	if err := tmpfile.Chmod(0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("could not chmod temporary file: %w", err)
 	}
 
@@ -95,7 +95,7 @@ func writeScript(ctx context.Context, ce *clienv.CliEnv) error {
 }
 
 func configureDocker(dockerConfig string) error {
-	f, err := os.OpenFile(dockerConfig, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0o644) //nolint:gomnd
+	f, err := os.OpenFile(dockerConfig, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0o644) //nolint:mnd
 	if err != nil {
 		return fmt.Errorf("could not open docker config file: %w", err)
 	}

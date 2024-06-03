@@ -31,7 +31,7 @@ func (d *Docker) HasuraWrapper(
 	}
 	args := []string{
 		"run",
-		"-v", fmt.Sprintf("%s:/app", absPath),
+		"-v", absPath + ":/app",
 		"-e", "HASURA_GRAPHQL_ENABLE_TELEMETRY=false",
 		"-w", "/app",
 		"-it", "--rm",

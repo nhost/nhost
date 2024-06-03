@@ -2,6 +2,7 @@ package dev
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -137,12 +138,12 @@ func commandUp(cCtx *cli.Context) error {
 	// projname to be root directory
 
 	if !clienv.PathExists(ce.Path.NhostToml()) {
-		return fmt.Errorf( //nolint:goerr113
+		return errors.New( //nolint:goerr113
 			"no nhost project found, please run `nhost init` or `nhost config pull`",
 		)
 	}
 	if !clienv.PathExists(ce.Path.Secrets()) {
-		return fmt.Errorf( //nolint:goerr113
+		return errors.New( //nolint:goerr113
 			"no secrets found, please run `nhost init` or `nhost config pull`",
 		)
 	}
@@ -253,7 +254,7 @@ func parseRunServiceConfigFlag(value string) (string, string, error) {
 	switch len(parts) {
 	case 1:
 		return parts[0], "", nil
-	case 2: //nolint:gomnd
+	case 2: //nolint:mnd
 		return parts[0], parts[1], nil
 	default:
 		return "", "", fmt.Errorf( //nolint:goerr113
@@ -325,7 +326,7 @@ func up( //nolint:funlen,cyclop
 		return fmt.Errorf("failed to validate config: %w", err)
 	}
 
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, 5*time.Second) //nolint:gomnd
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 5*time.Second) //nolint:mnd
 	defer cancel()
 	ce.Infoln("Checking versions...")
 	if err := software.CheckVersions(ctxWithTimeout, ce, cfg, appVersion); err != nil {
@@ -402,7 +403,7 @@ func printInfo(
 	useTLS bool,
 	runServices []*dockercompose.RunService,
 ) {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0) //nolint:gomnd
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0) //nolint:mnd
 	fmt.Fprintf(w, "URLs:\n")
 	fmt.Fprintf(w,
 		"- Postgres:\t\tpostgres://postgres:postgres@localhost:%d/local\n",

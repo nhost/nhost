@@ -21,7 +21,7 @@ func CommandLink() *cli.Command {
 func commandLink(cCtx *cli.Context) error {
 	ce := clienv.FromCLI(cCtx)
 
-	if err := os.MkdirAll(ce.Path.DotNhostFolder(), 0o755); err != nil { //nolint:gomnd
+	if err := os.MkdirAll(ce.Path.DotNhostFolder(), 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create .nhost folder: %w", err)
 	}
 

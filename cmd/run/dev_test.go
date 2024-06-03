@@ -16,10 +16,8 @@ func TestEscape(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.s, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			if got := escape(tc.s); got != tc.want {
 				t.Errorf("escape() = %v, want %v", got, tc.want)

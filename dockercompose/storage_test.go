@@ -73,10 +73,8 @@ func TestStorage(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			got, err := storage(tc.cfg(), tc.useTlS, 444, 0)
 			if err != nil {

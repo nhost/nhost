@@ -62,7 +62,7 @@ func checkServiceVersion(
 	availableVersions *graphql.GetSoftwareVersions,
 	changelog string,
 ) {
-	recommendedVersions := make([]string, 0, 5) //nolint:gomnd
+	recommendedVersions := make([]string, 0, 5) //nolint:mnd
 	for _, v := range availableVersions.GetSoftwareVersions() {
 		if *v.GetSoftware() == software && v.GetVersion() == curVersion {
 			ce.Infoln("✅ %s is already on a recommended version: %s", software, curVersion)

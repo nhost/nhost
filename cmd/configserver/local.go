@@ -3,6 +3,7 @@ package configserver
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -15,7 +16,7 @@ import (
 
 const zeroUUID = "00000000-0000-0000-0000-000000000000"
 
-var ErrNotImpl = fmt.Errorf("not implemented")
+var ErrNotImpl = errors.New("not implemented")
 
 type Local struct {
 	// we use paths instead of readers/writers because the intention is that these
@@ -132,7 +133,7 @@ func (l *Local) UpdateConfig(_ context.Context, _, newApp *graph.App, _ logrus.F
 		return fmt.Errorf("failed to marshal app config: %w", err)
 	}
 
-	if err := os.WriteFile(l.config, b, 0o644); err != nil { //nolint:gosec,gomnd
+	if err := os.WriteFile(l.config, b, 0o644); err != nil { //nolint:gosec,mnd
 		return fmt.Errorf("failed to write config: %w", err)
 	}
 
@@ -154,7 +155,7 @@ func (l *Local) UpdateSecrets(_ context.Context, _, newApp *graph.App, _ logrus.
 		return fmt.Errorf("failed to marshal app secrets: %w", err)
 	}
 
-	if err := os.WriteFile(l.secrets, b, 0o644); err != nil { //nolint:gosec,gomnd
+	if err := os.WriteFile(l.secrets, b, 0o644); err != nil { //nolint:gosec,mnd
 		return fmt.Errorf("failed to write secrets: %w", err)
 	}
 
@@ -180,7 +181,7 @@ func (l *Local) UpdateRunServiceConfig(
 		return fmt.Errorf("failed to marshal run service config: %w", err)
 	}
 
-	if err := os.WriteFile(wr, b, 0o644); err != nil { //nolint:gosec,gomnd
+	if err := os.WriteFile(wr, b, 0o644); err != nil { //nolint:gosec,mnd
 		return fmt.Errorf("failed to write run service config: %w", err)
 	}
 

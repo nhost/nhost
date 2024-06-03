@@ -1,7 +1,6 @@
 package dockercompose
 
 import (
-	"fmt"
 	"path/filepath"
 	"slices"
 )
@@ -21,7 +20,7 @@ func configserver( //nolint: funlen
 		target := filepath.Join("/tmp", source)
 		targetFile := filepath.Join(target, filepath.Base(runService.Path))
 
-		extraArgs[i] = fmt.Sprintf("--storage-local-run-services-path=%s", targetFile)
+		extraArgs[i] = "--storage-local-run-services-path=" + targetFile
 
 		if slices.Contains(mountedVolumes, source) {
 			continue

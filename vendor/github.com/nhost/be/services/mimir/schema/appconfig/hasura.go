@@ -85,38 +85,33 @@ func HasuraEnv( //nolint:funlen,maintidx
 			SecretName: "",
 		},
 		{
-			Name: "NHOST_GRAPHQL_URL",
-			Value: fmt.Sprintf(
-				"%s/v1",
-				GetFQDNURL(subdomain, "graphql", region, domain, useTLS, httpPort),
-			),
+			Name:       "NHOST_GRAPHQL_URL",
+			Value:      GetFQDNURL(subdomain, "graphql", region, domain, useTLS, httpPort) + "/v1",
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
-			Name: "NHOST_AUTH_URL",
-			Value: fmt.Sprintf(
-				"%s/v1",
-				GetFQDNURL(subdomain, "auth", region, domain, useTLS, httpPort),
-			),
+			Name:       "NHOST_AUTH_URL",
+			Value:      GetFQDNURL(subdomain, "auth", region, domain, useTLS, httpPort) + "/v1",
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
-			Name: "NHOST_STORAGE_URL",
-			Value: fmt.Sprintf(
-				"%s/v1",
-				GetFQDNURL(subdomain, "storage", region, domain, useTLS, httpPort),
-			),
+			Name:       "NHOST_STORAGE_URL",
+			Value:      GetFQDNURL(subdomain, "storage", region, domain, useTLS, httpPort) + "/v1",
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name: "NHOST_FUNCTIONS_URL",
-			Value: fmt.Sprintf(
-				"%s/v1",
-				GetFQDNURL(subdomain, "functions", region, domain, useTLS, httpPort),
-			),
+			Value: GetFQDNURL(
+				subdomain,
+				"functions",
+				region,
+				domain,
+				useTLS,
+				httpPort,
+			) + "/v1",
 			IsSecret:   false,
 			SecretName: "",
 		},

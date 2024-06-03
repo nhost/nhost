@@ -1,6 +1,7 @@
 package secrets //nolint:dupl
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/nhost/cli/clienv"
@@ -19,8 +20,8 @@ func CommandUpdate() *cli.Command {
 }
 
 func commandUpdate(cCtx *cli.Context) error {
-	if cCtx.NArg() != 2 { //nolint:gomnd
-		return fmt.Errorf("invalid number of arguments") //nolint:goerr113
+	if cCtx.NArg() != 2 { //nolint:mnd
+		return errors.New("invalid number of arguments") //nolint:goerr113
 	}
 
 	ce := clienv.FromCLI(cCtx)

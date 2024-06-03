@@ -117,7 +117,7 @@ func GenerateJSONPatch(origfilepath, newfilepath, dst string) error {
 		return fmt.Errorf("failed to generate json patch: %w", err)
 	}
 
-	dstf, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644) //nolint:gomnd
+	dstf, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644) //nolint:mnd
 	if err != nil {
 		return fmt.Errorf("failed to open destination file: %w", err)
 	}
@@ -149,7 +149,7 @@ func edit(cCtx *cli.Context) error {
 		return nil
 	}
 
-	if err := os.MkdirAll(ce.Path.OverlaysFolder(), 0o755); err != nil { //nolint:gomnd
+	if err := os.MkdirAll(ce.Path.OverlaysFolder(), 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create json patches directory: %w", err)
 	}
 

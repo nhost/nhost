@@ -47,10 +47,7 @@ func (i Ingress) Labels() map[string]string {
 		labels[fmt.Sprintf("traefik.http.middlewares.replace-%s.replacepathregex.regex", i.Name)] = i.Rewrite.Regex
 		//nolint:lll
 		labels[fmt.Sprintf("traefik.http.middlewares.replace-%s.replacepathregex.replacement", i.Name)] = i.Rewrite.Replacement
-		labels[fmt.Sprintf("traefik.http.routers.%s.middlewares", i.Name)] = fmt.Sprintf(
-			"replace-%s",
-			i.Name,
-		)
+		labels["traefik.http.routers."+i.Name+".middlewares"] = "replace-" + i.Name
 	}
 
 	return labels

@@ -15,11 +15,11 @@ func postgres( //nolint:funlen
 	dataFolder string,
 	volumeName string,
 ) (*Service, error) {
-	if err := os.MkdirAll(fmt.Sprintf("%s/db/pgdata", dataFolder), 0o755); err != nil { //nolint:gomnd
+	if err := os.MkdirAll(dataFolder+"/db/pgdata", 0o755); err != nil { //nolint:mnd
 		return nil, fmt.Errorf("failed to create postgres data folder: %w", err)
 	}
 
-	f, err := os.Create(fmt.Sprintf("%s/db/pg_hba_local.conf", dataFolder))
+	f, err := os.Create(dataFolder + "/db/pg_hba_local.conf")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pg_hba_local.conf: %w", err)
 	}
@@ -48,7 +48,7 @@ func postgres( //nolint:funlen
 	env["POSTGRES_DEV_INSECURE"] = "true"
 
 	return &Service{
-		Image:      fmt.Sprintf("nhost/postgres:%s", *cfg.GetPostgres().GetVersion()),
+		Image:      "nhost/postgres:" + *cfg.GetPostgres().GetVersion(),
 		DependsOn:  nil,
 		EntryPoint: nil,
 		Command: []string{
@@ -85,7 +85,7 @@ func postgres( //nolint:funlen
 			},
 			{
 				Type:     "bind",
-				Source:   fmt.Sprintf("%s/db/pg_hba_local.conf", dataFolder),
+				Source:   dataFolder + "/db/pg_hba_local.conf",
 				Target:   "/etc/pg_hba_local.conf",
 				ReadOnly: ptr(false),
 			},

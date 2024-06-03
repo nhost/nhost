@@ -1,6 +1,7 @@
 package secrets
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/nhost/cli/clienv"
@@ -20,7 +21,7 @@ func CommandDelete() *cli.Command {
 
 func commandDelete(cCtx *cli.Context) error {
 	if cCtx.NArg() != 1 {
-		return fmt.Errorf("invalid number of arguments") //nolint:goerr113
+		return errors.New("invalid number of arguments") //nolint:goerr113
 	}
 
 	ce := clienv.FromCLI(cCtx)

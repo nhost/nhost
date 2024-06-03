@@ -29,11 +29,11 @@ const (
 )
 
 func rootNodeModules(branch string) string {
-	return fmt.Sprintf("%s-root_node_modules", sanitizeBranch(branch))
+	return sanitizeBranch(branch) + "-root_node_modules"
 }
 
 func functionsNodeModules(branch string) string {
-	return fmt.Sprintf("%s-functions_node_modules", sanitizeBranch(branch))
+	return sanitizeBranch(branch) + "-functions_node_modules"
 }
 
 func ptr[T any](v T) *T {
@@ -127,14 +127,14 @@ accessLog: {}
 `
 
 func trafikFiles(dotnhostfolder string) error {
-	if err := os.MkdirAll(filepath.Join(dotnhostfolder, "traefik", "certs"), 0o755); err != nil { //nolint:gomnd
+	if err := os.MkdirAll(filepath.Join(dotnhostfolder, "traefik", "certs"), 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create traefik folder: %w", err)
 	}
 
 	f1, err := os.OpenFile(
 		filepath.Join(dotnhostfolder, "traefik", "certs", "local.crt"),
 		os.O_TRUNC|os.O_CREATE|os.O_WRONLY,
-		0o644, //nolint:gomnd
+		0o644, //nolint:mnd
 	)
 	if err != nil {
 		return fmt.Errorf("failed to open local.crt: %w", err)
@@ -148,7 +148,7 @@ func trafikFiles(dotnhostfolder string) error {
 	f2, err := os.OpenFile(
 		filepath.Join(dotnhostfolder, "traefik", "certs", "local.key"),
 		os.O_TRUNC|os.O_CREATE|os.O_WRONLY,
-		0o644, //nolint:gomnd
+		0o644, //nolint:mnd
 	)
 	if err != nil {
 		return fmt.Errorf("failed to open local.key: %w", err)
@@ -162,7 +162,7 @@ func trafikFiles(dotnhostfolder string) error {
 	f3, err := os.OpenFile(
 		filepath.Join(dotnhostfolder, "traefik", "traefik.yaml"),
 		os.O_TRUNC|os.O_CREATE|os.O_WRONLY,
-		0o644, //nolint:gomnd
+		0o644, //nolint:mnd
 	)
 	if err != nil {
 		return fmt.Errorf("failed to open traefik.yaml: %w", err)
@@ -229,7 +229,7 @@ func traefik(projectName string, port uint, dotnhostfolder string) (*Service, er
 }
 
 func minio(dataFolder string) (*Service, error) {
-	if err := os.MkdirAll(fmt.Sprintf("%s/minio", dataFolder), 0o755); err != nil { //nolint:gomnd
+	if err := os.MkdirAll(dataFolder+"/minio", 0o755); err != nil { //nolint:mnd
 		return nil, fmt.Errorf("failed to create minio data folder: %w", err)
 	}
 	return &Service{
@@ -251,7 +251,7 @@ func minio(dataFolder string) (*Service, error) {
 		Volumes: []Volume{
 			{
 				Type:     "bind",
-				Source:   fmt.Sprintf("%s/minio", dataFolder),
+				Source:   dataFolder + "/minio",
 				Target:   "/data",
 				ReadOnly: nil,
 			},
@@ -397,7 +397,7 @@ func functions( //nolint:funlen
 
 func mailhog(dataFolder string, useTLS bool) (*Service, error) {
 	mailhogDataFolder := filepath.Join(dataFolder, "mailhog")
-	if err := os.MkdirAll(mailhogDataFolder, 0o755); err != nil { //nolint:gomnd
+	if err := os.MkdirAll(mailhogDataFolder, 0o755); err != nil { //nolint:mnd
 		return nil, fmt.Errorf("failed to create mailhog folder: %w", err)
 	}
 
@@ -489,7 +489,7 @@ func getServices( //nolint: funlen,cyclop
 		return nil, err
 	}
 
-	pgVolumeName := fmt.Sprintf("pgdata_%s", sanitizeBranch(branch))
+	pgVolumeName := "pgdata_" + sanitizeBranch(branch)
 	postgres, err := postgres(cfg, postgresPort, dataFolder, pgVolumeName)
 	if err != nil {
 		return nil, err
@@ -604,7 +604,7 @@ func ComposeFileFromConfig(
 		return nil, err
 	}
 
-	pgVolumeName := fmt.Sprintf("pgdata_%s", sanitizeBranch(branch))
+	pgVolumeName := "pgdata_" + sanitizeBranch(branch)
 	volumes := map[string]struct{}{
 		rootNodeModules(branch):      {},
 		functionsNodeModules(branch): {},

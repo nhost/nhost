@@ -28,7 +28,7 @@ func savePAT(
 ) error {
 	dir := filepath.Dir(ce.Path.AuthFile())
 	if !PathExists(dir) {
-		if err := os.MkdirAll(dir, 0o755); err != nil { //nolint:gomnd
+		if err := os.MkdirAll(dir, 0o755); err != nil { //nolint:mnd
 			return fmt.Errorf("failed to create dir: %w", err)
 		}
 	}
@@ -76,7 +76,7 @@ func getTLSServer() (*http.Server, error) {
 	// Type assert the private key to crypto.PrivateKey
 	pk, ok := privateKey.(crypto.PrivateKey)
 	if !ok {
-		return nil, fmt.Errorf( //nolint:goerr113
+		return nil, errors.New( //nolint:goerr113
 			"failed to type assert private key to crypto.PrivateKey",
 		)
 	}
@@ -101,7 +101,7 @@ func getTLSServer() (*http.Server, error) {
 	return &http.Server{ //nolint:exhaustruct
 		Addr:              ":8099",
 		TLSConfig:         tlsConfig,
-		ReadHeaderTimeout: time.Second * 10, //nolint:gomnd
+		ReadHeaderTimeout: time.Second * 10, //nolint:mnd
 	}, nil
 }
 

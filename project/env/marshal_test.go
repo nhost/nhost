@@ -50,10 +50,8 @@ func TestUnmarshal(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			var secrets model.Secrets
 			err := env.Unmarshal(tc.data, &secrets)

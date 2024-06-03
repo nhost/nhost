@@ -1,8 +1,6 @@
 package dockercompose
 
 import (
-	"fmt"
-
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 )
@@ -23,7 +21,7 @@ func ai(
 	}
 
 	return &Service{
-		Image: fmt.Sprintf("nhost/graphite:%s", *cfg.GetAi().GetVersion()),
+		Image: "nhost/graphite:" + *cfg.GetAi().GetVersion(),
 		DependsOn: map[string]DependsOn{
 			"graphql": {
 				Condition: "service_healthy",

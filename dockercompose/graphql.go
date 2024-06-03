@@ -32,7 +32,7 @@ func graphql( //nolint:funlen
 	}
 
 	return &Service{
-		Image: fmt.Sprintf("nhost/graphql-engine:%s", *cfg.GetHasura().GetVersion()),
+		Image: "nhost/graphql-engine:" + *cfg.GetHasura().GetVersion(),
 		DependsOn: map[string]DependsOn{
 			"postgres": {
 				Condition: "service_healthy",

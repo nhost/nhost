@@ -113,10 +113,8 @@ func TestGraphql(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			got, err := graphql(tc.cfg(), tc.useTlS, 1337, 0)
 			if err != nil {
@@ -251,10 +249,8 @@ func TestConsole(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			got, err := console(tc.cfg(), 1337, tc.useTlS, "/path/to/nhost", 0)
 			if err != nil {

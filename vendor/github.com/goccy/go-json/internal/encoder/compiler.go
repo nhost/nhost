@@ -480,7 +480,7 @@ func (c *Compiler) mapCode(typ *runtime.Type) (*MapCode, error) {
 
 func (c *Compiler) listElemCode(typ *runtime.Type) (Code, error) {
 	switch {
-	case c.isPtrMarshalJSONType(typ):
+	case c.implementsMarshalJSONType(typ) || c.implementsMarshalJSONType(runtime.PtrTo(typ)):
 		return c.marshalJSONCode(typ)
 	case !typ.Implements(marshalTextType) && runtime.PtrTo(typ).Implements(marshalTextType):
 		return c.marshalTextCode(typ)

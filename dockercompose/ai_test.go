@@ -67,10 +67,8 @@ func TestAI(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			got := ai(tc.cfg())
 			if diff := cmp.Diff(tc.expected(), got); diff != "" {

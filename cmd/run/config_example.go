@@ -27,7 +27,7 @@ func CommandConfigExample() *cli.Command {
 func commandConfigExample(cCtx *cli.Context) error { //nolint:funlen
 	ce := clienv.FromCLI(cCtx)
 
-	//nolint:gomnd
+	//nolint:mnd
 	cfg := &model.ConfigRunServiceConfig{
 		Name: "my-run-service",
 		Image: &model.ConfigRunServiceImage{

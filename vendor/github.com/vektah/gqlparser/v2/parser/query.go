@@ -83,7 +83,7 @@ func (p *parser) parseOperationType() Operation {
 
 func (p *parser) parseVariableDefinitions() VariableDefinitionList {
 	var defs []*VariableDefinition
-	p.many(lexer.ParenL, lexer.ParenR, func() {
+	p.some(lexer.ParenL, lexer.ParenR, func() {
 		defs = append(defs, p.parseVariableDefinition())
 	})
 
@@ -167,7 +167,7 @@ func (p *parser) parseField() *Field {
 
 func (p *parser) parseArguments(isConst bool) ArgumentList {
 	var arguments ArgumentList
-	p.many(lexer.ParenL, lexer.ParenR, func() {
+	p.some(lexer.ParenL, lexer.ParenR, func() {
 		arguments = append(arguments, p.parseArgument(isConst))
 	})
 

@@ -12,7 +12,7 @@ func Table(columns ...Column) string {
 		Border(lipgloss.NormalBorder(), false, true, false, false).
 		BorderForeground(ANSIColorGray).
 		Padding(1)
-	// Width(30 + 1) //nolint:gomnd
+	// Width(30 + 1) //nolint:mnd
 
 	listHeader := lipgloss.NewStyle().
 		Foreground(ANSIColorPurple).

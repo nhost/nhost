@@ -139,7 +139,7 @@ func (n *Client) CreatePAT(
 			},
 		},
 		http.Header{
-			"Authorization": []string{fmt.Sprintf("Bearer %s", accessToken)},
+			"Authorization": []string{"Bearer " + accessToken},
 		},
 		&resp,
 		func(resp *http.Response) error {

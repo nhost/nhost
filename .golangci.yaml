@@ -6,17 +6,9 @@ linters:
       - gomoddirectives
       - nlreturn
       - wsl
-      - exhaustivestruct # deprecated
-      - maligned  # deprecated
-      - scopelint  # deprecated
-      - interfacer  # deprecated
-      - golint  # deprecated
-      - structcheck  # deprecated
-      - deadcode  # deprecated
-      - nosnakecase  # deprecated
-      - ifshort  # deprecated
-      - varcheck  # deprecated
       - depguard
+      - gomnd
+      - execinquery
 
 issues:
   exclude-rules:

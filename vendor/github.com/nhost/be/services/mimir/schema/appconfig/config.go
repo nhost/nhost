@@ -85,5 +85,5 @@ type VariableNotFoundError struct {
 }
 
 func (e *VariableNotFoundError) Error() string {
-	return fmt.Sprintf("variable not found: %s", e.Name)
+	return "variable not found: " + e.Name
 }
