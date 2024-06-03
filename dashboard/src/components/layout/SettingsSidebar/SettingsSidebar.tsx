@@ -6,6 +6,7 @@ import { IconButton } from '@/components/ui/v2/IconButton';
 import { List } from '@/components/ui/v2/List';
 import type { ListItemButtonProps } from '@/components/ui/v2/ListItem';
 import { ListItem } from '@/components/ui/v2/ListItem';
+import { TerminalIcon } from '@/components/ui/v2/icons/TerminalIcon';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import Image from 'next/image';
@@ -13,7 +14,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export interface SettingsSidebarProps extends Omit<BoxProps, 'children'> {}
+export interface SettingsSidebarProps extends Omit<BoxProps, 'children'> { }
 
 interface SettingsNavLinkProps extends ListItemButtonProps {
   /**
@@ -114,112 +115,125 @@ export default function SettingsSidebar({
       <Box
         component="aside"
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 px-2 pb-17 pt-2 motion-safe:transition-transform md:relative md:z-0 md:h-full md:py-2.5 md:transition-none',
+          'absolute top-0 z-[35] h-full flex flex-col justify-between w-full overflow-auto border-r-1 pb-17 pt-2 motion-safe:transition-transform md:relative md:z-0 md:h-full md:py-2.5 md:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
           className,
         )}
         {...props}
       >
-        <nav aria-label="Settings navigation">
+        <nav aria-label="Settings navigation" className="px-2">
           <List className="grid gap-2">
-            <SettingsNavLink
-              href="/general"
-              exact={false}
-              onClick={handleSelect}
-            >
-              General
-            </SettingsNavLink>
-            <SettingsNavLink
-              href="/resources"
-              exact={false}
-              onClick={handleSelect}
-            >
-              Compute Resources
-            </SettingsNavLink>
-            <SettingsNavLink
-              href="/database"
-              exact={false}
-              onClick={handleSelect}
-            >
-              Database
-            </SettingsNavLink>
-            <SettingsNavLink
-              href="/hasura"
-              exact={false}
-              onClick={handleSelect}
-            >
-              Hasura
-            </SettingsNavLink>
-            <SettingsNavLink
-              href="/authentication"
-              exact={false}
-              onClick={handleSelect}
-            >
-              Authentication
-            </SettingsNavLink>
-            <SettingsNavLink
-              href="/sign-in-methods"
-              exact={false}
-              onClick={handleSelect}
-            >
-              Sign-In Methods
-            </SettingsNavLink>
-            <SettingsNavLink
-              href="/storage"
-              exact={false}
-              onClick={handleSelect}
-            >
-              Storage
-            </SettingsNavLink>
-            <SettingsNavLink
-              href="/roles-and-permissions"
-              exact={false}
-              onClick={handleSelect}
-            >
-              Roles and Permissions
-            </SettingsNavLink>
+              <SettingsNavLink
+                href="/general"
+                exact={false}
+                onClick={handleSelect}
+              >
+                General
+              </SettingsNavLink>
+              <SettingsNavLink
+                href="/resources"
+                exact={false}
+                onClick={handleSelect}
+              >
+                Compute Resources
+              </SettingsNavLink>
+              <SettingsNavLink
+                href="/database"
+                exact={false}
+                onClick={handleSelect}
+              >
+                Database
+              </SettingsNavLink>
+              <SettingsNavLink
+                href="/hasura"
+                exact={false}
+                onClick={handleSelect}
+              >
+                Hasura
+              </SettingsNavLink>
+              <SettingsNavLink
+                href="/authentication"
+                exact={false}
+                onClick={handleSelect}
+              >
+                Authentication
+              </SettingsNavLink>
+              <SettingsNavLink
+                href="/sign-in-methods"
+                exact={false}
+                onClick={handleSelect}
+              >
+                Sign-In Methods
+              </SettingsNavLink>
+              <SettingsNavLink
+                href="/storage"
+                exact={false}
+                onClick={handleSelect}
+              >
+                Storage
+              </SettingsNavLink>
+              <SettingsNavLink
+                href="/roles-and-permissions"
+                exact={false}
+                onClick={handleSelect}
+              >
+                Roles and Permissions
+              </SettingsNavLink>
 
-            <SettingsNavLink href="/smtp" exact={false} onClick={handleSelect}>
-              SMTP
-            </SettingsNavLink>
+              <SettingsNavLink href="/smtp" exact={false} onClick={handleSelect}>
+                SMTP
+              </SettingsNavLink>
 
-            <SettingsNavLink
-              href="/git"
-              exact={false}
-              onClick={handleSelect}
-              disabled={!isPlatform}
-            >
-              Git
-            </SettingsNavLink>
+              <SettingsNavLink
+                href="/git"
+                exact={false}
+                onClick={handleSelect}
+                disabled={!isPlatform}
+              >
+                Git
+              </SettingsNavLink>
 
-            <SettingsNavLink
-              href="/environment-variables"
-              exact={false}
-              onClick={handleSelect}
-            >
-              Environment Variables
-            </SettingsNavLink>
+              <SettingsNavLink
+                href="/environment-variables"
+                exact={false}
+                onClick={handleSelect}
+              >
+                Environment Variables
+              </SettingsNavLink>
 
-            <SettingsNavLink
-              href="/secrets"
-              exact={false}
-              onClick={handleSelect}
-            >
-              Secrets
-            </SettingsNavLink>
+              <SettingsNavLink
+                href="/secrets"
+                exact={false}
+                onClick={handleSelect}
+              >
+                Secrets
+              </SettingsNavLink>
 
-            <SettingsNavLink
-              href="/custom-domains"
-              exact={false}
-              onClick={handleSelect}
-            >
-              Custom Domains
-            </SettingsNavLink>
-            <SettingsNavLink href="/ai" exact={false} onClick={handleSelect}>
-              AI
-            </SettingsNavLink>
+              <SettingsNavLink
+                href="/custom-domains"
+                exact={false}
+                onClick={handleSelect}
+              >
+                Custom Domains
+              </SettingsNavLink>
+              <SettingsNavLink href="/ai" exact={false} onClick={handleSelect}>
+                AI
+              </SettingsNavLink>
           </List>
         </nav>
+        <Box className="border-t">
+          <SettingsNavLink
+            href="/editor"
+            exact={false}
+            onClick={handleSelect}
+            className="flex w-full border group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
+          >
+            <div className="flex flex-row items-center justify-center w-full space-x-4">
+              <TerminalIcon />
+              <span className="flex">TOML Editor</span>
+            </div>
+          </SettingsNavLink>
+        </Box>
       </Box>
 
       <IconButton

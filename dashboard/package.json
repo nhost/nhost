@@ -21,6 +21,8 @@
   "dependencies": {
     "@apollo/client": "^3.9.9",
     "@codemirror/lang-sql": "^6.6.2",
+    "@codemirror/language": "^6.10.1",
+    "@codemirror/legacy-modes": "^6.4.0",
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.4",
     "@emotion/server": "^11.11.0",
