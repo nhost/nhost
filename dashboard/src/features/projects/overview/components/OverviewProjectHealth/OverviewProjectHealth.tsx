@@ -118,8 +118,7 @@ export default function OverviewProjectHealth() {
   const router = useRouter();
 
   const {
-    asPath,
-    query: { workspaceSlug, appSlug, dataSourceSlug, schemaSlug, tableSlug },
+    query: { workspaceSlug, appSlug },
   } = router;
 
   const { data: configuredVersionsData, loading: loadingConfiguredVersions } = useGetConfiguredVersionsQuery({
@@ -249,7 +248,6 @@ export default function OverviewProjectHealth() {
               selectedFilter: "auth"
             }
           }}
-          underline="hover"
         >
           Redirect to logs
         </Link>
