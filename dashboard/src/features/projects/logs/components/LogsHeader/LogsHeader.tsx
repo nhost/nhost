@@ -40,11 +40,14 @@ interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
    * Function to be called when the user submits the filters form
    */
   onSubmitFilterValues: (value: LogsFilterFormValues) => void;
+
+  defaultFormValues?: LogsFilterFormValues;
 }
 
 export default function LogsHeader({
   loading,
   onSubmitFilterValues,
+  defaultFormValues,
   ...props
 }: LogsHeaderProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -55,7 +58,7 @@ export default function LogsHeader({
 
   const { data, loading: loadingServiceLabelValues } =
     useGetServiceLabelValuesQuery({
-      variables: { appID: currentProject.id },
+      variables: { appID: currentProject?.id },
     });
 
   useEffect(() => {
@@ -64,6 +67,8 @@ export default function LogsHeader({
       setServiceLabels(labels.map((l) => ({ label: l, value: l })));
     }
   }, [loadingServiceLabelValues, data]);
+
+  console.table(defaultFormValues)
 
   useEffect(() => {
     if (!loadingServiceLabelValues) {
@@ -87,7 +92,7 @@ export default function LogsHeader({
   }, [loadingServiceLabelValues, data]);
 
   const form = useForm<LogsFilterFormValues>({
-    defaultValues: {
+    defaultValues: defaultFormValues ?? {
       from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
       to: new Date(),
       regexFilter: '',

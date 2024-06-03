@@ -115,7 +115,7 @@ export default function ProjectHealthCard({
 }: ProjectHealthCardProps) {
   return (
     // TODO: BUG 'arrow' prop stutters on hover 
-    <Tooltip title={tooltip} arrow>
+    <Tooltip title={tooltip}>
       <Box
         className={twMerge(
           'min-w-12 max-w-14 grid grid-flow-row gap-0 rounded-md p-0 aspect-square',

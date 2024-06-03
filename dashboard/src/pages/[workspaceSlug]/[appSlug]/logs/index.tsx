@@ -6,7 +6,7 @@ import {
   LogsHeader,
   type LogsFilterFormValues,
 } from '@/features/projects/logs/components/LogsHeader';
-import { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
+import { AvailableLogsService, isLogsService } from '@/features/projects/logs/utils/constants/services';
 import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import {
@@ -21,6 +21,7 @@ import {
   useState,
   type ReactElement,
 } from 'react';
+import { useRouter } from 'next/router';
 
 interface LogsFilters {
   from: Date;
@@ -32,20 +33,32 @@ interface LogsFilters {
 export default function LogsPage() {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
+  const router = useRouter();
+
+  const {
+    query: {selectedFilter: urlServiceFilter}
+  } = router;
+
+  console.log(urlServiceFilter)
+
   // create a client that sends http requests to Hasura but websocket requests to Bragi
   const clientWithSplit = useRemoteApplicationGQLClientWithSubscriptions();
   const subscriptionReturn = useRef(null);
 
-  const [filters, setFilters] = useState<LogsFilters>({
+  const initialFilters: LogsFilters = {
     from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
     to: new Date(),
     regexFilter: '',
-    service: AvailableLogsService.ALL,
-  });
+    service: isLogsService(urlServiceFilter) ? urlServiceFilter : AvailableLogsService.ALL,
+  };
+  
+  console.log(initialFilters, 'initialFilters')
+
+  const [filters, setFilters] = useState<LogsFilters>(initialFilters);
 
   const { data, error, subscribeToMore, client, loading, refetch } =
     useGetProjectLogsQuery({
-      variables: { appID: currentProject.id, ...filters },
+      variables: { appID: currentProject?.id, ...filters },
       client: clientWithSplit,
       fetchPolicy: 'cache-and-network',
       notifyOnNetworkStatusChange: true,
@@ -56,7 +69,7 @@ export default function LogsPage() {
       subscribeToMore({
         document: GetLogsSubscriptionDocument,
         variables: {
-          appID: currentProject.id,
+          appID: currentProject?.id,
           service: filters.service,
           from: filters.from,
           regexFilter: filters.regexFilter,
@@ -98,7 +111,7 @@ export default function LogsPage() {
           };
         },
       }),
-    [subscribeToMore, currentProject.id, filters],
+    [subscribeToMore, currentProject?.id, filters],
   );
 
   useEffect(() => {
@@ -138,6 +151,7 @@ export default function LogsPage() {
         <LogsHeader
           loading={loading}
           onSubmitFilterValues={onSubmitFilterValues}
+          defaultFormValues={initialFilters}
         />
         <LogsBody error={error} loading={loading} logsData={data} />
       </RetryableErrorBoundary>

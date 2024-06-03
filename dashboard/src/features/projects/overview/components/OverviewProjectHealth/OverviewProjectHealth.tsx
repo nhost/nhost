@@ -58,7 +58,7 @@ function VersionTooltip({ serviceName, usedVersion, recommendedVersionMismatch, 
         <Text variant="h4" component="p" className="text-white/70 font-bold" >status</Text>
         <Text variant="h4" component="p" className="text-white font-bold">error</Text>
       </div> */}
-      {/* {children} */}
+      {children}
       <div className="flex flex-row justify-between gap-6">
         <Text variant="h4" component="p" className="text-white/70 text-sm+" >version</Text>
         <Text variant="h4" component="p" className="text-white font-bold text-sm+">{usedVersion}</Text>
@@ -245,7 +245,7 @@ export default function OverviewProjectHealth() {
           href={{
             pathname: redirectHref,
             query: {
-              selectedFilter: "auth"
+              selectedFilter: "hasura-auth"
             }
           }}
         >
