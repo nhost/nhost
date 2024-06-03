@@ -127,7 +127,7 @@ export default function OverviewProjectHealth() {
       <Text variant="h3">Project Health</Text>
 
       {currentProject && (
-        <div className="grid grid-flow-row justify-center items-center gap-6 md:justify-start xs:grid-cols-3 lg:gap-2 xl:grid-cols-6">
+        <div className="flex flex-row flex-wrap justify-start items-center gap-2 lg:gap-2">
           <ProjectHealthCard icon={<UserIcon className="h-6 w-6 m-1" />}
           />
           <ProjectHealthCard icon={<DatabaseIcon className="h-6 w-6 m-1" />}
