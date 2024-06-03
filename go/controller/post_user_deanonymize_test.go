@@ -524,10 +524,8 @@ func TestPostUserDeanonymize(t *testing.T) { //nolint:maintidx
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			ctrl := gomock.NewController(t)
 

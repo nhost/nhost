@@ -75,10 +75,8 @@ func TestCustomClaims(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			c, err := controller.NewCustomClaims(tc.claims, nil, "")
 			if err != nil {

@@ -83,10 +83,8 @@ func TestGetRawTemplates(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			logger := slog.Default()
 			templates, err := notifications.NewTemplatesFromFilesystem(tc.path, "en", logger)
@@ -158,10 +156,8 @@ func TestRenderEmailVerify(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			logger := slog.Default()
 			templates, err := notifications.NewTemplatesFromFilesystem(

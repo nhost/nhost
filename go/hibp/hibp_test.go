@@ -28,10 +28,8 @@ func TestIsPasswordPwned(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			client := hibp.NewClient()
 			pwned, err := client.IsPasswordPwned(context.Background(), tc.password)

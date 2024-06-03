@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -114,7 +115,7 @@ type CustomClaims struct {
 
 func CustomClaimerAddAdminSecret(adminSecret string) RequestInterceptor {
 	return func(req *http.Request) {
-		req.Header.Add("x-hasura-admin-secret", adminSecret)
+		req.Header.Add("X-Hasura-Admin-Secret", adminSecret)
 	}
 }
 
@@ -176,7 +177,7 @@ func (c *CustomClaims) getClaimsBackwardsCompatibility(data any, path []string) 
 		}
 	case reflect.Slice:
 		got := make([]any, value.Len())
-		for i := 0; i < value.Len(); i++ {
+		for i := range value.Len() {
 			got[i] = c.getClaimsBackwardsCompatibility(value.Index(i).Interface(), path)
 		}
 		return got
@@ -278,12 +279,12 @@ func (c *CustomClaims) GetClaims(ctx context.Context, userID string) (map[string
 
 	data, ok := data["data"].(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("failed to extract data from response") //nolint:goerr113
+		return nil, errors.New("failed to extract data from response") //nolint:goerr113
 	}
 
 	data, ok = data["user"].(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("failed to extract user data from response") //nolint:goerr113
+		return nil, errors.New("failed to extract user data from response") //nolint:goerr113
 	}
 
 	return c.ExtractClaims(data)

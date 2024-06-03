@@ -34,10 +34,8 @@ func TestGenLink(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			got, err := controller.GenLink(tc.serverURL, tc.typ, tc.ticket, tc.redirectTo)
 			if err != nil {

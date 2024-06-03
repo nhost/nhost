@@ -4,6 +4,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"reflect"
@@ -174,7 +175,7 @@ func (j *JWTGetter) GetToken(
 func (j *JWTGetter) Validate(accessToken string) (*jwt.Token, error) {
 	jwtToken, err := jwt.Parse(
 		accessToken,
-		func(token *jwt.Token) (interface{}, error) {
+		func(_ *jwt.Token) (interface{}, error) {
 			return j.signingKey, nil
 		},
 		jwt.WithValidMethods([]string{j.method.Alg()}),
@@ -248,7 +249,7 @@ func (j *JWTGetter) MiddlewareFunc(
 	authHeader := input.RequestValidationInput.Request.Header.Get("Authorization")
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		return fmt.Errorf("invalid authorization header") //nolint:goerr113
+		return errors.New("invalid authorization header") //nolint:goerr113
 	}
 
 	jwtToken, err := j.Validate(parts[1])
@@ -257,7 +258,7 @@ func (j *JWTGetter) MiddlewareFunc(
 	}
 
 	if !jwtToken.Valid {
-		return fmt.Errorf("invalid token") //nolint:goerr113
+		return errors.New("invalid token") //nolint:goerr113
 	}
 
 	if input.SecuritySchemeName == "BearerAuthElevated" {

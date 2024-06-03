@@ -51,10 +51,6 @@ jobs:
           go get -u ./...
           go mod tidy
           go mod vendor
-
-          pnpm dedupe
-          pnpm update -r
-          pnpm dedupe
         "
 
     - name: Create Pull Request

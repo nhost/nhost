@@ -21,10 +21,8 @@ func TestEmailSend(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			// tc := tc
 
 			mail := notifications.NewEmail(
 				"localhost",
@@ -92,10 +90,8 @@ func TestEmailSendEmailVerify(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			// tc := tc
 
 			if err != nil {
 				t.Fatalf("error creating mailer: %v", err)

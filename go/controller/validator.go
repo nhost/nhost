@@ -81,7 +81,7 @@ func ValidateEmail(
 ) func(email string) bool {
 	return func(email string) bool {
 		parts := strings.Split(email, "@")
-		if len(parts) != 2 { //nolint:gomnd
+		if len(parts) != 2 { //nolint:mnd
 			return false
 		}
 		domain := parts[1]

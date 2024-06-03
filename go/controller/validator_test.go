@@ -144,10 +144,8 @@ func TestValidateRedirectTo(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			fn, err := controller.ValidateRedirectTo(tc.allowedURLs)
 			if err != nil {
@@ -331,10 +329,8 @@ func TestValidateEmail(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			fn := controller.ValidateEmail(
 				tc.blockedDomains,

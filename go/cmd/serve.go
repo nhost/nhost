@@ -221,14 +221,14 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			&cli.IntFlag{ //nolint: exhaustruct
 				Name:     flagRefreshTokenExpiresIn,
 				Usage:    "Refresh token expires in (seconds)",
-				Value:    2592000, //nolint:gomnd
+				Value:    2592000, //nolint:mnd
 				Category: "jwt",
 				EnvVars:  []string{"AUTH_REFRESH_TOKEN_EXPIRES_IN"},
 			},
 			&cli.IntFlag{ //nolint: exhaustruct
 				Name:     flagAccessTokensExpiresIn,
 				Usage:    "Access tokens expires in (seconds)",
-				Value:    900, //nolint:gomnd
+				Value:    900, //nolint:mnd
 				Category: "jwt",
 				EnvVars:  []string{"AUTH_ACCESS_TOKEN_EXPIRES_IN"},
 			},
@@ -256,7 +256,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Name:     flagSMTPPort,
 				Usage:    "SMTP port",
 				Category: "smtp",
-				Value:    587, //nolint:gomnd
+				Value:    587, //nolint:mnd
 				EnvVars:  []string{"AUTH_SMTP_PORT"},
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
@@ -348,7 +348,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			&cli.IntFlag{ //nolint: exhaustruct
 				Name:     flagPasswordMinLength,
 				Usage:    "Minimum password length",
-				Value:    3, //nolint:gomnd
+				Value:    3, //nolint:mnd
 				Category: "signup",
 				EnvVars:  []string{"AUTH_PASSWORD_MIN_LENGTH"},
 			},
@@ -438,7 +438,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			&cli.IntFlag{ //nolint: exhaustruct
 				Name:     flagWebauthnAttestationTimeout,
 				Usage:    "Timeout for the attestation process in milliseconds",
-				Value:    60000, //nolint:gomnd
+				Value:    60000, //nolint:mnd
 				Category: "webauthn",
 				EnvVars:  []string{"AUTH_WEBAUTHN_ATTESTATION_TIMEOUT"},
 			},
@@ -559,7 +559,7 @@ func getGoServer( //nolint:funlen
 	server := &http.Server{ //nolint:exhaustruct
 		Addr:              ":" + cCtx.String(flagPort),
 		Handler:           router,
-		ReadHeaderTimeout: 5 * time.Second, //nolint:gomnd
+		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
 	}
 
 	return server, nil

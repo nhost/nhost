@@ -225,10 +225,8 @@ func TestGetJWTFunc(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			ctrl := gomock.NewController(t)
 			var customClaimer controller.CustomClaimer
@@ -260,7 +258,7 @@ func TestGetJWTFunc(t *testing.T) {
 
 			cmpopts := []cmp.Option{
 				cmpopts.IgnoreFields(jwt.Token{}, "Raw", "Signature"), //nolint:exhaustruct
-				cmpopts.IgnoreMapEntries(func(key string, value interface{}) bool {
+				cmpopts.IgnoreMapEntries(func(key string, _ interface{}) bool {
 					return key == "iat" || key == "exp"
 				}),
 			}
@@ -271,7 +269,7 @@ func TestGetJWTFunc(t *testing.T) {
 	}
 }
 
-//nolint:dupl,goconst
+//nolint:dupl
 func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
@@ -657,10 +655,8 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			ctrl := gomock.NewController(t)
 

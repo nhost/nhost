@@ -7,19 +7,11 @@ linters:
       - nlreturn
       - wsl
       - tagliatelle
-      - exhaustivestruct # deprecated
-      - maligned  # deprecated
-      - scopelint  # deprecated
-      - interfacer  # deprecated
-      - golint  # deprecated
-      - structcheck  # deprecated
-      - deadcode  # deprecated
-      - nosnakecase  # deprecated
-      - ifshort  # deprecated
-      - varcheck  # deprecated
       - musttag
       - depguard
       - gci    # we already check the linter did its magic
+      - execinquery
+      - gomnd # renamed to mnd
 
 issues:
   exclude-rules:

@@ -36,10 +36,8 @@ func TestGravatarTest(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			got := controller.GravatarURLFunc(tc.enabled, tc.def, tc.rating)(tc.email)
 			if got != tc.expected {

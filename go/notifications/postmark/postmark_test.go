@@ -39,10 +39,8 @@ func TestSendWithTemplate(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			tc := tc
 
 			pm := postmark.New(
 				os.Getenv("AUTH_TEST_POSTMARK_FROM"), os.Getenv("AUTH_TEST_POSTMARK_TOKEN"))
