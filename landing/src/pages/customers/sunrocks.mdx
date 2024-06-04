@@ -1,0 +1,50 @@
+import Image from 'next/image'
+import { CustomerLayout } from '@/components/customers/CustomerLayout'
+
+export const customer = {
+  name: 'SunRocks',
+  website: {
+    url: 'https://www.sunrocks.at/',
+    display: 'sunrocks.at',
+  },
+  description:
+    "SunRocks",
+  logo: { src: '/customers/sunrocks.svg', width: 136, height: 42 },
+  ogImage: {
+    src: '/images/customers/sunrocks/og.png',
+    width: 1920,
+    height: 1080,
+  },
+  industry: 'Insurance',
+  location: 'Muniche, Germany',
+  timeToProduction: '2 weeks',
+  problem:
+    "SunRocks' infrastructure was becoming too complex for a 1 person show to handle. Keycloak, OpenShift, and oauth2-proxy were some of the tech that had to be pulled together.",
+  solution:
+    'Nhost has helped reduce the complexity of the entire system by providing auth and storage out of the box, plus Run for running custom services.',
+}
+
+export default (props) => <CustomerLayout customer={customer} {...props} />
+
+## Introduction
+
+
+SunRocks is developing a platform to deal with the day-to-day operations of an insurance agency processing new insurance policies, handling claims, etc, for a portfolio of over 60,000 policyholders.
+
+## Problem
+
+SunRocks had developed into a convoluted and complex software project, with various components: Hasura+Postgres, Keycloak, OpenShift, oauth2-proxy, and Node.js services for worker processes and custom APIs, all hosted with different providers. 
+
+## Solution
+
+Nhost's offering around Postgres and Hasura, with user and file management included, alongside Run for custom services, were the perfect stack to migrate SunRocks to. All of the components, even custom services, are now running under the same umbrella, seamlessly. 
+
+
+## Benefits of Nhost
+
+With Nhost, SunRocks was able to simplify their tech stack and the inherent complexity of stitching together multiple services from different providers.
+
+
+## Conclusion
+
+The migration from a hand-rolled stack running on Hetzner to Nhost was a success. The use of Nhost provided SunRocks with a modern solution to seamlessly handle APIs, authentication, and custom services.

@@ -4,15 +4,15 @@ import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 export const article = {
   title: 'Guest Blog Post: SunRocks',
   description:
-    'SunRocks, an insurance agency',
-  image: '/images/blog/og-advanced-graphql-features.png',
-  date: '2024-05-20',
+    'SunRocks, an insurance startup handling a portfolio of 60,000 policyholders',
+  image: '/images/blog/og-nhost-sunrocks.png',
+  date: '2024-06-05',
   authors: [
     {
       name: 'David',
-      title: 'CTO',
-      avatarUrl: '',
-      url: 'https://twitter.com/david',
+      title: 'Fractional CTO',
+      avatarUrl: '/images/avatars/david-sunrocks.jpg',
+      url: 'https://www.linkedin.com/in/dwippel',
     },
   ],
   tags: ['Product', 'Customer', 'Guest blogpost'],
@@ -36,20 +36,20 @@ SunRocks relied on Hasura + PostgreSQL at its core. Authentication and authoriza
 
 List of Services:
 
-Hasura + PostgreSQL
-Keycloak + oauth2-proxy
-Node.js workers for email, PDF creation, and payment
-Node.js API for business logic, triggered by Hasura events and actions
-Next.js-based portals for policyholders and sales partners
-Webpack/React Admin Center
+- Hasura + PostgreSQL
+- Keycloak + oauth2-proxy
+- Node.js workers for email, PDF creation, and payment
+- Node.js API for business logic, triggered by Hasura events and actions
+- Next.js-based portals for policyholders and sales partners
+- Webpack/React Admin Center
 
 Hardcore over-engineered and resource-intensive, of course :). But we had the necessary server capacity at Hetzner and an excellent team of developers. For a team, using the project as a technical playground was fine, but as a solo developer, it presented a massive challenge. How could I operate and develop the software on my own without it becoming a full-time job? After all, I also wanted to pursue other projects with Essential Code. 🙂
 
 ## The constant 
 
-From the beginning, it was clear that I did not want to proceed without Hasura. I would even go so far as to say that I will not build any API without Hasura—it's just a waste of time, considering how effective it is with Hasura. That's when I came across nhost. My interest in k8s, DevOps, and cloud infrastructure is limited (though I recognize its importance and have at least a good basic knowledge), and it’s simply unprofessional to offer operations for mission-critical software solo. What if I were incapacitated? A reliable PaaS provider was the only option from my perspective.
+From the beginning, it was clear that I did not want to proceed without Hasura. I would even go so far as to say that I will not build any API without Hasura—it's just a waste of time, considering how effective it is with Hasura. That's when I came across Nhost. My interest in k8s, DevOps, and cloud infrastructure is limited (though I recognize its importance and have at least a good basic knowledge), and it’s simply unprofessional to offer operations for mission-critical software solo. What if I were incapacitated? A reliable PaaS provider was the only option from my perspective.
 
-For completeness, I looked at other alternatives. Operating everything through DigitalOcean was too complex and felt insecure. Rebuilding on Supabase wasn't feasible as it would have been too much work, and without Hasura, my productivity would have halved. It also didn't seem mature enough. I even approached a regional IT company that offers application hosting. They found it too complex :) So, I realized that nhost had everything I needed. It's open source, which means if things go completely sideways or if nhost as a company ceases to exist, I could somehow manage on my own and not be totally lost.
+For completeness, I looked at other alternatives. Operating everything through DigitalOcean was too complex and felt insecure. Rebuilding on Supabase wasn't feasible as it would have been too much work, and without Hasura, my productivity would have halved. It also didn't seem mature enough. I even approached a regional IT company that offers application hosting. They found it too complex :) So, I realized that Nhost had everything I needed. It's open source, which means if things go completely sideways or if nhost as a company ceases to exist, I could somehow manage on my own and not be totally lost.
 
 
 ## The migration
@@ -65,6 +65,8 @@ Services Replacement:
 - Worker for the job queues as Nhost Run Services
 - Next.js-based frontends run on Vercel.com
 - Webpack/React-based Admin Center also as Nhost Run Service with a custom domain
+
+I can't stress enough how awesome it is for a platform like Nhost to offer something like Run. Typical BaaS providers give you a set of services to start with, but usually have no option to run your own custom services in case you need to go behond what they offer. Nhost Run is one of my favourite features about Nhost, it's really amazing.
 
 
 ## Performance Issues
