@@ -40,7 +40,7 @@ function ControlledAutocomplete(
   const form = useFormContext();
   const { field } = useController({
     ...(controllerProps || {}),
-    name: controllerProps?.name || name || '' || 'version',
+    name: controllerProps?.name || name || '',
     control: controllerProps?.control || control,
     defaultValue: { label: '', value: '' },
   });
