@@ -1,0 +1,5 @@
+mutation ReplaceConfig($appID: uuid!, $config: ConfigConfigInsertInput!) {
+  replaceConfig(appID: $appID, config: $config) {
+    __typename
+  }
+}

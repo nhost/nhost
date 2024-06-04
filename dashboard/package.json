@@ -33,6 +33,7 @@
     "@graphiql/toolkit": "^0.9.1",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^1.0.6",
+    "@iarna/toml": "^2.2.5",
     "@hookform/resolvers": "^3.3.4",
     "@mui/base": "5.0.0-beta.31",
     "@mui/material": "^5.15.14",

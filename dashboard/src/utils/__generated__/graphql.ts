@@ -22941,6 +22941,21 @@ export type GetEnvironmentVariablesQueryVariables = Exact<{
 
 export type GetEnvironmentVariablesQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', global?: { __typename?: 'ConfigGlobal', environment?: Array<{ __typename?: 'ConfigGlobalEnvironmentVariable', name: string, value: string, id: string }> | null } | null, hasura: { __typename?: 'ConfigHasura', adminSecret: string, webhookSecret: string, jwtSecrets?: Array<{ __typename?: 'ConfigJWTSecret', issuer?: string | null, key?: string | null, type?: string | null, jwk_url?: any | null, header?: string | null, claims_namespace_path?: string | null, claims_namespace?: string | null, claims_format?: string | null, audience?: string | null, allowed_skew?: any | null }> | null } } | null };
 
+export type GetConfigRawJsonQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+}>;
+
+
+export type GetConfigRawJsonQuery = { __typename?: 'query_root', configRawJSON: string };
+
+export type ReplaceConfigMutationVariables = Exact<{
+  appID: Scalars['uuid'];
+  config: ConfigConfigInsertInput;
+}>;
+
+
+export type ReplaceConfigMutation = { __typename?: 'mutation_root', replaceConfig: { __typename: 'ConfigConfig' } };
+
 export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
 
 export type GetRolesPermissionsQueryVariables = Exact<{
@@ -25201,6 +25216,76 @@ export type GetEnvironmentVariablesQueryResult = Apollo.QueryResult<GetEnvironme
 export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVariablesQueryVariables) {
       return { query: GetEnvironmentVariablesDocument, variables: variables }
     }
+export const GetConfigRawJsonDocument = gql`
+    query getConfigRawJson($appID: uuid!) {
+  configRawJSON(appID: $appID, resolve: false)
+}
+    `;
+
+/**
+ * __useGetConfigRawJsonQuery__
+ *
+ * To run a query within a React component, call `useGetConfigRawJsonQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetConfigRawJsonQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetConfigRawJsonQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *   },
+ * });
+ */
+export function useGetConfigRawJsonQuery(baseOptions: Apollo.QueryHookOptions<GetConfigRawJsonQuery, GetConfigRawJsonQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetConfigRawJsonQuery, GetConfigRawJsonQueryVariables>(GetConfigRawJsonDocument, options);
+      }
+export function useGetConfigRawJsonLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetConfigRawJsonQuery, GetConfigRawJsonQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetConfigRawJsonQuery, GetConfigRawJsonQueryVariables>(GetConfigRawJsonDocument, options);
+        }
+export type GetConfigRawJsonQueryHookResult = ReturnType<typeof useGetConfigRawJsonQuery>;
+export type GetConfigRawJsonLazyQueryHookResult = ReturnType<typeof useGetConfigRawJsonLazyQuery>;
+export type GetConfigRawJsonQueryResult = Apollo.QueryResult<GetConfigRawJsonQuery, GetConfigRawJsonQueryVariables>;
+export function refetchGetConfigRawJsonQuery(variables: GetConfigRawJsonQueryVariables) {
+      return { query: GetConfigRawJsonDocument, variables: variables }
+    }
+export const ReplaceConfigDocument = gql`
+    mutation ReplaceConfig($appID: uuid!, $config: ConfigConfigInsertInput!) {
+  replaceConfig(appID: $appID, config: $config) {
+    __typename
+  }
+}
+    `;
+export type ReplaceConfigMutationFn = Apollo.MutationFunction<ReplaceConfigMutation, ReplaceConfigMutationVariables>;
+
+/**
+ * __useReplaceConfigMutation__
+ *
+ * To run a mutation, you first call `useReplaceConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReplaceConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [replaceConfigMutation, { data, loading, error }] = useReplaceConfigMutation({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useReplaceConfigMutation(baseOptions?: Apollo.MutationHookOptions<ReplaceConfigMutation, ReplaceConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReplaceConfigMutation, ReplaceConfigMutationVariables>(ReplaceConfigDocument, options);
+      }
+export type ReplaceConfigMutationHookResult = ReturnType<typeof useReplaceConfigMutation>;
+export type ReplaceConfigMutationResult = Apollo.MutationResult<ReplaceConfigMutation>;
+export type ReplaceConfigMutationOptions = Apollo.BaseMutationOptions<ReplaceConfigMutation, ReplaceConfigMutationVariables>;
 export const GetRolesPermissionsDocument = gql`
     query GetRolesPermissions($appId: uuid!) {
   config(appID: $appId, resolve: false) {

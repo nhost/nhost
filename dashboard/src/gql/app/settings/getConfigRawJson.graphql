@@ -1,0 +1,3 @@
+query getConfigRawJson ($appID: uuid!) {
+  configRawJSON(appID: $appID, resolve: false)
+}
