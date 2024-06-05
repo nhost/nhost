@@ -89,7 +89,7 @@ export default function generateAppServiceUrl(
   const constructedDomain = [
     subdomain,
     service,
-    region?.awsName,
+    region?.name,
     region?.domain || 'nhost.run',
   ]
     .filter(Boolean)

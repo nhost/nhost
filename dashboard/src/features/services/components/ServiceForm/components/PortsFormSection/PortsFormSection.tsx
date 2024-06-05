@@ -43,7 +43,7 @@ export default function PortsFormSection() {
   const getPortURL = (_port: string | number, subdomain: string) => {
     const port = Number(_port) > 0 ? Number(_port) : '[port]';
 
-    return `https://${subdomain}-${port}.svc.${currentProject?.region.awsName}.${currentProject?.region.domain}`;
+    return `https://${subdomain}-${port}.svc.${currentProject?.region.name}.${currentProject?.region.domain}`;
   };
 
   return (

@@ -31,7 +31,7 @@ afterEach(() => {
 
 const region: ProjectFragment['region'] = {
   id: '1',
-  awsName: 'eu-west-1',
+  name: 'eu-west-1',
   domain: 'nhost.run',
   city: 'Dublin',
   countryCode: 'IE',

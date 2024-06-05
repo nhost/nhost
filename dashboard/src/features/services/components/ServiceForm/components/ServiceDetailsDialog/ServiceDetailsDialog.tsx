@@ -35,7 +35,7 @@ export default function ServiceDetailsDialog({
   const getPortURL = (_port: string | number) => {
     const port = Number(_port) > 0 ? Number(_port) : '[port]';
 
-    return `https://${subdomain}-${port}.svc.${currentProject?.region.awsName}.${currentProject?.region.domain}`;
+    return `https://${subdomain}-${port}.svc.${currentProject?.region.name}.${currentProject?.region.domain}`;
   };
 
   return (
@@ -44,7 +44,7 @@ export default function ServiceDetailsDialog({
         <Text color="secondary">Private registry</Text>
         <InfoCard
           title=""
-          value={`registry.${currentProject.region.awsName}.${currentProject.region.domain}/${serviceID}`}
+          value={`registry.${currentProject.region.name}.${currentProject.region.domain}/${serviceID}`}
         />
       </div>
 

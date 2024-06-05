@@ -162,7 +162,7 @@ export default function RunServicePortDomain({
           <VerifyDomain
             recordType="CNAME"
             hostname={runServicePortFQDN}
-            value={`lb.${currentProject.region.awsName}.${currentProject.region.domain}.`}
+            value={`lb.${currentProject.region.name}.${currentProject.region.domain}.`}
             onHostNameVerified={() => setIsVerified(true)}
           />
         </div>
