@@ -190,7 +190,7 @@ export default function ServiceForm({
               image:
                 values.image.length > 0
                   ? values.image
-                  : `registry.${currentProject.region.awsName}.${currentProject.region.domain}/${newServiceID}`,
+                  : `registry.${currentProject.region.name}.${currentProject.region.domain}/${newServiceID}`,
             },
           },
         },
@@ -361,7 +361,7 @@ export default function ServiceForm({
         {isPlatform && serviceID && serviceImage && (
           <InfoCard
             title="Private registry"
-            value={`registry.${currentProject.region.awsName}.${currentProject.region.domain}/${serviceID}`}
+            value={`registry.${currentProject.region.name}.${currentProject.region.domain}/${serviceID}`}
           />
         )}
 

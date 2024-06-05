@@ -39,7 +39,7 @@ fragment Project on apps {
   region {
     id
     countryCode
-    awsName
+    name
     domain
     city
   }

@@ -108,7 +108,7 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
         id: null,
         countryCode: null,
         city: null,
-        awsName: null,
+        name: null,
         domain: null,
       },
       createdAt: new Date().toISOString(),

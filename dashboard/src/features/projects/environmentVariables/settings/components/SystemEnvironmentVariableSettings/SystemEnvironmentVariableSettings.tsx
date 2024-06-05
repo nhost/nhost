@@ -101,7 +101,7 @@ export default function SystemEnvironmentVariableSettings() {
 
   const systemEnvironmentVariables = [
     { key: 'NHOST_SUBDOMAIN', value: currentProject.subdomain },
-    { key: 'NHOST_REGION', value: currentProject.region.awsName },
+    { key: 'NHOST_REGION', value: currentProject.region.name },
     {
       key: 'NHOST_HASURA_URL',
       value:

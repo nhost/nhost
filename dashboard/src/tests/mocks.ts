@@ -50,7 +50,7 @@ export const mockApplication: Project = {
   appStates: [],
   subdomain: '',
   region: {
-    awsName: 'us-east-1',
+    name: 'us-east-1',
     city: 'New York',
     countryCode: 'US',
     id: '1',
