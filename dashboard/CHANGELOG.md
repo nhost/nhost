@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 1.17.0
+
+### Minor Changes
+
+- 77fba27: fix: postgres version validation when activating ai in ai settings page
+- ac6d1b6: feat: use name instead of awsName
+
 ## 1.16.3
 
 ### Patch Changes
