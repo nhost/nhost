@@ -2,27 +2,27 @@ import Image from 'next/image'
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
-  title: 'Guest Blog Post: SunRocks',
+  title: 'Guest Blog Post: Essential Code',
   description:
-    'SunRocks, an insurance startup handling a portfolio of 60,000 policyholders',
-  image: '/images/blog/og-nhost-sunrocks.png',
-  date: '2024-06-05',
+    'Learn how the team at Essential Code migrated SunRocks, an insurance platform, from a convoluted tech stack to Nhost',
+  image: '/images/blog/og-nhost-essential-code.png',
+  date: '2024-06-06',
   authors: [
     {
       name: 'David',
-      title: 'Fractional CTO',
+      title: 'CTO',
       avatarUrl: '/images/avatars/david-sunrocks.jpg',
       url: 'https://www.linkedin.com/in/dwippel',
     },
   ],
-  tags: ['Product', 'Customer', 'Guest blogpost'],
+  tags: ['Product', 'Customer', 'Guest blogpost', 'Migration to Nhost'],
 }
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
 # Who am I?
 
-After exiting my software agency in 2023 to continue solo, I faced a challenge. Some of my existing clients insisted on retaining my services, including the SunRocks project. 
+After exiting my software agency in 2023 to continue solo, I founded Essential Code, dedicated to empowering SMEs with efficient No-Code and Low-Code solutions. Despite my transition, some of my existing clients insisted on retaining my services, including SunRocks, a company providing insurance services. The platform I built for them streamlines all their daily operations and customer interactions. This blog post details the work and migration efforts I undertook for SunRocks to move from a complicated and cost-intensive hosting environment to Nhost.
 
 SunRocks primarily deals with the day-to-day operations of an insurance agency processing new insurance policies, handling claims, etc, all with a portfolio of over 60,000 policyholders. What makes it unique is that SunRocks' CEO, Roland Hehle, aims to manage the entire daily operation with just one additional employee. This means the software's automation level is high. 
 
@@ -49,14 +49,14 @@ Hardcore over-engineered and resource-intensive, of course :). But we had the ne
 
 From the beginning, it was clear that I did not want to proceed without Hasura. I would even go so far as to say that I will not build any API without Hasura—it's just a waste of time, considering how effective it is with Hasura. That's when I came across Nhost. My interest in k8s, DevOps, and cloud infrastructure is limited (though I recognize its importance and have at least a good basic knowledge), and it’s simply unprofessional to offer operations for mission-critical software solo. What if I were incapacitated? A reliable PaaS provider was the only option from my perspective.
 
-For completeness, I looked at other alternatives. Operating everything through DigitalOcean was too complex and felt insecure. Rebuilding on Supabase wasn't feasible as it would have been too much work, and without Hasura, my productivity would have halved. It also didn't seem mature enough. I even approached a regional IT company that offers application hosting. They found it too complex :) So, I realized that Nhost had everything I needed. It's open source, which means if things go completely sideways or if nhost as a company ceases to exist, I could somehow manage on my own and not be totally lost.
+For completeness, I looked at other alternatives. Operating everything through DigitalOcean was too complex and felt insecure. Rebuilding on Supabase wasn't feasible as it would have been too much work, and without Hasura, my productivity would have halved. It also didn't seem mature enough. I even approached a regional IT company that offers application hosting. They found it too complex :) So, I realized that Nhost had everything I needed. It's open source, which means if things go completely sideways or if Nhost as a company ceases to exist, I could somehow manage on my own and not be totally lost.
 
 
 ## The migration
 
-Since SunRocks was already using Hasura + PostgreSQL, the transition was straightforward. Create a project, get the CLI running, study nhost's directory structure a bit, and add the existing migrations. Up and running in 2 hours. PostgreSQL dump restored. Done.
+Since SunRocks was already using Hasura + PostgreSQL, the transition was straightforward. Create a project, get the CLI running, study Nhost's directory structure a bit, and add the existing migrations. Up and running in 2 hours. PostgreSQL dump restored. Done.
 
-Replacing Keycloak with nhost Auth was trickier. I had an export from Keycloak, and creating users with all rights in nhost Auth was quickly done. However, replacing oauth2-proxy, which we had relied on to save work in the frontends (if only it had been that simple—if you encounter the proxy at any project, run fast), required a bit more effort to implement things like login, password reset, and page permissions. However, nhost's tooling and documentation are excellent, and no serious problems arose. The same goes for nhost's storage.
+Replacing Keycloak with Nhost Auth was trickier. I had an export from Keycloak, and creating users with all rights in Nhost Auth was quickly done. However, replacing oauth2-proxy, which we had relied on to save work in the frontends (if only it had been that simple—if you encounter the proxy at any project, run fast), required a bit more effort to implement things like login, password reset, and page permissions. However, Nhost's tooling and documentation are excellent, and no serious problems arose. The same goes for Nhost's storage.
 
 Services Replacement:
 
@@ -71,15 +71,15 @@ I can't stress enough how awesome it is for a platform like Nhost to offer somet
 
 ## Performance Issues
 
-When you're used to having too much hardware, you get used to certain query times. Although we were doing well with nhost's Pro Plan for customers and partners, the performance for exports and reports in the Admin Center was not good enough. Thanks to the nhost dashboard, however, you can easily configure every aspect. More CPU? More RAM? No problem. As someone averse to DevOps, this was particularly handy because the complexity is well "hidden." Even the config file is tidy and understandable. The developer experience impressed me from day one. Even my client uses the dashboard to create users.
+When you're used to having too much hardware, you get used to certain query times. Although we were doing well with Nhost's Pro Plan for customers and partners, the performance for exports and reports in the Admin Center was not good enough. Thanks to the Nhost dashboard, however, you can easily configure every aspect. More CPU? More RAM? No problem. As someone averse to DevOps, this was particularly handy because the complexity is well "" Even the config file is tidy and understandable. The developer experience impressed me from day one. Even my client uses the dashboard to create users.
 
 ## Duration
 
-Since everything had to be done rather quickly, I probably worked a bit more than usual. Still, from the starting gun (nhost project created) to the complete migration, it took less than two weeks. Add another 2–3 weeks for bug fixes and data adjustments, and the entire transition was completed in about a month. I was surprised at how smoothly and quickly everything went. The Discord support from nhost was invaluable, often providing answers to questions within minutes during such a critical phase.
+Since everything had to be done rather quickly, I probably worked a bit more than usual. Still, from the starting gun (Nhost project created) to the complete migration, it took less than two weeks. Add another 2–3 weeks for bug fixes and data adjustments, and the entire transition was completed in about a month. I was surprised at how smoothly and quickly everything went. The Discord support from Nhost was invaluable, often providing answers to questions within minutes during such a critical phase.
 
 
 ### Conclusion
 
-I am convinced that without nhost, I would not be able to manage a project of this magnitude and complexity as a solopreneur. Even though I've since reduced much of the complexity to make the software more compact, I couldn’t maintain it without the services from nhost. Especially considering that during this time, I developed two SaaS products and other projects (also with nhost).
+I am convinced that without Nhost, I would not be able to manage a project of this magnitude and complexity as a solopreneur. Even though I've since reduced much of the complexity to make the software more compact, I couldn’t maintain it without the services from Nhost. Especially considering that during this time, I developed two SaaS products and other projects (also with Nhost).
 
 
