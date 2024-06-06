@@ -56,7 +56,7 @@ For completeness, I looked at other alternatives. Operating everything through D
 
 Since SunRocks was already using Hasura + PostgreSQL, the transition was straightforward. Create a project, get the CLI running, study Nhost's directory structure a bit, and add the existing migrations. Up and running in 2 hours. PostgreSQL dump restored. Done.
 
-Replacing Keycloak with Nhost Auth was trickier. I had an export from Keycloak, and creating users with all rights in Nhost Auth was quickly done. However, replacing oauth2-proxy, which we had relied on to save work in the frontends (if only it had been that simple—if you encounter the proxy at any project, run fast), required a bit more effort to implement things like login, password reset, and page permissions. However, Nhost's tooling and documentation are excellent, and no serious problems arose. The same goes for Nhost's storage.
+Replacing Keycloak with Nhost Auth was trickier. I had an export from Keycloak, and creating users with all permissions in Nhost Auth was quickly done. However, replacing oauth2-proxy, which we had relied on to save work in the frontends (if only it had been that simple—if you encounter the proxy at any project, run fast), required a bit more effort to implement things like login, password reset, and page permissions. However, Nhost's tooling and documentation are excellent, and no serious problems arose. The same goes for Nhost's storage.
 
 Services Replacement:
 
@@ -71,7 +71,7 @@ I can't stress enough how awesome it is for a platform like Nhost to offer somet
 
 ## Performance Issues
 
-When you're used to having too much hardware, you get used to certain query times. Although we were doing well with Nhost's Pro Plan for customers and partners, the performance for exports and reports in the Admin Center was not good enough. Thanks to the Nhost dashboard, however, you can easily configure every aspect. More CPU? More RAM? No problem. As someone averse to DevOps, this was particularly handy because the complexity is well "" Even the config file is tidy and understandable. The developer experience impressed me from day one. Even my client uses the dashboard to create users.
+When you're used to having too much hardware, you get used to certain query times. Although we were doing well with Nhost's Pro Plan for customers and partners, the performance for exports and reports in the Admin Center was not good enough. Thanks to the Nhost dashboard, however, you can easily configure every aspect. More CPU? More RAM? No problem. As someone averse to DevOps, this was particularly handy because the complexity is well "hidden". Even the config file is tidy and understandable. The developer experience impressed me from day one. Even my client uses the dashboard to create users.
 
 ## Duration
 
