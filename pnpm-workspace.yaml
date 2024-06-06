@@ -6,5 +6,6 @@ packages:
   - '!**/test/**'
   - '!out/**'
   - 'examples/*'
+  - 'templates/**'
   - 'examples/quickstarts/*'
   - '!**/functions'

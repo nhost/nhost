@@ -22,7 +22,7 @@
     "build:all": "turbo run build --include-dependencies",
     "build:nextjs-server-components": "turbo run build --filter=@nhost-examples/nextjs-server-components",
     "dev": "turbo run dev --filter=!@nhost/dashboard --filter=!@nhost/docs --filter=!@nhost-examples/* --filter=!@nhost/docgen --no-deps --include-dependencies",
-    "clean:all": "pnpm clean && rm -rf ./{{packages,examples/**}/*,docs,dashboard}/{.nhost,node_modules} node_modules",
+    "clean:all": "pnpm clean && rm -rf ./{{packages,examples/**,templates/**}/*,docs,dashboard}/{.nhost,node_modules} node_modules",
     "clean": "rm -rf ./{{packages,examples/**}/*,docs,dashboard}/{dist,umd,.next,.turbo,coverage}",
     "ci:version": "changeset version && pnpm install --frozen-lockfile false",
     "coverage": "pnpm run test -- --coverage",
@@ -91,7 +91,7 @@
   "resolutions": {
     "graphql": "16.8.1"
   },
-  "packageManager": "pnpm@8.6.2",
+  "packageManager": "pnpm@9.1.4",
   "engines": {
     "node": ">=18 <19",
     "pnpm": ">=8.0.0"
@@ -150,5 +150,8 @@
       "undici@>=6.0.0 <6.11.1": "6.11.1",
       "undici@<5.28.4": "5.28.4"
     }
+  },
+  "dependencies": {
+    "pnpm": "9.1.4"
   }
 }
