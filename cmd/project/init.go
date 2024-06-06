@@ -159,7 +159,7 @@ func InitRemote(
 	}
 
 	hasuraEndpoint := fmt.Sprintf(
-		"https://%s.hasura.%s.%s", proj.Subdomain, proj.Region.AwsName, ce.Domain(),
+		"https://%s.hasura.%s.%s", proj.Subdomain, proj.Region.Name, ce.Domain(),
 	)
 
 	if err := deploy(

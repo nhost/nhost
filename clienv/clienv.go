@@ -19,13 +19,14 @@ func sanitizeName(name string) string {
 }
 
 type CliEnv struct {
-	stdout      io.Writer
-	stderr      io.Writer
-	Path        *PathStructure
-	domain      string
-	branch      string
-	nhclient    *nhostclient.Client
-	projectName string
+	stdout         io.Writer
+	stderr         io.Writer
+	Path           *PathStructure
+	domain         string
+	branch         string
+	nhclient       *nhostclient.Client
+	nhpublicclient *nhostclient.Client
+	projectName    string
 }
 
 func New(
@@ -37,13 +38,14 @@ func New(
 	projectName string,
 ) *CliEnv {
 	return &CliEnv{
-		stdout:      stdout,
-		stderr:      stderr,
-		Path:        path,
-		domain:      domain,
-		branch:      branch,
-		nhclient:    nil,
-		projectName: projectName,
+		stdout:         stdout,
+		stderr:         stderr,
+		Path:           path,
+		domain:         domain,
+		branch:         branch,
+		nhclient:       nil,
+		nhpublicclient: nil,
+		projectName:    projectName,
 	}
 }
 
@@ -62,10 +64,11 @@ func FromCLI(cCtx *cli.Context) *CliEnv {
 			cCtx.String(flagDataFolder),
 			cCtx.String(flagNhostFolder),
 		),
-		domain:      cCtx.String(flagDomain),
-		branch:      cCtx.String(flagBranch),
-		projectName: sanitizeName(cCtx.String(flagProjectName)),
-		nhclient:    nil,
+		domain:         cCtx.String(flagDomain),
+		branch:         cCtx.String(flagBranch),
+		projectName:    sanitizeName(cCtx.String(flagProjectName)),
+		nhclient:       nil,
+		nhpublicclient: nil,
 	}
 }
 
@@ -93,4 +96,11 @@ func (ce *CliEnv) GetNhostClient(ctx context.Context) (*nhostclient.Client, erro
 		)
 	}
 	return ce.nhclient, nil
+}
+
+func (ce *CliEnv) GetNhostPublicClient() (*nhostclient.Client, error) {
+	if ce.nhpublicclient == nil {
+		ce.nhpublicclient = nhostclient.New(ce.domain)
+	}
+	return ce.nhpublicclient, nil
 }

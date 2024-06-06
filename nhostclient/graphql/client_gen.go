@@ -18,14 +18,14 @@ func NewClient(cli *http.Client, baseURL string, options *clientv2.Options, inte
 }
 
 type GetWorkspacesApps_Workspaces_Apps_Region struct {
-	AwsName string "json:\"awsName\" graphql:\"awsName\""
+	Name string "json:\"name\" graphql:\"name\""
 }
 
-func (t *GetWorkspacesApps_Workspaces_Apps_Region) GetAwsName() string {
+func (t *GetWorkspacesApps_Workspaces_Apps_Region) GetName() string {
 	if t == nil {
 		t = &GetWorkspacesApps_Workspaces_Apps_Region{}
 	}
-	return t.AwsName
+	return t.Name
 }
 
 type GetWorkspacesApps_Workspaces_Apps struct {
@@ -414,7 +414,7 @@ const GetWorkspacesAppsDocument = `query GetWorkspacesApps {
 			name
 			subdomain
 			region {
-				awsName
+				name
 			}
 		}
 	}

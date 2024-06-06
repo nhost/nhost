@@ -58,7 +58,7 @@ func printlist(ce *clienv.CliEnv, workspaces []*graphql.GetWorkspacesApps_Worksp
 			subdomain.Rows = append(subdomain.Rows, app.Subdomain)
 			project.Rows = append(project.Rows, app.Name)
 			workspace.Rows = append(workspace.Rows, ws.Name)
-			region.Rows = append(region.Rows, app.Region.AwsName)
+			region.Rows = append(region.Rows, app.Region.Name)
 		}
 	}
 

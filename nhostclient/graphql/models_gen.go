@@ -3117,6 +3117,7 @@ type Regions struct {
 	Domain          string     `json:"domain"`
 	ID              string     `json:"id"`
 	IsGdprCompliant bool       `json:"isGdprCompliant"`
+	Name            string     `json:"name"`
 	// An array relationship
 	RegionsAllowedWorkspaces []*RegionsAllowedWorkspace `json:"regions_allowed_workspaces"`
 	Type                     RegionTypeEnum             `json:"type"`
@@ -3231,6 +3232,7 @@ type RegionsBoolExp struct {
 	Domain                   *StringComparisonExp            `json:"domain,omitempty"`
 	ID                       *UUIDComparisonExp              `json:"id,omitempty"`
 	IsGdprCompliant          *BooleanComparisonExp           `json:"isGdprCompliant,omitempty"`
+	Name                     *StringComparisonExp            `json:"name,omitempty"`
 	RegionsAllowedWorkspaces *RegionsAllowedWorkspaceBoolExp `json:"regions_allowed_workspaces,omitempty"`
 	Type                     *RegionTypeEnumComparisonExp    `json:"type,omitempty"`
 }
@@ -3243,6 +3245,7 @@ type RegionsMaxOrderBy struct {
 	Description *OrderBy `json:"description,omitempty"`
 	Domain      *OrderBy `json:"domain,omitempty"`
 	ID          *OrderBy `json:"id,omitempty"`
+	Name        *OrderBy `json:"name,omitempty"`
 }
 
 // order by min() on columns of table "regions"
@@ -3253,6 +3256,7 @@ type RegionsMinOrderBy struct {
 	Description *OrderBy `json:"description,omitempty"`
 	Domain      *OrderBy `json:"domain,omitempty"`
 	ID          *OrderBy `json:"id,omitempty"`
+	Name        *OrderBy `json:"name,omitempty"`
 }
 
 // Ordering options when selecting data from "regions".
@@ -3268,6 +3272,7 @@ type RegionsOrderBy struct {
 	Domain                            *OrderBy                                 `json:"domain,omitempty"`
 	ID                                *OrderBy                                 `json:"id,omitempty"`
 	IsGdprCompliant                   *OrderBy                                 `json:"isGdprCompliant,omitempty"`
+	Name                              *OrderBy                                 `json:"name,omitempty"`
 	RegionsAllowedWorkspacesAggregate *RegionsAllowedWorkspaceAggregateOrderBy `json:"regions_allowed_workspaces_aggregate,omitempty"`
 	Type                              *OrderBy                                 `json:"type,omitempty"`
 }
@@ -3290,6 +3295,7 @@ type RegionsStreamCursorValueInput struct {
 	Domain          *string         `json:"domain,omitempty"`
 	ID              *string         `json:"id,omitempty"`
 	IsGdprCompliant *bool           `json:"isGdprCompliant,omitempty"`
+	Name            *string         `json:"name,omitempty"`
 	Type            *RegionTypeEnum `json:"type,omitempty"`
 }
 
@@ -6086,6 +6092,8 @@ const (
 	// column name
 	RegionsSelectColumnIsGdprCompliant RegionsSelectColumn = "isGdprCompliant"
 	// column name
+	RegionsSelectColumnName RegionsSelectColumn = "name"
+	// column name
 	RegionsSelectColumnType RegionsSelectColumn = "type"
 )
 
@@ -6098,12 +6106,13 @@ var AllRegionsSelectColumn = []RegionsSelectColumn{
 	RegionsSelectColumnDomain,
 	RegionsSelectColumnID,
 	RegionsSelectColumnIsGdprCompliant,
+	RegionsSelectColumnName,
 	RegionsSelectColumnType,
 }
 
 func (e RegionsSelectColumn) IsValid() bool {
 	switch e {
-	case RegionsSelectColumnActive, RegionsSelectColumnAwsName, RegionsSelectColumnCity, RegionsSelectColumnCountryCode, RegionsSelectColumnDescription, RegionsSelectColumnDomain, RegionsSelectColumnID, RegionsSelectColumnIsGdprCompliant, RegionsSelectColumnType:
+	case RegionsSelectColumnActive, RegionsSelectColumnAwsName, RegionsSelectColumnCity, RegionsSelectColumnCountryCode, RegionsSelectColumnDescription, RegionsSelectColumnDomain, RegionsSelectColumnID, RegionsSelectColumnIsGdprCompliant, RegionsSelectColumnName, RegionsSelectColumnType:
 		return true
 	}
 	return false

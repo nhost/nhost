@@ -6,7 +6,7 @@ query GetWorkspacesApps {
       name
       subdomain
       region {
-        awsName
+        name
       }
     }
   }
