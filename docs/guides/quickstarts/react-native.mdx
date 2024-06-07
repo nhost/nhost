@@ -1,19 +1,99 @@
 ---
 title: Get up and running with Nhost and React Native
 sidebarTitle: React Native
-description: In this quickstart we show how to build a simple To-Do feature with Nhost using React Native.
+description: In this quickstart guide, we'll demonstrate how to build a simple To-Do feature using Nhost and React Native.
 icon: mobile-notch
 ---
 
-<Info>
+<Card>
+  Throughout this guide, we'll utilize the **nhost-react-native-template**, which comes pre-configured with 
+  authentication and storage capabilities provided by Nhost.
+</Card>
+
+<br />
+
+<Note>
   Before starting this quickstart, ensure that your environment is set up to work with React Native.
   Follow the [setup guide](https://reactnative.dev/docs/next/set-up-your-environment) available on
   the official React Native website.
-</Info>
+</Note>
 
 <Steps>
   <Step title="Create Nhost Project">
     Create your project through the [Nhost Dashboard](https://app.nhost.io/new).
+  </Step>
+
+  <Step title="Setup Database">
+    Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `todos`.
+
+    <Warning>Make sure the option `Track this` is enabled</Warning>
+
+    ```sql SQL Editor
+    CREATE TABLE todos (
+      id uuid NOT NULL DEFAULT gen_random_uuid(),
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now(),
+      user_id uuid NOT NULL,
+      contents text NOT NULL,
+      PRIMARY KEY (id),
+      FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE cascade ON DELETE cascade 
+    );
+    ```
+
+    <Frame caption="Create Todos Table">
+      <img src="/images/guides/quickstarts/react-native/create-table-todos.png" />
+    </Frame>
+
+  </Step>
+
+  <Step title="Edit permissions">
+    To set permissions for the new `todos` table, select the table, click on the `...` to open the actions dialog,
+    then click on **Edit Permissions**. Set the following permissions for the `user` role:
+
+    1. `Insert`
+        - Set `Row insert permissions` to `Without any checks`
+        - Select all columns except `user_id` on `Column insert permissions`
+        - Add a new `Column preset` and set `Column Name` to `user_id` and `Column Value` to `X-Hasura-User-Id`
+        - Save
+    
+    <Frame caption="Insert Permissions">
+      <img src="/images/guides/quickstarts/react-native/todos-insert-permissions.png" />
+    </Frame>
+
+    2. `Select`
+        - Set `Row select permissions` to `With custom check` and fill in the following rule:
+            - Set `Where` to `todos.user_id`
+            - Set the operator to `_eq`
+            - Set the value to `X-Hasura-User-Id`
+        - Select all columns except `user_id` on `Column select permissions`
+        - Save
+
+    <Frame caption="Select Permissions">
+      <img src="/images/guides/quickstarts/react-native/todos-select-permissions.png" />
+    </Frame>
+
+    3. `Update`
+        - Set `Row update permissions` to `With custom check` and fill in the following rule:
+            - Set `Where` to `todos.user_id`
+            - Set the operator to `_eq`
+            - Set the value to `X-Hasura-User-Id`
+        - Select all columns except `user_id` on `Column select permissions`
+        - Save
+
+    <Frame caption="Update permissions">
+      <img src="/images/guides/quickstarts/react-native/todos-update-permissions.png" />
+    </Frame>
+
+    4. `Delete`
+        - Set `Row delete permissions` to `With custom check` and fill in the following rule:
+            - Set `Where` to `todos.user_id`
+            - Set the operator to `_eq`
+            - Set the value to `X-Hasura-User-Id`
+        - Save
+
+    <Frame caption="Delete permissions">
+      <img src="/images/guides/quickstarts/react-native/todos-delete-permissions.png" />
+    </Frame>
   </Step>
 
   <Step title="Bootstrap your React Native app">
@@ -29,199 +109,46 @@ icon: mobile-notch
 
     ```tsx src/root.tsx
     const nhost = new NhostClient({
-      subdomain: "<subdomain>", // replace the subdomain value
-      region: "<region>", // replace the region value
+      subdomain: "<subdomain>", // replace the subdomain value e.g. "hjcuuqweqwezolpolrep"
+      region: "<region>", // replace the region value e.g. "eu-central-1"
       clientStorageType: 'react-native',
       clientStorage: AsyncStorage,
     });
     ```
   </Step>
 
-  <Step title="Run the app on the emulator">
-    <Tabs>
-      <Tab title="Android">
-      1. Open a terminal and start the metro bundler
-        ```bash Terminal
-        cd myapp
-        npm start
-        ```
-      2. Open a new terminal and run the app on Android
-        ```bash Terminal
-        cd myapp
-        npm run android
-        ```
-      </Tab>
-      <Tab title="iOS">
-        1. Open a terminal and start the metro bundler
-          ```bash Terminal
-          cd myapp
-          npm start
-          ```
-        2. Open a new terminal and run the app on Android
-          ```bash Terminal
-          cd myapp
-          npm run ios
-          ```
-      </Tab>
-    </Tabs>
-  </Step>
-
-  <Step title="Setup Database">
-    Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `todos`.
-
-    ```sql SQL Editor
-    CREATE TABLE todos (
-      id uuid NOT NULL DEFAULT gen_random_uuid(),
-      created_at timestamptz NOT NULL DEFAULT now(),
-      updated_at timestamptz NOT NULL DEFAULT now(),
-      user_id uuid NOT NULL,
-      contents text NOT NULL,
-      PRIMARY KEY (id),
-      FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE cascade ON DELETE cascade
-    );
-    ```
-
-    <Warning>Make sure the option `Track this` is enabled</Warning>
-
-    ![SQL Editor](/images/guides/quickstarts/react-native/create-table-todos.png)
-
-  </Step>
-
-  <Step title="Edit permissions">
-    Select the new table `todos` just created, and click in **Edit Permissions** to set the following permissions for the `user` role on the following actions:
-    1. `Insert`
-        - Set `Row insert permissions` to `Without any checks`
-        - Select all columns except `user_id` on `Column insert permissions`
-        - Add a new `Column preset` and set `Column Name` to `user_id` and `Column Value` to `X-Hasura-User-Id`
-        - Save
-        ![Insert Permission Rules](/images/guides/quickstarts/react-native/todos-insert-permissions.png)
-    2. `Select`
-        - Set `Row select permissions` to `With custom check` and fill in the following rule:
-          - Set `Where` to `todos.user_id`
-          - Set the operator to `_eq`
-          - Set the value to `X-Hasura-User-Id`
-        - Select all columns except `user_id` on `Column select permissions`
-        - Save
-        ![Select Permission Rules](/images/guides/quickstarts/react-native/todos-select-permissions.png)
-    3. `Update`
-        - Set `Row update permissions` to `With custom check` and fill in the following rule:
-            - Set `Where` to `todos.user_id`
-            - Set the operator to `_eq`
-            - Set the value to `X-Hasura-User-Id`
-        - Select all columns except `user_id` on `Column select permissions`
-        - Save
-        ![Update Permission Rules](/images/guides/quickstarts/react-native/todos-update-permissions.png)
-    4. `Delete`
-        - Set `Row delete permissions` to `With custom check` and fill in the following rule:
-            - Set `Where` to `todos.user_id`
-            - Set the operator to `_eq`
-            - Set the value to `X-Hasura-User-Id`
-        - Save
-        ![Delete Permission Rules](/images/guides/quickstarts/react-native/todos-delete-permissions.png)
-  </Step>
-
-
   <Step title="Add the GraphQL queries">
-  Create a new file `./src/graphql/todos.ts` that will expose the graphql queries needed to `list`, `insert` and `delete` To-Do's.
+  Create a new file `src/graphql/todos.ts` that will expose the graphql queries needed to `list`, `add` and `delete` To-Do's.
 
   ```ts src/graphql/todos.ts
-    import {gql} from '@apollo/client';
+  import {gql} from '@apollo/client';
 
-    export const GET_TODOS = gql`
-      query TodoList {
-        todos(order_by: {createdAt: desc}) {
-          id
-          contents
-        }
+  export const GET_TODOS = gql`
+    query listTodos {
+      todos(order_by: { created_at: desc }) {
+        id
+        contents
       }
-    `;
+    }
+  `;
 
-    export const ADD_TODO = gql`
-      mutation AddItem($contents: String!) {
-        insertTodo(object: {contents: $contents}) {
-          id
-          contents
-        }
+  export const ADD_TODO = gql`
+    mutation addTodo($contents: String!) {
+      insert_todos_one(object: { contents: $contents }) {
+        id
+        contents
       }
-    `;
+    }
+  `;
 
-    export const DELETE_TODO = gql`
-      mutation deleteTodo($id: uuid!) {
-        deleteTodo(id: $id) {
-          __typename
-        }
+  export const DELETE_TODO = gql`
+    mutation deleteTodo($id: uuid!) {
+      delete_todos_by_pk(id: $id) {
+        __typename
       }
-    `;
+    }
+  `;
   ```
-  </Step>
-
-  <Step title="Add a form to insert a To-Do">
-    ```tsx src/components/AddTodoForm.tsx
-    import React from 'react';
-    import {useMutation} from '@apollo/client';
-    import Button from '@components/Button';
-    import ControlledInput from '@components/ControlledInput';
-    import {ADD_TODO, GET_TODOS} from '@graphql/todos';
-    import {useForm} from 'react-hook-form';
-    import {StyleSheet, View} from 'react-native';
-
-    interface AddTodoFormValues {
-      contents: string;
-    }
-
-    export default function AddTodoForm() {
-      const {control, handleSubmit, reset} = useForm<AddTodoFormValues>();
-
-      const [addTodo, {loading}] = useMutation(ADD_TODO, {
-        refetchQueries: [{query: GET_TODOS}],
-      });
-
-      const onSubmit = async (values: AddTodoFormValues) => {
-        const {contents} = values;
-        await addTodo({variables: {contents}});
-        reset();
-      };
-
-      return (
-        <View style={styles.wrapper}>
-          <View style={styles.inputWrapper}>
-            <ControlledInput
-              control={control}
-              name="contents"
-              placeholder="New To-Do"
-              autoCapitalize="none"
-              rules={{
-                required: true,
-              }}
-            />
-          </View>
-          <View style={styles.buttonWrapper}>
-            <Button
-              label="Add"
-              onPress={handleSubmit(onSubmit)}
-              disabled={loading}
-              loading={loading}
-            />
-          </View>
-        </View>
-      );
-    }
-
-    const styles = StyleSheet.create({
-      wrapper: {
-        gap: 12,
-        padding: 12,
-        flexDirection: 'row',
-        backgroundColor: 'white',
-      },
-      inputWrapper: {
-        flex: 3,
-      },
-      buttonWrapper: {
-        flex: 1,
-      },
-    });
-    ```
   </Step>
 
   <Step title="Add a form to insert a To-Do">
@@ -430,19 +357,50 @@ icon: mobile-notch
       );
     }
     ```
-    </Step>
+  </Step>
 
-  <Step title="Test it on the emulator">
-    Run the app on emulator as mentioned in step `4`
+   <Step title="Run the app on the emulator">
+    <Tabs>
+      <Tab title="Android">
+      1. Open a terminal and start the metro bundler
+        ```bash Terminal
+        cd myapp
+        npm start
+        ```
+      2. Open a new terminal and run the app on Android
+        ```bash Terminal
+        cd myapp
+        npm run android
+        ```
+      </Tab>
+      <Tab title="iOS">
+        1. Install the `ios-deploy` CLI
+          ```bash Terminal
+          npm install -g ios-deploy
+          ```
+        2. Start the metro bundler
+          ```bash Terminal
+          cd myapp
+          npm start
+          ```
+        3. Open a new terminal and run the app on Android
+          ```bash Terminal
+          cd myapp
+          npm run ios
+          ```
+      </Tab>
+    </Tabs>
+  </Step>
 
-    <AccordionGroup>
-      <Accordion title="Click on the menu icon to open the drawer and navigate to the To-Do's screen">
-        ![Demo Navigate to Drawer](/images/guides/quickstarts/react-native/emulator-drawer.png)
-      </Accordion>
-
-      <Accordion title="Add a new To-Do">
-        ![Demo Add To-Do](/images/guides/quickstarts/react-native/emulator-add-todo.png)
-      </Accordion>
-    </AccordionGroup>
+  <Step title="Demo">
+    <iframe
+      width="560"
+      height="315"
+      src="https://www.youtube.com/shorts/tqLwQMyhEmI"
+      title="YouTube video player"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen
+    />
   </Step>
 </Steps>

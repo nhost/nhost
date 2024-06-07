@@ -1,5 +1,5 @@
 {
-	"name": "nhost-react-native-template",
+	"name": "nhost-react-native",
 	"version": "0.0.6",
 	"scripts": {
 		"android": "react-native run-android",
