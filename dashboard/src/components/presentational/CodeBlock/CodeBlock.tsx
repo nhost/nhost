@@ -4,7 +4,7 @@ import { type ComponentPropsWithoutRef, type ForwardedRef, forwardRef, type Reac
 import { type CopyToClipboardResult } from './copyToClipboard';
 import { getNodeText } from './getNodeText';
 import { CopyToClipboardButton } from './CopyToClipboardButton';
-import CodeMirror from '@uiw/react-codemirror';
+import { Box } from '@/components/ui/v2/Box';
 
 export interface CodeBlockPropsBase {
   filename?: string;
@@ -20,10 +20,6 @@ export interface CodeBlockPropsBase {
    * The callback function when a user clicks on the copied to clipboard button
    */
   onCopied?: (result: CopyToClipboardResult, textToCopy?: string) => void;
-  /**
-   * The code to display in the code block
-   */
-  code: string;
 }
 
 export type CodeBlockProps = CodeBlockPropsBase &
@@ -59,7 +55,7 @@ function CodeTabBar({
   );
 }
 
-export const CodeBlock = forwardRef(function CodeBlock(
+export const CodeBlock = forwardRef((
   {
     filename,
     filenameColor,
@@ -67,11 +63,10 @@ export const CodeBlock = forwardRef(function CodeBlock(
     onCopied,
     children,
     className,
-    code,
     ...props
   }: CodeBlockProps,
   ref: ForwardedRef<HTMLDivElement>
-) {
+) => {
   const Button = (props: Partial<ComponentPropsWithoutRef<typeof CopyToClipboardButton>>) => (
     <CopyToClipboardButton
       textToCopy={getNodeText(children)}
@@ -82,22 +77,25 @@ export const CodeBlock = forwardRef(function CodeBlock(
   );
 
   return (
-    <div
-      className={clsx('mt-5 mb-8 not-prose gray-frame relative', filename && 'pt-2', className)}
+    <Box
+      sx={{
+        backgroundColor: (theme) => theme.palette.mode === "dark" ? "grey.200" : "grey.200"
+      }}
+      className={clsx('mt-5 not-prose relative px-2', filename && 'pt-2', className)}
       ref={ref}
       {...props}
     >
       {filename ? (
         <CodeTabBar filename={filename} filenameColor={filenameColor}>
-          <Button className={'relative'} />
+          <Button className="relative" />
         </CodeTabBar>
       ) : (
         <Button className="absolute top-0 right-1" />
       )}
-      <pre><code
+      <pre className="overflow-x-auto"><code className="font-mono"
       >
         {children}
       </code></pre>
-    </div>
+    </Box>
   );
 });

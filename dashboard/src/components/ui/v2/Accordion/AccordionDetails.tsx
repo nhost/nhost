@@ -13,6 +13,9 @@ const AccordionDetails = styled(MaterialAccordionDetails)<AccordionDetailsProps>
   fontFamily: theme.typography.fontFamily,
   fontSize: theme.typography.pxToRem(12),
   lineHeight: theme.typography.pxToRem(16),
+  backgroundColor: theme.palette.grey[200],
+  marginTop: 0,
+  marginBottom: 0,
 }));
 
 AccordionDetails.displayName = 'NhostAccordionDetails';

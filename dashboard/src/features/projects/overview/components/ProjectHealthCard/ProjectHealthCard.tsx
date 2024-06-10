@@ -60,13 +60,9 @@ function HealthBadge({ status, showExclamation, children, ...props }: HealthBadg
 
 export interface ProjectHealthCardProps extends BoxProps {
   /**
-   * Label of the card.
+   * Label of the card icon.
    */
   alt?: string;
-  /**
-   * Value of the card.
-   */
-  value?: string;
   /**
    * Tooltip of the card.
    */
@@ -103,7 +99,6 @@ export interface ProjectHealthCardProps extends BoxProps {
 
 export default function ProjectHealthCard({
   alt,
-  value,
   tooltip,
   icon,
   iconIsComponent = true,

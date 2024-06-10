@@ -128,7 +128,7 @@ export default function OverviewProjectHealth() {
     skip: !isPlatform || !currentProject
   });
 
-  const { openDrawer, openDialog, closeDialog } = useDialog();
+  const { openDialog, closeDialog } = useDialog();
 
   const router = useRouter();
 
@@ -259,7 +259,10 @@ export default function OverviewProjectHealth() {
         />
       ),
       props: {
-        PaperProps: { className: 'p-0 min-w-3xl max-w-3xl w-full' },
+        PaperProps: { className: 'p-0 max-w-2xl w-full' },
+        titleProps: {
+          onClose: closeDialog, // Show X Button
+        }
       },
       title: "Service logs",
     })
@@ -366,13 +369,6 @@ export default function OverviewProjectHealth() {
           }
         </div>
       )}
-      <CodeBlock filename="health-checks.log" onCopied={() => { }}>
-        {`
-          [2021-10-19 15:00:00] [ERROR
-          [2021-10-19 15:00:00
-            `
-        }
-      </CodeBlock>
     </div>
   );
 }
