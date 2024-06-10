@@ -6,7 +6,7 @@ import {
   LogsHeader,
   type LogsFilterFormValues,
 } from '@/features/projects/logs/components/LogsHeader';
-import { AvailableLogsService, isLogsService } from '@/features/projects/logs/utils/constants/services';
+import { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
 import { useRemoteApplicationGQLClientWithSubscriptions } from '@/hooks/useRemoteApplicationGQLClientWithSubscriptions';
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import {
@@ -21,7 +21,6 @@ import {
   useState,
   type ReactElement,
 } from 'react';
-import { useRouter } from 'next/router';
 
 interface LogsFilters {
   from: Date;
@@ -33,14 +32,6 @@ interface LogsFilters {
 export default function LogsPage() {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const router = useRouter();
-
-  const {
-    query: {selectedFilter: urlServiceFilter}
-  } = router;
-
-  console.log(urlServiceFilter)
-
   // create a client that sends http requests to Hasura but websocket requests to Bragi
   const clientWithSplit = useRemoteApplicationGQLClientWithSubscriptions();
   const subscriptionReturn = useRef(null);
@@ -49,11 +40,9 @@ export default function LogsPage() {
     from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
     to: new Date(),
     regexFilter: '',
-    service: isLogsService(urlServiceFilter) ? urlServiceFilter : AvailableLogsService.ALL,
+    service: AvailableLogsService.ALL,
   };
   
-  console.log(initialFilters, 'initialFilters')
-
   const [filters, setFilters] = useState<LogsFilters>(initialFilters);
 
   const { data, error, subscribeToMore, client, loading, refetch } =

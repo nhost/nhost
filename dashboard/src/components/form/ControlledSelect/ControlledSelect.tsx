@@ -41,7 +41,7 @@ function ControlledSelect(
       onChange={(event, value) => {
         setValue(controllerProps?.name || name, value, { shouldDirty: true });
 
-        if (props.onChange) {
+        if (props.onChange && event?.target) {
           props.onChange(event, value);
         }
       }}

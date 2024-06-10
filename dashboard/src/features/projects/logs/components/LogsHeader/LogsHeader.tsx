@@ -12,7 +12,7 @@ import { Option } from '@/components/ui/v2/Option';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { LogsRangeSelector } from '@/features/projects/logs/components/LogsRangeSelector';
-import { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
+import { AvailableLogsService, isLogsService } from '@/features/projects/logs/utils/constants/services';
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -20,6 +20,7 @@ import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import { useRouter } from 'next/router';
 
 export const validationSchema = Yup.object({
   from: Yup.date(),
@@ -44,6 +45,13 @@ interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
   defaultFormValues?: LogsFilterFormValues;
 }
 
+export interface LogsURLQueryParameters {
+  service?: AvailableLogsService | string;
+  from?: string;
+  to?: string;
+  regexFilter?: string;
+}
+
 export default function LogsHeader({
   loading,
   onSubmitFilterValues,
@@ -51,6 +59,8 @@ export default function LogsHeader({
   ...props
 }: LogsHeaderProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
+  
+  const router = useRouter();
 
   const [serviceLabels, setServiceLabels] = useState<
     { label: string; value: string }[]
@@ -61,18 +71,16 @@ export default function LogsHeader({
       variables: { appID: currentProject?.id },
     });
 
-  useEffect(() => {
-    if (!loadingServiceLabelValues) {
-      const labels = data.getServiceLabelValues ?? [];
-      setServiceLabels(labels.map((l) => ({ label: l, value: l })));
-    }
-  }, [loadingServiceLabelValues, data]);
-
-  console.table(defaultFormValues)
+  // useEffect(() => {
+  //   if (!loadingServiceLabelValues && data) {
+  //     const labels = data.getServiceLabelValues ?? [];
+  //     setServiceLabels(labels.map((l) => ({ label: l, value: l })));
+  //   }
+  // }, [loadingServiceLabelValues, data]);
 
   useEffect(() => {
     if (!loadingServiceLabelValues) {
-      const labels = data.getServiceLabelValues ?? [];
+      const labels = data?.getServiceLabelValues ?? [];
 
       const labelMappings = {
         'hasura-auth': 'Auth',
@@ -102,13 +110,38 @@ export default function LogsHeader({
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, watch, getValues } = form;
+  const { register, watch, getValues, setValue } = form;
+  
+  const { service: selectedURLService,
+    from: selectedURLFrom,
+    to: selectedURLTo,
+    regexFilter: selectedURLRegexFilter,
+  }: LogsURLQueryParameters = router.query;
 
   const service = watch('service');
 
   useEffect(() => {
     onSubmitFilterValues(getValues());
   }, [service, getValues, onSubmitFilterValues]);
+  
+  useEffect(() => {
+    if (isLogsService(selectedURLService)) {
+      setValue('service', selectedURLService)
+    }
+
+    if (selectedURLFrom) {
+      setValue('from', new Date(selectedURLFrom))
+    }
+
+    if (selectedURLTo) {
+      setValue('to', new Date(selectedURLTo))
+    }
+
+    if (selectedURLRegexFilter) {
+      setValue('regexFilter', selectedURLRegexFilter)
+    }
+    
+  }, [selectedURLService, selectedURLFrom, selectedURLTo, selectedURLRegexFilter, setValue, service])
 
   const handleSubmit = (values: LogsFilterFormValues) =>
     onSubmitFilterValues(values);
@@ -127,7 +160,7 @@ export default function LogsHeader({
             <ControlledSelect
               {...register('service')}
               className="w-full text-sm font-normal min-w-fit"
-              placeholder="All Services"
+              placeholder={defaultFormValues?.service ?? "All Services"}
               aria-label="Select service"
               hideEmptyHelperText
               slotProps={{

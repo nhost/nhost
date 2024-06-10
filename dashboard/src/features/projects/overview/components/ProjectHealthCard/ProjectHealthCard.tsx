@@ -2,7 +2,7 @@ import type { BoxProps } from '@/components/ui/v2/Box';
 import type { ReactElement } from 'react';
 import { Box } from '@/components/ui/v2/Box';
 import { Badge, type BadgeProps } from '@/components/ui/v2/Badge';
-import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Tooltip, tooltipClasses } from '@/components/ui/v2/Tooltip';
 import { twMerge } from 'tailwind-merge';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
@@ -115,7 +115,18 @@ export default function ProjectHealthCard({
 }: ProjectHealthCardProps) {
   return (
     // TODO: BUG 'arrow' prop stutters on hover 
-    <Tooltip title={tooltip}>
+    <Tooltip title={tooltip} 
+    slotProps={{
+      popper: {
+        sx: {
+          [`&.${tooltipClasses.popper} .${tooltipClasses.tooltip}`]:
+          {
+            backgroundColor: (theme) => theme.palette.mode === "dark" ? "" : "grey.200",
+          },
+        }
+      }
+    }}
+    >
       <Box
         className={twMerge(
           'min-w-12 max-w-14 grid grid-flow-row gap-0 rounded-md p-0 aspect-square',

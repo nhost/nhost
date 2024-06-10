@@ -13,6 +13,13 @@ import { useTheme } from '@mui/material';
 import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { subMinutes } from 'date-fns';
+import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
+import { CodeBlock } from '@/components/presentational/CodeBlock';
+import { Button } from '@/components/ui/v2/Button';
+import { useDialog } from '@/components/common/DialogProvider';
+import { OverviewProjectHealthModal } from '../OverviewProjectHealthModal';
 
 // TODO: chore: remove hardcoded service names and versions, use data from graphql generated types
 const services = {
@@ -51,8 +58,14 @@ function VersionTooltip({ serviceName, usedVersion, recommendedVersionMismatch, 
   return (
     <div className="flex flex-col gap-3 px-2 py-3">
       <div className="flex flex-row justify-between gap-6">
-        <Text variant="h4" component="p" className="text-white/70 text-sm+" >service</Text>
-        <Text variant="h4" component="p" className="text-white text-sm+ font-bold">{serviceName}</Text>
+        <Text sx={{
+          color: theme.palette.mode === "dark" ? "text.secondary" : "text.secondary"
+        }} variant="h4" component="p" className="text-sm+" >service</Text>
+        <Text 
+        sx={{
+          color: theme.palette.mode === "dark" ? "text.primary" : "text.primary"
+        }}
+        variant="h4" component="p" className="text-sm+ font-bold">{serviceName}</Text>
       </div>
       {/* <div className="flex flex-row justify-between gap-6">
         <Text variant="h4" component="p" className="text-white/70 font-bold" >status</Text>
@@ -115,6 +128,8 @@ export default function OverviewProjectHealth() {
     skip: !isPlatform || !currentProject
   });
 
+  const { openDrawer, openDialog, closeDialog } = useDialog();
+
   const router = useRouter();
 
   const {
@@ -135,24 +150,26 @@ export default function OverviewProjectHealth() {
     skip: !isPlatform || !currentProject
   });
 
+  console.table(projectServicesHealthData)
+
   if (loadingRecommendedVersions || loadingConfiguredVersions || loadingProjectServicesHealth) {
     return (
       <div className="grid grid-flow-row content-start gap-6">
-      <Text variant="h3">Project Health</Text>
+        <Text variant="h3">Project Health</Text>
 
-      {currentProject && (
-        <div className="flex flex-row flex-wrap justify-start items-center gap-2 lg:gap-2">
-          <ProjectHealthCard icon={<UserIcon className="h-6 w-6 m-1" />}
-          />
-          <ProjectHealthCard icon={<DatabaseIcon className="h-6 w-6 m-1" />}
-          />
-          <ProjectHealthCard icon={<StorageIcon className="h-6 w-6 m-1" />}
-          />
-          <ProjectHealthCard icon={<HasuraIcon className="h-6 w-6 m-1" />}
-          />
-        </div>
-      )}
-    </div>
+        {currentProject && (
+          <div className="flex flex-row flex-wrap justify-start items-center gap-2 lg:gap-2">
+            <ProjectHealthCard icon={<UserIcon className="h-6 w-6 m-1" />}
+            />
+            <ProjectHealthCard icon={<DatabaseIcon className="h-6 w-6 m-1" />}
+            />
+            <ProjectHealthCard icon={<StorageIcon className="h-6 w-6 m-1" />}
+            />
+            <ProjectHealthCard icon={<HasuraIcon className="h-6 w-6 m-1" />}
+            />
+          </div>
+        )}
+      </div>
     )
   }
 
@@ -219,7 +236,7 @@ export default function OverviewProjectHealth() {
   }
 
   const getUserRunServiceState = (runServices: Array<{ name: string, state: ServiceState }>): "success" | "error" | "warning" => {
-    if (runServices.some(service => service.state === ServiceState.Error 
+    if (runServices.some(service => service.state === ServiceState.Error
       || service.state === ServiceState.UpdateError
       || service.state === ServiceState.None
     )) {
@@ -233,25 +250,52 @@ export default function OverviewProjectHealth() {
     return "success"
   }
 
-  const redirectHref = `/${workspaceSlug}/${appSlug}/logs`
+  const openHealthModal = async () => {
+    openDialog({
+      component: (
+        <OverviewProjectHealthModal
+          close={closeDialog}
+          servicesHealth={projectServicesHealthData}
+        />
+      ),
+      props: {
+        PaperProps: { className: 'p-0 min-w-3xl max-w-3xl w-full' },
+      },
+      title: "Service logs",
+    })
+  }
 
+  const getRedirectHref = (): string => {
+    const redirectHref = `/${workspaceSlug}/${appSlug}/logs`
+    const params = new URLSearchParams({
+      service: "hasura-auth",
+      from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE * 2).toJSON(),
+      to: new Date().toJSON()
+    })
+    return `${redirectHref}?${params.toString()}`
+  }
 
   const authTooltipElem = (<VersionTooltip
     serviceName={services.auth.displayName}
     usedVersion={configuredVersionsData?.config?.auth?.version ?? ""}
     recommendedVersionMismatch={isAuthVersionMismatch}
     recommendedVersions={authRecommendedVersions} >
-        <Link
-          href={{
-            pathname: redirectHref,
-            query: {
-              selectedFilter: "hasura-auth"
-            }
-          }}
-        >
-          Redirect to logs
-        </Link>
-    </VersionTooltip>)
+    <Box sx={{
+      backgroundColor: "error.main",
+    }}
+    className="rounded-md p-2"
+    >
+      <Text variant="body1" component="p" className="text-white text-sm+ font-semibold">
+      Auth is offline due to errors, click on view logs for further details
+      </Text>
+    </Box>
+    <Button
+      variant="outlined"
+      onClick={openHealthModal}
+    >
+      View logs
+    </Button>
+  </VersionTooltip>)
 
   const hasuraTooltipElem = (<VersionTooltip
     serviceName={services.hasura.displayName}
@@ -307,13 +351,13 @@ export default function OverviewProjectHealth() {
             status={getServiceHealthState("hasura")}
           />
           {userRunServices.length > 0 &&
-          <ProjectHealthCard icon={<ServicesOutlinedIcon className="h-6 w-6 m-1" />}
-            tooltip={<ServicesStatusTooltip servicesStatus={userRunServices} />}
-            status={getUserRunServiceState(userRunServices)}
-          />
+            <ProjectHealthCard icon={<ServicesOutlinedIcon className="h-6 w-6 m-1" />}
+              tooltip={<ServicesStatusTooltip servicesStatus={userRunServices} />}
+              status={getUserRunServiceState(userRunServices)}
+            />
           }
           {isAIServiceEnabled &&
-            <ProjectHealthCard icon={<AIIcon 
+            <ProjectHealthCard icon={<AIIcon
               className="h-6 w-6 m-1" />}
               tooltip={aiTooltipElem}
               versionMismatch={isAIVersionMismatch}
@@ -322,6 +366,13 @@ export default function OverviewProjectHealth() {
           }
         </div>
       )}
+      <CodeBlock filename="health-checks.log" onCopied={() => { }}>
+        {`
+          [2021-10-19 15:00:00] [ERROR
+          [2021-10-19 15:00:00
+            `
+        }
+      </CodeBlock>
     </div>
   );
 }
