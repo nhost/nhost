@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/nhost/be/services/mimir/graph"
 	"github.com/nhost/be/services/mimir/model"
@@ -108,13 +109,28 @@ func (l *Local) GetApps(
 		return nil, fmt.Errorf("failed to get services: %w", err)
 	}
 
+	pgMajorVersion := "14"
+	if cfg.GetPostgres().GetVersion() != nil {
+		pgMajorVersion = strings.Split(*cfg.GetPostgres().GetVersion(), ".")[0]
+	}
 	return []*graph.App{
 		{
-			Config:       cfg,
-			SystemConfig: nil,
-			Secrets:      secrets,
-			Services:     services,
-			AppID:        zeroUUID,
+			Config: cfg,
+			SystemConfig: &model.ConfigSystemConfig{ //nolint:exhaustruct
+				Postgres: &model.ConfigSystemConfigPostgres{ //nolint:exhaustruct
+					MajorVersion: &pgMajorVersion,
+					Database:     "local",
+					ConnectionString: &model.ConfigSystemConfigPostgresConnectionString{
+						Backup:  "a",
+						Hasura:  "a",
+						Auth:    "a",
+						Storage: "a",
+					},
+				},
+			},
+			Secrets:  secrets,
+			Services: services,
+			AppID:    zeroUUID,
 		},
 	}, nil
 }

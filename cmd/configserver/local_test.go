@@ -59,7 +59,18 @@ func newApp() *graph.App {
 				},
 			},
 		},
-		SystemConfig: nil,
+		SystemConfig: &model.ConfigSystemConfig{ //nolint:exhaustruct
+			Postgres: &model.ConfigSystemConfigPostgres{ //nolint:exhaustruct
+				MajorVersion: ptr("14"),
+				Database:     "local",
+				ConnectionString: &model.ConfigSystemConfigPostgresConnectionString{
+					Backup:  "a",
+					Hasura:  "a",
+					Auth:    "a",
+					Storage: "a",
+				},
+			},
+		},
 		Secrets: []*model.ConfigEnvironmentVariable{
 			{
 				Name:  "someSecret",
