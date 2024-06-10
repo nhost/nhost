@@ -12,7 +12,7 @@ import { Option } from '@/components/ui/v2/Option';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { LogsRangeSelector } from '@/features/projects/logs/components/LogsRangeSelector';
-import { AvailableLogsService, isLogsService } from '@/features/projects/logs/utils/constants/services';
+import { AvailableLogsService } from '@/features/projects/logs/utils/constants/services';
 import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -20,7 +20,6 @@ import { subMinutes } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { useRouter } from 'next/router';
 
 export const validationSchema = Yup.object({
   from: Yup.date(),
@@ -41,26 +40,14 @@ interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
    * Function to be called when the user submits the filters form
    */
   onSubmitFilterValues: (value: LogsFilterFormValues) => void;
-
-  defaultFormValues?: LogsFilterFormValues;
-}
-
-export interface LogsURLQueryParameters {
-  service?: AvailableLogsService | string;
-  from?: string;
-  to?: string;
-  regexFilter?: string;
 }
 
 export default function LogsHeader({
   loading,
   onSubmitFilterValues,
-  defaultFormValues,
   ...props
 }: LogsHeaderProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
-  
-  const router = useRouter();
 
   const [serviceLabels, setServiceLabels] = useState<
     { label: string; value: string }[]
@@ -100,7 +87,7 @@ export default function LogsHeader({
   }, [loadingServiceLabelValues, data]);
 
   const form = useForm<LogsFilterFormValues>({
-    defaultValues: defaultFormValues ?? {
+    defaultValues: {
       from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
       to: new Date(),
       regexFilter: '',
@@ -110,38 +97,13 @@ export default function LogsHeader({
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, watch, getValues, setValue } = form;
-  
-  const { service: selectedURLService,
-    from: selectedURLFrom,
-    to: selectedURLTo,
-    regexFilter: selectedURLRegexFilter,
-  }: LogsURLQueryParameters = router.query;
+  const { register, watch, getValues } = form;
 
   const service = watch('service');
 
   useEffect(() => {
     onSubmitFilterValues(getValues());
   }, [service, getValues, onSubmitFilterValues]);
-  
-  useEffect(() => {
-    if (isLogsService(selectedURLService)) {
-      setValue('service', selectedURLService)
-    }
-
-    if (selectedURLFrom) {
-      setValue('from', new Date(selectedURLFrom))
-    }
-
-    if (selectedURLTo) {
-      setValue('to', new Date(selectedURLTo))
-    }
-
-    if (selectedURLRegexFilter) {
-      setValue('regexFilter', selectedURLRegexFilter)
-    }
-    
-  }, [selectedURLService, selectedURLFrom, selectedURLTo, selectedURLRegexFilter, setValue, service])
 
   const handleSubmit = (values: LogsFilterFormValues) =>
     onSubmitFilterValues(values);
@@ -160,7 +122,7 @@ export default function LogsHeader({
             <ControlledSelect
               {...register('service')}
               className="w-full text-sm font-normal min-w-fit"
-              placeholder={defaultFormValues?.service ?? "All Services"}
+              placeholder="All Services"
               aria-label="Select service"
               hideEmptyHelperText
               slotProps={{
