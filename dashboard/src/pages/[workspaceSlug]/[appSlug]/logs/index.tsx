@@ -36,14 +36,12 @@ export default function LogsPage() {
   const clientWithSplit = useRemoteApplicationGQLClientWithSubscriptions();
   const subscriptionReturn = useRef(null);
 
-  const initialFilters: LogsFilters = {
+  const [filters, setFilters] = useState<LogsFilters>({
     from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE),
     to: new Date(),
     regexFilter: '',
     service: AvailableLogsService.ALL,
-  };
-  
-  const [filters, setFilters] = useState<LogsFilters>(initialFilters);
+  });
 
   const { data, error, subscribeToMore, client, loading, refetch } =
     useGetProjectLogsQuery({
@@ -108,11 +106,11 @@ export default function LogsPage() {
       subscriptionReturn.current();
       subscriptionReturn.current = null;
 
-      return () => {};
+      return () => { };
     }
 
     if (filters.to) {
-      return () => {};
+      return () => { };
     }
 
     if (subscriptionReturn.current) {
@@ -123,7 +121,7 @@ export default function LogsPage() {
     // This will open the websocket connection and it will return a function to close it.
     subscriptionReturn.current = subscribeToMoreLogs();
 
-    return () => {};
+    return () => { };
   }, [filters, subscribeToMoreLogs, client]);
 
   const onSubmitFilterValues = useCallback(
@@ -140,7 +138,6 @@ export default function LogsPage() {
         <LogsHeader
           loading={loading}
           onSubmitFilterValues={onSubmitFilterValues}
-          defaultFormValues={initialFilters}
         />
         <LogsBody error={error} loading={loading} logsData={data} />
       </RetryableErrorBoundary>
