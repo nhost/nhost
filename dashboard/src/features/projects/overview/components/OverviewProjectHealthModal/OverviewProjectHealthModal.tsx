@@ -68,12 +68,10 @@ function ServiceAccordion({
 
   const replicasLabel = replicas.length === 1 ? 'replica' : 'replicas';
 
-  const getCode = (replicas:
-    GetProjectServicesHealthQuery["getProjectStatus"]["services"][number]["replicas"]
-  ) => {
-    const errors = replicas.map((replica) => {
-      return replica.errors
-    });
+  const getCode = () => {
+    const errors = replicas.map((replica) =>
+      replica.errors
+    );
 
     if (errors.every((error) => error.length === 0)) {
       return "Service is healthy";
@@ -85,7 +83,9 @@ function ServiceAccordion({
   return (
     <Accordion.Root>
       <Accordion.Summary
-        expandIcon={<ChevronDownIcon className="text-black" />}
+        expandIcon={<ChevronDownIcon sx={{
+          color: "text.primary"
+        }} />}
         aria-controls="panel1-content"
         id="panel1-header"
         className="px-6"
@@ -113,7 +113,7 @@ function ServiceAccordion({
       <Accordion.Details>
         <CodeBlock
         >
-          {getCode(replicas)}
+          {getCode()}
         </CodeBlock>
       </Accordion.Details>
 
@@ -152,7 +152,9 @@ export default function OverviewProjectHealthModal({
           <XIcon fontSize="small" />
         </Button>
       </Box> */}
-    <div className="grid grid-flow-row gap-1 border-t-1">
+    <Box sx={{
+      borderColor: "text.dark"
+    }} className="grid grid-flow-row gap-1 pt-4">
       <ServiceAccordion
         icon={<UserIcon className="w-4 h-4" />}
         serviceName="Auth"
@@ -177,7 +179,7 @@ export default function OverviewProjectHealthModal({
         replicas={hasura?.replicas}
         serviceState={hasura?.state}
       />
-      { ai ? (
+      {ai ? (
         <ServiceAccordion
           icon={<AIIcon className="w-4 h-4" />}
           serviceName="AI"
@@ -185,7 +187,7 @@ export default function OverviewProjectHealthModal({
           serviceState={ai.state}
         />
       ) : null}
-    </div>
+    </Box>
   </Box>
   );
 }

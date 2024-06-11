@@ -61,35 +61,46 @@ function VersionTooltip({ serviceName, usedVersion, recommendedVersionMismatch, 
         <Text sx={{
           color: theme.palette.mode === "dark" ? "text.secondary" : "text.secondary"
         }} variant="h4" component="p" className="text-sm+" >service</Text>
+        <Text
+          sx={{
+            color: theme.palette.mode === "dark" ? "text.primary" : "text.primary"
+          }}
+          variant="h4" component="p" className="text-sm+ font-semibold">{serviceName}</Text>
+      </div>
+      <div className="flex flex-row justify-between gap-6">
+        <Text
+          sx={{
+            color: theme.palette.mode === "dark" ? "text.secondary" : "text.secondary"
+          }}
+          variant="h4" component="p" className="text-sm+" >version</Text>
+        <Text sx={{
+          color: theme.palette.mode === "dark" ? "text.primary" : "text.primary"
+        }}
+          variant="h4" component="p" className="font-bold text-sm+">{usedVersion}</Text>
+      </div>
+      {recommendedVersionMismatch && <Box sx={{ backgroundColor: theme.palette.mode === "dark" ? "grey.300" : "grey.300" }} className="rounded-md p-2">
         <Text 
         sx={{
           color: theme.palette.mode === "dark" ? "text.primary" : "text.primary"
         }}
-        variant="h4" component="p" className="text-sm+ font-bold">{serviceName}</Text>
-      </div>
-      {/* <div className="flex flex-row justify-between gap-6">
-        <Text variant="h4" component="p" className="text-white/70 font-bold" >status</Text>
-        <Text variant="h4" component="p" className="text-white font-bold">error</Text>
-      </div> */}
-      {children}
-      <div className="flex flex-row justify-between gap-6">
-        <Text variant="h4" component="p" className="text-white/70 text-sm+" >version</Text>
-        <Text variant="h4" component="p" className="text-white font-bold text-sm+">{usedVersion}</Text>
-      </div>
-      {recommendedVersionMismatch && <Box sx={{ backgroundColor: theme.palette.mode === "dark" ? "grey.200" : "grey.600" }} className="rounded-md p-2">
-        <Text variant="body1" component="p" className="text-white text-sm+">
+        variant="body1" component="p" className="text-sm+">
           {serviceName} is not using a recommended version. Recommended version(s):
         </Text>
-        <ul className="list-disc text-white text-sm+">
+        <ul className="list-disc text-sm+">
           {recommendedVersions.map(version => (
             <li className="ml-6 list-item" key={version}>
-              <Text variant="body1" component="p" className="text-white">
+              <Text 
+              sx={{
+                color: theme.palette.mode === "dark" ? "text.primary" : "text.primary"
+              }}
+              variant="body1" component="p">
                 {version}
               </Text>
             </li>
           ))}
         </ul>
       </Box>}
+      {children}
     </div>
   )
 }
@@ -115,7 +126,11 @@ function ServicesStatusTooltip({ servicesStatus }: ServicesStatusTooltipProps) {
     (<li key={service.name} className="flex flex-row items-center gap-4 text-ellipsis text-nowrap leading-5">
       <Box sx={{ backgroundColor: colorMap[service.state] }}
         className={`flex-shrink-0 w-3 h-3 rounded-full ${service.state === ServiceState.Updating ? "animate-pulse" : ""}`} />
-      {service.name}
+      <Text sx={{
+        color: (theme) => theme.palette.mode === "dark" ? "text.primary" : "text.primary"
+      }}>
+        {service.name}
+      </Text>
     </li>))
     }
   </ol>)
@@ -284,12 +299,12 @@ export default function OverviewProjectHealth() {
     recommendedVersionMismatch={isAuthVersionMismatch}
     recommendedVersions={authRecommendedVersions} >
     <Box sx={{
-      backgroundColor: "error.main",
+      backgroundColor: (theme) => theme.palette.mode === "dark" ? "error.dark" : "error.main",
     }}
-    className="rounded-md p-2"
+      className="rounded-md p-2"
     >
       <Text variant="body1" component="p" className="text-white text-sm+ font-semibold">
-      Auth is offline due to errors, click on view logs for further details
+        Auth is offline due to errors, click on view logs for further details
       </Text>
     </Box>
     <Button
@@ -353,18 +368,18 @@ export default function OverviewProjectHealth() {
             versionMismatch={isHasuraVersionMismatch}
             status={getServiceHealthState("hasura")}
           />
-          {userRunServices.length > 0 &&
-            <ProjectHealthCard icon={<ServicesOutlinedIcon className="h-6 w-6 m-1" />}
-              tooltip={<ServicesStatusTooltip servicesStatus={userRunServices} />}
-              status={getUserRunServiceState(userRunServices)}
-            />
-          }
           {isAIServiceEnabled &&
             <ProjectHealthCard icon={<AIIcon
               className="h-6 w-6 m-1" />}
               tooltip={aiTooltipElem}
               versionMismatch={isAIVersionMismatch}
               status={getServiceHealthState("ai")}
+            />
+          }
+          {userRunServices.length > 0 &&
+            <ProjectHealthCard icon={<ServicesOutlinedIcon className="h-6 w-6 m-1" />}
+              tooltip={<ServicesStatusTooltip servicesStatus={userRunServices} />}
+              status={getUserRunServiceState(userRunServices)}
             />
           }
         </div>
