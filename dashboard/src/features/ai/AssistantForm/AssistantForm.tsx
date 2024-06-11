@@ -6,8 +6,6 @@ import { ArrowsClockwise } from '@/components/ui/v2/icons/ArrowsClockwise';
 import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { GraphqlDataSourcesFormSection } from '@/features/ai/AssistantForm/components/GraphqlDataSourcesFormSection';
@@ -32,6 +30,7 @@ export const validationSchema = Yup.object({
   description: Yup.string(),
   instructions: Yup.string().required('The instructions are required'),
   model: Yup.string().required('The model is required'),
+  bucket: Yup.string(),
   graphql: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required(),
@@ -123,7 +122,15 @@ export default function AssistantForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  const createOrUpdateAutoEmbeddings = async (
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
+
+  const { data: buckets } = useGetBucketsQuery({
+    client: remoteProjectGQLClient,
+  });
+
+  const [bucket, setBucket] = useState(initialData?.bucket || '');
+
+  const createOrUpdateAssistant = async (
     values: DeepRequired<AssistantFormValues> & { assistantID: string },
   ) => {
     // remove any __typename from the form values
@@ -135,6 +142,10 @@ export default function AssistantForm({
 
     if (values.graphql.length === 0) {
       delete payload.graphql;
+    }
+
+    if (values.bucket === '') {
+      delete payload.bucket;
     }
 
     // remove assistantId because the update mutation fails otherwise
@@ -166,7 +177,7 @@ export default function AssistantForm({
   ) => {
     await execPromiseWithErrorToast(
       async () => {
-        await createOrUpdateAutoEmbeddings(values);
+        await createOrUpdateAssistant(values);
         onSubmit?.();
       },
       {
@@ -177,14 +188,6 @@ export default function AssistantForm({
       },
     );
   };
-
-  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
-
-  const { data: buckets } = useGetBucketsQuery({
-    client: remoteProjectGQLClient,
-  });
-
-  const [bucket, setBucket] = useState();
 
   return (
     <FormProvider {...form}>
@@ -295,7 +298,31 @@ export default function AssistantForm({
             autoFocus
           />
 
-          <Select
+          <Input
+            {...register('bucket')}
+            id="bucket"
+            label={
+              <Box className="flex flex-row items-center space-x-2">
+                <Text>Bucket</Text>
+                <Tooltip title="Model to use for the assistant.">
+                  <InfoIcon
+                    aria-label="Info"
+                    className="h-4 w-4"
+                    color="primary"
+                  />
+                </Tooltip>
+              </Box>
+            }
+            placeholder=""
+            hideEmptyHelperText
+            error={!!errors.bucket}
+            helperText={errors?.bucket?.message}
+            fullWidth
+            autoComplete="off"
+            autoFocus
+          />
+
+          {/* <Select
             {...register('bucket')}
             id="bucket"
             label={
@@ -313,8 +340,8 @@ export default function AssistantForm({
             slotProps={{
               popper: { disablePortal: false, className: 'z-[10000]' },
             }}
-            value={bucket}
-            onChange={(_, value) => setBucket(value as string)}
+            //value={bucket}
+            //onChange={(_, value) => setBucket(value as string)}
             fullWidth
           >
             {buckets?.buckets.map((b) => (
@@ -322,7 +349,7 @@ export default function AssistantForm({
                 {b.id}
               </Option>
             ))}
-          </Select>
+          </Select> */}
 
           <GraphqlDataSourcesFormSection />
           <WebhooksDataSourcesFormSection />

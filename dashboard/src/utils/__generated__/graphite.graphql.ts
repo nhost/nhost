@@ -17,6 +17,7 @@ export type Scalars = {
   bytea: any;
   citext: any;
   jsonb: any;
+  numeric: any;
   timestamptz: any;
   timestampz: any;
   uuid: any;
@@ -3167,6 +3168,8 @@ export type GraphiteAssistant = {
   __typename?: 'graphiteAssistant';
   /** ID of the assistant */
   assistantID: Scalars['String'];
+  /** Bucket to store files */
+  bucket?: Maybe<Scalars['String']>;
   /** Description of the assistant */
   description: Scalars['String'];
   /** GraphQL data sources and tools. Run against the project's GraphQL API */
@@ -3185,6 +3188,8 @@ export type GraphiteAssistant = {
 };
 
 export type GraphiteAssistantInput = {
+  /** Bucket to store files */
+  bucket?: InputMaybe<Scalars['String']>;
   /** Description of the assistant */
   description: Scalars['String'];
   /** GraphQL data sources. Run against the project's GraphQL API */
@@ -3521,6 +3526,27 @@ export type GraphiteAutoEmbeddingsConfiguration_Updates = {
   where: GraphiteAutoEmbeddingsConfiguration_Bool_Exp;
 };
 
+export type GraphiteFile = {
+  __typename?: 'graphiteFile';
+  /** Timestamp of when the file was uploaded */
+  createdAt: Scalars['timestampz'];
+  /** ID of the file */
+  fileID: Scalars['String'];
+  /** ID of the file in the storage service */
+  storageFileID: Scalars['uuid'];
+  /** The vector store ID the file is attached to */
+  vectorStoreID: Scalars['String'];
+};
+
+export type GraphiteFileInput = {
+  /** ID of the file */
+  fileID: Scalars['String'];
+  /** ID of the file in the storage service */
+  fileStorageID: Scalars['uuid'];
+  /** ID of the vector store the file is attached to */
+  vectorStoreID: Scalars['String'];
+};
+
 export type GraphiteMessage = {
   __typename?: 'graphiteMessage';
   /** Timestamp of when the message was sent */
@@ -3577,6 +3603,21 @@ export type GraphiteMutation = {
    * - data
    */
   insertAssistant: GraphiteAssistant;
+  /**
+   * Create a File
+   *
+   * ## Permissions needed
+   *
+   * select (files):
+   * - id
+   * insert (files):
+   * - file_id
+   * - storage_file_id
+   * - vector_store_id
+   * update (files):
+   * - data
+   */
+  insertFile: GraphiteFile;
   /**
    * Send a message to a developer session.
    * If prevMessageID is `""`, return all messages in the session.
@@ -3656,6 +3697,11 @@ export type GraphiteMutationDeleteSessionArgs = {
 
 export type GraphiteMutationInsertAssistantArgs = {
   object: GraphiteAssistantInput;
+};
+
+
+export type GraphiteMutationInsertFileArgs = {
+  object: GraphiteFileInput;
 };
 
 
@@ -3800,6 +3846,329 @@ export type Jsonb_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['jsonb']>>;
 };
 
+/** columns and relationships of "movies" */
+export type Movies = {
+  __typename?: 'movies';
+  budget: Scalars['bigint'];
+  country: Scalars['String'];
+  createdAt: Scalars['timestamptz'];
+  crew: Scalars['String'];
+  genre: Scalars['String'];
+  id: Scalars['uuid'];
+  name: Scalars['String'];
+  overview: Scalars['String'];
+  revenue: Scalars['bigint'];
+  score: Scalars['numeric'];
+  updatedAt: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "movies" */
+export type Movies_Aggregate = {
+  __typename?: 'movies_aggregate';
+  aggregate?: Maybe<Movies_Aggregate_Fields>;
+  nodes: Array<Movies>;
+};
+
+/** aggregate fields of "movies" */
+export type Movies_Aggregate_Fields = {
+  __typename?: 'movies_aggregate_fields';
+  avg?: Maybe<Movies_Avg_Fields>;
+  count: Scalars['Int'];
+  max?: Maybe<Movies_Max_Fields>;
+  min?: Maybe<Movies_Min_Fields>;
+  stddev?: Maybe<Movies_Stddev_Fields>;
+  stddev_pop?: Maybe<Movies_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Movies_Stddev_Samp_Fields>;
+  sum?: Maybe<Movies_Sum_Fields>;
+  var_pop?: Maybe<Movies_Var_Pop_Fields>;
+  var_samp?: Maybe<Movies_Var_Samp_Fields>;
+  variance?: Maybe<Movies_Variance_Fields>;
+};
+
+
+/** aggregate fields of "movies" */
+export type Movies_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Movies_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** aggregate avg on columns */
+export type Movies_Avg_Fields = {
+  __typename?: 'movies_avg_fields';
+  budget?: Maybe<Scalars['Float']>;
+  revenue?: Maybe<Scalars['Float']>;
+  score?: Maybe<Scalars['Float']>;
+};
+
+/** Boolean expression to filter rows from the table "movies". All fields are combined with a logical 'AND'. */
+export type Movies_Bool_Exp = {
+  _and?: InputMaybe<Array<Movies_Bool_Exp>>;
+  _not?: InputMaybe<Movies_Bool_Exp>;
+  _or?: InputMaybe<Array<Movies_Bool_Exp>>;
+  budget?: InputMaybe<Bigint_Comparison_Exp>;
+  country?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  crew?: InputMaybe<String_Comparison_Exp>;
+  genre?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  overview?: InputMaybe<String_Comparison_Exp>;
+  revenue?: InputMaybe<Bigint_Comparison_Exp>;
+  score?: InputMaybe<Numeric_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "movies" */
+export enum Movies_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  MoviesPkey = 'movies_pkey'
+}
+
+/** input type for incrementing numeric columns in table "movies" */
+export type Movies_Inc_Input = {
+  budget?: InputMaybe<Scalars['bigint']>;
+  revenue?: InputMaybe<Scalars['bigint']>;
+  score?: InputMaybe<Scalars['numeric']>;
+};
+
+/** input type for inserting data into table "movies" */
+export type Movies_Insert_Input = {
+  budget?: InputMaybe<Scalars['bigint']>;
+  country?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  crew?: InputMaybe<Scalars['String']>;
+  genre?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  overview?: InputMaybe<Scalars['String']>;
+  revenue?: InputMaybe<Scalars['bigint']>;
+  score?: InputMaybe<Scalars['numeric']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Movies_Max_Fields = {
+  __typename?: 'movies_max_fields';
+  budget?: Maybe<Scalars['bigint']>;
+  country?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  crew?: Maybe<Scalars['String']>;
+  genre?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+  overview?: Maybe<Scalars['String']>;
+  revenue?: Maybe<Scalars['bigint']>;
+  score?: Maybe<Scalars['numeric']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type Movies_Min_Fields = {
+  __typename?: 'movies_min_fields';
+  budget?: Maybe<Scalars['bigint']>;
+  country?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  crew?: Maybe<Scalars['String']>;
+  genre?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+  overview?: Maybe<Scalars['String']>;
+  revenue?: Maybe<Scalars['bigint']>;
+  score?: Maybe<Scalars['numeric']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "movies" */
+export type Movies_Mutation_Response = {
+  __typename?: 'movies_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Movies>;
+};
+
+/** on_conflict condition type for table "movies" */
+export type Movies_On_Conflict = {
+  constraint: Movies_Constraint;
+  update_columns?: Array<Movies_Update_Column>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "movies". */
+export type Movies_Order_By = {
+  budget?: InputMaybe<Order_By>;
+  country?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  crew?: InputMaybe<Order_By>;
+  genre?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  overview?: InputMaybe<Order_By>;
+  revenue?: InputMaybe<Order_By>;
+  score?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: movies */
+export type Movies_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "movies" */
+export enum Movies_Select_Column {
+  /** column name */
+  Budget = 'budget',
+  /** column name */
+  Country = 'country',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Crew = 'crew',
+  /** column name */
+  Genre = 'genre',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  Overview = 'overview',
+  /** column name */
+  Revenue = 'revenue',
+  /** column name */
+  Score = 'score',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "movies" */
+export type Movies_Set_Input = {
+  budget?: InputMaybe<Scalars['bigint']>;
+  country?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  crew?: InputMaybe<Scalars['String']>;
+  genre?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  overview?: InputMaybe<Scalars['String']>;
+  revenue?: InputMaybe<Scalars['bigint']>;
+  score?: InputMaybe<Scalars['numeric']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate stddev on columns */
+export type Movies_Stddev_Fields = {
+  __typename?: 'movies_stddev_fields';
+  budget?: Maybe<Scalars['Float']>;
+  revenue?: Maybe<Scalars['Float']>;
+  score?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Movies_Stddev_Pop_Fields = {
+  __typename?: 'movies_stddev_pop_fields';
+  budget?: Maybe<Scalars['Float']>;
+  revenue?: Maybe<Scalars['Float']>;
+  score?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Movies_Stddev_Samp_Fields = {
+  __typename?: 'movies_stddev_samp_fields';
+  budget?: Maybe<Scalars['Float']>;
+  revenue?: Maybe<Scalars['Float']>;
+  score?: Maybe<Scalars['Float']>;
+};
+
+/** Streaming cursor of the table "movies" */
+export type Movies_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Movies_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Movies_Stream_Cursor_Value_Input = {
+  budget?: InputMaybe<Scalars['bigint']>;
+  country?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  crew?: InputMaybe<Scalars['String']>;
+  genre?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  overview?: InputMaybe<Scalars['String']>;
+  revenue?: InputMaybe<Scalars['bigint']>;
+  score?: InputMaybe<Scalars['numeric']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate sum on columns */
+export type Movies_Sum_Fields = {
+  __typename?: 'movies_sum_fields';
+  budget?: Maybe<Scalars['bigint']>;
+  revenue?: Maybe<Scalars['bigint']>;
+  score?: Maybe<Scalars['numeric']>;
+};
+
+/** update columns of table "movies" */
+export enum Movies_Update_Column {
+  /** column name */
+  Budget = 'budget',
+  /** column name */
+  Country = 'country',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Crew = 'crew',
+  /** column name */
+  Genre = 'genre',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  Overview = 'overview',
+  /** column name */
+  Revenue = 'revenue',
+  /** column name */
+  Score = 'score',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type Movies_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Movies_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Movies_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Movies_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Movies_Var_Pop_Fields = {
+  __typename?: 'movies_var_pop_fields';
+  budget?: Maybe<Scalars['Float']>;
+  revenue?: Maybe<Scalars['Float']>;
+  score?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate var_samp on columns */
+export type Movies_Var_Samp_Fields = {
+  __typename?: 'movies_var_samp_fields';
+  budget?: Maybe<Scalars['Float']>;
+  revenue?: Maybe<Scalars['Float']>;
+  score?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate variance on columns */
+export type Movies_Variance_Fields = {
+  __typename?: 'movies_variance_fields';
+  budget?: Maybe<Scalars['Float']>;
+  revenue?: Maybe<Scalars['Float']>;
+  score?: Maybe<Scalars['Float']>;
+};
+
 /** mutation root */
 export type Mutation_Root = {
   __typename?: 'mutation_root';
@@ -3883,6 +4252,10 @@ export type Mutation_Root = {
   deleteVirus?: Maybe<Virus>;
   /** delete data from the table: "storage.virus" */
   deleteViruses?: Maybe<Virus_Mutation_Response>;
+  /** delete data from the table: "movies" */
+  delete_movies?: Maybe<Movies_Mutation_Response>;
+  /** delete single row from the table: "movies" */
+  delete_movies_by_pk?: Maybe<Movies>;
   graphite?: Maybe<GraphiteMutation>;
   /** insert a single row into the table: "auth.providers" */
   insertAuthProvider?: Maybe<AuthProviders>;
@@ -3936,6 +4309,10 @@ export type Mutation_Root = {
   insertVirus?: Maybe<Virus>;
   /** insert data into the table: "storage.virus" */
   insertViruses?: Maybe<Virus_Mutation_Response>;
+  /** insert data into the table: "movies" */
+  insert_movies?: Maybe<Movies_Mutation_Response>;
+  /** insert a single row into the table: "movies" */
+  insert_movies_one?: Maybe<Movies>;
   /** update single row of the table: "auth.providers" */
   updateAuthProvider?: Maybe<AuthProviders>;
   /** update single row of the table: "auth.provider_requests" */
@@ -4010,6 +4387,12 @@ export type Mutation_Root = {
   update_buckets_many?: Maybe<Array<Maybe<Buckets_Mutation_Response>>>;
   /** update multiples rows of table: "storage.files" */
   update_files_many?: Maybe<Array<Maybe<Files_Mutation_Response>>>;
+  /** update data of the table: "movies" */
+  update_movies?: Maybe<Movies_Mutation_Response>;
+  /** update single row of the table: "movies" */
+  update_movies_by_pk?: Maybe<Movies>;
+  /** update multiples rows of table: "movies" */
+  update_movies_many?: Maybe<Array<Maybe<Movies_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
   /** update multiples rows of table: "storage.virus" */
@@ -4276,6 +4659,18 @@ export type Mutation_RootDeleteVirusesArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDelete_MoviesArgs = {
+  where: Movies_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Movies_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertAuthProviderArgs = {
   object: AuthProviders_Insert_Input;
   on_conflict?: InputMaybe<AuthProviders_On_Conflict>;
@@ -4454,6 +4849,20 @@ export type Mutation_RootInsertVirusArgs = {
 export type Mutation_RootInsertVirusesArgs = {
   objects: Array<Virus_Insert_Input>;
   on_conflict?: InputMaybe<Virus_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_MoviesArgs = {
+  objects: Array<Movies_Insert_Input>;
+  on_conflict?: InputMaybe<Movies_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Movies_OneArgs = {
+  object: Movies_Insert_Input;
+  on_conflict?: InputMaybe<Movies_On_Conflict>;
 };
 
 
@@ -4762,6 +5171,28 @@ export type Mutation_RootUpdate_Files_ManyArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdate_MoviesArgs = {
+  _inc?: InputMaybe<Movies_Inc_Input>;
+  _set?: InputMaybe<Movies_Set_Input>;
+  where: Movies_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Movies_By_PkArgs = {
+  _inc?: InputMaybe<Movies_Inc_Input>;
+  _set?: InputMaybe<Movies_Set_Input>;
+  pk_columns: Movies_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Movies_ManyArgs = {
+  updates: Array<Movies_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdate_Users_ManyArgs = {
   updates: Array<Users_Updates>;
 };
@@ -4770,6 +5201,19 @@ export type Mutation_RootUpdate_Users_ManyArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Virus_ManyArgs = {
   updates: Array<Virus_Updates>;
+};
+
+/** Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'. */
+export type Numeric_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars['numeric']>;
+  _gt?: InputMaybe<Scalars['numeric']>;
+  _gte?: InputMaybe<Scalars['numeric']>;
+  _in?: InputMaybe<Array<Scalars['numeric']>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _lt?: InputMaybe<Scalars['numeric']>;
+  _lte?: InputMaybe<Scalars['numeric']>;
+  _neq?: InputMaybe<Scalars['numeric']>;
+  _nin?: InputMaybe<Array<Scalars['numeric']>>;
 };
 
 /** column ordering options */
@@ -4869,6 +5313,20 @@ export type Query_Root = {
   graphiteAutoEmbeddingsConfigurationAggregate: GraphiteAutoEmbeddingsConfiguration_Aggregate;
   /** fetch data from the table: "graphite.auto_embeddings_configuration" */
   graphiteAutoEmbeddingsConfigurations: Array<GraphiteAutoEmbeddingsConfiguration>;
+  /** fetch data from the table: "movies" */
+  movies: Array<Movies>;
+  /** fetch aggregated fields from the table: "movies" */
+  movies_aggregate: Movies_Aggregate;
+  /** fetch data from the table: "movies" using primary key columns */
+  movies_by_pk?: Maybe<Movies>;
+  /** execute function "search_movies" which returns "movies" */
+  search_movies: Array<Movies>;
+  /** execute function "search_movies" and query aggregates on result of table type "movies" */
+  search_movies_aggregate: Movies_Aggregate;
+  /** execute function "something" which returns "movies" */
+  something: Array<Movies>;
+  /** execute function "something" and query aggregates on result of table type "movies" */
+  something_aggregate: Movies_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -5183,6 +5641,69 @@ export type Query_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
 };
 
 
+export type Query_RootMoviesArgs = {
+  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Movies_Order_By>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+
+export type Query_RootMovies_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Movies_Order_By>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+
+export type Query_RootMovies_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootSearch_MoviesArgs = {
+  args: Search_Movies_Args;
+  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Movies_Order_By>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+
+export type Query_RootSearch_Movies_AggregateArgs = {
+  args: Search_Movies_Args;
+  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Movies_Order_By>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+
+export type Query_RootSomethingArgs = {
+  args: Something_Args;
+  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Movies_Order_By>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+
+export type Query_RootSomething_AggregateArgs = {
+  args: Something_Args;
+  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Movies_Order_By>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+
 export type Query_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -5226,6 +5747,14 @@ export type Query_RootVirusesAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Virus_Order_By>>;
   where?: InputMaybe<Virus_Bool_Exp>;
+};
+
+export type Search_Movies_Args = {
+  search?: InputMaybe<Scalars['String']>;
+};
+
+export type Something_Args = {
+  search?: InputMaybe<Scalars['String']>;
 };
 
 export type Subscription_Root = {
@@ -5334,6 +5863,22 @@ export type Subscription_Root = {
   graphiteAutoEmbeddingsConfigurationStream: Array<GraphiteAutoEmbeddingsConfiguration>;
   /** fetch data from the table: "graphite.auto_embeddings_configuration" */
   graphiteAutoEmbeddingsConfigurations: Array<GraphiteAutoEmbeddingsConfiguration>;
+  /** fetch data from the table: "movies" */
+  movies: Array<Movies>;
+  /** fetch aggregated fields from the table: "movies" */
+  movies_aggregate: Movies_Aggregate;
+  /** fetch data from the table: "movies" using primary key columns */
+  movies_by_pk?: Maybe<Movies>;
+  /** fetch data from the table in a streaming manner: "movies" */
+  movies_stream: Array<Movies>;
+  /** execute function "search_movies" which returns "movies" */
+  search_movies: Array<Movies>;
+  /** execute function "search_movies" and query aggregates on result of table type "movies" */
+  search_movies_aggregate: Movies_Aggregate;
+  /** execute function "something" which returns "movies" */
+  something: Array<Movies>;
+  /** execute function "something" and query aggregates on result of table type "movies" */
+  something_aggregate: Movies_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -5740,6 +6285,76 @@ export type Subscription_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
   where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
+};
+
+
+export type Subscription_RootMoviesArgs = {
+  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Movies_Order_By>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+
+export type Subscription_RootMovies_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Movies_Order_By>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+
+export type Subscription_RootMovies_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootMovies_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Movies_Stream_Cursor_Input>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+
+export type Subscription_RootSearch_MoviesArgs = {
+  args: Search_Movies_Args;
+  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Movies_Order_By>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+
+export type Subscription_RootSearch_Movies_AggregateArgs = {
+  args: Search_Movies_Args;
+  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Movies_Order_By>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+
+export type Subscription_RootSomethingArgs = {
+  args: Something_Args;
+  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Movies_Order_By>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
+};
+
+
+export type Subscription_RootSomething_AggregateArgs = {
+  args: Something_Args;
+  distinct_on?: InputMaybe<Array<Movies_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Movies_Order_By>>;
+  where?: InputMaybe<Movies_Bool_Exp>;
 };
 
 
