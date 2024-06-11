@@ -1017,7 +1017,7 @@ importers:
         version: 4.38.3
     devDependencies:
       '@nhost/nhost-js':
-        specifier: latest
+        specifier: ^3.1.5
         version: link:../../../packages/nhost-js
       '@playwright/test':
         specifier: ^1.42.1
