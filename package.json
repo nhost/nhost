@@ -91,7 +91,7 @@
   "resolutions": {
     "graphql": "16.8.1"
   },
-  "packageManager": "pnpm@9.1.4",
+  "packageManager": "pnpm@8.6.2",
   "engines": {
     "node": ">=18 <19",
     "pnpm": ">=8.0.0"
@@ -150,8 +150,5 @@
       "undici@>=6.0.0 <6.11.1": "6.11.1",
       "undici@<5.28.4": "5.28.4"
     }
-  },
-  "dependencies": {
-    "pnpm": "9.1.4"
   }
 }
