@@ -143,7 +143,7 @@ function ServicesStatusTooltip({ servicesStatus, openHealthModal }: ServicesStat
     [ServiceState.None]: "error.main",
   } as const
 
-  return (<div className="px-2 py-3 w-full flex flex-col gap-6"><ol className="flex flex-col gap-3 m-0">
+  return (<div className="px-2 py-3 w-full flex flex-col gap-3"><ol className="flex flex-col gap-3 m-0">
     {servicesStatus.map(service =>
     (<li key={service.name} className="flex flex-row items-center gap-4 text-ellipsis text-nowrap leading-5">
       <Box sx={{ backgroundColor: colorMap[service.state] }}
@@ -306,7 +306,7 @@ export default function OverviewProjectHealth() {
       props: {
         PaperProps: { className: 'p-0 max-w-2xl w-full' },
         titleProps: {
-          onClose: closeDialog, // Show X Button
+          // onClose: closeDialog, // Show X Button
         }
       },
       title: "Service logs",
