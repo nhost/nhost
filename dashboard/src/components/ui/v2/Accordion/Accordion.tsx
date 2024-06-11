@@ -13,6 +13,9 @@ const Accordion = styled(MaterialAccordion)<AccordionProps>(({ theme }) => ({
   lineHeight: theme.typography.pxToRem(16),
   borderBottom: `transparent solid 0px`,
   boxShadow: `none`,
+  [`&.${accordionClasses.disabled}`]: {
+    backgroundColor: "transparent",
+  },
   [`&.${accordionClasses.root}`]: {
     overflowX: 'hidden',
   },

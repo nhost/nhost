@@ -7,7 +7,7 @@ import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import type { GetProjectServicesHealthQuery, ServiceState } from '@/utils/__generated__/graphql';
 import { type ReactElement } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { serviceHealthToColor } from '@/features/projects/overview/health';
+import { serviceHealthToColor, getServiceHealthState } from '@/features/projects/overview/health';
 import Image from 'next/image';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
@@ -56,11 +56,13 @@ function ServiceAccordion({
     return JSON.stringify(errors, null, 2)
   }
 
+  const accordionDisabled = getServiceHealthState(serviceState) === "success";
+
   return (
-    <Accordion.Root>
+    <Accordion.Root disabled={accordionDisabled}>
       <Accordion.Summary
         expandIcon={<ChevronDownIcon sx={{
-          color: "text.primary"
+          color: accordionDisabled ? "grey.400" : "text.primary"
         }} />}
         aria-controls="panel1-content"
         id="panel1-header"
