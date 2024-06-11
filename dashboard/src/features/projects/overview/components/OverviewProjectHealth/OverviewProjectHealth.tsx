@@ -11,15 +11,9 @@ import { useGetRecommendedSoftwareVersionsQuery, useGetConfiguredVersionsQuery, 
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useTheme } from '@mui/material';
 import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
-import { subMinutes } from 'date-fns';
-import { MINUTES_TO_DECREASE_FROM_CURRENT_DATE } from '@/utils/constants/common';
-import { HighlightedText } from '@/components/presentational/HighlightedText';
-import { CodeBlock } from '@/components/presentational/CodeBlock';
 import { Button } from '@/components/ui/v2/Button';
 import { useDialog } from '@/components/common/DialogProvider';
-import { OverviewProjectHealthModal } from '../OverviewProjectHealthModal';
+import { OverviewProjectHealthModal } from '@/features/projects/overview/components/OverviewProjectHealthModal';
 
 // TODO: chore: remove hardcoded service names and versions, use data from graphql generated types
 const services = {
@@ -175,12 +169,6 @@ export default function OverviewProjectHealth() {
 
   const { openDialog, closeDialog } = useDialog();
 
-  const router = useRouter();
-
-  const {
-    query: { workspaceSlug, appSlug },
-  } = router;
-
   const { data: configuredVersionsData, loading: loadingConfiguredVersions } = useGetConfiguredVersionsQuery({
     variables: {
       appId: currentProject?.id
@@ -194,8 +182,6 @@ export default function OverviewProjectHealth() {
     },
     skip: !isPlatform || !currentProject
   });
-
-  console.table(projectServicesHealthData)
 
   if (loadingRecommendedVersions || loadingConfiguredVersions || loadingProjectServicesHealth) {
     return (
@@ -299,28 +285,17 @@ export default function OverviewProjectHealth() {
     openDialog({
       component: (
         <OverviewProjectHealthModal
-          close={closeDialog}
           servicesHealth={projectServicesHealthData}
         />
       ),
       props: {
         PaperProps: { className: 'p-0 max-w-2xl w-full' },
         titleProps: {
-          // onClose: closeDialog, // Show X Button
+          onClose: closeDialog,
         }
       },
       title: "Service logs",
     })
-  }
-
-  const getRedirectHref = (): string => {
-    const redirectHref = `/${workspaceSlug}/${appSlug}/logs`
-    const params = new URLSearchParams({
-      service: "hasura-auth",
-      from: subMinutes(new Date(), MINUTES_TO_DECREASE_FROM_CURRENT_DATE * 2).toJSON(),
-      to: new Date().toJSON()
-    })
-    return `${redirectHref}?${params.toString()}`
   }
 
   const authTooltipElem = (<VersionTooltip

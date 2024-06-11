@@ -3,9 +3,7 @@ import type { AccordionProps as MaterialAccordionProps } from '@mui/material/Acc
 
 import MaterialAccordion, {
     accordionClasses,
-    getAccordionUtilityClass,
 } from '@mui/material/Accordion';
-import type { ElementType } from 'react';
 
 export interface AccordionProps extends MaterialAccordionProps{}
 

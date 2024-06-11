@@ -4,41 +4,17 @@ import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
-import { type GetProjectServicesHealthQuery, ServiceState } from '@/utils/__generated__/graphql';
+import type { GetProjectServicesHealthQuery, ServiceState } from '@/utils/__generated__/graphql';
 import { type ReactElement } from 'react';
 import { twMerge } from 'tailwind-merge';
-import serviceHealthToColor from '../../health/health';
+import { serviceHealthToColor } from '@/features/projects/overview/health';
 import Image from 'next/image';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
 
-const testCode = {
-  "data": {
-    "project": {
-      "services": {
-        "edges": [
-          {
-            "node": {
-              "name": "service1",
-              "health": "HEALTHY",
-              "logs": [
-                {
-                  "message": "Service is healthy",
-                  "timestamp": "2021-08-12T10:00:00Z"
-                }
-              ]
-            }
-          }
-        ]
-      }
-    }
-  }
-};
-
 export interface OverviewProjectHealthModalProps {
-  close: () => void;
   servicesHealth?: GetProjectServicesHealthQuery;
 }
 
@@ -122,7 +98,6 @@ function ServiceAccordion({
 }
 
 export default function OverviewProjectHealthModal({
-  close,
   servicesHealth,
 }: OverviewProjectHealthModalProps) {
   type Service = GetProjectServicesHealthQuery["getProjectStatus"]["services"][number];
@@ -139,19 +114,6 @@ export default function OverviewProjectHealthModal({
   } = serviceMap;
 
   return (<Box className={twMerge('w-full rounded-lg text-left')}>
-    {/* <Box className="flex justify-center items-center py-2 gap-4">
-        <Button
-          variant="borderless"
-          color="secondary"
-          className="absolute right-3 top-5"
-          size="small"
-          aria-label="Close"
-          onClick={close}
-          sx={{ padding: (theme) => theme.spacing(0.5), minWidth: 'initial' }}
-        >
-          <XIcon fontSize="small" />
-        </Button>
-      </Box> */}
     <Box sx={{
       borderColor: "text.dark"
     }} className="grid grid-flow-row gap-1 pt-4">

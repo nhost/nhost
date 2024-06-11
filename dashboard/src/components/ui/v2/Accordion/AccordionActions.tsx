@@ -2,10 +2,7 @@ import { styled } from '@mui/material';
 import type { AccordionActionsProps as MaterialAccordionActionsProps } from '@mui/material/AccordionActions';
 
 import MaterialAccordionActions, {
-    accordionActionsClasses,
-    getAccordionActionsUtilityClass,
 } from '@mui/material/AccordionActions';
-import type { ElementType } from 'react';
 
 export interface AccordionActionsProps extends MaterialAccordionActionsProps{}
 

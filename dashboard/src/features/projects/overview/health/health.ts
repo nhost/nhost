@@ -1,6 +1,6 @@
 import { ServiceState } from '@/utils/__generated__/graphql';
 
-const serviceHealthToColor = new Map<ServiceState, string>([
+export const serviceHealthToColor = new Map<ServiceState, string>([
   [ServiceState.Running, 'success.dark'],
   [ServiceState.Error, 'error.main'],
   [ServiceState.UpdateError, 'error.main'],
@@ -8,5 +8,3 @@ const serviceHealthToColor = new Map<ServiceState, string>([
   [ServiceState.None, 'error.main'],
   [undefined, 'error.main'],
 ]);
-
-export default serviceHealthToColor;

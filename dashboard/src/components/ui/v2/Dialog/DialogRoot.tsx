@@ -6,7 +6,7 @@ import MaterialDialog from '@mui/material/Dialog';
 import type { DialogActionsProps } from '@mui/material/DialogActions';
 import type { DialogContentProps } from '@mui/material/DialogContent';
 import type { DialogContentTextProps } from '@mui/material/DialogContentText';
-import type { DialogTitleProps } from '@mui/material/DialogTitle';
+import type { DialogTitleProps } from '@/components/ui/v2/Dialog';
 import Paper from '@mui/material/Paper';
 import type { ReactNode } from 'react';
 

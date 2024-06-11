@@ -2,10 +2,7 @@ import { styled } from '@mui/material';
 import type { AccordionDetailsProps as MaterialAccordionDetailsProps } from '@mui/material/AccordionDetails';
 
 import MaterialAccordionDetails, {
-    accordionDetailsClasses,
-    getAccordionDetailsUtilityClass,
 } from '@mui/material/AccordionDetails';
-import type { ElementType } from 'react';
 
 export interface AccordionDetailsProps extends MaterialAccordionDetailsProps{}
 

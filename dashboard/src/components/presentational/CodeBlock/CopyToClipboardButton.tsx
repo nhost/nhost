@@ -9,10 +9,12 @@ export function CopyToClipboardButton({
   textToCopy,
   onCopied,
   className,
+  tooltipColor,
   ...props
 }: {
   textToCopy: string;
   onCopied?: (result: CopyToClipboardResult, textToCopy?: string) => void;
+  tooltipColor?: string;
 } & ComponentPropsWithoutRef<'button'>) {
   const [hidden, setHidden] = useState(true);
   const [disabled, setDisabled] = useState(true);
@@ -20,7 +22,7 @@ export function CopyToClipboardButton({
   useEffect(() => {
     // Hide copy button if the browser does not support it
     if (typeof window !== "undefined" && !navigator?.clipboard) {
-      console.warn(
+      console.error(
         "The browser's Clipboard API is unavailable. The Clipboard API is only available on HTTPS."
       );
       setDisabled(true);
@@ -41,6 +43,9 @@ export function CopyToClipboardButton({
       slotProps={{
         popper: {
           sx: {
+            [`&.${tooltipClasses.popper}`]: {
+              backgroundColor: tooltipColor,
+            },
             [`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
             {
               marginTop: '0px',

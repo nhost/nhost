@@ -2,10 +2,7 @@ import { styled } from '@mui/material';
 import type { AccordionSummaryProps as MaterialAccordionSummaryProps } from '@mui/material/AccordionSummary';
 
 import MaterialAccordionSummary, {
-    accordionSummaryClasses,
-    getAccordionSummaryUtilityClass,
 } from '@mui/material/AccordionSummary';
-import type { ElementType } from 'react';
 
 export interface AccordionSummaryProps extends MaterialAccordionSummaryProps{}
 

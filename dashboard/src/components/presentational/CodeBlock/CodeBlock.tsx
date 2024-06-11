@@ -3,7 +3,7 @@ import { type ComponentPropsWithoutRef, type ForwardedRef, forwardRef, type Reac
 
 import { type CopyToClipboardResult } from './copyToClipboard';
 import { getNodeText } from './getNodeText';
-import { CopyToClipboardButton } from './CopyToClipboardButton';
+import { CopyToClipboardButton as CopyToClipboardButtonOriginal } from './CopyToClipboardButton';
 import { Box } from '@/components/ui/v2/Box';
 
 export interface CodeBlockPropsBase {
@@ -55,6 +55,26 @@ function CodeTabBar({
   );
 }
 
+interface CopyToClipboardButtonProps extends Partial<ComponentPropsWithoutRef<typeof CopyToClipboardButtonOriginal>> {
+  filenameColor?: string;
+  tooltipColor?: string;
+  onCopied?: (result: CopyToClipboardResult, textToCopy?: string) => void;
+}
+
+function CopyToClipboardButton ({
+  tooltipColor,
+  filenameColor,
+  onCopied,
+  textToCopy,
+  ...props }: CopyToClipboardButtonProps) {
+  return (<CopyToClipboardButtonOriginal
+    tooltipColor={tooltipColor ?? filenameColor}
+    onCopied={onCopied}
+    textToCopy={textToCopy}
+    {...props}
+  />)
+};
+
 export const CodeBlock = forwardRef((
   {
     filename,
@@ -66,36 +86,34 @@ export const CodeBlock = forwardRef((
     ...props
   }: CodeBlockProps,
   ref: ForwardedRef<HTMLDivElement>
-) => {
-  const Button = (props: Partial<ComponentPropsWithoutRef<typeof CopyToClipboardButton>>) => (
-    <CopyToClipboardButton
-      textToCopy={getNodeText(children)}
-      tooltipColor={tooltipColor ?? filenameColor}
-      onCopied={onCopied}
-      {...props}
-    />
-  );
-
-  return (
-    <Box
-      sx={{
-        backgroundColor: (theme) => theme.palette.mode === "dark" ? "grey.200" : "grey.200"
-      }}
-      className={clsx('mt-5 not-prose relative px-2', filename && 'pt-2', className)}
-      ref={ref}
-      {...props}
+) => (<Box
+    sx={{
+      backgroundColor: (theme) => theme.palette.mode === "dark" ? "grey.200" : "grey.200"
+    }}
+    className={clsx('mt-5 not-prose relative px-2', filename && 'pt-2', className)}
+    ref={ref}
+    {...props}
+  >
+    {filename ? (
+      <CodeTabBar filename={filename} filenameColor={filenameColor}>
+        <CopyToClipboardButton
+          filenameColor={filenameColor}
+          tooltipColor={tooltipColor}
+          onCopied={onCopied}
+          textToCopy={getNodeText(children)}
+          className="relative" />
+      </CodeTabBar>
+    ) : (
+      <CopyToClipboardButton
+        filenameColor={filenameColor}
+        textToCopy={getNodeText(children)}
+        tooltipColor={tooltipColor}
+        onCopied={onCopied}
+        className="absolute top-0 right-1" />
+    )}
+    <pre className="overflow-x-auto"><code className="font-mono"
     >
-      {filename ? (
-        <CodeTabBar filename={filename} filenameColor={filenameColor}>
-          <Button className="relative" />
-        </CodeTabBar>
-      ) : (
-        <Button className="absolute top-0 right-1" />
-      )}
-      <pre className="overflow-x-auto"><code className="font-mono"
-      >
-        {children}
-      </code></pre>
-    </Box>
-  );
-});
+      {children}
+    </code></pre>
+  </Box>
+));
