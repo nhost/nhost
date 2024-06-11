@@ -109,12 +109,12 @@ function VersionTooltip({ serviceName, usedVersion,
       </Text>
     </Box>
       : null}
-    <Button
+    {status === "error" ? <Button
       variant="outlined"
       onClick={openHealthModal}
     >
       View logs
-    </Button>
+    </Button> : null}
     {children}
     </div>
   )
@@ -137,6 +137,8 @@ function ServicesStatusTooltip({ servicesStatus, openHealthModal }: ServicesStat
     [ServiceState.None]: "error.main",
   } as const
 
+  const hasError = servicesStatus.some((status) => status.state === ServiceState.Error || status.state === ServiceState.UpdateError)
+
   return (<div className="px-2 py-3 w-full flex flex-col gap-3"><ol className="flex flex-col gap-3 m-0">
     {servicesStatus.map(service =>
     (<li key={service.name} className="flex flex-row items-center gap-4 text-ellipsis text-nowrap leading-5">
@@ -150,12 +152,12 @@ function ServicesStatusTooltip({ servicesStatus, openHealthModal }: ServicesStat
     </li>))
     }
   </ol>
-    <Button
+    {hasError ? <Button
       variant="outlined"
       onClick={openHealthModal}
     >
       View logs
-    </Button>
+    </Button> : null}
     </div>
 )
 }
