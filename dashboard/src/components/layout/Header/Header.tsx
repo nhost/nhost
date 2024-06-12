@@ -1,4 +1,5 @@
 import { ContactUs } from '@/components/common/ContactUs';
+import { CreateTicket } from '@/components/common/CreateTicket';
 import { useDialog } from '@/components/common/DialogProvider';
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
@@ -122,6 +123,24 @@ export default function Header({ className, ...props }: HeaderProps) {
                 isTeam={currentProject?.plan?.name === 'Team'}
                 isOwner={isOwner}
               />
+            </Dropdown.Content>
+          </Dropdown.Root>
+        )}
+
+        {isPlatform && (
+          <Dropdown.Root>
+            <Dropdown.Trigger
+              hideChevron
+              className="rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
+            >
+              Create Ticket
+            </Dropdown.Trigger>
+
+            <Dropdown.Content
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+              <CreateTicket />
             </Dropdown.Content>
           </Dropdown.Root>
         )}
