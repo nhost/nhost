@@ -2,8 +2,10 @@ package project
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -12,7 +14,6 @@ import (
 	"github.com/nhost/cli/clienv"
 	"github.com/nhost/cli/cmd/config"
 	"github.com/nhost/cli/dockercompose"
-	"github.com/nhost/cli/system"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 )
@@ -20,6 +21,43 @@ import (
 const (
 	flagRemote = "remote"
 )
+
+//go:embed templates/init/*
+var embeddedFS embed.FS
+
+func writeFiles(ps *clienv.PathStructure, root, relPath string) error {
+	dirEntries, err := embeddedFS.ReadDir(filepath.Join(root, relPath))
+	if err != nil {
+		return fmt.Errorf("failed to read dir: %w", err)
+	}
+	for _, entry := range dirEntries {
+		if entry.IsDir() {
+			return writeFiles(ps, root, filepath.Join(relPath, entry.Name()))
+		}
+
+		src := filepath.Join(root, relPath, entry.Name())
+		fileData, err := fs.ReadFile(embeddedFS, src)
+		if err != nil {
+			return fmt.Errorf("failed to read file %s: %w", src, err)
+		}
+
+		dst := filepath.Join(ps.Root(), relPath, entry.Name())
+		f, err := os.OpenFile(
+			filepath.Join(ps.Root(), dst),
+			os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600, //nolint:mnd
+		)
+		if err != nil {
+			return fmt.Errorf("failed to open file %s: %w", dst, err)
+		}
+		defer f.Close()
+
+		if _, err := f.Write(fileData); err != nil {
+			return fmt.Errorf("failed to write file %s: %w", dst, err)
+		}
+	}
+
+	return nil
+}
 
 const hasuraMetadataVersion = 3
 
@@ -71,29 +109,19 @@ func commandInit(cCtx *cli.Context) error {
 }
 
 func initInit(
-	ctx context.Context, fs *clienv.PathStructure,
+	ctx context.Context, ps *clienv.PathStructure,
 ) error {
 	hasuraConf := map[string]any{"version": hasuraMetadataVersion}
-	if err := clienv.MarshalFile(hasuraConf, fs.HasuraConfig(), yaml.Marshal); err != nil {
+	if err := clienv.MarshalFile(hasuraConf, ps.HasuraConfig(), yaml.Marshal); err != nil {
 		return fmt.Errorf("failed to save hasura config: %w", err)
 	}
 
-	if err := initFolders(fs); err != nil {
+	if err := initFolders(ps); err != nil {
 		return err
 	}
 
-	gitingoref, err := os.OpenFile(".gitignore", os.O_RDWR|os.O_CREATE, 0o600) //nolint:mnd
-	if err != nil {
-		return fmt.Errorf("failed to open .gitignore file: %w", err)
-	}
-	defer gitingoref.Close()
-
-	if err := system.AddToGitignore(".secrets\n"); err != nil {
-		return fmt.Errorf("failed to add secrets to .gitignore: %w", err)
-	}
-
-	if err := system.AddToGitignore(".nhost\n"); err != nil {
-		return fmt.Errorf("failed to add .nhost to .gitignore: %w", err)
+	if err := writeFiles(ps, "templates/init", ""); err != nil {
+		return err
 	}
 
 	getclient := &getter.Client{ //nolint:exhaustruct
@@ -113,14 +141,14 @@ func initInit(
 	return nil
 }
 
-func initFolders(fs *clienv.PathStructure) error {
+func initFolders(ps *clienv.PathStructure) error {
 	folders := []string{
-		fs.DotNhostFolder(),
-		filepath.Join(fs.Root(), "functions"),
-		filepath.Join(fs.NhostFolder(), "migrations", "default"),
-		filepath.Join(fs.NhostFolder(), "metadata"),
-		filepath.Join(fs.NhostFolder(), "seeds"),
-		filepath.Join(fs.NhostFolder(), "emails"),
+		ps.DotNhostFolder(),
+		filepath.Join(ps.Root(), "functions"),
+		filepath.Join(ps.NhostFolder(), "migrations", "default"),
+		filepath.Join(ps.NhostFolder(), "metadata"),
+		filepath.Join(ps.NhostFolder(), "seeds"),
+		filepath.Join(ps.NhostFolder(), "emails"),
 	}
 	for _, f := range folders {
 		if err := os.MkdirAll(f, 0o755); err != nil { //nolint:mnd

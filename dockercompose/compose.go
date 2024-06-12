@@ -345,7 +345,7 @@ func functions( //nolint:funlen
 	}
 
 	return &Service{
-		Image:       "nhost/functions:1.0.1",
+		Image:       "nhost/functions:1.1.0",
 		DependsOn:   nil,
 		EntryPoint:  nil,
 		Command:     nil,
@@ -477,6 +477,7 @@ func getServices( //nolint: funlen,cyclop
 	branch string,
 	dashboardVersion string,
 	configserviceImage string,
+	startFunctions bool,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
 	minio, err := minio(dataFolder)
@@ -519,7 +520,22 @@ func getServices( //nolint: funlen,cyclop
 	services := map[string]*Service{
 		"console":   console,
 		"dashboard": dashboard(cfg, dashboardVersion, httpPort, useTLS),
-		"functions": functions(
+		"graphql":   graphql,
+		"minio":     minio,
+		"postgres":  postgres,
+		"storage":   storage,
+		"mailhog":   mailhog,
+		"traefik":   traefik,
+		"configserver": configserver(
+			configserviceImage,
+			rootFolder,
+			nhostFolder,
+			useTLS,
+			runServices...),
+	}
+
+	if startFunctions {
+		services["functions"] = functions(
 			cfg,
 			httpPort,
 			useTLS,
@@ -527,19 +543,7 @@ func getServices( //nolint: funlen,cyclop
 			jwtSecret,
 			ports.Functions,
 			branch,
-		),
-		"graphql":  graphql,
-		"minio":    minio,
-		"postgres": postgres,
-		"storage":  storage,
-		"mailhog":  mailhog,
-		"traefik":  traefik,
-		"configserver": configserver(
-			configserviceImage,
-			rootFolder,
-			nhostFolder,
-			useTLS,
-			runServices...),
+		)
 	}
 
 	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&
@@ -582,6 +586,7 @@ func ComposeFileFromConfig(
 	branch string,
 	dashboardVersion string,
 	configserverImage string,
+	startFunctions bool,
 	runServices ...*RunService,
 ) (*ComposeFile, error) {
 	services, err := getServices(
@@ -598,6 +603,7 @@ func ComposeFileFromConfig(
 		branch,
 		dashboardVersion,
 		configserverImage,
+		startFunctions,
 		runServices...,
 	)
 	if err != nil {
@@ -606,10 +612,14 @@ func ComposeFileFromConfig(
 
 	pgVolumeName := "pgdata_" + sanitizeBranch(branch)
 	volumes := map[string]struct{}{
-		rootNodeModules(branch):      {},
-		functionsNodeModules(branch): {},
-		pgVolumeName:                 {},
+		rootNodeModules(branch): {},
+		pgVolumeName:            {},
 	}
+
+	if startFunctions {
+		volumes[functionsNodeModules(branch)] = struct{}{}
+	}
+
 	for _, runService := range runServices {
 		for _, s := range runService.Config.GetResources().GetStorage() {
 			volumes[runVolumeName(runService.Config.Name, s.GetName(), branch)] = struct{}{}

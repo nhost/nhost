@@ -37,9 +37,6 @@ func graphql( //nolint:funlen
 			"postgres": {
 				Condition: "service_healthy",
 			},
-			"functions": {
-				Condition: "service_healthy",
-			},
 		},
 		EntryPoint:  nil,
 		Command:     nil,

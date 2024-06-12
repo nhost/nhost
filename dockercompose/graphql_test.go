@@ -13,8 +13,7 @@ func expectedGraphql() *Service {
 		Image:   "nhost/graphql-engine:2.12.0",
 		Command: nil,
 		DependsOn: map[string]DependsOn{
-			"functions": {Condition: "service_healthy"},
-			"postgres":  {Condition: "service_healthy"},
+			"postgres": {Condition: "service_healthy"},
 		},
 		EntryPoint: nil,
 		Environment: map[string]string{

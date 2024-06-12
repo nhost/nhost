@@ -220,13 +220,22 @@ func restart(
 ) error {
 	ce.Infoln("Restarting services to reapply metadata if needed...")
 
-	args := []string{"restart", "storage", "functions"}
+	args := []string{"restart"}
+
+	if _, ok := composeFile.Services["storage"]; ok {
+		args = append(args, "storage")
+	}
+
 	if _, ok := composeFile.Services["auth"]; ok {
 		args = append(args, "auth")
 	}
 
 	if _, ok := composeFile.Services["ai"]; ok {
 		args = append(args, "ai")
+	}
+
+	if _, ok := composeFile.Services["functions"]; ok {
+		args = append(args, "functions")
 	}
 
 	if err := dc.Wrapper(ctx, args...); err != nil {
@@ -353,6 +362,7 @@ func up( //nolint:funlen,cyclop
 		ce.Branch(),
 		dashboardVersion,
 		configserverImage,
+		clienv.PathExists(ce.Path.Functions()),
 		runServicesCfg...,
 	)
 	if err != nil {

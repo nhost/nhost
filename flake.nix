@@ -31,6 +31,7 @@
             "ssl/.ssl/privkey.pem"
             (inDirectory "vendor")
             (inDirectory "cmd/config/testdata")
+            (inDirectory "cmd/project/templates")
             isDirectory
             (nix-filter.lib.matchExt "go")
             "get_access_token.sh"

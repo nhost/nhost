@@ -77,6 +77,10 @@ func (p PathStructure) DockerCompose() string {
 	return filepath.Join(p.dotNhostFolder, "docker-compose.yaml")
 }
 
+func (p PathStructure) Functions() string {
+	return filepath.Join(p.root, "functions")
+}
+
 func PathExists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
