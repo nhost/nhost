@@ -61,6 +61,7 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
       background: {
         default: '#151a22',
         paper: '#171d26',
+        tooltip: '#0c0e12',
       },
       divider: '#2f363d',
     };
@@ -123,6 +124,7 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
     background: {
       default: '#fafafa',
       paper: '#ffffff',
+      tooltip: '#f4f7f9',
     },
     divider: '#eaedf0',
   };

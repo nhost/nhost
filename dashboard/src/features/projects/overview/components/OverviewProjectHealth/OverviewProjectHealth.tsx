@@ -49,8 +49,8 @@ interface VersionTooltipProps {
   status?: "success" | "error" | "warning"
 }
 
-function VersionTooltip({ serviceName, usedVersion, 
-  recommendedVersionMismatch, recommendedVersions, 
+function VersionTooltip({ serviceName, usedVersion,
+  recommendedVersionMismatch, recommendedVersions,
   children, openHealthModal, status }: VersionTooltipProps) {
   const theme = useTheme();
   return (
@@ -76,46 +76,46 @@ function VersionTooltip({ serviceName, usedVersion,
         }}
           variant="h4" component="p" className="font-bold text-sm+">{usedVersion}</Text>
       </div>
-      {recommendedVersionMismatch && <Box sx={{ backgroundColor: theme.palette.mode === "dark" ? "grey.300" : "grey.300" }} className="rounded-md p-2">
-        <Text 
-        sx={{
-          color: theme.palette.mode === "dark" ? "text.primary" : "text.primary"
-        }}
-        variant="body1" component="p" className="text-sm+">
+      {recommendedVersionMismatch && <Box sx={{ backgroundColor: theme.palette.mode === "dark" ? "grey.200" : "grey.300" }} className="rounded-md p-2">
+        <Text
+          sx={{
+            color: theme.palette.mode === "dark" ? "text.primary" : "text.primary"
+          }}
+          variant="body1" component="p" className="text-sm+">
           {serviceName} is not using a recommended version. Recommended version(s):
         </Text>
         <ul className="list-disc text-sm+">
           {recommendedVersions.map(version => (
             <li className="ml-6 list-item" key={version}>
-              <Text 
-              sx={{
-                color: theme.palette.mode === "dark" ? "text.primary" : "text.primary"
-              }}
-              variant="body1" component="p">
+              <Text
+                sx={{
+                  color: theme.palette.mode === "dark" ? "text.primary" : "text.primary"
+                }}
+                variant="body1" component="p">
                 {version}
               </Text>
             </li>
           ))}
         </ul>
       </Box>}
-      {status === "error" 
-      ? <Box sx={{
-      backgroundColor: theme.palette.mode === "dark" ? "error.dark" : "error.main",
-    }}
-      className="rounded-md p-2"
-    >
-      <Text variant="body1" component="p" className="text-white text-sm+ font-semibold">
-        {serviceName} is offline due to errors, click on view logs for further details
-      </Text>
-    </Box>
-      : null}
-    {status === "error" ? <Button
-      variant="outlined"
-      onClick={openHealthModal}
-    >
-      View logs
-    </Button> : null}
-    {children}
+      {status === "error"
+        ? <Box sx={{
+          backgroundColor: theme.palette.mode === "dark" ? "error.dark" : "error.main",
+        }}
+          className="rounded-md p-2"
+        >
+          <Text variant="body1" component="p" className="text-white text-sm+ font-semibold">
+            {serviceName} is offline due to errors, click on view logs for further details
+          </Text>
+        </Box>
+        : null}
+      <Button
+        variant="outlined"
+        onClick={openHealthModal}
+      >
+        View state
+      </Button>
+      {children}
     </div>
   )
 }
@@ -137,8 +137,6 @@ function ServicesStatusTooltip({ servicesStatus, openHealthModal }: ServicesStat
     [ServiceState.None]: "error.main",
   } as const
 
-  const hasError = servicesStatus.some((status) => status.state === ServiceState.Error || status.state === ServiceState.UpdateError)
-
   return (<div className="px-2 py-3 w-full flex flex-col gap-3"><ol className="flex flex-col gap-3 m-0">
     {servicesStatus.map(service =>
     (<li key={service.name} className="flex flex-row items-center gap-4 text-ellipsis text-nowrap leading-5">
@@ -152,14 +150,14 @@ function ServicesStatusTooltip({ servicesStatus, openHealthModal }: ServicesStat
     </li>))
     }
   </ol>
-    {hasError ? <Button
+    <Button
       variant="outlined"
       onClick={openHealthModal}
     >
       View logs
-    </Button> : null}
-    </div>
-)
+    </Button>
+  </div>
+  )
 }
 
 export default function OverviewProjectHealth() {
@@ -304,47 +302,47 @@ export default function OverviewProjectHealth() {
     serviceName={services.auth.displayName}
     usedVersion={configuredVersionsData?.config?.auth?.version ?? ""}
     recommendedVersionMismatch={isAuthVersionMismatch}
-    recommendedVersions={authRecommendedVersions} 
+    recommendedVersions={authRecommendedVersions}
     openHealthModal={openHealthModal}
     status={getServiceHealthState("hasura-auth")}
-    />
+  />
   )
 
   const hasuraTooltipElem = (<VersionTooltip
     serviceName={services.hasura.displayName}
     usedVersion={configuredVersionsData?.config?.hasura?.version ?? ""}
     recommendedVersionMismatch={isHasuraVersionMismatch}
-    recommendedVersions={hasuraRecommendedVersions} 
+    recommendedVersions={hasuraRecommendedVersions}
     openHealthModal={openHealthModal}
     status={getServiceHealthState("hasura")}
-    />)
+  />)
 
   const postgresTooltipElem = (<VersionTooltip
     serviceName={services.postgres.displayName}
     usedVersion={configuredVersionsData?.config?.postgres?.version ?? ""}
     recommendedVersionMismatch={isPostgresVersionMismatch}
-    recommendedVersions={postgresRecommendedVersions} 
+    recommendedVersions={postgresRecommendedVersions}
     openHealthModal={openHealthModal}
     status={getServiceHealthState("postgres")}
-    />)
+  />)
 
   const storageTooltipElem = (<VersionTooltip
     serviceName={services.storage.displayName}
     usedVersion={configuredVersionsData?.config?.storage?.version ?? ""}
     recommendedVersionMismatch={isStorageVersionMismatch}
-    recommendedVersions={storageRecommendedVersions} 
+    recommendedVersions={storageRecommendedVersions}
     openHealthModal={openHealthModal}
     status={getServiceHealthState("hasura-storage")}
-    />)
+  />)
 
   const aiTooltipElem = (<VersionTooltip
     serviceName={services.ai.displayName}
     usedVersion={configuredVersionsData?.config?.ai?.version ?? ""}
     recommendedVersionMismatch={isAIVersionMismatch}
-    recommendedVersions={aiRecommendedVersions} 
+    recommendedVersions={aiRecommendedVersions}
     openHealthModal={openHealthModal}
     status={getServiceHealthState("ai")}
-    />)
+  />)
 
 
   const userRunServices = servicesHealth.filter(service => service.name.startsWith("run-"))
@@ -385,10 +383,10 @@ export default function OverviewProjectHealth() {
           }
           {userRunServices.length > 0 &&
             <ProjectHealthCard icon={<ServicesOutlinedIcon className="h-6 w-6 m-1" />}
-              tooltip={<ServicesStatusTooltip 
-                servicesStatus={userRunServices} 
+              tooltip={<ServicesStatusTooltip
+                servicesStatus={userRunServices}
                 openHealthModal={openHealthModal}
-                />}
+              />}
               status={getUserRunServiceState(userRunServices)}
             />
           }

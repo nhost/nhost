@@ -27,15 +27,22 @@ function HealthBadge({ status, showExclamation, children, ...props }: HealthBadg
           horizontal: "right",
         }}
         badgeContent={<ExclamationFilledIcon sx={{
-          color: "grey.600",
+          color: (theme) => theme.palette.mode === "dark" ? "grey.900" : "grey.600",
         }} className="h-3 w-3" />}
       >
         <Badge
           color={status}
           variant={status === "success" ? "standard" : "dot"}
           badgeContent={status === "success"
-            ? <CheckIcon className="w-2 h-2 stroke-2 text-white" />
+            ? <CheckIcon 
+              sx={{
+                color: (theme) => theme.palette.mode === "dark" ? "grey.200" : "grey.100",
+              }}
+            className="w-2 h-2 stroke-2" />
             : null}
+          sx={{
+            color: (theme) => theme.palette.mode === "dark" ? "grey.900" : "text.primary",
+          }}
           {...props}
         >
           {children}
@@ -49,7 +56,11 @@ function HealthBadge({ status, showExclamation, children, ...props }: HealthBadg
       color={status}
       variant={status === "success" ? "standard" : "dot"}
       badgeContent={status === "success"
-        ? <CheckIcon className="w-2 h-2 stroke-2 text-white" />
+        ? <CheckIcon 
+        sx={{
+          color: (theme) => theme.palette.mode === "dark" ? "grey.200" : "grey.100",
+        }}
+        className="w-2 h-2 stroke-2" />
         : null}
       {...props}
     >
@@ -116,7 +127,7 @@ export default function ProjectHealthCard({
         sx: {
           [`&.${tooltipClasses.popper} .${tooltipClasses.tooltip}`]:
           {
-            backgroundColor: (theme) => theme.palette.mode === "dark" ? "" : "grey.200",
+            backgroundColor: (theme) => theme.palette.mode === "dark" ? "background.tooltip" : "grey.200",
           },
         }
       }

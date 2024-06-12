@@ -22,6 +22,7 @@ export interface OverviewProjectHealthModalProps {
 
 interface ServiceAccordionProps {
   serviceName: string;
+  serviceHealth: GetProjectServicesHealthQuery["getProjectStatus"]["services"][number];
   replicas: GetProjectServicesHealthQuery["getProjectStatus"]["services"][number]["replicas"];
   serviceState: ServiceState;
   /**
@@ -37,6 +38,7 @@ interface ServiceAccordionProps {
 
 function ServiceAccordion({
   serviceName,
+  serviceHealth,
   replicas,
   serviceState,
   icon,
@@ -48,25 +50,24 @@ function ServiceAccordion({
 
   const status = getServiceHealthState(serviceState);
 
-  const getCode = () => {
-    const errors = replicas.map((replica) =>
-      replica.errors
-    );
+  const getCode = () => 
+    // const errors = replicas.map((replica) =>
+    //   replica.errors
+    // );
 
-    if (errors.every((error) => error.length === 0)) {
-      return "Service is healthy";
-    }
+    // if (errors.every((error) => error.length === 0)) {
+    //   return "Service is healthy";
+    // }
 
-    return JSON.stringify(errors, null, 2)
-  }
-
-  const accordionDisabled = getServiceHealthState(serviceState) === "success";
+    // return JSON.stringify(errors, null, 2)
+    JSON.stringify(serviceHealth, null, 2);
+  
 
   return (
-    <Accordion.Root disabled={accordionDisabled}>
+    <Accordion.Root>
       <Accordion.Summary
         expandIcon={<ChevronDownIcon sx={{
-          color: accordionDisabled ? "grey.400" : "text.primary"
+          color: "text.primary"
         }} />}
         aria-controls="panel1-content"
         id="panel1-header"
@@ -109,6 +110,7 @@ function ServiceAccordion({
 }
 
 interface RunServicesAccordionProps {
+  servicesHealth: Array<GetProjectServicesHealthQuery["getProjectStatus"]["services"][number]>;
   replicas: Array<GetProjectServicesHealthQuery["getProjectStatus"]["services"][number]["replicas"]>;
   serviceStates: ServiceState[];
   /**
@@ -125,6 +127,7 @@ interface RunServicesAccordionProps {
 function RunServicesAccordion({
   replicas,
   serviceStates,
+  servicesHealth,
   icon,
   iconIsComponent = true,
   alt,
@@ -132,6 +135,8 @@ function RunServicesAccordion({
 
 
   const getCode = () => {
+    return JSON.stringify(servicesHealth, null, 2)
+
     if (replicas.every((replica) => replica.every((r) => r.errors.length === 0))) {
       return "Services are healthy";
     }
@@ -143,15 +148,14 @@ function RunServicesAccordion({
     return JSON.stringify(errors, null, 2)
   }
 
-  const accordionDisabled = serviceStates.every((state) => getServiceHealthState(state) === "success");
 
   const globalState = findHighestImportanceState(serviceStates)
 
   return (
-    <Accordion.Root disabled={accordionDisabled}>
+    <Accordion.Root>
       <Accordion.Summary
         expandIcon={<ChevronDownIcon sx={{
-          color: accordionDisabled ? "grey.400" : "text.primary"
+          color: "text.primary"
         }} />}
         aria-controls="panel1-content"
         id="panel1-header"
@@ -168,7 +172,7 @@ function RunServicesAccordion({
                 />
               )}
             <Text sx={{ color: "text.primary" }} variant="h4" className="font-semibold">
-              Services
+              Run 
             </Text>
             <Box sx={{
               backgroundColor: serviceStateToColor.get(globalState),
@@ -177,8 +181,7 @@ function RunServicesAccordion({
         </div>
       </Accordion.Summary>
       <Accordion.Details>
-        <CodeBlock
-        >
+        <CodeBlock>
           {getCode()}
         </CodeBlock>
       </Accordion.Details>
@@ -201,8 +204,10 @@ export default function OverviewProjectHealthModal({
     postgres,
     hasura,
     ai,
-    ...runServices
+    ...otherServices
   } = serviceMap;
+
+  const runServices = Object.values(otherServices).filter(service => service.name.startsWith("run-"))
 
   return (<Box className={twMerge('w-full rounded-lg text-left')}>
     <Box sx={{
@@ -211,24 +216,28 @@ export default function OverviewProjectHealthModal({
       <ServiceAccordion
         icon={<UserIcon className="w-4 h-4" />}
         serviceName="Auth"
+        serviceHealth={auth}
         replicas={auth?.replicas}
         serviceState={auth?.state}
       />
       <ServiceAccordion
         icon={<DatabaseIcon className="w-4 h-4" />}
         serviceName="Postgres"
+        serviceHealth={postgres}
         replicas={postgres?.replicas}
         serviceState={postgres?.state}
       />
       <ServiceAccordion
         icon={<StorageIcon className="w-4 h-4" />}
         serviceName="Storage"
+        serviceHealth={storage}
         replicas={storage?.replicas}
         serviceState={storage?.state}
       />
       <ServiceAccordion
         icon={<HasuraIcon className="w-4 h-4" />}
         serviceName="Hasura"
+        serviceHealth={hasura}
         replicas={hasura?.replicas}
         serviceState={hasura?.state}
       />
@@ -236,12 +245,14 @@ export default function OverviewProjectHealthModal({
         <ServiceAccordion
           icon={<AIIcon className="w-4 h-4" />}
           serviceName="AI"
+          serviceHealth={ai}
           replicas={ai.replicas}
           serviceState={ai.state}
         />
       ) : null}
       {Object.values(runServices).length > 0 ? (
         <RunServicesAccordion
+          servicesHealth={Object.values(runServices)}
           icon={<ServicesOutlinedIcon className="w-4 h-4" />}
           replicas={Object.values(runServices).map((service) => service.replicas)}
           serviceStates={Object.values(runServices).map((service) => service.state)}
