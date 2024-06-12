@@ -127,7 +127,7 @@ export default function ProjectHealthCard({
         sx: {
           [`&.${tooltipClasses.popper} .${tooltipClasses.tooltip}`]:
           {
-            backgroundColor: (theme) => theme.palette.mode === "dark" ? "background.tooltip" : "grey.200",
+            backgroundColor: (theme) => theme.palette.mode === "dark" ? "grey.100" : "grey.200",
           },
         }
       }
