@@ -8,7 +8,7 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
-    "add-nhost-js": "pnpm add @nhost/nhost-js@latest --ignore-workspace",
+    "add-nhost-js": "pnpm add @nhost/nhost-js@3.1.5 --ignore-workspace",
     "install-browsers": "pnpm playwright install && pnpm playwright install-deps",
     "test": "pnpm add-nhost-js && pnpm install-browsers && pnpm playwright test",
     "lint": "eslint .",
