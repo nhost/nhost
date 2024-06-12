@@ -1,0 +1,28 @@
+---
+title: React Native Support
+description: Guide to integrating Nhost with React Native applications.
+---
+
+<Note>
+  Since React Native is based on React, you can use any hook from our [React
+  SDK](/reference/react/nhost-client) to communicate with your Nhost backend project.
+</Note>
+
+# Polyfilling Missing Base64 Decode
+
+In an environment like React Native (running JSCore) that does not support `atob` or `btoa`, a polyfill is needed. Follow these steps to implement the polyfill and enable full compatibility with the Nhost SDK
+
+1. Install `base-64`:
+
+   ```sh
+   npm install base-64
+   ```
+
+2. In the `index.js` file, which is the entry point for React Native applications, add the following import and global assignment:
+
+   ```diff
+   ...
+   + import {decode as atob} from 'base-64';
+   + global.atob = atob;
+   AppRegistry.registerComponent(appName, () => App);
+   ```

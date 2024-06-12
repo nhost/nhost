@@ -544,6 +544,11 @@
             "reference/vue/use-sign-in-email-security-key",
             "reference/vue/use-sign-up-email-security-key"
           ]
+        },
+        {
+          "group": "React Native",
+          "icon": "mobile-notch",
+          "pages": ["reference/react-native/support"]
         }
       ]
     }
