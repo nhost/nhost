@@ -28,10 +28,7 @@ export default function TOMLEditor() {
     skip: !currentProject,
   });
 
-  const { adminClient } = useAdminApolloClient();
-  const [saveConfigMutation] = useReplaceConfigMutation({
-    client: adminClient,
-  })
+  const [saveConfigMutation] = useReplaceConfigMutation()
 
   useEffect(() => {
     // Load TOML code from the server on initial load
