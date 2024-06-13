@@ -14,6 +14,7 @@ import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedI
 import { Button } from '@/components/ui/v2/Button';
 import { useDialog } from '@/components/common/DialogProvider';
 import { OverviewProjectHealthModal } from '@/features/projects/overview/components/OverviewProjectHealthModal';
+import { serviceStateToColor } from '../../health';
 
 // TODO: chore: remove hardcoded service names and versions, use data from graphql generated types
 const services = {
@@ -129,18 +130,11 @@ interface ServicesStatusTooltipProps {
 }
 
 function ServicesStatusTooltip({ servicesStatus, openHealthModal }: ServicesStatusTooltipProps) {
-  const colorMap = {
-    [ServiceState.Running]: "success.dark",
-    [ServiceState.Error]: "error.main",
-    [ServiceState.UpdateError]: "error.main",
-    [ServiceState.Updating]: "warning.dark",
-    [ServiceState.None]: "error.main",
-  } as const
 
   return (<div className="px-2 py-3 w-full flex flex-col gap-3"><ol className="flex flex-col gap-3 m-0">
     {servicesStatus.map(service =>
     (<li key={service.name} className="flex flex-row items-center gap-4 text-ellipsis text-nowrap leading-5">
-      <Box sx={{ backgroundColor: colorMap[service.state] }}
+      <Box sx={{ backgroundColor: serviceStateToColor.get(service.state)}}
         className={`flex-shrink-0 w-3 h-3 rounded-full ${service.state === ServiceState.Updating ? "animate-pulse" : ""}`} />
       <Text sx={{
         color: (theme) => theme.palette.mode === "dark" ? "text.primary" : "text.primary"
