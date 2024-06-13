@@ -56,15 +56,15 @@ This project bootstrapped using `react-native-community/cli` showcases how to pr
          ```shell
          ipconfig getifaddr en0
          ```
-      1. Configure `dnsmasq` to resolve nhost service urls to your machine's ip address (example: 172.20.10.4)
+      2. Configure `dnsmasq` to resolve nhost service urls to your machine's ip address (example: 172.20.10.4)
          ```shell
          echo 'address=/nhost.run/172.20.10.4' >> $(brew --prefix)/etc/dnsmasq.conf
          ```
-      1. Restart `dnsmasq`
+      3. Restart `dnsmasq`
          ```shell
          sudo brew services start dnsmasq
          ```
-      1. Configure the iPhone's DNS settings
+      4. Configure the iPhone's DNS settings
          1. Select the wifi you're connected and select `Configure DNS`
          2. Select `Manual`
          3. Click on `Add server` and type your local machine's IP address
