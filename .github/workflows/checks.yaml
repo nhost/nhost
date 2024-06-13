@@ -11,11 +11,12 @@ jobs:
     uses: ./.github/workflows/wf_check.yaml
     with:
       NAME: hasura-auth
+      GIT_REF: ${{ github.event.pull_request.head.sha }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-
+    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test') || pull_request.author_association in ['OWNER', 'MEMBER', 'COLLABORATOR']
 
   build_artifacts:
     uses: ./.github/workflows/wf_build_artifacts.yaml
@@ -23,8 +24,20 @@ jobs:
       NAME: hasura-auth
       VERSION: 0.0.0-dev # hardcoded to avoid rebuilding
       DOCKER: true
+      GIT_REF: ${{ github.event.pull_request.head.sha }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       SSH_PRIVATE_KEY: ${{ secrets.NIX_REMOTE_BUILD_ARM_SSH_KEY }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test') || pull_request.author_association in ['OWNER', 'MEMBER', 'COLLABORATOR']
+
+  remove_label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: |
+            safe_to_test
+    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test')
