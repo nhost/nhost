@@ -69,3 +69,15 @@ export const findHighestImportanceState = (
     return acc;
   }, ServiceState.Running);
 };
+
+/* Removes __typename from the object */
+const replacer = (key, value) => {
+  if (key === '__typename') {
+    return undefined;
+  }
+
+  return value;
+};
+
+export const stringifyHealthJSON = (obj: any) =>
+  JSON.stringify(obj, replacer, 2);

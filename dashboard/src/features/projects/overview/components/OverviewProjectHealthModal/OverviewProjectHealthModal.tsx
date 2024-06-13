@@ -7,7 +7,7 @@ import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import type { GetProjectServicesHealthQuery, ServiceState } from '@/utils/__generated__/graphql';
 import { type ReactElement } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { serviceStateToColor, getServiceHealthState, findHighestImportanceState } from '@/features/projects/overview/health';
+import { serviceStateToColor, getServiceHealthState, findHighestImportanceState, stringifyHealthJSON } from '@/features/projects/overview/health';
 import Image from 'next/image';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
@@ -50,19 +50,6 @@ function ServiceAccordion({
 
   const status = getServiceHealthState(serviceState);
 
-  const getCode = () => 
-    // const errors = replicas.map((replica) =>
-    //   replica.errors
-    // );
-
-    // if (errors.every((error) => error.length === 0)) {
-    //   return "Service is healthy";
-    // }
-
-    // return JSON.stringify(errors, null, 2)
-    JSON.stringify(serviceHealth, null, 2);
-  
-
   return (
     <Accordion.Root>
       <Accordion.Summary
@@ -101,7 +88,7 @@ function ServiceAccordion({
       <Accordion.Details>
         <CodeBlock
         >
-          {getCode()}
+          {stringifyHealthJSON(serviceHealth)}
         </CodeBlock>
       </Accordion.Details>
 
@@ -111,7 +98,6 @@ function ServiceAccordion({
 
 interface RunServicesAccordionProps {
   servicesHealth: Array<GetProjectServicesHealthQuery["getProjectStatus"]["services"][number]>;
-  replicas: Array<GetProjectServicesHealthQuery["getProjectStatus"]["services"][number]["replicas"]>;
   serviceStates: ServiceState[];
   /**
    * Icon to display on the accordion.
@@ -125,29 +111,12 @@ interface RunServicesAccordionProps {
 }
 
 function RunServicesAccordion({
-  replicas,
   serviceStates,
   servicesHealth,
   icon,
   iconIsComponent = true,
   alt,
 }: RunServicesAccordionProps) {
-
-
-  const getCode = () => {
-    return JSON.stringify(servicesHealth, null, 2)
-
-    if (replicas.every((replica) => replica.every((r) => r.errors.length === 0))) {
-      return "Services are healthy";
-    }
-
-    const errors = replicas.map((replica) =>
-      replica.map((r) => r.errors)
-    );
-
-    return JSON.stringify(errors, null, 2)
-  }
-
 
   const globalState = findHighestImportanceState(serviceStates)
 
@@ -182,7 +151,7 @@ function RunServicesAccordion({
       </Accordion.Summary>
       <Accordion.Details>
         <CodeBlock>
-          {getCode()}
+          {stringifyHealthJSON(servicesHealth)}
         </CodeBlock>
       </Accordion.Details>
 
@@ -254,7 +223,6 @@ export default function OverviewProjectHealthModal({
         <RunServicesAccordion
           servicesHealth={Object.values(runServices)}
           icon={<ServicesOutlinedIcon className="w-4 h-4" />}
-          replicas={Object.values(runServices).map((service) => service.replicas)}
           serviceStates={Object.values(runServices).map((service) => service.state)}
         />
       )

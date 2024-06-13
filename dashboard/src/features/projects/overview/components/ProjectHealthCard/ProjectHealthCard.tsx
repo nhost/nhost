@@ -120,8 +120,7 @@ export default function ProjectHealthCard({
   ...props
 }: ProjectHealthCardProps) {
   return (
-    // TODO: BUG 'arrow' prop stutters on hover 
-    <Tooltip title={tooltip} 
+    <Tooltip title={tooltip}
     slotProps={{
       popper: {
         sx: {
