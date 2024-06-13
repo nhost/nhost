@@ -1,5 +1,3 @@
-import { ContactUs } from '@/components/common/ContactUs';
-import { CreateTicket } from '@/components/common/CreateTicket';
 import { useDialog } from '@/components/common/DialogProvider';
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
@@ -10,7 +8,6 @@ import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { DevAssistant } from '@/features/ai/DevAssistant';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -106,43 +103,13 @@ export default function Header({ className, ...props }: HeaderProps) {
         </Button>
 
         {isPlatform && (
-          <Dropdown.Root>
-            <Dropdown.Trigger
-              hideChevron
-              className="rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
-            >
-              Contact us
-            </Dropdown.Trigger>
-
-            <Dropdown.Content
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-              <ContactUs
-                className="max-w-md"
-                isTeam={currentProject?.plan?.name === 'Team'}
-                isOwner={isOwner}
-              />
-            </Dropdown.Content>
-          </Dropdown.Root>
-        )}
-
-        {isPlatform && (
-          <Dropdown.Root>
-            <Dropdown.Trigger
-              hideChevron
-              className="rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
-            >
-              Create Ticket
-            </Dropdown.Trigger>
-
-            <Dropdown.Content
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-              <CreateTicket />
-            </Dropdown.Content>
-          </Dropdown.Root>
+          <NavLink
+            underline="none"
+            href="/support"
+            className="rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
+          >
+            Support
+          </NavLink>
         )}
 
         <NavLink
