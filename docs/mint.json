@@ -198,7 +198,7 @@
         "guides/cli/multiple-projects",
         "guides/cli/configuration-overlays",
         "guides/cli/seeds",
-        "guides/cli/dnsmasq"
+        "guides/cli/connect-devices-to-local-nhost-project"
       ]
     },
     {
