@@ -1,0 +1,67 @@
+---
+title: Connect Devices to Local Nhost Project
+description: Configuring dnsmasq for network device connectivity to local docker containers
+icon: ethernet
+---
+
+## Introduction
+
+Follow this guide for the necessary configuration steps to use **dnsmasq**, enabling devices on the same network, such as Android emulators or iPhone devices, to connect to your local Nhost project running on your machine.
+
+<Note>
+  Make sure to install dnsmasq. The following is how to do it on macOS using hombrew. If you're using another OS please refer to the [dnsmasq website](https://thekelleys.org.uk/dnsmasq/doc.html).
+  ```shell Terminal
+  brew install dnsmasq
+  ```
+</Note>
+
+# Configure dnsmasq for Android
+<Warning>These steps are necessary when running on both an **Android emulator** or **physical Android device**</Warning>
+<Steps>
+  <Step title="Configure dnsmasq">
+    Configure `dnsmasq` to resolve nhost service urls to your machine's special [loopback address](https://developer.android.com/studio/run/emulator-networking) `10.0.2.2`
+    ```shell Terminal
+    echo 'address=/nhost.run/10.0.2.2' >> $(brew --prefix)/etc/dnsmasq.conf
+    ```
+  </Step>
+  <Step title="Restart dnsmasq">
+    ```shell Terminal
+    sudo brew services restart dnsmasq
+    ```
+  </Step>
+  <Step title="Configure the android device/emulator's DNS settings">
+    1. Edit your network settings: Settings > Network & Internet > Internet > AndroidWifi
+    2. set `IP settings` to `Static`
+    3. set `DNS 1` and `DNS 2` to `10.0.2.2`
+    4. Save
+  </Step>
+</Steps>
+
+# Configure dnsmasq for iOS
+<Warning>These steps are only necessary when running on physical iOS device, the iOS simulator  uses the host machine's network, so no additional configuration is typically needed.</Warning>
+<Steps>
+  <Step title="Inspect your machine's IP address on your network">
+    ```shell Terminal
+    ipconfig getifaddr en0
+    ```
+  </Step>
+  <Step title="Configure dnsmasq">
+    Configure `dnsmasq` to resolve nhost service urls to your machine's ip address.
+    <Warning>Make sure to replace **[your-machine-s-up-address]** with the address printed in Step `1`</Warning>
+
+    ```shell Terminal
+    echo 'address=/nhost.run/[your-machine-s-up-address]' >> $(brew --prefix)/etc/dnsmasq.conf
+    ```
+  </Step>
+  <Step title="Restart dnsmasq">
+    ```shell Terminal
+    sudo brew services restart dnsmasq
+    ```
+  </Step>
+  <Step title="Configure the iPhone's DNS settings">
+    1. Select the wifi you're connected and select `Configure DNS`
+    2. Select `Manual`
+    3. Click on `Add server` and type your local machine's IP address printed in Step `1`
+    4. Save
+  </Step>
+</Steps>

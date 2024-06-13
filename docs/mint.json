@@ -197,7 +197,8 @@
         "guides/cli/migrate-config",
         "guides/cli/multiple-projects",
         "guides/cli/configuration-overlays",
-        "guides/cli/seeds"
+        "guides/cli/seeds",
+        "guides/cli/dnsmasq"
       ]
     },
     {
