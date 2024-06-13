@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/smtp"
 	"strings"
+	"time"
 )
 
 type Email struct {
@@ -59,6 +60,7 @@ func (sm *Email) Send(to, subject, contents string, headers map[string]string) e
 	}
 	buf.WriteString("From: " + sm.from + "\r\n")
 	buf.WriteString("To: " + sanitize(to) + "\r\n")
+	buf.WriteString("Date: " + time.Now().Format(time.RFC1123Z) + "\r\n")
 	buf.WriteString("Subject: " + sanitize(subject) + "\r\n")
 	buf.WriteString("Content-Type: text/html; charset=UTF-8\r\n")
 	buf.WriteString("\r\n")
