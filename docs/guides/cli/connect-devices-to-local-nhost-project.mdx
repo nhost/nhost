@@ -38,7 +38,7 @@ functionality for your local Nhost project running on your machine.
   <Step title="Configure dnsmasq">
     Configure `dnsmasq` to resolve nhost service urls to your machine's special [loopback address](https://developer.android.com/studio/run/emulator-networking) `10.0.2.2`
     ```shell Terminal
-    dnsmasq -d \
+    sudo dnsmasq -d \
       --address=/local.auth.nhost.run/10.0.2.2 \
       --address=/local.graphql.nhost.run/10.0.2.2 \
       --address=/local.storage.nhost.run/10.0.2.2 \
@@ -90,7 +90,7 @@ functionality for your local Nhost project running on your machine.
     <Warning>Make sure to replace every occurrence of **[your-machine-s-up-address]** with the address printed in Step `1`</Warning>
 
     ```shell Terminal
-    dnsmasq -d \
+    sudo dnsmasq -d \
       --address=/local.auth.nhost.run/[your-machine-s-up-address] \
       --address=/local.graphql.nhost.run/[your-machine-s-up-address] \
       --address=/local.storage.nhost.run/[your-machine-s-up-address] \
