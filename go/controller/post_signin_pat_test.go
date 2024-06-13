@@ -13,6 +13,7 @@ import (
 	"github.com/nhost/hasura-auth/go/controller"
 	"github.com/nhost/hasura-auth/go/controller/mock"
 	"github.com/nhost/hasura-auth/go/sql"
+	"github.com/oapi-codegen/runtime/types"
 	"go.uber.org/mock/gomock"
 )
 
@@ -81,7 +82,7 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 						CreatedAt:           time.Now(),
 						DefaultRole:         "user",
 						DisplayName:         "Jane Doe",
-						Email:               "jane@acme.com",
+						Email:               ptr(types.Email("jane@acme.com")),
 						EmailVerified:       true,
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
@@ -188,7 +189,7 @@ func TestPostSigninPat(t *testing.T) { //nolint:maintidx
 						CreatedAt:           time.Now(),
 						DefaultRole:         "user",
 						DisplayName:         "Jane Doe",
-						Email:               "jane@acme.com",
+						Email:               ptr(types.Email("jane@acme.com")),
 						EmailVerified:       true,
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,

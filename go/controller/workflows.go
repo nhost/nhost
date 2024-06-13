@@ -296,6 +296,14 @@ func (wf *Workflows) GetUserByRefreshTokenHash(
 	return user, nil
 }
 
+func pgtypeTextToOAPIEmail(pgemail pgtype.Text) *types.Email {
+	var email *types.Email
+	if pgemail.Valid {
+		email = ptr(types.Email(pgemail.String))
+	}
+	return email
+}
+
 func (wf *Workflows) UpdateSession( //nolint:funlen
 	ctx context.Context,
 	user sql.AuthUser,
@@ -350,7 +358,7 @@ func (wf *Workflows) UpdateSession( //nolint:funlen
 			CreatedAt:           user.CreatedAt.Time,
 			DefaultRole:         user.DefaultRole,
 			DisplayName:         user.DisplayName,
-			Email:               types.Email(user.Email.String),
+			Email:               pgtypeTextToOAPIEmail(user.Email),
 			EmailVerified:       user.EmailVerified,
 			Id:                  user.ID.String(),
 			IsAnonymous:         user.IsAnonymous,
@@ -413,7 +421,7 @@ func (wf *Workflows) NewSession(
 			CreatedAt:           user.CreatedAt.Time,
 			DefaultRole:         user.DefaultRole,
 			DisplayName:         user.DisplayName,
-			Email:               types.Email(user.Email.String),
+			Email:               pgtypeTextToOAPIEmail(user.Email),
 			EmailVerified:       user.EmailVerified,
 			Id:                  user.ID.String(),
 			IsAnonymous:         false,
@@ -729,7 +737,7 @@ func (wf *Workflows) SignupUserWithRefreshToken( //nolint:funlen
 		CreatedAt:           time.Now(),
 		DefaultRole:         *options.DefaultRole,
 		DisplayName:         deptr(options.DisplayName),
-		Email:               types.Email(email),
+		Email:               ptr(types.Email(email)),
 		EmailVerified:       false,
 		Id:                  resp.UserID.String(),
 		IsAnonymous:         false,
@@ -862,7 +870,7 @@ func (wf *Workflows) SignupUserWithSecurityKeyAndRefreshToken( //nolint:funlen
 		CreatedAt:           time.Now(),
 		DefaultRole:         *options.DefaultRole,
 		DisplayName:         deptr(options.DisplayName),
-		Email:               types.Email(email),
+		Email:               ptr(types.Email(email)),
 		EmailVerified:       false,
 		Id:                  userID.String(),
 		IsAnonymous:         false,
@@ -931,7 +939,7 @@ func (wf *Workflows) SignupUserWithSecurityKey( //nolint:funlen
 		CreatedAt:           time.Now(),
 		DefaultRole:         *options.DefaultRole,
 		DisplayName:         deptr(options.DisplayName),
-		Email:               types.Email(email),
+		Email:               ptr(types.Email(email)),
 		EmailVerified:       false,
 		Id:                  userID.String(),
 		IsAnonymous:         false,

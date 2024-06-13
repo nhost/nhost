@@ -13,10 +13,10 @@ import (
 	"github.com/nhost/hasura-auth/go/controller"
 	"github.com/nhost/hasura-auth/go/controller/mock"
 	"github.com/nhost/hasura-auth/go/sql"
+	"github.com/oapi-codegen/runtime/types"
 	"go.uber.org/mock/gomock"
 )
 
-//nolint:dupl
 func getSigninUser(userID uuid.UUID) sql.AuthUser {
 	//nolint:exhaustruct
 	return sql.AuthUser{
@@ -115,7 +115,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx
 						CreatedAt:           time.Now(),
 						DefaultRole:         "user",
 						DisplayName:         "Jane Doe",
-						Email:               "jane@acme.com",
+						Email:               ptr(types.Email("jane@acme.com")),
 						EmailVerified:       true,
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
@@ -220,7 +220,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx
 						CreatedAt:           time.Now(),
 						DefaultRole:         "user",
 						DisplayName:         "Jane Doe",
-						Email:               "jane@acme.com",
+						Email:               ptr(types.Email("jane@acme.com")),
 						EmailVerified:       true,
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
@@ -445,7 +445,7 @@ func TestPostSigninEmailPassword(t *testing.T) { //nolint:maintidx
 						CreatedAt:           time.Now(),
 						DefaultRole:         "user",
 						DisplayName:         "Jane Doe",
-						Email:               "jane@acme.com",
+						Email:               ptr(types.Email("jane@acme.com")),
 						EmailVerified:       false,
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,

@@ -2,6 +2,7 @@ package controller_test
 
 import (
 	"context"
+	"encoding/json"
 	"net/url"
 	"strings"
 	"testing"
@@ -244,6 +245,10 @@ func assertRequest[T any, U any](
 		),
 		cmpopts.IgnoreFields(api.Session{}, "RefreshToken", "AccessToken"), //nolint:exhaustruct
 	}, options...)
+
+	if _, err := json.Marshal(resp); err != nil {
+		t.Fatalf("failed to marshal response: %v", err)
+	}
 
 	if diff := cmp.Diff(
 		resp, expectedResponse,

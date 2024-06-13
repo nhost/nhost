@@ -204,8 +204,8 @@ type User struct {
 	DisplayName string    `json:"displayName"`
 
 	// Email A valid email
-	Email         openapi_types.Email `json:"email"`
-	EmailVerified bool                `json:"emailVerified"`
+	Email         *openapi_types.Email `json:"email,omitempty"`
+	EmailVerified bool                 `json:"emailVerified"`
 
 	// Id Id of the user
 	Id          string `json:"id"`

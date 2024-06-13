@@ -559,7 +559,6 @@ components:
         - createdAt
         - defaultRole
         - displayName
-        - email
         - emailVerified
         - id
         - isAnonymous
