@@ -7,18 +7,26 @@ import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { useCallback, useEffect, useState } from 'react';
-import { type ConfigConfigInsertInput, useGetConfigRawJsonQuery, useReplaceConfigMutation } from '@/utils/__generated__/graphql';
+import { type ConfigConfigInsertInput, useGetConfigRawJsonQuery, useReplaceConfigMutation, GetConfigRawJsonDocument } from '@/utils/__generated__/graphql';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import * as TOML from '@iarna/toml'
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useDialog } from '@/components/common/DialogProvider';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 
 export default function TOMLEditor() {
   const theme = useTheme();
+  const isPlatform = useIsPlatform();
 
   const [tomlCode, setTOMLCode] = useState('');
 
+  const { openDialog } = useDialog();
+
   const { currentProject } = useCurrentWorkspaceAndProject();
+
+  const localMimirClient = useLocalMimirClient();
 
   // fetch the initial TOML code from the server
   const { data, loading, error } = useGetConfigRawJsonQuery({
@@ -28,7 +36,12 @@ export default function TOMLEditor() {
     skip: !currentProject,
   });
 
-  const [saveConfigMutation] = useReplaceConfigMutation()
+  const [saveConfigMutation] = useReplaceConfigMutation(
+    {
+      refetchQueries: [GetConfigRawJsonDocument],
+      ...(!isPlatform ? { client: localMimirClient } : {}),
+    }
+  )
 
   useEffect(() => {
     // Load TOML code from the server on initial load
@@ -52,7 +65,18 @@ export default function TOMLEditor() {
             config: jsonEditedConfig,
           },
         })
-        console.log("Saved")
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
         loadingMessage: 'Configuring the Assistant...',
