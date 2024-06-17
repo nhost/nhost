@@ -13,40 +13,16 @@ import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedI
 import { Button } from '@/components/ui/v2/Button';
 import { useDialog } from '@/components/common/DialogProvider';
 import { OverviewProjectHealthModal } from '@/features/projects/overview/components/OverviewProjectHealthModal';
-import { type ServiceHealthInfo, findHighestImportanceState, serviceStateToThemeColor } from '@/features/projects/overview/health';
+import { type ServiceHealthInfo, findHighestImportanceState, serviceStateToThemeColor, baseServices } from '@/features/projects/overview/health';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { ServiceVersionTooltip } from '@/features/projects/overview/components/ServiceVersionTooltip';
 
-const baseServices = {
-  auth: {
-    displayName: "Auth",
-    softwareVersionsName: "Auth"
-  },
-  hasura: {
-    displayName: "Hasura",
-    softwareVersionsName: "Hasura",
-  },
-  postgres: {
-    displayName: "Postgres",
-    softwareVersionsName: "PostgreSQL",
-  },
-  storage: {
-    displayName: "Storage",
-    softwareVersionsName: "Storage"
-  },
-  ai: {
-    displayName: "Graphite",
-    softwareVersionsName: "Graphite"
-  }
-} as const;
-
-
-interface ServicesStatusTooltipProps {
+interface RunStatusTooltipProps {
   servicesStatusInfo?: Array<ServiceHealthInfo>;
-  openHealthModal?: () => void;
+  openHealthModal?: (defaultExpanded?: keyof typeof baseServices | "run") => void
 }
 
-function ServicesStatusTooltip({ servicesStatusInfo, openHealthModal }: ServicesStatusTooltipProps) {
+function RunStatusTooltip({ servicesStatusInfo, openHealthModal }: RunStatusTooltipProps) {
 
   return (<div className="px-2 py-3 w-full flex flex-col gap-3"><ol className="flex flex-col gap-3 m-0">
     {servicesStatusInfo.map(service =>
@@ -63,7 +39,7 @@ function ServicesStatusTooltip({ servicesStatusInfo, openHealthModal }: Services
   </ol>
     <Button
       variant="outlined"
-      onClick={openHealthModal}
+      onClick={() => openHealthModal("run")}
     >
       View logs
     </Button>
@@ -129,10 +105,10 @@ export default function OverviewProjectHealth() {
       return recommendedVersions
     }, []) ?? []
 
-  const authRecommendedVersions = getRecommendedVersions(baseServices.auth.softwareVersionsName)
+  const authRecommendedVersions = getRecommendedVersions(baseServices["hasura-auth"].softwareVersionsName)
   const hasuraRecommendedVersions = getRecommendedVersions(baseServices.hasura.softwareVersionsName)
   const postgresRecommendedVersions = getRecommendedVersions(baseServices.postgres.softwareVersionsName)
-  const storageRecommendedVersions = getRecommendedVersions(baseServices.storage.softwareVersionsName)
+  const storageRecommendedVersions = getRecommendedVersions(baseServices["hasura-storage"].softwareVersionsName)
   const aiRecommendedVersions = getRecommendedVersions(baseServices.ai.softwareVersionsName)
 
   // Check if configured version can't be found in recommended versions
@@ -169,11 +145,12 @@ export default function OverviewProjectHealth() {
     ...otherServicesStatus
   } = serviceMap;
 
-  const openHealthModal = async () => {
+  const openHealthModal = async (defaultExpanded: keyof typeof baseServices | "run") => {
     openDialog({
       component: (
         <OverviewProjectHealthModal
           servicesHealth={projectServicesHealthData}
+          defaultExpanded={defaultExpanded}
         />
       ),
       props: {
@@ -187,7 +164,8 @@ export default function OverviewProjectHealth() {
   }
 
   const authTooltipElem = (<ServiceVersionTooltip
-    serviceName={baseServices.auth.displayName}
+    serviceName={baseServices["hasura-auth"].displayName}
+    serviceKey="hasura-auth"
     usedVersion={configuredVersionsData?.config?.auth?.version ?? ""}
     recommendedVersionMismatch={isAuthVersionMismatch}
     recommendedVersions={authRecommendedVersions}
@@ -198,6 +176,7 @@ export default function OverviewProjectHealth() {
 
   const hasuraTooltipElem = (<ServiceVersionTooltip
     serviceName={baseServices.hasura.displayName}
+    serviceKey="hasura"
     usedVersion={configuredVersionsData?.config?.hasura?.version ?? ""}
     recommendedVersionMismatch={isHasuraVersionMismatch}
     recommendedVersions={hasuraRecommendedVersions}
@@ -207,6 +186,7 @@ export default function OverviewProjectHealth() {
 
   const postgresTooltipElem = (<ServiceVersionTooltip
     serviceName={baseServices.postgres.displayName}
+    serviceKey="postgres"
     usedVersion={configuredVersionsData?.config?.postgres?.version ?? ""}
     recommendedVersionMismatch={isPostgresVersionMismatch}
     recommendedVersions={postgresRecommendedVersions}
@@ -215,7 +195,8 @@ export default function OverviewProjectHealth() {
   />)
 
   const storageTooltipElem = (<ServiceVersionTooltip
-    serviceName={baseServices.storage.displayName}
+    serviceName={baseServices["hasura-storage"].displayName}
+    serviceKey="hasura-storage"
     usedVersion={configuredVersionsData?.config?.storage?.version ?? ""}
     recommendedVersionMismatch={isStorageVersionMismatch}
     recommendedVersions={storageRecommendedVersions}
@@ -225,6 +206,7 @@ export default function OverviewProjectHealth() {
 
   const aiTooltipElem = (<ServiceVersionTooltip
     serviceName={baseServices.ai.displayName}
+    serviceKey="ai"
     usedVersion={configuredVersionsData?.config?.ai?.version ?? ""}
     recommendedVersionMismatch={isAIVersionMismatch}
     recommendedVersions={aiRecommendedVersions}
@@ -275,7 +257,7 @@ export default function OverviewProjectHealth() {
           }
           {Object.values(runServices).length > 0 &&
             <ProjectHealthCard icon={<ServicesOutlinedIcon className="h-6 w-6 m-1" />}
-              tooltip={<ServicesStatusTooltip
+              tooltip={<RunStatusTooltip
                 servicesStatusInfo={Object.values(runServices)}
                 openHealthModal={openHealthModal}
               />}

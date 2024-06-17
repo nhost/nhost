@@ -2,6 +2,29 @@ import { type GetProjectServicesHealthQuery, ServiceState } from '@/utils/__gene
 
 export type ServiceHealthInfo = GetProjectServicesHealthQuery["getProjectStatus"]["services"][number];
 
+export const baseServices = {
+  "hasura-auth": {
+    displayName: "Auth",
+    softwareVersionsName: "Auth"
+  },
+  "hasura": {
+    displayName: "Hasura",
+    softwareVersionsName: "Hasura",
+  },
+  "postgres": {
+    displayName: "Postgres",
+    softwareVersionsName: "PostgreSQL",
+  },
+  "hasura-storage": {
+    displayName: "Storage",
+    softwareVersionsName: "Storage"
+  },
+  "ai": {
+    displayName: "Graphite",
+    softwareVersionsName: "Graphite"
+  }
+} as const;
+
 export const serviceStateToThemeColor = new Map<ServiceState, string>([
   [ServiceState.Running, 'success.dark'],
   [ServiceState.Error, 'error.main'],

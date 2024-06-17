@@ -3,20 +3,22 @@ import { Text } from '@/components/ui/v2/Text';
 import { useTheme } from '@mui/material';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import type { baseServices } from '@/features/projects/overview/health';
 
 interface ServiceVersionTooltipProps {
   serviceName?: string,
+  serviceKey?: keyof typeof baseServices,
   usedVersion?: string,
   recommendedVersionMismatch?: boolean,
   recommendedVersions?: string[],
   children?: React.ReactNode
-  openHealthModal?: () => void
+  openHealthModal?: (defaultExpanded?: keyof typeof baseServices | "run") => void
   state?: ServiceState;
 }
 
 function ServiceVersionTooltip({ serviceName, usedVersion,
   recommendedVersionMismatch, recommendedVersions,
-  children, openHealthModal, state }: ServiceVersionTooltipProps) {
+  children, openHealthModal, state, serviceKey }: ServiceVersionTooltipProps) {
   const theme = useTheme();
 
   let showErrorMessage = false;
@@ -85,7 +87,7 @@ function ServiceVersionTooltip({ serviceName, usedVersion,
         : null}
       <Button
         variant="outlined"
-        onClick={openHealthModal}
+        onClick={() => openHealthModal(serviceKey)}
       >
         View state
       </Button>
