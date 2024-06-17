@@ -29,7 +29,7 @@ export default function TOMLEditor() {
   const localMimirClient = useLocalMimirClient();
 
   // fetch the initial TOML code from the server
-  const { data, loading, error } = useGetConfigRawJsonQuery({
+  const { data, loading } = useGetConfigRawJsonQuery({
     variables: {
       appID: currentProject?.id,
     },
