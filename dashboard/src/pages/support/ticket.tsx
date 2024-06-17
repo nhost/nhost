@@ -255,14 +255,34 @@ function TicketPage() {
                     )}
                   >
                     {[
-                      'General guidance',
-                      'Non-production system impaired',
-                      'Non-production system offline',
-                      'Production system working impaired',
-                      'Production system offline',
+                      {
+                        title: 'Low',
+                        description: 'General guidance',
+                      },
+                      {
+                        title: 'Normal',
+                        description: 'Non-production system impaired',
+                      },
+                      {
+                        title: 'High',
+                        description: 'Production System impaired',
+                      },
+                      {
+                        title: 'Urgent',
+                        description: 'Production system offline',
+                      },
                     ].map((severity) => (
-                      <Option key={severity} label={severity} value={severity}>
-                        {severity}
+                      <Option
+                        key={severity.title}
+                        label={severity.title}
+                        value={severity.title}
+                      >
+                        <div className="flex flex-col">
+                          <span>{severity.title}</span>
+                          <span className="font-mono text-xs opacity-50">
+                            {severity.description}
+                          </span>
+                        </div>
                       </Option>
                     ))}
                   </ControlledSelect>
