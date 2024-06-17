@@ -75,8 +75,8 @@ function SupportPage() {
                       Ask the Community
                     </Text>
                     <Text className="!font-medium" color="secondary">
-                      Join our GitHub discussions or our Discord server to
-                      browse for help and best practices.
+                      Join our Discord server to browse for help and best
+                      practices.
                     </Text>
                   </div>
                 </div>

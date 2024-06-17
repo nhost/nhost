@@ -1,12 +1,12 @@
+import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
-import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { Divider } from '@/components/ui/v2/Divider';
 import { EnvelopeIcon } from '@/components/ui/v2/icons/EnvelopeIcon';
 import { Input, inputClasses } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
@@ -28,8 +28,9 @@ type Workspace = Omit<
 const validationSchema = Yup.object({
   workspace: Yup.string().label('Project').required(),
   project: Yup.string().label('Project').required(),
-  subject: Yup.string().label('Subject').required(),
+  service: Yup.string().label('Service').required(),
   severity: Yup.string().label('Severity').required(),
+  subject: Yup.string().label('Subject').required(),
   description: Yup.string().label('Description').optional(),
 });
 
@@ -47,15 +48,19 @@ function TicketPage() {
     reValidateMode: 'onSubmit',
     defaultValues: {
       workspace: '',
-      subject: '',
-      severity: '',
       project: '',
+      service: '',
+      severity: '',
+      subject: '',
       description: '',
     },
     resolver: yupResolver(validationSchema),
   });
 
-  const { register, formState } = form;
+  const {
+    register,
+    formState: { errors, isSubmitting },
+  } = form;
 
   const user = useUserData();
 
@@ -72,14 +77,14 @@ function TicketPage() {
     })),
   );
 
-  async function handleSubmit(formValues: CreateTicketFormValues) {
-    console.log({ formValues });
+  const handleSubmit = async (formValues: CreateTicketFormValues) => {
     const {
       // workspace,
       project,
+      // service,
+      severity,
       subject,
       description,
-      severity,
     } = formValues;
 
     const auth = btoa(
@@ -125,16 +130,15 @@ function TicketPage() {
         errorMessage: 'Failed to create ticket',
       },
     );
-  }
+  };
 
   return (
     <Box
-      className="flex flex-col items-center justify-center h-screen"
+      className="flex flex-col items-center justify-center py-10"
       sx={{ backgroundColor: 'background.default' }}
     >
       <div className="flex flex-col w-full max-w-3xl">
-        <div className="flex flex-col items-center gap-4 mb-6">
-          <Logo className="mx-auto cursor-pointer" />
+        <div className="flex flex-col items-center mb-4">
           <Text variant="h4" className="font-bold">
             Nhost Support
           </Text>
@@ -148,9 +152,11 @@ function TicketPage() {
                   onSubmit={handleSubmit}
                   className="grid grid-flow-row gap-4"
                 >
-                  <Select
-                    {...register('workspace')}
+                  <Text className="font-bold">Which project is affected ?</Text>
+
+                  <ControlledSelect
                     id="workspace"
+                    name="workspace"
                     label="Workspace"
                     placeholder="Workspace"
                     slotProps={{
@@ -168,22 +174,18 @@ function TicketPage() {
                         key={workspace.name}
                         label={workspace.name}
                       >
-                        <div className="flex flex-col">
-                          <span>{workspace.name}</span>
-                          <span className="font-mono text-xs opacity-35">
-                            {workspace.id}
-                          </span>
-                        </div>
+                        {workspace.name}
                       </Option>
                     ))}
-                  </Select>
-                  <Select
-                    {...register('project')}
+                  </ControlledSelect>
+
+                  <ControlledSelect
                     id="project"
+                    name="project"
                     label="Project"
                     placeholder="Project"
                     slotProps={{
-                      root: { className: 'grid grid-flow-col gap-1' },
+                      root: { className: 'grid grid-flow-col gap-1 mb-4' },
                     }}
                     renderValue={(option) => (
                       <span className="inline-grid items-center grid-flow-col gap-2">
@@ -197,31 +199,20 @@ function TicketPage() {
                         label={proj.projectName}
                         value={proj.projectSubdomain}
                       >
-                        <div className="flex flex-col">
-                          <span>{proj.projectName}</span>
-                          <span className="font-mono text-xs opacity-35">
-                            {proj.projectSubdomain}
-                          </span>
-                        </div>
+                        <div className="flex flex-col">{proj.projectName}</div>
                       </Option>
                     ))}
-                  </Select>
-                  <StyledInput
-                    {...register('subject')}
-                    id="subject"
-                    label="Subject"
-                    placeholder="Subject"
-                    fullWidth
-                    autoFocus
-                    inputProps={{ min: 2, max: 128 }}
-                    error={!!formState.errors.subject}
-                    helperText={formState.errors.subject?.message}
-                  />
-                  <Select
-                    {...register('severity')}
-                    id="severity"
-                    label="Severity"
-                    placeholder="Severity"
+                  </ControlledSelect>
+
+                  <Divider />
+
+                  <Text className="mt-4 font-bold">Impact</Text>
+
+                  <ControlledSelect
+                    id="service"
+                    name="service"
+                    label="Service"
+                    placeholder="Service"
                     slotProps={{
                       root: { className: 'grid grid-flow-col gap-1' },
                     }}
@@ -231,39 +222,67 @@ function TicketPage() {
                       </span>
                     )}
                   >
-                    <Option key="low" label="Low" value="low">
-                      <div className="flex flex-col">
-                        <span>Low</span>
-                        <span className="font-mono text-xs opacity-35">
-                          General guidance
-                        </span>
-                      </div>
-                    </Option>
-                    <Option key="medium" label="Medium" value="medium">
-                      <div className="flex flex-col">
-                        <span>Medium</span>
-                        <span className="font-mono text-xs opacity-35">
-                          System impaired
-                        </span>
-                      </div>
-                    </Option>
-                    <Option key="high" label="High" value="high">
-                      <div className="flex flex-col">
-                        <span>High</span>
-                        <span className="font-mono text-xs opacity-35">
-                          Production system impaired
-                        </span>
-                      </div>
-                    </Option>
-                    <Option key="urgent" label="Urgent" value="urgent">
-                      <div className="flex flex-col">
-                        <span>Urgent</span>
-                        <span className="font-mono text-xs opacity-35">
-                          Production system down
-                        </span>
-                      </div>
-                    </Option>
-                  </Select>
+                    {[
+                      'Dashboard',
+                      'Auth',
+                      'Postgres',
+                      'Hasura',
+                      'Storage',
+                      'Functions',
+                      'Run',
+                      'AI',
+                      'CLI',
+                      'Other',
+                    ].map((service) => (
+                      <Option key={service} label={service} value={service}>
+                        {service}
+                      </Option>
+                    ))}
+                  </ControlledSelect>
+
+                  <ControlledSelect
+                    id="severity"
+                    name="severity"
+                    label="Severity"
+                    placeholder="Severity"
+                    slotProps={{
+                      root: { className: 'grid grid-flow-col gap-1 mb-4' },
+                    }}
+                    renderValue={(option) => (
+                      <span className="inline-grid items-center grid-flow-col gap-2">
+                        {option?.label}
+                      </span>
+                    )}
+                  >
+                    {[
+                      'General guidance',
+                      'Non-production system impaired',
+                      'Non-production system offline',
+                      'Production system working impaired',
+                      'Production system offline',
+                    ].map((severity) => (
+                      <Option key={severity} label={severity} value={severity}>
+                        {severity}
+                      </Option>
+                    ))}
+                  </ControlledSelect>
+
+                  <Divider />
+
+                  <Text className="mt-4 font-bold">Issue</Text>
+
+                  <StyledInput
+                    {...register('subject')}
+                    id="subject"
+                    label="Subject"
+                    placeholder="Subject"
+                    fullWidth
+                    autoFocus
+                    inputProps={{ min: 2, max: 128 }}
+                    error={!!errors.subject}
+                    helperText={errors.subject?.message}
+                  />
+
                   <StyledInput
                     {...register('description')}
                     id="description"
@@ -274,8 +293,8 @@ function TicketPage() {
                     inputProps={{
                       className: 'resize-y min-h-[120px]',
                     }}
-                    error={!!formState.errors.description}
-                    helperText={formState.errors.description?.message}
+                    error={!!errors.description}
+                    helperText={errors.description?.message}
                   />
 
                   <Box className="flex flex-col gap-4 ml-auto w-80">
@@ -288,8 +307,8 @@ function TicketPage() {
                       size="large"
                       type="submit"
                       startIcon={<EnvelopeIcon />}
-                      // disabled={formState.isSubmitting}
-                      // loading={formState.isSubmitting}
+                      disabled={isSubmitting}
+                      loading={isSubmitting}
                     >
                       Create Support Ticket
                     </Button>
@@ -308,7 +327,9 @@ TicketPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AuthenticatedLayout
       title="Help & Support | Nhost"
-      contentContainerProps={{ className: 'flex w-full flex-col px-4' }}
+      contentContainerProps={{
+        className: 'flex w-full flex-col h-screen overflow-auto',
+      }}
     >
       {page}
     </AuthenticatedLayout>
