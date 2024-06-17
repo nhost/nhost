@@ -1,12 +1,23 @@
-import { ServiceState } from '@/utils/__generated__/graphql';
+import { type GetProjectServicesHealthQuery, ServiceState } from '@/utils/__generated__/graphql';
 
-export const serviceStateToColor = new Map<ServiceState, string>([
+export type ServiceHealthInfo = GetProjectServicesHealthQuery["getProjectStatus"]["services"][number];
+
+export const serviceStateToThemeColor = new Map<ServiceState, string>([
   [ServiceState.Running, 'success.dark'],
   [ServiceState.Error, 'error.main'],
   [ServiceState.UpdateError, 'error.main'],
   [ServiceState.Updating, 'warning.dark'],
   [ServiceState.None, 'error.main'],
   [undefined, 'error.main'],
+]);
+
+export const serviceStateToBadgeColor = new Map<ServiceState, 'success' | 'error' | 'warning'>([
+  [ServiceState.Running, 'success'],
+  [ServiceState.Error, 'error'],
+  [ServiceState.UpdateError, 'error'],
+  [ServiceState.Updating, 'warning'],
+  [ServiceState.None, 'error'],
+  [undefined, 'error'],
 ]);
 
 export const getServiceHealthState = (
@@ -26,52 +37,36 @@ export const getServiceHealthState = (
   }
 };
 
-export const getUserRunServiceState = (
-  servicesStates: ServiceState[],
-): 'success' | 'error' | 'warning' => {
-  if (
-    servicesStates.some(
-      (state) =>
-        state === ServiceState.Error ||
-        state === ServiceState.UpdateError ||
-        state === ServiceState.None,
-    )
-  ) {
-    return 'error';
-  }
-
-  if (servicesStates.some((state) => state === ServiceState.Updating)) {
-    return 'warning';
-  }
-
-  return 'success';
-};
-
-const serviceStateToImportance = {
-  [ServiceState.Running]: 0,
-  [ServiceState.Updating]: 1,
-  [ServiceState.UpdateError]: 2,
-  [ServiceState.Error]: 3,
-  [ServiceState.None]: 4,
-};
-
+/**
+ * Returns the highest importance state from a list of service states 
+ * Example: [Running, Running, Error] => Error
+*/
 export const findHighestImportanceState = (
   servicesStates: ServiceState[],
 ): ServiceState => {
+  
+  const serviceStateToImportance = new Map([
+    [ServiceState.Running, 0],
+    [ServiceState.Updating, 1],
+    [ServiceState.UpdateError, 2],
+    [ServiceState.Error, 3],
+    [ServiceState.None, 4],
+  ]);
+
   if (servicesStates.length === 0) {
     return ServiceState.None;
   }
 
   return servicesStates.reduce((acc, state) => {
-    if (serviceStateToImportance[state] > serviceStateToImportance[acc]) {
+    if (serviceStateToImportance.get(state) > serviceStateToImportance.get(acc)) {
       return state;
     }
     return acc;
   }, ServiceState.Running);
 };
 
-/* Removes __typename from the object */
-const replacer = (key, value) => {
+/* JSON stringify replacer that removes __typename from the object */
+const typenameReplacer = (key, value) => {
   if (key === '__typename') {
     return undefined;
   }
@@ -79,5 +74,8 @@ const replacer = (key, value) => {
   return value;
 };
 
+/**
+ * Returns a stringified JSON representation of the object with all __typename keys removed
+ */
 export const stringifyHealthJSON = (obj: any) =>
-  JSON.stringify(obj, replacer, 2);
+  JSON.stringify(obj, typenameReplacer, 2);

@@ -8,16 +8,31 @@ import type { ImageProps } from 'next/image';
 import Image from 'next/image';
 import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
 import { ExclamationFilledIcon } from '@/components/ui/v2/icons/ExclamationFilledIcon';
+import { ServiceState } from '@/utils/__generated__/graphql';
+import { serviceStateToBadgeColor } from '@/features/projects/overview/health';
 
 interface HealthBadgeProps extends BadgeProps {
-  status?: "success" | "warning" | "error";
+  badgeVariant?: 'standard' | 'dot';
+  badgeColor?: 'success' | 'error' | 'warning';
   showExclamation?: boolean;
+  showCheckIcon?: boolean;
+  isLoading?: boolean;
 }
 
-function HealthBadge({ status, showExclamation, children, ...props }: HealthBadgeProps) {
-  if (!status) {
-    return <div>{children}</div>
+function HealthBadge({ badgeColor,
+  badgeVariant,
+  showExclamation,
+  showCheckIcon,
+  children,
+  ...props }: HealthBadgeProps) {
+
+
+  if (!badgeColor) {
+    return (
+      <div>{children}</div>
+    )
   }
+
   if (showExclamation) {
     return (
       <Badge
@@ -31,14 +46,14 @@ function HealthBadge({ status, showExclamation, children, ...props }: HealthBadg
         }} className="h-3 w-3" />}
       >
         <Badge
-          color={status}
-          variant={status === "success" ? "standard" : "dot"}
-          badgeContent={status === "success"
-            ? <CheckIcon 
+          color={badgeColor}
+          variant={badgeVariant}
+          badgeContent={showCheckIcon
+            ? <CheckIcon
               sx={{
                 color: (theme) => theme.palette.mode === "dark" ? "grey.200" : "grey.100",
               }}
-            className="w-2 h-2 stroke-2" />
+              className="w-2 h-2 stroke-2" />
             : null}
           sx={{
             color: (theme) => theme.palette.mode === "dark" ? "grey.900" : "text.primary",
@@ -53,14 +68,14 @@ function HealthBadge({ status, showExclamation, children, ...props }: HealthBadg
 
   return (
     <Badge
-      color={status}
-      variant={status === "success" ? "standard" : "dot"}
-      badgeContent={status === "success"
-        ? <CheckIcon 
-        sx={{
-          color: (theme) => theme.palette.mode === "dark" ? "grey.200" : "grey.100",
-        }}
-        className="w-2 h-2 stroke-2" />
+      color={badgeColor}
+      variant={badgeVariant}
+      badgeContent={showCheckIcon
+        ? <CheckIcon
+          sx={{
+            color: (theme) => theme.palette.mode === "dark" ? "grey.200" : "grey.100",
+          }}
+          className="w-2 h-2 stroke-2" />
         : null}
       {...props}
     >
@@ -102,10 +117,20 @@ export interface ProjectHealthCardProps extends BoxProps {
   slotProps?: {
     imgIcon?: Partial<ImageProps>;
   }
+  /**
+   * State of the service.
+   */
+  state?: ServiceState;
 
-  status?: "success" | "warning" | "error";
+  /**
+   * Determines whether the version is mismatched with recommended version.
+   */
+  isVersionMismatch?: boolean;
 
-  versionMismatch?: boolean;
+  /**
+   * Determines whether the card is loading.
+   */
+  isLoading?: boolean;
 }
 
 export default function ProjectHealthCard({
@@ -115,23 +140,28 @@ export default function ProjectHealthCard({
   iconIsComponent = true,
   className,
   slotProps = {},
-  versionMismatch = false,
-  status,
+  isVersionMismatch = false,
+  isLoading = false,
+  state,
   ...props
 }: ProjectHealthCardProps) {
+  const badgeColor = serviceStateToBadgeColor.get(state);
+  const badgeVariant = state === ServiceState.Running ? "standard" : "dot";
+  const showCheckIcon = state === ServiceState.Running;
+
   return (
     <Tooltip title={tooltip}
-    slotProps={{
-      popper: {
-        sx: {
-          [`&.${tooltipClasses.popper} .${tooltipClasses.tooltip}`]:
-          {
-            backgroundColor: (theme) => theme.palette.mode === "dark" ? "grey.100" : "grey.200",
-            minWidth: "18rem",
-          },
+      slotProps={{
+        popper: {
+          sx: {
+            [`&.${tooltipClasses.popper} .${tooltipClasses.tooltip}`]:
+            {
+              backgroundColor: (theme) => theme.palette.mode === "dark" ? "grey.100" : "grey.200",
+              minWidth: "18rem",
+            },
+          }
         }
-      }
-    }}
+      }}
     >
       <Box
         className={twMerge(
@@ -143,8 +173,10 @@ export default function ProjectHealthCard({
       >
         <div className="grid grid-flow-col items-center justify-center">
           <HealthBadge
-            status={status}
-            showExclamation={versionMismatch}
+            badgeColor={!isLoading ? badgeColor : undefined}
+            badgeVariant={badgeVariant}
+            showCheckIcon={showCheckIcon}
+            showExclamation={isVersionMismatch}
           >
             {iconIsComponent
               ? icon

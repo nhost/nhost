@@ -7,7 +7,7 @@ import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import type { GetProjectServicesHealthQuery, ServiceState } from '@/utils/__generated__/graphql';
 import { type ReactElement } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { serviceStateToColor, getServiceHealthState, findHighestImportanceState, stringifyHealthJSON } from '@/features/projects/overview/health';
+import { serviceStateToThemeColor, getServiceHealthState, findHighestImportanceState, stringifyHealthJSON, type ServiceHealthInfo } from '@/features/projects/overview/health';
 import Image from 'next/image';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
@@ -22,8 +22,8 @@ export interface OverviewProjectHealthModalProps {
 
 interface ServiceAccordionProps {
   serviceName: string;
-  serviceHealth: GetProjectServicesHealthQuery["getProjectStatus"]["services"][number];
-  replicas: GetProjectServicesHealthQuery["getProjectStatus"]["services"][number]["replicas"];
+  serviceHealth: ServiceHealthInfo;
+  replicas: ServiceHealthInfo["replicas"];
   serviceState: ServiceState;
   /**
    * Icon to display on the accordion.
@@ -75,12 +75,12 @@ function ServiceAccordion({
                 color: "text.secondary"
               }} component="span" className="font-semibold">({replicas.length} {replicasLabel})</Text></Text>
             {status === "success" ? <Box sx={{
-              backgroundColor: serviceStateToColor.get(serviceState),
+              backgroundColor: serviceStateToThemeColor.get(serviceState),
             }} className="rounded-full w-2 h-2 flex justify-center items-center">
               <CheckIcon className="w-3/4 h-3/4 stroke-2 text-white" />
             </Box>
               : <Box sx={{
-                backgroundColor: serviceStateToColor.get(serviceState),
+                backgroundColor: serviceStateToThemeColor.get(serviceState),
               }} className="rounded-full w-2 h-2" />}
           </div>
         </div>
@@ -97,7 +97,7 @@ function ServiceAccordion({
 }
 
 interface RunServicesAccordionProps {
-  servicesHealth: Array<GetProjectServicesHealthQuery["getProjectStatus"]["services"][number]>;
+  servicesHealth: Array<ServiceHealthInfo>;
   serviceStates: ServiceState[];
   /**
    * Icon to display on the accordion.
@@ -141,10 +141,10 @@ function RunServicesAccordion({
                 />
               )}
             <Text sx={{ color: "text.primary" }} variant="h4" className="font-semibold">
-              Run 
+              Run
             </Text>
             <Box sx={{
-              backgroundColor: serviceStateToColor.get(globalState),
+              backgroundColor: serviceStateToThemeColor.get(globalState),
             }} className="rounded-full w-2 h-2" />
           </div>
         </div>
@@ -162,8 +162,7 @@ function RunServicesAccordion({
 export default function OverviewProjectHealthModal({
   servicesHealth,
 }: OverviewProjectHealthModalProps) {
-  type Service = GetProjectServicesHealthQuery["getProjectStatus"]["services"][number];
-  const serviceMap: { [key: string]: Service | undefined } = {}
+  const serviceMap: { [key: string]: ServiceHealthInfo | undefined } = {}
   servicesHealth.getProjectStatus.services.forEach(service => {
     serviceMap[service.name] = service;
   });
