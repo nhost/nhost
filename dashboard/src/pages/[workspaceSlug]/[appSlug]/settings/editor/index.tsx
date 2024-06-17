@@ -7,7 +7,7 @@ import type { ReactElement } from 'react';
 export default function TOMLEditorPage() {
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
+      className="max-w-7xl px-0 pt-0 pb-0 grid grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
     <RetryableErrorBoundary>

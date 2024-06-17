@@ -88,7 +88,7 @@ export default function TOMLEditor() {
   }
 
   return (
-    <Box className="flex flex-1 flex-col justify-center overflow-hidden">
+    <Box className="flex flex-1 max-h-[calc(100vh-80px)] flex-col justify-center p-0 overflow-hidden">
       <Box className="flex flex-col space-y-2 border-b p-4">
         <Text className="font-semibold">Raw TOML Settings</Text>
       </Box>
@@ -96,7 +96,8 @@ export default function TOMLEditor() {
       <CodeMirror
         value={tomlCode}
         height="100%"
-        className="min-h-[100px] max-h-[550px] flex-1 overflow-y-auto"
+        width="100%"
+        className="min-h-[100px] flex-1 overflow-y-auto"
         theme={theme.palette.mode === 'light' ? githubLight : githubDark}
         extensions={[StreamLanguage.define(toml)]}
         onChange={onChange}
