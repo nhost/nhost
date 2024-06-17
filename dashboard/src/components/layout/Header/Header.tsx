@@ -106,7 +106,13 @@ export default function Header({ className, ...props }: HeaderProps) {
           <NavLink
             underline="none"
             href="/support"
-            className="rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
+            className="mr-2 rounded-md px-2.5 py-1.5 text-sm motion-safe:transition-colors"
+            sx={{
+              color: 'text.primary',
+              '&:hover': { backgroundColor: 'grey.200' },
+            }}
+            target="_blank"
+            rel="noopener noreferrer"
           >
             Support
           </NavLink>
