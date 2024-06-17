@@ -79,10 +79,10 @@ export default function TOMLEditor() {
         }
       },
       {
-        loadingMessage: 'Configuring the Assistant...',
-        successMessage: 'The Assistant has been configured successfully.',
+        loadingMessage: 'Saving the configuration...',
+        successMessage: 'The configuration has been saved successfully.',
         errorMessage:
-          'An error occurred while configuring the Assistant. Please try again.',
+          'An error occurred while saving the configuration. Please try again.',
       },
     );
   }
