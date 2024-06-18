@@ -12,7 +12,7 @@
     "install-browsers": "pnpm playwright install && pnpm playwright install-deps",
     "test": "pnpm add-nhost-js && pnpm install-browsers && pnpm playwright test",
     "lint": "eslint .",
-    "postinstall": "pnpm add-nhost-js"
+    "postinstall": "pnpm add-nhost-js --ignore-scripts"
   },
   "devDependencies": {
     "@nhost/nhost-js": "^3.1.5",
