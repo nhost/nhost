@@ -1,7 +1,7 @@
 import type { IconProps } from '@/components/ui/v2/icons';
 import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
 
-function ServicesIcon(props: IconProps) {
+function ServicesOutlinedIcon(props: IconProps) {
   return (
     <SvgIcon
       width="16"
@@ -48,6 +48,6 @@ function ServicesIcon(props: IconProps) {
   );
 }
 
-ServicesIcon.displayName = 'NhostServicesIcon';
+ServicesOutlinedIcon.displayName = 'NhostServicesIcon';
 
-export default ServicesIcon;
+export default ServicesOutlinedIcon;

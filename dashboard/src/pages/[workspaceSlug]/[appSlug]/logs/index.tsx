@@ -45,7 +45,7 @@ export default function LogsPage() {
 
   const { data, error, subscribeToMore, client, loading, refetch } =
     useGetProjectLogsQuery({
-      variables: { appID: currentProject?.id, ...filters },
+      variables: { appID: currentProject.id, ...filters },
       client: clientWithSplit,
       fetchPolicy: 'cache-and-network',
       notifyOnNetworkStatusChange: true,
@@ -56,7 +56,7 @@ export default function LogsPage() {
       subscribeToMore({
         document: GetLogsSubscriptionDocument,
         variables: {
-          appID: currentProject?.id,
+          appID: currentProject.id,
           service: filters.service,
           from: filters.from,
           regexFilter: filters.regexFilter,
@@ -98,7 +98,7 @@ export default function LogsPage() {
           };
         },
       }),
-    [subscribeToMore, currentProject?.id, filters],
+    [subscribeToMore, currentProject.id, filters],
   );
 
   useEffect(() => {
@@ -106,11 +106,11 @@ export default function LogsPage() {
       subscriptionReturn.current();
       subscriptionReturn.current = null;
 
-      return () => { };
+      return () => {};
     }
 
     if (filters.to) {
-      return () => { };
+      return () => {};
     }
 
     if (subscriptionReturn.current) {
@@ -121,7 +121,7 @@ export default function LogsPage() {
     // This will open the websocket connection and it will return a function to close it.
     subscriptionReturn.current = subscribeToMoreLogs();
 
-    return () => { };
+    return () => {};
   }, [filters, subscribeToMoreLogs, client]);
 
   const onSubmitFilterValues = useCallback(
