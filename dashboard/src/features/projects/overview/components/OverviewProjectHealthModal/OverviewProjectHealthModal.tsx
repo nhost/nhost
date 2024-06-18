@@ -86,6 +86,7 @@ function ServiceAccordion({
       </Accordion.Summary>
       <Accordion.Details>
         <CodeBlock
+          copyToClipboardToastTitle={`${serviceName} status`}
         >
           {stringifyHealthJSON(serviceHealth)}
         </CodeBlock>
@@ -153,7 +154,9 @@ function RunServicesAccordion({
         </div>
       </Accordion.Summary>
       <Accordion.Details>
-        <CodeBlock>
+        <CodeBlock
+          copyToClipboardToastTitle="Run services status"
+        >
           {stringifyHealthJSON(servicesHealth)}
         </CodeBlock>
       </Accordion.Details>
@@ -197,7 +200,7 @@ export default function OverviewProjectHealthModal({
     <Box sx={{
       borderColor: "text.dark",
       backgroundColor: (theme) => theme.palette.mode === "light" ? "divider" : "background.paper",
-    }} className="grid grid-flow-row gap-0.5 pt-0.5">
+    }} className="grid grid-flow-row gap-1 pt-1">
       <ServiceAccordion
 
         icon={<UserIcon className="w-4 h-4" />}

@@ -1,7 +1,6 @@
 import { clsx } from 'clsx';
 import { type ComponentPropsWithoutRef, type ForwardedRef, forwardRef, type ReactElement } from 'react';
 
-import { type CopyToClipboardResult } from './copyToClipboard';
 import { getNodeText } from './getNodeText';
 import { CopyToClipboardButton as CopyToClipboardButtonOriginal } from './CopyToClipboardButton';
 import { Box } from '@/components/ui/v2/Box';
@@ -16,10 +15,8 @@ export interface CodeBlockPropsBase {
    * Background color for the tooltip saying `Click to Copy` when hovering the clipboard button.
    */
   tooltipColor?: string;
-  /**
-   * The callback function when a user clicks on the copied to clipboard button
-   */
-  onCopied?: (result: CopyToClipboardResult, textToCopy?: string) => void;
+  
+  copyToClipboardToastTitle?: string;
 }
 
 export type CodeBlockProps = CodeBlockPropsBase &
@@ -58,19 +55,19 @@ function CodeTabBar({
 interface CopyToClipboardButtonProps extends Partial<ComponentPropsWithoutRef<typeof CopyToClipboardButtonOriginal>> {
   filenameColor?: string;
   tooltipColor?: string;
-  onCopied?: (result: CopyToClipboardResult, textToCopy?: string) => void;
+  toastTitle?: string;
 }
 
-function CopyToClipboardButton ({
+function CopyToClipboardButton({
   tooltipColor,
   filenameColor,
-  onCopied,
   textToCopy,
+  toastTitle,
   ...props }: CopyToClipboardButtonProps) {
   return (<CopyToClipboardButtonOriginal
     tooltipColor={tooltipColor ?? filenameColor}
-    onCopied={onCopied}
     textToCopy={textToCopy}
+    title={toastTitle}
     {...props}
   />)
 };
@@ -80,40 +77,40 @@ export const CodeBlock = forwardRef((
     filename,
     filenameColor,
     tooltipColor,
-    onCopied,
     children,
     className,
+    copyToClipboardToastTitle,
     ...props
   }: CodeBlockProps,
   ref: ForwardedRef<HTMLDivElement>
 ) => (<Box
-    sx={{
-      backgroundColor: (theme) => theme.palette.mode === "dark" ? "grey.200" : "grey.200"
-    }}
-    className={clsx('mt-5 not-prose relative px-2', filename && 'pt-2', className)}
-    ref={ref}
-    {...props}
-  >
-    {filename ? (
-      <CodeTabBar filename={filename} filenameColor={filenameColor}>
-        <CopyToClipboardButton
-          filenameColor={filenameColor}
-          tooltipColor={tooltipColor}
-          onCopied={onCopied}
-          textToCopy={getNodeText(children)}
-          className="relative" />
-      </CodeTabBar>
-    ) : (
+  sx={{
+    backgroundColor: (theme) => theme.palette.mode === "dark" ? "grey.200" : "grey.200"
+  }}
+  className={clsx('mt-5 not-prose relative px-2', filename && 'pt-2', className)}
+  ref={ref}
+  {...props}
+>
+  {filename ? (
+    <CodeTabBar filename={filename} filenameColor={filenameColor}>
       <CopyToClipboardButton
         filenameColor={filenameColor}
-        textToCopy={getNodeText(children)}
         tooltipColor={tooltipColor}
-        onCopied={onCopied}
-        className="absolute top-0 right-1" />
-    )}
-    <pre className="overflow-x-auto"><code className="font-mono"
-    >
-      {children}
-    </code></pre>
-  </Box>
+        textToCopy={getNodeText(children)}
+        toastTitle={copyToClipboardToastTitle}
+        className="relative" />
+    </CodeTabBar>
+  ) : (
+    <CopyToClipboardButton
+      filenameColor={filenameColor}
+      textToCopy={getNodeText(children)}
+      tooltipColor={tooltipColor}
+      toastTitle={copyToClipboardToastTitle}
+      className="absolute top-0 right-3" />
+  )}
+  <pre className="overflow-x-auto"><code className="font-mono"
+  >
+    {children}
+  </code></pre>
+</Box>
 ));
