@@ -193,10 +193,11 @@ export default function OverviewProjectHealthModal({
   const isAIExpandedByDefault = defaultExpanded === "ai"
   const isRunExpandedByDefault = defaultExpanded === "run"
 
-  return (<Box className={twMerge('w-full rounded-lg text-left')}>
+  return (<Box className={twMerge('w-full pt-2 rounded-lg text-left')}>
     <Box sx={{
-      borderColor: "text.dark"
-    }} className="grid grid-flow-row gap-1 pt-4">
+      borderColor: "text.dark",
+      backgroundColor: (theme) => theme.palette.mode === "light" ? "divider" : "background.paper",
+    }} className="grid grid-flow-row gap-0.5 pt-0.5">
       <ServiceAccordion
 
         icon={<UserIcon className="w-4 h-4" />}
