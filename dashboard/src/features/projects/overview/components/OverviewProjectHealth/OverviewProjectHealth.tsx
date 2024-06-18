@@ -41,7 +41,7 @@ function RunStatusTooltip({ servicesStatusInfo, openHealthModal }: RunStatusTool
       variant="outlined"
       onClick={() => openHealthModal("run")}
     >
-      View logs
+      View state
     </Button>
   </div>
   )
