@@ -24,8 +24,6 @@ const Badge = styled(MaterialBadge)<BadgeProps>(({ theme }) => ({
   '& .MuiBadge-standard': {
     padding: 0,
     margin: 0,
-    width: '0.625rem',
-    maxWidth: '0.625rem',
     minWidth: '0.625rem',
     height: '0.625rem',
     borderRadius: '50%',
