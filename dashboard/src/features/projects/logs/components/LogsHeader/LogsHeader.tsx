@@ -55,19 +55,19 @@ export default function LogsHeader({
 
   const { data, loading: loadingServiceLabelValues } =
     useGetServiceLabelValuesQuery({
-      variables: { appID: currentProject?.id },
+      variables: { appID: currentProject.id },
     });
-
-  // useEffect(() => {
-  //   if (!loadingServiceLabelValues && data) {
-  //     const labels = data.getServiceLabelValues ?? [];
-  //     setServiceLabels(labels.map((l) => ({ label: l, value: l })));
-  //   }
-  // }, [loadingServiceLabelValues, data]);
 
   useEffect(() => {
     if (!loadingServiceLabelValues) {
-      const labels = data?.getServiceLabelValues ?? [];
+      const labels = data.getServiceLabelValues ?? [];
+      setServiceLabels(labels.map((l) => ({ label: l, value: l })));
+    }
+  }, [loadingServiceLabelValues, data]);
+
+  useEffect(() => {
+    if (!loadingServiceLabelValues) {
+      const labels = data.getServiceLabelValues ?? [];
 
       const labelMappings = {
         'hasura-auth': 'Auth',
