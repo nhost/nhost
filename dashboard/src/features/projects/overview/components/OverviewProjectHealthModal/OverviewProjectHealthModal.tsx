@@ -4,10 +4,10 @@ import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
-import type { GetProjectServicesHealthQuery, ServiceState } from '@/utils/__generated__/graphql';
+import { type GetProjectServicesHealthQuery, ServiceState } from '@/utils/__generated__/graphql';
 import { type ReactElement } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { serviceStateToThemeColor, getServiceHealthState, findHighestImportanceState, stringifyHealthJSON, type ServiceHealthInfo, type baseServices } from '@/features/projects/overview/health';
+import { serviceStateToThemeColor, findHighestImportanceState, stringifyHealthJSON, type ServiceHealthInfo, type baseServices } from '@/features/projects/overview/health';
 import Image from 'next/image';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
@@ -47,11 +47,9 @@ function ServiceAccordion({
 
   const replicasLabel = replicas.length === 1 ? 'replica' : 'replicas';
 
-  const status = getServiceHealthState(serviceState);
-
   return (
     <Accordion.Root
-    defaultExpanded={defaultExpanded}
+      defaultExpanded={defaultExpanded}
     >
       <Accordion.Summary
         expandIcon={<ChevronDownIcon sx={{
@@ -75,7 +73,7 @@ function ServiceAccordion({
               {serviceName} <Text sx={{
                 color: "text.secondary"
               }} component="span" className="font-semibold">({replicas.length} {replicasLabel})</Text></Text>
-            {status === "success" ? <Box sx={{
+            {serviceState === ServiceState.Running ? <Box sx={{
               backgroundColor: serviceStateToThemeColor.get(serviceState),
             }} className="rounded-full w-2 h-2 flex justify-center items-center">
               <CheckIcon className="w-3/4 h-3/4 stroke-2 text-white" />
@@ -200,7 +198,7 @@ export default function OverviewProjectHealthModal({
       borderColor: "text.dark"
     }} className="grid grid-flow-row gap-1 pt-4">
       <ServiceAccordion
-        
+
         icon={<UserIcon className="w-4 h-4" />}
         serviceName="Auth"
         serviceHealth={auth}

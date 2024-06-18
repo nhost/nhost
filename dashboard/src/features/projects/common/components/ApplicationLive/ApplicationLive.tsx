@@ -50,8 +50,6 @@ export default function ApplicationLive({
           </div>
 
           <div className="order-1 grid grid-flow-row content-start gap-8 lg:order-2 lg:col-span-1 lg:gap-12">
-            {/* <OverviewProjectHealth />
-            */}
             <OverviewProjectInfo />
             <Divider />
             <OverviewUsage />

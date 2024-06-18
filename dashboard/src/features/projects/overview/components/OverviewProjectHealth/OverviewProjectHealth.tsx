@@ -78,19 +78,12 @@ export default function OverviewProjectHealth() {
     return (
       <div className="grid grid-flow-row content-start gap-6">
         <Text variant="h3">Project Health</Text>
-
-        {currentProject && (
-          <div className="flex flex-row flex-wrap justify-start items-center gap-2 lg:gap-2">
-            <ProjectHealthCard isLoading icon={<UserIcon className="h-6 w-6 m-1" />}
-            />
-            <ProjectHealthCard isLoading icon={<DatabaseIcon className="h-6 w-6 m-1" />}
-            />
-            <ProjectHealthCard isLoading icon={<StorageIcon className="h-6 w-6 m-1" />}
-            />
-            <ProjectHealthCard isLoading icon={<HasuraIcon className="h-6 w-6 m-1" />}
-            />
-          </div>
-        )}
+        <div className="flex flex-row flex-wrap justify-start items-center gap-2 lg:gap-2">
+          <ProjectHealthCard isLoading icon={<UserIcon className="h-6 w-6 m-1" />} />
+          <ProjectHealthCard isLoading icon={<DatabaseIcon className="h-6 w-6 m-1" />} />
+          <ProjectHealthCard isLoading icon={<StorageIcon className="h-6 w-6 m-1" />} />
+          <ProjectHealthCard isLoading icon={<HasuraIcon className="h-6 w-6 m-1" />} />
+        </div>
       </div>
     )
   }

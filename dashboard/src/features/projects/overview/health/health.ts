@@ -1,28 +1,32 @@
-import { type GetProjectServicesHealthQuery, ServiceState } from '@/utils/__generated__/graphql';
+import {
+  ServiceState,
+  type GetProjectServicesHealthQuery,
+} from '@/utils/__generated__/graphql';
 
-export type ServiceHealthInfo = GetProjectServicesHealthQuery["getProjectStatus"]["services"][number];
+export type ServiceHealthInfo =
+  GetProjectServicesHealthQuery['getProjectStatus']['services'][number];
 
 export const baseServices = {
-  "hasura-auth": {
-    displayName: "Auth",
-    softwareVersionsName: "Auth"
+  'hasura-auth': {
+    displayName: 'Auth',
+    softwareVersionsName: 'Auth',
   },
-  "hasura": {
-    displayName: "Hasura",
-    softwareVersionsName: "Hasura",
+  hasura: {
+    displayName: 'Hasura',
+    softwareVersionsName: 'Hasura',
   },
-  "postgres": {
-    displayName: "Postgres",
-    softwareVersionsName: "PostgreSQL",
+  postgres: {
+    displayName: 'Postgres',
+    softwareVersionsName: 'PostgreSQL',
   },
-  "hasura-storage": {
-    displayName: "Storage",
-    softwareVersionsName: "Storage"
+  'hasura-storage': {
+    displayName: 'Storage',
+    softwareVersionsName: 'Storage',
   },
-  "ai": {
-    displayName: "Graphite",
-    softwareVersionsName: "Graphite"
-  }
+  ai: {
+    displayName: 'Graphite',
+    softwareVersionsName: 'Graphite',
+  },
 } as const;
 
 export const serviceStateToThemeColor = new Map<ServiceState, string>([
@@ -34,7 +38,10 @@ export const serviceStateToThemeColor = new Map<ServiceState, string>([
   [undefined, 'error.main'],
 ]);
 
-export const serviceStateToBadgeColor = new Map<ServiceState, 'success' | 'error' | 'warning'>([
+export const serviceStateToBadgeColor = new Map<
+  ServiceState,
+  'success' | 'error' | 'warning'
+>([
   [ServiceState.Running, 'success'],
   [ServiceState.Error, 'error'],
   [ServiceState.UpdateError, 'error'],
@@ -43,31 +50,13 @@ export const serviceStateToBadgeColor = new Map<ServiceState, 'success' | 'error
   [undefined, 'error'],
 ]);
 
-export const getServiceHealthState = (
-  serviceState: ServiceState,
-): 'success' | 'error' | 'warning' => {
-  switch (serviceState) {
-    case ServiceState.Running:
-      return 'success';
-    case ServiceState.Error:
-      return 'error';
-    case ServiceState.UpdateError:
-      return 'error';
-    case ServiceState.Updating:
-      return 'warning';
-    default:
-      return 'error';
-  }
-};
-
 /**
- * Returns the highest importance state from a list of service states 
+ * Returns the highest importance state from a list of service states
  * Example: [Running, Running, Error] => Error
-*/
+ */
 export const findHighestImportanceState = (
   servicesStates: ServiceState[],
 ): ServiceState => {
-  
   const serviceStateToImportance = new Map([
     [ServiceState.Running, 0],
     [ServiceState.Updating, 1],
@@ -81,7 +70,9 @@ export const findHighestImportanceState = (
   }
 
   return servicesStates.reduce((acc, state) => {
-    if (serviceStateToImportance.get(state) > serviceStateToImportance.get(acc)) {
+    if (
+      serviceStateToImportance.get(state) > serviceStateToImportance.get(acc)
+    ) {
       return state;
     }
     return acc;
