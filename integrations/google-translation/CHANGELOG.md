@@ -1,5 +1,11 @@
 # @nhost/google-translation
 
+## 0.2.1
+
+### Patch Changes
+
+- 33ce955: chore: update @google-cloud/translate dep to v8.3.0
+
 ## 0.2.0
 
 ### Minor Changes
