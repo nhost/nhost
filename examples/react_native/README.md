@@ -1,6 +1,6 @@
 # Nhost React Native example
 
-This example project is based on the [Nhost React Native Template](../../templates/react-native/). It is the result of following the [React Native quickstart guide](https://docs.nhost.io/guides/quickstarts/react-native)
+This example project is based on the [Nhost React Native Template](https://www.npmjs.com/package/@nhost/react-native-template). It is the result of following the [React Native quickstart guide](https://docs.nhost.io/guides/quickstarts/react-native)
 
 ## Prerequisites
 

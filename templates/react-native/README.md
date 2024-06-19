@@ -16,7 +16,7 @@ For a more comprehensive guide on how to build on top of this template you can f
 
 1. Initialize your project with this template
       ```sh
-      npx react-native init myapp --template nhost-react-native-template
+      npx react-native init myapp --template @nhost/react-native-template
       ```
 
 2. Replace the `subdomain` and `region` placeholders in the [`root.tsx`](src/root.tsx#L9C1-L10C1) with your Nhost project values from the overview page.
