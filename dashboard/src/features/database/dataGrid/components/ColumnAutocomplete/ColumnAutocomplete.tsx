@@ -19,6 +19,7 @@ import { useAutocomplete } from '@mui/base/useAutocomplete';
 import type { AutocompleteRenderGroupParams } from '@mui/material/Autocomplete';
 import { autocompleteClasses } from '@mui/material/Autocomplete';
 import type {
+  ChangeEvent,
   ForwardedRef,
   HTMLAttributes,
   PropsWithoutRef,
@@ -209,6 +210,7 @@ function ColumnAutocomplete(
     ]);
   }
 
+
   const options = useColumnGroups({
     selectedSchema,
     selectedTable,
@@ -240,6 +242,33 @@ function ColumnAutocomplete(
     isOptionEqualToValue,
     onChange: handleChange,
   });
+
+  
+  function handleInputValueChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    const {value} = event.target
+    setInputValue(value)
+
+    setSelectedColumn(
+      {
+        value,
+        label: value,
+        metadata: selectedColumn?.metadata || {
+          table_schema: selectedSchema,
+          table_name: selectedTable,
+        }
+      });
+
+    onChange?.(event, {
+      value:
+        selectedRelationships.length > 0
+          ? [relationshipDotNotation, value].join('.')
+          : value,
+      columnMetadata: {
+        table_schema: selectedSchema,
+        table_name: selectedTable,
+      },
+    });
+  }
 
   return (
     <>
@@ -293,7 +322,7 @@ function ColumnAutocomplete(
           helperText={
             String(tableError || metadataError || '') || props.helperText
           }
-          onChange={(event) => setInputValue(event.target.value)}
+          onChange={handleInputValueChange}
           value={inputValue}
           startAdornment={
             selectedColumn || relationshipDotNotation ? (
@@ -305,7 +334,7 @@ function ColumnAutocomplete(
                 className="!ml-2 flex-shrink-0 truncate lg:max-w-[200px]"
               >
                 <Text component="span" color="disabled">
-                  {defaultTable}
+                  {selectedTable}
                 </Text>
                 .
                 {relationshipDotNotation && (
