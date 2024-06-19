@@ -2,6 +2,7 @@
 	"extends": "@react-native/typescript-config/tsconfig.json",
 	"compilerOptions": {
 		"baseUrl": ".",
+		"moduleResolution": "Node",
 		"paths": {
 			"@components/*": ["src/components/*"],
 			"@screens/*": ["src/screens/*"],

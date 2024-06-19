@@ -1,15 +1,16 @@
-import React from 'react';
+import React from 'react'
 
-import {NhostClient, NhostProvider} from '@nhost/react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Main from '@screens/Main';
-import {NhostApolloProvider} from '@nhost/react-apollo';
+import { NhostClient, NhostProvider } from '@nhost/react'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import Main from '@screens/Main'
+import { NhostApolloProvider } from '@nhost/react-apollo'
 
 const nhost = new NhostClient({
-  subdomain: 'local',
+  subdomain: '<subdomain>',
+  region: '<region>',
   clientStorageType: 'react-native',
-  clientStorage: AsyncStorage,
-});
+  clientStorage: AsyncStorage
+})
 
 function App() {
   return (
@@ -18,7 +19,7 @@ function App() {
         <Main />
       </NhostApolloProvider>
     </NhostProvider>
-  );
+  )
 }
 
-export default App;
+export default App
