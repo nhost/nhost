@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/v2/Button';
 import { useDialog } from '@/components/common/DialogProvider';
 import { OverviewProjectHealthModal } from '@/features/projects/overview/components/OverviewProjectHealthModal';
 import { type ServiceHealthInfo, findHighestImportanceState, serviceStateToThemeColor, baseServices } from '@/features/projects/overview/health';
-import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { ServiceVersionTooltip } from '@/features/projects/overview/components/ServiceVersionTooltip';
 
 interface RunStatusTooltipProps {
@@ -50,11 +49,9 @@ function RunStatusTooltip({ servicesStatusInfo, openHealthModal }: RunStatusTool
 export default function OverviewProjectHealth() {
   const isPlatform = useIsPlatform();
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const localMimirClient = useLocalMimirClient();
 
   const { data: recommendedVersionsData, loading: loadingRecommendedVersions } = useGetRecommendedSoftwareVersionsQuery({
     skip: !isPlatform || !currentProject,
-    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const { openDialog, closeDialog } = useDialog();
@@ -71,7 +68,6 @@ export default function OverviewProjectHealth() {
       appId: currentProject?.id
     },
     skip: !isPlatform || !currentProject,
-    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   if (loadingRecommendedVersions || loadingConfiguredVersions || loadingProjectServicesHealth) {
