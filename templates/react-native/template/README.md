@@ -2,7 +2,7 @@
 
 This template bootstrapped using `react-native-community/cli` showcases how to properly use Nhost SDK within your React Native project.
 
-For a more comprehensive guide on how to build on top of this template you can follow our [quickstart guide](https://docs.nhost.io/guides/quickstarts/react-native).
+For a more comprehensive guide on how to build on top of this template you can follow the [quickstart guide](https://docs.nhost.io/guides/quickstarts/react-native).
 
 ## Features
 
@@ -11,6 +11,8 @@ For a more comprehensive guide on how to build on top of this template you can f
 - File upload
 
 ##  Usage
+
+> Ensure that your environment is set up to work with React Native. Follow the [setup guide](https://reactnative.dev/docs/set-up-your-environment) available on the official React Native website.
 
 1. Initialize your project with this template
       ```sh
