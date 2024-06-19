@@ -22,7 +22,7 @@ Ensure that your environment is set up to work with React Native. Follow the [se
    pnpm build:all
    ```
 
-3. Terminal 1: Run the local Nhost Project
+3. **Terminal 1**: Run the local Nhost Project
 
    1. Navigate to the backend directory
          ```sh
@@ -44,14 +44,14 @@ Ensure that your environment is set up to work with React Native. Follow the [se
       nhost up
       ```
 
-4. Terminal 2: Start the Metro bundler
+4. **Terminal 2**: Start the Metro bundler
 
    ```sh
    cd examples/react_native
    pnpm start
    ```
 
-5. Terminal 3: Start the app on either the Android emulator or iOS simulator
+5. **Terminal 3**: Start the app on either the Android emulator or iOS simulator
 
    - Android
 

@@ -1,6 +1,6 @@
 {
 	"name": "nhost-react-native",
-	"version": "0.0.6",
+	"version": "0.0.1",
 	"scripts": {
 		"android": "react-native run-android",
 		"ios": "react-native run-ios",
