@@ -15,6 +15,7 @@ import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
 import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
 import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
+import { Divider } from '@/components/ui/v2/Divider';
 
 
 interface ServiceAccordionProps {
@@ -199,8 +200,8 @@ export default function OverviewProjectHealthModal({
   return (<Box className={twMerge('w-full pt-2 rounded-lg text-left')}>
     <Box sx={{
       borderColor: "text.dark",
-      backgroundColor: (theme) => theme.palette.mode === "light" ? "divider" : "background.paper",
-    }} className="grid grid-flow-row gap-1 pt-1">
+    }} className="grid grid-flow-row">
+      <Divider />
       <ServiceAccordion
 
         icon={<UserIcon className="w-4 h-4" />}
@@ -210,6 +211,7 @@ export default function OverviewProjectHealthModal({
         serviceState={auth?.state}
         defaultExpanded={isAuthExpandedByDefault}
       />
+      <Divider />
       <ServiceAccordion
         icon={<DatabaseIcon className="w-4 h-4" />}
         serviceName="Postgres"
@@ -218,6 +220,7 @@ export default function OverviewProjectHealthModal({
         serviceState={postgres?.state}
         defaultExpanded={isPostgresExpandedByDefault}
       />
+      <Divider />
       <ServiceAccordion
         icon={<StorageIcon className="w-4 h-4" />}
         serviceName="Storage"
@@ -226,6 +229,7 @@ export default function OverviewProjectHealthModal({
         serviceState={storage?.state}
         defaultExpanded={isStorageExpandedByDefault}
       />
+      <Divider />
       <ServiceAccordion
         icon={<HasuraIcon className="w-4 h-4" />}
         serviceName="Hasura"
@@ -235,6 +239,8 @@ export default function OverviewProjectHealthModal({
         defaultExpanded={isHasuraExpandedByDefault}
       />
       {ai ? (
+        <>
+        <Divider />
         <ServiceAccordion
           icon={<AIIcon className="w-4 h-4" />}
           serviceName="AI"
@@ -243,14 +249,18 @@ export default function OverviewProjectHealthModal({
           serviceState={ai.state}
           defaultExpanded={isAIExpandedByDefault}
         />
+        </>
       ) : null}
       {Object.values(runServices).length > 0 ? (
+        <>
+        <Divider />
         <RunServicesAccordion
           servicesHealth={Object.values(runServices)}
           icon={<ServicesOutlinedIcon className="w-4 h-4" />}
           serviceStates={Object.values(runServices).map((service) => service.state)}
           defaultExpanded={isRunExpandedByDefault}
         />
+        </>
       )
         : null}
     </Box>
