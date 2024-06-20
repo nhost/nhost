@@ -2,4 +2,4 @@
 '@nhost/dashboard': minor
 ---
 
-feat: project health
+feat: add services health checks indicators to the overview page

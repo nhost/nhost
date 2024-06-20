@@ -45,7 +45,7 @@ function HealthBadge({
               color: (theme) =>
                 theme.palette.mode === 'dark' ? 'grey.900' : 'grey.600',
             }}
-            className="h-3 w-3"
+            className="h-2.5 w-2.5"
           />
         }
       >
