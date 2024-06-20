@@ -44,6 +44,8 @@ jobs:
       SSH_PRIVATE_KEY: ${{ secrets.NIX_REMOTE_BUILD_ARM_SSH_KEY }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_REMOTE_BUILDER_SECURITY_GROUP_ID: ${{ secrets.NIX_REMOTE_BUILDER_SECURITY_GROUP_ID }}
+      NIX_REMOTE_BUILDER_SUBNET_ID: ${{ secrets.NIX_REMOTE_BUILDER_SUBNET_ID }}
 
   remove_label:
     runs-on: ubuntu-latest

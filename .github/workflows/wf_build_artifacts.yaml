@@ -27,6 +27,10 @@ on:
         required: true
       NIX_CACHE_PRIV_KEY:
         required: true
+      NIX_REMOTE_BUILDER_SECURITY_GROUP_ID:
+        required: true
+      NIX_REMOTE_BUILDER_SUBNET_ID:
+        required: true
 
 jobs:
   artifacts:
@@ -82,15 +86,16 @@ jobs:
         echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
 
     - name: "Setup nix-remote-builder"
-      uses: dbarrosop/nix-remote-builder-aws@v0.4.0
+      uses: dbarrosop/nix-remote-builder-aws@v0.5.0
       id: nix-remote-builder
       with:
         name: ${{ inputs.NAME }}-${{ inputs.GIT_REF }}
         ami: " ami-034dac72b37504107"
         instance-type: 't4g.xlarge'
         region: "eu-central-1"
-        availability-zone: "eu-central-1c"
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        security-group-id: "{{ secrets.NIX_REMOTE_BUILDER_SECURITY_GROUP_ID }}"
+        subnet-id: "{{ secrets.NIX_REMOTE_BUILDER_SUBNET_ID }}"
       if: ${{ ( matrix.platform == 'aarch64' ) && steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
 
     - name: "Setup nix-remote-builder in nix.conf"
