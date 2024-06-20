@@ -46,7 +46,7 @@ icon: mobile-notch
 
   </Step>
 
-  <Step title="Edit permissions">
+  <Step title="Configure the todos table permissions">
     To set permissions for the new `todos` table, select the table, click on the `...` to open the actions dialog,
     then click on **Edit Permissions**. Set the following permissions for the `user` role:
 
@@ -93,6 +93,36 @@ icon: mobile-notch
 
     <Frame caption="Delete permissions">
       <img src="/images/guides/quickstarts/react-native/todos-delete-permissions.png" />
+    </Frame>
+  </Step>
+
+  <Step title="Configure permissions to enable user file uploads">
+    To enable file uploads by users, set the permissions as follows:
+
+    1. Edit the **files** table permissions
+        1. Navigate to the files table within the [Database tab](https://app.nhost.io/_/_/database/browser/default/storage/files)
+        2. Click on the three dots (...) next to the files table
+        3. Click on **Edit Permissions**
+
+    2. Modify the `Insert` permission for the `user` role:
+          1. Set `Row insert permissions` to `Without any checks`
+          2. Select all columns on `Column insert permissions`
+          4. Save
+
+    <Frame caption="Insert Permissions">
+      <img src="/images/guides/quickstarts/react-native/files-insert-permissions.png" />
+    </Frame>
+
+    3. `Select`
+        - Set `Row select permissions` to `With custom check` and fill in the following rule:
+            - Set `Where` to `files.uploaded_by_user_id`
+            - Set the operator to `_eq`
+            - Set the value to `X-Hasura-User-Id`
+        - Select all columns on `Column select permissions`
+        - Save
+
+    <Frame caption="Select permissions">
+      <img src="/images/guides/quickstarts/react-native/files-select-permissions.png" />
     </Frame>
   </Step>
 
@@ -410,3 +440,18 @@ icon: mobile-notch
     />
   </Step>
 </Steps>
+
+
+<Note>
+  ### Next Steps: enabling Google and Apple Sign-In
+
+  The template is preconfigured to allow users to sign in with Google and Apple. To enable this feature, follow these steps:
+
+  1. Navigate to your Nhost project's [Sign-In Methods settings](https://app.nhost.io/_/_/settings/sign-in-methods).
+  2. Enable Google and/or Apple sign-in.
+  3. Fill in the necessary credentials.
+
+  For detailed instructions on generating the required credentials, refer to the following guides:
+  - [Google Sign-In Guide](https://docs.nhost.io/guides/auth/social/sign-in-google)
+  - [Apple Sign-In Guide](https://docs.nhost.io/guides/auth/social/sign-in-apple)
+</Note>
