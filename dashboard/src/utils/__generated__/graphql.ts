@@ -22854,6 +22854,13 @@ export type GetApplicationStateQueryVariables = Exact<{
 
 export type GetApplicationStateQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', id: any, name: string, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }> } | null };
 
+export type GetConfiguredVersionsQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetConfiguredVersionsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', version?: string | null } | null, postgres?: { __typename?: 'ConfigPostgres', version?: string | null } | null, hasura: { __typename?: 'ConfigHasura', version?: string | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null, storage?: { __typename?: 'ConfigStorage', version?: string | null } | null } | null };
+
 export type GetProjectLocalesQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -22870,6 +22877,13 @@ export type GetProjectMetricsQueryVariables = Exact<{
 
 
 export type GetProjectMetricsQuery = { __typename?: 'query_root', logsVolume: { __typename?: 'Metrics', value: any }, cpuSecondsUsage: { __typename?: 'Metrics', value: any }, functionInvocations: { __typename?: 'Metrics', value: any }, functionsDuration: { __typename?: 'Metrics', value: any }, postgresVolumeCapacity: { __typename?: 'Metrics', value: any }, postgresVolumeUsage: { __typename?: 'Metrics', value: any }, totalRequests: { __typename?: 'Metrics', value: any }, egressVolume: { __typename?: 'Metrics', value: any } };
+
+export type GetProjectServicesHealthQueryVariables = Exact<{
+  appId: Scalars['String'];
+}>;
+
+
+export type GetProjectServicesHealthQuery = { __typename?: 'query_root', getProjectStatus: { __typename?: 'ProjectStatusResponse', services: Array<{ __typename?: 'ServiceStatus', name: string, state: ServiceState, replicas: Array<{ __typename?: 'ReplicaStatus', ready: boolean, date: any, errors: Array<{ __typename?: 'ContainerError', name: string, lastError: { __typename?: 'LastError', reason: string, exitCode: number, message: string } }> }> }> } };
 
 export type GetRemoteAppRolesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -23158,6 +23172,11 @@ export type GetPlansQueryVariables = Exact<{
 
 
 export type GetPlansQuery = { __typename?: 'query_root', plans: Array<{ __typename?: 'plans', id: any, name: string, isFree: boolean, price: number }> };
+
+export type GetRecommendedSoftwareVersionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetRecommendedSoftwareVersionsQuery = { __typename?: 'query_root', softwareVersions: Array<{ __typename?: 'software_versions', software: Software_Type_Enum, version: string }> };
 
 export type GetSoftwareVersionsQueryVariables = Exact<{
   software: Software_Type_Enum;
@@ -24679,6 +24698,58 @@ export type GetApplicationStateQueryResult = Apollo.QueryResult<GetApplicationSt
 export function refetchGetApplicationStateQuery(variables: GetApplicationStateQueryVariables) {
       return { query: GetApplicationStateDocument, variables: variables }
     }
+export const GetConfiguredVersionsDocument = gql`
+    query getConfiguredVersions($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    auth {
+      version
+    }
+    postgres {
+      version
+    }
+    hasura {
+      version
+    }
+    ai {
+      version
+    }
+    storage {
+      version
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetConfiguredVersionsQuery__
+ *
+ * To run a query within a React component, call `useGetConfiguredVersionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetConfiguredVersionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetConfiguredVersionsQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetConfiguredVersionsQuery(baseOptions: Apollo.QueryHookOptions<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>(GetConfiguredVersionsDocument, options);
+      }
+export function useGetConfiguredVersionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>(GetConfiguredVersionsDocument, options);
+        }
+export type GetConfiguredVersionsQueryHookResult = ReturnType<typeof useGetConfiguredVersionsQuery>;
+export type GetConfiguredVersionsLazyQueryHookResult = ReturnType<typeof useGetConfiguredVersionsLazyQuery>;
+export type GetConfiguredVersionsQueryResult = Apollo.QueryResult<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>;
+export function refetchGetConfiguredVersionsQuery(variables: GetConfiguredVersionsQueryVariables) {
+      return { query: GetConfiguredVersionsDocument, variables: variables }
+    }
 export const GetProjectLocalesDocument = gql`
     query getProjectLocales($appId: uuid!) {
   config(appID: $appId, resolve: false) {
@@ -24794,6 +24865,59 @@ export type GetProjectMetricsLazyQueryHookResult = ReturnType<typeof useGetProje
 export type GetProjectMetricsQueryResult = Apollo.QueryResult<GetProjectMetricsQuery, GetProjectMetricsQueryVariables>;
 export function refetchGetProjectMetricsQuery(variables: GetProjectMetricsQueryVariables) {
       return { query: GetProjectMetricsDocument, variables: variables }
+    }
+export const GetProjectServicesHealthDocument = gql`
+    query getProjectServicesHealth($appId: String!) {
+  getProjectStatus(appID: $appId) {
+    services {
+      name
+      state
+      replicas {
+        ready
+        date
+        errors {
+          name
+          lastError {
+            reason
+            exitCode
+            message
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetProjectServicesHealthQuery__
+ *
+ * To run a query within a React component, call `useGetProjectServicesHealthQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectServicesHealthQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectServicesHealthQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetProjectServicesHealthQuery(baseOptions: Apollo.QueryHookOptions<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>(GetProjectServicesHealthDocument, options);
+      }
+export function useGetProjectServicesHealthLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>(GetProjectServicesHealthDocument, options);
+        }
+export type GetProjectServicesHealthQueryHookResult = ReturnType<typeof useGetProjectServicesHealthQuery>;
+export type GetProjectServicesHealthLazyQueryHookResult = ReturnType<typeof useGetProjectServicesHealthLazyQuery>;
+export type GetProjectServicesHealthQueryResult = Apollo.QueryResult<GetProjectServicesHealthQuery, GetProjectServicesHealthQueryVariables>;
+export function refetchGetProjectServicesHealthQuery(variables: GetProjectServicesHealthQueryVariables) {
+      return { query: GetProjectServicesHealthDocument, variables: variables }
     }
 export const GetRemoteAppRolesDocument = gql`
     query getRemoteAppRoles {
@@ -26375,6 +26499,44 @@ export type GetPlansLazyQueryHookResult = ReturnType<typeof useGetPlansLazyQuery
 export type GetPlansQueryResult = Apollo.QueryResult<GetPlansQuery, GetPlansQueryVariables>;
 export function refetchGetPlansQuery(variables?: GetPlansQueryVariables) {
       return { query: GetPlansDocument, variables: variables }
+    }
+export const GetRecommendedSoftwareVersionsDocument = gql`
+    query getRecommendedSoftwareVersions {
+  softwareVersions {
+    software
+    version
+  }
+}
+    `;
+
+/**
+ * __useGetRecommendedSoftwareVersionsQuery__
+ *
+ * To run a query within a React component, call `useGetRecommendedSoftwareVersionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRecommendedSoftwareVersionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRecommendedSoftwareVersionsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetRecommendedSoftwareVersionsQuery(baseOptions?: Apollo.QueryHookOptions<GetRecommendedSoftwareVersionsQuery, GetRecommendedSoftwareVersionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRecommendedSoftwareVersionsQuery, GetRecommendedSoftwareVersionsQueryVariables>(GetRecommendedSoftwareVersionsDocument, options);
+      }
+export function useGetRecommendedSoftwareVersionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRecommendedSoftwareVersionsQuery, GetRecommendedSoftwareVersionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRecommendedSoftwareVersionsQuery, GetRecommendedSoftwareVersionsQueryVariables>(GetRecommendedSoftwareVersionsDocument, options);
+        }
+export type GetRecommendedSoftwareVersionsQueryHookResult = ReturnType<typeof useGetRecommendedSoftwareVersionsQuery>;
+export type GetRecommendedSoftwareVersionsLazyQueryHookResult = ReturnType<typeof useGetRecommendedSoftwareVersionsLazyQuery>;
+export type GetRecommendedSoftwareVersionsQueryResult = Apollo.QueryResult<GetRecommendedSoftwareVersionsQuery, GetRecommendedSoftwareVersionsQueryVariables>;
+export function refetchGetRecommendedSoftwareVersionsQuery(variables?: GetRecommendedSoftwareVersionsQueryVariables) {
+      return { query: GetRecommendedSoftwareVersionsDocument, variables: variables }
     }
 export const GetSoftwareVersionsDocument = gql`
     query getSoftwareVersions($software: software_type_enum!) {
