@@ -78,18 +78,3 @@ export const findHighestImportanceState = (
     return acc;
   }, ServiceState.Running);
 };
-
-/* JSON stringify replacer that removes __typename from the object */
-const typenameReplacer = (key, value) => {
-  if (key === '__typename') {
-    return undefined;
-  }
-
-  return value;
-};
-
-/**
- * Returns a stringified JSON representation of the object with all __typename keys removed
- */
-export const stringifyHealthJSON = (obj: any) =>
-  JSON.stringify(obj, typenameReplacer, 2);
