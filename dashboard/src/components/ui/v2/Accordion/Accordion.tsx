@@ -1,11 +1,9 @@
 import { styled } from '@mui/material';
 import type { AccordionProps as MaterialAccordionProps } from '@mui/material/Accordion';
 
-import MaterialAccordion, {
-    accordionClasses,
-} from '@mui/material/Accordion';
+import MaterialAccordion, { accordionClasses } from '@mui/material/Accordion';
 
-export interface AccordionProps extends MaterialAccordionProps{}
+export interface AccordionProps extends MaterialAccordionProps {}
 
 const Accordion = styled(MaterialAccordion)<AccordionProps>(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
@@ -14,14 +12,14 @@ const Accordion = styled(MaterialAccordion)<AccordionProps>(({ theme }) => ({
   borderBottom: `transparent solid 0px`,
   boxShadow: `none`,
   [`&.${accordionClasses.disabled}`]: {
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   },
   [`&.${accordionClasses.root}`]: {
     overflowX: 'hidden',
   },
   [`&.${accordionClasses.expanded}`]: {
-  marginTop: 0,
-  marginBottom: 0,
+    marginTop: 0,
+    marginBottom: 0,
   },
 }));
 

@@ -3,7 +3,10 @@ import { SvgIcon } from '@/components/ui/v2/icons/SvgIcon';
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
 
-function ExclamationFilledIcon(props: IconProps, ref: ForwardedRef<SVGSVGElement>) {
+function ExclamationFilledIcon(
+  props: IconProps,
+  ref: ForwardedRef<SVGSVGElement>,
+) {
   return (
     <SvgIcon
       width="7"
@@ -13,7 +16,8 @@ function ExclamationFilledIcon(props: IconProps, ref: ForwardedRef<SVGSVGElement
       xmlns="http://www.w3.org/2000/svg"
       aria-label="Exclamation mark"
       ref={ref}
-      {...props}>
+      {...props}
+    >
       <path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -21,7 +25,6 @@ function ExclamationFilledIcon(props: IconProps, ref: ForwardedRef<SVGSVGElement
         fill="currentColor"
       />
     </SvgIcon>
-
   );
 }
 

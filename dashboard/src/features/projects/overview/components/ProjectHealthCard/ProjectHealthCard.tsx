@@ -1,15 +1,15 @@
-import type { BoxProps } from '@/components/ui/v2/Box';
-import type { ReactElement } from 'react';
-import { Box } from '@/components/ui/v2/Box';
 import { Badge, type BadgeProps } from '@/components/ui/v2/Badge';
-import { Tooltip, tooltipClasses } from '@/components/ui/v2/Tooltip';
-import { twMerge } from 'tailwind-merge';
-import type { ImageProps } from 'next/image';
-import Image from 'next/image';
+import type { BoxProps } from '@/components/ui/v2/Box';
+import { Box } from '@/components/ui/v2/Box';
 import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
 import { ExclamationFilledIcon } from '@/components/ui/v2/icons/ExclamationFilledIcon';
-import { ServiceState } from '@/utils/__generated__/graphql';
+import { Tooltip, tooltipClasses } from '@/components/ui/v2/Tooltip';
 import { serviceStateToBadgeColor } from '@/features/projects/overview/health';
+import { ServiceState } from '@/utils/__generated__/graphql';
+import type { ImageProps } from 'next/image';
+import Image from 'next/image';
+import type { ReactElement } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 interface HealthBadgeProps extends BadgeProps {
   badgeVariant?: 'standard' | 'dot';
@@ -19,18 +19,16 @@ interface HealthBadgeProps extends BadgeProps {
   isLoading?: boolean;
 }
 
-function HealthBadge({ badgeColor,
+function HealthBadge({
+  badgeColor,
   badgeVariant,
   showExclamation,
   showCheckIcon,
   children,
-  ...props }: HealthBadgeProps) {
-
-
+  ...props
+}: HealthBadgeProps) {
   if (!badgeColor) {
-    return (
-      <div>{children}</div>
-    )
+    return <div>{children}</div>;
   }
 
   if (showExclamation) {
@@ -38,45 +36,60 @@ function HealthBadge({ badgeColor,
       <Badge
         variant="standard"
         anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
+          vertical: 'bottom',
+          horizontal: 'right',
         }}
-        badgeContent={<ExclamationFilledIcon sx={{
-          color: (theme) => theme.palette.mode === "dark" ? "grey.900" : "grey.600",
-        }} className="h-3 w-3" />}
+        badgeContent={
+          <ExclamationFilledIcon
+            sx={{
+              color: (theme) =>
+                theme.palette.mode === 'dark' ? 'grey.900' : 'grey.600',
+            }}
+            className="h-3 w-3"
+          />
+        }
       >
         <Badge
           color={badgeColor}
           variant={badgeVariant}
-          badgeContent={showCheckIcon
-            ? <CheckIcon
-              sx={{
-                color: (theme) => theme.palette.mode === "dark" ? "grey.200" : "grey.100",
-              }}
-              className="w-2 h-2 stroke-2" />
-            : null}
+          badgeContent={
+            showCheckIcon ? (
+              <CheckIcon
+                sx={{
+                  color: (theme) =>
+                    theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
+                }}
+                className="h-2 w-2 stroke-2"
+              />
+            ) : null
+          }
           sx={{
-            color: (theme) => theme.palette.mode === "dark" ? "grey.900" : "text.primary",
+            color: (theme) =>
+              theme.palette.mode === 'dark' ? 'grey.900' : 'text.primary',
           }}
           {...props}
         >
           {children}
         </Badge>
       </Badge>
-    )
+    );
   }
 
   return (
     <Badge
       color={badgeColor}
       variant={badgeVariant}
-      badgeContent={showCheckIcon
-        ? <CheckIcon
-          sx={{
-            color: (theme) => theme.palette.mode === "dark" ? "grey.200" : "grey.100",
-          }}
-          className="w-2 h-2 stroke-2" />
-        : null}
+      badgeContent={
+        showCheckIcon ? (
+          <CheckIcon
+            sx={{
+              color: (theme) =>
+                theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
+            }}
+            className="h-2 w-2 stroke-2"
+          />
+        ) : null
+      }
       {...props}
     >
       {children}
@@ -116,7 +129,7 @@ export interface ProjectHealthCardProps extends BoxProps {
    */
   slotProps?: {
     imgIcon?: Partial<ImageProps>;
-  }
+  };
   /**
    * State of the service.
    */
@@ -146,26 +159,27 @@ export default function ProjectHealthCard({
   ...props
 }: ProjectHealthCardProps) {
   const badgeColor = serviceStateToBadgeColor.get(state);
-  const badgeVariant = state === ServiceState.Running ? "standard" : "dot";
+  const badgeVariant = state === ServiceState.Running ? 'standard' : 'dot';
   const showCheckIcon = state === ServiceState.Running;
 
   return (
-    <Tooltip title={tooltip}
+    <Tooltip
+      title={tooltip}
       slotProps={{
         popper: {
           sx: {
-            [`&.${tooltipClasses.popper} .${tooltipClasses.tooltip}`]:
-            {
-              backgroundColor: (theme) => theme.palette.mode === "dark" ? "grey.100" : "grey.200",
-              minWidth: "18rem",
+            [`&.${tooltipClasses.popper} .${tooltipClasses.tooltip}`]: {
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'dark' ? 'grey.100' : 'grey.200',
+              minWidth: '18rem',
             },
-          }
-        }
+          },
+        },
       }}
     >
       <Box
         className={twMerge(
-          'min-w-12 max-w-14 grid grid-flow-row gap-0 rounded-md p-0 aspect-square',
+          'grid aspect-square min-w-12 max-w-14 grid-flow-row gap-0 rounded-md p-0',
           className,
         )}
         sx={{ backgroundColor: 'grey.200' }}
@@ -181,14 +195,14 @@ export default function ProjectHealthCard({
             {iconIsComponent
               ? icon
               : typeof icon === 'string' && (
-                <Image
-                  src={icon}
-                  alt={alt}
-                  width={slotProps.imgIcon?.width}
-                  height={slotProps.imgIcon?.height}
-                  {...slotProps.imgIcon}
-                />
-              )}
+                  <Image
+                    src={icon}
+                    alt={alt}
+                    width={slotProps.imgIcon?.width}
+                    height={slotProps.imgIcon?.height}
+                    {...slotProps.imgIcon}
+                  />
+                )}
           </HealthBadge>
         </div>
       </Box>

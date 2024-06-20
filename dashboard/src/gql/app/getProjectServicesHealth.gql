@@ -1,4 +1,4 @@
-query getProjectServicesHealth($appId: String!){
+query getProjectServicesHealth($appId: String!) {
   getProjectStatus(appID: $appId) {
     services {
       name

@@ -1,4 +1,4 @@
-query getRecommendedSoftwareVersions{
+query getRecommendedSoftwareVersions {
   softwareVersions {
     software
     version

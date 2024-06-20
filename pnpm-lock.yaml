@@ -4889,7 +4889,6 @@ packages:
   /@fastify/busboy@2.1.1:
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
-    dev: true
 
   /@floating-ui/core@1.6.0:
     resolution: {integrity: sha512-PcF++MykgmTj3CIyOQbKA/hDzOAiqI3mhuoN44WRCopIs1sgoDoU4oty4Jtqaj/y3oDU6fnVSm4QG0a3t5i0+g==}
@@ -4982,7 +4981,7 @@ packages:
     dependencies:
       gqty: 2.3.0(graphql@16.8.1)
       graphql: 16.8.1
-      undici: 6.10.2
+      undici: 5.28.4
     dev: true
 
   /@gqty/react@2.1.0(gqty@2.3.0)(graphql@16.8.1)(react@18.2.0):
@@ -12131,7 +12130,7 @@ packages:
       form-data-encoder: 1.9.0
       formdata-node: 4.4.1
       node-fetch: 2.7.0(encoding@0.1.13)
-      undici: 6.10.2
+      undici: 5.28.4
       web-streams-polyfill: 3.3.3
     transitivePeerDependencies:
       - encoding
@@ -22304,7 +22303,7 @@ packages:
       destr: 1.2.2
       node-fetch-native: 0.1.8
       ufo: 0.8.6
-      undici: 6.10.2
+      undici: 5.28.4
     dev: true
 
   /on-exit-leak-free@2.1.2:
@@ -26839,11 +26838,6 @@ packages:
     engines: {node: '>=14.0'}
     dependencies:
       '@fastify/busboy': 2.1.1
-    dev: true
-
-  /undici@6.10.2:
-    resolution: {integrity: sha512-HcVuBy7ACaDejIMdwCzAvO22OsiE6ir6ziTIr9kAE0vB+PheVe29ZvRN8p7FXCO2uZHTjEoUs5bPiFpuc/hwwQ==}
-    engines: {node: '>=18.0'}
 
   /unfetch@4.2.0:
     resolution: {integrity: sha512-F9p7yYCn6cIW9El1zi0HI6vqpeIvBsr3dSuRO6Xuppb1u5rXpCPmMvLSyECLhybr9isec8Ohl0hPekMVrEinDA==}
