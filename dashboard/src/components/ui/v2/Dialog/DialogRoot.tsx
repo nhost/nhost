@@ -1,12 +1,12 @@
 import { Backdrop } from '@/components/ui/v2/Backdrop';
 import type { ButtonProps } from '@/components/ui/v2/Button';
+import type { DialogTitleProps } from '@/components/ui/v2/Dialog';
 import { styled } from '@mui/material';
 import type { DialogProps as MaterialDialogProps } from '@mui/material/Dialog';
 import MaterialDialog from '@mui/material/Dialog';
 import type { DialogActionsProps } from '@mui/material/DialogActions';
 import type { DialogContentProps } from '@mui/material/DialogContent';
 import type { DialogContentTextProps } from '@mui/material/DialogContentText';
-import type { DialogTitleProps } from '@mui/material/DialogTitle';
 import Paper from '@mui/material/Paper';
 import type { ReactNode } from 'react';
 
