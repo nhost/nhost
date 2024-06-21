@@ -1037,6 +1037,26 @@ export type ConfigAuthsessionaccessTokenCustomClaimsUpdateInput = {
   value?: InputMaybe<Scalars['String']>;
 };
 
+export type ConfigAutoscaler = {
+  __typename?: 'ConfigAutoscaler';
+  maxReplicas: Scalars['ConfigUint8'];
+};
+
+export type ConfigAutoscalerComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAutoscalerComparisonExp>>;
+  _not?: InputMaybe<ConfigAutoscalerComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAutoscalerComparisonExp>>;
+  maxReplicas?: InputMaybe<ConfigUint8ComparisonExp>;
+};
+
+export type ConfigAutoscalerInsertInput = {
+  maxReplicas: Scalars['ConfigUint8'];
+};
+
+export type ConfigAutoscalerUpdateInput = {
+  maxReplicas?: InputMaybe<Scalars['ConfigUint8']>;
+};
+
 export type ConfigBooleanComparisonExp = {
   _eq?: InputMaybe<Scalars['Boolean']>;
   _in?: InputMaybe<Array<Scalars['Boolean']>>;
@@ -1803,6 +1823,7 @@ export type ConfigPostgresInsertInput = {
 /** Resources for the service */
 export type ConfigPostgresResources = {
   __typename?: 'ConfigPostgresResources';
+  autoscaler?: Maybe<ConfigAutoscaler>;
   compute?: Maybe<ConfigResourcesCompute>;
   enablePublicAccess?: Maybe<Scalars['Boolean']>;
   networking?: Maybe<ConfigNetworking>;
@@ -1815,6 +1836,7 @@ export type ConfigPostgresResourcesComparisonExp = {
   _and?: InputMaybe<Array<ConfigPostgresResourcesComparisonExp>>;
   _not?: InputMaybe<ConfigPostgresResourcesComparisonExp>;
   _or?: InputMaybe<Array<ConfigPostgresResourcesComparisonExp>>;
+  autoscaler?: InputMaybe<ConfigAutoscalerComparisonExp>;
   compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
   enablePublicAccess?: InputMaybe<ConfigBooleanComparisonExp>;
   networking?: InputMaybe<ConfigNetworkingComparisonExp>;
@@ -1823,6 +1845,7 @@ export type ConfigPostgresResourcesComparisonExp = {
 };
 
 export type ConfigPostgresResourcesInsertInput = {
+  autoscaler?: InputMaybe<ConfigAutoscalerInsertInput>;
   compute?: InputMaybe<ConfigResourcesComputeInsertInput>;
   enablePublicAccess?: InputMaybe<Scalars['Boolean']>;
   networking?: InputMaybe<ConfigNetworkingInsertInput>;
@@ -1831,6 +1854,7 @@ export type ConfigPostgresResourcesInsertInput = {
 };
 
 export type ConfigPostgresResourcesUpdateInput = {
+  autoscaler?: InputMaybe<ConfigAutoscalerUpdateInput>;
   compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
   enablePublicAccess?: InputMaybe<Scalars['Boolean']>;
   networking?: InputMaybe<ConfigNetworkingUpdateInput>;
@@ -1992,6 +2016,7 @@ export type ConfigProviderUpdateInput = {
 /** Resource configuration for a service */
 export type ConfigResources = {
   __typename?: 'ConfigResources';
+  autoscaler?: Maybe<ConfigAutoscaler>;
   compute?: Maybe<ConfigResourcesCompute>;
   networking?: Maybe<ConfigNetworking>;
   /** Number of replicas for a service */
@@ -2002,6 +2027,7 @@ export type ConfigResourcesComparisonExp = {
   _and?: InputMaybe<Array<ConfigResourcesComparisonExp>>;
   _not?: InputMaybe<ConfigResourcesComparisonExp>;
   _or?: InputMaybe<Array<ConfigResourcesComparisonExp>>;
+  autoscaler?: InputMaybe<ConfigAutoscalerComparisonExp>;
   compute?: InputMaybe<ConfigResourcesComputeComparisonExp>;
   networking?: InputMaybe<ConfigNetworkingComparisonExp>;
   replicas?: InputMaybe<ConfigUint8ComparisonExp>;
@@ -2034,12 +2060,14 @@ export type ConfigResourcesComputeUpdateInput = {
 };
 
 export type ConfigResourcesInsertInput = {
+  autoscaler?: InputMaybe<ConfigAutoscalerInsertInput>;
   compute?: InputMaybe<ConfigResourcesComputeInsertInput>;
   networking?: InputMaybe<ConfigNetworkingInsertInput>;
   replicas?: InputMaybe<Scalars['ConfigUint8']>;
 };
 
 export type ConfigResourcesUpdateInput = {
+  autoscaler?: InputMaybe<ConfigAutoscalerUpdateInput>;
   compute?: InputMaybe<ConfigResourcesComputeUpdateInput>;
   networking?: InputMaybe<ConfigNetworkingUpdateInput>;
   replicas?: InputMaybe<Scalars['ConfigUint8']>;
@@ -2157,6 +2185,7 @@ export type ConfigRunServicePortUpdateInput = {
 /** Resource configuration for a service */
 export type ConfigRunServiceResources = {
   __typename?: 'ConfigRunServiceResources';
+  autoscaler?: Maybe<ConfigAutoscaler>;
   compute: ConfigComputeResources;
   /** Number of replicas for a service */
   replicas: Scalars['ConfigUint8'];
@@ -2167,12 +2196,14 @@ export type ConfigRunServiceResourcesComparisonExp = {
   _and?: InputMaybe<Array<ConfigRunServiceResourcesComparisonExp>>;
   _not?: InputMaybe<ConfigRunServiceResourcesComparisonExp>;
   _or?: InputMaybe<Array<ConfigRunServiceResourcesComparisonExp>>;
+  autoscaler?: InputMaybe<ConfigAutoscalerComparisonExp>;
   compute?: InputMaybe<ConfigComputeResourcesComparisonExp>;
   replicas?: InputMaybe<ConfigUint8ComparisonExp>;
   storage?: InputMaybe<ConfigRunServiceResourcesStorageComparisonExp>;
 };
 
 export type ConfigRunServiceResourcesInsertInput = {
+  autoscaler?: InputMaybe<ConfigAutoscalerInsertInput>;
   compute: ConfigComputeResourcesInsertInput;
   replicas: Scalars['ConfigUint8'];
   storage?: InputMaybe<Array<ConfigRunServiceResourcesStorageInsertInput>>;
@@ -2209,6 +2240,7 @@ export type ConfigRunServiceResourcesStorageUpdateInput = {
 };
 
 export type ConfigRunServiceResourcesUpdateInput = {
+  autoscaler?: InputMaybe<ConfigAutoscalerUpdateInput>;
   compute?: InputMaybe<ConfigComputeResourcesUpdateInput>;
   replicas?: InputMaybe<Scalars['ConfigUint8']>;
   storage?: InputMaybe<Array<ConfigRunServiceResourcesStorageUpdateInput>>;
@@ -12212,6 +12244,7 @@ export type Mutation_Root = {
   pauseAppsExceedUsage: Array<Scalars['String']>;
   pauseInactiveApps: Array<Scalars['String']>;
   replaceConfig: ConfigConfig;
+  replaceConfigRawJSON: Scalars['String'];
   replaceRunServiceConfig: ConfigRunServiceConfig;
   resetPostgresPassword: Scalars['Boolean'];
   restoreApplicationDatabase: Scalars['Boolean'];
@@ -13700,6 +13733,13 @@ export type Mutation_RootInsert_Regions_OneArgs = {
 export type Mutation_RootReplaceConfigArgs = {
   appID: Scalars['uuid'];
   config: ConfigConfigInsertInput;
+};
+
+
+/** mutation root */
+export type Mutation_RootReplaceConfigRawJsonArgs = {
+  appID: Scalars['uuid'];
+  rawJSON: Scalars['String'];
 };
 
 
@@ -15209,6 +15249,7 @@ export type Plans = {
   deprecated: Scalars['Boolean'];
   featureAdvancedGraphql: Scalars['Boolean'];
   featureBackupEnabled: Scalars['Boolean'];
+  featureBackupRetentionDays: Scalars['Int'];
   featureCustomDomainsEnabled: Scalars['Boolean'];
   featureCustomEmailTemplatesEnabled: Scalars['Boolean'];
   featureCustomResources: Scalars['Boolean'];
@@ -15291,6 +15332,7 @@ export type Plans_Aggregate_FieldsCountArgs = {
 /** aggregate avg on columns */
 export type Plans_Avg_Fields = {
   __typename?: 'plans_avg_fields';
+  featureBackupRetentionDays?: Maybe<Scalars['Float']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Float']>;
   featureMaxDbSize?: Maybe<Scalars['Float']>;
@@ -15312,6 +15354,7 @@ export type Plans_Bool_Exp = {
   deprecated?: InputMaybe<Boolean_Comparison_Exp>;
   featureAdvancedGraphql?: InputMaybe<Boolean_Comparison_Exp>;
   featureBackupEnabled?: InputMaybe<Boolean_Comparison_Exp>;
+  featureBackupRetentionDays?: InputMaybe<Int_Comparison_Exp>;
   featureCustomDomainsEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Boolean_Comparison_Exp>;
   featureCustomResources?: InputMaybe<Boolean_Comparison_Exp>;
@@ -15346,6 +15389,7 @@ export enum Plans_Constraint {
 
 /** input type for incrementing numeric columns in table "plans" */
 export type Plans_Inc_Input = {
+  featureBackupRetentionDays?: InputMaybe<Scalars['Int']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: InputMaybe<Scalars['Int']>;
   featureMaxDbSize?: InputMaybe<Scalars['Int']>;
@@ -15363,6 +15407,7 @@ export type Plans_Insert_Input = {
   deprecated?: InputMaybe<Scalars['Boolean']>;
   featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
+  featureBackupRetentionDays?: InputMaybe<Scalars['Int']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomResources?: InputMaybe<Scalars['Boolean']>;
@@ -15396,6 +15441,7 @@ export type Plans_Insert_Input = {
 export type Plans_Max_Fields = {
   __typename?: 'plans_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
+  featureBackupRetentionDays?: Maybe<Scalars['Int']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Int']>;
   featureMaxDbSize?: Maybe<Scalars['Int']>;
@@ -15420,6 +15466,7 @@ export type Plans_Max_Fields = {
 export type Plans_Min_Fields = {
   __typename?: 'plans_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
+  featureBackupRetentionDays?: Maybe<Scalars['Int']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Int']>;
   featureMaxDbSize?: Maybe<Scalars['Int']>;
@@ -15470,6 +15517,7 @@ export type Plans_Order_By = {
   deprecated?: InputMaybe<Order_By>;
   featureAdvancedGraphql?: InputMaybe<Order_By>;
   featureBackupEnabled?: InputMaybe<Order_By>;
+  featureBackupRetentionDays?: InputMaybe<Order_By>;
   featureCustomDomainsEnabled?: InputMaybe<Order_By>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Order_By>;
   featureCustomResources?: InputMaybe<Order_By>;
@@ -15511,6 +15559,8 @@ export enum Plans_Select_Column {
   FeatureAdvancedGraphql = 'featureAdvancedGraphql',
   /** column name */
   FeatureBackupEnabled = 'featureBackupEnabled',
+  /** column name */
+  FeatureBackupRetentionDays = 'featureBackupRetentionDays',
   /** column name */
   FeatureCustomDomainsEnabled = 'featureCustomDomainsEnabled',
   /** column name */
@@ -15567,6 +15617,7 @@ export type Plans_Set_Input = {
   deprecated?: InputMaybe<Scalars['Boolean']>;
   featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
+  featureBackupRetentionDays?: InputMaybe<Scalars['Int']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomResources?: InputMaybe<Scalars['Boolean']>;
@@ -15599,6 +15650,7 @@ export type Plans_Set_Input = {
 /** aggregate stddev on columns */
 export type Plans_Stddev_Fields = {
   __typename?: 'plans_stddev_fields';
+  featureBackupRetentionDays?: Maybe<Scalars['Float']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Float']>;
   featureMaxDbSize?: Maybe<Scalars['Float']>;
@@ -15612,6 +15664,7 @@ export type Plans_Stddev_Fields = {
 /** aggregate stddev_pop on columns */
 export type Plans_Stddev_Pop_Fields = {
   __typename?: 'plans_stddev_pop_fields';
+  featureBackupRetentionDays?: Maybe<Scalars['Float']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Float']>;
   featureMaxDbSize?: Maybe<Scalars['Float']>;
@@ -15625,6 +15678,7 @@ export type Plans_Stddev_Pop_Fields = {
 /** aggregate stddev_samp on columns */
 export type Plans_Stddev_Samp_Fields = {
   __typename?: 'plans_stddev_samp_fields';
+  featureBackupRetentionDays?: Maybe<Scalars['Float']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Float']>;
   featureMaxDbSize?: Maybe<Scalars['Float']>;
@@ -15649,6 +15703,7 @@ export type Plans_Stream_Cursor_Value_Input = {
   deprecated?: InputMaybe<Scalars['Boolean']>;
   featureAdvancedGraphql?: InputMaybe<Scalars['Boolean']>;
   featureBackupEnabled?: InputMaybe<Scalars['Boolean']>;
+  featureBackupRetentionDays?: InputMaybe<Scalars['Int']>;
   featureCustomDomainsEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomEmailTemplatesEnabled?: InputMaybe<Scalars['Boolean']>;
   featureCustomResources?: InputMaybe<Scalars['Boolean']>;
@@ -15681,6 +15736,7 @@ export type Plans_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Plans_Sum_Fields = {
   __typename?: 'plans_sum_fields';
+  featureBackupRetentionDays?: Maybe<Scalars['Int']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Int']>;
   featureMaxDbSize?: Maybe<Scalars['Int']>;
@@ -15701,6 +15757,8 @@ export enum Plans_Update_Column {
   FeatureAdvancedGraphql = 'featureAdvancedGraphql',
   /** column name */
   FeatureBackupEnabled = 'featureBackupEnabled',
+  /** column name */
+  FeatureBackupRetentionDays = 'featureBackupRetentionDays',
   /** column name */
   FeatureCustomDomainsEnabled = 'featureCustomDomainsEnabled',
   /** column name */
@@ -15763,6 +15821,7 @@ export type Plans_Updates = {
 /** aggregate var_pop on columns */
 export type Plans_Var_Pop_Fields = {
   __typename?: 'plans_var_pop_fields';
+  featureBackupRetentionDays?: Maybe<Scalars['Float']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Float']>;
   featureMaxDbSize?: Maybe<Scalars['Float']>;
@@ -15776,6 +15835,7 @@ export type Plans_Var_Pop_Fields = {
 /** aggregate var_samp on columns */
 export type Plans_Var_Samp_Fields = {
   __typename?: 'plans_var_samp_fields';
+  featureBackupRetentionDays?: Maybe<Scalars['Float']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Float']>;
   featureMaxDbSize?: Maybe<Scalars['Float']>;
@@ -15789,6 +15849,7 @@ export type Plans_Var_Samp_Fields = {
 /** aggregate variance on columns */
 export type Plans_Variance_Fields = {
   __typename?: 'plans_variance_fields';
+  featureBackupRetentionDays?: Maybe<Scalars['Float']>;
   /** Function execution timeout in seconds */
   featureFunctionExecutionTimeout?: Maybe<Scalars['Float']>;
   featureMaxDbSize?: Maybe<Scalars['Float']>;
@@ -22948,13 +23009,13 @@ export type GetConfigRawJsonQueryVariables = Exact<{
 
 export type GetConfigRawJsonQuery = { __typename?: 'query_root', configRawJSON: string };
 
-export type ReplaceConfigMutationVariables = Exact<{
+export type ReplaceConfigRawJsonMutationVariables = Exact<{
   appID: Scalars['uuid'];
-  config: ConfigConfigInsertInput;
+  rawJSON: Scalars['String'];
 }>;
 
 
-export type ReplaceConfigMutation = { __typename?: 'mutation_root', replaceConfig: { __typename: 'ConfigConfig' } };
+export type ReplaceConfigRawJsonMutation = { __typename?: 'mutation_root', replaceConfigRawJSON: string };
 
 export type PermissionVariableFragment = { __typename?: 'ConfigAuthsessionaccessTokenCustomClaims', key: string, value: string, id: string };
 
@@ -25217,7 +25278,7 @@ export function refetchGetEnvironmentVariablesQuery(variables: GetEnvironmentVar
       return { query: GetEnvironmentVariablesDocument, variables: variables }
     }
 export const GetConfigRawJsonDocument = gql`
-    query getConfigRawJson($appID: uuid!) {
+    query getConfigRawJSON($appID: uuid!) {
   configRawJSON(appID: $appID, resolve: false)
 }
     `;
@@ -25252,40 +25313,38 @@ export type GetConfigRawJsonQueryResult = Apollo.QueryResult<GetConfigRawJsonQue
 export function refetchGetConfigRawJsonQuery(variables: GetConfigRawJsonQueryVariables) {
       return { query: GetConfigRawJsonDocument, variables: variables }
     }
-export const ReplaceConfigDocument = gql`
-    mutation ReplaceConfig($appID: uuid!, $config: ConfigConfigInsertInput!) {
-  replaceConfig(appID: $appID, config: $config) {
-    __typename
-  }
+export const ReplaceConfigRawJsonDocument = gql`
+    mutation ReplaceConfigRawJSON($appID: uuid!, $rawJSON: String!) {
+  replaceConfigRawJSON(appID: $appID, rawJSON: $rawJSON)
 }
     `;
-export type ReplaceConfigMutationFn = Apollo.MutationFunction<ReplaceConfigMutation, ReplaceConfigMutationVariables>;
+export type ReplaceConfigRawJsonMutationFn = Apollo.MutationFunction<ReplaceConfigRawJsonMutation, ReplaceConfigRawJsonMutationVariables>;
 
 /**
- * __useReplaceConfigMutation__
+ * __useReplaceConfigRawJsonMutation__
  *
- * To run a mutation, you first call `useReplaceConfigMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useReplaceConfigMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useReplaceConfigRawJsonMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReplaceConfigRawJsonMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [replaceConfigMutation, { data, loading, error }] = useReplaceConfigMutation({
+ * const [replaceConfigRawJsonMutation, { data, loading, error }] = useReplaceConfigRawJsonMutation({
  *   variables: {
  *      appID: // value for 'appID'
- *      config: // value for 'config'
+ *      rawJSON: // value for 'rawJSON'
  *   },
  * });
  */
-export function useReplaceConfigMutation(baseOptions?: Apollo.MutationHookOptions<ReplaceConfigMutation, ReplaceConfigMutationVariables>) {
+export function useReplaceConfigRawJsonMutation(baseOptions?: Apollo.MutationHookOptions<ReplaceConfigRawJsonMutation, ReplaceConfigRawJsonMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ReplaceConfigMutation, ReplaceConfigMutationVariables>(ReplaceConfigDocument, options);
+        return Apollo.useMutation<ReplaceConfigRawJsonMutation, ReplaceConfigRawJsonMutationVariables>(ReplaceConfigRawJsonDocument, options);
       }
-export type ReplaceConfigMutationHookResult = ReturnType<typeof useReplaceConfigMutation>;
-export type ReplaceConfigMutationResult = Apollo.MutationResult<ReplaceConfigMutation>;
-export type ReplaceConfigMutationOptions = Apollo.BaseMutationOptions<ReplaceConfigMutation, ReplaceConfigMutationVariables>;
+export type ReplaceConfigRawJsonMutationHookResult = ReturnType<typeof useReplaceConfigRawJsonMutation>;
+export type ReplaceConfigRawJsonMutationResult = Apollo.MutationResult<ReplaceConfigRawJsonMutation>;
+export type ReplaceConfigRawJsonMutationOptions = Apollo.BaseMutationOptions<ReplaceConfigRawJsonMutation, ReplaceConfigRawJsonMutationVariables>;
 export const GetRolesPermissionsDocument = gql`
     query GetRolesPermissions($appId: uuid!) {
   config(appID: $appId, resolve: false) {
