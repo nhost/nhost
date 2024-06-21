@@ -1,0 +1,75 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Official support for React Native',
+  description:
+    'Learn how to use our SDK and template to bootstrap your React Native projects',
+  image: '/images/blog/og-official-support-for-react-native.png',
+  date: '2024-06-24',
+  authors: [
+    {
+      name: 'Hassan Ben Jobrane',
+      title: 'Software Engineer',
+      avatarUrl: '/images/avatars/hassan.png',
+      url: 'https://twitter.com/_onehassan',
+    },
+  ],
+  tags: ['SDK', 'React Native'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+## Introduction
+
+Official support for React Native has been highly requested for a while now. We have been working hard to provide
+tools and official support using our SDK. We are happy to announce that Nhost has now official support for React Native.
+
+## SDK Support for React Native
+
+We have improved our [React SDK](https://www.npmjs.com/package/@nhost/react) to provide seamless and straightforward
+usage on both React and React Native projects. Make sure to update to the latest version and head over to our
+[docs](http://docs.nhost.io/reference/react-native/support) to see how to import and use the React SDK within your
+React Native project.
+
+## React Native template
+
+We've released a [template](https://www.npmjs.com/package/@nhost/react-native-template) that comes pre-configured with
+our React SDK and includes several essential features for most mobile app projects:
+
+1. Email/Password Authentication
+2. Sign in with Google and Apple
+3. File Upload
+
+To bootstrap a new React Native project using our template, run the following command:
+
+```shell
+npx react-native init myapp --template @nhost/react-native-template
+```
+
+## React Native quickstart
+
+In addition to the template, we've written a [quickstart guide](http://docs.nhost.io/guides/quickstarts/react-native)
+to help you move forward once you've set up your React Native project with Nhost, or if you've just bootstrapped using
+our template. The guide walks you through implementing a simple Todo app, from database setup to running the app on an
+emulator. Check out this [demo](https://www.youtube.com/watch?v=gfzksbce2G4) to see what you can achieve with the
+quickstart.
+
+## Testing on an emulator against local nhost project
+
+If you want to run your React Native project against a local nhost project running on your machine with the
+[Nhost CLI](https://docs.nhost.io/development/cli/getting-started) you need to make sure that the local service urls are
+properly resolved from the device to your local machine network address. We've added a
+[new section](http://docs.nhost.io/guides/cli/connect-devices-to-local-nhost-project) to our docs that
+shows you how to do that in a few simple steps.
+
+If you want to run your React Native project against a local Nhost project on your machine using the
+[Nhost CLI](<(https://docs.nhost.io/development/cli/getting-started)>), you need to ensure that the local service URLs
+are correctly resolved from your device to your local machine's network address. We've added a
+[new section](<(http://docs.nhost.io/guides/cli/connect-devices-to-local-nhost-project)>) to our documentation that shows
+you how to do this in a few simple steps.
+
+# Conclusion
+
+Start leveraging our enhanced SDK, templates, and comprehensive guides today to bring your mobile app ideas to
+production effortlessly. Happy Coding!
