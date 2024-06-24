@@ -7,12 +7,12 @@ import type { ReactElement } from 'react';
 export default function TOMLEditorPage() {
   return (
     <Container
-      className="max-w-7xl px-0 pt-0 pb-0 grid grid-flow-row gap-y-6 bg-transparent"
-      rootClassName="bg-transparent"
+      className="grid max-w-7xl grid-flow-row gap-y-6 !overflow-y-hidden bg-transparent px-0 pb-0 pt-0"
+      rootClassName="bg-transparent !overflow-y-hidden"
     >
-    <RetryableErrorBoundary>
-      <TOMLEditor />
-    </RetryableErrorBoundary>
+      <RetryableErrorBoundary>
+        <TOMLEditor />
+      </RetryableErrorBoundary>
     </Container>
   );
 }

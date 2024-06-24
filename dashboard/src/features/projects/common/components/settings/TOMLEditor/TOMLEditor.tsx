@@ -105,7 +105,7 @@ export default function TOMLEditor() {
   };
 
   return (
-    <Box className="flex max-h-[calc(100vh-80px)] flex-1 flex-col justify-center overflow-hidden p-0">
+    <Box className="mb-0 flex max-h-[calc(100vh-80px)] flex-col justify-center overflow-hidden p-0">
       <Box className="flex flex-col space-y-2 border-b p-4">
         <Text className="font-semibold">Raw TOML Settings</Text>
       </Box>
