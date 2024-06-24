@@ -34,7 +34,7 @@ export default function TOMLEditor() {
   const localMimirClient = useLocalMimirClient();
 
   // fetch the initial TOML code from the server
-  const { data, loading } = useGetConfigRawJsonQuery({
+  const { data, loading, refetch } = useGetConfigRawJsonQuery({
     variables: {
       appID: currentProject?.id,
     },
@@ -146,8 +146,13 @@ export default function TOMLEditor() {
         />
       )}
       <Box className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-between gap-3 place-self-end border-t-1 p-2">
-        <Button variant="outlined" disabled={loading} color="secondary">
-          Cancel
+        <Button
+          variant="outlined"
+          disabled={loading}
+          onClick={() => refetch()}
+          color="secondary"
+        >
+          Revert changes
         </Button>
 
         <Button
