@@ -6,11 +6,11 @@ import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import { getToastStyleProps } from '@/utils/constants/settings';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useGetConfigRawJsonQuery,
   useReplaceConfigRawJsonMutation,
-  type ConfigConfigInsertInput,
 } from '@/utils/__generated__/graphql';
 import { StreamLanguage } from '@codemirror/language';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
@@ -19,6 +19,7 @@ import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { useCallback, useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function TOMLEditor() {
   const theme = useTheme();
@@ -59,10 +60,28 @@ export default function TOMLEditor() {
     }
   }, [loading, data]);
 
-  const onChange = useCallback((value: string) => setTOMLCode(value), []);
+  const onChange = useCallback(
+    (value: string) => setTOMLCode(value),
+    [setTOMLCode],
+  );
 
   const handleSave = async () => {
-    const jsonEditedConfig = TOML.parse(tomlCode) as ConfigConfigInsertInput;
+    let jsonEditedConfig;
+    try {
+      jsonEditedConfig = TOML.parse(tomlCode);
+    } catch (error) {
+      const toastStyle = getToastStyleProps();
+      const { line, col } = error;
+      let message = `An error occurred while parsing the TOML file. Please check the syntax.`;
+      if (line !== undefined && col !== undefined) {
+        message = `An error occurred while parsing the TOML file. Please check the syntax at line ${line}, column ${col}.`;
+      }
+      toast.error(message, {
+        style: toastStyle.style,
+        ...toastStyle.error,
+      });
+      return;
+    }
     const rawJSONString = JSON.stringify(jsonEditedConfig);
 
     await execPromiseWithErrorToast(
