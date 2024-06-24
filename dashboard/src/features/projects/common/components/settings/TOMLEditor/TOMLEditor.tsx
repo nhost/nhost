@@ -96,10 +96,10 @@ export default function TOMLEditor() {
         }
       },
       {
-        loadingMessage: 'Saving the configuration...',
-        successMessage: 'The configuration has been saved successfully.',
+        loadingMessage: 'Saving configuration...',
+        successMessage: 'Configuration has been saved successfully.',
         errorMessage:
-          'An error occurred while saving the configuration. Please try again.',
+          'An error occurred while saving configuration. Please try again.',
       },
     );
   };
