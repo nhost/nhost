@@ -110,21 +110,33 @@ export default function TOMLEditor() {
         <Text className="font-semibold">Raw TOML Settings</Text>
       </Box>
 
-      <CodeMirror
-        value={tomlCode}
-        height="100%"
-        width="100%"
-        className="min-h-[100px] flex-1 overflow-y-auto"
-        theme={theme.palette.mode === 'light' ? githubLight : githubDark}
-        extensions={[StreamLanguage.define(toml)]}
-        onChange={onChange}
-      />
+      {loading ? (
+        <Box
+          className="h-full min-h-[500px] w-full animate-pulse"
+          sx={{ backgroundColor: 'grey.200' }}
+        />
+      ) : (
+        <CodeMirror
+          value={tomlCode}
+          height="100%"
+          width="100%"
+          className="min-h-[500px] flex-1 overflow-y-auto"
+          theme={theme.palette.mode === 'light' ? githubLight : githubDark}
+          extensions={[StreamLanguage.define(toml)]}
+          onChange={onChange}
+        />
+      )}
       <Box className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-between gap-3 place-self-end border-t-1 p-2">
-        <Button variant="outlined" color="secondary">
+        <Button variant="outlined" disabled={loading} color="secondary">
           Cancel
         </Button>
 
-        <Button type="submit" className="justify-self-end" onClick={handleSave}>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="justify-self-end"
+          onClick={handleSave}
+        >
           Save
         </Button>
       </Box>
