@@ -9,7 +9,7 @@ import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useGetConfigRawJsonQuery,
-  useReplaceConfigMutation,
+  useReplaceConfigRawJsonMutation,
   type ConfigConfigInsertInput,
 } from '@/utils/__generated__/graphql';
 import { StreamLanguage } from '@codemirror/language';
@@ -40,17 +40,22 @@ export default function TOMLEditor() {
     skip: !currentProject,
   });
 
-  const [saveConfigMutation] = useReplaceConfigMutation({
-    // refetchQueries: [GetConfigRawJsonDocument],
+  const [saveConfigMutation] = useReplaceConfigRawJsonMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
+
+  const removeTOMLIndentation = (tomlStr: string) => {
+    const trimmedLines = tomlStr.split('\n').map((line) => line.trimStart());
+    return trimmedLines.join('\n');
+  };
 
   useEffect(() => {
     // Load TOML code from the server on initial load
     if (!loading && data) {
       const jsonData = JSON.parse(data?.configRawJSON);
       const tomlStr = TOML.stringify(jsonData);
-      setTOMLCode(tomlStr);
+      const unindentedTOMLConfig = removeTOMLIndentation(tomlStr);
+      setTOMLCode(unindentedTOMLConfig);
     }
   }, [loading, data]);
 
@@ -58,17 +63,25 @@ export default function TOMLEditor() {
 
   const handleSave = async () => {
     const jsonEditedConfig = TOML.parse(tomlCode) as ConfigConfigInsertInput;
+    const rawJSONString = JSON.stringify(jsonEditedConfig);
 
     await execPromiseWithErrorToast(
       async () => {
-        const response = await saveConfigMutation({
+        const {
+          data: { replaceConfigRawJSON: updatedConfig },
+        } = await saveConfigMutation({
           variables: {
             appID: currentProject?.id,
-            config: jsonEditedConfig,
+            rawJSON: rawJSONString,
           },
         });
 
-        console.log('response', response);
+        if (updatedConfig) {
+          const jsonUpdatedConfig = JSON.parse(updatedConfig);
+          const updatedTOMLConfig = TOML.stringify(jsonUpdatedConfig);
+          const unindentedTOMLConfig = removeTOMLIndentation(updatedTOMLConfig);
+          setTOMLCode(unindentedTOMLConfig);
+        }
 
         if (!isPlatform) {
           openDialog({
