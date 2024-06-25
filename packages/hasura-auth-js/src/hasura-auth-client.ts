@@ -163,7 +163,6 @@ export class HasuraAuthClient {
         connect: accessToken
       } as any)
     )
-
     if (isBrowser()) {
       window.location.href = providerUrl
     }

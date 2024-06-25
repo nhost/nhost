@@ -60,7 +60,15 @@
     },
     {
       "group": "Product",
-      "pages": ["product/database", "product/graphql", "product/authentication", "product/storage", "product/functions", "product/run", "product/ai"]
+      "pages": [
+        "product/database",
+        "product/graphql",
+        "product/authentication",
+        "product/storage",
+        "product/functions",
+        "product/run",
+        "product/ai"
+      ]
     },
     {
       "group": "Platform",
@@ -80,7 +88,11 @@
     },
     {
       "group": "Development & CLI",
-      "pages": ["development/cli/overview", "development/cli/getting-started", "development/cli/commands"]
+      "pages": [
+        "development/cli/overview",
+        "development/cli/getting-started",
+        "development/cli/commands"
+      ]
     },
     {
       "group": "API Documentation",
@@ -88,7 +100,12 @@
     },
     {
       "group": "Quickstarts",
-      "pages": ["guides/quickstarts/react", "guides/quickstarts/nextjs", "guides/quickstarts/vue"]
+      "pages": [
+        "guides/quickstarts/react",
+        "guides/quickstarts/nextjs",
+        "guides/quickstarts/vue",
+        "guides/quickstarts/react-native"
+      ]
     },
     {
       "group": "Tutorials",
@@ -96,17 +113,22 @@
     },
     {
       "group": "Database",
-      "pages": ["guides/database/configuring-postgres", "guides/database/access", "guides/database/extensions", "guides/database/performance"]
+      "pages": [
+        "guides/database/configuring-postgres",
+        "guides/database/access",
+        "guides/database/extensions",
+        "guides/database/performance"
+      ]
     },
     {
-        "group": "AI",
-        "pages": [
-            "guides/ai/enabling-service",
-            "guides/ai/local-development",
-            "guides/ai/auto-embeddings",
-            "guides/ai/assistants",
-            "guides/ai/dev-assistant"
-        ]
+      "group": "AI",
+      "pages": [
+        "guides/ai/enabling-service",
+        "guides/ai/local-development",
+        "guides/ai/auto-embeddings",
+        "guides/ai/assistants",
+        "guides/ai/dev-assistant"
+      ]
     },
     {
       "group": "Authentication",
@@ -141,9 +163,9 @@
     {
       "group": "API / Hasura",
       "pages": [
-          "guides/api/configuring-hasura",
-          "guides/api/permissions",
-          "guides/api/advanced_features"
+        "guides/api/configuring-hasura",
+        "guides/api/permissions",
+        "guides/api/advanced_features"
       ]
     },
     {
@@ -156,16 +178,32 @@
     },
     {
       "group": "Run",
-      "pages": ["guides/run/getting-started", "guides/run/configuration", "guides/run/networking", "guides/run/health-checks", "guides/run/resources", "guides/run/registry", "guides/run/local-development", "guides/run/configuration-overlays", "guides/run/cli-deployments" ]
+      "pages": [
+        "guides/run/getting-started",
+        "guides/run/configuration",
+        "guides/run/networking",
+        "guides/run/health-checks",
+        "guides/run/resources",
+        "guides/run/registry",
+        "guides/run/local-development",
+        "guides/run/configuration-overlays",
+        "guides/run/cli-deployments"
+      ]
     },
     {
       "group": "CLI",
-      "pages": ["guides/cli/local-development", "guides/cli/migrate-config", "guides/cli/multiple-projects", "guides/cli/configuration-overlays", "guides/cli/seeds"]
+      "pages": [
+        "guides/cli/local-development",
+        "guides/cli/migrate-config",
+        "guides/cli/multiple-projects",
+        "guides/cli/configuration-overlays",
+        "guides/cli/seeds",
+        "guides/cli/connect-devices-to-local-nhost-project"
+      ]
     },
     {
       "group": "Backend Services",
       "pages": [
-
         {
           "group": "Authentication",
           "icon": "users",
@@ -258,39 +296,38 @@
       ]
     },
     {
-        "group": "GraphQL",
-        "pages": [
+      "group": "GraphQL",
+      "pages": [
+        {
+          "group": "AI",
+          "pages": [
+            "reference/graphql/ai/overview",
             {
-                "group": "AI",
-                "pages": [
-                    "reference/graphql/ai/overview",
-                    {
-                        "group": "Query",
-                        "pages": [
-                            "reference/graphql/ai/query/assistant",
-                            "reference/graphql/ai/query/assistants",
-                            "reference/graphql/ai/query/session",
-                            "reference/graphql/ai/query/sessionMessages",
-                            "reference/graphql/ai/query/sessions"
-                        ]
-                    },
-                    {
-                        "group": "Mutation",
-                        "pages": [
-                            "reference/graphql/ai/mutation/insertAssistant",
-                            "reference/graphql/ai/mutation/updateAssistant",
-                            "reference/graphql/ai/mutation/deleteAssistant",
-                            "reference/graphql/ai/mutation/startSession",
-                            "reference/graphql/ai/mutation/deleteSession",
-                            "reference/graphql/ai/mutation/sendMessage",
-                            "reference/graphql/ai/mutation/startDevSession",
-                            "reference/graphql/ai/mutation/sendDevMessage"
-                        ]
-                    }
-                ]
+              "group": "Query",
+              "pages": [
+                "reference/graphql/ai/query/assistant",
+                "reference/graphql/ai/query/assistants",
+                "reference/graphql/ai/query/session",
+                "reference/graphql/ai/query/sessionMessages",
+                "reference/graphql/ai/query/sessions"
+              ]
+            },
+            {
+              "group": "Mutation",
+              "pages": [
+                "reference/graphql/ai/mutation/insertAssistant",
+                "reference/graphql/ai/mutation/updateAssistant",
+                "reference/graphql/ai/mutation/deleteAssistant",
+                "reference/graphql/ai/mutation/startSession",
+                "reference/graphql/ai/mutation/deleteSession",
+                "reference/graphql/ai/mutation/sendMessage",
+                "reference/graphql/ai/mutation/startDevSession",
+                "reference/graphql/ai/mutation/sendDevMessage"
+              ]
             }
-
-        ]
+          ]
+        }
+      ]
     },
     {
       "group": "Client Libraries",
@@ -301,7 +338,11 @@
           "pages": [
             {
               "group": "nhost-js",
-              "pages": ["reference/javascript/nhost-js/nhost-client", "reference/javascript/nhost-js/set-role", "reference/javascript/nhost-js/unset-role"]
+              "pages": [
+                "reference/javascript/nhost-js/nhost-client",
+                "reference/javascript/nhost-js/set-role",
+                "reference/javascript/nhost-js/unset-role"
+              ]
             },
             {
               "group": "Auth",
@@ -504,6 +545,11 @@
             "reference/vue/use-sign-in-email-security-key",
             "reference/vue/use-sign-up-email-security-key"
           ]
+        },
+        {
+          "group": "React Native",
+          "icon": "mobile-notch",
+          "pages": ["reference/react-native/support"]
         }
       ]
     }
