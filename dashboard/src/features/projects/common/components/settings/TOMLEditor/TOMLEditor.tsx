@@ -131,7 +131,7 @@ export default function TOMLEditor() {
 
       {loading ? (
         <Box
-          className="h-full min-h-[500px] w-full animate-pulse"
+          className="h-full min-h-[400px] w-full animate-pulse"
           sx={{ backgroundColor: 'grey.200' }}
         />
       ) : (
@@ -139,13 +139,13 @@ export default function TOMLEditor() {
           value={tomlCode}
           height="100%"
           width="100%"
-          className="min-h-[500px] flex-1 overflow-y-auto"
+          className="min-h-[400px] flex-1 overflow-y-auto"
           theme={theme.palette.mode === 'light' ? githubLight : githubDark}
           extensions={[StreamLanguage.define(toml)]}
           onChange={onChange}
         />
       )}
-      <Box className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-between gap-3 place-self-end border-t-1 p-2">
+      <Box className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-end gap-3 place-self-end border-t-1 p-2 md:justify-between">
         <Button
           variant="outlined"
           disabled={loading}
