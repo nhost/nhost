@@ -1,0 +1,457 @@
+---
+title: Get up and running with Nhost and React Native
+sidebarTitle: React Native
+description: In this quickstart guide, we'll demonstrate how to build a simple To-Do feature using Nhost and React Native.
+icon: mobile-notch
+---
+
+<Card>
+  Throughout this guide, we'll utilize the **@nhost/react-native-template**, which comes pre-configured with 
+  authentication and storage capabilities provided by Nhost.
+</Card>
+
+<br />
+
+<Note>
+  Before starting this quickstart, ensure that your environment is set up to work with React Native.
+  Follow the [setup guide](https://reactnative.dev/docs/next/set-up-your-environment) available on
+  the official React Native website.
+</Note>
+
+<Steps>
+  <Step title="Create Nhost Project">
+    Create your project through the [Nhost Dashboard](https://app.nhost.io/new).
+  </Step>
+
+  <Step title="Setup Database">
+    Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `todos`.
+
+    <Warning>Make sure the option `Track this` is enabled</Warning>
+
+    ```sql SQL Editor
+    CREATE TABLE todos (
+      id uuid NOT NULL DEFAULT gen_random_uuid(),
+      created_at timestamptz NOT NULL DEFAULT now(),
+      updated_at timestamptz NOT NULL DEFAULT now(),
+      user_id uuid NOT NULL,
+      contents text NOT NULL,
+      PRIMARY KEY (id),
+      FOREIGN KEY (user_id) REFERENCES auth.users(id) ON UPDATE cascade ON DELETE cascade 
+    );
+    ```
+
+    <Frame caption="Create Todos Table">
+      <img src="/images/guides/quickstarts/react-native/create-table-todos.png" />
+    </Frame>
+
+  </Step>
+
+  <Step title="Configure the todos table permissions">
+    To set permissions for the new `todos` table, select the table, click on the `...` to open the actions dialog,
+    then click on **Edit Permissions**. Set the following permissions for the `user` role:
+
+    1. `Insert`
+        - Set `Row insert permissions` to `Without any checks`
+        - Select all columns except `user_id` on `Column insert permissions`
+        - Add a new `Column preset` and set `Column Name` to `user_id` and `Column Value` to `X-Hasura-User-Id`
+        - Save
+    
+    <Frame caption="Insert Permissions">
+      <img src="/images/guides/quickstarts/react-native/todos-insert-permissions.png" />
+    </Frame>
+
+    2. `Select`
+        - Set `Row select permissions` to `With custom check` and fill in the following rule:
+            - Set `Where` to `todos.user_id`
+            - Set the operator to `_eq`
+            - Set the value to `X-Hasura-User-Id`
+        - Select all columns except `user_id` on `Column select permissions`
+        - Save
+
+    <Frame caption="Select Permissions">
+      <img src="/images/guides/quickstarts/react-native/todos-select-permissions.png" />
+    </Frame>
+
+    3. `Update`
+        - Set `Row update permissions` to `With custom check` and fill in the following rule:
+            - Set `Where` to `todos.user_id`
+            - Set the operator to `_eq`
+            - Set the value to `X-Hasura-User-Id`
+        - Select all columns except `user_id` on `Column select permissions`
+        - Save
+
+    <Frame caption="Update permissions">
+      <img src="/images/guides/quickstarts/react-native/todos-update-permissions.png" />
+    </Frame>
+
+    4. `Delete`
+        - Set `Row delete permissions` to `With custom check` and fill in the following rule:
+            - Set `Where` to `todos.user_id`
+            - Set the operator to `_eq`
+            - Set the value to `X-Hasura-User-Id`
+        - Save
+
+    <Frame caption="Delete permissions">
+      <img src="/images/guides/quickstarts/react-native/todos-delete-permissions.png" />
+    </Frame>
+  </Step>
+
+  <Step title="Configure permissions to enable user file uploads">
+    To enable file uploads by users, set the permissions as follows:
+
+    1. Edit the **files** table permissions
+        1. Navigate to the files table within the [Database tab](https://app.nhost.io/_/_/database/browser/default/storage/files)
+        2. Click on the three dots (...) next to the files table
+        3. Click on **Edit Permissions**
+
+    2. Modify the `Insert` permission for the `user` role:
+          1. Set `Row insert permissions` to `Without any checks`
+          2. Select all columns on `Column insert permissions`
+          4. Save
+
+    <Frame caption="Insert Permissions">
+      <img src="/images/guides/quickstarts/react-native/files-insert-permissions.png" />
+    </Frame>
+
+    3. `Select`
+        - Set `Row select permissions` to `With custom check` and fill in the following rule:
+            - Set `Where` to `files.uploaded_by_user_id`
+            - Set the operator to `_eq`
+            - Set the value to `X-Hasura-User-Id`
+        - Select all columns on `Column select permissions`
+        - Save
+
+    <Frame caption="Select permissions">
+      <img src="/images/guides/quickstarts/react-native/files-select-permissions.png" />
+    </Frame>
+  </Step>
+
+  <Step title="Bootstrap your React Native app">
+    Intialize a new React Native project using the template `@nhost/react-native-template`
+    
+    ```bash Terminal
+    npx react-native init myapp --template @nhost/react-native-template
+    ```
+  </Step>
+
+  <Step title="Connect your React Native app to the Nhost project">
+    Copy your project's `<subdomain>` and `<region>` values available on the dashboard overview
+
+    ```tsx src/root.tsx
+    const nhost = new NhostClient({
+      subdomain: "<subdomain>", // replace the subdomain value e.g. "hjcuuqweqwezolpolrep"
+      region: "<region>", // replace the region value e.g. "eu-central-1"
+      clientStorageType: 'react-native',
+      clientStorage: AsyncStorage,
+    });
+    ```
+  </Step>
+
+  <Step title="Add the GraphQL queries">
+  Create a new file `src/graphql/todos.ts` that will expose the graphql queries needed to `list`, `add` and `delete` To-Do's.
+
+  ```ts src/graphql/todos.ts
+  import {gql} from '@apollo/client';
+
+  export const GET_TODOS = gql`
+    query listTodos {
+      todos(order_by: { created_at: desc }) {
+        id
+        contents
+      }
+    }
+  `;
+
+  export const ADD_TODO = gql`
+    mutation addTodo($contents: String!) {
+      insert_todos_one(object: { contents: $contents }) {
+        id
+        contents
+      }
+    }
+  `;
+
+  export const DELETE_TODO = gql`
+    mutation deleteTodo($id: uuid!) {
+      delete_todos_by_pk(id: $id) {
+        __typename
+      }
+    }
+  `;
+  ```
+  </Step>
+
+  <Step title="Add a form to insert a To-Do">
+    ```tsx src/components/AddTodoForm.tsx
+    import React from 'react';
+    import {useMutation} from '@apollo/client';
+    import Button from '@components/Button';
+    import ControlledInput from '@components/ControlledInput';
+    import {ADD_TODO, GET_TODOS} from '@graphql/todos';
+    import {useForm} from 'react-hook-form';
+    import {StyleSheet, View} from 'react-native';
+
+    interface AddTodoFormValues {
+      contents: string;
+    }
+
+    export default function AddTodoForm() {
+      const {control, handleSubmit, reset} = useForm<AddTodoFormValues>();
+
+      const [addTodo, {loading}] = useMutation(ADD_TODO, {
+        refetchQueries: [{query: GET_TODOS}],
+      });
+
+      const onSubmit = async (values: AddTodoFormValues) => {
+        const {contents} = values;
+        await addTodo({variables: {contents}});
+        reset();
+      };
+
+      return (
+        <View style={styles.wrapper}>
+          <View style={styles.inputWrapper}>
+            <ControlledInput
+              control={control}
+              name="contents"
+              placeholder="New To-Do"
+              autoCapitalize="none"
+              rules={{
+                required: true,
+              }}
+            />
+          </View>
+          <View style={styles.buttonWrapper}>
+            <Button
+              label="Add"
+              onPress={handleSubmit(onSubmit)}
+              disabled={loading}
+              loading={loading}
+            />
+          </View>
+        </View>
+      );
+    }
+
+    const styles = StyleSheet.create({
+      wrapper: {
+        gap: 12,
+        padding: 12,
+        flexDirection: 'row',
+        backgroundColor: 'white',
+      },
+      inputWrapper: {
+        flex: 3,
+      },
+      buttonWrapper: {
+        flex: 1,
+      },
+    });
+    ```
+  </Step>
+
+  <Step title="Add the Todo component and the screen to list all the todos">
+    <CodeGroup>
+      ```tsx src/components/Todo.tsx
+      import React from 'react';
+      import {useMutation} from '@apollo/client';
+      import {DELETE_TODO, GET_TODOS} from '@graphql/todos';
+      import {StyleSheet, Text, View} from 'react-native';
+      import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+      import Button from './Button';
+
+      export interface TodoItem {
+        id: string;
+        contents: string;
+      }
+
+      export default function Todo({todo: {id, contents}}: {todo: TodoItem}) {
+        const [deleteTodo] = useMutation(DELETE_TODO, {
+          variables: {id},
+          refetchQueries: [{query: GET_TODOS}],
+        });
+
+        const handleDeleteTodo = async () => {
+          await deleteTodo();
+        };
+
+        return (
+          <View style={styles.wrapper}>
+            <View style={styles.todoContentWrapper}>
+              <Icon name="check" size={25} />
+              <Text style={styles.todoContent}>{contents}</Text>
+            </View>
+            <View style={styles.buttonWrapper}>
+              <Button
+                label={<Icon name="trash-can-outline" size={20} />}
+                color="#f1f1f1"
+                onPress={handleDeleteTodo}
+              />
+            </View>
+          </View>
+        );
+      }
+
+      const styles = StyleSheet.create({
+        wrapper: {
+          padding: 14,
+          flexDirection: 'row',
+          alignItems: 'center',
+        },
+        todoContentWrapper: {
+          flex: 1,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 20,
+        },
+        todoContent: {flex: 1},
+        buttonWrapper: {
+          width: 50,
+        },
+      });
+      ```
+
+      ```tsx src/screens/Todos.tsx
+      import React from 'react';
+      import {useQuery} from '@apollo/client';
+      import AddTodoForm from '@components/AddTodoForm';
+      import Todo, {type TodoItem} from '@components/Todo';
+      import {GET_TODOS} from '@graphql/todos';
+      import {useEffect} from 'react';
+      import {ActivityIndicator, FlatList, StyleSheet, View} from 'react-native';
+
+      export default function Todos() {
+        const {loading, data, client} = useQuery<{todos: TodoItem[]}>(GET_TODOS);
+
+        const todos = data?.todos || [];
+
+        useEffect(() => {
+          return () => client.stop();
+        }, [client]);
+
+        if (loading) {
+          return (
+            <View style={styles.loadingViewWrapper}>
+              <ActivityIndicator />
+            </View>
+          );
+        }
+
+        const renderTodo = ({item}: {item: TodoItem}) => <Todo todo={item} />;
+        const itemSeperator = () => <View style={styles.separator} />;
+
+        return (
+          <View style={styles.wrapper}>
+            <AddTodoForm />
+            <FlatList
+              data={todos}
+              keyExtractor={item => item.id}
+              renderItem={renderTodo}
+              ItemSeparatorComponent={itemSeperator}
+            />
+          </View>
+        );
+      }
+
+      const styles = StyleSheet.create({
+        loadingViewWrapper: {
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        wrapper: {
+          flex: 1,
+          backgroundColor: 'white',
+        },
+        separator: {
+          height: 1,
+          backgroundColor: '#f1f1f1',
+        },
+      });
+      ```
+      </CodeGroup>
+  </Step>
+
+  <Step title="Reference the new Todos components in the Drawer Navigator">
+    ```tsx src/screens/Main.tsx
+    function DrawerNavigator() {
+      return (
+        <Drawer.Navigator
+          screenOptions={screenOptions}
+          drawerContent={drawerContent}>
+          <Drawer.Screen name="Profile" component={Profile} />
+          {/* Add the Todos component here */}
+          <Drawer.Screen name="Todos" component={Todos} />
+          <Drawer.Screen name="Storage" component={Storage} />
+        </Drawer.Navigator>
+      );
+    }
+    ```
+  </Step>
+
+   <Step title="Run the app on the emulator">
+    <Tabs>
+      <Tab title="Android">
+      1. Open a terminal and start the metro bundler
+        ```bash Terminal
+        cd myapp
+        npm start
+        ```
+      2. Open a new terminal and run the app on Android
+        ```bash Terminal
+        cd myapp
+        npm run android
+        ```
+      </Tab>
+      <Tab title="iOS">
+        1. Make sure the iOS project cocopods are installed
+          ```bash Terminal
+          cd ios
+          pod install
+          ```
+        1. Install the `ios-deploy` CLI
+          ```bash Terminal
+          npm install -g ios-deploy
+          ```
+        2. Start the metro bundler
+          ```bash Terminal
+          cd myapp
+          npm start
+          ```
+        3. Open a new terminal and run the app on Android
+          ```bash Terminal
+          cd myapp
+          npm run ios --interactive
+          ```
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Demo">
+    <iframe
+      width="486"
+      height="864"
+      src="https://www.youtube.com/embed/gfzksbce2G4"
+      title="demo react native"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen
+    />
+  </Step>
+</Steps>
+
+
+<Note>
+  ### Next Steps: enabling Google and Apple Sign-In
+
+  The template is preconfigured to allow users to sign in with Google and Apple. To enable this feature, follow these steps:
+
+  1. Navigate to your Nhost project's [Sign-In Methods settings](https://app.nhost.io/_/_/settings/sign-in-methods).
+  2. Enable Google and/or Apple sign-in.
+  3. Fill in the necessary credentials.
+
+  For detailed instructions on generating the required credentials, refer to the following guides:
+  - [Google Sign-In Guide](https://docs.nhost.io/guides/auth/social/sign-in-google)
+  - [Apple Sign-In Guide](https://docs.nhost.io/guides/auth/social/sign-in-apple)
+</Note>
