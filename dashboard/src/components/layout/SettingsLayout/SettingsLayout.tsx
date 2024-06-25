@@ -4,6 +4,7 @@ import type { SettingsSidebarProps } from '@/components/layout/SettingsSidebar';
 import { SettingsSidebar } from '@/components/layout/SettingsSidebar';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v2/Alert';
+import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -15,6 +16,10 @@ export interface SettingsLayoutProps extends ProjectLayoutProps {
    * Props passed to the sidebar component.
    */
   sidebarProps?: SettingsSidebarProps;
+  /**
+   * Props passed to the right side container.
+   */
+  containerProps?: BoxProps;
 }
 
 export default function SettingsLayout({
@@ -23,6 +28,7 @@ export default function SettingsLayout({
     className: mainContainerClassName,
     ...mainContainerProps
   } = {},
+  containerProps: { className: containerClassName, ...containerProps } = {},
   sidebarProps: { className: sidebarClassName, ...sidebarProps } = {},
   ...props
 }: SettingsLayoutProps) {
@@ -45,7 +51,11 @@ export default function SettingsLayout({
 
       <Box
         sx={{ backgroundColor: 'background.default' }}
-        className="flex w-full flex-auto flex-col overflow-y-auto overflow-x-hidden"
+        className={twMerge(
+          'flex w-full flex-auto flex-col overflow-y-auto overflow-x-hidden',
+          containerClassName,
+        )}
+        {...containerProps}
       >
         <RetryableErrorBoundary>
           <div className="flex flex-col space-y-2">

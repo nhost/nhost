@@ -124,8 +124,8 @@ export default function TOMLEditor() {
   };
 
   return (
-    <Box className="mb-0 flex max-h-[calc(100vh-80px)] flex-col justify-center overflow-hidden p-0">
-      <Box className="flex flex-col space-y-2 border-b p-4">
+    <Box className="mb-0 flex h-full max-h-[calc(100vh-124px)]  flex-col justify-center overflow-hidden p-0">
+      <Box className="flex w-full flex-col space-y-2 border-b p-4">
         <Text className="font-semibold">Raw TOML Settings</Text>
       </Box>
 
@@ -139,7 +139,7 @@ export default function TOMLEditor() {
           value={tomlCode}
           height="100%"
           width="100%"
-          className="min-h-[400px] flex-1 overflow-y-auto"
+          className="min-h-[400px]"
           theme={theme.palette.mode === 'light' ? githubLight : githubDark}
           basicSetup={{
             searchKeymap: false,
@@ -148,7 +148,7 @@ export default function TOMLEditor() {
           onChange={onChange}
         />
       )}
-      <Box className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-end gap-3 place-self-end border-t-1 p-2 md:justify-between">
+      <Box className="absolute bottom-0 right-0 grid w-full grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-2 md:justify-between">
         <Button
           variant="outlined"
           disabled={loading}

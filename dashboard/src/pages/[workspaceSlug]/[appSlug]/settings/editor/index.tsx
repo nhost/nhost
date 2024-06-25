@@ -7,8 +7,8 @@ import type { ReactElement } from 'react';
 export default function TOMLEditorPage() {
   return (
     <Container
-      className="grid max-w-7xl grid-flow-row gap-y-6 !overflow-y-hidden bg-transparent px-0 pb-0 pt-0"
-      rootClassName="bg-transparent !overflow-y-hidden"
+      className="grid max-w-full grid-flow-row gap-y-6 bg-transparent px-0 pb-0 pt-0"
+      rootClassName="bg-transparent"
     >
       <RetryableErrorBoundary>
         <TOMLEditor />
@@ -18,5 +18,13 @@ export default function TOMLEditorPage() {
 }
 
 TOMLEditorPage.getLayout = function getLayout(page: ReactElement) {
-  return <SettingsLayout>{page}</SettingsLayout>;
+  return (
+    <SettingsLayout
+      containerProps={{
+        className: 'relative',
+      }}
+    >
+      {page}
+    </SettingsLayout>
+  );
 };
