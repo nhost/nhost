@@ -141,6 +141,9 @@ export default function TOMLEditor() {
           width="100%"
           className="min-h-[400px] flex-1 overflow-y-auto"
           theme={theme.palette.mode === 'light' ? githubLight : githubDark}
+          basicSetup={{
+            searchKeymap: false,
+          }}
           extensions={[StreamLanguage.define(toml)]}
           onChange={onChange}
         />
