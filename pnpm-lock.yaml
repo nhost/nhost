@@ -251,6 +251,9 @@ importers:
       '@uiw/codemirror-theme-github':
         specifier: ^4.21.25
         version: 4.22.1(@codemirror/language@6.10.2)
+      '@uiw/codemirror-theme-vscode':
+        specifier: ^4.22.2
+        version: 4.22.2(@codemirror/language@6.10.2)
       '@uiw/react-codemirror':
         specifier: ^4.21.25
         version: 4.22.1(@codemirror/language@6.10.2)(react-dom@18.2.0)(react@18.2.0)
@@ -2256,7 +2259,7 @@ packages:
   /@apollo/client@3.10.6(@types/react@18.3.3)(react@18.2.0):
     resolution: {integrity: sha512-3lLFGJtzC1/mEnK11BRf+Bf8536kBQUSB1G9yMtcRsxmY+tCKdTPzsP3fMUKy10BPIE0sDUY1pux3iMPIn2vow==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
       graphql-ws: ^5.5.5
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
@@ -14717,8 +14720,26 @@ packages:
       - '@codemirror/language'
     dev: false
 
+  /@uiw/codemirror-theme-vscode@4.22.2(@codemirror/language@6.10.2):
+    resolution: {integrity: sha512-wy+rd27Pz1f979QT8wHlBu7+XuwduSGDjqE972JRVf+Wqn2MbhXfTqD5YDx0lQJ+u05Y2IJKKbgPrWS+wt1a6A==}
+    dependencies:
+      '@uiw/codemirror-themes': 4.22.2(@codemirror/language@6.10.2)
+    transitivePeerDependencies:
+      - '@codemirror/language'
+    dev: false
+
   /@uiw/codemirror-themes@4.22.1(@codemirror/language@6.10.2):
     resolution: {integrity: sha512-5TeB8wCc0aNd3YEhzOvgekpAFQfEm4fCTUcGmEIQqaRNgKAM83HYNpE1JF2j7x2oDFugdiO0yJynS6bo1zVOuw==}
+    peerDependencies:
+      '@codemirror/language': '>=6.0.0'
+    dependencies:
+      '@codemirror/language': 6.10.2
+      '@codemirror/state': 6.4.1
+      '@codemirror/view': 6.26.4
+    dev: false
+
+  /@uiw/codemirror-themes@4.22.2(@codemirror/language@6.10.2):
+    resolution: {integrity: sha512-gsLHn6SUuV5iboBvGrM7YimzLFHQmsNlkGIYs3UaVUJTo/A/ZrKoSJNyPziShLRjBXA2UwKdBTIU6VhHyyaChw==}
     peerDependencies:
       '@codemirror/language': '>=6.0.0'
     dependencies:

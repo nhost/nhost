@@ -16,7 +16,7 @@ import { StreamLanguage } from '@codemirror/language';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
 import * as TOML from '@iarna/toml';
 import { useTheme } from '@mui/material';
-import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
+import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode';
 import CodeMirror from '@uiw/react-codemirror';
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -148,7 +148,7 @@ export default function TOMLEditor() {
       <Box className="h-full overflow-auto">
         {loading ? (
           <Box
-            className="h-full max-h-[calc(100%-53px)] min-h-[400px] w-full animate-pulse"
+            className="h-full w-full animate-pulse"
             sx={{ backgroundColor: 'grey.200' }}
           />
         ) : (
@@ -156,8 +156,7 @@ export default function TOMLEditor() {
             value={tomlCode}
             height="100%"
             width="100%"
-            className="min-h-[400px]"
-            theme={theme.palette.mode === 'light' ? githubLight : githubDark}
+            theme={theme.palette.mode === 'light' ? vscodeLight : vscodeDark}
             basicSetup={{
               searchKeymap: false,
             }}
@@ -166,7 +165,7 @@ export default function TOMLEditor() {
           />
         )}
       </Box>
-      <Box className="grid w-full grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-2 md:justify-between">
+      <Box className="grid w-full grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-3 md:justify-between">
         <Button
           variant="outlined"
           disabled={loading || !isDirty}

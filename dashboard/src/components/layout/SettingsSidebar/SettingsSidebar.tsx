@@ -234,7 +234,7 @@ export default function SettingsSidebar({
             className="flex w-full border group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
             textClassName="flex w-full justify-center"
           >
-            <div className="flex w-full flex-row items-center justify-center space-x-4">
+            <div className="flex w-full flex-row items-center justify-center space-x-4 py-2.5">
               <TerminalIcon />
               <span className="flex">Configuration Editor</span>
             </div>
