@@ -3,6 +3,7 @@ import { Backdrop } from '@/components/ui/v2/Backdrop';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { IconButton } from '@/components/ui/v2/IconButton';
+import { SlidersIcon } from '@/components/ui/v2/icons/SlidersIcon';
 import { List } from '@/components/ui/v2/List';
 import type { ListItemButtonProps } from '@/components/ui/v2/ListItem';
 import { ListItem } from '@/components/ui/v2/ListItem';
@@ -27,12 +28,17 @@ interface SettingsNavLinkProps extends ListItemButtonProps {
    * @default true
    */
   exact?: boolean;
+  /**
+   * Class name passed to the text element.
+   */
+  textClassName?: string;
 }
 
 function SettingsNavLink({
   exact = true,
   href,
   children,
+  textClassName,
   ...props
 }: SettingsNavLinkProps) {
   const router = useRouter();
@@ -52,7 +58,7 @@ function SettingsNavLink({
         selected={active}
         {...props}
       >
-        <ListItem.Text>{children}</ListItem.Text>
+        <ListItem.Text className={textClassName}>{children}</ListItem.Text>
       </ListItem.Button>
     </ListItem.Root>
   );
@@ -114,13 +120,13 @@ export default function SettingsSidebar({
       <Box
         component="aside"
         className={twMerge(
-          'absolute top-0 z-[35] h-full w-full overflow-auto border-r-1 px-2 pb-17 pt-2 motion-safe:transition-transform md:relative md:z-0 md:h-full md:py-2.5 md:transition-none',
+          'absolute top-0 z-[35] flex h-full w-full flex-col justify-between overflow-auto border-r-1 pb-17 pt-2 motion-safe:transition-transform md:relative md:z-0 md:h-full md:pb-0 md:pt-2.5 md:transition-none',
           expanded ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
           className,
         )}
         {...props}
       >
-        <nav aria-label="Settings navigation">
+        <nav aria-label="Settings navigation" className="px-2">
           <List className="grid gap-2">
             <SettingsNavLink
               href="/general"
@@ -220,6 +226,20 @@ export default function SettingsSidebar({
             </SettingsNavLink>
           </List>
         </nav>
+        <Box className="border-t">
+          <SettingsNavLink
+            href="/editor"
+            exact={false}
+            onClick={handleSelect}
+            className="flex w-full border group-focus-within:pr-9 group-hover:pr-9 group-active:pr-9"
+            textClassName="flex w-full justify-center"
+          >
+            <div className="flex w-full flex-row items-center justify-center space-x-4 py-2.5">
+              <SlidersIcon />
+              <span className="flex">Configuration Editor</span>
+            </div>
+          </SettingsNavLink>
+        </Box>
       </Box>
 
       <IconButton

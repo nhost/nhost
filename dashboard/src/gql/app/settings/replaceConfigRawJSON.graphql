@@ -1,0 +1,3 @@
+mutation ReplaceConfigRawJSON($appID: uuid!, $rawJSON: String!) {
+  replaceConfigRawJSON(appID: $appID, rawJSON: $rawJSON)
+}
