@@ -3,7 +3,7 @@ import { Backdrop } from '@/components/ui/v2/Backdrop';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { TerminalIcon } from '@/components/ui/v2/icons/TerminalIcon';
+import { SlidersIcon } from '@/components/ui/v2/icons/SlidersIcon';
 import { List } from '@/components/ui/v2/List';
 import type { ListItemButtonProps } from '@/components/ui/v2/ListItem';
 import { ListItem } from '@/components/ui/v2/ListItem';
@@ -235,7 +235,7 @@ export default function SettingsSidebar({
             textClassName="flex w-full justify-center"
           >
             <div className="flex w-full flex-row items-center justify-center space-x-4 py-2.5">
-              <TerminalIcon />
+              <SlidersIcon />
               <span className="flex">Configuration Editor</span>
             </div>
           </SettingsNavLink>

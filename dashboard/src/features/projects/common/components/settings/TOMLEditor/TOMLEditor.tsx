@@ -16,7 +16,8 @@ import { StreamLanguage } from '@codemirror/language';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
 import * as TOML from '@iarna/toml';
 import { useTheme } from '@mui/material';
-import { vscodeDark, vscodeLight } from '@uiw/codemirror-theme-vscode';
+import { bbedit } from '@uiw/codemirror-theme-bbedit';
+import { githubDark } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -156,7 +157,7 @@ export default function TOMLEditor() {
             value={tomlCode}
             height="100%"
             width="100%"
-            theme={theme.palette.mode === 'light' ? vscodeLight : vscodeDark}
+            theme={theme.palette.mode === 'light' ? bbedit : githubDark}
             basicSetup={{
               searchKeymap: false,
             }}
