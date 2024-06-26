@@ -1,18 +1,19 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nix-filter.url = "github:numtide/nix-filter";
-    flake-utils.url = "github:numtide/flake-utils";
+    nixops.url = "github:nhost/nixops";
+    nixpkgs.follows = "nixops/nixpkgs";
+    flake-utils.follows = "nixops/flake-utils";
+    nix-filter.follows = "nixops/nix-filter";
   };
 
-  outputs = { self, nixpkgs, flake-utils, nix-filter }:
+  outputs = { self, nixops, nixpkgs, flake-utils, nix-filter }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        overlays = [
-          (final: prev: rec { })
-        ];
         pkgs = import nixpkgs {
-          inherit system overlays;
+          inherit system;
+          overlays = [
+            nixops.overlays.default
+          ];
         };
 
         nix-src = nix-filter.lib.filter {

@@ -1,0 +1,73 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Functions: Added support for Node.js 20',
+  image: '/images/blog/og-nodejs20.png',
+  date: '2024-06-26',
+  authors: [
+    {
+      name: 'David Barroso',
+      title: 'CTO',
+      avatarUrl: '/images/avatars/david.jpeg',
+      url: 'https://twitter.com/dbarrosop',
+    },
+  ],
+  tags: ['Product', 'Platform', 'Serverless', 'Functions'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+Today we are happy to announce you can now chose whether you want to use Node.js 18 or Node.js 20 as your [functions](/product/functions) runtime.
+
+Doing so is very easy, just select your preferred version in your `nhost.toml`. For instance, imagine you have the following function in your project
+
+
+```ts
+// functions/echo.ts
+import { Request, Response } from 'express'
+import process from 'process'
+
+export default (req: Request, res: Response) => {
+    res.status(201).json(
+        {
+            headers: req.headers,
+            query: req.query,
+            node: process.version, // return node version
+            arch: process.arch,
+        },
+    )
+}
+```
+
+We can use Node.js 18 by ensuring the following configuration is in our `nhost.toml`:
+
+```toml
+[functions.node]
+version = 18
+```
+
+If we now start the CLI with `nhost up` or push to our deployment branch we should be able to verify the runtime by invoking the function:
+
+```
+$ curl -s https://local.functions.nhost.run/v1/echo | jq .node
+"v18.20.3"
+```
+
+To use Node.js 20, just set the correct version:
+
+```toml
+[functions.node]
+version = 20
+```
+
+And invoke the function again:
+
+```
+$ curl -s https://local.functions.nhost.run/v1/echo | jq .node
+"v20.15.0"
+```
+
+While a small improvement, we hope this new addition will help you homogenize your runtime environments and simplify your setups.
+
+For more details don't hesitate to check our [documentation](https://docs.nhost.io/guides/functions/runtimes).
