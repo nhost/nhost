@@ -141,31 +141,32 @@ export default function TOMLEditor() {
   };
 
   return (
-    <Box className="mb-0 flex h-full max-h-[calc(100vh-59px)]  flex-col justify-center overflow-hidden p-0">
+    <Box className="flex h-full flex-col">
       <Box className="flex w-full flex-col space-y-2 border-b p-4">
         <Text className="font-semibold">Configuration Editor</Text>
       </Box>
-
-      {loading ? (
-        <Box
-          className="h-full max-h-[calc(100%-53px)] min-h-[400px] w-full animate-pulse"
-          sx={{ backgroundColor: 'grey.200' }}
-        />
-      ) : (
-        <CodeMirror
-          value={tomlCode}
-          height="100%"
-          width="100%"
-          className="mb-[53px] min-h-[400px]"
-          theme={theme.palette.mode === 'light' ? githubLight : githubDark}
-          basicSetup={{
-            searchKeymap: false,
-          }}
-          extensions={[StreamLanguage.define(toml)]}
-          onChange={onChange}
-        />
-      )}
-      <Box className="absolute bottom-0 right-0 grid w-full grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-2 md:justify-between">
+      <Box className="h-full overflow-auto">
+        {loading ? (
+          <Box
+            className="h-full max-h-[calc(100%-53px)] min-h-[400px] w-full animate-pulse"
+            sx={{ backgroundColor: 'grey.200' }}
+          />
+        ) : (
+          <CodeMirror
+            value={tomlCode}
+            height="100%"
+            width="100%"
+            className="min-h-[400px]"
+            theme={theme.palette.mode === 'light' ? githubLight : githubDark}
+            basicSetup={{
+              searchKeymap: false,
+            }}
+            extensions={[StreamLanguage.define(toml)]}
+            onChange={onChange}
+          />
+        )}
+      </Box>
+      <Box className="grid w-full grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-2 md:justify-between">
         <Button
           variant="outlined"
           disabled={loading || !isDirty}
