@@ -174,7 +174,10 @@
     },
     {
       "group": "Functions",
-      "pages": ["guides/functions/overview"]
+      "pages": [
+          "guides/functions/overview",
+          "guides/functions/runtimes"
+      ]
     },
     {
       "group": "Run",
