@@ -26,6 +26,9 @@ export default function TOMLEditor() {
   const isPlatform = useIsPlatform();
 
   const [tomlCode, setTOMLCode] = useState('');
+  const [previousTOMLCode, setPreviousTOMLCode] = useState(''); // used to revert changes
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSaving, setIsSaving] = useState(false); // used to show loading spinner on save
 
   const { openDialog } = useDialog();
 
@@ -34,7 +37,7 @@ export default function TOMLEditor() {
   const localMimirClient = useLocalMimirClient();
 
   // fetch the initial TOML code from the server
-  const { data, loading, refetch } = useGetConfigRawJsonQuery({
+  const { data, loading } = useGetConfigRawJsonQuery({
     variables: {
       appID: currentProject?.id,
     },
@@ -57,15 +60,22 @@ export default function TOMLEditor() {
       const tomlStr = TOML.stringify(jsonData);
       const unindentedTOMLConfig = removeTOMLIndentation(tomlStr);
       setTOMLCode(unindentedTOMLConfig);
+      setPreviousTOMLCode(unindentedTOMLConfig);
     }
   }, [loading, data]);
 
-  const onChange = useCallback(
-    (value: string) => setTOMLCode(value),
-    [setTOMLCode],
-  );
+  const onChange = useCallback((value: string) => {
+    setTOMLCode(value);
+    setIsDirty(true);
+  }, []);
+
+  const handleRevert = () => {
+    setTOMLCode(previousTOMLCode);
+    setIsDirty(false);
+  };
 
   const handleSave = async () => {
+    setIsSaving(true);
     let jsonEditedConfig;
     try {
       jsonEditedConfig = TOML.parse(tomlCode);
@@ -80,6 +90,7 @@ export default function TOMLEditor() {
         style: toastStyle.style,
         ...toastStyle.error,
       });
+      setIsSaving(false);
       return;
     }
     const rawJSONString = JSON.stringify(jsonEditedConfig);
@@ -100,6 +111,7 @@ export default function TOMLEditor() {
           const updatedTOMLConfig = TOML.stringify(jsonUpdatedConfig);
           const unindentedTOMLConfig = removeTOMLIndentation(updatedTOMLConfig);
           setTOMLCode(unindentedTOMLConfig);
+          setPreviousTOMLCode(unindentedTOMLConfig);
         }
 
         if (!isPlatform) {
@@ -113,12 +125,17 @@ export default function TOMLEditor() {
             },
           });
         }
+        setIsDirty(false);
+        setIsSaving(false);
       },
       {
         loadingMessage: 'Saving configuration...',
         successMessage: 'Configuration has been saved successfully.',
         errorMessage:
           'An error occurred while saving configuration. Please try again.',
+        onError: () => {
+          setIsSaving(false);
+        },
       },
     );
   };
@@ -151,8 +168,8 @@ export default function TOMLEditor() {
       <Box className="absolute bottom-0 right-0 grid w-full grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-2 md:justify-between">
         <Button
           variant="outlined"
-          disabled={loading}
-          onClick={() => refetch()}
+          disabled={loading || !isDirty}
+          onClick={handleRevert}
           color="secondary"
         >
           Revert changes
@@ -160,7 +177,8 @@ export default function TOMLEditor() {
 
         <Button
           type="submit"
-          disabled={loading}
+          disabled={loading || !isDirty}
+          loading={isSaving}
           className="justify-self-end"
           onClick={handleSave}
         >
