@@ -88,6 +88,10 @@ type Mutation {
         appID: uuid! @hasAppVisibility,
         config: ConfigConfigInsertInput!,
     ): ConfigConfig!
+    replaceConfigRawJSON(
+        appID: uuid! @hasAppVisibility,
+        rawJSON: String!,
+    ):String!
     insertConfig(
         appID: uuid! @hasAppVisibility,
         config: ConfigConfigInsertInput!,

@@ -260,6 +260,10 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	ConfigAutoscaler struct {
+		MaxReplicas func(childComplexity int) int
+	}
+
 	ConfigClaimMap struct {
 		Claim   func(childComplexity int) int
 		Default func(childComplexity int) int
@@ -407,6 +411,7 @@ type ComplexityRoot struct {
 	}
 
 	ConfigPostgresResources struct {
+		Autoscaler         func(childComplexity int) int
 		Compute            func(childComplexity int) int
 		EnablePublicAccess func(childComplexity int) int
 		Networking         func(childComplexity int) int
@@ -448,6 +453,7 @@ type ComplexityRoot struct {
 	}
 
 	ConfigResources struct {
+		Autoscaler func(childComplexity int) int
 		Compute    func(childComplexity int) int
 		Networking func(childComplexity int) int
 		Replicas   func(childComplexity int) int
@@ -485,9 +491,10 @@ type ComplexityRoot struct {
 	}
 
 	ConfigRunServiceResources struct {
-		Compute  func(childComplexity int) int
-		Replicas func(childComplexity int) int
-		Storage  func(childComplexity int) int
+		Autoscaler func(childComplexity int) int
+		Compute    func(childComplexity int) int
+		Replicas   func(childComplexity int) int
+		Storage    func(childComplexity int) int
 	}
 
 	ConfigRunServiceResourcesStorage struct {
@@ -587,6 +594,7 @@ type ComplexityRoot struct {
 		InsertRunServiceConfig  func(childComplexity int, appID string, serviceID string, config model.ConfigRunServiceConfigInsertInput) int
 		InsertSecret            func(childComplexity int, appID string, secret model.ConfigEnvironmentVariableInsertInput) int
 		ReplaceConfig           func(childComplexity int, appID string, config model.ConfigConfigInsertInput) int
+		ReplaceConfigRawJSON    func(childComplexity int, appID string, rawJSON string) int
 		ReplaceRunServiceConfig func(childComplexity int, appID string, serviceID string, config model.ConfigRunServiceConfigInsertInput) int
 		UpdateConfig            func(childComplexity int, appID string, config model.ConfigConfigUpdateInput) int
 		UpdateRunServiceConfig  func(childComplexity int, appID string, serviceID string, config model.ConfigRunServiceConfigUpdateInput) int
@@ -612,6 +620,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	UpdateConfig(ctx context.Context, appID string, config model.ConfigConfigUpdateInput) (*model.ConfigConfig, error)
 	ReplaceConfig(ctx context.Context, appID string, config model.ConfigConfigInsertInput) (*model.ConfigConfig, error)
+	ReplaceConfigRawJSON(ctx context.Context, appID string, rawJSON string) (string, error)
 	InsertConfig(ctx context.Context, appID string, config model.ConfigConfigInsertInput, systemConfig model.ConfigSystemConfigInsertInput, secrets []*model.ConfigEnvironmentVariableInsertInput) (*model.ConfigInsertConfigResponse, error)
 	DeleteConfig(ctx context.Context, appID string) (*model.ConfigConfig, error)
 	ChangeDatabaseVersion(ctx context.Context, appID string, version string, force *bool) (bool, error)
@@ -1399,6 +1408,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigAuthsessionaccessTokenCustomClaims.Value(childComplexity), true
 
+	case "ConfigAutoscaler.maxReplicas":
+		if e.complexity.ConfigAutoscaler.MaxReplicas == nil {
+			break
+		}
+
+		return e.complexity.ConfigAutoscaler.MaxReplicas(childComplexity), true
+
 	case "ConfigClaimMap.claim":
 		if e.complexity.ConfigClaimMap.Claim == nil {
 			break
@@ -1917,6 +1933,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigPostgres.Version(childComplexity), true
 
+	case "ConfigPostgresResources.autoscaler":
+		if e.complexity.ConfigPostgresResources.Autoscaler == nil {
+			break
+		}
+
+		return e.complexity.ConfigPostgresResources.Autoscaler(childComplexity), true
+
 	case "ConfigPostgresResources.compute":
 		if e.complexity.ConfigPostgresResources.Compute == nil {
 			break
@@ -2120,6 +2143,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigProvider.Smtp(childComplexity), true
 
+	case "ConfigResources.autoscaler":
+		if e.complexity.ConfigResources.Autoscaler == nil {
+			break
+		}
+
+		return e.complexity.ConfigResources.Autoscaler(childComplexity), true
+
 	case "ConfigResources.compute":
 		if e.complexity.ConfigResources.Compute == nil {
 			break
@@ -2252,6 +2282,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigRunServicePort.Type(childComplexity), true
+
+	case "ConfigRunServiceResources.autoscaler":
+		if e.complexity.ConfigRunServiceResources.Autoscaler == nil {
+			break
+		}
+
+		return e.complexity.ConfigRunServiceResources.Autoscaler(childComplexity), true
 
 	case "ConfigRunServiceResources.compute":
 		if e.complexity.ConfigRunServiceResources.Compute == nil {
@@ -2671,6 +2708,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ReplaceConfig(childComplexity, args["appID"].(string), args["config"].(model.ConfigConfigInsertInput)), true
 
+	case "Mutation.replaceConfigRawJSON":
+		if e.complexity.Mutation.ReplaceConfigRawJSON == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_replaceConfigRawJSON_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ReplaceConfigRawJSON(childComplexity, args["appID"].(string), args["rawJSON"].(string)), true
+
 	case "Mutation.replaceRunServiceConfig":
 		if e.complexity.Mutation.ReplaceRunServiceConfig == nil {
 			break
@@ -2930,6 +2979,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigAuthUserRolesInsertInput,
 		ec.unmarshalInputConfigAuthsessionaccessTokenCustomClaimsComparisonExp,
 		ec.unmarshalInputConfigAuthsessionaccessTokenCustomClaimsInsertInput,
+		ec.unmarshalInputConfigAutoscalerComparisonExp,
+		ec.unmarshalInputConfigAutoscalerInsertInput,
 		ec.unmarshalInputConfigBooleanComparisonExp,
 		ec.unmarshalInputConfigClaimMapComparisonExp,
 		ec.unmarshalInputConfigClaimMapInsertInput,
@@ -3233,6 +3284,10 @@ type Mutation {
         appID: uuid! @hasAppVisibility,
         config: ConfigConfigInsertInput!,
     ): ConfigConfig!
+    replaceConfigRawJSON(
+        appID: uuid! @hasAppVisibility,
+        rawJSON: String!,
+    ):String!
     insertConfig(
         appID: uuid! @hasAppVisibility,
         config: ConfigConfigInsertInput!,
@@ -4685,6 +4740,31 @@ input ConfigAuthsessionaccessTokenCustomClaimsComparisonExp {
 """
 
 """
+type ConfigAutoscaler {
+    """
+
+    """
+    maxReplicas: ConfigUint8!
+}
+
+input ConfigAutoscalerUpdateInput {
+    maxReplicas: ConfigUint8
+}
+
+input ConfigAutoscalerInsertInput {
+    maxReplicas: ConfigUint8!
+}
+
+input ConfigAutoscalerComparisonExp {
+    _and: [ConfigAutoscalerComparisonExp!]
+    _not: ConfigAutoscalerComparisonExp
+    _or: [ConfigAutoscalerComparisonExp!]
+    maxReplicas: ConfigUint8ComparisonExp
+}
+
+"""
+
+"""
 type ConfigClaimMap {
     """
 
@@ -5648,6 +5728,10 @@ type ConfigPostgresResources {
     """
 
     """
+    autoscaler: ConfigAutoscaler
+    """
+
+    """
     networking: ConfigNetworking
     """
 
@@ -5662,6 +5746,7 @@ type ConfigPostgresResources {
 input ConfigPostgresResourcesUpdateInput {
     compute: ConfigResourcesComputeUpdateInput
     replicas: ConfigUint8
+    autoscaler: ConfigAutoscalerUpdateInput
     networking: ConfigNetworkingUpdateInput
     storage: ConfigPostgresStorageUpdateInput
     enablePublicAccess: Boolean
@@ -5670,6 +5755,7 @@ input ConfigPostgresResourcesUpdateInput {
 input ConfigPostgresResourcesInsertInput {
     compute: ConfigResourcesComputeInsertInput
     replicas: ConfigUint8
+    autoscaler: ConfigAutoscalerInsertInput
     networking: ConfigNetworkingInsertInput
     storage: ConfigPostgresStorageInsertInput
     enablePublicAccess: Boolean
@@ -5681,6 +5767,7 @@ input ConfigPostgresResourcesComparisonExp {
     _or: [ConfigPostgresResourcesComparisonExp!]
     compute: ConfigResourcesComputeComparisonExp
     replicas: ConfigUint8ComparisonExp
+    autoscaler: ConfigAutoscalerComparisonExp
     networking: ConfigNetworkingComparisonExp
     storage: ConfigPostgresStorageComparisonExp
     enablePublicAccess: ConfigBooleanComparisonExp
@@ -5923,18 +6010,24 @@ type ConfigResources {
     """
 
     """
+    autoscaler: ConfigAutoscaler
+    """
+
+    """
     networking: ConfigNetworking
 }
 
 input ConfigResourcesUpdateInput {
     compute: ConfigResourcesComputeUpdateInput
     replicas: ConfigUint8
+    autoscaler: ConfigAutoscalerUpdateInput
     networking: ConfigNetworkingUpdateInput
 }
 
 input ConfigResourcesInsertInput {
     compute: ConfigResourcesComputeInsertInput
     replicas: ConfigUint8
+    autoscaler: ConfigAutoscalerInsertInput
     networking: ConfigNetworkingInsertInput
 }
 
@@ -5944,6 +6037,7 @@ input ConfigResourcesComparisonExp {
     _or: [ConfigResourcesComparisonExp!]
     compute: ConfigResourcesComputeComparisonExp
     replicas: ConfigUint8ComparisonExp
+    autoscaler: ConfigAutoscalerComparisonExp
     networking: ConfigNetworkingComparisonExp
 }
 
@@ -6142,18 +6236,24 @@ type ConfigRunServiceResources {
     Number of replicas for a service
     """
     replicas: ConfigUint8!
+    """
+
+    """
+    autoscaler: ConfigAutoscaler
 }
 
 input ConfigRunServiceResourcesUpdateInput {
     compute: ConfigComputeResourcesUpdateInput
         storage: [ConfigRunServiceResourcesStorageUpdateInput!]
     replicas: ConfigUint8
+    autoscaler: ConfigAutoscalerUpdateInput
 }
 
 input ConfigRunServiceResourcesInsertInput {
     compute: ConfigComputeResourcesInsertInput!
         storage: [ConfigRunServiceResourcesStorageInsertInput!]
     replicas: ConfigUint8!
+    autoscaler: ConfigAutoscalerInsertInput
 }
 
 input ConfigRunServiceResourcesComparisonExp {
@@ -6163,6 +6263,7 @@ input ConfigRunServiceResourcesComparisonExp {
     compute: ConfigComputeResourcesComparisonExp
     storage: ConfigRunServiceResourcesStorageComparisonExp
     replicas: ConfigUint8ComparisonExp
+    autoscaler: ConfigAutoscalerComparisonExp
 }
 
 """
@@ -7050,6 +7151,43 @@ func (ec *executionContext) field_Mutation_insertSecret_args(ctx context.Context
 		}
 	}
 	args["secret"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_replaceConfigRawJSON_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["appID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appID"))
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNuuid2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasAppVisibility == nil {
+				return nil, errors.New("directive hasAppVisibility is not implemented")
+			}
+			return ec.directives.HasAppVisibility(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+		}
+	}
+	args["appID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["rawJSON"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawJSON"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["rawJSON"] = arg1
 	return args, nil
 }
 
@@ -8510,6 +8648,8 @@ func (ec *executionContext) fieldContext_ConfigAuth_resources(_ context.Context,
 				return ec.fieldContext_ConfigResources_compute(ctx, field)
 			case "replicas":
 				return ec.fieldContext_ConfigResources_replicas(ctx, field)
+			case "autoscaler":
+				return ec.fieldContext_ConfigResources_autoscaler(ctx, field)
 			case "networking":
 				return ec.fieldContext_ConfigResources_networking(ctx, field)
 			}
@@ -12500,6 +12640,50 @@ func (ec *executionContext) fieldContext_ConfigAuthsessionaccessTokenCustomClaim
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigAutoscaler_maxReplicas(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAutoscaler) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAutoscaler_maxReplicas(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaxReplicas, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint8)
+	fc.Result = res
+	return ec.marshalNConfigUint82uint8(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAutoscaler_maxReplicas(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAutoscaler",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigUint8 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigClaimMap_claim(ctx context.Context, field graphql.CollectedField, obj *model.ConfigClaimMap) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigClaimMap_claim(ctx, field)
 	if err != nil {
@@ -14267,6 +14451,8 @@ func (ec *executionContext) fieldContext_ConfigHasura_resources(_ context.Contex
 				return ec.fieldContext_ConfigResources_compute(ctx, field)
 			case "replicas":
 				return ec.fieldContext_ConfigResources_replicas(ctx, field)
+			case "autoscaler":
+				return ec.fieldContext_ConfigResources_autoscaler(ctx, field)
 			case "networking":
 				return ec.fieldContext_ConfigResources_networking(ctx, field)
 			}
@@ -15782,6 +15968,8 @@ func (ec *executionContext) fieldContext_ConfigPostgres_resources(_ context.Cont
 				return ec.fieldContext_ConfigPostgresResources_compute(ctx, field)
 			case "replicas":
 				return ec.fieldContext_ConfigPostgresResources_replicas(ctx, field)
+			case "autoscaler":
+				return ec.fieldContext_ConfigPostgresResources_autoscaler(ctx, field)
 			case "networking":
 				return ec.fieldContext_ConfigPostgresResources_networking(ctx, field)
 			case "storage":
@@ -15963,6 +16151,51 @@ func (ec *executionContext) fieldContext_ConfigPostgresResources_replicas(_ cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ConfigUint8 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigPostgresResources_autoscaler(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresResources) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigPostgresResources_autoscaler(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Autoscaler, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigAutoscaler)
+	fc.Result = res
+	return ec.marshalOConfigAutoscaler2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscaler(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigPostgresResources_autoscaler(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigPostgresResources",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "maxReplicas":
+				return ec.fieldContext_ConfigAutoscaler_maxReplicas(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAutoscaler", field.Name)
 		},
 	}
 	return fc, nil
@@ -17200,6 +17433,51 @@ func (ec *executionContext) fieldContext_ConfigResources_replicas(_ context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigResources_autoscaler(ctx context.Context, field graphql.CollectedField, obj *model.ConfigResources) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigResources_autoscaler(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Autoscaler, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigAutoscaler)
+	fc.Result = res
+	return ec.marshalOConfigAutoscaler2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscaler(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigResources_autoscaler(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigResources",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "maxReplicas":
+				return ec.fieldContext_ConfigAutoscaler_maxReplicas(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAutoscaler", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigResources_networking(ctx context.Context, field graphql.CollectedField, obj *model.ConfigResources) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigResources_networking(ctx, field)
 	if err != nil {
@@ -17609,6 +17887,8 @@ func (ec *executionContext) fieldContext_ConfigRunServiceConfig_resources(_ cont
 				return ec.fieldContext_ConfigRunServiceResources_storage(ctx, field)
 			case "replicas":
 				return ec.fieldContext_ConfigRunServiceResources_replicas(ctx, field)
+			case "autoscaler":
+				return ec.fieldContext_ConfigRunServiceResources_autoscaler(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigRunServiceResources", field.Name)
 		},
@@ -18125,6 +18405,51 @@ func (ec *executionContext) fieldContext_ConfigRunServiceResources_replicas(_ co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ConfigUint8 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigRunServiceResources_autoscaler(ctx context.Context, field graphql.CollectedField, obj *model.ConfigRunServiceResources) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigRunServiceResources_autoscaler(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Autoscaler, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigAutoscaler)
+	fc.Result = res
+	return ec.marshalOConfigAutoscaler2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscaler(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigRunServiceResources_autoscaler(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigRunServiceResources",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "maxReplicas":
+				return ec.fieldContext_ConfigAutoscaler_maxReplicas(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAutoscaler", field.Name)
 		},
 	}
 	return fc, nil
@@ -19111,6 +19436,8 @@ func (ec *executionContext) fieldContext_ConfigStorage_resources(_ context.Conte
 				return ec.fieldContext_ConfigResources_compute(ctx, field)
 			case "replicas":
 				return ec.fieldContext_ConfigResources_replicas(ctx, field)
+			case "autoscaler":
+				return ec.fieldContext_ConfigResources_autoscaler(ctx, field)
 			case "networking":
 				return ec.fieldContext_ConfigResources_networking(ctx, field)
 			}
@@ -20157,6 +20484,61 @@ func (ec *executionContext) fieldContext_Mutation_replaceConfig(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_replaceConfig_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_replaceConfigRawJSON(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_replaceConfigRawJSON(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ReplaceConfigRawJSON(rctx, fc.Args["appID"].(string), fc.Args["rawJSON"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_replaceConfigRawJSON(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_replaceConfigRawJSON_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -26797,6 +27179,81 @@ func (ec *executionContext) unmarshalInputConfigAuthsessionaccessTokenCustomClai
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputConfigAutoscalerComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAutoscalerComparisonExp, error) {
+	var it model.ConfigAutoscalerComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "maxReplicas"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAutoscalerComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAutoscalerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAutoscalerComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "maxReplicas":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxReplicas"))
+			data, err := ec.unmarshalOConfigUint8ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxReplicas = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAutoscalerInsertInput(ctx context.Context, obj interface{}) (model.ConfigAutoscalerInsertInput, error) {
+	var it model.ConfigAutoscalerInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"maxReplicas"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "maxReplicas":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxReplicas"))
+			data, err := ec.unmarshalNConfigUint82uint8(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxReplicas = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigBooleanComparisonExp(ctx context.Context, obj interface{}) (model.GenericComparisonExp[bool], error) {
 	var it model.GenericComparisonExp[bool]
 	asMap := map[string]interface{}{}
@@ -29729,7 +30186,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesComparisonExp(c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "compute", "replicas", "networking", "storage", "enablePublicAccess"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "compute", "replicas", "autoscaler", "networking", "storage", "enablePublicAccess"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -29771,6 +30228,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesComparisonExp(c
 				return it, err
 			}
 			it.Replicas = data
+		case "autoscaler":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoscaler"))
+			data, err := ec.unmarshalOConfigAutoscalerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Autoscaler = data
 		case "networking":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("networking"))
 			data, err := ec.unmarshalOConfigNetworkingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingComparisonExp(ctx, v)
@@ -29805,7 +30269,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"compute", "replicas", "networking", "storage", "enablePublicAccess"}
+	fieldsInOrder := [...]string{"compute", "replicas", "autoscaler", "networking", "storage", "enablePublicAccess"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -29826,6 +30290,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresResourcesInsertInput(ctx
 				return it, err
 			}
 			it.Replicas = data
+		case "autoscaler":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoscaler"))
+			data, err := ec.unmarshalOConfigAutoscalerInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Autoscaler = data
 		case "networking":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("networking"))
 			data, err := ec.unmarshalOConfigNetworkingInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingInsertInput(ctx, v)
@@ -30379,7 +30850,7 @@ func (ec *executionContext) unmarshalInputConfigResourcesComparisonExp(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "compute", "replicas", "networking"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "compute", "replicas", "autoscaler", "networking"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30421,6 +30892,13 @@ func (ec *executionContext) unmarshalInputConfigResourcesComparisonExp(ctx conte
 				return it, err
 			}
 			it.Replicas = data
+		case "autoscaler":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoscaler"))
+			data, err := ec.unmarshalOConfigAutoscalerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Autoscaler = data
 		case "networking":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("networking"))
 			data, err := ec.unmarshalOConfigNetworkingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingComparisonExp(ctx, v)
@@ -30530,7 +31008,7 @@ func (ec *executionContext) unmarshalInputConfigResourcesInsertInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"compute", "replicas", "networking"}
+	fieldsInOrder := [...]string{"compute", "replicas", "autoscaler", "networking"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30551,6 +31029,13 @@ func (ec *executionContext) unmarshalInputConfigResourcesInsertInput(ctx context
 				return it, err
 			}
 			it.Replicas = data
+		case "autoscaler":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoscaler"))
+			data, err := ec.unmarshalOConfigAutoscalerInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Autoscaler = data
 		case "networking":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("networking"))
 			data, err := ec.unmarshalOConfigNetworkingInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigNetworkingInsertInput(ctx, v)
@@ -30970,7 +31455,7 @@ func (ec *executionContext) unmarshalInputConfigRunServiceResourcesComparisonExp
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "compute", "storage", "replicas"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "compute", "storage", "replicas", "autoscaler"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31019,6 +31504,13 @@ func (ec *executionContext) unmarshalInputConfigRunServiceResourcesComparisonExp
 				return it, err
 			}
 			it.Replicas = data
+		case "autoscaler":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoscaler"))
+			data, err := ec.unmarshalOConfigAutoscalerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Autoscaler = data
 		}
 	}
 
@@ -31032,7 +31524,7 @@ func (ec *executionContext) unmarshalInputConfigRunServiceResourcesInsertInput(c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"compute", "storage", "replicas"}
+	fieldsInOrder := [...]string{"compute", "storage", "replicas", "autoscaler"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31060,6 +31552,13 @@ func (ec *executionContext) unmarshalInputConfigRunServiceResourcesInsertInput(c
 				return it, err
 			}
 			it.Replicas = data
+		case "autoscaler":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoscaler"))
+			data, err := ec.unmarshalOConfigAutoscalerInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Autoscaler = data
 		}
 	}
 
@@ -34416,6 +34915,45 @@ func (ec *executionContext) _ConfigAuthsessionaccessTokenCustomClaims(ctx contex
 	return out
 }
 
+var configAutoscalerImplementors = []string{"ConfigAutoscaler"}
+
+func (ec *executionContext) _ConfigAutoscaler(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAutoscaler) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAutoscalerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAutoscaler")
+		case "maxReplicas":
+			out.Values[i] = ec._ConfigAutoscaler_maxReplicas(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var configClaimMapImplementors = []string{"ConfigClaimMap"}
 
 func (ec *executionContext) _ConfigClaimMap(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigClaimMap) graphql.Marshaler {
@@ -35449,6 +35987,8 @@ func (ec *executionContext) _ConfigPostgresResources(ctx context.Context, sel as
 			out.Values[i] = ec._ConfigPostgresResources_compute(ctx, field, obj)
 		case "replicas":
 			out.Values[i] = ec._ConfigPostgresResources_replicas(ctx, field, obj)
+		case "autoscaler":
+			out.Values[i] = ec._ConfigPostgresResources_autoscaler(ctx, field, obj)
 		case "networking":
 			out.Values[i] = ec._ConfigPostgresResources_networking(ctx, field, obj)
 		case "storage":
@@ -35646,6 +36186,8 @@ func (ec *executionContext) _ConfigResources(ctx context.Context, sel ast.Select
 			out.Values[i] = ec._ConfigResources_compute(ctx, field, obj)
 		case "replicas":
 			out.Values[i] = ec._ConfigResources_replicas(ctx, field, obj)
+		case "autoscaler":
+			out.Values[i] = ec._ConfigResources_autoscaler(ctx, field, obj)
 		case "networking":
 			out.Values[i] = ec._ConfigResources_networking(ctx, field, obj)
 		default:
@@ -35926,6 +36468,8 @@ func (ec *executionContext) _ConfigRunServiceResources(ctx context.Context, sel 
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "autoscaler":
+			out.Values[i] = ec._ConfigRunServiceResources_autoscaler(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -36634,6 +37178,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "replaceConfig":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_replaceConfig(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "replaceConfigRawJSON":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_replaceConfigRawJSON(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -37677,6 +38228,11 @@ func (ec *executionContext) unmarshalNConfigAuthsessionaccessTokenCustomClaimsUp
 	var res = new(model.ConfigAuthsessionaccessTokenCustomClaimsUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigAutoscalerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAutoscalerComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAutoscalerComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNConfigClaimMap2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigClaimMap(ctx context.Context, sel ast.SelectionSet, v *model.ConfigClaimMap) graphql.Marshaler {
@@ -40741,6 +41297,58 @@ func (ec *executionContext) unmarshalOConfigAuthsessionaccessTokenCustomClaimsUp
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) marshalOConfigAutoscaler2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscaler(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAutoscaler) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAutoscaler(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAutoscalerComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAutoscalerComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigAutoscalerComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAutoscalerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAutoscalerComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAutoscalerComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAutoscalerComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAutoscalerInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerInsertInput(ctx context.Context, v interface{}) (*model.ConfigAutoscalerInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAutoscalerInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAutoscalerUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAutoscalerUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAutoscalerUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAutoscalerUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx context.Context, v interface{}) (*model.GenericComparisonExp[bool], error) {

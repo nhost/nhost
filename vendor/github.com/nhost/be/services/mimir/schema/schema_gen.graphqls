@@ -1396,6 +1396,31 @@ input ConfigAuthsessionaccessTokenCustomClaimsComparisonExp {
 """
 
 """
+type ConfigAutoscaler {
+    """
+
+    """
+    maxReplicas: ConfigUint8!
+}
+
+input ConfigAutoscalerUpdateInput {
+    maxReplicas: ConfigUint8
+}
+
+input ConfigAutoscalerInsertInput {
+    maxReplicas: ConfigUint8!
+}
+
+input ConfigAutoscalerComparisonExp {
+    _and: [ConfigAutoscalerComparisonExp!]
+    _not: ConfigAutoscalerComparisonExp
+    _or: [ConfigAutoscalerComparisonExp!]
+    maxReplicas: ConfigUint8ComparisonExp
+}
+
+"""
+
+"""
 type ConfigClaimMap {
     """
 
@@ -2359,6 +2384,10 @@ type ConfigPostgresResources {
     """
 
     """
+    autoscaler: ConfigAutoscaler
+    """
+
+    """
     networking: ConfigNetworking
     """
 
@@ -2373,6 +2402,7 @@ type ConfigPostgresResources {
 input ConfigPostgresResourcesUpdateInput {
     compute: ConfigResourcesComputeUpdateInput
     replicas: ConfigUint8
+    autoscaler: ConfigAutoscalerUpdateInput
     networking: ConfigNetworkingUpdateInput
     storage: ConfigPostgresStorageUpdateInput
     enablePublicAccess: Boolean
@@ -2381,6 +2411,7 @@ input ConfigPostgresResourcesUpdateInput {
 input ConfigPostgresResourcesInsertInput {
     compute: ConfigResourcesComputeInsertInput
     replicas: ConfigUint8
+    autoscaler: ConfigAutoscalerInsertInput
     networking: ConfigNetworkingInsertInput
     storage: ConfigPostgresStorageInsertInput
     enablePublicAccess: Boolean
@@ -2392,6 +2423,7 @@ input ConfigPostgresResourcesComparisonExp {
     _or: [ConfigPostgresResourcesComparisonExp!]
     compute: ConfigResourcesComputeComparisonExp
     replicas: ConfigUint8ComparisonExp
+    autoscaler: ConfigAutoscalerComparisonExp
     networking: ConfigNetworkingComparisonExp
     storage: ConfigPostgresStorageComparisonExp
     enablePublicAccess: ConfigBooleanComparisonExp
@@ -2634,18 +2666,24 @@ type ConfigResources {
     """
 
     """
+    autoscaler: ConfigAutoscaler
+    """
+
+    """
     networking: ConfigNetworking
 }
 
 input ConfigResourcesUpdateInput {
     compute: ConfigResourcesComputeUpdateInput
     replicas: ConfigUint8
+    autoscaler: ConfigAutoscalerUpdateInput
     networking: ConfigNetworkingUpdateInput
 }
 
 input ConfigResourcesInsertInput {
     compute: ConfigResourcesComputeInsertInput
     replicas: ConfigUint8
+    autoscaler: ConfigAutoscalerInsertInput
     networking: ConfigNetworkingInsertInput
 }
 
@@ -2655,6 +2693,7 @@ input ConfigResourcesComparisonExp {
     _or: [ConfigResourcesComparisonExp!]
     compute: ConfigResourcesComputeComparisonExp
     replicas: ConfigUint8ComparisonExp
+    autoscaler: ConfigAutoscalerComparisonExp
     networking: ConfigNetworkingComparisonExp
 }
 
@@ -2853,18 +2892,24 @@ type ConfigRunServiceResources {
     Number of replicas for a service
     """
     replicas: ConfigUint8!
+    """
+
+    """
+    autoscaler: ConfigAutoscaler
 }
 
 input ConfigRunServiceResourcesUpdateInput {
     compute: ConfigComputeResourcesUpdateInput
         storage: [ConfigRunServiceResourcesStorageUpdateInput!]
     replicas: ConfigUint8
+    autoscaler: ConfigAutoscalerUpdateInput
 }
 
 input ConfigRunServiceResourcesInsertInput {
     compute: ConfigComputeResourcesInsertInput!
         storage: [ConfigRunServiceResourcesStorageInsertInput!]
     replicas: ConfigUint8!
+    autoscaler: ConfigAutoscalerInsertInput
 }
 
 input ConfigRunServiceResourcesComparisonExp {
@@ -2874,6 +2919,7 @@ input ConfigRunServiceResourcesComparisonExp {
     compute: ConfigComputeResourcesComparisonExp
     storage: ConfigRunServiceResourcesStorageComparisonExp
     replicas: ConfigUint8ComparisonExp
+    autoscaler: ConfigAutoscalerComparisonExp
 }
 
 """

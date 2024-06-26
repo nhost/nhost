@@ -99,6 +99,10 @@ import (
 	fqdn: [string & net.FQDN & strings.MinRunes(1) & strings.MaxRunes(63)]
 }
 
+#Autoscaler: {
+    maxReplicas: uint8 & >=2 & <=100
+}
+
 // Resource configuration for a service
 #Resources: {
 	compute?: {
@@ -116,9 +120,15 @@ import (
 
 	// Number of replicas for a service
 	replicas: uint8 & >=1 & <=10 | *1
+    autoscaler?: #Autoscaler
 
+    _validateReplicasMustBeSmallerThanMaxReplicas: (replicas <= autoscaler.maxReplicas) & true @cuegraph(skip)
+
+	_validateMultipleReplicasNeedsCompute: (
+							replicas == 1 && autoscaler == _|_ |
+        compute != _|_) & true @cuegraph(skip)
 	_validateMultipleReplicasRatioMustBe1For2: (
-							replicas == 1 |
+							replicas == 1 && autoscaler == _|_ |
 		(compute.cpu*2.048 == compute.memory)) & true @cuegraph(skip)
 
 	networking?: #Networking | null
@@ -212,7 +222,7 @@ import (
 // Configuration for functions service
 #Functions: {
 	node: {
-		version: 18
+		version: 20 | *18
 	}
 
 	resources?: {
@@ -237,6 +247,7 @@ import (
 	} & {
 		replicas:    1
 		networking?: null
+        autoscaler?: null
 	}
 
 	settings?: {
@@ -641,7 +652,11 @@ import (
 	// Number of replicas for a service
 	replicas: uint8 & <=10
 
-	_replcas_cant_be_greater_than_1_when_using_storage: (len(storage) == 0 | (len(storage) > 0 & replicas <= 1)) & true @cuegraph(skip)
+    autoscaler?: #Autoscaler
+
+    _validateReplicasMustBeSmallerThanMaxReplicas: (replicas <= autoscaler.maxReplicas) & true @cuegraph(skip)
+
+	_replcas_cant_be_greater_than_1_when_using_storage: (len(storage) == 0 | (len(storage) > 0 & replicas <= 1 && autoscaler == _|_)) & true @cuegraph(skip)
 
 	_validate_cpu_memory_ratio_must_be_1_for_2: (math.Abs(compute.memory-compute.cpu*2.048) <= 1.024) & true @cuegraph(skip)
 }

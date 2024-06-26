@@ -104,6 +104,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 						},
 					},
 				},
+				Autoscaler: nil,
 			},
 		},
 		Functions: &model.ConfigFunctions{
@@ -138,6 +139,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 						},
 					},
 				},
+				Autoscaler: nil,
 			},
 			Redirections: &model.ConfigAuthRedirections{
 				ClientUrl: ptr("https://example.com"),
@@ -326,6 +328,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				Storage: &model.ConfigPostgresStorage{
 					Capacity: 20,
 				},
+				Autoscaler: nil,
 			},
 			Settings: &model.ConfigPostgresSettings{
 				Jit:                           ptr("off"),
@@ -380,6 +383,7 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				},
 				Networking: nil,
 				Replicas:   ptr(uint8(1)),
+				Autoscaler: nil,
 			},
 		},
 		Observability: &model.ConfigObservability{

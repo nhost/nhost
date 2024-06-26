@@ -21,6 +21,11 @@ func (r *mutationResolver) ReplaceConfig(ctx context.Context, appID string, conf
 	return r.replaceConfig(ctx, appID, config)
 }
 
+// UpdateConfigRawJSON is the resolver for the updateConfigRawJSON field.
+func (r *mutationResolver) ReplaceConfigRawJSON(ctx context.Context, appID string, rawJSON string) (string, error) {
+	return r.replaceConfigRawJSON(ctx, appID, rawJSON)
+}
+
 // InsertConfig is the resolver for the insertConfig field.
 func (r *mutationResolver) InsertConfig(ctx context.Context, appID string, config model.ConfigConfigInsertInput, systemConfig model.ConfigSystemConfigInsertInput, secrets []*model.ConfigEnvironmentVariableInsertInput) (*model.ConfigInsertConfigResponse, error) {
 	return r.insertConfig(ctx, appID, config, systemConfig, secrets)

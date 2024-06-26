@@ -424,6 +424,18 @@ type ConfigAuthsessionaccessTokenCustomClaimsUpdateInput struct {
 	Value *string `json:"value,omitempty"`
 }
 
+type ConfigAutoscaler struct {
+	MaxReplicas uint32 `json:"maxReplicas"`
+}
+
+type ConfigAutoscalerInsertInput struct {
+	MaxReplicas uint32 `json:"maxReplicas"`
+}
+
+type ConfigAutoscalerUpdateInput struct {
+	MaxReplicas *uint32 `json:"maxReplicas,omitempty"`
+}
+
 type ConfigClaimMap struct {
 	Claim   string  `json:"claim"`
 	Default *string `json:"default,omitempty"`
@@ -719,6 +731,7 @@ type ConfigPostgres struct {
 }
 
 type ConfigPostgresResources struct {
+	Autoscaler         *ConfigAutoscaler       `json:"autoscaler,omitempty"`
 	Compute            *ConfigResourcesCompute `json:"compute,omitempty"`
 	EnablePublicAccess *bool                   `json:"enablePublicAccess,omitempty"`
 	Networking         *ConfigNetworking       `json:"networking,omitempty"`
@@ -727,6 +740,7 @@ type ConfigPostgresResources struct {
 }
 
 type ConfigPostgresResourcesUpdateInput struct {
+	Autoscaler         *ConfigAutoscalerUpdateInput       `json:"autoscaler,omitempty"`
 	Compute            *ConfigResourcesComputeUpdateInput `json:"compute,omitempty"`
 	EnablePublicAccess *bool                              `json:"enablePublicAccess,omitempty"`
 	Networking         *ConfigNetworkingUpdateInput       `json:"networking,omitempty"`
@@ -807,6 +821,7 @@ type ConfigProviderUpdateInput struct {
 }
 
 type ConfigResources struct {
+	Autoscaler *ConfigAutoscaler       `json:"autoscaler,omitempty"`
 	Compute    *ConfigResourcesCompute `json:"compute,omitempty"`
 	Networking *ConfigNetworking       `json:"networking,omitempty"`
 	Replicas   *uint32                 `json:"replicas,omitempty"`
@@ -823,6 +838,7 @@ type ConfigResourcesComputeUpdateInput struct {
 }
 
 type ConfigResourcesUpdateInput struct {
+	Autoscaler *ConfigAutoscalerUpdateInput       `json:"autoscaler,omitempty"`
 	Compute    *ConfigResourcesComputeUpdateInput `json:"compute,omitempty"`
 	Networking *ConfigNetworkingUpdateInput       `json:"networking,omitempty"`
 	Replicas   *uint32                            `json:"replicas,omitempty"`
@@ -897,15 +913,17 @@ type ConfigRunServicePortUpdateInput struct {
 }
 
 type ConfigRunServiceResources struct {
-	Compute  *ConfigComputeResources             `json:"compute"`
-	Replicas uint32                              `json:"replicas"`
-	Storage  []*ConfigRunServiceResourcesStorage `json:"storage,omitempty"`
+	Autoscaler *ConfigAutoscaler                   `json:"autoscaler,omitempty"`
+	Compute    *ConfigComputeResources             `json:"compute"`
+	Replicas   uint32                              `json:"replicas"`
+	Storage    []*ConfigRunServiceResourcesStorage `json:"storage,omitempty"`
 }
 
 type ConfigRunServiceResourcesInsertInput struct {
-	Compute  *ConfigComputeResourcesInsertInput             `json:"compute"`
-	Replicas uint32                                         `json:"replicas"`
-	Storage  []*ConfigRunServiceResourcesStorageInsertInput `json:"storage,omitempty"`
+	Autoscaler *ConfigAutoscalerInsertInput                   `json:"autoscaler,omitempty"`
+	Compute    *ConfigComputeResourcesInsertInput             `json:"compute"`
+	Replicas   uint32                                         `json:"replicas"`
+	Storage    []*ConfigRunServiceResourcesStorageInsertInput `json:"storage,omitempty"`
 }
 
 type ConfigRunServiceResourcesStorage struct {
@@ -927,9 +945,10 @@ type ConfigRunServiceResourcesStorageUpdateInput struct {
 }
 
 type ConfigRunServiceResourcesUpdateInput struct {
-	Compute  *ConfigComputeResourcesUpdateInput             `json:"compute,omitempty"`
-	Replicas *uint32                                        `json:"replicas,omitempty"`
-	Storage  []*ConfigRunServiceResourcesStorageUpdateInput `json:"storage,omitempty"`
+	Autoscaler *ConfigAutoscalerUpdateInput                   `json:"autoscaler,omitempty"`
+	Compute    *ConfigComputeResourcesUpdateInput             `json:"compute,omitempty"`
+	Replicas   *uint32                                        `json:"replicas,omitempty"`
+	Storage    []*ConfigRunServiceResourcesStorageUpdateInput `json:"storage,omitempty"`
 }
 
 type ConfigSms struct {

@@ -70,7 +70,8 @@ func commandConfigExample(cCtx *cli.Context) error { //nolint:funlen
 					Path:     "/var/lib/my-storage",
 				},
 			},
-			Replicas: 1,
+			Replicas:   1,
+			Autoscaler: nil,
 		},
 		HealthCheck: &model.ConfigHealthCheck{
 			Port:                8080,

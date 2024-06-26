@@ -8585,6 +8585,138 @@ func (exp *ConfigAuthsessionaccessTokenCustomClaimsComparisonExp) Matches(o *Con
 	return true
 }
 
+type ConfigAutoscaler struct {
+	MaxReplicas uint8 `json:"maxReplicas" toml:"maxReplicas"`
+}
+
+func (o *ConfigAutoscaler) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["maxReplicas"] = o.MaxReplicas
+	return json.Marshal(m)
+}
+
+func (o *ConfigAutoscaler) GetMaxReplicas() uint8 {
+	if o == nil {
+		o = &ConfigAutoscaler{}
+	}
+	return o.MaxReplicas
+}
+
+type ConfigAutoscalerUpdateInput struct {
+	MaxReplicas      *uint8 `json:"maxReplicas,omitempty" toml:"maxReplicas,omitempty"`
+	IsSetMaxReplicas bool   `json:"-"`
+}
+
+func (o *ConfigAutoscalerUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["maxReplicas"]; ok {
+		if v == nil {
+			o.MaxReplicas = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint8
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxReplicas = &x
+		}
+		o.IsSetMaxReplicas = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAutoscalerUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAutoscalerUpdateInput) GetMaxReplicas() *uint8 {
+	if o == nil {
+		o = &ConfigAutoscalerUpdateInput{}
+	}
+	return o.MaxReplicas
+}
+
+func (s *ConfigAutoscaler) Update(v *ConfigAutoscalerUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetMaxReplicas || v.MaxReplicas != nil {
+		if v.MaxReplicas != nil {
+			s.MaxReplicas = *v.MaxReplicas
+		}
+	}
+}
+
+type ConfigAutoscalerInsertInput struct {
+	MaxReplicas uint8 `json:"maxReplicas,omitempty" toml:"maxReplicas,omitempty"`
+}
+
+func (o *ConfigAutoscalerInsertInput) GetMaxReplicas() uint8 {
+	if o == nil {
+		o = &ConfigAutoscalerInsertInput{}
+	}
+	return o.MaxReplicas
+}
+
+func (s *ConfigAutoscaler) Insert(v *ConfigAutoscalerInsertInput) {
+	s.MaxReplicas = v.MaxReplicas
+}
+
+func (s *ConfigAutoscaler) Clone() *ConfigAutoscaler {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAutoscaler{}
+	v.MaxReplicas = s.MaxReplicas
+	return v
+}
+
+type ConfigAutoscalerComparisonExp struct {
+	And         []*ConfigAutoscalerComparisonExp `json:"_and,omitempty"`
+	Not         *ConfigAutoscalerComparisonExp   `json:"_not,omitempty"`
+	Or          []*ConfigAutoscalerComparisonExp `json:"_or,omitempty"`
+	MaxReplicas *ConfigUint8ComparisonExp        `json:"maxReplicas,omitempty"`
+}
+
+func (exp *ConfigAutoscalerComparisonExp) Matches(o *ConfigAutoscaler) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAutoscaler{}
+	}
+	if !exp.MaxReplicas.Matches(o.MaxReplicas) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
 type ConfigClaimMap struct {
 	Claim string `json:"claim" toml:"claim"`
 
@@ -14756,6 +14888,8 @@ type ConfigPostgresResources struct {
 	// Number of replicas for a service
 	Replicas *uint8 `json:"replicas" toml:"replicas"`
 
+	Autoscaler *ConfigAutoscaler `json:"autoscaler,omitempty" toml:"autoscaler,omitempty"`
+
 	Networking *ConfigNetworking `json:"networking,omitempty" toml:"networking,omitempty"`
 
 	Storage *ConfigPostgresStorage `json:"storage,omitempty" toml:"storage,omitempty"`
@@ -14770,6 +14904,9 @@ func (o *ConfigPostgresResources) MarshalJSON() ([]byte, error) {
 	}
 	if o.Replicas != nil {
 		m["replicas"] = o.Replicas
+	}
+	if o.Autoscaler != nil {
+		m["autoscaler"] = o.Autoscaler
 	}
 	if o.Networking != nil {
 		m["networking"] = o.Networking
@@ -14795,6 +14932,13 @@ func (o *ConfigPostgresResources) GetReplicas() *uint8 {
 		o = &ConfigPostgresResources{}
 	}
 	return o.Replicas
+}
+
+func (o *ConfigPostgresResources) GetAutoscaler() *ConfigAutoscaler {
+	if o == nil {
+		return nil
+	}
+	return o.Autoscaler
 }
 
 func (o *ConfigPostgresResources) GetNetworking() *ConfigNetworking {
@@ -14823,6 +14967,8 @@ type ConfigPostgresResourcesUpdateInput struct {
 	IsSetCompute            bool                               `json:"-"`
 	Replicas                *uint8                             `json:"replicas,omitempty" toml:"replicas,omitempty"`
 	IsSetReplicas           bool                               `json:"-"`
+	Autoscaler              *ConfigAutoscalerUpdateInput       `json:"autoscaler,omitempty" toml:"autoscaler,omitempty"`
+	IsSetAutoscaler         bool                               `json:"-"`
 	Networking              *ConfigNetworkingUpdateInput       `json:"networking,omitempty" toml:"networking,omitempty"`
 	IsSetNetworking         bool                               `json:"-"`
 	Storage                 *ConfigPostgresStorageUpdateInput  `json:"storage,omitempty" toml:"storage,omitempty"`
@@ -14862,6 +15008,16 @@ func (o *ConfigPostgresResourcesUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Replicas = &x
 		}
 		o.IsSetReplicas = true
+	}
+	if x, ok := m["autoscaler"]; ok {
+		if x != nil {
+			t := &ConfigAutoscalerUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Autoscaler = t
+		}
+		o.IsSetAutoscaler = true
 	}
 	if x, ok := m["networking"]; ok {
 		if x != nil {
@@ -14925,6 +15081,13 @@ func (o *ConfigPostgresResourcesUpdateInput) GetReplicas() *uint8 {
 	return o.Replicas
 }
 
+func (o *ConfigPostgresResourcesUpdateInput) GetAutoscaler() *ConfigAutoscalerUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Autoscaler
+}
+
 func (o *ConfigPostgresResourcesUpdateInput) GetNetworking() *ConfigNetworkingUpdateInput {
 	if o == nil {
 		return nil
@@ -14963,6 +15126,16 @@ func (s *ConfigPostgresResources) Update(v *ConfigPostgresResourcesUpdateInput) 
 	if v.IsSetReplicas || v.Replicas != nil {
 		s.Replicas = v.Replicas
 	}
+	if v.IsSetAutoscaler || v.Autoscaler != nil {
+		if v.Autoscaler == nil {
+			s.Autoscaler = nil
+		} else {
+			if s.Autoscaler == nil {
+				s.Autoscaler = &ConfigAutoscaler{}
+			}
+			s.Autoscaler.Update(v.Autoscaler)
+		}
+	}
 	if v.IsSetNetworking || v.Networking != nil {
 		if v.Networking == nil {
 			s.Networking = nil
@@ -14991,6 +15164,7 @@ func (s *ConfigPostgresResources) Update(v *ConfigPostgresResourcesUpdateInput) 
 type ConfigPostgresResourcesInsertInput struct {
 	Compute            *ConfigResourcesComputeInsertInput `json:"compute,omitempty" toml:"compute,omitempty"`
 	Replicas           *uint8                             `json:"replicas,omitempty" toml:"replicas,omitempty"`
+	Autoscaler         *ConfigAutoscalerInsertInput       `json:"autoscaler,omitempty" toml:"autoscaler,omitempty"`
 	Networking         *ConfigNetworkingInsertInput       `json:"networking,omitempty" toml:"networking,omitempty"`
 	Storage            *ConfigPostgresStorageInsertInput  `json:"storage,omitempty" toml:"storage,omitempty"`
 	EnablePublicAccess *bool                              `json:"enablePublicAccess,omitempty" toml:"enablePublicAccess,omitempty"`
@@ -15008,6 +15182,13 @@ func (o *ConfigPostgresResourcesInsertInput) GetReplicas() *uint8 {
 		o = &ConfigPostgresResourcesInsertInput{}
 	}
 	return o.Replicas
+}
+
+func (o *ConfigPostgresResourcesInsertInput) GetAutoscaler() *ConfigAutoscalerInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Autoscaler
 }
 
 func (o *ConfigPostgresResourcesInsertInput) GetNetworking() *ConfigNetworkingInsertInput {
@@ -15039,6 +15220,12 @@ func (s *ConfigPostgresResources) Insert(v *ConfigPostgresResourcesInsertInput) 
 		s.Compute.Insert(v.Compute)
 	}
 	s.Replicas = v.Replicas
+	if v.Autoscaler != nil {
+		if s.Autoscaler == nil {
+			s.Autoscaler = &ConfigAutoscaler{}
+		}
+		s.Autoscaler.Insert(v.Autoscaler)
+	}
 	if v.Networking != nil {
 		if s.Networking == nil {
 			s.Networking = &ConfigNetworking{}
@@ -15062,6 +15249,7 @@ func (s *ConfigPostgresResources) Clone() *ConfigPostgresResources {
 	v := &ConfigPostgresResources{}
 	v.Compute = s.Compute.Clone()
 	v.Replicas = s.Replicas
+	v.Autoscaler = s.Autoscaler.Clone()
 	v.Networking = s.Networking.Clone()
 	v.Storage = s.Storage.Clone()
 	v.EnablePublicAccess = s.EnablePublicAccess
@@ -15074,6 +15262,7 @@ type ConfigPostgresResourcesComparisonExp struct {
 	Or                 []*ConfigPostgresResourcesComparisonExp `json:"_or,omitempty"`
 	Compute            *ConfigResourcesComputeComparisonExp    `json:"compute,omitempty"`
 	Replicas           *ConfigUint8ComparisonExp               `json:"replicas,omitempty"`
+	Autoscaler         *ConfigAutoscalerComparisonExp          `json:"autoscaler,omitempty"`
 	Networking         *ConfigNetworkingComparisonExp          `json:"networking,omitempty"`
 	Storage            *ConfigPostgresStorageComparisonExp     `json:"storage,omitempty"`
 	EnablePublicAccess *ConfigBooleanComparisonExp             `json:"enablePublicAccess,omitempty"`
@@ -15087,6 +15276,7 @@ func (exp *ConfigPostgresResourcesComparisonExp) Matches(o *ConfigPostgresResour
 	if o == nil {
 		o = &ConfigPostgresResources{
 			Compute:    &ConfigResourcesCompute{},
+			Autoscaler: &ConfigAutoscaler{},
 			Networking: &ConfigNetworking{},
 			Storage:    &ConfigPostgresStorage{},
 		}
@@ -15095,6 +15285,9 @@ func (exp *ConfigPostgresResourcesComparisonExp) Matches(o *ConfigPostgresResour
 		return false
 	}
 	if o.Replicas != nil && !exp.Replicas.Matches(*o.Replicas) {
+		return false
+	}
+	if !exp.Autoscaler.Matches(o.Autoscaler) {
 		return false
 	}
 	if !exp.Networking.Matches(o.Networking) {
@@ -16693,6 +16886,8 @@ type ConfigResources struct {
 	// Number of replicas for a service
 	Replicas *uint8 `json:"replicas" toml:"replicas"`
 
+	Autoscaler *ConfigAutoscaler `json:"autoscaler,omitempty" toml:"autoscaler,omitempty"`
+
 	Networking *ConfigNetworking `json:"networking,omitempty" toml:"networking,omitempty"`
 }
 
@@ -16703,6 +16898,9 @@ func (o *ConfigResources) MarshalJSON() ([]byte, error) {
 	}
 	if o.Replicas != nil {
 		m["replicas"] = o.Replicas
+	}
+	if o.Autoscaler != nil {
+		m["autoscaler"] = o.Autoscaler
 	}
 	if o.Networking != nil {
 		m["networking"] = o.Networking
@@ -16724,6 +16922,13 @@ func (o *ConfigResources) GetReplicas() *uint8 {
 	return o.Replicas
 }
 
+func (o *ConfigResources) GetAutoscaler() *ConfigAutoscaler {
+	if o == nil {
+		return nil
+	}
+	return o.Autoscaler
+}
+
 func (o *ConfigResources) GetNetworking() *ConfigNetworking {
 	if o == nil {
 		return nil
@@ -16736,6 +16941,8 @@ type ConfigResourcesUpdateInput struct {
 	IsSetCompute    bool                               `json:"-"`
 	Replicas        *uint8                             `json:"replicas,omitempty" toml:"replicas,omitempty"`
 	IsSetReplicas   bool                               `json:"-"`
+	Autoscaler      *ConfigAutoscalerUpdateInput       `json:"autoscaler,omitempty" toml:"autoscaler,omitempty"`
+	IsSetAutoscaler bool                               `json:"-"`
 	Networking      *ConfigNetworkingUpdateInput       `json:"networking,omitempty" toml:"networking,omitempty"`
 	IsSetNetworking bool                               `json:"-"`
 }
@@ -16772,6 +16979,16 @@ func (o *ConfigResourcesUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetReplicas = true
 	}
+	if x, ok := m["autoscaler"]; ok {
+		if x != nil {
+			t := &ConfigAutoscalerUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Autoscaler = t
+		}
+		o.IsSetAutoscaler = true
+	}
 	if x, ok := m["networking"]; ok {
 		if x != nil {
 			t := &ConfigNetworkingUpdateInput{}
@@ -16807,6 +17024,13 @@ func (o *ConfigResourcesUpdateInput) GetReplicas() *uint8 {
 	return o.Replicas
 }
 
+func (o *ConfigResourcesUpdateInput) GetAutoscaler() *ConfigAutoscalerUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Autoscaler
+}
+
 func (o *ConfigResourcesUpdateInput) GetNetworking() *ConfigNetworkingUpdateInput {
 	if o == nil {
 		return nil
@@ -16831,6 +17055,16 @@ func (s *ConfigResources) Update(v *ConfigResourcesUpdateInput) {
 	if v.IsSetReplicas || v.Replicas != nil {
 		s.Replicas = v.Replicas
 	}
+	if v.IsSetAutoscaler || v.Autoscaler != nil {
+		if v.Autoscaler == nil {
+			s.Autoscaler = nil
+		} else {
+			if s.Autoscaler == nil {
+				s.Autoscaler = &ConfigAutoscaler{}
+			}
+			s.Autoscaler.Update(v.Autoscaler)
+		}
+	}
 	if v.IsSetNetworking || v.Networking != nil {
 		if v.Networking == nil {
 			s.Networking = nil
@@ -16846,6 +17080,7 @@ func (s *ConfigResources) Update(v *ConfigResourcesUpdateInput) {
 type ConfigResourcesInsertInput struct {
 	Compute    *ConfigResourcesComputeInsertInput `json:"compute,omitempty" toml:"compute,omitempty"`
 	Replicas   *uint8                             `json:"replicas,omitempty" toml:"replicas,omitempty"`
+	Autoscaler *ConfigAutoscalerInsertInput       `json:"autoscaler,omitempty" toml:"autoscaler,omitempty"`
 	Networking *ConfigNetworkingInsertInput       `json:"networking,omitempty" toml:"networking,omitempty"`
 }
 
@@ -16863,6 +17098,13 @@ func (o *ConfigResourcesInsertInput) GetReplicas() *uint8 {
 	return o.Replicas
 }
 
+func (o *ConfigResourcesInsertInput) GetAutoscaler() *ConfigAutoscalerInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Autoscaler
+}
+
 func (o *ConfigResourcesInsertInput) GetNetworking() *ConfigNetworkingInsertInput {
 	if o == nil {
 		return nil
@@ -16878,6 +17120,12 @@ func (s *ConfigResources) Insert(v *ConfigResourcesInsertInput) {
 		s.Compute.Insert(v.Compute)
 	}
 	s.Replicas = v.Replicas
+	if v.Autoscaler != nil {
+		if s.Autoscaler == nil {
+			s.Autoscaler = &ConfigAutoscaler{}
+		}
+		s.Autoscaler.Insert(v.Autoscaler)
+	}
 	if v.Networking != nil {
 		if s.Networking == nil {
 			s.Networking = &ConfigNetworking{}
@@ -16894,6 +17142,7 @@ func (s *ConfigResources) Clone() *ConfigResources {
 	v := &ConfigResources{}
 	v.Compute = s.Compute.Clone()
 	v.Replicas = s.Replicas
+	v.Autoscaler = s.Autoscaler.Clone()
 	v.Networking = s.Networking.Clone()
 	return v
 }
@@ -16904,6 +17153,7 @@ type ConfigResourcesComparisonExp struct {
 	Or         []*ConfigResourcesComparisonExp      `json:"_or,omitempty"`
 	Compute    *ConfigResourcesComputeComparisonExp `json:"compute,omitempty"`
 	Replicas   *ConfigUint8ComparisonExp            `json:"replicas,omitempty"`
+	Autoscaler *ConfigAutoscalerComparisonExp       `json:"autoscaler,omitempty"`
 	Networking *ConfigNetworkingComparisonExp       `json:"networking,omitempty"`
 }
 
@@ -16915,6 +17165,7 @@ func (exp *ConfigResourcesComparisonExp) Matches(o *ConfigResources) bool {
 	if o == nil {
 		o = &ConfigResources{
 			Compute:    &ConfigResourcesCompute{},
+			Autoscaler: &ConfigAutoscaler{},
 			Networking: &ConfigNetworking{},
 		}
 	}
@@ -16922,6 +17173,9 @@ func (exp *ConfigResourcesComparisonExp) Matches(o *ConfigResources) bool {
 		return false
 	}
 	if o.Replicas != nil && !exp.Replicas.Matches(*o.Replicas) {
+		return false
+	}
+	if !exp.Autoscaler.Matches(o.Autoscaler) {
 		return false
 	}
 	if !exp.Networking.Matches(o.Networking) {
@@ -18202,6 +18456,8 @@ type ConfigRunServiceResources struct {
 	Storage []*ConfigRunServiceResourcesStorage `json:"storage,omitempty" toml:"storage,omitempty"`
 	// Number of replicas for a service
 	Replicas uint8 `json:"replicas" toml:"replicas"`
+
+	Autoscaler *ConfigAutoscaler `json:"autoscaler,omitempty" toml:"autoscaler,omitempty"`
 }
 
 func (o *ConfigRunServiceResources) MarshalJSON() ([]byte, error) {
@@ -18213,6 +18469,9 @@ func (o *ConfigRunServiceResources) MarshalJSON() ([]byte, error) {
 		m["storage"] = o.Storage
 	}
 	m["replicas"] = o.Replicas
+	if o.Autoscaler != nil {
+		m["autoscaler"] = o.Autoscaler
+	}
 	return json.Marshal(m)
 }
 
@@ -18237,13 +18496,22 @@ func (o *ConfigRunServiceResources) GetReplicas() uint8 {
 	return o.Replicas
 }
 
+func (o *ConfigRunServiceResources) GetAutoscaler() *ConfigAutoscaler {
+	if o == nil {
+		return nil
+	}
+	return o.Autoscaler
+}
+
 type ConfigRunServiceResourcesUpdateInput struct {
-	Compute       *ConfigComputeResourcesUpdateInput             `json:"compute,omitempty" toml:"compute,omitempty"`
-	IsSetCompute  bool                                           `json:"-"`
-	Storage       []*ConfigRunServiceResourcesStorageUpdateInput `json:"storage,omitempty" toml:"storage,omitempty"`
-	IsSetStorage  bool                                           `json:"-"`
-	Replicas      *uint8                                         `json:"replicas,omitempty" toml:"replicas,omitempty"`
-	IsSetReplicas bool                                           `json:"-"`
+	Compute         *ConfigComputeResourcesUpdateInput             `json:"compute,omitempty" toml:"compute,omitempty"`
+	IsSetCompute    bool                                           `json:"-"`
+	Storage         []*ConfigRunServiceResourcesStorageUpdateInput `json:"storage,omitempty" toml:"storage,omitempty"`
+	IsSetStorage    bool                                           `json:"-"`
+	Replicas        *uint8                                         `json:"replicas,omitempty" toml:"replicas,omitempty"`
+	IsSetReplicas   bool                                           `json:"-"`
+	Autoscaler      *ConfigAutoscalerUpdateInput                   `json:"autoscaler,omitempty" toml:"autoscaler,omitempty"`
+	IsSetAutoscaler bool                                           `json:"-"`
 }
 
 func (o *ConfigRunServiceResourcesUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -18297,6 +18565,16 @@ func (o *ConfigRunServiceResourcesUpdateInput) UnmarshalGQL(v interface{}) error
 		}
 		o.IsSetReplicas = true
 	}
+	if x, ok := m["autoscaler"]; ok {
+		if x != nil {
+			t := &ConfigAutoscalerUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Autoscaler = t
+		}
+		o.IsSetAutoscaler = true
+	}
 
 	return nil
 }
@@ -18327,6 +18605,13 @@ func (o *ConfigRunServiceResourcesUpdateInput) GetReplicas() *uint8 {
 		o = &ConfigRunServiceResourcesUpdateInput{}
 	}
 	return o.Replicas
+}
+
+func (o *ConfigRunServiceResourcesUpdateInput) GetAutoscaler() *ConfigAutoscalerUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Autoscaler
 }
 
 func (s *ConfigRunServiceResources) Update(v *ConfigRunServiceResourcesUpdateInput) {
@@ -18360,12 +18645,23 @@ func (s *ConfigRunServiceResources) Update(v *ConfigRunServiceResourcesUpdateInp
 			s.Replicas = *v.Replicas
 		}
 	}
+	if v.IsSetAutoscaler || v.Autoscaler != nil {
+		if v.Autoscaler == nil {
+			s.Autoscaler = nil
+		} else {
+			if s.Autoscaler == nil {
+				s.Autoscaler = &ConfigAutoscaler{}
+			}
+			s.Autoscaler.Update(v.Autoscaler)
+		}
+	}
 }
 
 type ConfigRunServiceResourcesInsertInput struct {
-	Compute  *ConfigComputeResourcesInsertInput             `json:"compute,omitempty" toml:"compute,omitempty"`
-	Storage  []*ConfigRunServiceResourcesStorageInsertInput `json:"storage,omitempty" toml:"storage,omitempty"`
-	Replicas uint8                                          `json:"replicas,omitempty" toml:"replicas,omitempty"`
+	Compute    *ConfigComputeResourcesInsertInput             `json:"compute,omitempty" toml:"compute,omitempty"`
+	Storage    []*ConfigRunServiceResourcesStorageInsertInput `json:"storage,omitempty" toml:"storage,omitempty"`
+	Replicas   uint8                                          `json:"replicas,omitempty" toml:"replicas,omitempty"`
+	Autoscaler *ConfigAutoscalerInsertInput                   `json:"autoscaler,omitempty" toml:"autoscaler,omitempty"`
 }
 
 func (o *ConfigRunServiceResourcesInsertInput) GetCompute() *ConfigComputeResourcesInsertInput {
@@ -18389,6 +18685,13 @@ func (o *ConfigRunServiceResourcesInsertInput) GetReplicas() uint8 {
 	return o.Replicas
 }
 
+func (o *ConfigRunServiceResourcesInsertInput) GetAutoscaler() *ConfigAutoscalerInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Autoscaler
+}
+
 func (s *ConfigRunServiceResources) Insert(v *ConfigRunServiceResourcesInsertInput) {
 	if v.Compute != nil {
 		if s.Compute == nil {
@@ -18405,6 +18708,12 @@ func (s *ConfigRunServiceResources) Insert(v *ConfigRunServiceResourcesInsertInp
 		}
 	}
 	s.Replicas = v.Replicas
+	if v.Autoscaler != nil {
+		if s.Autoscaler == nil {
+			s.Autoscaler = &ConfigAutoscaler{}
+		}
+		s.Autoscaler.Insert(v.Autoscaler)
+	}
 }
 
 func (s *ConfigRunServiceResources) Clone() *ConfigRunServiceResources {
@@ -18421,16 +18730,18 @@ func (s *ConfigRunServiceResources) Clone() *ConfigRunServiceResources {
 		}
 	}
 	v.Replicas = s.Replicas
+	v.Autoscaler = s.Autoscaler.Clone()
 	return v
 }
 
 type ConfigRunServiceResourcesComparisonExp struct {
-	And      []*ConfigRunServiceResourcesComparisonExp      `json:"_and,omitempty"`
-	Not      *ConfigRunServiceResourcesComparisonExp        `json:"_not,omitempty"`
-	Or       []*ConfigRunServiceResourcesComparisonExp      `json:"_or,omitempty"`
-	Compute  *ConfigComputeResourcesComparisonExp           `json:"compute,omitempty"`
-	Storage  *ConfigRunServiceResourcesStorageComparisonExp `json:"storage,omitempty"`
-	Replicas *ConfigUint8ComparisonExp                      `json:"replicas,omitempty"`
+	And        []*ConfigRunServiceResourcesComparisonExp      `json:"_and,omitempty"`
+	Not        *ConfigRunServiceResourcesComparisonExp        `json:"_not,omitempty"`
+	Or         []*ConfigRunServiceResourcesComparisonExp      `json:"_or,omitempty"`
+	Compute    *ConfigComputeResourcesComparisonExp           `json:"compute,omitempty"`
+	Storage    *ConfigRunServiceResourcesStorageComparisonExp `json:"storage,omitempty"`
+	Replicas   *ConfigUint8ComparisonExp                      `json:"replicas,omitempty"`
+	Autoscaler *ConfigAutoscalerComparisonExp                 `json:"autoscaler,omitempty"`
 }
 
 func (exp *ConfigRunServiceResourcesComparisonExp) Matches(o *ConfigRunServiceResources) bool {
@@ -18440,8 +18751,9 @@ func (exp *ConfigRunServiceResourcesComparisonExp) Matches(o *ConfigRunServiceRe
 
 	if o == nil {
 		o = &ConfigRunServiceResources{
-			Compute: &ConfigComputeResources{},
-			Storage: []*ConfigRunServiceResourcesStorage{},
+			Compute:    &ConfigComputeResources{},
+			Storage:    []*ConfigRunServiceResourcesStorage{},
+			Autoscaler: &ConfigAutoscaler{},
 		}
 	}
 	if !exp.Compute.Matches(o.Compute) {
@@ -18460,6 +18772,9 @@ func (exp *ConfigRunServiceResourcesComparisonExp) Matches(o *ConfigRunServiceRe
 		}
 	}
 	if !exp.Replicas.Matches(o.Replicas) {
+		return false
+	}
+	if !exp.Autoscaler.Matches(o.Autoscaler) {
 		return false
 	}
 

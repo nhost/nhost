@@ -23,7 +23,7 @@ liveQueriesMultiplexedRefetchInterval = 3000
 
 [functions]
 [functions.node]
-version = 18
+version = 20
 
 [auth]
 version = '0.30.0'

@@ -71,7 +71,8 @@ func TestRun(t *testing.T) {
 								Path:     "/path/to/asd",
 							},
 						},
-						Replicas: 1,
+						Replicas:   1,
+						Autoscaler: nil,
 					},
 					HealthCheck: &model.ConfigHealthCheck{
 						Port:                80,
