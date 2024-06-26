@@ -39,4 +39,4 @@ For Node.js, the following package managers are supported:
 1. [npm](https://www.npmjs.com)
 2. [yarn](https://yarnpkg.com)
 
-To use one package manager or another just add the relevant lockfile for your package manager to the functions folder or to a parent folder.
+To use one package manager or another, add the relevant lockfile (either `package-lock.json` for npm or `yarn.lock` for yarn) to the functions folder or a parent folder. If both lockfiles are present, `npm` will take precendence.
