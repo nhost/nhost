@@ -236,7 +236,7 @@ export default function SettingsSidebar({
           >
             <div className="flex w-full flex-row items-center justify-center space-x-4">
               <TerminalIcon />
-              <span className="flex">TOML Editor</span>
+              <span className="flex">Configuration Editor</span>
             </div>
           </SettingsNavLink>
         </Box>

@@ -141,14 +141,14 @@ export default function TOMLEditor() {
   };
 
   return (
-    <Box className="mb-0 flex h-full max-h-[calc(100vh-124px)]  flex-col justify-center overflow-hidden p-0">
+    <Box className="mb-0 flex h-full max-h-[calc(100vh-59px)]  flex-col justify-center overflow-hidden p-0">
       <Box className="flex w-full flex-col space-y-2 border-b p-4">
-        <Text className="font-semibold">Raw TOML Settings</Text>
+        <Text className="font-semibold">Configuration Editor</Text>
       </Box>
 
       {loading ? (
         <Box
-          className="h-full min-h-[400px] w-full animate-pulse"
+          className="h-full max-h-[calc(100%-53px)] min-h-[400px] w-full animate-pulse"
           sx={{ backgroundColor: 'grey.200' }}
         />
       ) : (
@@ -156,7 +156,7 @@ export default function TOMLEditor() {
           value={tomlCode}
           height="100%"
           width="100%"
-          className="min-h-[400px]"
+          className="mb-[53px] min-h-[400px]"
           theme={theme.palette.mode === 'light' ? githubLight : githubDark}
           basicSetup={{
             searchKeymap: false,
