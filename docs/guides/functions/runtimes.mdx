@@ -1,0 +1,42 @@
+---
+title: Runtimes and Dependencies
+description: Supported execution runtimes and package managers
+icon: person-running
+---
+
+# Runtimes
+
+The following runtimes are supported:
+
+- [Node.js 18](https://nodejs.org)
+- [Node.js 20](https://nodejs.org)
+
+To select your preferred runtime ensure the following configuration is present in your `nhost.toml` file:
+
+<Tabs>
+  <Tab title="Nhost.js 18">
+
+```toml
+[functions.node]
+version = 18
+```
+
+  </Tab>
+  <Tab title="Nhost.js 20">
+
+```toml
+[functions.node]
+version = 20
+```
+
+  </Tab>
+</Tabs>
+
+## Package Managers
+
+For Node.js, the following package managers are supported:
+
+1. [npm](https://www.npmjs.com)
+2. [yarn](https://yarnpkg.com)
+
+To use one package manager or another just add the relevant lockfile for your package manager to the functions folder or to a parent folder.
