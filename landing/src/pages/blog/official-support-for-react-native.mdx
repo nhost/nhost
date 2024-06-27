@@ -27,7 +27,7 @@ compatible with React Native, our users have encountered specific challenges due
 In this blog, we'll delve into the enhancements we've made to our SDK and outline effective strategies to overcome
 these challenges.
 
-## 🛠️ SDK Support and Addressing React Native Limitations
+## 🛠️ SDK Support and Addressing React Native Quirks
 
 Our [React SDK](https://www.npmjs.com/package/@nhost/react) can already be used with React Native. However, users have
 encountered issues with the [React Apollo SDK](https://www.npmjs.com/package/@nhost/react-apollo). Specifically, the
@@ -73,7 +73,7 @@ the consent screen. Once the user consents, we needed a way to retrieve the `ref
 sign-in to sign in the user in the app.
 
 Here's how to get to the Apple OAuth provider link using our React SDK. The `myapp` in the below code snippet refers to the
-deep link that needs to be configured on the native Android and iOS modules in your React Native proejct.
+deep link that needs to be configured on the native Android and iOS modules in your React Native project.
 Follow [this guide](https://reactnavigation.org/docs/deep-linking/#set-up-with-bare-react-native-projects)
 for more information on how to enabke Deep Linking.
 
