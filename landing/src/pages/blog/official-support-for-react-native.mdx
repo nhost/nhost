@@ -20,50 +20,139 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-## Introduction
+## ✨ Introduction
 
-Official support for React Native has been highly requested for a while now. We have been working hard to provide
-tools and official support using our SDK. We are happy to announce that Nhost has now official support for React Native.
+For some time, there has been a strong demand for official support for React Native. Although our React SDK has been
+compatible with React Native, our users have encountered specific challenges due to its unique development environment.
+In this blog, we'll delve into the enhancements we've made to our SDK and outline effective strategies to overcome
+these challenges.
 
-## SDK Support for React Native
+## 🛠️ SDK Support and Addressing React Native Limitations
 
-We have improved our [React SDK](https://www.npmjs.com/package/@nhost/react) to provide seamless and straightforward
-usage on both React and React Native projects. Make sure to update to the latest version and head over to our
-[docs](http://docs.nhost.io/reference/react-native/support) to see how to import and use the React SDK within your
-React Native project.
+Our [React SDK](https://www.npmjs.com/package/@nhost/react) can already be used with React Native. However, users have
+encountered issues with the [React Apollo SDK](https://www.npmjs.com/package/@nhost/react-apollo). Specifically, the
+problem arises from the [jwt-decode](https://github.com/auth0/jwt-decode) library, which we use to decode access tokens
+for authorized requests to the GraphQL service. This library relies on `atob`, a global function available in web
+browsers that decodes a base64-encoded string.
 
-## React Native template
+React Native does not have built-in support for `atob` and `btoa`. However, you can still use a polyfill to address this
+limitation and properly use our [React Apollo SDK](https://www.npmjs.com/package/@nhost/react-apollo).
 
-We've released a [template](https://www.npmjs.com/package/@nhost/react-native-template) that comes pre-configured with
-our React SDK and includes several essential features for most mobile app projects:
+To ensure everything works correctly, follow these steps:
 
-1. Email/Password Authentication
-2. Sign in with Google and Apple
-3. File Upload
+1. **Update to the latest versions of the SDKs.**
+2. **Add a polyfill for base64 decoding in the entry point of your React Native project (index.js file):**
 
-To bootstrap a new React Native project using our template, run the following command:
+```diff
+import 'react-native-gesture-handler';
+import { AppRegistry } from 'react-native';
+import App from './src/root';
+import { name as appName } from './app.json';
++ import { decode as atob } from 'base-64';
++ global.atob = atob;
+AppRegistry.registerComponent(appName, () => App);
+```
+
+## 🔗 Sign in with OAuth Providers and Deep Linking
+
+A major user request for React Native support was adding sign-in with Apple, a requirement set by Apple for any
+production app submitted to the App Store that includes other social sign-in providers like Google or Facebook.
+
+Our React SDK supports OAuth sign-in via a redirect using a web browser. However, there was an issue where the SDK
+didn't properly redirect to the OAuth consent screen because redirecting to a URL is a browser concept that relies on
+`window.location`, which is not available in React Native.
+
+We have addressed this issue in our [React SDK](https://www.npmjs.com/package/@nhost/react), so make sure to update to
+the latest version.
+
+### Redirect Strategy
+
+To handle the redirect, we developed a strategy using [Deep Linking](https://reactnavigation.org/docs/deep-linking/)
+along with an in-app browser. This approach opens a temporary web browser window inside the React Native app to display
+the consent screen. Once the user consents, we needed a way to retrieve the `refreshToken` resulting from the OAuth
+sign-in to sign in the user in the app.
+
+Here's how to get to the Apple OAuth provider link using our React SDK. The `myapp` in the below code snippet refers to the
+deep link that needs to be configured on the native Android and iOS modules in your React Native proejct.
+Follow [this guide](https://reactnavigation.org/docs/deep-linking/#set-up-with-bare-react-native-projects)
+for more information on how to enabke Deep Linking.
+
+```tsx
+import { useProviderLink } from '@nhost/react'
+
+const { apple } = useProviderLink({
+  redirectTo: 'myapp://',
+})
+```
+
+Using the concept of Deep Linking, we open the app by navigating to a specific URL and then extract the `refreshToken` from the redirect link.
+Once the token is extracted, the final step is to refresh the session using the following method from our JS SDK.
+
+Here's how this looks in a React Native project:
+
+```tsx
+import { useNhostClient } from '@nhost/react'
+
+import InAppBrowser from 'react-native-inappbrowser-reborn'
+
+const nhost = useNhostClient()
+
+const handleSignInWithOAuth = async (providerLink: string) => {
+  const response = await InAppBrowser.openAuth(providerLink, 'myapp://')
+
+  if (response.type === 'success' && response.url) {
+    const refreshToken =
+      response.url.match(/refreshToken=([^&]*)/)?.at(1) ?? null
+
+    if (refreshToken) {
+      await nhost.auth.refreshSession(refreshToken)
+    }
+  }
+}
+```
+
+Here's a sequence diagram to better explain the flow.
+
+<img
+  src="/images/blog/official-support-for-react-native/diagram-oauth-in-app-browser.png"
+  alt="OAuth flow with Deep Links"
+/>
+
+## 🚀 New React Native Example and Template
+
+### Nhost React Native Template
+
+We are excited to announce the release of our [Nhost React Native Template](https://www.npmjs.com/package/@nhost/react-native-template),
+designed to streamline your mobile app development process. This template comes pre-configured with our React SDK and
+includes several essential features for most mobile app projects:
+
+1. **Email/Password Authentication**
+2. **Sign-in with Google and Apple**
+3. **File Upload**
+
+Incorporating all the fixes and strategies detailed in our latest blog post, this template ensures a smoother
+development experience. To quickly bootstrap a new React Native project using our template, run the following command:
 
 ```shell
 npx react-native init myapp --template @nhost/react-native-template
 ```
 
-## React Native quickstart
+### React Native Example Project
 
-In addition to the template, we've written a [quickstart guide](http://docs.nhost.io/guides/quickstarts/react-native)
-to help you move forward once you've set up your React Native project with Nhost, or if you've just bootstrapped using
-our template. The guide walks you through implementing a simple Todo app, from database setup to running the app on an
-emulator. Check out this [demo](https://www.youtube.com/watch?v=gfzksbce2G4) to see what you can achieve with the
-quickstart.
+In addition to the template, we've prepared a comprehensive [quickstart guide](http://docs.nhost.io/guides/quickstarts/react-native)
+to help you get up and running with Nhost in your React Native projects. This guide will walk you through creating
+a simple Todo app, from setting up the database to running the app on an emulator. To see what's possible with the quickstart,
+check out this [demo video](https://www.youtube.com/watch?v=gfzksbce2G4).
 
-## Testing on an emulator against local nhost project
+## 📱 Testing on an emulator against local nhost project
 
 If you want to run your React Native project against a local Nhost project on your machine using the
-[Nhost CLI](<(https://docs.nhost.io/development/cli/getting-started)>), you need to ensure that the local service URLs
+[Nhost CLI](https://docs.nhost.io/development/cli/getting-started), you need to ensure that the local service URLs
 are correctly resolved from your device to your local machine's network address. We've added a
-[new section](<(http://docs.nhost.io/guides/cli/connect-devices-to-local-nhost-project)>) to our documentation that shows
+[new section](http://docs.nhost.io/guides/cli/connect-devices-to-local-nhost-project) to our documentation that shows
 you how to do this in a few simple steps.
 
-# Conclusion
+## 🎉 Conclusion
 
 Start leveraging our enhanced SDK, templates, and comprehensive guides today to bring your mobile app ideas to
 production effortlessly. Happy Coding!
