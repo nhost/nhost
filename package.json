@@ -27,7 +27,6 @@
     "@simplewebauthn/server": "^9.0.3",
     "axios": "^1.6.8",
     "bcryptjs": "^2.4.3",
-    "body-parser": "1.19.0",
     "compare-urls": "^2.0.0",
     "cors": "2.8.5",
     "dot-prop": "^6.0.1",
@@ -43,7 +42,6 @@
     "graphql-request": "^3.7.0",
     "graphql-tag": "2.12.6",
     "gravatar": "^1.8.2",
-    "helmet": "3.22.0",
     "hibp": "9.0.0",
     "http-status-codes": "^2.3.0",
     "joi": "^17.12.2",
@@ -81,7 +79,6 @@
     "@graphql-codegen/typescript-operations": "^2.5.13",
     "@simplewebauthn/types": "^9.0.1",
     "@types/bcryptjs": "^2.4.6",
-    "@types/body-parser": "1.19.0",
     "@types/cors": "2.8.6",
     "@types/ejs": "3.0.2",
     "@types/email-templates": "7.0.1",
@@ -90,7 +87,6 @@
     "@types/faker": "^5.5.9",
     "@types/gravatar": "^1.8.6",
     "@types/hapi__joi": "16.0.12",
-    "@types/helmet": "0.0.45",
     "@types/jest": "^27.5.2",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/micromatch": "^4.0.6",
@@ -171,7 +167,8 @@
       "express@<4.19.2": ">=4.19.2",
       "execa@<=0.10.0": ">=2.0.0",
       "pug@<=3.0.2": ">=3.0.3",
-      "braces@<3.0.3": ">=3.0.3"
+      "braces@<3.0.3": ">=3.0.3",
+      "ws@>=8.0.0 <8.17.1": ">=8.17.1"
     }
   }
 }
