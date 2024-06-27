@@ -1,5 +1,11 @@
 # @nhost-examples/nextjs-server-components
 
+## 0.4.8
+
+### Patch Changes
+
+- 9c9137f: fix: disable autoRefreshToken when running nhost server side
+
 ## 0.4.7
 
 ### Patch Changes

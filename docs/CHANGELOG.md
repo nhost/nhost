@@ -1,5 +1,12 @@
 # @nhost/docs
 
+## 2.14.0
+
+### Minor Changes
+
+- 79ce7ca: feat: add react-native quickstart guide
+- bedbb82: feat: functions: added runtime/pkg manager information
+
 ## 2.13.0
 
 ### Minor Changes

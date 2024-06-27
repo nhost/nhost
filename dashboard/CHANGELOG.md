@@ -1,5 +1,13 @@
 # @nhost/dashboard
 
+## 1.18.0
+
+### Minor Changes
+
+- 502abad: feat: add services health checks indicators to the overview page
+- b3ff6ad: chore: update title text on service status modal
+- dbadf59: feat: add project configuration TOML editor to the settings page
+
 ## 1.17.0
 
 ### Minor Changes
