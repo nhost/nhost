@@ -19,10 +19,10 @@ export const article = {
 export default (props) => <BlogPostLayout article={article} {...props} />
 
 
-I'm excited for these small but awesome quality of life additions to the Nhost Dashboard:
+I'm excited for these small but awesome quality of life improvements to the Nhost Dashboard:
 
 1. a new project health section with useful information about the state of all your services.
-2. a configuration editor baked into the dashboard for those of us who prefer to do everything there.
+2. a configuration editor baked into the dashboard for those of us who prefer to use the dashboard for everything.
 
 
 ## Project Health
@@ -37,7 +37,7 @@ At a glimpse you can see the state of any given service:
 - blinking orange: the service is being updated/restarted (e.g. setting/config change, version update).
 - orange: not all replicas are available (when using multiple service replicas).
 - red: no replicas available.
-- exclamation mark: version should be updated.
+- exclamation mark: there are newer and recommended versions available.
 
 Hovering a service and clicking on "View state" will open the following popup with additional information on possible errors and warnings:
 
@@ -47,13 +47,19 @@ Any errors or warnings will be shown per [service replica](https://docs.nhost.io
 
 Health information is available for all services, including addons like Graphite and Run services. 
 
-Hopefully, this will help you diagnose issues with your projects, and potentially fix some of those once we introduce the functionality to also restart services. Lovely, if you ask me.
+Hopefully, this will help you diagnose issues with your projects, and potentially fix those once we introduce functionality to restart a service. Lovely, if you ask me.
 
 ## Configuration Editor
 
-At the bottom of a [project settings](https://app.nhost.io/_/_/settings) we can find the Configuration Editor where we can directly change, through code, all settings and configuration of a project. This editor is available both when using the cloud and local dashboard. Changing configuration when running the dashboard locally with the CLI, will update the TOML file accordingly.
+Roughly a year ago, we introduced [Nhost Config](https://nhost.io/blog/config), a new tool for managing and configuring local and cloud Nhost projects. Some of you really love working on the Dashboard and haved asked us for an easy way to edit the config file directly from there. Starting today, you can head to the [configuration editor](https://app.nhost.io/_/_/settings/editor) page and manage your project configuration directly from there. 
+
+The new editor is available both with the CLI and in the cloud. Be careful when changing configuration directly in production if you are using GitHub. 
+
+When using the CLI, changing configuration through the editor, will seamlessly update `./nhost/nhost.toml` in your repository. 
 
 ![configuration editor](/images/blog/configuration-editor.png)
+
+If you have other quality of life improvements in mind, please reach out to us, we would love to hear about them.
 
 
 
