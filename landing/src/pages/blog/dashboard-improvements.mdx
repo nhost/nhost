@@ -1,0 +1,63 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Project Health and Configuration Editor',
+  image: '/images/blog/og-nodejs20.png',
+  date: '2024-06-28',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'Platform', 'Dashboard'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+
+I'm excited for these small but awesome quality of life additions to the Nhost Dashboard:
+
+1. a new project health section with useful information about the state of all your services.
+2. a configuration editor baked into the dashboard for those of us who prefer to do everything there.
+
+
+## Project Health
+
+A new section is now available in the project dashboard with health and state information for each one of the services:
+
+![Project Health](/images/blog/project-health.png)
+
+At a glimpse you can see the state of any given service: 
+
+- green: all replicas are up-and-running without any issue.
+- blinking orange: the service is being updated/restarted (e.g. setting/config change, version update).
+- orange: not all replicas are available (when using multiple service replicas).
+- red: no replicas available.
+- exclamation mark: version should be updated.
+
+Hovering a service and clicking on "View state" will open the following popup with additional information on possible errors and warnings:
+
+![Service Health](/images/blog/service-health.png)
+
+Any errors or warnings will be shown per [service replica](https://docs.nhost.io/platform/service-replicas).
+
+Health information is available for all services, including addons like Graphite and Run services. 
+
+Hopefully, this will help you diagnose issues with your projects, and potentially fix some of those once we introduce the functionality to also restart services. Lovely, if you ask me.
+
+## Configuration Editor
+
+At the bottom of a [project settings](https://app.nhost.io/_/_/settings) we can find the Configuration Editor where we can directly change, through code, all settings and configuration of a project. This editor is available both when using the cloud and local dashboard. Changing configuration when running the dashboard locally with the CLI, will update the TOML file accordingly.
+
+![configuration editor](/images/blog/configuration-editor.png)
+
+
+
+
+
+
+
