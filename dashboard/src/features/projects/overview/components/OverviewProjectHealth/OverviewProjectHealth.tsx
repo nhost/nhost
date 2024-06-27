@@ -212,7 +212,7 @@ export default function OverviewProjectHealth() {
           onClose: closeDialog,
         },
       },
-      title: 'Service logs',
+      title: 'Service State',
     });
   };
 
