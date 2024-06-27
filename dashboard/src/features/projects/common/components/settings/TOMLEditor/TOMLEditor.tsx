@@ -43,6 +43,7 @@ export default function TOMLEditor() {
       appID: currentProject?.id,
     },
     skip: !currentProject,
+    ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const [saveConfigMutation] = useReplaceConfigRawJsonMutation({
