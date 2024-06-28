@@ -32,7 +32,7 @@ const getInternalErrorMessage = (
     const graphqlError = error.graphQLErrors?.[0];
     const graphqlExtensionsError = graphqlError?.extensions?.internal
       ?.error as { message: string };
-    return graphqlError.message || graphqlExtensionsError?.message || null;
+    return graphqlExtensionsError?.message || graphqlError.message || null;
   }
 
   if (error instanceof Error) {
