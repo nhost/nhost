@@ -66,10 +66,7 @@ the latest version.
 
 ### Redirect Strategy
 
-To handle the redirect, we developed a strategy using [Deep Linking](https://reactnavigation.org/docs/deep-linking/)
-along with an in-app browser. This approach opens a temporary web browser window inside the React Native app to display
-the consent screen. Once the user consents, we needed a way to retrieve the `refreshToken` resulting from the OAuth
-sign-in to sign in the user in the app.
+To handle the redirect, we developed a strategy using [Deep Linking](https://reactnavigation.org/docs/deep-linking/) in combination with an in-app browser. This approach opens a temporary web browser window inside the React Native app to display the consent screen. After the user consents, we need a way to retrieve the `refresh token` generated from the OAuth sign-in to complete the user sign-in process in the app.
 
 Here's how to get to the Apple OAuth provider link using our React SDK. The `myapp` in the below code snippet refers to the
 deep link that needs to be configured on the native Android and iOS modules in your React Native project.
