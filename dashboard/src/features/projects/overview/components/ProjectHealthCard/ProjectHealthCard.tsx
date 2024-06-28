@@ -17,6 +17,7 @@ interface HealthBadgeProps extends BadgeProps {
   showExclamation?: boolean;
   showCheckIcon?: boolean;
   isLoading?: boolean;
+  blink?: boolean;
 }
 
 function HealthBadge({
@@ -24,6 +25,7 @@ function HealthBadge({
   badgeVariant,
   showExclamation,
   showCheckIcon,
+  blink,
   children,
   ...props
 }: HealthBadgeProps) {
@@ -67,6 +69,11 @@ function HealthBadge({
             color: (theme) =>
               theme.palette.mode === 'dark' ? 'grey.900' : 'text.primary',
           }}
+          componentsProps={{
+            badge: {
+              className: blink ? 'animate-pulse' : '',
+            },
+          }}
           {...props}
         >
           {children}
@@ -90,6 +97,11 @@ function HealthBadge({
           />
         ) : null
       }
+      componentsProps={{
+        badge: {
+          className: blink ? 'animate-pulse' : '',
+        },
+      }}
       {...props}
     >
       {children}
@@ -161,6 +173,7 @@ export default function ProjectHealthCard({
   const badgeColor = serviceStateToBadgeColor.get(state);
   const badgeVariant = state === ServiceState.Running ? 'standard' : 'dot';
   const showCheckIcon = state === ServiceState.Running;
+  const shouldBlink = state === ServiceState.Updating;
 
   return (
     <Tooltip
@@ -191,6 +204,7 @@ export default function ProjectHealthCard({
             badgeVariant={badgeVariant}
             showCheckIcon={showCheckIcon}
             showExclamation={isVersionMismatch}
+            blink={shouldBlink}
           >
             {iconIsComponent
               ? icon
