@@ -43,13 +43,13 @@ export default async function execPromiseWithErrorToast(
 
     onError?.(error);
 
-    toast.custom(
+    const errorToastId = toast.custom(
       (t) => (
         <ErrorToast
           isVisible={t.visible}
           errorMessage={errorMessage}
           error={error}
-          close={() => toast.dismiss()}
+          close={() => toast.dismiss(errorToastId)}
         />
       ),
       {
