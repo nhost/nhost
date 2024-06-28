@@ -56,6 +56,7 @@ function ServiceAccordion({
   const replicasLabel = replicas.length === 1 ? 'replica' : 'replicas';
 
   const serviceInfo = removeTypename(serviceHealth);
+  const blink = serviceState === ServiceState.Updating;
 
   return (
     <Accordion.Root defaultExpanded={defaultExpanded}>
@@ -106,7 +107,9 @@ function ServiceAccordion({
                 sx={{
                   backgroundColor: serviceStateToThemeColor.get(serviceState),
                 }}
-                className="h-2 w-2 rounded-full"
+                className={`h-2 w-2 rounded-full ${
+                  blink ? 'animate-pulse' : ''
+                }`}
               />
             )}
           </div>
@@ -148,6 +151,8 @@ function RunServicesAccordion({
 
   const serviceInfo = removeTypename(servicesHealth);
 
+  const blink = globalState === ServiceState.Updating;
+
   return (
     <Accordion.Root defaultExpanded={defaultExpanded}>
       <Accordion.Summary
@@ -178,7 +183,7 @@ function RunServicesAccordion({
               sx={{
                 backgroundColor: serviceStateToThemeColor.get(globalState),
               }}
-              className="h-2 w-2 rounded-full"
+              className={`h-2 w-2 rounded-full ${blink ? 'animate-pulse' : ''}`}
             />
           </div>
         </div>
