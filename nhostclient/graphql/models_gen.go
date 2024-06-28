@@ -14,11 +14,6 @@ type BackupPresignedURL struct {
 	URL       string `json:"url"`
 }
 
-type BackupResult struct {
-	BackupID string `json:"backupID"`
-	Size     int64  `json:"size"`
-}
-
 // Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
 type BooleanComparisonExp struct {
 	Eq     *bool  `json:"_eq,omitempty"`
