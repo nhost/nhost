@@ -35,7 +35,7 @@ problem arises from the [jwt-decode](https://github.com/auth0/jwt-decode) librar
 for authorized requests to the GraphQL service. This library relies on `atob`, a global function available in web
 browsers that decodes a base64-encoded string.
 
-React Native does not have built-in support for `atob` and `btoa`. However, you can still use a polyfill to address this
+Although React Native does not have built-in support for `atob` and `btoa`, you can still use a polyfill to address this
 limitation and properly use our [React Apollo SDK](https://www.npmjs.com/package/@nhost/react-apollo).
 
 To ensure everything works correctly, follow these steps:
