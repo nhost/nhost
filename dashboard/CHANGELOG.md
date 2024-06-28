@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.19.0
+
+### Minor Changes
+
+- b519862: fix: get configuration in configuration editor using local development environment
+
 ## 1.18.0
 
 ### Minor Changes
