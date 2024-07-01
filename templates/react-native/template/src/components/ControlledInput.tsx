@@ -1,21 +1,20 @@
-import React from 'react';
-import {Controller, ControllerProps, type Control} from 'react-hook-form';
-import {StyleSheet, TextInput, TextInputProps} from 'react-native';
+import { Controller, ControllerProps, type Control } from 'react-hook-form'
+import { StyleSheet, TextInput, TextInputProps } from 'react-native'
 
 interface InputProps extends TextInputProps, Pick<ControllerProps, 'rules'> {
-  control: Control<any, any>;
-  name: string;
+  control: Control<any, any>
+  name: string
 }
 
-export default function ControlledInput({control, name, ...props}: InputProps) {
+export default function ControlledInput({ control, name, ...props }: InputProps) {
   return (
     <Controller
       control={control}
-      render={({field: {onChange, onBlur, value}}) => (
+      render={({ field: { onChange, onBlur, value } }) => (
         <TextInput
           value={value}
           onBlur={onBlur}
-          onChangeText={newValue => onChange(newValue)}
+          onChangeText={(newValue) => onChange(newValue)}
           style={styles.input}
           {...props}
         />
@@ -23,7 +22,7 @@ export default function ControlledInput({control, name, ...props}: InputProps) {
       name={name}
       rules={props.rules}
     />
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -31,6 +30,6 @@ const styles = StyleSheet.create({
     padding: 13,
     borderRadius: 10,
     alignSelf: 'stretch',
-    backgroundColor: '#f1f1f1',
-  },
-});
+    backgroundColor: '#f1f1f1'
+  }
+})

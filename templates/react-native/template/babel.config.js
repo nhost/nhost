@@ -15,15 +15,15 @@ module.exports = {
           '.jsx',
           '.json',
           '.ts',
-          '.tsx',
+          '.tsx'
         ],
         root: ['.'],
         alias: {
           '@graphql': './src/graphql',
           '@components': './src/components',
-          '@screens': './src/screens',
-        },
-      },
-    ],
-  ],
-};
+          '@screens': './src/screens'
+        }
+      }
+    ]
+  ]
+}
