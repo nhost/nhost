@@ -1,3 +1,4 @@
+import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
@@ -16,10 +17,15 @@ export interface UserSelectProps {
    * Class name to be applied to the `<Select />` element.
    */
   className?: string;
+  /**
+   * Whether the user select should be disabled.
+   */
+  formError?: boolean;
 }
 
 export default function UserSelect({
   onUserChange,
+  formError,
   ...props
 }: UserSelectProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -41,6 +47,48 @@ export default function UserSelect({
   if (error) {
     throw error;
   }
+
+  const autocompleteOptions = data?.users.map(
+    ({ id, displayName, email, phoneNumber }) => {
+      return {
+        label: displayName || email || phoneNumber || id,
+        value: id,
+      };
+    },
+  );
+
+  return (
+    <ControlledAutocomplete
+      id="user-select"
+      name="user-select"
+      autoHighlight
+      isOptionEqualToValue={() => false}
+      filterOptions={(options, { inputValue }) => {
+        const inputValueLower = inputValue.toLowerCase();
+        const matched = [];
+        const otherOptions = [];
+
+        options.forEach((option) => {
+          const optionLabelLower = option.label.toLowerCase();
+
+          if (optionLabelLower.startsWith(inputValueLower)) {
+            matched.push(option);
+          } else {
+            otherOptions.push(option);
+          }
+        });
+
+        const result = [...matched, ...otherOptions];
+
+        return result;
+      }}
+      fullWidth
+      className="col-span-4"
+      options={autocompleteOptions}
+      showCustomOption="auto"
+      customOptionLabel={(value) => `Make : "${value}"`}
+    />
+  );
 
   return (
     <Select
