@@ -1,4 +1,4 @@
-import React, {ReactNode} from 'react';
+import { ReactNode } from 'react'
 import {
   ActivityIndicator,
   Pressable,
@@ -6,14 +6,14 @@ import {
   StyleProp,
   StyleSheet,
   Text,
-  ViewStyle,
-} from 'react-native';
+  ViewStyle
+} from 'react-native'
 
 interface ButtonProps extends PressableProps {
-  loading?: boolean;
-  label: string | ReactNode;
-  color?: string;
-  styles?: StyleProp<ViewStyle>;
+  loading?: boolean
+  label: string | ReactNode
+  color?: string
+  styles?: StyleProp<ViewStyle>
 }
 
 export default function Button({
@@ -24,22 +24,11 @@ export default function Button({
   ...props
 }: ButtonProps) {
   return (
-    <Pressable
-      style={({pressed}) => [buttonStyles(pressed, color).button, styles]}
-      {...props}>
-      {loading && (
-        <ActivityIndicator
-          color="white"
-          style={buttonStyles().activityIndicator}
-        />
-      )}
-      {typeof label === 'string' ? (
-        <Text style={buttonStyles().buttonText}>{label}</Text>
-      ) : (
-        label
-      )}
+    <Pressable style={({ pressed }) => [buttonStyles(pressed, color).button, styles]} {...props}>
+      {loading && <ActivityIndicator color="white" style={buttonStyles().activityIndicator} />}
+      {typeof label === 'string' ? <Text style={buttonStyles().buttonText}>{label}</Text> : label}
     </Pressable>
-  );
+  )
 }
 
 const buttonStyles = (pressed: boolean = false, color: string = 'royalblue') =>
@@ -52,16 +41,16 @@ const buttonStyles = (pressed: boolean = false, color: string = 'royalblue') =>
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: color,
-      opacity: pressed ? 0.9 : 1,
+      opacity: pressed ? 0.9 : 1
     },
     buttonText: {
       color: 'white',
       fontSize: 16,
-      fontWeight: 'bold',
+      fontWeight: 'bold'
     },
     activityIndicator: {
       position: 'absolute',
       right: 10,
-      top: '55%',
-    },
-  });
+      top: '55%'
+    }
+  })

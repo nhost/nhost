@@ -1,12 +1,11 @@
-import React from 'react';
-import Button from '@components/Button';
-import {StyleSheet, Text, View} from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Button from '@components/Button'
+import { StyleSheet, Text, View } from 'react-native'
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 
 export default function SignInWithAppleButton({
-  hanldeSignIn,
+  hanldeSignIn
 }: {
-  hanldeSignIn?: () => Promise<void>;
+  hanldeSignIn?: () => Promise<void>
 }) {
   return (
     <Button
@@ -19,18 +18,18 @@ export default function SignInWithAppleButton({
       color="black"
       onPress={hanldeSignIn}
     />
-  );
+  )
 }
 
 const styles = StyleSheet.create({
   text: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: 'bold'
   },
   labelWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-  },
-});
+    gap: 4
+  }
+})
