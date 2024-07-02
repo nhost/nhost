@@ -1,0 +1,6 @@
+query getProjectIsLocked($appId: uuid!) {
+  app(id: $appId) {
+    isLocked
+    isLockedReason
+  }
+}

@@ -1,3 +1,4 @@
+import { ContactUs } from '@/components/common/ContactUs';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Container } from '@/components/layout/Container';
 import { Modal } from '@/components/ui/v1/Modal';
@@ -5,6 +6,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { Text } from '@/components/ui/v2/Text';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
 import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
@@ -15,6 +17,7 @@ import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCur
 import {
   GetAllWorkspacesAndProjectsDocument,
   useGetFreeAndActiveProjectsQuery,
+  useGetProjectIsLockedQuery,
   useUnpauseApplicationMutation,
 } from '@/generated/graphql';
 import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
@@ -41,8 +44,23 @@ export default function ApplicationPaused() {
     skip: !user,
   });
 
+  const { data: isLockedData } = useGetProjectIsLockedQuery({
+    variables: { appId: currentProject.id },
+    skip: !currentProject,
+  });
+
+  const {
+    app: { isLocked, isLockedReason },
+  } = isLockedData;
+
+  console.log(isLockedData);
+
   const numberOfFreeAndLiveProjects = data?.freeAndActiveProjects.length || 0;
   const wakeUpDisabled = numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS;
+  console.log(
+    'Number of free and live projects: ',
+    numberOfFreeAndLiveProjects,
+  );
 
   async function handleTriggerUnpausing() {
     await execPromiseWithErrorToast(
@@ -127,7 +145,35 @@ export default function ApplicationPaused() {
               Wake Up
             </Button>
 
-            {wakeUpDisabled && (
+            {wakeUpDisabled && isLockedReason ? (
+              <>
+                <Alert
+                  severity="warning"
+                  className="mx-auto max-w-xs text-left"
+                >
+                  <Text>Your project has been temporarily locked.</Text>
+                  Reason: {isLockedReason}
+                  Please contact our support team for assistance.
+                </Alert>
+                <Dropdown.Root>
+                  <Dropdown.Trigger
+                    className="w-full max-w-[280px]"
+                    hideChevron
+                    asChild
+                  >
+                    <Button variant="borderless">Contact Support</Button>
+                  </Dropdown.Trigger>
+
+                  <Dropdown.Content
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                    transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+                  >
+                    <ContactUs />
+                  </Dropdown.Content>
+                </Dropdown.Root>
+              </>
+            ) : null}
+            {wakeUpDisabled && !isLockedReason && (
               <Alert severity="warning" className="mx-auto max-w-xs text-left">
                 Note: Only one free project can be active at any given time.
                 Please pause your active free project before unpausing{' '}
