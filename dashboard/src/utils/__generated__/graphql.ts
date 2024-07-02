@@ -12523,12 +12523,6 @@ export type Mutation_Root = {
 
 
 /** mutation root */
-export type Mutation_RootBackupAllApplicationsDatabaseArgs = {
-  expireInDays?: InputMaybe<Scalars['Int']>;
-};
-
-
-/** mutation root */
 export type Mutation_RootBackupApplicationDatabaseArgs = {
   appID: Scalars['String'];
   expireInDays?: InputMaybe<Scalars['Int']>;
@@ -22922,6 +22916,13 @@ export type GetConfiguredVersionsQueryVariables = Exact<{
 
 export type GetConfiguredVersionsQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', version?: string | null } | null, postgres?: { __typename?: 'ConfigPostgres', version?: string | null } | null, hasura: { __typename?: 'ConfigHasura', version?: string | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null, storage?: { __typename?: 'ConfigStorage', version?: string | null } | null } | null };
 
+export type GetProjectIsLockedQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+}>;
+
+
+export type GetProjectIsLockedQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', isLocked?: boolean | null, isLockedReason?: string | null } | null };
+
 export type GetProjectLocalesQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -24825,6 +24826,45 @@ export type GetConfiguredVersionsLazyQueryHookResult = ReturnType<typeof useGetC
 export type GetConfiguredVersionsQueryResult = Apollo.QueryResult<GetConfiguredVersionsQuery, GetConfiguredVersionsQueryVariables>;
 export function refetchGetConfiguredVersionsQuery(variables: GetConfiguredVersionsQueryVariables) {
       return { query: GetConfiguredVersionsDocument, variables: variables }
+    }
+export const GetProjectIsLockedDocument = gql`
+    query getProjectIsLocked($appId: uuid!) {
+  app(id: $appId) {
+    isLocked
+    isLockedReason
+  }
+}
+    `;
+
+/**
+ * __useGetProjectIsLockedQuery__
+ *
+ * To run a query within a React component, call `useGetProjectIsLockedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectIsLockedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectIsLockedQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *   },
+ * });
+ */
+export function useGetProjectIsLockedQuery(baseOptions: Apollo.QueryHookOptions<GetProjectIsLockedQuery, GetProjectIsLockedQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetProjectIsLockedQuery, GetProjectIsLockedQueryVariables>(GetProjectIsLockedDocument, options);
+      }
+export function useGetProjectIsLockedLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProjectIsLockedQuery, GetProjectIsLockedQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetProjectIsLockedQuery, GetProjectIsLockedQueryVariables>(GetProjectIsLockedDocument, options);
+        }
+export type GetProjectIsLockedQueryHookResult = ReturnType<typeof useGetProjectIsLockedQuery>;
+export type GetProjectIsLockedLazyQueryHookResult = ReturnType<typeof useGetProjectIsLockedLazyQuery>;
+export type GetProjectIsLockedQueryResult = Apollo.QueryResult<GetProjectIsLockedQuery, GetProjectIsLockedQueryVariables>;
+export function refetchGetProjectIsLockedQuery(variables: GetProjectIsLockedQueryVariables) {
+      return { query: GetProjectIsLockedDocument, variables: variables }
     }
 export const GetProjectLocalesDocument = gql`
     query getProjectLocales($appId: uuid!) {
