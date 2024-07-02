@@ -49,18 +49,12 @@ export default function ApplicationPaused() {
     skip: !currentProject,
   });
 
-  const {
-    app: { isLocked, isLockedReason },
-  } = isLockedData;
-
-  console.log(isLockedData);
+  const isLocked = isLockedData?.app?.isLocked;
+  const isLockedReason = isLockedData?.app?.isLockedReason;
 
   const numberOfFreeAndLiveProjects = data?.freeAndActiveProjects.length || 0;
-  const wakeUpDisabled = numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS;
-  console.log(
-    'Number of free and live projects: ',
-    numberOfFreeAndLiveProjects,
-  );
+  const freeAndLiveProjectsNumberExceeded =
+    numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS;
 
   async function handleTriggerUnpausing() {
     await execPromiseWithErrorToast(
@@ -139,21 +133,34 @@ export default function ApplicationPaused() {
               variant="borderless"
               className="mx-auto w-full max-w-[280px]"
               loading={changingApplicationStateLoading}
-              disabled={changingApplicationStateLoading || wakeUpDisabled}
+              disabled={
+                changingApplicationStateLoading ||
+                freeAndLiveProjectsNumberExceeded ||
+                isLocked
+              }
               onClick={handleTriggerUnpausing}
             >
               Wake Up
             </Button>
 
-            {wakeUpDisabled && isLockedReason ? (
+            {isLocked ? (
               <>
                 <Alert
                   severity="warning"
                   className="mx-auto max-w-xs text-left"
                 >
-                  <Text>Your project has been temporarily locked.</Text>
-                  Reason: {isLockedReason}
-                  Please contact our support team for assistance.
+                  <Text className="mt-1 font-normal">
+                    Your project has been temporarily locked.
+                  </Text>
+
+                  {!!isLockedReason && (
+                    <Text className="mt-1 font-mono">
+                      Reason: {isLockedReason}
+                    </Text>
+                  )}
+                  <Text className="mt-1 font-normal">
+                    Please contact our support team for assistance.
+                  </Text>
                 </Alert>
                 <Dropdown.Root>
                   <Dropdown.Trigger
@@ -173,13 +180,13 @@ export default function ApplicationPaused() {
                 </Dropdown.Root>
               </>
             ) : null}
-            {wakeUpDisabled && !isLockedReason && (
+            {freeAndLiveProjectsNumberExceeded && !isLocked ? (
               <Alert severity="warning" className="mx-auto max-w-xs text-left">
                 Note: Only one free project can be active at any given time.
                 Please pause your active free project before unpausing{' '}
                 {currentProject.name}.
               </Alert>
-            )}
+            ) : null}
 
             {isOwner && (
               <Button
