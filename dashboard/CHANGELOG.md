@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 1.20.0
+
+### Minor Changes
+
+- 8ea4210: fix: error toasts can be closed individually, instead of dismissing all toasts at once
+- 58919ba: chore: add blink animation when project health service is updating
+
 ## 1.19.0
 
 ### Minor Changes

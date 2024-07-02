@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.14.2
+
+### Patch Changes
+
+- 86f3f8d: chore: fix broken link in react-native reference
+
 ## 2.14.1
 
 ### Patch Changes
