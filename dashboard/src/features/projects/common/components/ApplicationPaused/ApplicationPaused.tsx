@@ -1,3 +1,4 @@
+import { ContactUs } from '@/components/common/ContactUs';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Container } from '@/components/layout/Container';
 import { Modal } from '@/components/ui/v1/Modal';
@@ -5,6 +6,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { Text } from '@/components/ui/v2/Text';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
 import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
@@ -15,6 +17,7 @@ import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCur
 import {
   GetAllWorkspacesAndProjectsDocument,
   useGetFreeAndActiveProjectsQuery,
+  useGetProjectIsLockedQuery,
   useUnpauseApplicationMutation,
 } from '@/generated/graphql';
 import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
@@ -41,8 +44,17 @@ export default function ApplicationPaused() {
     skip: !user,
   });
 
+  const { data: isLockedData } = useGetProjectIsLockedQuery({
+    variables: { appId: currentProject.id },
+    skip: !currentProject,
+  });
+
+  const isLocked = isLockedData?.app?.isLocked;
+  const isLockedReason = isLockedData?.app?.isLockedReason;
+
   const numberOfFreeAndLiveProjects = data?.freeAndActiveProjects.length || 0;
-  const wakeUpDisabled = numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS;
+  const freeAndLiveProjectsNumberExceeded =
+    numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS;
 
   async function handleTriggerUnpausing() {
     await execPromiseWithErrorToast(
@@ -121,19 +133,60 @@ export default function ApplicationPaused() {
               variant="borderless"
               className="mx-auto w-full max-w-[280px]"
               loading={changingApplicationStateLoading}
-              disabled={changingApplicationStateLoading || wakeUpDisabled}
+              disabled={
+                changingApplicationStateLoading ||
+                freeAndLiveProjectsNumberExceeded ||
+                isLocked
+              }
               onClick={handleTriggerUnpausing}
             >
               Wake Up
             </Button>
 
-            {wakeUpDisabled && (
+            {isLocked ? (
+              <>
+                <Alert
+                  severity="warning"
+                  className="mx-auto max-w-xs text-left"
+                >
+                  <Text className="mt-1 font-normal">
+                    Your project has been temporarily locked.
+                  </Text>
+
+                  {!!isLockedReason && (
+                    <Text className="mt-1 font-mono">
+                      Reason: {isLockedReason}
+                    </Text>
+                  )}
+                  <Text className="mt-1 font-normal">
+                    Please contact our support team for assistance.
+                  </Text>
+                </Alert>
+                <Dropdown.Root>
+                  <Dropdown.Trigger
+                    className="w-full max-w-[280px]"
+                    hideChevron
+                    asChild
+                  >
+                    <Button variant="borderless">Contact Support</Button>
+                  </Dropdown.Trigger>
+
+                  <Dropdown.Content
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                    transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+                  >
+                    <ContactUs />
+                  </Dropdown.Content>
+                </Dropdown.Root>
+              </>
+            ) : null}
+            {freeAndLiveProjectsNumberExceeded && !isLocked ? (
               <Alert severity="warning" className="mx-auto max-w-xs text-left">
                 Note: Only one free project can be active at any given time.
                 Please pause your active free project before unpausing{' '}
                 {currentProject.name}.
               </Alert>
-            )}
+            ) : null}
 
             {isOwner && (
               <Button
