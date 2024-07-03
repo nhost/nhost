@@ -12,6 +12,7 @@ import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedI
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { useServiceStatus } from '@/features/projects/common/hooks/useServiceStatus';
 import {
   findHighestImportanceState,
   serviceStateToThemeColor,
@@ -19,10 +20,7 @@ import {
   type ServiceHealthInfo,
 } from '@/features/projects/overview/health';
 import { removeTypename } from '@/utils/helpers';
-import {
-  ServiceState,
-  type GetProjectServicesHealthQuery,
-} from '@/utils/__generated__/graphql';
+import { ServiceState } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
 import { type ReactElement } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -252,28 +250,17 @@ function RunServicesAccordion({
 }
 
 export interface OverviewProjectHealthModalProps {
-  servicesHealth?: GetProjectServicesHealthQuery;
   defaultExpanded?: keyof typeof baseServices | 'run';
 }
 
 export default function OverviewProjectHealthModal({
-  servicesHealth,
   defaultExpanded,
 }: OverviewProjectHealthModalProps) {
-  const serviceMap: { [key: string]: ServiceHealthInfo | undefined } = {};
-  servicesHealth.getProjectStatus.services.forEach((service) => {
-    serviceMap[service.name] = service;
+  const { auth, storage, postgres, hasura, ai, run } = useServiceStatus({
+    fetchPolicy: 'cache-only',
   });
-  const {
-    'hasura-auth': auth,
-    'hasura-storage': storage,
-    postgres,
-    hasura,
-    ai,
-    ...otherServices
-  } = serviceMap;
 
-  const runServices = Object.values(otherServices).filter((service) =>
+  const runServices = Object.values(run).filter((service) =>
     service.name.startsWith('run-'),
   );
 
@@ -341,7 +328,7 @@ export default function OverviewProjectHealthModal({
             />
           </>
         ) : null}
-        {Object.values(runServices).length > 0 ? (
+        {runServices && Object.values(runServices).length > 0 ? (
           <>
             <Divider />
             <RunServicesAccordion
