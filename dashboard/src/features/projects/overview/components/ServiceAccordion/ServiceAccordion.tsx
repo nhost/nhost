@@ -1,14 +1,9 @@
 import { CodeBlock } from '@/components/presentational/CodeBlock';
 import { Accordion } from '@/components/ui/v2/Accordion';
-import { Box } from '@/components/ui/v2/Box';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
-import { QuestionMarkIcon } from '@/components/ui/v2/icons/QuestionMarkIcon';
 import { Text } from '@/components/ui/v2/Text';
-import {
-  serviceStateToThemeColor,
-  type ServiceHealthInfo,
-} from '@/features/projects/overview/health';
+import { AccordionHealthBadge } from '@/features/projects/overview/components/AccordionHealthBadge';
+import { type ServiceHealthInfo } from '@/features/projects/overview/health';
 import { removeTypename } from '@/utils/helpers';
 import { ServiceState } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
@@ -86,41 +81,11 @@ export default function ServiceAccordion({
                 </Text>
               ) : null}
             </Text>
-            {serviceState === ServiceState.Running || unknownState ? (
-              <Box
-                sx={{
-                  backgroundColor: serviceStateToThemeColor.get(serviceState),
-                }}
-                className="flex h-2.5 w-2.5 items-center justify-center rounded-full"
-              >
-                {serviceState === ServiceState.Running ? (
-                  <CheckIcon
-                    sx={{
-                      color: (theme) =>
-                        theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-                    }}
-                    className="h-3/4 w-3/4 stroke-2"
-                  />
-                ) : (
-                  <QuestionMarkIcon
-                    sx={{
-                      color: (theme) =>
-                        theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-                    }}
-                    className="h-3/4 w-3/4 stroke-2"
-                  />
-                )}
-              </Box>
-            ) : (
-              <Box
-                sx={{
-                  backgroundColor: serviceStateToThemeColor.get(serviceState),
-                }}
-                className={`h-2.5 w-2.5 rounded-full ${
-                  blink ? 'animate-pulse' : ''
-                }`}
-              />
-            )}
+            <AccordionHealthBadge
+              serviceState={serviceState}
+              unknownState={unknownState}
+              blink={blink}
+            />
           </div>
         </div>
       </Accordion.Summary>

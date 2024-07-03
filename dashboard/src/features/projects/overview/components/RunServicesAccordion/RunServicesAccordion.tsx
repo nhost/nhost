@@ -1,13 +1,10 @@
 import { CodeBlock } from '@/components/presentational/CodeBlock';
 import { Accordion } from '@/components/ui/v2/Accordion';
-import { Box } from '@/components/ui/v2/Box';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
-import { QuestionMarkIcon } from '@/components/ui/v2/icons/QuestionMarkIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { AccordionHealthBadge } from '@/features/projects/overview/components/AccordionHealthBadge';
 import {
   findHighestImportanceState,
-  serviceStateToThemeColor,
   type ServiceHealthInfo,
 } from '@/features/projects/overview/health';
 import { removeTypename } from '@/utils/helpers';
@@ -72,42 +69,11 @@ export default function RunServicesAccordion({
             >
               Run
             </Text>
-
-            {globalState === ServiceState.Running || unknownState ? (
-              <Box
-                sx={{
-                  backgroundColor: serviceStateToThemeColor.get(globalState),
-                }}
-                className="flex h-2.5 w-2.5 items-center justify-center rounded-full"
-              >
-                {globalState === ServiceState.Running ? (
-                  <CheckIcon
-                    sx={{
-                      color: (theme) =>
-                        theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-                    }}
-                    className="h-3/4 w-3/4 stroke-2"
-                  />
-                ) : (
-                  <QuestionMarkIcon
-                    sx={{
-                      color: (theme) =>
-                        theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-                    }}
-                    className="h-3/4 w-3/4 stroke-2"
-                  />
-                )}
-              </Box>
-            ) : (
-              <Box
-                sx={{
-                  backgroundColor: serviceStateToThemeColor.get(globalState),
-                }}
-                className={`h-2.5 w-2.5 rounded-full ${
-                  blink ? 'animate-pulse' : ''
-                }`}
-              />
-            )}
+            <AccordionHealthBadge
+              serviceState={globalState}
+              unknownState={unknownState}
+              blink={blink}
+            />
           </div>
         </div>
       </Accordion.Summary>
