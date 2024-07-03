@@ -7,6 +7,7 @@ import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
+import { QuestionMarkIcon } from '@/components/ui/v2/icons/QuestionMarkIcon';
 import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
@@ -53,9 +54,12 @@ function ServiceAccordion({
   alt,
   defaultExpanded = false,
 }: ServiceAccordionProps) {
-  const replicasLabel = replicas.length === 1 ? 'replica' : 'replicas';
+  const unknownState = serviceState === undefined;
 
   const serviceInfo = removeTypename(serviceHealth);
+
+  const replicasLabel = replicas?.length === 1 ? 'replica' : 'replicas';
+
   const blink = serviceState === ServiceState.Updating;
 
   return (
@@ -83,31 +87,49 @@ function ServiceAccordion({
               className="font-semibold"
             >
               {serviceName}{' '}
-              <Text
-                sx={{
-                  color: 'text.secondary',
-                }}
-                component="span"
-                className="font-semibold"
-              >
-                ({replicas.length} {replicasLabel})
-              </Text>
+              {!unknownState && replicas?.length && replicasLabel ? (
+                <Text
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                  component="span"
+                  className="font-semibold"
+                >
+                  ({replicas.length} {replicasLabel})
+                </Text>
+              ) : null}
             </Text>
-            {serviceState === ServiceState.Running ? (
+            {serviceState === ServiceState.Running || unknownState ? (
               <Box
                 sx={{
                   backgroundColor: serviceStateToThemeColor.get(serviceState),
                 }}
-                className="flex h-2 w-2 items-center justify-center rounded-full"
+                className="flex h-2.5 w-2.5 items-center justify-center rounded-full"
               >
-                <CheckIcon className="h-3/4 w-3/4 stroke-2 text-white" />
+                {serviceState === ServiceState.Running ? (
+                  <CheckIcon
+                    sx={{
+                      color: (theme) =>
+                        theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
+                    }}
+                    className="h-3/4 w-3/4 stroke-2"
+                  />
+                ) : (
+                  <QuestionMarkIcon
+                    sx={{
+                      color: (theme) =>
+                        theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
+                    }}
+                    className="h-3/4 w-3/4 stroke-2"
+                  />
+                )}
               </Box>
             ) : (
               <Box
                 sx={{
                   backgroundColor: serviceStateToThemeColor.get(serviceState),
                 }}
-                className={`h-2 w-2 rounded-full ${
+                className={`h-2.5 w-2.5 rounded-full ${
                   blink ? 'animate-pulse' : ''
                 }`}
               />
@@ -147,6 +169,8 @@ function RunServicesAccordion({
   defaultExpanded = false,
   alt,
 }: RunServicesAccordionProps) {
+  const unknownState = serviceStates.includes(undefined);
+
   const globalState = findHighestImportanceState(serviceStates);
 
   const serviceInfo = removeTypename(servicesHealth);
@@ -179,12 +203,42 @@ function RunServicesAccordion({
             >
               Run
             </Text>
-            <Box
-              sx={{
-                backgroundColor: serviceStateToThemeColor.get(globalState),
-              }}
-              className={`h-2 w-2 rounded-full ${blink ? 'animate-pulse' : ''}`}
-            />
+
+            {globalState === ServiceState.Running || unknownState ? (
+              <Box
+                sx={{
+                  backgroundColor: serviceStateToThemeColor.get(globalState),
+                }}
+                className="flex h-2.5 w-2.5 items-center justify-center rounded-full"
+              >
+                {globalState === ServiceState.Running ? (
+                  <CheckIcon
+                    sx={{
+                      color: (theme) =>
+                        theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
+                    }}
+                    className="h-3/4 w-3/4 stroke-2"
+                  />
+                ) : (
+                  <QuestionMarkIcon
+                    sx={{
+                      color: (theme) =>
+                        theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
+                    }}
+                    className="h-3/4 w-3/4 stroke-2"
+                  />
+                )}
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  backgroundColor: serviceStateToThemeColor.get(globalState),
+                }}
+                className={`h-2.5 w-2.5 rounded-full ${
+                  blink ? 'animate-pulse' : ''
+                }`}
+              />
+            )}
           </div>
         </div>
       </Accordion.Summary>

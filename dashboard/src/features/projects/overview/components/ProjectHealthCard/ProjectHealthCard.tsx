@@ -13,7 +13,7 @@ import { twMerge } from 'tailwind-merge';
 
 interface HealthBadgeProps extends BadgeProps {
   badgeVariant?: 'standard' | 'dot';
-  badgeColor?: 'success' | 'error' | 'warning';
+  badgeColor?: 'success' | 'error' | 'warning' | 'secondary';
   showExclamation?: boolean;
   showCheckIcon?: boolean;
   isLoading?: boolean;

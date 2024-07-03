@@ -91,6 +91,7 @@ export default function OverviewProjectHealth() {
         appId: currentProject?.id,
       },
       skip: !isPlatform || !currentProject,
+      pollInterval: 10000,
     });
 
   const {
@@ -101,12 +102,14 @@ export default function OverviewProjectHealth() {
       appId: currentProject?.id,
     },
     skip: !isPlatform || !currentProject,
+    pollInterval: 10000,
   });
 
   if (
     loadingRecommendedVersions ||
     loadingConfiguredVersions ||
-    loadingProjectServicesHealth
+    loadingProjectServicesHealth ||
+    !projectServicesHealthData?.getProjectStatus?.services?.length
   ) {
     return (
       <div className="grid grid-flow-row content-start gap-6">
