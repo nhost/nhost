@@ -3,11 +3,9 @@ import nocache from 'nocache';
 import env from './env';
 import { mfaRouter } from './mfa';
 import { oauthProviders } from './oauth';
-import { patRouter } from './pat';
 import { signInRouter } from './signin';
 import { elevateRouter } from './elevate';
 import { signOutRouter } from './signout';
-import { signUpRouter } from './signup';
 import { tokenRouter } from './token';
 import { userRouter } from './user';
 import { verifyRouter } from './verify';
@@ -27,14 +25,12 @@ router.get('/version', (_req, res) =>
 );
 
 // auth routes
-router.use(signUpRouter);
 router.use(signInRouter);
 router.use(signOutRouter);
 router.use(elevateRouter);
 router.use(userRouter);
 router.use(mfaRouter);
 router.use(tokenRouter);
-router.use(patRouter);
 router.use(verifyRouter);
 
 // admin

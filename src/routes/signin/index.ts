@@ -4,19 +4,12 @@ import { asyncWrapper as aw } from '@/utils';
 import { bodyValidator } from '@/validation';
 
 import { signInAnonymousHandler, signInAnonymousSchema } from './anonymous';
-import {
-  signInEmailPasswordHandler,
-  signInEmailPasswordSchema,
-} from './email-password';
 import { signInMfaTotpHandler, signInMfaTotpSchema } from './mfa';
 import {
-  signInPasswordlessEmailHandler,
-  signInPasswordlessEmailSchema,
   signInPasswordlessSmsHandler,
   signInPasswordlessSmsSchema,
 } from './passwordless';
 import { signInOtpHandler, signInOtpSchema } from './passwordless/sms/otp';
-import { signInPATHandler, signInPATSchema } from './pat';
 import {
   signInVerifyWebauthnHandler,
   signInVerifyWebauthnSchema,
@@ -26,37 +19,6 @@ import {
 
 const router = Router();
 
-/**
- * POST /signin/email-password
- * @summary Authenticate with email + password
- * @param {SignInEmailPasswordSchema} request.body.required
- * @return {SessionPayload} 200 - Signed in successfully - application/json
- * @return {InvalidRequestError} 400 - The payload is invalid - application/json
- * @return {UnauthorizedError} 401 - Invalid email or password, or user is not verified - application/json
- * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
- * @tags Authentication
- */
-router.post(
-  '/signin/email-password',
-  bodyValidator(signInEmailPasswordSchema),
-  aw(signInEmailPasswordHandler)
-);
-
-/**
- * POST /signin/passwordless/email
- * @summary Email passwordless authentication
- * @param {SignInPasswordlessEmailSchema} request.body.required
- * @return {string} 200 - Email sent successfully - application/json
- * @return {InvalidRequestError} 400 - The payload is invalid - application/json
- * @return {DisabledUserError} 401 - User is disabled - application/json
- * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
- * @tags Authentication
- */
-router.post(
-  '/signin/passwordless/email',
-  bodyValidator(signInPasswordlessEmailSchema),
-  aw(signInPasswordlessEmailHandler)
-);
 
 /**
  * POST /signin/passwordless/sms
@@ -148,21 +110,6 @@ router.post(
   '/signin/mfa/totp',
   bodyValidator(signInMfaTotpSchema),
   aw(signInMfaTotpHandler)
-);
-
-/**
- * POST /signin/pat
- * @summary Sign in with a Personal Access Token (PAT)
- * @param {SignInPATSchema} request.body.required
- * @return {SessionPayload} 200 - User successfully authenticated - application/json
- * @return {InvalidRequestError} 400 - The payload is invalid - application/json
- * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
- * @tags Authentication
- */
-router.post(
-  '/signin/pat',
-  bodyValidator(signInPATSchema),
-  aw(signInPATHandler)
 );
 
 // TODO: Implement:

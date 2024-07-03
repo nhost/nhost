@@ -4,7 +4,6 @@ import express from 'express';
 import { serverErrors } from './errors';
 import { httpLogger, logger, uncaughtErrorLogger } from './logger';
 import { authMiddleware } from './middleware/auth';
-import { addOpenApiRoute } from './openapi';
 import router from './routes';
 import { ENV } from './utils/env';
 
@@ -16,8 +15,6 @@ app.use(express.json())
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
-
-addOpenApiRoute(app);
 
 app.use(httpLogger);
 app.use(authMiddleware);
