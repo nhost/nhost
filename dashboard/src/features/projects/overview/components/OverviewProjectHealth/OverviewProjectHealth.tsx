@@ -108,8 +108,7 @@ export default function OverviewProjectHealth() {
   if (
     loadingRecommendedVersions ||
     loadingConfiguredVersions ||
-    loadingProjectServicesHealth ||
-    !projectServicesHealthData?.getProjectStatus?.services?.length
+    loadingProjectServicesHealth
   ) {
     return (
       <div className="grid grid-flow-row content-start gap-6">
