@@ -72,7 +72,7 @@ export default function ProjectHealthCard({
 }: ProjectHealthCardProps) {
   const badgeColor = serviceStateToBadgeColor.get(state);
   const unknownState = state === undefined;
-  let badgeVariant = 'dot';
+  let badgeVariant: 'dot' | 'standard' = 'dot';
   if (state === ServiceState.Running || unknownState) {
     badgeVariant = 'standard';
   }
