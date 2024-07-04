@@ -3,16 +3,14 @@ import { Accordion } from '@/components/ui/v2/Accordion';
 import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { AccordionHealthBadge } from '@/features/projects/overview/components/AccordionHealthBadge';
-import { type ServiceHealthInfo } from '@/features/projects/overview/health';
-import { removeTypename } from '@/utils/helpers';
 import { ServiceState } from '@/utils/__generated__/graphql';
 import Image from 'next/image';
 import { type ReactElement } from 'react';
 
 export interface ServiceAccordionProps {
   serviceName: string;
-  serviceHealth: ServiceHealthInfo;
-  replicas: ServiceHealthInfo['replicas'];
+  serviceInfo: string;
+  replicaCount: number;
   serviceState: ServiceState;
   /**
    * Icon to display on the accordion.
@@ -28,8 +26,8 @@ export interface ServiceAccordionProps {
 
 export default function ServiceAccordion({
   serviceName,
-  serviceHealth,
-  replicas,
+  serviceInfo,
+  replicaCount,
   serviceState,
   icon,
   iconIsComponent = true,
@@ -38,9 +36,7 @@ export default function ServiceAccordion({
 }: ServiceAccordionProps) {
   const unknownState = serviceState === undefined;
 
-  const serviceInfo = removeTypename(serviceHealth);
-
-  const replicasLabel = replicas?.length === 1 ? 'replica' : 'replicas';
+  const replicasLabel = replicaCount === 1 ? 'replica' : 'replicas';
 
   const blink = serviceState === ServiceState.Updating;
 
@@ -69,7 +65,7 @@ export default function ServiceAccordion({
               className="font-semibold"
             >
               {serviceName}{' '}
-              {!unknownState && replicas?.length && replicasLabel ? (
+              {!unknownState && replicaCount && replicasLabel ? (
                 <Text
                   sx={{
                     color: 'text.secondary',
@@ -77,7 +73,7 @@ export default function ServiceAccordion({
                   component="span"
                   className="font-semibold"
                 >
-                  ({replicas.length} {replicasLabel})
+                  ({replicaCount} {replicasLabel})
                 </Text>
               ) : null}
             </Text>
@@ -91,7 +87,7 @@ export default function ServiceAccordion({
       </Accordion.Summary>
       <Accordion.Details>
         <CodeBlock copyToClipboardToastTitle={`${serviceName} status`}>
-          {JSON.stringify(serviceInfo, null, 2)}
+          {serviceInfo}
         </CodeBlock>
       </Accordion.Details>
     </Accordion.Root>

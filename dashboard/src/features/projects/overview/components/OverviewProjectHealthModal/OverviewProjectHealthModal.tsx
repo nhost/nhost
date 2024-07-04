@@ -7,9 +7,12 @@ import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedI
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { useServiceStatus } from '@/features/projects/common/hooks/useServiceStatus';
-import { RunServicesAccordion } from '@/features/projects/overview/components/RunServicesAccordion';
 import { ServiceAccordion } from '@/features/projects/overview/components/ServiceAccordion';
-import { type baseServices } from '@/features/projects/overview/health';
+import {
+  findHighestImportanceState,
+  type baseServices,
+} from '@/features/projects/overview/health';
+import { removeTypename } from '@/utils/helpers';
 import { twMerge } from 'tailwind-merge';
 
 export interface OverviewProjectHealthModalProps {
@@ -35,6 +38,24 @@ export default function OverviewProjectHealthModal({
   const isAIExpandedByDefault = defaultExpanded === 'ai';
   const isRunExpandedByDefault = defaultExpanded === 'run';
 
+  const getServiceInfo = (service) => {
+    const info = removeTypename(service);
+    return JSON.stringify(info, null, 2);
+  };
+
+  const serviceInfo = {
+    auth: getServiceInfo(auth),
+    storage: getServiceInfo(storage),
+    postgres: getServiceInfo(postgres),
+    hasura: getServiceInfo(hasura),
+    ai: getServiceInfo(ai),
+    run: getServiceInfo(Object.values(runServices)),
+  };
+
+  const runServicesState = findHighestImportanceState(
+    Object.values(runServices).map((service) => service.state),
+  );
+
   return (
     <Box className={twMerge('w-full rounded-lg pt-2 text-left')}>
       <Box
@@ -47,8 +68,8 @@ export default function OverviewProjectHealthModal({
         <ServiceAccordion
           icon={<UserIcon className="h-4 w-4" />}
           serviceName="Auth"
-          serviceHealth={auth}
-          replicas={auth?.replicas}
+          serviceInfo={serviceInfo.auth}
+          replicaCount={auth?.replicas?.length}
           serviceState={auth?.state}
           defaultExpanded={isAuthExpandedByDefault}
         />
@@ -56,8 +77,8 @@ export default function OverviewProjectHealthModal({
         <ServiceAccordion
           icon={<DatabaseIcon className="h-4 w-4" />}
           serviceName="Postgres"
-          serviceHealth={postgres}
-          replicas={postgres?.replicas}
+          serviceInfo={serviceInfo.postgres}
+          replicaCount={postgres?.replicas?.length}
           serviceState={postgres?.state}
           defaultExpanded={isPostgresExpandedByDefault}
         />
@@ -65,8 +86,8 @@ export default function OverviewProjectHealthModal({
         <ServiceAccordion
           icon={<StorageIcon className="h-4 w-4" />}
           serviceName="Storage"
-          serviceHealth={storage}
-          replicas={storage?.replicas}
+          serviceInfo={serviceInfo.storage}
+          replicaCount={storage?.replicas?.length}
           serviceState={storage?.state}
           defaultExpanded={isStorageExpandedByDefault}
         />
@@ -74,8 +95,8 @@ export default function OverviewProjectHealthModal({
         <ServiceAccordion
           icon={<HasuraIcon className="h-4 w-4" />}
           serviceName="Hasura"
-          serviceHealth={hasura}
-          replicas={hasura?.replicas}
+          serviceInfo={serviceInfo.hasura}
+          replicaCount={hasura?.replicas?.length}
           serviceState={hasura?.state}
           defaultExpanded={isHasuraExpandedByDefault}
         />
@@ -85,9 +106,9 @@ export default function OverviewProjectHealthModal({
             <ServiceAccordion
               icon={<AIIcon className="h-4 w-4" />}
               serviceName="AI"
-              serviceHealth={ai}
-              replicas={ai.replicas}
-              serviceState={ai.state}
+              serviceInfo={serviceInfo.ai}
+              replicaCount={ai?.replicas?.length}
+              serviceState={ai?.state}
               defaultExpanded={isAIExpandedByDefault}
             />
           </>
@@ -95,12 +116,12 @@ export default function OverviewProjectHealthModal({
         {runServices && Object.values(runServices).length > 0 ? (
           <>
             <Divider />
-            <RunServicesAccordion
-              servicesHealth={Object.values(runServices)}
+            <ServiceAccordion
               icon={<ServicesOutlinedIcon className="h-4 w-4" />}
-              serviceStates={Object.values(runServices).map(
-                (service) => service.state,
-              )}
+              serviceName="Run"
+              serviceInfo={serviceInfo.run}
+              replicaCount={0}
+              serviceState={runServicesState}
               defaultExpanded={isRunExpandedByDefault}
             />
           </>
