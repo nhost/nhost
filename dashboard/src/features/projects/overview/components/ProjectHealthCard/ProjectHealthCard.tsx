@@ -71,6 +71,7 @@ export default function ProjectHealthCard({
   ...props
 }: ProjectHealthCardProps) {
   const badgeColor = serviceStateToBadgeColor.get(state);
+  const unknownState = state === undefined;
   const badgeVariant = state === ServiceState.Running ? 'standard' : 'dot';
   const showCheckIcon = state === ServiceState.Running;
   const shouldBlink = state === ServiceState.Updating;
@@ -104,6 +105,7 @@ export default function ProjectHealthCard({
             badgeVariant={badgeVariant}
             showCheckIcon={showCheckIcon}
             showExclamation={isVersionMismatch}
+            unknownState={unknownState}
             blink={shouldBlink}
           >
             {iconIsComponent
