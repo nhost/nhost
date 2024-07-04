@@ -31,7 +31,6 @@ export default function useServiceStatus(
       ...options,
       variables: { ...options.variables, appId: currentProject?.id },
       skip: !isPlatform || !currentProject,
-      pollInterval: 0,
       skipPollAttempt: () => !isVisible,
     });
 
