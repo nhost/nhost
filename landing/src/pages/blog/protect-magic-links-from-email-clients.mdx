@@ -33,7 +33,9 @@ Here's a sequence diagram to better explain what happens in the case of a reset 
   alt="Reset password flow without redirect"
 />
 
-To address this issue, you need to implement an additional step by refraining from sending the magic link directly in the email. Instead, you can include a link to a specific page within your app that contains the required parameters in the URL. This setup would allow for redirection to the authentication service endpoint seamlessly.
+To address this issue, you need to implement an additional step by refraining from sending the magic link directly in
+the email. Instead, you can include a link to a specific page within your app that contains the required parameters in
+the URL. This setup would ensure that only a real user can trigger the redirection to the authentication service endpoint.
 
 When performing reset the password flow, users typically receive an email containing a link structured as follows:
 \
@@ -65,35 +67,32 @@ Instead of sending this link, you redirect users to your app with the all the re
 
 Then in your app you add another page that reads those parameters from the URL and then redirects the user to the auth service. The following is an example of such page in React.
 
+Then, in your app, you add another page that reads those parameters from the URL. This new page will include a button that users can click on to trigger the verification process and redirect them to the auth service. The following is an example of such a page in React.
+
 ```tsx
-import { useEffect, useState } from 'react'
 import { useNhostClient } from '@nhost/react'
 import { useSearchParams } from 'react-router-dom'
 
-const VerifyPage: React.FC = () => {
+const VerifyPage = () => {
   const nhost = useNhostClient()
-  const [loading, setLoading] = useState(true)
   const [searchParams] = useSearchParams()
 
-  useEffect(() => {
+  const redirectToVerificationLink = () => {
     const ticket = searchParams.get('ticket')
-    const redirectTo = searchParams.get('redirectTo')
     const type = searchParams.get('type')
+    const redirectTo = searchParams.get('redirectTo')
 
-    if (ticket && redirectTo && type) {
+    if (ticket && type && redirectTo) {
       window.location.href = `${nhost.auth.url}/verify?ticket=${ticket}&type=${type}&redirectTo=${redirectTo}`
     }
-
-    setLoading(false)
-  }, [searchParams, nhost?.auth?.url])
-
-  if (loading) {
-    return null
   }
 
   return (
     <div>
-      <span>Failed to authenticate with magick link</span>
+      <span>Please verify your account by clicking the link below.</span>
+      <button onClick={redirectToVerificationLink}>
+        Verify
+      </Button>
     </div>
   )
 }
