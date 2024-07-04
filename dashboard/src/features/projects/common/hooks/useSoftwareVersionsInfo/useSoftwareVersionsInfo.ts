@@ -55,7 +55,7 @@ export default function useSoftwareVersionsInfo(
     variables: { ...options.variables, appId: currentProject?.id },
     skip: !isPlatform || !currentProject,
     skipPollAttempt: () => !isVisible,
-    pollInterval: options.pollInterval || 60000,
+    pollInterval: options.pollInterval || 10000,
   });
 
   // fetch when mounted

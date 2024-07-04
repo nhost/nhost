@@ -26,18 +26,27 @@ export default function useServiceStatus(
 
   const isVisible = useVisibilityChange();
 
-  const { data, loading, refetch } = useGetProjectServicesHealthQuery({
-    ...options,
-    variables: { ...options.variables, appId: currentProject?.id },
-    skip: !isPlatform || !currentProject,
-    pollInterval: options.shouldPoll ? options.pollInterval || 10000 : 0,
-    skipPollAttempt: () => !isVisible,
-  });
+  const { data, loading, refetch, startPolling, stopPolling } =
+    useGetProjectServicesHealthQuery({
+      ...options,
+      variables: { ...options.variables, appId: currentProject?.id },
+      skip: !isPlatform || !currentProject,
+      pollInterval: 0,
+      skipPollAttempt: () => !isVisible,
+    });
 
   // Fetch when mounted
   useEffect(() => {
     refetch();
   }, [refetch]);
+
+  useEffect(() => {
+    if (options.shouldPoll) {
+      startPolling(options.pollInterval || 10000);
+    }
+
+    return () => stopPolling();
+  }, [stopPolling, startPolling, options.shouldPoll, options.pollInterval]);
 
   const serviceMap: { [key: string]: ServiceHealthInfo | undefined } = {};
   data?.getProjectStatus?.services.forEach((service) => {
