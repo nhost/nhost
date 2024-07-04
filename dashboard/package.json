@@ -48,6 +48,7 @@
     "@tanstack/react-query": "^4.36.1",
     "@tanstack/react-table": "^8.15.3",
     "@tanstack/react-virtual": "^3.2.0",
+    "@uidotdev/usehooks": "^2.4.1",
     "@uiw/codemirror-theme-bbedit": "^4.22.2",
     "@uiw/codemirror-theme-github": "^4.21.25",
     "@uiw/react-codemirror": "^4.21.25",

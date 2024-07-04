@@ -1,113 +1,13 @@
-import { Badge, type BadgeProps } from '@/components/ui/v2/Badge';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { ExclamationFilledIcon } from '@/components/ui/v2/icons/ExclamationFilledIcon';
 import { Tooltip, tooltipClasses } from '@/components/ui/v2/Tooltip';
+import { ProjectHealthBadge } from '@/features/projects/overview/components/ProjectHealthBadge';
 import { serviceStateToBadgeColor } from '@/features/projects/overview/health';
 import { ServiceState } from '@/utils/__generated__/graphql';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
 import type { ReactElement } from 'react';
 import { twMerge } from 'tailwind-merge';
-
-interface HealthBadgeProps extends BadgeProps {
-  badgeVariant?: 'standard' | 'dot';
-  badgeColor?: 'success' | 'error' | 'warning';
-  showExclamation?: boolean;
-  showCheckIcon?: boolean;
-  isLoading?: boolean;
-  blink?: boolean;
-}
-
-function HealthBadge({
-  badgeColor,
-  badgeVariant,
-  showExclamation,
-  showCheckIcon,
-  blink,
-  children,
-  ...props
-}: HealthBadgeProps) {
-  if (!badgeColor) {
-    return <div>{children}</div>;
-  }
-
-  if (showExclamation) {
-    return (
-      <Badge
-        variant="standard"
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        badgeContent={
-          <ExclamationFilledIcon
-            sx={{
-              color: (theme) =>
-                theme.palette.mode === 'dark' ? 'grey.900' : 'grey.600',
-            }}
-            className="h-2.5 w-2.5"
-          />
-        }
-      >
-        <Badge
-          color={badgeColor}
-          variant={badgeVariant}
-          badgeContent={
-            showCheckIcon ? (
-              <CheckIcon
-                sx={{
-                  color: (theme) =>
-                    theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-                }}
-                className="h-2 w-2 stroke-2"
-              />
-            ) : null
-          }
-          sx={{
-            color: (theme) =>
-              theme.palette.mode === 'dark' ? 'grey.900' : 'text.primary',
-          }}
-          componentsProps={{
-            badge: {
-              className: blink ? 'animate-pulse' : '',
-            },
-          }}
-          {...props}
-        >
-          {children}
-        </Badge>
-      </Badge>
-    );
-  }
-
-  return (
-    <Badge
-      color={badgeColor}
-      variant={badgeVariant}
-      badgeContent={
-        showCheckIcon ? (
-          <CheckIcon
-            sx={{
-              color: (theme) =>
-                theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-            }}
-            className="h-2 w-2 stroke-2"
-          />
-        ) : null
-      }
-      componentsProps={{
-        badge: {
-          className: blink ? 'animate-pulse' : '',
-        },
-      }}
-      {...props}
-    >
-      {children}
-    </Badge>
-  );
-}
 
 export interface ProjectHealthCardProps extends BoxProps {
   /**
@@ -171,7 +71,11 @@ export default function ProjectHealthCard({
   ...props
 }: ProjectHealthCardProps) {
   const badgeColor = serviceStateToBadgeColor.get(state);
-  const badgeVariant = state === ServiceState.Running ? 'standard' : 'dot';
+  const unknownState = state === undefined;
+  let badgeVariant: 'dot' | 'standard' = 'dot';
+  if (state === ServiceState.Running || unknownState) {
+    badgeVariant = 'standard';
+  }
   const showCheckIcon = state === ServiceState.Running;
   const shouldBlink = state === ServiceState.Updating;
 
@@ -199,11 +103,12 @@ export default function ProjectHealthCard({
         {...props}
       >
         <div className="grid grid-flow-col items-center justify-center">
-          <HealthBadge
+          <ProjectHealthBadge
             badgeColor={!isLoading ? badgeColor : undefined}
             badgeVariant={badgeVariant}
             showCheckIcon={showCheckIcon}
             showExclamation={isVersionMismatch}
+            unknownState={unknownState}
             blink={shouldBlink}
           >
             {iconIsComponent
@@ -217,7 +122,7 @@ export default function ProjectHealthCard({
                     {...slotProps.imgIcon}
                   />
                 )}
-          </HealthBadge>
+          </ProjectHealthBadge>
         </div>
       </Box>
     </Tooltip>

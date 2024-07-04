@@ -1,225 +1,33 @@
-import { CodeBlock } from '@/components/presentational/CodeBlock';
-import { Accordion } from '@/components/ui/v2/Accordion';
 import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
 import { ServicesOutlinedIcon } from '@/components/ui/v2/icons/ServicesOutlinedIcon';
 import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
-import { Text } from '@/components/ui/v2/Text';
+import { useServiceStatus } from '@/features/projects/common/hooks/useServiceStatus';
+import { ServiceAccordion } from '@/features/projects/overview/components/ServiceAccordion';
 import {
   findHighestImportanceState,
-  serviceStateToThemeColor,
   type baseServices,
-  type ServiceHealthInfo,
 } from '@/features/projects/overview/health';
 import { removeTypename } from '@/utils/helpers';
-import {
-  ServiceState,
-  type GetProjectServicesHealthQuery,
-} from '@/utils/__generated__/graphql';
-import Image from 'next/image';
-import { type ReactElement } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-interface ServiceAccordionProps {
-  serviceName: string;
-  serviceHealth: ServiceHealthInfo;
-  replicas: ServiceHealthInfo['replicas'];
-  serviceState: ServiceState;
-  /**
-   * Icon to display on the accordion.
-   */
-  icon?: string | ReactElement;
-  /**
-   * Label of the icon.
-   */
-  alt?: string;
-  iconIsComponent?: boolean;
-  defaultExpanded?: boolean;
-}
-
-function ServiceAccordion({
-  serviceName,
-  serviceHealth,
-  replicas,
-  serviceState,
-  icon,
-  iconIsComponent = true,
-  alt,
-  defaultExpanded = false,
-}: ServiceAccordionProps) {
-  const replicasLabel = replicas.length === 1 ? 'replica' : 'replicas';
-
-  const serviceInfo = removeTypename(serviceHealth);
-  const blink = serviceState === ServiceState.Updating;
-
-  return (
-    <Accordion.Root defaultExpanded={defaultExpanded}>
-      <Accordion.Summary
-        expandIcon={
-          <ChevronDownIcon
-            sx={{
-              color: 'text.primary',
-            }}
-          />
-        }
-        aria-controls="panel1-content"
-        id="panel1-header"
-        className="px-6"
-      >
-        <div className="flex flex-row justify-between gap-2 py-2">
-          <div className="flex items-center gap-3">
-            {iconIsComponent
-              ? icon
-              : typeof icon === 'string' && <Image src={icon} alt={alt} />}
-            <Text
-              sx={{ color: 'text.primary' }}
-              variant="h4"
-              className="font-semibold"
-            >
-              {serviceName}{' '}
-              <Text
-                sx={{
-                  color: 'text.secondary',
-                }}
-                component="span"
-                className="font-semibold"
-              >
-                ({replicas.length} {replicasLabel})
-              </Text>
-            </Text>
-            {serviceState === ServiceState.Running ? (
-              <Box
-                sx={{
-                  backgroundColor: serviceStateToThemeColor.get(serviceState),
-                }}
-                className="flex h-2 w-2 items-center justify-center rounded-full"
-              >
-                <CheckIcon className="h-3/4 w-3/4 stroke-2 text-white" />
-              </Box>
-            ) : (
-              <Box
-                sx={{
-                  backgroundColor: serviceStateToThemeColor.get(serviceState),
-                }}
-                className={`h-2 w-2 rounded-full ${
-                  blink ? 'animate-pulse' : ''
-                }`}
-              />
-            )}
-          </div>
-        </div>
-      </Accordion.Summary>
-      <Accordion.Details>
-        <CodeBlock copyToClipboardToastTitle={`${serviceName} status`}>
-          {JSON.stringify(serviceInfo, null, 2)}
-        </CodeBlock>
-      </Accordion.Details>
-    </Accordion.Root>
-  );
-}
-
-interface RunServicesAccordionProps {
-  servicesHealth: Array<ServiceHealthInfo>;
-  serviceStates: ServiceState[];
-  /**
-   * Icon to display on the accordion.
-   */
-  icon?: string | ReactElement;
-  /**
-   * Label of the icon.
-   */
-  alt?: string;
-  iconIsComponent?: boolean;
-  defaultExpanded?: boolean;
-}
-
-function RunServicesAccordion({
-  serviceStates,
-  servicesHealth,
-  icon,
-  iconIsComponent = true,
-  defaultExpanded = false,
-  alt,
-}: RunServicesAccordionProps) {
-  const globalState = findHighestImportanceState(serviceStates);
-
-  const serviceInfo = removeTypename(servicesHealth);
-
-  const blink = globalState === ServiceState.Updating;
-
-  return (
-    <Accordion.Root defaultExpanded={defaultExpanded}>
-      <Accordion.Summary
-        expandIcon={
-          <ChevronDownIcon
-            sx={{
-              color: 'text.primary',
-            }}
-          />
-        }
-        aria-controls="panel1-content"
-        id="panel1-header"
-        className="px-6"
-      >
-        <div className="flex flex-row justify-between gap-2 py-2">
-          <div className="flex items-center gap-3">
-            {iconIsComponent
-              ? icon
-              : typeof icon === 'string' && <Image src={icon} alt={alt} />}
-            <Text
-              sx={{ color: 'text.primary' }}
-              variant="h4"
-              className="font-semibold"
-            >
-              Run
-            </Text>
-            <Box
-              sx={{
-                backgroundColor: serviceStateToThemeColor.get(globalState),
-              }}
-              className={`h-2 w-2 rounded-full ${blink ? 'animate-pulse' : ''}`}
-            />
-          </div>
-        </div>
-      </Accordion.Summary>
-      <Accordion.Details>
-        <CodeBlock copyToClipboardToastTitle="Run services status">
-          {JSON.stringify(serviceInfo, null, 2)}
-        </CodeBlock>
-      </Accordion.Details>
-    </Accordion.Root>
-  );
-}
-
 export interface OverviewProjectHealthModalProps {
-  servicesHealth?: GetProjectServicesHealthQuery;
   defaultExpanded?: keyof typeof baseServices | 'run';
 }
 
 export default function OverviewProjectHealthModal({
-  servicesHealth,
   defaultExpanded,
 }: OverviewProjectHealthModalProps) {
-  const serviceMap: { [key: string]: ServiceHealthInfo | undefined } = {};
-  servicesHealth.getProjectStatus.services.forEach((service) => {
-    serviceMap[service.name] = service;
+  const { auth, storage, postgres, hasura, ai, run } = useServiceStatus({
+    fetchPolicy: 'cache-only',
+    shouldPoll: false,
   });
-  const {
-    'hasura-auth': auth,
-    'hasura-storage': storage,
-    postgres,
-    hasura,
-    ai,
-    ...otherServices
-  } = serviceMap;
 
-  const runServices = Object.values(otherServices).filter((service) =>
+  const runServices = Object.values(run).filter((service) =>
     service.name.startsWith('run-'),
   );
 
@@ -229,6 +37,24 @@ export default function OverviewProjectHealthModal({
   const isHasuraExpandedByDefault = defaultExpanded === 'hasura';
   const isAIExpandedByDefault = defaultExpanded === 'ai';
   const isRunExpandedByDefault = defaultExpanded === 'run';
+
+  const getServiceInfo = (service) => {
+    const info = removeTypename(service);
+    return JSON.stringify(info, null, 2);
+  };
+
+  const serviceInfo = {
+    auth: getServiceInfo(auth),
+    storage: getServiceInfo(storage),
+    postgres: getServiceInfo(postgres),
+    hasura: getServiceInfo(hasura),
+    ai: getServiceInfo(ai),
+    run: getServiceInfo(Object.values(runServices)),
+  };
+
+  const runServicesState = findHighestImportanceState(
+    Object.values(runServices).map((service) => service.state),
+  );
 
   return (
     <Box className={twMerge('w-full rounded-lg pt-2 text-left')}>
@@ -242,8 +68,8 @@ export default function OverviewProjectHealthModal({
         <ServiceAccordion
           icon={<UserIcon className="h-4 w-4" />}
           serviceName="Auth"
-          serviceHealth={auth}
-          replicas={auth?.replicas}
+          serviceInfo={serviceInfo.auth}
+          replicaCount={auth?.replicas?.length}
           serviceState={auth?.state}
           defaultExpanded={isAuthExpandedByDefault}
         />
@@ -251,8 +77,8 @@ export default function OverviewProjectHealthModal({
         <ServiceAccordion
           icon={<DatabaseIcon className="h-4 w-4" />}
           serviceName="Postgres"
-          serviceHealth={postgres}
-          replicas={postgres?.replicas}
+          serviceInfo={serviceInfo.postgres}
+          replicaCount={postgres?.replicas?.length}
           serviceState={postgres?.state}
           defaultExpanded={isPostgresExpandedByDefault}
         />
@@ -260,8 +86,8 @@ export default function OverviewProjectHealthModal({
         <ServiceAccordion
           icon={<StorageIcon className="h-4 w-4" />}
           serviceName="Storage"
-          serviceHealth={storage}
-          replicas={storage?.replicas}
+          serviceInfo={serviceInfo.storage}
+          replicaCount={storage?.replicas?.length}
           serviceState={storage?.state}
           defaultExpanded={isStorageExpandedByDefault}
         />
@@ -269,8 +95,8 @@ export default function OverviewProjectHealthModal({
         <ServiceAccordion
           icon={<HasuraIcon className="h-4 w-4" />}
           serviceName="Hasura"
-          serviceHealth={hasura}
-          replicas={hasura?.replicas}
+          serviceInfo={serviceInfo.hasura}
+          replicaCount={hasura?.replicas?.length}
           serviceState={hasura?.state}
           defaultExpanded={isHasuraExpandedByDefault}
         />
@@ -280,22 +106,22 @@ export default function OverviewProjectHealthModal({
             <ServiceAccordion
               icon={<AIIcon className="h-4 w-4" />}
               serviceName="AI"
-              serviceHealth={ai}
-              replicas={ai.replicas}
-              serviceState={ai.state}
+              serviceInfo={serviceInfo.ai}
+              replicaCount={ai?.replicas?.length}
+              serviceState={ai?.state}
               defaultExpanded={isAIExpandedByDefault}
             />
           </>
         ) : null}
-        {Object.values(runServices).length > 0 ? (
+        {runServices && Object.values(runServices).length > 0 ? (
           <>
             <Divider />
-            <RunServicesAccordion
-              servicesHealth={Object.values(runServices)}
+            <ServiceAccordion
               icon={<ServicesOutlinedIcon className="h-4 w-4" />}
-              serviceStates={Object.values(runServices).map(
-                (service) => service.state,
-              )}
+              serviceName="Run"
+              serviceInfo={serviceInfo.run}
+              replicaCount={0}
+              serviceState={runServicesState}
               defaultExpanded={isRunExpandedByDefault}
             />
           </>
