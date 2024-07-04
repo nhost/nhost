@@ -1,3 +1,4 @@
+import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
@@ -28,10 +29,14 @@ type Workspace = Omit<
 const validationSchema = Yup.object({
   workspace: Yup.string().label('Project').required(),
   project: Yup.string().label('Project').required(),
-  service: Yup.string().label('Service').required(),
-  severity: Yup.string().label('Severity').required(),
+  services: Yup.array()
+    .of(Yup.object({ label: Yup.string(), value: Yup.string() }))
+    .label('Services')
+    .required(),
+  priority: Yup.string().label('Priority').required(),
   subject: Yup.string().label('Subject').required(),
-  description: Yup.string().label('Description').optional(),
+  description: Yup.string().label('Description').required(),
+  ccs: Yup.string().label('CCs').optional(),
 });
 
 export type CreateTicketFormValues = Yup.InferType<typeof validationSchema>;
@@ -49,19 +54,22 @@ function TicketPage() {
     defaultValues: {
       workspace: '',
       project: '',
-      service: '',
-      severity: '',
+      services: [],
+      priority: '',
       subject: '',
       description: '',
+      ccs: '',
     },
     resolver: yupResolver(validationSchema),
   });
 
   const {
     register,
+    watch,
     formState: { errors, isSubmitting },
   } = form;
 
+  const selectedWorkspace = watch('workspace');
   const user = useUserData();
 
   const { data } = useGetAllWorkspacesAndProjectsQuery({
@@ -70,26 +78,17 @@ function TicketPage() {
 
   const workspaces: Workspace[] = data?.workspaces || [];
 
-  const projects = workspaces.flatMap((workspace) =>
-    workspace.projects.map((proj) => ({
-      projectSubdomain: proj.subdomain,
-      projectName: proj.name,
-    })),
-  );
-
   const handleSubmit = async (formValues: CreateTicketFormValues) => {
-    const {
-      // workspace,
-      project,
-      // service,
-      severity,
-      subject,
-      description,
-    } = formValues;
+    const { project, services, priority, subject, description, ccs } =
+      formValues;
 
     const auth = btoa(
       `${process.env.NEXT_PUBLIC_ZENDESK_USER_EMAIL}/token:${process.env.NEXT_PUBLIC_ZENDESK_API_KEY}`,
     );
+    const emails = ccs
+      .replace(/ /g, '')
+      .split(',')
+      .map((email) => ({ user_email: email }));
 
     await execPromiseWithErrorToast(
       async () => {
@@ -107,15 +106,23 @@ function TicketPage() {
                 comment: {
                   body: description,
                 },
-                priority: severity,
+                priority,
                 requester: {
                   name: user?.displayName,
                   email: user?.email,
                 },
+                email_ccs: emails,
                 custom_fields: [
+                  // these custom field IDs come from zendesk
                   {
                     id: 19502784542098,
                     value: project,
+                  },
+                  {
+                    id: 19922709880978,
+                    value: services.map((service) =>
+                      service.value.toLowerCase(),
+                    ),
                   },
                 ],
               },
@@ -137,14 +144,14 @@ function TicketPage() {
       className="flex flex-col items-center justify-center py-10"
       sx={{ backgroundColor: 'background.default' }}
     >
-      <div className="flex flex-col w-full max-w-3xl">
-        <div className="flex flex-col items-center mb-4">
+      <div className="flex w-full max-w-3xl flex-col">
+        <div className="mb-4 flex flex-col items-center">
           <Text variant="h4" className="font-bold">
             Nhost Support
           </Text>
           <Text variant="h4">How can we help you?</Text>
         </div>
-        <Box className="w-full p-10 border rounded-md">
+        <Box className="w-full rounded-md border p-10">
           <Box className="grid grid-flow-row gap-4">
             <Box className="flex flex-col gap-4">
               <FormProvider {...form}>
@@ -162,16 +169,18 @@ function TicketPage() {
                     slotProps={{
                       root: { className: 'grid grid-flow-col gap-1' },
                     }}
+                    error={!!errors.workspace}
+                    helperText={errors.workspace?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid items-center grid-flow-col gap-2">
+                      <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
                       </span>
                     )}
                   >
                     {workspaces.map((workspace) => (
                       <Option
-                        value={workspace.id}
                         key={workspace.name}
+                        value={workspace.id}
                         label={workspace.name}
                       >
                         {workspace.name}
@@ -187,19 +196,24 @@ function TicketPage() {
                     slotProps={{
                       root: { className: 'grid grid-flow-col gap-1 mb-4' },
                     }}
+                    error={!!errors.project}
+                    helperText={errors.project?.message}
                     renderValue={(option) => (
-                      <span className="inline-grid items-center grid-flow-col gap-2">
+                      <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
                       </span>
                     )}
                   >
-                    {projects.map((proj) => (
+                    {(
+                      workspaces.find((w) => w.id === selectedWorkspace)
+                        ?.projects || []
+                    ).map((proj) => (
                       <Option
-                        key={proj.projectSubdomain}
-                        label={proj.projectName}
-                        value={proj.projectSubdomain}
+                        key={proj.subdomain}
+                        value={proj.subdomain}
+                        label={proj.name}
                       >
-                        <div className="flex flex-col">{proj.projectName}</div>
+                        <div className="flex flex-col">{proj.name}</div>
                       </Option>
                     ))}
                   </ControlledSelect>
@@ -208,48 +222,38 @@ function TicketPage() {
 
                   <Text className="mt-4 font-bold">Impact</Text>
 
-                  <ControlledSelect
-                    id="service"
-                    name="service"
-                    label="Service"
-                    placeholder="Service"
-                    slotProps={{
-                      root: { className: 'grid grid-flow-col gap-1' },
-                    }}
-                    renderValue={(option) => (
-                      <span className="inline-grid items-center grid-flow-col gap-2">
-                        {option?.label}
-                      </span>
-                    )}
-                  >
-                    {[
+                  <ControlledAutocomplete
+                    id="services"
+                    name="services"
+                    label="services"
+                    fullWidth
+                    multiple
+                    aria-label="Enabled APIs"
+                    options={[
                       'Dashboard',
-                      'Auth',
-                      'Postgres',
-                      'Hasura',
+                      'Database',
+                      'Authentication',
                       'Storage',
+                      'Hasura/APIs',
                       'Functions',
                       'Run',
-                      'AI',
-                      'CLI',
+                      'Graphite',
                       'Other',
-                    ].map((service) => (
-                      <Option key={service} label={service} value={service}>
-                        {service}
-                      </Option>
-                    ))}
-                  </ControlledSelect>
+                    ].map((s) => ({ label: s, value: s }))}
+                    error={!!errors?.services?.message}
+                    helperText={errors?.services?.message}
+                  />
 
                   <ControlledSelect
-                    id="severity"
-                    name="severity"
-                    label="Severity"
-                    placeholder="Severity"
+                    id="priority"
+                    name="priority"
+                    label="Priority"
+                    placeholder="Priority"
                     slotProps={{
                       root: { className: 'grid grid-flow-col gap-1 mb-4' },
                     }}
                     renderValue={(option) => (
-                      <span className="inline-grid items-center grid-flow-col gap-2">
+                      <span className="inline-grid grid-flow-col items-center gap-2">
                         {option?.label}
                       </span>
                     )}
@@ -271,16 +275,16 @@ function TicketPage() {
                         title: 'Urgent',
                         description: 'Production system offline',
                       },
-                    ].map((severity) => (
+                    ].map((priority) => (
                       <Option
-                        key={severity.title}
-                        label={severity.title}
-                        value={severity.title}
+                        key={priority.title}
+                        label={priority.title}
+                        value={priority.title.toLowerCase()}
                       >
                         <div className="flex flex-col">
-                          <span>{severity.title}</span>
+                          <span>{priority.title}</span>
                           <span className="font-mono text-xs opacity-50">
-                            {severity.description}
+                            {priority.description}
                           </span>
                         </div>
                       </Option>
@@ -295,7 +299,7 @@ function TicketPage() {
                     {...register('subject')}
                     id="subject"
                     label="Subject"
-                    placeholder="Subject"
+                    placeholder="Summary of the problem you are experiencing"
                     fullWidth
                     autoFocus
                     inputProps={{ min: 2, max: 128 }}
@@ -307,7 +311,7 @@ function TicketPage() {
                     {...register('description')}
                     id="description"
                     label="Description"
-                    placeholder="Description"
+                    placeholder="Describe the issue you are experiencing in detail, along with any relevant information. Please be as detailed as possible."
                     fullWidth
                     multiline
                     inputProps={{
@@ -317,8 +321,23 @@ function TicketPage() {
                     helperText={errors.description?.message}
                   />
 
-                  <Box className="flex flex-col gap-4 ml-auto w-80">
-                    <Text color="secondary" className="text-sm text-right">
+                  <Divider />
+
+                  <Text className="mt-4 font-bold">Notifications</Text>
+
+                  <StyledInput
+                    {...register('ccs')}
+                    id="ccs"
+                    label="CCs"
+                    placeholder="Comma separated list of emails you want to share this ticket with."
+                    fullWidth
+                    inputProps={{ min: 2, max: 128 }}
+                    error={!!errors.ccs}
+                    helperText={errors.ccs?.message}
+                  />
+
+                  <Box className="ml-auto flex w-80 flex-col gap-4">
+                    <Text color="secondary" className="text-right text-sm">
                       We will contact you at <strong>{user?.email}</strong>
                     </Text>
                     <Button
