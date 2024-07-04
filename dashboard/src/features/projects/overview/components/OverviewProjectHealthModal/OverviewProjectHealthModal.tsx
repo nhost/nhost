@@ -21,6 +21,7 @@ export default function OverviewProjectHealthModal({
 }: OverviewProjectHealthModalProps) {
   const { auth, storage, postgres, hasura, ai, run } = useServiceStatus({
     fetchPolicy: 'cache-only',
+    shouldPoll: false,
   });
 
   const runServices = Object.values(run).filter((service) =>

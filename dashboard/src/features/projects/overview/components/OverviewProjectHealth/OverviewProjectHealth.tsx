@@ -7,9 +7,8 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import { useRecommendedVersions } from '@/features/projects/common/hooks/useRecommendedVersions';
 import { useServiceStatus } from '@/features/projects/common/hooks/useServiceStatus';
+import { useSoftwareVersionsInfo } from '@/features/projects/common/hooks/useSoftwareVersionsInfo';
 import { OverviewProjectHealthModal } from '@/features/projects/overview/components/OverviewProjectHealthModal';
 import { ProjectHealthCard } from '@/features/projects/overview/components/ProjectHealthCard';
 import { RunStatusTooltip } from '@/features/projects/overview/components/RunStatusTooltip';
@@ -18,33 +17,21 @@ import {
   baseServices,
   findHighestImportanceState,
 } from '@/features/projects/overview/health';
-import { useGetConfiguredVersionsQuery } from '@/generated/graphql';
 
 export default function OverviewProjectHealth() {
-  const isPlatform = useIsPlatform();
   const { currentProject } = useCurrentWorkspaceAndProject();
-
-  const {
-    loading: loadingRecommendedVersions,
-    auth: authRecommendedVersions,
-    storage: storageRecommendedVersions,
-    postgres: postgresRecommendedVersions,
-    hasura: hasuraRecommendedVersions,
-    ai: aiRecommendedVersions,
-  } = useRecommendedVersions({
-    pollInterval: 10000,
-  });
 
   const { openDialog, closeDialog } = useDialog();
 
-  const { data: configuredVersionsData, loading: loadingConfiguredVersions } =
-    useGetConfiguredVersionsQuery({
-      variables: {
-        appId: currentProject?.id,
-      },
-      skip: !isPlatform || !currentProject,
-      pollInterval: 10000,
-    });
+  const {
+    loading: loadingVersions,
+    auth: authVersionInfo,
+    storage: storageVersionInfo,
+    postgres: postgresVersionInfo,
+    hasura: hasuraVersionInfo,
+    ai: aiVersionInfo,
+    isAIEnabled,
+  } = useSoftwareVersionsInfo();
 
   const {
     loading: loadingProjectServicesHealth,
@@ -55,14 +42,10 @@ export default function OverviewProjectHealth() {
     ai: aiStatus,
     run: runStatus,
   } = useServiceStatus({
-    pollInterval: 10000,
+    shouldPoll: true,
   });
 
-  if (
-    loadingRecommendedVersions ||
-    loadingConfiguredVersions ||
-    loadingProjectServicesHealth
-  ) {
+  if (loadingVersions || loadingProjectServicesHealth) {
     return (
       <div className="grid grid-flow-row content-start gap-6">
         <Text variant="h3">Project Health</Text>
@@ -88,29 +71,6 @@ export default function OverviewProjectHealth() {
     );
   }
 
-  const isAIServiceEnabled = !!configuredVersionsData?.config?.ai;
-
-  // Check if configured version can't be found in recommended versions
-  const isAuthVersionMismatch = !authRecommendedVersions.find(
-    (version) => configuredVersionsData?.config?.auth?.version === version,
-  );
-
-  const isHasuraVersionMismatch = !hasuraRecommendedVersions.find(
-    (version) => configuredVersionsData?.config?.hasura?.version === version,
-  );
-
-  const isPostgresVersionMismatch = !postgresRecommendedVersions.find(
-    (version) => configuredVersionsData?.config?.postgres?.version === version,
-  );
-
-  const isStorageVersionMismatch = !storageRecommendedVersions.find(
-    (version) => configuredVersionsData?.config?.storage?.version === version,
-  );
-
-  const isAIVersionMismatch = !aiRecommendedVersions.find(
-    (version) => configuredVersionsData?.config?.ai?.version === version,
-  );
-
   const openHealthModal = async (
     defaultExpanded: keyof typeof baseServices | 'run',
   ) => {
@@ -132,9 +92,9 @@ export default function OverviewProjectHealth() {
     <ServiceVersionTooltip
       serviceName={baseServices['hasura-auth'].displayName}
       serviceKey="hasura-auth"
-      usedVersion={configuredVersionsData?.config?.auth?.version ?? ''}
-      recommendedVersionMismatch={isAuthVersionMismatch}
-      recommendedVersions={authRecommendedVersions}
+      usedVersion={authVersionInfo?.configuredVersion ?? ''}
+      recommendedVersionMismatch={authVersionInfo?.isVersionMismatch}
+      recommendedVersions={authVersionInfo?.recommendedVersions}
       openHealthModal={openHealthModal}
       state={authStatus?.state}
     />
@@ -144,9 +104,9 @@ export default function OverviewProjectHealth() {
     <ServiceVersionTooltip
       serviceName={baseServices.hasura.displayName}
       serviceKey="hasura"
-      usedVersion={configuredVersionsData?.config?.hasura?.version ?? ''}
-      recommendedVersionMismatch={isHasuraVersionMismatch}
-      recommendedVersions={hasuraRecommendedVersions}
+      usedVersion={hasuraVersionInfo?.configuredVersion ?? ''}
+      recommendedVersionMismatch={hasuraVersionInfo?.isVersionMismatch}
+      recommendedVersions={hasuraVersionInfo?.recommendedVersions}
       openHealthModal={openHealthModal}
       state={hasuraStatus?.state}
     />
@@ -156,9 +116,9 @@ export default function OverviewProjectHealth() {
     <ServiceVersionTooltip
       serviceName={baseServices.postgres.displayName}
       serviceKey="postgres"
-      usedVersion={configuredVersionsData?.config?.postgres?.version ?? ''}
-      recommendedVersionMismatch={isPostgresVersionMismatch}
-      recommendedVersions={postgresRecommendedVersions}
+      usedVersion={postgresVersionInfo?.configuredVersion ?? ''}
+      recommendedVersionMismatch={postgresVersionInfo?.isVersionMismatch}
+      recommendedVersions={postgresVersionInfo?.recommendedVersions}
       openHealthModal={openHealthModal}
       state={postgresStatus?.state}
     />
@@ -168,9 +128,9 @@ export default function OverviewProjectHealth() {
     <ServiceVersionTooltip
       serviceName={baseServices['hasura-storage'].displayName}
       serviceKey="hasura-storage"
-      usedVersion={configuredVersionsData?.config?.storage?.version ?? ''}
-      recommendedVersionMismatch={isStorageVersionMismatch}
-      recommendedVersions={storageRecommendedVersions}
+      usedVersion={storageVersionInfo?.configuredVersion ?? ''}
+      recommendedVersionMismatch={storageVersionInfo?.isVersionMismatch}
+      recommendedVersions={storageVersionInfo?.recommendedVersions}
       openHealthModal={openHealthModal}
       state={storageStatus?.state}
     />
@@ -180,9 +140,9 @@ export default function OverviewProjectHealth() {
     <ServiceVersionTooltip
       serviceName={baseServices.ai.displayName}
       serviceKey="ai"
-      usedVersion={configuredVersionsData?.config?.ai?.version ?? ''}
-      recommendedVersionMismatch={isAIVersionMismatch}
-      recommendedVersions={aiRecommendedVersions}
+      usedVersion={aiVersionInfo?.configuredVersion ?? ''}
+      recommendedVersionMismatch={aiVersionInfo?.isVersionMismatch}
+      recommendedVersions={aiVersionInfo?.recommendedVersions}
       openHealthModal={openHealthModal}
       state={aiStatus?.state}
     />
@@ -205,32 +165,32 @@ export default function OverviewProjectHealth() {
           <ProjectHealthCard
             icon={<UserIcon className="m-1 h-6 w-6" />}
             tooltip={authTooltipElem}
-            isVersionMismatch={isAuthVersionMismatch}
+            isVersionMismatch={authVersionInfo?.isVersionMismatch}
             state={authStatus?.state}
           />
           <ProjectHealthCard
             icon={<DatabaseIcon className="m-1 h-6 w-6" />}
             tooltip={postgresTooltipElem}
-            isVersionMismatch={isPostgresVersionMismatch}
+            isVersionMismatch={postgresVersionInfo?.isVersionMismatch}
             state={postgresStatus?.state}
           />
           <ProjectHealthCard
             icon={<StorageIcon className="m-1 h-6 w-6" />}
             tooltip={storageTooltipElem}
-            isVersionMismatch={isStorageVersionMismatch}
+            isVersionMismatch={storageVersionInfo?.isVersionMismatch}
             state={storageStatus?.state}
           />
           <ProjectHealthCard
             icon={<HasuraIcon className="m-1 h-6 w-6" />}
             tooltip={hasuraTooltipElem}
-            isVersionMismatch={isHasuraVersionMismatch}
+            isVersionMismatch={hasuraVersionInfo?.isVersionMismatch}
             state={hasuraStatus?.state}
           />
-          {isAIServiceEnabled && (
+          {isAIEnabled && (
             <ProjectHealthCard
               icon={<AIIcon className="m-1 h-6 w-6" />}
               tooltip={aiTooltipElem}
-              isVersionMismatch={isAIVersionMismatch}
+              isVersionMismatch={aiVersionInfo?.isVersionMismatch}
               state={aiStatus?.state}
             />
           )}
