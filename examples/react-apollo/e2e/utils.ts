@@ -188,14 +188,13 @@ export async function verifyEmail({
   await page.locator('.messages > .msglist-message', { hasText: email }).nth(0).click()
 
   // Based on: https://playwright.dev/docs/pages#handling-new-pages
-  const authenticatedPagePromise = context.waitForEvent('page')
-
+  const verifyEmailPagePromise = context.waitForEvent('page')
   await page.frameLocator('#preview-html').getByRole('link', { name: linkText }).click()
-
-  const authenticatedPage = await authenticatedPagePromise
-  await authenticatedPage.waitForLoadState()
-
-  return authenticatedPage
+  const verifyEmailPage = await verifyEmailPagePromise
+  await verifyEmailPage.waitForLoadState()
+  await verifyEmailPage.getByRole('button', { name: /Verify/i }).click()
+  await verifyEmailPage.waitForLoadState()
+  return verifyEmailPage
 }
 
 /**
