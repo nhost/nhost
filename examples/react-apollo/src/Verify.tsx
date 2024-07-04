@@ -1,4 +1,5 @@
 import { Button, Card, Container, Stack, Text } from '@mantine/core'
+import { showNotification } from '@mantine/notifications'
 import { useNhostClient } from '@nhost/react'
 import { FaEnvelope } from 'react-icons/fa'
 import { useSearchParams } from 'react-router-dom'
@@ -9,10 +10,18 @@ const VerifyPage: React.FC = () => {
 
   const redirectToVerificationLink = () => {
     const ticket = searchParams.get('ticket')
-    const redirectTo = searchParams.get('redirectTo')
     const type = searchParams.get('type')
+    const redirectTo = searchParams.get('redirectTo')
 
-    window.location.href = `${nhost.auth.url}/verify?ticket=${ticket}&type=${type}&redirectTo=${redirectTo}`
+    if (ticket && type && redirectTo) {
+      window.location.href = `${nhost.auth.url}/verify?ticket=${ticket}&type=${type}&redirectTo=${redirectTo}`
+    } else {
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: 'An error occured while verifying your account'
+      })
+    }
   }
 
   return (
