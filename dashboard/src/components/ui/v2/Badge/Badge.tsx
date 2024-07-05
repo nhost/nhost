@@ -37,6 +37,9 @@ const Badge = styled(MaterialBadge)<BadgeProps>(({ theme }) => ({
   '& .MuiBadge-colorSuccess': {
     backgroundColor: theme.palette.success.dark,
   },
+  '& .MuiBadge-colorSecondary': {
+    backgroundColor: theme.palette.grey[500],
+  },
 }));
 
 Badge.displayName = 'NhostBadge';

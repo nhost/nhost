@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.21.0
+
+### Minor Changes
+
+- a2efeed: fix: improve project health error handling, add unknown state and polling interval for health state
+
 ## 1.20.0
 
 ### Minor Changes

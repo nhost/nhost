@@ -248,6 +248,9 @@ importers:
       '@tanstack/react-virtual':
         specifier: ^3.2.0
         version: 3.5.0(react-dom@18.2.0)(react@18.2.0)
+      '@uidotdev/usehooks':
+        specifier: ^2.4.1
+        version: 2.4.1(react-dom@18.2.0)(react@18.2.0)
       '@uiw/codemirror-theme-bbedit':
         specifier: ^4.22.2
         version: 4.22.2(@codemirror/language@6.10.2)
@@ -1070,16 +1073,16 @@ importers:
         version: 3.59.2
       svelte-check:
         specifier: ^3.6.8
-        version: 3.6.8(postcss@8.4.38)(svelte@3.59.2)
+        version: 3.6.8(@babel/core@7.24.7)(postcss@8.4.38)(svelte@3.59.2)
       tailwindcss:
         specifier: ^3.4.3
-        version: 3.4.3
+        version: 3.4.3(ts-node@10.9.2)
       typescript:
         specifier: ^5.4.3
         version: 5.4.3
       vite:
         specifier: ^5.2.7
-        version: 5.2.7(@types/node@20.14.8)
+        version: 5.2.7(@types/node@16.18.101)(sass@1.32.0)
       vitest:
         specifier: ^0.25.8
         version: 0.25.8
@@ -1976,10 +1979,10 @@ importers:
         version: 3.10.6(@types/react@18.3.3)(react@18.2.0)
       '@nhost/react':
         specifier: ^3.5.2
-        version: link:../../../packages/react
+        version: 3.5.2(@types/react@18.3.3)(react@18.2.0)
       '@nhost/react-apollo':
         specifier: ^12.0.2
-        version: link:../../../integrations/react-apollo
+        version: 12.0.2(@apollo/client@3.10.6)(@nhost/react@3.5.2)(react@18.2.0)
       '@react-native-async-storage/async-storage':
         specifier: ^1.23.1
         version: 1.23.1(react-native@0.73.7)
@@ -2373,7 +2376,7 @@ packages:
     resolution: {integrity: sha512-9anThAaj1dQr6IGmzBMcfzOQKTa5artjuPmw8NYK/fiGEMjADbSguBY2FMDykt+QhilR3wc9VA/3yVju7JHg7Q==}
     hasBin: true
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       '@babel/core': 7.24.6
       '@babel/generator': 7.24.7
@@ -8574,7 +8577,7 @@ packages:
   /@graphql-tools/utils@8.13.1(graphql@16.8.1):
     resolution: {integrity: sha512-qIh9yYpdUFmctVqovwMdheVNJqFh+DQNWIhX87FJStfXYnmweBUDATok9fWPleKeFwxnW8IapKmY8m8toJEkAw==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       graphql: 16.8.1
       tslib: 2.6.2
@@ -8613,7 +8616,7 @@ packages:
   /@graphql-typed-document-node/core@3.2.0(graphql@16.8.1):
     resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       graphql: 16.8.1
 
@@ -10281,6 +10284,18 @@ packages:
     requiresBuild: true
     optional: true
 
+  /@nhost/apollo@7.1.2(@apollo/client@3.10.6):
+    resolution: {integrity: sha512-sBd4Go6HkbwdQSP/teP7py8SveMrGZQtK3SyF9QrC59m5/tmkTJbPJJdJuWAmi3Lr8/xHNFaFxAtMWjfGx/VyA==}
+    peerDependencies:
+      '@apollo/client': ^3.7.10
+      '@nhost/nhost-js': 3.1.5
+    dependencies:
+      '@apollo/client': 3.10.6(@types/react@18.3.3)(react@18.2.0)
+      graphql: 16.8.1
+      graphql-ws: 5.16.0(graphql@16.8.1)
+      jwt-decode: 4.0.0
+    dev: false
+
   /@nhost/graphql-js@0.3.0(graphql@16.8.1):
     resolution: {integrity: sha512-CVYq6wx0VbaYdpUBmfNO/6mZatHB5+YBCqFjWyxhpN1nzHCHEO6rgdL7j0qk31OFE6XAX0z7AQZSXg1Pn63GUw==}
     peerDependencies:
@@ -10293,7 +10308,6 @@ packages:
       jwt-decode: 4.0.0
     transitivePeerDependencies:
       - encoding
-    dev: true
 
   /@nhost/hasura-auth-js@2.5.2:
     resolution: {integrity: sha512-3O4fIJ8xbdCdKGR/1o5jMczxrLLQ2g6BNp6J9m83COVqg9ka5IXoFuM6pgbX5W7WPe9nIQntvHsfeDynXS+/fg==}
@@ -10305,7 +10319,6 @@ packages:
       xstate: 4.38.3
     transitivePeerDependencies:
       - encoding
-    dev: true
 
   /@nhost/hasura-storage-js@2.5.1:
     resolution: {integrity: sha512-I3rOSa095lcR9BUmNw7dOoXLPWL39WOcrb0paUBFX4h3ltR92ILEHTZ38hN6bZSv157ZdqkIFNL/M2G45SSf7g==}
@@ -10316,7 +10329,6 @@ packages:
       xstate: 4.38.3
     transitivePeerDependencies:
       - encoding
-    dev: true
 
   /@nhost/nhost-js@3.1.5(graphql@16.8.1):
     resolution: {integrity: sha512-SgDGQ0APiRPc6RB2Cl1EcvQUsmWFDx32JmgqYBgLKKV9+PBDKc2GJ4GHECbxQi3RoIMXeJ777XJTEK7mGgNL+A==}
@@ -10330,7 +10342,41 @@ packages:
       isomorphic-unfetch: 3.1.0
     transitivePeerDependencies:
       - encoding
-    dev: true
+
+  /@nhost/react-apollo@12.0.2(@apollo/client@3.10.6)(@nhost/react@3.5.2)(react@18.2.0):
+    resolution: {integrity: sha512-Ll5RKH5g9aFTBBnTjlQCWmrHeyjhnzy1bx0TAG1FsXjh3YbsLPqelmVtAks2t7m+Uw8XWZ37D+cL/Hum/KxG/w==}
+    peerDependencies:
+      '@apollo/client': ^3.7.10
+      '@nhost/react': 3.5.2
+      graphql: '>=16.8.1'
+      react: ^17.0.0 || ^18.0.0
+      react-dom: ^17.0.0 || ^18.0.0
+    dependencies:
+      '@apollo/client': 3.10.6(@types/react@18.3.3)(react@18.2.0)
+      '@nhost/apollo': 7.1.2(@apollo/client@3.10.6)
+      '@nhost/react': 3.5.2(@types/react@18.3.3)(react@18.2.0)
+      react: 18.2.0
+    transitivePeerDependencies:
+      - '@nhost/nhost-js'
+    dev: false
+
+  /@nhost/react@3.5.2(@types/react@18.3.3)(react@18.2.0):
+    resolution: {integrity: sha512-i/qE9k3ccLyMum4JM1aSDc+qPZPW/o4Rgv7mn6Dc2qWEuDEYrOffqMJ/52nnT8k2O8GeHFpu2BZY81SCuiao+w==}
+    peerDependencies:
+      react: ^17.0.0 || ^18.1.0
+    dependencies:
+      '@nhost/nhost-js': 3.1.5(graphql@16.8.1)
+      '@xstate/react': 3.2.2(@types/react@18.3.3)(react@18.2.0)(xstate@4.38.3)
+      jwt-decode: 4.0.0
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      xstate: 4.38.3
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@xstate/fsm'
+      - encoding
+      - graphql
+    dev: false
 
   /@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1:
     resolution: {integrity: sha512-54/JRvkLIzzDWshCWfuhadfrfZVPiElY8Fcgmg1HroEly/EDSszzhBAsarCux+D/kOslTRquNzuyGSmUSTTHGg==}
@@ -13266,7 +13312,7 @@ packages:
       svelte: 3.59.2
       tiny-glob: 0.2.9
       undici: 5.28.4
-      vite: 5.2.7(@types/node@20.14.8)
+      vite: 5.2.7(@types/node@16.18.101)(sass@1.32.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -13282,7 +13328,7 @@ packages:
       '@sveltejs/vite-plugin-svelte': 2.5.3(svelte@3.59.2)(vite@5.2.7)
       debug: 4.3.5
       svelte: 3.59.2
-      vite: 5.2.7(@types/node@20.14.8)
+      vite: 5.2.7(@types/node@16.18.101)(sass@1.32.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -13301,7 +13347,7 @@ packages:
       magic-string: 0.30.8
       svelte: 3.59.2
       svelte-hmr: 0.15.3(svelte@3.59.2)
-      vite: 5.2.7(@types/node@20.14.8)
+      vite: 5.2.7(@types/node@16.18.101)(sass@1.32.0)
       vitefu: 0.2.5(vite@5.2.7)
     transitivePeerDependencies:
       - supports-color
@@ -14655,6 +14701,17 @@ packages:
       '@typescript-eslint/types': 6.21.0
       eslint-visitor-keys: 3.4.3
 
+  /@uidotdev/usehooks@2.4.1(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-1I+RwWyS+kdv3Mv0Vmc+p0dPYH0DTRAo04HLyXReYBL9AeseDWUJyi4THuksBJcu9F0Pih69Ak150VDnqbVnXg==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
   /@uiw/codemirror-extensions-basic-setup@4.22.1(@codemirror/language@6.10.2):
     resolution: {integrity: sha512-Iz8eFaZBNrwjaAADszOxOv2byDMn4rqob/luuSPAzJjTrSn5KawRXcoNLoWGPGNO6Mils6bIly/g2LaU34otNw==}
     peerDependencies:
@@ -14902,7 +14959,7 @@ packages:
       '@babel/plugin-transform-react-jsx-source': 7.24.6(@babel/core@7.24.7)
       magic-string: 0.27.0
       react-refresh: 0.14.2
-      vite: 5.2.7(@types/node@16.18.98)
+      vite: 5.2.7(@types/node@18.19.34)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -21761,7 +21818,7 @@ packages:
     resolution: {integrity: sha512-FdSNcu2QQcWnM2VNvSCCDCVS5PpPqpzgFT8+GXzqJuoDd0CBncxCY278u4mhRO7tMgo2JjgJA5aZ+nWSQ/Z+xg==}
     engines: {node: '>=10'}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       graphql: 16.8.1
       tslib: 2.6.2
@@ -23259,7 +23316,7 @@ packages:
   /isomorphic-unfetch@3.1.0:
     resolution: {integrity: sha512-geDJjpoZ8N0kWexiwkX8F9NkTsXhetLPVbZFQ+JTW239QNOwvB0gniuR1Wc6f0AMTn7/mFGyXvHTifrCp/GH8Q==}
     dependencies:
-      node-fetch: 2.7.0
+      node-fetch: 2.7.0(encoding@0.1.13)
       unfetch: 4.2.0
     transitivePeerDependencies:
       - encoding
@@ -26725,17 +26782,6 @@ packages:
     dependencies:
       whatwg-url: 5.0.0
 
-  /node-fetch@2.7.0:
-    resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
-    engines: {node: 4.x || >=6.0.0}
-    peerDependencies:
-      encoding: ^0.1.0
-    peerDependenciesMeta:
-      encoding:
-        optional: true
-    dependencies:
-      whatwg-url: 5.0.0
-
   /node-fetch@2.7.0(encoding@0.1.13):
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
     engines: {node: 4.x || >=6.0.0}
@@ -27738,23 +27784,6 @@ packages:
       lilconfig: 2.1.0
       postcss: 8.4.38
       yaml: 1.10.2
-    dev: true
-
-  /postcss-load-config@4.0.2(postcss@8.4.38):
-    resolution: {integrity: sha512-bSVhyJGL00wMVoPUzAVAnbEoWyqRxkjv64tUl427SKnPrENtq6hJwUojroMz2VB+Q1edmi4IfrAPpami5VVgMQ==}
-    engines: {node: '>= 14'}
-    peerDependencies:
-      postcss: '>=8.4.31'
-      ts-node: '>=9.0.0'
-    peerDependenciesMeta:
-      postcss:
-        optional: true
-      ts-node:
-        optional: true
-    dependencies:
-      lilconfig: 3.1.1
-      postcss: 8.4.38
-      yaml: 2.4.3
     dev: true
 
   /postcss-load-config@4.0.2(postcss@8.4.38)(ts-node@10.9.2):
@@ -30918,7 +30947,7 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  /svelte-check@3.6.8(postcss@8.4.38)(svelte@3.59.2):
+  /svelte-check@3.6.8(@babel/core@7.24.7)(postcss@8.4.38)(svelte@3.59.2):
     resolution: {integrity: sha512-rhXU7YCDtL+lq2gCqfJDXKTxJfSsCgcd08d7VWBFxTw6IWIbMWSaASbAOD3N0VV9TYSSLUqEBiratLd8WxAJJA==}
     hasBin: true
     peerDependencies:
@@ -30931,7 +30960,7 @@ packages:
       picocolors: 1.0.1
       sade: 1.8.1
       svelte: 3.59.2
-      svelte-preprocess: 5.1.3(postcss@8.4.38)(svelte@3.59.2)(typescript@5.4.3)
+      svelte-preprocess: 5.1.3(@babel/core@7.24.7)(postcss@8.4.38)(svelte@3.59.2)(typescript@5.4.3)
       typescript: 5.4.3
     transitivePeerDependencies:
       - '@babel/core'
@@ -30971,7 +31000,7 @@ packages:
       svelte: 3.59.2
     dev: true
 
-  /svelte-preprocess@5.1.3(postcss@8.4.38)(svelte@3.59.2)(typescript@5.4.3):
+  /svelte-preprocess@5.1.3(@babel/core@7.24.7)(postcss@8.4.38)(svelte@3.59.2)(typescript@5.4.3):
     resolution: {integrity: sha512-xxAkmxGHT+J/GourS5mVJeOXZzne1FR5ljeOUAMXUkfEhkLEllRreXpbl3dIYJlcJRfL1LO1uIAPpBpBfiqGPw==}
     engines: {node: '>= 16.0.0', pnpm: ^8.0.0}
     requiresBuild: true
@@ -31009,6 +31038,7 @@ packages:
       typescript:
         optional: true
     dependencies:
+      '@babel/core': 7.24.7
       '@types/pug': 2.0.10
       detect-indent: 6.1.0
       magic-string: 0.30.8
@@ -31102,37 +31132,6 @@ packages:
     transitivePeerDependencies:
       - ts-node
     dev: false
-
-  /tailwindcss@3.4.3:
-    resolution: {integrity: sha512-U7sxQk/n397Bmx4JHbJx/iSOOv5G+II3f1kpLpY2QeUv5DcPdcTsYLlusZfq1NthHS1c1cZoyFmmkex1rzke0A==}
-    engines: {node: '>=14.0.0'}
-    hasBin: true
-    dependencies:
-      '@alloc/quick-lru': 5.2.0
-      arg: 5.0.2
-      chokidar: 3.6.0
-      didyoumean: 1.2.2
-      dlv: 1.1.3
-      fast-glob: 3.3.2
-      glob-parent: 6.0.2
-      is-glob: 4.0.3
-      jiti: 1.21.0
-      lilconfig: 2.1.0
-      micromatch: 4.0.7
-      normalize-path: 3.0.0
-      object-hash: 3.0.0
-      picocolors: 1.0.1
-      postcss: 8.4.38
-      postcss-import: 15.1.0(postcss@8.4.38)
-      postcss-js: 4.0.1(postcss@8.4.38)
-      postcss-load-config: 4.0.2(postcss@8.4.38)
-      postcss-nested: 6.0.1(postcss@8.4.38)
-      postcss-selector-parser: 6.1.0
-      resolve: 1.22.8
-      sucrase: 3.35.0
-    transitivePeerDependencies:
-      - ts-node
-    dev: true
 
   /tailwindcss@3.4.3(ts-node@10.9.2):
     resolution: {integrity: sha512-U7sxQk/n397Bmx4JHbJx/iSOOv5G+II3f1kpLpY2QeUv5DcPdcTsYLlusZfq1NthHS1c1cZoyFmmkex1rzke0A==}
@@ -33157,7 +33156,7 @@ packages:
       vite:
         optional: true
     dependencies:
-      vite: 5.2.7(@types/node@20.14.8)
+      vite: 5.2.7(@types/node@16.18.101)(sass@1.32.0)
     dev: true
 
   /vitest@0.25.8:

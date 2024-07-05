@@ -35,19 +35,19 @@ export const serviceStateToThemeColor = new Map<ServiceState, string>([
   [ServiceState.UpdateError, 'error.main'],
   [ServiceState.Updating, 'warning.dark'],
   [ServiceState.None, 'error.main'],
-  [undefined, 'error.main'],
+  [undefined, 'grey.500'],
 ]);
 
 export const serviceStateToBadgeColor = new Map<
   ServiceState,
-  'success' | 'error' | 'warning'
+  'success' | 'error' | 'warning' | 'secondary'
 >([
   [ServiceState.Running, 'success'],
   [ServiceState.Error, 'error'],
   [ServiceState.UpdateError, 'error'],
   [ServiceState.Updating, 'warning'],
   [ServiceState.None, 'error'],
-  [undefined, 'error'],
+  [undefined, 'secondary'], // secondary is used for unknown states
 ]);
 
 /**
