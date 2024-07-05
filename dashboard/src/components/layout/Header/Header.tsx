@@ -11,7 +11,6 @@ import { Chip } from '@/components/ui/v2/Chip';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { DevAssistant } from '@/features/ai/DevAssistant';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ApplicationStatus } from '@/types/application';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -35,8 +34,6 @@ export default function Header({ className, ...props }: HeaderProps) {
 
   const { currentProject, refetch: refetchProject } =
     useCurrentWorkspaceAndProject();
-
-  const isOwner = useIsCurrentUserOwner();
 
   const isProjectUpdating =
     currentProject?.appStates[0]?.stateId === ApplicationStatus.Updating;
