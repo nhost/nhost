@@ -1,29 +1,24 @@
-import { ContactUs } from '@/components/common/ContactUs';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Container } from '@/components/layout/Container';
 import { Modal } from '@/components/ui/v1/Modal';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { Text } from '@/components/ui/v2/Text';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
+import { ApplicationLockedReason } from '@/features/projects/common/components/ApplicationLockedReason';
+import { ApplicationPausedReason } from '@/features/projects/common/components/ApplicationPausedReason';
+import { ApplicationPausedSymbol } from '@/features/projects/common/components/ApplicationPausedSymbol';
 import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
 import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
 import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
+import { useAppPausedReason } from '@/features/projects/common/hooks/useAppPausedReason';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import {
   GetAllWorkspacesAndProjectsDocument,
-  useGetFreeAndActiveProjectsQuery,
-  useGetProjectIsLockedQuery,
   useUnpauseApplicationMutation,
 } from '@/generated/graphql';
-import { MAX_FREE_PROJECTS } from '@/utils/constants/common';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { useUserData } from '@nhost/nextjs';
-import Image from 'next/image';
 import { useState } from 'react';
 
 export default function ApplicationPaused() {
@@ -31,7 +26,6 @@ export default function ApplicationPaused() {
   const { currentProject, refetch: refetchWorkspaceAndProject } =
     useCurrentWorkspaceAndProject();
   const isOwner = useIsCurrentUserOwner();
-  const user = useUserData();
 
   const [showDeletingModal, setShowDeletingModal] = useState(false);
   const [unpauseApplication, { loading: changingApplicationStateLoading }] =
@@ -39,22 +33,8 @@ export default function ApplicationPaused() {
       refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
     });
 
-  const { data, loading } = useGetFreeAndActiveProjectsQuery({
-    variables: { userId: user?.id },
-    skip: !user,
-  });
-
-  const { data: isLockedData } = useGetProjectIsLockedQuery({
-    variables: { appId: currentProject.id },
-    skip: !currentProject,
-  });
-
-  const isLocked = isLockedData?.app?.isLocked;
-  const isLockedReason = isLockedData?.app?.isLockedReason;
-
-  const numberOfFreeAndLiveProjects = data?.freeAndActiveProjects.length || 0;
-  const freeAndLiveProjectsNumberExceeded =
-    numberOfFreeAndLiveProjects >= MAX_FREE_PROJECTS;
+  const { isLocked, lockedReason, freeAndLiveProjectsNumberExceeded, loading } =
+    useAppPausedReason();
 
   async function handleTriggerUnpausing() {
     await execPromiseWithErrorToast(
@@ -89,32 +69,27 @@ export default function ApplicationPaused() {
         />
       </Modal>
 
-      <Container className="mx-auto mt-20 grid max-w-lg grid-flow-row gap-4 text-center">
+      <Container className="mx-auto mt-20 grid max-w-lg grid-flow-row gap-6 text-center">
         <div className="mx-auto flex w-centImage flex-col text-center">
-          <Image
-            src="/assets/PausedApp.svg"
-            alt="Closed Eye"
-            width={72}
-            height={72}
-          />
+          <ApplicationPausedSymbol isLocked={isLocked} />
         </div>
 
-        <Box className="grid grid-flow-row gap-1">
+        <Box className="grid grid-flow-row gap-6">
           <Text variant="h3" component="h1">
-            {currentProject.name} is sleeping
+            {currentProject.name} is {isLocked ? 'locked' : 'sleeping'}
           </Text>
-
-          <Text>
-            Starter projects stop responding to API calls after 7 days of
-            inactivity. Upgrade to Pro to avoid autosleep.
-          </Text>
-        </Box>
-
-        <Box className="grid grid-flow-row gap-2">
-          {isOwner && (
-            <Button
-              className="mx-auto w-full max-w-[280px]"
-              onClick={() => {
+          {isLocked ? (
+            <ApplicationLockedReason reason={lockedReason} />
+          ) : (
+            <ApplicationPausedReason
+              isOwner={isOwner}
+              freeAndLiveProjectsNumberExceeded={
+                freeAndLiveProjectsNumberExceeded
+              }
+              projectName={currentProject.name}
+              onWakeUpClick={handleTriggerUnpausing}
+              onDeleteClick={() => setShowDeletingModal(true)}
+              onUpgradeClick={() => {
                 openDialog({
                   component: <ChangePlanModal />,
                   props: {
@@ -123,82 +98,9 @@ export default function ApplicationPaused() {
                   },
                 });
               }}
-            >
-              Upgrade to Pro
-            </Button>
+              changingApplicationStateLoading={changingApplicationStateLoading}
+            />
           )}
-
-          <div className="grid grid-flow-row gap-2">
-            <Button
-              variant="borderless"
-              className="mx-auto w-full max-w-[280px]"
-              loading={changingApplicationStateLoading}
-              disabled={
-                changingApplicationStateLoading ||
-                freeAndLiveProjectsNumberExceeded ||
-                isLocked
-              }
-              onClick={handleTriggerUnpausing}
-            >
-              Wake Up
-            </Button>
-
-            {isLocked ? (
-              <>
-                <Alert
-                  severity="warning"
-                  className="mx-auto max-w-xs text-left"
-                >
-                  <Text className="mt-1 font-normal">
-                    Your project has been temporarily locked.
-                  </Text>
-
-                  {!!isLockedReason && (
-                    <Text className="mt-1 font-mono">
-                      Reason: {isLockedReason}
-                    </Text>
-                  )}
-                  <Text className="mt-1 font-normal">
-                    Please contact our support team for assistance.
-                  </Text>
-                </Alert>
-                <Dropdown.Root>
-                  <Dropdown.Trigger
-                    className="w-full max-w-[280px]"
-                    hideChevron
-                    asChild
-                  >
-                    <Button variant="borderless">Contact Support</Button>
-                  </Dropdown.Trigger>
-
-                  <Dropdown.Content
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                    transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-                  >
-                    <ContactUs />
-                  </Dropdown.Content>
-                </Dropdown.Root>
-              </>
-            ) : null}
-            {freeAndLiveProjectsNumberExceeded && !isLocked ? (
-              <Alert severity="warning" className="mx-auto max-w-xs text-left">
-                Note: Only one free project can be active at any given time.
-                Please pause your active free project before unpausing{' '}
-                {currentProject.name}.
-              </Alert>
-            ) : null}
-
-            {isOwner && (
-              <Button
-                color="error"
-                variant="borderless"
-                className="mx-auto w-full max-w-[280px]"
-                onClick={() => setShowDeletingModal(true)}
-              >
-                Delete Project
-              </Button>
-            )}
-          </div>
         </Box>
 
         <StagingMetadata>
