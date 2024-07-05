@@ -158,8 +158,8 @@ export async function resetPassword({
     .click()
 
   const authenticatedPage = await authenticatedPagePromise
+  await authenticatedPage.getByRole('button', { name: /Verify/i }).click()
   await authenticatedPage.waitForLoadState()
-
   return authenticatedPage
 }
 
@@ -177,25 +177,31 @@ export async function verifyEmail({
   email,
   page,
   context,
-  linkText = /verify email/i
+  linkText = /verify email/i,
+  requestType
 }: {
   email: string
   page: Page
   context: BrowserContext
   linkText?: string | RegExp
+  requestType?: 'email-confirm-change' | 'email-verify' | 'password-reset' | 'signin-passwordless'
 }) {
   await page.goto(mailhogURL)
   await page.locator('.messages > .msglist-message', { hasText: email }).nth(0).click()
 
   // Based on: https://playwright.dev/docs/pages#handling-new-pages
-  const authenticatedPagePromise = context.waitForEvent('page')
-
+  const verifyEmailPagePromise = context.waitForEvent('page')
   await page.frameLocator('#preview-html').getByRole('link', { name: linkText }).click()
+  const verifyEmailPage = await verifyEmailPagePromise
+  await verifyEmailPage.waitForLoadState()
 
-  const authenticatedPage = await authenticatedPagePromise
-  await authenticatedPage.waitForLoadState()
+  if (requestType === 'email-confirm-change') {
+    return verifyEmailPage
+  }
 
-  return authenticatedPage
+  await verifyEmailPage.getByRole('button', { name: /Verify/i }).click()
+  await verifyEmailPage.waitForLoadState()
+  return verifyEmailPage
 }
 
 /**
