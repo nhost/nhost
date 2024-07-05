@@ -206,6 +206,8 @@ export function NewProjectPageContent({
     );
   }
 
+  console.log(selectedRegion);
+
   return (
     <Container>
       <form onSubmit={handleSubmit}>
@@ -301,7 +303,7 @@ export function NewProjectPageContent({
                 const regionInList = regions.find(({ id }) => id === value);
                 setSelectedRegion({
                   id: regionInList.id,
-                  name: regionInList.country.name,
+                  name: regionInList.city,
                   disabled: false,
                   code: regionInList.country.code,
                 });
@@ -324,41 +326,46 @@ export function NewProjectPageContent({
                 </div>
               )}
             >
-              {regionOptions.map((option) => (
-                <Option
-                  value={option.id}
-                  key={option.id}
-                  className={twMerge(
-                    'relative grid grid-flow-col grid-rows-2 items-center justify-start gap-x-3',
-                    option.disabled && 'pointer-events-none opacity-50',
-                  )}
-                  disabled={option.disabled}
-                >
-                  <span className="row-span-2 flex">
-                    <Image
-                      src={`/assets/flags/${option.code}.svg`}
-                      alt={`${option.country} country flag`}
-                      width={16}
-                      height={12}
-                    />
-                  </span>
+              {regionOptions.map((option) => {
+                console.log('option', option);
+                return (
+                  <Option
+                    value={option.id}
+                    key={option.id}
+                    className={twMerge(
+                      'relative grid grid-flow-col grid-rows-2 items-center justify-start gap-x-3',
+                      option.disabled && 'pointer-events-none opacity-50',
+                    )}
+                    disabled={option.disabled}
+                  >
+                    <span className="row-span-2 flex">
+                      <Image
+                        src={`/assets/flags/${option.code}.svg`}
+                        alt={`${option.country} country flag`}
+                        width={16}
+                        height={12}
+                      />
+                    </span>
 
-                  <Text className="row-span-1 font-medium">{option.name}</Text>
-
-                  <Text variant="subtitle2" className="row-span-1">
-                    {option.country}
-                  </Text>
-
-                  {option.disabled && (
-                    <Text
-                      variant="subtitle2"
-                      className="absolute right-4 top-1/2 -translate-y-1/2"
-                    >
-                      Disabled
+                    <Text className="row-span-1 font-medium">
+                      {option.name}
                     </Text>
-                  )}
-                </Option>
-              ))}
+
+                    <Text variant="subtitle2" className="row-span-1">
+                      {option.country}
+                    </Text>
+
+                    {option.disabled && (
+                      <Text
+                        variant="subtitle2"
+                        className="absolute right-4 top-1/2 -translate-y-1/2"
+                      >
+                        Disabled
+                      </Text>
+                    )}
+                  </Option>
+                );
+              })}
             </Select>
 
             <div className="grid w-full grid-cols-8 gap-x-4 gap-y-2">
