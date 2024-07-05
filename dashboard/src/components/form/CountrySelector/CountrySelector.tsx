@@ -29,7 +29,7 @@ export default function CountrySelector({
         listbox: { className: 'min-w-0 w-full' },
         popper: {
           disablePortal: false,
-          className: 'z-[10000] w-[270px] w-full',
+          className: 'z-[10000] w-[270px]',
         },
       }}
     >
