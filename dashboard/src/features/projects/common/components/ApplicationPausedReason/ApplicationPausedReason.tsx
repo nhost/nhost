@@ -24,7 +24,11 @@ export default function ApplicationPausedReason({
   onUpgradeClick,
 }: ApplicationPausedReasonProps) {
   return (
-    <Box className="grid grid-flow-row gap-4">
+    <Box className="grid grid-flow-row gap-6">
+      <Text variant="subtitle1">
+        Starter projects stop responding to API calls after 7 days of
+        inactivity. Upgrade to Pro to avoid autosleep.
+      </Text>
       {isOwner && (
         <Button className="mx-auto w-full max-w-xs" onClick={onUpgradeClick}>
           Upgrade to Pro
@@ -45,8 +49,11 @@ export default function ApplicationPausedReason({
         </Button>
 
         {freeAndLiveProjectsNumberExceeded && (
-          <Alert severity="warning" className="mx-auto max-w-xs">
-            <PowerOffIcon />
+          <Alert
+            severity="warning"
+            className="mx-auto flex max-w-xs flex-col items-center gap-4 p-4"
+          >
+            <PowerOffIcon className="h-8 w-8" />
             <Text variant="h3" component="h1">
               Your project is paused
             </Text>
