@@ -13,7 +13,7 @@ export default function ApplicationLockedReason({
   return (
     <Alert severity="warning" className="mx-auto max-w-xs gap-2 p-6 ">
       <Text className="pb-4 text-left">
-        Your project has been temporarily locked due to the following reasons.
+        Your project has been temporarily locked due to the following reason:
       </Text>
       <Box
         className="rounded-md p-2"
