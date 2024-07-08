@@ -3,6 +3,7 @@ import { Container } from '@/components/layout/Container';
 import { Modal } from '@/components/ui/v1/Modal';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
 import { ApplicationLockedReason } from '@/features/projects/common/components/ApplicationLockedReason';
@@ -76,30 +77,59 @@ export default function ApplicationPaused() {
 
         <Box className="grid grid-flow-row gap-6">
           <Text variant="h3" component="h1">
-            {currentProject.name} is {isLocked ? 'locked' : 'sleeping'}
+            {currentProject.name} is {isLocked ? 'locked' : 'paused'}
           </Text>
           {isLocked ? (
             <ApplicationLockedReason reason={lockedReason} />
           ) : (
-            <ApplicationPausedReason
-              isOwner={isOwner}
-              freeAndLiveProjectsNumberExceeded={
-                freeAndLiveProjectsNumberExceeded
-              }
-              projectName={currentProject.name}
-              onWakeUpClick={handleTriggerUnpausing}
-              onDeleteClick={() => setShowDeletingModal(true)}
-              onUpgradeClick={() => {
-                openDialog({
-                  component: <ChangePlanModal />,
-                  props: {
-                    PaperProps: { className: 'p-0' },
-                    maxWidth: 'lg',
-                  },
-                });
-              }}
-              changingApplicationStateLoading={changingApplicationStateLoading}
-            />
+            <>
+              <ApplicationPausedReason
+                freeAndLiveProjectsNumberExceeded={
+                  freeAndLiveProjectsNumberExceeded
+                }
+              />
+              <div className="grid grid-flow-row gap-4">
+                {isOwner && (
+                  <Button
+                    className="mx-auto w-full max-w-xs"
+                    onClick={() => {
+                      openDialog({
+                        component: <ChangePlanModal />,
+                        props: {
+                          PaperProps: { className: 'p-0' },
+                          maxWidth: 'lg',
+                        },
+                      });
+                    }}
+                  >
+                    Upgrade to Pro
+                  </Button>
+                )}
+                <Button
+                  variant="borderless"
+                  className="mx-auto w-full max-w-xs"
+                  loading={changingApplicationStateLoading}
+                  disabled={
+                    changingApplicationStateLoading ||
+                    freeAndLiveProjectsNumberExceeded
+                  }
+                  onClick={handleTriggerUnpausing}
+                >
+                  Wake Up
+                </Button>
+
+                {isOwner && (
+                  <Button
+                    color="error"
+                    variant="outlined"
+                    className="mx-auto w-full max-w-xs"
+                    onClick={() => setShowDeletingModal(true)}
+                  >
+                    Delete Project
+                  </Button>
+                )}
+              </div>
+            </>
           )}
         </Box>
 
