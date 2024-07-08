@@ -27,6 +27,39 @@ export default function Header({
     }
   }, [mobileMenuVisible])
 
+  const [stargazersCount, setStargazersCount] = useState<string>('7K')
+
+  useEffect(() => {
+    const fetchStargazersCount = async () => {
+      try {
+        const res = await fetch('https://api.github.com/repos/nhost/nhost')
+        if (!res.ok) {
+          throw new Error(`HTTP error: Status ${res.status}`)
+        }
+        const data = await res.json()
+
+        const newStargazersCount = data?.stargazers_count
+
+        if (!newStargazersCount) {
+          return
+        }
+
+        const formatter = Intl.NumberFormat('en', {
+          notation: 'compact',
+          compactDisplay: 'short',
+        })
+
+        const stargazersCountFormatted = formatter.format(newStargazersCount)
+
+        setStargazersCount(stargazersCountFormatted)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    fetchStargazersCount()
+  }, [])
+
   return (
     <>
       <Transition
@@ -107,9 +140,9 @@ export default function Header({
           </ul>
         </nav>
 
-        <div className="flex justify-between">
+        <div className="hidden justify-between lg:flex">
           <a
-            className="flex flex-row items-center justify-center rounded px-2.5 py-1.5 text-base font-medium leading-snug opacity-50 transition-all duration-200 ease-in-out hover:opacity-100"
+            className="flex flex-row items-center justify-center rounded px-2.5 py-1.5 font-medium leading-snug opacity-50 transition-all duration-200 ease-in-out hover:opacity-100"
             href="https://github.com/nhost/nhost"
             target="_blank"
             rel="noreferrer"
@@ -121,7 +154,7 @@ export default function Header({
               height={22}
               alt="Nhost on GitHub"
             />
-            <span className="truncate">Star us on GitHub</span>
+            <span className="truncate">{stargazersCount}</span>
           </a>
 
           <div className="hidden grid-flow-col gap-4 lg:grid">
