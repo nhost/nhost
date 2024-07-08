@@ -1,6 +1,6 @@
 import { Transition } from '@headlessui/react'
 import Image from 'next/image'
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Button } from '../Button'
 import { Container, ContainerProps } from '../Container'
