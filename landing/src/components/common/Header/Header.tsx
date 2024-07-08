@@ -39,6 +39,7 @@ export default function Header({
         const data = await res.json()
 
         const newStargazersCount = data?.stargazers_count
+
         if (!newStargazersCount) {
           return
         }
