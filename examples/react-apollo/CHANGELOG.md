@@ -1,5 +1,11 @@
 # @nhost-examples/react-apollo
 
+## 0.8.8
+
+### Patch Changes
+
+- e3f0732: fix: add verify email button instead of doing an auto-redirect
+
 ## 0.8.7
 
 ### Patch Changes

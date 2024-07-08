@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 1.22.0
+
+### Minor Changes
+
+- 998c037: fix: align drop-down list in select component
+- 807b8c0: fix: show city name in region selection for project creation
+
 ## 1.21.0
 
 ### Minor Changes
