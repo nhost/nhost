@@ -142,7 +142,7 @@ export default function Header({
 
         <div className="hidden justify-between lg:flex">
           <a
-            className="flex flex-row items-center justify-center rounded px-2.5 py-1.5 text-base font-medium leading-snug opacity-50 transition-all duration-200 ease-in-out hover:opacity-100"
+            className="flex flex-row items-center justify-center rounded px-2.5 py-1.5 font-medium leading-snug opacity-50 transition-all duration-200 ease-in-out hover:opacity-100"
             href="https://github.com/nhost/nhost"
             target="_blank"
             rel="noreferrer"
