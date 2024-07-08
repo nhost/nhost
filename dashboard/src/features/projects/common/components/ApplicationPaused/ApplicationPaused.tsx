@@ -78,7 +78,7 @@ export default function ApplicationPaused() {
           <Text variant="h3" component="h1">
             {currentProject.name} is {isLocked ? 'locked' : 'sleeping'}
           </Text>
-          {!isLocked ? (
+          {isLocked ? (
             <ApplicationLockedReason reason={lockedReason} />
           ) : (
             <ApplicationPausedReason
