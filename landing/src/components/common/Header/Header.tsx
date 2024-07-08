@@ -72,7 +72,7 @@ export default function Header({
 
         <nav
           aria-label="Main navigation"
-          className="absolute left-1/2 mx-auto hidden h-full -translate-x-1/2 items-center xl:flex"
+          className="absolute left-1/2 mx-auto hidden h-full -translate-x-1/2 items-center lg:flex"
         >
           <ul className="grid grid-flow-col items-center gap-4 font-medium">
             <li>
@@ -124,7 +124,7 @@ export default function Header({
             <span className="truncate">Star us on GitHub</span>
           </a>
 
-          <div className="hidden grid-flow-col gap-4 xl:grid">
+          <div className="hidden grid-flow-col gap-4 lg:grid">
             <Button
               href="https://app.nhost.io/signin"
               target="_blank"
@@ -146,7 +146,7 @@ export default function Header({
           </div>
         </div>
 
-        <div className="block xl:hidden">
+        <div className="block lg:hidden">
           <Button
             variant="borderless"
             className="bg-transparent p-2"
