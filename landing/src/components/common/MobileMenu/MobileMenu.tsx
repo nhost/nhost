@@ -26,7 +26,7 @@ function MobileMenu(
       slotProps={{
         root: {
           className: twMerge(
-            'fixed bottom-0 left-0 right-0 z-40 w-full bg-black pt-4 pb-16 overflow-auto lg:hidden',
+            'fixed bottom-0 left-0 right-0 z-40 w-full bg-black pt-4 pb-16 overflow-auto xl:hidden',
             showAnnouncement && inView ? 'top-26' : 'top-16',
           ),
         },
