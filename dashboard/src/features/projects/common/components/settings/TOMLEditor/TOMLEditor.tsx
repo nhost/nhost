@@ -143,7 +143,7 @@ export default function TOMLEditor() {
   };
 
   return (
-    <Box className="flex h-full flex-col">
+    <>
       <Box className="flex w-full flex-col space-y-2 border-b p-4">
         <Text className="font-semibold">Configuration Editor</Text>
       </Box>
@@ -187,6 +187,6 @@ export default function TOMLEditor() {
           Save
         </Button>
       </Box>
-    </Box>
+    </>
   );
 }
