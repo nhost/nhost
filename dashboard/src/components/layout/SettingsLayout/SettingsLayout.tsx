@@ -15,6 +15,10 @@ export interface SettingsLayoutProps extends ProjectLayoutProps {
    * Props passed to the sidebar component.
    */
   sidebarProps?: SettingsSidebarProps;
+  /**
+   * Should hide retryable error boundary.
+   */
+  hideErrorBoundary?: boolean;
 }
 
 export default function SettingsLayout({
@@ -23,6 +27,7 @@ export default function SettingsLayout({
     className: mainContainerClassName,
     ...mainContainerProps
   } = {},
+  hideErrorBoundary,
   sidebarProps: { className: sidebarClassName, ...sidebarProps } = {},
   ...props
 }: SettingsLayoutProps) {
@@ -47,46 +52,53 @@ export default function SettingsLayout({
         sx={{ backgroundColor: 'background.default' }}
         className="flex w-full flex-auto flex-col overflow-y-auto overflow-x-hidden"
       >
-        <RetryableErrorBoundary>
-          <div className="flex flex-col space-y-2">
-            {hasGitRepo && (
-              <Alert
-                severity="warning"
-                className="grid grid-flow-row place-content-center gap-2"
-              >
-                <Text color="warning" className="text-sm ">
-                  As you have a connected repository, make sure to synchronize
-                  your changes with{' '}
-                  <code
-                    className={twMerge(
-                      'rounded-md px-2 py-px',
-                      theme.palette.mode === 'dark'
-                        ? 'bg-brown text-copper'
-                        : 'bg-slate-200 text-slate-700',
-                    )}
+        <Box
+          sx={{ backgroundColor: 'background.default' }}
+          className="flex h-full flex-col"
+        >
+          {!hideErrorBoundary && (
+            <RetryableErrorBoundary>
+              <div className="flex flex-col space-y-2">
+                {!hasGitRepo && (
+                  <Alert
+                    severity="warning"
+                    className="grid grid-flow-row place-content-center gap-2"
                   >
-                    nhost config pull
-                  </code>{' '}
-                  or they may be reverted with the next push.
-                  <br />
-                  If there are multiple projects linked to the same repository
-                  and you only want these changes to apply to a subset of them,
-                  please check out{' '}
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline"
-                    href="https://docs.nhost.io/cli/overlays"
-                  >
-                    docs.nhost.io/cli/overlays
-                  </a>{' '}
-                  for guidance.
-                </Text>
-              </Alert>
-            )}
-          </div>
-          {children}
-        </RetryableErrorBoundary>
+                    <Text color="warning" className="text-sm ">
+                      As you have a connected repository, make sure to
+                      synchronize your changes with{' '}
+                      <code
+                        className={twMerge(
+                          'rounded-md px-2 py-px',
+                          theme.palette.mode === 'dark'
+                            ? 'bg-brown text-copper'
+                            : 'bg-slate-200 text-slate-700',
+                        )}
+                      >
+                        nhost config pull
+                      </code>{' '}
+                      or they may be reverted with the next push.
+                      <br />
+                      If there are multiple projects linked to the same
+                      repository and you only want these changes to apply to a
+                      subset of them, please check out{' '}
+                      <a
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                        href="https://docs.nhost.io/cli/overlays"
+                      >
+                        docs.nhost.io/cli/overlays
+                      </a>{' '}
+                      for guidance.
+                    </Text>
+                  </Alert>
+                )}
+              </div>
+              {children}
+            </RetryableErrorBoundary>
+          )}
+        </Box>
       </Box>
     </ProjectLayout>
   );
