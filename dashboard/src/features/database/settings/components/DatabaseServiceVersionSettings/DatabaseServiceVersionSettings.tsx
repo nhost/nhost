@@ -70,6 +70,20 @@ export default function DatabaseServiceVersionSettings() {
       value: availableVersion,
     }));
 
+  const availableMajorVersions = [];
+  const availableMinorVersions = [];
+
+  availableVersions.forEach((availableVersion) => {
+    const [majorVersion, minorVersion] = availableVersion.value.split('.');
+
+    availableMajorVersions.push({
+      label: majorVersion,
+      value: majorVersion,
+    });
+
+    availableMinorVersions.push({ label: minorVersion, value: minorVersion });
+  });
+
   const form = useForm<DatabaseServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: { version: { label: '', value: '' } },
@@ -157,11 +171,11 @@ export default function DatabaseServiceVersionSettings() {
           }}
           docsLink="https://hub.docker.com/r/nhost/postgres/tags"
           docsTitle="the latest releases"
-          className="grid grid-flow-row px-4 gap-x-4 gap-y-2 lg:grid-cols-5"
+          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
         >
           <ControlledAutocomplete
-            id="version"
-            name="version"
+            id="majorVersion"
+            name="majorVersion"
             autoHighlight
             freeSolo
             getOptionLabel={(option) => {
@@ -193,7 +207,47 @@ export default function DatabaseServiceVersionSettings() {
             }}
             fullWidth
             className="lg:col-span-2"
-            options={availableVersions}
+            options={availableMajorVersions}
+            error={!!formState.errors?.version?.message}
+            helperText={formState.errors?.version?.message}
+            showCustomOption="auto"
+            customOptionLabel={(value) => `Use custom value: "${value}"`}
+          />
+          <ControlledAutocomplete
+            id="minorVersion"
+            name="minorVersion"
+            autoHighlight
+            freeSolo
+            getOptionLabel={(option) => {
+              if (typeof option === 'string') {
+                return option || '';
+              }
+
+              return option.value;
+            }}
+            isOptionEqualToValue={() => false}
+            filterOptions={(options, { inputValue }) => {
+              const inputValueLower = inputValue.toLowerCase();
+              const matched = [];
+              const otherOptions = [];
+
+              options.forEach((option) => {
+                const optionLabelLower = option.label.toLowerCase();
+
+                if (optionLabelLower.startsWith(inputValueLower)) {
+                  matched.push(option);
+                } else {
+                  otherOptions.push(option);
+                }
+              });
+
+              const result = [...matched, ...otherOptions];
+
+              return result;
+            }}
+            fullWidth
+            className="lg:col-span-2"
+            options={availableMinorVersions}
             error={!!formState.errors?.version?.message}
             helperText={formState.errors?.version?.message}
             showCustomOption="auto"
