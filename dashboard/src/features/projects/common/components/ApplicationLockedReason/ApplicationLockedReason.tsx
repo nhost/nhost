@@ -27,7 +27,7 @@ export default function ApplicationLockedReason({
         Please{' '}
         <Link
           className="font-semibold underline underline-offset-2"
-          href="mailto:support@nhost.io"
+          href="/support"
           target="_blank"
           rel="noopener noreferrer"
         >
