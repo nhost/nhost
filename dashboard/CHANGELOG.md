@@ -1,5 +1,16 @@
 # @nhost/dashboard
 
+## 1.23.0
+
+### Minor Changes
+
+- 33284d3: fix: don't show double scrollbar in configuration editor
+
+### Patch Changes
+
+- @nhost/react-apollo@12.0.3
+- @nhost/nextjs@2.1.17
+
 ## 1.22.0
 
 ### Minor Changes

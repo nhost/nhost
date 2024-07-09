@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.5.3
+
+### Patch Changes
+
+- e28975d: fix: refactor refreshTimer logic to avoid an infinite loop when refreshToken has expired
+
 ## 2.5.2
 
 ### Patch Changes
