@@ -63,6 +63,9 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
         paper: '#171d26',
       },
       divider: '#2f363d',
+      beige: {
+        main: '#362c22',
+      },
     };
   }
 
@@ -125,5 +128,8 @@ export default function getDesignTokens(mode: PaletteMode): PaletteOptions {
       paper: '#ffffff',
     },
     divider: '#eaedf0',
+    beige: {
+      main: '#e5d1bf',
+    },
   };
 }

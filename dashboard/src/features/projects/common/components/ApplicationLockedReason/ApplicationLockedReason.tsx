@@ -18,11 +18,10 @@ export default function ApplicationLockedReason({
       <Box
         className="rounded-md p-2"
         sx={{
-          backgroundColor: (theme) =>
-            theme.palette.mode === 'dark' ? '#E5D1BF' : '#E5D1BF',
+          backgroundColor: 'beige.main',
         }}
       >
-        <Text className="font-semibold">{reason}</Text>
+        <Text className="px-2 py-1 font-semibold">{reason}</Text>
       </Box>
       <Text className="pt-4 text-left">
         Please{' '}
