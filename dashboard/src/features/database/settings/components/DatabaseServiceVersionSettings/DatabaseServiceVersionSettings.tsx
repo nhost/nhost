@@ -16,6 +16,7 @@ import {
   useGetPostgresSettingsQuery,
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
+  useUpdateDatabaseVersionMutation,
 } from '@/generated/graphql';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
@@ -23,6 +24,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import { DatabaseMigrateVersionConfirmationDialog } from '../DatabaseMigrateVersionConfirmationDialog';
 
 const validationSchema = Yup.object({
   majorVersion: Yup.object({
@@ -52,7 +54,17 @@ export default function DatabaseServiceVersionSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { data, loading, error } = useGetPostgresSettingsQuery({
+  const [updatePostgresMajor] = useUpdateDatabaseVersionMutation({
+    refetchQueries: [GetPostgresSettingsDocument],
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
+  const {
+    data,
+    loading,
+    error,
+    refetch: refetchVersions,
+  } = useGetPostgresSettingsQuery({
     variables: { appId: currentProject?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
@@ -81,8 +93,6 @@ export default function DatabaseServiceVersionSettings() {
       value: availableVersion,
     }));
 
-  console.log(availableVersions);
-
   const form = useForm<DatabaseServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
@@ -95,11 +105,18 @@ export default function DatabaseServiceVersionSettings() {
   const availableMajorVersions = [];
   const availableMinorVersions = [];
 
+  const currentPostgresMajor = data?.config?.postgres?.version.split('.')[0];
+
   availableVersions.forEach((availableVersion) => {
     if (!availableVersion.value) {
       return;
     }
     const [major, minor] = availableVersion.value.split('.');
+
+    // Don't show versions that are lower than the current Postgres major version (can't downgrade)
+    if (Number(major) < Number(currentPostgresMajor)) {
+      return;
+    }
 
     availableMajorVersions.push({
       label: major,
@@ -107,9 +124,6 @@ export default function DatabaseServiceVersionSettings() {
     });
 
     if (major === form.getValues('majorVersion').value) {
-      console.log('majorversion:', majorVersion);
-      console.log('Adding vlaues');
-      console.log(form.getValues('majorVersion').value);
       availableMinorVersions.push({ label: minor, value: minor });
     }
   });
@@ -139,11 +153,32 @@ export default function DatabaseServiceVersionSettings() {
 
   const { formState } = form;
 
+  const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
+
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
   ) => {
     const newVersion = `${formValues.majorVersion.value}.${formValues.minorVersion.value}`;
 
+    if (isMajorVersionDirty) {
+      openDialog({
+        title: 'Update Postgres MAJOR version',
+        component: (
+          <DatabaseMigrateVersionConfirmationDialog
+            postgresVersion={newVersion}
+            onCancel={() => undefined}
+            onProceed={() => refetchVersions()}
+          />
+        ),
+        props: {
+          PaperProps: {
+            className: 'max-w-2xl',
+          },
+        },
+      });
+
+      return;
+    }
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -181,7 +216,7 @@ export default function DatabaseServiceVersionSettings() {
     );
   };
 
-  const isMajorVersionDirty = formState?.dirtyFields?.majorVersion?.value;
+  console.log('isMajorVersionDirty', isMajorVersionDirty);
 
   return (
     <FormProvider {...form}>
@@ -291,12 +326,21 @@ export default function DatabaseServiceVersionSettings() {
               customOptionLabel={(value) => `Use custom value: "${value}"`}
             />
           </Box>
-          <Alert severity="warning">
-            <Text variant="body2">
-              Upgrading a major version of Postgres requires downtime. The
-              amount of downtime will depend on your database size, so plan
-              ahead in order to reduce the impact on your users.
+          <Alert severity="warning" className="flex flex-col gap-2 text-left">
+            <Text className="font-semibold">
+              ⚠ Warning: upgrading Postgres major version
             </Text>
+            <div className="flex flex-col gap-4">
+              <Text>
+                Upgrading a major version of Postgres requires downtime. The
+                amount of downtime will depend on your database size, so plan
+                ahead in order to reduce the impact on your users.
+              </Text>
+              <Text>
+                Note that it isn&apos;t possible to downgrade between major
+                versions.
+              </Text>
+            </div>
           </Alert>
         </SettingsContainer>
       </Form>

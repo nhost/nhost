@@ -23082,6 +23082,14 @@ export type UpdateConfigMutationVariables = Exact<{
 
 export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null, ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', organization?: string | null, apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } };
 
+export type UpdateDatabaseVersionMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  version: Scalars['String'];
+}>;
+
+
+export type UpdateDatabaseVersionMutation = { __typename?: 'mutation_root', changeDatabaseVersion: boolean };
+
 export type UnpauseApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -25854,6 +25862,38 @@ export function useUpdateConfigMutation(baseOptions?: Apollo.MutationHookOptions
 export type UpdateConfigMutationHookResult = ReturnType<typeof useUpdateConfigMutation>;
 export type UpdateConfigMutationResult = Apollo.MutationResult<UpdateConfigMutation>;
 export type UpdateConfigMutationOptions = Apollo.BaseMutationOptions<UpdateConfigMutation, UpdateConfigMutationVariables>;
+export const UpdateDatabaseVersionDocument = gql`
+    mutation UpdateDatabaseVersion($appId: uuid!, $version: String!) {
+  changeDatabaseVersion(appID: $appId, version: $version)
+}
+    `;
+export type UpdateDatabaseVersionMutationFn = Apollo.MutationFunction<UpdateDatabaseVersionMutation, UpdateDatabaseVersionMutationVariables>;
+
+/**
+ * __useUpdateDatabaseVersionMutation__
+ *
+ * To run a mutation, you first call `useUpdateDatabaseVersionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateDatabaseVersionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateDatabaseVersionMutation, { data, loading, error }] = useUpdateDatabaseVersionMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      version: // value for 'version'
+ *   },
+ * });
+ */
+export function useUpdateDatabaseVersionMutation(baseOptions?: Apollo.MutationHookOptions<UpdateDatabaseVersionMutation, UpdateDatabaseVersionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateDatabaseVersionMutation, UpdateDatabaseVersionMutationVariables>(UpdateDatabaseVersionDocument, options);
+      }
+export type UpdateDatabaseVersionMutationHookResult = ReturnType<typeof useUpdateDatabaseVersionMutation>;
+export type UpdateDatabaseVersionMutationResult = Apollo.MutationResult<UpdateDatabaseVersionMutation>;
+export type UpdateDatabaseVersionMutationOptions = Apollo.BaseMutationOptions<UpdateDatabaseVersionMutation, UpdateDatabaseVersionMutationVariables>;
 export const UnpauseApplicationDocument = gql`
     mutation UnpauseApplication($appId: uuid!) {
   updateApp(pk_columns: {id: $appId}, _set: {desiredState: 5}) {
