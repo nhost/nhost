@@ -691,7 +691,7 @@ export default function PricingPage() {
               title="Execution Time"
               starterContent="10 sec"
               proContent="60 sec"
-              teamContent="60 sec"
+              teamContent="10 min"
               enterpriseContent="Custom"
             />
           </ul>
