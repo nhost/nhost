@@ -5,6 +5,9 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
+import { Box } from '@/components/ui/v2/Box';
+import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
@@ -22,12 +25,16 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
-  version: Yup.object({
+  majorVersion: Yup.object({
     label: Yup.string().required(),
     value: Yup.string().required(),
   })
-    .label('Postgres Version')
+    .label('Postgres Major Version')
     .required(),
+  minorVersion: Yup.object({
+    label: Yup.string().required(),
+    value: Yup.string().required(),
+  }),
 });
 
 export type DatabaseServiceVersionFormValues = Yup.InferType<
@@ -58,6 +65,10 @@ export default function DatabaseServiceVersionSettings() {
   });
 
   const { version } = data?.config?.postgres || {};
+  const [majorVersion, minorVersion] = version?.split('.') || [
+    undefined,
+    undefined,
+  ];
 
   const databaseVersions = databaseVersionsData?.softwareVersions || [];
   const availableVersions = Array.from(
@@ -70,36 +81,47 @@ export default function DatabaseServiceVersionSettings() {
       value: availableVersion,
     }));
 
+  console.log(availableVersions);
+
+  const form = useForm<DatabaseServiceVersionFormValues>({
+    reValidateMode: 'onSubmit',
+    defaultValues: {
+      minorVersion: { label: '', value: '' },
+      majorVersion: { label: '', value: '' },
+    },
+    resolver: yupResolver(validationSchema),
+  });
+
   const availableMajorVersions = [];
   const availableMinorVersions = [];
 
   availableVersions.forEach((availableVersion) => {
-    const [majorVersion, minorVersion] = availableVersion.value.split('.');
+    if (!availableVersion.value) {
+      return;
+    }
+    const [major, minor] = availableVersion.value.split('.');
 
     availableMajorVersions.push({
-      label: majorVersion,
-      value: majorVersion,
+      label: major,
+      value: major,
     });
 
-    availableMinorVersions.push({ label: minorVersion, value: minorVersion });
-  });
-
-  const form = useForm<DatabaseServiceVersionFormValues>({
-    reValidateMode: 'onSubmit',
-    defaultValues: { version: { label: '', value: '' } },
-    resolver: yupResolver(validationSchema),
+    if (major === form.getValues('majorVersion').value) {
+      console.log('majorversion:', majorVersion);
+      console.log('Adding vlaues');
+      console.log(form.getValues('majorVersion').value);
+      availableMinorVersions.push({ label: minor, value: minor });
+    }
   });
 
   useEffect(() => {
-    if (!loading && version) {
+    if (!loading && majorVersion && minorVersion) {
       form.reset({
-        version: {
-          label: version,
-          value: version,
-        },
+        majorVersion: { label: majorVersion, value: majorVersion },
+        minorVersion: { label: minorVersion, value: minorVersion },
       });
     }
-  }, [loading, version, form]);
+  }, [loading, majorVersion, minorVersion, form]);
 
   if (loading) {
     return (
@@ -120,12 +142,14 @@ export default function DatabaseServiceVersionSettings() {
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
   ) => {
+    const newVersion = `${formValues.majorVersion.value}.${formValues.minorVersion.value}`;
+
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
         config: {
           postgres: {
-            version: formValues.version.value,
+            version: newVersion,
           },
         },
       },
@@ -157,6 +181,8 @@ export default function DatabaseServiceVersionSettings() {
     );
   };
 
+  const isMajorVersionDirty = formState?.dirtyFields?.majorVersion?.value;
+
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleDatabaseServiceVersionsChange}>
@@ -171,88 +197,107 @@ export default function DatabaseServiceVersionSettings() {
           }}
           docsLink="https://hub.docker.com/r/nhost/postgres/tags"
           docsTitle="the latest releases"
-          className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
+          className="flex flex-col"
         >
-          <ControlledAutocomplete
-            id="majorVersion"
-            name="majorVersion"
-            autoHighlight
-            freeSolo
-            getOptionLabel={(option) => {
-              if (typeof option === 'string') {
-                return option || '';
-              }
-
-              return option.value;
-            }}
-            isOptionEqualToValue={() => false}
-            filterOptions={(options, { inputValue }) => {
-              const inputValueLower = inputValue.toLowerCase();
-              const matched = [];
-              const otherOptions = [];
-
-              options.forEach((option) => {
-                const optionLabelLower = option.label.toLowerCase();
-
-                if (optionLabelLower.startsWith(inputValueLower)) {
-                  matched.push(option);
-                } else {
-                  otherOptions.push(option);
+          <Box className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
+            <ControlledAutocomplete
+              id="majorVersion"
+              name="majorVersion"
+              autoHighlight
+              freeSolo
+              getOptionLabel={(option) => {
+                if (typeof option === 'string') {
+                  return option || '';
                 }
-              });
 
-              const result = [...matched, ...otherOptions];
+                return option.value;
+              }}
+              isOptionEqualToValue={() => false}
+              filterOptions={(options, { inputValue }) => {
+                const inputValueLower = inputValue.toLowerCase();
+                const matched = [];
+                const otherOptions = [];
 
-              return result;
-            }}
-            fullWidth
-            className="lg:col-span-2"
-            options={availableMajorVersions}
-            error={!!formState.errors?.version?.message}
-            helperText={formState.errors?.version?.message}
-            showCustomOption="auto"
-            customOptionLabel={(value) => `Use custom value: "${value}"`}
-          />
-          <ControlledAutocomplete
-            id="minorVersion"
-            name="minorVersion"
-            autoHighlight
-            freeSolo
-            getOptionLabel={(option) => {
-              if (typeof option === 'string') {
-                return option || '';
-              }
+                options.forEach((option) => {
+                  const optionLabelLower = option.label.toLowerCase();
 
-              return option.value;
-            }}
-            isOptionEqualToValue={() => false}
-            filterOptions={(options, { inputValue }) => {
-              const inputValueLower = inputValue.toLowerCase();
-              const matched = [];
-              const otherOptions = [];
+                  if (optionLabelLower.startsWith(inputValueLower)) {
+                    matched.push(option);
+                  } else {
+                    otherOptions.push(option);
+                  }
+                });
 
-              options.forEach((option) => {
-                const optionLabelLower = option.label.toLowerCase();
+                const result = [...matched, ...otherOptions];
 
-                if (optionLabelLower.startsWith(inputValueLower)) {
-                  matched.push(option);
-                } else {
-                  otherOptions.push(option);
+                return result;
+              }}
+              onChange={(_event, value) => {
+                // Reset minor version when major version changes
+                form.setValue('minorVersion', { label: '', value: '' });
+
+                if (typeof value !== 'string' && !Array.isArray(value)) {
+                  form.setValue('majorVersion', value);
                 }
-              });
+              }}
+              fullWidth
+              className="lg:col-span-1"
+              label="MAJOR"
+              options={availableMajorVersions}
+              error={!!formState.errors?.majorVersion?.message}
+              helperText={formState.errors?.majorVersion?.message}
+              showCustomOption="auto"
+              customOptionLabel={(value) => `Use custom value: "${value}"`}
+            />
+            <ControlledAutocomplete
+              id="minorVersion"
+              name="minorVersion"
+              autoHighlight
+              freeSolo
+              getOptionLabel={(option) => {
+                if (typeof option === 'string') {
+                  return option || '';
+                }
 
-              const result = [...matched, ...otherOptions];
+                return option.value;
+              }}
+              isOptionEqualToValue={() => false}
+              filterOptions={(options, { inputValue }) => {
+                const inputValueLower = inputValue.toLowerCase();
+                const matched = [];
+                const otherOptions = [];
 
-              return result;
-            }}
-            fullWidth
-            className="lg:col-span-2"
-            options={availableMinorVersions}
-            error={!!formState.errors?.version?.message}
-            helperText={formState.errors?.version?.message}
-            showCustomOption="auto"
-            customOptionLabel={(value) => `Use custom value: "${value}"`}
-          />
+                options.forEach((option) => {
+                  const optionLabelLower = option.label.toLowerCase();
+
+                  if (optionLabelLower.startsWith(inputValueLower)) {
+                    matched.push(option);
+                  } else {
+                    otherOptions.push(option);
+                  }
+                });
+
+                const result = [...matched, ...otherOptions];
+
+                return result;
+              }}
+              fullWidth
+              className="lg:col-span-2"
+              label="MINOR"
+              options={availableMinorVersions}
+              error={!!formState.errors?.minorVersion?.message}
+              helperText={formState.errors?.minorVersion?.message}
+              showCustomOption="auto"
+              customOptionLabel={(value) => `Use custom value: "${value}"`}
+            />
+          </Box>
+          <Alert severity="warning">
+            <Text variant="body2">
+              Upgrading a major version of Postgres requires downtime. The
+              amount of downtime will depend on your database size, so plan
+              ahead in order to reduce the impact on your users.
+            </Text>
+          </Alert>
         </SettingsContainer>
       </Form>
     </FormProvider>
