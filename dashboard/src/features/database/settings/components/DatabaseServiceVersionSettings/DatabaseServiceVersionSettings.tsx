@@ -7,6 +7,7 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
@@ -16,7 +17,6 @@ import {
   useGetPostgresSettingsQuery,
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
-  useUpdateDatabaseVersionMutation,
 } from '@/generated/graphql';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
@@ -24,7 +24,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { DatabaseMigrateVersionConfirmationDialog } from '../DatabaseMigrateVersionConfirmationDialog';
+import { DatabaseMigrateVersionConfirmationDialog } from '@/features/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
+import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
 
 const validationSchema = Yup.object({
   majorVersion: Yup.object({
@@ -45,7 +46,7 @@ export type DatabaseServiceVersionFormValues = Yup.InferType<
 
 export default function DatabaseServiceVersionSettings() {
   const isPlatform = useIsPlatform();
-  const { openDialog } = useDialog();
+  const { openDialog, closeDialog } = useDialog();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -54,10 +55,10 @@ export default function DatabaseServiceVersionSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const [updatePostgresMajor] = useUpdateDatabaseVersionMutation({
-    refetchQueries: [GetPostgresSettingsDocument],
-    ...(!isPlatform ? { client: localMimirClient } : {}),
-  });
+  // const [updatePostgresMajor] = useUpdateDatabaseVersionMutation({
+  //   refetchQueries: [GetPostgresSettingsDocument],
+  //   ...(!isPlatform ? { client: localMimirClient } : {}),
+  // });
 
   const {
     data,
@@ -218,6 +219,23 @@ export default function DatabaseServiceVersionSettings() {
 
   console.log('isMajorVersionDirty', isMajorVersionDirty);
 
+
+  const openLatestUpgradeLogsModal = async (
+  ) => {
+    openDialog({
+      component: (
+        <DatabaseMigrateLogsModal />
+      ),
+      props: {
+        PaperProps: { className: 'p-0 max-w-2xl w-full' },
+        titleProps: {
+          onClose: closeDialog,
+        },
+      },
+      title: 'Postgres upgrade logs',
+    });
+  };
+
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleDatabaseServiceVersionsChange}>
@@ -233,6 +251,19 @@ export default function DatabaseServiceVersionSettings() {
           docsLink="https://hub.docker.com/r/nhost/postgres/tags"
           docsTitle="the latest releases"
           className="flex flex-col"
+          topRightElement={
+            <Button
+              variant="outlined"
+              color="primary"
+              size="medium"
+              className="self-center"
+              onClick={
+          openLatestUpgradeLogsModal
+              }
+            >
+              View latest upgrade logs
+            </Button>
+          }
         >
           <Box className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
             <ControlledAutocomplete
@@ -326,22 +357,24 @@ export default function DatabaseServiceVersionSettings() {
               customOptionLabel={(value) => `Use custom value: "${value}"`}
             />
           </Box>
-          <Alert severity="warning" className="flex flex-col gap-2 text-left">
-            <Text className="font-semibold">
-              ⚠ Warning: upgrading Postgres major version
-            </Text>
-            <div className="flex flex-col gap-4">
-              <Text>
-                Upgrading a major version of Postgres requires downtime. The
-                amount of downtime will depend on your database size, so plan
-                ahead in order to reduce the impact on your users.
+          {isMajorVersionDirty && (
+            <Alert severity="warning" className="flex flex-col gap-2 text-left">
+              <Text className="font-semibold">
+                ⚠ Warning: upgrading Postgres major version
               </Text>
-              <Text>
-                Note that it isn&apos;t possible to downgrade between major
-                versions.
-              </Text>
-            </div>
-          </Alert>
+              <div className="flex flex-col gap-4">
+                <Text>
+                  Upgrading a major version of Postgres requires downtime. The
+                  amount of downtime will depend on your database size, so plan
+                  ahead in order to reduce the impact on your users.
+                </Text>
+                <Text>
+                  Note that it isn&apos;t possible to downgrade between major
+                  versions.
+                </Text>
+              </div>
+            </Alert>
+          )}
         </SettingsContainer>
       </Form>
     </FormProvider>

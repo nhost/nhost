@@ -43,6 +43,8 @@ export default function AppIndexPage() {
       return <ApplicationUnpausing />;
     case ApplicationStatus.Restoring:
       return <ApplicationRestoring />;
+    case ApplicationStatus.Migrating:
+      return <ApplicationLive />;
     default:
       return <ApplicationUnknown />;
   }

@@ -45,7 +45,7 @@ export default function DatabaseMigrateVersionConfirmationDialog({
 
     await execPromiseWithErrorToast(
       async () => {
-        const updatePostgresMajorPromise = updatePostgresMajor({
+        await updatePostgresMajor({
           variables: {
             appId: currentProject.id,
             version: postgresVersion,

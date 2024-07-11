@@ -23212,6 +23212,16 @@ export type GetServiceLabelValuesQueryVariables = Exact<{
 
 export type GetServiceLabelValuesQuery = { __typename?: 'query_root', getServiceLabelValues: Array<string> };
 
+export type GetSystemLogsQueryVariables = Exact<{
+  appID: Scalars['String'];
+  action: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+}>;
+
+
+export type GetSystemLogsQuery = { __typename?: 'query_root', systemLogs: Array<{ __typename?: 'Log', timestamp: any, log: string }> };
+
 export type DeletePaymentMethodMutationVariables = Exact<{
   paymentMethodId: Scalars['uuid'];
 }>;
@@ -26480,6 +26490,48 @@ export type GetServiceLabelValuesLazyQueryHookResult = ReturnType<typeof useGetS
 export type GetServiceLabelValuesQueryResult = Apollo.QueryResult<GetServiceLabelValuesQuery, GetServiceLabelValuesQueryVariables>;
 export function refetchGetServiceLabelValuesQuery(variables: GetServiceLabelValuesQueryVariables) {
       return { query: GetServiceLabelValuesDocument, variables: variables }
+    }
+export const GetSystemLogsDocument = gql`
+    query getSystemLogs($appID: String!, $action: String!, $from: Timestamp, $to: Timestamp) {
+  systemLogs(appID: $appID, action: $action, from: $from) {
+    timestamp
+    log
+  }
+}
+    `;
+
+/**
+ * __useGetSystemLogsQuery__
+ *
+ * To run a query within a React component, call `useGetSystemLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSystemLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSystemLogsQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      action: // value for 'action'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *   },
+ * });
+ */
+export function useGetSystemLogsQuery(baseOptions: Apollo.QueryHookOptions<GetSystemLogsQuery, GetSystemLogsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSystemLogsQuery, GetSystemLogsQueryVariables>(GetSystemLogsDocument, options);
+      }
+export function useGetSystemLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSystemLogsQuery, GetSystemLogsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSystemLogsQuery, GetSystemLogsQueryVariables>(GetSystemLogsDocument, options);
+        }
+export type GetSystemLogsQueryHookResult = ReturnType<typeof useGetSystemLogsQuery>;
+export type GetSystemLogsLazyQueryHookResult = ReturnType<typeof useGetSystemLogsLazyQuery>;
+export type GetSystemLogsQueryResult = Apollo.QueryResult<GetSystemLogsQuery, GetSystemLogsQueryVariables>;
+export function refetchGetSystemLogsQuery(variables: GetSystemLogsQueryVariables) {
+      return { query: GetSystemLogsDocument, variables: variables }
     }
 export const DeletePaymentMethodDocument = gql`
     mutation deletePaymentMethod($paymentMethodId: uuid!) {

@@ -38,9 +38,12 @@ export default function Header({ className, ...props }: HeaderProps) {
   const isProjectUpdating =
     currentProject?.appStates[0]?.stateId === ApplicationStatus.Updating;
 
+  const isProjectMigratingDatabase =
+    currentProject?.appStates[0]?.stateId === ApplicationStatus.Migrating;
+
   // Poll for project updates
   useEffect(() => {
-    if (!isProjectUpdating) {
+    if (!isProjectUpdating && !isProjectMigratingDatabase) {
       return () => {};
     }
 
@@ -51,7 +54,7 @@ export default function Header({ className, ...props }: HeaderProps) {
     return () => {
       clearInterval(interval);
     };
-  }, [isProjectUpdating, refetchProject]);
+  }, [isProjectUpdating, isProjectMigratingDatabase, refetchProject]);
 
   const openDevAssistant = () => {
     // The dev assistant can be only answer questions related to a particular project
@@ -91,6 +94,9 @@ export default function Header({ className, ...props }: HeaderProps) {
 
         {isProjectUpdating && (
           <Chip size="small" label="Updating" color="warning" />
+        )}
+        {isProjectMigratingDatabase && (
+          <Chip size="small" label="Upgrading Postgres version" color="warning" />
         )}
       </div>
 
