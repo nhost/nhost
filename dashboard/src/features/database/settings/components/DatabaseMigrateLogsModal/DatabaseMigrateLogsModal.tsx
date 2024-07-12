@@ -52,7 +52,7 @@ export default function DatabaseMigrateLogsModal({
           if (logObj?.level && logObj?.msg) {
             return (
               <Text
-                key={logObj.time}
+                key={`${logObj.msg}${logObj.time}`}
                 className="font-mono"
                 sx={{
                   color: 'grey.100',
