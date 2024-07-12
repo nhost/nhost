@@ -16,7 +16,9 @@ import {
   Software_Type_Enum,
   useGetPostgresSettingsQuery,
   useGetSoftwareVersionsQuery,
+  useGetApplicationStateQuery,
   useUpdateConfigMutation,
+  GetApplicationStateQuery,
 } from '@/generated/graphql';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
@@ -26,6 +28,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { DatabaseMigrateVersionConfirmationDialog } from '@/features/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
 import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
+import { ApplicationStatus } from '@/types/application';
 
 const validationSchema = Yup.object({
   majorVersion: Yup.object({
@@ -54,11 +57,6 @@ export default function DatabaseServiceVersionSettings() {
     refetchQueries: [GetPostgresSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
-
-  // const [updatePostgresMajor] = useUpdateDatabaseVersionMutation({
-  //   refetchQueries: [GetPostgresSettingsDocument],
-  //   ...(!isPlatform ? { client: localMimirClient } : {}),
-  // });
 
   const {
     data,
@@ -137,6 +135,39 @@ export default function DatabaseServiceVersionSettings() {
       });
     }
   }, [loading, majorVersion, minorVersion, form]);
+
+
+  const { data: appStatesData, loading: loadingStates} = useGetApplicationStateQuery({
+    variables: { appId: currentProject?.id },
+    skip: !currentProject,
+    pollInterval: 5000,
+  });
+
+  console.log(appStatesData?.app?.appStates)
+
+  const shouldShowUpgradeLogs = (appStates: GetApplicationStateQuery['app']['appStates'] ) => {
+    for (let i = 0; i < appStates.length; i+=1) {
+      console.log("Iterating", appStates[i].stateId)
+      if (appStates[i].stateId === ApplicationStatus.Live) {
+        return false;
+      }
+      if (appStates[i].stateId === ApplicationStatus.Migrating) {
+        return true;
+      }
+    }
+
+    return false
+  }
+
+  const showUpgradeLogs = shouldShowUpgradeLogs(appStatesData?.app?.appStates || []);
+
+  // const sortedAppStates = appStatesData?.app?.appStates?.sort((a, b) =>
+  //   new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  // );
+
+  // const previousState = appStatesData?.app?.appStates
+  //   ? getPreviousApplicationState(appStatesData.app.appStates)
+  //   : null;
 
   if (loading) {
     return (
@@ -217,9 +248,6 @@ export default function DatabaseServiceVersionSettings() {
     );
   };
 
-  console.log('isMajorVersionDirty', isMajorVersionDirty);
-
-
   const openLatestUpgradeLogsModal = async (
   ) => {
     openDialog({
@@ -251,8 +279,8 @@ export default function DatabaseServiceVersionSettings() {
           docsLink="https://hub.docker.com/r/nhost/postgres/tags"
           docsTitle="the latest releases"
           className="flex flex-col"
-          topRightElement={
-            <Button
+          topRightElement={showUpgradeLogs ?
+            (<Button
               variant="outlined"
               color="primary"
               size="medium"
@@ -262,7 +290,7 @@ export default function DatabaseServiceVersionSettings() {
               }
             >
               View latest upgrade logs
-            </Button>
+            </Button>) : null
           }
         >
           <Box className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
