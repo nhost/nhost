@@ -31,6 +31,7 @@ import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { removeTypename } from '@/utils/helpers';
 import {
   useInsertRunServiceConfigMutation,
   useInsertRunServiceMutation,
@@ -99,38 +100,43 @@ export default function ServiceForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   const getFormattedConfig = (values: ServiceFormValues) => {
+    // Remove any __typename property from the values
+    const sanitizedValues = removeTypename(values) as ServiceFormValues;
+
     const config: ConfigRunServiceConfigInsertInput = {
-      name: values.name,
+      name: sanitizedValues.name,
       image: {
-        image: values.image,
+        image: sanitizedValues.image,
       },
-      command: parse(values.command).map((item) => item.toString()),
+      command: parse(sanitizedValues.command).map((item) => item.toString()),
       resources: {
         compute: {
-          cpu: values.compute.cpu,
-          memory: values.compute.memory,
+          cpu: sanitizedValues.compute.cpu,
+          memory: sanitizedValues.compute.memory,
         },
-        storage: values.storage.map((item) => ({
+        storage: sanitizedValues.storage.map((item) => ({
           name: item.name,
           path: item.path,
           capacity: item.capacity,
         })),
-        replicas: values.replicas,
+        replicas: sanitizedValues.replicas,
       },
-      environment: values.environment.map((item) => ({
+      environment: sanitizedValues.environment.map((item) => ({
         name: item.name,
         value: item.value,
       })),
-      ports: values.ports.map((item) => ({
+      ports: sanitizedValues.ports.map((item) => ({
         port: item.port,
         type: item.type,
         publish: item.publish,
+        ingresses: item.ingresses,
       })),
-      healthCheck: values.healthCheck
+      healthCheck: sanitizedValues.healthCheck
         ? {
-            port: values.healthCheck?.port,
-            initialDelaySeconds: values.healthCheck?.initialDelaySeconds,
-            probePeriodSeconds: values.healthCheck?.probePeriodSeconds,
+            port: sanitizedValues.healthCheck?.port,
+            initialDelaySeconds:
+              sanitizedValues.healthCheck?.initialDelaySeconds,
+            probePeriodSeconds: sanitizedValues.healthCheck?.probePeriodSeconds,
           }
         : null,
     };
