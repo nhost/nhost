@@ -31,6 +31,7 @@ import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { copy } from '@/utils/copy';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import { removeTypename } from '@/utils/helpers';
 import {
   useInsertRunServiceConfigMutation,
   useInsertRunServiceMutation,
@@ -98,7 +99,10 @@ export default function ServiceForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  const getFormattedConfig = (values: ServiceFormValues) => {
+  const getFormattedConfig = (_values: ServiceFormValues) => {
+    // Remove any __typename property from the values
+    const values = removeTypename(_values) as ServiceFormValues;
+
     const config: ConfigRunServiceConfigInsertInput = {
       name: values.name,
       image: {
@@ -125,6 +129,7 @@ export default function ServiceForm({
         port: item.port,
         type: item.type,
         publish: item.publish,
+        ingresses: item.ingresses,
       })),
       healthCheck: values.healthCheck
         ? {
