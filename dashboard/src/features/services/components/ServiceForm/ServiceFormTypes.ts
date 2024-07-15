@@ -30,11 +30,13 @@ export const validationSchema = Yup.object({
       port: Yup.number().required(),
       type: Yup.mixed<PortTypes>().oneOf(Object.values(PortTypes)).required(),
       publish: Yup.boolean().default(false),
-      ingresses: Yup.array().of(
-        Yup.object().shape({
-          fqdn: Yup.array().of(Yup.string()),
-        }),
-      ),
+      ingresses: Yup.array()
+        .of(
+          Yup.object().shape({
+            fqdn: Yup.array().of(Yup.string()),
+          }),
+        )
+        .nullable(),
     }),
   ),
   storage: Yup.array().of(
