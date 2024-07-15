@@ -1,5 +1,16 @@
 # @nhost/dashboard
 
+## 1.24.0
+
+### Minor Changes
+
+- abb24af: chore: add redirect to support page when project is locked
+- 18a6455: feat: show contact us info and locked reason when project is locked
+
+### Patch Changes
+
+- e31eefa: fix: include ingresses field when updating run services
+
 ## 1.23.0
 
 ### Minor Changes
