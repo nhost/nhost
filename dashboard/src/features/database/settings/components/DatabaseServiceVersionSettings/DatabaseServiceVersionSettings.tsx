@@ -9,26 +9,26 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
+import { DatabaseMigrateVersionConfirmationDialog } from '@/features/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetPostgresSettingsDocument,
   Software_Type_Enum,
+  useGetApplicationStateQuery,
   useGetPostgresSettingsQuery,
   useGetSoftwareVersionsQuery,
-  useGetApplicationStateQuery,
   useUpdateConfigMutation,
-  GetApplicationStateQuery,
+  type GetApplicationStateQuery,
 } from '@/generated/graphql';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import { ApplicationStatus } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { DatabaseMigrateVersionConfirmationDialog } from '@/features/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
-import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
-import { ApplicationStatus } from '@/types/application';
 
 const validationSchema = Yup.object({
   majorVersion: Yup.object({
@@ -136,18 +136,20 @@ export default function DatabaseServiceVersionSettings() {
     }
   }, [loading, majorVersion, minorVersion, form]);
 
+  const { data: appStatesData, loading: loadingStates } =
+    useGetApplicationStateQuery({
+      variables: { appId: currentProject?.id },
+      skip: !currentProject,
+      pollInterval: 5000,
+    });
 
-  const { data: appStatesData, loading: loadingStates} = useGetApplicationStateQuery({
-    variables: { appId: currentProject?.id },
-    skip: !currentProject,
-    pollInterval: 5000,
-  });
+  console.log(appStatesData?.app?.appStates);
 
-  console.log(appStatesData?.app?.appStates)
-
-  const shouldShowUpgradeLogs = (appStates: GetApplicationStateQuery['app']['appStates'] ) => {
-    for (let i = 0; i < appStates.length; i+=1) {
-      console.log("Iterating", appStates[i].stateId)
+  const shouldShowUpgradeLogs = (
+    appStates: GetApplicationStateQuery['app']['appStates'],
+  ) => {
+    for (let i = 0; i < appStates.length; i += 1) {
+      console.log('Iterating', appStates[i].stateId);
       if (appStates[i].stateId === ApplicationStatus.Live) {
         return false;
       }
@@ -156,10 +158,12 @@ export default function DatabaseServiceVersionSettings() {
       }
     }
 
-    return false
-  }
+    return false;
+  };
 
-  const showUpgradeLogs = shouldShowUpgradeLogs(appStatesData?.app?.appStates || []);
+  const showUpgradeLogs = shouldShowUpgradeLogs(
+    appStatesData?.app?.appStates || [],
+  );
 
   // const sortedAppStates = appStatesData?.app?.appStates?.sort((a, b) =>
   //   new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -186,6 +190,11 @@ export default function DatabaseServiceVersionSettings() {
   const { formState } = form;
 
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
+
+  const majorVersionGreaterThanCurrent =
+    Number(form.getValues('majorVersion').value) > Number(currentPostgresMajor);
+
+  const estimatedDowntime = '8mins';
 
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
@@ -248,12 +257,9 @@ export default function DatabaseServiceVersionSettings() {
     );
   };
 
-  const openLatestUpgradeLogsModal = async (
-  ) => {
+  const openLatestUpgradeLogsModal = async () => {
     openDialog({
-      component: (
-        <DatabaseMigrateLogsModal />
-      ),
+      component: <DatabaseMigrateLogsModal />,
       props: {
         PaperProps: { className: 'p-0 max-w-2xl w-full' },
         titleProps: {
@@ -279,18 +285,18 @@ export default function DatabaseServiceVersionSettings() {
           docsLink="https://hub.docker.com/r/nhost/postgres/tags"
           docsTitle="the latest releases"
           className="flex flex-col"
-          topRightElement={showUpgradeLogs ?
-            (<Button
-              variant="outlined"
-              color="primary"
-              size="medium"
-              className="self-center"
-              onClick={
-          openLatestUpgradeLogsModal
-              }
-            >
-              View latest upgrade logs
-            </Button>) : null
+          topRightElement={
+            showUpgradeLogs ? (
+              <Button
+                variant="outlined"
+                color="primary"
+                size="medium"
+                className="self-center"
+                onClick={openLatestUpgradeLogsModal}
+              >
+                View latest upgrade logs
+              </Button>
+            ) : null
           }
         >
           <Box className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
@@ -385,11 +391,24 @@ export default function DatabaseServiceVersionSettings() {
               customOptionLabel={(value) => `Use custom value: "${value}"`}
             />
           </Box>
-          {isMajorVersionDirty && (
-            <Alert severity="warning" className="flex flex-col gap-2 text-left">
-              <Text className="font-semibold">
-                ⚠ Warning: upgrading Postgres major version
-              </Text>
+          {majorVersionGreaterThanCurrent && (
+            <Alert
+              severity="warning"
+              className="flex flex-col gap-2  text-left"
+            >
+              <div className="flex flex-row justify-between gap-2">
+                <Text className="font-semibold">
+                  ⚠ Warning: upgrading Postgres major version
+                </Text>
+                <Box
+                  sx={{
+                    backgroundColor: 'beige.main',
+                  }}
+                  className="py-1/2 rounded-full px-2 font-semibold"
+                >
+                  Estimated downtime ~{estimatedDowntime}
+                </Box>
+              </div>
               <div className="flex flex-col gap-4">
                 <Text>
                   Upgrading a major version of Postgres requires downtime. The
