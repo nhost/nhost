@@ -139,7 +139,7 @@ export default function DatabaseServiceVersionSettings() {
         value: minor,
       });
     });
-    return { availableMajorVersions, majorToMinorVersions }
+    return { availableMajorVersions: availableMajorVersions.reverse(), majorToMinorVersions }
   };
   const {availableMajorVersions, majorToMinorVersions} = useMemo(
     getMajorAndMinorVersions,
@@ -343,10 +343,11 @@ export default function DatabaseServiceVersionSettings() {
                 return result;
               }}
               onChange={(_event, value) => {
-                // Reset minor version when major version changes
-                form.setValue('minorVersion', { label: '', value: '' });
-
                 if (typeof value !== 'string' && !Array.isArray(value)) {
+                  // Reset minor version when major version changes
+                  if (value.value !== selectedMajor) {
+                    form.setValue('minorVersion', { label: '', value: '' });
+                  }
                   form.setValue('majorVersion', value);
                 }
               }}

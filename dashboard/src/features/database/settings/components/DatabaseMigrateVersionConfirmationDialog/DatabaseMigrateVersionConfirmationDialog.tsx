@@ -89,10 +89,10 @@ export default function DatabaseMigrateVersionConfirmationDialog({
           <span className="font-semibold">
             estimated {downtime} of downtime
           </span>
-          . To continue with the upgrade process, click on &quot;Proceed&quot;
+          . To continue with the upgrade process, click on &quot;Proceed&quot;.
         </Text>
 
-        <div className="grid grid-flow-col gap-2">
+        <div className="grid grid-flow-col gap-4">
           <Button
             variant="outlined"
             color="secondary"

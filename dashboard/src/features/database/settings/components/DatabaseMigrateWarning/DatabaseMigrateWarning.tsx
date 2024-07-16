@@ -7,7 +7,7 @@ export default function DatabaseMigrateWarning() {
   const { downtimeShort } = useEstimatedDatabaseMigrationDowntime();
 
   return (
-    <Alert severity="warning" className="flex flex-col gap-2  text-left">
+    <Alert severity="warning" className="flex flex-col gap-3  text-left">
       <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
         <Text className="font-semibold">
           ⚠ Warning: upgrading Postgres major version
@@ -17,7 +17,7 @@ export default function DatabaseMigrateWarning() {
           sx={{
             backgroundColor: 'beige.main',
           }}
-          className="py-1/2 text-nowrap rounded-full px-4 font-semibold"
+          className="py-1/2 flex justify-center items-center text-nowrap rounded-full px-2 font-semibold"
         >
           Estimated downtime ~{downtimeShort}
         </Box>
