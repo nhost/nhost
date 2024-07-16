@@ -69,7 +69,7 @@ export default function DatabaseMigrateVersionConfirmationDialog({
       },
       {
         loadingMessage: 'Updating postgres version...',
-        successMessage: 'Postgres version updated.',
+        successMessage: 'Major version upgrade started.',
         errorMessage:
           'An error occurred while updating the database version. Please try again later.',
       },

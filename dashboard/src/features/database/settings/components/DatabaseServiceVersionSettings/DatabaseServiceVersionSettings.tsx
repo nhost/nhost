@@ -5,12 +5,11 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Text } from '@/components/ui/v2/Text';
 import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
 import { DatabaseMigrateVersionConfirmationDialog } from '@/features/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
+import { DatabaseMigrateWarning } from '@/features/database/settings/components/DatabaseMigrateWarning';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
@@ -26,7 +25,7 @@ import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { ApplicationStatus } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -101,31 +100,49 @@ export default function DatabaseServiceVersionSettings() {
     resolver: yupResolver(validationSchema),
   });
 
-  const availableMajorVersions = [];
-  const availableMinorVersions = [];
+  const { formState, watch } = form;
+
+  const selectedMajor = watch('majorVersion').value;
+
+  console.log('selected major:', selectedMajor);
 
   const currentPostgresMajor = data?.config?.postgres?.version.split('.')[0];
 
-  availableVersions.forEach((availableVersion) => {
-    if (!availableVersion.value) {
-      return;
-    }
-    const [major, minor] = availableVersion.value.split('.');
+  const getMajorAndMinorVersions = () => {
+    const majorToMinorMap = {};
+    const majorVersions = [];
+    availableVersions.forEach((availableVersion) => {
+      if (!availableVersion.value) {
+        return;
+      }
+      const [major, minor] = availableVersion.value.split('.');
 
-    // Don't show versions that are lower than the current Postgres major version (can't downgrade)
-    if (Number(major) < Number(currentPostgresMajor)) {
-      return;
-    }
+      // Don't suggest versions that are lower than the current Postgres major version (can't downgrade)
+      if (Number(major) < Number(currentPostgresMajor)) {
+        return;
+      }
 
-    availableMajorVersions.push({
-      label: major,
-      value: major,
+      majorVersions.push({
+        label: major,
+        value: major,
+      });
+
+      if (!majorToMinorMap[major]) {
+        majorToMinorMap[major] = [];
+      }
+
+      majorToMinorMap[major].push({
+        label: minor,
+        value: minor,
+      });
     });
-
-    if (major === form.getValues('majorVersion').value) {
-      availableMinorVersions.push({ label: minor, value: minor });
-    }
-  });
+    return [majorVersions, majorToMinorMap];
+  };
+  const [availableMajorVersions, majorToMinorVersions] = useMemo(
+    getMajorAndMinorVersions,
+    [availableVersions, currentPostgresMajor],
+  );
+  const availableMinorVersions = majorToMinorVersions[selectedMajor] || [];
 
   useEffect(() => {
     if (!loading && majorVersion && minorVersion) {
@@ -143,13 +160,10 @@ export default function DatabaseServiceVersionSettings() {
       pollInterval: 5000,
     });
 
-  console.log(appStatesData?.app?.appStates);
-
   const shouldShowUpgradeLogs = (
     appStates: GetApplicationStateQuery['app']['appStates'],
   ) => {
     for (let i = 0; i < appStates.length; i += 1) {
-      console.log('Iterating', appStates[i].stateId);
       if (appStates[i].stateId === ApplicationStatus.Live) {
         return false;
       }
@@ -165,14 +179,6 @@ export default function DatabaseServiceVersionSettings() {
     appStatesData?.app?.appStates || [],
   );
 
-  // const sortedAppStates = appStatesData?.app?.appStates?.sort((a, b) =>
-  //   new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  // );
-
-  // const previousState = appStatesData?.app?.appStates
-  //   ? getPreviousApplicationState(appStatesData.app.appStates)
-  //   : null;
-
   if (loading) {
     return (
       <ActivityIndicator
@@ -187,14 +193,10 @@ export default function DatabaseServiceVersionSettings() {
     throw error;
   }
 
-  const { formState } = form;
-
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
 
   const majorVersionGreaterThanCurrent =
     Number(form.getValues('majorVersion').value) > Number(currentPostgresMajor);
-
-  const estimatedDowntime = '8mins';
 
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
@@ -220,6 +222,8 @@ export default function DatabaseServiceVersionSettings() {
 
       return;
     }
+
+    // Minor version change
     const updateConfigPromise = updateConfig({
       variables: {
         appId: currentProject.id,
@@ -314,6 +318,9 @@ export default function DatabaseServiceVersionSettings() {
               }}
               isOptionEqualToValue={() => false}
               filterOptions={(options, { inputValue }) => {
+                // if (!isMajorVersionDirty) {
+                //   return options;
+                // }
                 const inputValueLower = inputValue.toLowerCase();
                 const matched = [];
                 const otherOptions = [];
@@ -391,37 +398,7 @@ export default function DatabaseServiceVersionSettings() {
               customOptionLabel={(value) => `Use custom value: "${value}"`}
             />
           </Box>
-          {majorVersionGreaterThanCurrent && (
-            <Alert
-              severity="warning"
-              className="flex flex-col gap-2  text-left"
-            >
-              <div className="flex flex-row justify-between gap-2">
-                <Text className="font-semibold">
-                  ⚠ Warning: upgrading Postgres major version
-                </Text>
-                <Box
-                  sx={{
-                    backgroundColor: 'beige.main',
-                  }}
-                  className="py-1/2 rounded-full px-2 font-semibold"
-                >
-                  Estimated downtime ~{estimatedDowntime}
-                </Box>
-              </div>
-              <div className="flex flex-col gap-4">
-                <Text>
-                  Upgrading a major version of Postgres requires downtime. The
-                  amount of downtime will depend on your database size, so plan
-                  ahead in order to reduce the impact on your users.
-                </Text>
-                <Text>
-                  Note that it isn&apos;t possible to downgrade between major
-                  versions.
-                </Text>
-              </div>
-            </Alert>
-          )}
+          {majorVersionGreaterThanCurrent && <DatabaseMigrateWarning />}
         </SettingsContainer>
       </Form>
     </FormProvider>
