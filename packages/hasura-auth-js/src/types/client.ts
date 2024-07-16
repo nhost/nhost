@@ -172,7 +172,7 @@ export interface AuthOptions {
    *         const { value } = await Preferences.get({ key });
    *         return value;
    *       },
-   *       removeItem(key): (key) => Preferences.remove({ key })
+   *       removeItem: (key) => Preferences.remove({ key })
    *     },
    *   });
    *   ```
