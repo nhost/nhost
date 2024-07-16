@@ -136,7 +136,7 @@ export default function PortsFormSection() {
               <InfoCard
                 title="URL"
                 value={getRunServicePortURL(
-                  currentProject?.subdomain,
+                  formValues?.subdomain,
                   currentProject?.region.name,
                   currentProject?.region.domain,
                   formValues.ports[index],

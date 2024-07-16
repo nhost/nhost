@@ -13,6 +13,11 @@ export interface ServiceDetailsDialogProps {
   serviceID: string;
 
   /**
+   * The subdomain of the service
+   */
+  subdomain: string;
+
+  /**
    * The service ports
    * We use partial here because `port` is set as required in ConfigRunServicePort
    */
@@ -21,6 +26,7 @@ export interface ServiceDetailsDialogProps {
 
 export default function ServiceDetailsDialog({
   serviceID,
+  subdomain,
   ports,
 }: ServiceDetailsDialogProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -47,7 +53,7 @@ export default function ServiceDetailsDialog({
               key={String(port.port)}
               title={`${port.type} <--> ${port.port}`}
               value={getRunServicePortURL(
-                currentProject?.subdomain,
+                subdomain,
                 currentProject?.region.name,
                 currentProject?.region.domain,
                 port,
