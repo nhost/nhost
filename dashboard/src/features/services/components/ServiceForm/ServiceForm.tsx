@@ -253,7 +253,6 @@ export default function ServiceForm({
         component: (
           <ServiceDetailsDialog
             serviceID={detailsServiceId}
-            subdomain={detailsServiceSubdomain}
             ports={formValues.ports}
           />
         ),
