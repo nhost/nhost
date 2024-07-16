@@ -47,7 +47,7 @@ export default function ServiceDetailsDialog({
               key={String(port.port)}
               title={`${port.type} <--> ${port.port}`}
               value={getRunServicePortURL(
-                currentProject.subdomain,
+                currentProject?.subdomain,
                 currentProject?.region.name,
                 currentProject?.region.domain,
                 port,
