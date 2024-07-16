@@ -1,5 +1,12 @@
 # @nhost/dashboard
 
+## 1.24.1
+
+### Patch Changes
+
+- 49f2e55: fix: use service subdomain in service form and service details dialog
+- 598b988: fix: use current project subdomain in ServiceDetailsDialog component
+
 ## 1.24.0
 
 ### Minor Changes
