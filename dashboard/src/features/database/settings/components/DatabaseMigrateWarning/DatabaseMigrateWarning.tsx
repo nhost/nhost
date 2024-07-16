@@ -4,7 +4,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { useEstimatedDatabaseMigrationDowntime } from '@/features/projects/common/hooks/useEstimatedDatabaseMigrationDowntime';
 
 export default function DatabaseMigrateWarning() {
-  const estimatedDowntime = useEstimatedDatabaseMigrationDowntime();
+  const { downtimeShort } = useEstimatedDatabaseMigrationDowntime();
 
   return (
     <Alert severity="warning" className="flex flex-col gap-2  text-left">
@@ -18,7 +18,7 @@ export default function DatabaseMigrateWarning() {
           }}
           className="py-1/2 flex text-nowrap rounded-full px-4 font-semibold"
         >
-          Estimated downtime ~{estimatedDowntime}
+          Estimated downtime ~{downtimeShort}
         </Box>
       </div>
       <div className="flex flex-col gap-4">

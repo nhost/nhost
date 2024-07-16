@@ -1,35 +1,83 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useGetApplicationBackupsQuery } from '@/utils/__generated__/graphql';
+import {
+  useGetApplicationBackupsQuery,
+  type GetApplicationBackupsQuery,
+  type GetApplicationBackupsQueryVariables,
+} from '@/utils/__generated__/graphql';
+import type { QueryHookOptions } from '@apollo/client';
 
-function getEstimatedTimeString(diff: number): string {
+interface TimePeriod {
+  value: number;
+  unit: 'hours' | 'minutes';
+  downtime: string;
+  downtimeShort: string;
+}
+
+export interface UseEstimatedDatabaseMigrationDowntimeOptions
+  extends QueryHookOptions<
+    GetApplicationBackupsQuery,
+    GetApplicationBackupsQueryVariables
+  > {}
+
+const DEFAULT_ESTIMATED_DOWNTIME: TimePeriod = {
+  value: 10,
+  unit: 'minutes',
+  downtime: '10 minutes',
+  downtimeShort: '10min',
+};
+
+function getEstimatedTime(diff: number): TimePeriod {
   if (diff > 1000 * 3600) {
-    return `${Math.floor(diff / (1000 * 3600))}hr`;
+    const value = Math.floor(diff / (1000 * 3600));
+    const unitStr = value === 1 ? 'hour' : 'hours';
+    return {
+      value,
+      unit: 'hours',
+      downtime: `${value} ${unitStr}`,
+      downtimeShort: `${value}hr`,
+    };
   }
   // 10 minutes is the minimum estimated downtime
   if (diff > 1000 * 60 * 10) {
-    return `${Math.floor(diff / (1000 * 60))}min`;
+    const value = Math.floor(diff / (1000 * 60));
+    const unitStr = value === 1 ? 'minute' : 'minutes';
+    return {
+      value,
+      unit: 'minutes',
+      downtime: `${value} ${unitStr}`,
+      downtimeShort: `${value}min`,
+    };
   }
 
-  return '10min';
+  return DEFAULT_ESTIMATED_DOWNTIME;
 }
 
-export default function useEstimatedDatabaseMigrationDowntime() {
+/*
+ * This hook returns the estimated downtime for a database migration.
+ * The estimated downtime is calculated based on the time taken to complete the last backup.
+ * If there are no backups, the estimated downtime is set to 10 minutes.
+ */
+
+export default function useEstimatedDatabaseMigrationDowntime(
+  options: UseEstimatedDatabaseMigrationDowntimeOptions = {},
+): TimePeriod {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const isPlanFree = currentProject?.plan?.isFree;
 
   const { data, loading, error } = useGetApplicationBackupsQuery({
-    variables: { appId: currentProject.id },
+    ...options,
+    variables: { ...options.variables, appId: currentProject?.id },
     skip: isPlanFree,
   });
 
   if (loading || error) {
-    return '10min';
+    return DEFAULT_ESTIMATED_DOWNTIME;
   }
 
   const backups = data?.app?.backups;
 
-  let estimatedMilliseconds = 1000 * 60 * 10; // 10 minutes
+  let estimatedMilliseconds = 1000 * 60 * 10; // DEFAULT ESTIMATED DOWNTIME is 10 minutes
 
   if (!isPlanFree && backups?.length > 0) {
     const lastBackup = backups[0];
@@ -39,7 +87,7 @@ export default function useEstimatedDatabaseMigrationDowntime() {
     estimatedMilliseconds = diff * 2;
   }
 
-  const estimated = getEstimatedTimeString(estimatedMilliseconds);
+  const estimated = getEstimatedTime(estimatedMilliseconds);
 
   return estimated;
 }

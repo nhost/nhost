@@ -4,6 +4,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useEstimatedDatabaseMigrationDowntime } from '@/features/projects/common/hooks/useEstimatedDatabaseMigrationDowntime';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
@@ -38,6 +39,10 @@ export default function DatabaseMigrateVersionConfirmationDialog({
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updatePostgresMajor] = useUpdateDatabaseVersionMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
+  const { downtime } = useEstimatedDatabaseMigrationDowntime({
+    fetchPolicy: 'cache-only',
   });
 
   async function handleClick() {
@@ -80,7 +85,11 @@ export default function DatabaseMigrateVersionConfirmationDialog({
     <Box className={twMerge('w-full rounded-lg p-6 pt-0 text-left')}>
       <div className="grid grid-flow-row gap-4">
         <Text>
-          To continue with the upgrade process, click on &quot;Proceed&quot;
+          The upgrade process will require an{' '}
+          <span className="font-semibold">
+            estimated {downtime} of downtime
+          </span>
+          . To continue with the upgrade process, click on &quot;Proceed&quot;
         </Text>
 
         <div className="grid grid-flow-col gap-2">
