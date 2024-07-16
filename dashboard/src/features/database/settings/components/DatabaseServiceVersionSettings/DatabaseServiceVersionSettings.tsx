@@ -25,7 +25,7 @@ import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { ApplicationStatus } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -45,6 +45,8 @@ const validationSchema = Yup.object({
 export type DatabaseServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
 >;
+
+type DatabaseServiceField = Required<Yup.InferType<typeof validationSchema>['majorVersion']>;
 
 export default function DatabaseServiceVersionSettings() {
   const isPlatform = useIsPlatform();
@@ -104,13 +106,14 @@ export default function DatabaseServiceVersionSettings() {
 
   const selectedMajor = watch('majorVersion').value;
 
-  console.log('selected major:', selectedMajor);
-
   const currentPostgresMajor = data?.config?.postgres?.version.split('.')[0];
 
-  const getMajorAndMinorVersions = () => {
-    const majorToMinorMap = {};
-    const majorVersions = [];
+  const getMajorAndMinorVersions = (): {
+    availableMajorVersions: DatabaseServiceField[];
+    majorToMinorVersions: Record<string, DatabaseServiceField[]>;
+  } => {
+    const majorToMinorVersions = {};
+    const availableMajorVersions = [];
     availableVersions.forEach((availableVersion) => {
       if (!availableVersion.value) {
         return;
@@ -122,23 +125,23 @@ export default function DatabaseServiceVersionSettings() {
         return;
       }
 
-      majorVersions.push({
+      availableMajorVersions.push({
         label: major,
         value: major,
       });
 
-      if (!majorToMinorMap[major]) {
-        majorToMinorMap[major] = [];
+      if (!majorToMinorVersions[major]) {
+        majorToMinorVersions[major] = [];
       }
 
-      majorToMinorMap[major].push({
+      majorToMinorVersions[major].push({
         label: minor,
         value: minor,
       });
     });
-    return [majorVersions, majorToMinorMap];
+    return { availableMajorVersions, majorToMinorVersions }
   };
-  const [availableMajorVersions, majorToMinorVersions] = useMemo(
+  const {availableMajorVersions, majorToMinorVersions} = useMemo(
     getMajorAndMinorVersions,
     [availableVersions, currentPostgresMajor],
   );
@@ -209,7 +212,7 @@ export default function DatabaseServiceVersionSettings() {
         component: (
           <DatabaseMigrateVersionConfirmationDialog
             postgresVersion={newVersion}
-            onCancel={() => undefined}
+            onCancel={() => {}}
             onProceed={() => refetchVersions()}
           />
         ),
@@ -318,9 +321,9 @@ export default function DatabaseServiceVersionSettings() {
               }}
               isOptionEqualToValue={() => false}
               filterOptions={(options, { inputValue }) => {
-                // if (!isMajorVersionDirty) {
-                //   return options;
-                // }
+                if (!isMajorVersionDirty) {
+                  return options;
+                }
                 const inputValueLower = inputValue.toLowerCase();
                 const matched = [];
                 const otherOptions = [];

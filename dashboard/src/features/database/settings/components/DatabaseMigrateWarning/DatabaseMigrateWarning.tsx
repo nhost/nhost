@@ -8,18 +8,20 @@ export default function DatabaseMigrateWarning() {
 
   return (
     <Alert severity="warning" className="flex flex-col gap-2  text-left">
-      <div className="flex flex-col gap-2 md:flex-row md:justify-between">
+      <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
         <Text className="font-semibold">
           ⚠ Warning: upgrading Postgres major version
         </Text>
+        <div className="flex">
         <Box
           sx={{
             backgroundColor: 'beige.main',
           }}
-          className="py-1/2 flex text-nowrap rounded-full px-4 font-semibold"
+          className="py-1/2 text-nowrap rounded-full px-4 font-semibold"
         >
           Estimated downtime ~{downtimeShort}
         </Box>
+        </div>
       </div>
       <div className="flex flex-col gap-4">
         <Text>
