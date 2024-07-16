@@ -83,7 +83,7 @@ export default function DatabaseMigrateVersionConfirmationDialog({
 
   return (
     <Box className={twMerge('w-full rounded-lg p-6 pt-0 text-left')}>
-      <div className="grid grid-flow-row gap-4">
+      <div className="grid grid-flow-row gap-6">
         <Text>
           The upgrade process will require an{' '}
           <span className="font-semibold">
