@@ -1,16 +1,12 @@
 ---
-title: NhostClientConstructorParams
-sidebarTitle: NhostClientConstructorParams
+title: AuthOptions
+sidebarTitle: AuthOptions
 description: No description provided.
 ---
 
-# `NhostClientConstructorParams`
+# `AuthOptions`
 
 ## Parameters
-
----
-
-**<span className="parameter-name">start</span>** <span className="optional-status">optional</span> <code>boolean</code>
 
 ---
 
@@ -97,17 +93,17 @@ Recommended values:
 
 | Property                                                                                                  | Type                                                                                         | Required | Notes |
 | :-------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- | :------: | :---- |
-| <span className="parameter-name"><span className="light-grey">clientStorage.</span>setItem</span>         | <code>(\_key: string, \_value: string) =&gt; void</code>                                     |          |       |
-| <span className="parameter-name"><span className="light-grey">clientStorage.</span>getItem</span>         | <code>(key: string) =&gt; any</code>                                                         |          |       |
-| <span className="parameter-name"><span className="light-grey">clientStorage.</span>removeItem</span>      | <code>(key: string) =&gt; void</code>                                                        |          |       |
-| <span className="parameter-name"><span className="light-grey">clientStorage.</span>set</span>             | <code>(options: &#123; key: string, value: string &#125;) =&gt; void</code>                  |          |       |
-| <span className="parameter-name"><span className="light-grey">clientStorage.</span>get</span>             | <code>(options: &#123; key: string &#125;) =&gt; any</code>                                  |          |       |
-| <span className="parameter-name"><span className="light-grey">clientStorage.</span>remove</span>          | <code>(options: &#123; key: string &#125;) =&gt; void</code>                                 |          |       |
-| <span className="parameter-name"><span className="light-grey">clientStorage.</span>setItemAsync</span>    | <code>(key: string, value: string) =&gt; void</code>                                         |          |       |
-| <span className="parameter-name"><span className="light-grey">clientStorage.</span>getItemAsync</span>    | <code>(key: string) =&gt; any</code>                                                         |          |       |
-| <span className="parameter-name"><span className="light-grey">clientStorage.</span>deleteItemAsync</span> | <code>(key: string) =&gt; void</code>                                                        |          |       |
-| <span className="parameter-name"><span className="light-grey">clientStorage.</span>customGet</span>       | <code>(key: string) =&gt; null &#124; string &#124; Promise&lt;null &#124; string&gt;</code> |          |       |
 | <span className="parameter-name"><span className="light-grey">clientStorage.</span>customSet</span>       | <code>(key: string, value: null &#124; string) =&gt; void &#124; Promise&lt;void&gt;</code>  |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>customGet</span>       | <code>(key: string) =&gt; null &#124; string &#124; Promise&lt;null &#124; string&gt;</code> |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>deleteItemAsync</span> | <code>(key: string) =&gt; void</code>                                                        |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>getItemAsync</span>    | <code>(key: string) =&gt; any</code>                                                         |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>setItemAsync</span>    | <code>(key: string, value: string) =&gt; void</code>                                         |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>remove</span>          | <code>(options: &#123; key: string &#125;) =&gt; void</code>                                 |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>get</span>             | <code>(options: &#123; key: string &#125;) =&gt; any</code>                                  |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>set</span>             | <code>(options: &#123; key: string, value: string &#125;) =&gt; void</code>                  |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>removeItem</span>      | <code>(key: string) =&gt; void</code>                                                        |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>getItem</span>         | <code>(key: string) =&gt; any</code>                                                         |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>setItem</span>         | <code>(\_key: string, \_value: string) =&gt; void</code>                                     |          |       |
 
 ---
 
@@ -126,42 +122,5 @@ When set to true, will parse the url on startup to check if it contains a refres
 **<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> <code>boolean</code>
 
 Activate devTools e.g. the ability to connect to the xstate inspector
-
----
-
-**<span className="parameter-name">subdomain</span>** <span className="optional-status">optional</span> <code>string</code>
-
-Project subdomain (e.g. `ieingiwnginwnfnegqwvdqwdwq`)
-Use `localhost` during local development
-
----
-
-**<span className="parameter-name">region</span>** <span className="optional-status">optional</span> <code>string</code>
-
-Project region (e.g. `eu-central-1`)
-Project region is not required during local development (when `subdomain` is `localhost`)
-
----
-
-**<span className="parameter-name">authUrl</span>** <span className="optional-status">optional</span> <code>string</code>
-
----
-
-**<span className="parameter-name">graphqlUrl</span>** <span className="optional-status">optional</span> <code>string</code>
-
----
-
-**<span className="parameter-name">storageUrl</span>** <span className="optional-status">optional</span> <code>string</code>
-
----
-
-**<span className="parameter-name">functionsUrl</span>** <span className="optional-status">optional</span> <code>string</code>
-
----
-
-**<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> <code>string</code>
-
-When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
-for all requests to GraphQL, Storage, and Serverless Functions.
 
 ---
