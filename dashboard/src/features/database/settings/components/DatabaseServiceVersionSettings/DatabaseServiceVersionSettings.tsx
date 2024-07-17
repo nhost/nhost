@@ -7,8 +7,8 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ChevronLeftIcon } from '@/components/ui/v2/icons/ChevronLeftIcon';
 import { RepeatIcon } from '@/components/ui/v2/icons/RepeatIcon';
+import { useIsDatabaseMigrating } from '@/features/database/common/hooks/useIsDatabaseMigrating';
 import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
 import { DatabaseMigrateVersionConfirmationDialog } from '@/features/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
 import { DatabaseMigrateWarning } from '@/features/database/settings/components/DatabaseMigrateWarning';
@@ -49,7 +49,9 @@ export type DatabaseServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
-type DatabaseServiceField = Required<Yup.InferType<typeof validationSchema>['majorVersion']>;
+type DatabaseServiceField = Required<
+  Yup.InferType<typeof validationSchema>['majorVersion']
+>;
 
 export default function DatabaseServiceVersionSettings() {
   const isPlatform = useIsPlatform();
@@ -146,9 +148,12 @@ export default function DatabaseServiceVersionSettings() {
         value: minor,
       });
     });
-    return { availableMajorVersions: availableMajorVersions.reverse(), majorToMinorVersions }
+    return {
+      availableMajorVersions: availableMajorVersions.reverse(),
+      majorToMinorVersions,
+    };
   };
-  const {availableMajorVersions, majorToMinorVersions} = useMemo(
+  const { availableMajorVersions, majorToMinorVersions } = useMemo(
     getMajorAndMinorVersions,
     [availableVersions, currentPostgresMajor],
   );
@@ -163,34 +168,7 @@ export default function DatabaseServiceVersionSettings() {
     }
   }, [loading, majorVersion, minorVersion, form]);
 
-  const isVisible = useVisibilityChange();
-
-  const { data: appStatesData, loading: loadingStates } =
-    useGetApplicationStateQuery({
-      variables: { appId: currentProject?.id },
-      skip: !currentProject,
-      pollInterval: 5000,
-      skipPollAttempt: () => !isVisible,
-    });
-
-  const shouldShowUpgradeLogs = (
-    appStates: GetApplicationStateQuery['app']['appStates'],
-  ) => {
-    for (let i = 0; i < appStates.length; i += 1) {
-      if (appStates[i].stateId === ApplicationStatus.Live) {
-        return false;
-      }
-      if (appStates[i].stateId === ApplicationStatus.Migrating) {
-        return true;
-      }
-    }
-
-    return false;
-  };
-
-  const showUpgradeLogs = shouldShowUpgradeLogs(
-    appStatesData?.app?.appStates || [],
-  );
+  const showUpgradeLogs = useIsDatabaseMigrating()
 
   if (loading) {
     return (
@@ -216,6 +194,7 @@ export default function DatabaseServiceVersionSettings() {
   ) => {
     const newVersion = `${formValues.majorVersion.value}.${formValues.minorVersion.value}`;
 
+    // Major version change
     if (isMajorVersionDirty) {
       setFromFilter(new Date());
       openDialog({

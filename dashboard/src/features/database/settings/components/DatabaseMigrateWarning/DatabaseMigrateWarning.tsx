@@ -1,7 +1,7 @@
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
-import { useEstimatedDatabaseMigrationDowntime } from '@/features/projects/common/hooks/useEstimatedDatabaseMigrationDowntime';
+import { useEstimatedDatabaseMigrationDowntime } from '@/features/database/common/hooks/useEstimatedDatabaseMigrationDowntime';
 
 export default function DatabaseMigrateWarning() {
   const { downtimeShort } = useEstimatedDatabaseMigrationDowntime();
