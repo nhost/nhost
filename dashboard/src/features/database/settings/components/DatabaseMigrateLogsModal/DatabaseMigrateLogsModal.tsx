@@ -41,6 +41,16 @@ export default function DatabaseMigrateLogsModal({
           backgroundColor: 'grey.700',
         }}
       >
+        {logs.length === 0 ?
+          <Text
+            className="font-mono"
+            sx={{
+              color: 'grey.100',
+            }}
+            >
+            loading...
+            </Text>
+          : null}
         {logs.map(({ log }) => {
           let logObj: Partial<Log> = {};
           try {

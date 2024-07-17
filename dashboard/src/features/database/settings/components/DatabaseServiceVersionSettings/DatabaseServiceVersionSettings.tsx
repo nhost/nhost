@@ -7,6 +7,8 @@ import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { ChevronLeftIcon } from '@/components/ui/v2/icons/ChevronLeftIcon';
+import { RepeatIcon } from '@/components/ui/v2/icons/RepeatIcon';
 import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
 import { DatabaseMigrateVersionConfirmationDialog } from '@/features/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
 import { DatabaseMigrateWarning } from '@/features/database/settings/components/DatabaseMigrateWarning';
@@ -25,6 +27,7 @@ import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { ApplicationStatus } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useVisibilityChange } from '@uidotdev/usehooks';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -58,6 +61,8 @@ export default function DatabaseServiceVersionSettings() {
     refetchQueries: [GetPostgresSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
+
+  const [fromFilter, setFromFilter] = useState<Date>(null);
 
   const {
     data,
@@ -125,10 +130,12 @@ export default function DatabaseServiceVersionSettings() {
         return;
       }
 
-      availableMajorVersions.push({
-        label: major,
-        value: major,
-      });
+      if (availableMajorVersions.every((item) => item.value !== major)) {
+        availableMajorVersions.push({
+          label: major,
+          value: major,
+        });
+      }
 
       if (!majorToMinorVersions[major]) {
         majorToMinorVersions[major] = [];
@@ -156,11 +163,14 @@ export default function DatabaseServiceVersionSettings() {
     }
   }, [loading, majorVersion, minorVersion, form]);
 
+  const isVisible = useVisibilityChange();
+
   const { data: appStatesData, loading: loadingStates } =
     useGetApplicationStateQuery({
       variables: { appId: currentProject?.id },
       skip: !currentProject,
       pollInterval: 5000,
+      skipPollAttempt: () => !isVisible,
     });
 
   const shouldShowUpgradeLogs = (
@@ -207,6 +217,7 @@ export default function DatabaseServiceVersionSettings() {
     const newVersion = `${formValues.majorVersion.value}.${formValues.minorVersion.value}`;
 
     if (isMajorVersionDirty) {
+      setFromFilter(new Date());
       openDialog({
         title: 'Update Postgres MAJOR version',
         component: (
@@ -266,7 +277,7 @@ export default function DatabaseServiceVersionSettings() {
 
   const openLatestUpgradeLogsModal = async () => {
     openDialog({
-      component: <DatabaseMigrateLogsModal />,
+      component: <DatabaseMigrateLogsModal fromFilter={fromFilter} />,
       props: {
         PaperProps: { className: 'p-0 max-w-2xl w-full' },
         titleProps: {
@@ -300,6 +311,7 @@ export default function DatabaseServiceVersionSettings() {
                 size="medium"
                 className="self-center"
                 onClick={openLatestUpgradeLogsModal}
+                startIcon={<RepeatIcon className="h-4 w-4" />}
               >
                 View latest upgrade logs
               </Button>
