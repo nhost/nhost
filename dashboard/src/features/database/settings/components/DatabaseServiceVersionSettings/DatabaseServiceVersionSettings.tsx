@@ -335,9 +335,17 @@ export default function DatabaseServiceVersionSettings() {
               }}
               onChange={(_event, value) => {
                 if (typeof value !== 'string' && !Array.isArray(value)) {
-                  // Reset minor version when major version changes
                   if (value.value !== selectedMajor) {
-                    form.setValue('minorVersion', { label: '', value: '' });
+                    // If there's only one minor version available, select it
+                    const nextAvailableMinorVersions =
+                      majorToMinorVersions[value.value] || [];
+                    if (nextAvailableMinorVersions.length === 1) {
+                      form.setValue('minorVersion', nextAvailableMinorVersions[0]);
+
+                    // Otherwise, reset the minor version
+                    } else {
+                      form.setValue('minorVersion', { label: '', value: '' });
+                    }
                   }
                   form.setValue('majorVersion', value);
                 }
