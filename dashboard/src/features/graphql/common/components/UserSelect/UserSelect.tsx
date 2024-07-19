@@ -1,7 +1,5 @@
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
+import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
@@ -48,57 +46,54 @@ export default function UserSelect({
     throw error;
   }
 
-  const autocompleteOptions = data?.users.map(
-    ({ id, displayName, email, phoneNumber }) => {
-      return {
-        label: displayName || email || phoneNumber || id,
-        value: id,
-      };
+  const autocompleteOptions = [
+    {
+      value: 'admin',
+      label: 'Admin',
+      group: 'Admin',
     },
-  );
+  ];
+
+  data?.users.forEach((user) => {
+    autocompleteOptions.push({
+      value: user.id,
+      label: user.displayName || user.email || user.phoneNumber || user.id,
+      group: 'Users',
+    });
+  });
 
   return (
-    <ControlledAutocomplete
-      id="user-select"
-      name="user-select"
-      autoHighlight
-      isOptionEqualToValue={() => false}
-      filterOptions={(options, { inputValue }) => {
-        const inputValueLower = inputValue.toLowerCase();
-        const matched = [];
-        const otherOptions = [];
-
-        options.forEach((option) => {
-          const optionLabelLower = option.label.toLowerCase();
-
-          if (optionLabelLower.startsWith(inputValueLower)) {
-            matched.push(option);
-          } else {
-            otherOptions.push(option);
-          }
-        });
-
-        const result = [...matched, ...otherOptions];
-
-        return result;
-      }}
-      fullWidth
-      className="col-span-4"
-      options={autocompleteOptions}
-      showCustomOption="auto"
-      customOptionLabel={(value) => `Make : "${value}"`}
-    />
-  );
-
-  return (
-    <Select
+    <Autocomplete
       {...props}
+      label="Make request as"
       id="user-select"
-      label="Make Request As"
-      hideEmptyHelperText
-      defaultValue="admin"
-      slotProps={{ root: { className: 'truncate' } }}
-      onChange={(_event, userId) => {
+      defaultValue={{
+        value: 'admin',
+        label: 'Admin',
+        group: 'Admin',
+      }}
+      options={autocompleteOptions}
+      groupBy={(option) => option.group}
+      fullWidth
+      disableClearable
+      autoSelect
+      autoHighlight
+      isOptionEqualToValue={(option, value) => {
+        // if (typeof value === 'string') {
+        //   return (
+        //     option.value.toLowerCase() ===
+        //     (value as string).toLowerCase()
+        //   );
+        // }
+
+        // return (
+        //   option.value.toLowerCase() === value.value.toLowerCase()
+        // );
+        //
+        return false;
+      }}
+      onChange={(_event, _value, reason, details) => {
+        const userId = details.option.value;
         if (typeof userId !== 'string') {
           return;
         }
@@ -117,14 +112,42 @@ export default function UserSelect({
 
         onUserChange(user.id, roles);
       }}
-    >
-      <Option value="admin">Admin</Option>
+    />
 
-      {data?.users.map(({ id, displayName, email, phoneNumber }) => (
-        <Option key={id} value={id}>
-          {displayName || email || phoneNumber || id}
-        </Option>
-      ))}
-    </Select>
+    // <Select
+    //   {...props}
+    //   id="user-select"
+    //   label="Make Request As"
+    //   hideEmptyHelperText
+    //   defaultValue="admin"
+    //   slotProps={{ root: { className: 'truncate' } }}
+    //   onChange={(_event, userId) => {
+    //     if (typeof userId !== 'string') {
+    //       return;
+    //     }
+
+    //     if (userId === 'admin') {
+    //       onUserChange('admin', DEFAULT_ROLES);
+
+    //       return;
+    //     }
+
+    //     const user: RemoteAppGetUsersCustomQuery['users'][0] = data?.users.find(
+    //       ({ id }) => id === userId,
+    //     );
+
+    //     const roles = user?.roles.map(({ role }) => role);
+
+    //     onUserChange(user.id, roles);
+    //   }}
+    // >
+    //   <Option value="admin">Admin</Option>
+
+    //   {data?.users.map(({ id, displayName, email, phoneNumber }) => (
+    //     <Option key={id} value={id}>
+    //       {displayName || email || phoneNumber || id}
+    //     </Option>
+    //   ))}
+    // </Select>
   );
 }
