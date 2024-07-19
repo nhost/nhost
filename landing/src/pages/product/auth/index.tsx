@@ -28,12 +28,12 @@ await nhost.auth.signIn({
 })
 `,
   resetPassword: `
-await nhost.auth.resetPassword({ 
+await nhost.auth.resetPassword({
   email: 'joe@example.com'
 })
 `,
   oauthSignIn: `
-await nhost.auth.signIn({ 
+await nhost.auth.signIn({
   provider: 'google'
 })
 `,
@@ -120,7 +120,7 @@ export default function AuthPage() {
               width={1220}
               height={1220}
               alt="Nhost Logo in a dark circle"
-              className="absolute top-11 left-0 right-0 z-0 mx-auto hidden h-auto w-full max-w-[280px] object-none xl:block"
+              className="absolute -top-32 left-0 right-0 z-0 mx-auto hidden h-auto w-full object-none xl:block"
             />
           </div>
         </div>

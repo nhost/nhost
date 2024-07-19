@@ -21,7 +21,7 @@ export default async (req, res) => {
   let transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
-    secure: true, 
+    secure: true,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
@@ -31,8 +31,8 @@ export default async (req, res) => {
   let info = await transporter.sendMail({
     from: '"Fred Foo 👻" <foo@example.com>',
     to: 'bar@example.com, baz@example.com',
-    subject: 'Hello ✔', 
-    text: 'Hello world?', 
+    subject: 'Hello ✔',
+    text: 'Hello world?',
     html: '<b>Hello world?</b>'
   })
 
@@ -50,7 +50,7 @@ export default async (req, res) => {
   \`
 
   const { data } = await nhost.graphql.request(CUSTOMERS)
-    
+
   res.status(200).send({data});
 }`,
   stripe: `import { Request, Response } from 'express'
@@ -199,7 +199,7 @@ export default function FunctionsPage() {
               width={1220}
               height={1220}
               alt="Nhost Logo in a dark circle"
-              className="absolute top-11 left-0 right-0 z-0 mx-auto hidden h-auto w-full max-w-[280px] object-none xl:block"
+              className="absolute -top-32 left-0 right-0 z-0 mx-auto hidden h-auto w-full object-none xl:block"
             />
           </div>
         </div>
