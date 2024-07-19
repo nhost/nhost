@@ -27,8 +27,8 @@ const { presignedUrl, error } = await nhost.storage.getPresignedUrl({
 })
 `,
   transformImage: `
-const publicUrl = nhost.storage.getPublicUrl({ 
-  fileId: 'file-id', 
+const publicUrl = nhost.storage.getPublicUrl({
+  fileId: 'file-id',
   width: 200
 })
 `,
@@ -115,7 +115,7 @@ export default function StoragePage() {
               width={1220}
               height={1220}
               alt="Nhost Logo in a dark circle"
-              className="absolute top-11 left-0 right-0 z-0 mx-auto hidden h-auto w-full max-w-[280px] object-none xl:block"
+              className="absolute -top-32 left-0 right-0 z-0 mx-auto hidden h-auto w-full object-none xl:block"
             />
           </div>
         </div>

@@ -232,7 +232,7 @@ export default function ExamplesSection() {
               width={1220}
               height={1220}
               alt="Nhost Logo in a dark circle"
-              className="absolute -top-11 left-0 right-0 z-0 mx-auto hidden h-auto w-full max-w-[280px] object-none xl:block"
+              className="absolute -top-52 left-0 right-0 z-0 mx-auto hidden h-auto w-full object-none xl:block"
             />
           </div>
         </div>
