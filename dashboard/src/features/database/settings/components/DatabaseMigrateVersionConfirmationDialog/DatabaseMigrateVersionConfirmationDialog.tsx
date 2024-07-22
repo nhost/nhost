@@ -8,7 +8,7 @@ import { useEstimatedDatabaseMigrationDowntime } from '@/features/database/commo
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { useUpdateDatabaseVersionMutation } from '@/utils/__generated__/graphql';
+import { GetPostgresSettingsDocument, useUpdateDatabaseVersionMutation } from '@/utils/__generated__/graphql';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -38,6 +38,7 @@ export default function DatabaseMigrateVersionConfirmationDialog({
   const [loading, setLoading] = useState(false);
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updatePostgresMajor] = useUpdateDatabaseVersionMutation({
+    refetchQueries: [GetPostgresSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 

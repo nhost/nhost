@@ -32,7 +32,7 @@ export default function DatabaseMigrateLogsModal({
   });
 
   const logs = data?.systemLogs ?? [];
-  const sortedLogs = logs.sort((a, b) => new Date(a.timestamp).valueOf() - new Date(b.timestamp).valueOf()); // sort in ascending order
+  const sortedLogs = logs.toSorted((a, b) => new Date(a.timestamp).valueOf() - new Date(b.timestamp).valueOf()); // sort in ascending order
 
   return (
     <Box className="pt-2">

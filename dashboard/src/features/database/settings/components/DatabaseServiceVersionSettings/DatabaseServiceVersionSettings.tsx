@@ -5,6 +5,7 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { RepeatIcon } from '@/components/ui/v2/icons/RepeatIcon';
@@ -12,6 +13,7 @@ import { useIsDatabaseMigrating } from '@/features/database/common/hooks/useIsDa
 import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
 import { DatabaseMigrateVersionConfirmationDialog } from '@/features/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
 import { DatabaseMigrateWarning } from '@/features/database/settings/components/DatabaseMigrateWarning';
+import { useAppState } from '@/features/projects/common/hooks/useAppState';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
@@ -22,6 +24,7 @@ import {
   useUpdateConfigMutation,
 } from '@/generated/graphql';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import { ApplicationStatus } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useMemo, useState } from 'react';
@@ -66,9 +69,9 @@ export default function DatabaseServiceVersionSettings() {
 
   const {
     data,
-    loading,
+    loading: loadingPostgresSettings,
     error,
-    refetch: refetchVersions,
+    refetch,
   } = useGetPostgresSettingsQuery({
     variables: { appId: currentProject?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -92,7 +95,6 @@ export default function DatabaseServiceVersionSettings() {
     new Set(databaseVersions.map((el) => el.version)).add(version),
   )
     .sort()
-    .reverse()
     .map((availableVersion) => ({
       label: availableVersion,
       value: availableVersion,
@@ -108,8 +110,6 @@ export default function DatabaseServiceVersionSettings() {
   });
 
   const { formState, watch } = form;
-  console.log('formstate errors:', formState.errors);
-  console.log('formstate boolean:', !!formState.errors?.minorVersion?.message);
 
   const selectedMajor = watch('majorVersion').value;
 
@@ -149,7 +149,7 @@ export default function DatabaseServiceVersionSettings() {
       });
     });
     return {
-      availableMajorVersions: availableMajorVersions.reverse(),
+      availableMajorVersions,
       majorToMinorVersions,
     };
   };
@@ -160,17 +160,24 @@ export default function DatabaseServiceVersionSettings() {
   const availableMinorVersions = majorToMinorVersions[selectedMajor] || [];
 
   useEffect(() => {
-    if (!loading && majorVersion && minorVersion) {
+    if (!loadingPostgresSettings && majorVersion && minorVersion) {
       form.reset({
         majorVersion: { label: majorVersion, value: majorVersion },
         minorVersion: { label: minorVersion, value: minorVersion },
       });
     }
-  }, [loading, majorVersion, minorVersion, form]);
+  }, [loadingPostgresSettings, majorVersion, minorVersion, form]);
 
   const showUpgradeLogs = useIsDatabaseMigrating();
 
-  if (loading) {
+  const showMigrateWarning =
+    Number(selectedMajor) > Number(currentPostgresMajor);
+
+  const { state } = useAppState();
+  const applicationNotLive = state !== ApplicationStatus.Live;
+  const saveDisabled = applicationNotLive || !formState.isDirty || maintenanceActive;
+
+  if (loadingPostgresSettings) {
     return (
       <ActivityIndicator
         delay={1000}
@@ -186,9 +193,6 @@ export default function DatabaseServiceVersionSettings() {
 
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
 
-  const majorVersionGreaterThanCurrent =
-    Number(form.getValues('majorVersion').value) > Number(currentPostgresMajor);
-
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
   ) => {
@@ -202,8 +206,8 @@ export default function DatabaseServiceVersionSettings() {
         component: (
           <DatabaseMigrateVersionConfirmationDialog
             postgresVersion={newVersion}
-            onCancel={() => {}}
-            onProceed={() => refetchVersions()}
+            onCancel={() => { }}
+            onProceed={() => { }}
           />
         ),
         props: {
@@ -275,7 +279,7 @@ export default function DatabaseServiceVersionSettings() {
           description="The version of Postgres to use."
           slotProps={{
             submitButton: {
-              disabled: !formState.isDirty || maintenanceActive,
+              disabled: saveDisabled,
               loading: formState.isSubmitting,
             },
           }}
@@ -404,7 +408,12 @@ export default function DatabaseServiceVersionSettings() {
               customOptionLabel={(value) => `Use custom value: "${value}"`}
             />
           </Box>
-          {majorVersionGreaterThanCurrent && <DatabaseMigrateWarning />}
+          {showMigrateWarning && <DatabaseMigrateWarning />}
+          {applicationNotLive && (<Alert severity='error'
+            className="text-left"
+          >
+          Error deploying the project most likely due to invalid configuration. A database version upgrade is not possible. Please review your project's configuration and logs for more information.
+            </Alert>)}
         </SettingsContainer>
       </Form>
     </FormProvider>
