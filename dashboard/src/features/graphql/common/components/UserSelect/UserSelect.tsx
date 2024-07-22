@@ -5,6 +5,8 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { RemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
+import debounce from 'lodash.debounce';
+import { SyntheticEvent, useState } from 'react';
 
 export interface UserSelectProps {
   /**
@@ -21,13 +23,31 @@ export default function UserSelect({
   onUserChange,
   ...props
 }: UserSelectProps) {
+  const [inputValue, setInputValue] = useState('');
+  const [queryFilter, setQueryFilter] = useState('');
   const { currentProject } = useCurrentWorkspaceAndProject();
   const userApplicationClient = useRemoteApplicationGQLClient();
+  console.log('inputValue', inputValue);
   const { data, loading, error } = useRemoteAppGetUsersCustomQuery({
     client: userApplicationClient,
-    variables: { where: {}, limit: 250, offset: 0 },
+    variables: {
+      where: {
+        displayName: { _ilike: `%${queryFilter}%` },
+      },
+      limit: 250,
+      offset: 0,
+    },
     skip: !currentProject,
   });
+
+  const debounceQueryFilter = debounce(() => {
+    setQueryFilter(inputValue)
+  }, 1000);
+
+  const handleInputChange = (_event: SyntheticEvent, value: string) => {
+    setInputValue(value);
+    debounceQueryFilter();
+  }
 
   if (loading) {
     return (
@@ -67,13 +87,18 @@ export default function UserSelect({
         label: 'Admin',
         group: 'Admin',
       }}
+      inputValue={inputValue}
+      onInputChange={handleInputChange}
       options={autocompleteOptions}
       groupBy={(option) => option.group}
       fullWidth
       disableClearable
       autoSelect
       autoHighlight
-      isOptionEqualToValue={() => false}
+      isOptionEqualToValue={
+        // (option, _value) => option.value === _value.value
+        () => false
+      }
       onChange={(_event, _value, reason, details) => {
         const userId = details.option.value;
         if (typeof userId !== 'string') {
