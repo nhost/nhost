@@ -65,8 +65,6 @@ test('should create and delete a run service', async () => {
 
   await page.getByRole('button', { name: /confirm/i }).click();
 
-  await page.waitForLoadState('networkidle');
-
   await expect(page.getByRole('dialog')).toBeVisible();
 
   await expect(
