@@ -17,17 +17,13 @@ import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetPostgresSettingsDocument,
   Software_Type_Enum,
-  useGetApplicationStateQuery,
   useGetPostgresSettingsQuery,
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
-  type GetApplicationStateQuery,
 } from '@/generated/graphql';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { ApplicationStatus } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useVisibilityChange } from '@uidotdev/usehooks';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -35,14 +31,16 @@ import * as Yup from 'yup';
 const validationSchema = Yup.object({
   majorVersion: Yup.object({
     label: Yup.string().required(),
-    value: Yup.string().required(),
+    value: Yup.string().required("Major version is a required field"),
   })
-    .label('Postgres Major Version')
+    .label('Postgres major version')
     .required(),
   minorVersion: Yup.object({
     label: Yup.string().required(),
-    value: Yup.string().required(),
-  }),
+    value: Yup.string().required("Minor version is a required field"),
+  })
+    .label('Postgres minor version')
+    .required(),
 });
 
 export type DatabaseServiceVersionFormValues = Yup.InferType<
@@ -110,6 +108,8 @@ export default function DatabaseServiceVersionSettings() {
   });
 
   const { formState, watch } = form;
+  console.log('formstate errors:', formState.errors);
+  console.log('formstate boolean:', !!formState.errors?.minorVersion?.message);
 
   const selectedMajor = watch('majorVersion').value;
 
@@ -168,7 +168,7 @@ export default function DatabaseServiceVersionSettings() {
     }
   }, [loading, majorVersion, minorVersion, form]);
 
-  const showUpgradeLogs = useIsDatabaseMigrating()
+  const showUpgradeLogs = useIsDatabaseMigrating();
 
   if (loading) {
     return (
@@ -340,9 +340,12 @@ export default function DatabaseServiceVersionSettings() {
                     const nextAvailableMinorVersions =
                       majorToMinorVersions[value.value] || [];
                     if (nextAvailableMinorVersions.length === 1) {
-                      form.setValue('minorVersion', nextAvailableMinorVersions[0]);
+                      form.setValue(
+                        'minorVersion',
+                        nextAvailableMinorVersions[0],
+                      );
 
-                    // Otherwise, reset the minor version
+                      // Otherwise, reset the minor version
                     } else {
                       form.setValue('minorVersion', { label: '', value: '' });
                     }
@@ -354,8 +357,8 @@ export default function DatabaseServiceVersionSettings() {
               className="lg:col-span-1"
               label="MAJOR"
               options={availableMajorVersions}
-              error={!!formState.errors?.majorVersion?.message}
-              helperText={formState.errors?.majorVersion?.message}
+              error={!!formState.errors?.majorVersion?.value?.message}
+              helperText={formState.errors?.majorVersion?.value?.message}
               showCustomOption="auto"
               customOptionLabel={(value) => `Use custom value: "${value}"`}
             />
@@ -395,8 +398,8 @@ export default function DatabaseServiceVersionSettings() {
               className="lg:col-span-2"
               label="MINOR"
               options={availableMinorVersions}
-              error={!!formState.errors?.minorVersion?.message}
-              helperText={formState.errors?.minorVersion?.message}
+              error={!!formState.errors?.minorVersion?.value?.message}
+              helperText={formState.errors?.minorVersion?.value?.message}
               showCustomOption="auto"
               customOptionLabel={(value) => `Use custom value: "${value}"`}
             />
