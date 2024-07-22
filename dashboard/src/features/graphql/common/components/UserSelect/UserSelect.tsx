@@ -15,15 +15,10 @@ export interface UserSelectProps {
    * Class name to be applied to the `<Select />` element.
    */
   className?: string;
-  /**
-   * Whether the user select should be disabled.
-   */
-  formError?: boolean;
 }
 
 export default function UserSelect({
   onUserChange,
-  formError,
   ...props
 }: UserSelectProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
@@ -78,20 +73,7 @@ export default function UserSelect({
       disableClearable
       autoSelect
       autoHighlight
-      isOptionEqualToValue={(option, value) => {
-        // if (typeof value === 'string') {
-        //   return (
-        //     option.value.toLowerCase() ===
-        //     (value as string).toLowerCase()
-        //   );
-        // }
-
-        // return (
-        //   option.value.toLowerCase() === value.value.toLowerCase()
-        // );
-        //
-        return false;
-      }}
+      isOptionEqualToValue={() => false}
       onChange={(_event, _value, reason, details) => {
         const userId = details.option.value;
         if (typeof userId !== 'string') {
@@ -113,41 +95,5 @@ export default function UserSelect({
         onUserChange(user.id, roles);
       }}
     />
-
-    // <Select
-    //   {...props}
-    //   id="user-select"
-    //   label="Make Request As"
-    //   hideEmptyHelperText
-    //   defaultValue="admin"
-    //   slotProps={{ root: { className: 'truncate' } }}
-    //   onChange={(_event, userId) => {
-    //     if (typeof userId !== 'string') {
-    //       return;
-    //     }
-
-    //     if (userId === 'admin') {
-    //       onUserChange('admin', DEFAULT_ROLES);
-
-    //       return;
-    //     }
-
-    //     const user: RemoteAppGetUsersCustomQuery['users'][0] = data?.users.find(
-    //       ({ id }) => id === userId,
-    //     );
-
-    //     const roles = user?.roles.map(({ role }) => role);
-
-    //     onUserChange(user.id, roles);
-    //   }}
-    // >
-    //   <Option value="admin">Admin</Option>
-
-    //   {data?.users.map(({ id, displayName, email, phoneNumber }) => (
-    //     <Option key={id} value={id}>
-    //       {displayName || email || phoneNumber || id}
-    //     </Option>
-    //   ))}
-    // </Select>
   );
 }
