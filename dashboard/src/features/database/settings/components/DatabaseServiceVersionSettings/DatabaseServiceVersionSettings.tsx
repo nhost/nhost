@@ -5,11 +5,11 @@ import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { RepeatIcon } from '@/components/ui/v2/icons/RepeatIcon';
 import { useIsDatabaseMigrating } from '@/features/database/common/hooks/useIsDatabaseMigrating';
+import { DatabaseMigrateDisabledError } from '@/features/database/settings/components/DatabaseMigrateDisabledError';
 import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
 import { DatabaseMigrateVersionConfirmationDialog } from '@/features/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
 import { DatabaseMigrateWarning } from '@/features/database/settings/components/DatabaseMigrateWarning';
@@ -34,13 +34,13 @@ import * as Yup from 'yup';
 const validationSchema = Yup.object({
   majorVersion: Yup.object({
     label: Yup.string().required(),
-    value: Yup.string().required("Major version is a required field"),
+    value: Yup.string().required('Major version is a required field'),
   })
     .label('Postgres major version')
     .required(),
   minorVersion: Yup.object({
     label: Yup.string().required(),
-    value: Yup.string().required("Minor version is a required field"),
+    value: Yup.string().required('Minor version is a required field'),
   })
     .label('Postgres minor version')
     .required(),
@@ -168,14 +168,15 @@ export default function DatabaseServiceVersionSettings() {
     }
   }, [loadingPostgresSettings, majorVersion, minorVersion, form]);
 
-  const showUpgradeLogs = useIsDatabaseMigrating();
+  const isDatabaseMigrating = useIsDatabaseMigrating();
 
   const showMigrateWarning =
     Number(selectedMajor) > Number(currentPostgresMajor);
 
   const { state } = useAppState();
   const applicationNotLive = state !== ApplicationStatus.Live;
-  const saveDisabled = applicationNotLive || !formState.isDirty || maintenanceActive;
+  const saveDisabled =
+    applicationNotLive || !formState.isDirty || maintenanceActive;
 
   if (loadingPostgresSettings) {
     return (
@@ -206,8 +207,8 @@ export default function DatabaseServiceVersionSettings() {
         component: (
           <DatabaseMigrateVersionConfirmationDialog
             postgresVersion={newVersion}
-            onCancel={() => { }}
-            onProceed={() => { }}
+            onCancel={() => {}}
+            onProceed={() => {}}
           />
         ),
         props: {
@@ -287,7 +288,7 @@ export default function DatabaseServiceVersionSettings() {
           docsTitle="the latest releases"
           className="flex flex-col"
           topRightElement={
-            showUpgradeLogs ? (
+            isDatabaseMigrating ? (
               <Button
                 variant="outlined"
                 color="primary"
@@ -409,11 +410,9 @@ export default function DatabaseServiceVersionSettings() {
             />
           </Box>
           {showMigrateWarning && <DatabaseMigrateWarning />}
-          {applicationNotLive && (<Alert severity='error'
-            className="text-left"
-          >
-          Error deploying the project most likely due to invalid configuration. A database version upgrade is not possible. Please review your project's configuration and logs for more information.
-            </Alert>)}
+          {applicationNotLive && !isDatabaseMigrating && (
+            <DatabaseMigrateDisabledError />
+          )}
         </SettingsContainer>
       </Form>
     </FormProvider>
