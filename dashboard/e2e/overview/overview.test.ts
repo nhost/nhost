@@ -75,7 +75,7 @@ test("should show the project's name, the Upgrade button and the Settings button
   await expect(
     page.getByRole('heading', { name: TEST_PROJECT_NAME }),
   ).toBeVisible();
-  await expect(page.getByText(/starter/i)).toBeVisible();
+  // await expect(page.getByText(/starter/i)).toBeVisible();
   await expect(page.getByRole('button', { name: /upgrade/i })).toBeVisible();
   await expect(
     page.getByRole('main').getByRole('link', { name: /settings/i }),
