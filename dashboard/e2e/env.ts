@@ -24,9 +24,22 @@ export const TEST_WORKSPACE_SLUG = slugify(TEST_WORKSPACE_NAME, {
 export const TEST_PROJECT_NAME = process.env.NHOST_TEST_PROJECT_NAME;
 
 /**
+ * Name of the pro test project to test against.
+ */
+export const PRO_TEST_PROJECT_NAME = process.env.NHOST_PRO_TEST_PROJECT_NAME;
+
+/**
  * Slugified name of the project to test against.
  */
 export const TEST_PROJECT_SLUG = slugify(TEST_PROJECT_NAME, {
+  lower: true,
+  strict: true,
+});
+
+/**
+ * Slugified name of the pro project to test against.
+ */
+export const PRO_TEST_PROJECT_SLUG = slugify(PRO_TEST_PROJECT_NAME, {
   lower: true,
   strict: true,
 });

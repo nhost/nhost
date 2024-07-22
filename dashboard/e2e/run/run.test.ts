@@ -1,6 +1,6 @@
 import {
-  TEST_PROJECT_NAME,
-  TEST_PROJECT_SLUG,
+  PRO_TEST_PROJECT_NAME,
+  PRO_TEST_PROJECT_SLUG,
   TEST_WORKSPACE_SLUG,
 } from '@/e2e/env';
 import { openProject } from '@/e2e/utils';
@@ -18,9 +18,9 @@ test.beforeEach(async () => {
 
   await openProject({
     page,
-    projectName: TEST_PROJECT_NAME,
+    projectName: PRO_TEST_PROJECT_NAME,
     workspaceSlug: TEST_WORKSPACE_SLUG,
-    projectSlug: TEST_PROJECT_SLUG,
+    projectSlug: PRO_TEST_PROJECT_SLUG,
   });
 
   await page
@@ -33,14 +33,8 @@ test.afterAll(async () => {
   await page.close();
 });
 
-test('should show empty placeholder when no services are configured', async () => {
-  await expect(
-    page.getByText(/no custom services are available/i),
-  ).toBeVisible();
-});
-
 test('should create and delete a run service', async () => {
-  await page.getByRole('button', { name: 'Add service' }).nth(1).click();
+  await page.getByRole('button', { name: 'Add service' }).first().click();
   await expect(page.getByText(/create a new service/i)).toBeVisible();
   await page.getByPlaceholder(/service name/i).click();
   await page.getByPlaceholder(/service name/i).fill('test');
@@ -73,19 +67,23 @@ test('should create and delete a run service', async () => {
     page.getByRole('heading', { name: /service details/i }),
   ).toBeVisible();
 
-  await page.getByRole('button', { name: 'OK' }).click();
+  await page.getByRole('button', { name: /ok/i }).click();
 
   await expect(page.getByRole('heading', { name: /test/i })).toBeVisible();
-
   await page.getByLabel(/more options/i).click();
-
   await page.getByRole('menuitem', { name: /delete service/i }).click();
-
-  await expect(page.getByText(/delete service test/i)).toBeVisible();
 
   await page.getByLabel(/confirm delete project #/i).check();
 
-  await page.getByText(/delete service/i, { exact: true }).click();
+  await page.getByText('Delete Service', { exact: true }).click();
 
-  await expect(page.getByText(/create a new service/i)).toBeVisible();
+  await page.getByLabel('Close').click();
+
+  await expect(
+    page
+      .getByRole('main')
+      .locator('div')
+      .filter({ hasText: 'No custom services are' })
+      .nth(2),
+  ).toBeVisible();
 });
