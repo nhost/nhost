@@ -13,9 +13,7 @@ export default function DatabaseMigrateWarning() {
       <Text sx={{
         color: 'error.main'
       }}>
-        Error deploying the project most likely due to invalid configuration. A
-        database version upgrade is not possible. Please review your project’s
-        configuration and logs for more information.
+        Your project isn&apos;t currently in a healthy state. Please, review before proceeding with the upgrade.
       </Text>
     </Alert>
   );
