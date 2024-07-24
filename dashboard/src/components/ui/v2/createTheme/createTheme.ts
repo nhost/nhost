@@ -8,6 +8,17 @@ import { createTheme as createMuiTheme } from '@mui/material/styles';
  * @param mode - Color mode
  * @returns Material UI theme
  */
+
+declare module '@mui/material/styles' {
+  interface Palette {
+    beige: Palette['primary'];
+  }
+
+  interface PaletteOptions {
+    beige?: PaletteOptions['primary'];
+  }
+}
+
 export default function createTheme(mode: PaletteMode) {
   return createMuiTheme({
     shape: {

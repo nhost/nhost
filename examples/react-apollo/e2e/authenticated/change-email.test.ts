@@ -31,7 +31,8 @@ test('should be able to change email', async ({ page, browser }) => {
     page: mailhogPage,
     email: newEmail,
     context: mailhogPage.context(),
-    linkText: /change email/i
+    linkText: /change email/i,
+    requestType: 'email-confirm-change'
   })
 
   await expect(updatedEmailPage.getByText(/profile page/i)).toBeVisible()

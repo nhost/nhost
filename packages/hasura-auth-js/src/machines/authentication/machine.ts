@@ -697,11 +697,6 @@ export const createAuthMachine = ({
             return false
           }
 
-          // This happens when either the computer goes to sleep or when Chrome descides to suspend the tab
-          if (expiresAt.getTime() < Date.now()) {
-            return true
-          }
-
           if (ctx.refreshTimer.lastAttempt) {
             // * If the refresh timer reached the maximum number of attempts, we should not try again
             if (ctx.refreshTimer.attempts > REFRESH_TOKEN_MAX_ATTEMPTS) {
@@ -711,6 +706,12 @@ export const createAuthMachine = ({
             // * Exponential backoff
             return elapsed > Math.pow(2, ctx.refreshTimer.attempts - 1) * 5_000
           }
+
+          // This happens when either the computer goes to sleep or when Chrome descides to suspend the tab
+          if (expiresAt.getTime() < Date.now()) {
+            return true
+          }
+
           if (refreshIntervalTime) {
             // * If a refreshIntervalTime has been passed on as an option, it will notify
             // * the token should be refershed when this interval is overdue

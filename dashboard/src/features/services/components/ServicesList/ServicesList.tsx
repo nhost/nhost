@@ -66,6 +66,7 @@ export default function ServicesList({
               port: item.port,
               type: item.type as PortTypes,
               publish: item.publish,
+              ingresses: item.ingresses,
             })),
             compute: service.config?.resources?.compute ?? {
               cpu: 62,

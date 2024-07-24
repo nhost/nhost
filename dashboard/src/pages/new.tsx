@@ -301,7 +301,7 @@ export function NewProjectPageContent({
                 const regionInList = regions.find(({ id }) => id === value);
                 setSelectedRegion({
                   id: regionInList.id,
-                  name: regionInList.country.name,
+                  name: regionInList.city,
                   disabled: false,
                   code: regionInList.country.code,
                 });

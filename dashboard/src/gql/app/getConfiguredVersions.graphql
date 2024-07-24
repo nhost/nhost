@@ -1,0 +1,19 @@
+query getConfiguredVersions($appId: uuid!) {
+  config(appID: $appId, resolve: true) {
+    auth {
+      version
+    }
+    postgres {
+      version
+    }
+    hasura {
+      version
+    }
+    ai {
+      version
+    }
+    storage {
+      version
+    }
+  }
+}

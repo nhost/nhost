@@ -1,5 +1,8 @@
 import { ApplicationStatus } from '@/types/application';
-import type { DeploymentRowFragment } from '@/utils/__generated__/graphql';
+import type {
+  ConfigRunServicePort,
+  DeploymentRowFragment,
+} from '@/utils/__generated__/graphql';
 import slugify from 'slugify';
 
 export function getLastLiveDeployment(deployments?: DeploymentRowFragment[]) {
@@ -107,4 +110,23 @@ export const removeTypename = (obj: any) => {
     }
   });
   return newObj;
+};
+
+export const getRunServicePortURL = (
+  subdomain: string,
+  regionName: string,
+  regionDomain: string,
+  port: Partial<ConfigRunServicePort>,
+) => {
+  const { port: servicePort, ingresses } = port;
+
+  const customDomain = ingresses?.[0]?.fqdn?.[0];
+
+  if (customDomain) {
+    return `https://${customDomain}`;
+  }
+
+  const servicePortNumber =
+    Number(servicePort) > 0 ? Number(servicePort) : '[port]';
+  return `https://${subdomain}-${servicePortNumber}.svc.${regionName}.${regionDomain}`;
 };

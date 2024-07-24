@@ -1,0 +1,20 @@
+query getProjectServicesHealth($appId: String!) {
+  getProjectStatus(appID: $appId) {
+    services {
+      name
+      state
+      replicas {
+        ready
+        date
+        errors {
+          name
+          lastError {
+            reason
+            exitCode
+            message
+          }
+        }
+      }
+    }
+  }
+}

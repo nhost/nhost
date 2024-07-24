@@ -1,5 +1,68 @@
 # @nhost/dashboard
 
+## 1.24.1
+
+### Patch Changes
+
+- 49f2e55: fix: use service subdomain in service form and service details dialog
+- 598b988: fix: use current project subdomain in ServiceDetailsDialog component
+
+## 1.24.0
+
+### Minor Changes
+
+- abb24af: chore: add redirect to support page when project is locked
+- 18a6455: feat: show contact us info and locked reason when project is locked
+
+### Patch Changes
+
+- e31eefa: fix: include ingresses field when updating run services
+
+## 1.23.0
+
+### Minor Changes
+
+- 33284d3: fix: don't show double scrollbar in configuration editor
+
+### Patch Changes
+
+- @nhost/react-apollo@12.0.3
+- @nhost/nextjs@2.1.17
+
+## 1.22.0
+
+### Minor Changes
+
+- 998c037: fix: align drop-down list in select component
+- 807b8c0: fix: show city name in region selection for project creation
+
+## 1.21.0
+
+### Minor Changes
+
+- a2efeed: fix: improve project health error handling, add unknown state and polling interval for health state
+
+## 1.20.0
+
+### Minor Changes
+
+- 8ea4210: fix: error toasts can be closed individually, instead of dismissing all toasts at once
+- 58919ba: chore: add blink animation when project health service is updating
+
+## 1.19.0
+
+### Minor Changes
+
+- b519862: fix: get configuration in configuration editor using local development environment
+
+## 1.18.0
+
+### Minor Changes
+
+- 502abad: feat: add services health checks indicators to the overview page
+- b3ff6ad: chore: update title text on service status modal
+- dbadf59: feat: add project configuration TOML editor to the settings page
+
 ## 1.17.0
 
 ### Minor Changes
