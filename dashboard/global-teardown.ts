@@ -35,7 +35,7 @@ async function globalTeardown() {
   const hasuraPage = await pagePromise;
   await hasuraPage.waitForLoadState();
 
-  const adminSecretInput = hasuraPage.getByPlaceholder(/enter admin-secret/i);
+  const adminSecretInput = hasuraPage.getByTestId('password');
 
   // note: a more ideal way would be to paste from clipboard, but Playwright
   // doesn't support that yet
