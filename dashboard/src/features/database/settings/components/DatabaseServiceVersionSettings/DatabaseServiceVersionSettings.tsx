@@ -312,8 +312,8 @@ export default function DatabaseServiceVersionSettings() {
             <ControlledAutocomplete
               id="majorVersion"
               name="majorVersion"
-              autoHighlight
-              freeSolo
+              // autoHighlight
+              // freeSolo
               getOptionLabel={(option) => {
                 if (typeof option === 'string') {
                   return option || '';
@@ -321,26 +321,9 @@ export default function DatabaseServiceVersionSettings() {
 
                 return option.value;
               }}
-              isOptionEqualToValue={() => false}
-              filterOptions={(options, { inputValue }) => {
-                const inputValueLower = inputValue.toLowerCase();
-                const matched = [];
-                const otherOptions = [];
-
-                options.forEach((option) => {
-                  const optionLabelLower = option.label.toLowerCase();
-
-                  if (optionLabelLower.startsWith(inputValueLower)) {
-                    matched.push(option);
-                  } else {
-                    otherOptions.push(option);
-                  }
-                });
-
-                const result = [...matched, ...otherOptions];
-
-                return result;
-              }}
+              // isOptionEqualToValue={() => false}
+              showCustomOption="auto"
+              filterOptions={(options) => options}
               onChange={(_event, value) => {
                 if (typeof value !== 'string' && !Array.isArray(value)) {
                   if (value.value !== selectedMajor) {
@@ -367,7 +350,6 @@ export default function DatabaseServiceVersionSettings() {
               options={availableMajorVersions}
               error={!!formState.errors?.majorVersion?.value?.message}
               helperText={formState.errors?.majorVersion?.value?.message}
-              showCustomOption="auto"
               customOptionLabel={(value) => `Use custom value: "${value}"`}
             />
             <ControlledAutocomplete
