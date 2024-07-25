@@ -3,12 +3,15 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useEstimatedDatabaseMigrationDowntime } from '@/features/database/common/hooks/useEstimatedDatabaseMigrationDowntime';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { GetPostgresSettingsDocument, useUpdateDatabaseVersionMutation } from '@/utils/__generated__/graphql';
+import {
+  GetPostgresSettingsDocument,
+  useUpdateDatabaseVersionMutation,
+} from '@/utils/__generated__/graphql';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 

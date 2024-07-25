@@ -32,7 +32,9 @@ export default function DatabaseMigrateLogsModal({
   });
 
   const logs = data?.systemLogs ?? [];
-  const sortedLogs = logs.toSorted((a, b) => new Date(a.timestamp).valueOf() - new Date(b.timestamp).valueOf()); // sort in ascending order
+  const sortedLogs = logs.toSorted(
+    (a, b) => new Date(a.timestamp).valueOf() - new Date(b.timestamp).valueOf(),
+  ); // sort in ascending order
 
   return (
     <Box className="pt-2">
@@ -42,16 +44,16 @@ export default function DatabaseMigrateLogsModal({
           backgroundColor: 'grey.700',
         }}
       >
-        {logs.length === 0 ?
+        {logs.length === 0 ? (
           <Text
             className="font-mono"
             sx={{
               color: 'grey.100',
             }}
-            >
+          >
             loading...
-            </Text>
-          : null}
+          </Text>
+        ) : null}
         {sortedLogs.map(({ log }) => {
           let logObj: Partial<Log> = {};
           try {

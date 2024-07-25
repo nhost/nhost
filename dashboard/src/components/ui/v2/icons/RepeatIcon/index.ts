@@ -1,1 +1,1 @@
-export { default as RepeatIcon } from './RepeatIcon'
+export { default as RepeatIcon } from './RepeatIcon';

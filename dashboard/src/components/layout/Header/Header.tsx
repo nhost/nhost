@@ -96,7 +96,11 @@ export default function Header({ className, ...props }: HeaderProps) {
           <Chip size="small" label="Updating" color="warning" />
         )}
         {isProjectMigratingDatabase && (
-          <Chip size="small" label="Upgrading Postgres version" color="warning" />
+          <Chip
+            size="small"
+            label="Upgrading Postgres version"
+            color="warning"
+          />
         )}
       </div>
 

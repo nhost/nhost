@@ -13,14 +13,14 @@ export default function DatabaseMigrateWarning() {
           ⚠ Warning: upgrading Postgres major version
         </Text>
         <div className="flex">
-        <Box
-          sx={{
-            backgroundColor: 'beige.main',
-          }}
-          className="py-1/2 flex justify-center items-center text-nowrap rounded-full px-2 font-semibold"
-        >
-          Estimated downtime ~{downtimeShort}
-        </Box>
+          <Box
+            sx={{
+              backgroundColor: 'beige.main',
+            }}
+            className="py-1/2 flex items-center justify-center text-nowrap rounded-full px-2 font-semibold"
+          >
+            Estimated downtime ~{downtimeShort}
+          </Box>
         </div>
       </div>
       <div className="flex flex-col gap-4">

@@ -20,7 +20,6 @@ import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetPostgresSettingsDocument,
   Software_Type_Enum,
-  useGetPostgresSettingsQuery,
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
@@ -68,14 +67,20 @@ export default function DatabaseServiceVersionSettings() {
 
   const [fromFilter, setFromFilter] = useState<Date>(null);
 
+  const {
+    version: postgresVersion,
+    postgresMajor: currentPostgresMajor,
+    postgresMinor: currentPostgresMinor,
+    error: postgresSettingsError,
+    loading: loadingPostgresSettings,
+  } = useGetPostgresVersion();
+
   const { data: databaseVersionsData } = useGetSoftwareVersionsQuery({
     variables: {
       software: Software_Type_Enum.PostgreSql,
     },
     skip: !isPlatform,
   });
-
-  const { version: postgresVersion, postgresMajor: currentPostgresMajor, postgresMinor: currentPostgresMinor, error: postgresSettingsError, loading: loadingPostgresSettings } = useGetPostgresVersion();
 
   const databaseVersions = databaseVersionsData?.softwareVersions || [];
   const availableVersions = Array.from(
@@ -138,6 +143,7 @@ export default function DatabaseServiceVersionSettings() {
       majorToMinorVersions,
     };
   };
+
   const { availableMajorVersions, majorToMinorVersions } = useMemo(
     getMajorAndMinorVersions,
     [availableVersions, currentPostgresMajor],
@@ -145,13 +151,28 @@ export default function DatabaseServiceVersionSettings() {
   const availableMinorVersions = majorToMinorVersions[selectedMajor] || [];
 
   useEffect(() => {
-    if (!loadingPostgresSettings && currentPostgresMajor && currentPostgresMinor) {
+    if (
+      !loadingPostgresSettings &&
+      currentPostgresMajor &&
+      currentPostgresMinor
+    ) {
       form.reset({
-        majorVersion: { label: currentPostgresMajor, value: currentPostgresMajor },
-        minorVersion: { label: currentPostgresMinor, value: currentPostgresMinor},
+        majorVersion: {
+          label: currentPostgresMajor,
+          value: currentPostgresMajor,
+        },
+        minorVersion: {
+          label: currentPostgresMinor,
+          value: currentPostgresMinor,
+        },
       });
     }
-  }, [loadingPostgresSettings, currentPostgresMajor, currentPostgresMinor, form]);
+  }, [
+    loadingPostgresSettings,
+    currentPostgresMajor,
+    currentPostgresMinor,
+    form,
+  ]);
 
   const isDatabaseMigrating = useIsDatabaseMigrating();
 
@@ -162,20 +183,6 @@ export default function DatabaseServiceVersionSettings() {
   const applicationNotLive = state !== ApplicationStatus.Live;
   const saveDisabled =
     applicationNotLive || !formState.isDirty || maintenanceActive;
-
-  if (loadingPostgresSettings) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading Postgres version..."
-        className="justify-center"
-      />
-    );
-  }
-
-  if (postgresSettingsError || ) {
-    throw postgresSettingsError;
-  }
 
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
 
@@ -257,6 +264,20 @@ export default function DatabaseServiceVersionSettings() {
     });
   };
 
+  if (loadingPostgresSettings) {
+    return (
+      <ActivityIndicator
+        delay={1000}
+        label="Loading Postgres version..."
+        className="justify-center"
+      />
+    );
+  }
+
+  if (postgresSettingsError) {
+    throw postgresSettingsError;
+  }
+
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleDatabaseServiceVersionsChange}>
@@ -302,9 +323,6 @@ export default function DatabaseServiceVersionSettings() {
               }}
               isOptionEqualToValue={() => false}
               filterOptions={(options, { inputValue }) => {
-                if (!isMajorVersionDirty) {
-                  return options;
-                }
                 const inputValueLower = inputValue.toLowerCase();
                 const matched = [];
                 const otherOptions = [];
