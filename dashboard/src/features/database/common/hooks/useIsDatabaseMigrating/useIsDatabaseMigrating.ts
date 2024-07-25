@@ -1,11 +1,14 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
-import { useGetApplicationStateQuery, type GetApplicationStateQuery } from '@/generated/graphql';
+import {
+  useGetApplicationStateQuery,
+  type GetApplicationStateQuery,
+} from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
 import { useVisibilityChange } from '@uidotdev/usehooks';
 
 /*
-* This hook returns true if the database is currently migrating.
-*/
+ * This hook returns true if the database is currently migrating or the application is not live after a migration.
+ */
 export default function useIsDatabaseMigrating(): boolean {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
@@ -33,9 +36,5 @@ export default function useIsDatabaseMigrating(): boolean {
     return false;
   };
 
-  console.log(appStatesData?.app?.appStates || [])
-
-  return shouldShowUpgradeLogs(
-    appStatesData?.app?.appStates || [],
-  );
+  return shouldShowUpgradeLogs(appStatesData?.app?.appStates || []);
 }

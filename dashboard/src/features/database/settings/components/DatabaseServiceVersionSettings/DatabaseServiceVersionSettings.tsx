@@ -8,6 +8,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { RepeatIcon } from '@/components/ui/v2/icons/RepeatIcon';
+import { useGetPostgresVersion } from '@/features/database/common/hooks/useGetPostgresVersion';
 import { useIsDatabaseMigrating } from '@/features/database/common/hooks/useIsDatabaseMigrating';
 import { DatabaseMigrateDisabledError } from '@/features/database/settings/components/DatabaseMigrateDisabledError';
 import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
@@ -67,16 +68,6 @@ export default function DatabaseServiceVersionSettings() {
 
   const [fromFilter, setFromFilter] = useState<Date>(null);
 
-  const {
-    data,
-    loading: loadingPostgresSettings,
-    error,
-    refetch,
-  } = useGetPostgresSettingsQuery({
-    variables: { appId: currentProject?.id },
-    ...(!isPlatform ? { client: localMimirClient } : {}),
-  });
-
   const { data: databaseVersionsData } = useGetSoftwareVersionsQuery({
     variables: {
       software: Software_Type_Enum.PostgreSql,
@@ -84,15 +75,11 @@ export default function DatabaseServiceVersionSettings() {
     skip: !isPlatform,
   });
 
-  const { version } = data?.config?.postgres || {};
-  const [majorVersion, minorVersion] = version?.split('.') || [
-    undefined,
-    undefined,
-  ];
+  const { version: postgresVersion, postgresMajor: currentPostgresMajor, postgresMinor: currentPostgresMinor, error: postgresSettingsError, loading: loadingPostgresSettings } = useGetPostgresVersion();
 
   const databaseVersions = databaseVersionsData?.softwareVersions || [];
   const availableVersions = Array.from(
-    new Set(databaseVersions.map((el) => el.version)).add(version),
+    new Set(databaseVersions.map((el) => el.version)).add(postgresVersion),
   )
     .sort()
     .map((availableVersion) => ({
@@ -112,8 +99,6 @@ export default function DatabaseServiceVersionSettings() {
   const { formState, watch } = form;
 
   const selectedMajor = watch('majorVersion').value;
-
-  const currentPostgresMajor = data?.config?.postgres?.version.split('.')[0];
 
   const getMajorAndMinorVersions = (): {
     availableMajorVersions: DatabaseServiceField[];
@@ -160,13 +145,13 @@ export default function DatabaseServiceVersionSettings() {
   const availableMinorVersions = majorToMinorVersions[selectedMajor] || [];
 
   useEffect(() => {
-    if (!loadingPostgresSettings && majorVersion && minorVersion) {
+    if (!loadingPostgresSettings && currentPostgresMajor && currentPostgresMinor) {
       form.reset({
-        majorVersion: { label: majorVersion, value: majorVersion },
-        minorVersion: { label: minorVersion, value: minorVersion },
+        majorVersion: { label: currentPostgresMajor, value: currentPostgresMajor },
+        minorVersion: { label: currentPostgresMinor, value: currentPostgresMinor},
       });
     }
-  }, [loadingPostgresSettings, majorVersion, minorVersion, form]);
+  }, [loadingPostgresSettings, currentPostgresMajor, currentPostgresMinor, form]);
 
   const isDatabaseMigrating = useIsDatabaseMigrating();
 
@@ -188,8 +173,8 @@ export default function DatabaseServiceVersionSettings() {
     );
   }
 
-  if (error) {
-    throw error;
+  if (postgresSettingsError || ) {
+    throw postgresSettingsError;
   }
 
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
