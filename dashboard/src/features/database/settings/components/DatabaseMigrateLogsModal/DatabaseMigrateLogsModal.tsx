@@ -15,7 +15,7 @@ interface Log {
 }
 
 export default function DatabaseMigrateLogsModal({
-  fromFilter,
+  fromFilter = new Date(),
 }: DatabaseMigrateLogsModalProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
@@ -25,7 +25,7 @@ export default function DatabaseMigrateLogsModal({
     variables: {
       appID: currentProject.id,
       action: 'change-database-version',
-      from: fromFilter,
+      from: fromFilter?.valueOf(),
     },
     skipPollAttempt: () => !isVisible,
     pollInterval: 5000,
