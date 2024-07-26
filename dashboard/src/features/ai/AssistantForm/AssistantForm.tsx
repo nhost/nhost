@@ -193,11 +193,6 @@ export default function AssistantForm({
   ) => {
     await execPromiseWithErrorToast(
       async () => {
-        // const fixedValues = {
-        //   ...values,
-        //   buckets: values.buckets.map((bucket) => bucket.value),
-        // };
-
         await createOrUpdateAssistant(values);
         onSubmit?.();
       },
