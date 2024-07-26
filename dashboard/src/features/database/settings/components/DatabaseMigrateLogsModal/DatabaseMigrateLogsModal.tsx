@@ -42,14 +42,16 @@ export default function DatabaseMigrateLogsModal({
       <Box
         className="min-h-80 p-4"
         sx={{
-          backgroundColor: 'grey.700',
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? 'grey.300' : 'grey.700',
         }}
       >
         {sortedLogs.length === 0 ? (
           <Text
             className="font-mono"
             sx={{
-              color: 'grey.100',
+              color: (theme) =>
+                theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
             }}
           >
             loading...
@@ -69,7 +71,8 @@ export default function DatabaseMigrateLogsModal({
                 key={`${logObj.msg}${logObj.time}`}
                 className="font-mono"
                 sx={{
-                  color: 'grey.100',
+                  color: (theme) =>
+                    theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
                 }}
               >
                 {logObj.level.toUpperCase()}: {logObj.msg}
