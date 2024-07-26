@@ -312,18 +312,33 @@ export default function DatabaseServiceVersionSettings() {
             <ControlledAutocomplete
               id="majorVersion"
               name="majorVersion"
-              // autoHighlight
-              // freeSolo
-              getOptionLabel={(option) => {
-                if (typeof option === 'string') {
-                  return option || '';
-                }
+              autoHighlight
+              freeSolo
+              // getOptionLabel={(option) => {
+              //   if (typeof option === 'string') {
+              //     return option || '';
+              //   }
 
-                return option.value;
-              }}
-              // isOptionEqualToValue={() => false}
+              //   return option.value;
+              // }}
               showCustomOption="auto"
-              filterOptions={(options) => options}
+              filterOptions={(options, { inputValue }) => {
+                  const inputValueLower = inputValue.toLowerCase();
+
+                  const exactMatch = options.some(
+                    (option) => option.label.toLowerCase() === inputValueLower,
+                  );
+
+                  // return all options if exact match
+                  if (exactMatch) {
+                    return options;
+                  }
+
+                  // filter options that start with the input value
+                  return options.filter((option) =>
+                    option.label.toLowerCase().startsWith(inputValueLower),
+                  );
+                }}
               onChange={(_event, value) => {
                 if (typeof value !== 'string' && !Array.isArray(value)) {
                   if (value.value !== selectedMajor) {
