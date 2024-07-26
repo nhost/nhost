@@ -314,31 +314,34 @@ export default function DatabaseServiceVersionSettings() {
               name="majorVersion"
               autoHighlight
               freeSolo
-              // getOptionLabel={(option) => {
-              //   if (typeof option === 'string') {
-              //     return option || '';
-              //   }
+              getOptionLabel={(option) => {
+                if (typeof option === 'string') {
+                  return option || '';
+                }
 
-              //   return option.value;
-              // }}
+                return option.value;
+              }}
               showCustomOption="auto"
+              isOptionEqualToValue={() => false}
               filterOptions={(options, { inputValue }) => {
-                  const inputValueLower = inputValue.toLowerCase();
+                const inputValueLower = inputValue.toLowerCase();
+                const matched = [];
+                const otherOptions = [];
 
-                  const exactMatch = options.some(
-                    (option) => option.label.toLowerCase() === inputValueLower,
-                  );
+                options.forEach((option) => {
+                  const optionLabelLower = option.label.toLowerCase();
 
-                  // return all options if exact match
-                  if (exactMatch) {
-                    return options;
+                  if (optionLabelLower.startsWith(inputValueLower)) {
+                    matched.push(option);
+                  } else {
+                    otherOptions.push(option);
                   }
+                });
 
-                  // filter options that start with the input value
-                  return options.filter((option) =>
-                    option.label.toLowerCase().startsWith(inputValueLower),
-                  );
-                }}
+                const result = [...matched, ...otherOptions];
+
+                return result;
+              }}
               onChange={(_event, value) => {
                 if (typeof value !== 'string' && !Array.isArray(value)) {
                   if (value.value !== selectedMajor) {
