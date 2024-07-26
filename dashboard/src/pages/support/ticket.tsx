@@ -225,10 +225,10 @@ function TicketPage() {
                   <ControlledAutocomplete
                     id="services"
                     name="services"
-                    label="services"
+                    label="Services"
                     fullWidth
                     multiple
-                    aria-label="Enabled APIs"
+                    aria-label="Services"
                     options={[
                       'Dashboard',
                       'Database',

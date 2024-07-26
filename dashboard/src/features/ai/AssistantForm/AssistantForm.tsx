@@ -1,4 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -21,7 +23,7 @@ import {
 } from '@/utils/__generated__/graphite.graphql';
 import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -30,7 +32,9 @@ export const validationSchema = Yup.object({
   description: Yup.string(),
   instructions: Yup.string().required('The instructions are required'),
   model: Yup.string().required('The model is required'),
-  bucket: Yup.string(),
+  buckets: Yup.array()
+    .of(Yup.object({ label: Yup.string(), value: Yup.string() }))
+    .label('Buckets'),
   graphql: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required(),
@@ -67,14 +71,14 @@ export type AssistantFormValues = Yup.InferType<typeof validationSchema>;
 
 export interface AssistantFormProps extends DialogFormProps {
   /**
-   * To use in conjunction with initialData to allow for updating the autoEmbeddingsConfiguration
+   * To use in conjunction with initialData to allow for updating the Assistant Configuration
    */
   assistantId?: string;
 
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: AssistantFormValues;
+  initialData?: any;
 
   /**
    * Function to be called when the operation is cancelled.
@@ -105,8 +109,13 @@ export default function AssistantForm({
     client: adminClient,
   });
 
+  const formDefaultValues = { ...initialData };
+  formDefaultValues.buckets = initialData?.buckets
+    ? initialData.buckets.map((b: string) => ({ label: b, value: b }))
+    : [];
+
   const form = useForm<AssistantFormValues>({
-    defaultValues: initialData,
+    defaultValues: formDefaultValues,
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
   });
@@ -123,12 +132,16 @@ export default function AssistantForm({
   }, [isDirty, location, onDirtyStateChange]);
 
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
-
-  const { data: buckets } = useGetBucketsQuery({
+  const { data: allBuckets } = useGetBucketsQuery({
     client: remoteProjectGQLClient,
   });
 
-  const [bucket, setBucket] = useState(initialData?.bucket || '');
+  const bucketOptions = allBuckets
+    ? allBuckets.buckets.map((bucket) => ({
+        label: bucket.id,
+        value: bucket.id,
+      }))
+    : [];
 
   const createOrUpdateAssistant = async (
     values: DeepRequired<AssistantFormValues> & { assistantID: string },
@@ -144,8 +157,10 @@ export default function AssistantForm({
       delete payload.graphql;
     }
 
-    if (values.bucket === '') {
-      delete payload.bucket;
+    if (values.buckets.length === 0) {
+      delete payload.buckets;
+    } else {
+      payload.buckets = values.buckets.map((bucket) => bucket.value);
     }
 
     // remove assistantId because the update mutation fails otherwise
@@ -167,6 +182,7 @@ export default function AssistantForm({
       variables: {
         data: {
           ...values,
+          buckets: values.buckets.map((bucket) => bucket.value),
         },
       },
     });
@@ -177,6 +193,11 @@ export default function AssistantForm({
   ) => {
     await execPromiseWithErrorToast(
       async () => {
+        // const fixedValues = {
+        //   ...values,
+        //   buckets: values.buckets.map((bucket) => bucket.value),
+        // };
+
         await createOrUpdateAssistant(values);
         onSubmit?.();
       },
@@ -298,58 +319,17 @@ export default function AssistantForm({
             autoFocus
           />
 
-          <Input
-            {...register('bucket')}
-            id="bucket"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Bucket</Text>
-                <Tooltip title="Model to use for the assistant.">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
-            placeholder=""
-            hideEmptyHelperText
-            error={!!errors.bucket}
-            helperText={errors?.bucket?.message}
+          <ControlledAutocomplete
+            id="buckets"
+            name="buckets"
+            label="Buckets"
             fullWidth
-            autoComplete="off"
-            autoFocus
+            multiple
+            aria-label="Buckets"
+            options={bucketOptions}
+            error={!!errors.buckets}
+            helperText={errors?.buckets?.message}
           />
-
-          {/* <Select
-            {...register('bucket')}
-            id="bucket"
-            label={
-              <Box className="flex flex-row items-center space-x-2">
-                <Text>Bucket</Text>
-                <Tooltip title="Files in this bucket will be accessible to this assistant.">
-                  <InfoIcon
-                    aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
-                  />
-                </Tooltip>
-              </Box>
-            }
-            slotProps={{
-              popper: { disablePortal: false, className: 'z-[10000]' },
-            }}
-            //value={bucket}
-            //onChange={(_, value) => setBucket(value as string)}
-            fullWidth
-          >
-            {buckets?.buckets.map((b) => (
-              <Option key={b.id} value={b.id}>
-                {b.id}
-              </Option>
-            ))}
-          </Select> */}
 
           <GraphqlDataSourcesFormSection />
           <WebhooksDataSourcesFormSection />
