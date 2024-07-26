@@ -183,10 +183,10 @@ export default function DatabaseServiceVersionSettings() {
 
   const { state } = useAppState();
   const applicationNotLive = state !== ApplicationStatus.Live;
-  const saveDisabled =
-    applicationNotLive || !formState.isDirty || maintenanceActive;
-
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
+  const isMinorVersionDirty = formState?.dirtyFields?.minorVersion;
+  const isDirty = isMajorVersionDirty || isMinorVersionDirty;
+  const saveDisabled = applicationNotLive || !isDirty || maintenanceActive;
 
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
