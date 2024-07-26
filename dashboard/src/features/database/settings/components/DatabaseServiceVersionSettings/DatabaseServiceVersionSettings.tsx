@@ -174,7 +174,9 @@ export default function DatabaseServiceVersionSettings() {
     form,
   ]);
 
-  const isDatabaseMigrating = useIsDatabaseMigrating();
+  const isDatabaseMigrating = useIsDatabaseMigrating({
+    shouldPoll: true,
+  });
 
   const showMigrateWarning =
     Number(selectedMajor) > Number(currentPostgresMajor);
