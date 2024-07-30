@@ -159,7 +159,8 @@
         "guides/auth/sign-in-webauthn",
         "guides/auth/elevated-permissions",
         "guides/auth/email-templates",
-        "guides/auth/custom-jwts"
+        "guides/auth/custom-jwts",
+        "guides/auth/rate-limits"
       ]
     },
     {
