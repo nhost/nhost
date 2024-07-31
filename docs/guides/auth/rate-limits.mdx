@@ -11,11 +11,11 @@ Limits work by setting a maximum number of requests (burst amount) allowed for a
 
 | Endpoints             | Key | Limits | Description | Minimum version |
 | ----------------------|-----|--------|-------------|-----------------|
-| Any that sends emails<sup>1</sup> | Global | 10 / hour | Not configurable. This limit applies to any project without custom SMTP settings  | 0.33.0 |
+| Any that sends emails<sup>1</sup> | Global | 50 / hour | Not configurable. This limit applies to any project without custom SMTP settings  | 0.33.0 |
 | Any that sends emails<sup>1</sup> | Client IP | 10 / hour | Configurable. This limit applies to any project with custom SMTP settings and is configurable  | 0.33.0 |
 | Any that sends SMS<sup>2</sup> | Client IP | 10 / hour | Configurable. | 0.33.0 |
 | Any endpoint that an attacker may try to brute-force. This includes sign-in and verify endpoints<sup>3</sup> | Client IP | 10 / 5 minutes | Configurable | 0.33.0 |
-| Signup endpoints | Client IP | 10 / 5 minutes | Configurable | 0.33.0 |
+| Signup endpoints<sup>4</sup> | Client IP | 10 / 5 minutes | Configurable | 0.33.0 |
 | Any | Client IP | 100 / minute | The total sum of requests to any endpoint (including previous ones) can not exceed this limit | 0.33.0 |
 
 <Note>
@@ -36,3 +36,6 @@ Limits are grouped within a given category. For instance, with a limit of 10 per
 <sup>3</sup> Paths included:
 - `/signin/*`
 - `*/verify`
+
+<sup>4</sup> Paths included:
+- `/signup/*`
