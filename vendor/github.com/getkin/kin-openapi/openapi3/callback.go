@@ -8,7 +8,7 @@ import (
 // Callback is specified by OpenAPI/Swagger standard version 3.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#callback-object
 type Callback struct {
-	Extensions map[string]interface{} `json:"-" yaml:"-"`
+	Extensions map[string]any `json:"-" yaml:"-"`
 
 	m map[string]*PathItem
 }

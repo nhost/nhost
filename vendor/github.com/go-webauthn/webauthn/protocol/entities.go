@@ -14,16 +14,6 @@ type CredentialEntity struct {
 	// intended only for display, i.e., aiding the user in determining the difference between user accounts with similar
 	// displayNames. For example, "alexm", "alex.p.mueller@example.com" or "+14255551234".
 	Name string `json:"name"`
-
-	// A serialized URL which resolves to an image associated with the entity. For example,
-	// this could be a user’s avatar or a Relying Party's logo. This URL MUST be an a priori
-	// authenticated URL. Authenticators MUST accept and store a 128-byte minimum length for
-	// an icon member’s value. Authenticators MAY ignore an icon member’s value if its length
-	// is greater than 128 bytes. The URL’s scheme MAY be "data" to avoid fetches of the URL,
-	// at the cost of needing more storage.
-	//
-	// Deprecated: this has been removed from the specification recommendations.
-	Icon string `json:"icon,omitempty"`
 }
 
 // The RelyingPartyEntity represents the PublicKeyCredentialRpEntity IDL and is used to supply additional Relying Party
@@ -32,6 +22,7 @@ type CredentialEntity struct {
 // Specification: §5.4.2. Relying Party Parameters for Credential Generation (https://www.w3.org/TR/webauthn/#dictionary-rp-credential-params)
 type RelyingPartyEntity struct {
 	CredentialEntity
+
 	// A unique identifier for the Relying Party entity, which sets the RP ID.
 	ID string `json:"id"`
 }
@@ -51,5 +42,5 @@ type UserEntity struct {
 	// authentication and authorization decisions MUST be made on the basis of this id
 	// member, not the displayName nor name members. See Section 6.1 of
 	// [RFC8266](https://www.w3.org/TR/webauthn/#biblio-rfc8266).
-	ID interface{} `json:"id"`
+	ID any `json:"id"`
 }

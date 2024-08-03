@@ -162,7 +162,7 @@ func ValidateResponse(ctx context.Context, input *ResponseValidationInput) error
 
 func validateResponseHeader(headerName string, headerRef *openapi3.HeaderRef, input *ResponseValidationInput, opts []openapi3.SchemaValidationOption) error {
 	var err error
-	var decodedValue interface{}
+	var decodedValue any
 	var found bool
 	var sm *openapi3.SerializationMethod
 	dec := &headerParamDecoder{header: input.Header}

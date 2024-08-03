@@ -135,6 +135,11 @@ const (
 	// BLE indicates the respective authenticator can be contacted over Bluetooth Smart (Bluetooth Low Energy / BLE).
 	BLE AuthenticatorTransport = "ble"
 
+	// SmartCard indicates the respective authenticator can be contacted over ISO/IEC 7816 smart card with contacts.
+	//
+	// WebAuthn Level 3.
+	SmartCard AuthenticatorTransport = "smart-card"
+
 	// Hybrid indicates the respective authenticator can be contacted using a combination of (often separate)
 	// data-transport and proximity mechanisms. This supports, for example, authentication on a desktop computer using
 	// a smartphone.
@@ -322,7 +327,7 @@ func (a *AuthenticatorData) unmarshalAttestedData(rawAuthData []byte) (err error
 
 // Unmarshall the credential's Public Key into CBOR encoding.
 func unmarshalCredentialPublicKey(keyBytes []byte) (rawBytes []byte, err error) {
-	var m interface{}
+	var m any
 
 	if err = webauthncbor.Unmarshal(keyBytes, &m); err != nil {
 		return nil, err
@@ -346,11 +351,6 @@ func ResidentKeyRequired() *bool {
 func ResidentKeyNotRequired() *bool {
 	required := false
 	return &required
-}
-
-// Deprecated: ResidentKeyUnrequired is an alias for ResidentKeyNotRequired and will be completely removed in the future.
-func ResidentKeyUnrequired() *bool {
-	return ResidentKeyNotRequired()
 }
 
 // Verify on AuthenticatorData handles Steps 9 through 12 for Registration

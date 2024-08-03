@@ -9,7 +9,7 @@ import (
 // Info is specified by OpenAPI/Swagger standard version 3.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#info-object
 type Info struct {
-	Extensions map[string]interface{} `json:"-" yaml:"-"`
+	Extensions map[string]any `json:"-" yaml:"-"`
 
 	Title          string   `json:"title" yaml:"title"` // Required
 	Description    string   `json:"description,omitempty" yaml:"description,omitempty"`
@@ -21,7 +21,19 @@ type Info struct {
 
 // MarshalJSON returns the JSON encoding of Info.
 func (info Info) MarshalJSON() ([]byte, error) {
-	m := make(map[string]interface{}, 6+len(info.Extensions))
+	x, err := info.MarshalYAML()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(x)
+}
+
+// MarshalYAML returns the YAML encoding of Info.
+func (info *Info) MarshalYAML() (any, error) {
+	if info == nil {
+		return nil, nil
+	}
+	m := make(map[string]any, 6+len(info.Extensions))
 	for k, v := range info.Extensions {
 		m[k] = v
 	}
@@ -39,7 +51,7 @@ func (info Info) MarshalJSON() ([]byte, error) {
 		m["license"] = x
 	}
 	m["version"] = info.Version
-	return json.Marshal(m)
+	return m, nil
 }
 
 // UnmarshalJSON sets Info to a copy of data.

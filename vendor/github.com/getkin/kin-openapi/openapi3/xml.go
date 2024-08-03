@@ -8,7 +8,7 @@ import (
 // XML is specified by OpenAPI/Swagger standard version 3.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#xml-object
 type XML struct {
-	Extensions map[string]interface{} `json:"-" yaml:"-"`
+	Extensions map[string]any `json:"-" yaml:"-"`
 
 	Name      string `json:"name,omitempty" yaml:"name,omitempty"`
 	Namespace string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
@@ -19,7 +19,16 @@ type XML struct {
 
 // MarshalJSON returns the JSON encoding of XML.
 func (xml XML) MarshalJSON() ([]byte, error) {
-	m := make(map[string]interface{}, 5+len(xml.Extensions))
+	x, err := xml.MarshalYAML()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(x)
+}
+
+// MarshalYAML returns the YAML encoding of XML.
+func (xml XML) MarshalYAML() (any, error) {
+	m := make(map[string]any, 5+len(xml.Extensions))
 	for k, v := range xml.Extensions {
 		m[k] = v
 	}
@@ -38,7 +47,7 @@ func (xml XML) MarshalJSON() ([]byte, error) {
 	if x := xml.Wrapped; x {
 		m["wrapped"] = x
 	}
-	return json.Marshal(m)
+	return m, nil
 }
 
 // UnmarshalJSON sets XML to a copy of data.

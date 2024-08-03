@@ -20,6 +20,8 @@ type CollectedClientData struct {
 	Type         CeremonyType  `json:"type"`
 	Challenge    string        `json:"challenge"`
 	Origin       string        `json:"origin"`
+	TopOrigin    string        `json:"topOrigin,omitempty"`
+	CrossOrigin  bool          `json:"crossOrigin,omitempty"`
 	TokenBinding *TokenBinding `json:"tokenBinding,omitempty"`
 
 	// Chromium (Chrome) returns a hint sometimes about how to handle clientDataJSON in a safe manner.
@@ -77,7 +79,10 @@ func FullyQualifiedOrigin(rawOrigin string) (fqOrigin string, err error) {
 // new credential and steps 7 through 10 of verifying an authentication assertion
 // See https://www.w3.org/TR/webauthn/#registering-a-new-credential
 // and https://www.w3.org/TR/webauthn/#verifying-assertion
-func (c *CollectedClientData) Verify(storedChallenge string, ceremony CeremonyType, rpOrigins []string) error {
+//
+// Note: the rpTopOriginsVerify parameter does not accept the TopOriginVerificationMode value of
+// TopOriginDefaultVerificationMode as it's expected this value is updated by the config validation process.
+func (c *CollectedClientData) Verify(storedChallenge string, ceremony CeremonyType, rpOrigins, rpTopOrigins []string, rpTopOriginsVerify TopOriginVerificationMode) (err error) {
 	// Registration Step 3. Verify that the value of C.type is webauthn.create.
 
 	// Assertion Step 7. Verify that the value of C.type is the string webauthn.get.
@@ -101,8 +106,9 @@ func (c *CollectedClientData) Verify(storedChallenge string, ceremony CeremonyTy
 
 	// Registration Step 5 & Assertion Step 9. Verify that the value of C.origin matches
 	// the Relying Party's origin.
-	fqOrigin, err := FullyQualifiedOrigin(c.Origin)
-	if err != nil {
+	var fqOrigin string
+
+	if fqOrigin, err = FullyQualifiedOrigin(c.Origin); err != nil {
 		return ErrParsingData.WithDetails("Error decoding clientData origin as URL")
 	}
 
@@ -119,6 +125,54 @@ func (c *CollectedClientData) Verify(storedChallenge string, ceremony CeremonyTy
 		return ErrVerification.
 			WithDetails("Error validating origin").
 			WithInfo(fmt.Sprintf("Expected Values: %s, Received: %s", rpOrigins, fqOrigin))
+	}
+
+	if rpTopOriginsVerify != TopOriginIgnoreVerificationMode {
+		switch len(c.TopOrigin) {
+		case 0:
+			break
+		default:
+			if !c.CrossOrigin {
+				return ErrVerification.
+					WithDetails("Error validating topOrigin").
+					WithInfo("The topOrigin can't have values unless crossOrigin is true.")
+			}
+
+			var (
+				fqTopOrigin        string
+				possibleTopOrigins []string
+			)
+
+			if fqTopOrigin, err = FullyQualifiedOrigin(c.TopOrigin); err != nil {
+				return ErrParsingData.WithDetails("Error decoding clientData topOrigin as URL")
+			}
+
+			switch rpTopOriginsVerify {
+			case TopOriginExplicitVerificationMode:
+				possibleTopOrigins = rpTopOrigins
+			case TopOriginAutoVerificationMode:
+				possibleTopOrigins = append(rpTopOrigins, rpOrigins...)
+			case TopOriginImplicitVerificationMode:
+				possibleTopOrigins = rpOrigins
+			default:
+				return ErrNotImplemented.WithDetails("Error handling unknown Top Origin verification mode")
+			}
+
+			found = false
+
+			for _, origin := range possibleTopOrigins {
+				if strings.EqualFold(fqTopOrigin, origin) {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				return ErrVerification.
+					WithDetails("Error validating top origin").
+					WithInfo(fmt.Sprintf("Expected Values: %s, Received: %s", possibleTopOrigins, fqTopOrigin))
+			}
+		}
 	}
 
 	// Registration Step 6 and Assertion Step 10. Verify that the value of C.tokenBinding.status
@@ -140,3 +194,28 @@ func (c *CollectedClientData) Verify(storedChallenge string, ceremony CeremonyTy
 
 	return nil
 }
+
+type TopOriginVerificationMode int
+
+const (
+	// TopOriginDefaultVerificationMode represents the default verification mode for the Top Origin. At this time this
+	// mode is the same as TopOriginIgnoreVerificationMode until such a time as the specification becomes stable. This
+	// value is intended as a fallback value and implementers should very intentionally pick another option if they want
+	// stability.
+	TopOriginDefaultVerificationMode TopOriginVerificationMode = iota
+
+	// TopOriginIgnoreVerificationMode ignores verification entirely.
+	TopOriginIgnoreVerificationMode
+
+	// TopOriginAutoVerificationMode represents the automatic verification mode for the Top Origin. In this mode the
+	// If the Top Origins parameter has values it checks against this, otherwise it checks against the Origins parameter.
+	TopOriginAutoVerificationMode
+
+	// TopOriginImplicitVerificationMode represents the implicit verification mode for the Top Origin. In this mode the
+	// Top Origin is verified against the allowed Origins values.
+	TopOriginImplicitVerificationMode
+
+	// TopOriginExplicitVerificationMode represents the explicit verification mode for the Top Origin. In this mode the
+	// Top Origin is verified against the allowed Top Origins values.
+	TopOriginExplicitVerificationMode
+)

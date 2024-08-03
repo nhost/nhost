@@ -10,7 +10,7 @@ import (
 // Encoding is specified by OpenAPI/Swagger 3.0 standard.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#encoding-object
 type Encoding struct {
-	Extensions map[string]interface{} `json:"-" yaml:"-"`
+	Extensions map[string]any `json:"-" yaml:"-"`
 
 	ContentType   string  `json:"contentType,omitempty" yaml:"contentType,omitempty"`
 	Headers       Headers `json:"headers,omitempty" yaml:"headers,omitempty"`
@@ -41,7 +41,16 @@ func (encoding *Encoding) WithHeaderRef(name string, ref *HeaderRef) *Encoding {
 
 // MarshalJSON returns the JSON encoding of Encoding.
 func (encoding Encoding) MarshalJSON() ([]byte, error) {
-	m := make(map[string]interface{}, 5+len(encoding.Extensions))
+	x, err := encoding.MarshalYAML()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(x)
+}
+
+// MarshalYAML returns the YAML encoding of Encoding.
+func (encoding Encoding) MarshalYAML() (any, error) {
+	m := make(map[string]any, 5+len(encoding.Extensions))
 	for k, v := range encoding.Extensions {
 		m[k] = v
 	}
@@ -60,7 +69,7 @@ func (encoding Encoding) MarshalJSON() ([]byte, error) {
 	if x := encoding.AllowReserved; x {
 		m["allowReserved"] = x
 	}
-	return json.Marshal(m)
+	return m, nil
 }
 
 // UnmarshalJSON sets Encoding to a copy of data.

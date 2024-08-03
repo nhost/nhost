@@ -17,7 +17,7 @@ import (
 // If a query parameter appears multiple times, values[] will have more
 // than one  value, but for all other parameter types it should have just
 // one.
-type ContentParameterDecoder func(param *openapi3.Parameter, values []string) (interface{}, *openapi3.Schema, error)
+type ContentParameterDecoder func(param *openapi3.Parameter, values []string) (any, *openapi3.Schema, error)
 
 type RequestValidationInput struct {
 	Request      *http.Request

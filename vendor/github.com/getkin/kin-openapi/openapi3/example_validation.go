@@ -2,7 +2,7 @@ package openapi3
 
 import "context"
 
-func validateExampleValue(ctx context.Context, input interface{}, schema *Schema) error {
+func validateExampleValue(ctx context.Context, input any, schema *Schema) error {
 	opts := make([]SchemaValidationOption, 0, 2)
 
 	if vo := getValidationOptions(ctx); vo.examplesValidationAsReq {

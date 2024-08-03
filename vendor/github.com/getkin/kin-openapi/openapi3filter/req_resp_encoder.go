@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-func encodeBody(body interface{}, mediaType string) ([]byte, error) {
+func encodeBody(body any, mediaType string) ([]byte, error) {
 	if encoder := RegisteredBodyEncoder(mediaType); encoder != nil {
 		return encoder(body)
 	}
@@ -17,7 +17,7 @@ func encodeBody(body interface{}, mediaType string) ([]byte, error) {
 }
 
 // BodyEncoder really is an (encoding/json).Marshaler
-type BodyEncoder func(body interface{}) ([]byte, error)
+type BodyEncoder func(body any) ([]byte, error)
 
 var bodyEncodersM sync.RWMutex
 var bodyEncoders = map[string]BodyEncoder{

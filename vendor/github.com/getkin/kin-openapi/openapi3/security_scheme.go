@@ -11,7 +11,7 @@ import (
 // SecurityScheme is specified by OpenAPI/Swagger standard version 3.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#security-scheme-object
 type SecurityScheme struct {
-	Extensions map[string]interface{} `json:"-" yaml:"-"`
+	Extensions map[string]any `json:"-" yaml:"-"`
 
 	Type             string      `json:"type,omitempty" yaml:"type,omitempty"`
 	Description      string      `json:"description,omitempty" yaml:"description,omitempty"`
@@ -52,7 +52,16 @@ func NewJWTSecurityScheme() *SecurityScheme {
 
 // MarshalJSON returns the JSON encoding of SecurityScheme.
 func (ss SecurityScheme) MarshalJSON() ([]byte, error) {
-	m := make(map[string]interface{}, 8+len(ss.Extensions))
+	x, err := ss.MarshalYAML()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(x)
+}
+
+// MarshalYAML returns the YAML encoding of SecurityScheme.
+func (ss SecurityScheme) MarshalYAML() (any, error) {
+	m := make(map[string]any, 8+len(ss.Extensions))
 	for k, v := range ss.Extensions {
 		m[k] = v
 	}
@@ -80,7 +89,7 @@ func (ss SecurityScheme) MarshalJSON() ([]byte, error) {
 	if x := ss.OpenIdConnectUrl; x != "" {
 		m["openIdConnectUrl"] = x
 	}
-	return json.Marshal(m)
+	return m, nil
 }
 
 // UnmarshalJSON sets SecurityScheme to a copy of data.
@@ -206,7 +215,7 @@ func (ss *SecurityScheme) Validate(ctx context.Context, opts ...ValidationOption
 // OAuthFlows is specified by OpenAPI/Swagger standard version 3.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#oauth-flows-object
 type OAuthFlows struct {
-	Extensions map[string]interface{} `json:"-" yaml:"-"`
+	Extensions map[string]any `json:"-" yaml:"-"`
 
 	Implicit          *OAuthFlow `json:"implicit,omitempty" yaml:"implicit,omitempty"`
 	Password          *OAuthFlow `json:"password,omitempty" yaml:"password,omitempty"`
@@ -225,7 +234,16 @@ const (
 
 // MarshalJSON returns the JSON encoding of OAuthFlows.
 func (flows OAuthFlows) MarshalJSON() ([]byte, error) {
-	m := make(map[string]interface{}, 4+len(flows.Extensions))
+	x, err := flows.MarshalYAML()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(x)
+}
+
+// MarshalYAML returns the YAML encoding of OAuthFlows.
+func (flows OAuthFlows) MarshalYAML() (any, error) {
+	m := make(map[string]any, 4+len(flows.Extensions))
 	for k, v := range flows.Extensions {
 		m[k] = v
 	}
@@ -241,7 +259,7 @@ func (flows OAuthFlows) MarshalJSON() ([]byte, error) {
 	if x := flows.AuthorizationCode; x != nil {
 		m["authorizationCode"] = x
 	}
-	return json.Marshal(m)
+	return m, nil
 }
 
 // UnmarshalJSON sets OAuthFlows to a copy of data.
@@ -297,7 +315,7 @@ func (flows *OAuthFlows) Validate(ctx context.Context, opts ...ValidationOption)
 // OAuthFlow is specified by OpenAPI/Swagger standard version 3.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#oauth-flow-object
 type OAuthFlow struct {
-	Extensions map[string]interface{} `json:"-" yaml:"-"`
+	Extensions map[string]any `json:"-" yaml:"-"`
 
 	AuthorizationURL string            `json:"authorizationUrl,omitempty" yaml:"authorizationUrl,omitempty"`
 	TokenURL         string            `json:"tokenUrl,omitempty" yaml:"tokenUrl,omitempty"`
@@ -307,7 +325,16 @@ type OAuthFlow struct {
 
 // MarshalJSON returns the JSON encoding of OAuthFlow.
 func (flow OAuthFlow) MarshalJSON() ([]byte, error) {
-	m := make(map[string]interface{}, 4+len(flow.Extensions))
+	x, err := flow.MarshalYAML()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(x)
+}
+
+// MarshalYAML returns the YAML encoding of OAuthFlow.
+func (flow OAuthFlow) MarshalYAML() (any, error) {
+	m := make(map[string]any, 4+len(flow.Extensions))
 	for k, v := range flow.Extensions {
 		m[k] = v
 	}
@@ -321,7 +348,7 @@ func (flow OAuthFlow) MarshalJSON() ([]byte, error) {
 		m["refreshUrl"] = x
 	}
 	m["scopes"] = flow.Scopes
-	return json.Marshal(m)
+	return m, nil
 }
 
 // UnmarshalJSON sets OAuthFlow to a copy of data.

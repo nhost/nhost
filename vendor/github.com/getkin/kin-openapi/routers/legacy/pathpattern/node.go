@@ -55,7 +55,7 @@ func PathFromHost(host string, specialDashes bool) string {
 
 type Node struct {
 	VariableNames []string
-	Value         interface{}
+	Value         any
 	Suffixes      SuffixList
 }
 
@@ -153,7 +153,7 @@ func (list SuffixList) Swap(i, j int) {
 	list[i], list[j] = b, a
 }
 
-func (currentNode *Node) MustAdd(path string, value interface{}, options *Options) {
+func (currentNode *Node) MustAdd(path string, value any, options *Options) {
 	node, err := currentNode.CreateNode(path, options)
 	if err != nil {
 		panic(err)
@@ -161,7 +161,7 @@ func (currentNode *Node) MustAdd(path string, value interface{}, options *Option
 	node.Value = value
 }
 
-func (currentNode *Node) Add(path string, value interface{}, options *Options) error {
+func (currentNode *Node) Add(path string, value any, options *Options) error {
 	node, err := currentNode.CreateNode(path, options)
 	if err != nil {
 		return err

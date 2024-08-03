@@ -14,10 +14,8 @@ import (
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 )
 
-var appleAttestationKey = "apple"
-
 func init() {
-	RegisterAttestationFormat(appleAttestationKey, verifyAppleFormat)
+	RegisterAttestationFormat(AttestationFormatApple, verifyAppleFormat)
 }
 
 // The apple attestation statement looks like:
@@ -33,12 +31,12 @@ func init() {
 //	  }
 //
 // Specification: §8.8. Apple Anonymous Attestation Statement Format (https://www.w3.org/TR/webauthn/#sctn-apple-anonymous-attestation)
-func verifyAppleFormat(att AttestationObject, clientDataHash []byte) (string, []interface{}, error) {
+func verifyAppleFormat(att AttestationObject, clientDataHash []byte, _ metadata.Provider) (string, []any, error) {
 	// Step 1. Verify that attStmt is valid CBOR conforming to the syntax defined
 	// above and perform CBOR decoding on it to extract the contained fields.
 
 	// If x5c is not present, return an error
-	x5c, x509present := att.AttStatement["x5c"].([]interface{})
+	x5c, x509present := att.AttStatement[stmtX5C].([]any)
 	if !x509present {
 		// Handle Basic Attestation steps for the x509 Certificate
 		return "", nil, ErrAttestationFormat.WithDetails("Error retrieving x5c value")

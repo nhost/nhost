@@ -11,7 +11,7 @@ import (
 // PathItem is specified by OpenAPI/Swagger standard version 3.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#path-item-object
 type PathItem struct {
-	Extensions map[string]interface{} `json:"-" yaml:"-"`
+	Extensions map[string]any `json:"-" yaml:"-"`
 
 	Ref         string     `json:"$ref,omitempty" yaml:"$ref,omitempty"`
 	Summary     string     `json:"summary,omitempty" yaml:"summary,omitempty"`
@@ -31,11 +31,20 @@ type PathItem struct {
 
 // MarshalJSON returns the JSON encoding of PathItem.
 func (pathItem PathItem) MarshalJSON() ([]byte, error) {
+	x, err := pathItem.MarshalYAML()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(x)
+}
+
+// MarshalYAML returns the YAML encoding of PathItem.
+func (pathItem PathItem) MarshalYAML() (any, error) {
 	if ref := pathItem.Ref; ref != "" {
-		return json.Marshal(Ref{Ref: ref})
+		return Ref{Ref: ref}, nil
 	}
 
-	m := make(map[string]interface{}, 13+len(pathItem.Extensions))
+	m := make(map[string]any, 13+len(pathItem.Extensions))
 	for k, v := range pathItem.Extensions {
 		m[k] = v
 	}
@@ -78,7 +87,7 @@ func (pathItem PathItem) MarshalJSON() ([]byte, error) {
 	if x := pathItem.Parameters; len(x) != 0 {
 		m["parameters"] = x
 	}
-	return json.Marshal(m)
+	return m, nil
 }
 
 // UnmarshalJSON sets PathItem to a copy of data.

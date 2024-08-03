@@ -8,7 +8,7 @@ import (
 // Contact is specified by OpenAPI/Swagger standard version 3.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#contact-object
 type Contact struct {
-	Extensions map[string]interface{} `json:"-" yaml:"-"`
+	Extensions map[string]any `json:"-" yaml:"-"`
 
 	Name  string `json:"name,omitempty" yaml:"name,omitempty"`
 	URL   string `json:"url,omitempty" yaml:"url,omitempty"`
@@ -17,7 +17,16 @@ type Contact struct {
 
 // MarshalJSON returns the JSON encoding of Contact.
 func (contact Contact) MarshalJSON() ([]byte, error) {
-	m := make(map[string]interface{}, 3+len(contact.Extensions))
+	x, err := contact.MarshalYAML()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(x)
+}
+
+// MarshalYAML returns the YAML encoding of Contact.
+func (contact Contact) MarshalYAML() (any, error) {
+	m := make(map[string]any, 3+len(contact.Extensions))
 	for k, v := range contact.Extensions {
 		m[k] = v
 	}
@@ -30,7 +39,7 @@ func (contact Contact) MarshalJSON() ([]byte, error) {
 	if x := contact.Email; x != "" {
 		m["email"] = x
 	}
-	return json.Marshal(m)
+	return m, nil
 }
 
 // UnmarshalJSON sets Contact to a copy of data.

@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
@@ -14,20 +15,18 @@ import (
 	"github.com/go-webauthn/webauthn/metadata"
 )
 
-var safetyNetAttestationKey = "android-safetynet"
-
 func init() {
-	RegisterAttestationFormat(safetyNetAttestationKey, verifySafetyNetFormat)
+	RegisterAttestationFormat(AttestationFormatAndroidSafetyNet, verifySafetyNetFormat)
 }
 
 type SafetyNetResponse struct {
-	Nonce                      string        `json:"nonce"`
-	TimestampMs                int64         `json:"timestampMs"`
-	ApkPackageName             string        `json:"apkPackageName"`
-	ApkDigestSha256            string        `json:"apkDigestSha256"`
-	CtsProfileMatch            bool          `json:"ctsProfileMatch"`
-	ApkCertificateDigestSha256 []interface{} `json:"apkCertificateDigestSha256"`
-	BasicIntegrity             bool          `json:"basicIntegrity"`
+	Nonce                      string `json:"nonce"`
+	TimestampMs                int64  `json:"timestampMs"`
+	ApkPackageName             string `json:"apkPackageName"`
+	ApkDigestSha256            string `json:"apkDigestSha256"`
+	CtsProfileMatch            bool   `json:"ctsProfileMatch"`
+	ApkCertificateDigestSha256 []any  `json:"apkCertificateDigestSha256"`
+	BasicIntegrity             bool   `json:"basicIntegrity"`
 }
 
 // Thanks to @koesie10 and @herrjemand for outlining how to support this type really well
@@ -42,7 +41,7 @@ type SafetyNetResponse struct {
 // authenticators SHOULD make use of the Android Key Attestation when available, even if the SafetyNet API is also present.
 //
 // Specification: §8.5. Android SafetyNet Attestation Statement Format (https://www.w3.org/TR/webauthn/#sctn-android-safetynet-attestation)
-func verifySafetyNetFormat(att AttestationObject, clientDataHash []byte) (string, []interface{}, error) {
+func verifySafetyNetFormat(att AttestationObject, clientDataHash []byte, mds metadata.Provider) (string, []any, error) {
 	// The syntax of an Android Attestation statement is defined as follows:
 	//     $$attStmtType //= (
 	//                           fmt: "android-safetynet",
@@ -59,7 +58,7 @@ func verifySafetyNetFormat(att AttestationObject, clientDataHash []byte) (string
 
 	// We have done this
 	// §8.5.2 Verify that response is a valid SafetyNet response of version ver.
-	version, present := att.AttStatement["ver"].(string)
+	version, present := att.AttStatement[stmtVersion].(string)
 	if !present {
 		return "", nil, ErrAttestationFormat.WithDetails("Unable to find the version of SafetyNet")
 	}
@@ -75,8 +74,8 @@ func verifySafetyNetFormat(att AttestationObject, clientDataHash []byte) (string
 		return "", nil, ErrAttestationFormat.WithDetails("Unable to find the SafetyNet response")
 	}
 
-	token, err := jwt.Parse(string(response), func(token *jwt.Token) (interface{}, error) {
-		chain := token.Header["x5c"].([]interface{})
+	token, err := jwt.Parse(string(response), func(token *jwt.Token) (any, error) {
+		chain := token.Header[stmtX5C].([]any)
 
 		o := make([]byte, base64.StdEncoding.DecodedLen(len(chain[0].(string))))
 
@@ -110,7 +109,7 @@ func verifySafetyNetFormat(att AttestationObject, clientDataHash []byte) (string
 	}
 
 	// §8.5.4 Let attestationCert be the attestation certificate (https://www.w3.org/TR/webauthn/#attestation-certificate)
-	certChain := token.Header["x5c"].([]interface{})
+	certChain := token.Header[stmtX5C].([]any)
 	l := make([]byte, base64.StdEncoding.DecodedLen(len(certChain[0].(string))))
 
 	n, err := base64.StdEncoding.Decode(l, []byte(certChain[0].(string)))
@@ -134,19 +133,13 @@ func verifySafetyNetFormat(att AttestationObject, clientDataHash []byte) (string
 		return "", nil, ErrInvalidAttestation.WithDetails("ctsProfileMatch attribute of the JWT payload is false")
 	}
 
-	// Verify sanity of timestamp in the payload
-	now := time.Now()
-	oneMinuteAgo := now.Add(-time.Minute)
-
-	if t := time.Unix(safetyNetResponse.TimestampMs/1000, 0); t.After(now) {
-		// zero tolerance for post-dated timestamps
+	if t := time.Unix(safetyNetResponse.TimestampMs/1000, 0); t.After(time.Now()) {
+		// Zero tolerance for post-dated timestamps.
 		return "", nil, ErrInvalidAttestation.WithDetails("SafetyNet response with timestamp after current time")
-	} else if t.Before(oneMinuteAgo) {
-		// allow old timestamp for testing purposes
-		// TODO: Make this user configurable
-		msg := "SafetyNet response with timestamp before one minute ago"
-		if metadata.Conformance {
-			return "", nil, ErrInvalidAttestation.WithDetails(msg)
+	} else if t.Before(time.Now().Add(-time.Minute)) {
+		// Small tolerance for pre-dated timestamps.
+		if mds != nil && mds.GetValidateEntry(context.Background()) {
+			return "", nil, ErrInvalidAttestation.WithDetails("SafetyNet response with timestamp before one minute ago")
 		}
 	}
 

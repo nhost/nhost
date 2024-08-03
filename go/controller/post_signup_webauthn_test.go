@@ -57,14 +57,12 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					RelyingParty: protocol.RelyingPartyEntity{
 						CredentialEntity: protocol.CredentialEntity{
 							Name: "React Apollo Example",
-							Icon: "",
 						},
 						ID: "react-apollo.example.nhost.io",
 					},
 					User: protocol.UserEntity{
 						CredentialEntity: protocol.CredentialEntity{
 							Name: "jane@acme.com",
-							Icon: "",
 						},
 						DisplayName: "jane@acme.com",
 						ID:          userID.String(),
@@ -84,7 +82,7 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					},
 					Timeout:               60000,
 					CredentialExcludeList: nil,
-
+					AttestationFormats:    nil,
 					AuthenticatorSelection: protocol.AuthenticatorSelection{
 						AuthenticatorAttachment: "",
 						RequireResidentKey:      ptr(false),
@@ -93,6 +91,7 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					},
 					Attestation: "indirect",
 					Extensions:  nil,
+					Hints:       nil,
 				},
 				expectedJWT: nil,
 				jwtTokenFn:  nil,
@@ -105,6 +104,7 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					Expires:              time.Now().Add(1 * time.Minute),
 					UserVerification:     "preferred",
 					Extensions:           nil,
+					RelyingPartyID:       "react-apollo.example.nhost.io",
 				},
 				User: controller.WebauthnUser{
 					ID:    uuid.UUID{},
@@ -159,14 +159,12 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					RelyingParty: protocol.RelyingPartyEntity{
 						CredentialEntity: protocol.CredentialEntity{
 							Name: "React Apollo Example",
-							Icon: "",
 						},
 						ID: "react-apollo.example.nhost.io",
 					},
 					User: protocol.UserEntity{
 						CredentialEntity: protocol.CredentialEntity{
 							Name: "Jane Doe",
-							Icon: "",
 						},
 						DisplayName: "Jane Doe",
 						ID:          userID.String(),
@@ -193,8 +191,10 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 						ResidentKey:             "preferred",
 						UserVerification:        "preferred",
 					},
-					Attestation: "indirect",
-					Extensions:  nil,
+					AttestationFormats: nil,
+					Attestation:        "indirect",
+					Extensions:         nil,
+					Hints:              nil,
 				},
 				expectedJWT: nil,
 				jwtTokenFn:  nil,
@@ -207,6 +207,7 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					Expires:              time.Now().Add(1 * time.Minute),
 					UserVerification:     "preferred",
 					Extensions:           nil,
+					RelyingPartyID:       "react-apollo.example.nhost.io",
 				},
 				User: controller.WebauthnUser{
 					ID:    uuid.UUID{},
@@ -328,14 +329,12 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					RelyingParty: protocol.RelyingPartyEntity{
 						CredentialEntity: protocol.CredentialEntity{
 							Name: "React Apollo Example",
-							Icon: "",
 						},
 						ID: "react-apollo.example.nhost.io",
 					},
 					User: protocol.UserEntity{
 						CredentialEntity: protocol.CredentialEntity{
 							Name: "jane@acme.com",
-							Icon: "",
 						},
 						DisplayName: "jane@acme.com",
 						ID:          userID.String(),
@@ -362,8 +361,10 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 						ResidentKey:             "preferred",
 						UserVerification:        "preferred",
 					},
-					Attestation: "indirect",
-					Extensions:  nil,
+					AttestationFormats: nil,
+					Attestation:        "indirect",
+					Extensions:         nil,
+					Hints:              nil,
 				},
 				expectedJWT: nil,
 				jwtTokenFn:  nil,
@@ -376,6 +377,7 @@ func TestPostSignupWebauthn(t *testing.T) { //nolint:maintidx
 					Expires:              time.Now().Add(1 * time.Minute),
 					UserVerification:     "preferred",
 					Extensions:           nil,
+					RelyingPartyID:       "react-apollo.example.nhost.io",
 				},
 				User: controller.WebauthnUser{
 					ID:    uuid.UUID{},

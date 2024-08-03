@@ -18,7 +18,7 @@ var ctap2CBOREncMode, _ = cbor.CTAP2EncOptions().EncMode()
 // Unmarshal parses the CBOR-encoded data into the value pointed to by v
 // following the CTAP2 canonical CBOR encoding form.
 // (https://fidoalliance.org/specs/fido-v2.0-ps-20190130/fido-client-to-authenticator-protocol-v2.0-ps-20190130.html#message-encoding)
-func Unmarshal(data []byte, v interface{}) error {
+func Unmarshal(data []byte, v any) error {
 	// TODO (james-d-elliott): investigate the specific use case for Unmarshal vs UnmarshalFirst to determine the edge cases where this may be useful.
 	_, err := ctap2CBORDecMode.UnmarshalFirst(data, v)
 
@@ -28,6 +28,6 @@ func Unmarshal(data []byte, v interface{}) error {
 // Marshal encodes the value pointed to by v
 // following the CTAP2 canonical CBOR encoding form.
 // (https://fidoalliance.org/specs/fido-v2.0-ps-20190130/fido-client-to-authenticator-protocol-v2.0-ps-20190130.html#message-encoding)
-func Marshal(v interface{}) ([]byte, error) {
+func Marshal(v any) ([]byte, error) {
 	return ctap2CBOREncMode.Marshal(v)
 }

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func validateExtensions(ctx context.Context, extensions map[string]interface{}) error { // FIXME: newtype + Validate(...)
+func validateExtensions(ctx context.Context, extensions map[string]any) error { // FIXME: newtype + Validate(...)
 	allowed := getValidationOptions(ctx).extraSiblingFieldsAllowed
 
 	var unknowns []string

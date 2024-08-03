@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -29,7 +30,7 @@ func (webauthn *WebAuthn) BeginRegistration(user User, opts ...RegistrationOptio
 		return nil, nil, err
 	}
 
-	var entityUserID interface{}
+	var entityUserID any
 
 	if webauthn.Config.EncodeUserIDAsString {
 		entityUserID = string(user.WebAuthnID())
@@ -42,7 +43,6 @@ func (webauthn *WebAuthn) BeginRegistration(user User, opts ...RegistrationOptio
 		DisplayName: user.WebAuthnDisplayName(),
 		CredentialEntity: protocol.CredentialEntity{
 			Name: user.WebAuthnName(),
-			Icon: user.WebAuthnIcon(),
 		},
 	}
 
@@ -50,7 +50,6 @@ func (webauthn *WebAuthn) BeginRegistration(user User, opts ...RegistrationOptio
 		ID: webauthn.Config.RPID,
 		CredentialEntity: protocol.CredentialEntity{
 			Name: webauthn.Config.RPDisplayName,
-			Icon: webauthn.Config.RPIcon,
 		},
 	}
 
@@ -71,6 +70,16 @@ func (webauthn *WebAuthn) BeginRegistration(user User, opts ...RegistrationOptio
 		opt(&creation.Response)
 	}
 
+	if len(creation.Response.RelyingParty.ID) == 0 {
+		return nil, nil, fmt.Errorf("error generating credential creation: the relying party id must be provided via the configuration or a functional option for a creation")
+	} else if _, err = url.Parse(creation.Response.RelyingParty.ID); err != nil {
+		return nil, nil, fmt.Errorf("error generating credential creation: the relying party id failed to validate as it's not a valid uri with error: %w", err)
+	}
+
+	if len(creation.Response.RelyingParty.Name) == 0 {
+		return nil, nil, fmt.Errorf("error generating credential creation: the relying party display name must be provided via the configuration or a functional option for a creation")
+	}
+
 	if creation.Response.Timeout == 0 {
 		switch {
 		case creation.Response.AuthenticatorSelection.UserVerification == protocol.VerificationDiscouraged:
@@ -82,6 +91,7 @@ func (webauthn *WebAuthn) BeginRegistration(user User, opts ...RegistrationOptio
 
 	session = &SessionData{
 		Challenge:        challenge.String(),
+		RelyingPartyID:   creation.Response.RelyingParty.ID,
 		UserID:           user.WebAuthnID(),
 		UserVerification: creation.Response.AuthenticatorSelection.UserVerification,
 	}
@@ -93,11 +103,10 @@ func (webauthn *WebAuthn) BeginRegistration(user User, opts ...RegistrationOptio
 	return creation, session, nil
 }
 
-// WithAuthenticatorSelection adjusts the non-default parameters regarding the authenticator to select during
-// registration.
-func WithAuthenticatorSelection(authenticatorSelection protocol.AuthenticatorSelection) RegistrationOption {
+// WithCredentialParameters adjusts the credential parameters in the registration options.
+func WithCredentialParameters(credentialParams []protocol.CredentialParameter) RegistrationOption {
 	return func(cco *protocol.PublicKeyCredentialCreationOptions) {
-		cco.AuthenticatorSelection = authenticatorSelection
+		cco.Parameters = credentialParams
 	}
 }
 
@@ -108,41 +117,11 @@ func WithExclusions(excludeList []protocol.CredentialDescriptor) RegistrationOpt
 	}
 }
 
-// WithConveyancePreference adjusts the non-default parameters regarding whether the authenticator should attest to the
-// credential.
-func WithConveyancePreference(preference protocol.ConveyancePreference) RegistrationOption {
+// WithAuthenticatorSelection adjusts the non-default parameters regarding the authenticator to select during
+// registration.
+func WithAuthenticatorSelection(authenticatorSelection protocol.AuthenticatorSelection) RegistrationOption {
 	return func(cco *protocol.PublicKeyCredentialCreationOptions) {
-		cco.Attestation = preference
-	}
-}
-
-// WithExtensions adjusts the extension parameter in the registration options.
-func WithExtensions(extension protocol.AuthenticationExtensions) RegistrationOption {
-	return func(cco *protocol.PublicKeyCredentialCreationOptions) {
-		cco.Extensions = extension
-	}
-}
-
-// WithCredentialParameters adjusts the credential parameters in the registration options.
-func WithCredentialParameters(credentialParams []protocol.CredentialParameter) RegistrationOption {
-	return func(cco *protocol.PublicKeyCredentialCreationOptions) {
-		cco.Parameters = credentialParams
-	}
-}
-
-// WithAppIdExcludeExtension automatically includes the specified appid if the CredentialExcludeList contains a credential
-// with the type `fido-u2f`.
-func WithAppIdExcludeExtension(appid string) RegistrationOption {
-	return func(cco *protocol.PublicKeyCredentialCreationOptions) {
-		for _, credential := range cco.CredentialExcludeList {
-			if credential.AttestationType == protocol.CredentialTypeFIDOU2F {
-				if cco.Extensions == nil {
-					cco.Extensions = map[string]interface{}{}
-				}
-
-				cco.Extensions[protocol.ExtensionAppIDExclude] = appid
-			}
-		}
+		cco.AuthenticatorSelection = authenticatorSelection
 	}
 }
 
@@ -160,6 +139,69 @@ func WithResidentKeyRequirement(requirement protocol.ResidentKeyRequirement) Reg
 	}
 }
 
+// WithPublicKeyCredentialHints adjusts the non-default hints for credential types to select during registration.
+//
+// WebAuthn Level 3.
+func WithPublicKeyCredentialHints(hints []protocol.PublicKeyCredentialHints) RegistrationOption {
+	return func(cco *protocol.PublicKeyCredentialCreationOptions) {
+		cco.Hints = hints
+	}
+}
+
+// WithConveyancePreference adjusts the non-default parameters regarding whether the authenticator should attest to the
+// credential.
+func WithConveyancePreference(preference protocol.ConveyancePreference) RegistrationOption {
+	return func(cco *protocol.PublicKeyCredentialCreationOptions) {
+		cco.Attestation = preference
+	}
+}
+
+// WithAttestationFormats adjusts the non-default formats for credential types to select during registration.
+//
+// WebAuthn Level 3.
+func WithAttestationFormats(formats []protocol.AttestationFormat) RegistrationOption {
+	return func(cco *protocol.PublicKeyCredentialCreationOptions) {
+		cco.AttestationFormats = formats
+	}
+}
+
+// WithExtensions adjusts the extension parameter in the registration options.
+func WithExtensions(extension protocol.AuthenticationExtensions) RegistrationOption {
+	return func(cco *protocol.PublicKeyCredentialCreationOptions) {
+		cco.Extensions = extension
+	}
+}
+
+// WithAppIdExcludeExtension automatically includes the specified appid if the CredentialExcludeList contains a credential
+// with the type `fido-u2f`.
+func WithAppIdExcludeExtension(appid string) RegistrationOption {
+	return func(cco *protocol.PublicKeyCredentialCreationOptions) {
+		for _, credential := range cco.CredentialExcludeList {
+			if credential.AttestationType == protocol.CredentialTypeFIDOU2F {
+				if cco.Extensions == nil {
+					cco.Extensions = map[string]any{}
+				}
+
+				cco.Extensions[protocol.ExtensionAppIDExclude] = appid
+			}
+		}
+	}
+}
+
+// WithRegistrationRelyingPartyID sets the relying party id for the registration.
+func WithRegistrationRelyingPartyID(id string) RegistrationOption {
+	return func(cco *protocol.PublicKeyCredentialCreationOptions) {
+		cco.RelyingParty.ID = id
+	}
+}
+
+// WithRegistrationRelyingPartyName sets the relying party name for the registration.
+func WithRegistrationRelyingPartyName(name string) RegistrationOption {
+	return func(cco *protocol.PublicKeyCredentialCreationOptions) {
+		cco.RelyingParty.Name = name
+	}
+}
+
 // FinishRegistration takes the response from the authenticator and client and verify the credential against the user's
 // credentials and session data.
 func (webauthn *WebAuthn) FinishRegistration(user User, session SessionData, response *http.Request) (*Credential, error) {
@@ -172,7 +214,7 @@ func (webauthn *WebAuthn) FinishRegistration(user User, session SessionData, res
 }
 
 // CreateCredential verifies a parsed response against the user's credentials and session data.
-func (webauthn *WebAuthn) CreateCredential(user User, session SessionData, parsedResponse *protocol.ParsedCredentialCreationData) (*Credential, error) {
+func (webauthn *WebAuthn) CreateCredential(user User, session SessionData, parsedResponse *protocol.ParsedCredentialCreationData) (credential *Credential, err error) {
 	if !bytes.Equal(user.WebAuthnID(), session.UserID) {
 		return nil, protocol.ErrBadRequest.WithDetails("ID mismatch for User and Session")
 	}
@@ -183,12 +225,13 @@ func (webauthn *WebAuthn) CreateCredential(user User, session SessionData, parse
 
 	shouldVerifyUser := session.UserVerification == protocol.VerificationRequired
 
-	invalidErr := parsedResponse.Verify(session.Challenge, shouldVerifyUser, webauthn.Config.RPID, webauthn.Config.RPOrigins)
-	if invalidErr != nil {
-		return nil, invalidErr
+	var clientDataHash []byte
+
+	if clientDataHash, err = parsedResponse.Verify(session.Challenge, shouldVerifyUser, webauthn.Config.RPID, webauthn.Config.RPOrigins, webauthn.Config.RPTopOrigins, webauthn.Config.RPTopOriginVerificationMode, webauthn.Config.MDS); err != nil {
+		return nil, err
 	}
 
-	return MakeNewCredential(parsedResponse)
+	return NewCredential(clientDataHash, parsedResponse)
 }
 
 func defaultRegistrationCredentialParameters() []protocol.CredentialParameter {

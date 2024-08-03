@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"io"
 	"net/http"
+
+	"github.com/go-webauthn/webauthn/metadata"
 )
 
 // Credential is the basic credential type from the Credential Management specification that is inherited by WebAuthn's
@@ -31,6 +33,7 @@ type ParsedCredential struct {
 
 type PublicKeyCredential struct {
 	Credential
+
 	RawID                   URLEncodedBase64                      `json:"rawId"`
 	ClientExtensionResults  AuthenticationExtensionsClientOutputs `json:"clientExtensionResults,omitempty"`
 	AuthenticatorAttachment string                                `json:"authenticatorAttachment,omitempty"`
@@ -38,6 +41,7 @@ type PublicKeyCredential struct {
 
 type ParsedPublicKeyCredential struct {
 	ParsedCredential
+
 	RawID                   []byte                                `json:"rawId"`
 	ClientExtensionResults  AuthenticationExtensionsClientOutputs `json:"clientExtensionResults,omitempty"`
 	AuthenticatorAttachment AuthenticatorAttachment               `json:"authenticatorAttachment,omitempty"`
@@ -45,17 +49,13 @@ type ParsedPublicKeyCredential struct {
 
 type CredentialCreationResponse struct {
 	PublicKeyCredential
-	AttestationResponse AuthenticatorAttestationResponse `json:"response"`
 
-	// Deprecated: Transports is deprecated due to upstream changes to the API.
-	// Use the Transports field of AuthenticatorAttestationResponse
-	// instead. Transports is kept for backward compatibility, and should not
-	// be used by new clients.
-	Transports []string `json:"transports,omitempty"`
+	AttestationResponse AuthenticatorAttestationResponse `json:"response"`
 }
 
 type ParsedCredentialCreationData struct {
 	ParsedPublicKeyCredential
+
 	Response ParsedAttestationResponse
 	Raw      CredentialCreationResponse
 }
@@ -79,6 +79,18 @@ func ParseCredentialCreationResponseBody(body io.Reader) (pcc *ParsedCredentialC
 	var ccr CredentialCreationResponse
 
 	if err = decodeBody(body, &ccr); err != nil {
+		return nil, ErrBadRequest.WithDetails("Parse error for Registration").WithInfo(err.Error())
+	}
+
+	return ccr.Parse()
+}
+
+// ParseCredentialCreationResponseBytes is an alternative version of ParseCredentialCreationResponseBody that just takes
+// a byte slice.
+func ParseCredentialCreationResponseBytes(data []byte) (pcc *ParsedCredentialCreationData, err error) {
+	var ccr CredentialCreationResponse
+
+	if err = decodeBytes(data, &ccr); err != nil {
 		return nil, ErrBadRequest.WithDetails("Parse error for Registration").WithInfo(err.Error())
 	}
 
@@ -112,13 +124,6 @@ func (ccr CredentialCreationResponse) Parse() (pcc *ParsedCredentialCreationData
 		return nil, ErrParsingData.WithDetails("Error parsing attestation response")
 	}
 
-	// TODO: Remove this as it's a backwards compatibility layer.
-	if len(response.Transports) == 0 && len(ccr.Transports) != 0 {
-		for _, t := range ccr.Transports {
-			response.Transports = append(response.Transports, AuthenticatorTransport(t))
-		}
-	}
-
 	var attachment AuthenticatorAttachment
 
 	switch ccr.AuthenticatorAttachment {
@@ -140,15 +145,15 @@ func (ccr CredentialCreationResponse) Parse() (pcc *ParsedCredentialCreationData
 // Verify the Client and Attestation data.
 //
 // Specification: §7.1. Registering a New Credential (https://www.w3.org/TR/webauthn/#sctn-registering-a-new-credential)
-func (pcc *ParsedCredentialCreationData) Verify(storedChallenge string, verifyUser bool, relyingPartyID string, relyingPartyOrigins []string) error {
+func (pcc *ParsedCredentialCreationData) Verify(storedChallenge string, verifyUser bool, relyingPartyID string, rpOrigins, rpTopOrigins []string, rpTopOriginsVerify TopOriginVerificationMode, mds metadata.Provider) (clientDataHash []byte, err error) {
 	// Handles steps 3 through 6 - Verifying the Client Data against the Relying Party's stored data
-	verifyError := pcc.Response.CollectedClientData.Verify(storedChallenge, CreateCeremony, relyingPartyOrigins)
-	if verifyError != nil {
-		return verifyError
+	if err = pcc.Response.CollectedClientData.Verify(storedChallenge, CreateCeremony, rpOrigins, rpTopOrigins, rpTopOriginsVerify); err != nil {
+		return nil, err
 	}
 
 	// Step 7. Compute the hash of response.clientDataJSON using SHA-256.
-	clientDataHash := sha256.Sum256(pcc.Raw.AttestationResponse.ClientDataJSON)
+	sum := sha256.Sum256(pcc.Raw.AttestationResponse.ClientDataJSON)
+	clientDataHash = sum[:]
 
 	// Step 8. Perform CBOR decoding on the attestationObject field of the AuthenticatorAttestationResponse
 	// structure to obtain the attestation statement format fmt, the authenticator data authData, and the
@@ -156,9 +161,8 @@ func (pcc *ParsedCredentialCreationData) Verify(storedChallenge string, verifyUs
 
 	// We do the above step while parsing and decoding the CredentialCreationResponse
 	// Handle steps 9 through 14 - This verifies the attestation object.
-	verifyError = pcc.Response.AttestationObject.Verify(relyingPartyID, clientDataHash[:], verifyUser)
-	if verifyError != nil {
-		return verifyError
+	if err = pcc.Response.AttestationObject.Verify(relyingPartyID, clientDataHash, verifyUser, mds); err != nil {
+		return clientDataHash, err
 	}
 
 	// Step 15. If validation is successful, obtain a list of acceptable trust anchors (attestation root
@@ -197,7 +201,7 @@ func (pcc *ParsedCredentialCreationData) Verify(storedChallenge string, verifyUs
 
 	// TODO: Not implemented for the reasons mentioned under Step 16
 
-	return nil
+	return clientDataHash, nil
 }
 
 // GetAppID takes a AuthenticationExtensions object or nil. It then performs the following checks in order:

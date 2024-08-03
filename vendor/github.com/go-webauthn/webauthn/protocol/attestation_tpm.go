@@ -15,20 +15,18 @@ import (
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 )
 
-var tpmAttestationKey = "tpm"
-
 func init() {
-	RegisterAttestationFormat(tpmAttestationKey, verifyTPMFormat)
+	RegisterAttestationFormat(AttestationFormatTPM, verifyTPMFormat)
 }
 
-func verifyTPMFormat(att AttestationObject, clientDataHash []byte) (string, []interface{}, error) {
+func verifyTPMFormat(att AttestationObject, clientDataHash []byte, _ metadata.Provider) (string, []any, error) {
 	// Given the verification procedure inputs attStmt, authenticatorData
 	// and clientDataHash, the verification procedure is as follows
 
 	// Verify that attStmt is valid CBOR conforming to the syntax defined
 	// above and perform CBOR decoding on it to extract the contained fields
 
-	ver, present := att.AttStatement["ver"].(string)
+	ver, present := att.AttStatement[stmtVersion].(string)
 	if !present {
 		return "", nil, ErrAttestationFormat.WithDetails("Error retrieving ver value")
 	}
@@ -37,35 +35,35 @@ func verifyTPMFormat(att AttestationObject, clientDataHash []byte) (string, []in
 		return "", nil, ErrAttestationFormat.WithDetails("WebAuthn only supports TPM 2.0 currently")
 	}
 
-	alg, present := att.AttStatement["alg"].(int64)
+	alg, present := att.AttStatement[stmtAlgorithm].(int64)
 	if !present {
 		return "", nil, ErrAttestationFormat.WithDetails("Error retrieving alg value")
 	}
 
 	coseAlg := webauthncose.COSEAlgorithmIdentifier(alg)
 
-	x5c, x509present := att.AttStatement["x5c"].([]interface{})
+	x5c, x509present := att.AttStatement[stmtX5C].([]any)
 	if !x509present {
 		// Handle Basic Attestation steps for the x509 Certificate
 		return "", nil, ErrNotImplemented
 	}
 
-	_, ecdaaKeyPresent := att.AttStatement["ecdaaKeyId"].([]byte)
+	_, ecdaaKeyPresent := att.AttStatement[stmtECDAAKID].([]byte)
 	if ecdaaKeyPresent {
 		return "", nil, ErrNotImplemented
 	}
 
-	sigBytes, present := att.AttStatement["sig"].([]byte)
+	sigBytes, present := att.AttStatement[stmtSignature].([]byte)
 	if !present {
 		return "", nil, ErrAttestationFormat.WithDetails("Error retrieving sig value")
 	}
 
-	certInfoBytes, present := att.AttStatement["certInfo"].([]byte)
+	certInfoBytes, present := att.AttStatement[stmtCertInfo].([]byte)
 	if !present {
 		return "", nil, ErrAttestationFormat.WithDetails("Error retrieving certInfo value")
 	}
 
-	pubAreaBytes, present := att.AttStatement["pubArea"].([]byte)
+	pubAreaBytes, present := att.AttStatement[stmtPubArea].([]byte)
 	if !present {
 		return "", nil, ErrAttestationFormat.WithDetails("Error retrieving pubArea value")
 	}

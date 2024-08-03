@@ -79,7 +79,7 @@ func ReadFromFile(loader *Loader, location *url.URL) ([]byte, error) {
 	if !is_file(location) {
 		return nil, ErrURINotSupported
 	}
-	return os.ReadFile(location.Path)
+	return os.ReadFile(filepath.FromSlash(location.Path))
 }
 
 // URIMapCache returns a ReadFromURIFunc that caches the contents read from URI

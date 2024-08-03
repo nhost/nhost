@@ -17,26 +17,27 @@ type CredentialAssertion struct {
 // In order to create a Credential via create(), the caller specifies a few parameters in a
 // PublicKeyCredentialCreationOptions object.
 //
-// TODO: There is one field missing from this for WebAuthn Level 3. A string slice named 'attestationFormats'.
+// WebAuthn Level 3: hints,attestationFormats.
 //
 // Specification: §5.4. Options for Credential Creation (https://www.w3.org/TR/webauthn/#dictionary-makecredentialoptions)
 type PublicKeyCredentialCreationOptions struct {
-	RelyingParty           RelyingPartyEntity       `json:"rp"`
-	User                   UserEntity               `json:"user"`
-	Challenge              URLEncodedBase64         `json:"challenge"`
-	Parameters             []CredentialParameter    `json:"pubKeyCredParams,omitempty"`
-	Timeout                int                      `json:"timeout,omitempty"`
-	CredentialExcludeList  []CredentialDescriptor   `json:"excludeCredentials,omitempty"`
-	AuthenticatorSelection AuthenticatorSelection   `json:"authenticatorSelection,omitempty"`
-	Attestation            ConveyancePreference     `json:"attestation,omitempty"`
-	Extensions             AuthenticationExtensions `json:"extensions,omitempty"`
+	RelyingParty           RelyingPartyEntity         `json:"rp"`
+	User                   UserEntity                 `json:"user"`
+	Challenge              URLEncodedBase64           `json:"challenge"`
+	Parameters             []CredentialParameter      `json:"pubKeyCredParams,omitempty"`
+	Timeout                int                        `json:"timeout,omitempty"`
+	CredentialExcludeList  []CredentialDescriptor     `json:"excludeCredentials,omitempty"`
+	AuthenticatorSelection AuthenticatorSelection     `json:"authenticatorSelection,omitempty"`
+	Hints                  []PublicKeyCredentialHints `json:"hints,omitempty"`
+	Attestation            ConveyancePreference       `json:"attestation,omitempty"`
+	AttestationFormats     []AttestationFormat        `json:"attestationFormats,omitempty"`
+	Extensions             AuthenticationExtensions   `json:"extensions,omitempty"`
 }
 
 // The PublicKeyCredentialRequestOptions dictionary supplies get() with the data it needs to generate an assertion.
 // Its challenge member MUST be present, while its other members are OPTIONAL.
 //
-// TODO: There are two fields missing from this for WebAuthn Level 3. A string type named 'attestation', and a string
-// slice named 'attestationFormats'.
+// WebAuthn Level 3: hints.
 //
 // Specification: §5.5. Options for Assertion Generation (https://www.w3.org/TR/webauthn/#dictionary-assertion-options)
 type PublicKeyCredentialRequestOptions struct {
@@ -45,6 +46,7 @@ type PublicKeyCredentialRequestOptions struct {
 	RelyingPartyID     string                      `json:"rpId,omitempty"`
 	AllowedCredentials []CredentialDescriptor      `json:"allowCredentials,omitempty"`
 	UserVerification   UserVerificationRequirement `json:"userVerification,omitempty"`
+	Hints              []PublicKeyCredentialHints  `json:"hints,omitempty"`
 	Extensions         AuthenticationExtensions    `json:"extensions,omitempty"`
 }
 
@@ -98,7 +100,7 @@ const (
 // parameters requesting additional processing by the client and authenticator.
 //
 // Specification: §5.7.1. Authentication Extensions Client Inputs (https://www.w3.org/TR/webauthn/#iface-authentication-extensions-client-inputs)
-type AuthenticationExtensions map[string]interface{}
+type AuthenticationExtensions map[string]any
 
 // AuthenticatorSelection represents the AuthenticatorSelectionCriteria IDL.
 //
@@ -183,6 +185,72 @@ const (
 	PreferEnterpriseAttestation ConveyancePreference = "enterprise"
 )
 
+// AttestationFormat is an internal representation of the relevant inputs for registration.
+//
+// Specification: §5.4 Options for Credential Creation (https://w3c.github.io/webauthn/#dom-publickeycredentialcreationoptions-attestationformats)
+// Registry: https://www.iana.org/assignments/webauthn/webauthn.xhtml
+type AttestationFormat string
+
+const (
+	// AttestationFormatPacked is the "packed" attestation statement format is a WebAuthn-optimized format for
+	// attestation. It uses a very compact but still extensible encoding method. This format is implementable by
+	//authenticators with limited resources (e.g., secure elements).
+	AttestationFormatPacked AttestationFormat = "packed"
+
+	// AttestationFormatTPM is the TPM attestation statement format returns an attestation statement in the same format
+	// as the packed attestation statement format, although the rawData and signature fields are computed differently.
+	AttestationFormatTPM AttestationFormat = "tpm"
+
+	// AttestationFormatAndroidKey is the attestation statement format for platform authenticators on versions "N", and
+	// later, which may provide this proprietary "hardware attestation" statement.
+	AttestationFormatAndroidKey AttestationFormat = "android-key"
+
+	// AttestationFormatAndroidSafetyNet is the attestation statement format that Android-based platform authenticators
+	// MAY produce an attestation statement based on the Android SafetyNet API.
+	AttestationFormatAndroidSafetyNet AttestationFormat = "android-safetynet"
+
+	// AttestationFormatFIDOUniversalSecondFactor is the attestation statement format that is used with FIDO U2F
+	// authenticators.
+	AttestationFormatFIDOUniversalSecondFactor AttestationFormat = "fido-u2f"
+
+	// AttestationFormatApple is the attestation statement format that is used with Apple devices' platform
+	// authenticators.
+	AttestationFormatApple AttestationFormat = "apple"
+
+	// AttestationFormatNone is the attestation statement format that is used to replace any authenticator-provided
+	// attestation statement when a WebAuthn Relying Party indicates it does not wish to receive attestation information.
+	AttestationFormatNone AttestationFormat = "none"
+)
+
+type PublicKeyCredentialHints string
+
+const (
+	// PublicKeyCredentialHintSecurityKey is a PublicKeyCredentialHint that indicates that the Relying Party believes
+	// that users will satisfy this request with a physical security key. For example, an enterprise Relying Party may
+	// set this hint if they have issued security keys to their employees and will only accept those authenticators for
+	// registration and authentication.
+	//
+	// For compatibility with older user agents, when this hint is used in PublicKeyCredentialCreationOptions, the
+	// authenticatorAttachment SHOULD be set to cross-platform.
+	PublicKeyCredentialHintSecurityKey PublicKeyCredentialHints = "security-key"
+
+	// PublicKeyCredentialHintClientDevice is a PublicKeyCredentialHint that indicates that the Relying Party believes
+	// that users will satisfy this request with a platform authenticator attached to the client device.
+	//
+	// For compatibility with older user agents, when this hint is used in PublicKeyCredentialCreationOptions, the
+	// authenticatorAttachment SHOULD be set to platform.
+	PublicKeyCredentialHintClientDevice PublicKeyCredentialHints = "client-device"
+
+	// PublicKeyCredentialHintHybrid is a PublicKeyCredentialHint that indicates that the Relying Party believes that
+	// users will satisfy this request with general-purpose authenticators such as smartphones. For example, a consumer
+	// Relying Party may believe that only a small fraction of their customers possesses dedicated security keys. This
+	// option also implies that the local platform authenticator should not be promoted in the UI.
+	//
+	// For compatibility with older user agents, when this hint is used in PublicKeyCredentialCreationOptions, the
+	// authenticatorAttachment SHOULD be set to cross-platform.
+	PublicKeyCredentialHintHybrid PublicKeyCredentialHints = "hybrid"
+)
+
 func (a *PublicKeyCredentialRequestOptions) GetAllowedCredentialIDs() [][]byte {
 	var allowedCredentialIDs = make([][]byte, len(a.AllowedCredentials))
 
@@ -193,7 +261,7 @@ func (a *PublicKeyCredentialRequestOptions) GetAllowedCredentialIDs() [][]byte {
 	return allowedCredentialIDs
 }
 
-type Extensions interface{}
+type Extensions any
 
 type ServerResponse struct {
 	Status  ServerResponseStatus `json:"status"`

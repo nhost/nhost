@@ -5,7 +5,7 @@ package protocol
 // For a list of commonly supported extensions, see §10. Defined Extensions
 // (https://www.w3.org/TR/webauthn/#sctn-defined-extensions).
 
-type AuthenticationExtensionsClientOutputs map[string]interface{}
+type AuthenticationExtensionsClientOutputs map[string]any
 
 const (
 	ExtensionAppID        = "appid"

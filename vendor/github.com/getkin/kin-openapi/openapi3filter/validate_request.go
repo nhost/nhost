@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"sort"
 
 	"github.com/getkin/kin-openapi/openapi3"
@@ -103,6 +104,28 @@ func ValidateRequest(ctx context.Context, input *RequestValidationInput) (err er
 	return
 }
 
+// appendToQueryValues adds to query parameters each value in the provided slice
+func appendToQueryValues[T any](q url.Values, parameterName string, v []T) {
+	for _, i := range v {
+		q.Add(parameterName, fmt.Sprintf("%v", i))
+	}
+}
+
+// populateDefaultQueryParameters populates default values inside query parameters, while ensuring types are respected
+func populateDefaultQueryParameters(q url.Values, parameterName string, value any) {
+	switch t := value.(type) {
+	case []string:
+		appendToQueryValues(q, parameterName, t)
+	case []float64:
+		appendToQueryValues(q, parameterName, t)
+	case []int:
+		appendToQueryValues(q, parameterName, t)
+	default:
+		q.Add(parameterName, fmt.Sprintf("%v", value))
+	}
+
+}
+
 // ValidateParameter validates a parameter's value by JSON schema.
 // The function returns RequestError with a ParseError cause when unable to parse a value.
 // The function returns RequestError with ErrInvalidRequired cause when a value of a required parameter is not defined.
@@ -121,7 +144,7 @@ func ValidateParameter(ctx context.Context, input *RequestValidationInput, param
 		options = &Options{}
 	}
 
-	var value interface{}
+	var value any
 	var err error
 	var found bool
 	var schema *openapi3.Schema
@@ -156,7 +179,7 @@ func ValidateParameter(ctx context.Context, input *RequestValidationInput, param
 				// Next check `parameter.Required && !found` will catch this.
 			case openapi3.ParameterInQuery:
 				q := req.URL.Query()
-				q.Add(parameter.Name, fmt.Sprintf("%v", value))
+				populateDefaultQueryParameters(q, parameter.Name, value)
 				req.URL.RawQuery = q.Encode()
 			case openapi3.ParameterInHeader:
 				req.Header.Add(parameter.Name, fmt.Sprintf("%v", value))

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 
 	"github.com/go-openapi/jsonpointer"
 )
@@ -12,7 +13,7 @@ import (
 // T is the root of an OpenAPI v3 document
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#openapi-object
 type T struct {
-	Extensions map[string]interface{} `json:"-" yaml:"-"`
+	Extensions map[string]any `json:"-" yaml:"-"`
 
 	OpenAPI      string               `json:"openapi" yaml:"openapi"` // Required
 	Components   *Components          `json:"components,omitempty" yaml:"components,omitempty"`
@@ -24,12 +25,13 @@ type T struct {
 	ExternalDocs *ExternalDocs        `json:"externalDocs,omitempty" yaml:"externalDocs,omitempty"`
 
 	visited visitedComponent
+	url     *url.URL
 }
 
 var _ jsonpointer.JSONPointable = (*T)(nil)
 
 // JSONLookup implements https://pkg.go.dev/github.com/go-openapi/jsonpointer#JSONPointable
-func (doc *T) JSONLookup(token string) (interface{}, error) {
+func (doc *T) JSONLookup(token string) (any, error) {
 	switch token {
 	case "openapi":
 		return doc.OpenAPI, nil
@@ -55,7 +57,19 @@ func (doc *T) JSONLookup(token string) (interface{}, error) {
 
 // MarshalJSON returns the JSON encoding of T.
 func (doc *T) MarshalJSON() ([]byte, error) {
-	m := make(map[string]interface{}, 4+len(doc.Extensions))
+	x, err := doc.MarshalYAML()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(x)
+}
+
+// MarshalYAML returns the YAML encoding of T.
+func (doc *T) MarshalYAML() (any, error) {
+	if doc == nil {
+		return nil, nil
+	}
+	m := make(map[string]any, 4+len(doc.Extensions))
 	for k, v := range doc.Extensions {
 		m[k] = v
 	}
@@ -77,7 +91,7 @@ func (doc *T) MarshalJSON() ([]byte, error) {
 	if x := doc.ExternalDocs; x != nil {
 		m["externalDocs"] = x
 	}
-	return json.Marshal(m)
+	return m, nil
 }
 
 // UnmarshalJSON sets T to a copy of data.

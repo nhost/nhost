@@ -14,7 +14,7 @@
         overlays = [
           nixops.overlays.default
           (final: prev: {
-            nodejs = prev.nodejs-18_x;
+            nodejs = prev.nodejs_20;
           })
         ];
 
@@ -161,6 +161,7 @@
             {
               nativeBuildInputs = with pkgs;
                 [
+                  nodejs-slim_20
                   nodePackages.pnpm
                   cacert
                 ];
@@ -174,6 +175,7 @@
               ln -s ${node_modules-builder}/node_modules node_modules
 
               export XDG_DATA_HOME=$TMPDIR/.local/share
+              export HOME=$TMPDIR
 
               echo "➜ Running pnpm audit"
               pnpx audit-ci --config ./audit-ci.jsonc
@@ -203,7 +205,7 @@
             pname = "node-${name}";
 
             buildInputs = with pkgs; [
-              pkgs.nodejs-slim_18
+              pkgs.nodejs-slim_20
             ];
 
             nativeBuildInputs = with pkgs; [
@@ -236,7 +238,7 @@
 
             postInstall = ''
               wrapProgram $out/bin/hasura-auth \
-                  --suffix PATH : ${pkgs.nodejs-slim_18}/bin \
+                  --suffix PATH : ${pkgs.nodejs-slim_20}/bin \
                   --prefix AUTH_NODE_SERVER_PATH : ${node-auth}
             '';
           };

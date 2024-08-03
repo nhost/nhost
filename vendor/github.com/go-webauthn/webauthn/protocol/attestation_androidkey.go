@@ -10,10 +10,8 @@ import (
 	"github.com/go-webauthn/webauthn/protocol/webauthncose"
 )
 
-var androidAttestationKey = "android-key"
-
 func init() {
-	RegisterAttestationFormat(androidAttestationKey, verifyAndroidKeyFormat)
+	RegisterAttestationFormat(AttestationFormatAndroidKey, verifyAndroidKeyFormat)
 }
 
 // The android-key attestation statement looks like:
@@ -31,26 +29,26 @@ func init() {
 //	  }
 //
 // Specification: §8.4. Android Key Attestation Statement Format (https://www.w3.org/TR/webauthn/#sctn-android-key-attestation)
-func verifyAndroidKeyFormat(att AttestationObject, clientDataHash []byte) (string, []interface{}, error) {
+func verifyAndroidKeyFormat(att AttestationObject, clientDataHash []byte, _ metadata.Provider) (string, []any, error) {
 	// Given the verification procedure inputs attStmt, authenticatorData and clientDataHash, the verification procedure is as follows:
 	// §8.4.1. Verify that attStmt is valid CBOR conforming to the syntax defined above and perform CBOR decoding on it to extract
 	// the contained fields.
 
 	// Get the alg value - A COSEAlgorithmIdentifier containing the identifier of the algorithm
 	// used to generate the attestation signature.
-	alg, present := att.AttStatement["alg"].(int64)
+	alg, present := att.AttStatement[stmtAlgorithm].(int64)
 	if !present {
 		return "", nil, ErrAttestationFormat.WithDetails("Error retrieving alg value")
 	}
 
 	// Get the sig value - A byte string containing the attestation signature.
-	sig, present := att.AttStatement["sig"].([]byte)
+	sig, present := att.AttStatement[stmtSignature].([]byte)
 	if !present {
 		return "", nil, ErrAttestationFormat.WithDetails("Error retrieving sig value")
 	}
 
 	// If x5c is not present, return an error
-	x5c, x509present := att.AttStatement["x5c"].([]interface{})
+	x5c, x509present := att.AttStatement[stmtX5C].([]any)
 	if !x509present {
 		// Handle Basic Attestation steps for the x509 Certificate
 		return "", nil, ErrAttestationFormat.WithDetails("Error retrieving x5c value")
@@ -165,19 +163,19 @@ type authorizationList struct {
 	Padding                     []int       `asn1:"tag:6,explicit,set,optional"`
 	EcCurve                     int         `asn1:"tag:10,explicit,optional"`
 	RsaPublicExponent           int         `asn1:"tag:200,explicit,optional"`
-	RollbackResistance          interface{} `asn1:"tag:303,explicit,optional"`
+	RollbackResistance          any         `asn1:"tag:303,explicit,optional"`
 	ActiveDateTime              int         `asn1:"tag:400,explicit,optional"`
 	OriginationExpireDateTime   int         `asn1:"tag:401,explicit,optional"`
 	UsageExpireDateTime         int         `asn1:"tag:402,explicit,optional"`
-	NoAuthRequired              interface{} `asn1:"tag:503,explicit,optional"`
+	NoAuthRequired              any         `asn1:"tag:503,explicit,optional"`
 	UserAuthType                int         `asn1:"tag:504,explicit,optional"`
 	AuthTimeout                 int         `asn1:"tag:505,explicit,optional"`
-	AllowWhileOnBody            interface{} `asn1:"tag:506,explicit,optional"`
-	TrustedUserPresenceRequired interface{} `asn1:"tag:507,explicit,optional"`
-	TrustedConfirmationRequired interface{} `asn1:"tag:508,explicit,optional"`
-	UnlockedDeviceRequired      interface{} `asn1:"tag:509,explicit,optional"`
-	AllApplications             interface{} `asn1:"tag:600,explicit,optional"`
-	ApplicationID               interface{} `asn1:"tag:601,explicit,optional"`
+	AllowWhileOnBody            any         `asn1:"tag:506,explicit,optional"`
+	TrustedUserPresenceRequired any         `asn1:"tag:507,explicit,optional"`
+	TrustedConfirmationRequired any         `asn1:"tag:508,explicit,optional"`
+	UnlockedDeviceRequired      any         `asn1:"tag:509,explicit,optional"`
+	AllApplications             any         `asn1:"tag:600,explicit,optional"`
+	ApplicationID               any         `asn1:"tag:601,explicit,optional"`
 	CreationDateTime            int         `asn1:"tag:701,explicit,optional"`
 	Origin                      int         `asn1:"tag:702,explicit,optional"`
 	RootOfTrust                 rootOfTrust `asn1:"tag:704,explicit,optional"`

@@ -55,7 +55,6 @@ func NewWebAuthn(config Config) (*Webauthn, error) {
 		RPOrigins:             config.WebauthnRPOrigins,
 		AttestationPreference: protocol.PreferIndirectAttestation,
 		EncodeUserIDAsString:  true,
-		Timeout:               0,
 		Timeouts: webauthn.TimeoutsConfig{
 			Login: webauthn.TimeoutConfig{
 				Enforce:    true,
