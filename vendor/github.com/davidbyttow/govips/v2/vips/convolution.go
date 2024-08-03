@@ -26,3 +26,15 @@ func vipsSharpen(in *C.VipsImage, sigma float64, x1 float64, m2 float64) (*C.Vip
 
 	return out, nil
 }
+
+// https://libvips.github.io/libvips/API/current/libvips-convolution.html#vips-sobel
+func vipsSobel(in *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("sobel")
+	var out *C.VipsImage
+
+	if err := C.sobel_image(in, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}

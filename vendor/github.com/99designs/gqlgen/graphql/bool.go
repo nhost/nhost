@@ -3,20 +3,19 @@ package graphql
 import (
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 )
 
 func MarshalBoolean(b bool) Marshaler {
-	if b {
-		return WriterFunc(func(w io.Writer) { w.Write(trueLit) })
-	}
-	return WriterFunc(func(w io.Writer) { w.Write(falseLit) })
+	str := strconv.FormatBool(b)
+	return WriterFunc(func(w io.Writer) { w.Write([]byte(str)) })
 }
 
-func UnmarshalBoolean(v interface{}) (bool, error) {
+func UnmarshalBoolean(v any) (bool, error) {
 	switch v := v.(type) {
 	case string:
-		return strings.ToLower(v) == "true", nil
+		return strings.EqualFold(v, "true"), nil
 	case int:
 		return v != 0, nil
 	case bool:

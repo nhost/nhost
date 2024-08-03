@@ -296,7 +296,7 @@ int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
                       NULL);
 
   if (!ret && params->quality) {
-    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
   return ret;
@@ -319,7 +319,8 @@ int set_tiffsave_options(VipsOperation *operation, SaveParams *params) {
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-magicksave-buffer
 int set_magicksave_options(VipsOperation *operation, SaveParams *params) {
-  int ret = vips_object_set(VIPS_OBJECT(operation), "format", "GIF", NULL);
+  int ret = vips_object_set(VIPS_OBJECT(operation), "format", "GIF", "bitdepth", params->gifBitdepth, NULL);
+
   if (!ret && params->quality) {
     ret = vips_object_set(VIPS_OBJECT(operation), "quality", params->quality,
                           NULL);
@@ -331,7 +332,7 @@ int set_magicksave_options(VipsOperation *operation, SaveParams *params) {
 int set_gifsave_options(VipsOperation *operation, SaveParams *params) {
   int ret = 0;
   // See for argument values: https://www.libvips.org/API/current/VipsForeignSave.html#vips-gifsave
-  if (params->gifDither > 0.0 && params->gifDither <= 1.0) {
+  if (params->gifDither > 0.0 && params->gifDither <= 10) {
     ret = vips_object_set(VIPS_OBJECT(operation), "dither", params->gifDither, NULL);
   }
   if (params->gifEffort >= 1 && params->gifEffort <= 10) {
@@ -562,7 +563,13 @@ static SaveParams defaultSaveParams = {
 
     .jp2kLossless = FALSE,
     .jp2kTileHeight = 512,
-    .jp2kTileWidth = 512};
+    .jp2kTileWidth = 512,
+
+    .jxlTier = 0,
+    .jxlDistance = 1.0,
+    .jxlEffort = 7,
+    .jxlLossless = FALSE,
+    };
 
 SaveParams create_save_params(ImageType outputFormat) {
   SaveParams params = defaultSaveParams;

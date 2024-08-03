@@ -11,7 +11,7 @@ func MarshalID(s string) Marshaler {
 	return MarshalString(s)
 }
 
-func UnmarshalID(v interface{}) (string, error) {
+func UnmarshalID(v any) (string, error) {
 	switch v := v.(type) {
 	case string:
 		return v, nil
@@ -22,13 +22,9 @@ func UnmarshalID(v interface{}) (string, error) {
 	case int64:
 		return strconv.FormatInt(v, 10), nil
 	case float64:
-		return fmt.Sprintf("%f", v), nil
+		return strconv.FormatFloat(v, 'f', 6, 64), nil
 	case bool:
-		if v {
-			return "true", nil
-		} else {
-			return "false", nil
-		}
+		return strconv.FormatBool(v), nil
 	case nil:
 		return "null", nil
 	default:
@@ -42,7 +38,7 @@ func MarshalIntID(i int) Marshaler {
 	})
 }
 
-func UnmarshalIntID(v interface{}) (int, error) {
+func UnmarshalIntID(v any) (int, error) {
 	switch v := v.(type) {
 	case string:
 		return strconv.Atoi(v)
@@ -63,7 +59,7 @@ func MarshalUintID(i uint) Marshaler {
 	})
 }
 
-func UnmarshalUintID(v interface{}) (uint, error) {
+func UnmarshalUintID(v any) (uint, error) {
 	switch v := v.(type) {
 	case string:
 		result, err := strconv.ParseUint(v, 10, 64)

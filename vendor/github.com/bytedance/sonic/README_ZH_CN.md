@@ -6,9 +6,9 @@
 
 ## 依赖
 
-- Go 1.16~1.22
-- Linux / MacOS / Windows（需要 Go1.17 以上）
-- Amd64 架构
+- Go: 1.17~1.23
+- OS: Linux / MacOS / Windows
+- CPU: AMD64 / ARM64（需要 Go1.20 以上）
 
 ## 接口
 
@@ -260,7 +260,7 @@ fmt.Printf("%+v", data) // {A:0 B:1}
 
 ### `Ast.Node`
 
-Sonic/ast.Node 是完全独立的 JSON 抽象语法树库。它实现了序列化和反序列化，并提供了获取和修改通用数据的鲁棒的 API。
+Sonic/ast.Node 是完全独立的 JSON 抽象语法树库。它实现了序列化和反序列化，并提供了获取和修改JSON数据的鲁棒的 API。
 
 #### 查找/索引
 
@@ -281,6 +281,19 @@ sub := root.Get("key3").Index(2).Int64() // == 3
 ```
 
 **注意**：由于 `Index()` 使用偏移量来定位数据，比使用扫描的 `Get()` 要快的多，建议尽可能的使用 `Index` 。 Sonic 也提供了另一个 API， `IndexOrGet()` ，以偏移量为基础并且也确保键的匹配。
+
+#### 查找选项
+`ast.Searcher`提供了一些选项，以满足用户的不同需求:
+```
+opts:= ast.SearchOption{CopyReturn: true…}
+Val, err:= sonic。gettwithoptions (JSON, opts， "key")
+```
+- CopyReturn
+指示搜索器复制结果JSON字符串，而不是从输入引用。如果用户缓存结果，这有助于减少内存使用
+- ConcurentRead
+因为`ast.Node`使用`Lazy-Load`设计，默认不支持并发读取。如果您想同时读取，请指定它。
+- ValidateJSON
+指示搜索器来验证整个JSON。默认情况下启用该选项, 但是对于查找速度有一定影响。
 
 #### 修改
 
@@ -463,6 +476,9 @@ go someFunc(user)
 在上述场景中，如果想要有更极致的性能，`ast.Visitor` 会是更好的选择。它采用和 `Unmarshal()` 类似的形式解析 JSON，并且你可以直接使用你的最终类型去表示 JSON AST，而不需要经过额外的任何中间表示。
 
 但是，`ast.Visitor` 并不是一个很易用的 API。你可能需要写大量的代码去实现自己的 `ast.Visitor`，并且需要在解析过程中仔细维护树的层级。如果你决定要使用这个 API，请先仔细阅读 [ast/visitor.go](https://github.com/bytedance/sonic/blob/main/ast/visitor.go) 中的注释。
+
+### 缓冲区大小
+Sonic在许多地方使用内存池，如`encoder.Encode`, `ast.Node.MarshalJSON`等来提高性能，这可能会在服务器负载高时产生更多的内存使用(in-use)。参见[issue 614](https://github.com/bytedance/sonic/issues/614)。因此，我们引入了一些选项来让用户配置内存池的行为。参见[option](https://pkg.go.dev/github.com/bytedance/sonic@v1.11.9/option#pkg-variables)包。
 
 ## 社区
 

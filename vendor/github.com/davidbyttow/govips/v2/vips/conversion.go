@@ -1,5 +1,6 @@
 package vips
 
+// #cgo CFLAGS: -std=c99
 // #include "conversion.h"
 import "C"
 
@@ -504,5 +505,16 @@ func vipsGrid(in *C.VipsImage, tileHeight, across, down int) (*C.VipsImage, erro
 	if err := C.grid(in, &out, C.int(tileHeight), C.int(across), C.int(down)); err != 0 {
 		return nil, handleImageError(out)
 	}
+	return out, nil
+}
+
+func vipsGamma(image *C.VipsImage, gamma float64) (*C.VipsImage, error) {
+	incOpCounter("gamma")
+	var out *C.VipsImage
+
+	if err := C.adjust_gamma(image, &out, C.double(gamma)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
 	return out, nil
 }

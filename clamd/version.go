@@ -9,11 +9,11 @@ type Version struct {
 	Version string
 }
 
-func parseVersion(response []byte) (Version, error) {
+func parseVersion(response []byte) Version {
 	parts := strings.SplitN(string(response), " ", 2) //nolint:mnd
 	return Version{
 		Version: parts[1],
-	}, nil
+	}
 }
 
 func (c *Client) Version() (Version, error) {
@@ -32,5 +32,5 @@ func (c *Client) Version() (Version, error) {
 		return Version{}, fmt.Errorf("failed to read response: %w", err)
 	}
 
-	return parseVersion(response)
+	return parseVersion(response), nil
 }

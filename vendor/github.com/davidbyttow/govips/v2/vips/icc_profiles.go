@@ -2,7 +2,7 @@ package vips
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
@@ -659,14 +659,14 @@ func initializeICCProfiles() {
 }
 
 func storeIccProfile(path string, data []byte) {
-	err := ioutil.WriteFile(path, data, 0600)
+	err := os.WriteFile(path, data, 0600)
 	if err != nil {
 		panic(fmt.Sprintf("Couldn't store temporary file for ICC profile in '%v': %v", path, err.Error()))
 	}
 }
 
 func temporaryDirectoryOrPanic() string {
-	temporaryDirectory, err := ioutil.TempDir("", "govips-")
+	temporaryDirectory, err := os.MkdirTemp("", "govips-")
 	if err != nil {
 		panic(fmt.Sprintf("Couldn't create temporary directory: %v", err.Error()))
 	}

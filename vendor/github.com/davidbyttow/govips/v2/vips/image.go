@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"io/ioutil"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -314,6 +314,10 @@ func NewTiffExportParams() *TiffExportParams {
 	}
 }
 
+// GifExportParams are options when exporting a GIF to file or buffer
+// Please note that if vips version is above 8.12, then `vips_gifsave_buffer` is used, and only `Dither`, `Effort`, `Bitdepth` is used.
+// If vips version is below 8.12, then `vips_magicksave_buffer` is used, and only `Bitdepth`, `Quality` is used.
+// StripMetadata does nothing to Gif images.
 type GifExportParams struct {
 	StripMetadata bool
 	Quality       int
@@ -405,12 +409,13 @@ func NewJxlExportParams() *JxlExportParams {
 		Quality:  75,
 		Lossless: false,
 		Effort:   7,
+		Distance: 1.0,
 	}
 }
 
 // NewImageFromReader loads an ImageRef from the given reader
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
-	buf, err := ioutil.ReadAll(r)
+	buf, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
@@ -425,7 +430,7 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 
 // LoadImageFromFile loads an image from file and creates a new ImageRef
 func LoadImageFromFile(file string, params *ImportParams) (*ImageRef, error) {
-	buf, err := ioutil.ReadFile(file)
+	buf, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
@@ -761,7 +766,7 @@ func (r *ImageRef) SetPages(pages int) error {
 		return err
 	}
 
-	vipsSetImageNPages(r.image, pages)
+	vipsSetImageNPages(out, pages)
 
 	r.setImage(out)
 	return nil
@@ -812,7 +817,7 @@ func (r *ImageRef) SetPageDelay(delay []int) error {
 }
 
 // Export creates a byte array of the image for use.
-// The function returns a byte array that can be written to a file e.g. via ioutil.WriteFile().
+// The function returns a byte array that can be written to a file e.g. via os.WriteFile().
 // N.B. govips does not currently have built-in support for directly exporting to a file.
 // The function also returns a copy of the image metadata as well as an error.
 // Deprecated: Use ExportNative or format-specific Export methods
@@ -1299,6 +1304,17 @@ func (r *ImageRef) Linear1(a, b float64) error {
 	return nil
 }
 
+// Adjusts the image's gamma value.
+// See https://www.libvips.org/API/current/libvips-conversion.html#vips-gamma
+func (r *ImageRef) Gamma(gamma float64) error {
+	out, err := vipsGamma(r.image, gamma)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // GetRotationAngleFromExif returns the angle which the image is currently rotated in.
 // First returned value is the angle and second is a boolean indicating whether image is flipped.
 // This is based on the EXIF orientation tag standard.
@@ -1372,19 +1388,15 @@ func (r *ImageRef) RemoveICCProfile() error {
 	return nil
 }
 
-// TransformICCProfile transforms from the embedded ICC profile of the image to the icc profile at the given path.
-func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
-	// If the image has an embedded profile, that will be used and the input profile ignored.
-	// Otherwise, images without an input profile are assumed to use a standard RGB profile.
-	embedded := r.HasICCProfile()
-	inputProfile := SRGBIEC6196621ICCProfilePath
-
+// TransformICCProfileWithFallback transforms from the embedded ICC profile of the image to the ICC profile at the given path.
+// The fallback ICC profile is used if the image does not have an embedded ICC profile.
+func (r *ImageRef) TransformICCProfileWithFallback(targetProfilePath, fallbackProfilePath string) error {
 	depth := 16
 	if r.BandFormat() == BandFormatUchar || r.BandFormat() == BandFormatChar || r.BandFormat() == BandFormatNotSet {
 		depth = 8
 	}
 
-	out, err := vipsICCTransform(r.image, outputProfilePath, inputProfile, IntentPerceptual, depth, embedded)
+	out, err := vipsICCTransform(r.image, targetProfilePath, fallbackProfilePath, IntentPerceptual, depth, true)
 	if err != nil {
 		govipsLog("govips", LogLevelError, fmt.Sprintf("failed to do icc transform: %v", err.Error()))
 		return err
@@ -1394,13 +1406,18 @@ func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
 	return nil
 }
 
+// TransformICCProfile transforms from the embedded ICC profile of the image to the icc profile at the given path.
+func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
+	return r.TransformICCProfileWithFallback(outputProfilePath, SRGBIEC6196621ICCProfilePath)
+}
+
 // OptimizeICCProfile optimizes the ICC color profile of the image.
 // For two color channel images, it sets a grayscale profile.
 // For color images, it sets a CMYK or non-CMYK profile based on the image metadata.
 func (r *ImageRef) OptimizeICCProfile() error {
 	inputProfile := r.determineInputICCProfile()
 	if !r.HasICCProfile() && (inputProfile == "") {
-		//No embedded ICC profile in the input image and no input profile determined, nothing to do.
+		// No embedded ICC profile in the input image and no input profile determined, nothing to do.
 		return nil
 	}
 
@@ -1544,6 +1561,16 @@ func (r *ImageRef) GaussianBlur(sigmas ...float64) error {
 // m2: slope for jaggy areas
 func (r *ImageRef) Sharpen(sigma float64, x1 float64, m2 float64) error {
 	out, err := vipsSharpen(r.image, sigma, x1, m2)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Apply Sobel edge detector to the image.
+func (r *ImageRef) Sobel() error {
+	out, err := vipsSobel(r.image)
 	if err != nil {
 		return err
 	}

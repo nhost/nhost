@@ -8,3 +8,7 @@ int sharpen_image(VipsImage *in, VipsImage **out, double sigma, double x1,
                   double m2) {
   return vips_sharpen(in, out, "sigma", sigma, "x1", x1, "m2", m2, NULL);
 }
+
+int sobel_image(VipsImage *in, VipsImage **out) {
+  return vips_sobel(in, out, NULL);
+}

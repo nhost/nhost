@@ -396,12 +396,12 @@ func (c *Client) unmarshal(data []byte, res interface{}) error {
 
 func MarshalJSON(v interface{}) ([]byte, error) {
 	if v == nil {
-		return []byte("null"), nil // Directly return "null" for nil interface{}
+		return []byte("null"), nil
 	}
 
 	val := reflect.ValueOf(v)
 	if !val.IsValid() || (val.Kind() == reflect.Ptr && val.IsNil()) {
-		return []byte("null"), nil // Return "null" for nil pointer or invalid reflect value
+		return []byte("null"), nil
 	}
 
 	return encode(val)
@@ -417,6 +417,10 @@ func checkImplements[I any](v reflect.Value) bool {
 
 // encode returns an appropriate encoder function for the provided value.
 func encode(v reflect.Value) ([]byte, error) {
+	if !v.IsValid() || (v.Kind() == reflect.Ptr && v.IsNil()) {
+		return []byte("null"), nil
+	}
+
 	if checkImplements[graphql.Marshaler](v) {
 		return encodeGQLMarshaler(v.Interface())
 	}
@@ -457,6 +461,10 @@ func encode(v reflect.Value) ([]byte, error) {
 }
 
 func encodeGQLMarshaler(v any) ([]byte, error) {
+	if v == nil {
+		return []byte("null"), nil
+	}
+
 	var buf bytes.Buffer
 	if val, ok := v.(graphql.Marshaler); ok {
 		val.MarshalGQL(&buf)

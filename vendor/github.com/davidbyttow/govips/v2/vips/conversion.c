@@ -235,7 +235,7 @@ int crop(VipsImage *in, VipsImage **out, int left, int top,
   if (n_pages <= 1) {
     return vips_crop(in, out, left, top, width, height, NULL);
   }
-  
+
   int in_width = in->Xsize;
   VipsObject *base = VIPS_OBJECT(vips_image_new());
   VipsImage **page = (VipsImage **) vips_object_local_array(base, n_pages);
@@ -373,4 +373,8 @@ int replicate(VipsImage *in, VipsImage **out, int across, int down) {
 
 int grid(VipsImage *in, VipsImage **out, int tileHeight, int across, int down){
   return vips_grid(in, out, tileHeight, across, down, NULL);
+}
+
+int adjust_gamma(VipsImage *in, VipsImage **out, double g) {
+  return vips_gamma(in, out, "exponent", g, NULL);
 }
