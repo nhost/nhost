@@ -12,6 +12,8 @@ import (
 	"github.com/99designs/gqlgen/graphql/errcode"
 )
 
+const parserTokenNoLimit = 0
+
 // Executor executes graphql queries against a schema.
 type Executor struct {
 	es         graphql.ExecutableSchema
@@ -21,6 +23,8 @@ type Executor struct {
 	errorPresenter graphql.ErrorPresenterFunc
 	recoverFunc    graphql.RecoverFunc
 	queryCache     graphql.Cache
+
+	parserTokenLimit int
 }
 
 var _ graphql.GraphExecutor = &Executor{}
@@ -29,11 +33,12 @@ var _ graphql.GraphExecutor = &Executor{}
 // recovery callbacks, and no query cache or extensions.
 func New(es graphql.ExecutableSchema) *Executor {
 	e := &Executor{
-		es:             es,
-		errorPresenter: graphql.DefaultErrorPresenter,
-		recoverFunc:    graphql.DefaultRecover,
-		queryCache:     graphql.NoCache{},
-		ext:            processExtensions(nil),
+		es:               es,
+		errorPresenter:   graphql.DefaultErrorPresenter,
+		recoverFunc:      graphql.DefaultRecover,
+		queryCache:       graphql.NoCache{},
+		ext:              processExtensions(nil),
+		parserTokenLimit: parserTokenNoLimit,
 	}
 	return e
 }
@@ -153,7 +158,7 @@ func (e *Executor) DispatchError(ctx context.Context, list gqlerror.List) *graph
 	return resp
 }
 
-func (e *Executor) PresentRecoveredError(ctx context.Context, err interface{}) error {
+func (e *Executor) PresentRecoveredError(ctx context.Context, err any) error {
 	return e.errorPresenter(ctx, e.recoverFunc(ctx, err))
 }
 
@@ -167,6 +172,10 @@ func (e *Executor) SetErrorPresenter(f graphql.ErrorPresenterFunc) {
 
 func (e *Executor) SetRecoverFunc(f graphql.RecoverFunc) {
 	e.recoverFunc = f
+}
+
+func (e *Executor) SetParserTokenLimit(limit int) {
+	e.parserTokenLimit = limit
 }
 
 // parseQuery decodes the incoming query and validates it, pulling from cache if present.
@@ -189,7 +198,7 @@ func (e *Executor) parseQuery(
 		return doc.(*ast.QueryDocument), nil
 	}
 
-	doc, err := parser.ParseQuery(&ast.Source{Input: query})
+	doc, err := parser.ParseQueryWithTokenLimit(&ast.Source{Input: query}, e.parserTokenLimit)
 	if err != nil {
 		gqlErr, ok := err.(*gqlerror.Error)
 		if ok {

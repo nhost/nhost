@@ -1,6 +1,9 @@
 package jsondiff
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // Compare compares the JSON representations of the
 // given values and returns the differences relative
@@ -20,6 +23,27 @@ func CompareJSON(source, target []byte, opts ...Option) (Patch, error) {
 	d.applyOpts(opts...)
 
 	return compareJSON(&d, source, target, d.opts.unmarshal)
+}
+
+// CompareWithoutMarshal is similar to Compare, but it assumes
+// that the given interface values consists only of primitives
+// Go types that are recognized by the json.Unmarshal function,
+// and therefore does not marshal/unmarshal before comparison.
+func CompareWithoutMarshal(source, target interface{}, opts ...Option) (patch Patch, err error) {
+	var d Differ
+
+	defer func() {
+		if r := recover(); r != nil {
+			e := r.(invalidJSONTypeError)
+			err = fmt.Errorf("jsondiff: invalid json type: %T", e.t)
+			patch = nil
+		}
+	}()
+	d.applyOpts(opts...)
+	d.Compare(source, target)
+	patch = d.patch
+
+	return patch, err
 }
 
 func compare(d *Differ, src, tgt interface{}) (Patch, error) {

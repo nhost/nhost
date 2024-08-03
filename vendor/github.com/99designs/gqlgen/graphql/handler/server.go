@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -64,6 +65,10 @@ func (s *Server) SetRecoverFunc(f graphql.RecoverFunc) {
 
 func (s *Server) SetQueryCache(cache graphql.Cache) {
 	s.exec.SetQueryCache(cache)
+}
+
+func (s *Server) SetParserTokenLimit(limit int) {
+	s.exec.SetParserTokenLimit(limit)
 }
 
 func (s *Server) Use(extension graphql.HandlerExtension) {
@@ -131,7 +136,7 @@ func sendError(w http.ResponseWriter, code int, errors ...*gqlerror.Error) {
 	_, _ = w.Write(b)
 }
 
-func sendErrorf(w http.ResponseWriter, code int, format string, args ...interface{}) {
+func sendErrorf(w http.ResponseWriter, code int, format string, args ...any) {
 	sendError(w, code, &gqlerror.Error{Message: fmt.Sprintf(format, args...)})
 }
 
@@ -143,7 +148,7 @@ func (r OperationFunc) ExtensionName() string {
 
 func (r OperationFunc) Validate(schema graphql.ExecutableSchema) error {
 	if r == nil {
-		return fmt.Errorf("OperationFunc can not be nil")
+		return errors.New("OperationFunc can not be nil")
 	}
 	return nil
 }
@@ -160,7 +165,7 @@ func (r ResponseFunc) ExtensionName() string {
 
 func (r ResponseFunc) Validate(schema graphql.ExecutableSchema) error {
 	if r == nil {
-		return fmt.Errorf("ResponseFunc can not be nil")
+		return errors.New("ResponseFunc can not be nil")
 	}
 	return nil
 }
@@ -169,7 +174,7 @@ func (r ResponseFunc) InterceptResponse(ctx context.Context, next graphql.Respon
 	return r(ctx, next)
 }
 
-type FieldFunc func(ctx context.Context, next graphql.Resolver) (res interface{}, err error)
+type FieldFunc func(ctx context.Context, next graphql.Resolver) (res any, err error)
 
 func (f FieldFunc) ExtensionName() string {
 	return "InlineFieldFunc"
@@ -177,11 +182,11 @@ func (f FieldFunc) ExtensionName() string {
 
 func (f FieldFunc) Validate(schema graphql.ExecutableSchema) error {
 	if f == nil {
-		return fmt.Errorf("FieldFunc can not be nil")
+		return errors.New("FieldFunc can not be nil")
 	}
 	return nil
 }
 
-func (f FieldFunc) InterceptField(ctx context.Context, next graphql.Resolver) (res interface{}, err error) {
+func (f FieldFunc) InterceptField(ctx context.Context, next graphql.Resolver) (res any, err error) {
 	return f(ctx, next)
 }

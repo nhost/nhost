@@ -94,7 +94,7 @@ func add(tgt []byte, path string, val interface{}) ([]byte, error) {
 		// and return it as-is.
 		return json.Marshal(val)
 	}
-	// If we're dealing with an array indice, we want to
+	// If we're dealing with an array indices, we want to
 	// "insert" the element instead of replacing it.
 	// We insert a null value manually where the new element
 	// is supposed to be (before the current element), and
@@ -149,7 +149,7 @@ func toDotPath(path string, src []byte) (string, error) {
 			// indicate that it might be a number.
 			if _, err := strconv.ParseInt(f, 10, 64); err == nil {
 				// The number is valid, but it could either be an
-				// array indice or an object key.
+				// array indices or an object key.
 				// Since the JSON Pointer RFC does not differentiate
 				// between the two, we have to look up the value to
 				// know what we're dealing with.
@@ -160,7 +160,7 @@ func toDotPath(path string, src []byte) (string, error) {
 				r := gjson.GetBytes(src, p)
 				switch {
 				case r.IsArray():
-					// Write array indice as-is.
+					// Write array indices as-is.
 					key = f
 				case r.IsObject():
 					// Force the number as an object key, by

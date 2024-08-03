@@ -455,6 +455,113 @@ fmt.Println(t)
 
 For more on tables see [the docs](https://pkg.go.dev/github.com/charmbracelet/lipgloss?tab=doc) and [examples](https://github.com/charmbracelet/lipgloss/tree/master/examples/table).
 
+## Rendering Lists
+
+Lip Gloss ships with a list rendering sub-package.
+
+```go
+import "github.com/charmbracelet/lipgloss/list"
+```
+
+Define a new list.
+
+```go
+l := list.New("A", "B", "C")
+```
+
+Print the list.
+
+```go
+fmt.Println(l)
+
+// • A
+// • B
+// • C
+```
+
+Lists have the ability to nest.
+
+```go
+l := list.New(
+  "A", list.New("Artichoke"),
+  "B", list.New("Baking Flour", "Bananas", "Barley", "Bean Sprouts"),
+  "C", list.New("Cashew Apple", "Cashews", "Coconut Milk", "Curry Paste", "Currywurst"),
+  "D", list.New("Dill", "Dragonfruit", "Dried Shrimp"),
+  "E", list.New("Eggs"),
+  "F", list.New("Fish Cake", "Furikake"),
+  "J", list.New("Jicama"),
+  "K", list.New("Kohlrabi"),
+  "L", list.New("Leeks", "Lentils", "Licorice Root"),
+)
+```
+
+Print the list.
+
+```go
+fmt.Println(l)
+```
+
+<p align="center">
+<img width="600" alt="image" src="https://github.com/charmbracelet/lipgloss/assets/42545625/0dc9f440-0748-4151-a3b0-7dcf29dfcdb0">
+</p>
+
+Lists can be customized via their enumeration function as well as using
+`lipgloss.Style`s.
+
+```go
+enumeratorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("99")).MarginRight(1)
+itemStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("212")).MarginRight(1)
+
+l := list.New(
+  "Glossier",
+  "Claire’s Boutique",
+  "Nyx",
+  "Mac",
+  "Milk",
+).
+  Enumerator(list.Roman).
+  EnumeratorStyle(enumeratorStyle).
+  ItemStyle(itemStyle)
+```
+
+Print the list.
+
+<p align="center">
+<img width="600" alt="List example" src="https://github.com/charmbracelet/lipgloss/assets/42545625/360494f1-57fb-4e13-bc19-0006efe01561">
+</p>
+
+In addition to the predefined enumerators (`Arabic`, `Alphabet`, `Roman`, `Bullet`, `Tree`),
+you may also define your own custom enumerator:
+
+```go
+l := list.New("Duck", "Duck", "Duck", "Duck", "Goose", "Duck", "Duck")
+
+func DuckDuckGooseEnumerator(l list.Items, i int) string {
+    if l.At(i).Value() == "Goose" {
+        return "Honk →"
+    }
+    return ""
+}
+
+l = l.Enumerator(DuckDuckGooseEnumerator)
+```
+
+Print the list:
+
+<p align="center">
+<img width="600" alt="image" src="https://github.com/charmbracelet/lipgloss/assets/42545625/157aaf30-140d-4948-9bb4-dfba46e5b87e">
+</p>
+
+If you need, you can also build lists incrementally:
+
+```go
+l := list.New()
+
+for i := 0; i < repeat; i++ {
+    l.Item("Lip Gloss")
+}
+```
+
 ---
 
 ## FAQ

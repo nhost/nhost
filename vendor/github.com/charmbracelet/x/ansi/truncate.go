@@ -12,6 +12,10 @@ import (
 // This function is aware of ANSI escape codes and will not break them, and
 // accounts for wide-characters (such as East Asians and emojis).
 func Truncate(s string, length int, tail string) string {
+	if sw := StringWidth(s); sw <= length {
+		return s
+	}
+
 	tw := StringWidth(tail)
 	length -= tw
 	if length < 0 {

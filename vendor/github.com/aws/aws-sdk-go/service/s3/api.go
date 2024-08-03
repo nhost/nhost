@@ -449,7 +449,7 @@ func (c *S3) CopyObjectRequest(input *CopyObjectInput) (req *request.Request, ou
 // When the request is an HTTP 1.1 request, the response is chunk encoded. When
 // the request is not an HTTP 1.1 request, the response would not contain the
 // Content-Length. You always need to read the entire response body to check
-// if the copy succeeds. to keep the connection alive while we copy the data.
+// if the copy succeeds.
 //
 //   - If the copy is successful, you receive a response with information about
 //     the copied object.
@@ -2679,7 +2679,7 @@ func (c *S3) DeleteObjectsRequest(input *DeleteObjectsInput) (req *request.Reque
 //     in your policies when your DeleteObjects request includes specific headers.
 //     s3:DeleteObject - To delete an object from a bucket, you must always specify
 //     the s3:DeleteObject permission. s3:DeleteObjectVersion - To delete a specific
-//     version of an object from a versiong-enabled bucket, you must specify
+//     version of an object from a versioning-enabled bucket, you must specify
 //     the s3:DeleteObjectVersion permission.
 //
 //   - Directory bucket permissions - To grant access to this API operation
@@ -12001,15 +12001,15 @@ func (c *S3) UploadPartCopyRequest(input *UploadPartCopyInput) (req *request.Req
 //     source object that is being copied. If the destination bucket is a general
 //     purpose bucket, you must have the s3:PutObject permission to write the
 //     object copy to the destination bucket. For information about permissions
-//     required to use the multipart upload API, see Multipart Upload and Permissions
-//     (https://docs.aws.amazon.com/AmazonS3/latest/dev/mpuAndPermissions.html)
+//     required to use the multipart upload API, see Multipart upload API and
+//     permissions (https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html#mpuAndPermissions)
 //     in the Amazon S3 User Guide.
 //
 //   - Directory bucket permissions - You must have permissions in a bucket
 //     policy or an IAM identity-based policy based on the source and destination
 //     bucket types in an UploadPartCopy operation. If the source object that
 //     you want to copy is in a directory bucket, you must have the s3express:CreateSession
-//     permission in the Action element of a policy to read the object . By default,
+//     permission in the Action element of a policy to read the object. By default,
 //     the session is in the ReadWrite mode. If you want to restrict the access,
 //     you can explicitly set the s3express:SessionMode condition key to ReadOnly
 //     on the copy source bucket. If the copy destination is a directory bucket,
@@ -16940,7 +16940,7 @@ func (s CreateSessionInput) updateArnableField(v string) (interface{}, error) {
 type CreateSessionOutput struct {
 	_ struct{} `type:"structure"`
 
-	// The established temporary security credentials for the created session..
+	// The established temporary security credentials for the created session.
 	//
 	// Credentials is a required field
 	Credentials *SessionCredentials `locationName:"Credentials" type:"structure" required:"true"`
@@ -26467,6 +26467,24 @@ type HeadObjectInput struct {
 	// This functionality is not supported for directory buckets.
 	RequestPayer *string `location:"header" locationName:"x-amz-request-payer" type:"string" enum:"RequestPayer"`
 
+	// Sets the Cache-Control header of the response.
+	ResponseCacheControl *string `location:"querystring" locationName:"response-cache-control" type:"string"`
+
+	// Sets the Content-Disposition header of the response.
+	ResponseContentDisposition *string `location:"querystring" locationName:"response-content-disposition" type:"string"`
+
+	// Sets the Content-Encoding header of the response.
+	ResponseContentEncoding *string `location:"querystring" locationName:"response-content-encoding" type:"string"`
+
+	// Sets the Content-Language header of the response.
+	ResponseContentLanguage *string `location:"querystring" locationName:"response-content-language" type:"string"`
+
+	// Sets the Content-Type header of the response.
+	ResponseContentType *string `location:"querystring" locationName:"response-content-type" type:"string"`
+
+	// Sets the Expires header of the response.
+	ResponseExpires *time.Time `location:"querystring" locationName:"response-expires" type:"timestamp" timestampFormat:"rfc822"`
+
 	// Specifies the algorithm to use when encrypting the object (for example, AES256).
 	//
 	// This functionality is not supported for directory buckets.
@@ -26609,6 +26627,42 @@ func (s *HeadObjectInput) SetRange(v string) *HeadObjectInput {
 // SetRequestPayer sets the RequestPayer field's value.
 func (s *HeadObjectInput) SetRequestPayer(v string) *HeadObjectInput {
 	s.RequestPayer = &v
+	return s
+}
+
+// SetResponseCacheControl sets the ResponseCacheControl field's value.
+func (s *HeadObjectInput) SetResponseCacheControl(v string) *HeadObjectInput {
+	s.ResponseCacheControl = &v
+	return s
+}
+
+// SetResponseContentDisposition sets the ResponseContentDisposition field's value.
+func (s *HeadObjectInput) SetResponseContentDisposition(v string) *HeadObjectInput {
+	s.ResponseContentDisposition = &v
+	return s
+}
+
+// SetResponseContentEncoding sets the ResponseContentEncoding field's value.
+func (s *HeadObjectInput) SetResponseContentEncoding(v string) *HeadObjectInput {
+	s.ResponseContentEncoding = &v
+	return s
+}
+
+// SetResponseContentLanguage sets the ResponseContentLanguage field's value.
+func (s *HeadObjectInput) SetResponseContentLanguage(v string) *HeadObjectInput {
+	s.ResponseContentLanguage = &v
+	return s
+}
+
+// SetResponseContentType sets the ResponseContentType field's value.
+func (s *HeadObjectInput) SetResponseContentType(v string) *HeadObjectInput {
+	s.ResponseContentType = &v
+	return s
+}
+
+// SetResponseExpires sets the ResponseExpires field's value.
+func (s *HeadObjectInput) SetResponseExpires(v time.Time) *HeadObjectInput {
+	s.ResponseExpires = &v
 	return s
 }
 
@@ -27155,9 +27209,9 @@ type IndexDocument struct {
 	_ struct{} `type:"structure"`
 
 	// A suffix that is appended to a request that is for a directory on the website
-	// endpoint (for example,if the suffix is index.html and you make a request
-	// to samplebucket/images/ the data that is returned will be for the object
-	// with the key name images/index.html) The suffix must not be empty and must
+	// endpoint. (For example, if the suffix is index.html and you make a request
+	// to samplebucket/images/, the data that is returned will be for the object
+	// with the key name images/index.html.) The suffix must not be empty and must
 	// not include a slash character.
 	//
 	// Replacement must be made for object keys containing special characters (such
@@ -32179,9 +32233,9 @@ func (s *MultipartUpload) SetUploadId(v string) *MultipartUpload {
 type NoncurrentVersionExpiration struct {
 	_ struct{} `type:"structure"`
 
-	// Specifies how many newer noncurrent versions must exist before Amazon S3
-	// can perform the associated action on a given version. If there are this many
-	// more recent noncurrent versions, Amazon S3 will take the associated action.
+	// Specifies how many noncurrent versions Amazon S3 will retain. You can specify
+	// up to 100 noncurrent versions to retain. Amazon S3 will permanently delete
+	// any additional noncurrent versions beyond the specified number to retain.
 	// For more information about noncurrent versions, see Lifecycle configuration
 	// elements (https://docs.aws.amazon.com/AmazonS3/latest/userguide/intro-lifecycle-rules.html)
 	// in the Amazon S3 User Guide.
@@ -32235,11 +32289,11 @@ func (s *NoncurrentVersionExpiration) SetNoncurrentDays(v int64) *NoncurrentVers
 type NoncurrentVersionTransition struct {
 	_ struct{} `type:"structure"`
 
-	// Specifies how many newer noncurrent versions must exist before Amazon S3
-	// can perform the associated action on a given version. If there are this many
-	// more recent noncurrent versions, Amazon S3 will take the associated action.
-	// For more information about noncurrent versions, see Lifecycle configuration
-	// elements (https://docs.aws.amazon.com/AmazonS3/latest/userguide/intro-lifecycle-rules.html)
+	// Specifies how many noncurrent versions Amazon S3 will retain in the same
+	// storage class before transitioning objects. You can specify up to 100 noncurrent
+	// versions to retain. Amazon S3 will transition any additional noncurrent versions
+	// beyond the specified number to retain. For more information about noncurrent
+	// versions, see Lifecycle configuration elements (https://docs.aws.amazon.com/AmazonS3/latest/userguide/intro-lifecycle-rules.html)
 	// in the Amazon S3 User Guide.
 	NewerNoncurrentVersions *int64 `type:"integer"`
 
