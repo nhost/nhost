@@ -54,6 +54,7 @@ overrides:
   '@grpc/grpc-js@>=1.10.0 <1.10.9': '>=1.10.9'
   undici@>=6.0.0 <6.11.1: 6.11.1
   undici@<5.28.4: 5.28.4
+  fast-xml-parser@<4.4.1: '>=4.4.1'
 
 importers:
 
@@ -1034,7 +1035,7 @@ importers:
     devDependencies:
       '@nhost/nhost-js':
         specifier: ^3.1.5
-        version: 3.1.5(graphql@16.8.1)
+        version: link:../../../packages/nhost-js
       '@playwright/test':
         specifier: ^1.42.1
         version: 1.42.1
@@ -1979,10 +1980,10 @@ importers:
         version: 3.10.6(@types/react@18.3.3)(react@18.2.0)
       '@nhost/react':
         specifier: ^3.5.2
-        version: 3.5.2(@types/react@18.3.3)(react@18.2.0)
+        version: link:../../../packages/react
       '@nhost/react-apollo':
         specifier: ^12.0.2
-        version: 12.0.2(@apollo/client@3.10.6)(@nhost/react@3.5.2)(react@18.2.0)
+        version: link:../../../integrations/react-apollo
       '@react-native-async-storage/async-storage':
         specifier: ^1.23.1
         version: 1.23.1(react-native@0.73.7)
@@ -8577,7 +8578,7 @@ packages:
   /@graphql-tools/utils@8.13.1(graphql@16.8.1):
     resolution: {integrity: sha512-qIh9yYpdUFmctVqovwMdheVNJqFh+DQNWIhX87FJStfXYnmweBUDATok9fWPleKeFwxnW8IapKmY8m8toJEkAw==}
     peerDependencies:
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
     dependencies:
       graphql: 16.8.1
       tslib: 2.6.2
@@ -10284,100 +10285,6 @@ packages:
     requiresBuild: true
     optional: true
 
-  /@nhost/apollo@7.1.2(@apollo/client@3.10.6):
-    resolution: {integrity: sha512-sBd4Go6HkbwdQSP/teP7py8SveMrGZQtK3SyF9QrC59m5/tmkTJbPJJdJuWAmi3Lr8/xHNFaFxAtMWjfGx/VyA==}
-    peerDependencies:
-      '@apollo/client': ^3.7.10
-      '@nhost/nhost-js': 3.1.5
-    dependencies:
-      '@apollo/client': 3.10.6(@types/react@18.3.3)(react@18.2.0)
-      graphql: 16.8.1
-      graphql-ws: 5.16.0(graphql@16.8.1)
-      jwt-decode: 4.0.0
-    dev: false
-
-  /@nhost/graphql-js@0.3.0(graphql@16.8.1):
-    resolution: {integrity: sha512-CVYq6wx0VbaYdpUBmfNO/6mZatHB5+YBCqFjWyxhpN1nzHCHEO6rgdL7j0qk31OFE6XAX0z7AQZSXg1Pn63GUw==}
-    peerDependencies:
-      graphql: '>=16.8.1'
-    dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
-      base-64: 1.0.0
-      graphql: 16.8.1
-      isomorphic-unfetch: 3.1.0
-      jwt-decode: 4.0.0
-    transitivePeerDependencies:
-      - encoding
-
-  /@nhost/hasura-auth-js@2.5.2:
-    resolution: {integrity: sha512-3O4fIJ8xbdCdKGR/1o5jMczxrLLQ2g6BNp6J9m83COVqg9ka5IXoFuM6pgbX5W7WPe9nIQntvHsfeDynXS+/fg==}
-    dependencies:
-      '@simplewebauthn/browser': 9.0.1
-      fetch-ponyfill: 7.1.0
-      js-cookie: 3.0.5
-      jwt-decode: 4.0.0
-      xstate: 4.38.3
-    transitivePeerDependencies:
-      - encoding
-
-  /@nhost/hasura-storage-js@2.5.1:
-    resolution: {integrity: sha512-I3rOSa095lcR9BUmNw7dOoXLPWL39WOcrb0paUBFX4h3ltR92ILEHTZ38hN6bZSv157ZdqkIFNL/M2G45SSf7g==}
-    dependencies:
-      fetch-ponyfill: 7.1.0
-      form-data: 4.0.0
-      graphql: 16.8.1
-      xstate: 4.38.3
-    transitivePeerDependencies:
-      - encoding
-
-  /@nhost/nhost-js@3.1.5(graphql@16.8.1):
-    resolution: {integrity: sha512-SgDGQ0APiRPc6RB2Cl1EcvQUsmWFDx32JmgqYBgLKKV9+PBDKc2GJ4GHECbxQi3RoIMXeJ777XJTEK7mGgNL+A==}
-    peerDependencies:
-      graphql: '>=16.8.1'
-    dependencies:
-      '@nhost/graphql-js': 0.3.0(graphql@16.8.1)
-      '@nhost/hasura-auth-js': 2.5.2
-      '@nhost/hasura-storage-js': 2.5.1
-      graphql: 16.8.1
-      isomorphic-unfetch: 3.1.0
-    transitivePeerDependencies:
-      - encoding
-
-  /@nhost/react-apollo@12.0.2(@apollo/client@3.10.6)(@nhost/react@3.5.2)(react@18.2.0):
-    resolution: {integrity: sha512-Ll5RKH5g9aFTBBnTjlQCWmrHeyjhnzy1bx0TAG1FsXjh3YbsLPqelmVtAks2t7m+Uw8XWZ37D+cL/Hum/KxG/w==}
-    peerDependencies:
-      '@apollo/client': ^3.7.10
-      '@nhost/react': 3.5.2
-      graphql: '>=16.8.1'
-      react: ^17.0.0 || ^18.0.0
-      react-dom: ^17.0.0 || ^18.0.0
-    dependencies:
-      '@apollo/client': 3.10.6(@types/react@18.3.3)(react@18.2.0)
-      '@nhost/apollo': 7.1.2(@apollo/client@3.10.6)
-      '@nhost/react': 3.5.2(@types/react@18.3.3)(react@18.2.0)
-      react: 18.2.0
-    transitivePeerDependencies:
-      - '@nhost/nhost-js'
-    dev: false
-
-  /@nhost/react@3.5.2(@types/react@18.3.3)(react@18.2.0):
-    resolution: {integrity: sha512-i/qE9k3ccLyMum4JM1aSDc+qPZPW/o4Rgv7mn6Dc2qWEuDEYrOffqMJ/52nnT8k2O8GeHFpu2BZY81SCuiao+w==}
-    peerDependencies:
-      react: ^17.0.0 || ^18.1.0
-    dependencies:
-      '@nhost/nhost-js': 3.1.5(graphql@16.8.1)
-      '@xstate/react': 3.2.2(@types/react@18.3.3)(react@18.2.0)(xstate@4.38.3)
-      jwt-decode: 4.0.0
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      xstate: 4.38.3
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@xstate/fsm'
-      - encoding
-      - graphql
-    dev: false
-
   /@nicolo-ribaudo/eslint-scope-5-internals@5.1.1-v1:
     resolution: {integrity: sha512-54/JRvkLIzzDWshCWfuhadfrfZVPiElY8Fcgmg1HroEly/EDSszzhBAsarCux+D/kOslTRquNzuyGSmUSTTHGg==}
     dependencies:
@@ -11375,7 +11282,7 @@ packages:
       '@react-native-community/cli-tools': 12.3.6
       chalk: 4.1.2
       execa: 5.1.1
-      fast-xml-parser: 4.4.0
+      fast-xml-parser: 4.4.1
       glob: 7.2.3
       logkitty: 0.7.1
     transitivePeerDependencies:
@@ -11389,7 +11296,7 @@ packages:
       chalk: 4.1.2
       execa: 5.1.1
       fast-glob: 3.3.2
-      fast-xml-parser: 4.4.0
+      fast-xml-parser: 4.4.1
       logkitty: 0.7.1
     transitivePeerDependencies:
       - encoding
@@ -11401,7 +11308,7 @@ packages:
       '@react-native-community/cli-tools': 12.3.6
       chalk: 4.1.2
       execa: 5.1.1
-      fast-xml-parser: 4.4.0
+      fast-xml-parser: 4.4.1
       glob: 7.2.3
       ora: 5.4.1
     transitivePeerDependencies:
@@ -12058,9 +11965,11 @@ packages:
     resolution: {integrity: sha512-wD2WpbkaEP4170s13/HUxPcAV5y4ZXaKo1TfNklS5zDefPinIgXOpgz1kpEvobAsaLPa2KeH7AKKX/od1mrBJw==}
     dependencies:
       '@simplewebauthn/types': 9.0.1
+    dev: false
 
   /@simplewebauthn/types@9.0.1:
     resolution: {integrity: sha512-tGSRP1QvsAvsJmnOlRQyw/mvK9gnPtjEc5fg2+m8n+QUa+D7rvrKkOYyfpy42GTs90X3RDOnqJgfHt+qO67/+w==}
+    dev: false
 
   /@simplewebauthn/typescript-types@6.2.1:
     resolution: {integrity: sha512-qScvkt0nP0Uy/xeeunlXAkJni9wtecsvxwLELSgiWRx/KRVZy1SGDHsKAfQowpIeDmLDyhWxUoN7qUgvgWCiAQ==}
@@ -16838,6 +16747,7 @@ packages:
 
   /base-64@1.0.0:
     resolution: {integrity: sha512-kwDPIFCGx0NZHog36dj+tHiwP4QMzsZ3AgMViUBKI0+V5n4U0ufTCUMhnQ04diaRI8EX/QcPfql7zlhZ7j4zgg==}
+    dev: false
 
   /base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
@@ -20752,8 +20662,8 @@ packages:
     dependencies:
       punycode: 1.4.1
 
-  /fast-xml-parser@4.4.0:
-    resolution: {integrity: sha512-kLY3jFlwIYwBNDojclKsNAC12sfD6NwW74QB2CoNGPvtVxjliYehVunB3HYyNi+n4Tt1dAcgwYvmKF/Z18flqg==}
+  /fast-xml-parser@4.4.1:
+    resolution: {integrity: sha512-xkjOecfnKGkSsOwtZ5Pz7Us/T6mrbPQrq0nh+aCO5V9nk5NLWmasAHumTKjiPJPWANe+kAZ84Jc8ooJkzZ88Sw==}
     hasBin: true
     dependencies:
       strnum: 1.0.5
@@ -20815,6 +20725,7 @@ packages:
       node-fetch: 2.6.13
     transitivePeerDependencies:
       - encoding
+    dev: false
 
   /figgy-pudding@3.5.2:
     resolution: {integrity: sha512-0btnI/H8f2pavGMN8w40mlSKOfTK2SVJmBfBeVIj3kNw0swwgzyRq0d5TJVOwodFmtvpPeWPN/MCcfuWF0Ezbw==}
@@ -23320,6 +23231,7 @@ packages:
       unfetch: 4.2.0
     transitivePeerDependencies:
       - encoding
+    dev: false
 
   /isomorphic-ws@5.0.0(ws@8.17.1):
     resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
@@ -24289,6 +24201,7 @@ packages:
   /jwt-decode@4.0.0:
     resolution: {integrity: sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==}
     engines: {node: '>=18'}
+    dev: false
 
   /katex@0.16.10:
     resolution: {integrity: sha512-ZiqaC04tp2O5utMsl2TEZTXxa6WSC4yo0fv5ML++D3QZv/vx2Mct0mTlRx3O+uUkjfuAgOkzsCmq5MiUEsDDdA==}
@@ -26781,6 +26694,7 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
+    dev: false
 
   /node-fetch@2.7.0(encoding@0.1.13):
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
