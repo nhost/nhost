@@ -208,7 +208,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.6.0"
+	version: string | *"0.6.1"
 
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
@@ -234,7 +234,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.11-20240515-1"
+	version: string | *"14.11-20240718-1"
 
 	// Resources for the service
 	resources?: {
@@ -285,7 +285,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.31.0"
+	version: string | *"0.32.1"
 
 	// Resources for the service
 	resources?: #Resources

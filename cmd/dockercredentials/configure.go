@@ -116,6 +116,7 @@ func configureDocker(dockerConfig string) error {
 	credHelpers["registry.eu-west-2.nhost.run"] = credentialsHelper
 	credHelpers["registry.us-east-1.nhost.run"] = credentialsHelper
 	credHelpers["registry.sa-east-1.nhost.run"] = credentialsHelper
+	credHelpers["registry.us-west-2.nhost.run"] = credentialsHelper
 
 	config["credHelpers"] = credHelpers
 
