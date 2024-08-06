@@ -104,6 +104,7 @@ export default function DatabaseServiceVersionSettings() {
   const { formState, watch } = form;
 
   const selectedMajor = watch('majorVersion').value;
+  const selectedMinor = watch('minorVersion').value;
 
   const getMajorAndMinorVersions = (): {
     availableMajorVersions: DatabaseServiceField[];
@@ -350,15 +351,17 @@ export default function DatabaseServiceVersionSettings() {
                     // If there's only one minor version available, select it
                     const nextAvailableMinorVersions =
                       majorToMinorVersions[value.value] || [];
-                    if (nextAvailableMinorVersions.length === 1) {
+
+                    const isSelectedMinorAvailable = nextAvailableMinorVersions.some(
+                      (minor) => minor.value === selectedMinor,
+                    );
+
+                    if (!isSelectedMinorAvailable &&
+                      nextAvailableMinorVersions.length > 0) {
                       form.setValue(
                         'minorVersion',
                         nextAvailableMinorVersions[0],
                       );
-
-                      // Otherwise, reset the minor version
-                    } else {
-                      form.setValue('minorVersion', { label: '', value: '' });
                     }
                   }
                   form.setValue('majorVersion', value);
