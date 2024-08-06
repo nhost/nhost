@@ -134,7 +134,7 @@ jobs:
       if: ${{ ( inputs.GOOS == 'linux' && inputs.GOARCH == 'amd64' ) }}
 
     - name: "Push docker-image to artifact repository"
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.3.4
       with:
         name: cli-docker-image-${{ steps.vars.outputs.VERSION }}-${{ inputs.GOOS }}-${{ inputs.GOARCH }}
         path: result
