@@ -348,7 +348,6 @@ export default function DatabaseServiceVersionSettings() {
               onChange={(_event, value) => {
                 if (typeof value !== 'string' && !Array.isArray(value)) {
                   if (value.value !== selectedMajor) {
-                    // If there's only one minor version available, select it
                     const nextAvailableMinorVersions =
                       majorToMinorVersions[value.value] || [];
 
@@ -356,6 +355,7 @@ export default function DatabaseServiceVersionSettings() {
                       (minor) => minor.value === selectedMinor,
                     );
 
+                    // If the selected minor version is not available in the new major version, select the first available minor version
                     if (!isSelectedMinorAvailable &&
                       nextAvailableMinorVersions.length > 0) {
                       form.setValue(
