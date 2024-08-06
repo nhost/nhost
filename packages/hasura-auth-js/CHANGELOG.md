@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.5.4
+
+### Patch Changes
+
+- 4564232: chore: update `clientStorage` docs and add usage examples
+
 ## 2.5.3
 
 ### Patch Changes

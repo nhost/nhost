@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.14.3
+
+### Patch Changes
+
+- 4564232: chore: update `clientStorage` docs and add usage examples
+
 ## 2.14.2
 
 ### Patch Changes
