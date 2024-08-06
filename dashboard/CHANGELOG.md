@@ -1,5 +1,16 @@
 # @nhost/dashboard
 
+## 1.25.0
+
+### Minor Changes
+
+- e5d3d1a: fix: allow manually typing column for custom check in database row permissions
+
+### Patch Changes
+
+- @nhost/react-apollo@12.0.4
+- @nhost/nextjs@2.1.18
+
 ## 1.24.1
 
 ### Patch Changes
