@@ -587,6 +587,7 @@ components:
           description: A password of minimum 3 characters
           example: Str0ngPassw#ord-94|%
           minLength: 3
+          maxLength: 50
           type: string
         connection:
           deprecated: true
@@ -667,6 +668,7 @@ components:
           description: A password of minimum 3 characters
           example: Str0ngPassw#ord-94|%
           minLength: 3
+          maxLength: 50
           type: string
       required:
         - email
@@ -699,6 +701,7 @@ components:
           description: A password of minimum 3 characters
           example: Str0ngPassw#ord-94|%
           minLength: 3
+          maxLength: 50
           type: string
         options:
           $ref: "#/components/schemas/SignUpOptions"
