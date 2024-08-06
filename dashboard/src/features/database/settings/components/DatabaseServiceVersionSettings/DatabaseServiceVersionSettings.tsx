@@ -183,7 +183,8 @@ export default function DatabaseServiceVersionSettings() {
     Number(selectedMajor) > Number(currentPostgresMajor);
 
   const { state } = useAppState();
-  const applicationNotLive = (state !== ApplicationStatus.Live && state !== ApplicationStatus.Updating);
+  const applicationNotLive =
+    state !== ApplicationStatus.Live && state !== ApplicationStatus.Updating;
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
   const isMinorVersionDirty = formState?.dirtyFields?.minorVersion;
   const isDirty = isMajorVersionDirty || isMinorVersionDirty;
@@ -351,13 +352,16 @@ export default function DatabaseServiceVersionSettings() {
                     const nextAvailableMinorVersions =
                       majorToMinorVersions[value.value] || [];
 
-                    const isSelectedMinorAvailable = nextAvailableMinorVersions.some(
-                      (minor) => minor.value === selectedMinor,
-                    );
+                    const isSelectedMinorAvailable =
+                      nextAvailableMinorVersions.some(
+                        (minor) => minor.value === selectedMinor,
+                      );
 
                     // If the selected minor version is not available in the new major version, select the first available minor version
-                    if (!isSelectedMinorAvailable &&
-                      nextAvailableMinorVersions.length > 0) {
+                    if (
+                      !isSelectedMinorAvailable &&
+                      nextAvailableMinorVersions.length > 0
+                    ) {
                       form.setValue(
                         'minorVersion',
                         nextAvailableMinorVersions[0],
