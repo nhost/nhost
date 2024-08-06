@@ -1,4 +1,6 @@
 import { useDialog } from '@/components/common/DialogProvider';
+import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
+
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -11,6 +13,7 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { GraphqlDataSourcesFormSection } from '@/features/ai/AssistantForm/components/GraphqlDataSourcesFormSection';
 import { WebhooksDataSourcesFormSection } from '@/features/ai/AssistantForm/components/WebhooksDataSourcesFormSection';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
+import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { removeTypename, type DeepRequired } from '@/utils/helpers';
@@ -18,6 +21,7 @@ import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
 } from '@/utils/__generated__/graphite.graphql';
+import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -28,6 +32,9 @@ export const validationSchema = Yup.object({
   description: Yup.string(),
   instructions: Yup.string().required('The instructions are required'),
   model: Yup.string().required('The model is required'),
+  buckets: Yup.array()
+    .of(Yup.object({ label: Yup.string(), value: Yup.string() }))
+    .label('Buckets'),
   graphql: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required(),
@@ -64,14 +71,14 @@ export type AssistantFormValues = Yup.InferType<typeof validationSchema>;
 
 export interface AssistantFormProps extends DialogFormProps {
   /**
-   * To use in conjunction with initialData to allow for updating the autoEmbeddingsConfiguration
+   * To use in conjunction with initialData to allow for updating the Assistant Configuration
    */
   assistantId?: string;
 
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: AssistantFormValues;
+  initialData?: any;
 
   /**
    * Function to be called when the operation is cancelled.
@@ -102,8 +109,13 @@ export default function AssistantForm({
     client: adminClient,
   });
 
+  const formDefaultValues = { ...initialData };
+  formDefaultValues.buckets = initialData?.buckets
+    ? initialData.buckets.map((b: string) => ({ label: b, value: b }))
+    : [];
+
   const form = useForm<AssistantFormValues>({
-    defaultValues: initialData,
+    defaultValues: formDefaultValues,
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
   });
@@ -119,7 +131,19 @@ export default function AssistantForm({
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
 
-  const createOrUpdateAutoEmbeddings = async (
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
+  const { data: allBuckets } = useGetBucketsQuery({
+    client: remoteProjectGQLClient,
+  });
+
+  const bucketOptions = allBuckets
+    ? allBuckets.buckets.map((bucket) => ({
+        label: bucket.id,
+        value: bucket.id,
+      }))
+    : [];
+
+  const createOrUpdateAssistant = async (
     values: DeepRequired<AssistantFormValues> & { assistantID: string },
   ) => {
     // remove any __typename from the form values
@@ -131,6 +155,12 @@ export default function AssistantForm({
 
     if (values.graphql.length === 0) {
       delete payload.graphql;
+    }
+
+    if (values.buckets.length === 0) {
+      delete payload.buckets;
+    } else {
+      payload.buckets = values.buckets.map((bucket) => bucket.value);
     }
 
     // remove assistantId because the update mutation fails otherwise
@@ -152,6 +182,7 @@ export default function AssistantForm({
       variables: {
         data: {
           ...values,
+          buckets: values.buckets.map((bucket) => bucket.value),
         },
       },
     });
@@ -162,7 +193,7 @@ export default function AssistantForm({
   ) => {
     await execPromiseWithErrorToast(
       async () => {
-        await createOrUpdateAutoEmbeddings(values);
+        await createOrUpdateAssistant(values);
         onSubmit?.();
       },
       {
@@ -282,6 +313,19 @@ export default function AssistantForm({
             autoComplete="off"
             autoFocus
           />
+
+          <ControlledAutocomplete
+            id="buckets"
+            name="buckets"
+            label="Buckets"
+            fullWidth
+            multiple
+            aria-label="Buckets"
+            options={bucketOptions}
+            error={!!errors.buckets}
+            helperText={errors?.buckets?.message}
+          />
+
           <GraphqlDataSourcesFormSection />
           <WebhooksDataSourcesFormSection />
         </div>

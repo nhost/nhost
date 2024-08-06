@@ -35,6 +35,7 @@ export type Scalars = {
   smallint: any;
   timestamp: any;
   timestamptz: any;
+  timestampz: any;
   uuid: any;
 };
 
@@ -2815,6 +2816,599 @@ export type UsageSummary = {
   appID: Scalars['uuid'];
 };
 
+/** columns and relationships of "graphite.assistants" */
+export type _GraphiteAssistants = {
+  __typename?: '_graphiteAssistants';
+  assistantID?: Maybe<Scalars['String']>;
+  createdAt: Scalars['timestamptz'];
+  data?: Maybe<Scalars['jsonb']>;
+  id: Scalars['uuid'];
+  updatedAt: Scalars['timestamptz'];
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+
+/** columns and relationships of "graphite.assistants" */
+export type _GraphiteAssistantsDataArgs = {
+  path?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregated selection of "graphite.assistants" */
+export type _GraphiteAssistants_Aggregate = {
+  __typename?: '_graphiteAssistants_aggregate';
+  aggregate?: Maybe<_GraphiteAssistants_Aggregate_Fields>;
+  nodes: Array<_GraphiteAssistants>;
+};
+
+/** aggregate fields of "graphite.assistants" */
+export type _GraphiteAssistants_Aggregate_Fields = {
+  __typename?: '_graphiteAssistants_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<_GraphiteAssistants_Max_Fields>;
+  min?: Maybe<_GraphiteAssistants_Min_Fields>;
+};
+
+
+/** aggregate fields of "graphite.assistants" */
+export type _GraphiteAssistants_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type _GraphiteAssistants_Append_Input = {
+  data?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** Boolean expression to filter rows from the table "graphite.assistants". All fields are combined with a logical 'AND'. */
+export type _GraphiteAssistants_Bool_Exp = {
+  _and?: InputMaybe<Array<_GraphiteAssistants_Bool_Exp>>;
+  _not?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
+  _or?: InputMaybe<Array<_GraphiteAssistants_Bool_Exp>>;
+  assistantID?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  data?: InputMaybe<Jsonb_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user_id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "graphite.assistants" */
+export enum _GraphiteAssistants_Constraint {
+  /** unique or primary key constraint on columns "assistant_id" */
+  AssistantsAssistantIdKey = 'assistants_assistant_id_key',
+  /** unique or primary key constraint on columns "id" */
+  AssistantsPkey = 'assistants_pkey'
+}
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type _GraphiteAssistants_Delete_At_Path_Input = {
+  data?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type _GraphiteAssistants_Delete_Elem_Input = {
+  data?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type _GraphiteAssistants_Delete_Key_Input = {
+  data?: InputMaybe<Scalars['String']>;
+};
+
+/** input type for inserting data into table "graphite.assistants" */
+export type _GraphiteAssistants_Insert_Input = {
+  assistantID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  data?: InputMaybe<Scalars['jsonb']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type _GraphiteAssistants_Max_Fields = {
+  __typename?: '_graphiteAssistants_max_fields';
+  assistantID?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type _GraphiteAssistants_Min_Fields = {
+  __typename?: '_graphiteAssistants_min_fields';
+  assistantID?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "graphite.assistants" */
+export type _GraphiteAssistants_Mutation_Response = {
+  __typename?: '_graphiteAssistants_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<_GraphiteAssistants>;
+};
+
+/** on_conflict condition type for table "graphite.assistants" */
+export type _GraphiteAssistants_On_Conflict = {
+  constraint: _GraphiteAssistants_Constraint;
+  update_columns?: Array<_GraphiteAssistants_Update_Column>;
+  where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "graphite.assistants". */
+export type _GraphiteAssistants_Order_By = {
+  assistantID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  data?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: graphite.assistants */
+export type _GraphiteAssistants_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type _GraphiteAssistants_Prepend_Input = {
+  data?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** select columns of table "graphite.assistants" */
+export enum _GraphiteAssistants_Select_Column {
+  /** column name */
+  AssistantId = 'assistantID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Data = 'data',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'user_id'
+}
+
+/** input type for updating data in table "graphite.assistants" */
+export type _GraphiteAssistants_Set_Input = {
+  assistantID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  data?: InputMaybe<Scalars['jsonb']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "_graphiteAssistants" */
+export type _GraphiteAssistants_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: _GraphiteAssistants_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type _GraphiteAssistants_Stream_Cursor_Value_Input = {
+  assistantID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  data?: InputMaybe<Scalars['jsonb']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "graphite.assistants" */
+export enum _GraphiteAssistants_Update_Column {
+  /** column name */
+  AssistantId = 'assistantID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Data = 'data',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'user_id'
+}
+
+export type _GraphiteAssistants_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<_GraphiteAssistants_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<_GraphiteAssistants_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<_GraphiteAssistants_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<_GraphiteAssistants_Delete_Key_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<_GraphiteAssistants_Prepend_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<_GraphiteAssistants_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: _GraphiteAssistants_Bool_Exp;
+};
+
+/** columns and relationships of "graphite.files" */
+export type _GraphiteFiles = {
+  __typename?: '_graphiteFiles';
+  createdAt: Scalars['timestamptz'];
+  fileID?: Maybe<Scalars['String']>;
+  id: Scalars['uuid'];
+  storageFileID?: Maybe<Scalars['uuid']>;
+  updatedAt: Scalars['timestamptz'];
+  vectorStoreID?: Maybe<Scalars['String']>;
+};
+
+/** aggregated selection of "graphite.files" */
+export type _GraphiteFiles_Aggregate = {
+  __typename?: '_graphiteFiles_aggregate';
+  aggregate?: Maybe<_GraphiteFiles_Aggregate_Fields>;
+  nodes: Array<_GraphiteFiles>;
+};
+
+/** aggregate fields of "graphite.files" */
+export type _GraphiteFiles_Aggregate_Fields = {
+  __typename?: '_graphiteFiles_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<_GraphiteFiles_Max_Fields>;
+  min?: Maybe<_GraphiteFiles_Min_Fields>;
+};
+
+
+/** aggregate fields of "graphite.files" */
+export type _GraphiteFiles_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "graphite.files". All fields are combined with a logical 'AND'. */
+export type _GraphiteFiles_Bool_Exp = {
+  _and?: InputMaybe<Array<_GraphiteFiles_Bool_Exp>>;
+  _not?: InputMaybe<_GraphiteFiles_Bool_Exp>;
+  _or?: InputMaybe<Array<_GraphiteFiles_Bool_Exp>>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  fileID?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  storageFileID?: InputMaybe<Uuid_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  vectorStoreID?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "graphite.files" */
+export enum _GraphiteFiles_Constraint {
+  /** unique or primary key constraint on columns "file_id" */
+  FilesFileIdKey = 'files_file_id_key',
+  /** unique or primary key constraint on columns "id" */
+  FilesPkey = 'files_pkey',
+  /** unique or primary key constraint on columns "storage_file_id" */
+  FilesStorageFileIdKey = 'files_storage_file_id_key'
+}
+
+/** input type for inserting data into table "graphite.files" */
+export type _GraphiteFiles_Insert_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  fileID?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  storageFileID?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  vectorStoreID?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type _GraphiteFiles_Max_Fields = {
+  __typename?: '_graphiteFiles_max_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  fileID?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  storageFileID?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  vectorStoreID?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type _GraphiteFiles_Min_Fields = {
+  __typename?: '_graphiteFiles_min_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  fileID?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  storageFileID?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  vectorStoreID?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "graphite.files" */
+export type _GraphiteFiles_Mutation_Response = {
+  __typename?: '_graphiteFiles_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<_GraphiteFiles>;
+};
+
+/** on_conflict condition type for table "graphite.files" */
+export type _GraphiteFiles_On_Conflict = {
+  constraint: _GraphiteFiles_Constraint;
+  update_columns?: Array<_GraphiteFiles_Update_Column>;
+  where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "graphite.files". */
+export type _GraphiteFiles_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  fileID?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  storageFileID?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  vectorStoreID?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: graphite.files */
+export type _GraphiteFiles_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "graphite.files" */
+export enum _GraphiteFiles_Select_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  FileId = 'fileID',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  StorageFileId = 'storageFileID',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  VectorStoreId = 'vectorStoreID'
+}
+
+/** input type for updating data in table "graphite.files" */
+export type _GraphiteFiles_Set_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  fileID?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  storageFileID?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  vectorStoreID?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "_graphiteFiles" */
+export type _GraphiteFiles_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: _GraphiteFiles_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type _GraphiteFiles_Stream_Cursor_Value_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  fileID?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  storageFileID?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  vectorStoreID?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "graphite.files" */
+export enum _GraphiteFiles_Update_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  FileId = 'fileID',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  StorageFileId = 'storageFileID',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  VectorStoreId = 'vectorStoreID'
+}
+
+export type _GraphiteFiles_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<_GraphiteFiles_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: _GraphiteFiles_Bool_Exp;
+};
+
+/** columns and relationships of "graphite.sessions" */
+export type _GraphiteSessions = {
+  __typename?: '_graphiteSessions';
+  assistantID?: Maybe<Scalars['String']>;
+  createdAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  sessionID?: Maybe<Scalars['String']>;
+  updatedAt: Scalars['timestamptz'];
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregated selection of "graphite.sessions" */
+export type _GraphiteSessions_Aggregate = {
+  __typename?: '_graphiteSessions_aggregate';
+  aggregate?: Maybe<_GraphiteSessions_Aggregate_Fields>;
+  nodes: Array<_GraphiteSessions>;
+};
+
+/** aggregate fields of "graphite.sessions" */
+export type _GraphiteSessions_Aggregate_Fields = {
+  __typename?: '_graphiteSessions_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<_GraphiteSessions_Max_Fields>;
+  min?: Maybe<_GraphiteSessions_Min_Fields>;
+};
+
+
+/** aggregate fields of "graphite.sessions" */
+export type _GraphiteSessions_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "graphite.sessions". All fields are combined with a logical 'AND'. */
+export type _GraphiteSessions_Bool_Exp = {
+  _and?: InputMaybe<Array<_GraphiteSessions_Bool_Exp>>;
+  _not?: InputMaybe<_GraphiteSessions_Bool_Exp>;
+  _or?: InputMaybe<Array<_GraphiteSessions_Bool_Exp>>;
+  assistantID?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  sessionID?: InputMaybe<String_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  userID?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "graphite.sessions" */
+export enum _GraphiteSessions_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  SessionsPkey = 'sessions_pkey',
+  /** unique or primary key constraint on columns "session_id" */
+  SessionsSessionIdKey = 'sessions_session_id_key'
+}
+
+/** input type for inserting data into table "graphite.sessions" */
+export type _GraphiteSessions_Insert_Input = {
+  assistantID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  sessionID?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type _GraphiteSessions_Max_Fields = {
+  __typename?: '_graphiteSessions_max_fields';
+  assistantID?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  sessionID?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type _GraphiteSessions_Min_Fields = {
+  __typename?: '_graphiteSessions_min_fields';
+  assistantID?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  sessionID?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "graphite.sessions" */
+export type _GraphiteSessions_Mutation_Response = {
+  __typename?: '_graphiteSessions_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<_GraphiteSessions>;
+};
+
+/** on_conflict condition type for table "graphite.sessions" */
+export type _GraphiteSessions_On_Conflict = {
+  constraint: _GraphiteSessions_Constraint;
+  update_columns?: Array<_GraphiteSessions_Update_Column>;
+  where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "graphite.sessions". */
+export type _GraphiteSessions_Order_By = {
+  assistantID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  sessionID?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  userID?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: graphite.sessions */
+export type _GraphiteSessions_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "graphite.sessions" */
+export enum _GraphiteSessions_Select_Column {
+  /** column name */
+  AssistantId = 'assistantID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  SessionId = 'sessionID',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userID'
+}
+
+/** input type for updating data in table "graphite.sessions" */
+export type _GraphiteSessions_Set_Input = {
+  assistantID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  sessionID?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "_graphiteSessions" */
+export type _GraphiteSessions_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: _GraphiteSessions_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type _GraphiteSessions_Stream_Cursor_Value_Input = {
+  assistantID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  sessionID?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "graphite.sessions" */
+export enum _GraphiteSessions_Update_Column {
+  /** column name */
+  AssistantId = 'assistantID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  SessionId = 'sessionID',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userID'
+}
+
+export type _GraphiteSessions_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<_GraphiteSessions_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: _GraphiteSessions_Bool_Exp;
+};
+
 /** columns and relationships of "announcements" */
 export type Announcements = {
   __typename?: 'announcements';
@@ -4964,7 +5558,6 @@ export type AuthRefreshTokens = {
   id: Scalars['uuid'];
   metadata?: Maybe<Scalars['jsonb']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   type: AuthRefreshTokenTypes_Enum;
   /** An object relationship */
   user: Users;
@@ -5039,7 +5632,6 @@ export type AuthRefreshTokens_Bool_Exp = {
   id?: InputMaybe<Uuid_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   refreshTokenHash?: InputMaybe<String_Comparison_Exp>;
-  refresh_token?: InputMaybe<Uuid_Comparison_Exp>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
@@ -5073,7 +5665,6 @@ export type AuthRefreshTokens_Insert_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
@@ -5086,7 +5677,6 @@ export type AuthRefreshTokens_Max_Fields = {
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -5096,7 +5686,6 @@ export type AuthRefreshTokens_Max_Order_By = {
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -5107,7 +5696,6 @@ export type AuthRefreshTokens_Min_Fields = {
   expiresAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   refreshTokenHash?: Maybe<Scalars['String']>;
-  refresh_token?: Maybe<Scalars['uuid']>;
   userId?: Maybe<Scalars['uuid']>;
 };
 
@@ -5117,7 +5705,6 @@ export type AuthRefreshTokens_Min_Order_By = {
   expiresAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
 
@@ -5144,7 +5731,6 @@ export type AuthRefreshTokens_Order_By = {
   id?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   refreshTokenHash?: InputMaybe<Order_By>;
-  refresh_token?: InputMaybe<Order_By>;
   type?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userId?: InputMaybe<Order_By>;
@@ -5173,8 +5759,6 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   RefreshTokenHash = 'refreshTokenHash',
   /** column name */
-  RefreshToken = 'refresh_token',
-  /** column name */
   Type = 'type',
   /** column name */
   UserId = 'userId'
@@ -5187,7 +5771,6 @@ export type AuthRefreshTokens_Set_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -5207,7 +5790,6 @@ export type AuthRefreshTokens_Stream_Cursor_Value_Input = {
   id?: InputMaybe<Scalars['uuid']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   refreshTokenHash?: InputMaybe<Scalars['String']>;
-  refresh_token?: InputMaybe<Scalars['uuid']>;
   type?: InputMaybe<AuthRefreshTokenTypes_Enum>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -5224,8 +5806,6 @@ export enum AuthRefreshTokens_Update_Column {
   Metadata = 'metadata',
   /** column name */
   RefreshTokenHash = 'refreshTokenHash',
-  /** column name */
-  RefreshToken = 'refresh_token',
   /** column name */
   Type = 'type',
   /** column name */
@@ -11856,6 +12436,619 @@ export type GithubRepositories_Updates = {
   where: GithubRepositories_Bool_Exp;
 };
 
+export type GraphiteAssistant = {
+  __typename?: 'graphiteAssistant';
+  /** ID of the assistant */
+  assistantID: Scalars['String'];
+  /** Buckets this assistant has access to */
+  buckets?: Maybe<Array<Maybe<Scalars['String']>>>;
+  /** Description of the assistant */
+  description: Scalars['String'];
+  /** GraphQL data sources and tools. Run against the project's GraphQL API */
+  graphql?: Maybe<Array<GraphiteAssistantToolGraphQl>>;
+  /**
+   * Instructions for the assistant. This is used to instruct the AI assistant
+   * on how to behave and respond to the user
+   */
+  instructions: Scalars['String'];
+  /** Model to use for the assistant. */
+  model: Scalars['String'];
+  /** Name of the assistant */
+  name: Scalars['String'];
+  /** Webhook data sources and tools */
+  webhooks?: Maybe<Array<GraphiteAssistantToolWebhook>>;
+};
+
+export type GraphiteAssistantInput = {
+  /** Buckets this assistant has access to */
+  buckets?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
+  /** Description of the assistant */
+  description: Scalars['String'];
+  /** GraphQL data sources. Run against the project's GraphQL API */
+  graphql?: InputMaybe<Array<InputMaybe<GraphiteAssistantToolGraphQlInput>>>;
+  /**
+   * Instructions for the assistant. This is used to instruct the AI assistant
+   * on how to behave and respond to the user
+   */
+  instructions: Scalars['String'];
+  /** Model to use for the assistant. */
+  model: Scalars['String'];
+  /** Name of the assistant */
+  name: Scalars['String'];
+  /** Webhook data sources */
+  webhooks?: InputMaybe<Array<InputMaybe<GraphiteAssistantToolWebhookInput>>>;
+};
+
+export type GraphiteAssistantToolArgument = {
+  __typename?: 'graphiteAssistantToolArgument';
+  description: Scalars['String'];
+  name: Scalars['String'];
+  required: Scalars['Boolean'];
+  type: Scalars['String'];
+};
+
+export type GraphiteAssistantToolArgumentInput = {
+  /** Description of the argument. Be as clear and concise as possible. */
+  description: Scalars['String'];
+  /** Name of the argument */
+  name: Scalars['String'];
+  /** Whether or not the argument is required */
+  required: Scalars['Boolean'];
+  /** Type of the argument */
+  type: Scalars['String'];
+};
+
+export type GraphiteAssistantToolGraphQl = {
+  __typename?: 'graphiteAssistantToolGraphQL';
+  /** Arguments to pass to the GraphQL query */
+  arguments: Array<GraphiteAssistantToolArgument>;
+  /** Description of the data source */
+  description: Scalars['String'];
+  /** Name of the data source */
+  name: Scalars['String'];
+  /** GraphQL query to run against the project's GraphQL API. */
+  query: Scalars['String'];
+};
+
+export type GraphiteAssistantToolGraphQlInput = {
+  /** Arguments to pass to the GraphQL query */
+  arguments: Array<GraphiteAssistantToolArgumentInput>;
+  /**
+   * Description of the data source. Be as clear and concise as possible.
+   * This is used to help the AI assistant understand when and how
+   * external data sources should be used.
+   */
+  description: Scalars['String'];
+  /** Name of the data source. Use a descriptive name */
+  name: Scalars['String'];
+  /** GraphQL query to run against the project's GraphQL API. */
+  query: Scalars['String'];
+};
+
+export type GraphiteAssistantToolWebhook = {
+  __typename?: 'graphiteAssistantToolWebhook';
+  /** URL of the webhook */
+  URL: Scalars['String'];
+  /** Arguments to pass to the webhook */
+  arguments: Array<GraphiteAssistantToolArgument>;
+  /** Description of the data source */
+  description: Scalars['String'];
+  /** Name of the data source */
+  name: Scalars['String'];
+};
+
+export type GraphiteAssistantToolWebhookInput = {
+  /** URL of the webhook */
+  URL: Scalars['String'];
+  /** Arguments to pass to the webhook */
+  arguments: Array<GraphiteAssistantToolArgumentInput>;
+  /**
+   * Description of the data source. Be as clear and concise as possible.
+   * This is used to help the AI assistant understand when and how
+   * external data sources should be used.
+   */
+  description: Scalars['String'];
+  /** Name of the data source. Use a descriptive name */
+  name: Scalars['String'];
+};
+
+/** columns and relationships of "graphite.auto_embeddings_configuration" */
+export type GraphiteAutoEmbeddingsConfiguration = {
+  __typename?: 'graphiteAutoEmbeddingsConfiguration';
+  columnName: Scalars['String'];
+  createdAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  lastRun?: Maybe<Scalars['timestamptz']>;
+  model: Scalars['String'];
+  mutation?: Maybe<Scalars['String']>;
+  name: Scalars['String'];
+  query?: Maybe<Scalars['String']>;
+  schemaName: Scalars['String'];
+  tableName: Scalars['String'];
+  updatedAt: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "graphite.auto_embeddings_configuration" */
+export type GraphiteAutoEmbeddingsConfiguration_Aggregate = {
+  __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate';
+  aggregate?: Maybe<GraphiteAutoEmbeddingsConfiguration_Aggregate_Fields>;
+  nodes: Array<GraphiteAutoEmbeddingsConfiguration>;
+};
+
+/** aggregate fields of "graphite.auto_embeddings_configuration" */
+export type GraphiteAutoEmbeddingsConfiguration_Aggregate_Fields = {
+  __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<GraphiteAutoEmbeddingsConfiguration_Max_Fields>;
+  min?: Maybe<GraphiteAutoEmbeddingsConfiguration_Min_Fields>;
+};
+
+
+/** aggregate fields of "graphite.auto_embeddings_configuration" */
+export type GraphiteAutoEmbeddingsConfiguration_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "graphite.auto_embeddings_configuration". All fields are combined with a logical 'AND'. */
+export type GraphiteAutoEmbeddingsConfiguration_Bool_Exp = {
+  _and?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>>;
+  _not?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
+  _or?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>>;
+  columnName?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  lastRun?: InputMaybe<Timestamptz_Comparison_Exp>;
+  model?: InputMaybe<String_Comparison_Exp>;
+  mutation?: InputMaybe<String_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  query?: InputMaybe<String_Comparison_Exp>;
+  schemaName?: InputMaybe<String_Comparison_Exp>;
+  tableName?: InputMaybe<String_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "graphite.auto_embeddings_configuration" */
+export enum GraphiteAutoEmbeddingsConfiguration_Constraint {
+  /** unique or primary key constraint on columns "name" */
+  AutoEmbeddingsConfigurationNameKey = 'auto_embeddings_configuration_name_key',
+  /** unique or primary key constraint on columns "id" */
+  AutoEmbeddingsConfigurationPkey = 'auto_embeddings_configuration_pkey',
+  /** unique or primary key constraint on columns "column_name", "schema_name", "table_name" */
+  AutoEmbeddingsConfigurationSchemaNameTableNameColumnKey = 'auto_embeddings_configuration_schema_name_table_name_column_key'
+}
+
+/** input type for inserting data into table "graphite.auto_embeddings_configuration" */
+export type GraphiteAutoEmbeddingsConfiguration_Insert_Input = {
+  columnName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  lastRun?: InputMaybe<Scalars['timestamptz']>;
+  model?: InputMaybe<Scalars['String']>;
+  mutation?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  query?: InputMaybe<Scalars['String']>;
+  schemaName?: InputMaybe<Scalars['String']>;
+  tableName?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type GraphiteAutoEmbeddingsConfiguration_Max_Fields = {
+  __typename?: 'graphiteAutoEmbeddingsConfiguration_max_fields';
+  columnName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  lastRun?: Maybe<Scalars['timestamptz']>;
+  model?: Maybe<Scalars['String']>;
+  mutation?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']>;
+  query?: Maybe<Scalars['String']>;
+  schemaName?: Maybe<Scalars['String']>;
+  tableName?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type GraphiteAutoEmbeddingsConfiguration_Min_Fields = {
+  __typename?: 'graphiteAutoEmbeddingsConfiguration_min_fields';
+  columnName?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  lastRun?: Maybe<Scalars['timestamptz']>;
+  model?: Maybe<Scalars['String']>;
+  mutation?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']>;
+  query?: Maybe<Scalars['String']>;
+  schemaName?: Maybe<Scalars['String']>;
+  tableName?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "graphite.auto_embeddings_configuration" */
+export type GraphiteAutoEmbeddingsConfiguration_Mutation_Response = {
+  __typename?: 'graphiteAutoEmbeddingsConfiguration_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<GraphiteAutoEmbeddingsConfiguration>;
+};
+
+/** on_conflict condition type for table "graphite.auto_embeddings_configuration" */
+export type GraphiteAutoEmbeddingsConfiguration_On_Conflict = {
+  constraint: GraphiteAutoEmbeddingsConfiguration_Constraint;
+  update_columns?: Array<GraphiteAutoEmbeddingsConfiguration_Update_Column>;
+  where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "graphite.auto_embeddings_configuration". */
+export type GraphiteAutoEmbeddingsConfiguration_Order_By = {
+  columnName?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  lastRun?: InputMaybe<Order_By>;
+  model?: InputMaybe<Order_By>;
+  mutation?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  query?: InputMaybe<Order_By>;
+  schemaName?: InputMaybe<Order_By>;
+  tableName?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: graphite.auto_embeddings_configuration */
+export type GraphiteAutoEmbeddingsConfiguration_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "graphite.auto_embeddings_configuration" */
+export enum GraphiteAutoEmbeddingsConfiguration_Select_Column {
+  /** column name */
+  ColumnName = 'columnName',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  LastRun = 'lastRun',
+  /** column name */
+  Model = 'model',
+  /** column name */
+  Mutation = 'mutation',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  Query = 'query',
+  /** column name */
+  SchemaName = 'schemaName',
+  /** column name */
+  TableName = 'tableName',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "graphite.auto_embeddings_configuration" */
+export type GraphiteAutoEmbeddingsConfiguration_Set_Input = {
+  columnName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  lastRun?: InputMaybe<Scalars['timestamptz']>;
+  model?: InputMaybe<Scalars['String']>;
+  mutation?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  query?: InputMaybe<Scalars['String']>;
+  schemaName?: InputMaybe<Scalars['String']>;
+  tableName?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "graphiteAutoEmbeddingsConfiguration" */
+export type GraphiteAutoEmbeddingsConfiguration_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: GraphiteAutoEmbeddingsConfiguration_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type GraphiteAutoEmbeddingsConfiguration_Stream_Cursor_Value_Input = {
+  columnName?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  lastRun?: InputMaybe<Scalars['timestamptz']>;
+  model?: InputMaybe<Scalars['String']>;
+  mutation?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  query?: InputMaybe<Scalars['String']>;
+  schemaName?: InputMaybe<Scalars['String']>;
+  tableName?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "graphite.auto_embeddings_configuration" */
+export enum GraphiteAutoEmbeddingsConfiguration_Update_Column {
+  /** column name */
+  ColumnName = 'columnName',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  LastRun = 'lastRun',
+  /** column name */
+  Model = 'model',
+  /** column name */
+  Mutation = 'mutation',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  Query = 'query',
+  /** column name */
+  SchemaName = 'schemaName',
+  /** column name */
+  TableName = 'tableName',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type GraphiteAutoEmbeddingsConfiguration_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: GraphiteAutoEmbeddingsConfiguration_Bool_Exp;
+};
+
+export type GraphiteMessage = {
+  __typename?: 'graphiteMessage';
+  /** Timestamp of when the message was sent */
+  createdAt: Scalars['timestampz'];
+  /** ID of the message */
+  id: Scalars['String'];
+  /** Message content */
+  message: Scalars['String'];
+  /** Role of the message. Either "user" or "assistant" */
+  role: Scalars['String'];
+};
+
+export type GraphiteMessageResponse = {
+  __typename?: 'graphiteMessageResponse';
+  /** Messages in this session */
+  messages: Array<GraphiteMessage>;
+  /** ID of the session */
+  sessionID: Scalars['String'];
+};
+
+export type GraphiteMutation = {
+  __typename?: 'graphiteMutation';
+  /**
+   * Delete an assistant
+   *
+   * ## Permissions needed
+   *
+   * select (assistants):
+   * - assistant_id
+   * delete (assistants):
+   */
+  deleteAssistant: Scalars['Boolean'];
+  /**
+   * Delete a session
+   *
+   * ## Permissions needed
+   *
+   * select (sessions):
+   * - assistant_id
+   * delete (sessions):
+   */
+  deleteSession: Scalars['Boolean'];
+  /**
+   * Create an assistant
+   *
+   * ## Permissions needed
+   *
+   * select (assistants):
+   * - id
+   * insert (assistants):
+   * - user_id
+   * update (assistants):
+   * - assistant_id
+   * - data
+   */
+  insertAssistant: GraphiteAssistant;
+  /**
+   * Send a message to a developer session.
+   * If prevMessageID is `""`, return all messages in the session.
+   * If prevMessageID is not `""`, return all messages after prevMessageID.
+   *
+   * ## Permissions needed
+   *
+   * Only admins can send messages to developer sessions
+   */
+  sendDevMessage: GraphiteMessageResponse;
+  /**
+   * Send a message to a session.
+   * If prevMessageID is "", return all messages in the session.
+   * If prevMessageID is not "", return all messages after prevMessageID.
+   *
+   * ## Permissions needed
+   *
+   * select (sessions):
+   * - id
+   * - session_id
+   * - assistant_id
+   * update (sessions):
+   * - update_at
+   * select (assistants):
+   * - id
+   * - data
+   */
+  sendMessage: GraphiteMessageResponse;
+  /**
+   * Create a developer session
+   *
+   * ## Permissions needed
+   *
+   * Only admins can create developer sessions
+   */
+  startDevSession: GraphiteSession;
+  /**
+   * Create a session with a given assistant
+   *
+   * ## Permissions needed
+   *
+   * select (sessions):
+   * - id
+   * insert (sessions):
+   * - user_id
+   * - assistant_id
+   *
+   * select (assistants):
+   * - id
+   * - data
+   */
+  startSession: GraphiteSession;
+  /**
+   * Update an assistant
+   *
+   * ## Permissions needed
+   *
+   * select (assistants):
+   * - assistant_id
+   * update (assistants):
+   * - update_at
+   * - data
+   */
+  updateAssistant: GraphiteAssistant;
+};
+
+
+export type GraphiteMutationDeleteAssistantArgs = {
+  assistantID: Scalars['String'];
+};
+
+
+export type GraphiteMutationDeleteSessionArgs = {
+  sessionID: Scalars['String'];
+};
+
+
+export type GraphiteMutationInsertAssistantArgs = {
+  object: GraphiteAssistantInput;
+};
+
+
+export type GraphiteMutationSendDevMessageArgs = {
+  message: Scalars['String'];
+  prevMessageID: Scalars['String'];
+  sessionID: Scalars['String'];
+};
+
+
+export type GraphiteMutationSendMessageArgs = {
+  message: Scalars['String'];
+  prevMessageID: Scalars['String'];
+  sessionID: Scalars['String'];
+};
+
+
+export type GraphiteMutationStartSessionArgs = {
+  assistantID: Scalars['String'];
+};
+
+
+export type GraphiteMutationUpdateAssistantArgs = {
+  assistantID: Scalars['String'];
+  object: GraphiteAssistantInput;
+};
+
+export type GraphiteQuery = {
+  __typename?: 'graphiteQuery';
+  /**
+   * Retrieve an assistant
+   *
+   * ## Permissions needed
+   *
+   * select (assistants):
+   * - id
+   * - assistantID
+   * - data
+   */
+  assistant?: Maybe<GraphiteAssistant>;
+  /**
+   * Retrieve all assistants
+   *
+   * ## Permissions needed
+   *
+   * select (assistants):
+   * - id
+   * - assistant_id
+   * - data
+   */
+  assistants: Array<GraphiteAssistant>;
+  /**
+   * Retrieve a session
+   *
+   * ## Permissions needed
+   *
+   * select (sessions):
+   * - id
+   * - assistant_id
+   * - session_id
+   * - user_id
+   */
+  session?: Maybe<GraphiteSession>;
+  /**
+   * Retrieve all messages for a session
+   *
+   * ## Permissions needed
+   *
+   * select (sessions):
+   * - id
+   * - assistant_id
+   * - session_id
+   * - user_id
+   */
+  sessionMessages?: Maybe<GraphiteMessageResponse>;
+  /**
+   * Retrieve all sessions
+   *
+   * ## Permissions needed
+   *
+   * select (sessions):
+   * - id
+   * - assistant_id
+   * - session_id
+   * - user_id
+   */
+  sessions: Array<GraphiteSession>;
+};
+
+
+export type GraphiteQueryAssistantArgs = {
+  assistantID: Scalars['String'];
+};
+
+
+export type GraphiteQuerySessionArgs = {
+  sessionID: Scalars['String'];
+};
+
+
+export type GraphiteQuerySessionMessagesArgs = {
+  sessionID: Scalars['String'];
+};
+
+export type GraphiteSession = {
+  __typename?: 'graphiteSession';
+  /** ID of the assistant used in this session */
+  assistantID: Scalars['String'];
+  /** Messages in this session */
+  createdAt: Scalars['timestampz'];
+  /** ID of the session */
+  sessionID: Scalars['String'];
+  /** ID of the user who started this session */
+  userID: Scalars['uuid'];
+};
+
 export type Jsonb_Cast_Exp = {
   String?: InputMaybe<String_Comparison_Exp>;
 };
@@ -11887,6 +13080,48 @@ export type Jsonb_Comparison_Exp = {
 /** mutation root */
 export type Mutation_Root = {
   __typename?: 'mutation_root';
+  /** delete single row from the table: "graphite.assistants" */
+  _deleteGraphiteAssistant?: Maybe<_GraphiteAssistants>;
+  /** delete data from the table: "graphite.assistants" */
+  _deleteGraphiteAssistants?: Maybe<_GraphiteAssistants_Mutation_Response>;
+  /** delete single row from the table: "graphite.files" */
+  _deleteGraphiteFile?: Maybe<_GraphiteFiles>;
+  /** delete data from the table: "graphite.files" */
+  _deleteGraphiteFiles?: Maybe<_GraphiteFiles_Mutation_Response>;
+  /** delete single row from the table: "graphite.sessions" */
+  _deleteGraphiteSession?: Maybe<_GraphiteSessions>;
+  /** delete data from the table: "graphite.sessions" */
+  _deleteGraphiteSessions?: Maybe<_GraphiteSessions_Mutation_Response>;
+  /** insert a single row into the table: "graphite.assistants" */
+  _insertGraphiteAssistant?: Maybe<_GraphiteAssistants>;
+  /** insert data into the table: "graphite.assistants" */
+  _insertGraphiteAssistants?: Maybe<_GraphiteAssistants_Mutation_Response>;
+  /** insert a single row into the table: "graphite.files" */
+  _insertGraphiteFile?: Maybe<_GraphiteFiles>;
+  /** insert data into the table: "graphite.files" */
+  _insertGraphiteFiles?: Maybe<_GraphiteFiles_Mutation_Response>;
+  /** insert a single row into the table: "graphite.sessions" */
+  _insertGraphiteSession?: Maybe<_GraphiteSessions>;
+  /** insert data into the table: "graphite.sessions" */
+  _insertGraphiteSessions?: Maybe<_GraphiteSessions_Mutation_Response>;
+  /** update single row of the table: "graphite.assistants" */
+  _updateGraphiteAssistant?: Maybe<_GraphiteAssistants>;
+  /** update data of the table: "graphite.assistants" */
+  _updateGraphiteAssistants?: Maybe<_GraphiteAssistants_Mutation_Response>;
+  /** update single row of the table: "graphite.files" */
+  _updateGraphiteFile?: Maybe<_GraphiteFiles>;
+  /** update data of the table: "graphite.files" */
+  _updateGraphiteFiles?: Maybe<_GraphiteFiles_Mutation_Response>;
+  /** update single row of the table: "graphite.sessions" */
+  _updateGraphiteSession?: Maybe<_GraphiteSessions>;
+  /** update data of the table: "graphite.sessions" */
+  _updateGraphiteSessions?: Maybe<_GraphiteSessions_Mutation_Response>;
+  /** update multiples rows of table: "graphite.assistants" */
+  _updateManyGraphiteAssistants?: Maybe<Array<Maybe<_GraphiteAssistants_Mutation_Response>>>;
+  /** update multiples rows of table: "graphite.files" */
+  _updateManyGraphiteFiles?: Maybe<Array<Maybe<_GraphiteFiles_Mutation_Response>>>;
+  /** update multiples rows of table: "graphite.sessions" */
+  _updateManyGraphiteSessions?: Maybe<Array<Maybe<_GraphiteSessions_Mutation_Response>>>;
   backupAllApplicationsDatabase: Array<Maybe<BackupResultsItem>>;
   backupApplicationDatabase: BackupResult;
   billingFinishSubscription: Scalars['Boolean'];
@@ -11996,6 +13231,10 @@ export type Mutation_Root = {
   deleteGithubRepositories?: Maybe<GithubRepositories_Mutation_Response>;
   /** delete single row from the table: "github_repositories" */
   deleteGithubRepository?: Maybe<GithubRepositories>;
+  /** delete single row from the table: "graphite.auto_embeddings_configuration" */
+  deleteGraphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
+  /** delete data from the table: "graphite.auto_embeddings_configuration" */
+  deleteGraphiteAutoEmbeddingsConfigurations?: Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>;
   /** delete single row from the table: "payment_methods" */
   deletePaymentMethod?: Maybe<PaymentMethods>;
   /** delete data from the table: "payment_methods" */
@@ -12070,6 +13309,7 @@ export type Mutation_Root = {
   delete_regions?: Maybe<Regions_Mutation_Response>;
   /** delete single row from the table: "regions" */
   delete_regions_by_pk?: Maybe<Regions>;
+  graphite?: Maybe<GraphiteMutation>;
   /** insert a single row into the table: "apps" */
   insertApp?: Maybe<Apps>;
   /** insert a single row into the table: "app_states" */
@@ -12167,6 +13407,10 @@ export type Mutation_Root = {
   insertGithubRepositories?: Maybe<GithubRepositories_Mutation_Response>;
   /** insert a single row into the table: "github_repositories" */
   insertGithubRepository?: Maybe<GithubRepositories>;
+  /** insert a single row into the table: "graphite.auto_embeddings_configuration" */
+  insertGraphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
+  /** insert data into the table: "graphite.auto_embeddings_configuration" */
+  insertGraphiteAutoEmbeddingsConfigurations?: Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>;
   /** insert a single row into the table: "payment_methods" */
   insertPaymentMethod?: Maybe<PaymentMethods>;
   /** insert data into the table: "payment_methods" */
@@ -12346,10 +13590,16 @@ export type Mutation_Root = {
   updateGithubRepositories?: Maybe<GithubRepositories_Mutation_Response>;
   /** update single row of the table: "github_repositories" */
   updateGithubRepository?: Maybe<GithubRepositories>;
+  /** update single row of the table: "graphite.auto_embeddings_configuration" */
+  updateGraphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
+  /** update data of the table: "graphite.auto_embeddings_configuration" */
+  updateGraphiteAutoEmbeddingsConfigurations?: Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>;
   /** update multiples rows of table: "billing.reports" */
   updateManyBillingReports?: Maybe<Array<Maybe<Billing_Reports_Mutation_Response>>>;
   /** update multiples rows of table: "billing.resources" */
   updateManyBillingResources?: Maybe<Array<Maybe<Billing_Resources_Mutation_Response>>>;
+  /** update multiples rows of table: "graphite.auto_embeddings_configuration" */
+  updateManyGraphiteAutoEmbeddingsConfigurations?: Maybe<Array<Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>>>;
   /** update multiples rows of table: "software_type" */
   updateManySoftwareType?: Maybe<Array<Maybe<Software_Type_Mutation_Response>>>;
   /** update multiples rows of table: "software_versions" */
@@ -12519,6 +13769,154 @@ export type Mutation_Root = {
   zzzDONOTUSE_update_billing_dedicated_compute_reports?: Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>;
   /** update multiples rows of table: "billing.dedicated_compute_reports" */
   zzzDONOTUSE_update_many_billing_dedicated_compute_reports?: Maybe<Array<Maybe<Billing_Dedicated_Compute_Reports_Mutation_Response>>>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_DeleteGraphiteAssistantArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_Root_DeleteGraphiteAssistantsArgs = {
+  where: _GraphiteAssistants_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_Root_DeleteGraphiteFileArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_Root_DeleteGraphiteFilesArgs = {
+  where: _GraphiteFiles_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_Root_DeleteGraphiteSessionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_Root_DeleteGraphiteSessionsArgs = {
+  where: _GraphiteSessions_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_Root_InsertGraphiteAssistantArgs = {
+  object: _GraphiteAssistants_Insert_Input;
+  on_conflict?: InputMaybe<_GraphiteAssistants_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_InsertGraphiteAssistantsArgs = {
+  objects: Array<_GraphiteAssistants_Insert_Input>;
+  on_conflict?: InputMaybe<_GraphiteAssistants_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_InsertGraphiteFileArgs = {
+  object: _GraphiteFiles_Insert_Input;
+  on_conflict?: InputMaybe<_GraphiteFiles_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_InsertGraphiteFilesArgs = {
+  objects: Array<_GraphiteFiles_Insert_Input>;
+  on_conflict?: InputMaybe<_GraphiteFiles_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_InsertGraphiteSessionArgs = {
+  object: _GraphiteSessions_Insert_Input;
+  on_conflict?: InputMaybe<_GraphiteSessions_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_InsertGraphiteSessionsArgs = {
+  objects: Array<_GraphiteSessions_Insert_Input>;
+  on_conflict?: InputMaybe<_GraphiteSessions_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateGraphiteAssistantArgs = {
+  _append?: InputMaybe<_GraphiteAssistants_Append_Input>;
+  _delete_at_path?: InputMaybe<_GraphiteAssistants_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<_GraphiteAssistants_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<_GraphiteAssistants_Delete_Key_Input>;
+  _prepend?: InputMaybe<_GraphiteAssistants_Prepend_Input>;
+  _set?: InputMaybe<_GraphiteAssistants_Set_Input>;
+  pk_columns: _GraphiteAssistants_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateGraphiteAssistantsArgs = {
+  _append?: InputMaybe<_GraphiteAssistants_Append_Input>;
+  _delete_at_path?: InputMaybe<_GraphiteAssistants_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<_GraphiteAssistants_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<_GraphiteAssistants_Delete_Key_Input>;
+  _prepend?: InputMaybe<_GraphiteAssistants_Prepend_Input>;
+  _set?: InputMaybe<_GraphiteAssistants_Set_Input>;
+  where: _GraphiteAssistants_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateGraphiteFileArgs = {
+  _set?: InputMaybe<_GraphiteFiles_Set_Input>;
+  pk_columns: _GraphiteFiles_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateGraphiteFilesArgs = {
+  _set?: InputMaybe<_GraphiteFiles_Set_Input>;
+  where: _GraphiteFiles_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateGraphiteSessionArgs = {
+  _set?: InputMaybe<_GraphiteSessions_Set_Input>;
+  pk_columns: _GraphiteSessions_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateGraphiteSessionsArgs = {
+  _set?: InputMaybe<_GraphiteSessions_Set_Input>;
+  where: _GraphiteSessions_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateManyGraphiteAssistantsArgs = {
+  updates: Array<_GraphiteAssistants_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateManyGraphiteFilesArgs = {
+  updates: Array<_GraphiteFiles_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateManyGraphiteSessionsArgs = {
+  updates: Array<_GraphiteSessions_Updates>;
 };
 
 
@@ -12878,6 +14276,18 @@ export type Mutation_RootDeleteGithubRepositoriesArgs = {
 /** mutation root */
 export type Mutation_RootDeleteGithubRepositoryArgs = {
   id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteGraphiteAutoEmbeddingsConfigurationArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteGraphiteAutoEmbeddingsConfigurationsArgs = {
+  where: GraphiteAutoEmbeddingsConfiguration_Bool_Exp;
 };
 
 
@@ -13453,6 +14863,20 @@ export type Mutation_RootInsertGithubRepositoriesArgs = {
 export type Mutation_RootInsertGithubRepositoryArgs = {
   object: GithubRepositories_Insert_Input;
   on_conflict?: InputMaybe<GithubRepositories_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertGraphiteAutoEmbeddingsConfigurationArgs = {
+  object: GraphiteAutoEmbeddingsConfiguration_Insert_Input;
+  on_conflict?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertGraphiteAutoEmbeddingsConfigurationsArgs = {
+  objects: Array<GraphiteAutoEmbeddingsConfiguration_Insert_Input>;
+  on_conflict?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_On_Conflict>;
 };
 
 
@@ -14174,6 +15598,20 @@ export type Mutation_RootUpdateGithubRepositoryArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateGraphiteAutoEmbeddingsConfigurationArgs = {
+  _set?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Set_Input>;
+  pk_columns: GraphiteAutoEmbeddingsConfiguration_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateGraphiteAutoEmbeddingsConfigurationsArgs = {
+  _set?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Set_Input>;
+  where: GraphiteAutoEmbeddingsConfiguration_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateManyBillingReportsArgs = {
   updates: Array<Billing_Reports_Updates>;
 };
@@ -14182,6 +15620,12 @@ export type Mutation_RootUpdateManyBillingReportsArgs = {
 /** mutation root */
 export type Mutation_RootUpdateManyBillingResourcesArgs = {
   updates: Array<Billing_Resources_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateManyGraphiteAutoEmbeddingsConfigurationsArgs = {
+  updates: Array<GraphiteAutoEmbeddingsConfiguration_Updates>;
 };
 
 
@@ -15856,6 +17300,24 @@ export type Plans_Variance_Fields = {
 
 export type Query_Root = {
   __typename?: 'query_root';
+  /** fetch data from the table: "graphite.assistants" using primary key columns */
+  _graphiteAssistant?: Maybe<_GraphiteAssistants>;
+  /** fetch aggregated fields from the table: "graphite.assistants" */
+  _graphiteAssistantAggregate: _GraphiteAssistants_Aggregate;
+  /** fetch data from the table: "graphite.assistants" */
+  _graphiteAssistants: Array<_GraphiteAssistants>;
+  /** fetch data from the table: "graphite.files" using primary key columns */
+  _graphiteFile?: Maybe<_GraphiteFiles>;
+  /** fetch aggregated fields from the table: "graphite.files" */
+  _graphiteFileAggregate: _GraphiteFiles_Aggregate;
+  /** fetch data from the table: "graphite.files" */
+  _graphiteFiles: Array<_GraphiteFiles>;
+  /** fetch data from the table: "graphite.sessions" using primary key columns */
+  _graphiteSession?: Maybe<_GraphiteSessions>;
+  /** fetch aggregated fields from the table: "graphite.sessions" */
+  _graphiteSessionAggregate: _GraphiteSessions_Aggregate;
+  /** fetch data from the table: "graphite.sessions" */
+  _graphiteSessions: Array<_GraphiteSessions>;
   /** fetch data from the table: "announcements" */
   announcements: Array<Announcements>;
   /** fetch aggregated fields from the table: "announcements" */
@@ -16064,6 +17526,13 @@ export type Query_Root = {
   githubRepositoriesAggregate: GithubRepositories_Aggregate;
   /** fetch data from the table: "github_repositories" using primary key columns */
   githubRepository?: Maybe<GithubRepositories>;
+  graphite?: Maybe<GraphiteQuery>;
+  /** fetch data from the table: "graphite.auto_embeddings_configuration" using primary key columns */
+  graphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
+  /** fetch aggregated fields from the table: "graphite.auto_embeddings_configuration" */
+  graphiteAutoEmbeddingsConfigurationAggregate: GraphiteAutoEmbeddingsConfiguration_Aggregate;
+  /** fetch data from the table: "graphite.auto_embeddings_configuration" */
+  graphiteAutoEmbeddingsConfigurations: Array<GraphiteAutoEmbeddingsConfiguration>;
   /**
    * Returns logs for a given application. If `service` is not provided all services are returned.
    * If `from` and `to` are not provided, they default to an hour ago and now, respectively.
@@ -16162,6 +17631,75 @@ export type Query_Root = {
   workspaces: Array<Workspaces>;
   /** fetch aggregated fields from the table: "workspaces" */
   workspacesAggregate: Workspaces_Aggregate;
+};
+
+
+export type Query_Root_GraphiteAssistantArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_Root_GraphiteAssistantAggregateArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteAssistants_Order_By>>;
+  where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
+};
+
+
+export type Query_Root_GraphiteAssistantsArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteAssistants_Order_By>>;
+  where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
+};
+
+
+export type Query_Root_GraphiteFileArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_Root_GraphiteFileAggregateArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteFiles_Order_By>>;
+  where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
+};
+
+
+export type Query_Root_GraphiteFilesArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteFiles_Order_By>>;
+  where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
+};
+
+
+export type Query_Root_GraphiteSessionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_Root_GraphiteSessionAggregateArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteSessions_Order_By>>;
+  where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
+};
+
+
+export type Query_Root_GraphiteSessionsArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteSessions_Order_By>>;
+  where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
 };
 
 
@@ -16963,6 +18501,29 @@ export type Query_RootGithubRepositoriesAggregateArgs = {
 
 export type Query_RootGithubRepositoryArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Query_RootGraphiteAutoEmbeddingsConfigurationArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootGraphiteAutoEmbeddingsConfigurationAggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
+  where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
+};
+
+
+export type Query_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
+  where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
 };
 
 
@@ -18509,8 +20070,6 @@ export enum Software_Type_Constraint {
 export enum Software_Type_Enum {
   /** Hasura Auth */
   Auth = 'Auth',
-  /** Graphite */
-  Graphite = 'Graphite',
   /** Hasura GraphQL Engine */
   Hasura = 'Hasura',
   /** PostgreSQL Database */
@@ -18815,6 +20374,30 @@ export type Software_Versions_Updates = {
 
 export type Subscription_Root = {
   __typename?: 'subscription_root';
+  /** fetch data from the table: "graphite.assistants" using primary key columns */
+  _graphiteAssistant?: Maybe<_GraphiteAssistants>;
+  /** fetch aggregated fields from the table: "graphite.assistants" */
+  _graphiteAssistantAggregate: _GraphiteAssistants_Aggregate;
+  /** fetch data from the table in a streaming manner: "graphite.assistants" */
+  _graphiteAssistantStream: Array<_GraphiteAssistants>;
+  /** fetch data from the table: "graphite.assistants" */
+  _graphiteAssistants: Array<_GraphiteAssistants>;
+  /** fetch data from the table: "graphite.files" using primary key columns */
+  _graphiteFile?: Maybe<_GraphiteFiles>;
+  /** fetch aggregated fields from the table: "graphite.files" */
+  _graphiteFileAggregate: _GraphiteFiles_Aggregate;
+  /** fetch data from the table in a streaming manner: "graphite.files" */
+  _graphiteFileStream: Array<_GraphiteFiles>;
+  /** fetch data from the table: "graphite.files" */
+  _graphiteFiles: Array<_GraphiteFiles>;
+  /** fetch data from the table: "graphite.sessions" using primary key columns */
+  _graphiteSession?: Maybe<_GraphiteSessions>;
+  /** fetch aggregated fields from the table: "graphite.sessions" */
+  _graphiteSessionAggregate: _GraphiteSessions_Aggregate;
+  /** fetch data from the table in a streaming manner: "graphite.sessions" */
+  _graphiteSessionStream: Array<_GraphiteSessions>;
+  /** fetch data from the table: "graphite.sessions" */
+  _graphiteSessions: Array<_GraphiteSessions>;
   /** fetch data from the table: "announcements" */
   announcements: Array<Announcements>;
   /** fetch aggregated fields from the table: "announcements" */
@@ -19055,6 +20638,14 @@ export type Subscription_Root = {
   githubRepositories_stream: Array<GithubRepositories>;
   /** fetch data from the table: "github_repositories" using primary key columns */
   githubRepository?: Maybe<GithubRepositories>;
+  /** fetch data from the table: "graphite.auto_embeddings_configuration" using primary key columns */
+  graphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
+  /** fetch aggregated fields from the table: "graphite.auto_embeddings_configuration" */
+  graphiteAutoEmbeddingsConfigurationAggregate: GraphiteAutoEmbeddingsConfiguration_Aggregate;
+  /** fetch data from the table in a streaming manner: "graphite.auto_embeddings_configuration" */
+  graphiteAutoEmbeddingsConfigurationStream: Array<GraphiteAutoEmbeddingsConfiguration>;
+  /** fetch data from the table: "graphite.auto_embeddings_configuration" */
+  graphiteAutoEmbeddingsConfigurations: Array<GraphiteAutoEmbeddingsConfiguration>;
   /**
    * Returns logs for a given application. If `service` is not provided all services are returned.
    * If `from` is not provided, it defaults to an hour ago.
@@ -19164,6 +20755,96 @@ export type Subscription_Root = {
   workspacesAggregate: Workspaces_Aggregate;
   /** fetch data from the table in a streaming manner: "workspaces" */
   workspaces_stream: Array<Workspaces>;
+};
+
+
+export type Subscription_Root_GraphiteAssistantArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_Root_GraphiteAssistantAggregateArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteAssistants_Order_By>>;
+  where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteAssistantStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<_GraphiteAssistants_Stream_Cursor_Input>>;
+  where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteAssistantsArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteAssistants_Order_By>>;
+  where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteFileArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_Root_GraphiteFileAggregateArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteFiles_Order_By>>;
+  where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteFileStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<_GraphiteFiles_Stream_Cursor_Input>>;
+  where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteFilesArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteFiles_Order_By>>;
+  where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteSessionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_Root_GraphiteSessionAggregateArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteSessions_Order_By>>;
+  where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteSessionStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<_GraphiteSessions_Stream_Cursor_Input>>;
+  where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteSessionsArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteSessions_Order_By>>;
+  where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
 };
 
 
@@ -20064,6 +21745,36 @@ export type Subscription_RootGithubRepositories_StreamArgs = {
 
 export type Subscription_RootGithubRepositoryArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootGraphiteAutoEmbeddingsConfigurationArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootGraphiteAutoEmbeddingsConfigurationAggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
+  where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAutoEmbeddingsConfigurationStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<GraphiteAutoEmbeddingsConfiguration_Stream_Cursor_Input>>;
+  where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
+  where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
 };
 
 
