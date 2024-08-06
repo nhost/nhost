@@ -96,7 +96,7 @@ jobs:
         find -L result -type f -exec cp {} nhost-cli \;
 
     - name: "Push artifact to artifact repository"
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.3.4
       with:
         name: cli-${{ steps.vars.outputs.VERSION }}-${{ inputs.GOOS }}-${{ inputs.GOARCH }}
         path: nhost-cli
