@@ -183,7 +183,7 @@ export default function DatabaseServiceVersionSettings() {
     Number(selectedMajor) > Number(currentPostgresMajor);
 
   const { state } = useAppState();
-  const applicationNotLive = state !== ApplicationStatus.Live;
+  const applicationNotLive = (state !== ApplicationStatus.Live && state !== ApplicationStatus.Updating);
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
   const isMinorVersionDirty = formState?.dirtyFields?.minorVersion;
   const isDirty = isMajorVersionDirty || isMinorVersionDirty;
