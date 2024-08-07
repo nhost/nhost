@@ -22,7 +22,10 @@ export interface UseIsDatabaseMigratingOptions
  */
 export default function useIsDatabaseMigrating(
   options: UseIsDatabaseMigratingOptions = {},
-): boolean {
+): {
+  isMigrating: boolean;
+  shouldShowUpgradeLogs: boolean;
+} {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const isVisible = useVisibilityChange();
@@ -61,5 +64,28 @@ export default function useIsDatabaseMigrating(
     return false;
   };
 
-  return shouldShowUpgradeLogs(appStatesData?.app?.appStates || []);
+  const isMigrating = (
+    appStates: GetApplicationStateQuery['app']['appStates'],
+  ) => {
+    for (let i = 0; i < appStates.length; i += 1) {
+      if (appStates[i].stateId === ApplicationStatus.Live) {
+        return false;
+      }
+      if (appStates[i].stateId === ApplicationStatus.Errored) {
+        return false;
+      }
+      if (appStates[i].stateId === ApplicationStatus.Migrating) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  return {
+    isMigrating: isMigrating(appStatesData?.app?.appStates || []),
+    shouldShowUpgradeLogs: shouldShowUpgradeLogs(
+      appStatesData?.app?.appStates || [],
+    ),
+  };
 }

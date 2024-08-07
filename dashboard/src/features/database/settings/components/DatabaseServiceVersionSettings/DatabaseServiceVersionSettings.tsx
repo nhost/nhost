@@ -27,6 +27,7 @@ import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { ApplicationStatus } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { subMinutes } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -65,7 +66,7 @@ export default function DatabaseServiceVersionSettings() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const [fromFilter, setFromFilter] = useState<Date>(null);
+  const [fromFilter, setFromFilter] = useState<Date>(new Date());
 
   const {
     version: postgresVersion,
@@ -175,20 +176,24 @@ export default function DatabaseServiceVersionSettings() {
     form,
   ]);
 
-  const isDatabaseMigrating = useIsDatabaseMigrating({
-    shouldPoll: true,
-  });
+  const { isDatabaseMigrating, shouldShowUpgradeLogs } = useIsDatabaseMigrating(
+    {
+      shouldPoll: true,
+    },
+  );
 
   const showMigrateWarning =
     Number(selectedMajor) > Number(currentPostgresMajor);
 
   const { state } = useAppState();
-  const applicationNotLive =
-    state !== ApplicationStatus.Live && state !== ApplicationStatus.Updating;
+  const applicationNotLive = state !== ApplicationStatus.Live;
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
   const isMinorVersionDirty = formState?.dirtyFields?.minorVersion;
   const isDirty = isMajorVersionDirty || isMinorVersionDirty;
   const saveDisabled = applicationNotLive || !isDirty || maintenanceActive;
+
+  console.log('state:', state);
+  console.log('fromfilter:', fromFilter);
 
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
@@ -197,7 +202,7 @@ export default function DatabaseServiceVersionSettings() {
 
     // Major version change
     if (isMajorVersionDirty) {
-      setFromFilter(new Date());
+      setFromFilter(subMinutes(new Date(), 1));
       openDialog({
         title: 'Update Postgres MAJOR version',
         component: (
@@ -298,7 +303,7 @@ export default function DatabaseServiceVersionSettings() {
           docsTitle="the latest releases"
           className="flex flex-col"
           topRightElement={
-            isDatabaseMigrating ? (
+            shouldShowUpgradeLogs ? (
               <Button
                 variant="outlined"
                 color="primary"

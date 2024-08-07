@@ -1,31 +1,25 @@
 import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
+import { DatabaseMigrateLogsModalText } from '@/features/database/settings/components/DatabaseMigrateLogsModalText';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useGetSystemLogsQuery } from '@/utils/__generated__/graphql';
 import { useVisibilityChange } from '@uidotdev/usehooks';
 
 export interface DatabaseMigrateLogsModalProps {
-  fromFilter?: Date;
-}
-
-interface Log {
-  level: string;
-  msg: string;
-  time: string;
+  fromFilter: Date;
 }
 
 export default function DatabaseMigrateLogsModal({
-  fromFilter = new Date(),
+  fromFilter,
 }: DatabaseMigrateLogsModalProps) {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
   const isVisible = useVisibilityChange();
 
-  const { data } = useGetSystemLogsQuery({
+  const { data, loading, error } = useGetSystemLogsQuery({
     variables: {
       appID: currentProject.id,
       action: 'change-database-version',
-      from: fromFilter?.valueOf(),
+      from: fromFilter,
     },
     skipPollAttempt: () => !isVisible,
     pollInterval: 5000,
@@ -46,42 +40,11 @@ export default function DatabaseMigrateLogsModal({
             theme.palette.mode === 'dark' ? 'grey.300' : 'grey.700',
         }}
       >
-        {sortedLogs.length === 0 ? (
-          <Text
-            className="font-mono"
-            sx={{
-              color: (theme) =>
-                theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
-            }}
-          >
-            loading...
-          </Text>
-        ) : null}
-        {sortedLogs.map(({ log }) => {
-          let logObj: Partial<Log> = {};
-          try {
-            logObj = JSON.parse(log);
-          } catch (e) {
-            console.error('Failed to parse log', log);
-            return undefined;
-          }
-          if (logObj?.level && logObj?.msg) {
-            return (
-              <Text
-                key={`${logObj.msg}${logObj.time}`}
-                className="font-mono"
-                sx={{
-                  color: (theme) =>
-                    theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
-                }}
-              >
-                {logObj.level.toUpperCase()}: {logObj.msg}
-              </Text>
-            );
-          }
-
-          return undefined;
-        })}
+        <DatabaseMigrateLogsModalText
+          logs={sortedLogs}
+          loading={loading}
+          error={error}
+        />
       </Box>
     </Box>
   );
