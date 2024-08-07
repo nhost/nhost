@@ -54,6 +54,7 @@ export default function useIsDatabaseMigrating(
     return () => stopPolling();
   }, [stopPolling, startPolling, options.shouldPoll, options.pollInterval]);
 
+  // Return true if the application is migrating or if the application is not live after a migration
   const shouldShowUpgradeLogs = (
     appStates: GetApplicationStateQuery['app']['appStates'],
   ) => {
@@ -69,6 +70,7 @@ export default function useIsDatabaseMigrating(
     return false;
   };
 
+  // Return true if the application is currently migrating
   const isMigrating = (
     appStates: GetApplicationStateQuery['app']['appStates'],
   ) => {
