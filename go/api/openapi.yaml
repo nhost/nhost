@@ -726,6 +726,10 @@ components:
         displayName:
           example: John Smith
           type: string
+          # This is a very permissive regex that allows most characters
+          # but forbids characters like `&`, '/' and ':' that could be used for XSS
+          pattern: ^[\p{L}\p{N}\p{S} ,.'-]+$
+          maxLength: 32
         locale:
           description: A two-characters locale
           example: en
