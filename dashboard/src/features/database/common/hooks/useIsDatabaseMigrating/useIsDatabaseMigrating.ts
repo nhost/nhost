@@ -18,7 +18,12 @@ export interface UseIsDatabaseMigratingOptions
 }
 
 /*
- * This hook returns true if the database is currently migrating or the application is not live after a migration.
+ * This hook returns information about the current state of database migration.
+ * @param options - Options for the query.
+ *
+ * @returns - An object with two properties:
+ * - isMigrating: true if the database is currently migrating.
+ * - shouldShowUpgradeLogs: true if the database is currently migrating or the application is not live after a migration.
  */
 export default function useIsDatabaseMigrating(
   options: UseIsDatabaseMigratingOptions = {},

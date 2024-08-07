@@ -176,11 +176,9 @@ export default function DatabaseServiceVersionSettings() {
     form,
   ]);
 
-  const { isDatabaseMigrating, shouldShowUpgradeLogs } = useIsDatabaseMigrating(
-    {
-      shouldPoll: true,
-    },
-  );
+  const { isMigrating, shouldShowUpgradeLogs } = useIsDatabaseMigrating({
+    shouldPoll: true,
+  });
 
   const showMigrateWarning =
     Number(selectedMajor) > Number(currentPostgresMajor);
@@ -191,9 +189,6 @@ export default function DatabaseServiceVersionSettings() {
   const isMinorVersionDirty = formState?.dirtyFields?.minorVersion;
   const isDirty = isMajorVersionDirty || isMinorVersionDirty;
   const saveDisabled = applicationNotLive || !isDirty || maintenanceActive;
-
-  console.log('state:', state);
-  console.log('fromfilter:', fromFilter);
 
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
@@ -427,7 +422,7 @@ export default function DatabaseServiceVersionSettings() {
             />
           </Box>
           {showMigrateWarning && <DatabaseMigrateWarning />}
-          {applicationNotLive && !isDatabaseMigrating && (
+          {applicationNotLive && !isMigrating && (
             <DatabaseMigrateDisabledError />
           )}
         </SettingsContainer>
