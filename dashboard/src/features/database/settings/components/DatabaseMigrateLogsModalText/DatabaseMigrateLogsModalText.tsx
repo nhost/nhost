@@ -59,29 +59,33 @@ export default function DatabaseMigrateLogsModalText({
     );
   }
 
-  return logs.map(({ log }) => {
-    let logObj: Partial<Log> = {};
-    try {
-      logObj = JSON.parse(log);
-    } catch (e) {
-      console.error('Failed to parse log', log);
-      return undefined;
-    }
-    if (logObj?.level && logObj?.msg) {
-      return (
-        <Text
-          key={`${logObj.msg}${logObj.time}`}
-          className="font-mono"
-          sx={{
-            color: (theme) =>
-              theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
-          }}
-        >
-          {logObj.level.toUpperCase()}: {logObj.msg}
-        </Text>
-      );
-    }
+  return (
+    <>
+      {logs.map(({ log }) => {
+        let logObj: Partial<Log> = {};
+        try {
+          logObj = JSON.parse(log);
+        } catch (e) {
+          console.error('Failed to parse log', log);
+          return undefined;
+        }
+        if (logObj?.level && logObj?.msg) {
+          return (
+            <Text
+              key={`${logObj.msg}${logObj.time}`}
+              className="font-mono"
+              sx={{
+                color: (theme) =>
+                  theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100',
+              }}
+            >
+              {logObj.level.toUpperCase()}: {logObj.msg}
+            </Text>
+          );
+        }
 
-    return undefined;
-  });
+        return undefined;
+      })}
+    </>
+  );
 }
