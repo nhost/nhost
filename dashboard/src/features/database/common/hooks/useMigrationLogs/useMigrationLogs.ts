@@ -32,12 +32,12 @@ export interface Log {
 }
 
 /*
- * This hook returns the logs for the current database migration.
- * @param options - Options for the query.
+ * Returns logs for the current database migration.
+ * @param options - Options for the getSystemLogs query.
  * @returns - An object with three properties:
- * - logs: The logs for the current/latest database migration.
- * - loading: true if the query is in a loading state.
- * - error: The error object if the query failed.
+ * - logs: Logs for the current/latest database migration.
+ * - loading: true if the getLogs query is in a loading state.
+ * - error: Error object if the query failed.
  */
 export default function useMigrationLogs(
   options: UseMigrationLogsOptions = {},
