@@ -27,8 +27,7 @@ import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { ApplicationStatus } from '@/types/application';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { subMinutes } from 'date-fns';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
@@ -65,8 +64,6 @@ export default function DatabaseServiceVersionSettings() {
     refetchQueries: [GetPostgresSettingsDocument],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
-
-  const [fromFilter, setFromFilter] = useState<Date>(new Date());
 
   const {
     version: postgresVersion,
@@ -197,7 +194,6 @@ export default function DatabaseServiceVersionSettings() {
 
     // Major version change
     if (isMajorVersionDirty) {
-      setFromFilter(subMinutes(new Date(), 1));
       openDialog({
         title: 'Update Postgres MAJOR version',
         component: (
@@ -257,7 +253,7 @@ export default function DatabaseServiceVersionSettings() {
 
   const openLatestUpgradeLogsModal = async () => {
     openDialog({
-      component: <DatabaseMigrateLogsModal fromFilter={fromFilter} />,
+      component: <DatabaseMigrateLogsModal />,
       props: {
         PaperProps: { className: 'p-0 max-w-2xl w-full' },
         titleProps: {

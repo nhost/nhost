@@ -1,22 +1,9 @@
 import { Text } from '@/components/ui/v2/Text';
-import type { GetSystemLogsQuery } from '@/utils/__generated__/graphql';
-import { type ApolloError } from '@apollo/client';
+import { useMigrationLogs } from '@/features/database/common/hooks/useMigrationLogs';
 
-interface Log {
-  level: string;
-  msg: string;
-  time: string;
-}
+export default function DatabaseMigrateLogsModalText() {
+  const { logs, loading, error } = useMigrationLogs();
 
-export default function DatabaseMigrateLogsModalText({
-  logs,
-  loading,
-  error,
-}: {
-  logs: GetSystemLogsQuery['systemLogs'];
-  loading: boolean;
-  error: ApolloError;
-}) {
   if (error) {
     return (
       <Text
@@ -61,14 +48,7 @@ export default function DatabaseMigrateLogsModalText({
 
   return (
     <>
-      {logs.map(({ log }) => {
-        let logObj: Partial<Log> = {};
-        try {
-          logObj = JSON.parse(log);
-        } catch (e) {
-          console.error('Failed to parse log', log);
-          return undefined;
-        }
+      {logs.map((logObj) => {
         if (logObj?.level && logObj?.msg) {
           return (
             <Text
