@@ -1,11 +1,12 @@
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
+import { Autocomplete } from '@/components/ui/v2/Autocomplete';
 import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { RemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
+import debounce from 'lodash.debounce';
+import { SyntheticEvent, useState } from 'react';
 
 export interface UserSelectProps {
   /**
@@ -22,13 +23,31 @@ export default function UserSelect({
   onUserChange,
   ...props
 }: UserSelectProps) {
+  const [inputValue, setInputValue] = useState('');
+  const [queryFilter, setQueryFilter] = useState('');
   const { currentProject } = useCurrentWorkspaceAndProject();
   const userApplicationClient = useRemoteApplicationGQLClient();
+  console.log('inputValue', inputValue);
   const { data, loading, error } = useRemoteAppGetUsersCustomQuery({
     client: userApplicationClient,
-    variables: { where: {}, limit: 250, offset: 0 },
+    variables: {
+      where: {
+        displayName: { _ilike: `%${queryFilter}%` },
+      },
+      limit: 250,
+      offset: 0,
+    },
     skip: !currentProject,
   });
+
+  const debounceQueryFilter = debounce(() => {
+    setQueryFilter(inputValue)
+  }, 1000);
+
+  const handleInputChange = (_event: SyntheticEvent, value: string) => {
+    setInputValue(value);
+    debounceQueryFilter();
+  }
 
   if (loading) {
     return (
@@ -42,15 +61,46 @@ export default function UserSelect({
     throw error;
   }
 
+  const autocompleteOptions = [
+    {
+      value: 'admin',
+      label: 'Admin',
+      group: 'Admin',
+    },
+  ];
+
+  data?.users.forEach((user) => {
+    autocompleteOptions.push({
+      value: user.id,
+      label: user.displayName || user.email || user.phoneNumber || user.id,
+      group: 'Users',
+    });
+  });
+
   return (
-    <Select
+    <Autocomplete
       {...props}
+      label="Make request as"
       id="user-select"
-      label="Make Request As"
-      hideEmptyHelperText
-      defaultValue="admin"
-      slotProps={{ root: { className: 'truncate' } }}
-      onChange={(_event, userId) => {
+      defaultValue={{
+        value: 'admin',
+        label: 'Admin',
+        group: 'Admin',
+      }}
+      inputValue={inputValue}
+      onInputChange={handleInputChange}
+      options={autocompleteOptions}
+      groupBy={(option) => option.group}
+      fullWidth
+      disableClearable
+      autoSelect
+      autoHighlight
+      isOptionEqualToValue={
+        // (option, _value) => option.value === _value.value
+        () => false
+      }
+      onChange={(_event, _value, reason, details) => {
+        const userId = details.option.value;
         if (typeof userId !== 'string') {
           return;
         }
@@ -69,14 +119,6 @@ export default function UserSelect({
 
         onUserChange(user.id, roles);
       }}
-    >
-      <Option value="admin">Admin</Option>
-
-      {data?.users.map(({ id, displayName, email, phoneNumber }) => (
-        <Option key={id} value={id}>
-          {displayName || email || phoneNumber || id}
-        </Option>
-      ))}
-    </Select>
+    />
   );
 }
