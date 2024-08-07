@@ -328,7 +328,7 @@ export const oauthProviders = Router()
         // * No user found with this email. Create a new user
 
         if (ENV.AUTH_DISABLE_SIGNUP) {
-          return sendError(res, 'signup-disabled');
+          return sendError(res, 'signup-disabled', { redirectTo }, true);
         }
 
         const userInput = await transformOauthProfile(profile, options);
