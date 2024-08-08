@@ -6,7 +6,7 @@ import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLCl
 import type { RemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
 import debounce from 'lodash.debounce';
-import { SyntheticEvent, useState } from 'react';
+import { useEffect, useState, type SyntheticEvent } from 'react';
 
 export interface UserSelectProps {
   /**
@@ -24,6 +24,18 @@ export default function UserSelect({
   ...props
 }: UserSelectProps) {
   const [inputValue, setInputValue] = useState('');
+  const [value, setValue] = useState({
+    value: 'admin',
+    label: 'Admin',
+    group: 'Admin',
+  });
+  const [options, setOptions] = useState([
+    {
+      value: 'admin',
+      label: 'Admin',
+      group: 'Admin',
+    },
+  ]);
   const [queryFilter, setQueryFilter] = useState('');
   const { currentProject } = useCurrentWorkspaceAndProject();
   const userApplicationClient = useRemoteApplicationGQLClient();
@@ -39,15 +51,44 @@ export default function UserSelect({
     },
     skip: !currentProject,
   });
+  console.log('data', data);
 
-  const debounceQueryFilter = debounce(() => {
-    setQueryFilter(inputValue)
-  }, 1000);
+  const debounceQueryFilter = debounce(() => {}, 1000);
 
-  const handleInputChange = (_event: SyntheticEvent, value: string) => {
-    setInputValue(value);
+  useEffect(() => {
+    const autocompleteOptions = [
+      {
+        value: 'admin',
+        label: 'Admin',
+        group: 'Admin',
+      },
+    ];
+
+    data?.users.forEach((user) => {
+      autocompleteOptions.push({
+        value: user.id,
+        label: user.displayName || user.email || user.phoneNumber || user.id,
+        group: 'Users',
+      });
+    });
+    setOptions(autocompleteOptions);
+
+    setTimeout(() => {
+      setOptions([
+        ...autocompleteOptions,
+        {
+          value: 'new',
+          label: 'Create new user',
+          group: 'Users',
+        },
+      ]);
+    }, 5000);
+  }, [data, inputValue]);
+
+  const handleInputChange = (_event: SyntheticEvent, _value: string) => {
+    setInputValue(_value);
     debounceQueryFilter();
-  }
+  };
 
   if (loading) {
     return (
@@ -61,22 +102,6 @@ export default function UserSelect({
     throw error;
   }
 
-  const autocompleteOptions = [
-    {
-      value: 'admin',
-      label: 'Admin',
-      group: 'Admin',
-    },
-  ];
-
-  data?.users.forEach((user) => {
-    autocompleteOptions.push({
-      value: user.id,
-      label: user.displayName || user.email || user.phoneNumber || user.id,
-      group: 'Users',
-    });
-  });
-
   return (
     <Autocomplete
       {...props}
@@ -87,9 +112,12 @@ export default function UserSelect({
         label: 'Admin',
         group: 'Admin',
       }}
+      filterOptions={(x) => x}
+      // filterSelectedOptions
       inputValue={inputValue}
+      value={value}
       onInputChange={handleInputChange}
-      options={autocompleteOptions}
+      options={options}
       groupBy={(option) => option.group}
       fullWidth
       disableClearable
@@ -107,6 +135,11 @@ export default function UserSelect({
 
         if (userId === 'admin') {
           onUserChange('admin', DEFAULT_ROLES);
+          setValue({
+            value: 'admin',
+            label: 'Admin',
+            group: 'Admin',
+          });
 
           return;
         }
@@ -118,6 +151,11 @@ export default function UserSelect({
         const roles = user?.roles.map(({ role }) => role);
 
         onUserChange(user.id, roles);
+        setValue({
+          value: user.id,
+          label: details.option.label,
+          group: details.option.group,
+        });
       }}
     />
   );
