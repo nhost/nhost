@@ -14,11 +14,13 @@ import { DatabaseMigrateDisabledError } from '@/features/database/settings/compo
 import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
 import { DatabaseMigrateVersionConfirmationDialog } from '@/features/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
 import { DatabaseMigrateWarning } from '@/features/database/settings/components/DatabaseMigrateWarning';
+import { DatabaseUpdateInProgressWarning } from '@/features/database/settings/components/DatabaseUpdateInProgressWarning';
 import { useAppState } from '@/features/projects/common/hooks/useAppState';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   GetPostgresSettingsDocument,
+  GetWorkspaceAndProjectDocument,
   Software_Type_Enum,
   useGetSoftwareVersionsQuery,
   useUpdateConfigMutation,
@@ -61,7 +63,10 @@ export default function DatabaseServiceVersionSettings() {
   const localMimirClient = useLocalMimirClient();
   const { currentProject } = useCurrentWorkspaceAndProject();
   const [updateConfig] = useUpdateConfigMutation({
-    refetchQueries: [GetPostgresSettingsDocument],
+    refetchQueries: [
+      GetPostgresSettingsDocument,
+      GetWorkspaceAndProjectDocument,
+    ],
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
@@ -181,11 +186,17 @@ export default function DatabaseServiceVersionSettings() {
     Number(selectedMajor) > Number(currentPostgresMajor);
 
   const { state } = useAppState();
-  const applicationNotLive = state !== ApplicationStatus.Live;
+  const applicationUpdating =
+    state === ApplicationStatus.Updating ||
+    state === ApplicationStatus.Migrating;
+  const applicationUnhealthy =
+    state !== ApplicationStatus.Live && !applicationUpdating;
   const isMajorVersionDirty = formState?.dirtyFields?.majorVersion;
   const isMinorVersionDirty = formState?.dirtyFields?.minorVersion;
   const isDirty = isMajorVersionDirty || isMinorVersionDirty;
-  const saveDisabled = applicationNotLive || !isDirty || maintenanceActive;
+  const versionFieldsDisabled =
+    applicationUpdating || applicationUnhealthy || maintenanceActive;
+  const saveDisabled = versionFieldsDisabled || !isDirty;
 
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
@@ -314,6 +325,7 @@ export default function DatabaseServiceVersionSettings() {
               name="majorVersion"
               autoHighlight
               freeSolo
+              disabled={versionFieldsDisabled}
               getOptionLabel={(option) => {
                 if (typeof option === 'string') {
                   return option || '';
@@ -380,6 +392,7 @@ export default function DatabaseServiceVersionSettings() {
               name="minorVersion"
               autoHighlight
               freeSolo
+              disabled={versionFieldsDisabled}
               getOptionLabel={(option) => {
                 if (typeof option === 'string') {
                   return option || '';
@@ -418,7 +431,8 @@ export default function DatabaseServiceVersionSettings() {
             />
           </Box>
           {showMigrateWarning && <DatabaseMigrateWarning />}
-          {applicationNotLive && !isMigrating && (
+          {applicationUpdating && <DatabaseUpdateInProgressWarning />}
+          {applicationUnhealthy && !isMigrating && (
             <DatabaseMigrateDisabledError />
           )}
         </SettingsContainer>
