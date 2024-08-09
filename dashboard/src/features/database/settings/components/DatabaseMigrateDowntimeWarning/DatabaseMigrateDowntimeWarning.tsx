@@ -3,14 +3,14 @@ import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { useEstimatedDatabaseMigrationDowntime } from '@/features/database/common/hooks/useEstimatedDatabaseMigrationDowntime';
 
-export default function DatabaseMigrateWarning() {
+export default function DatabaseMigrateDowntimeWarning() {
   const { downtimeShort } = useEstimatedDatabaseMigrationDowntime();
 
   return (
     <Alert severity="warning" className="flex flex-col gap-3  text-left">
       <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
-        <Text className="font-semibold">
-          ⚠ Warning: upgrading Postgres major version
+        <Text className="flex items-start gap-1 font-semibold">
+          <span>⚠</span> Warning: upgrading Postgres major version
         </Text>
         <div className="flex">
           <Box

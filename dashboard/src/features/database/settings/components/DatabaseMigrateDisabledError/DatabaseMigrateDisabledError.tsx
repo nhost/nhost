@@ -6,7 +6,7 @@ export default function DatabaseMigrateWarning() {
   return (
     <Alert severity="error" className="flex flex-col gap-3 text-left">
       <Text
-        className="font-semibold"
+        className="flex items-center gap-1 font-semibold"
         sx={{
           color: 'error.main',
         }}

@@ -11,9 +11,9 @@ import { RepeatIcon } from '@/components/ui/v2/icons/RepeatIcon';
 import { useGetPostgresVersion } from '@/features/database/common/hooks/useGetPostgresVersion';
 import { useIsDatabaseMigrating } from '@/features/database/common/hooks/useIsDatabaseMigrating';
 import { DatabaseMigrateDisabledError } from '@/features/database/settings/components/DatabaseMigrateDisabledError';
+import { DatabaseMigrateDowntimeWarning } from '@/features/database/settings/components/DatabaseMigrateDowntimeWarning';
 import { DatabaseMigrateLogsModal } from '@/features/database/settings/components/DatabaseMigrateLogsModal';
 import { DatabaseMigrateVersionConfirmationDialog } from '@/features/database/settings/components/DatabaseMigrateVersionConfirmationDialog';
-import { DatabaseMigrateWarning } from '@/features/database/settings/components/DatabaseMigrateWarning';
 import { DatabaseUpdateInProgressWarning } from '@/features/database/settings/components/DatabaseUpdateInProgressWarning';
 import { useAppState } from '@/features/projects/common/hooks/useAppState';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -430,7 +430,7 @@ export default function DatabaseServiceVersionSettings() {
               customOptionLabel={(value) => `Use custom value: "${value}"`}
             />
           </Box>
-          {showMigrateWarning && <DatabaseMigrateWarning />}
+          {showMigrateWarning && <DatabaseMigrateDowntimeWarning />}
           {applicationUpdating && <DatabaseUpdateInProgressWarning />}
           {applicationUnhealthy && !isMigrating && (
             <DatabaseMigrateDisabledError />
