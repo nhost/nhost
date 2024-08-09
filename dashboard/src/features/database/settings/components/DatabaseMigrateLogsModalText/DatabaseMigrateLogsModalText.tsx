@@ -2,7 +2,9 @@ import { Text } from '@/components/ui/v2/Text';
 import { useMigrationLogs } from '@/features/database/common/hooks/useMigrationLogs';
 
 export default function DatabaseMigrateLogsModalText() {
-  const { logs, loading, error } = useMigrationLogs();
+  const { logs, loading, error } = useMigrationLogs({
+    shouldPoll: true,
+  });
 
   if (error) {
     return (
