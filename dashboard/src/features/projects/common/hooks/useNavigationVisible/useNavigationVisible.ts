@@ -39,6 +39,13 @@ export default function useNavigationVisible() {
   }
 
   if (
+    state === ApplicationStatus.Migrating &&
+    currentProject.desiredState === ApplicationStatus.Live
+  ) {
+    return true;
+  }
+
+  if (
     state === ApplicationStatus.Live ||
     state === ApplicationStatus.Updating
   ) {
