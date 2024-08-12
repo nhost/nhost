@@ -1,5 +1,12 @@
 # @nhost/react-apollo
 
+## 12.0.4
+
+### Patch Changes
+
+- @nhost/apollo@7.1.4
+- @nhost/react@3.5.4
+
 ## 12.0.3
 
 ### Patch Changes
