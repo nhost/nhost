@@ -1,0 +1,40 @@
+---
+title: Subdomain/Region
+description: Connecting to your Cloud project
+icon: compass
+---
+
+Services in the Nhost Cloud adhere to the following format:
+
+- https://&lt;subdomain&gt;.&lt;service&gt;.&lt;region&gt;.nhost.run
+
+When you set up a new project in Nhost Cloud, you're assigned a subdomain that, along with the region where the project was created, allows you to generate the different URLs for your services. For example:
+
+![dashboard](/images/platform/subdomain.png)
+
+With that information at hand generating the URLs for the various services is trivial:
+
+- https://xglwkhjnufblhgtwtfwz.auth.us-west-2.nhost.run
+- https://xglwkhjnufblhgtwtfwz.db.us-west-2.nhost.run
+- https://xglwkhjnufblhgtwtfwz.functions.us-west-2.nhost.run
+- https://xglwkhjnufblhgtwtfwz.graphql.us-west-2.nhost.run
+- https://xglwkhjnufblhgtwtfwz.hasura.us-west-2.nhost.run
+- https://xglwkhjnufblhgtwtfwz.storage.us-west-2.nhost.run
+
+If you are using our SDK you can just specify the region and subdomain and the SDK will automatically generate these URLs for you. For instance:
+
+
+```ts
+// Create a new Nhost client for local development.
+const nhost = new NhostClient(
+    { region: 'xglwkhjnufblhgtwtfwz', subdomain: 'us-west-2' }
+)
+```
+
+<Note>
+If you want to use your own domain you can head to the [custom domains documentation](/platform/custom-domains)
+</Note>
+
+<Note>
+For information on how to access your local environment check the [cli documentation](/guides/cli/subdomain)
+</Note>
