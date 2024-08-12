@@ -1,13 +1,12 @@
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Autocomplete } from '@/components/ui/v2/Autocomplete';
-import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import {
   useRemoteAppGetUsersCustomLazyQuery,
   type RemoteAppGetUsersCustomQuery,
 } from '@/utils/__generated__/graphql';
-import { debounce } from '@mui/material';
-import { useEffect, useMemo, useState, type SyntheticEvent } from 'react';
+import { debounce } from '@mui/material/utils';
+import { useEffect, useMemo, useState } from 'react';
+import { DEFAULT_ROLES } from '../../utils/constants';
 
 export interface UserSelectProps {
   /**
@@ -25,131 +24,99 @@ export default function UserSelect({
   ...props
 }: UserSelectProps) {
   const [inputValue, setInputValue] = useState('');
-
-  const userApplicationClient = useRemoteApplicationGQLClient();
-  const [fetchUsers, { loading }] = useRemoteAppGetUsersCustomLazyQuery({
-    client: userApplicationClient,
-    variables: {
-      where: {},
-      limit: 250,
-      offset: 0,
-    },
-  });
-
   const [options, setOptions] = useState([]);
 
-  // useEffect(() => {
-  //   setInterval(() => {
-  //     const i = Math.random();
-  //     setOptions([
-  //       ...options,
-  //       {
-  //         value: `${i}`,
-  //         label: `User ${i}`,
-  //         group: 'Users',
-  //       },
-  //     ]);
-  //   }, 3000);
-  // }, [options]);
+  const userApplicationClient = useRemoteApplicationGQLClient();
 
-  const handleSearchStringChange = useMemo(
+  const [fetchAppUsers, { data, previousData, loading }] =
+    useRemoteAppGetUsersCustomLazyQuery({
+      client: userApplicationClient,
+      variables: {
+        where: {},
+        limit: 250,
+        offset: 0,
+      },
+    });
+
+  const fetchOptions = useMemo(
     () =>
       debounce(
         async (
-          value: string,
-          callback: (results: RemoteAppGetUsersCustomQuery) => void,
+          request: { input: string },
+          callback: (results?: RemoteAppGetUsersCustomQuery['users']) => void,
         ) => {
-          const { data, error } = await fetchUsers({
+          const { data } = await fetchAppUsers({
+            client: userApplicationClient,
             variables: {
-              where: value
-                ? {
-                    displayName: { _ilike: `%${value}%` },
-                  }
-                : {},
+              where: {
+                displayName: { _ilike: `%${request.input}%` },
+              },
               limit: 250,
               offset: 0,
             },
           });
-          callback(data);
+
+          callback(data?.users);
         },
-        500,
+        1000,
       ),
-    [fetchUsers],
+    [],
   );
+
+  // const inputCooldown = useMemo(() => debounce(() => {}, 1000), [inputValue]);
 
   useEffect(() => {
     let active = true;
-    if (inputValue === '') {
-      setOptions([]);
-      return;
-    }
 
-    handleSearchStringChange(inputValue, (data) => {
+    // if (inputValue === '') {
+    //   setOptions(value ? [value] : []);
+    //   return undefined;
+    // }
+    //const fetchInput = inputCooldown ? '' : inputValue;
+
+    // setTimeout(() => {
+    //   setInputCooldown(false);
+    // }, 1000);
+
+    fetchOptions({ input: inputValue }, (results) => {
       if (active) {
-        const users = data?.users || [];
-        const userOptions = users.map((user) => ({
-          value: user.id,
-          label: user.displayName || user.email || user.phoneNumber || user.id,
+        const mappedResults = results.map((result) => ({
+          value: result.displayName,
+          label: result.displayName,
           group: 'Users',
         }));
-
-        // setOptions(userOptions);
+        const autocompleteOptions = [
+          {
+            value: 'admin',
+            label: 'Admin',
+            group: 'Admin',
+          },
+          ...mappedResults,
+        ];
+        setOptions(autocompleteOptions);
       }
     });
 
     return () => {
       active = false;
     };
-  }, [handleSearchStringChange, inputValue]);
-
-  // useEffect(
-  //   () => () => handleSearchStringChange.cancel(),
-  //   [handleSearchStringChange],
-  // );
-
-  const handleInputChange = (_event: SyntheticEvent, value: string) => {
-    setInputValue(value);
-  };
-
-  if (loading) {
-    return (
-      <div className={props.className}>
-        <ActivityIndicator label="Loading users..." delay={500} />
-      </div>
-    );
-  }
-
-  // if (globalError) {
-  //   throw globalError;
-  // }
+  }, [inputValue, fetchOptions]);
 
   return (
     <Autocomplete
       {...props}
-      label="Make request as"
       id="user-select"
-      defaultValue={{
-        value: 'admin',
-        label: 'Admin',
-        group: 'Admin',
-      }}
-      inputValue={inputValue}
-      onInputChange={handleInputChange}
+      label="Make request as"
       options={options}
-      filterOptions={(x) => x}
-      filterSelectedOptions
-      includeInputInList
-      groupBy={(option) => option.group}
+      autoComplete
       fullWidth
-      disableClearable
       autoSelect
+      groupBy={(option) => option.group}
       autoHighlight
-      isOptionEqualToValue={
-        // (option, _value) => option.value === _value.value
-        () => false
-      }
+      includeInputInList
       onChange={(_event, _value, reason, details) => {
         const userId = details.option.value;
+        console.log('data:', data);
         if (typeof userId !== 'string') {
           return;
         }
@@ -159,13 +126,24 @@ export default function UserSelect({
 
           return;
         }
+        const availableData = data ?? previousData;
 
-        // const user: RemoteAppGetUsersCustomQuery['users'][0] =
-        //   globalData?.users.find(({ id }) => id === userId);
+        const user: RemoteAppGetUsersCustomQuery['users'][0] =
+          availableData?.users.find(({ id }) => id === userId);
 
-        // const roles = user?.roles.map(({ role }) => role);
+        const roles = user?.roles?.map(({ role }) => role);
 
-        onUserChange(userId, DEFAULT_ROLES);
+        onUserChange(userId, roles ?? DEFAULT_ROLES);
+      }}
+      // onOpen={() => {
+      //   console.log('HELO');
+      // }}
+      // onChange={(event: any, newValue: PlaceType | null, reason, details) => {
+      //   setOptions(newValue ? [newValue, ...options] : options);
+      //   setValue(newValue);
+      // }}
+      onInputChange={(event, newInputValue) => {
+        setInputValue(newInputValue);
       }}
     />
   );
