@@ -121,18 +121,21 @@ tls:
   certificates:
     - certFile: /opt/traefik/certs/local.crt
       keyFile: /opt/traefik/certs/local.key
+    - certFile: /opt/traefik/certs/sub.crt
+      keyFile: /opt/traefik/certs/sub.key
 log:
   level: DEBUG
 accessLog: {}
 `
 
-func trafikFiles(dotnhostfolder string) error {
-	if err := os.MkdirAll(filepath.Join(dotnhostfolder, "traefik", "certs"), 0o755); err != nil { //nolint:mnd
-		return fmt.Errorf("failed to create traefik folder: %w", err)
-	}
-
+func dumpCert(
+	cert []byte,
+	key []byte,
+	dstName string,
+	dotnhostfolder string,
+) error {
 	f1, err := os.OpenFile(
-		filepath.Join(dotnhostfolder, "traefik", "certs", "local.crt"),
+		filepath.Join(dotnhostfolder, "traefik", "certs", dstName+".crt"),
 		os.O_TRUNC|os.O_CREATE|os.O_WRONLY,
 		0o644, //nolint:mnd
 	)
@@ -141,12 +144,12 @@ func trafikFiles(dotnhostfolder string) error {
 	}
 	defer f1.Close()
 
-	if _, err := f1.Write(ssl.CertFile); err != nil {
+	if _, err := f1.Write(cert); err != nil {
 		return fmt.Errorf("failed to write local.crt: %w", err)
 	}
 
 	f2, err := os.OpenFile(
-		filepath.Join(dotnhostfolder, "traefik", "certs", "local.key"),
+		filepath.Join(dotnhostfolder, "traefik", "certs", dstName+".key"),
 		os.O_TRUNC|os.O_CREATE|os.O_WRONLY,
 		0o644, //nolint:mnd
 	)
@@ -155,11 +158,27 @@ func trafikFiles(dotnhostfolder string) error {
 	}
 	defer f2.Close()
 
-	if _, err := f2.Write(ssl.KeyFile); err != nil {
+	if _, err := f2.Write(key); err != nil {
 		return fmt.Errorf("failed to write local.cert: %w", err)
 	}
 
-	f3, err := os.OpenFile(
+	return nil
+}
+
+func trafikFiles(dotnhostfolder string) error {
+	if err := os.MkdirAll(filepath.Join(dotnhostfolder, "traefik", "certs"), 0o755); err != nil { //nolint:mnd
+		return fmt.Errorf("failed to create traefik folder: %w", err)
+	}
+
+	if err := dumpCert(ssl.LocalCertFile, ssl.LocalKeyFile, "local", dotnhostfolder); err != nil {
+		return fmt.Errorf("failed to dump local cert: %w", err)
+	}
+
+	if err := dumpCert(ssl.SubCertFile, ssl.SubKeyFile, "sub", dotnhostfolder); err != nil {
+		return fmt.Errorf("failed to dump sub cert: %w", err)
+	}
+
+	f, err := os.OpenFile(
 		filepath.Join(dotnhostfolder, "traefik", "traefik.yaml"),
 		os.O_TRUNC|os.O_CREATE|os.O_WRONLY,
 		0o644, //nolint:mnd
@@ -167,9 +186,9 @@ func trafikFiles(dotnhostfolder string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open traefik.yaml: %w", err)
 	}
-	defer f3.Close()
+	defer f.Close()
 
-	if _, err := f3.WriteString(traefikConfig); err != nil {
+	if _, err := f.WriteString(traefikConfig); err != nil {
 		return fmt.Errorf("failed to write traefik.yaml: %w", err)
 	}
 
@@ -182,7 +201,7 @@ func traefik(projectName string, port uint, dotnhostfolder string) (*Service, er
 	}
 
 	return &Service{
-		Image:      "traefik:v2.8",
+		Image:      "traefik:v3.1",
 		DependsOn:  nil,
 		EntryPoint: nil,
 		Command: []string{
@@ -302,7 +321,7 @@ func dashboard(
 			{
 				Name:    "dashboard",
 				TLS:     useTLS,
-				Rule:    "Host(`local.dashboard.nhost.run`)",
+				Rule:    traefikHostMatch("dashboard"),
 				Port:    dashboardPort,
 				Rewrite: nil,
 			},
@@ -361,7 +380,7 @@ func functions( //nolint:funlen
 			{
 				Name: "functions",
 				TLS:  useTLS,
-				Rule: "Host(`local.functions.nhost.run`) && PathPrefix(`/v1`)",
+				Rule: traefikHostMatch("functions") + "&& PathPrefix(`/v1`)",
 				Port: functionsPort,
 				Rewrite: &Rewrite{
 					Regex:       "/v1(/|$$)(.*)",
@@ -420,7 +439,7 @@ func mailhog(dataFolder string, useTLS bool) (*Service, error) {
 			{
 				Name:    "mailhog",
 				TLS:     useTLS,
-				Rule:    "Host(`local.mailhog.nhost.run`)",
+				Rule:    traefikHostMatch("mailhog"),
 				Port:    mailhogPort,
 				Rewrite: nil,
 			},

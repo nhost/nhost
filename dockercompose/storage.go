@@ -65,7 +65,7 @@ func storage( //nolint:funlen
 			{
 				Name:    "storage",
 				TLS:     useTLS,
-				Rule:    "PathPrefix(`/v1`) && Host(`local.storage.nhost.run`)",
+				Rule:    traefikHostMatch("storage") + "&& PathPrefix(`/v1`)",
 				Port:    storagePort,
 				Rewrite: nil,
 			},

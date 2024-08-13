@@ -21,7 +21,29 @@ certbot certonly \
     --config-dir letsencrypt \
     --work-dir letsencrypt
 
-cp letsencrypt/live/local.auth.nhost.run/fullchain.pem ssl/.ssl/
-cp letsencrypt/live/local.auth.nhost.run/privkey.pem ssl/.ssl/
+cp letsencrypt/live/local.auth.nhost.run/fullchain.pem ssl/.ssl/local-fullchain.pem
+cp letsencrypt/live/local.auth.nhost.run/privkey.pem ssl/.ssl/local-privkey.pem
+
+certbot certonly \
+    -v \
+    --manual \
+    --preferred-challenges dns \
+    -d *.auth.local.nhost.run \
+    -d *.dashboard.local.nhost.run \
+    -d *.db.local.nhost.run \
+    -d *.functions.local.nhost.run \
+    -d *.graphql.local.nhost.run \
+    -d *.hasura.local.nhost.run \
+    -d *.mailhog.local.nhost.run \
+    -d *.storage.local.nhost.run \
+    -m 'admin@nhost.io' \
+    --agree-tos \
+    --server https://acme-v02.api.letsencrypt.org/directory \
+    --logs-dir letsencrypt \
+    --config-dir letsencrypt \
+    --work-dir letsencrypt
+
+cp letsencrypt/live/local.auth.nhost.run/fullchain.pem ssl/.ssl/sub-fullchain.pem
+cp letsencrypt/live/local.auth.nhost.run/privkey.pem ssl/.ssl/sub-privkey.pem
 
 rm -rf letsencrypt

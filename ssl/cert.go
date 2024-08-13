@@ -2,8 +2,14 @@ package ssl
 
 import _ "embed"
 
-//go:embed .ssl/fullchain.pem
-var CertFile []byte
+//go:embed .ssl/local-fullchain.pem
+var LocalCertFile []byte
 
-//go:embed .ssl/privkey.pem
-var KeyFile []byte
+//go:embed .ssl/local-privkey.pem
+var LocalKeyFile []byte
+
+//go:embed .ssl/sub-fullchain.pem
+var SubCertFile []byte
+
+//go:embed .ssl/sub-privkey.pem
+var SubKeyFile []byte

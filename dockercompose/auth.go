@@ -7,12 +7,17 @@ import (
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 )
 
+func traefikHostMatch(name string) string {
+	return fmt.Sprintf(
+		"(HostRegexp(`^.+\\.%s\\.local\\.nhost\\.run$`) || Host(`local.%s.nhost.run`))", name, name)
+}
+
 func authPatchPre022(svc Service, useTLS bool) *Service {
 	svc.Labels = Ingresses{
 		{
 			Name:    "auth",
 			TLS:     useTLS,
-			Rule:    "Host(`local.auth.nhost.run`)",
+			Rule:    traefikHostMatch("auth"),
 			Port:    authPort,
 			Rewrite: nil,
 		},
@@ -76,7 +81,7 @@ func auth( //nolint:funlen
 			{
 				Name: "auth",
 				TLS:  useTLS,
-				Rule: "Host(`local.auth.nhost.run`) && PathPrefix(`/v1`)",
+				Rule: traefikHostMatch("auth") + " && PathPrefix(`/v1`)",
 				Port: authPort,
 				Rewrite: &Rewrite{
 					Regex:       "/v1(/|$$)(.*)",

@@ -28,6 +28,9 @@ func graphql( //nolint:funlen
 
 	env := make(map[string]string, len(envars))
 	for _, v := range envars {
+		if v.Name == "HASURA_GRAPHQL_CORS_DOMAIN" && v.Value != "*" {
+			v.Value += "," + URLNewFormat("*", "hasura", httpPort, useTLS)
+		}
 		env[v.Name] = v.Value
 	}
 
@@ -55,7 +58,7 @@ func graphql( //nolint:funlen
 			{
 				Name: "graphql",
 				TLS:  useTLS,
-				Rule: "PathPrefix(`/v1`) && Host(`local.graphql.nhost.run`)",
+				Rule: traefikHostMatch("graphql") + "&& PathPrefix(`/v1`)",
 				Port: hasuraPort,
 				Rewrite: &Rewrite{
 					Regex:       "/v1(/|$$)(.*)",
@@ -63,9 +66,11 @@ func graphql( //nolint:funlen
 				},
 			},
 			{
-				Name:    "hasura",
-				TLS:     useTLS,
-				Rule:    "( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) ) && Host(`local.hasura.nhost.run`)", //nolint:lll
+				Name: "hasura",
+				TLS:  useTLS,
+				Rule: traefikHostMatch(
+					"hasura",
+				) + "&& ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )", //nolint:lll
 				Port:    hasuraPort,
 				Rewrite: nil,
 			},
@@ -91,9 +96,9 @@ func console( //nolint:funlen
 		)
 	}
 
-	scheme := "http"
+	scheme := "http" //nolint:goconst
 	if useTLS {
-		scheme = "https"
+		scheme = "https" //nolint:goconst
 	}
 
 	envars, err := appconfig.HasuraEnv(
@@ -111,6 +116,9 @@ func console( //nolint:funlen
 
 	env := make(map[string]string, len(envars))
 	for _, v := range envars {
+		if v.Name == "HASURA_GRAPHQL_CORS_DOMAIN" && v.Value != "*" {
+			v.Value += "," + URLNewFormat("*", "hasura", httpPort, useTLS)
+		}
 		env[v.Name] = v.Value
 	}
 
@@ -159,14 +167,14 @@ func console( //nolint:funlen
 			{
 				Name:    "console",
 				TLS:     useTLS,
-				Rule:    "Host(`local.hasura.nhost.run`)",
+				Rule:    traefikHostMatch("hasura"),
 				Port:    consolePort,
 				Rewrite: nil,
 			},
 			{
 				Name:    "migrate",
 				TLS:     useTLS,
-				Rule:    "PathPrefix(`/apis/`) && Host(`local.hasura.nhost.run`)",
+				Rule:    traefikHostMatch("hasura") + "&& PathPrefix(`/apis/`)",
 				Port:    httpPort,
 				Rewrite: nil,
 			},

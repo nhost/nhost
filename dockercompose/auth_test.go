@@ -147,7 +147,7 @@ func expectedAuth() *Service {
 		Labels: map[string]string{
 			"traefik.enable":                                      "true",
 			"traefik.http.routers.auth.entrypoints":               "web",
-			"traefik.http.routers.auth.rule":                      "Host(`local.auth.nhost.run`)",
+			"traefik.http.routers.auth.rule":                      "(HostRegexp(`^.+\\.auth\\.local\\.nhost\\.run$`) || Host(`local.auth.nhost.run`))",
 			"traefik.http.routers.auth.service":                   "auth",
 			"traefik.http.routers.auth.tls":                       "false",
 			"traefik.http.services.auth.loadbalancer.server.port": "4000",
@@ -195,7 +195,7 @@ func TestAuth(t *testing.T) {
 				svc.Labels["traefik.http.middlewares.replace-auth.replacepathregex.regex"] = "/v1(/|$$)(.*)"
 				svc.Labels["traefik.http.middlewares.replace-auth.replacepathregex.replacement"] = "/$$2"
 				svc.Labels["traefik.http.routers.auth.middlewares"] = "replace-auth"
-				svc.Labels["traefik.http.routers.auth.rule"] = "Host(`local.auth.nhost.run`) && PathPrefix(`/v1`)"
+				svc.Labels["traefik.http.routers.auth.rule"] = "(HostRegexp(`^.+\\.auth\\.local\\.nhost\\.run$`) || Host(`local.auth.nhost.run`)) && PathPrefix(`/v1`)" //nolint:lll
 				svc.Environment["HASURA_GRAPHQL_DATABASE_URL"] = "postgres://nhost_auth_admin@postgres:5432/local"
 				return svc
 			},

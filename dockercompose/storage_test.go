@@ -43,7 +43,7 @@ func expectedStorage() *Service {
 		Labels: map[string]string{
 			"traefik.enable": "true",
 			"traefik.http.routers.storage.entrypoints":               "web",
-			"traefik.http.routers.storage.rule":                      "PathPrefix(`/v1`) && Host(`local.storage.nhost.run`)",
+			"traefik.http.routers.storage.rule":                      "(HostRegexp(`^.+\\.storage\\.local\\.nhost\\.run$`) || Host(`local.storage.nhost.run`))&& PathPrefix(`/v1`)", //nolint:lll
 			"traefik.http.routers.storage.service":                   "storage",
 			"traefik.http.routers.storage.tls":                       "false",
 			"traefik.http.services.storage.loadbalancer.server.port": "5000",

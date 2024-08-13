@@ -51,7 +51,7 @@ func configserver( //nolint: funlen
 			{
 				Name:    "configserver",
 				TLS:     useTLS,
-				Rule:    "Host(`local.dashboard.nhost.run`) && PathPrefix(`/v1/configserver`)",
+				Rule:    traefikHostMatch("dashboard") + "&& PathPrefix(`/v1/configserver`)",
 				Port:    configserverPort,
 				Rewrite: nil,
 			},

@@ -419,13 +419,20 @@ func printInfo(
 		"- Postgres:\t\tpostgres://postgres:postgres@localhost:%d/local\n",
 		postgresPort,
 	)
-	fmt.Fprintf(w, "- Hasura:\t\t%s\n", dockercompose.URL("hasura", httpPort, useTLS))
-	fmt.Fprintf(w, "- GraphQL:\t\t%s\n", dockercompose.URL("graphql", httpPort, useTLS))
-	fmt.Fprintf(w, "- Auth:\t\t%s\n", dockercompose.URL("auth", httpPort, useTLS))
-	fmt.Fprintf(w, "- Storage:\t\t%s\n", dockercompose.URL("storage", httpPort, useTLS))
-	fmt.Fprintf(w, "- Functions:\t\t%s\n", dockercompose.URL("functions", httpPort, useTLS))
-	fmt.Fprintf(w, "- Dashboard:\t\t%s\n", dockercompose.URL("dashboard", httpPort, useTLS))
-	fmt.Fprintf(w, "- Mailhog:\t\t%s\n", dockercompose.URL("mailhog", httpPort, useTLS))
+	fmt.Fprintf(w, "- Hasura:\t\t%s\n", dockercompose.URLNewFormat(
+		"local", "hasura", httpPort, useTLS))
+	fmt.Fprintf(w, "- GraphQL:\t\t%s\n", dockercompose.URLNewFormat(
+		"local", "graphql", httpPort, useTLS))
+	fmt.Fprintf(w, "- Auth:\t\t%s\n", dockercompose.URLNewFormat(
+		"local", "auth", httpPort, useTLS))
+	fmt.Fprintf(w, "- Storage:\t\t%s\n", dockercompose.URLNewFormat(
+		"local", "storage", httpPort, useTLS))
+	fmt.Fprintf(w, "- Functions:\t\t%s\n", dockercompose.URLNewFormat(
+		"local", "functions", httpPort, useTLS))
+	fmt.Fprintf(w, "- Dashboard:\t\t%s\n", dockercompose.URLNewFormat(
+		"local", "dashboard", httpPort, useTLS))
+	fmt.Fprintf(w, "- Mailhog:\t\t%s\n", dockercompose.URLNewFormat(
+		"local", "mailhog", httpPort, useTLS))
 
 	for _, svc := range runServices {
 		for _, port := range svc.Config.GetPorts() {
@@ -451,7 +458,7 @@ func printInfo(
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "SDK Configuration:\n")
 	fmt.Fprintf(w, " Subdomain:\tlocal\n")
-	fmt.Fprintf(w, " Region:\t(empty)\n")
+	fmt.Fprintf(w, " Region:\tlocal\n")
 	fmt.Fprintf(w, "")
 	fmt.Fprintf(w, "Run `nhost up` to reload the development environment\n")
 	fmt.Fprintf(w, "Run `nhost down` to stop the development environment\n")

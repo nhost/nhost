@@ -80,15 +80,15 @@ jobs:
       run: |
         echo "VERSION=$(make get-version VERSION=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
 
-    - name: place let's encrypt cert
-      run: |
-        cat <<EOF > ssl/.ssl/fullchain.pem
-        ${{ secrets.CERT_FULL_CHAIN }}
-        EOF
-        cat <<EOF > ssl/.ssl/privkey.pem
-        ${{ secrets.CERT_PRIV_KEY }}
-        EOF
-      shell: bash
+    # - name: place let's encrypt cert
+    #   run: |
+    #     cat <<EOF > ssl/.ssl/fullchain.pem
+    #     ${{ secrets.CERT_FULL_CHAIN }}
+    #     EOF
+    #     cat <<EOF > ssl/.ssl/privkey.pem
+    #     ${{ secrets.CERT_PRIV_KEY }}
+    #     EOF
+    #   shell: bash
 
     - name: "Build artifact"
       run: |

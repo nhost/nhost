@@ -66,7 +66,7 @@ func openBrowser(url string) error {
 }
 
 func getTLSServer() (*http.Server, error) {
-	block, _ := pem.Decode(ssl.KeyFile)
+	block, _ := pem.Decode(ssl.LocalKeyFile)
 	// Parse the PEM data to obtain the private key
 	privateKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
@@ -81,7 +81,7 @@ func getTLSServer() (*http.Server, error) {
 		)
 	}
 
-	block, _ = pem.Decode(ssl.CertFile)
+	block, _ = pem.Decode(ssl.LocalCertFile)
 	certificate, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse certificate: %w", err)
