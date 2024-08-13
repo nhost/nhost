@@ -68,7 +68,7 @@ export default function generateAppServiceUrl(
 
   if (!IS_PLATFORM) {
     const serviceUrls: Record<typeof service, string> = {
-      auth: getAuthServiceUrl(),
+      auth: getAuthServiceUrl(subdomain),
       db: getDatabaseServiceUrl(),
       graphql: getGraphqlServiceUrl(),
       storage: getStorageServiceUrl(),

@@ -15,10 +15,16 @@ export function getHasuraAdminSecret() {
 /**
  * Custom URL of the Auth service.
  */
-export function getAuthServiceUrl() {
-  return (
-    process.env.NEXT_PUBLIC_NHOST_AUTH_URL || 'https://local.auth.nhost.run/v1'
-  );
+export function getAuthServiceUrl(customSubdomain: string = '') {
+  if (process.env.NEXT_PUBLIC_NHOST_AUTH_URL) {
+    return process.env.NEXT_PUBLIC_NHOST_AUTH_URL;
+  }
+
+  if (customSubdomain) {
+    return `https://${customSubdomain}.auth.local.nhost.run/v1`;
+  }
+
+  return 'https://local.auth.local.nhost.run/v1';
 }
 
 /**
