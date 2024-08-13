@@ -25,7 +25,7 @@ jobs:
 
     steps:
     - name: "Check out repository"
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
         ref: ${{ inputs.GIT_REF }}
@@ -49,7 +49,7 @@ jobs:
           builders-use-substitutes = true
 
     - name: Cache nix store
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /nix/store/**
