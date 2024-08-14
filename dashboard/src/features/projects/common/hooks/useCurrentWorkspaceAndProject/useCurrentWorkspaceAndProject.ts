@@ -90,6 +90,18 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
 
   // Return a default project if working locally
   if (!isPlatform) {
+    let localSubdomain = 'local';
+
+    if (typeof window !== 'undefined') {
+      const origin = window?.location?.origin;
+      const domainAndSubdomain = origin?.split('/')[2];
+
+      const dynamicLocalSubdomain = domainAndSubdomain?.split('.')[0];
+
+      if (dynamicLocalSubdomain?.split('-').length === 4) {
+        localSubdomain = dynamicLocalSubdomain;
+      }
+    }
     const localProject: Project = {
       id: '00000000-0000-0000-0000-000000000000',
       slug: 'local',
@@ -103,7 +115,7 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
         },
       ],
       deployments: [],
-      subdomain: 'local',
+      subdomain: localSubdomain,
       region: {
         id: null,
         countryCode: null,
