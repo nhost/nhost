@@ -120,7 +120,7 @@ export default function useCurrentWorkspaceAndProject(): UseCurrentWorkspaceAndP
         id: null,
         countryCode: null,
         city: null,
-        name: null,
+        name: 'local',
         domain: null,
       },
       createdAt: new Date().toISOString(),
