@@ -2,8 +2,8 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { BaseDialog } from '@/components/ui/v2/Dialog';
+import { Radio } from '@/components/ui/v2/Radio';
 import { Text } from '@/components/ui/v2/Text';
 import { useAppState } from '@/features/projects/common/hooks/useAppState';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
@@ -31,7 +31,7 @@ function Plan({ planName, price, setPlan, planId, selectedPlanId }: any) {
     >
       <div className="grid grid-flow-row gap-y-0.5">
         <div className="grid grid-flow-col items-center justify-start gap-2">
-          <Checkbox
+          <Radio
             onChange={setPlan}
             checked={selectedPlanId === planId}
             aria-label={planName}
