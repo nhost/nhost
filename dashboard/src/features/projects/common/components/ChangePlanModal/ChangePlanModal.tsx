@@ -241,7 +241,21 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
             ))}
         </div>
 
-        <div className="mt-2 grid grid-flow-row gap-2">
+        <div className="mt-0">
+          <Text variant="subtitle2" className="w-full px-1">
+            For a complete list of features, visit our{' '}
+            <a
+              href="https://nhost.io/pricing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              pricing page
+            </a>
+          </Text>
+        </div>
+
+        <div className="mt-6 grid grid-flow-row gap-2">
           <Button
             onClick={handleChangePlanClick}
             disabled={!selectedPlan}
