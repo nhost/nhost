@@ -55,6 +55,7 @@ overrides:
   undici@>=6.0.0 <6.11.1: 6.11.1
   undici@<5.28.4: 5.28.4
   fast-xml-parser@<4.4.1: '>=4.4.1'
+  axios: 1.7.4
 
 importers:
 
@@ -1035,7 +1036,7 @@ importers:
     devDependencies:
       '@nhost/nhost-js':
         specifier: ^3.1.5
-        version: 3.1.6(graphql@16.8.1)
+        version: 3.1.7(graphql@16.8.1)
       '@playwright/test':
         specifier: ^1.42.1
         version: 1.42.1
@@ -9783,7 +9784,7 @@ packages:
     resolution: {integrity: sha512-MMAdhT6DrylDg1doi2oK2Zw0b7gMspr3Cq8stFGTLl8qOGJo9RT8KCNEWUDzR5eurSGcwE1660rq3Qibe4bOag==}
     engines: {node: '>=18.0.0'}
     dependencies:
-      axios: 1.7.2
+      axios: 1.7.4
       openapi-types: 12.1.3
     transitivePeerDependencies:
       - debug
@@ -10299,8 +10300,8 @@ packages:
       - encoding
     dev: true
 
-  /@nhost/hasura-auth-js@2.5.3:
-    resolution: {integrity: sha512-WPDmF7vMU32I/G4Ytlo+ZUE+INzcjp1Av5KNLH/iBWDw/0HB6Vj5/+AWq+IjxQm0+HmKE+hvnc5Hc5rn0oPreg==}
+  /@nhost/hasura-auth-js@2.5.4:
+    resolution: {integrity: sha512-w9DVBDWamV6KSgO2q6mhA8MEhhFnne4c7fzj2JNEIDUfvc/QMaLpL93ZJII2s4Dc8QeeJM4Vcsjx7zDXI+RnsQ==}
     dependencies:
       '@simplewebauthn/browser': 9.0.1
       fetch-ponyfill: 7.1.0
@@ -10322,13 +10323,13 @@ packages:
       - encoding
     dev: true
 
-  /@nhost/nhost-js@3.1.6(graphql@16.8.1):
-    resolution: {integrity: sha512-5DPm3vvsiMzJxYzMSxHwqIsn1GfDsZ1LHq5vndHILL8OH5LHPh3tVlUc4EcElbkqN81yzZ++umcDxxH+w8pkAg==}
+  /@nhost/nhost-js@3.1.7(graphql@16.8.1):
+    resolution: {integrity: sha512-9ifZ2qvlJFp+Xk/Frm8do3nkGg5L7s2K11Rr9iZG92LnJP4InqtELwhSxxfN80Gt/aQkgEOxyQ21bJXW3XCSxg==}
     peerDependencies:
       graphql: '>=16.8.1'
     dependencies:
       '@nhost/graphql-js': 0.3.0(graphql@16.8.1)
-      '@nhost/hasura-auth-js': 2.5.3
+      '@nhost/hasura-auth-js': 2.5.4
       '@nhost/hasura-storage-js': 2.5.1
       graphql: 16.8.1
       isomorphic-unfetch: 3.1.0
@@ -15953,7 +15954,7 @@ packages:
     engines: {node: '>=4'}
     dependencies:
       '@segment/loosely-validate-event': 2.0.0
-      axios: 1.7.2
+      axios: 1.7.4
       axios-retry: 3.2.0
       lodash.isstring: 4.0.1
       md5: 2.3.0
@@ -16433,8 +16434,8 @@ packages:
       is-retry-allowed: 1.2.0
     dev: false
 
-  /axios@1.7.2:
-    resolution: {integrity: sha512-2A8QhOMrbomlDuiLeK9XibIBzuHeRcqqNOHp0Cyp5EoJ1IFDh+XZH3A6BkXtv0K4gFGCI0Y4BM7B1wOEi0Rmgw==}
+  /axios@1.7.4:
+    resolution: {integrity: sha512-DukmaFRnY6AzAALSH4J2M3k6PkaC+MfaAGdEERRWcC9q3/TWQwLpHR8ZRLKTdQ3aBDL64EdluRDjJqKw+BPZEw==}
     dependencies:
       follow-redirects: 1.15.6
       form-data: 4.0.0
