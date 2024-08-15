@@ -2,12 +2,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowLeft } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { Button, buttonVariants } from '../ui/button'
-import { Separator } from '../ui/separator'
 import { Link } from 'react-router-dom'
-
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
-import { Input } from '../ui/input'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '../../ui/form'
+import { Input } from '../../ui/input'
+import { Button, buttonVariants } from '../../ui/button'
+import { Separator } from '../../ui/separator'
 
 const signInFormSchema = z.object({
   email: z.string().email(),

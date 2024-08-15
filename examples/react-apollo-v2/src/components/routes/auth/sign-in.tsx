@@ -1,17 +1,12 @@
-import { Button } from '../ui/button'
-import { Separator } from '../ui/separator'
+import { useSignInAnonymous } from '@nhost/react'
 import { Fingerprint, Mail } from 'lucide-react'
-import { useNhostClient, useSignInAnonymous } from '@nhost/react'
 import { Link, useNavigate } from 'react-router-dom'
-import OAuthLinks from '../../../../../examples/react-apollo-v2/src/components/oauth-links'
+import OAuthLinks from '../../oauth-links'
+import { Button } from '../../ui/button'
+import { Separator } from '../../ui/separator'
 
 export default function SignIn() {
   const navigate = useNavigate()
-
-  const nhost = useNhostClient()
-
-  console.log(nhost.auth.client.backendUrl)
-
   const { signInAnonymous } = useSignInAnonymous()
 
   const anonymousHandler = async () => {

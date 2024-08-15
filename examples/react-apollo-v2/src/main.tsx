@@ -5,7 +5,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { Toaster } from './components/ui/sonner'
 import { TooltipProvider } from './components/ui/tooltip'
-import './index.css'
+import './styles/globals.css'
 
 const nhost = new NhostClient({ subdomain: 'local' })
 

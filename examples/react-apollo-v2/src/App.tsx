@@ -1,13 +1,12 @@
 import { Route, Routes } from 'react-router-dom'
-
-import { AuthGate } from '@/components/auth-gate'
-import Layout from '@/components/routes/app/layout'
-import ForgotPassword from '@/components/routes/auth/forgot-password'
-import SignUpEmailPassword from '@/components/routes/auth/sign-up/sign-up-email-password'
-import SignIn from '@/components/routes/sign-in'
-import SignInEmailPassword from '@/components/routes/sign-in-email-password'
-import SignUp from '@/components/routes/sign-up'
+import { AuthGate } from './components/auth-gate'
+import Home from './components/routes/app/home'
+import Layout from './components/routes/app/layout'
 import Profile from './components/routes/app/profile'
+import ForgotPassword from './components/routes/auth/forgot-password'
+import SignIn from './components/routes/auth/sign-in'
+import SignInEmailPassword from './components/routes/auth/sign-in-email-password'
+import SignUp from './components/routes/auth/sign-up'
 
 function App() {
   return (
@@ -20,7 +19,8 @@ function App() {
           </AuthGate>
         }
       >
-        <Route path="/" element={<Profile />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/profile" element={<Profile />} />
       </Route>
 
       <Route path="/sign-in">
@@ -31,7 +31,7 @@ function App() {
 
       <Route path="/sign-up">
         <Route path="/sign-up/" element={<SignUp />} />
-        <Route path="/sign-up/email-password" element={<SignUpEmailPassword />}></Route>
+        <Route path="/sign-up/email-password" element={<SignInEmailPassword />}></Route>
       </Route>
     </Routes>
   )

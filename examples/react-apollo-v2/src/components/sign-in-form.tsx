@@ -3,9 +3,9 @@
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import { Label } from './ui/label'
-import { Input } from './ui/input'
-import { Button } from './ui/button'
+import { Label } from '../../../../templates/react-apollo/src/components/ui/label'
+import { Input } from '../../../../templates/react-apollo/src/components/ui/input'
+import { Button } from '../../../../templates/react-apollo/src/components/ui/button'
 import { SiGithub } from '@icons-pack/react-simple-icons'
 import { Loader2 } from 'lucide-react'
 
