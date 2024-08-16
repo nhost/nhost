@@ -118,7 +118,8 @@
         "guides/database/configuring-postgres",
         "guides/database/access",
         "guides/database/extensions",
-        "guides/database/performance"
+        "guides/database/performance",
+        "guides/database/upgrade-major"
       ]
     },
     {
