@@ -104,7 +104,7 @@ func expectedAuth() *Service {
 			"AUTH_PROVIDER_WORKOS_ENABLED":              "true",
 			"AUTH_REFRESH_TOKEN_EXPIRES_IN":             "99",
 			"AUTH_REQUIRE_ELEVATED_CLAIM":               "required",
-			"AUTH_SERVER_URL":                           "http://local.auth.nhost.run:1336/v1",
+			"AUTH_SERVER_URL":                           "http://dev.auth.local.nhost.run:1336/v1",
 			"AUTH_SMS_PASSWORDLESS_ENABLED":             "true",
 			"AUTH_SMS_PROVIDER":                         "twilio",
 			"AUTH_SMS_TWILIO_ACCOUNT_SID":               "smsAccountSid",
@@ -133,10 +133,13 @@ func expectedAuth() *Service {
 			"HASURA_GRAPHQL_JWT_SECRET":                 `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}`,
 		},
 		ExtraHosts: []string{
-			"host.docker.internal:host-gateway", "local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway", "local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway", "local.hasura.nhost.run:host-gateway",
-			"local.storage.nhost.run:host-gateway",
+			"host.docker.internal:host-gateway",
+			"dev.auth.local.nhost.run:host-gateway",
+			"dev.db.local.nhost.run:host-gateway",
+			"dev.functions.local.nhost.run:host-gateway",
+			"dev.graphql.local.nhost.run:host-gateway",
+			"dev.hasura.local.nhost.run:host-gateway",
+			"dev.storage.local.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:4000/healthz"},
@@ -206,7 +209,7 @@ func TestAuth(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := auth(tc.cfg(), 1336, tc.useTlS, "/tmp/nhost", 0)
+			got, err := auth(tc.cfg(), "dev", 1336, tc.useTlS, "/tmp/nhost", 0)
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}

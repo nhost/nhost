@@ -24,7 +24,7 @@ func expectedStorage() *Service {
 			"HASURA_METADATA":             "1",
 			"POSTGRES_MIGRATIONS":         "1",
 			"POSTGRES_MIGRATIONS_SOURCE":  "postgres://nhost_storage_admin@postgres:5432/local?sslmode=disable",
-			"PUBLIC_URL":                  "http://local.storage.nhost.run:444",
+			"PUBLIC_URL":                  "http://dev.storage.local.nhost.run:444",
 			"S3_ACCESS_KEY":               "minioaccesskey123123",
 			"S3_BUCKET":                   "nhost",
 			"S3_ENDPOINT":                 "http://minio:9000",
@@ -34,10 +34,13 @@ func expectedStorage() *Service {
 			"CLAMAV_SERVER":               "tcp://run-clamav:3310",
 		},
 		ExtraHosts: []string{
-			"host.docker.internal:host-gateway", "local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway", "local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway", "local.hasura.nhost.run:host-gateway",
-			"local.storage.nhost.run:host-gateway",
+			"host.docker.internal:host-gateway",
+			"dev.auth.local.nhost.run:host-gateway",
+			"dev.db.local.nhost.run:host-gateway",
+			"dev.functions.local.nhost.run:host-gateway",
+			"dev.graphql.local.nhost.run:host-gateway",
+			"dev.hasura.local.nhost.run:host-gateway",
+			"dev.storage.local.nhost.run:host-gateway",
 		},
 		HealthCheck: nil,
 		Labels: map[string]string{
@@ -76,7 +79,7 @@ func TestStorage(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := storage(tc.cfg(), tc.useTlS, 444, 0)
+			got, err := storage(tc.cfg(), "dev", tc.useTlS, 444, 0)
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}

@@ -72,6 +72,7 @@ type ConfigAIUpdateInput struct {
 type ConfigAuth struct {
 	ElevatedPrivileges *ConfigAuthElevatedPrivileges `json:"elevatedPrivileges,omitempty"`
 	Method             *ConfigAuthMethod             `json:"method,omitempty"`
+	RateLimit          *ConfigAuthRateLimit          `json:"rateLimit,omitempty"`
 	Redirections       *ConfigAuthRedirections       `json:"redirections,omitempty"`
 	Resources          *ConfigResources              `json:"resources,omitempty"`
 	Session            *ConfigAuthSession            `json:"session,omitempty"`
@@ -271,6 +272,22 @@ type ConfigAuthMethodWebauthnUpdateInput struct {
 	RelyingParty *ConfigAuthMethodWebauthnRelyingPartyUpdateInput `json:"relyingParty,omitempty"`
 }
 
+type ConfigAuthRateLimit struct {
+	BruteForce *ConfigRateLimit `json:"bruteForce,omitempty"`
+	Emails     *ConfigRateLimit `json:"emails,omitempty"`
+	Global     *ConfigRateLimit `json:"global,omitempty"`
+	Signups    *ConfigRateLimit `json:"signups,omitempty"`
+	Sms        *ConfigRateLimit `json:"sms,omitempty"`
+}
+
+type ConfigAuthRateLimitUpdateInput struct {
+	BruteForce *ConfigRateLimitUpdateInput `json:"bruteForce,omitempty"`
+	Emails     *ConfigRateLimitUpdateInput `json:"emails,omitempty"`
+	Global     *ConfigRateLimitUpdateInput `json:"global,omitempty"`
+	Signups    *ConfigRateLimitUpdateInput `json:"signups,omitempty"`
+	Sms        *ConfigRateLimitUpdateInput `json:"sms,omitempty"`
+}
+
 type ConfigAuthRedirections struct {
 	AllowedUrls []string `json:"allowedUrls,omitempty"`
 	ClientURL   *string  `json:"clientUrl,omitempty"`
@@ -332,6 +349,7 @@ type ConfigAuthTotpUpdateInput struct {
 type ConfigAuthUpdateInput struct {
 	ElevatedPrivileges *ConfigAuthElevatedPrivilegesUpdateInput `json:"elevatedPrivileges,omitempty"`
 	Method             *ConfigAuthMethodUpdateInput             `json:"method,omitempty"`
+	RateLimit          *ConfigAuthRateLimitUpdateInput          `json:"rateLimit,omitempty"`
 	Redirections       *ConfigAuthRedirectionsUpdateInput       `json:"redirections,omitempty"`
 	Resources          *ConfigResourcesUpdateInput              `json:"resources,omitempty"`
 	Session            *ConfigAuthSessionUpdateInput            `json:"session,omitempty"`
@@ -503,6 +521,7 @@ type ConfigEnvironmentVariableUpdateInput struct {
 
 type ConfigFunctions struct {
 	Node      *ConfigFunctionsNode      `json:"node,omitempty"`
+	RateLimit *ConfigRateLimit          `json:"rateLimit,omitempty"`
 	Resources *ConfigFunctionsResources `json:"resources,omitempty"`
 }
 
@@ -524,6 +543,7 @@ type ConfigFunctionsResourcesUpdateInput struct {
 
 type ConfigFunctionsUpdateInput struct {
 	Node      *ConfigFunctionsNodeUpdateInput      `json:"node,omitempty"`
+	RateLimit *ConfigRateLimitUpdateInput          `json:"rateLimit,omitempty"`
 	Resources *ConfigFunctionsResourcesUpdateInput `json:"resources,omitempty"`
 }
 
@@ -577,6 +597,7 @@ type ConfigHasura struct {
 	Events        *ConfigHasuraEvents   `json:"events,omitempty"`
 	JwtSecrets    []*ConfigJWTSecret    `json:"jwtSecrets,omitempty"`
 	Logs          *ConfigHasuraLogs     `json:"logs,omitempty"`
+	RateLimit     *ConfigRateLimit      `json:"rateLimit,omitempty"`
 	Resources     *ConfigResources      `json:"resources,omitempty"`
 	Settings      *ConfigHasuraSettings `json:"settings,omitempty"`
 	Version       *string               `json:"version,omitempty"`
@@ -639,6 +660,7 @@ type ConfigHasuraUpdateInput struct {
 	Events        *ConfigHasuraEventsUpdateInput   `json:"events,omitempty"`
 	JwtSecrets    []*ConfigJWTSecretUpdateInput    `json:"jwtSecrets,omitempty"`
 	Logs          *ConfigHasuraLogsUpdateInput     `json:"logs,omitempty"`
+	RateLimit     *ConfigRateLimitUpdateInput      `json:"rateLimit,omitempty"`
 	Resources     *ConfigResourcesUpdateInput      `json:"resources,omitempty"`
 	Settings      *ConfigHasuraSettingsUpdateInput `json:"settings,omitempty"`
 	Version       *string                          `json:"version,omitempty"`
@@ -815,6 +837,21 @@ type ConfigProviderUpdateInput struct {
 	SMTP *ConfigSMTPUpdateInput `json:"smtp,omitempty"`
 }
 
+type ConfigRateLimit struct {
+	Interval string `json:"interval"`
+	Limit    uint32 `json:"limit"`
+}
+
+type ConfigRateLimitInsertInput struct {
+	Interval string `json:"interval"`
+	Limit    uint32 `json:"limit"`
+}
+
+type ConfigRateLimitUpdateInput struct {
+	Interval *string `json:"interval,omitempty"`
+	Limit    *uint32 `json:"limit,omitempty"`
+}
+
 type ConfigResources struct {
 	Autoscaler *ConfigAutoscaler       `json:"autoscaler,omitempty"`
 	Compute    *ConfigResourcesCompute `json:"compute,omitempty"`
@@ -890,6 +927,7 @@ type ConfigRunServicePort struct {
 	Ingresses []*ConfigIngress `json:"ingresses,omitempty"`
 	Port      uint32           `json:"port"`
 	Publish   *bool            `json:"publish,omitempty"`
+	RateLimit *ConfigRateLimit `json:"rateLimit,omitempty"`
 	Type      string           `json:"type"`
 }
 
@@ -897,6 +935,7 @@ type ConfigRunServicePortInsertInput struct {
 	Ingresses []*ConfigIngressInsertInput `json:"ingresses,omitempty"`
 	Port      uint32                      `json:"port"`
 	Publish   *bool                       `json:"publish,omitempty"`
+	RateLimit *ConfigRateLimitInsertInput `json:"rateLimit,omitempty"`
 	Type      string                      `json:"type"`
 }
 
@@ -904,6 +943,7 @@ type ConfigRunServicePortUpdateInput struct {
 	Ingresses []*ConfigIngressUpdateInput `json:"ingresses,omitempty"`
 	Port      *uint32                     `json:"port,omitempty"`
 	Publish   *bool                       `json:"publish,omitempty"`
+	RateLimit *ConfigRateLimitUpdateInput `json:"rateLimit,omitempty"`
 	Type      *string                     `json:"type,omitempty"`
 }
 
@@ -1008,6 +1048,7 @@ type ConfigStandardOauthProviderWithScopeUpdateInput struct {
 
 type ConfigStorage struct {
 	Antivirus *ConfigStorageAntivirus `json:"antivirus,omitempty"`
+	RateLimit *ConfigRateLimit        `json:"rateLimit,omitempty"`
 	Resources *ConfigResources        `json:"resources,omitempty"`
 	Version   *string                 `json:"version,omitempty"`
 }
@@ -1022,6 +1063,7 @@ type ConfigStorageAntivirusUpdateInput struct {
 
 type ConfigStorageUpdateInput struct {
 	Antivirus *ConfigStorageAntivirusUpdateInput `json:"antivirus,omitempty"`
+	RateLimit *ConfigRateLimitUpdateInput        `json:"rateLimit,omitempty"`
 	Resources *ConfigResourcesUpdateInput        `json:"resources,omitempty"`
 	Version   *string                            `json:"version,omitempty"`
 }
@@ -1084,17 +1126,6 @@ type IntComparisonExp struct {
 	Lte    *int64  `json:"_lte,omitempty"`
 	Neq    *int64  `json:"_neq,omitempty"`
 	Nin    []int64 `json:"_nin,omitempty"`
-}
-
-type InvoiceItem struct {
-	Amount      string `json:"Amount"`
-	Description string `json:"Description"`
-}
-
-type InvoiceSummary struct {
-	AmountDue string         `json:"AmountDue"`
-	PeriodEnd string         `json:"PeriodEnd"`
-	Items     []*InvoiceItem `json:"items"`
 }
 
 type LastError struct {

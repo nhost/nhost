@@ -23,7 +23,7 @@ func expectedGraphql() *Service {
 			"HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS":                     "true",
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",
-			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,http://*.hasura.local.nhost.run:1337",
+			"HASURA_GRAPHQL_CORS_DOMAIN":                               "http://*.localhost,http://*.hasura.local.nhost.run:1337,http://*.dashboard.local.nhost.run:1337",
 			"HASURA_GRAPHQL_DATABASE_URL":                              "postgres://nhost_hasura@postgres:5432/local",
 			"HASURA_GRAPHQL_DEV_MODE":                                  "false",
 			"HASURA_GRAPHQL_DISABLE_CORS":                              "false",
@@ -57,10 +57,13 @@ func expectedGraphql() *Service {
 			"NHOST_WEBHOOK_SECRET":                                     "webhookSecret",
 		},
 		ExtraHosts: []string{
-			"host.docker.internal:host-gateway", "local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway", "local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway", "local.hasura.nhost.run:host-gateway",
-			"local.storage.nhost.run:host-gateway",
+			"host.docker.internal:host-gateway",
+			"dev.auth.local.nhost.run:host-gateway",
+			"dev.db.local.nhost.run:host-gateway",
+			"dev.functions.local.nhost.run:host-gateway",
+			"dev.graphql.local.nhost.run:host-gateway",
+			"dev.hasura.local.nhost.run:host-gateway",
+			"dev.storage.local.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test: []string{
@@ -115,7 +118,7 @@ func TestGraphql(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := graphql(tc.cfg(), tc.useTlS, 1337, 0)
+			got, err := graphql(tc.cfg(), "dev", tc.useTlS, 1337, 0)
 			if err != nil {
 				t.Errorf("got error: %v", err)
 			}
@@ -141,8 +144,8 @@ func expectedConsole() *Service {
                     --address 0.0.0.0 \
                     --console-port 9695 \
                     --api-port 1337 \
-                    --api-host http://local.hasura.nhost.run \
-                    --console-hge-endpoint http://local.hasura.nhost.run:1337`,
+                    --api-host http://dev.hasura.local.nhost.run \
+                    --console-hge-endpoint http://dev.hasura.local.nhost.run:1337`,
 		},
 		EntryPoint: nil,
 		Environment: map[string]string{
@@ -186,10 +189,13 @@ func expectedConsole() *Service {
 			"NHOST_WEBHOOK_SECRET":                                     "webhookSecret",
 		},
 		ExtraHosts: []string{
-			"host.docker.internal:host-gateway", "local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway", "local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway", "local.hasura.nhost.run:0.0.0.0",
-			"local.storage.nhost.run:host-gateway",
+			"host.docker.internal:host-gateway",
+			"dev.auth.local.nhost.run:host-gateway",
+			"dev.db.local.nhost.run:host-gateway",
+			"dev.functions.local.nhost.run:host-gateway",
+			"dev.graphql.local.nhost.run:host-gateway",
+			"dev.hasura.local.nhost.run:host-gateway",
+			"dev.storage.local.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test: []string{
@@ -251,7 +257,7 @@ func TestConsole(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := console(tc.cfg(), 1337, tc.useTlS, "/path/to/nhost", 0)
+			got, err := console(tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", 0)
 			if err != nil {
 				t.Fatalf("got error: %v", err)
 			}

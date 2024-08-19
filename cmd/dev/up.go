@@ -350,6 +350,7 @@ func up( //nolint:funlen,cyclop
 	ce.Infoln("Setting up Nhost development environment...")
 	composeFile, err := dockercompose.ComposeFileFromConfig(
 		cfg,
+		ce.LocalSubdomain(),
 		ce.ProjectName(),
 		httpPort,
 		useTLS,
@@ -393,7 +394,7 @@ func up( //nolint:funlen,cyclop
 		"metadata", "export",
 		"--skip-update-check",
 		"--log-level", "ERROR",
-		"--endpoint", dockercompose.URL("hasura", httpPort, useTLS),
+		"--endpoint", dockercompose.URL(ce.LocalSubdomain(), "hasura", httpPort, useTLS),
 		"--admin-secret", cfg.Hasura.AdminSecret,
 	); err != nil {
 		return fmt.Errorf("failed to create metadata: %w", err)
@@ -404,11 +405,12 @@ func up( //nolint:funlen,cyclop
 	}
 
 	ce.Infoln("Nhost development environment started.")
-	printInfo(httpPort, postgresPort, useTLS, runServicesCfg)
+	printInfo(ce.LocalSubdomain(), httpPort, postgresPort, useTLS, runServicesCfg)
 	return nil
 }
 
 func printInfo(
+	subdomain string,
 	httpPort, postgresPort uint,
 	useTLS bool,
 	runServices []*dockercompose.RunService,
@@ -419,20 +421,20 @@ func printInfo(
 		"- Postgres:\t\tpostgres://postgres:postgres@localhost:%d/local\n",
 		postgresPort,
 	)
-	fmt.Fprintf(w, "- Hasura:\t\t%s\n", dockercompose.URLNewFormat(
-		"local", "hasura", httpPort, useTLS))
-	fmt.Fprintf(w, "- GraphQL:\t\t%s\n", dockercompose.URLNewFormat(
-		"local", "graphql", httpPort, useTLS))
-	fmt.Fprintf(w, "- Auth:\t\t%s\n", dockercompose.URLNewFormat(
-		"local", "auth", httpPort, useTLS))
-	fmt.Fprintf(w, "- Storage:\t\t%s\n", dockercompose.URLNewFormat(
-		"local", "storage", httpPort, useTLS))
-	fmt.Fprintf(w, "- Functions:\t\t%s\n", dockercompose.URLNewFormat(
-		"local", "functions", httpPort, useTLS))
-	fmt.Fprintf(w, "- Dashboard:\t\t%s\n", dockercompose.URLNewFormat(
-		"local", "dashboard", httpPort, useTLS))
-	fmt.Fprintf(w, "- Mailhog:\t\t%s\n", dockercompose.URLNewFormat(
-		"local", "mailhog", httpPort, useTLS))
+	fmt.Fprintf(w, "- Hasura:\t\t%s\n", dockercompose.URL(
+		subdomain, "hasura", httpPort, useTLS))
+	fmt.Fprintf(w, "- GraphQL:\t\t%s\n", dockercompose.URL(
+		subdomain, "graphql", httpPort, useTLS))
+	fmt.Fprintf(w, "- Auth:\t\t%s\n", dockercompose.URL(
+		subdomain, "auth", httpPort, useTLS))
+	fmt.Fprintf(w, "- Storage:\t\t%s\n", dockercompose.URL(
+		subdomain, "storage", httpPort, useTLS))
+	fmt.Fprintf(w, "- Functions:\t\t%s\n", dockercompose.URL(
+		subdomain, "functions", httpPort, useTLS))
+	fmt.Fprintf(w, "- Dashboard:\t\t%s\n", dockercompose.URL(
+		subdomain, "dashboard", httpPort, useTLS))
+	fmt.Fprintf(w, "- Mailhog:\t\t%s\n", dockercompose.URL(
+		subdomain, "mailhog", httpPort, useTLS))
 
 	for _, svc := range runServices {
 		for _, port := range svc.Config.GetPorts() {
@@ -457,7 +459,7 @@ func printInfo(
 
 	fmt.Fprintf(w, "\n")
 	fmt.Fprintf(w, "SDK Configuration:\n")
-	fmt.Fprintf(w, " Subdomain:\tlocal\n")
+	fmt.Fprintf(w, " Subdomain:\t%s\n", subdomain)
 	fmt.Fprintf(w, " Region:\tlocal\n")
 	fmt.Fprintf(w, "")
 	fmt.Fprintf(w, "Run `nhost up` to reload the development environment\n")

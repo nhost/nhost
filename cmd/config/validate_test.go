@@ -215,6 +215,7 @@ func TestValidate(t *testing.T) {
 				"fakedomain",
 				"fakebranch",
 				"",
+				"local",
 			)
 
 			var secrets model.Secrets

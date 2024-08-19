@@ -21,6 +21,7 @@ func NewDocker() *Docker {
 
 func (d *Docker) HasuraWrapper(
 	ctx context.Context,
+	subdomain,
 	nhostfolder,
 	hasuraVersion string,
 	exrtaArgs ...string,
@@ -38,7 +39,7 @@ func (d *Docker) HasuraWrapper(
 		"--entrypoint", "hasura-cli",
 	}
 
-	for _, host := range extraHosts() {
+	for _, host := range extraHosts(subdomain) {
 		args = append(args, "--add-host", host)
 	}
 

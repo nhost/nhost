@@ -17,6 +17,7 @@ const (
 	flagDataFolder     = "data-folder"
 	flagNhostFolder    = "nhost-folder"
 	flagDotNhostFolder = "dot-nhost-folder"
+	flagLocalSubdomain = "local-subdomain"
 )
 
 func getGitBranchName() string {
@@ -97,6 +98,12 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 			Usage:   "Project name",
 			Value:   filepath.Base(fullWorkingDir),
 			EnvVars: []string{"NHOST_PROJECT_NAME"},
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:    flagLocalSubdomain,
+			Usage:   "Local subdomain to reach the development environment",
+			Value:   "local",
+			EnvVars: []string{"NHOST_LOCAL_SUBDOMAIN"},
 		},
 	}, nil
 }

@@ -16,6 +16,7 @@ func deptr[T any](t *T) T { //nolint:ireturn
 
 func storage( //nolint:funlen
 	cfg *model.ConfigConfig,
+	subdomain string,
 	useTLS bool,
 	httpPort uint,
 	exposePort uint,
@@ -24,7 +25,7 @@ func storage( //nolint:funlen
 		cfg,
 		"http://graphql:8080/v1",
 		"postgres://nhost_storage_admin@postgres:5432/local?sslmode=disable",
-		URL("storage", httpPort, useTLS),
+		URL(subdomain, "storage", httpPort, useTLS),
 		"http://minio:9000",
 		"",
 		"nhost",
@@ -60,7 +61,7 @@ func storage( //nolint:funlen
 			"serve",
 		},
 		Environment: env,
-		ExtraHosts:  extraHosts(),
+		ExtraHosts:  extraHosts(subdomain),
 		Labels: Ingresses{
 			{
 				Name:    "storage",

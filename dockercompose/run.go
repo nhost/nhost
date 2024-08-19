@@ -17,6 +17,7 @@ func runVolumeName(
 
 func run(
 	cfg *model.ConfigRunServiceConfig,
+	subdomain string,
 	branchName string,
 ) *Service {
 	env := map[string]string{}
@@ -56,7 +57,7 @@ func run(
 		EntryPoint:  cfg.GetCommand(),
 		Command:     []string{},
 		Environment: env,
-		ExtraHosts:  extraHosts(),
+		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: nil,
 		Labels:      map[string]string{},
 		Ports:       ports,

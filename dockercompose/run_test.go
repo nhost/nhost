@@ -91,12 +91,12 @@ func TestRun(t *testing.T) {
 					Environment: map[string]string{"ENV": "value", "ENV2": "value2"},
 					ExtraHosts: []string{
 						"host.docker.internal:host-gateway",
-						"local.auth.nhost.run:host-gateway",
-						"local.db.nhost.run:host-gateway",
-						"local.functions.nhost.run:host-gateway",
-						"local.graphql.nhost.run:host-gateway",
-						"local.hasura.nhost.run:host-gateway",
-						"local.storage.nhost.run:host-gateway",
+						"dev.auth.local.nhost.run:host-gateway",
+						"dev.db.local.nhost.run:host-gateway",
+						"dev.functions.local.nhost.run:host-gateway",
+						"dev.graphql.local.nhost.run:host-gateway",
+						"dev.hasura.local.nhost.run:host-gateway",
+						"dev.storage.local.nhost.run:host-gateway",
 					},
 					Labels: map[string]string{},
 					Ports: []Port{
@@ -122,7 +122,7 @@ func TestRun(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := run(tc.cfg(), "branch")
+			got := run(tc.cfg(), "dev", "branch")
 			if diff := cmp.Diff(tc.expected(), got); diff != "" {
 				t.Error(diff)
 			}

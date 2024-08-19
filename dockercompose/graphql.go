@@ -10,6 +10,7 @@ import (
 
 func graphql( //nolint:funlen
 	cfg *model.ConfigConfig,
+	subdomain string,
 	useTLS bool,
 	httpPort, port uint,
 ) (*Service, error) {
@@ -29,7 +30,8 @@ func graphql( //nolint:funlen
 	env := make(map[string]string, len(envars))
 	for _, v := range envars {
 		if v.Name == "HASURA_GRAPHQL_CORS_DOMAIN" && v.Value != "*" {
-			v.Value += "," + URLNewFormat("*", "hasura", httpPort, useTLS)
+			v.Value += "," + URL("*", "hasura", httpPort, useTLS)
+			v.Value += "," + URL("*", "dashboard", httpPort, useTLS)
 		}
 		env[v.Name] = v.Value
 	}
@@ -44,7 +46,7 @@ func graphql( //nolint:funlen
 		EntryPoint:  nil,
 		Command:     nil,
 		Environment: env,
-		ExtraHosts:  extraHosts(),
+		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: &HealthCheck{
 			Test: []string{
 				"CMD-SHELL",
@@ -84,6 +86,7 @@ func graphql( //nolint:funlen
 
 func console( //nolint:funlen
 	cfg *model.ConfigConfig,
+	subdomain string,
 	httpPort uint,
 	useTLS bool,
 	nhostFolder string,
@@ -96,9 +99,9 @@ func console( //nolint:funlen
 		)
 	}
 
-	scheme := "http" //nolint:goconst
+	scheme := "http"
 	if useTLS {
-		scheme = "https" //nolint:goconst
+		scheme = "https"
 	}
 
 	envars, err := appconfig.HasuraEnv(
@@ -117,7 +120,7 @@ func console( //nolint:funlen
 	env := make(map[string]string, len(envars))
 	for _, v := range envars {
 		if v.Name == "HASURA_GRAPHQL_CORS_DOMAIN" && v.Value != "*" {
-			v.Value += "," + URLNewFormat("*", "hasura", httpPort, useTLS)
+			v.Value += "," + URL("*", "hasura", httpPort, useTLS)
 		}
 		env[v.Name] = v.Value
 	}
@@ -137,23 +140,16 @@ func console( //nolint:funlen
                     --address 0.0.0.0 \
                     --console-port 9695 \
                     --api-port %d \
-                    --api-host %s://local.hasura.nhost.run \
-                    --console-hge-endpoint %s`, httpPort, scheme, URL("hasura", httpPort, useTLS)),
+                    --api-host %s://%s.hasura.local.nhost.run \
+                    --console-hge-endpoint %s`,
+				httpPort, scheme, subdomain, URL(subdomain, "hasura", httpPort, useTLS)),
 		},
 		DependsOn: map[string]DependsOn{
 			"graphql": {Condition: "service_healthy"},
 		},
 		EntryPoint:  nil,
 		Environment: env,
-		ExtraHosts: []string{
-			"host.docker.internal:host-gateway",
-			"local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway",
-			"local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway",
-			"local.hasura.nhost.run:0.0.0.0",
-			"local.storage.nhost.run:host-gateway",
-		},
+		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: &HealthCheck{
 			Test: []string{
 				"CMD-SHELL",

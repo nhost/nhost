@@ -32,6 +32,7 @@ func commandHasura(cCtx *cli.Context) error {
 	docker := dockercompose.NewDocker()
 	return docker.HasuraWrapper( //nolint:wrapcheck
 		cCtx.Context,
+		ce.LocalSubdomain(),
 		ce.Path.NhostFolder(),
 		*cfg.Hasura.Version,
 		cCtx.Args().Slice()...,

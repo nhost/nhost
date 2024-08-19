@@ -27,6 +27,7 @@ type CliEnv struct {
 	nhclient       *nhostclient.Client
 	nhpublicclient *nhostclient.Client
 	projectName    string
+	localSubdomain string
 }
 
 func New(
@@ -36,6 +37,7 @@ func New(
 	domain string,
 	branch string,
 	projectName string,
+	localSubdomain string,
 ) *CliEnv {
 	return &CliEnv{
 		stdout:         stdout,
@@ -46,6 +48,7 @@ func New(
 		nhclient:       nil,
 		nhpublicclient: nil,
 		projectName:    projectName,
+		localSubdomain: localSubdomain,
 	}
 }
 
@@ -69,11 +72,16 @@ func FromCLI(cCtx *cli.Context) *CliEnv {
 		projectName:    sanitizeName(cCtx.String(flagProjectName)),
 		nhclient:       nil,
 		nhpublicclient: nil,
+		localSubdomain: cCtx.String(flagLocalSubdomain),
 	}
 }
 
 func (ce *CliEnv) ProjectName() string {
 	return ce.projectName
+}
+
+func (ce *CliEnv) LocalSubdomain() string {
+	return ce.localSubdomain
 }
 
 func (ce *CliEnv) Domain() string {

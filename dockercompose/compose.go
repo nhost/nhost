@@ -102,15 +102,15 @@ type Volume struct {
 	ReadOnly *bool  `yaml:"read_only,omitempty"`
 }
 
-func extraHosts() []string {
+func extraHosts(subdomain string) []string {
 	return []string{
 		"host.docker.internal:host-gateway",
-		"local.auth.nhost.run:host-gateway",
-		"local.db.nhost.run:host-gateway",
-		"local.functions.nhost.run:host-gateway",
-		"local.graphql.nhost.run:host-gateway",
-		"local.hasura.nhost.run:host-gateway",
-		"local.storage.nhost.run:host-gateway",
+		subdomain + ".auth.local.nhost.run:host-gateway",
+		subdomain + ".db.local.nhost.run:host-gateway",
+		subdomain + ".functions.local.nhost.run:host-gateway",
+		subdomain + ".graphql.local.nhost.run:host-gateway",
+		subdomain + ".hasura.local.nhost.run:host-gateway",
+		subdomain + ".storage.local.nhost.run:host-gateway",
 	}
 }
 
@@ -195,7 +195,7 @@ func trafikFiles(dotnhostfolder string) error {
 	return nil
 }
 
-func traefik(projectName string, port uint, dotnhostfolder string) (*Service, error) {
+func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*Service, error) {
 	if err := trafikFiles(dotnhostfolder); err != nil {
 		return nil, fmt.Errorf("failed to create traefik files: %w", err)
 	}
@@ -217,7 +217,7 @@ func traefik(projectName string, port uint, dotnhostfolder string) (*Service, er
 			fmt.Sprintf("--entrypoints.web.address=:%d", port),
 		},
 		Environment: nil,
-		ExtraHosts:  extraHosts(),
+		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: nil,
 		Labels:      nil,
 		Ports: []Port{
@@ -247,7 +247,7 @@ func traefik(projectName string, port uint, dotnhostfolder string) (*Service, er
 	}, nil
 }
 
-func minio(dataFolder string) (*Service, error) {
+func minio(subdomain, dataFolder string) (*Service, error) {
 	if err := os.MkdirAll(dataFolder+"/minio", 0o755); err != nil { //nolint:mnd
 		return nil, fmt.Errorf("failed to create minio data folder: %w", err)
 	}
@@ -262,7 +262,7 @@ func minio(dataFolder string) (*Service, error) {
 			"MINIO_ROOT_PASSWORD": "minioaccesskey123123",
 			"MINIO_ROOT_USER":     "minioaccesskey123123",
 		},
-		ExtraHosts:  extraHosts(),
+		ExtraHosts:  extraHosts(subdomain),
 		Ports:       nil,
 		Restart:     "always",
 		HealthCheck: nil,
@@ -281,6 +281,7 @@ func minio(dataFolder string) (*Service, error) {
 
 func dashboard(
 	cfg *model.ConfigConfig,
+	subdomain string,
 	dashboardVersion string,
 	httpPort uint,
 	useTLS bool,
@@ -294,28 +295,26 @@ func dashboard(
 			"NEXT_PUBLIC_ENV":                "dev",
 			"NEXT_PUBLIC_NHOST_PLATFORM":     "false",
 			"NEXT_PUBLIC_NHOST_ADMIN_SECRET": cfg.Hasura.AdminSecret,
-			"NEXT_PUBLIC_NHOST_AUTH_URL":     URL("auth", httpPort, useTLS) + "/v1",
+			"NEXT_PUBLIC_NHOST_AUTH_URL": URL(
+				subdomain, "auth", httpPort, useTLS) + "/v1",
 			"NEXT_PUBLIC_NHOST_CONFIGSERVER_URL": URL(
-				"dashboard",
-				httpPort,
-				useTLS,
+				subdomain, "dashboard", httpPort, useTLS,
 			) + "/v1/configserver/graphql",
 			"NEXT_PUBLIC_NHOST_FUNCTIONS_URL": URL(
-				"functions",
-				httpPort,
-				useTLS,
+				subdomain, "functions", httpPort, useTLS,
 			) + "/v1",
-			"NEXT_PUBLIC_NHOST_GRAPHQL_URL":    URL("graphql", httpPort, useTLS) + "/v1",
-			"NEXT_PUBLIC_NHOST_HASURA_API_URL": URL("hasura", httpPort, useTLS),
+			"NEXT_PUBLIC_NHOST_GRAPHQL_URL": URL(
+				subdomain, "graphql", httpPort, useTLS) + "/v1",
+			"NEXT_PUBLIC_NHOST_HASURA_API_URL": URL(subdomain, "hasura", httpPort, useTLS),
 			"NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL": URL(
-				"hasura",
-				httpPort,
-				useTLS,
+				subdomain, "hasura", httpPort, useTLS,
 			) + "/console",
-			"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL": URL("hasura", httpPort, useTLS),
-			"NEXT_PUBLIC_NHOST_STORAGE_URL":               URL("storage", httpPort, useTLS) + "/v1",
+			"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL": URL(
+				subdomain, "hasura", httpPort, useTLS),
+			"NEXT_PUBLIC_NHOST_STORAGE_URL": URL(
+				subdomain, "storage", httpPort, useTLS) + "/v1",
 		},
-		ExtraHosts:  extraHosts(),
+		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
@@ -335,6 +334,7 @@ func dashboard(
 
 func functions( //nolint:funlen
 	cfg *model.ConfigConfig,
+	subdomain string,
 	httpPort uint,
 	useTLS bool,
 	rootFolder string,
@@ -348,11 +348,11 @@ func functions( //nolint:funlen
 		"HASURA_GRAPHQL_GRAPHQL_URL":  "http://graphql:8080/v1/graphql",
 		"HASURA_GRAPHQL_JWT_SECRET":   jwtSecret,
 		"NHOST_ADMIN_SECRET":          cfg.Hasura.AdminSecret,
-		"NHOST_AUTH_URL":              URL("auth", httpPort, useTLS) + "/v1",
-		"NHOST_FUNCTIONS_URL":         URL("functions", httpPort, useTLS) + "/v1",
-		"NHOST_GRAPHQL_URL":           URL("graphql", httpPort, useTLS) + "/v1",
-		"NHOST_HASURA_URL":            URL("hasura", httpPort, useTLS) + "/console",
-		"NHOST_STORAGE_URL":           URL("storage", httpPort, useTLS) + "/v1",
+		"NHOST_AUTH_URL":              URL(subdomain, "auth", httpPort, useTLS) + "/v1",
+		"NHOST_FUNCTIONS_URL":         URL(subdomain, "functions", httpPort, useTLS) + "/v1",
+		"NHOST_GRAPHQL_URL":           URL(subdomain, "graphql", httpPort, useTLS) + "/v1",
+		"NHOST_HASURA_URL":            URL(subdomain, "hasura", httpPort, useTLS) + "/console",
+		"NHOST_STORAGE_URL":           URL(subdomain, "storage", httpPort, useTLS) + "/v1",
 		"NHOST_JWT_SECRET":            jwtSecret,
 		"NHOST_REGION":                "",
 		"NHOST_SUBDOMAIN":             "local",
@@ -369,7 +369,7 @@ func functions( //nolint:funlen
 		EntryPoint:  nil,
 		Command:     nil,
 		Environment: envVars,
-		ExtraHosts:  extraHosts(),
+		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: &HealthCheck{
 			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:3000/healthz"},
 			Interval:    "5s",
@@ -414,7 +414,7 @@ func functions( //nolint:funlen
 	}
 }
 
-func mailhog(dataFolder string, useTLS bool) (*Service, error) {
+func mailhog(subdomain, dataFolder string, useTLS bool) (*Service, error) {
 	mailhogDataFolder := filepath.Join(dataFolder, "mailhog")
 	if err := os.MkdirAll(mailhogDataFolder, 0o755); err != nil { //nolint:mnd
 		return nil, fmt.Errorf("failed to create mailhog folder: %w", err)
@@ -433,7 +433,7 @@ func mailhog(dataFolder string, useTLS bool) (*Service, error) {
 			"SMTP_SENDER": "hasura-auth@example.com",
 			"SMTP_USER":   "user",
 		},
-		ExtraHosts:  extraHosts(),
+		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
@@ -484,6 +484,7 @@ func IsJWTSecretCompatibleWithHasuraAuth(
 
 func getServices( //nolint: funlen,cyclop
 	cfg *model.ConfigConfig,
+	subdomain string,
 	projectName string,
 	httpPort uint,
 	useTLS bool,
@@ -499,46 +500,46 @@ func getServices( //nolint: funlen,cyclop
 	startFunctions bool,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
-	minio, err := minio(dataFolder)
+	minio, err := minio(subdomain, dataFolder)
 	if err != nil {
 		return nil, err
 	}
 
-	storage, err := storage(cfg, useTLS, httpPort, ports.Storage)
+	storage, err := storage(cfg, subdomain, useTLS, httpPort, ports.Storage)
 	if err != nil {
 		return nil, err
 	}
 
 	pgVolumeName := "pgdata_" + sanitizeBranch(branch)
-	postgres, err := postgres(cfg, postgresPort, dataFolder, pgVolumeName)
+	postgres, err := postgres(cfg, subdomain, postgresPort, dataFolder, pgVolumeName)
 	if err != nil {
 		return nil, err
 	}
 
-	graphql, err := graphql(cfg, useTLS, httpPort, ports.Graphql)
+	graphql, err := graphql(cfg, subdomain, useTLS, httpPort, ports.Graphql)
 	if err != nil {
 		return nil, err
 	}
 	jwtSecret := graphql.Environment["HASURA_GRAPHQL_JWT_SECRET"]
 
-	console, err := console(cfg, httpPort, useTLS, nhostFolder, ports.Console)
+	console, err := console(cfg, subdomain, httpPort, useTLS, nhostFolder, ports.Console)
 	if err != nil {
 		return nil, err
 	}
 
-	traefik, err := traefik(projectName, httpPort, dotNhostFolder)
+	traefik, err := traefik(subdomain, projectName, httpPort, dotNhostFolder)
 	if err != nil {
 		return nil, err
 	}
 
-	mailhog, err := mailhog(dataFolder, useTLS)
+	mailhog, err := mailhog(subdomain, dataFolder, useTLS)
 	if err != nil {
 		return nil, err
 	}
 
 	services := map[string]*Service{
 		"console":   console,
-		"dashboard": dashboard(cfg, dashboardVersion, httpPort, useTLS),
+		"dashboard": dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS),
 		"graphql":   graphql,
 		"minio":     minio,
 		"postgres":  postgres,
@@ -556,6 +557,7 @@ func getServices( //nolint: funlen,cyclop
 	if startFunctions {
 		services["functions"] = functions(
 			cfg,
+			subdomain,
 			httpPort,
 			useTLS,
 			rootFolder,
@@ -568,19 +570,19 @@ func getServices( //nolint: funlen,cyclop
 	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&
 		IsJWTSecretCompatibleWithHasuraAuth(cfg.GetHasura().GetJwtSecrets()[0]) &&
 		cfg.GetHasura().GetAuthHook() == nil {
-		auth, err := auth(cfg, httpPort, useTLS, nhostFolder, ports.Auth)
+		auth, err := auth(cfg, subdomain, httpPort, useTLS, nhostFolder, ports.Auth)
 		if err != nil {
 			return nil, err
 		}
 		services["auth"] = auth
 
 		if cfg.Ai != nil {
-			services["ai"] = ai(cfg)
+			services["ai"] = ai(cfg, subdomain)
 		}
 	}
 
 	for _, runService := range runServices {
-		services["run-"+runService.Config.Name] = run(runService.Config, branch)
+		services["run-"+runService.Config.Name] = run(runService.Config, subdomain, branch)
 	}
 
 	return services, nil
@@ -593,6 +595,7 @@ type RunService struct {
 
 func ComposeFileFromConfig(
 	cfg *model.ConfigConfig,
+	subdomain string,
 	projectName string,
 	httpPort uint,
 	useTLS bool,
@@ -610,6 +613,7 @@ func ComposeFileFromConfig(
 ) (*ComposeFile, error) {
 	services, err := getServices(
 		cfg,
+		subdomain,
 		projectName,
 		httpPort,
 		useTLS,

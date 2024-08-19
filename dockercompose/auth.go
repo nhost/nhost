@@ -28,6 +28,7 @@ func authPatchPre022(svc Service, useTLS bool) *Service {
 
 func auth( //nolint:funlen
 	cfg *model.ConfigConfig,
+	subdomain string,
 	httpPort uint,
 	useTLS bool,
 	nhostFolder string,
@@ -36,7 +37,7 @@ func auth( //nolint:funlen
 	envars, err := appconfig.HasuraAuthEnv(
 		cfg,
 		"http://graphql:8080/v1/graphql",
-		URL("auth", httpPort, useTLS)+"/v1",
+		URL(subdomain, "auth", httpPort, useTLS)+"/v1",
 		"postgres://nhost_hasura@postgres:5432/local",
 		"postgres://nhost_auth_admin@postgres:5432/local",
 		&model.ConfigSmtp{
@@ -70,7 +71,7 @@ func auth( //nolint:funlen
 		EntryPoint:  nil,
 		Command:     nil,
 		Environment: env,
-		ExtraHosts:  extraHosts(),
+		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: &HealthCheck{
 			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:4000/healthz"},
 			Timeout:     "60s",
