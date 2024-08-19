@@ -6,7 +6,6 @@ query getAssistants {
       description
       model
       instructions
-      buckets
       graphql {
         name
         query
@@ -29,6 +28,7 @@ query getAssistants {
           required
         }
       }
+      fileStores
     }
   }
 }

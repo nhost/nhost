@@ -13,16 +13,17 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { GraphqlDataSourcesFormSection } from '@/features/ai/AssistantForm/components/GraphqlDataSourcesFormSection';
 import { WebhooksDataSourcesFormSection } from '@/features/ai/AssistantForm/components/WebhooksDataSourcesFormSection';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
-import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
+// import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import type { DialogFormProps } from '@/types/common';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { removeTypename, type DeepRequired } from '@/utils/helpers';
 import {
+  // useGetGraphiteFileStoresQuery,
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
 } from '@/utils/__generated__/graphite.graphql';
-import { useGetBucketsQuery } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { type GraphiteFileStore } from 'pages/[workspaceSlug]/[appSlug]/ai/file-stores';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -32,9 +33,15 @@ export const validationSchema = Yup.object({
   description: Yup.string(),
   instructions: Yup.string().required('The instructions are required'),
   model: Yup.string().required('The model is required'),
-  buckets: Yup.array()
-    .of(Yup.object({ label: Yup.string(), value: Yup.string() }))
-    .label('Buckets'),
+  fileStores: Yup.array()
+    .of(
+      Yup.object({
+        label: Yup.string(),
+        value: Yup.string(),
+        id: Yup.string(),
+      }),
+    )
+    .label('File Stores'),
   graphql: Yup.array().of(
     Yup.object().shape({
       name: Yup.string().required(),
@@ -78,7 +85,8 @@ export interface AssistantFormProps extends DialogFormProps {
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: any;
+  initialData?: AssistantFormValues;
+  fileStores?: GraphiteFileStore[];
 
   /**
    * Function to be called when the operation is cancelled.
@@ -93,6 +101,7 @@ export interface AssistantFormProps extends DialogFormProps {
 export default function AssistantForm({
   assistantId,
   initialData,
+  fileStores,
   onSubmit,
   onCancel,
   location,
@@ -109,9 +118,27 @@ export default function AssistantForm({
     client: adminClient,
   });
 
-  const formDefaultValues = { ...initialData };
-  formDefaultValues.buckets = initialData?.buckets
-    ? initialData.buckets.map((b: string) => ({ label: b, value: b }))
+  const fileStoresOptions = fileStores
+    ? fileStores.map((fileStore: GraphiteFileStore) => ({
+        label: fileStore.name,
+        value: fileStore.name,
+        id: fileStore.id,
+      }))
+    : [];
+
+  const assistantFileStores = initialData?.fileStores
+    ? fileStores?.filter((fileStore: GraphiteFileStore) =>
+        initialData.fileStores.includes(fileStore.id),
+      )
+    : [];
+
+  const formDefaultValues = { ...initialData, fileStores: [] };
+  formDefaultValues.fileStores = assistantFileStores
+    ? assistantFileStores.map((b) => ({
+        label: b.name,
+        value: b.name,
+        id: b.id,
+      }))
     : [];
 
   const form = useForm<AssistantFormValues>({
@@ -126,22 +153,9 @@ export default function AssistantForm({
   } = form;
 
   const isDirty = Object.keys(dirtyFields).length > 0;
-
   useEffect(() => {
     onDirtyStateChange(isDirty, location);
   }, [isDirty, location, onDirtyStateChange]);
-
-  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
-  const { data: allBuckets } = useGetBucketsQuery({
-    client: remoteProjectGQLClient,
-  });
-
-  const bucketOptions = allBuckets
-    ? allBuckets.buckets.map((bucket) => ({
-        label: bucket.id,
-        value: bucket.id,
-      }))
-    : [];
 
   const createOrUpdateAssistant = async (
     values: DeepRequired<AssistantFormValues> & { assistantID: string },
@@ -149,18 +163,18 @@ export default function AssistantForm({
     // remove any __typename from the form values
     const payload = removeTypename(values);
 
-    if (values.webhooks.length === 0) {
+    if (values.webhooks?.length === 0) {
       delete payload.webhooks;
     }
 
-    if (values.graphql.length === 0) {
+    if (values.graphql?.length === 0) {
       delete payload.graphql;
     }
 
-    if (values.buckets.length === 0) {
-      delete payload.buckets;
+    if (values.fileStores?.length === 0) {
+      delete payload.fileStores;
     } else {
-      payload.buckets = values.buckets.map((bucket) => bucket.value);
+      payload.fileStores = values.fileStores.map((fileStore) => fileStore.id);
     }
 
     // remove assistantId because the update mutation fails otherwise
@@ -182,7 +196,7 @@ export default function AssistantForm({
       variables: {
         data: {
           ...values,
-          buckets: values.buckets.map((bucket) => bucket.value),
+          fileStores: values.fileStores.map((fileStore) => fileStore.id),
         },
       },
     });
@@ -315,15 +329,26 @@ export default function AssistantForm({
           />
 
           <ControlledAutocomplete
-            id="buckets"
-            name="buckets"
-            label="Buckets"
+            id="fileStores"
+            name="fileStores"
+            label={
+              <Box className="flex flex-row items-center space-x-2">
+                <Text>File Stores</Text>
+                <Tooltip title="File Stores this assistant will have access to.">
+                  <InfoIcon
+                    aria-label="Info"
+                    className="h-4 w-4"
+                    color="primary"
+                  />
+                </Tooltip>
+              </Box>
+            }
             fullWidth
             multiple
-            aria-label="Buckets"
-            options={bucketOptions}
-            error={!!errors.buckets}
-            helperText={errors?.buckets?.message}
+            aria-label="File Stores"
+            options={fileStoresOptions}
+            error={!!errors.fileStores}
+            helperText={errors?.fileStores?.message}
           />
 
           <GraphqlDataSourcesFormSection />

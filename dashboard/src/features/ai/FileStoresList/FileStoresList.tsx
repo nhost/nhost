@@ -5,24 +5,23 @@ import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
+import { FileStoresIcon } from '@/components/ui/v2/icons/FileStoresIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
-import { AssistantForm } from '@/features/ai/AssistantForm';
-import { DeleteAssistantModal } from '@/features/ai/DeleteAssistantModal';
+import { DeleteFileStoreModal } from '@/features/ai/DeleteFileStoreModal';
+import { FileStoreForm } from '@/features/ai/FileStoreForm';
 import { copy } from '@/utils/copy';
-import { type Assistant } from 'pages/[workspaceSlug]/[appSlug]/ai/assistants';
 import { type GraphiteFileStore } from 'pages/[workspaceSlug]/[appSlug]/ai/file-stores';
 
-interface AssistantsListProps {
+interface FileStoresListProps {
   /**
-   * The run services fetched from entering the users page.
+   * List of File Stores to be displayed.
    */
-  assistants: Assistant[];
   fileStores: GraphiteFileStore[];
 
   /**
-   * Function to be called after a submitting the form for either creating or updating a service.
+   * Function to be called after a submitting the form for either creating or updating a File Store.
    *
    * @example onDelete={() => refetch()}
    */
@@ -35,35 +34,31 @@ interface AssistantsListProps {
   onDelete?: () => Promise<any>;
 }
 
-export default function AssistantsList({
-  assistants,
+export default function FileStoresList({
   fileStores,
   onCreateOrUpdate,
   onDelete,
-}: AssistantsListProps) {
+}: FileStoresListProps) {
   const { openDrawer, openDialog, closeDialog } = useDialog();
 
-  const viewAssistant = async (assistant: Assistant) => {
+  const viewFileStore = async (fileStore: GraphiteFileStore) => {
     openDrawer({
-      title: `Edit ${assistant?.name ?? 'unset'}`,
+      title: fileStore.name,
       component: (
-        <AssistantForm
-          assistantId={assistant.assistantID}
-          initialData={{
-            ...assistant,
-          }}
-          fileStores={fileStores}
+        <FileStoreForm
+          id={fileStore.id}
+          initialData={{ ...fileStore }}
           onSubmit={() => onCreateOrUpdate()}
         />
       ),
     });
   };
 
-  const deleteAssistant = async (assistant: Assistant) => {
+  const deleteFileStore = async (fileStore: GraphiteFileStore) => {
     openDialog({
       component: (
-        <DeleteAssistantModal
-          assistant={assistant}
+        <DeleteFileStoreModal
+          fileStore={fileStore}
           close={closeDialog}
           onDelete={onDelete}
         />
@@ -73,9 +68,9 @@ export default function AssistantsList({
 
   return (
     <Box className="flex flex-col">
-      {assistants.map((assistant) => (
+      {fileStores.map((fileStore) => (
         <Box
-          key={assistant.assistantID}
+          key={fileStore.id}
           className="flex h-[64px] w-full cursor-pointer items-center justify-between space-x-4 border-b-1 px-4 py-2 transition-colors"
           sx={{
             [`&:hover`]: {
@@ -84,25 +79,25 @@ export default function AssistantsList({
           }}
         >
           <Box
-            onClick={() => viewAssistant(assistant)}
+            onClick={() => viewFileStore(fileStore)}
             className="flex w-full flex-row justify-between"
             sx={{ backgroundColor: 'transparent' }}
           >
             <div className="flex flex-1 flex-row items-center space-x-4">
-              <span className="text-3xl">🤖</span>
+              <FileStoresIcon className="h-5 w-5" />
               <div className="flex flex-col">
                 <Text variant="h4" className="font-semibold">
-                  {assistant?.name ?? 'unset'}
+                  {fileStore?.name ?? 'unset'}
                 </Text>
                 <div className="hidden flex-row items-center space-x-2 md:flex">
                   <Text variant="subtitle1" className="font-mono text-xs">
-                    {assistant.assistantID}
+                    {fileStore.id}
                   </Text>
                   <IconButton
                     variant="borderless"
                     color="secondary"
                     onClick={(event) => {
-                      copy(assistant.assistantID, 'Assistant Id');
+                      copy(fileStore.id, 'File Store Id');
                       event.stopPropagation();
                     }}
                     aria-label="Service Id"
@@ -136,21 +131,21 @@ export default function AssistantsList({
               transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
               <Dropdown.Item
-                onClick={() => viewAssistant(assistant)}
+                onClick={() => viewFileStore(fileStore)}
                 className="z-50 grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
               >
                 <UserIcon className="h-4 w-4" />
-                <Text className="font-medium">View {assistant?.name}</Text>
+                <Text className="font-medium">View {fileStore?.name}</Text>
               </Dropdown.Item>
               <Divider component="li" />
               <Dropdown.Item
                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                 sx={{ color: 'error.main' }}
-                onClick={() => deleteAssistant(assistant)}
+                onClick={() => deleteFileStore(fileStore)}
               >
                 <TrashIcon className="h-4 w-4" />
                 <Text className="font-medium" color="error">
-                  Delete {assistant?.name}
+                  Delete {fileStore?.name}
                 </Text>
               </Dropdown.Item>
             </Dropdown.Content>

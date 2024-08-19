@@ -1,0 +1,10 @@
+query getGraphiteFileStores {
+  graphite {
+    fileStores {
+      id
+      name
+      vectorStoreID
+      buckets
+    }
+  }
+}

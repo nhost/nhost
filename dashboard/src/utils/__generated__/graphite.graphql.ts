@@ -2816,6 +2816,165 @@ export type UsageSummary = {
   appID: Scalars['uuid'];
 };
 
+/** columns and relationships of "graphite.assistant_file_stores" */
+export type _GraphiteAssistantFileStores = {
+  __typename?: '_graphiteAssistantFileStores';
+  assistantID: Scalars['String'];
+  createdAt: Scalars['timestamptz'];
+  fileStoreID: Scalars['uuid'];
+  updatedAt: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "graphite.assistant_file_stores" */
+export type _GraphiteAssistantFileStores_Aggregate = {
+  __typename?: '_graphiteAssistantFileStores_aggregate';
+  aggregate?: Maybe<_GraphiteAssistantFileStores_Aggregate_Fields>;
+  nodes: Array<_GraphiteAssistantFileStores>;
+};
+
+/** aggregate fields of "graphite.assistant_file_stores" */
+export type _GraphiteAssistantFileStores_Aggregate_Fields = {
+  __typename?: '_graphiteAssistantFileStores_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<_GraphiteAssistantFileStores_Max_Fields>;
+  min?: Maybe<_GraphiteAssistantFileStores_Min_Fields>;
+};
+
+
+/** aggregate fields of "graphite.assistant_file_stores" */
+export type _GraphiteAssistantFileStores_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "graphite.assistant_file_stores". All fields are combined with a logical 'AND'. */
+export type _GraphiteAssistantFileStores_Bool_Exp = {
+  _and?: InputMaybe<Array<_GraphiteAssistantFileStores_Bool_Exp>>;
+  _not?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
+  _or?: InputMaybe<Array<_GraphiteAssistantFileStores_Bool_Exp>>;
+  assistantID?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  fileStoreID?: InputMaybe<Uuid_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "graphite.assistant_file_stores" */
+export enum _GraphiteAssistantFileStores_Constraint {
+  /** unique or primary key constraint on columns "assistant_id", "file_store_id" */
+  AssistantFileStoresPkey = 'assistant_file_stores_pkey'
+}
+
+/** input type for inserting data into table "graphite.assistant_file_stores" */
+export type _GraphiteAssistantFileStores_Insert_Input = {
+  assistantID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  fileStoreID?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type _GraphiteAssistantFileStores_Max_Fields = {
+  __typename?: '_graphiteAssistantFileStores_max_fields';
+  assistantID?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  fileStoreID?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type _GraphiteAssistantFileStores_Min_Fields = {
+  __typename?: '_graphiteAssistantFileStores_min_fields';
+  assistantID?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  fileStoreID?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "graphite.assistant_file_stores" */
+export type _GraphiteAssistantFileStores_Mutation_Response = {
+  __typename?: '_graphiteAssistantFileStores_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<_GraphiteAssistantFileStores>;
+};
+
+/** on_conflict condition type for table "graphite.assistant_file_stores" */
+export type _GraphiteAssistantFileStores_On_Conflict = {
+  constraint: _GraphiteAssistantFileStores_Constraint;
+  update_columns?: Array<_GraphiteAssistantFileStores_Update_Column>;
+  where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "graphite.assistant_file_stores". */
+export type _GraphiteAssistantFileStores_Order_By = {
+  assistantID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  fileStoreID?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: graphite.assistant_file_stores */
+export type _GraphiteAssistantFileStores_Pk_Columns_Input = {
+  assistantID: Scalars['String'];
+  fileStoreID: Scalars['uuid'];
+};
+
+/** select columns of table "graphite.assistant_file_stores" */
+export enum _GraphiteAssistantFileStores_Select_Column {
+  /** column name */
+  AssistantId = 'assistantID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  FileStoreId = 'fileStoreID',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "graphite.assistant_file_stores" */
+export type _GraphiteAssistantFileStores_Set_Input = {
+  assistantID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  fileStoreID?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "_graphiteAssistantFileStores" */
+export type _GraphiteAssistantFileStores_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: _GraphiteAssistantFileStores_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type _GraphiteAssistantFileStores_Stream_Cursor_Value_Input = {
+  assistantID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  fileStoreID?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "graphite.assistant_file_stores" */
+export enum _GraphiteAssistantFileStores_Update_Column {
+  /** column name */
+  AssistantId = 'assistantID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  FileStoreId = 'fileStoreID',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type _GraphiteAssistantFileStores_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<_GraphiteAssistantFileStores_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: _GraphiteAssistantFileStores_Bool_Exp;
+};
+
 /** columns and relationships of "graphite.assistants" */
 export type _GraphiteAssistants = {
   __typename?: '_graphiteAssistants';
@@ -3039,15 +3198,385 @@ export type _GraphiteAssistants_Updates = {
   where: _GraphiteAssistants_Bool_Exp;
 };
 
+/** columns and relationships of "graphite.file_store_buckets" */
+export type _GraphiteFileStoreBuckets = {
+  __typename?: '_graphiteFileStoreBuckets';
+  bucketID: Scalars['String'];
+  createdAt: Scalars['timestamptz'];
+  fileStoreID: Scalars['uuid'];
+  updatedAt: Scalars['timestamptz'];
+};
+
+/** aggregated selection of "graphite.file_store_buckets" */
+export type _GraphiteFileStoreBuckets_Aggregate = {
+  __typename?: '_graphiteFileStoreBuckets_aggregate';
+  aggregate?: Maybe<_GraphiteFileStoreBuckets_Aggregate_Fields>;
+  nodes: Array<_GraphiteFileStoreBuckets>;
+};
+
+/** aggregate fields of "graphite.file_store_buckets" */
+export type _GraphiteFileStoreBuckets_Aggregate_Fields = {
+  __typename?: '_graphiteFileStoreBuckets_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<_GraphiteFileStoreBuckets_Max_Fields>;
+  min?: Maybe<_GraphiteFileStoreBuckets_Min_Fields>;
+};
+
+
+/** aggregate fields of "graphite.file_store_buckets" */
+export type _GraphiteFileStoreBuckets_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "graphite.file_store_buckets". All fields are combined with a logical 'AND'. */
+export type _GraphiteFileStoreBuckets_Bool_Exp = {
+  _and?: InputMaybe<Array<_GraphiteFileStoreBuckets_Bool_Exp>>;
+  _not?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
+  _or?: InputMaybe<Array<_GraphiteFileStoreBuckets_Bool_Exp>>;
+  bucketID?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  fileStoreID?: InputMaybe<Uuid_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "graphite.file_store_buckets" */
+export enum _GraphiteFileStoreBuckets_Constraint {
+  /** unique or primary key constraint on columns "bucket_id", "file_store_id" */
+  FileStoreBucketsPkey = 'file_store_buckets_pkey'
+}
+
+/** input type for inserting data into table "graphite.file_store_buckets" */
+export type _GraphiteFileStoreBuckets_Insert_Input = {
+  bucketID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  fileStoreID?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type _GraphiteFileStoreBuckets_Max_Fields = {
+  __typename?: '_graphiteFileStoreBuckets_max_fields';
+  bucketID?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  fileStoreID?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type _GraphiteFileStoreBuckets_Min_Fields = {
+  __typename?: '_graphiteFileStoreBuckets_min_fields';
+  bucketID?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  fileStoreID?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "graphite.file_store_buckets" */
+export type _GraphiteFileStoreBuckets_Mutation_Response = {
+  __typename?: '_graphiteFileStoreBuckets_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<_GraphiteFileStoreBuckets>;
+};
+
+/** on_conflict condition type for table "graphite.file_store_buckets" */
+export type _GraphiteFileStoreBuckets_On_Conflict = {
+  constraint: _GraphiteFileStoreBuckets_Constraint;
+  update_columns?: Array<_GraphiteFileStoreBuckets_Update_Column>;
+  where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "graphite.file_store_buckets". */
+export type _GraphiteFileStoreBuckets_Order_By = {
+  bucketID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  fileStoreID?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: graphite.file_store_buckets */
+export type _GraphiteFileStoreBuckets_Pk_Columns_Input = {
+  bucketID: Scalars['String'];
+  fileStoreID: Scalars['uuid'];
+};
+
+/** select columns of table "graphite.file_store_buckets" */
+export enum _GraphiteFileStoreBuckets_Select_Column {
+  /** column name */
+  BucketId = 'bucketID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  FileStoreId = 'fileStoreID',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "graphite.file_store_buckets" */
+export type _GraphiteFileStoreBuckets_Set_Input = {
+  bucketID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  fileStoreID?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "_graphiteFileStoreBuckets" */
+export type _GraphiteFileStoreBuckets_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: _GraphiteFileStoreBuckets_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type _GraphiteFileStoreBuckets_Stream_Cursor_Value_Input = {
+  bucketID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  fileStoreID?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "graphite.file_store_buckets" */
+export enum _GraphiteFileStoreBuckets_Update_Column {
+  /** column name */
+  BucketId = 'bucketID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  FileStoreId = 'fileStoreID',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type _GraphiteFileStoreBuckets_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<_GraphiteFileStoreBuckets_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: _GraphiteFileStoreBuckets_Bool_Exp;
+};
+
+/** columns and relationships of "graphite.file_stores" */
+export type _GraphiteFileStores = {
+  __typename?: '_graphiteFileStores';
+  bucketID?: Maybe<Scalars['String']>;
+  createdAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  lastSyncedAt?: Maybe<Scalars['timestamptz']>;
+  name: Scalars['String'];
+  updatedAt: Scalars['timestamptz'];
+  userID?: Maybe<Scalars['uuid']>;
+  vectorStoreID?: Maybe<Scalars['String']>;
+};
+
+/** aggregated selection of "graphite.file_stores" */
+export type _GraphiteFileStores_Aggregate = {
+  __typename?: '_graphiteFileStores_aggregate';
+  aggregate?: Maybe<_GraphiteFileStores_Aggregate_Fields>;
+  nodes: Array<_GraphiteFileStores>;
+};
+
+/** aggregate fields of "graphite.file_stores" */
+export type _GraphiteFileStores_Aggregate_Fields = {
+  __typename?: '_graphiteFileStores_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<_GraphiteFileStores_Max_Fields>;
+  min?: Maybe<_GraphiteFileStores_Min_Fields>;
+};
+
+
+/** aggregate fields of "graphite.file_stores" */
+export type _GraphiteFileStores_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "graphite.file_stores". All fields are combined with a logical 'AND'. */
+export type _GraphiteFileStores_Bool_Exp = {
+  _and?: InputMaybe<Array<_GraphiteFileStores_Bool_Exp>>;
+  _not?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
+  _or?: InputMaybe<Array<_GraphiteFileStores_Bool_Exp>>;
+  bucketID?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  lastSyncedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  userID?: InputMaybe<Uuid_Comparison_Exp>;
+  vectorStoreID?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "graphite.file_stores" */
+export enum _GraphiteFileStores_Constraint {
+  /** unique or primary key constraint on columns "bucket_id" */
+  FileStoresBucketIdKey = 'file_stores_bucket_id_key',
+  /** unique or primary key constraint on columns "id" */
+  FileStoresPkey = 'file_stores_pkey',
+  /** unique or primary key constraint on columns "vector_store_id" */
+  FileStoresVectorStoreIdKey = 'file_stores_vector_store_id_key'
+}
+
+/** input type for inserting data into table "graphite.file_stores" */
+export type _GraphiteFileStores_Insert_Input = {
+  bucketID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  lastSyncedAt?: InputMaybe<Scalars['timestamptz']>;
+  name?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+  vectorStoreID?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type _GraphiteFileStores_Max_Fields = {
+  __typename?: '_graphiteFileStores_max_fields';
+  bucketID?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  lastSyncedAt?: Maybe<Scalars['timestamptz']>;
+  name?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userID?: Maybe<Scalars['uuid']>;
+  vectorStoreID?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type _GraphiteFileStores_Min_Fields = {
+  __typename?: '_graphiteFileStores_min_fields';
+  bucketID?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  lastSyncedAt?: Maybe<Scalars['timestamptz']>;
+  name?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userID?: Maybe<Scalars['uuid']>;
+  vectorStoreID?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "graphite.file_stores" */
+export type _GraphiteFileStores_Mutation_Response = {
+  __typename?: '_graphiteFileStores_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<_GraphiteFileStores>;
+};
+
+/** on_conflict condition type for table "graphite.file_stores" */
+export type _GraphiteFileStores_On_Conflict = {
+  constraint: _GraphiteFileStores_Constraint;
+  update_columns?: Array<_GraphiteFileStores_Update_Column>;
+  where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "graphite.file_stores". */
+export type _GraphiteFileStores_Order_By = {
+  bucketID?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  lastSyncedAt?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  userID?: InputMaybe<Order_By>;
+  vectorStoreID?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: graphite.file_stores */
+export type _GraphiteFileStores_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "graphite.file_stores" */
+export enum _GraphiteFileStores_Select_Column {
+  /** column name */
+  BucketId = 'bucketID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  LastSyncedAt = 'lastSyncedAt',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userID',
+  /** column name */
+  VectorStoreId = 'vectorStoreID'
+}
+
+/** input type for updating data in table "graphite.file_stores" */
+export type _GraphiteFileStores_Set_Input = {
+  bucketID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  lastSyncedAt?: InputMaybe<Scalars['timestamptz']>;
+  name?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+  vectorStoreID?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "_graphiteFileStores" */
+export type _GraphiteFileStores_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: _GraphiteFileStores_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type _GraphiteFileStores_Stream_Cursor_Value_Input = {
+  bucketID?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  lastSyncedAt?: InputMaybe<Scalars['timestamptz']>;
+  name?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+  vectorStoreID?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "graphite.file_stores" */
+export enum _GraphiteFileStores_Update_Column {
+  /** column name */
+  BucketId = 'bucketID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  LastSyncedAt = 'lastSyncedAt',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userID',
+  /** column name */
+  VectorStoreId = 'vectorStoreID'
+}
+
+export type _GraphiteFileStores_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<_GraphiteFileStores_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: _GraphiteFileStores_Bool_Exp;
+};
+
 /** columns and relationships of "graphite.files" */
 export type _GraphiteFiles = {
   __typename?: '_graphiteFiles';
   createdAt: Scalars['timestamptz'];
+  etag?: Maybe<Scalars['String']>;
   fileID?: Maybe<Scalars['String']>;
+  fileStoreID?: Maybe<Scalars['uuid']>;
   id: Scalars['uuid'];
   storageFileID?: Maybe<Scalars['uuid']>;
   updatedAt: Scalars['timestamptz'];
-  vectorStoreID?: Maybe<Scalars['String']>;
 };
 
 /** aggregated selection of "graphite.files" */
@@ -3078,11 +3607,12 @@ export type _GraphiteFiles_Bool_Exp = {
   _not?: InputMaybe<_GraphiteFiles_Bool_Exp>;
   _or?: InputMaybe<Array<_GraphiteFiles_Bool_Exp>>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  etag?: InputMaybe<String_Comparison_Exp>;
   fileID?: InputMaybe<String_Comparison_Exp>;
+  fileStoreID?: InputMaybe<Uuid_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   storageFileID?: InputMaybe<Uuid_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  vectorStoreID?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "graphite.files" */
@@ -3098,33 +3628,36 @@ export enum _GraphiteFiles_Constraint {
 /** input type for inserting data into table "graphite.files" */
 export type _GraphiteFiles_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  etag?: InputMaybe<Scalars['String']>;
   fileID?: InputMaybe<Scalars['String']>;
+  fileStoreID?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
   storageFileID?: InputMaybe<Scalars['uuid']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  vectorStoreID?: InputMaybe<Scalars['String']>;
 };
 
 /** aggregate max on columns */
 export type _GraphiteFiles_Max_Fields = {
   __typename?: '_graphiteFiles_max_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
+  etag?: Maybe<Scalars['String']>;
   fileID?: Maybe<Scalars['String']>;
+  fileStoreID?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
   storageFileID?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
-  vectorStoreID?: Maybe<Scalars['String']>;
 };
 
 /** aggregate min on columns */
 export type _GraphiteFiles_Min_Fields = {
   __typename?: '_graphiteFiles_min_fields';
   createdAt?: Maybe<Scalars['timestamptz']>;
+  etag?: Maybe<Scalars['String']>;
   fileID?: Maybe<Scalars['String']>;
+  fileStoreID?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
   storageFileID?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
-  vectorStoreID?: Maybe<Scalars['String']>;
 };
 
 /** response of any mutation on the table "graphite.files" */
@@ -3146,11 +3679,12 @@ export type _GraphiteFiles_On_Conflict = {
 /** Ordering options when selecting data from "graphite.files". */
 export type _GraphiteFiles_Order_By = {
   createdAt?: InputMaybe<Order_By>;
+  etag?: InputMaybe<Order_By>;
   fileID?: InputMaybe<Order_By>;
+  fileStoreID?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   storageFileID?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
-  vectorStoreID?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: graphite.files */
@@ -3163,25 +3697,28 @@ export enum _GraphiteFiles_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
+  Etag = 'etag',
+  /** column name */
   FileId = 'fileID',
+  /** column name */
+  FileStoreId = 'fileStoreID',
   /** column name */
   Id = 'id',
   /** column name */
   StorageFileId = 'storageFileID',
   /** column name */
-  UpdatedAt = 'updatedAt',
-  /** column name */
-  VectorStoreId = 'vectorStoreID'
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "graphite.files" */
 export type _GraphiteFiles_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  etag?: InputMaybe<Scalars['String']>;
   fileID?: InputMaybe<Scalars['String']>;
+  fileStoreID?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
   storageFileID?: InputMaybe<Scalars['uuid']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  vectorStoreID?: InputMaybe<Scalars['String']>;
 };
 
 /** Streaming cursor of the table "_graphiteFiles" */
@@ -3195,11 +3732,12 @@ export type _GraphiteFiles_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type _GraphiteFiles_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  etag?: InputMaybe<Scalars['String']>;
   fileID?: InputMaybe<Scalars['String']>;
+  fileStoreID?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
   storageFileID?: InputMaybe<Scalars['uuid']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
-  vectorStoreID?: InputMaybe<Scalars['String']>;
 };
 
 /** update columns of table "graphite.files" */
@@ -3207,15 +3745,17 @@ export enum _GraphiteFiles_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
+  Etag = 'etag',
+  /** column name */
   FileId = 'fileID',
+  /** column name */
+  FileStoreId = 'fileStoreID',
   /** column name */
   Id = 'id',
   /** column name */
   StorageFileId = 'storageFileID',
   /** column name */
-  UpdatedAt = 'updatedAt',
-  /** column name */
-  VectorStoreId = 'vectorStoreID'
+  UpdatedAt = 'updatedAt'
 }
 
 export type _GraphiteFiles_Updates = {
@@ -12440,10 +12980,10 @@ export type GraphiteAssistant = {
   __typename?: 'graphiteAssistant';
   /** ID of the assistant */
   assistantID: Scalars['String'];
-  /** Buckets this assistant has access to */
-  buckets?: Maybe<Array<Maybe<Scalars['String']>>>;
   /** Description of the assistant */
   description: Scalars['String'];
+  /** File Stores the assistant has access to */
+  fileStores?: Maybe<Array<Scalars['uuid']>>;
   /** GraphQL data sources and tools. Run against the project's GraphQL API */
   graphql?: Maybe<Array<GraphiteAssistantToolGraphQl>>;
   /**
@@ -12460,10 +13000,10 @@ export type GraphiteAssistant = {
 };
 
 export type GraphiteAssistantInput = {
-  /** Buckets this assistant has access to */
-  buckets?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   /** Description of the assistant */
   description: Scalars['String'];
+  /** File Stores this assistant has access to */
+  fileStores?: InputMaybe<Array<Scalars['uuid']>>;
   /** GraphQL data sources. Run against the project's GraphQL API */
   graphql?: InputMaybe<Array<InputMaybe<GraphiteAssistantToolGraphQlInput>>>;
   /**
@@ -12798,6 +13338,30 @@ export type GraphiteAutoEmbeddingsConfiguration_Updates = {
   where: GraphiteAutoEmbeddingsConfiguration_Bool_Exp;
 };
 
+export type GraphiteFileStore = {
+  __typename?: 'graphiteFileStore';
+  /** IDs of the storage buckets */
+  buckets: Array<Scalars['String']>;
+  /** ID of the File Store */
+  id: Scalars['uuid'];
+  /**
+   * The last time files in storage were synced with the vector store
+   * Null means the store hasn't been synced yet
+   */
+  last_synced_at: Scalars['timestampz'];
+  /** Name of the File Store */
+  name: Scalars['String'];
+  /** ID of the vector store */
+  vectorStoreID: Scalars['String'];
+};
+
+export type GraphiteFileStoreInput = {
+  /** IDs of the storage buckets */
+  buckets: Array<Scalars['String']>;
+  /** Name of the File Store */
+  name: Scalars['String'];
+};
+
 export type GraphiteMessage = {
   __typename?: 'graphiteMessage';
   /** Timestamp of when the message was sent */
@@ -12831,6 +13395,16 @@ export type GraphiteMutation = {
    */
   deleteAssistant: Scalars['Boolean'];
   /**
+   * Delete a File Store
+   *
+   * ## Permissions needed
+   *
+   * select (file_stores):
+   * - vector_store_id
+   * delete (file_stores):
+   */
+  deleteFileStore: Scalars['Boolean'];
+  /**
    * Delete a session
    *
    * ## Permissions needed
@@ -12854,6 +13428,17 @@ export type GraphiteMutation = {
    * - data
    */
   insertAssistant: GraphiteAssistant;
+  /**
+   * Create a File Store
+   *
+   * ## Permissions needed
+   *
+   * select (file_stores):
+   * - id
+   * insert (file_stores):
+   * - user_id
+   */
+  insertFileStore: GraphiteFileStore;
   /**
    * Send a message to a developer session.
    * If prevMessageID is `""`, return all messages in the session.
@@ -12918,11 +13503,28 @@ export type GraphiteMutation = {
    * - data
    */
   updateAssistant: GraphiteAssistant;
+  /**
+   * Update a File Store
+   *
+   * ## Permissions needed
+   *
+   * select (file_stores):
+   * - id
+   * update (file_stores):
+   * - updated_at
+   * - name
+   */
+  updateFileStore: GraphiteFileStore;
 };
 
 
 export type GraphiteMutationDeleteAssistantArgs = {
   assistantID: Scalars['String'];
+};
+
+
+export type GraphiteMutationDeleteFileStoreArgs = {
+  id: Scalars['uuid'];
 };
 
 
@@ -12933,6 +13535,11 @@ export type GraphiteMutationDeleteSessionArgs = {
 
 export type GraphiteMutationInsertAssistantArgs = {
   object: GraphiteAssistantInput;
+};
+
+
+export type GraphiteMutationInsertFileStoreArgs = {
+  object: GraphiteFileStoreInput;
 };
 
 
@@ -12960,6 +13567,12 @@ export type GraphiteMutationUpdateAssistantArgs = {
   object: GraphiteAssistantInput;
 };
 
+
+export type GraphiteMutationUpdateFileStoreArgs = {
+  id: Scalars['uuid'];
+  object: GraphiteFileStoreInput;
+};
+
 export type GraphiteQuery = {
   __typename?: 'graphiteQuery';
   /**
@@ -12984,6 +13597,19 @@ export type GraphiteQuery = {
    * - data
    */
   assistants: Array<GraphiteAssistant>;
+  /**
+   * Retrieve all File Stores
+   *
+   * ## Permissions needed
+   *
+   * select (file_stores):
+   * - id
+   * - fileStoreID
+   * - bucketID
+   * - name
+   * - last_synced_at
+   */
+  fileStores: Array<GraphiteFileStore>;
   /**
    * Retrieve a session
    *
@@ -13082,10 +13708,22 @@ export type Mutation_Root = {
   __typename?: 'mutation_root';
   /** delete single row from the table: "graphite.assistants" */
   _deleteGraphiteAssistant?: Maybe<_GraphiteAssistants>;
+  /** delete single row from the table: "graphite.assistant_file_stores" */
+  _deleteGraphiteAssistantFileStore?: Maybe<_GraphiteAssistantFileStores>;
+  /** delete data from the table: "graphite.assistant_file_stores" */
+  _deleteGraphiteAssistantFileStores?: Maybe<_GraphiteAssistantFileStores_Mutation_Response>;
   /** delete data from the table: "graphite.assistants" */
   _deleteGraphiteAssistants?: Maybe<_GraphiteAssistants_Mutation_Response>;
   /** delete single row from the table: "graphite.files" */
   _deleteGraphiteFile?: Maybe<_GraphiteFiles>;
+  /** delete single row from the table: "graphite.file_stores" */
+  _deleteGraphiteFileStore?: Maybe<_GraphiteFileStores>;
+  /** delete single row from the table: "graphite.file_store_buckets" */
+  _deleteGraphiteFileStoreBucket?: Maybe<_GraphiteFileStoreBuckets>;
+  /** delete data from the table: "graphite.file_store_buckets" */
+  _deleteGraphiteFileStoreBuckets?: Maybe<_GraphiteFileStoreBuckets_Mutation_Response>;
+  /** delete data from the table: "graphite.file_stores" */
+  _deleteGraphiteFileStores?: Maybe<_GraphiteFileStores_Mutation_Response>;
   /** delete data from the table: "graphite.files" */
   _deleteGraphiteFiles?: Maybe<_GraphiteFiles_Mutation_Response>;
   /** delete single row from the table: "graphite.sessions" */
@@ -13094,10 +13732,22 @@ export type Mutation_Root = {
   _deleteGraphiteSessions?: Maybe<_GraphiteSessions_Mutation_Response>;
   /** insert a single row into the table: "graphite.assistants" */
   _insertGraphiteAssistant?: Maybe<_GraphiteAssistants>;
+  /** insert a single row into the table: "graphite.assistant_file_stores" */
+  _insertGraphiteAssistantFileStore?: Maybe<_GraphiteAssistantFileStores>;
+  /** insert data into the table: "graphite.assistant_file_stores" */
+  _insertGraphiteAssistantFileStores?: Maybe<_GraphiteAssistantFileStores_Mutation_Response>;
   /** insert data into the table: "graphite.assistants" */
   _insertGraphiteAssistants?: Maybe<_GraphiteAssistants_Mutation_Response>;
   /** insert a single row into the table: "graphite.files" */
   _insertGraphiteFile?: Maybe<_GraphiteFiles>;
+  /** insert a single row into the table: "graphite.file_stores" */
+  _insertGraphiteFileStore?: Maybe<_GraphiteFileStores>;
+  /** insert a single row into the table: "graphite.file_store_buckets" */
+  _insertGraphiteFileStoreBucket?: Maybe<_GraphiteFileStoreBuckets>;
+  /** insert data into the table: "graphite.file_store_buckets" */
+  _insertGraphiteFileStoreBuckets?: Maybe<_GraphiteFileStoreBuckets_Mutation_Response>;
+  /** insert data into the table: "graphite.file_stores" */
+  _insertGraphiteFileStores?: Maybe<_GraphiteFileStores_Mutation_Response>;
   /** insert data into the table: "graphite.files" */
   _insertGraphiteFiles?: Maybe<_GraphiteFiles_Mutation_Response>;
   /** insert a single row into the table: "graphite.sessions" */
@@ -13106,18 +13756,36 @@ export type Mutation_Root = {
   _insertGraphiteSessions?: Maybe<_GraphiteSessions_Mutation_Response>;
   /** update single row of the table: "graphite.assistants" */
   _updateGraphiteAssistant?: Maybe<_GraphiteAssistants>;
+  /** update single row of the table: "graphite.assistant_file_stores" */
+  _updateGraphiteAssistantFileStore?: Maybe<_GraphiteAssistantFileStores>;
+  /** update data of the table: "graphite.assistant_file_stores" */
+  _updateGraphiteAssistantFileStores?: Maybe<_GraphiteAssistantFileStores_Mutation_Response>;
   /** update data of the table: "graphite.assistants" */
   _updateGraphiteAssistants?: Maybe<_GraphiteAssistants_Mutation_Response>;
   /** update single row of the table: "graphite.files" */
   _updateGraphiteFile?: Maybe<_GraphiteFiles>;
+  /** update single row of the table: "graphite.file_stores" */
+  _updateGraphiteFileStore?: Maybe<_GraphiteFileStores>;
+  /** update single row of the table: "graphite.file_store_buckets" */
+  _updateGraphiteFileStoreBucket?: Maybe<_GraphiteFileStoreBuckets>;
+  /** update data of the table: "graphite.file_store_buckets" */
+  _updateGraphiteFileStoreBuckets?: Maybe<_GraphiteFileStoreBuckets_Mutation_Response>;
+  /** update data of the table: "graphite.file_stores" */
+  _updateGraphiteFileStores?: Maybe<_GraphiteFileStores_Mutation_Response>;
   /** update data of the table: "graphite.files" */
   _updateGraphiteFiles?: Maybe<_GraphiteFiles_Mutation_Response>;
   /** update single row of the table: "graphite.sessions" */
   _updateGraphiteSession?: Maybe<_GraphiteSessions>;
   /** update data of the table: "graphite.sessions" */
   _updateGraphiteSessions?: Maybe<_GraphiteSessions_Mutation_Response>;
+  /** update multiples rows of table: "graphite.assistant_file_stores" */
+  _updateManyGraphiteAssistantFileStores?: Maybe<Array<Maybe<_GraphiteAssistantFileStores_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.assistants" */
   _updateManyGraphiteAssistants?: Maybe<Array<Maybe<_GraphiteAssistants_Mutation_Response>>>;
+  /** update multiples rows of table: "graphite.file_store_buckets" */
+  _updateManyGraphiteFileStoreBuckets?: Maybe<Array<Maybe<_GraphiteFileStoreBuckets_Mutation_Response>>>;
+  /** update multiples rows of table: "graphite.file_stores" */
+  _updateManyGraphiteFileStores?: Maybe<Array<Maybe<_GraphiteFileStores_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.files" */
   _updateManyGraphiteFiles?: Maybe<Array<Maybe<_GraphiteFiles_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.sessions" */
@@ -13779,6 +14447,19 @@ export type Mutation_Root_DeleteGraphiteAssistantArgs = {
 
 
 /** mutation root */
+export type Mutation_Root_DeleteGraphiteAssistantFileStoreArgs = {
+  assistantID: Scalars['String'];
+  fileStoreID: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_Root_DeleteGraphiteAssistantFileStoresArgs = {
+  where: _GraphiteAssistantFileStores_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_Root_DeleteGraphiteAssistantsArgs = {
   where: _GraphiteAssistants_Bool_Exp;
 };
@@ -13787,6 +14468,31 @@ export type Mutation_Root_DeleteGraphiteAssistantsArgs = {
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFileArgs = {
   id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_Root_DeleteGraphiteFileStoreArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_Root_DeleteGraphiteFileStoreBucketArgs = {
+  bucketID: Scalars['String'];
+  fileStoreID: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_Root_DeleteGraphiteFileStoreBucketsArgs = {
+  where: _GraphiteFileStoreBuckets_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_Root_DeleteGraphiteFileStoresArgs = {
+  where: _GraphiteFileStores_Bool_Exp;
 };
 
 
@@ -13816,6 +14522,20 @@ export type Mutation_Root_InsertGraphiteAssistantArgs = {
 
 
 /** mutation root */
+export type Mutation_Root_InsertGraphiteAssistantFileStoreArgs = {
+  object: _GraphiteAssistantFileStores_Insert_Input;
+  on_conflict?: InputMaybe<_GraphiteAssistantFileStores_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_InsertGraphiteAssistantFileStoresArgs = {
+  objects: Array<_GraphiteAssistantFileStores_Insert_Input>;
+  on_conflict?: InputMaybe<_GraphiteAssistantFileStores_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_Root_InsertGraphiteAssistantsArgs = {
   objects: Array<_GraphiteAssistants_Insert_Input>;
   on_conflict?: InputMaybe<_GraphiteAssistants_On_Conflict>;
@@ -13826,6 +14546,34 @@ export type Mutation_Root_InsertGraphiteAssistantsArgs = {
 export type Mutation_Root_InsertGraphiteFileArgs = {
   object: _GraphiteFiles_Insert_Input;
   on_conflict?: InputMaybe<_GraphiteFiles_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_InsertGraphiteFileStoreArgs = {
+  object: _GraphiteFileStores_Insert_Input;
+  on_conflict?: InputMaybe<_GraphiteFileStores_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_InsertGraphiteFileStoreBucketArgs = {
+  object: _GraphiteFileStoreBuckets_Insert_Input;
+  on_conflict?: InputMaybe<_GraphiteFileStoreBuckets_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_InsertGraphiteFileStoreBucketsArgs = {
+  objects: Array<_GraphiteFileStoreBuckets_Insert_Input>;
+  on_conflict?: InputMaybe<_GraphiteFileStoreBuckets_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_InsertGraphiteFileStoresArgs = {
+  objects: Array<_GraphiteFileStores_Insert_Input>;
+  on_conflict?: InputMaybe<_GraphiteFileStores_On_Conflict>;
 };
 
 
@@ -13863,6 +14611,20 @@ export type Mutation_Root_UpdateGraphiteAssistantArgs = {
 
 
 /** mutation root */
+export type Mutation_Root_UpdateGraphiteAssistantFileStoreArgs = {
+  _set?: InputMaybe<_GraphiteAssistantFileStores_Set_Input>;
+  pk_columns: _GraphiteAssistantFileStores_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateGraphiteAssistantFileStoresArgs = {
+  _set?: InputMaybe<_GraphiteAssistantFileStores_Set_Input>;
+  where: _GraphiteAssistantFileStores_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_Root_UpdateGraphiteAssistantsArgs = {
   _append?: InputMaybe<_GraphiteAssistants_Append_Input>;
   _delete_at_path?: InputMaybe<_GraphiteAssistants_Delete_At_Path_Input>;
@@ -13878,6 +14640,34 @@ export type Mutation_Root_UpdateGraphiteAssistantsArgs = {
 export type Mutation_Root_UpdateGraphiteFileArgs = {
   _set?: InputMaybe<_GraphiteFiles_Set_Input>;
   pk_columns: _GraphiteFiles_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateGraphiteFileStoreArgs = {
+  _set?: InputMaybe<_GraphiteFileStores_Set_Input>;
+  pk_columns: _GraphiteFileStores_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateGraphiteFileStoreBucketArgs = {
+  _set?: InputMaybe<_GraphiteFileStoreBuckets_Set_Input>;
+  pk_columns: _GraphiteFileStoreBuckets_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateGraphiteFileStoreBucketsArgs = {
+  _set?: InputMaybe<_GraphiteFileStoreBuckets_Set_Input>;
+  where: _GraphiteFileStoreBuckets_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateGraphiteFileStoresArgs = {
+  _set?: InputMaybe<_GraphiteFileStores_Set_Input>;
+  where: _GraphiteFileStores_Bool_Exp;
 };
 
 
@@ -13903,8 +14693,26 @@ export type Mutation_Root_UpdateGraphiteSessionsArgs = {
 
 
 /** mutation root */
+export type Mutation_Root_UpdateManyGraphiteAssistantFileStoresArgs = {
+  updates: Array<_GraphiteAssistantFileStores_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_Root_UpdateManyGraphiteAssistantsArgs = {
   updates: Array<_GraphiteAssistants_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateManyGraphiteFileStoreBucketsArgs = {
+  updates: Array<_GraphiteFileStoreBuckets_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_Root_UpdateManyGraphiteFileStoresArgs = {
+  updates: Array<_GraphiteFileStores_Updates>;
 };
 
 
@@ -17304,12 +18112,30 @@ export type Query_Root = {
   _graphiteAssistant?: Maybe<_GraphiteAssistants>;
   /** fetch aggregated fields from the table: "graphite.assistants" */
   _graphiteAssistantAggregate: _GraphiteAssistants_Aggregate;
+  /** fetch data from the table: "graphite.assistant_file_stores" using primary key columns */
+  _graphiteAssistantFileStore?: Maybe<_GraphiteAssistantFileStores>;
+  /** fetch aggregated fields from the table: "graphite.assistant_file_stores" */
+  _graphiteAssistantFileStoreAggregate: _GraphiteAssistantFileStores_Aggregate;
+  /** fetch data from the table: "graphite.assistant_file_stores" */
+  _graphiteAssistantFileStores: Array<_GraphiteAssistantFileStores>;
   /** fetch data from the table: "graphite.assistants" */
   _graphiteAssistants: Array<_GraphiteAssistants>;
   /** fetch data from the table: "graphite.files" using primary key columns */
   _graphiteFile?: Maybe<_GraphiteFiles>;
   /** fetch aggregated fields from the table: "graphite.files" */
   _graphiteFileAggregate: _GraphiteFiles_Aggregate;
+  /** fetch data from the table: "graphite.file_stores" using primary key columns */
+  _graphiteFileStore?: Maybe<_GraphiteFileStores>;
+  /** fetch aggregated fields from the table: "graphite.file_stores" */
+  _graphiteFileStoreAggregate: _GraphiteFileStores_Aggregate;
+  /** fetch data from the table: "graphite.file_store_buckets" using primary key columns */
+  _graphiteFileStoreBucket?: Maybe<_GraphiteFileStoreBuckets>;
+  /** fetch aggregated fields from the table: "graphite.file_store_buckets" */
+  _graphiteFileStoreBucketAggregate: _GraphiteFileStoreBuckets_Aggregate;
+  /** fetch data from the table: "graphite.file_store_buckets" */
+  _graphiteFileStoreBuckets: Array<_GraphiteFileStoreBuckets>;
+  /** fetch data from the table: "graphite.file_stores" */
+  _graphiteFileStores: Array<_GraphiteFileStores>;
   /** fetch data from the table: "graphite.files" */
   _graphiteFiles: Array<_GraphiteFiles>;
   /** fetch data from the table: "graphite.sessions" using primary key columns */
@@ -17648,6 +18474,30 @@ export type Query_Root_GraphiteAssistantAggregateArgs = {
 };
 
 
+export type Query_Root_GraphiteAssistantFileStoreArgs = {
+  assistantID: Scalars['String'];
+  fileStoreID: Scalars['uuid'];
+};
+
+
+export type Query_Root_GraphiteAssistantFileStoreAggregateArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteAssistantFileStores_Order_By>>;
+  where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
+};
+
+
+export type Query_Root_GraphiteAssistantFileStoresArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteAssistantFileStores_Order_By>>;
+  where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
+};
+
+
 export type Query_Root_GraphiteAssistantsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -17668,6 +18518,53 @@ export type Query_Root_GraphiteFileAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<_GraphiteFiles_Order_By>>;
   where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
+};
+
+
+export type Query_Root_GraphiteFileStoreArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_Root_GraphiteFileStoreAggregateArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteFileStores_Order_By>>;
+  where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
+};
+
+
+export type Query_Root_GraphiteFileStoreBucketArgs = {
+  bucketID: Scalars['String'];
+  fileStoreID: Scalars['uuid'];
+};
+
+
+export type Query_Root_GraphiteFileStoreBucketAggregateArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteFileStoreBuckets_Order_By>>;
+  where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
+};
+
+
+export type Query_Root_GraphiteFileStoreBucketsArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteFileStoreBuckets_Order_By>>;
+  where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
+};
+
+
+export type Query_Root_GraphiteFileStoresArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteFileStores_Order_By>>;
+  where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
 };
 
 
@@ -20378,6 +21275,14 @@ export type Subscription_Root = {
   _graphiteAssistant?: Maybe<_GraphiteAssistants>;
   /** fetch aggregated fields from the table: "graphite.assistants" */
   _graphiteAssistantAggregate: _GraphiteAssistants_Aggregate;
+  /** fetch data from the table: "graphite.assistant_file_stores" using primary key columns */
+  _graphiteAssistantFileStore?: Maybe<_GraphiteAssistantFileStores>;
+  /** fetch aggregated fields from the table: "graphite.assistant_file_stores" */
+  _graphiteAssistantFileStoreAggregate: _GraphiteAssistantFileStores_Aggregate;
+  /** fetch data from the table in a streaming manner: "graphite.assistant_file_stores" */
+  _graphiteAssistantFileStoreStream: Array<_GraphiteAssistantFileStores>;
+  /** fetch data from the table: "graphite.assistant_file_stores" */
+  _graphiteAssistantFileStores: Array<_GraphiteAssistantFileStores>;
   /** fetch data from the table in a streaming manner: "graphite.assistants" */
   _graphiteAssistantStream: Array<_GraphiteAssistants>;
   /** fetch data from the table: "graphite.assistants" */
@@ -20386,6 +21291,22 @@ export type Subscription_Root = {
   _graphiteFile?: Maybe<_GraphiteFiles>;
   /** fetch aggregated fields from the table: "graphite.files" */
   _graphiteFileAggregate: _GraphiteFiles_Aggregate;
+  /** fetch data from the table: "graphite.file_stores" using primary key columns */
+  _graphiteFileStore?: Maybe<_GraphiteFileStores>;
+  /** fetch aggregated fields from the table: "graphite.file_stores" */
+  _graphiteFileStoreAggregate: _GraphiteFileStores_Aggregate;
+  /** fetch data from the table: "graphite.file_store_buckets" using primary key columns */
+  _graphiteFileStoreBucket?: Maybe<_GraphiteFileStoreBuckets>;
+  /** fetch aggregated fields from the table: "graphite.file_store_buckets" */
+  _graphiteFileStoreBucketAggregate: _GraphiteFileStoreBuckets_Aggregate;
+  /** fetch data from the table in a streaming manner: "graphite.file_store_buckets" */
+  _graphiteFileStoreBucketStream: Array<_GraphiteFileStoreBuckets>;
+  /** fetch data from the table: "graphite.file_store_buckets" */
+  _graphiteFileStoreBuckets: Array<_GraphiteFileStoreBuckets>;
+  /** fetch data from the table in a streaming manner: "graphite.file_stores" */
+  _graphiteFileStoreStream: Array<_GraphiteFileStores>;
+  /** fetch data from the table: "graphite.file_stores" */
+  _graphiteFileStores: Array<_GraphiteFileStores>;
   /** fetch data from the table in a streaming manner: "graphite.files" */
   _graphiteFileStream: Array<_GraphiteFiles>;
   /** fetch data from the table: "graphite.files" */
@@ -20772,6 +21693,37 @@ export type Subscription_Root_GraphiteAssistantAggregateArgs = {
 };
 
 
+export type Subscription_Root_GraphiteAssistantFileStoreArgs = {
+  assistantID: Scalars['String'];
+  fileStoreID: Scalars['uuid'];
+};
+
+
+export type Subscription_Root_GraphiteAssistantFileStoreAggregateArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteAssistantFileStores_Order_By>>;
+  where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteAssistantFileStoreStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<_GraphiteAssistantFileStores_Stream_Cursor_Input>>;
+  where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteAssistantFileStoresArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteAssistantFileStores_Order_By>>;
+  where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
+};
+
+
 export type Subscription_Root_GraphiteAssistantStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteAssistants_Stream_Cursor_Input>>;
@@ -20799,6 +21751,67 @@ export type Subscription_Root_GraphiteFileAggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<_GraphiteFiles_Order_By>>;
   where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteFileStoreArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_Root_GraphiteFileStoreAggregateArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteFileStores_Order_By>>;
+  where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteFileStoreBucketArgs = {
+  bucketID: Scalars['String'];
+  fileStoreID: Scalars['uuid'];
+};
+
+
+export type Subscription_Root_GraphiteFileStoreBucketAggregateArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteFileStoreBuckets_Order_By>>;
+  where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteFileStoreBucketStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<_GraphiteFileStoreBuckets_Stream_Cursor_Input>>;
+  where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteFileStoreBucketsArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteFileStoreBuckets_Order_By>>;
+  where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteFileStoreStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<_GraphiteFileStores_Stream_Cursor_Input>>;
+  where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
+};
+
+
+export type Subscription_Root_GraphiteFileStoresArgs = {
+  distinct_on?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<_GraphiteFileStores_Order_By>>;
+  where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
 };
 
 
@@ -24482,7 +25495,7 @@ export type DeleteAssistantMutation = { __typename?: 'mutation_root', graphite?:
 export type GetAssistantsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAssistantsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', assistants: Array<{ __typename?: 'graphiteAssistant', assistantID: string, name: string, description: string, model: string, instructions: string, buckets?: Array<string | null> | null, graphql?: Array<{ __typename?: 'graphiteAssistantToolGraphQL', name: string, query: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null, webhooks?: Array<{ __typename?: 'graphiteAssistantToolWebhook', name: string, URL: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null }> } | null };
+export type GetAssistantsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', assistants: Array<{ __typename?: 'graphiteAssistant', assistantID: string, name: string, description: string, model: string, instructions: string, fileStores?: Array<any> | null, graphql?: Array<{ __typename?: 'graphiteAssistantToolGraphQL', name: string, query: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null, webhooks?: Array<{ __typename?: 'graphiteAssistantToolWebhook', name: string, URL: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null }> } | null };
 
 export type GetGraphiteSessionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -24560,6 +25573,33 @@ export type StartDevSessionMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type StartDevSessionMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', startDevSession: { __typename?: 'graphiteSession', sessionID: string } } | null };
 
+export type DeleteFileStoreMutationVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type DeleteFileStoreMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', deleteFileStore: boolean } | null };
+
+export type GetGraphiteFileStoresQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetGraphiteFileStoresQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', fileStores: Array<{ __typename?: 'graphiteFileStore', id: any, name: string, vectorStoreID: string, buckets: Array<string> }> } | null };
+
+export type InsertFileStoreMutationVariables = Exact<{
+  object: GraphiteFileStoreInput;
+}>;
+
+
+export type InsertFileStoreMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', insertFileStore: { __typename?: 'graphiteFileStore', id: any } } | null };
+
+export type UpdateFileStoreMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  object: GraphiteFileStoreInput;
+}>;
+
+
+export type UpdateFileStoreMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', updateFileStore: { __typename?: 'graphiteFileStore', name: string } } | null };
+
 
 export const DeleteAssistantDocument = gql`
     mutation deleteAssistant($id: String!) {
@@ -24603,7 +25643,6 @@ export const GetAssistantsDocument = gql`
       description
       model
       instructions
-      buckets
       graphql {
         name
         query
@@ -24626,6 +25665,7 @@ export const GetAssistantsDocument = gql`
           required
         }
       }
+      fileStores
     }
   }
 }
@@ -25027,3 +26067,149 @@ export function useStartDevSessionMutation(baseOptions?: Apollo.MutationHookOpti
 export type StartDevSessionMutationHookResult = ReturnType<typeof useStartDevSessionMutation>;
 export type StartDevSessionMutationResult = Apollo.MutationResult<StartDevSessionMutation>;
 export type StartDevSessionMutationOptions = Apollo.BaseMutationOptions<StartDevSessionMutation, StartDevSessionMutationVariables>;
+export const DeleteFileStoreDocument = gql`
+    mutation deleteFileStore($id: uuid!) {
+  graphite {
+    deleteFileStore(id: $id)
+  }
+}
+    `;
+export type DeleteFileStoreMutationFn = Apollo.MutationFunction<DeleteFileStoreMutation, DeleteFileStoreMutationVariables>;
+
+/**
+ * __useDeleteFileStoreMutation__
+ *
+ * To run a mutation, you first call `useDeleteFileStoreMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteFileStoreMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteFileStoreMutation, { data, loading, error }] = useDeleteFileStoreMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteFileStoreMutation(baseOptions?: Apollo.MutationHookOptions<DeleteFileStoreMutation, DeleteFileStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteFileStoreMutation, DeleteFileStoreMutationVariables>(DeleteFileStoreDocument, options);
+      }
+export type DeleteFileStoreMutationHookResult = ReturnType<typeof useDeleteFileStoreMutation>;
+export type DeleteFileStoreMutationResult = Apollo.MutationResult<DeleteFileStoreMutation>;
+export type DeleteFileStoreMutationOptions = Apollo.BaseMutationOptions<DeleteFileStoreMutation, DeleteFileStoreMutationVariables>;
+export const GetGraphiteFileStoresDocument = gql`
+    query getGraphiteFileStores {
+  graphite {
+    fileStores {
+      id
+      name
+      vectorStoreID
+      buckets
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetGraphiteFileStoresQuery__
+ *
+ * To run a query within a React component, call `useGetGraphiteFileStoresQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGraphiteFileStoresQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGraphiteFileStoresQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetGraphiteFileStoresQuery(baseOptions?: Apollo.QueryHookOptions<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>(GetGraphiteFileStoresDocument, options);
+      }
+export function useGetGraphiteFileStoresLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>(GetGraphiteFileStoresDocument, options);
+        }
+export type GetGraphiteFileStoresQueryHookResult = ReturnType<typeof useGetGraphiteFileStoresQuery>;
+export type GetGraphiteFileStoresLazyQueryHookResult = ReturnType<typeof useGetGraphiteFileStoresLazyQuery>;
+export type GetGraphiteFileStoresQueryResult = Apollo.QueryResult<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>;
+export function refetchGetGraphiteFileStoresQuery(variables?: GetGraphiteFileStoresQueryVariables) {
+      return { query: GetGraphiteFileStoresDocument, variables: variables }
+    }
+export const InsertFileStoreDocument = gql`
+    mutation insertFileStore($object: graphiteFileStoreInput!) {
+  graphite {
+    insertFileStore(object: $object) {
+      id
+    }
+  }
+}
+    `;
+export type InsertFileStoreMutationFn = Apollo.MutationFunction<InsertFileStoreMutation, InsertFileStoreMutationVariables>;
+
+/**
+ * __useInsertFileStoreMutation__
+ *
+ * To run a mutation, you first call `useInsertFileStoreMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertFileStoreMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertFileStoreMutation, { data, loading, error }] = useInsertFileStoreMutation({
+ *   variables: {
+ *      object: // value for 'object'
+ *   },
+ * });
+ */
+export function useInsertFileStoreMutation(baseOptions?: Apollo.MutationHookOptions<InsertFileStoreMutation, InsertFileStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertFileStoreMutation, InsertFileStoreMutationVariables>(InsertFileStoreDocument, options);
+      }
+export type InsertFileStoreMutationHookResult = ReturnType<typeof useInsertFileStoreMutation>;
+export type InsertFileStoreMutationResult = Apollo.MutationResult<InsertFileStoreMutation>;
+export type InsertFileStoreMutationOptions = Apollo.BaseMutationOptions<InsertFileStoreMutation, InsertFileStoreMutationVariables>;
+export const UpdateFileStoreDocument = gql`
+    mutation updateFileStore($id: uuid!, $object: graphiteFileStoreInput!) {
+  graphite {
+    updateFileStore(id: $id, object: $object) {
+      name
+    }
+  }
+}
+    `;
+export type UpdateFileStoreMutationFn = Apollo.MutationFunction<UpdateFileStoreMutation, UpdateFileStoreMutationVariables>;
+
+/**
+ * __useUpdateFileStoreMutation__
+ *
+ * To run a mutation, you first call `useUpdateFileStoreMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateFileStoreMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateFileStoreMutation, { data, loading, error }] = useUpdateFileStoreMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      object: // value for 'object'
+ *   },
+ * });
+ */
+export function useUpdateFileStoreMutation(baseOptions?: Apollo.MutationHookOptions<UpdateFileStoreMutation, UpdateFileStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateFileStoreMutation, UpdateFileStoreMutationVariables>(UpdateFileStoreDocument, options);
+      }
+export type UpdateFileStoreMutationHookResult = ReturnType<typeof useUpdateFileStoreMutation>;
+export type UpdateFileStoreMutationResult = Apollo.MutationResult<UpdateFileStoreMutation>;
+export type UpdateFileStoreMutationOptions = Apollo.BaseMutationOptions<UpdateFileStoreMutation, UpdateFileStoreMutationVariables>;
