@@ -24,62 +24,51 @@ export default function UserSelect({
   ...props
 }: UserSelectProps) {
   const [inputValue, setInputValue] = useState('');
+  const [users, setUsers] = useState([]);
   const [options, setOptions] = useState([]);
+  const [active, setActive] = useState(true);
 
   const userApplicationClient = useRemoteApplicationGQLClient();
 
-  const [fetchAppUsers, { data, previousData, loading }] =
-    useRemoteAppGetUsersCustomLazyQuery({
+  const [fetchAppUsers, { loading }] = useRemoteAppGetUsersCustomLazyQuery({
+    client: userApplicationClient,
+    variables: {
+      where: {},
+      limit: 250,
+      offset: 0,
+    },
+  });
+
+  const fetchUsers = async (
+    request: { input: string },
+    callback: (results?: RemoteAppGetUsersCustomQuery['users']) => void,
+  ) => {
+    const { data } = await fetchAppUsers({
       client: userApplicationClient,
       variables: {
-        where: {},
+        where: {
+          displayName: { _ilike: `%${request.input}%` },
+        },
         limit: 250,
         offset: 0,
       },
     });
 
-  const fetchOptions = useMemo(
-    () =>
-      debounce(
-        async (
-          request: { input: string },
-          callback: (results?: RemoteAppGetUsersCustomQuery['users']) => void,
-        ) => {
-          const { data } = await fetchAppUsers({
-            client: userApplicationClient,
-            variables: {
-              where: {
-                displayName: { _ilike: `%${request.input}%` },
-              },
-              limit: 250,
-              offset: 0,
-            },
-          });
+    callback(data?.users);
+  };
 
-          callback(data?.users);
-        },
-        1000,
-      ),
-    [],
-  );
+  const fetchOptions = useMemo(() => debounce(fetchUsers, 1000), []);
 
   // const inputCooldown = useMemo(() => debounce(() => {}, 1000), [inputValue]);
 
   useEffect(() => {
-    let active = true;
-
     // if (inputValue === '') {
     //   setOptions(value ? [value] : []);
     //   return undefined;
     // }
-    //const fetchInput = inputCooldown ? '' : inputValue;
-
-    // setTimeout(() => {
-    //   setInputCooldown(false);
-    // }, 1000);
 
     fetchOptions({ input: inputValue }, (results) => {
-      if (active) {
+      if (active || inputValue === '') {
         const mappedResults = results.map((result) => ({
           value: result.displayName,
           label: result.displayName,
@@ -94,20 +83,39 @@ export default function UserSelect({
           ...mappedResults,
         ];
         setOptions(autocompleteOptions);
+        setUsers(results);
       }
     });
 
-    return () => {
-      active = false;
-    };
-  }, [inputValue, fetchOptions]);
+    // return () => {
+    //   active = false;
+    // };
+  }, [inputValue, fetchOptions, active]);
+
+  const autocompleteOptions = [
+    {
+      value: 'admin',
+      label: 'Admin',
+      group: 'Admin',
+    },
+    ...users.map((user) => ({
+      value: user.displayName,
+      label: user.displayName,
+      group: 'Users',
+    })),
+  ];
 
   return (
     <Autocomplete
       {...props}
       id="user-select"
       label="Make request as"
-      options={options}
+      options={autocompleteOptions}
+      defaultValue={{
+        value: 'admin',
+        label: 'Admin',
+        group: 'Admin',
+      }}
       autoComplete
       fullWidth
       autoSelect
@@ -115,8 +123,8 @@ export default function UserSelect({
       autoHighlight
       includeInputInList
       onChange={(_event, _value, reason, details) => {
+        setActive(false);
         const userId = details.option.value;
-        console.log('data:', data);
         if (typeof userId !== 'string') {
           return;
         }
@@ -126,22 +134,36 @@ export default function UserSelect({
 
           return;
         }
-        const availableData = data ?? previousData;
 
-        const user: RemoteAppGetUsersCustomQuery['users'][0] =
-          availableData?.users.find(({ id }) => id === userId);
+        const user: RemoteAppGetUsersCustomQuery['users'][0] = users.find(
+          ({ id }) => id === userId,
+        );
 
         const roles = user?.roles?.map(({ role }) => role);
+        console.log('roles:', roles);
 
         onUserChange(userId, roles ?? DEFAULT_ROLES);
+
+        fetchUsers({ input: '' }, (results) => {
+          if (results) {
+            const mappedResults = results.map((result) => ({
+              value: result.displayName,
+              label: result.displayName,
+              group: 'Users',
+            }));
+            const autocompleteOptions = [
+              {
+                value: 'admin',
+                label: 'Admin',
+                group: 'Admin',
+              },
+              ...mappedResults,
+            ];
+            setOptions(autocompleteOptions);
+            setUsers(results);
+          }
+        });
       }}
-      // onOpen={() => {
-      //   console.log('HELO');
-      // }}
-      // onChange={(event: any, newValue: PlaceType | null, reason, details) => {
-      //   setOptions(newValue ? [newValue, ...options] : options);
-      //   setValue(newValue);
-      // }}
       onInputChange={(event, newInputValue) => {
         setInputValue(newInputValue);
       }}
