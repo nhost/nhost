@@ -73,6 +73,7 @@
     {
       "group": "Platform",
       "pages": [
+        "platform/subdomain",
         "platform/compute-resources",
         "platform/service-replicas",
         {
@@ -198,11 +199,11 @@
       "group": "CLI",
       "pages": [
         "guides/cli/local-development",
+        "guides/cli/subdomain",
         "guides/cli/migrate-config",
         "guides/cli/multiple-projects",
         "guides/cli/configuration-overlays",
-        "guides/cli/seeds",
-        "guides/cli/connect-devices-to-local-nhost-project"
+        "guides/cli/seeds"
       ]
     },
     {

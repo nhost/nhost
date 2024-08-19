@@ -1,0 +1,119 @@
+---
+title: Subdomain/Region
+description: Connecting to your local environment
+icon: compass
+---
+
+When you start the CLI the services are exposed similarly to the way they are exposed in the [cloud](/platform/subdomain). For instance, the following information is shown on your terminal after running `nhost up`
+
+```
+> nhost up
+...
+URLs:
+- Postgres:             postgres://postgres:postgres@localhost:5432/local
+- Hasura:               https://local.hasura.local.nhost.run
+- GraphQL:              https://local.graphql.local.nhost.run
+- Auth:                 https://local.auth.local.nhost.run
+- Storage:              https://local.storage.local.nhost.run
+- Functions:            https://local.functions.local.nhost.run
+- Dashboard:            https://local.dashboard.local.nhost.run
+- Mailhog:              https://local.mailhog.local.nhost.run
+
+SDK Configuration:
+ Subdomain:             local
+ Region:                local
+```
+
+There you can see the various URLs you can use to access each service plus the region and subdomain you can use to configure the SDK:
+
+```ts
+// Create a new Nhost client for local development.
+const nhost = new NhostClient(
+    { region: 'local', subdomain: 'local' }
+)
+```
+
+The domains in the URLs above will all return the IP address for localhost, `127.0.0.1`, which should suffice for most development environments. For instance:
+
+```
+> host local.auth.local.nhost.run
+local.auth.local.nhost.run has address 127.0.0.1
+```
+
+However, those URLs are powered by a dynamic DNS that can return any IPv4 address you need, you just need to replace the subdomain `local` with a `subdomain` that contains the 4 octets of the IPv4 adress you want separated by `-`. For instance:
+
+```
+> host 192-168-100-1.auth.local.nhost.run
+192-168-100-1.auth.local.nhost.run has address 192.168.100.1
+
+> host 10-10-1-108.auth.local.nhost.run
+10-10-1-108.auth.local.nhost.run has address 10.10.1.108
+```
+
+This is useful if you need to connect to your environment from a different device, a VM or a mobile device emulator.
+
+To make use of this functionality you can start your development environment after setting the environment variable `NHOST_LOCAL_SUBDOMAIN` or passing the flag `--local-subdomain` :
+
+```
+> export NHOST_LOCAL_SUBDOMAIN=192-168-1-1-8 # either this or --local-subdomain 192-168-1-108
+> nhost --local-subdomain 192-168-1-108 up
+...
+Nhost development environment started.
+URLs:
+- Postgres:         postgres://postgres:postgres@localhost:5432/local
+- Hasura:           https://192-168-1-108.hasura.local.nhost.run
+- GraphQL:          https://192-168-1-108.graphql.local.nhost.run
+- Auth:             https://192-168-1-108.auth.local.nhost.run
+- Storage:          https://192-168-1-108.storage.local.nhost.run
+- Functions:        https://192-168-1-108.functions.local.nhost.run
+- Dashboard:        https://192-168-1-108.dashboard.local.nhost.run
+- Mailhog:          https://192-168-1-108.mailhog.local.nhost.run
+
+SDK Configuration:
+ Subdomain:    192-168-1-108
+ Region:       local
+Run `nhost up` to reload the development environment
+Run `nhost down` to stop the development environment
+Run `nhost logs` to watch the logs
+```
+
+Now you can configure the SDK with:
+
+```ts
+// Create a new Nhost client for local development.
+const nhost = new NhostClient(
+    { region: 'local', subdomain: '192-168-1-108' }
+)
+```
+
+<Warning>
+If you are trying to connect to your local environment from an external device or VM make sure that:
+
+- The IP address you are using is reachable from this device/VM
+- That your firewall isn't blocking requests
+</Warning>
+
+<Warning>
+If you are testing a social provider don't forget you will need to configure the callback URL to match the subdomain/region you are using. The dashboard should be able to provide this information in settings page.
+</Warning>
+
+## Offline access
+
+All the URLs in this document are resolved by a public DNS, which means you need Internet access to resolve them. If you need to use any of those URLs without Internet access you can add them to your `/etc/hosts` file. For instance:
+
+```
+> cat /etc/hosts
+##
+# Host Database
+#
+# localhost is used to configure the loopback interface
+# when the system is booting.  Do not change this entry.
+##
+127.0.0.1       localhost
+255.255.255.255 broadcasthost
+# ::1             localhost
+
+127.0.0.1 local.auth.local.nhost.run local.storage.local.nhost.run ...
+```
+
+Just start with the IP you want to resolve followed by all the entries you need separated by spaces.
