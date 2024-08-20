@@ -221,6 +221,13 @@ export default function SettingsSidebar({
             >
               Custom Domains
             </SettingsNavLink>
+            <SettingsNavLink
+              href="/rate-limiting"
+              exact={false}
+              onClick={handleSelect}
+            >
+              Rate Limiting
+            </SettingsNavLink>
             <SettingsNavLink href="/ai" exact={false} onClick={handleSelect}>
               AI
             </SettingsNavLink>
