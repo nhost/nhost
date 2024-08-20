@@ -9,6 +9,34 @@ Rate limits in an HTTP API are essential for protecting services against abuse a
 
 Limits work by setting a maximum number of requests (burst amount) allowed for a key within a specified time frame (recovery time). For example, with a limit of 30 requests and a recovery time of 5 minutes, a user can make up to 30 requests before hitting the limit. Additionally, the user receives an extra request every 10 seconds (5 * 60 / 30) until reaching the limit.
 
+## GraphQL/Storage/Functions
+
+You can rate-limit the GraphQL, Storage, and Functions services independently of each other. These rate limits are based on the client IP, and requests made to one service do not count toward the rate limits of another service.
+
+### Configuration
+
+<Tabs>
+<Tab title="Config">
+```toml
+[hasura.rateLimit]
+limit = 100
+interval = '15m'
+
+[functions.rateLimit]
+limit = 100
+interval = '15m'
+
+[storage.rateLimit]
+limit = 100
+interval = '15m'
+```
+</Tab>
+</Tabs>
+
+## Auth
+
+Given that not all endpoints are equally sensitive, Auth supports more complex rate-limiting rules, allowing you to set different configurations depending on the properties of each endpoint.
+
 | Endpoints             | Key | Limits | Description | Minimum version |
 | ----------------------|-----|--------|-------------|-----------------|
 | Any that sends emails<sup>1</sup> | Global | 50 / hour | Not configurable. This limit applies to any project without custom SMTP settings  | 0.33.0 |
@@ -40,3 +68,33 @@ Limits are grouped within a given category. For instance, with a limit of 10 per
 
 <sup>4</sup> Paths included:
 - `/signup/*`
+
+
+### Configuration
+
+<Tabs>
+<Tab title="Config">
+```toml
+[auth.rateLimit]
+[auth.rateLimit.emails]
+limit = 10
+interval = '1h'
+
+[auth.rateLimit.sms]
+limit = 10
+interval = '1h'
+
+[auth.rateLimit.bruteForce]
+limit = 10
+interval = '5m'
+
+[auth.rateLimit.signups]
+limit = 10
+interval = '5m'
+
+[auth.rateLimit.global]
+limit = 100
+interval = '1m'
+```
+</Tab>
+</Tabs>

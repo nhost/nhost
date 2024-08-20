@@ -84,7 +84,8 @@
         "platform/environment-variables",
         "platform/secrets",
         "platform/deployments",
-        "platform/custom-domains"
+        "platform/custom-domains",
+        "platform/rate-limits"
       ]
     },
     {
@@ -159,8 +160,7 @@
         "guides/auth/sign-in-webauthn",
         "guides/auth/elevated-permissions",
         "guides/auth/email-templates",
-        "guides/auth/custom-jwts",
-        "guides/auth/rate-limits"
+        "guides/auth/custom-jwts"
       ]
     },
     {
