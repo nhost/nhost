@@ -31,7 +31,7 @@ export interface AssistantFormProps extends DialogFormProps {
   onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
 }
 
-export default function AuthLimitingForm({ onSubmit }: AssistantFormProps) {
+export default function HasuraLimitingForm({ onSubmit }: AssistantFormProps) {
   const { maintenanceActive } = useUI();
 
   const form = useForm<AuthLimitingFormValues>({
@@ -82,7 +82,7 @@ export default function AuthLimitingForm({ onSubmit }: AssistantFormProps) {
         className="flex h-full flex-col overflow-hidden border-t"
       >
         <SettingsContainer
-          title="Auth"
+          title="Hasura"
           switchId="enabled"
           showSwitch
           slotProps={{
@@ -94,14 +94,17 @@ export default function AuthLimitingForm({ onSubmit }: AssistantFormProps) {
           className={twMerge(!enabled && 'hidden')}
         >
           <div className="flex flex-1 flex-col space-y-4 overflow-auto p-4">
-            <Box className="flex gap-12">
-              <div className="flex flex-row items-center gap-2">
+            <Box className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
+              <div className="flex flex-row items-center gap-2  lg:col-span-2">
                 <Text>Limit</Text>
                 <Input
                   {...register('bruteForce.limit')}
                   id="bruteForce.limit"
                   type="number"
                   placeholder=""
+                  // inputProps={{
+                  //   className: 'text-right',
+                  // }}
                   hideEmptyHelperText
                   error={!!errors.bruteForce?.limit}
                   helperText={errors?.bruteForce?.limit?.message}
@@ -109,7 +112,7 @@ export default function AuthLimitingForm({ onSubmit }: AssistantFormProps) {
                   autoComplete="off"
                 />
               </div>
-              <div className="flex flex-row items-center gap-2">
+              <div className="grid grid-flow-col items-center gap-x-2 lg:col-span-3">
                 <Text>Interval</Text>
                 <Input
                   {...register('bruteForce.interval')}

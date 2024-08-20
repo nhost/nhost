@@ -13,3 +13,9 @@ export const rateLimitingItemValidationSchema = Yup.object({
     .required('Interval unit is required.')
     .oneOf(['s', 'm', 'h']),
 });
+
+export const intervalUnitOptions = [
+  { value: 's', label: 'seconds' },
+  { value: 'm', label: 'minutes' },
+  { value: 'h', label: 'hours' },
+];
