@@ -194,7 +194,7 @@ func expectedConsole() *Service {
 			"dev.db.local.nhost.run:host-gateway",
 			"dev.functions.local.nhost.run:host-gateway",
 			"dev.graphql.local.nhost.run:host-gateway",
-			"dev.hasura.local.nhost.run:host-gateway",
+			"dev.hasura.local.nhost.run:0.0.0.0",
 			"dev.storage.local.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{

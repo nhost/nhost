@@ -2,6 +2,7 @@ package dockercompose
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
@@ -117,6 +118,13 @@ func console( //nolint:funlen
 		return nil, fmt.Errorf("failed to get hasura env vars: %w", err)
 	}
 
+	extraHosts := extraHosts(subdomain)
+	for i, host := range extraHosts {
+		if strings.HasPrefix(host, subdomain+".hasura") {
+			extraHosts[i] = subdomain + ".hasura.local.nhost.run:0.0.0.0"
+		}
+	}
+
 	env := make(map[string]string, len(envars))
 	for _, v := range envars {
 		if v.Name == "HASURA_GRAPHQL_CORS_DOMAIN" && v.Value != "*" {
@@ -149,7 +157,7 @@ func console( //nolint:funlen
 		},
 		EntryPoint:  nil,
 		Environment: env,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test: []string{
 				"CMD-SHELL",
