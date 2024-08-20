@@ -211,6 +211,7 @@ func deploy(
 	ce.Infoln("Creating postgres migration")
 	if err := docker.HasuraWrapper(
 		ctx,
+		ce.LocalSubdomain(),
 		ce.Path.NhostFolder(),
 		*cfg.Hasura.Version,
 		"migrate", "create", "init", "--from-server", "--schema", "public",
@@ -225,7 +226,9 @@ func deploy(
 
 	ce.Infoln("Downloading metadata...")
 	if err := docker.HasuraWrapper(
-		ctx, ce.Path.NhostFolder(),
+		ctx,
+		ce.LocalSubdomain(),
+		ce.Path.NhostFolder(),
 		*cfg.Hasura.Version,
 		"metadata", "export",
 		"--skip-update-check",

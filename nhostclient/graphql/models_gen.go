@@ -1128,6 +1128,17 @@ type IntComparisonExp struct {
 	Nin    []int64 `json:"_nin,omitempty"`
 }
 
+type InvoiceItem struct {
+	Amount      string `json:"Amount"`
+	Description string `json:"Description"`
+}
+
+type InvoiceSummary struct {
+	AmountDue string         `json:"AmountDue"`
+	PeriodEnd string         `json:"PeriodEnd"`
+	Items     []*InvoiceItem `json:"items"`
+}
+
 type LastError struct {
 	ExitCode int64  `json:"exitCode"`
 	Message  string `json:"message"`
