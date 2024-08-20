@@ -149,9 +149,54 @@ func TestRenderEmailVerify(t *testing.T) {
 				ServerURL:   "http://server.test",
 				ClientURL:   "http://client.test",
 			},
-			locale:          "non-existent",
-			expectedBody:    "<!DOCTYPE html>\n<html>\n\n<head>\n  <meta charset=\"utf-8\" />\n</head>\n\n<body>\n  <h2>Verify Email</h2>\n  <p>Use this link to verify your email:</p>\n  <p>\n    <a href=\"http://link.test\">\n      Verify Email\n    </a>\n  </p>\n</body>\n\n</html>", //nolint:lll
-			expectedSubject: "Verify your email",                                                                                                                                                                                                                                             //nolint:lll
+			locale: "non-existent",
+			//nolint:lll
+			expectedBody: `<!DOCTYPE html>
+<html dir="ltr" lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="x-apple-disable-message-reformatting" />
+  </head>
+  <body style="background-color:#f5f5f5;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;padding:20px;">
+    <div style="display:none;overflow:hidden;line-height:1px;opacity:0;max-height:0;max-width:0">
+      Verify Email
+    </div>
+    <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="max-width:560px;margin:0 auto;background-color:#ffffff;padding:20px;border-radius:8px;border:1px solid #ececec;">
+      <tbody>
+        <tr style="width:100%">
+          <td>
+            <img alt="Nhost Logo" height="42" src="https://nhost.io/images/emails/icon.png" style="display:block;outline:none;border:none;text-decoration:none;width:42px;height:42px" width="42" />
+            <h1 style="font-size:24px;letter-spacing:-0.5px;line-height:1.3;font-weight:400;color:#484848;padding:0;margin-top:20px;">Verify Email</h1>
+            <p style="font-size:15px;line-height:1.4;margin:10px 0;color:#3c4149">Use this link to verify your email:</p>
+            <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="padding:27px 0 27px">
+              <tbody>
+                <tr>
+                  <td>
+                    <a href="http://link.test" style="line-height:100%;text-decoration:none;display:block;max-width:100%;background-color:#0052CD;border-radius:6px;font-weight:600;color:#fff;font-size:15px;text-align:center;padding:11px 23px" target="_blank">
+                      Verify Email
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <hr style="width:100%;border:none;border-top:1px solid #eaeaea;border-color:#dfe1e4;margin:10px 0" />
+            <table align="left" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-top: 10px;">
+              <tr>
+                <td style="padding-right: 8px;">
+                  <img alt="Nhost Logo" height="20" src="https://nhost.io/images/emails/icon.png" style="display:block;outline:none;border:none;text-decoration:none;width:20px;height:20px;" width="20" />
+                </td>
+                <td>
+                  <a href="https://nhost.io" style="color:#b4becc;text-decoration:none;font-size:14px" target="_blank">Powered by Nhost</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>`,
+			expectedSubject: "Verify your email",
 		},
 	}
 
@@ -173,6 +218,9 @@ func TestRenderEmailVerify(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
+
+			// Log the body for debugging purposes
+			t.Logf("Rendered Body: %s", body)
 
 			if diff := cmp.Diff(tc.expectedBody, body); diff != "" {
 				t.Errorf("unexpected body (-want +got):\n%s", diff)

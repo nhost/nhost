@@ -10,6 +10,7 @@
       "@config": ["config"],
       "@/*": ["./*"]
     },
+    "jsx": "react-jsx",
     "noImplicitAny": false,
     "outDir": "dist",
     "noUnusedLocals": true,
