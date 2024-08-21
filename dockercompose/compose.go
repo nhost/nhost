@@ -111,6 +111,15 @@ func extraHosts(subdomain string) []string {
 		subdomain + ".graphql.local.nhost.run:host-gateway",
 		subdomain + ".hasura.local.nhost.run:host-gateway",
 		subdomain + ".storage.local.nhost.run:host-gateway",
+		// below entries shouldn't be needed unless
+		// users are hardcoding these subdomains
+		// adding out of an abundance of caution
+		"local.auth.nhost.run:host-gateway",
+		"local.db.nhost.run:host-gateway",
+		"local.functions.nhost.run:host-gateway",
+		"local.graphql.nhost.run:host-gateway",
+		"local.hasura.nhost.run:host-gateway",
+		"local.storage.nhost.run:host-gateway",
 	}
 }
 
@@ -354,8 +363,8 @@ func functions( //nolint:funlen
 		"NHOST_HASURA_URL":            URL(subdomain, "hasura", httpPort, useTLS) + "/console",
 		"NHOST_STORAGE_URL":           URL(subdomain, "storage", httpPort, useTLS) + "/v1",
 		"NHOST_JWT_SECRET":            jwtSecret,
-		"NHOST_REGION":                "",
-		"NHOST_SUBDOMAIN":             "local",
+		"NHOST_REGION":                "local",
+		"NHOST_SUBDOMAIN":             subdomain,
 		"NHOST_WEBHOOK_SECRET":        cfg.Hasura.WebhookSecret,
 		"GRAPHITE_WEBHOOK_SECRET":     cfg.GetAi().GetWebhookSecret(),
 	}

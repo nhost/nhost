@@ -17,8 +17,8 @@ func graphql( //nolint:funlen
 ) (*Service, error) {
 	envars, err := appconfig.HasuraEnv(
 		cfg,
+		subdomain,
 		"local",
-		"",
 		"nhost.run",
 		"postgres://nhost_hasura@postgres:5432/local",
 		useTLS,
@@ -107,8 +107,8 @@ func console( //nolint:funlen
 
 	envars, err := appconfig.HasuraEnv(
 		cfg,
+		subdomain,
 		"local",
-		"",
 		"nhost.run",
 		"postgres://nhost_hasura@postgres:5432/local",
 		useTLS,

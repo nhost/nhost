@@ -37,6 +37,12 @@ func expectedAI() *Service {
 			"dev.graphql.local.nhost.run:host-gateway",
 			"dev.hasura.local.nhost.run:host-gateway",
 			"dev.storage.local.nhost.run:host-gateway",
+			"local.auth.nhost.run:host-gateway",
+			"local.db.nhost.run:host-gateway",
+			"local.functions.nhost.run:host-gateway",
+			"local.graphql.nhost.run:host-gateway",
+			"local.hasura.nhost.run:host-gateway",
+			"local.storage.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test:        []string{"CMD", "graphite", "healthcheck"},
