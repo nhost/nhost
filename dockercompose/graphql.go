@@ -120,7 +120,7 @@ func console( //nolint:funlen
 
 	extraHosts := extraHosts(subdomain)
 	for i, host := range extraHosts {
-		if strings.HasPrefix(host, subdomain+".hasura") {
+		if strings.HasPrefix(host, subdomain+".hasura.local.nhost.run") {
 			extraHosts[i] = subdomain + ".hasura.local.nhost.run:0.0.0.0"
 		}
 	}
