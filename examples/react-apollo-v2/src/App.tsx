@@ -1,20 +1,21 @@
 import { Route, Routes } from 'react-router-dom'
-import { AuthGate } from './components/auth-gate'
-import Home from './components/routes/app/home'
-import Layout from './components/routes/app/layout'
-import Profile from './components/routes/app/profile'
-import ProtectedNotes from './components/routes/app/protected-notes'
-import Storage from './components/routes/app/storage'
-import Todos from './components/routes/app/todos'
-import ForgotPassword from './components/routes/auth/forgot-password'
-import SignIn from './components/routes/auth/sign-in'
-import SignInEmailPassword from './components/routes/auth/sign-in-email-password'
-import SignInSecurityKey from './components/routes/auth/sign-in-security-key'
-import SignInMagicLink from './components/routes/auth/sign-in/sign-in-magic-link'
-import SignUp from './components/routes/auth/sign-up'
-import SignUpEmailPassword from './components/routes/auth/sign-up/sign-up-email-password'
-import SignUpMagicLink from './components/routes/auth/sign-up/sign-up-magic-link'
-import SignUpSecurityKey from './components/routes/auth/sign-up/sign-up-security-key'
+import { AuthGate } from '@/components/auth/auth-gate'
+import Home from '@/components/routes/app/home'
+import Layout from '@/components/routes/app/layout'
+import Profile from '@/components/routes/app/profile'
+import ProtectedNotes from '@/components/routes/app/protected-notes'
+import Storage from '@/components/routes/app/storage'
+import Todos from '@/components/routes/app/todos'
+import ForgotPassword from '@/components/routes/auth/forgot-password'
+import SignIn from '@/components/routes/auth/sign-in/sign-in'
+import SignInEmailPassword from '@/components/routes/auth/sign-in/sign-in-email-password'
+import SignInMagicLink from '@/components/routes/auth/sign-in/sign-in-magic-link'
+import SignInSecurityKey from '@/components/routes/auth/sign-in/sign-in-security-key'
+import SignUp from '@/components/routes/auth/sign-up/sign-up'
+import SignUpEmailPassword from '@/components/routes/auth/sign-up/sign-up-email-password'
+import SignUpMagicLink from '@/components/routes/auth/sign-up/sign-up-magic-link'
+import SignUpSecurityKey from '@/components/routes/auth/sign-up/sign-up-security-key'
+import VerifyEmail from './components/routes/auth/verify-email'
 
 function App() {
   return (
@@ -48,6 +49,8 @@ function App() {
         <Route path="/sign-up/security-key" element={<SignUpSecurityKey />} />
         <Route path="/sign-up/magic-link" element={<SignUpMagicLink />} />
       </Route>
+
+      <Route path="/verify" element={<VerifyEmail />} />
     </Routes>
   )
 }

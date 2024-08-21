@@ -1,4 +1,10 @@
-import { ApolloError, gql, useApolloClient, useMutation } from '@apollo/client'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { ApolloError, gql, useMutation } from '@apollo/client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useAddSecurityKey, useUserId } from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
@@ -7,13 +13,6 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
-import { SECURITY_KEYS_LIST } from '../gql/security-keys'
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert'
-import { Button } from '../ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormMessage } from '../ui/form'
-import { Input } from '../ui/input'
 
 type SecurityKey = {
   id: string
@@ -31,18 +30,27 @@ const addSecurityKeySchema = z.object({
 export default function SecurityKeys() {
   const userId = useUserId()
   const [showAddSecurityKeyDialog, setShowAddSecurityDialog] = useState(false)
-  const client = useApolloClient()
   const { add } = useAddSecurityKey()
   const [keys, setKeys] = useState<SecurityKey[]>([])
 
-  const { refetch: refetchSecurityKeys } = useAuthQuery<SecurityKeysQuery>(SECURITY_KEYS_LIST, {
-    variables: { userId },
-    onCompleted: ({ authUserSecurityKeys }) => {
-      if (authUserSecurityKeys) {
-        setKeys(authUserSecurityKeys || [])
+  const { refetch: refetchSecurityKeys } = useAuthQuery<SecurityKeysQuery>(
+    gql`
+      query securityKeys($userId: uuid!) {
+        authUserSecurityKeys(where: { userId: { _eq: $userId } }) {
+          id
+          nickname
+        }
+      }
+    `,
+    {
+      variables: { userId },
+      onCompleted: ({ authUserSecurityKeys }) => {
+        if (authUserSecurityKeys) {
+          setKeys(authUserSecurityKeys || [])
+        }
       }
     }
-  })
+  )
 
   const form = useForm<z.infer<typeof addSecurityKeySchema>>({
     resolver: zodResolver(addSecurityKeySchema),
@@ -60,15 +68,11 @@ export default function SecurityKeys() {
     } else {
       if (key) {
         setKeys((previousKeys) => [...previousKeys, key])
+        setShowAddSecurityDialog(false)
       }
+
       form.reset()
-
-      setShowAddSecurityDialog(false)
-
-      // refetch securityKeys so that we know if need to elevate in other components
-      await client.refetchQueries({
-        include: [SECURITY_KEYS_LIST]
-      })
+      await refetchSecurityKeys()
     }
   }
 
@@ -97,11 +101,6 @@ export default function SecurityKeys() {
     try {
       await removeKey({ variables: { id } })
       await refetchSecurityKeys()
-
-      // refetch securityKeys so that we know if need to elevate in other components
-      await client.refetchQueries({
-        include: [SECURITY_KEYS_LIST]
-      })
     } catch (error) {
       toast.error((error as ApolloError).message)
     }

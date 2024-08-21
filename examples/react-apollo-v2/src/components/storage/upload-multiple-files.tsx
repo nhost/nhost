@@ -1,10 +1,10 @@
+import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
+import { cn } from '@/lib/utils'
 import { FileItemRef, useFileUploadItem, useMultipleFilesUpload } from '@nhost/react'
 import { Check, CircleCheckBig, LoaderCircle, Upload, X } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
-import { cn } from '../../lib/utils'
-import { Button } from '../ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
-import { Progress } from '../ui/progress'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 function FileItem({ fileRef }: { fileRef: FileItemRef }) {
   const { progress, isUploaded, name, isError } = useFileUploadItem(fileRef)

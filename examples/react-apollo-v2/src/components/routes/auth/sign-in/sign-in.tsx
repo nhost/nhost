@@ -1,10 +1,10 @@
 import { Fingerprint, Mail } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { cn } from '../../../lib/utils'
-import SignInFooter from '../../auth/sign-in-footer'
-import OAuthLinks from '../../oauth-links'
-import { buttonVariants } from '../../ui/button'
-import { Separator } from '../../ui/separator'
+import { cn } from '@/lib/utils'
+import SignInFooter from '@/components/auth/sign-in-footer'
+import OAuthLinks from '@/components/auth/oauth-links'
+import { buttonVariants } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 
 export default function SignIn() {
   return (

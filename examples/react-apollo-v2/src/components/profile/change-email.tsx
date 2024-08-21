@@ -1,12 +1,12 @@
 import { useState } from 'react'
 
+import { gql } from '@apollo/client'
 import { useChangeEmail, useElevateSecurityKeyEmail, useUserEmail, useUserId } from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
-import { SECURITY_KEYS_LIST } from '../gql/security-keys'
 import { toast } from 'sonner'
+import { Button } from '../ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Input } from '../ui/input'
-import { Button } from '../ui/button'
 
 export const ChangeEmail: React.FC = () => {
   const userId = useUserId()
@@ -20,12 +20,22 @@ export const ChangeEmail: React.FC = () => {
       id: string
       nickname?: string
     }[]
-  }>(SECURITY_KEYS_LIST, {
-    variables: { userId },
-    onCompleted: ({ authUserSecurityKeys }) => {
-      setUserHasSecurityKey(authUserSecurityKeys?.length > 0)
+  }>(
+    gql`
+      query securityKeys($userId: uuid!) {
+        authUserSecurityKeys(where: { userId: { _eq: $userId } }) {
+          id
+          nickname
+        }
+      }
+    `,
+    {
+      variables: { userId },
+      onCompleted: ({ authUserSecurityKeys }) => {
+        setUserHasSecurityKey(authUserSecurityKeys?.length > 0)
+      }
     }
-  })
+  )
 
   const { changeEmail } = useChangeEmail({
     redirectTo: '/profile'

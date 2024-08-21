@@ -1,11 +1,11 @@
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { gql } from '@apollo/client'
 import { useConfigMfa, useElevateSecurityKeyEmail, useUserEmail, useUserId } from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { SECURITY_KEYS_LIST } from '../gql/security-keys'
-import { Button } from '../ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
-import { Input } from '../ui/input'
 
 export default function Mfa() {
   const userId = useUserId()
@@ -21,12 +21,22 @@ export default function Mfa() {
       id: string
       nickname?: string
     }[]
-  }>(SECURITY_KEYS_LIST, {
-    variables: { userId },
-    onCompleted: ({ authUserSecurityKeys }) => {
-      setUserHasSecurityKey(authUserSecurityKeys?.length > 0)
+  }>(
+    gql`
+      query securityKeys($userId: uuid!) {
+        authUserSecurityKeys(where: { userId: { _eq: $userId } }) {
+          id
+          nickname
+        }
+      }
+    `,
+    {
+      variables: { userId },
+      onCompleted: ({ authUserSecurityKeys }) => {
+        setUserHasSecurityKey(authUserSecurityKeys?.length > 0)
+      }
     }
-  })
+  )
 
   const generate = async () => {
     const result = await generateQrCode()

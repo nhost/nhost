@@ -1,0 +1,102 @@
+table:
+  name: todos
+  schema: public
+configuration:
+  column_config:
+    created_at:
+      custom_name: createdAt
+    updated_at:
+      custom_name: updatedAt
+    user_id:
+      custom_name: userId
+  custom_column_names:
+    created_at: createdAt
+    updated_at: updatedAt
+    user_id: userId
+  custom_root_fields:
+    delete: deleteTodos
+    delete_by_pk: deleteTodo
+    insert: insertTodos
+    insert_one: insertTodo
+    select_aggregate: todosAggregate
+    select_by_pk: todo
+    update: updateTodos
+    update_by_pk: updateTodo
+object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+insert_permissions:
+  - role: anonymous
+    permission:
+      check: {}
+      set:
+        user_id: x-hasura-user-id
+      columns:
+        - contents
+        - id
+  - role: user
+    permission:
+      check: {}
+      set:
+        user_id: x-hasura-user-id
+      columns:
+        - contents
+        - id
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - contents
+        - created_at
+        - updated_at
+        - id
+        - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - contents
+        - created_at
+        - updated_at
+        - id
+        - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      allow_aggregations: true
+update_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - contents
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: user
+    permission:
+      columns:
+        - contents
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+delete_permissions:
+  - role: anonymous
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id

@@ -1,8 +1,8 @@
 import { useFileUpload } from '@nhost/react'
 import { CircleCheckBig, LoaderCircle, Upload, X } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
-import { cn } from '../../lib/utils'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
+import { cn } from '@/lib/utils'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function UploadSingleFile() {
   const { upload, isUploaded, isUploading, isError } = useFileUpload()

@@ -3,8 +3,8 @@ import { Archive, FileLock2, LogOut, PanelLeft, Settings, SquareCheckBig, User }
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import Nhost from '../../../assets/nhost.svg'
-import { Button } from '../../ui/button'
+import Nhost from '@/assets/nhost.svg'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -152,7 +152,7 @@ export default function Layout() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="sm:max-w-xs">
-              <nav className="grid gap-4 text-lg font-medium">
+              <nav className="flex flex-col gap-4 text-lg font-medium">
                 <NavLink
                   to="/"
                   onClick={() => setShowMobileNav(false)}
@@ -198,6 +198,24 @@ export default function Layout() {
                   Todos
                 </NavLink>
               </nav>
+              <div className="absolute flex flex-col items-center gap-4 px-2 mt-auto bottom-10 sm:py-5">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="overflow-hidden rounded-full">
+                      <Settings className="w-5 h-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" side="right">
+                    <DropdownMenuLabel>
+                      {userEmail} (elevated: {String(elevated)})
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={handleElevate}>
+                      Elevate permissions
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </SheetContent>
           </Sheet>
         </header>

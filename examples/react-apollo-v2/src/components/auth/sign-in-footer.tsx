@@ -1,7 +1,7 @@
 import { useSignInAnonymous } from '@nhost/react'
 import { Link, useNavigate } from 'react-router-dom'
-import { cn } from '../../lib/utils'
-import { Button, buttonVariants } from '../ui/button'
+import { cn } from '@/lib/utils'
+import { Button, buttonVariants } from '@/components/ui/button'
 
 export default function SignInFooter() {
   const navigate = useNavigate()

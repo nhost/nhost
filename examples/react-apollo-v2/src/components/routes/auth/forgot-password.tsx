@@ -1,14 +1,14 @@
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
 import { useSignInAnonymous } from '@nhost/react'
-import { Form, FormControl, FormField, FormItem, FormMessage } from '../../ui/form'
-import { Input } from '../../ui/input'
-import { Button, buttonVariants } from '../../ui/button'
-import { Separator } from '../../ui/separator'
-import { cn } from '../../../lib/utils'
+import { ArrowLeft } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { Link, useNavigate } from 'react-router-dom'
+import { z } from 'zod'
 
 const signInFormSchema = z.object({
   email: z.string().email()

@@ -4,12 +4,11 @@ import { useAuthQuery } from '@nhost/react-apollo'
 import { Info, Plus, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { SECURITY_KEYS_LIST } from '../../gql/security-keys'
-import { Alert, AlertDescription, AlertTitle } from '../../ui/alert'
-import { Button } from '../../ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card'
-import { Input } from '../../ui/input'
-import { Separator } from '../../ui/separator'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
 
 type NotesListQuery = {
   notes: {
@@ -58,12 +57,22 @@ export default function ProtectedNotes() {
       id: string
       nickname?: string
     }[]
-  }>(SECURITY_KEYS_LIST, {
-    variables: { userId: userData?.id },
-    onCompleted: ({ authUserSecurityKeys }) => {
-      setUserHasSecurityKey(authUserSecurityKeys?.length > 0)
+  }>(
+    gql`
+      query securityKeys($userId: uuid!) {
+        authUserSecurityKeys(where: { userId: { _eq: $userId } }) {
+          id
+          nickname
+        }
+      }
+    `,
+    {
+      variables: { userId: userData?.id },
+      onCompleted: ({ authUserSecurityKeys }) => {
+        setUserHasSecurityKey(authUserSecurityKeys?.length > 0)
+      }
     }
-  })
+  )
 
   const [addNoteMutation] = useMutation<{
     insertNote?: {
@@ -119,7 +128,6 @@ export default function ProtectedNotes() {
       await checkElevatedPermission()
     } catch {
       toast.error('Could not elevate permissions')
-
       return
     }
 

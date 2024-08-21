@@ -1,0 +1,38 @@
+[
+  {
+    "value": "disabled",
+    "op": "replace",
+    "path": "/auth/elevatedPrivileges/mode"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/method/oauth/apple/clientId"
+  },
+  {
+    "value": false,
+    "op": "replace",
+    "path": "/auth/method/oauth/apple/enabled"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/method/oauth/apple/keyId"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/method/oauth/apple/privateKey"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/method/oauth/apple/teamId"
+  },
+  {
+    "value": "http://localhost:5174",
+    "op": "replace",
+    "path": "/auth/method/webauthn/relyingParty/origins/0"
+  },
+  {
+    "value": "http://localhost:5174",
+    "op": "replace",
+    "path": "/auth/redirections/clientUrl"
+  }
+]

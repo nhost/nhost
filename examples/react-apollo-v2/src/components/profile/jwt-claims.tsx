@@ -1,6 +1,6 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Code from '@/components/ui/code'
 import { useHasuraClaims } from '@nhost/react'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
-import Code from '../ui/code'
 
 export default function JwtClaims() {
   const claims = useHasuraClaims()

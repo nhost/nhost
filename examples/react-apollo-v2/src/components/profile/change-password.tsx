@@ -1,4 +1,7 @@
-import { useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { gql } from '@apollo/client'
 import {
   useChangePassword,
   useElevateSecurityKeyEmail,
@@ -6,11 +9,8 @@ import {
   useUserId
 } from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { SECURITY_KEYS_LIST } from '../gql/security-keys'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
-import { Input } from '../ui/input'
-import { Button } from '../ui/button'
 
 export default function ChangePassword() {
   const userEmail = useUserEmail()
@@ -25,7 +25,17 @@ export default function ChangePassword() {
       id: string
       nickname?: string
     }[]
-  }>(SECURITY_KEYS_LIST, { variables: { userId } })
+  }>(
+    gql`
+      query securityKeys($userId: uuid!) {
+        authUserSecurityKeys(where: { userId: { _eq: $userId } }) {
+          id
+          nickname
+        }
+      }
+    `,
+    { variables: { userId } }
+  )
 
   useEffect(() => {
     const authUserSecurityKeys = data?.authUserSecurityKeys

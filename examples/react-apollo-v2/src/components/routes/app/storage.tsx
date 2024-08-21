@@ -1,6 +1,6 @@
-import UploadMultipleFiles from '../../storage/upload-multiple-files'
-import UploadSingleFile from '../../storage/upload-single-file'
-import { Card, CardHeader, CardTitle } from '../../ui/card'
+import UploadMultipleFiles from '@/components/storage/upload-multiple-files'
+import UploadSingleFile from '@/components/storage/upload-single-file'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function Storage() {
   return (

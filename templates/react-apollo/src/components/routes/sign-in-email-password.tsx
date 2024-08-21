@@ -2,28 +2,28 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { ArrowLeft } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { Button, buttonVariants } from '../ui/button'
-import { Separator } from '../ui/separator'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { Link } from 'react-router-dom'
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '../ui/input'
 
-const signInFormSchema = z.object({
+const formSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8)
 })
 
 export default function SignInEmailPassword() {
-  const form = useForm<z.infer<typeof signInFormSchema>>({
-    resolver: zodResolver(signInFormSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       password: ''
     }
   })
 
-  const onSubmit = (values: z.infer<typeof signInFormSchema>) => {
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
     console.log({ values })
   }
 

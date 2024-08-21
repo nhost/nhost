@@ -1,14 +1,11 @@
 import { SiApple, SiGithub, SiGoogle, SiLinkedin } from '@icons-pack/react-simple-icons'
 import { Link } from 'react-router-dom'
-import { buttonVariants } from '../../../../templates/react-apollo/src/components/ui/button'
-
-import { cn } from '../../../../templates/react-apollo/src/lib/utils'
 import { useProviderLink } from '@nhost/react'
+import { cn } from '@/lib/utils'
+import { buttonVariants } from '@/components/ui/button'
 
 export default function OAuthLinks() {
-  const { github, apple, google, linkedin } = useProviderLink({
-    redirectTo: window.location.origin
-  })
+  const { github, apple, google, linkedin } = useProviderLink()
 
   return (
     <div className="flex flex-col w-full max-w-md space-y-2">
