@@ -7,7 +7,9 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { AuthLimitingForm } from '@/features/projects/rate-limiting/settings/components/AuthLimitingForm';
+import { FunctionsLimitingForm } from '@/features/projects/rate-limiting/settings/components/FunctionsLimitingForm';
 import { HasuraLimitingForm } from '@/features/projects/rate-limiting/settings/components/HasuraLimitingForm';
+import { StorageLimitingForm } from '@/features/projects/rate-limiting/settings/components/StorageLimitingForm';
 import { type ReactElement } from 'react';
 
 export default function RateLimiting() {
@@ -53,6 +55,8 @@ export default function RateLimiting() {
       </Box>
       <AuthLimitingForm />
       <HasuraLimitingForm />
+      <StorageLimitingForm />
+      <FunctionsLimitingForm />
     </Container>
   );
 }

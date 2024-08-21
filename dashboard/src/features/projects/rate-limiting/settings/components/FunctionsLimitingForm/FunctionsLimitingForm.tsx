@@ -21,12 +21,14 @@ import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),
-  hasura: rateLimitingItemValidationSchema,
+  functions: rateLimitingItemValidationSchema,
 });
 
-export type HasuraLimitingFormValues = Yup.InferType<typeof validationSchema>;
+export type FunctionsLimitingFormValues = Yup.InferType<
+  typeof validationSchema
+>;
 
-export default function HasuraLimitingForm() {
+export default function FunctionsLimitingForm() {
   const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
   const isPlatform = useIsPlatform();
@@ -38,18 +40,18 @@ export default function HasuraLimitingForm() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { hasuraRateLimit, loading } = useGetRateLimits();
+  const { functionsRateLimit, loading } = useGetRateLimits();
   const {
-    enabled: hasuraEnabled,
+    enabled: functionsEnabled,
     interval,
     intervalUnit,
     limit,
-  } = hasuraRateLimit;
+  } = functionsRateLimit;
 
-  const form = useForm<HasuraLimitingFormValues>({
+  const form = useForm<FunctionsLimitingFormValues>({
     defaultValues: {
-      enabled: hasuraEnabled,
-      hasura: {
+      enabled: functionsEnabled,
+      functions: {
         limit,
         interval,
         intervalUnit,
@@ -60,17 +62,17 @@ export default function HasuraLimitingForm() {
   });
 
   useEffect(() => {
-    if (!loading && hasuraEnabled) {
+    if (!loading && functionsEnabled) {
       form.reset({
-        enabled: hasuraEnabled,
-        hasura: {
+        enabled: functionsEnabled,
+        functions: {
           limit,
           interval,
           intervalUnit,
         },
       });
     }
-  }, [loading, hasuraEnabled, interval, intervalUnit, limit, form]);
+  }, [loading, functionsEnabled, interval, intervalUnit, limit, form]);
 
   if (loading) {
     return (
@@ -91,16 +93,16 @@ export default function HasuraLimitingForm() {
 
   const enabled = watch('enabled');
 
-  const handleSubmit = async (formValues: HasuraLimitingFormValues) => {
+  const handleSubmit = async (formValues: FunctionsLimitingFormValues) => {
     const updateConfigPromise = updateRateLimitConfig({
       variables: {
         appId: currentProject.id,
         config: {
-          hasura: {
+          functions: {
             rateLimit: formValues.enabled
               ? {
-                  limit: formValues.hasura.limit,
-                  interval: `${formValues.hasura.interval}${formValues.hasura.intervalUnit}`,
+                  limit: formValues.functions.limit,
+                  interval: `${formValues.functions.interval}${formValues.functions.intervalUnit}`,
                 }
               : null,
           },
@@ -124,9 +126,9 @@ export default function HasuraLimitingForm() {
         }
       },
       {
-        loadingMessage: 'Updating Hasura rate limit settings...',
-        successMessage: 'Hasura rate limit settings updated successfully',
-        errorMessage: 'Failed to update Hasura rate limit settings',
+        loadingMessage: 'Updating Functions rate limit settings...',
+        successMessage: 'Functions rate limit settings updated successfully',
+        errorMessage: 'Failed to update Functions rate limit settings',
       },
     );
   };
@@ -138,7 +140,7 @@ export default function HasuraLimitingForm() {
         className="flex h-full flex-col overflow-hidden"
       >
         <SettingsContainer
-          title="Hasura"
+          title="Functions"
           switchId="enabled"
           showSwitch
           slotProps={{
@@ -152,8 +154,8 @@ export default function HasuraLimitingForm() {
           <Divider />
           <RateLimitField
             register={register}
-            errors={errors.hasura}
-            id="hasura"
+            errors={errors.functions}
+            id="functions"
           />
         </SettingsContainer>
       </Form>

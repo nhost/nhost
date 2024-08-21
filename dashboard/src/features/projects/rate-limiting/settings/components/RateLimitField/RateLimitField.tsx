@@ -29,47 +29,52 @@ export default function RateLimitField({
   register,
   id,
   errors,
+  title,
 }: RateLimitFieldProps) {
   return (
-    <Box className="flex flex-col gap-8 lg:flex-row">
-      <div className="flex flex-row items-center gap-2">
-        <Text>Limit</Text>
-        <Input
-          {...register(`${id}.limit`)}
-          id={`${id}.limit`}
-          type="number"
-          placeholder=""
-          hideEmptyHelperText
-          error={!!errors?.limit}
-          helperText={errors?.limit?.message}
-          autoComplete="off"
-        />
-      </div>
-      <div className="flex flex-row items-center gap-2">
-        <Text>Interval</Text>
-        <Input
-          {...register(`${id}.interval`)}
-          id={`${id}.limit`}
-          type="number"
-          placeholder=""
-          hideEmptyHelperText
-          error={!!errors?.interval}
-          helperText={errors?.interval?.message}
-          autoComplete="off"
-        />
-        <ControlledSelect
-          {...register(`${id}.intervalUnit`)}
-          variant="normal"
-          id={`${id}.intervalUnit`}
-          defaultValue="m"
-          hideEmptyHelperText
-        >
-          {intervalUnitOptions.map(({ value, label }) => (
-            <Option key={`${id}.intervalUnit.${value}`} value={value}>
-              {label}
-            </Option>
-          ))}
-        </ControlledSelect>
+    <Box className="px-4">
+      {title ? <Text className="py-4 font-semibold">{title}</Text> : null}
+      <div className="flex flex-col gap-8 lg:flex-row">
+        <div className="flex flex-row items-center gap-2">
+          <Text>Limit</Text>
+          <Input
+            {...register(`${id}.limit`)}
+            id={`${id}.limit`}
+            type="number"
+            placeholder=""
+            hideEmptyHelperText
+            error={!!errors?.limit}
+            helperText={errors?.limit?.message}
+            autoComplete="off"
+          />
+        </div>
+        <div className="flex flex-row items-center gap-2">
+          <Text>Interval</Text>
+          <Input
+            {...register(`${id}.interval`)}
+            id={`${id}.limit`}
+            type="number"
+            placeholder=""
+            hideEmptyHelperText
+            error={!!errors?.interval}
+            helperText={errors?.interval?.message}
+            autoComplete="off"
+          />
+          <ControlledSelect
+            {...register(`${id}.intervalUnit`)}
+            variant="normal"
+            id={`${id}.intervalUnit`}
+            className="w-27"
+            defaultValue="m"
+            hideEmptyHelperText
+          >
+            {intervalUnitOptions.map(({ value, label }) => (
+              <Option key={`${id}.intervalUnit.${value}`} value={value}>
+                {label}
+              </Option>
+            ))}
+          </ControlledSelect>
+        </div>
       </div>
     </Box>
   );

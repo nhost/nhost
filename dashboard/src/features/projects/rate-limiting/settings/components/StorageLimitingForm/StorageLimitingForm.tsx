@@ -21,12 +21,12 @@ import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),
-  hasura: rateLimitingItemValidationSchema,
+  storage: rateLimitingItemValidationSchema,
 });
 
-export type HasuraLimitingFormValues = Yup.InferType<typeof validationSchema>;
+export type StorageLimitingFormValues = Yup.InferType<typeof validationSchema>;
 
-export default function HasuraLimitingForm() {
+export default function StorageLimitingForm() {
   const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
   const isPlatform = useIsPlatform();
@@ -38,18 +38,18 @@ export default function HasuraLimitingForm() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { hasuraRateLimit, loading } = useGetRateLimits();
+  const { storageRateLimit, loading } = useGetRateLimits();
   const {
-    enabled: hasuraEnabled,
+    enabled: storageEnabled,
     interval,
     intervalUnit,
     limit,
-  } = hasuraRateLimit;
+  } = storageRateLimit;
 
-  const form = useForm<HasuraLimitingFormValues>({
+  const form = useForm<StorageLimitingFormValues>({
     defaultValues: {
-      enabled: hasuraEnabled,
-      hasura: {
+      enabled: storageEnabled,
+      storage: {
         limit,
         interval,
         intervalUnit,
@@ -60,17 +60,17 @@ export default function HasuraLimitingForm() {
   });
 
   useEffect(() => {
-    if (!loading && hasuraEnabled) {
+    if (!loading && storageEnabled) {
       form.reset({
-        enabled: hasuraEnabled,
-        hasura: {
+        enabled: storageEnabled,
+        storage: {
           limit,
           interval,
           intervalUnit,
         },
       });
     }
-  }, [loading, hasuraEnabled, interval, intervalUnit, limit, form]);
+  }, [loading, storageEnabled, interval, intervalUnit, limit, form]);
 
   if (loading) {
     return (
@@ -91,16 +91,16 @@ export default function HasuraLimitingForm() {
 
   const enabled = watch('enabled');
 
-  const handleSubmit = async (formValues: HasuraLimitingFormValues) => {
+  const handleSubmit = async (formValues: StorageLimitingFormValues) => {
     const updateConfigPromise = updateRateLimitConfig({
       variables: {
         appId: currentProject.id,
         config: {
-          hasura: {
+          storage: {
             rateLimit: formValues.enabled
               ? {
-                  limit: formValues.hasura.limit,
-                  interval: `${formValues.hasura.interval}${formValues.hasura.intervalUnit}`,
+                  limit: formValues.storage.limit,
+                  interval: `${formValues.storage.interval}${formValues.storage.intervalUnit}`,
                 }
               : null,
           },
@@ -124,9 +124,9 @@ export default function HasuraLimitingForm() {
         }
       },
       {
-        loadingMessage: 'Updating Hasura rate limit settings...',
-        successMessage: 'Hasura rate limit settings updated successfully',
-        errorMessage: 'Failed to update Hasura rate limit settings',
+        loadingMessage: 'Updating Storage rate limit settings...',
+        successMessage: 'Storage rate limit settings updated successfully',
+        errorMessage: 'Failed to update Storage rate limit settings',
       },
     );
   };
@@ -138,7 +138,7 @@ export default function HasuraLimitingForm() {
         className="flex h-full flex-col overflow-hidden"
       >
         <SettingsContainer
-          title="Hasura"
+          title="Storage"
           switchId="enabled"
           showSwitch
           slotProps={{
@@ -152,8 +152,8 @@ export default function HasuraLimitingForm() {
           <Divider />
           <RateLimitField
             register={register}
-            errors={errors.hasura}
-            id="hasura"
+            errors={errors.storage}
+            id="storage"
           />
         </SettingsContainer>
       </Form>
