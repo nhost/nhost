@@ -1,35 +1,51 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft } from 'lucide-react'
+import { useSignInEmailPassword } from '@nhost/react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { z } from 'zod'
-import { Link } from 'react-router-dom'
+import SignInFooter from '../../auth/sign-in-footer'
+import { Button, buttonVariants } from '../../ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '../../ui/form'
 import { Input } from '../../ui/input'
-import { Button, buttonVariants } from '../../ui/button'
 import { Separator } from '../../ui/separator'
 
-const signInFormSchema = z.object({
+const formSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8)
 })
 
 export default function SignInEmailPassword() {
-  const form = useForm<z.infer<typeof signInFormSchema>>({
-    resolver: zodResolver(signInFormSchema),
+  const navigate = useNavigate()
+  const { signInEmailPassword } = useSignInEmailPassword()
+  const [showEmailVerificationDialog, setShowEmailVerificationDialog] = useState(false)
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       password: ''
     }
   })
 
-  const onSubmit = (values: z.infer<typeof signInFormSchema>) => {
-    console.log({ values })
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const { email, password } = values
+    const result = await signInEmailPassword(email, password)
+    if (result.isError) {
+      toast.error(result.error?.message)
+    } else if (result.needsEmailVerification) {
+      setShowEmailVerificationDialog(true)
+    } else if (result.isSuccess) {
+      navigate('/', { replace: true })
+    }
   }
 
   return (
     <div className="flex flex-row items-center justify-center w-screen min-h-screen bg-gray-100">
       <div className="flex flex-col items-center justify-center w-full max-w-md p-8 bg-white rounded-md shadow">
-        <h1 className="mb-8 text-4xl">Email & password</h1>
+        <h1 className="mb-8 text-3xl text-center">Sign In with email and password</h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col w-full space-y-4">
             <FormField
@@ -57,9 +73,7 @@ export default function SignInEmailPassword() {
                 </FormItem>
               )}
             />
-            <Button type="submit" variant={'destructive'}>
-              Sign In again
-            </Button>
+            <Button type="submit">Sign In</Button>
           </form>
 
           <Link to="/sign-in/forgot-password" className={buttonVariants({ variant: 'link' })}>
@@ -69,11 +83,23 @@ export default function SignInEmailPassword() {
 
         <Separator className="my-2" />
 
-        <Link to="/sign-in" className={buttonVariants({ variant: 'link' })}>
-          <ArrowLeft className="w-4 h-4" />
-          Other sign-in options
-        </Link>
+        <SignInFooter />
       </div>
+
+      <Dialog
+        open={showEmailVerificationDialog}
+        onOpenChange={(open) => setShowEmailVerificationDialog(open)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Verification email sent</DialogTitle>
+          </DialogHeader>
+          <p>
+            You need to verify your email first. Please check your mailbox and follow the
+            confirmation link to complete the registration.
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

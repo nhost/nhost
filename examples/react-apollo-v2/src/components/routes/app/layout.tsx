@@ -1,45 +1,47 @@
-import { useSignOut } from '@nhost/react'
-import {
-  Archive,
-  CircleHelp,
-  FileLock2,
-  Home,
-  LineChart,
-  LogOut,
-  Package,
-  Package2,
-  PanelLeft,
-  Settings,
-  ShoppingCart,
-  User,
-  Users2
-} from 'lucide-react'
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { useElevateSecurityKeyEmail, useSignOut, useUserEmail } from '@nhost/react'
+import { Archive, FileLock2, LogOut, PanelLeft, Settings, SquareCheckBig, User } from 'lucide-react'
+import { useState } from 'react'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import Nhost from '../../../assets/nhost.svg'
 import { Button } from '../../ui/button'
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuLabel,
-//   DropdownMenuSeparator,
-//   DropdownMenuTrigger
-// } from '../../ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '../../ui/dropdown-menu'
 import { Sheet, SheetContent, SheetTrigger } from '../../ui/sheet'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip'
-import Nhost from '../../../assets/nhost.svg'
 
 export default function Layout() {
   const { signOut } = useSignOut()
+  const [showMobileNav, setShowMobileNav] = useState(false)
   const navigate = useNavigate()
+  const userEmail = useUserEmail()
+
+  const { elevated, elevateEmailSecurityKey } = useElevateSecurityKeyEmail()
+
+  const handleElevate = async () => {
+    if (userEmail) {
+      const { elevated, isError } = await elevateEmailSecurityKey(userEmail)
+
+      if (elevated) {
+        toast.success('You now have an elevated permission')
+      }
+
+      if (isError) {
+        toast.error('Could not elevate permission')
+      }
+    }
+  }
 
   const handleSignOut = async () => {
     await signOut()
     navigate('/')
   }
-
-  console.log({
-    render: true
-  })
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-muted/40">
@@ -62,7 +64,7 @@ export default function Layout() {
             <TooltipTrigger asChild>
               <NavLink
                 to="/profile"
-                className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 hover:text-foreground md:h-8 md:w-8 aria-[current]:bg-accent aria-[current]:text-accent-foreground"
+                className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 text-muted-foreground hover:text-foreground md:h-8 md:w-8 aria-[current]:bg-accent aria-[current]:text-accent-foreground"
               >
                 <User className="w-5 h-5" />
                 <span className="sr-only">Profile</span>
@@ -70,24 +72,24 @@ export default function Layout() {
             </TooltipTrigger>
             <TooltipContent side="right">Profile</TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <NavLink
                 to="/protected-notes"
-                className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 hover:text-foreground md:h-8 md:w-8"
+                className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 text-muted-foreground hover:text-foreground md:h-8 md:w-8 aria-[current]:bg-accent aria-[current]:text-accent-foreground"
               >
                 <FileLock2 className="w-5 h-5" />
-                {/* This is for the most part the most basic feature to require adding an extra verified header */}
                 <span className="sr-only">Protected notes</span>
               </NavLink>
             </TooltipTrigger>
-            <TooltipContent side="right">Secret Notes</TooltipContent>
+            <TooltipContent side="right">Protected Notes</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <NavLink
                 to="/storage"
-                className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 text-muted-foreground hover:text-foreground md:h-8 md:w-8"
+                className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 text-muted-foreground hover:text-foreground md:h-8 md:w-8 aria-[current]:bg-accent aria-[current]:text-accent-foreground"
               >
                 <Archive className="w-5 h-5" />
                 <span className="sr-only">Storage</span>
@@ -95,32 +97,18 @@ export default function Layout() {
             </TooltipTrigger>
             <TooltipContent side="right">Storage</TooltipContent>
           </Tooltip>
+
           <Tooltip>
             <TooltipTrigger asChild>
               <NavLink
-                to="/apollo"
-                className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 text-muted-foreground hover:text-foreground md:h-8 md:w-8"
+                to="/todos"
+                className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 text-muted-foreground hover:text-foreground md:h-8 md:w-8 aria-[current]:bg-accent aria-[current]:text-accent-foreground"
               >
-                <img
-                  className="w-5 h-5"
-                  src="https://cdn.worldvectorlogo.com/logos/apollo-graphql-compact.svg"
-                />
-                <span className="sr-only">Apollo client</span>
+                <SquareCheckBig className="w-5 h-5" />
+                <span className="sr-only">Todos</span>
               </NavLink>
             </TooltipTrigger>
-            <TooltipContent side="right">Apollo client</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <NavLink
-                to="#"
-                className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 text-muted-foreground hover:text-foreground md:h-8 md:w-8"
-              >
-                <CircleHelp className="w-5 h-5" />
-                <span className="sr-only">About</span>
-              </NavLink>
-            </TooltipTrigger>
-            <TooltipContent side="right">About</TooltipContent>
+            <TooltipContent side="right">Todos</TooltipContent>
           </Tooltip>
 
           <Tooltip>
@@ -138,23 +126,25 @@ export default function Layout() {
           </Tooltip>
         </nav>
         <nav className="flex flex-col items-center gap-4 px-2 mt-auto sm:py-5">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <NavLink
-                to="#"
-                className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 text-muted-foreground hover:text-foreground md:h-8 md:w-8"
-              >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="overflow-hidden rounded-full">
                 <Settings className="w-5 h-5" />
-                <span className="sr-only">Settings</span>
-              </NavLink>
-            </TooltipTrigger>
-            <TooltipContent side="right">Settings</TooltipContent>
-          </Tooltip>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="right">
+              <DropdownMenuLabel>
+                {userEmail} (elevated: {String(elevated)})
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={handleElevate}>Elevate permissions</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
       </aside>
       <div className="flex flex-col items-center sm:gap-4 sm:py-4 sm:pl-14">
         <header className="sticky top-0 z-30 flex items-center w-full gap-4 px-4 border-b h-14 bg-background sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-          <Sheet>
+          <Sheet open={showMobileNav} onOpenChange={(open) => setShowMobileNav(open)}>
             <SheetTrigger asChild>
               <Button size="icon" variant="outline" className="sm:hidden">
                 <PanelLeft className="w-5 h-5" />
@@ -162,69 +152,55 @@ export default function Layout() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="sm:max-w-xs">
-              <nav className="grid gap-6 text-lg font-medium">
+              <nav className="grid gap-4 text-lg font-medium">
                 <NavLink
-                  to="#"
-                  className="flex items-center justify-center w-10 h-10 gap-2 text-lg font-semibold rounded-full group shrink-0 bg-primary text-primary-foreground md:text-base"
+                  to="/"
+                  onClick={() => setShowMobileNav(false)}
+                  className="flex items-center justify-center rounded-full h-9 w-9 bg-primary opacity-80 aria-[current]:opacity-100 hover:opacity-90 text-primary-foreground"
                 >
-                  <Package2 className="w-5 h-5 transition-all group-hover:scale-110" />
-                  <span className="sr-only">Acme Inc</span>
+                  <img src={Nhost} className="w-4 h-4" />
+                  <span className="sr-only">Home</span>
                 </NavLink>
+
                 <NavLink
-                  to="#"
-                  className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                  to="/profile"
+                  onClick={() => setShowMobileNav(false)}
+                  className="flex items-center gap-4 p-2 rounded-md aria-[current]:bg-accent aria-[current]:text-accent-foreground text-muted-foreground"
                 >
-                  <Home className="w-5 h-5" />
-                  Dashboard
+                  <User className="w-5 h-5" />
+                  Profile
                 </NavLink>
-                <NavLink to="#" className="flex items-center gap-4 px-2.5 text-foreground">
-                  <ShoppingCart className="w-5 h-5" />
-                  Orders
-                </NavLink>
+
                 <NavLink
-                  to="#"
-                  className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                  to="/protected-notes"
+                  onClick={() => setShowMobileNav(false)}
+                  className="flex items-center gap-4 p-2 rounded-md aria-[current]:bg-accent aria-[current]:text-accent-foreground text-muted-foreground"
                 >
-                  <Package className="w-5 h-5" />
-                  Products
+                  <FileLock2 className="w-5 h-5" />
+                  Protected notes
                 </NavLink>
+
                 <NavLink
-                  to="#"
-                  className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                  to="/storage"
+                  onClick={() => setShowMobileNav(false)}
+                  className="flex items-center gap-4 p-2 rounded-md aria-[current]:bg-accent aria-[current]:text-accent-foreground text-muted-foreground"
                 >
-                  <Users2 className="w-5 h-5" />
-                  Customers
+                  <Archive className="w-5 h-5" />
+                  Storage
                 </NavLink>
+
                 <NavLink
-                  to="#"
-                  className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                  to="/todos"
+                  onClick={() => setShowMobileNav(false)}
+                  className="flex items-center gap-4 p-2 rounded-md aria-[current]:bg-accent aria-[current]:text-accent-foreground text-muted-foreground"
                 >
-                  <LineChart className="w-5 h-5" />
-                  Settings
+                  <SquareCheckBig className="w-5 h-5" />
+                  Todos
                 </NavLink>
               </nav>
             </SheetContent>
           </Sheet>
-
-          {/* <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="overflow-hidden rounded-full">
-                <User />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={handleSignOut}>Sign Out</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu> */}
         </header>
-        {/* <main className="grid items-center flex-1 max-w-6xl gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-          <Outlet />
-        </main> */}
         <main className="flex flex-col items-center justify-center flex-1 w-full max-w-5xl p-4">
           <Outlet />
         </main>

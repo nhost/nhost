@@ -7,7 +7,7 @@ import { useProviderLink } from '@nhost/react'
 
 export default function OAuthLinks() {
   const { github, apple, google, linkedin } = useProviderLink({
-    redirectTo: 'http://localhost:5173'
+    redirectTo: window.location.origin
   })
 
   return (

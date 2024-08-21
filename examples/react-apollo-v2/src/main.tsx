@@ -1,4 +1,5 @@
 import { NhostClient, NhostProvider } from '@nhost/react'
+import { NhostApolloProvider } from '@nhost/react-apollo'
 import { StrictMode } from 'react'
 import * as ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
@@ -10,14 +11,16 @@ import './styles/globals.css'
 const nhost = new NhostClient({ subdomain: 'local' })
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <BrowserRouter>
+  <StrictMode>
     <NhostProvider nhost={nhost}>
-      <StrictMode>
+      <NhostApolloProvider nhost={nhost}>
         <TooltipProvider>
-          <App />
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+          <Toaster />
         </TooltipProvider>
-        <Toaster />
-      </StrictMode>
+      </NhostApolloProvider>
     </NhostProvider>
-  </BrowserRouter>
+  </StrictMode>
 )
