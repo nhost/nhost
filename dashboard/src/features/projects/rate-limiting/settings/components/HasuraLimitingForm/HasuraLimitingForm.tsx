@@ -1,20 +1,12 @@
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Text } from '@/components/ui/v2/Text';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
-import {
-  intervalUnitOptions,
-  rateLimitingItemValidationSchema,
-} from '@/features/projects/rate-limiting/settings/components/validationSchemas';
+import { rateLimitingItemValidationSchema } from '@/features/projects/rate-limiting/settings/components/validationSchemas';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
@@ -26,6 +18,7 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
+import { RateLimitField } from '../RateLimitField';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),
@@ -180,56 +173,11 @@ export default function HasuraLimitingForm() {
           }}
           className={twMerge('flex flex-col', !enabled && 'hidden')}
         >
-          <Box className="flex flex-row gap-8">
-            <div className="flex flex-row items-center gap-2">
-              <Text>Limit</Text>
-              <Input
-                {...register('hasura.limit')}
-                id="bruteForce.limit"
-                type="number"
-                placeholder=""
-                // inputProps={{
-                //   className: 'text-right',
-                // }}
-                hideEmptyHelperText
-                error={!!errors.hasura?.limit}
-                helperText={errors?.hasura?.limit?.message}
-                autoComplete="off"
-                fullWidth
-              />
-            </div>
-            <div className="grid grid-flow-row items-center gap-x-2 lg:grid-cols-7">
-              <Text className="col-span-1 text-right">Interval</Text>
-              <Input
-                {...register('hasura.interval')}
-                id="bruteForce.limit"
-                type="number"
-                placeholder=""
-                className="col-span-1"
-                hideEmptyHelperText
-                error={!!errors.hasura?.interval}
-                helperText={errors?.hasura?.interval?.message}
-                autoComplete="off"
-              />
-              <ControlledSelect
-                {...register('hasura.intervalUnit')}
-                variant="normal"
-                id="bruteForce.intervalUnit"
-                defaultValue="m"
-                className="col-span-1"
-                hideEmptyHelperText
-              >
-                {intervalUnitOptions.map(({ value, label }) => (
-                  <Option
-                    key={`bruteForce.intervalUnit.${value}`}
-                    value={value}
-                  >
-                    {label}
-                  </Option>
-                ))}
-              </ControlledSelect>
-            </div>
-          </Box>
+          <RateLimitField
+            register={register}
+            errors={errors.hasura}
+            id="hasura"
+          />
         </SettingsContainer>
       </Form>
     </FormProvider>
