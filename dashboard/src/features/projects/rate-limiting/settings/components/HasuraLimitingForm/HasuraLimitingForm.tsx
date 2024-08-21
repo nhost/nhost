@@ -1,76 +1,163 @@
+import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
+import { useDialog } from '@/components/common/DialogProvider';
 import { useUI } from '@/components/common/UIProvider';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
+import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
-import type { DialogFormProps } from '@/types/common';
-import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { FormProvider, useForm } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
-import * as Yup from 'yup';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   intervalUnitOptions,
   rateLimitingItemValidationSchema,
-} from '../validationSchemas';
+} from '@/features/projects/rate-limiting/settings/components/validationSchemas';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
+import {
+  useGetRateLimitConfigQuery,
+  useUpdateRateLimitConfigMutation,
+} from '@/utils/__generated__/graphql';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
+import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),
-  bruteForce: rateLimitingItemValidationSchema,
+  hasura: rateLimitingItemValidationSchema,
 });
 
-export type AuthLimitingFormValues = Yup.InferType<typeof validationSchema>;
+export type HasuraLimitingFormValues = Yup.InferType<typeof validationSchema>;
 
-export interface AssistantFormProps extends DialogFormProps {
-  /**
-   * Function to be called when the submit is successful.
-   */
-  onSubmit?: VoidFunction | ((args?: any) => Promise<any>);
-}
-
-export default function HasuraLimitingForm({ onSubmit }: AssistantFormProps) {
+export default function HasuraLimitingForm() {
+  const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
+  const isPlatform = useIsPlatform();
 
-  const form = useForm<AuthLimitingFormValues>({
+  const { currentProject } = useCurrentWorkspaceAndProject();
+  const localMimirClient = useLocalMimirClient();
+
+  const { data, loading } = useGetRateLimitConfigQuery({
+    variables: {
+      appId: currentProject?.id,
+    },
+    skip: !currentProject,
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
+  const [updateRateLimitConfig] = useUpdateRateLimitConfigMutation({
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+  });
+
+  const splitIntervalNameAndUnit = (interval: string) => {
+    if (!interval) {
+      return {};
+    }
+    const regex = /^(\d+)([a-zA-Z])$/;
+    const match = interval.match(regex);
+
+    if (!match) {
+      return {};
+    }
+
+    const [, intervalValue, intervalUnit] = match;
+    return {
+      interval: parseInt(intervalValue, 10),
+      intervalUnit,
+    };
+  };
+
+  const rateLimit = data?.config?.hasura?.rateLimit;
+
+  const { limit, interval: intervalStr } = rateLimit || {};
+  const { interval, intervalUnit } = splitIntervalNameAndUnit(intervalStr);
+
+  const form = useForm<HasuraLimitingFormValues>({
     defaultValues: {
-      enabled: false,
-      bruteForce: {
-        limit: undefined,
-        interval: undefined,
-        intervalUnit: 'm',
+      enabled: !!rateLimit,
+      hasura: {
+        limit: limit || 1000,
+        interval: interval || 5,
+        intervalUnit: intervalUnit || 'm',
       },
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
   });
 
+  useEffect(() => {
+    if (!loading && rateLimit) {
+      form.reset({
+        enabled: !!rateLimit,
+        hasura: {
+          limit: limit || 1000,
+          interval: interval || 5,
+          intervalUnit: intervalUnit || 'm',
+        },
+      });
+    }
+  }, [loading, rateLimit, interval, intervalUnit, limit, form]);
+
+  if (loading) {
+    return (
+      <ActivityIndicator
+        delay={1000}
+        label="Loading rate limits..."
+        className="justify-center"
+      />
+    );
+  }
+
   const {
     register,
-    getValues,
-    formState: { errors, dirtyFields },
+    formState: { errors },
     formState,
     watch,
   } = form;
 
   const enabled = watch('enabled');
 
-  const isDirty = Object.keys(dirtyFields).length > 0;
-
-  console.log('values:', getValues());
-
-  const handleSubmit = async (formValues: AuthLimitingFormValues) => {
+  const handleSubmit = async (formValues: HasuraLimitingFormValues) => {
+    const updateConfigPromise = updateRateLimitConfig({
+      variables: {
+        appId: currentProject.id,
+        config: {
+          hasura: {
+            rateLimit: formValues.enabled
+              ? {
+                  limit: formValues.hasura.limit,
+                  interval: `${formValues.hasura.interval}${formValues.hasura.intervalUnit}`,
+                }
+              : null,
+          },
+        },
+      },
+    });
     await execPromiseWithErrorToast(
       async () => {
-        onSubmit?.();
+        await updateConfigPromise;
+
+        if (!isPlatform) {
+          openDialog({
+            title: 'Apply your changes',
+            component: <ApplyLocalSettingsDialog />,
+            props: {
+              PaperProps: {
+                className: 'max-w-2xl',
+              },
+            },
+          });
+        }
       },
       {
-        loadingMessage: 'Configuring the Assistant...',
-        successMessage: 'The Assistant has been configured successfully.',
-        errorMessage:
-          'An error occurred while configuring the Assistant. Please try again.',
+        loadingMessage: 'Updating Hasura rate limit settings...',
+        successMessage: 'Hasura rate limit settings updated successfully',
+        errorMessage: 'Failed to update Hasura rate limit settings',
       },
     );
   };
@@ -91,59 +178,58 @@ export default function HasuraLimitingForm({ onSubmit }: AssistantFormProps) {
               loading: formState.isSubmitting,
             },
           }}
-          className={twMerge(!enabled && 'hidden')}
+          className={twMerge('flex flex-col', !enabled && 'hidden')}
         >
-          <div className="flex flex-1 flex-col space-y-4 overflow-auto p-4">
-            <Box className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
-              <div className="flex flex-row items-center gap-2  lg:col-span-2">
-                <Text>Limit</Text>
-                <Input
-                  {...register('bruteForce.limit')}
-                  id="bruteForce.limit"
-                  type="number"
-                  placeholder=""
-                  // inputProps={{
-                  //   className: 'text-right',
-                  // }}
-                  hideEmptyHelperText
-                  error={!!errors.bruteForce?.limit}
-                  helperText={errors?.bruteForce?.limit?.message}
-                  fullWidth
-                  autoComplete="off"
-                />
-              </div>
-              <div className="grid grid-flow-col items-center gap-x-2 lg:col-span-3">
-                <Text>Interval</Text>
-                <Input
-                  {...register('bruteForce.interval')}
-                  id="bruteForce.limit"
-                  type="number"
-                  placeholder=""
-                  hideEmptyHelperText
-                  error={!!errors.bruteForce?.interval}
-                  helperText={errors?.bruteForce?.interval?.message}
-                  fullWidth
-                  autoComplete="off"
-                />
-                <ControlledSelect
-                  {...register('bruteForce.intervalUnit')}
-                  variant="normal"
-                  id="bruteForce.intervalUnit"
-                  defaultValue="m"
-                  hideEmptyHelperText
-                >
-                  {intervalUnitOptions.map(({ value, label }) => (
-                    <Option
-                      key={`bruteForce.intervalUnit.${value}`}
-                      value={value}
-                    >
-                      {label}
-                    </Option>
-                  ))}
-                </ControlledSelect>
-              </div>
-            </Box>
-          </div>
+          <Box className="flex flex-row gap-8">
+            <div className="flex flex-row items-center gap-2">
+              <Text>Limit</Text>
+              <Input
+                {...register('hasura.limit')}
+                id="bruteForce.limit"
+                type="number"
+                placeholder=""
+                // inputProps={{
+                //   className: 'text-right',
+                // }}
+                hideEmptyHelperText
+                error={!!errors.hasura?.limit}
+                helperText={errors?.hasura?.limit?.message}
+                autoComplete="off"
+                fullWidth
+              />
+            </div>
+            <div className="grid grid-flow-row items-center gap-x-2 lg:grid-cols-7">
+              <Text className="col-span-1 text-right">Interval</Text>
+              <Input
+                {...register('hasura.interval')}
+                id="bruteForce.limit"
+                type="number"
+                placeholder=""
+                className="col-span-1"
+                hideEmptyHelperText
+                error={!!errors.hasura?.interval}
+                helperText={errors?.hasura?.interval?.message}
+                autoComplete="off"
+              />
+              <ControlledSelect
+                {...register('hasura.intervalUnit')}
+                variant="normal"
+                id="bruteForce.intervalUnit"
+                defaultValue="m"
+                className="col-span-1"
+                hideEmptyHelperText
+              >
+                {intervalUnitOptions.map(({ value, label }) => (
+                  <Option
+                    key={`bruteForce.intervalUnit.${value}`}
+                    value={value}
+                  >
+                    {label}
+                  </Option>
+                ))}
+              </ControlledSelect>
+            </div>
+          </Box>
         </SettingsContainer>
       </Form>
     </FormProvider>
