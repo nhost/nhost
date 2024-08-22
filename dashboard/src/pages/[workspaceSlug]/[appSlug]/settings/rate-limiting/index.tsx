@@ -9,7 +9,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { AuthLimitingForm } from '@/features/projects/rate-limiting/settings/components/AuthLimitingForm';
 import { FunctionsLimitingForm } from '@/features/projects/rate-limiting/settings/components/FunctionsLimitingForm';
 import { HasuraLimitingForm } from '@/features/projects/rate-limiting/settings/components/HasuraLimitingForm';
-import { RunFunctionLimitingForm } from '@/features/projects/rate-limiting/settings/components/RunFuctionLimitingForm';
+import { RunServiceLimitingForm } from '@/features/projects/rate-limiting/settings/components/RunServiceLimitingForm';
 import { StorageLimitingForm } from '@/features/projects/rate-limiting/settings/components/StorageLimitingForm';
 import { useGetRunServiceRateLimits } from '@/features/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits';
 import { type ReactElement } from 'react';
@@ -62,7 +62,7 @@ export default function RateLimiting() {
       <StorageLimitingForm />
       <FunctionsLimitingForm />
       {services.map((service) => (
-        <RunFunctionLimitingForm
+        <RunServiceLimitingForm
           key={service.id}
           title={service.name}
           serviceId={service.id}

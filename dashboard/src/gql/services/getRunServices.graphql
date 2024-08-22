@@ -27,6 +27,10 @@ fragment RunServiceConfig on ConfigRunServiceConfig {
     ingresses {
       fqdn
     }
+    rateLimit {
+      limit
+      interval
+    }
   }
   healthCheck {
     port

@@ -1,1 +1,1 @@
-export { default as RunFunctionLimitingForm } from './RunFunctionLimitingForm';
+export { default as RunServiceLimitingForm } from './RunServiceLimitingForm';
