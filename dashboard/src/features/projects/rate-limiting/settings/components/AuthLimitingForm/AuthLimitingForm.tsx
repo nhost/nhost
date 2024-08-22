@@ -113,7 +113,6 @@ export default function AuthLimitingForm() {
 
   useEffect(() => {
     if (!loading && authRateEnabled) {
-      console.log('Resetting');
       form.reset({
         enabled: authRateEnabled,
         bruteForce: {
@@ -184,7 +183,6 @@ export default function AuthLimitingForm() {
   const enabled = watch('enabled');
 
   const handleSubmit = async (formValues: AuthLimitingFormValues) => {
-    console.log(formValues.enabled);
     const updateConfigPromise = updateRateLimitConfig({
       variables: {
         appId: currentProject.id,

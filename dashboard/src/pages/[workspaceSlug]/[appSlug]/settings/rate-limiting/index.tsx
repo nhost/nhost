@@ -67,7 +67,6 @@ export default function RateLimiting() {
           title={service.name}
           serviceId={service.id}
           ports={service.ports}
-          rawPorts={service.rawPorts}
           loading={loading}
         />
       ))}

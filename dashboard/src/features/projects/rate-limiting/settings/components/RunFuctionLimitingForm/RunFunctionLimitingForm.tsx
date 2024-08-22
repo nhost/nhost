@@ -33,7 +33,6 @@ export interface RunFunctionLimitingFormProps {
   serviceId?: string;
   loading?: boolean;
   ports?: UseGetRunServiceRateLimitsReturn['services'][0]['ports'];
-  rawPorts?: UseGetRunServiceRateLimitsReturn['services'][0]['rawPorts'];
 }
 
 export default function RunFunctionLimitingForm({
@@ -41,7 +40,6 @@ export default function RunFunctionLimitingForm({
   serviceId,
   ports,
   loading,
-  rawPorts,
 }: RunFunctionLimitingFormProps) {
   const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
@@ -111,11 +109,10 @@ export default function RunFunctionLimitingForm({
         appID: currentProject?.id,
         serviceID: serviceId,
         config: {
-          ports: rawPorts.map((port, index) => {
-            const { __typename, ...rest } = port;
+          ports: ports.map((port, index) => {
             const rateLimit = formValues.ports[index];
             return {
-              ...rest,
+              ...port,
               rateLimit: enabled
                 ? {
                     limit: rateLimit.limit,
@@ -145,9 +142,9 @@ export default function RunFunctionLimitingForm({
         }
       },
       {
-        loadingMessage: 'Updating Functions rate limit settings...',
-        successMessage: 'Functions rate limit settings updated successfully',
-        errorMessage: 'Failed to update Functions rate limit settings',
+        loadingMessage: 'Updating Run service rate limit settings...',
+        successMessage: 'Run service rate limit settings updated successfully',
+        errorMessage: 'Failed to update Run service rate limit settings',
       },
     );
   };

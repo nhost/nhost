@@ -27,13 +27,13 @@ export interface UseGetRunServiceRateLimitsReturn {
     ports?: {
       type?: string;
       port?: string;
+      publish?: boolean;
       rateLimit?: {
         limit?: number;
         interval?: number;
         intervalUnit?: string;
       };
     }[];
-    rawPorts?: GetRunServicesRateLimitQuery['app']['runServices'][0]['config']['ports'];
   }[];
   loading: boolean;
 }
@@ -85,6 +85,7 @@ export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimits
       };
       return {
         type: port?.type,
+        publish: port?.publish,
         port: port?.port,
         rateLimit,
       };
@@ -93,7 +94,6 @@ export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimits
       name: service.config?.name,
       id: service.id ?? service.serviceID,
       ports,
-      rawPorts: service.config?.ports,
     };
   });
 
