@@ -1,6 +1,7 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import { removeTypename } from '@/utils/helpers';
 import {
   useGetLocalRunServiceRateLimitQuery,
   useGetRunServicesRateLimitQuery,
@@ -33,6 +34,9 @@ export interface UseGetRunServiceRateLimitsReturn {
         interval?: number;
         intervalUnit?: string;
       };
+      ingresses?: {
+        fqdn?: Array<string>;
+      }[];
     }[];
   }[];
   loading: boolean;
@@ -86,6 +90,7 @@ export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimits
         publish: port?.publish,
         port: port?.port,
         rateLimit,
+        ingresses: port?.ingresses ? removeTypename(port.ingresses) : [],
       };
     });
     return {

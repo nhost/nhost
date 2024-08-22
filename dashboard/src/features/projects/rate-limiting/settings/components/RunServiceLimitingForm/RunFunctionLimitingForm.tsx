@@ -24,23 +24,23 @@ export const validationSchema = Yup.object({
   ports: Yup.array().of(rateLimitingItemValidationSchema),
 });
 
-export type RunFunctionLimitingFormValues = Yup.InferType<
+export type RunServiceLimitingFormValues = Yup.InferType<
   typeof validationSchema
 >;
 
-export interface RunFunctionLimitingFormProps {
+export interface RunServiceLimitingFormProps {
   title?: string;
   serviceId?: string;
   loading?: boolean;
   ports?: UseGetRunServiceRateLimitsReturn['services'][0]['ports'];
 }
 
-export default function RunFunctionLimitingForm({
+export default function RunServiceLimitingForm({
   title,
   serviceId,
   ports,
   loading,
-}: RunFunctionLimitingFormProps) {
+}: RunServiceLimitingFormProps) {
   const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
   const isPlatform = useIsPlatform();
@@ -52,11 +52,11 @@ export default function RunFunctionLimitingForm({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const runFunctionEnabledByDefault = !!ports?.some((port) => port.rateLimit);
+  const runServiceEnabledByDefault = !!ports?.some((port) => port.rateLimit);
 
-  const form = useForm<RunFunctionLimitingFormValues>({
+  const form = useForm<RunServiceLimitingFormValues>({
     defaultValues: {
-      enabled: runFunctionEnabledByDefault,
+      enabled: runServiceEnabledByDefault,
       ports: [
         ...ports.map((port) => ({
           limit: port.rateLimit?.limit,
@@ -70,9 +70,9 @@ export default function RunFunctionLimitingForm({
   });
 
   useEffect(() => {
-    if (!loading && runFunctionEnabledByDefault) {
+    if (!loading && runServiceEnabledByDefault) {
       form.reset({
-        enabled: runFunctionEnabledByDefault,
+        enabled: runServiceEnabledByDefault,
         ports: [
           ...ports.map((port) => ({
             limit: port.rateLimit?.limit,
@@ -82,7 +82,7 @@ export default function RunFunctionLimitingForm({
         ],
       });
     }
-  }, [loading, runFunctionEnabledByDefault, ports, form]);
+  }, [loading, runServiceEnabledByDefault, ports, form]);
 
   if (loading) {
     return (
@@ -103,7 +103,7 @@ export default function RunFunctionLimitingForm({
 
   const enabled = watch('enabled');
 
-  const handleSubmit = async (formValues: RunFunctionLimitingFormValues) => {
+  const handleSubmit = async (formValues: RunServiceLimitingFormValues) => {
     const updateConfigPromise = updateRunServiceRateLimit({
       variables: {
         appID: currentProject?.id,

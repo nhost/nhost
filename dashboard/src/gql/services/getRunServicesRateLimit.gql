@@ -8,6 +8,9 @@ fragment RunServiceRateLimit on ConfigRunServiceConfig {
       limit
       interval
     }
+    ingresses {
+      fqdn
+    }
   }
 }
 
