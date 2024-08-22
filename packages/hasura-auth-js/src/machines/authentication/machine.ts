@@ -19,6 +19,7 @@ import {
   INVALID_MFA_TICKET_ERROR,
   INVALID_PASSWORD_ERROR,
   INVALID_PHONE_NUMBER_ERROR,
+  INVALID_REFRESH_TOKEN,
   NETWORK_ERROR_CODE,
   NO_MFA_TICKET_ERROR,
   VALIDATION_ERROR_CODE
@@ -341,7 +342,13 @@ export const createAuthMachine = ({
                               actions: ['saveSession', 'resetTimer', 'reportTokenChanged'],
                               target: 'pending'
                             },
-                            onError: [{ actions: 'saveRefreshAttempt', target: 'pending' }]
+                            onError: [
+                              {
+                                cond: 'isTokenInvalidOrExpired',
+                                target: '#nhost.authentication.signedOut'
+                              },
+                              { actions: 'saveRefreshAttempt', target: 'pending' }
+                            ]
                           }
                         }
                       }
@@ -755,7 +762,9 @@ export const createAuthMachine = ({
 
         // * Event guards
         hasSession: (_, e) => !!e.data?.session,
-        hasMfaTicket: (_, e) => !!e.data?.mfa
+        hasMfaTicket: (_, e) => !!e.data?.mfa,
+        isTokenInvalidOrExpired: (_, { data: { error } }: any) =>
+          error.status === 401 && error.error === INVALID_REFRESH_TOKEN.error
       },
 
       services: {

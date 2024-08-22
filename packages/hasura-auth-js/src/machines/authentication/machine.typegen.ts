@@ -213,6 +213,7 @@ export interface Typegen0 {
       | 'error.platform.authenticateWithPAT'
       | 'error.platform.authenticateWithToken'
       | 'error.platform.importRefreshToken'
+      | 'error.platform.refreshToken'
       | 'error.platform.signInMfaTotp'
     reportTokenChanged:
       | 'SESSION_UPDATE'
@@ -305,6 +306,7 @@ export interface Typegen0 {
     isAutoRefreshDisabled: ''
     isRefreshTokenPAT: ''
     isSignedIn: '' | 'error.platform.authenticateWithToken'
+    isTokenInvalidOrExpired: 'error.platform.refreshToken'
     noToken: ''
     refreshTimerShouldRefresh: ''
     shouldRetryImportToken: 'error.platform.importRefreshToken'
