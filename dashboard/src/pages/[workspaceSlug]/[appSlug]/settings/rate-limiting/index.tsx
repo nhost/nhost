@@ -61,15 +61,22 @@ export default function RateLimiting() {
       <HasuraLimitingForm />
       <StorageLimitingForm />
       <FunctionsLimitingForm />
-      {services.map((service) => (
-        <RunServiceLimitingForm
-          key={service.id}
-          title={service.name}
-          serviceId={service.id}
-          ports={service.ports}
-          loading={loading}
-        />
-      ))}
+      {services.map((service) => {
+        if (
+          !service.ports.some((port) => port.type === 'http' && port.publish)
+        ) {
+          return null;
+        }
+        return (
+          <RunServiceLimitingForm
+            key={service.id}
+            title={service.name}
+            serviceId={service.id}
+            ports={service.ports}
+            loading={loading}
+          />
+        );
+      })}
     </Container>
   );
 }
