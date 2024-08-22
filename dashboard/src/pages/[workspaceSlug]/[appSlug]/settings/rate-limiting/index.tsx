@@ -10,10 +10,13 @@ import { AuthLimitingForm } from '@/features/projects/rate-limiting/settings/com
 import { FunctionsLimitingForm } from '@/features/projects/rate-limiting/settings/components/FunctionsLimitingForm';
 import { HasuraLimitingForm } from '@/features/projects/rate-limiting/settings/components/HasuraLimitingForm';
 import { StorageLimitingForm } from '@/features/projects/rate-limiting/settings/components/StorageLimitingForm';
+import { useGetRunServiceRateLimits } from '@/features/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits';
 import { type ReactElement } from 'react';
 
 export default function RateLimiting() {
   const { currentProject } = useCurrentWorkspaceAndProject();
+
+  const { services, loading } = useGetRunServiceRateLimits();
 
   if (currentProject?.plan?.isFree) {
     return (
@@ -57,6 +60,10 @@ export default function RateLimiting() {
       <HasuraLimitingForm />
       <StorageLimitingForm />
       <FunctionsLimitingForm />
+      {/* {services.map((service) => {
+
+
+      })} */}
     </Container>
   );
 }

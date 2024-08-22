@@ -13,11 +13,11 @@ import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { useUpdateRateLimitConfigMutation } from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { RateLimitField } from 'features/projects/rate-limiting/settings/components/RateLimitField';
+import { useGetRateLimits } from 'features/projects/rate-limiting/settings/hooks/useGetRateLimits';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
-import useGetRateLimits from '../../hooks/useGetRateLimits/useGetRateLimits';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),

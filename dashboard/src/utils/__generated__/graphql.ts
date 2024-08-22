@@ -23508,6 +23508,26 @@ export type GetLocalRunServiceConfigsQueryVariables = Exact<{
 
 export type GetLocalRunServiceConfigsQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } }> };
 
+export type RunServiceRateLimitFragment = { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null };
+
+export type GetRunServicesRateLimitQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
+}>;
+
+
+export type GetRunServicesRateLimitQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null } | null }> } | null };
+
+export type GetLocalRunServiceRateLimitQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetLocalRunServiceRateLimitQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null } }> };
+
 export type InsertRunServiceMutationVariables = Exact<{
   object: Run_Service_Insert_Input;
 }>;
@@ -23974,6 +23994,20 @@ export const RunServiceConfigFragmentDoc = gql`
     port
     initialDelaySeconds
     probePeriodSeconds
+  }
+}
+    `;
+export const RunServiceRateLimitFragmentDoc = gql`
+    fragment RunServiceRateLimit on ConfigRunServiceConfig {
+  name
+  ports {
+    port
+    type
+    publish
+    rateLimit {
+      limit
+      interval
+    }
   }
 }
     `;
@@ -27820,6 +27854,97 @@ export type GetLocalRunServiceConfigsLazyQueryHookResult = ReturnType<typeof use
 export type GetLocalRunServiceConfigsQueryResult = Apollo.QueryResult<GetLocalRunServiceConfigsQuery, GetLocalRunServiceConfigsQueryVariables>;
 export function refetchGetLocalRunServiceConfigsQuery(variables: GetLocalRunServiceConfigsQueryVariables) {
       return { query: GetLocalRunServiceConfigsDocument, variables: variables }
+    }
+export const GetRunServicesRateLimitDocument = gql`
+    query getRunServicesRateLimit($appID: uuid!, $resolve: Boolean!, $limit: Int!, $offset: Int!) {
+  app(id: $appID) {
+    runServices(limit: $limit, offset: $offset) {
+      id
+      createdAt
+      updatedAt
+      subdomain
+      config(resolve: $resolve) {
+        ...RunServiceRateLimit
+      }
+    }
+  }
+}
+    ${RunServiceRateLimitFragmentDoc}`;
+
+/**
+ * __useGetRunServicesRateLimitQuery__
+ *
+ * To run a query within a React component, call `useGetRunServicesRateLimitQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRunServicesRateLimitQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRunServicesRateLimitQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      resolve: // value for 'resolve'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *   },
+ * });
+ */
+export function useGetRunServicesRateLimitQuery(baseOptions: Apollo.QueryHookOptions<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>(GetRunServicesRateLimitDocument, options);
+      }
+export function useGetRunServicesRateLimitLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>(GetRunServicesRateLimitDocument, options);
+        }
+export type GetRunServicesRateLimitQueryHookResult = ReturnType<typeof useGetRunServicesRateLimitQuery>;
+export type GetRunServicesRateLimitLazyQueryHookResult = ReturnType<typeof useGetRunServicesRateLimitLazyQuery>;
+export type GetRunServicesRateLimitQueryResult = Apollo.QueryResult<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>;
+export function refetchGetRunServicesRateLimitQuery(variables: GetRunServicesRateLimitQueryVariables) {
+      return { query: GetRunServicesRateLimitDocument, variables: variables }
+    }
+export const GetLocalRunServiceRateLimitDocument = gql`
+    query getLocalRunServiceRateLimit($appID: uuid!, $resolve: Boolean!) {
+  runServiceConfigs(appID: $appID, resolve: $resolve) {
+    serviceID
+    config {
+      ...RunServiceRateLimit
+    }
+  }
+}
+    ${RunServiceRateLimitFragmentDoc}`;
+
+/**
+ * __useGetLocalRunServiceRateLimitQuery__
+ *
+ * To run a query within a React component, call `useGetLocalRunServiceRateLimitQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLocalRunServiceRateLimitQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLocalRunServiceRateLimitQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetLocalRunServiceRateLimitQuery(baseOptions: Apollo.QueryHookOptions<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>(GetLocalRunServiceRateLimitDocument, options);
+      }
+export function useGetLocalRunServiceRateLimitLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>(GetLocalRunServiceRateLimitDocument, options);
+        }
+export type GetLocalRunServiceRateLimitQueryHookResult = ReturnType<typeof useGetLocalRunServiceRateLimitQuery>;
+export type GetLocalRunServiceRateLimitLazyQueryHookResult = ReturnType<typeof useGetLocalRunServiceRateLimitLazyQuery>;
+export type GetLocalRunServiceRateLimitQueryResult = Apollo.QueryResult<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>;
+export function refetchGetLocalRunServiceRateLimitQuery(variables: GetLocalRunServiceRateLimitQueryVariables) {
+      return { query: GetLocalRunServiceRateLimitDocument, variables: variables }
     }
 export const InsertRunServiceDocument = gql`
     mutation insertRunService($object: run_service_insert_input!) {
