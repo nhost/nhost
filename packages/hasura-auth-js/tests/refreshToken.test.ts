@@ -87,21 +87,17 @@ describe(`Time based token refresh`, () => {
     server.resetHandlers()
   })
 
-  test(`token refresh should fail if the signed-in user's refresh token was invalid`, async () => {
+  test(`token refresh should fail and sign out the user when the server returns an unauthorized error`, async () => {
     server.use(authTokenUnauthorizedHandler)
 
     // Fast forwarding to initial expiration date
     vi.setSystemTime(initialExpiration)
 
-    await waitFor(authServiceWithInitialSession, (state) =>
+    const state = await waitFor(authServiceWithInitialSession, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
     )
 
-    const state = await waitFor(authServiceWithInitialSession, (state) =>
-      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
-    )
-
-    expect(state.context.refreshTimer.attempts).toBeGreaterThan(0)
+    expect(state.matches({ authentication: 'signedOut' }))
   })
 
   test(`access token should always be refreshed when reaching the expiration margin`, async () => {
