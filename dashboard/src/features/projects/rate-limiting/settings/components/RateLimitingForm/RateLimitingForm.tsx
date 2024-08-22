@@ -10,23 +10,41 @@ import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { rateLimitingItemValidationSchema } from '@/features/projects/rate-limiting/settings/components/validationSchemas';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
-import { useUpdateRateLimitConfigMutation } from '@/utils/__generated__/graphql';
+import {
+  useUpdateRateLimitConfigMutation,
+  type ConfigConfigUpdateInput,
+} from '@/utils/__generated__/graphql';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { RateLimitField } from 'features/projects/rate-limiting/settings/components/RateLimitField';
-import { useGetRateLimits } from 'features/projects/rate-limiting/settings/hooks/useGetRateLimits';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
   enabled: Yup.boolean().label('Enabled'),
-  storage: rateLimitingItemValidationSchema,
+  rateLimit: rateLimitingItemValidationSchema,
 });
 
-export type StorageLimitingFormValues = Yup.InferType<typeof validationSchema>;
+export interface RateLimitDefaultValues {
+  enabled: boolean;
+  rateLimit: { limit: number; interval: number; intervalUnit: string };
+}
 
-export default function StorageLimitingForm() {
+export interface RateLimitingFormProps {
+  defaultValues: RateLimitDefaultValues;
+  serviceName: keyof ConfigConfigUpdateInput;
+  title: string;
+  loading: boolean;
+}
+
+export type RateLimitingFormValues = Yup.InferType<typeof validationSchema>;
+
+export default function RateLimitingForm({
+  defaultValues,
+  serviceName,
+  title,
+  loading,
+}: RateLimitingFormProps) {
   const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
   const isPlatform = useIsPlatform();
@@ -38,39 +56,26 @@ export default function StorageLimitingForm() {
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { storageRateLimit, loading } = useGetRateLimits();
-  const {
-    enabled: storageEnabled,
-    interval,
-    intervalUnit,
-    limit,
-  } = storageRateLimit;
-
-  const form = useForm<StorageLimitingFormValues>({
-    defaultValues: {
-      enabled: storageEnabled,
-      storage: {
-        limit,
-        interval,
-        intervalUnit,
-      },
-    },
+  const form = useForm<RateLimitingFormValues>({
+    defaultValues: defaultValues.enabled
+      ? defaultValues
+      : {
+          enabled: false,
+          rateLimit: {
+            limit: 0,
+            interval: 0,
+            intervalUnit: 's',
+          },
+        },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
   });
 
   useEffect(() => {
-    if (!loading && storageEnabled) {
-      form.reset({
-        enabled: storageEnabled,
-        storage: {
-          limit,
-          interval,
-          intervalUnit,
-        },
-      });
+    if (!loading && defaultValues.enabled) {
+      form.reset(defaultValues);
     }
-  }, [loading, storageEnabled, interval, intervalUnit, limit, form]);
+  }, [loading, defaultValues, form]);
 
   if (loading) {
     return (
@@ -91,16 +96,16 @@ export default function StorageLimitingForm() {
 
   const enabled = watch('enabled');
 
-  const handleSubmit = async (formValues: StorageLimitingFormValues) => {
+  const handleSubmit = async (formValues: RateLimitingFormValues) => {
     const updateConfigPromise = updateRateLimitConfig({
       variables: {
         appId: currentProject.id,
         config: {
-          storage: {
+          [serviceName]: {
             rateLimit: formValues.enabled
               ? {
-                  limit: formValues.storage.limit,
-                  interval: `${formValues.storage.interval}${formValues.storage.intervalUnit}`,
+                  limit: formValues.rateLimit.limit,
+                  interval: `${formValues.rateLimit.interval}${formValues.rateLimit.intervalUnit}`,
                 }
               : null,
           },
@@ -125,9 +130,9 @@ export default function StorageLimitingForm() {
         }
       },
       {
-        loadingMessage: 'Updating Storage rate limit settings...',
-        successMessage: 'Storage rate limit settings updated successfully',
-        errorMessage: 'Failed to update Storage rate limit settings',
+        loadingMessage: `Updating ${title} rate limit settings...`,
+        successMessage: `${title} rate limit settings updated successfully`,
+        errorMessage: `Failed to update ${title} rate limit settings`,
       },
     );
   };
@@ -139,7 +144,7 @@ export default function StorageLimitingForm() {
         className="flex h-full flex-col overflow-hidden"
       >
         <SettingsContainer
-          title="Storage"
+          title={title}
           switchId="enabled"
           showSwitch
           slotProps={{
@@ -148,13 +153,14 @@ export default function StorageLimitingForm() {
               loading: formState.isSubmitting,
             },
           }}
-          className={twMerge('flex flex-col px-0', !enabled && 'hidden')}
+          className="flex flex-col px-0"
         >
           <Divider />
           <RateLimitField
+            disabled={!enabled}
             register={register}
-            errors={errors.storage}
-            id="storage"
+            errors={errors.rateLimit}
+            id="rateLimit"
           />
         </SettingsContainer>
       </Form>

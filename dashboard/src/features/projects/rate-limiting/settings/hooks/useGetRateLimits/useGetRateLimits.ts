@@ -90,23 +90,29 @@ export default function useGetRateLimits() {
         intervalUnit: smsIntervalUnit || DEFAULT_RATE_LIMITS.intervalUnit,
       },
     },
-    hasuraRateLimit: {
+    hasuraDefaultValues: {
       enabled: !!hasuraRateLimit,
-      limit: hasuraLimit || DEFAULT_RATE_LIMITS.limit,
-      interval: hasuraInterval || DEFAULT_RATE_LIMITS.interval,
-      intervalUnit: hasuraIntervalUnit || DEFAULT_RATE_LIMITS.intervalUnit,
+      rateLimit: {
+        limit: hasuraLimit || DEFAULT_RATE_LIMITS.limit,
+        interval: hasuraInterval || DEFAULT_RATE_LIMITS.interval,
+        intervalUnit: hasuraIntervalUnit || DEFAULT_RATE_LIMITS.intervalUnit,
+      },
     },
-    storageRateLimit: {
+    storageDefaultValues: {
       enabled: !!storageRateLimit,
-      limit: storageLimit || DEFAULT_RATE_LIMITS.limit,
-      interval: storageInterval || DEFAULT_RATE_LIMITS.interval,
-      intervalUnit: storageIntervalUnit || DEFAULT_RATE_LIMITS.intervalUnit,
+      rateLimit: {
+        limit: storageLimit || DEFAULT_RATE_LIMITS.limit,
+        interval: storageInterval || DEFAULT_RATE_LIMITS.interval,
+        intervalUnit: storageIntervalUnit || DEFAULT_RATE_LIMITS.intervalUnit,
+      },
     },
-    functionsRateLimit: {
+    functionsDefaultValues: {
       enabled: !!functionsRateLimit,
-      limit: functionsLimit || DEFAULT_RATE_LIMITS.limit,
-      interval: functionsInterval || DEFAULT_RATE_LIMITS.interval,
-      intervalUnit: functionsIntervalUnit || DEFAULT_RATE_LIMITS.intervalUnit,
+      rateLimit: {
+        limit: functionsLimit || DEFAULT_RATE_LIMITS.limit,
+        interval: functionsInterval || DEFAULT_RATE_LIMITS.interval,
+        intervalUnit: functionsIntervalUnit || DEFAULT_RATE_LIMITS.intervalUnit,
+      },
     },
     loading,
   };

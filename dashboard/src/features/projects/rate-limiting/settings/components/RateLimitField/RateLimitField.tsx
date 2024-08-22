@@ -21,12 +21,14 @@ interface RateLimitFieldProps {
       intervalUnit: string;
     }>
   >;
+  disabled?: boolean;
   title?: string;
   id: string;
 }
 
 export default function RateLimitField({
   register,
+  disabled,
   id,
   errors,
   title,
@@ -39,6 +41,7 @@ export default function RateLimitField({
           <Text>Limit</Text>
           <Input
             {...register(`${id}.limit`)}
+            disabled={disabled}
             id={`${id}.limit`}
             type="number"
             placeholder=""
@@ -53,7 +56,8 @@ export default function RateLimitField({
           <Text>Interval</Text>
           <Input
             {...register(`${id}.interval`)}
-            id={`${id}.limit`}
+            disabled={disabled}
+            id={`${id}.interval`}
             type="number"
             placeholder=""
             hideEmptyHelperText
@@ -64,6 +68,7 @@ export default function RateLimitField({
           />
           <ControlledSelect
             {...register(`${id}.intervalUnit`)}
+            disabled={disabled}
             variant="normal"
             id={`${id}.intervalUnit`}
             className="w-27"

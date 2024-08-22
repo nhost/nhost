@@ -16,7 +16,6 @@ import { RateLimitField } from 'features/projects/rate-limiting/settings/compone
 import { useGetRateLimits } from 'features/projects/rate-limiting/settings/hooks/useGetRateLimits';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
@@ -234,9 +233,9 @@ export default function AuthLimitingForm() {
         }
       },
       {
-        loadingMessage: 'Updating Hasura rate limit settings...',
-        successMessage: 'Hasura rate limit settings updated successfully',
-        errorMessage: 'Failed to update Hasura rate limit settings',
+        loadingMessage: 'Updating Auth rate limit settings...',
+        successMessage: 'Auth rate limit settings updated successfully',
+        errorMessage: 'Failed to update Auth rate limit settings',
       },
     );
   };
@@ -257,10 +256,11 @@ export default function AuthLimitingForm() {
               loading: formState.isSubmitting,
             },
           }}
-          className={twMerge('flex flex-col px-0', !enabled && 'hidden')}
+          className="flex flex-col px-0"
         >
           <Divider />
           <RateLimitField
+            disabled={!enabled}
             register={register}
             errors={errors.bruteForce}
             id="bruteForce"
@@ -268,6 +268,7 @@ export default function AuthLimitingForm() {
           />
           <Divider />
           <RateLimitField
+            disabled={!enabled}
             register={register}
             errors={errors.emails}
             id="emails"
@@ -275,6 +276,7 @@ export default function AuthLimitingForm() {
           />
           <Divider />
           <RateLimitField
+            disabled={!enabled}
             register={register}
             errors={errors.global}
             id="global"
@@ -282,6 +284,7 @@ export default function AuthLimitingForm() {
           />
           <Divider />
           <RateLimitField
+            disabled={!enabled}
             register={register}
             errors={errors.signups}
             id="signups"
@@ -289,6 +292,7 @@ export default function AuthLimitingForm() {
           />
           <Divider />
           <RateLimitField
+            disabled={!enabled}
             register={register}
             errors={errors.sms}
             id="sms"

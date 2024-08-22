@@ -5,15 +5,21 @@ import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon'
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AuthLimitingForm } from '@/features/projects/rate-limiting/settings/components/AuthLimitingForm';
-import { FunctionsLimitingForm } from '@/features/projects/rate-limiting/settings/components/FunctionsLimitingForm';
-import { HasuraLimitingForm } from '@/features/projects/rate-limiting/settings/components/HasuraLimitingForm';
+import { RateLimitingForm } from '@/features/projects/rate-limiting/settings/components/RateLimitingForm';
 import { RunServiceLimitingForm } from '@/features/projects/rate-limiting/settings/components/RunServiceLimitingForm';
-import { StorageLimitingForm } from '@/features/projects/rate-limiting/settings/components/StorageLimitingForm';
+import { useGetRateLimits } from '@/features/projects/rate-limiting/settings/hooks/useGetRateLimits';
 import { useGetRunServiceRateLimits } from '@/features/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits';
 import { type ReactElement } from 'react';
 
 export default function RateLimiting() {
   const { services, loading } = useGetRunServiceRateLimits();
+
+  const {
+    hasuraDefaultValues,
+    functionsDefaultValues,
+    storageDefaultValues,
+    loading: loadingBaseServices,
+  } = useGetRateLimits();
 
   return (
     <Container
@@ -40,9 +46,24 @@ export default function RateLimiting() {
         </div>
       </Box>
       <AuthLimitingForm />
-      <HasuraLimitingForm />
-      <StorageLimitingForm />
-      <FunctionsLimitingForm />
+      <RateLimitingForm
+        defaultValues={hasuraDefaultValues}
+        loading={loadingBaseServices}
+        serviceName="hasura"
+        title="Hasura"
+      />
+      <RateLimitingForm
+        defaultValues={storageDefaultValues}
+        loading={loadingBaseServices}
+        serviceName="storage"
+        title="Storage"
+      />
+      <RateLimitingForm
+        defaultValues={functionsDefaultValues}
+        loading={loadingBaseServices}
+        serviceName="functions"
+        title="Functions"
+      />
       {services.map((service) => {
         if (
           !service.ports.some((port) => port.type === 'http' && port.publish)
