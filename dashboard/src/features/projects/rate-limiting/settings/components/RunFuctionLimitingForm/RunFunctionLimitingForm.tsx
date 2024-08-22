@@ -170,14 +170,18 @@ export default function RunFunctionLimitingForm({
           <Divider />
           {ports.map((port, index) => {
             const fieldTitle = `${port.type} <-> ${port.port}`.toUpperCase();
+            const showDivider = index < ports.length - 1;
             return (
-              <RateLimitField
-                title={fieldTitle}
-                key={`ports.${port.port}`}
-                register={register}
-                errors={errors.ports}
-                id={`ports.${index}`}
-              />
+              <>
+                <RateLimitField
+                  title={fieldTitle}
+                  key={`ports.${port.port}`}
+                  register={register}
+                  errors={errors.ports}
+                  id={`ports.${index}`}
+                />
+                {showDivider && <Divider />}
+              </>
             );
           })}
         </SettingsContainer>
