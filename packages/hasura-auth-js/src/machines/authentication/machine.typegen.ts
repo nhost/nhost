@@ -306,7 +306,7 @@ export interface Typegen0 {
     isAutoRefreshDisabled: ''
     isRefreshTokenPAT: ''
     isSignedIn: '' | 'error.platform.authenticateWithToken'
-    isTokenInvalidOrExpired: 'error.platform.refreshToken'
+    isUnauthorizedError: 'error.platform.refreshToken'
     noToken: ''
     refreshTimerShouldRefresh: ''
     shouldRetryImportToken: 'error.platform.importRefreshToken'

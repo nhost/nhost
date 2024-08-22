@@ -344,7 +344,7 @@ export const createAuthMachine = ({
                             },
                             onError: [
                               {
-                                cond: 'isTokenInvalidOrExpired',
+                                cond: 'isUnauthorizedError',
                                 target: '#nhost.authentication.signedOut'
                               },
                               { actions: 'saveRefreshAttempt', target: 'pending' }
@@ -763,8 +763,7 @@ export const createAuthMachine = ({
         // * Event guards
         hasSession: (_, e) => !!e.data?.session,
         hasMfaTicket: (_, e) => !!e.data?.mfa,
-        isTokenInvalidOrExpired: (_, { data: { error } }: any) =>
-          error.status === 401 && error.error === INVALID_REFRESH_TOKEN.error
+        isUnauthorizedError: (_, { data: { error } }: any) => error.status === 401
       },
 
       services: {
