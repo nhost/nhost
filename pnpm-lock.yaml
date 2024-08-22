@@ -2233,136 +2233,6 @@ importers:
         specifier: ^5.4.0
         version: 5.4.0(@types/node@22.2.0)
 
-  templates/react-apollo/template:
-    dependencies:
-      '@apollo/client':
-        specifier: ^3.11.4
-        version: 3.11.4(@types/react@18.3.3)(react-dom@18.3.1)(react@18.3.1)
-      '@hookform/resolvers':
-        specifier: ^3.9.0
-        version: 3.9.0(react-hook-form@7.52.2)
-      '@icons-pack/react-simple-icons':
-        specifier: ^9.6.0
-        version: 9.6.0(react@18.3.1)
-      '@nhost/react':
-        specifier: workspace:^
-        version: link:../../../packages/react
-      '@nhost/react-apollo':
-        specifier: workspace:^
-        version: link:../../../integrations/react-apollo
-      '@radix-ui/react-dialog':
-        specifier: ^1.1.1
-        version: 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1)(react@18.3.1)
-      '@radix-ui/react-dropdown-menu':
-        specifier: ^2.1.1
-        version: 2.1.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1)(react@18.3.1)
-      '@radix-ui/react-label':
-        specifier: ^2.1.0
-        version: 2.1.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1)(react@18.3.1)
-      '@radix-ui/react-progress':
-        specifier: ^1.1.0
-        version: 1.1.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1)(react@18.3.1)
-      '@radix-ui/react-separator':
-        specifier: ^1.1.0
-        version: 1.1.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1)(react@18.3.1)
-      '@radix-ui/react-slot':
-        specifier: ^1.1.0
-        version: 1.1.0(@types/react@18.3.3)(react@18.3.1)
-      '@radix-ui/react-tooltip':
-        specifier: ^1.1.2
-        version: 1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1)(react@18.3.1)
-      class-variance-authority:
-        specifier: ^0.7.0
-        version: 0.7.0
-      clsx:
-        specifier: ^1.2.1
-        version: 1.2.1
-      lucide-react:
-        specifier: ^0.416.0
-        version: 0.416.0(react@18.3.1)
-      next-themes:
-        specifier: ^0.3.0
-        version: 0.3.0(react-dom@18.3.1)(react@18.3.1)
-      prism-react-renderer:
-        specifier: ^2.3.1
-        version: 2.3.1(react@18.3.1)
-      react:
-        specifier: ^18.3.1
-        version: 18.3.1
-      react-code-block:
-        specifier: ^1.0.0
-        version: 1.0.0(prism-react-renderer@2.3.1)(react-dom@18.3.1)(react@18.3.1)
-      react-dom:
-        specifier: ^18.3.1
-        version: 18.3.1(react@18.3.1)
-      react-dropzone:
-        specifier: ^14.2.3
-        version: 14.2.3(react@18.3.1)
-      react-hook-form:
-        specifier: ^7.52.2
-        version: 7.52.2(react@18.3.1)
-      react-router-dom:
-        specifier: ^6.22.3
-        version: 6.22.3(react-dom@18.3.1)(react@18.3.1)
-      sonner:
-        specifier: ^1.5.0
-        version: 1.5.0(react-dom@18.3.1)(react@18.3.1)
-      tailwind-merge:
-        specifier: ^1.14.0
-        version: 1.14.0
-      tailwindcss-animate:
-        specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@3.4.9)
-      zod:
-        specifier: ^3.23.8
-        version: 3.23.8
-    devDependencies:
-      '@eslint/js':
-        specifier: ^9.8.0
-        version: 9.9.0
-      '@types/node':
-        specifier: ^22.2.0
-        version: 22.2.0
-      '@types/react':
-        specifier: ^18.3.3
-        version: 18.3.3
-      '@types/react-dom':
-        specifier: ^18.3.0
-        version: 18.3.0
-      '@vitejs/plugin-react':
-        specifier: ^4.3.1
-        version: 4.3.1(vite@5.4.0)
-      autoprefixer:
-        specifier: ^10.4.20
-        version: 10.4.20(postcss@8.4.40)
-      eslint:
-        specifier: ^9.8.0
-        version: 9.9.0
-      eslint-plugin-react-hooks:
-        specifier: ^5.1.0-rc.0
-        version: 5.1.0-rc-fb9a90fa48-20240614(eslint@9.9.0)
-      eslint-plugin-react-refresh:
-        specifier: ^0.4.9
-        version: 0.4.9(eslint@9.9.0)
-      globals:
-        specifier: ^15.9.0
-        version: 15.9.0
-      postcss:
-        specifier: ^8.4.38
-        version: 8.4.40
-      tailwindcss:
-        specifier: ^3.4.9
-        version: 3.4.9
-      typescript:
-        specifier: ^5.5.3
-        version: 5.5.4
-      typescript-eslint:
-        specifier: ^8.0.0
-        version: 8.1.0(eslint@9.9.0)(typescript@5.5.4)
-      vite:
-        specifier: ^5.4.0
-        version: 5.4.0(@types/node@22.2.0)
-
   templates/react-native: {}
 
   templates/react-native/template:
@@ -2692,7 +2562,7 @@ packages:
   /@apollo/client@3.11.4(@types/react@18.3.3)(react-dom@18.3.1)(react@18.3.1):
     resolution: {integrity: sha512-bmgYKkULpym8wt8aXlAZ1heaYo0skLJ5ru0qJ+JCRoo03Pe+yIDbBCnqlDw6Mjj76hFkDw3HwFMgZC2Hxp30Mg==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
       graphql-ws: ^5.5.5
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || >=19.0.0-rc <19.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || >=19.0.0-rc <19.0.0
