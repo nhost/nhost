@@ -1,12 +1,12 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
-import { removeTypename } from '@/utils/helpers';
 import {
   useGetLocalRunServiceRateLimitQuery,
   useGetRunServicesRateLimitQuery,
   type GetRunServicesRateLimitQuery,
 } from '@/utils/__generated__/graphql';
+import { DEFAULT_RATE_LIMITS } from 'features/projects/rate-limiting/settings/utils/constants';
 import { parseIntervalNameUnit } from 'features/projects/rate-limiting/settings/utils/parseIntervalNameUnit';
 import { useMemo } from 'react';
 
@@ -34,9 +34,6 @@ export interface UseGetRunServiceRateLimitsReturn {
         interval?: number;
         intervalUnit?: string;
       };
-      ingresses?: {
-        fqdn?: Array<string>;
-      }[];
     }[];
   }[];
   loading: boolean;
@@ -81,16 +78,15 @@ export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimits
         port?.rateLimit?.interval,
       );
       const rateLimit = {
-        limit: port?.rateLimit?.limit || 1000,
-        interval: interval || 5,
-        intervalUnit: intervalUnit || 'm',
+        limit: port?.rateLimit?.limit || DEFAULT_RATE_LIMITS.limit,
+        interval: interval || DEFAULT_RATE_LIMITS.interval,
+        intervalUnit: intervalUnit || DEFAULT_RATE_LIMITS.intervalUnit,
       };
       return {
         type: port?.type,
         publish: port?.publish,
         port: port?.port,
         rateLimit,
-        ingresses: port?.ingresses ? removeTypename(port.ingresses) : [],
       };
     });
     return {

@@ -50,7 +50,7 @@ export default function ServicesList({
     openDrawer({
       title: (
         <Box className="flex flex-row items-center space-x-2">
-          <CubeIcon className="w-5 h-5" />
+          <CubeIcon className="h-5 w-5" />
           <Text>Edit {service.config?.name ?? 'unset'}</Text>
         </Box>
       ),
@@ -67,6 +67,7 @@ export default function ServicesList({
               type: item.type as PortTypes,
               publish: item.publish,
               ingresses: item.ingresses,
+              rateLimit: item.rateLimit,
             })),
             compute: service.config?.resources?.compute ?? {
               cpu: 62,
@@ -107,13 +108,13 @@ export default function ServicesList({
           onClick={() => viewService(service)}
         >
           <Box
-            className="flex flex-row justify-between w-full"
+            className="flex w-full flex-row justify-between"
             sx={{
               backgroundColor: 'transparent',
             }}
           >
-            <div className="flex flex-row items-center flex-1 space-x-4">
-              <CubeIcon className="w-5 h-5" />
+            <div className="flex flex-1 flex-row items-center space-x-4">
+              <CubeIcon className="h-5 w-5" />
               <div className="flex flex-col">
                 <Text variant="h4" className="font-semibold">
                   {service.config?.name ?? 'unset'}
@@ -129,7 +130,7 @@ export default function ServicesList({
               </div>
             </div>
 
-            <div className="flex-row items-center hidden space-x-2 md:flex">
+            <div className="hidden flex-row items-center space-x-2 md:flex">
               <Text variant="subtitle1" className="font-mono text-xs">
                 {service.id ?? service.serviceID}
               </Text>
@@ -142,7 +143,7 @@ export default function ServicesList({
                 }}
                 aria-label="Service Id"
               >
-                <CopyIcon className="w-4 h-4" />
+                <CopyIcon className="h-4 w-4" />
               </IconButton>
             </div>
           </Box>
@@ -172,7 +173,7 @@ export default function ServicesList({
                 onClick={() => viewService(service)}
                 className="z-50 grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
               >
-                <UserIcon className="w-4 h-4" />
+                <UserIcon className="h-4 w-4" />
                 <Text className="font-medium">View Service</Text>
               </Dropdown.Item>
               <Divider component="li" />
@@ -182,7 +183,7 @@ export default function ServicesList({
                 onClick={() => deleteService(service)}
                 disabled={!isPlatform}
               >
-                <TrashIcon className="w-4 h-4" />
+                <TrashIcon className="h-4 w-4" />
                 <Text className="font-medium" color="error">
                   Delete Service
                 </Text>

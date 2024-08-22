@@ -169,6 +169,10 @@ export default function RunServiceLimitingForm({
         >
           <Divider />
           {ports.map((port, index) => {
+            if (port.type !== 'http' || !port.publish) {
+              return null;
+            }
+
             const fieldTitle = `${port.type} <-> ${port.port}`.toUpperCase();
             const showDivider = index < ports.length - 1;
             return (
