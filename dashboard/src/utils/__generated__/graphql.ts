@@ -23513,8 +23513,6 @@ export type RunServiceRateLimitFragment = { __typename?: 'ConfigRunServiceConfig
 export type GetRunServicesRateLimitQueryVariables = Exact<{
   appID: Scalars['uuid'];
   resolve: Scalars['Boolean'];
-  limit: Scalars['Int'];
-  offset: Scalars['Int'];
 }>;
 
 
@@ -27856,9 +27854,9 @@ export function refetchGetLocalRunServiceConfigsQuery(variables: GetLocalRunServ
       return { query: GetLocalRunServiceConfigsDocument, variables: variables }
     }
 export const GetRunServicesRateLimitDocument = gql`
-    query getRunServicesRateLimit($appID: uuid!, $resolve: Boolean!, $limit: Int!, $offset: Int!) {
+    query getRunServicesRateLimit($appID: uuid!, $resolve: Boolean!) {
   app(id: $appID) {
-    runServices(limit: $limit, offset: $offset) {
+    runServices {
       id
       createdAt
       updatedAt
@@ -27885,8 +27883,6 @@ export const GetRunServicesRateLimitDocument = gql`
  *   variables: {
  *      appID: // value for 'appID'
  *      resolve: // value for 'resolve'
- *      limit: // value for 'limit'
- *      offset: // value for 'offset'
  *   },
  * });
  */

@@ -47,8 +47,6 @@ export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimits
       variables: {
         appID: currentProject?.id,
         resolve: false,
-        limit: 25,
-        offset: 0,
       },
       skip: !isPlatform,
     });

@@ -11,14 +11,9 @@ fragment RunServiceRateLimit on ConfigRunServiceConfig {
   }
 }
 
-query getRunServicesRateLimit(
-  $appID: uuid!
-  $resolve: Boolean!
-  $limit: Int!
-  $offset: Int!
-) {
+query getRunServicesRateLimit($appID: uuid!, $resolve: Boolean!) {
   app(id: $appID) {
-    runServices(limit: $limit, offset: $offset) {
+    runServices {
       id
       createdAt
       updatedAt
