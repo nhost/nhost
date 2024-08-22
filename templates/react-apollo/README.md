@@ -1,0 +1,1 @@
+# Nhost React Apollo Template

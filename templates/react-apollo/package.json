@@ -1,0 +1,19 @@
+{
+  "name": "@nhost/react-apollo-template",
+  "version": "0.0.1",
+  "description": "A template project to get you up to speed on how to use Nhost with React",
+  "files": [
+    "template"
+  ],
+  "keywords": [
+    "nhost",
+    "react",
+    "apollo",
+    "typescript"
+  ],
+  "author": "",
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT"
+}
