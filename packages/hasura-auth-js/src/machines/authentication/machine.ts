@@ -5,7 +5,7 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationCredentialJSON
 } from '@simplewebauthn/typescript-types'
-import { InterpreterFrom, assign, createMachine, send } from 'xstate'
+import { assign, createMachine, InterpreterFrom, send } from 'xstate'
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
   NHOST_REFRESH_TOKEN_ID_KEY,
@@ -19,7 +19,6 @@ import {
   INVALID_MFA_TICKET_ERROR,
   INVALID_PASSWORD_ERROR,
   INVALID_PHONE_NUMBER_ERROR,
-  INVALID_REFRESH_TOKEN,
   NETWORK_ERROR_CODE,
   NO_MFA_TICKET_ERROR,
   VALIDATION_ERROR_CODE
