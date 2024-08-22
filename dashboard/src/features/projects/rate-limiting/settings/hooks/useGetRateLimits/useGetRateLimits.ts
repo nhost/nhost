@@ -2,25 +2,7 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { useGetRateLimitConfigQuery } from '@/utils/__generated__/graphql';
-
-function parseIntervalNameUnit(interval: string) {
-  if (!interval) {
-    return {};
-  }
-  const regex = /^(\d+)([a-zA-Z])$/;
-  const match = interval.match(regex);
-
-  if (!match) {
-    return {};
-  }
-
-  const [, intervalValue, intervalUnit] = match;
-
-  return {
-    interval: parseInt(intervalValue, 10),
-    intervalUnit,
-  };
-}
+import { parseIntervalNameUnit } from 'features/projects/rate-limiting/settings/utils/parseIntervalNameUnit';
 
 export default function useGetRateLimits() {
   const { currentProject } = useCurrentWorkspaceAndProject();

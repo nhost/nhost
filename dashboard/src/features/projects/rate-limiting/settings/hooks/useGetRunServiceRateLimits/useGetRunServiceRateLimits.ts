@@ -6,9 +6,10 @@ import {
   useGetRunServicesRateLimitQuery,
   type GetRunServicesRateLimitQuery,
 } from '@/utils/__generated__/graphql';
+import { parseIntervalNameUnit } from 'features/projects/rate-limiting/settings/utils/parseIntervalNameUnit';
 import { useMemo } from 'react';
 
-type RunServiceRateLimit = Pick<
+type RunService = Pick<
   GetRunServicesRateLimitQuery['app']['runServices'][0],
   'config'
 > & {
@@ -19,7 +20,25 @@ type RunServiceRateLimit = Pick<
   subdomain?: string;
 };
 
-export default function useGetRunServiceRateLimits() {
+export interface UseGetRunServiceRateLimitsReturn {
+  services: {
+    name?: string;
+    id?: string;
+    ports?: {
+      type?: string;
+      port?: string;
+      rateLimit?: {
+        limit?: number;
+        interval?: number;
+        intervalUnit?: string;
+      };
+    }[];
+    rawPorts?: GetRunServicesRateLimitQuery['app']['runServices'][0]['config']['ports'];
+  }[];
+  loading: boolean;
+}
+
+export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimitsReturn {
   const { currentProject } = useCurrentWorkspaceAndProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -51,20 +70,30 @@ export default function useGetRunServiceRateLimits() {
     [localServicesData],
   );
 
-  const services: RunServiceRateLimit[] = isPlatform
-    ? platformServices
-    : localServices;
+  const services: RunService[] = isPlatform ? platformServices : localServices;
   const loading = isPlatform ? loadingPlatformServices : loadingLocalServices;
 
   const servicesInfo = services.map((service) => {
-    const ports = service.config?.ports?.map((port) => ({
-      type: port?.type,
-      port: port?.port,
-      rateLimit: port?.rateLimit,
-    }));
+    const ports = service.config?.ports?.map((port) => {
+      const { interval, intervalUnit } = parseIntervalNameUnit(
+        port?.rateLimit?.interval,
+      );
+      const rateLimit = {
+        limit: port?.rateLimit?.limit || 1000,
+        interval: interval || 5,
+        intervalUnit: intervalUnit || 'm',
+      };
+      return {
+        type: port?.type,
+        port: port?.port,
+        rateLimit,
+      };
+    });
     return {
-      id: service.id,
+      name: service.config?.name,
+      id: service.id ?? service.serviceID,
       ports,
+      rawPorts: service.config?.ports,
     };
   });
 
