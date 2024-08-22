@@ -112,6 +112,7 @@ export default function FunctionsLimitingForm() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        form.reset(formValues);
 
         if (!isPlatform) {
           openDialog({

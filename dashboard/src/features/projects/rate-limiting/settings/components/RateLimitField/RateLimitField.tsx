@@ -42,6 +42,7 @@ export default function RateLimitField({
             id={`${id}.limit`}
             type="number"
             placeholder=""
+            className="max-w-60"
             hideEmptyHelperText
             error={!!errors?.limit}
             helperText={errors?.limit?.message}
@@ -56,6 +57,7 @@ export default function RateLimitField({
             type="number"
             placeholder=""
             hideEmptyHelperText
+            className="max-w-32"
             error={!!errors?.interval}
             helperText={errors?.interval?.message}
             autoComplete="off"

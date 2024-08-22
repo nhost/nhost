@@ -110,6 +110,7 @@ export default function StorageLimitingForm() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        form.reset(formValues);
 
         if (!isPlatform) {
           openDialog({
