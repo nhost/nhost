@@ -43,7 +43,7 @@ async function globalTeardown() {
   await adminSecretInput.press('Enter');
 
   // note: getByRole doesn't work here
-  await hasuraPage.locator('a', { hasText: /data/i }).click();
+  await hasuraPage.locator('a', { hasText: /data/i }).nth(0).click();
   await hasuraPage.locator('[data-test="sql-link"]').click();
 
   // Set the value of the Ace code editor using JavaScript evaluation in the browser context

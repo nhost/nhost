@@ -5,7 +5,7 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationCredentialJSON
 } from '@simplewebauthn/typescript-types'
-import { InterpreterFrom, assign, createMachine, send } from 'xstate'
+import { assign, createMachine, InterpreterFrom, send } from 'xstate'
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
   NHOST_REFRESH_TOKEN_ID_KEY,
@@ -341,7 +341,13 @@ export const createAuthMachine = ({
                               actions: ['saveSession', 'resetTimer', 'reportTokenChanged'],
                               target: 'pending'
                             },
-                            onError: [{ actions: 'saveRefreshAttempt', target: 'pending' }]
+                            onError: [
+                              {
+                                cond: 'isUnauthorizedError',
+                                target: '#nhost.authentication.signedOut'
+                              },
+                              { actions: 'saveRefreshAttempt', target: 'pending' }
+                            ]
                           }
                         }
                       }
@@ -755,7 +761,8 @@ export const createAuthMachine = ({
 
         // * Event guards
         hasSession: (_, e) => !!e.data?.session,
-        hasMfaTicket: (_, e) => !!e.data?.mfa
+        hasMfaTicket: (_, e) => !!e.data?.mfa,
+        isUnauthorizedError: (_, { data: { error } }: any) => error.status === 401
       },
 
       services: {
