@@ -1,5 +1,5 @@
 {
-  "name": "nhost-react-apollo",
+  "name": "@nhost/cra-template-react-apollo",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
