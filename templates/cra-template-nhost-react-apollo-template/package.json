@@ -9,5 +9,8 @@
   "keywords": ["react", "template", "nhost", "apollo"],
   "author": "",
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {},
+  "publishConfig": {
+    "access": "public"
+  }
 }
