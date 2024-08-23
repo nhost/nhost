@@ -1,17 +1,18 @@
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import { NhostClient, NhostProvider } from '@nhost/react'
 import { NhostApolloProvider } from '@nhost/react-apollo'
-import { StrictMode } from 'react'
-import * as ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App'
-import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import '@/styles/globals.css'
+import { BrowserRouter } from 'react-router-dom'
+import { Toaster } from '@/components/ui/sonner'
+import App from './App'
+import './index.css'
 
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 const nhost = new NhostClient({ subdomain: 'local' })
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+root.render(
+  <React.StrictMode>
     <NhostProvider nhost={nhost}>
       <NhostApolloProvider nhost={nhost}>
         <TooltipProvider>
@@ -22,5 +23,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         </TooltipProvider>
       </NhostApolloProvider>
     </NhostProvider>
-  </StrictMode>
+  </React.StrictMode>
 )

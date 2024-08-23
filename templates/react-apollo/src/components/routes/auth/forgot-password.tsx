@@ -1,30 +1,24 @@
+import SignInFooter from '@/components/auth/sign-in-footer'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useSignInAnonymous } from '@nhost/react'
+import { useResetPassword } from '@nhost/react'
 import { ArrowLeft } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { z } from 'zod'
+import { toast } from 'sonner'
 
 const signInFormSchema = z.object({
   email: z.string().email()
 })
 
 export default function ForgotPassword() {
-  const navigate = useNavigate()
-
-  const { signInAnonymous } = useSignInAnonymous()
-
-  const anonymousHandler = async () => {
-    const { isSuccess } = await signInAnonymous()
-    if (isSuccess) {
-      navigate('/')
-    }
-  }
+  const { resetPassword } = useResetPassword({
+    redirectTo: '/profile'
+  })
 
   const form = useForm<z.infer<typeof signInFormSchema>>({
     resolver: zodResolver(signInFormSchema),
@@ -33,8 +27,15 @@ export default function ForgotPassword() {
     }
   })
 
-  const onSubmit = (values: z.infer<typeof signInFormSchema>) => {
-    console.log({ values })
+  const onSubmit = async (values: z.infer<typeof signInFormSchema>) => {
+    const { email } = values
+    const result = await resetPassword(email)
+
+    if (result.isError) {
+      toast.error(result.error?.message)
+    } else {
+      toast.success('A link to reset your password has been sent by email')
+    }
   }
 
   return (
@@ -67,16 +68,7 @@ export default function ForgotPassword() {
         </Form>
       </div>
 
-      <p className="text-center">
-        Don&lsquo;t have an account?
-        <Link to="/sign-up" className={cn(buttonVariants({ variant: 'link' }), 'px-2')}>
-          Sign up
-        </Link>
-        or
-        <a className="px-2 hover:underline hover:cursor-pointer" onClick={anonymousHandler}>
-          sign in anonymously
-        </a>
-      </p>
+      <SignInFooter />
     </div>
   )
 }
