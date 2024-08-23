@@ -7,6 +7,7 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import type { ServiceFormValues } from '@/features/services/components/ServiceForm/ServiceFormTypes';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
+import { useState } from 'react';
 
 export interface ServiceConfirmationDialogProps {
   /**
@@ -28,9 +29,20 @@ export default function ServiceConfirmationDialog({
   onCancel,
   onSubmit,
 }: ServiceConfirmationDialogProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const approximatePriceForService = parseFloat(
     (formValues.compute.cpu * formValues.replicas * COST_PER_VCPU).toFixed(2),
   );
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await onSubmit();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="grid grid-flow-row gap-6 px-6 pb-6">
@@ -74,7 +86,12 @@ export default function ServiceConfirmationDialog({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Button color="primary" onClick={onSubmit} autoFocus>
+        <Button
+          loading={isSubmitting}
+          color="primary"
+          onClick={handleSubmit}
+          autoFocus
+        >
           Confirm
         </Button>
 
