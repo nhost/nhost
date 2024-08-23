@@ -2,7 +2,7 @@ import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { usePostOrganizationRequestMutation } from '@/utils/__generated__/graphql';
 import { useRouter } from 'next/router';
-import { ReactElement, useEffect, useState } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 
 export default function PostCheckout() {
   const { session_id } = useRouter().query;
@@ -12,22 +12,24 @@ export default function PostCheckout() {
   const [postOrganizationRequest] = usePostOrganizationRequestMutation();
 
   useEffect(() => {
-    execPromiseWithErrorToast(
-      async () => {
-        const { data } = await postOrganizationRequest({
-          variables: {
-            sessionID: session_id as string,
-          },
-        });
+    if (session_id) {
+      execPromiseWithErrorToast(
+        async () => {
+          const { data } = await postOrganizationRequest({
+            variables: {
+              sessionID: session_id as string,
+            },
+          });
 
-        setRes(JSON.stringify(data, null, 2));
-      },
-      {
-        loadingMessage: 'Creating new workspace...',
-        successMessage: 'The new workspace has been created successfully.',
-        errorMessage: 'An error occurred while creating the new workspace.',
-      },
-    );
+          setRes(JSON.stringify(data, null, 2));
+        },
+        {
+          loadingMessage: 'Creating new workspace...',
+          successMessage: 'The new workspace has been created successfully.',
+          errorMessage: 'An error occurred while creating the new workspace.',
+        },
+      );
+    }
   }, [session_id, postOrganizationRequest]);
   return (
     <div className="checkout flex w-screen">
