@@ -1,0 +1,19 @@
+# mutation billingCreateOrganizationRequest() {
+#   billingCreateOrganizationRequest(
+#     organizationName: "Acme Corp",
+#     planID: "dc5e805e-1bef-4d43-809e-9fdf865e211a",
+#     redirectURL: "http://localhost:4042/return.html"
+#   )
+# }
+
+mutation CreateOrganizationRequest(
+  $organizationName: String!
+  $planID: uuid!
+  $redirectURL: String!
+) {
+  billingCreateOrganizationRequest(
+    organizationName: $organizationName
+    planID: $planID
+    redirectURL: $redirectURL
+  )
+}
