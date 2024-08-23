@@ -1,0 +1,6 @@
+mutation PostOrganizationRequest($sessionID: String!) {
+  billingPostOrganizationRequest(sessionID: $sessionID) {
+    Status
+    OrganizationID
+  }
+}

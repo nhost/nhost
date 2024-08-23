@@ -1,12 +1,9 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { PlusCircleIcon } from '@/components/ui/v2/icons/PlusCircleIcon';
-import { List } from '@/components/ui/v2/List';
-import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
 import { Announcements } from '@/features/projects/common/components/Announcements';
 import { EditWorkspaceNameForm } from '@/features/projects/workspaces/components/EditWorkspaceNameForm';
@@ -42,40 +39,9 @@ export default function WorkspaceSidebar({
       <Announcements />
 
       <section className="grid grid-flow-row gap-2">
-        <Text color="secondary">My Workspaces</Text>
+        <Text color="secondary">My Organisations</Text>
 
-        {workspaces.length > 0 ? (
-          <List className="grid grid-flow-row gap-2">
-            {workspaces.map(({ id, name, slug }) => (
-              <ListItem.Root key={id}>
-                <NavLink href={`/${slug}`} passHref className='w-full' legacyBehavior>
-                  <ListItem.Button
-                    dense
-                    aria-label={`View ${name}`}
-                    className="!p-1"
-                  >
-                    <ListItem.Avatar className="w-8 h-8">
-                      <div className="inline-block w-8 h-8 overflow-hidden rounded-lg">
-                        <Image
-                          src="/logos/new.svg"
-                          alt="Nhost Logo"
-                          width={32}
-                          height={32}
-                        />
-                      </div>
-                    </ListItem.Avatar>
-                    <ListItem.Text primary={name} />
-                  </ListItem.Button>
-                </NavLink>
-              </ListItem.Root>
-            ))}
-          </List>
-        ) : (
-          <ActivityIndicator
-            label="Creating your first workspace..."
-            className="py-1"
-          />
-        )}
+        <span>Query list of orgs here</span>
 
         <Button
           variant="borderless"
@@ -86,18 +52,14 @@ export default function WorkspaceSidebar({
             openDialog({
               title: (
                 <span className="grid grid-flow-row">
-                  <span>New Workspace</span>
-
-                  <Text variant="subtitle1" component="span">
-                    Invite team members to workspaces to work collaboratively.
-                  </Text>
+                  <span>New Orgranisation</span>
                 </span>
               ),
               component: <EditWorkspaceNameForm />,
             });
           }}
         >
-          New Workspace
+          New Orgranisation
         </Button>
       </section>
 
@@ -129,7 +91,8 @@ export default function WorkspaceSidebar({
           passHref
           target="_blank"
           rel="noreferrer noopener"
-          legacyBehavior>
+          legacyBehavior
+        >
           <Button
             className="grid w-full grid-flow-col gap-1"
             variant="outlined"
@@ -145,7 +108,8 @@ export default function WorkspaceSidebar({
           passHref
           target="_blank"
           rel="noreferrer noopener"
-          legacyBehavior>
+          legacyBehavior
+        >
           <Button
             className="grid w-full grid-flow-col gap-1"
             variant="outlined"
