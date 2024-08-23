@@ -10,7 +10,7 @@ export const AuthGate: FC<PropsWithChildren<unknown>> = ({ children }) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <LoaderCircle className="w-10 h-10 animate-spin-fast text-slate-500" />
+        <LoaderCircle className="w-10 h-10 animate-spin text-slate-500" />
       </div>
     )
   }
