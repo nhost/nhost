@@ -102,6 +102,9 @@ export default function ServiceForm({
   const getFormattedConfig = (values: ServiceFormValues) => {
     // Remove any __typename property from the values
     const sanitizedValues = removeTypename(values) as ServiceFormValues;
+    const sanitizedInitialDataPorts = initialData?.ports
+      ? removeTypename(initialData.ports)
+      : [];
 
     const config: ConfigRunServiceConfigInsertInput = {
       name: sanitizedValues.name,
@@ -130,9 +133,10 @@ export default function ServiceForm({
         type: item.type,
         publish: item.publish,
         ingresses: item.ingresses,
-        rateLimit: initialData.ports?.find(
-          (port) => port.port === item.port && port.type === item.type,
-        ).rateLimit,
+        rateLimit:
+          sanitizedInitialDataPorts.find(
+            (port) => port.port === item.port && port.type === item.type,
+          )?.rateLimit ?? null,
       })),
       healthCheck: sanitizedValues.healthCheck
         ? {
