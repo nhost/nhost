@@ -1,5 +1,5 @@
 {
-  "name": "@nhost/cra-template-react-apollo",
+  "name": "nhost-react-apollo-template",
   "version": "0.1.0",
   "dependencies": {
     "@apollo/client": "^3.11.4",

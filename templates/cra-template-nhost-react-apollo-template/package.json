@@ -2,10 +2,7 @@
   "name": "@nhost/cra-template-react-apollo",
   "version": "0.0.1",
   "description": "A template project to get you up to speed on how to use Nhost with React",
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build"
-  },
+  "scripts": {},
   "keywords": ["react", "template", "nhost", "apollo"],
   "author": "",
   "license": "MIT",
