@@ -153,7 +153,7 @@ export async function resetPassword({
     .click()
 
   const authenticatedPage = await authenticatedPagePromise
-  await authenticatedPage.getByRole('button', { name: /Verify/i }).click()
+  await authenticatedPage.getByRole('link', { name: /Verify/i }).click()
   await authenticatedPage.waitForLoadState()
   return authenticatedPage
 }

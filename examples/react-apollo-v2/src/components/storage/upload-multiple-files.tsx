@@ -65,7 +65,7 @@ export default function UploadMultipleFiles() {
               )}
             >
               <Upload className="w-5 h-5" />
-              <p>Drop some files here or click to select files</p>
+              <p>Drag a file here or click to select</p>
             </div>
           )}
         </div>

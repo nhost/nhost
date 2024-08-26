@@ -16,7 +16,7 @@ test('should deanonymize with email and password', async ({ page, context }) => 
   await page.goto('/')
 
   await signInAnonymously({ page })
-  await page.getByRole('button', { name: /profile/i }).click()
+  await page.getByRole('link', { name: /profile/i }).click()
 
   const userData = await getUserData(page)
 
@@ -24,7 +24,7 @@ test('should deanonymize with email and password', async ({ page, context }) => 
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
 
   const authenticatedPage = await verifyEmail({ page, context, email })
-  await authenticatedPage.getByRole('button', { name: /profile/i }).click()
+  await authenticatedPage.getByRole('link', { name: /profile/i }).click()
 
   const updatedUserData = await getUserData(authenticatedPage)
   expect(updatedUserData.id).toBe(userData.id)
@@ -37,7 +37,7 @@ test('should deanonymize with a magic link', async ({ page, context }) => {
   await page.goto('/')
 
   await signInAnonymously({ page })
-  await page.getByRole('button', { name: /profile/i }).click()
+  await page.getByRole('link', { name: /profile/i }).click()
 
   const userData = await getUserData(page)
 
@@ -45,7 +45,7 @@ test('should deanonymize with a magic link', async ({ page, context }) => {
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
 
   const authenticatedPage = await verifyMagicLink({ page, context, email })
-  await authenticatedPage.getByRole('button', { name: /profile/i }).click()
+  await authenticatedPage.getByRole('link', { name: /profile/i }).click()
 
   const updatedUserData = await getUserData(authenticatedPage)
   expect(updatedUserData.id).toBe(userData.id)
