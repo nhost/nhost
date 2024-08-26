@@ -25,6 +25,7 @@ export interface UseGetRunServiceRateLimitsReturn {
   services: {
     name?: string;
     id?: string;
+    enabled?: boolean;
     ports?: {
       type?: string;
       port?: string;
@@ -73,6 +74,10 @@ export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimits
   const loading = isPlatform ? loadingPlatformServices : loadingLocalServices;
 
   const servicesInfo = services.map((service) => {
+    const enabled = service.config?.ports?.some(
+      (port) => port?.rateLimit && port?.type === 'http' && port?.publish,
+    );
+
     const ports = service.config?.ports?.map((port) => {
       const { interval, intervalUnit } = parseIntervalNameUnit(
         port?.rateLimit?.interval,
@@ -90,6 +95,7 @@ export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimits
       };
     });
     return {
+      enabled,
       name: service.config?.name,
       id: service.id ?? service.serviceID,
       ports,

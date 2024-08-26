@@ -32,6 +32,7 @@ export interface RunServiceLimitingFormProps {
   title?: string;
   serviceId?: string;
   loading?: boolean;
+  enabledDefault?: boolean;
   ports?: UseGetRunServiceRateLimitsReturn['services'][0]['ports'];
 }
 
@@ -40,6 +41,7 @@ export default function RunServiceLimitingForm({
   serviceId,
   ports,
   loading,
+  enabledDefault,
 }: RunServiceLimitingFormProps) {
   const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
@@ -52,11 +54,9 @@ export default function RunServiceLimitingForm({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const runServiceEnabledByDefault = !!ports?.some((port) => port.rateLimit);
-
   const form = useForm<RunServiceLimitingFormValues>({
     defaultValues: {
-      enabled: runServiceEnabledByDefault,
+      enabled: enabledDefault,
       ports: [
         ...ports.map((port) => ({
           limit: port.rateLimit?.limit,
@@ -70,9 +70,9 @@ export default function RunServiceLimitingForm({
   });
 
   useEffect(() => {
-    if (!loading && runServiceEnabledByDefault) {
+    if (!loading && enabledDefault) {
       form.reset({
-        enabled: runServiceEnabledByDefault,
+        enabled: enabledDefault,
         ports: [
           ...ports.map((port) => ({
             limit: port.rateLimit?.limit,
@@ -82,7 +82,7 @@ export default function RunServiceLimitingForm({
         ],
       });
     }
-  }, [loading, runServiceEnabledByDefault, ports, form]);
+  }, [loading, enabledDefault, ports, form]);
 
   if (loading) {
     return (
