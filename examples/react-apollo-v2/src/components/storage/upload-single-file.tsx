@@ -54,7 +54,7 @@ export default function UploadSingleFile() {
               )}
             >
               <Upload className="w-5 h-5" />
-              <p>Drop a file here or click to select a file</p>
+              <p>Drag a file here or click to select</p>
             </div>
           )}
         </div>

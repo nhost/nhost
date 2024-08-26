@@ -35,7 +35,7 @@ export async function signUpWithEmailAndPassword({
   password: string
 }) {
   await page.getByRole('link', { name: /sign up/i }).click()
-  await page.getByRole('link', { name: '/continue with email + password/i' }).click()
+  await page.getByRole('link', { name: /continue with email \+ password/i }).click()
   await page.getByPlaceholder(/first name/i).type(faker.name.firstName())
   await page.getByPlaceholder(/last name/i).type(faker.name.lastName())
   await page.getByPlaceholder(/email/i).type(email)
@@ -62,7 +62,7 @@ export async function signInWithEmailAndPassword({
   await page.getByRole('link', { name: /continue with email \+ password/i }).click()
   await page.getByPlaceholder(/email/i).type(email)
   await page.getByPlaceholder(/password/i).type(password)
-  await page.getByRole('button', { name: /sign in/i }).click()
+  await page.getByRole('button', { name: 'Sign In', exact: true }).click()
 }
 
 /**
@@ -71,8 +71,7 @@ export async function signInWithEmailAndPassword({
  * @param page - The page to sign in with.
  */
 export async function signInAnonymously({ page }: { page: Page }) {
-  await page.getByRole('button', { name: /home/i }).click()
-  await page.getByRole('link', { name: /sign in anonymously/i }).click()
+  await page.getByRole('button', { name: /sign in anonymously/i }).click()
   await page.waitForURL(baseURL)
 }
 
@@ -83,11 +82,10 @@ export async function signInAnonymously({ page }: { page: Page }) {
  * @param email - The email address to sign up with.
  */
 export async function signUpWithEmailPasswordless({ page, email }: { page: Page; email: string }) {
-  await page.getByRole('button', { name: /home/i }).click()
   await page.getByRole('link', { name: /sign up/i }).click()
-  await page.getByRole('button', { name: /continue with a magic link/i }).click()
-  await page.getByPlaceholder(/email address/i).fill(email)
-  await page.getByRole('button', { name: /continue with email/i }).click()
+  await page.getByRole('link', { name: /continue with a magic link/i }).click()
+  await page.getByPlaceholder(/email/i).fill(email)
+  await page.getByRole('link', { name: /continue with email/i }).click()
 }
 
 /**
@@ -196,7 +194,7 @@ export async function verifyEmail({
     return verifyEmailPage
   }
 
-  await verifyEmailPage.getByRole('button', { name: /Verify/i }).click()
+  await verifyEmailPage.getByRole('link', { name: /verify/i }).click()
   await verifyEmailPage.waitForLoadState()
   return verifyEmailPage
 }

@@ -147,7 +147,7 @@ export default function ProtectedNotes() {
     <div className="w-full">
       <Card className="mb-4">
         <CardHeader>
-          <CardTitle>Profile</CardTitle>
+          <CardTitle>Protected Notes</CardTitle>
         </CardHeader>
       </Card>
 

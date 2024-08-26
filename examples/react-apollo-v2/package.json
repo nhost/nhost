@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "install-browsers": "pnpm playwright install && pnpm playwright install-deps",
+    "e2e": "pnpm e2e:test",
+    "e2e:test": "pnpm install-browsers && pnpm playwright test",
+    "e2e:start-backend": "cp .secrets.example .secrets && nhost up"
   },
   "dependencies": {
     "@apollo/client": "^3.11.4",
@@ -40,17 +44,22 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
+    "@playwright/test": "^1.46.1",
     "@types/node": "^22.2.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.5",
     "eslint": "^9.8.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
+    "jsqr": "^1.4.0",
+    "pngjs": "^7.0.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.9",
+    "totp-generator": "^0.0.13",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.0",
     "vite": "^5.4.0"

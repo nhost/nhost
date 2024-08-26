@@ -64,9 +64,7 @@ export const ChangeEmail: React.FC = () => {
     const result = await changeEmail(newEmail)
 
     if (result.needsEmailVerification) {
-      toast.info(
-        `An email has been sent to ${newEmail}. Please check your inbox and follow the link to confirm the email change.`
-      )
+      toast.info(`Please check your inbox and follow the link to confirm the email change.`)
     }
     if (result.error) {
       toast.error(result.error.message)
