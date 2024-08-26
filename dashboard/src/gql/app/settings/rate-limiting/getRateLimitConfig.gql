@@ -1,0 +1,46 @@
+query getRateLimitConfig($appId: uuid!, $resolve: Boolean!) {
+  config(appID: $appId, resolve: $resolve) {
+    hasura {
+      rateLimit {
+        limit
+        interval
+      }
+    }
+    storage {
+      rateLimit {
+        limit
+        interval
+      }
+    }
+    functions {
+      rateLimit {
+        limit
+        interval
+      }
+    }
+    auth {
+      rateLimit {
+        bruteForce {
+          limit
+          interval
+        }
+        emails {
+          limit
+          interval
+        }
+        global {
+          limit
+          interval
+        }
+        signups {
+          limit
+          interval
+        }
+        sms {
+          limit
+          interval
+        }
+      }
+    }
+  }
+}
