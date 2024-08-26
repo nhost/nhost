@@ -23092,6 +23092,7 @@ export type GetConfigRawJsonQuery = { __typename?: 'query_root', configRawJSON: 
 
 export type GetRateLimitConfigQueryVariables = Exact<{
   appId: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
 }>;
 
 
@@ -25506,8 +25507,8 @@ export function refetchGetConfigRawJsonQuery(variables: GetConfigRawJsonQueryVar
       return { query: GetConfigRawJsonDocument, variables: variables }
     }
 export const GetRateLimitConfigDocument = gql`
-    query getRateLimitConfig($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+    query getRateLimitConfig($appId: uuid!, $resolve: Boolean!) {
+  config(appID: $appId, resolve: $resolve) {
     hasura {
       rateLimit {
         limit
@@ -25567,6 +25568,7 @@ export const GetRateLimitConfigDocument = gql`
  * const { data, loading, error } = useGetRateLimitConfigQuery({
  *   variables: {
  *      appId: // value for 'appId'
+ *      resolve: // value for 'resolve'
  *   },
  * });
  */

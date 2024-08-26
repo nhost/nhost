@@ -1,5 +1,5 @@
-query getRateLimitConfig($appId: uuid!) {
-  config(appID: $appId, resolve: true) {
+query getRateLimitConfig($appId: uuid!, $resolve: Boolean!) {
+  config(appID: $appId, resolve: $resolve) {
     hasura {
       rateLimit {
         limit

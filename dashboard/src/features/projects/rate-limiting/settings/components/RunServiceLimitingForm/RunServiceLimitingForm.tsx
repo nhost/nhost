@@ -175,17 +175,16 @@ export default function RunServiceLimitingForm({
             const fieldTitle = `${port.type} <-> ${port.port}`.toUpperCase();
             const showDivider = index < ports.length - 1;
             return (
-              <>
+              <div key={`ports.${port.port}`}>
                 <RateLimitField
                   title={fieldTitle}
                   disabled={!enabled}
-                  key={`ports.${port.port}`}
                   register={register}
                   errors={errors.ports}
                   id={`ports.${index}`}
                 />
                 {showDivider && <Divider />}
-              </>
+              </div>
             );
           })}
         </SettingsContainer>
