@@ -320,6 +320,10 @@ func (wf *Workflows) UpdateSession( //nolint:funlen
 		logger.Warn("invalid refresh token")
 		return &api.Session{}, ErrInvalidRefreshToken //nolint:exhaustruct
 	}
+	if err != nil {
+		logger.Error("error getting user roles by refresh token", logError(err))
+		return nil, ErrInternalServerError
+	}
 
 	allowedRoles := make([]string, 0, len(userRoles))
 	for _, role := range userRoles {

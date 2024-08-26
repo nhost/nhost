@@ -73,7 +73,7 @@ dev-env-up-short:  ## Starts development environment without ai service
 		--project-name auth-dev \
 		up \
 		--wait --wait-timeout 120 \
-		postgres graphql mailhog
+		postgres graphql mailhog memcached
 
 
 .PHONY: dev-env-down

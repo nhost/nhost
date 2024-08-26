@@ -1,3 +1,6 @@
+# github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
+## explicit; go 1.18
+github.com/bradfitz/gomemcache/memcache
 # github.com/bytedance/sonic v1.12.0
 ## explicit; go 1.17
 github.com/bytedance/sonic

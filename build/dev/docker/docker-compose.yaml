@@ -131,6 +131,15 @@ services:
               target: /etc/pg_hba_local.conf
               read_only: true
 
+    memcached:
+        image: memcached:1.6
+        ports:
+            - mode: ingress
+              target: 11211
+              published: "11211"
+              protocol: tcp
+        restart: always
+
     mailhog:
         image: jcalonso/mailhog:v1.0.1
         ports:
