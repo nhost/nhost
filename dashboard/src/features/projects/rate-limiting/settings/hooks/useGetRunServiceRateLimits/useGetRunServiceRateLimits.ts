@@ -73,11 +73,13 @@ export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimits
   const services: RunService[] = isPlatform ? platformServices : localServices;
   const loading = isPlatform ? loadingPlatformServices : loadingLocalServices;
 
-  const servicesInfo = services.map((service) => {
-    const enabled = service.config?.ports?.some(
-      (port) => port?.rateLimit && port?.type === 'http' && port?.publish,
-    );
+  const editableRateServices = services.filter((service) =>
+    service?.config?.ports?.some(
+      (port) => port?.type === 'http' && port?.publish,
+    ),
+  );
 
+  const servicesInfo = editableRateServices.map((service) => {
     const ports = service.config?.ports?.map((port) => {
       const { interval, intervalUnit } = parseIntervalNameUnit(
         port?.rateLimit?.interval,
@@ -94,11 +96,18 @@ export default function useGetRunServiceRateLimits(): UseGetRunServiceRateLimits
         rateLimit,
       };
     });
+
+    const editableRateLimitPorts = ports.filter(
+      (port) => port?.type === 'http' && port?.publish,
+    );
+
+    const enabled = editableRateLimitPorts.some((port) => port?.rateLimit);
+
     return {
       enabled,
       name: service.config?.name,
       id: service.id ?? service.serviceID,
-      ports,
+      ports: editableRateLimitPorts,
     };
   });
 

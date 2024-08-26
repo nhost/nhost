@@ -16,7 +16,6 @@ import { RateLimitField } from 'features/projects/rate-limiting/settings/compone
 import type { UseGetRunServiceRateLimitsReturn } from 'features/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits/useGetRunServiceRateLimits';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
 export const validationSchema = Yup.object({
@@ -165,13 +164,13 @@ export default function RunServiceLimitingForm({
               loading: formState.isSubmitting,
             },
           }}
-          className={twMerge('flex flex-col px-0', !enabled && 'hidden')}
+          className="flex flex-col px-0"
         >
           <Divider />
           {ports.map((port, index) => {
-            if (port.type !== 'http' || !port.publish) {
-              return null;
-            }
+            // if (port.type !== 'http' || !port.publish) {
+            //   return null;
+            // }
 
             const fieldTitle = `${port.type} <-> ${port.port}`.toUpperCase();
             const showDivider = index < ports.length - 1;
@@ -179,6 +178,7 @@ export default function RunServiceLimitingForm({
               <>
                 <RateLimitField
                   title={fieldTitle}
+                  disabled={!enabled}
                   key={`ports.${port.port}`}
                   register={register}
                   errors={errors.ports}
