@@ -144,48 +144,53 @@ export default function ProtectedNotes() {
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between p-6">
-        <CardTitle>Protected Notes</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <div className="flex flex-row gap-4">
-          <Input
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            onKeyDown={(e) => e.code === 'Enter' && add()}
-          />
-          <Button className="m-0" onClick={() => add()}>
-            <Plus />
-            Add
-          </Button>
-        </div>
+    <div className="w-full">
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Profile</CardTitle>
+        </CardHeader>
+      </Card>
 
-        <div>
-          {data?.notes.length === 0 && (
-            <Alert className="w-full">
-              <Info className="w-4 h-4" />
-              <AlertTitle>Empty</AlertTitle>
-              <AlertDescription className="mt-2">Start by adding a note</AlertDescription>
-            </Alert>
-          )}
-          {data?.notes.map((note) => (
-            <>
-              <div key={note.id} className="flex flex-row items-center justify-between w-full p-4">
-                <div className="flex flex-row gap-2">
-                  <span>{note.content}</span>
+      <Card className="w-full pt-6">
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-row gap-4">
+            <Input
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              onKeyDown={(e) => e.code === 'Enter' && add()}
+            />
+            <Button className="m-0" onClick={() => add()}>
+              <Plus />
+              Add
+            </Button>
+          </div>
+          <div>
+            {data?.notes.length === 0 && (
+              <Alert className="w-full">
+                <Info className="w-4 h-4" />
+                <AlertTitle>Empty</AlertTitle>
+                <AlertDescription className="mt-2">Start by adding a note</AlertDescription>
+              </Alert>
+            )}
+            {data?.notes.map((note) => (
+              <>
+                <div
+                  key={note.id}
+                  className="flex flex-row items-center justify-between w-full p-4"
+                >
+                  <div className="flex flex-row gap-2">
+                    <span>{note.content}</span>
+                  </div>
+                  <Button variant="ghost" onClick={() => deleteNote(note.id)}>
+                    <Trash className="w-5 h-5" />
+                  </Button>
                 </div>
-
-                <Button variant="ghost" onClick={() => deleteNote(note.id)}>
-                  <Trash className="w-5 h-5" />
-                </Button>
-              </div>
-
-              <Separator className="last:hidden" />
-            </>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+                <Separator className="last:hidden" />
+              </>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
