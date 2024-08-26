@@ -58,9 +58,9 @@ export default function RunServiceLimitingForm({
       enabled: enabledDefault,
       ports: [
         ...ports.map((port) => ({
-          limit: port.rateLimit?.limit,
-          interval: port.rateLimit?.interval,
-          intervalUnit: port.rateLimit?.intervalUnit,
+          limit: port?.rateLimit?.limit,
+          interval: port?.rateLimit?.interval,
+          intervalUnit: port?.rateLimit?.intervalUnit,
         })),
       ],
     },
@@ -74,9 +74,9 @@ export default function RunServiceLimitingForm({
         enabled: enabledDefault,
         ports: [
           ...ports.map((port) => ({
-            limit: port.rateLimit?.limit,
-            interval: port.rateLimit?.interval,
-            intervalUnit: port.rateLimit?.intervalUnit,
+            limit: port?.rateLimit?.limit,
+            interval: port?.rateLimit?.interval,
+            intervalUnit: port?.rateLimit?.intervalUnit,
           })),
         ],
       });
@@ -168,7 +168,7 @@ export default function RunServiceLimitingForm({
         >
           <Divider />
           {ports.map((port, index) => {
-            if (port.type !== 'http' || !port.publish) {
+            if (port?.type !== 'http' || !port?.publish) {
               return null;
             }
 
