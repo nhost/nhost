@@ -88,6 +88,7 @@ type ComplexityRoot struct {
 	ConfigAuth struct {
 		ElevatedPrivileges func(childComplexity int) int
 		Method             func(childComplexity int) int
+		RateLimit          func(childComplexity int) int
 		Redirections       func(childComplexity int) int
 		Resources          func(childComplexity int) int
 		Session            func(childComplexity int) int
@@ -190,6 +191,14 @@ type ComplexityRoot struct {
 		Id      func(childComplexity int) int
 		Name    func(childComplexity int) int
 		Origins func(childComplexity int) int
+	}
+
+	ConfigAuthRateLimit struct {
+		BruteForce func(childComplexity int) int
+		Emails     func(childComplexity int) int
+		Global     func(childComplexity int) int
+		Signups    func(childComplexity int) int
+		Sms        func(childComplexity int) int
 	}
 
 	ConfigAuthRedirections struct {
@@ -296,6 +305,7 @@ type ComplexityRoot struct {
 
 	ConfigFunctions struct {
 		Node      func(childComplexity int) int
+		RateLimit func(childComplexity int) int
 		Resources func(childComplexity int) int
 	}
 
@@ -335,6 +345,7 @@ type ComplexityRoot struct {
 		Events        func(childComplexity int) int
 		JwtSecrets    func(childComplexity int) int
 		Logs          func(childComplexity int) int
+		RateLimit     func(childComplexity int) int
 		Resources     func(childComplexity int) int
 		Settings      func(childComplexity int) int
 		Version       func(childComplexity int) int
@@ -452,6 +463,11 @@ type ComplexityRoot struct {
 		Smtp func(childComplexity int) int
 	}
 
+	ConfigRateLimit struct {
+		Interval func(childComplexity int) int
+		Limit    func(childComplexity int) int
+	}
+
 	ConfigResources struct {
 		Autoscaler func(childComplexity int) int
 		Compute    func(childComplexity int) int
@@ -487,6 +503,7 @@ type ComplexityRoot struct {
 		Ingresses func(childComplexity int) int
 		Port      func(childComplexity int) int
 		Publish   func(childComplexity int) int
+		RateLimit func(childComplexity int) int
 		Type      func(childComplexity int) int
 	}
 
@@ -535,6 +552,7 @@ type ComplexityRoot struct {
 
 	ConfigStorage struct {
 		Antivirus func(childComplexity int) int
+		RateLimit func(childComplexity int) int
 		Resources func(childComplexity int) int
 		Version   func(childComplexity int) int
 	}
@@ -784,6 +802,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigAuth.Method(childComplexity), true
+
+	case "ConfigAuth.rateLimit":
+		if e.complexity.ConfigAuth.RateLimit == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuth.RateLimit(childComplexity), true
 
 	case "ConfigAuth.redirections":
 		if e.complexity.ConfigAuth.Redirections == nil {
@@ -1205,6 +1230,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigAuthMethodWebauthnRelyingParty.Origins(childComplexity), true
 
+	case "ConfigAuthRateLimit.bruteForce":
+		if e.complexity.ConfigAuthRateLimit.BruteForce == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthRateLimit.BruteForce(childComplexity), true
+
+	case "ConfigAuthRateLimit.emails":
+		if e.complexity.ConfigAuthRateLimit.Emails == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthRateLimit.Emails(childComplexity), true
+
+	case "ConfigAuthRateLimit.global":
+		if e.complexity.ConfigAuthRateLimit.Global == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthRateLimit.Global(childComplexity), true
+
+	case "ConfigAuthRateLimit.signups":
+		if e.complexity.ConfigAuthRateLimit.Signups == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthRateLimit.Signups(childComplexity), true
+
+	case "ConfigAuthRateLimit.sms":
+		if e.complexity.ConfigAuthRateLimit.Sms == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthRateLimit.Sms(childComplexity), true
+
 	case "ConfigAuthRedirections.allowedUrls":
 		if e.complexity.ConfigAuthRedirections.AllowedUrls == nil {
 			break
@@ -1548,6 +1608,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigFunctions.Node(childComplexity), true
 
+	case "ConfigFunctions.rateLimit":
+		if e.complexity.ConfigFunctions.RateLimit == nil {
+			break
+		}
+
+		return e.complexity.ConfigFunctions.RateLimit(childComplexity), true
+
 	case "ConfigFunctions.resources":
 		if e.complexity.ConfigFunctions.Resources == nil {
 			break
@@ -1652,6 +1719,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigHasura.Logs(childComplexity), true
+
+	case "ConfigHasura.rateLimit":
+		if e.complexity.ConfigHasura.RateLimit == nil {
+			break
+		}
+
+		return e.complexity.ConfigHasura.RateLimit(childComplexity), true
 
 	case "ConfigHasura.resources":
 		if e.complexity.ConfigHasura.Resources == nil {
@@ -2143,6 +2217,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigProvider.Smtp(childComplexity), true
 
+	case "ConfigRateLimit.interval":
+		if e.complexity.ConfigRateLimit.Interval == nil {
+			break
+		}
+
+		return e.complexity.ConfigRateLimit.Interval(childComplexity), true
+
+	case "ConfigRateLimit.limit":
+		if e.complexity.ConfigRateLimit.Limit == nil {
+			break
+		}
+
+		return e.complexity.ConfigRateLimit.Limit(childComplexity), true
+
 	case "ConfigResources.autoscaler":
 		if e.complexity.ConfigResources.Autoscaler == nil {
 			break
@@ -2275,6 +2363,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigRunServicePort.Publish(childComplexity), true
+
+	case "ConfigRunServicePort.rateLimit":
+		if e.complexity.ConfigRunServicePort.RateLimit == nil {
+			break
+		}
+
+		return e.complexity.ConfigRunServicePort.RateLimit(childComplexity), true
 
 	case "ConfigRunServicePort.type":
 		if e.complexity.ConfigRunServicePort.Type == nil {
@@ -2464,6 +2559,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigStorage.Antivirus(childComplexity), true
+
+	case "ConfigStorage.rateLimit":
+		if e.complexity.ConfigStorage.RateLimit == nil {
+			break
+		}
+
+		return e.complexity.ConfigStorage.RateLimit(childComplexity), true
 
 	case "ConfigStorage.resources":
 		if e.complexity.ConfigStorage.Resources == nil {
@@ -2953,6 +3055,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigAuthMethodWebauthnInsertInput,
 		ec.unmarshalInputConfigAuthMethodWebauthnRelyingPartyComparisonExp,
 		ec.unmarshalInputConfigAuthMethodWebauthnRelyingPartyInsertInput,
+		ec.unmarshalInputConfigAuthRateLimitComparisonExp,
+		ec.unmarshalInputConfigAuthRateLimitInsertInput,
 		ec.unmarshalInputConfigAuthRedirectionsComparisonExp,
 		ec.unmarshalInputConfigAuthRedirectionsInsertInput,
 		ec.unmarshalInputConfigAuthSessionAccessTokenComparisonExp,
@@ -3046,6 +3150,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigPostgresStorageInsertInput,
 		ec.unmarshalInputConfigProviderComparisonExp,
 		ec.unmarshalInputConfigProviderInsertInput,
+		ec.unmarshalInputConfigRateLimitComparisonExp,
+		ec.unmarshalInputConfigRateLimitInsertInput,
 		ec.unmarshalInputConfigResourcesComparisonExp,
 		ec.unmarshalInputConfigResourcesComputeComparisonExp,
 		ec.unmarshalInputConfigResourcesComputeInsertInput,
@@ -3635,6 +3741,10 @@ type ConfigAuth {
 
     """
     totp: ConfigAuthTotp
+    """
+
+    """
+    rateLimit: ConfigAuthRateLimit
 }
 
 input ConfigAuthUpdateInput {
@@ -3647,6 +3757,7 @@ input ConfigAuthUpdateInput {
     session: ConfigAuthSessionUpdateInput
     method: ConfigAuthMethodUpdateInput
     totp: ConfigAuthTotpUpdateInput
+    rateLimit: ConfigAuthRateLimitUpdateInput
 }
 
 input ConfigAuthInsertInput {
@@ -3659,6 +3770,7 @@ input ConfigAuthInsertInput {
     session: ConfigAuthSessionInsertInput
     method: ConfigAuthMethodInsertInput
     totp: ConfigAuthTotpInsertInput
+    rateLimit: ConfigAuthRateLimitInsertInput
 }
 
 input ConfigAuthComparisonExp {
@@ -3674,6 +3786,7 @@ input ConfigAuthComparisonExp {
     session: ConfigAuthSessionComparisonExp
     method: ConfigAuthMethodComparisonExp
     totp: ConfigAuthTotpComparisonExp
+    rateLimit: ConfigAuthRateLimitComparisonExp
 }
 
 """
@@ -4298,6 +4411,59 @@ input ConfigAuthMethodWebauthnRelyingPartyComparisonExp {
     id: ConfigStringComparisonExp
     name: ConfigStringComparisonExp
     origins: ConfigUrlComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthRateLimit {
+    """
+
+    """
+    emails: ConfigRateLimit
+    """
+
+    """
+    sms: ConfigRateLimit
+    """
+
+    """
+    bruteForce: ConfigRateLimit
+    """
+
+    """
+    signups: ConfigRateLimit
+    """
+
+    """
+    global: ConfigRateLimit
+}
+
+input ConfigAuthRateLimitUpdateInput {
+    emails: ConfigRateLimitUpdateInput
+    sms: ConfigRateLimitUpdateInput
+    bruteForce: ConfigRateLimitUpdateInput
+    signups: ConfigRateLimitUpdateInput
+    global: ConfigRateLimitUpdateInput
+}
+
+input ConfigAuthRateLimitInsertInput {
+    emails: ConfigRateLimitInsertInput
+    sms: ConfigRateLimitInsertInput
+    bruteForce: ConfigRateLimitInsertInput
+    signups: ConfigRateLimitInsertInput
+    global: ConfigRateLimitInsertInput
+}
+
+input ConfigAuthRateLimitComparisonExp {
+    _and: [ConfigAuthRateLimitComparisonExp!]
+    _not: ConfigAuthRateLimitComparisonExp
+    _or: [ConfigAuthRateLimitComparisonExp!]
+    emails: ConfigRateLimitComparisonExp
+    sms: ConfigRateLimitComparisonExp
+    bruteForce: ConfigRateLimitComparisonExp
+    signups: ConfigRateLimitComparisonExp
+    global: ConfigRateLimitComparisonExp
 }
 
 """
@@ -4981,16 +5147,22 @@ type ConfigFunctions {
 
     """
     resources: ConfigFunctionsResources
+    """
+
+    """
+    rateLimit: ConfigRateLimit
 }
 
 input ConfigFunctionsUpdateInput {
     node: ConfigFunctionsNodeUpdateInput
     resources: ConfigFunctionsResourcesUpdateInput
+    rateLimit: ConfigRateLimitUpdateInput
 }
 
 input ConfigFunctionsInsertInput {
     node: ConfigFunctionsNodeInsertInput
     resources: ConfigFunctionsResourcesInsertInput
+    rateLimit: ConfigRateLimitInsertInput
 }
 
 input ConfigFunctionsComparisonExp {
@@ -4999,6 +5171,7 @@ input ConfigFunctionsComparisonExp {
     _or: [ConfigFunctionsComparisonExp!]
     node: ConfigFunctionsNodeComparisonExp
     resources: ConfigFunctionsResourcesComparisonExp
+    rateLimit: ConfigRateLimitComparisonExp
 }
 
 """
@@ -5232,6 +5405,10 @@ type ConfigHasura {
     Resources for the service
     """
     resources: ConfigResources
+    """
+
+    """
+    rateLimit: ConfigRateLimit
 }
 
 input ConfigHasuraUpdateInput {
@@ -5244,6 +5421,7 @@ input ConfigHasuraUpdateInput {
     logs: ConfigHasuraLogsUpdateInput
     events: ConfigHasuraEventsUpdateInput
     resources: ConfigResourcesUpdateInput
+    rateLimit: ConfigRateLimitUpdateInput
 }
 
 input ConfigHasuraInsertInput {
@@ -5256,6 +5434,7 @@ input ConfigHasuraInsertInput {
     logs: ConfigHasuraLogsInsertInput
     events: ConfigHasuraEventsInsertInput
     resources: ConfigResourcesInsertInput
+    rateLimit: ConfigRateLimitInsertInput
 }
 
 input ConfigHasuraComparisonExp {
@@ -5271,6 +5450,7 @@ input ConfigHasuraComparisonExp {
     logs: ConfigHasuraLogsComparisonExp
     events: ConfigHasuraEventsComparisonExp
     resources: ConfigResourcesComparisonExp
+    rateLimit: ConfigRateLimitComparisonExp
 }
 
 scalar ConfigHasuraAPIs
@@ -5996,6 +6176,38 @@ input ConfigProviderComparisonExp {
 }
 
 """
+
+"""
+type ConfigRateLimit {
+    """
+
+    """
+    limit: ConfigUint32!
+    """
+
+    """
+    interval: String!
+}
+
+input ConfigRateLimitUpdateInput {
+    limit: ConfigUint32
+    interval: String
+}
+
+input ConfigRateLimitInsertInput {
+    limit: ConfigUint32!
+    interval: String!
+}
+
+input ConfigRateLimitComparisonExp {
+    _and: [ConfigRateLimitComparisonExp!]
+    _not: ConfigRateLimitComparisonExp
+    _or: [ConfigRateLimitComparisonExp!]
+    limit: ConfigUint32ComparisonExp
+    interval: ConfigStringComparisonExp
+}
+
+"""
 Resource configuration for a service
 """
 type ConfigResources {
@@ -6194,6 +6406,10 @@ type ConfigRunServicePort {
 
     """
     ingresses: [ConfigIngress!]
+    """
+
+    """
+    rateLimit: ConfigRateLimit
 }
 
 input ConfigRunServicePortUpdateInput {
@@ -6201,6 +6417,7 @@ input ConfigRunServicePortUpdateInput {
     type: String
     publish: Boolean
         ingresses: [ConfigIngressUpdateInput!]
+    rateLimit: ConfigRateLimitUpdateInput
 }
 
 input ConfigRunServicePortInsertInput {
@@ -6208,6 +6425,7 @@ input ConfigRunServicePortInsertInput {
     type: String!
     publish: Boolean
         ingresses: [ConfigIngressInsertInput!]
+    rateLimit: ConfigRateLimitInsertInput
 }
 
 input ConfigRunServicePortComparisonExp {
@@ -6218,6 +6436,7 @@ input ConfigRunServicePortComparisonExp {
     type: ConfigStringComparisonExp
     publish: ConfigBooleanComparisonExp
     ingresses: ConfigIngressComparisonExp
+    rateLimit: ConfigRateLimitComparisonExp
 }
 
 """
@@ -6525,18 +6744,24 @@ type ConfigStorage {
 
     """
     antivirus: ConfigStorageAntivirus
+    """
+
+    """
+    rateLimit: ConfigRateLimit
 }
 
 input ConfigStorageUpdateInput {
     version: String
     resources: ConfigResourcesUpdateInput
     antivirus: ConfigStorageAntivirusUpdateInput
+    rateLimit: ConfigRateLimitUpdateInput
 }
 
 input ConfigStorageInsertInput {
     version: String
     resources: ConfigResourcesInsertInput
     antivirus: ConfigStorageAntivirusInsertInput
+    rateLimit: ConfigRateLimitInsertInput
 }
 
 input ConfigStorageComparisonExp {
@@ -6546,6 +6771,7 @@ input ConfigStorageComparisonExp {
     version: ConfigStringComparisonExp
     resources: ConfigResourcesComparisonExp
     antivirus: ConfigStorageAntivirusComparisonExp
+    rateLimit: ConfigRateLimitComparisonExp
 }
 
 """
@@ -9000,6 +9226,59 @@ func (ec *executionContext) fieldContext_ConfigAuth_totp(_ context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigAuth_rateLimit(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuth) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuth_rateLimit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RateLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigAuthRateLimit)
+	fc.Result = res
+	return ec.marshalOConfigAuthRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuth_rateLimit(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuth",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "emails":
+				return ec.fieldContext_ConfigAuthRateLimit_emails(ctx, field)
+			case "sms":
+				return ec.fieldContext_ConfigAuthRateLimit_sms(ctx, field)
+			case "bruteForce":
+				return ec.fieldContext_ConfigAuthRateLimit_bruteForce(ctx, field)
+			case "signups":
+				return ec.fieldContext_ConfigAuthRateLimit_signups(ctx, field)
+			case "global":
+				return ec.fieldContext_ConfigAuthRateLimit_global(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthRateLimit", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigAuthElevatedPrivileges_mode(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthElevatedPrivileges) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigAuthElevatedPrivileges_mode(ctx, field)
 	if err != nil {
@@ -11397,6 +11676,241 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodWebauthnRelyingParty_or
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigAuthRateLimit_emails(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthRateLimit) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthRateLimit_emails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Emails, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigRateLimit)
+	fc.Result = res
+	return ec.marshalOConfigRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthRateLimit_emails(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthRateLimit",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limit":
+				return ec.fieldContext_ConfigRateLimit_limit(ctx, field)
+			case "interval":
+				return ec.fieldContext_ConfigRateLimit_interval(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigRateLimit", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthRateLimit_sms(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthRateLimit) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthRateLimit_sms(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Sms, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigRateLimit)
+	fc.Result = res
+	return ec.marshalOConfigRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthRateLimit_sms(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthRateLimit",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limit":
+				return ec.fieldContext_ConfigRateLimit_limit(ctx, field)
+			case "interval":
+				return ec.fieldContext_ConfigRateLimit_interval(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigRateLimit", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthRateLimit_bruteForce(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthRateLimit) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthRateLimit_bruteForce(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BruteForce, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigRateLimit)
+	fc.Result = res
+	return ec.marshalOConfigRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthRateLimit_bruteForce(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthRateLimit",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limit":
+				return ec.fieldContext_ConfigRateLimit_limit(ctx, field)
+			case "interval":
+				return ec.fieldContext_ConfigRateLimit_interval(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigRateLimit", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthRateLimit_signups(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthRateLimit) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthRateLimit_signups(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Signups, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigRateLimit)
+	fc.Result = res
+	return ec.marshalOConfigRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthRateLimit_signups(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthRateLimit",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limit":
+				return ec.fieldContext_ConfigRateLimit_limit(ctx, field)
+			case "interval":
+				return ec.fieldContext_ConfigRateLimit_interval(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigRateLimit", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthRateLimit_global(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthRateLimit) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthRateLimit_global(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Global, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigRateLimit)
+	fc.Result = res
+	return ec.marshalOConfigRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthRateLimit_global(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthRateLimit",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limit":
+				return ec.fieldContext_ConfigRateLimit_limit(ctx, field)
+			case "interval":
+				return ec.fieldContext_ConfigRateLimit_interval(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigRateLimit", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigAuthRedirections_clientUrl(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthRedirections) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigAuthRedirections_clientUrl(ctx, field)
 	if err != nil {
@@ -13041,6 +13555,8 @@ func (ec *executionContext) fieldContext_ConfigConfig_hasura(_ context.Context, 
 				return ec.fieldContext_ConfigHasura_events(ctx, field)
 			case "resources":
 				return ec.fieldContext_ConfigHasura_resources(ctx, field)
+			case "rateLimit":
+				return ec.fieldContext_ConfigHasura_rateLimit(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigHasura", field.Name)
 		},
@@ -13133,6 +13649,8 @@ func (ec *executionContext) fieldContext_ConfigConfig_functions(_ context.Contex
 				return ec.fieldContext_ConfigFunctions_node(ctx, field)
 			case "resources":
 				return ec.fieldContext_ConfigFunctions_resources(ctx, field)
+			case "rateLimit":
+				return ec.fieldContext_ConfigFunctions_rateLimit(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigFunctions", field.Name)
 		},
@@ -13194,6 +13712,8 @@ func (ec *executionContext) fieldContext_ConfigConfig_auth(_ context.Context, fi
 				return ec.fieldContext_ConfigAuth_method(ctx, field)
 			case "totp":
 				return ec.fieldContext_ConfigAuth_totp(ctx, field)
+			case "rateLimit":
+				return ec.fieldContext_ConfigAuth_rateLimit(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigAuth", field.Name)
 		},
@@ -13339,6 +13859,8 @@ func (ec *executionContext) fieldContext_ConfigConfig_storage(_ context.Context,
 				return ec.fieldContext_ConfigStorage_resources(ctx, field)
 			case "antivirus":
 				return ec.fieldContext_ConfigStorage_antivirus(ctx, field)
+			case "rateLimit":
+				return ec.fieldContext_ConfigStorage_rateLimit(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigStorage", field.Name)
 		},
@@ -13620,6 +14142,53 @@ func (ec *executionContext) fieldContext_ConfigFunctions_resources(_ context.Con
 				return ec.fieldContext_ConfigFunctionsResources_networking(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigFunctionsResources", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigFunctions_rateLimit(ctx context.Context, field graphql.CollectedField, obj *model.ConfigFunctions) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigFunctions_rateLimit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RateLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigRateLimit)
+	fc.Result = res
+	return ec.marshalOConfigRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigFunctions_rateLimit(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigFunctions",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limit":
+				return ec.fieldContext_ConfigRateLimit_limit(ctx, field)
+			case "interval":
+				return ec.fieldContext_ConfigRateLimit_interval(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigRateLimit", field.Name)
 		},
 	}
 	return fc, nil
@@ -14457,6 +15026,53 @@ func (ec *executionContext) fieldContext_ConfigHasura_resources(_ context.Contex
 				return ec.fieldContext_ConfigResources_networking(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigResources", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigHasura_rateLimit(ctx context.Context, field graphql.CollectedField, obj *model.ConfigHasura) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigHasura_rateLimit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RateLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigRateLimit)
+	fc.Result = res
+	return ec.marshalOConfigRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigHasura_rateLimit(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigHasura",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limit":
+				return ec.fieldContext_ConfigRateLimit_limit(ctx, field)
+			case "interval":
+				return ec.fieldContext_ConfigRateLimit_interval(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigRateLimit", field.Name)
 		},
 	}
 	return fc, nil
@@ -17345,6 +17961,94 @@ func (ec *executionContext) fieldContext_ConfigProvider_sms(_ context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigRateLimit_limit(ctx context.Context, field graphql.CollectedField, obj *model.ConfigRateLimit) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigRateLimit_limit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Limit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint32)
+	fc.Result = res
+	return ec.marshalNConfigUint322uint32(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigRateLimit_limit(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigRateLimit",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigUint32 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigRateLimit_interval(ctx context.Context, field graphql.CollectedField, obj *model.ConfigRateLimit) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigRateLimit_interval(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Interval, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigRateLimit_interval(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigRateLimit",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigResources_compute(ctx context.Context, field graphql.CollectedField, obj *model.ConfigResources) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigResources_compute(ctx, field)
 	if err != nil {
@@ -17835,6 +18539,8 @@ func (ec *executionContext) fieldContext_ConfigRunServiceConfig_ports(_ context.
 				return ec.fieldContext_ConfigRunServicePort_publish(ctx, field)
 			case "ingresses":
 				return ec.fieldContext_ConfigRunServicePort_ingresses(ctx, field)
+			case "rateLimit":
+				return ec.fieldContext_ConfigRunServicePort_rateLimit(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigRunServicePort", field.Name)
 		},
@@ -18262,6 +18968,53 @@ func (ec *executionContext) fieldContext_ConfigRunServicePort_ingresses(_ contex
 				return ec.fieldContext_ConfigIngress_fqdn(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigIngress", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigRunServicePort_rateLimit(ctx context.Context, field graphql.CollectedField, obj *model.ConfigRunServicePort) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigRunServicePort_rateLimit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RateLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigRateLimit)
+	fc.Result = res
+	return ec.marshalOConfigRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigRunServicePort_rateLimit(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigRunServicePort",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limit":
+				return ec.fieldContext_ConfigRateLimit_limit(ctx, field)
+			case "interval":
+				return ec.fieldContext_ConfigRateLimit_interval(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigRateLimit", field.Name)
 		},
 	}
 	return fc, nil
@@ -19487,6 +20240,53 @@ func (ec *executionContext) fieldContext_ConfigStorage_antivirus(_ context.Conte
 				return ec.fieldContext_ConfigStorageAntivirus_server(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigStorageAntivirus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigStorage_rateLimit(ctx context.Context, field graphql.CollectedField, obj *model.ConfigStorage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigStorage_rateLimit(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RateLimit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigRateLimit)
+	fc.Result = res
+	return ec.marshalOConfigRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigStorage_rateLimit(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigStorage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "limit":
+				return ec.fieldContext_ConfigRateLimit_limit(ctx, field)
+			case "interval":
+				return ec.fieldContext_ConfigRateLimit_interval(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigRateLimit", field.Name)
 		},
 	}
 	return fc, nil
@@ -24204,7 +25004,7 @@ func (ec *executionContext) unmarshalInputConfigAuthComparisonExp(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "elevatedPrivileges", "redirections", "signUp", "user", "session", "method", "totp"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "elevatedPrivileges", "redirections", "signUp", "user", "session", "method", "totp", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -24295,6 +25095,13 @@ func (ec *executionContext) unmarshalInputConfigAuthComparisonExp(ctx context.Co
 				return it, err
 			}
 			it.Totp = data
+		case "rateLimit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
+			data, err := ec.unmarshalOConfigAuthRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RateLimit = data
 		}
 	}
 
@@ -24383,7 +25190,7 @@ func (ec *executionContext) unmarshalInputConfigAuthInsertInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"version", "resources", "elevatedPrivileges", "redirections", "signUp", "user", "session", "method", "totp"}
+	fieldsInOrder := [...]string{"version", "resources", "elevatedPrivileges", "redirections", "signUp", "user", "session", "method", "totp", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -24453,6 +25260,13 @@ func (ec *executionContext) unmarshalInputConfigAuthInsertInput(ctx context.Cont
 				return it, err
 			}
 			it.Totp = data
+		case "rateLimit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
+			data, err := ec.unmarshalOConfigAuthRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RateLimit = data
 		}
 	}
 
@@ -25974,6 +26788,137 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnRelyingPartyIn
 				return it, err
 			}
 			it.Origins = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthRateLimitComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthRateLimitComparisonExp, error) {
+	var it model.ConfigAuthRateLimitComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "emails", "sms", "bruteForce", "signups", "global"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAuthRateLimitComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAuthRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAuthRateLimitComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "emails":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Emails = data
+		case "sms":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sms"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Sms = data
+		case "bruteForce":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bruteForce"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BruteForce = data
+		case "signups":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("signups"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Signups = data
+		case "global":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("global"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Global = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthRateLimitInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthRateLimitInsertInput, error) {
+	var it model.ConfigAuthRateLimitInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"emails", "sms", "bruteForce", "signups", "global"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "emails":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
+			data, err := ec.unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Emails = data
+		case "sms":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sms"))
+			data, err := ec.unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Sms = data
+		case "bruteForce":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bruteForce"))
+			data, err := ec.unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BruteForce = data
+		case "signups":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("signups"))
+			data, err := ec.unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Signups = data
+		case "global":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("global"))
+			data, err := ec.unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Global = data
 		}
 	}
 
@@ -27901,7 +28846,7 @@ func (ec *executionContext) unmarshalInputConfigFunctionsComparisonExp(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "node", "resources"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "node", "resources", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27943,6 +28888,13 @@ func (ec *executionContext) unmarshalInputConfigFunctionsComparisonExp(ctx conte
 				return it, err
 			}
 			it.Resources = data
+		case "rateLimit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RateLimit = data
 		}
 	}
 
@@ -27956,7 +28908,7 @@ func (ec *executionContext) unmarshalInputConfigFunctionsInsertInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"node", "resources"}
+	fieldsInOrder := [...]string{"node", "resources", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27977,6 +28929,13 @@ func (ec *executionContext) unmarshalInputConfigFunctionsInsertInput(ctx context
 				return it, err
 			}
 			it.Resources = data
+		case "rateLimit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
+			data, err := ec.unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RateLimit = data
 		}
 	}
 
@@ -28694,7 +29653,7 @@ func (ec *executionContext) unmarshalInputConfigHasuraComparisonExp(ctx context.
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "jwtSecrets", "adminSecret", "webhookSecret", "settings", "authHook", "logs", "events", "resources"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "jwtSecrets", "adminSecret", "webhookSecret", "settings", "authHook", "logs", "events", "resources", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28785,6 +29744,13 @@ func (ec *executionContext) unmarshalInputConfigHasuraComparisonExp(ctx context.
 				return it, err
 			}
 			it.Resources = data
+		case "rateLimit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RateLimit = data
 		}
 	}
 
@@ -28873,7 +29839,7 @@ func (ec *executionContext) unmarshalInputConfigHasuraInsertInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"version", "jwtSecrets", "adminSecret", "webhookSecret", "settings", "authHook", "logs", "events", "resources"}
+	fieldsInOrder := [...]string{"version", "jwtSecrets", "adminSecret", "webhookSecret", "settings", "authHook", "logs", "events", "resources", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -28943,6 +29909,13 @@ func (ec *executionContext) unmarshalInputConfigHasuraInsertInput(ctx context.Co
 				return it, err
 			}
 			it.Resources = data
+		case "rateLimit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
+			data, err := ec.unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RateLimit = data
 		}
 	}
 
@@ -30843,6 +31816,95 @@ func (ec *executionContext) unmarshalInputConfigProviderInsertInput(ctx context.
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputConfigRateLimitComparisonExp(ctx context.Context, obj interface{}) (model.ConfigRateLimitComparisonExp, error) {
+	var it model.ConfigRateLimitComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "limit", "interval"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "limit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			data, err := ec.unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Limit = data
+		case "interval":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("interval"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Interval = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigRateLimitInsertInput(ctx context.Context, obj interface{}) (model.ConfigRateLimitInsertInput, error) {
+	var it model.ConfigRateLimitInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"limit", "interval"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "limit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+			data, err := ec.unmarshalNConfigUint322uint32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Limit = data
+		case "interval":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("interval"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Interval = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigResourcesComparisonExp(ctx context.Context, obj interface{}) (model.ConfigResourcesComparisonExp, error) {
 	var it model.ConfigResourcesComparisonExp
 	asMap := map[string]interface{}{}
@@ -31338,7 +32400,7 @@ func (ec *executionContext) unmarshalInputConfigRunServicePortComparisonExp(ctx 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "port", "type", "publish", "ingresses"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "port", "type", "publish", "ingresses", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31394,6 +32456,13 @@ func (ec *executionContext) unmarshalInputConfigRunServicePortComparisonExp(ctx 
 				return it, err
 			}
 			it.Ingresses = data
+		case "rateLimit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RateLimit = data
 		}
 	}
 
@@ -31407,7 +32476,7 @@ func (ec *executionContext) unmarshalInputConfigRunServicePortInsertInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"port", "type", "publish", "ingresses"}
+	fieldsInOrder := [...]string{"port", "type", "publish", "ingresses", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -31442,6 +32511,13 @@ func (ec *executionContext) unmarshalInputConfigRunServicePortInsertInput(ctx co
 				return it, err
 			}
 			it.Ingresses = data
+		case "rateLimit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
+			data, err := ec.unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RateLimit = data
 		}
 	}
 
@@ -32246,7 +33322,7 @@ func (ec *executionContext) unmarshalInputConfigStorageComparisonExp(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "antivirus"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "antivirus", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32295,6 +33371,13 @@ func (ec *executionContext) unmarshalInputConfigStorageComparisonExp(ctx context
 				return it, err
 			}
 			it.Antivirus = data
+		case "rateLimit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
+			data, err := ec.unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RateLimit = data
 		}
 	}
 
@@ -32308,7 +33391,7 @@ func (ec *executionContext) unmarshalInputConfigStorageInsertInput(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"version", "resources", "antivirus"}
+	fieldsInOrder := [...]string{"version", "resources", "antivirus", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32336,6 +33419,13 @@ func (ec *executionContext) unmarshalInputConfigStorageInsertInput(ctx context.C
 				return it, err
 			}
 			it.Antivirus = data
+		case "rateLimit":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
+			data, err := ec.unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RateLimit = data
 		}
 	}
 
@@ -33804,6 +34894,8 @@ func (ec *executionContext) _ConfigAuth(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._ConfigAuth_method(ctx, field, obj)
 		case "totp":
 			out.Values[i] = ec._ConfigAuth_totp(ctx, field, obj)
+		case "rateLimit":
+			out.Values[i] = ec._ConfigAuth_rateLimit(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -34386,6 +35478,50 @@ func (ec *executionContext) _ConfigAuthMethodWebauthnRelyingParty(ctx context.Co
 			out.Values[i] = ec._ConfigAuthMethodWebauthnRelyingParty_name(ctx, field, obj)
 		case "origins":
 			out.Values[i] = ec._ConfigAuthMethodWebauthnRelyingParty_origins(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAuthRateLimitImplementors = []string{"ConfigAuthRateLimit"}
+
+func (ec *executionContext) _ConfigAuthRateLimit(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthRateLimit) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAuthRateLimitImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAuthRateLimit")
+		case "emails":
+			out.Values[i] = ec._ConfigAuthRateLimit_emails(ctx, field, obj)
+		case "sms":
+			out.Values[i] = ec._ConfigAuthRateLimit_sms(ctx, field, obj)
+		case "bruteForce":
+			out.Values[i] = ec._ConfigAuthRateLimit_bruteForce(ctx, field, obj)
+		case "signups":
+			out.Values[i] = ec._ConfigAuthRateLimit_signups(ctx, field, obj)
+		case "global":
+			out.Values[i] = ec._ConfigAuthRateLimit_global(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35162,6 +36298,8 @@ func (ec *executionContext) _ConfigFunctions(ctx context.Context, sel ast.Select
 			out.Values[i] = ec._ConfigFunctions_node(ctx, field, obj)
 		case "resources":
 			out.Values[i] = ec._ConfigFunctions_resources(ctx, field, obj)
+		case "rateLimit":
+			out.Values[i] = ec._ConfigFunctions_rateLimit(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35485,6 +36623,8 @@ func (ec *executionContext) _ConfigHasura(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._ConfigHasura_events(ctx, field, obj)
 		case "resources":
 			out.Values[i] = ec._ConfigHasura_resources(ctx, field, obj)
+		case "rateLimit":
+			out.Values[i] = ec._ConfigHasura_rateLimit(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -36171,6 +37311,50 @@ func (ec *executionContext) _ConfigProvider(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var configRateLimitImplementors = []string{"ConfigRateLimit"}
+
+func (ec *executionContext) _ConfigRateLimit(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigRateLimit) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configRateLimitImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigRateLimit")
+		case "limit":
+			out.Values[i] = ec._ConfigRateLimit_limit(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "interval":
+			out.Values[i] = ec._ConfigRateLimit_interval(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var configResourcesImplementors = []string{"ConfigResources"}
 
 func (ec *executionContext) _ConfigResources(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigResources) graphql.Marshaler {
@@ -36422,6 +37606,8 @@ func (ec *executionContext) _ConfigRunServicePort(ctx context.Context, sel ast.S
 			out.Values[i] = ec._ConfigRunServicePort_publish(ctx, field, obj)
 		case "ingresses":
 			out.Values[i] = ec._ConfigRunServicePort_ingresses(ctx, field, obj)
+		case "rateLimit":
+			out.Values[i] = ec._ConfigRunServicePort_rateLimit(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -36761,6 +37947,8 @@ func (ec *executionContext) _ConfigStorage(ctx context.Context, sel ast.Selectio
 			out.Values[i] = ec._ConfigStorage_resources(ctx, field, obj)
 		case "antivirus":
 			out.Values[i] = ec._ConfigStorage_antivirus(ctx, field, obj)
+		case "rateLimit":
+			out.Values[i] = ec._ConfigStorage_rateLimit(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -38144,6 +39332,11 @@ func (ec *executionContext) unmarshalNConfigAuthMethodWebauthnRelyingPartyCompar
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNConfigAuthRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthRateLimitComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAuthRateLimitComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNConfigAuthRedirectionsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRedirectionsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthRedirectionsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthRedirectionsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -38744,6 +39937,11 @@ func (ec *executionContext) unmarshalNConfigPostgresStorageComparisonExp2ᚖgith
 
 func (ec *executionContext) unmarshalNConfigProviderComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigProviderComparisonExp(ctx context.Context, v interface{}) (*model.ConfigProviderComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigProviderComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRateLimitComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigRateLimitComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -40547,6 +41745,58 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnUpdateInput2ᚖgit
 		return nil, nil
 	}
 	var res = new(model.ConfigAuthMethodWebauthnUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAuthRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimit(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAuthRateLimit) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAuthRateLimit(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthRateLimitComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthRateLimitComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigAuthRateLimitComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAuthRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAuthRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthRateLimitComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthRateLimitComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthRateLimitInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthRateLimitInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthRateLimitUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthRateLimitUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAuthRateLimitUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -43492,6 +44742,58 @@ func (ec *executionContext) unmarshalOConfigProviderUpdateInput2ᚖgithubᚗcom�
 		return nil, nil
 	}
 	var res = new(model.ConfigProviderUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigRateLimit2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimit(ctx context.Context, sel ast.SelectionSet, v *model.ConfigRateLimit) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigRateLimit(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigRateLimitComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigRateLimitComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigRateLimitComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitComparisonExp(ctx context.Context, v interface{}) (*model.ConfigRateLimitComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigRateLimitComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitInsertInput(ctx context.Context, v interface{}) (*model.ConfigRateLimitInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigRateLimitInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigRateLimitUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigRateLimitUpdateInput(ctx context.Context, v interface{}) (*model.ConfigRateLimitUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigRateLimitUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }

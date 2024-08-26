@@ -948,6 +948,8 @@ type ConfigAuth struct {
 	Method *ConfigAuthMethod `json:"method,omitempty" toml:"method,omitempty"`
 
 	Totp *ConfigAuthTotp `json:"totp,omitempty" toml:"totp,omitempty"`
+
+	RateLimit *ConfigAuthRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigAuth) MarshalJSON() ([]byte, error) {
@@ -978,6 +980,9 @@ func (o *ConfigAuth) MarshalJSON() ([]byte, error) {
 	}
 	if o.Totp != nil {
 		m["totp"] = o.Totp
+	}
+	if o.RateLimit != nil {
+		m["rateLimit"] = o.RateLimit
 	}
 	return json.Marshal(m)
 }
@@ -1045,6 +1050,13 @@ func (o *ConfigAuth) GetTotp() *ConfigAuthTotp {
 	return o.Totp
 }
 
+func (o *ConfigAuth) GetRateLimit() *ConfigAuthRateLimit {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
 type ConfigAuthUpdateInput struct {
 	Version                 *string                                  `json:"version,omitempty" toml:"version,omitempty"`
 	IsSetVersion            bool                                     `json:"-"`
@@ -1064,6 +1076,8 @@ type ConfigAuthUpdateInput struct {
 	IsSetMethod             bool                                     `json:"-"`
 	Totp                    *ConfigAuthTotpUpdateInput               `json:"totp,omitempty" toml:"totp,omitempty"`
 	IsSetTotp               bool                                     `json:"-"`
+	RateLimit               *ConfigAuthRateLimitUpdateInput          `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	IsSetRateLimit          bool                                     `json:"-"`
 }
 
 func (o *ConfigAuthUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -1168,6 +1182,16 @@ func (o *ConfigAuthUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetTotp = true
 	}
+	if x, ok := m["rateLimit"]; ok {
+		if x != nil {
+			t := &ConfigAuthRateLimitUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.RateLimit = t
+		}
+		o.IsSetRateLimit = true
+	}
 
 	return nil
 }
@@ -1240,6 +1264,13 @@ func (o *ConfigAuthUpdateInput) GetTotp() *ConfigAuthTotpUpdateInput {
 		return nil
 	}
 	return o.Totp
+}
+
+func (o *ConfigAuthUpdateInput) GetRateLimit() *ConfigAuthRateLimitUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
 }
 
 func (s *ConfigAuth) Update(v *ConfigAuthUpdateInput) {
@@ -1329,6 +1360,16 @@ func (s *ConfigAuth) Update(v *ConfigAuthUpdateInput) {
 			s.Totp.Update(v.Totp)
 		}
 	}
+	if v.IsSetRateLimit || v.RateLimit != nil {
+		if v.RateLimit == nil {
+			s.RateLimit = nil
+		} else {
+			if s.RateLimit == nil {
+				s.RateLimit = &ConfigAuthRateLimit{}
+			}
+			s.RateLimit.Update(v.RateLimit)
+		}
+	}
 }
 
 type ConfigAuthInsertInput struct {
@@ -1341,6 +1382,7 @@ type ConfigAuthInsertInput struct {
 	Session            *ConfigAuthSessionInsertInput            `json:"session,omitempty" toml:"session,omitempty"`
 	Method             *ConfigAuthMethodInsertInput             `json:"method,omitempty" toml:"method,omitempty"`
 	Totp               *ConfigAuthTotpInsertInput               `json:"totp,omitempty" toml:"totp,omitempty"`
+	RateLimit          *ConfigAuthRateLimitInsertInput          `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigAuthInsertInput) GetVersion() *string {
@@ -1406,6 +1448,13 @@ func (o *ConfigAuthInsertInput) GetTotp() *ConfigAuthTotpInsertInput {
 	return o.Totp
 }
 
+func (o *ConfigAuthInsertInput) GetRateLimit() *ConfigAuthRateLimitInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
 func (s *ConfigAuth) Insert(v *ConfigAuthInsertInput) {
 	s.Version = v.Version
 	if v.Resources != nil {
@@ -1456,6 +1505,12 @@ func (s *ConfigAuth) Insert(v *ConfigAuthInsertInput) {
 		}
 		s.Totp.Insert(v.Totp)
 	}
+	if v.RateLimit != nil {
+		if s.RateLimit == nil {
+			s.RateLimit = &ConfigAuthRateLimit{}
+		}
+		s.RateLimit.Insert(v.RateLimit)
+	}
 }
 
 func (s *ConfigAuth) Clone() *ConfigAuth {
@@ -1473,6 +1528,7 @@ func (s *ConfigAuth) Clone() *ConfigAuth {
 	v.Session = s.Session.Clone()
 	v.Method = s.Method.Clone()
 	v.Totp = s.Totp.Clone()
+	v.RateLimit = s.RateLimit.Clone()
 	return v
 }
 
@@ -1489,6 +1545,7 @@ type ConfigAuthComparisonExp struct {
 	Session            *ConfigAuthSessionComparisonExp            `json:"session,omitempty"`
 	Method             *ConfigAuthMethodComparisonExp             `json:"method,omitempty"`
 	Totp               *ConfigAuthTotpComparisonExp               `json:"totp,omitempty"`
+	RateLimit          *ConfigAuthRateLimitComparisonExp          `json:"rateLimit,omitempty"`
 }
 
 func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
@@ -1506,6 +1563,7 @@ func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
 			Session:            &ConfigAuthSession{},
 			Method:             &ConfigAuthMethod{},
 			Totp:               &ConfigAuthTotp{},
+			RateLimit:          &ConfigAuthRateLimit{},
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
@@ -1533,6 +1591,9 @@ func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
 		return false
 	}
 	if !exp.Totp.Matches(o.Totp) {
+		return false
+	}
+	if !exp.RateLimit.Matches(o.RateLimit) {
 		return false
 	}
 
@@ -5718,6 +5779,389 @@ func (exp *ConfigAuthMethodWebauthnRelyingPartyComparisonExp) Matches(o *ConfigA
 		if !found && exp.Origins != nil {
 			return false
 		}
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthRateLimit struct {
+	Emails *ConfigRateLimit `json:"emails,omitempty" toml:"emails,omitempty"`
+
+	Sms *ConfigRateLimit `json:"sms,omitempty" toml:"sms,omitempty"`
+
+	BruteForce *ConfigRateLimit `json:"bruteForce,omitempty" toml:"bruteForce,omitempty"`
+
+	Signups *ConfigRateLimit `json:"signups,omitempty" toml:"signups,omitempty"`
+
+	Global *ConfigRateLimit `json:"global,omitempty" toml:"global,omitempty"`
+}
+
+func (o *ConfigAuthRateLimit) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Emails != nil {
+		m["emails"] = o.Emails
+	}
+	if o.Sms != nil {
+		m["sms"] = o.Sms
+	}
+	if o.BruteForce != nil {
+		m["bruteForce"] = o.BruteForce
+	}
+	if o.Signups != nil {
+		m["signups"] = o.Signups
+	}
+	if o.Global != nil {
+		m["global"] = o.Global
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthRateLimit) GetEmails() *ConfigRateLimit {
+	if o == nil {
+		return nil
+	}
+	return o.Emails
+}
+
+func (o *ConfigAuthRateLimit) GetSms() *ConfigRateLimit {
+	if o == nil {
+		return nil
+	}
+	return o.Sms
+}
+
+func (o *ConfigAuthRateLimit) GetBruteForce() *ConfigRateLimit {
+	if o == nil {
+		return nil
+	}
+	return o.BruteForce
+}
+
+func (o *ConfigAuthRateLimit) GetSignups() *ConfigRateLimit {
+	if o == nil {
+		return nil
+	}
+	return o.Signups
+}
+
+func (o *ConfigAuthRateLimit) GetGlobal() *ConfigRateLimit {
+	if o == nil {
+		return nil
+	}
+	return o.Global
+}
+
+type ConfigAuthRateLimitUpdateInput struct {
+	Emails          *ConfigRateLimitUpdateInput `json:"emails,omitempty" toml:"emails,omitempty"`
+	IsSetEmails     bool                        `json:"-"`
+	Sms             *ConfigRateLimitUpdateInput `json:"sms,omitempty" toml:"sms,omitempty"`
+	IsSetSms        bool                        `json:"-"`
+	BruteForce      *ConfigRateLimitUpdateInput `json:"bruteForce,omitempty" toml:"bruteForce,omitempty"`
+	IsSetBruteForce bool                        `json:"-"`
+	Signups         *ConfigRateLimitUpdateInput `json:"signups,omitempty" toml:"signups,omitempty"`
+	IsSetSignups    bool                        `json:"-"`
+	Global          *ConfigRateLimitUpdateInput `json:"global,omitempty" toml:"global,omitempty"`
+	IsSetGlobal     bool                        `json:"-"`
+}
+
+func (o *ConfigAuthRateLimitUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["emails"]; ok {
+		if x != nil {
+			t := &ConfigRateLimitUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Emails = t
+		}
+		o.IsSetEmails = true
+	}
+	if x, ok := m["sms"]; ok {
+		if x != nil {
+			t := &ConfigRateLimitUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Sms = t
+		}
+		o.IsSetSms = true
+	}
+	if x, ok := m["bruteForce"]; ok {
+		if x != nil {
+			t := &ConfigRateLimitUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.BruteForce = t
+		}
+		o.IsSetBruteForce = true
+	}
+	if x, ok := m["signups"]; ok {
+		if x != nil {
+			t := &ConfigRateLimitUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Signups = t
+		}
+		o.IsSetSignups = true
+	}
+	if x, ok := m["global"]; ok {
+		if x != nil {
+			t := &ConfigRateLimitUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Global = t
+		}
+		o.IsSetGlobal = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthRateLimitUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthRateLimitUpdateInput) GetEmails() *ConfigRateLimitUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Emails
+}
+
+func (o *ConfigAuthRateLimitUpdateInput) GetSms() *ConfigRateLimitUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Sms
+}
+
+func (o *ConfigAuthRateLimitUpdateInput) GetBruteForce() *ConfigRateLimitUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.BruteForce
+}
+
+func (o *ConfigAuthRateLimitUpdateInput) GetSignups() *ConfigRateLimitUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Signups
+}
+
+func (o *ConfigAuthRateLimitUpdateInput) GetGlobal() *ConfigRateLimitUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Global
+}
+
+func (s *ConfigAuthRateLimit) Update(v *ConfigAuthRateLimitUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEmails || v.Emails != nil {
+		if v.Emails == nil {
+			s.Emails = nil
+		} else {
+			if s.Emails == nil {
+				s.Emails = &ConfigRateLimit{}
+			}
+			s.Emails.Update(v.Emails)
+		}
+	}
+	if v.IsSetSms || v.Sms != nil {
+		if v.Sms == nil {
+			s.Sms = nil
+		} else {
+			if s.Sms == nil {
+				s.Sms = &ConfigRateLimit{}
+			}
+			s.Sms.Update(v.Sms)
+		}
+	}
+	if v.IsSetBruteForce || v.BruteForce != nil {
+		if v.BruteForce == nil {
+			s.BruteForce = nil
+		} else {
+			if s.BruteForce == nil {
+				s.BruteForce = &ConfigRateLimit{}
+			}
+			s.BruteForce.Update(v.BruteForce)
+		}
+	}
+	if v.IsSetSignups || v.Signups != nil {
+		if v.Signups == nil {
+			s.Signups = nil
+		} else {
+			if s.Signups == nil {
+				s.Signups = &ConfigRateLimit{}
+			}
+			s.Signups.Update(v.Signups)
+		}
+	}
+	if v.IsSetGlobal || v.Global != nil {
+		if v.Global == nil {
+			s.Global = nil
+		} else {
+			if s.Global == nil {
+				s.Global = &ConfigRateLimit{}
+			}
+			s.Global.Update(v.Global)
+		}
+	}
+}
+
+type ConfigAuthRateLimitInsertInput struct {
+	Emails     *ConfigRateLimitInsertInput `json:"emails,omitempty" toml:"emails,omitempty"`
+	Sms        *ConfigRateLimitInsertInput `json:"sms,omitempty" toml:"sms,omitempty"`
+	BruteForce *ConfigRateLimitInsertInput `json:"bruteForce,omitempty" toml:"bruteForce,omitempty"`
+	Signups    *ConfigRateLimitInsertInput `json:"signups,omitempty" toml:"signups,omitempty"`
+	Global     *ConfigRateLimitInsertInput `json:"global,omitempty" toml:"global,omitempty"`
+}
+
+func (o *ConfigAuthRateLimitInsertInput) GetEmails() *ConfigRateLimitInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Emails
+}
+
+func (o *ConfigAuthRateLimitInsertInput) GetSms() *ConfigRateLimitInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Sms
+}
+
+func (o *ConfigAuthRateLimitInsertInput) GetBruteForce() *ConfigRateLimitInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.BruteForce
+}
+
+func (o *ConfigAuthRateLimitInsertInput) GetSignups() *ConfigRateLimitInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Signups
+}
+
+func (o *ConfigAuthRateLimitInsertInput) GetGlobal() *ConfigRateLimitInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Global
+}
+
+func (s *ConfigAuthRateLimit) Insert(v *ConfigAuthRateLimitInsertInput) {
+	if v.Emails != nil {
+		if s.Emails == nil {
+			s.Emails = &ConfigRateLimit{}
+		}
+		s.Emails.Insert(v.Emails)
+	}
+	if v.Sms != nil {
+		if s.Sms == nil {
+			s.Sms = &ConfigRateLimit{}
+		}
+		s.Sms.Insert(v.Sms)
+	}
+	if v.BruteForce != nil {
+		if s.BruteForce == nil {
+			s.BruteForce = &ConfigRateLimit{}
+		}
+		s.BruteForce.Insert(v.BruteForce)
+	}
+	if v.Signups != nil {
+		if s.Signups == nil {
+			s.Signups = &ConfigRateLimit{}
+		}
+		s.Signups.Insert(v.Signups)
+	}
+	if v.Global != nil {
+		if s.Global == nil {
+			s.Global = &ConfigRateLimit{}
+		}
+		s.Global.Insert(v.Global)
+	}
+}
+
+func (s *ConfigAuthRateLimit) Clone() *ConfigAuthRateLimit {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthRateLimit{}
+	v.Emails = s.Emails.Clone()
+	v.Sms = s.Sms.Clone()
+	v.BruteForce = s.BruteForce.Clone()
+	v.Signups = s.Signups.Clone()
+	v.Global = s.Global.Clone()
+	return v
+}
+
+type ConfigAuthRateLimitComparisonExp struct {
+	And        []*ConfigAuthRateLimitComparisonExp `json:"_and,omitempty"`
+	Not        *ConfigAuthRateLimitComparisonExp   `json:"_not,omitempty"`
+	Or         []*ConfigAuthRateLimitComparisonExp `json:"_or,omitempty"`
+	Emails     *ConfigRateLimitComparisonExp       `json:"emails,omitempty"`
+	Sms        *ConfigRateLimitComparisonExp       `json:"sms,omitempty"`
+	BruteForce *ConfigRateLimitComparisonExp       `json:"bruteForce,omitempty"`
+	Signups    *ConfigRateLimitComparisonExp       `json:"signups,omitempty"`
+	Global     *ConfigRateLimitComparisonExp       `json:"global,omitempty"`
+}
+
+func (exp *ConfigAuthRateLimitComparisonExp) Matches(o *ConfigAuthRateLimit) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthRateLimit{
+			Emails:     &ConfigRateLimit{},
+			Sms:        &ConfigRateLimit{},
+			BruteForce: &ConfigRateLimit{},
+			Signups:    &ConfigRateLimit{},
+			Global:     &ConfigRateLimit{},
+		}
+	}
+	if !exp.Emails.Matches(o.Emails) {
+		return false
+	}
+	if !exp.Sms.Matches(o.Sms) {
+		return false
+	}
+	if !exp.BruteForce.Matches(o.BruteForce) {
+		return false
+	}
+	if !exp.Signups.Matches(o.Signups) {
+		return false
+	}
+	if !exp.Global.Matches(o.Global) {
+		return false
 	}
 
 	if exp.And != nil && !all(exp.And, o) {
@@ -10116,6 +10560,8 @@ type ConfigFunctions struct {
 	Node *ConfigFunctionsNode `json:"node,omitempty" toml:"node,omitempty"`
 
 	Resources *ConfigFunctionsResources `json:"resources,omitempty" toml:"resources,omitempty"`
+
+	RateLimit *ConfigRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigFunctions) MarshalJSON() ([]byte, error) {
@@ -10125,6 +10571,9 @@ func (o *ConfigFunctions) MarshalJSON() ([]byte, error) {
 	}
 	if o.Resources != nil {
 		m["resources"] = o.Resources
+	}
+	if o.RateLimit != nil {
+		m["rateLimit"] = o.RateLimit
 	}
 	return json.Marshal(m)
 }
@@ -10143,11 +10592,20 @@ func (o *ConfigFunctions) GetResources() *ConfigFunctionsResources {
 	return o.Resources
 }
 
+func (o *ConfigFunctions) GetRateLimit() *ConfigRateLimit {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
 type ConfigFunctionsUpdateInput struct {
 	Node           *ConfigFunctionsNodeUpdateInput      `json:"node,omitempty" toml:"node,omitempty"`
 	IsSetNode      bool                                 `json:"-"`
 	Resources      *ConfigFunctionsResourcesUpdateInput `json:"resources,omitempty" toml:"resources,omitempty"`
 	IsSetResources bool                                 `json:"-"`
+	RateLimit      *ConfigRateLimitUpdateInput          `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	IsSetRateLimit bool                                 `json:"-"`
 }
 
 func (o *ConfigFunctionsUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -10175,6 +10633,16 @@ func (o *ConfigFunctionsUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetResources = true
 	}
+	if x, ok := m["rateLimit"]; ok {
+		if x != nil {
+			t := &ConfigRateLimitUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.RateLimit = t
+		}
+		o.IsSetRateLimit = true
+	}
 
 	return nil
 }
@@ -10198,6 +10666,13 @@ func (o *ConfigFunctionsUpdateInput) GetResources() *ConfigFunctionsResourcesUpd
 		return nil
 	}
 	return o.Resources
+}
+
+func (o *ConfigFunctionsUpdateInput) GetRateLimit() *ConfigRateLimitUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
 }
 
 func (s *ConfigFunctions) Update(v *ConfigFunctionsUpdateInput) {
@@ -10224,11 +10699,22 @@ func (s *ConfigFunctions) Update(v *ConfigFunctionsUpdateInput) {
 			s.Resources.Update(v.Resources)
 		}
 	}
+	if v.IsSetRateLimit || v.RateLimit != nil {
+		if v.RateLimit == nil {
+			s.RateLimit = nil
+		} else {
+			if s.RateLimit == nil {
+				s.RateLimit = &ConfigRateLimit{}
+			}
+			s.RateLimit.Update(v.RateLimit)
+		}
+	}
 }
 
 type ConfigFunctionsInsertInput struct {
 	Node      *ConfigFunctionsNodeInsertInput      `json:"node,omitempty" toml:"node,omitempty"`
 	Resources *ConfigFunctionsResourcesInsertInput `json:"resources,omitempty" toml:"resources,omitempty"`
+	RateLimit *ConfigRateLimitInsertInput          `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigFunctionsInsertInput) GetNode() *ConfigFunctionsNodeInsertInput {
@@ -10245,6 +10731,13 @@ func (o *ConfigFunctionsInsertInput) GetResources() *ConfigFunctionsResourcesIns
 	return o.Resources
 }
 
+func (o *ConfigFunctionsInsertInput) GetRateLimit() *ConfigRateLimitInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
 func (s *ConfigFunctions) Insert(v *ConfigFunctionsInsertInput) {
 	if v.Node != nil {
 		if s.Node == nil {
@@ -10258,6 +10751,12 @@ func (s *ConfigFunctions) Insert(v *ConfigFunctionsInsertInput) {
 		}
 		s.Resources.Insert(v.Resources)
 	}
+	if v.RateLimit != nil {
+		if s.RateLimit == nil {
+			s.RateLimit = &ConfigRateLimit{}
+		}
+		s.RateLimit.Insert(v.RateLimit)
+	}
 }
 
 func (s *ConfigFunctions) Clone() *ConfigFunctions {
@@ -10268,6 +10767,7 @@ func (s *ConfigFunctions) Clone() *ConfigFunctions {
 	v := &ConfigFunctions{}
 	v.Node = s.Node.Clone()
 	v.Resources = s.Resources.Clone()
+	v.RateLimit = s.RateLimit.Clone()
 	return v
 }
 
@@ -10277,6 +10777,7 @@ type ConfigFunctionsComparisonExp struct {
 	Or        []*ConfigFunctionsComparisonExp        `json:"_or,omitempty"`
 	Node      *ConfigFunctionsNodeComparisonExp      `json:"node,omitempty"`
 	Resources *ConfigFunctionsResourcesComparisonExp `json:"resources,omitempty"`
+	RateLimit *ConfigRateLimitComparisonExp          `json:"rateLimit,omitempty"`
 }
 
 func (exp *ConfigFunctionsComparisonExp) Matches(o *ConfigFunctions) bool {
@@ -10288,12 +10789,16 @@ func (exp *ConfigFunctionsComparisonExp) Matches(o *ConfigFunctions) bool {
 		o = &ConfigFunctions{
 			Node:      &ConfigFunctionsNode{},
 			Resources: &ConfigFunctionsResources{},
+			RateLimit: &ConfigRateLimit{},
 		}
 	}
 	if !exp.Node.Matches(o.Node) {
 		return false
 	}
 	if !exp.Resources.Matches(o.Resources) {
+		return false
+	}
+	if !exp.RateLimit.Matches(o.RateLimit) {
 		return false
 	}
 
@@ -11418,6 +11923,8 @@ type ConfigHasura struct {
 	Events *ConfigHasuraEvents `json:"events,omitempty" toml:"events,omitempty"`
 	// Resources for the service
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
+
+	RateLimit *ConfigRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigHasura) MarshalJSON() ([]byte, error) {
@@ -11444,6 +11951,9 @@ func (o *ConfigHasura) MarshalJSON() ([]byte, error) {
 	}
 	if o.Resources != nil {
 		m["resources"] = o.Resources
+	}
+	if o.RateLimit != nil {
+		m["rateLimit"] = o.RateLimit
 	}
 	return json.Marshal(m)
 }
@@ -11511,6 +12021,13 @@ func (o *ConfigHasura) GetResources() *ConfigResources {
 	return o.Resources
 }
 
+func (o *ConfigHasura) GetRateLimit() *ConfigRateLimit {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
 type ConfigHasuraUpdateInput struct {
 	Version            *string                          `json:"version,omitempty" toml:"version,omitempty"`
 	IsSetVersion       bool                             `json:"-"`
@@ -11530,6 +12047,8 @@ type ConfigHasuraUpdateInput struct {
 	IsSetEvents        bool                             `json:"-"`
 	Resources          *ConfigResourcesUpdateInput      `json:"resources,omitempty" toml:"resources,omitempty"`
 	IsSetResources     bool                             `json:"-"`
+	RateLimit          *ConfigRateLimitUpdateInput      `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	IsSetRateLimit     bool                             `json:"-"`
 }
 
 func (o *ConfigHasuraUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -11657,6 +12176,16 @@ func (o *ConfigHasuraUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetResources = true
 	}
+	if x, ok := m["rateLimit"]; ok {
+		if x != nil {
+			t := &ConfigRateLimitUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.RateLimit = t
+		}
+		o.IsSetRateLimit = true
+	}
 
 	return nil
 }
@@ -11729,6 +12258,13 @@ func (o *ConfigHasuraUpdateInput) GetResources() *ConfigResourcesUpdateInput {
 		return nil
 	}
 	return o.Resources
+}
+
+func (o *ConfigHasuraUpdateInput) GetRateLimit() *ConfigRateLimitUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
 }
 
 func (s *ConfigHasura) Update(v *ConfigHasuraUpdateInput) {
@@ -11810,6 +12346,16 @@ func (s *ConfigHasura) Update(v *ConfigHasuraUpdateInput) {
 			s.Resources.Update(v.Resources)
 		}
 	}
+	if v.IsSetRateLimit || v.RateLimit != nil {
+		if v.RateLimit == nil {
+			s.RateLimit = nil
+		} else {
+			if s.RateLimit == nil {
+				s.RateLimit = &ConfigRateLimit{}
+			}
+			s.RateLimit.Update(v.RateLimit)
+		}
+	}
 }
 
 type ConfigHasuraInsertInput struct {
@@ -11822,6 +12368,7 @@ type ConfigHasuraInsertInput struct {
 	Logs          *ConfigHasuraLogsInsertInput     `json:"logs,omitempty" toml:"logs,omitempty"`
 	Events        *ConfigHasuraEventsInsertInput   `json:"events,omitempty" toml:"events,omitempty"`
 	Resources     *ConfigResourcesInsertInput      `json:"resources,omitempty" toml:"resources,omitempty"`
+	RateLimit     *ConfigRateLimitInsertInput      `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigHasuraInsertInput) GetVersion() *string {
@@ -11887,6 +12434,13 @@ func (o *ConfigHasuraInsertInput) GetResources() *ConfigResourcesInsertInput {
 	return o.Resources
 }
 
+func (o *ConfigHasuraInsertInput) GetRateLimit() *ConfigRateLimitInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
 func (s *ConfigHasura) Insert(v *ConfigHasuraInsertInput) {
 	s.Version = v.Version
 	if v.JwtSecrets != nil {
@@ -11929,6 +12483,12 @@ func (s *ConfigHasura) Insert(v *ConfigHasuraInsertInput) {
 		}
 		s.Resources.Insert(v.Resources)
 	}
+	if v.RateLimit != nil {
+		if s.RateLimit == nil {
+			s.RateLimit = &ConfigRateLimit{}
+		}
+		s.RateLimit.Insert(v.RateLimit)
+	}
 }
 
 func (s *ConfigHasura) Clone() *ConfigHasura {
@@ -11951,6 +12511,7 @@ func (s *ConfigHasura) Clone() *ConfigHasura {
 	v.Logs = s.Logs.Clone()
 	v.Events = s.Events.Clone()
 	v.Resources = s.Resources.Clone()
+	v.RateLimit = s.RateLimit.Clone()
 	return v
 }
 
@@ -11967,6 +12528,7 @@ type ConfigHasuraComparisonExp struct {
 	Logs          *ConfigHasuraLogsComparisonExp     `json:"logs,omitempty"`
 	Events        *ConfigHasuraEventsComparisonExp   `json:"events,omitempty"`
 	Resources     *ConfigResourcesComparisonExp      `json:"resources,omitempty"`
+	RateLimit     *ConfigRateLimitComparisonExp      `json:"rateLimit,omitempty"`
 }
 
 func (exp *ConfigHasuraComparisonExp) Matches(o *ConfigHasura) bool {
@@ -11982,6 +12544,7 @@ func (exp *ConfigHasuraComparisonExp) Matches(o *ConfigHasura) bool {
 			Logs:       &ConfigHasuraLogs{},
 			Events:     &ConfigHasuraEvents{},
 			Resources:  &ConfigResources{},
+			RateLimit:  &ConfigRateLimit{},
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
@@ -12018,6 +12581,9 @@ func (exp *ConfigHasuraComparisonExp) Matches(o *ConfigHasura) bool {
 		return false
 	}
 	if !exp.Resources.Matches(o.Resources) {
+		return false
+	}
+	if !exp.RateLimit.Matches(o.RateLimit) {
 		return false
 	}
 
@@ -16880,6 +17446,193 @@ func (exp *ConfigProviderComparisonExp) Matches(o *ConfigProvider) bool {
 	return true
 }
 
+type ConfigRateLimit struct {
+	Limit uint32 `json:"limit" toml:"limit"`
+
+	Interval string `json:"interval" toml:"interval"`
+}
+
+func (o *ConfigRateLimit) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["limit"] = o.Limit
+	m["interval"] = o.Interval
+	return json.Marshal(m)
+}
+
+func (o *ConfigRateLimit) GetLimit() uint32 {
+	if o == nil {
+		o = &ConfigRateLimit{}
+	}
+	return o.Limit
+}
+
+func (o *ConfigRateLimit) GetInterval() string {
+	if o == nil {
+		o = &ConfigRateLimit{}
+	}
+	return o.Interval
+}
+
+type ConfigRateLimitUpdateInput struct {
+	Limit         *uint32 `json:"limit,omitempty" toml:"limit,omitempty"`
+	IsSetLimit    bool    `json:"-"`
+	Interval      *string `json:"interval,omitempty" toml:"interval,omitempty"`
+	IsSetInterval bool    `json:"-"`
+}
+
+func (o *ConfigRateLimitUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["limit"]; ok {
+		if v == nil {
+			o.Limit = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Limit = &x
+		}
+		o.IsSetLimit = true
+	}
+	if v, ok := m["interval"]; ok {
+		if v == nil {
+			o.Interval = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Interval = &x
+		}
+		o.IsSetInterval = true
+	}
+
+	return nil
+}
+
+func (o *ConfigRateLimitUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigRateLimitUpdateInput) GetLimit() *uint32 {
+	if o == nil {
+		o = &ConfigRateLimitUpdateInput{}
+	}
+	return o.Limit
+}
+
+func (o *ConfigRateLimitUpdateInput) GetInterval() *string {
+	if o == nil {
+		o = &ConfigRateLimitUpdateInput{}
+	}
+	return o.Interval
+}
+
+func (s *ConfigRateLimit) Update(v *ConfigRateLimitUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetLimit || v.Limit != nil {
+		if v.Limit != nil {
+			s.Limit = *v.Limit
+		}
+	}
+	if v.IsSetInterval || v.Interval != nil {
+		if v.Interval != nil {
+			s.Interval = *v.Interval
+		}
+	}
+}
+
+type ConfigRateLimitInsertInput struct {
+	Limit    uint32 `json:"limit,omitempty" toml:"limit,omitempty"`
+	Interval string `json:"interval,omitempty" toml:"interval,omitempty"`
+}
+
+func (o *ConfigRateLimitInsertInput) GetLimit() uint32 {
+	if o == nil {
+		o = &ConfigRateLimitInsertInput{}
+	}
+	return o.Limit
+}
+
+func (o *ConfigRateLimitInsertInput) GetInterval() string {
+	if o == nil {
+		o = &ConfigRateLimitInsertInput{}
+	}
+	return o.Interval
+}
+
+func (s *ConfigRateLimit) Insert(v *ConfigRateLimitInsertInput) {
+	s.Limit = v.Limit
+	s.Interval = v.Interval
+}
+
+func (s *ConfigRateLimit) Clone() *ConfigRateLimit {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigRateLimit{}
+	v.Limit = s.Limit
+	v.Interval = s.Interval
+	return v
+}
+
+type ConfigRateLimitComparisonExp struct {
+	And      []*ConfigRateLimitComparisonExp `json:"_and,omitempty"`
+	Not      *ConfigRateLimitComparisonExp   `json:"_not,omitempty"`
+	Or       []*ConfigRateLimitComparisonExp `json:"_or,omitempty"`
+	Limit    *ConfigUint32ComparisonExp      `json:"limit,omitempty"`
+	Interval *ConfigStringComparisonExp      `json:"interval,omitempty"`
+}
+
+func (exp *ConfigRateLimitComparisonExp) Matches(o *ConfigRateLimit) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigRateLimit{}
+	}
+	if !exp.Limit.Matches(o.Limit) {
+		return false
+	}
+	if !exp.Interval.Matches(o.Interval) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
 // Resource configuration for a service
 type ConfigResources struct {
 	Compute *ConfigResourcesCompute `json:"compute,omitempty" toml:"compute,omitempty"`
@@ -18126,6 +18879,8 @@ type ConfigRunServicePort struct {
 	Publish *bool `json:"publish" toml:"publish"`
 
 	Ingresses []*ConfigIngress `json:"ingresses,omitempty" toml:"ingresses,omitempty"`
+
+	RateLimit *ConfigRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigRunServicePort) MarshalJSON() ([]byte, error) {
@@ -18137,6 +18892,9 @@ func (o *ConfigRunServicePort) MarshalJSON() ([]byte, error) {
 	}
 	if o.Ingresses != nil {
 		m["ingresses"] = o.Ingresses
+	}
+	if o.RateLimit != nil {
+		m["rateLimit"] = o.RateLimit
 	}
 	return json.Marshal(m)
 }
@@ -18169,6 +18927,13 @@ func (o *ConfigRunServicePort) GetIngresses() []*ConfigIngress {
 	return o.Ingresses
 }
 
+func (o *ConfigRunServicePort) GetRateLimit() *ConfigRateLimit {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
 type ConfigRunServicePortUpdateInput struct {
 	Port           *uint16                     `json:"port,omitempty" toml:"port,omitempty"`
 	IsSetPort      bool                        `json:"-"`
@@ -18178,6 +18943,8 @@ type ConfigRunServicePortUpdateInput struct {
 	IsSetPublish   bool                        `json:"-"`
 	Ingresses      []*ConfigIngressUpdateInput `json:"ingresses,omitempty" toml:"ingresses,omitempty"`
 	IsSetIngresses bool                        `json:"-"`
+	RateLimit      *ConfigRateLimitUpdateInput `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	IsSetRateLimit bool                        `json:"-"`
 }
 
 func (o *ConfigRunServicePortUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -18255,6 +19022,16 @@ func (o *ConfigRunServicePortUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetIngresses = true
 	}
+	if x, ok := m["rateLimit"]; ok {
+		if x != nil {
+			t := &ConfigRateLimitUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.RateLimit = t
+		}
+		o.IsSetRateLimit = true
+	}
 
 	return nil
 }
@@ -18294,6 +19071,13 @@ func (o *ConfigRunServicePortUpdateInput) GetIngresses() []*ConfigIngressUpdateI
 	return o.Ingresses
 }
 
+func (o *ConfigRunServicePortUpdateInput) GetRateLimit() *ConfigRateLimitUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
 func (s *ConfigRunServicePort) Update(v *ConfigRunServicePortUpdateInput) {
 	if v == nil {
 		return
@@ -18323,6 +19107,16 @@ func (s *ConfigRunServicePort) Update(v *ConfigRunServicePortUpdateInput) {
 			}
 		}
 	}
+	if v.IsSetRateLimit || v.RateLimit != nil {
+		if v.RateLimit == nil {
+			s.RateLimit = nil
+		} else {
+			if s.RateLimit == nil {
+				s.RateLimit = &ConfigRateLimit{}
+			}
+			s.RateLimit.Update(v.RateLimit)
+		}
+	}
 }
 
 type ConfigRunServicePortInsertInput struct {
@@ -18330,6 +19124,7 @@ type ConfigRunServicePortInsertInput struct {
 	Type      string                      `json:"type,omitempty" toml:"type,omitempty"`
 	Publish   *bool                       `json:"publish,omitempty" toml:"publish,omitempty"`
 	Ingresses []*ConfigIngressInsertInput `json:"ingresses,omitempty" toml:"ingresses,omitempty"`
+	RateLimit *ConfigRateLimitInsertInput `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigRunServicePortInsertInput) GetPort() uint16 {
@@ -18360,6 +19155,13 @@ func (o *ConfigRunServicePortInsertInput) GetIngresses() []*ConfigIngressInsertI
 	return o.Ingresses
 }
 
+func (o *ConfigRunServicePortInsertInput) GetRateLimit() *ConfigRateLimitInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
 func (s *ConfigRunServicePort) Insert(v *ConfigRunServicePortInsertInput) {
 	s.Port = v.Port
 	s.Type = v.Type
@@ -18371,6 +19173,12 @@ func (s *ConfigRunServicePort) Insert(v *ConfigRunServicePortInsertInput) {
 			v.Insert(e)
 			s.Ingresses[i] = v
 		}
+	}
+	if v.RateLimit != nil {
+		if s.RateLimit == nil {
+			s.RateLimit = &ConfigRateLimit{}
+		}
+		s.RateLimit.Insert(v.RateLimit)
 	}
 }
 
@@ -18389,6 +19197,7 @@ func (s *ConfigRunServicePort) Clone() *ConfigRunServicePort {
 			v.Ingresses[i] = e.Clone()
 		}
 	}
+	v.RateLimit = s.RateLimit.Clone()
 	return v
 }
 
@@ -18400,6 +19209,7 @@ type ConfigRunServicePortComparisonExp struct {
 	Type      *ConfigStringComparisonExp           `json:"type,omitempty"`
 	Publish   *ConfigBooleanComparisonExp          `json:"publish,omitempty"`
 	Ingresses *ConfigIngressComparisonExp          `json:"ingresses,omitempty"`
+	RateLimit *ConfigRateLimitComparisonExp        `json:"rateLimit,omitempty"`
 }
 
 func (exp *ConfigRunServicePortComparisonExp) Matches(o *ConfigRunServicePort) bool {
@@ -18410,6 +19220,7 @@ func (exp *ConfigRunServicePortComparisonExp) Matches(o *ConfigRunServicePort) b
 	if o == nil {
 		o = &ConfigRunServicePort{
 			Ingresses: []*ConfigIngress{},
+			RateLimit: &ConfigRateLimit{},
 		}
 	}
 	if !exp.Port.Matches(o.Port) {
@@ -18432,6 +19243,9 @@ func (exp *ConfigRunServicePortComparisonExp) Matches(o *ConfigRunServicePort) b
 		if !found && exp.Ingresses != nil {
 			return false
 		}
+	}
+	if !exp.RateLimit.Matches(o.RateLimit) {
+		return false
 	}
 
 	if exp.And != nil && !all(exp.And, o) {
@@ -20372,6 +21186,8 @@ type ConfigStorage struct {
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
 
 	Antivirus *ConfigStorageAntivirus `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+
+	RateLimit *ConfigRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigStorage) MarshalJSON() ([]byte, error) {
@@ -20384,6 +21200,9 @@ func (o *ConfigStorage) MarshalJSON() ([]byte, error) {
 	}
 	if o.Antivirus != nil {
 		m["antivirus"] = o.Antivirus
+	}
+	if o.RateLimit != nil {
+		m["rateLimit"] = o.RateLimit
 	}
 	return json.Marshal(m)
 }
@@ -20409,6 +21228,13 @@ func (o *ConfigStorage) GetAntivirus() *ConfigStorageAntivirus {
 	return o.Antivirus
 }
 
+func (o *ConfigStorage) GetRateLimit() *ConfigRateLimit {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
 type ConfigStorageUpdateInput struct {
 	Version        *string                            `json:"version,omitempty" toml:"version,omitempty"`
 	IsSetVersion   bool                               `json:"-"`
@@ -20416,6 +21242,8 @@ type ConfigStorageUpdateInput struct {
 	IsSetResources bool                               `json:"-"`
 	Antivirus      *ConfigStorageAntivirusUpdateInput `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
 	IsSetAntivirus bool                               `json:"-"`
+	RateLimit      *ConfigRateLimitUpdateInput        `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
+	IsSetRateLimit bool                               `json:"-"`
 }
 
 func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -20460,6 +21288,16 @@ func (o *ConfigStorageUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetAntivirus = true
 	}
+	if x, ok := m["rateLimit"]; ok {
+		if x != nil {
+			t := &ConfigRateLimitUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.RateLimit = t
+		}
+		o.IsSetRateLimit = true
+	}
 
 	return nil
 }
@@ -20492,6 +21330,13 @@ func (o *ConfigStorageUpdateInput) GetAntivirus() *ConfigStorageAntivirusUpdateI
 	return o.Antivirus
 }
 
+func (o *ConfigStorageUpdateInput) GetRateLimit() *ConfigRateLimitUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
 func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 	if v == nil {
 		return
@@ -20519,12 +21364,23 @@ func (s *ConfigStorage) Update(v *ConfigStorageUpdateInput) {
 			s.Antivirus.Update(v.Antivirus)
 		}
 	}
+	if v.IsSetRateLimit || v.RateLimit != nil {
+		if v.RateLimit == nil {
+			s.RateLimit = nil
+		} else {
+			if s.RateLimit == nil {
+				s.RateLimit = &ConfigRateLimit{}
+			}
+			s.RateLimit.Update(v.RateLimit)
+		}
+	}
 }
 
 type ConfigStorageInsertInput struct {
 	Version   *string                            `json:"version,omitempty" toml:"version,omitempty"`
 	Resources *ConfigResourcesInsertInput        `json:"resources,omitempty" toml:"resources,omitempty"`
 	Antivirus *ConfigStorageAntivirusInsertInput `json:"antivirus,omitempty" toml:"antivirus,omitempty"`
+	RateLimit *ConfigRateLimitInsertInput        `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
 func (o *ConfigStorageInsertInput) GetVersion() *string {
@@ -20548,6 +21404,13 @@ func (o *ConfigStorageInsertInput) GetAntivirus() *ConfigStorageAntivirusInsertI
 	return o.Antivirus
 }
 
+func (o *ConfigStorageInsertInput) GetRateLimit() *ConfigRateLimitInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.RateLimit
+}
+
 func (s *ConfigStorage) Insert(v *ConfigStorageInsertInput) {
 	s.Version = v.Version
 	if v.Resources != nil {
@@ -20562,6 +21425,12 @@ func (s *ConfigStorage) Insert(v *ConfigStorageInsertInput) {
 		}
 		s.Antivirus.Insert(v.Antivirus)
 	}
+	if v.RateLimit != nil {
+		if s.RateLimit == nil {
+			s.RateLimit = &ConfigRateLimit{}
+		}
+		s.RateLimit.Insert(v.RateLimit)
+	}
 }
 
 func (s *ConfigStorage) Clone() *ConfigStorage {
@@ -20573,6 +21442,7 @@ func (s *ConfigStorage) Clone() *ConfigStorage {
 	v.Version = s.Version
 	v.Resources = s.Resources.Clone()
 	v.Antivirus = s.Antivirus.Clone()
+	v.RateLimit = s.RateLimit.Clone()
 	return v
 }
 
@@ -20583,6 +21453,7 @@ type ConfigStorageComparisonExp struct {
 	Version   *ConfigStringComparisonExp           `json:"version,omitempty"`
 	Resources *ConfigResourcesComparisonExp        `json:"resources,omitempty"`
 	Antivirus *ConfigStorageAntivirusComparisonExp `json:"antivirus,omitempty"`
+	RateLimit *ConfigRateLimitComparisonExp        `json:"rateLimit,omitempty"`
 }
 
 func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
@@ -20594,6 +21465,7 @@ func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
 		o = &ConfigStorage{
 			Resources: &ConfigResources{},
 			Antivirus: &ConfigStorageAntivirus{},
+			RateLimit: &ConfigRateLimit{},
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
@@ -20603,6 +21475,9 @@ func (exp *ConfigStorageComparisonExp) Matches(o *ConfigStorage) bool {
 		return false
 	}
 	if !exp.Antivirus.Matches(o.Antivirus) {
+		return false
+	}
+	if !exp.RateLimit.Matches(o.RateLimit) {
 		return false
 	}
 

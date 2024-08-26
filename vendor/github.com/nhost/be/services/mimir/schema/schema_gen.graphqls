@@ -291,6 +291,10 @@ type ConfigAuth {
 
     """
     totp: ConfigAuthTotp
+    """
+
+    """
+    rateLimit: ConfigAuthRateLimit
 }
 
 input ConfigAuthUpdateInput {
@@ -303,6 +307,7 @@ input ConfigAuthUpdateInput {
     session: ConfigAuthSessionUpdateInput
     method: ConfigAuthMethodUpdateInput
     totp: ConfigAuthTotpUpdateInput
+    rateLimit: ConfigAuthRateLimitUpdateInput
 }
 
 input ConfigAuthInsertInput {
@@ -315,6 +320,7 @@ input ConfigAuthInsertInput {
     session: ConfigAuthSessionInsertInput
     method: ConfigAuthMethodInsertInput
     totp: ConfigAuthTotpInsertInput
+    rateLimit: ConfigAuthRateLimitInsertInput
 }
 
 input ConfigAuthComparisonExp {
@@ -330,6 +336,7 @@ input ConfigAuthComparisonExp {
     session: ConfigAuthSessionComparisonExp
     method: ConfigAuthMethodComparisonExp
     totp: ConfigAuthTotpComparisonExp
+    rateLimit: ConfigAuthRateLimitComparisonExp
 }
 
 """
@@ -954,6 +961,59 @@ input ConfigAuthMethodWebauthnRelyingPartyComparisonExp {
     id: ConfigStringComparisonExp
     name: ConfigStringComparisonExp
     origins: ConfigUrlComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthRateLimit {
+    """
+
+    """
+    emails: ConfigRateLimit
+    """
+
+    """
+    sms: ConfigRateLimit
+    """
+
+    """
+    bruteForce: ConfigRateLimit
+    """
+
+    """
+    signups: ConfigRateLimit
+    """
+
+    """
+    global: ConfigRateLimit
+}
+
+input ConfigAuthRateLimitUpdateInput {
+    emails: ConfigRateLimitUpdateInput
+    sms: ConfigRateLimitUpdateInput
+    bruteForce: ConfigRateLimitUpdateInput
+    signups: ConfigRateLimitUpdateInput
+    global: ConfigRateLimitUpdateInput
+}
+
+input ConfigAuthRateLimitInsertInput {
+    emails: ConfigRateLimitInsertInput
+    sms: ConfigRateLimitInsertInput
+    bruteForce: ConfigRateLimitInsertInput
+    signups: ConfigRateLimitInsertInput
+    global: ConfigRateLimitInsertInput
+}
+
+input ConfigAuthRateLimitComparisonExp {
+    _and: [ConfigAuthRateLimitComparisonExp!]
+    _not: ConfigAuthRateLimitComparisonExp
+    _or: [ConfigAuthRateLimitComparisonExp!]
+    emails: ConfigRateLimitComparisonExp
+    sms: ConfigRateLimitComparisonExp
+    bruteForce: ConfigRateLimitComparisonExp
+    signups: ConfigRateLimitComparisonExp
+    global: ConfigRateLimitComparisonExp
 }
 
 """
@@ -1637,16 +1697,22 @@ type ConfigFunctions {
 
     """
     resources: ConfigFunctionsResources
+    """
+
+    """
+    rateLimit: ConfigRateLimit
 }
 
 input ConfigFunctionsUpdateInput {
     node: ConfigFunctionsNodeUpdateInput
     resources: ConfigFunctionsResourcesUpdateInput
+    rateLimit: ConfigRateLimitUpdateInput
 }
 
 input ConfigFunctionsInsertInput {
     node: ConfigFunctionsNodeInsertInput
     resources: ConfigFunctionsResourcesInsertInput
+    rateLimit: ConfigRateLimitInsertInput
 }
 
 input ConfigFunctionsComparisonExp {
@@ -1655,6 +1721,7 @@ input ConfigFunctionsComparisonExp {
     _or: [ConfigFunctionsComparisonExp!]
     node: ConfigFunctionsNodeComparisonExp
     resources: ConfigFunctionsResourcesComparisonExp
+    rateLimit: ConfigRateLimitComparisonExp
 }
 
 """
@@ -1888,6 +1955,10 @@ type ConfigHasura {
     Resources for the service
     """
     resources: ConfigResources
+    """
+
+    """
+    rateLimit: ConfigRateLimit
 }
 
 input ConfigHasuraUpdateInput {
@@ -1900,6 +1971,7 @@ input ConfigHasuraUpdateInput {
     logs: ConfigHasuraLogsUpdateInput
     events: ConfigHasuraEventsUpdateInput
     resources: ConfigResourcesUpdateInput
+    rateLimit: ConfigRateLimitUpdateInput
 }
 
 input ConfigHasuraInsertInput {
@@ -1912,6 +1984,7 @@ input ConfigHasuraInsertInput {
     logs: ConfigHasuraLogsInsertInput
     events: ConfigHasuraEventsInsertInput
     resources: ConfigResourcesInsertInput
+    rateLimit: ConfigRateLimitInsertInput
 }
 
 input ConfigHasuraComparisonExp {
@@ -1927,6 +2000,7 @@ input ConfigHasuraComparisonExp {
     logs: ConfigHasuraLogsComparisonExp
     events: ConfigHasuraEventsComparisonExp
     resources: ConfigResourcesComparisonExp
+    rateLimit: ConfigRateLimitComparisonExp
 }
 
 scalar ConfigHasuraAPIs
@@ -2652,6 +2726,38 @@ input ConfigProviderComparisonExp {
 }
 
 """
+
+"""
+type ConfigRateLimit {
+    """
+
+    """
+    limit: ConfigUint32!
+    """
+
+    """
+    interval: String!
+}
+
+input ConfigRateLimitUpdateInput {
+    limit: ConfigUint32
+    interval: String
+}
+
+input ConfigRateLimitInsertInput {
+    limit: ConfigUint32!
+    interval: String!
+}
+
+input ConfigRateLimitComparisonExp {
+    _and: [ConfigRateLimitComparisonExp!]
+    _not: ConfigRateLimitComparisonExp
+    _or: [ConfigRateLimitComparisonExp!]
+    limit: ConfigUint32ComparisonExp
+    interval: ConfigStringComparisonExp
+}
+
+"""
 Resource configuration for a service
 """
 type ConfigResources {
@@ -2850,6 +2956,10 @@ type ConfigRunServicePort {
 
     """
     ingresses: [ConfigIngress!]
+    """
+
+    """
+    rateLimit: ConfigRateLimit
 }
 
 input ConfigRunServicePortUpdateInput {
@@ -2857,6 +2967,7 @@ input ConfigRunServicePortUpdateInput {
     type: String
     publish: Boolean
         ingresses: [ConfigIngressUpdateInput!]
+    rateLimit: ConfigRateLimitUpdateInput
 }
 
 input ConfigRunServicePortInsertInput {
@@ -2864,6 +2975,7 @@ input ConfigRunServicePortInsertInput {
     type: String!
     publish: Boolean
         ingresses: [ConfigIngressInsertInput!]
+    rateLimit: ConfigRateLimitInsertInput
 }
 
 input ConfigRunServicePortComparisonExp {
@@ -2874,6 +2986,7 @@ input ConfigRunServicePortComparisonExp {
     type: ConfigStringComparisonExp
     publish: ConfigBooleanComparisonExp
     ingresses: ConfigIngressComparisonExp
+    rateLimit: ConfigRateLimitComparisonExp
 }
 
 """
@@ -3181,18 +3294,24 @@ type ConfigStorage {
 
     """
     antivirus: ConfigStorageAntivirus
+    """
+
+    """
+    rateLimit: ConfigRateLimit
 }
 
 input ConfigStorageUpdateInput {
     version: String
     resources: ConfigResourcesUpdateInput
     antivirus: ConfigStorageAntivirusUpdateInput
+    rateLimit: ConfigRateLimitUpdateInput
 }
 
 input ConfigStorageInsertInput {
     version: String
     resources: ConfigResourcesInsertInput
     antivirus: ConfigStorageAntivirusInsertInput
+    rateLimit: ConfigRateLimitInsertInput
 }
 
 input ConfigStorageComparisonExp {
@@ -3202,6 +3321,7 @@ input ConfigStorageComparisonExp {
     version: ConfigStringComparisonExp
     resources: ConfigResourcesComparisonExp
     antivirus: ConfigStorageAntivirusComparisonExp
+    rateLimit: ConfigRateLimitComparisonExp
 }
 
 """

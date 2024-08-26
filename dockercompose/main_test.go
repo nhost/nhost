@@ -37,6 +37,28 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 				Networking: nil,
 				Autoscaler: nil,
 			},
+			RateLimit: &model.ConfigAuthRateLimit{
+				Emails: &model.ConfigRateLimit{
+					Limit:    10,
+					Interval: "5m",
+				},
+				Sms: &model.ConfigRateLimit{
+					Limit:    10,
+					Interval: "5m",
+				},
+				BruteForce: &model.ConfigRateLimit{
+					Limit:    10,
+					Interval: "5m",
+				},
+				Signups: &model.ConfigRateLimit{
+					Limit:    10,
+					Interval: "5m",
+				},
+				Global: &model.ConfigRateLimit{
+					Limit:    100,
+					Interval: "15m",
+				},
+			},
 			Method: &model.ConfigAuthMethod{
 				Anonymous: &model.ConfigAuthMethodAnonymous{
 					Enabled: ptr(true),
@@ -224,6 +246,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 			Node: &model.ConfigFunctionsNode{
 				Version: ptr(18),
 			},
+			RateLimit: nil,
 			Resources: &model.ConfigFunctionsResources{
 				Networking: &model.ConfigNetworking{
 					Ingresses: []*model.ConfigIngress{
@@ -235,6 +258,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 			},
 		},
 		Hasura: &model.ConfigHasura{
+			RateLimit: nil,
 			Resources: &model.ConfigResources{
 				Compute: &model.ConfigResourcesCompute{
 					Cpu:    1000,
@@ -315,6 +339,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 			},
 		},
 		Storage: &model.ConfigStorage{
+			RateLimit: nil,
 			Resources: &model.ConfigResources{
 				Compute: &model.ConfigResourcesCompute{
 					Cpu:    500,

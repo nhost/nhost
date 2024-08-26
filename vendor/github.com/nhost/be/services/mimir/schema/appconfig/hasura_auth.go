@@ -38,6 +38,9 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 	databaseURL string,
 	databaseMigrationURL string,
 	smtpSettings *model.ConfigSmtp,
+	isCustomSMTP bool,
+	autoScalerEnabled bool,
+	appID string,
 ) ([]EnvVar, error) {
 	customClaims := make(
 		map[string]string,
@@ -55,6 +58,11 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 	jwtSecret, err := marshalJWT(config.GetHasura().GetJwtSecrets()[0])
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal JWT secret: %w", err)
+	}
+
+	replicas := 1
+	if !autoScalerEnabled && config.GetAuth().GetResources().GetReplicas() != nil {
+		replicas = int(*config.GetAuth().GetResources().GetReplicas())
 	}
 
 	dbURL := databaseURL
@@ -1356,7 +1364,105 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			Value:      smtpSettings.GetPassword(),
 			IsSecret:   true,
 		},
+		{
+			Name:       "AUTH_RATE_LIMIT_ENABLE",
+			Value:      "true",
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name: "AUTH_RATE_LIMIT_GLOBAL_BURST",
+			Value: Stringify(
+				config.GetAuth().GetRateLimit().GetGlobal().GetLimit() / uint32(replicas),
+			),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name:       "AUTH_RATE_LIMIT_GLOBAL_INTERVAL",
+			Value:      config.GetAuth().GetRateLimit().GetGlobal().GetInterval(),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name:       "AUTH_RATE_LIMIT_EMAIL_IS_GLOBAL",
+			Value:      Stringify(!isCustomSMTP),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name: "AUTH_RATE_LIMIT_EMAIL_BURST",
+			Value: Stringify(
+				config.GetAuth().GetRateLimit().GetEmails().GetLimit() / uint32(replicas),
+			),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name:       "AUTH_RATE_LIMIT_EMAIL_INTERVAL",
+			Value:      config.GetAuth().GetRateLimit().GetEmails().GetInterval(),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name: "AUTH_RATE_LIMIT_SMS_BURST",
+			Value: Stringify(
+				config.GetAuth().GetRateLimit().GetSms().GetLimit() / uint32(replicas),
+			),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name:       "AUTH_RATE_LIMIT_SMS_INTERVAL",
+			Value:      config.GetAuth().GetRateLimit().GetSms().GetInterval(),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name: "AUTH_RATE_LIMIT_BRUTE_FORCE_BURST",
+			Value: Stringify(
+				config.GetAuth().GetRateLimit().GetBruteForce().GetLimit() / uint32(replicas),
+			),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name:       "AUTH_RATE_LIMIT_BRUTE_FORCE_INTERVAL",
+			Value:      config.GetAuth().GetRateLimit().GetBruteForce().GetInterval(),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name: "AUTH_RATE_LIMIT_SIGNUPS_BURST",
+			Value: Stringify(
+				config.GetAuth().GetRateLimit().GetSignups().GetLimit() / uint32(replicas),
+			),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name:       "AUTH_RATE_LIMIT_SIGNUPS_INTERVAL",
+			Value:      config.GetAuth().GetRateLimit().GetSignups().GetInterval(),
+			IsSecret:   false,
+			SecretName: "",
+		},
 	}...)
+
+	if autoScalerEnabled {
+		env = append(env,
+			EnvVar{
+				Name:       "AUTH_RATE_LIMIT_MEMCACHE_PREFIX",
+				Value:      appID + "/hasura-auth/",
+				SecretName: "",
+				IsSecret:   false,
+			},
+			EnvVar{
+				Name:       "AUTH_RATE_LIMIT_MEMCACHE_SERVER",
+				Value:      "memcached.ingress-nginx.svc.cluster.local:11211",
+				SecretName: "",
+				IsSecret:   false,
+			})
+	}
 
 	for _, e := range config.GetGlobal().GetEnvironment() {
 		env = append(env, EnvVar{ //nolint:exhaustruct

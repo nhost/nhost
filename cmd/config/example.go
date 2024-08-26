@@ -106,6 +106,10 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				},
 				Autoscaler: nil,
 			},
+			RateLimit: &model.ConfigRateLimit{
+				Limit:    100,
+				Interval: "15m",
+			},
 		},
 		Functions: &model.ConfigFunctions{
 			Node: &model.ConfigFunctionsNode{
@@ -119,6 +123,10 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 						},
 					},
 				},
+			},
+			RateLimit: &model.ConfigRateLimit{
+				Limit:    100,
+				Interval: "15m",
 			},
 		},
 		Auth: &model.ConfigAuth{
@@ -314,6 +322,28 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				Enabled: ptr(true),
 				Issuer:  ptr("issuer"),
 			},
+			RateLimit: &model.ConfigAuthRateLimit{
+				Emails: &model.ConfigRateLimit{
+					Limit:    10,
+					Interval: "5m",
+				},
+				Sms: &model.ConfigRateLimit{
+					Limit:    10,
+					Interval: "5m",
+				},
+				BruteForce: &model.ConfigRateLimit{
+					Limit:    10,
+					Interval: "5m",
+				},
+				Signups: &model.ConfigRateLimit{
+					Limit:    10,
+					Interval: "5m",
+				},
+				Global: &model.ConfigRateLimit{
+					Limit:    100,
+					Interval: "15m",
+				},
+			},
 		},
 		Postgres: &model.ConfigPostgres{
 			Version: ptr("14-20230312-1"),
@@ -384,6 +414,10 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 				Networking: nil,
 				Replicas:   ptr(uint8(1)),
 				Autoscaler: nil,
+			},
+			RateLimit: &model.ConfigRateLimit{
+				Limit:    100,
+				Interval: "15m",
 			},
 		},
 		Observability: &model.ConfigObservability{

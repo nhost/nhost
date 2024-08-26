@@ -171,6 +171,28 @@ func expectedConfig() *model.ConfigConfig {
 				},
 			},
 			Totp: &model.ConfigAuthTotp{Enabled: ptr(false)},
+			RateLimit: &model.ConfigAuthRateLimit{
+				Emails: &model.ConfigRateLimit{
+					Limit:    10,
+					Interval: "1h",
+				},
+				Sms: &model.ConfigRateLimit{
+					Limit:    10,
+					Interval: "1h",
+				},
+				BruteForce: &model.ConfigRateLimit{
+					Limit:    10,
+					Interval: "5m",
+				},
+				Signups: &model.ConfigRateLimit{
+					Limit:    10,
+					Interval: "5m",
+				},
+				Global: &model.ConfigRateLimit{
+					Limit:    100,
+					Interval: "1m",
+				},
+			},
 		},
 		Postgres: &model.ConfigPostgres{Version: ptr("14.6-20230406-2")},
 		Provider: &model.ConfigProvider{},

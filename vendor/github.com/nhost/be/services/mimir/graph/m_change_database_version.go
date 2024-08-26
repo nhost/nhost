@@ -69,6 +69,7 @@ func (r *mutationResolver) changeDatabaseVersion( //nolint:cyclop
 
 	oldApp.resolvedConfig = newApp.resolvedConfig
 	oldApp.Config = newApp.Config
+	oldApp.SystemConfig = newApp.SystemConfig
 
 	return true, nil
 }

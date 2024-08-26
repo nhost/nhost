@@ -5,6 +5,7 @@ import (
 	"math"
 	"net"
 	"strings"
+	"time"
 )
 
 // main entrypoint to the configuration
@@ -195,6 +196,8 @@ import (
 
 	// Resources for the service
 	resources?: #Resources
+
+	rateLimit?: #RateLimit
 }
 
 // APIs for hasura
@@ -217,6 +220,8 @@ import (
 	antivirus?: {
 		server: "tcp://run-clamav:3310"
 	}
+
+	rateLimit?: #RateLimit
 }
 
 // Configuration for functions service
@@ -228,6 +233,8 @@ import (
 	resources?: {
 		networking?: #Networking
 	}
+
+	rateLimit?: #RateLimit
 }
 
 // Configuration for postgres service
@@ -458,6 +465,20 @@ import (
 		}
 	}
 
+	rateLimit: #AuthRateLimit
+}
+
+#RateLimit: {
+	limit:    uint32
+	interval: string & time.Duration
+}
+
+#AuthRateLimit: {
+	emails: #RateLimit | *{limit: 10, interval: "1h"}
+	sms: #RateLimit | *{limit: 10, interval: "1h"}
+	bruteForce: #RateLimit | *{limit: 10, interval: "5m"}
+	signups: #RateLimit | *{limit: 10, interval: "5m"}
+	global: #RateLimit | *{limit: 100, interval: "1m"}
 }
 
 #StandardOauthProvider: {
@@ -622,6 +643,8 @@ import (
 	ingresses: [#Ingress] | *[]
 	_publish_supported_only_over_http: (
 						publish == false || type == "http" ) & true @cuegraph(skip)
+
+	rateLimit?: #RateLimit
 }
 
 #RunServiceName: =~"^[a-z]([-a-z0-9]*[a-z0-9])?$" & strings.MinRunes(1) & strings.MaxRunes(30)
