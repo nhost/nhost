@@ -1,5 +1,12 @@
 # @nhost/nhost-js
 
+## 3.1.8
+
+### Patch Changes
+
+- Updated dependencies [caa8bd7]
+  - @nhost/hasura-auth-js@2.5.5
+
 ## 3.1.7
 
 ### Patch Changes

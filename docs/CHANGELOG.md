@@ -1,5 +1,12 @@
 # @nhost/docs
 
+## 2.15.0
+
+### Minor Changes
+
+- 40c0d7b: │feat: added subdomain/region information
+- a18b545: feat: added postgres upgrade docs
+
 ## 2.14.3
 
 ### Patch Changes
