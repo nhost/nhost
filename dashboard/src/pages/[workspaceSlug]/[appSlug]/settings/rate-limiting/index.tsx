@@ -64,9 +64,9 @@ export default function RateLimiting() {
         serviceName="functions"
         title="Functions"
       />
-      {services.map((service) => {
+      {services?.map((service) => {
         if (
-          service.ports.some((port) => port?.type === 'http' && port?.publish)
+          service?.ports?.some((port) => port?.type === 'http' && port?.publish)
         ) {
           return (
             <RunServiceLimitingForm
