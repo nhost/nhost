@@ -93,3 +93,56 @@ Wait a few seconds until the project is done updating the new service and visit 
 
 ![visit url](/images/guides/run/registry_7.png)
 
+## Using your own private registry
+
+If you are publishing your images in your own private registry you can add pull credentials to your Run configuration so the image can be pulled successfully. To do so follow the next steps:
+
+1. Figure out the credentials you need. This might depend on your registry. For instructions on various registries see the next section.
+2. The credentials will be similar to:
+
+```json
+{
+  "auths": {
+    "https://myregistry.com/v1": {
+      "username": "myuser",
+      "password": "mypassword"
+    }
+  }
+}
+```
+
+3. Create a secret under Settings -> Secrets with the contents of the auth section. For instance:
+
+![pull secret](/images/guides/run/registry_8.png)
+
+Pay attention that **only** the object inside "auths" is to be added.
+
+4. Configure the `pullCredentials` in your run configuration.
+
+```toml
+[image]
+image = 'myprivaterepo/myservice:1.0.1'
+pullCredentials = '{{ secrets.CONTAINER_REGISTRY_CREDENTIALS }}'
+```
+
+Pulling your image should work now.
+
+### Docker Hub Credentials
+
+To create a credential that allows you to pull private images from Docker hub follow the next steps:
+
+1. Login to https://hub.docker.com with a user that can pull the image you want.
+2. Head to "Account Settings" -> "Personal access tokens"
+3. Create a new token with "Read Only" access permissions
+4. Copy the token you got
+
+Your credentials will be:
+
+```json
+{
+  "https://index.docker.io/v1/": {
+    "username":"<yourusername>",
+    "password":"<the_token_you_just_got>"
+  }
+}
+```
