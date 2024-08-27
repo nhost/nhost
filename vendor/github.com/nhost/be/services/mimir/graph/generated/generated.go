@@ -88,6 +88,7 @@ type ComplexityRoot struct {
 	ConfigAuth struct {
 		ElevatedPrivileges func(childComplexity int) int
 		Method             func(childComplexity int) int
+		Misc               func(childComplexity int) int
 		RateLimit          func(childComplexity int) int
 		Redirections       func(childComplexity int) int
 		Resources          func(childComplexity int) int
@@ -191,6 +192,10 @@ type ComplexityRoot struct {
 		Id      func(childComplexity int) int
 		Name    func(childComplexity int) int
 		Origins func(childComplexity int) int
+	}
+
+	ConfigAuthMisc struct {
+		ConcealErrors func(childComplexity int) int
 	}
 
 	ConfigAuthRateLimit struct {
@@ -496,7 +501,8 @@ type ComplexityRoot struct {
 	}
 
 	ConfigRunServiceImage struct {
-		Image func(childComplexity int) int
+		Image           func(childComplexity int) int
+		PullCredentials func(childComplexity int) int
 	}
 
 	ConfigRunServicePort struct {
@@ -802,6 +808,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigAuth.Method(childComplexity), true
+
+	case "ConfigAuth.misc":
+		if e.complexity.ConfigAuth.Misc == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuth.Misc(childComplexity), true
 
 	case "ConfigAuth.rateLimit":
 		if e.complexity.ConfigAuth.RateLimit == nil {
@@ -1229,6 +1242,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigAuthMethodWebauthnRelyingParty.Origins(childComplexity), true
+
+	case "ConfigAuthMisc.concealErrors":
+		if e.complexity.ConfigAuthMisc.ConcealErrors == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthMisc.ConcealErrors(childComplexity), true
 
 	case "ConfigAuthRateLimit.bruteForce":
 		if e.complexity.ConfigAuthRateLimit.BruteForce == nil {
@@ -2343,6 +2363,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigRunServiceImage.Image(childComplexity), true
 
+	case "ConfigRunServiceImage.pullCredentials":
+		if e.complexity.ConfigRunServiceImage.PullCredentials == nil {
+			break
+		}
+
+		return e.complexity.ConfigRunServiceImage.PullCredentials(childComplexity), true
+
 	case "ConfigRunServicePort.ingresses":
 		if e.complexity.ConfigRunServicePort.Ingresses == nil {
 			break
@@ -3055,6 +3082,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigAuthMethodWebauthnInsertInput,
 		ec.unmarshalInputConfigAuthMethodWebauthnRelyingPartyComparisonExp,
 		ec.unmarshalInputConfigAuthMethodWebauthnRelyingPartyInsertInput,
+		ec.unmarshalInputConfigAuthMiscComparisonExp,
+		ec.unmarshalInputConfigAuthMiscInsertInput,
 		ec.unmarshalInputConfigAuthRateLimitComparisonExp,
 		ec.unmarshalInputConfigAuthRateLimitInsertInput,
 		ec.unmarshalInputConfigAuthRedirectionsComparisonExp,
@@ -3744,6 +3773,10 @@ type ConfigAuth {
     """
 
     """
+    misc: ConfigAuthMisc
+    """
+
+    """
     rateLimit: ConfigAuthRateLimit
 }
 
@@ -3757,6 +3790,7 @@ input ConfigAuthUpdateInput {
     session: ConfigAuthSessionUpdateInput
     method: ConfigAuthMethodUpdateInput
     totp: ConfigAuthTotpUpdateInput
+    misc: ConfigAuthMiscUpdateInput
     rateLimit: ConfigAuthRateLimitUpdateInput
 }
 
@@ -3770,6 +3804,7 @@ input ConfigAuthInsertInput {
     session: ConfigAuthSessionInsertInput
     method: ConfigAuthMethodInsertInput
     totp: ConfigAuthTotpInsertInput
+    misc: ConfigAuthMiscInsertInput
     rateLimit: ConfigAuthRateLimitInsertInput
 }
 
@@ -3786,6 +3821,7 @@ input ConfigAuthComparisonExp {
     session: ConfigAuthSessionComparisonExp
     method: ConfigAuthMethodComparisonExp
     totp: ConfigAuthTotpComparisonExp
+    misc: ConfigAuthMiscComparisonExp
     rateLimit: ConfigAuthRateLimitComparisonExp
 }
 
@@ -4411,6 +4447,31 @@ input ConfigAuthMethodWebauthnRelyingPartyComparisonExp {
     id: ConfigStringComparisonExp
     name: ConfigStringComparisonExp
     origins: ConfigUrlComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthMisc {
+    """
+
+    """
+    concealErrors: Boolean
+}
+
+input ConfigAuthMiscUpdateInput {
+    concealErrors: Boolean
+}
+
+input ConfigAuthMiscInsertInput {
+    concealErrors: Boolean
+}
+
+input ConfigAuthMiscComparisonExp {
+    _and: [ConfigAuthMiscComparisonExp!]
+    _not: ConfigAuthMiscComparisonExp
+    _or: [ConfigAuthMiscComparisonExp!]
+    concealErrors: ConfigBooleanComparisonExp
 }
 
 """
@@ -6360,14 +6421,20 @@ type ConfigRunServiceImage {
 
     """
     image: String!
+    """
+    content of "auths", i.e., { "auths": $THIS }
+    """
+    pullCredentials: String
 }
 
 input ConfigRunServiceImageUpdateInput {
     image: String
+    pullCredentials: String
 }
 
 input ConfigRunServiceImageInsertInput {
     image: String!
+    pullCredentials: String
 }
 
 input ConfigRunServiceImageComparisonExp {
@@ -6375,6 +6442,7 @@ input ConfigRunServiceImageComparisonExp {
     _not: ConfigRunServiceImageComparisonExp
     _or: [ConfigRunServiceImageComparisonExp!]
     image: ConfigStringComparisonExp
+    pullCredentials: ConfigStringComparisonExp
 }
 
 scalar ConfigRunServiceName
@@ -9226,6 +9294,51 @@ func (ec *executionContext) fieldContext_ConfigAuth_totp(_ context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigAuth_misc(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuth) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuth_misc(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Misc, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigAuthMisc)
+	fc.Result = res
+	return ec.marshalOConfigAuthMisc2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMisc(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuth_misc(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuth",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "concealErrors":
+				return ec.fieldContext_ConfigAuthMisc_concealErrors(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthMisc", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigAuth_rateLimit(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuth) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigAuth_rateLimit(ctx, field)
 	if err != nil {
@@ -11676,6 +11789,47 @@ func (ec *executionContext) fieldContext_ConfigAuthMethodWebauthnRelyingParty_or
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigAuthMisc_concealErrors(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthMisc) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthMisc_concealErrors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ConcealErrors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthMisc_concealErrors(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthMisc",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigAuthRateLimit_emails(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthRateLimit) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigAuthRateLimit_emails(ctx, field)
 	if err != nil {
@@ -13712,6 +13866,8 @@ func (ec *executionContext) fieldContext_ConfigConfig_auth(_ context.Context, fi
 				return ec.fieldContext_ConfigAuth_method(ctx, field)
 			case "totp":
 				return ec.fieldContext_ConfigAuth_totp(ctx, field)
+			case "misc":
+				return ec.fieldContext_ConfigAuth_misc(ctx, field)
 			case "rateLimit":
 				return ec.fieldContext_ConfigAuth_rateLimit(ctx, field)
 			}
@@ -18400,6 +18556,8 @@ func (ec *executionContext) fieldContext_ConfigRunServiceConfig_image(_ context.
 			switch field.Name {
 			case "image":
 				return ec.fieldContext_ConfigRunServiceImage_image(ctx, field)
+			case "pullCredentials":
+				return ec.fieldContext_ConfigRunServiceImage_pullCredentials(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigRunServiceImage", field.Name)
 		},
@@ -18787,6 +18945,47 @@ func (ec *executionContext) _ConfigRunServiceImage_image(ctx context.Context, fi
 }
 
 func (ec *executionContext) fieldContext_ConfigRunServiceImage_image(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigRunServiceImage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigRunServiceImage_pullCredentials(ctx context.Context, field graphql.CollectedField, obj *model.ConfigRunServiceImage) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigRunServiceImage_pullCredentials(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PullCredentials, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigRunServiceImage_pullCredentials(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ConfigRunServiceImage",
 		Field:      field,
@@ -25004,7 +25203,7 @@ func (ec *executionContext) unmarshalInputConfigAuthComparisonExp(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "elevatedPrivileges", "redirections", "signUp", "user", "session", "method", "totp", "rateLimit"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "elevatedPrivileges", "redirections", "signUp", "user", "session", "method", "totp", "misc", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -25095,6 +25294,13 @@ func (ec *executionContext) unmarshalInputConfigAuthComparisonExp(ctx context.Co
 				return it, err
 			}
 			it.Totp = data
+		case "misc":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("misc"))
+			data, err := ec.unmarshalOConfigAuthMiscComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Misc = data
 		case "rateLimit":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
 			data, err := ec.unmarshalOConfigAuthRateLimitComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitComparisonExp(ctx, v)
@@ -25190,7 +25396,7 @@ func (ec *executionContext) unmarshalInputConfigAuthInsertInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"version", "resources", "elevatedPrivileges", "redirections", "signUp", "user", "session", "method", "totp", "rateLimit"}
+	fieldsInOrder := [...]string{"version", "resources", "elevatedPrivileges", "redirections", "signUp", "user", "session", "method", "totp", "misc", "rateLimit"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -25260,6 +25466,13 @@ func (ec *executionContext) unmarshalInputConfigAuthInsertInput(ctx context.Cont
 				return it, err
 			}
 			it.Totp = data
+		case "misc":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("misc"))
+			data, err := ec.unmarshalOConfigAuthMiscInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Misc = data
 		case "rateLimit":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rateLimit"))
 			data, err := ec.unmarshalOConfigAuthRateLimitInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthRateLimitInsertInput(ctx, v)
@@ -26788,6 +27001,81 @@ func (ec *executionContext) unmarshalInputConfigAuthMethodWebauthnRelyingPartyIn
 				return it, err
 			}
 			it.Origins = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthMiscComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthMiscComparisonExp, error) {
+	var it model.ConfigAuthMiscComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "concealErrors"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAuthMiscComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAuthMiscComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAuthMiscComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "concealErrors":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("concealErrors"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ConcealErrors = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthMiscInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthMiscInsertInput, error) {
+	var it model.ConfigAuthMiscInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"concealErrors"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "concealErrors":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("concealErrors"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ConcealErrors = data
 		}
 	}
 
@@ -32277,7 +32565,7 @@ func (ec *executionContext) unmarshalInputConfigRunServiceImageComparisonExp(ctx
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "image"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "image", "pullCredentials"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32312,6 +32600,13 @@ func (ec *executionContext) unmarshalInputConfigRunServiceImageComparisonExp(ctx
 				return it, err
 			}
 			it.Image = data
+		case "pullCredentials":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pullCredentials"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PullCredentials = data
 		}
 	}
 
@@ -32325,7 +32620,7 @@ func (ec *executionContext) unmarshalInputConfigRunServiceImageInsertInput(ctx c
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"image"}
+	fieldsInOrder := [...]string{"image", "pullCredentials"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -32339,6 +32634,13 @@ func (ec *executionContext) unmarshalInputConfigRunServiceImageInsertInput(ctx c
 				return it, err
 			}
 			it.Image = data
+		case "pullCredentials":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pullCredentials"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PullCredentials = data
 		}
 	}
 
@@ -34894,6 +35196,8 @@ func (ec *executionContext) _ConfigAuth(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._ConfigAuth_method(ctx, field, obj)
 		case "totp":
 			out.Values[i] = ec._ConfigAuth_totp(ctx, field, obj)
+		case "misc":
+			out.Values[i] = ec._ConfigAuth_misc(ctx, field, obj)
 		case "rateLimit":
 			out.Values[i] = ec._ConfigAuth_rateLimit(ctx, field, obj)
 		default:
@@ -35478,6 +35782,42 @@ func (ec *executionContext) _ConfigAuthMethodWebauthnRelyingParty(ctx context.Co
 			out.Values[i] = ec._ConfigAuthMethodWebauthnRelyingParty_name(ctx, field, obj)
 		case "origins":
 			out.Values[i] = ec._ConfigAuthMethodWebauthnRelyingParty_origins(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAuthMiscImplementors = []string{"ConfigAuthMisc"}
+
+func (ec *executionContext) _ConfigAuthMisc(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthMisc) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAuthMiscImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAuthMisc")
+		case "concealErrors":
+			out.Values[i] = ec._ConfigAuthMisc_concealErrors(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -37558,6 +37898,8 @@ func (ec *executionContext) _ConfigRunServiceImage(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "pullCredentials":
+			out.Values[i] = ec._ConfigRunServiceImage_pullCredentials(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -39329,6 +39671,11 @@ func (ec *executionContext) unmarshalNConfigAuthMethodWebauthnComparisonExp2ᚖg
 
 func (ec *executionContext) unmarshalNConfigAuthMethodWebauthnRelyingPartyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMethodWebauthnRelyingPartyComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMethodWebauthnRelyingPartyComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthMethodWebauthnRelyingPartyComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigAuthMiscComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMiscComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAuthMiscComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -41745,6 +42092,58 @@ func (ec *executionContext) unmarshalOConfigAuthMethodWebauthnUpdateInput2ᚖgit
 		return nil, nil
 	}
 	var res = new(model.ConfigAuthMethodWebauthnUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAuthMisc2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMisc(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAuthMisc) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAuthMisc(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMiscComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthMiscComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigAuthMiscComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAuthMiscComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMiscComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthMiscComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthMiscComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMiscInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthMiscInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthMiscInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthMiscUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthMiscUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthMiscUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAuthMiscUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }

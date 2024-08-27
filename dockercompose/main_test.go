@@ -25,6 +25,9 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 			WebhookSecret: "webhookSecret",
 		},
 		Auth: &model.ConfigAuth{
+			Misc: &model.ConfigAuthMisc{
+				ConcealErrors: ptr(true),
+			},
 			ElevatedPrivileges: &model.ConfigAuthElevatedPrivileges{
 				Mode: ptr("required"),
 			},

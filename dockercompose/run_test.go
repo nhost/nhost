@@ -22,7 +22,8 @@ func TestRun(t *testing.T) {
 				return &model.ConfigRunServiceConfig{
 					Name: "service-name",
 					Image: &model.ConfigRunServiceImage{
-						Image: "image:tag",
+						Image:           "image:tag",
+						PullCredentials: nil,
 					},
 					Command: []string{"asd", "qwe"},
 					Environment: []*model.ConfigEnvironmentVariable{

@@ -294,6 +294,10 @@ type ConfigAuth {
     """
 
     """
+    misc: ConfigAuthMisc
+    """
+
+    """
     rateLimit: ConfigAuthRateLimit
 }
 
@@ -307,6 +311,7 @@ input ConfigAuthUpdateInput {
     session: ConfigAuthSessionUpdateInput
     method: ConfigAuthMethodUpdateInput
     totp: ConfigAuthTotpUpdateInput
+    misc: ConfigAuthMiscUpdateInput
     rateLimit: ConfigAuthRateLimitUpdateInput
 }
 
@@ -320,6 +325,7 @@ input ConfigAuthInsertInput {
     session: ConfigAuthSessionInsertInput
     method: ConfigAuthMethodInsertInput
     totp: ConfigAuthTotpInsertInput
+    misc: ConfigAuthMiscInsertInput
     rateLimit: ConfigAuthRateLimitInsertInput
 }
 
@@ -336,6 +342,7 @@ input ConfigAuthComparisonExp {
     session: ConfigAuthSessionComparisonExp
     method: ConfigAuthMethodComparisonExp
     totp: ConfigAuthTotpComparisonExp
+    misc: ConfigAuthMiscComparisonExp
     rateLimit: ConfigAuthRateLimitComparisonExp
 }
 
@@ -961,6 +968,31 @@ input ConfigAuthMethodWebauthnRelyingPartyComparisonExp {
     id: ConfigStringComparisonExp
     name: ConfigStringComparisonExp
     origins: ConfigUrlComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthMisc {
+    """
+
+    """
+    concealErrors: Boolean
+}
+
+input ConfigAuthMiscUpdateInput {
+    concealErrors: Boolean
+}
+
+input ConfigAuthMiscInsertInput {
+    concealErrors: Boolean
+}
+
+input ConfigAuthMiscComparisonExp {
+    _and: [ConfigAuthMiscComparisonExp!]
+    _not: ConfigAuthMiscComparisonExp
+    _or: [ConfigAuthMiscComparisonExp!]
+    concealErrors: ConfigBooleanComparisonExp
 }
 
 """
@@ -2910,14 +2942,20 @@ type ConfigRunServiceImage {
 
     """
     image: String!
+    """
+    content of "auths", i.e., { "auths": $THIS }
+    """
+    pullCredentials: String
 }
 
 input ConfigRunServiceImageUpdateInput {
     image: String
+    pullCredentials: String
 }
 
 input ConfigRunServiceImageInsertInput {
     image: String!
+    pullCredentials: String
 }
 
 input ConfigRunServiceImageComparisonExp {
@@ -2925,6 +2963,7 @@ input ConfigRunServiceImageComparisonExp {
     _not: ConfigRunServiceImageComparisonExp
     _or: [ConfigRunServiceImageComparisonExp!]
     image: ConfigStringComparisonExp
+    pullCredentials: ConfigStringComparisonExp
 }
 
 scalar ConfigRunServiceName

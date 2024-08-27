@@ -292,7 +292,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.32.1"
+	version: string | *"0.33.0"
 
 	// Resources for the service
 	resources?: #Resources
@@ -464,6 +464,10 @@ import (
 			issuer?: string
 		}
 	}
+
+    misc: {
+        concealErrors: bool | *false
+    }
 
 	rateLimit: #AuthRateLimit
 }
@@ -686,6 +690,8 @@ import (
 
 #RunServiceImage: {
 	image: string
+    // content of "auths", i.e., { "auths": $THIS }
+    pullCredentials?: string
 }
 
 #HealthCheck: {

@@ -27,6 +27,7 @@ func expectedAuth() *Service {
 			"AUTH_ANONYMOUS_USERS_ENABLED":              "true",
 			"AUTH_API_PREFIX":                           "/v1",
 			"AUTH_CLIENT_URL":                           "http://localhost:3000",
+			"AUTH_CONCEAL_ERRORS":                       "true",
 			"AUTH_DISABLE_NEW_USERS":                    "false",
 			"AUTH_DISABLE_SIGNUP":                       "false",
 			"AUTH_EMAIL_PASSWORDLESS_ENABLED":           "true",

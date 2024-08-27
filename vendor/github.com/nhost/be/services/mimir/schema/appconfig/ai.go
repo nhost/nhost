@@ -10,6 +10,7 @@ func AIEnv( //nolint:funlen
 	config *model.ConfigConfig,
 	nhostGraphqlURL string,
 	postgresConnection string,
+	storageURL string,
 	license string,
 ) []EnvVar {
 	env := []EnvVar{
@@ -60,6 +61,12 @@ func AIEnv( //nolint:funlen
 		{
 			Name:       "POSTGRES_CONNECTION",
 			Value:      postgresConnection,
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
+			Name:       "HASURA_STORAGE_URL",
+			Value:      storageURL,
 			IsSecret:   false,
 			SecretName: "",
 		},

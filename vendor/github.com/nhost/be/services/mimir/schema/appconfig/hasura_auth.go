@@ -317,6 +317,12 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			IsSecret:   false,
 			SecretName: "",
 		},
+		{
+			Name:       "AUTH_CONCEAL_ERRORS",
+			Value:      Stringify(unptr(config.GetAuth().GetMisc().GetConcealErrors())),
+			IsSecret:   false,
+			SecretName: "",
+		},
 	}
 
 	env = append(env, []EnvVar{

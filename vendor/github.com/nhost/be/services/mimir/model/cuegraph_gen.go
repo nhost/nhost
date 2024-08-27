@@ -949,6 +949,8 @@ type ConfigAuth struct {
 
 	Totp *ConfigAuthTotp `json:"totp,omitempty" toml:"totp,omitempty"`
 
+	Misc *ConfigAuthMisc `json:"misc,omitempty" toml:"misc,omitempty"`
+
 	RateLimit *ConfigAuthRateLimit `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
@@ -980,6 +982,9 @@ func (o *ConfigAuth) MarshalJSON() ([]byte, error) {
 	}
 	if o.Totp != nil {
 		m["totp"] = o.Totp
+	}
+	if o.Misc != nil {
+		m["misc"] = o.Misc
 	}
 	if o.RateLimit != nil {
 		m["rateLimit"] = o.RateLimit
@@ -1050,6 +1055,13 @@ func (o *ConfigAuth) GetTotp() *ConfigAuthTotp {
 	return o.Totp
 }
 
+func (o *ConfigAuth) GetMisc() *ConfigAuthMisc {
+	if o == nil {
+		return nil
+	}
+	return o.Misc
+}
+
 func (o *ConfigAuth) GetRateLimit() *ConfigAuthRateLimit {
 	if o == nil {
 		return nil
@@ -1076,6 +1088,8 @@ type ConfigAuthUpdateInput struct {
 	IsSetMethod             bool                                     `json:"-"`
 	Totp                    *ConfigAuthTotpUpdateInput               `json:"totp,omitempty" toml:"totp,omitempty"`
 	IsSetTotp               bool                                     `json:"-"`
+	Misc                    *ConfigAuthMiscUpdateInput               `json:"misc,omitempty" toml:"misc,omitempty"`
+	IsSetMisc               bool                                     `json:"-"`
 	RateLimit               *ConfigAuthRateLimitUpdateInput          `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 	IsSetRateLimit          bool                                     `json:"-"`
 }
@@ -1182,6 +1196,16 @@ func (o *ConfigAuthUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetTotp = true
 	}
+	if x, ok := m["misc"]; ok {
+		if x != nil {
+			t := &ConfigAuthMiscUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Misc = t
+		}
+		o.IsSetMisc = true
+	}
 	if x, ok := m["rateLimit"]; ok {
 		if x != nil {
 			t := &ConfigAuthRateLimitUpdateInput{}
@@ -1264,6 +1288,13 @@ func (o *ConfigAuthUpdateInput) GetTotp() *ConfigAuthTotpUpdateInput {
 		return nil
 	}
 	return o.Totp
+}
+
+func (o *ConfigAuthUpdateInput) GetMisc() *ConfigAuthMiscUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Misc
 }
 
 func (o *ConfigAuthUpdateInput) GetRateLimit() *ConfigAuthRateLimitUpdateInput {
@@ -1360,6 +1391,16 @@ func (s *ConfigAuth) Update(v *ConfigAuthUpdateInput) {
 			s.Totp.Update(v.Totp)
 		}
 	}
+	if v.IsSetMisc || v.Misc != nil {
+		if v.Misc == nil {
+			s.Misc = nil
+		} else {
+			if s.Misc == nil {
+				s.Misc = &ConfigAuthMisc{}
+			}
+			s.Misc.Update(v.Misc)
+		}
+	}
 	if v.IsSetRateLimit || v.RateLimit != nil {
 		if v.RateLimit == nil {
 			s.RateLimit = nil
@@ -1382,6 +1423,7 @@ type ConfigAuthInsertInput struct {
 	Session            *ConfigAuthSessionInsertInput            `json:"session,omitempty" toml:"session,omitempty"`
 	Method             *ConfigAuthMethodInsertInput             `json:"method,omitempty" toml:"method,omitempty"`
 	Totp               *ConfigAuthTotpInsertInput               `json:"totp,omitempty" toml:"totp,omitempty"`
+	Misc               *ConfigAuthMiscInsertInput               `json:"misc,omitempty" toml:"misc,omitempty"`
 	RateLimit          *ConfigAuthRateLimitInsertInput          `json:"rateLimit,omitempty" toml:"rateLimit,omitempty"`
 }
 
@@ -1448,6 +1490,13 @@ func (o *ConfigAuthInsertInput) GetTotp() *ConfigAuthTotpInsertInput {
 	return o.Totp
 }
 
+func (o *ConfigAuthInsertInput) GetMisc() *ConfigAuthMiscInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Misc
+}
+
 func (o *ConfigAuthInsertInput) GetRateLimit() *ConfigAuthRateLimitInsertInput {
 	if o == nil {
 		return nil
@@ -1505,6 +1554,12 @@ func (s *ConfigAuth) Insert(v *ConfigAuthInsertInput) {
 		}
 		s.Totp.Insert(v.Totp)
 	}
+	if v.Misc != nil {
+		if s.Misc == nil {
+			s.Misc = &ConfigAuthMisc{}
+		}
+		s.Misc.Insert(v.Misc)
+	}
 	if v.RateLimit != nil {
 		if s.RateLimit == nil {
 			s.RateLimit = &ConfigAuthRateLimit{}
@@ -1528,6 +1583,7 @@ func (s *ConfigAuth) Clone() *ConfigAuth {
 	v.Session = s.Session.Clone()
 	v.Method = s.Method.Clone()
 	v.Totp = s.Totp.Clone()
+	v.Misc = s.Misc.Clone()
 	v.RateLimit = s.RateLimit.Clone()
 	return v
 }
@@ -1545,6 +1601,7 @@ type ConfigAuthComparisonExp struct {
 	Session            *ConfigAuthSessionComparisonExp            `json:"session,omitempty"`
 	Method             *ConfigAuthMethodComparisonExp             `json:"method,omitempty"`
 	Totp               *ConfigAuthTotpComparisonExp               `json:"totp,omitempty"`
+	Misc               *ConfigAuthMiscComparisonExp               `json:"misc,omitempty"`
 	RateLimit          *ConfigAuthRateLimitComparisonExp          `json:"rateLimit,omitempty"`
 }
 
@@ -1563,6 +1620,7 @@ func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
 			Session:            &ConfigAuthSession{},
 			Method:             &ConfigAuthMethod{},
 			Totp:               &ConfigAuthTotp{},
+			Misc:               &ConfigAuthMisc{},
 			RateLimit:          &ConfigAuthRateLimit{},
 		}
 	}
@@ -1591,6 +1649,9 @@ func (exp *ConfigAuthComparisonExp) Matches(o *ConfigAuth) bool {
 		return false
 	}
 	if !exp.Totp.Matches(o.Totp) {
+		return false
+	}
+	if !exp.Misc.Matches(o.Misc) {
 		return false
 	}
 	if !exp.RateLimit.Matches(o.RateLimit) {
@@ -5779,6 +5840,138 @@ func (exp *ConfigAuthMethodWebauthnRelyingPartyComparisonExp) Matches(o *ConfigA
 		if !found && exp.Origins != nil {
 			return false
 		}
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAuthMisc struct {
+	ConcealErrors *bool `json:"concealErrors" toml:"concealErrors"`
+}
+
+func (o *ConfigAuthMisc) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.ConcealErrors != nil {
+		m["concealErrors"] = o.ConcealErrors
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAuthMisc) GetConcealErrors() *bool {
+	if o == nil {
+		o = &ConfigAuthMisc{}
+	}
+	return o.ConcealErrors
+}
+
+type ConfigAuthMiscUpdateInput struct {
+	ConcealErrors      *bool `json:"concealErrors,omitempty" toml:"concealErrors,omitempty"`
+	IsSetConcealErrors bool  `json:"-"`
+}
+
+func (o *ConfigAuthMiscUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["concealErrors"]; ok {
+		if v == nil {
+			o.ConcealErrors = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ConcealErrors = &x
+		}
+		o.IsSetConcealErrors = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAuthMiscUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAuthMiscUpdateInput) GetConcealErrors() *bool {
+	if o == nil {
+		o = &ConfigAuthMiscUpdateInput{}
+	}
+	return o.ConcealErrors
+}
+
+func (s *ConfigAuthMisc) Update(v *ConfigAuthMiscUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetConcealErrors || v.ConcealErrors != nil {
+		s.ConcealErrors = v.ConcealErrors
+	}
+}
+
+type ConfigAuthMiscInsertInput struct {
+	ConcealErrors *bool `json:"concealErrors,omitempty" toml:"concealErrors,omitempty"`
+}
+
+func (o *ConfigAuthMiscInsertInput) GetConcealErrors() *bool {
+	if o == nil {
+		o = &ConfigAuthMiscInsertInput{}
+	}
+	return o.ConcealErrors
+}
+
+func (s *ConfigAuthMisc) Insert(v *ConfigAuthMiscInsertInput) {
+	s.ConcealErrors = v.ConcealErrors
+}
+
+func (s *ConfigAuthMisc) Clone() *ConfigAuthMisc {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAuthMisc{}
+	v.ConcealErrors = s.ConcealErrors
+	return v
+}
+
+type ConfigAuthMiscComparisonExp struct {
+	And           []*ConfigAuthMiscComparisonExp `json:"_and,omitempty"`
+	Not           *ConfigAuthMiscComparisonExp   `json:"_not,omitempty"`
+	Or            []*ConfigAuthMiscComparisonExp `json:"_or,omitempty"`
+	ConcealErrors *ConfigBooleanComparisonExp    `json:"concealErrors,omitempty"`
+}
+
+func (exp *ConfigAuthMiscComparisonExp) Matches(o *ConfigAuthMisc) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAuthMisc{}
+	}
+	if o.ConcealErrors != nil && !exp.ConcealErrors.Matches(*o.ConcealErrors) {
+		return false
 	}
 
 	if exp.And != nil && !all(exp.And, o) {
@@ -18710,11 +18903,16 @@ func (exp *ConfigRunServiceConfigComparisonExp) Matches(o *ConfigRunServiceConfi
 
 type ConfigRunServiceImage struct {
 	Image string `json:"image" toml:"image"`
+	// content of "auths", i.e., { "auths": $THIS }
+	PullCredentials *string `json:"pullCredentials" toml:"pullCredentials"`
 }
 
 func (o *ConfigRunServiceImage) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	m["image"] = o.Image
+	if o.PullCredentials != nil {
+		m["pullCredentials"] = o.PullCredentials
+	}
 	return json.Marshal(m)
 }
 
@@ -18725,9 +18923,18 @@ func (o *ConfigRunServiceImage) GetImage() string {
 	return o.Image
 }
 
+func (o *ConfigRunServiceImage) GetPullCredentials() *string {
+	if o == nil {
+		o = &ConfigRunServiceImage{}
+	}
+	return o.PullCredentials
+}
+
 type ConfigRunServiceImageUpdateInput struct {
-	Image      *string `json:"image,omitempty" toml:"image,omitempty"`
-	IsSetImage bool    `json:"-"`
+	Image                *string `json:"image,omitempty" toml:"image,omitempty"`
+	IsSetImage           bool    `json:"-"`
+	PullCredentials      *string `json:"pullCredentials,omitempty" toml:"pullCredentials,omitempty"`
+	IsSetPullCredentials bool    `json:"-"`
 }
 
 func (o *ConfigRunServiceImageUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -18752,6 +18959,23 @@ func (o *ConfigRunServiceImageUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetImage = true
 	}
+	if v, ok := m["pullCredentials"]; ok {
+		if v == nil {
+			o.PullCredentials = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.PullCredentials = &x
+		}
+		o.IsSetPullCredentials = true
+	}
 
 	return nil
 }
@@ -18770,6 +18994,13 @@ func (o *ConfigRunServiceImageUpdateInput) GetImage() *string {
 	return o.Image
 }
 
+func (o *ConfigRunServiceImageUpdateInput) GetPullCredentials() *string {
+	if o == nil {
+		o = &ConfigRunServiceImageUpdateInput{}
+	}
+	return o.PullCredentials
+}
+
 func (s *ConfigRunServiceImage) Update(v *ConfigRunServiceImageUpdateInput) {
 	if v == nil {
 		return
@@ -18779,10 +19010,14 @@ func (s *ConfigRunServiceImage) Update(v *ConfigRunServiceImageUpdateInput) {
 			s.Image = *v.Image
 		}
 	}
+	if v.IsSetPullCredentials || v.PullCredentials != nil {
+		s.PullCredentials = v.PullCredentials
+	}
 }
 
 type ConfigRunServiceImageInsertInput struct {
-	Image string `json:"image,omitempty" toml:"image,omitempty"`
+	Image           string  `json:"image,omitempty" toml:"image,omitempty"`
+	PullCredentials *string `json:"pullCredentials,omitempty" toml:"pullCredentials,omitempty"`
 }
 
 func (o *ConfigRunServiceImageInsertInput) GetImage() string {
@@ -18792,8 +19027,16 @@ func (o *ConfigRunServiceImageInsertInput) GetImage() string {
 	return o.Image
 }
 
+func (o *ConfigRunServiceImageInsertInput) GetPullCredentials() *string {
+	if o == nil {
+		o = &ConfigRunServiceImageInsertInput{}
+	}
+	return o.PullCredentials
+}
+
 func (s *ConfigRunServiceImage) Insert(v *ConfigRunServiceImageInsertInput) {
 	s.Image = v.Image
+	s.PullCredentials = v.PullCredentials
 }
 
 func (s *ConfigRunServiceImage) Clone() *ConfigRunServiceImage {
@@ -18803,14 +19046,16 @@ func (s *ConfigRunServiceImage) Clone() *ConfigRunServiceImage {
 
 	v := &ConfigRunServiceImage{}
 	v.Image = s.Image
+	v.PullCredentials = s.PullCredentials
 	return v
 }
 
 type ConfigRunServiceImageComparisonExp struct {
-	And   []*ConfigRunServiceImageComparisonExp `json:"_and,omitempty"`
-	Not   *ConfigRunServiceImageComparisonExp   `json:"_not,omitempty"`
-	Or    []*ConfigRunServiceImageComparisonExp `json:"_or,omitempty"`
-	Image *ConfigStringComparisonExp            `json:"image,omitempty"`
+	And             []*ConfigRunServiceImageComparisonExp `json:"_and,omitempty"`
+	Not             *ConfigRunServiceImageComparisonExp   `json:"_not,omitempty"`
+	Or              []*ConfigRunServiceImageComparisonExp `json:"_or,omitempty"`
+	Image           *ConfigStringComparisonExp            `json:"image,omitempty"`
+	PullCredentials *ConfigStringComparisonExp            `json:"pullCredentials,omitempty"`
 }
 
 func (exp *ConfigRunServiceImageComparisonExp) Matches(o *ConfigRunServiceImage) bool {
@@ -18822,6 +19067,9 @@ func (exp *ConfigRunServiceImageComparisonExp) Matches(o *ConfigRunServiceImage)
 		o = &ConfigRunServiceImage{}
 	}
 	if !exp.Image.Matches(o.Image) {
+		return false
+	}
+	if o.PullCredentials != nil && !exp.PullCredentials.Matches(*o.PullCredentials) {
 		return false
 	}
 

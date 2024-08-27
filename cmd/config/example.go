@@ -131,6 +131,9 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 		},
 		Auth: &model.ConfigAuth{
 			Version: ptr("0.25.0"),
+			Misc: &model.ConfigAuthMisc{
+				ConcealErrors: ptr(false),
+			},
 			ElevatedPrivileges: &model.ConfigAuthElevatedPrivileges{
 				Mode: ptr("required"),
 			},
