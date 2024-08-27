@@ -13,7 +13,7 @@ export default function useGetRateLimits() {
   const { data, loading } = useGetRateLimitConfigQuery({
     variables: {
       appId: currentProject?.id,
-      resolve: false,
+      resolve: true,
     },
     skip: !currentProject,
     ...(!isPlatform ? { client: localMimirClient } : {}),
