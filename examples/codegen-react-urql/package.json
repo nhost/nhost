@@ -15,7 +15,7 @@
     "graphql": "16.8.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "urql": "^3.0.4"
+    "urql": "^3.0.3"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.2",
