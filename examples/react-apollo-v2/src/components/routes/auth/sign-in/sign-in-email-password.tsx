@@ -19,8 +19,10 @@ const formSchema = z.object({
 
 export default function SignInEmailPassword() {
   const navigate = useNavigate()
-  const { signInEmailPassword } = useSignInEmailPassword()
   const [showEmailVerificationDialog, setShowEmailVerificationDialog] = useState(false)
+
+  const [otp, setOtp] = useState('')
+  const { signInEmailPassword, needsMfaOtp, sendMfaOtp } = useSignInEmailPassword()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,6 +42,34 @@ export default function SignInEmailPassword() {
     } else if (result.isSuccess) {
       navigate('/', { replace: true })
     }
+  }
+
+  const sendOtp = async () => {
+    const result = await sendMfaOtp(otp)
+    if (result.isError) {
+      toast.error(result.error?.message)
+    } else {
+      navigate('/', { replace: true })
+    }
+  }
+
+  if (needsMfaOtp) {
+    return (
+      <div className="flex flex-row items-center justify-center w-screen min-h-screen bg-gray-100">
+        <div className="flex flex-col items-center justify-center w-full max-w-md gap-4 p-8 bg-white rounded-md shadow">
+          <h1 className="text-3xl text-center ">TOTP</h1>
+          <Input
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            placeholder="One-time password"
+            autoFocus
+          />
+          <Button className="w-full" onClick={sendOtp}>
+            Send 2-step verification code
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (

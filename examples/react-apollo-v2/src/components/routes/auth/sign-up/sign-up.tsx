@@ -28,7 +28,7 @@ export default function SignUp() {
             className={cn(buttonVariants({ variant: 'outline' }), 'w-full text-center')}
           >
             <Mail className="w-4 h-4" />
-            <span className="flex-1">Continue with a magick link</span>
+            <span className="flex-1">Continue with a magic link</span>
           </Link>
           <Link
             to={'/sign-up/email-password'}

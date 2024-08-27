@@ -65,7 +65,7 @@ export default function Mfa() {
       toast.error(error?.message)
     } else {
       setCode('')
-      toast.message('2-step verification activated')
+      toast.message('Mfa has been activated')
     }
   }
 

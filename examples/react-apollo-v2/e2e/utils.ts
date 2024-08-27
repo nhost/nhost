@@ -12,8 +12,9 @@ import { baseURL, mailhogURL } from './config'
  * @returns The user data.
  */
 export async function getUserData(page: Page) {
-  const textContent = await page.locator('h1:has-text("User information") + div pre').textContent()
-  const userData = textContent ? JSON.parse(textContent) : {}
+  const userInformation = await page.locator('pre').nth(0).textContent()
+
+  const userData = userInformation ? JSON.parse(userInformation) : {}
 
   return userData as User
 }
@@ -85,7 +86,7 @@ export async function signUpWithEmailPasswordless({ page, email }: { page: Page;
   await page.getByRole('link', { name: /sign up/i }).click()
   await page.getByRole('link', { name: /continue with a magic link/i }).click()
   await page.getByPlaceholder(/email/i).fill(email)
-  await page.getByRole('link', { name: /continue with email/i }).click()
+  await page.getByRole('button', { name: /sign up/i }).click()
 }
 
 /**

@@ -26,13 +26,13 @@ test.beforeAll(async ({ browser }) => {
 
   const newPage = await verifyEmail({ page, email, context: page.context() })
   await expect(newPage.getByText(/you are authenticated/i)).toBeVisible()
-  await newPage.getByRole('button', { name: /sign out/i }).click()
+  await newPage.getByRole('link', { name: /sign out/i }).click()
 
   page = newPage
 })
 
 test.afterEach(async () => {
-  await page.getByRole('button', { name: /sign out/i }).click()
+  await page.getByRole('link', { name: /sign out/i }).click()
 })
 
 test.afterAll(() => {
@@ -53,7 +53,7 @@ test('should activate and sign in with MFA', async () => {
 
   await signInWithEmailAndPassword({ page, email, password })
   await page.waitForURL(baseURL)
-  await page.getByRole('button', { name: /profile/i }).click()
+  await page.getByRole('link', { name: /profile/i }).click()
   await page.getByRole('button', { name: /generate/i }).click()
 
   const image = page.getByAltText(/qrcode/i)
@@ -70,9 +70,8 @@ test('should activate and sign in with MFA', async () => {
   await page.getByPlaceholder(/enter activation code/i).fill(code)
   await page.getByRole('button', { name: /activate/i }).click()
   await expect(page.getByText(/mfa has been activated/i)).toBeVisible()
-  await page.getByRole('button', { name: /sign out/i }).click()
+  await page.getByRole('link', { name: /sign out/i }).click()
 
-  await page.getByRole('button', { name: /continue with email \+ password/i }).click()
   await signInWithEmailAndPassword({ page, email, password })
   await expect(page.getByText(/send 2-step verification code/i)).toBeVisible()
 
