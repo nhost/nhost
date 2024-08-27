@@ -20,10 +20,7 @@ export default defineConfig({
     port: 3000
   },
   use: {
-    baseURL: 'http://localhost:3000',
-    launchOptions: {
-      headless: false
-    }
+    baseURL: 'http://localhost:3000'
   },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
