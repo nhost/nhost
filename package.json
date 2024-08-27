@@ -151,7 +151,9 @@
       "undici@<5.28.4": "5.28.4",
       "fast-xml-parser@<4.4.1": ">=4.4.1",
       "axios": "1.7.4",
-      "webpack": "^5.94.0"
+      "webpack": "^5.94.0",
+      "micromatch": "^4.0.8",
+      "nth-check": "^2.0.1"
     }
   }
 }
