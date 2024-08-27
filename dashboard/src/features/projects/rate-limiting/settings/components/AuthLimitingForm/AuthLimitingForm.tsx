@@ -248,8 +248,6 @@ export default function AuthLimitingForm() {
       >
         <SettingsContainer
           title="Auth"
-          switchId="enabled"
-          showSwitch
           slotProps={{
             submitButton: {
               disabled: !formState.isDirty || maintenanceActive,
