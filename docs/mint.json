@@ -84,7 +84,8 @@
         "platform/environment-variables",
         "platform/secrets",
         "platform/deployments",
-        "platform/custom-domains"
+        "platform/custom-domains",
+        "platform/rate-limits"
       ]
     },
     {
