@@ -17,10 +17,17 @@ test('should be able to change password', async ({ page }) => {
   const newPassword = faker.internet.password()
 
   await newPage.getByPlaceholder(/new password/i).fill(newPassword)
-  await newPage.locator('h1:has-text("Change password") + div button:has-text("Change")').click()
-  await expect(newPage.getByText(/password changed successfully/i)).toBeVisible()
 
-  await newPage.getByRole('button', { name: /sign out/i }).click()
+  // await newPage.locator('h1:has-text("Change password") + div button:has-text("Change")').click()
+  await newPage
+    .locator('div')
+    .filter({ hasText: /^Change passwordChange$/ })
+    .getByRole('button')
+    .click()
+
+  await expect(newPage.getByText(/password changed successfully./i)).toBeVisible()
+
+  await newPage.getByRole('link', { name: 'Sign out' }).click()
 
   await signInWithEmailAndPassword({ page: newPage, email, password: newPassword })
   await expect(newPage.getByText(/you are authenticated/i)).toBeVisible()
@@ -41,7 +48,13 @@ test('should not accept an invalid email', async ({ page }) => {
   const newPassword = faker.internet.password(2)
 
   await newPage.getByPlaceholder(/new password/i).fill(newPassword)
-  await newPage.locator('h1:has-text("Change password") + div button:has-text("Change")').click()
+  // await newPage.locator('h1:has-text("Change password") + div button:has-text("Change")').click()
+
+  await newPage
+    .locator('div')
+    .filter({ hasText: /^Change passwordChange$/ })
+    .getByRole('button')
+    .click()
 
   await expect(newPage.getByText(/password is incorrectly formatted/i)).toBeVisible()
 })

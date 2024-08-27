@@ -33,6 +33,44 @@
   {
     "value": "http://localhost:3000",
     "op": "replace",
+    "path": "/auth/redirections/allowedUrls/0"
+  },
+  {
+    "value": "http://localhost:3000/profile",
+    "op": "replace",
+    "path": "/auth/redirections/allowedUrls/1"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "op": "remove",
+    "path": "/auth/redirections/allowedUrls/2"
+  },
+  {
+    "value": "http://localhost:3000",
+    "op": "replace",
     "path": "/auth/redirections/clientUrl"
   }
 ]

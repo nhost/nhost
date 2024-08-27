@@ -35,9 +35,8 @@ version = '0.32.1'
 mode = 'required'
 
 [auth.redirections]
-# clientUrl = 'https://react-apollo.example.nhost.io/'
-clientUrl = 'http://localhost:5173/'
-allowedUrls = ['https://react-apollo.example.nhost.io', 'https://react-apollo.example.nhost.io/profile', 'https://vue-apollo.example.nhost.io', 'https://vue-apollo.example.nhost.io/profile', 'https://*.vercel.app', 'http://localhost:5173', 'http://localhost:5173/profile', 'http://localhost:5173/', 'http://localhost:5173/profile']
+clientUrl = 'https://react-apollo.example.nhost.io/'
+allowedUrls = ['https://react-apollo.example.nhost.io', 'https://react-apollo.example.nhost.io/profile', 'https://vue-apollo.example.nhost.io', 'https://vue-apollo.example.nhost.io/profile', 'https://*.vercel.app', 'http://localhost:5174', 'http://localhost:5174/profile', 'http://localhost:5174/', 'http://localhost:5174/profile']
 
 [auth.signUp]
 enabled = true
@@ -160,7 +159,7 @@ version = '14.11-20240515-1'
 [provider]
 
 [storage]
-version = '0.6.0'
+version = '0.6.1'
 
 [observability]
 [observability.grafana]

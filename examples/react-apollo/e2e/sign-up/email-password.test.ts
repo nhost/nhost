@@ -16,7 +16,7 @@ test('should sign up with email and password', async ({ page, context }) => {
 })
 
 test('should raise an error when trying to sign up with an existing email', async ({ page }) => {
-  page.goto('/')
+  await page.goto('/')
 
   const email = faker.internet.email()
   const password = faker.internet.password()
@@ -26,6 +26,8 @@ test('should raise an error when trying to sign up with an existing email', asyn
 
   // close modal
   await page.getByRole('dialog').getByRole('button').click()
+
+  await page.goto('/')
 
   await signUpWithEmailAndPassword({ page, email, password })
   await expect(page.getByText(/email already in use/i)).toBeVisible()

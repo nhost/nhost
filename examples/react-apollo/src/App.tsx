@@ -1,132 +1,57 @@
 import { Route, Routes } from 'react-router-dom'
-import { BrandGithub } from 'tabler-icons-react'
-
-import { AppShell, Button, Group, Header, Image, MantineProvider, Title } from '@mantine/core'
-import { NotificationsProvider } from '@mantine/notifications'
-
-import { AboutPage } from './About'
-import { ApolloPage } from './apollo'
-import { AuthGate, PublicGate } from './components/auth-gates'
-import NavBar from './components/NavBar'
-import Home from './Home'
-import { ProfilePage } from './profile'
-import { SignInPage } from './sign-in'
-import { SignUpPage } from './sign-up'
-import { StoragePage } from './Storage'
-
-import './App.css?inline'
-import { NotesPage } from './components/notes'
-import VerifyPage from './Verify'
-const title = 'Nhost with React and Apollo'
+import { AuthGate } from '@/components/auth/auth-gate'
+import Home from '@/components/routes/app/home'
+import Layout from '@/components/routes/app/layout'
+import Profile from '@/components/routes/app/profile'
+import ProtectedNotes from '@/components/routes/app/protected-notes'
+import Storage from '@/components/routes/app/storage'
+import Todos from '@/components/routes/app/todos'
+import ForgotPassword from '@/components/routes/auth/forgot-password'
+import SignIn from '@/components/routes/auth/sign-in/sign-in'
+import SignInEmailPassword from '@/components/routes/auth/sign-in/sign-in-email-password'
+import SignInMagicLink from '@/components/routes/auth/sign-in/sign-in-magic-link'
+import SignInSecurityKey from '@/components/routes/auth/sign-in/sign-in-security-key'
+import SignUp from '@/components/routes/auth/sign-up/sign-up'
+import SignUpEmailPassword from '@/components/routes/auth/sign-up/sign-up-email-password'
+import SignUpMagicLink from '@/components/routes/auth/sign-up/sign-up-magic-link'
+import SignUpSecurityKey from '@/components/routes/auth/sign-up/sign-up-security-key'
+import VerifyEmail from './components/routes/auth/verify-email'
 
 function App() {
-  const colorScheme = 'light'
   return (
-    <MantineProvider
-      withGlobalStyles
-      withNormalizeCSS
-      theme={{
-        colorScheme
-      }}
-    >
-      <NotificationsProvider>
-        <AppShell
-          padding="md"
-          navbar={<NavBar />}
-          header={
-            <Header height={60} p="xs">
-              <Group position="apart" noWrap>
-                <Group noWrap>
-                  <Image src="/logo.svg" height={35} fit="contain" width={120} />
-                  <Title order={3} style={{ whiteSpace: 'nowrap' }}>
-                    {title}
-                  </Title>
-                </Group>
-                <Button
-                  leftIcon={<BrandGithub />}
-                  variant="outline"
-                  color={colorScheme}
-                  component="a"
-                  href="https://github.com/nhost/nhost/tree/main/examples/react-apollo"
-                  target="_blank"
-                >
-                  GitHub
-                </Button>
-              </Group>
-            </Header>
-          }
-          styles={(theme) => ({
-            main: {
-              backgroundColor:
-                theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0]
-            }
-          })}
-        >
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <AuthGate>
-                  <Home />
-                </AuthGate>
-              }
-            />
-            <Route path="/verify" element={<VerifyPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route
-              path="/sign-in/*"
-              element={
-                <PublicGate>
-                  <SignInPage />
-                </PublicGate>
-              }
-            />
-            <Route
-              path="/sign-up/*"
-              element={
-                <PublicGate anonymous>
-                  <SignUpPage />
-                </PublicGate>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <AuthGate>
-                  <ProfilePage />
-                </AuthGate>
-              }
-            />
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <AuthGate>
+            <Layout />
+          </AuthGate>
+        }
+      >
+        <Route path="/" element={<Home />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/protected-notes" element={<ProtectedNotes />} />
+        <Route path="/storage" element={<Storage />} />
+        <Route path="/todos" element={<Todos />} />
+      </Route>
 
-            <Route
-              path="/secret-notes"
-              element={
-                <AuthGate>
-                  <NotesPage />
-                </AuthGate>
-              }
-            />
+      <Route path="/sign-in">
+        <Route path="/sign-in/" element={<SignIn />} />
+        <Route path="/sign-in/email-password" element={<SignInEmailPassword />} />
+        <Route path="/sign-in/security-key" element={<SignInSecurityKey />} />
+        <Route path="/sign-in/magic-link" element={<SignInMagicLink />} />
+        <Route path="/sign-in/forgot-password" element={<ForgotPassword />} />
+      </Route>
 
-            <Route
-              path="/storage"
-              element={
-                <AuthGate>
-                  <StoragePage />
-                </AuthGate>
-              }
-            />
-            <Route
-              path="/apollo"
-              element={
-                <AuthGate>
-                  <ApolloPage />
-                </AuthGate>
-              }
-            />
-          </Routes>
-        </AppShell>
-      </NotificationsProvider>
-    </MantineProvider>
+      <Route path="/sign-up">
+        <Route path="/sign-up/" element={<SignUp />} />
+        <Route path="/sign-up/email-password" element={<SignUpEmailPassword />} />
+        <Route path="/sign-up/security-key" element={<SignUpSecurityKey />} />
+        <Route path="/sign-up/magic-link" element={<SignUpMagicLink />} />
+      </Route>
+
+      <Route path="/verify" element={<VerifyEmail />} />
+    </Routes>
   )
 }
 
