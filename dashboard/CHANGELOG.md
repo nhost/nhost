@@ -1,5 +1,18 @@
 # @nhost/dashboard
 
+## 1.26.0
+
+### Minor Changes
+
+- 3773ad7: chore: update pricing information
+- b63250d: fix: not allow run service creation form resubmission while creating a run service
+- a44a1d4: feat: add rate limits settings page
+
+### Patch Changes
+
+- @nhost/react-apollo@12.0.5
+- @nhost/nextjs@2.1.19
+
 ## 1.25.0
 
 ### Minor Changes

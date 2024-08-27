@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.5.5
+
+### Patch Changes
+
+- caa8bd7: fix: add error handling logic to transition to the signedOut state when the token is invalid or expired
+
 ## 2.5.4
 
 ### Patch Changes

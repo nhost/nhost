@@ -1,5 +1,11 @@
 # @nhost/react-urql
 
+## 9.0.5
+
+### Patch Changes
+
+- @nhost/react@3.5.5
+
 ## 9.0.4
 
 ### Patch Changes
