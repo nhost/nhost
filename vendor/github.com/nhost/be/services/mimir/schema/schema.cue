@@ -68,6 +68,10 @@ import (
 		(postgres.resources.compute == _|_) ) & true @cuegraph(skip)
 
 	_validateNetworkingMustBeNullOrNotSet: !storage.resources.networking | storage.resources.networking == null @cuegraph(skip)
+
+	_isProviderSMTPSet:                                     provider.smtp != _|_                                                        @cuegraph(skip)
+	_isAuthRateLimitEmailsDefault:                          auth.rateLimit.emails.limit == 10 && auth.rateLimit.emails.interval == "1h" @cuegraph(skip)
+	_validateAuthRateLimitEmailsIsDefaultOrSMTPSettingsSet: (_isProviderSMTPSet | _isAuthRateLimitEmailsDefault) & true                 @cuegraph(skip)
 }
 
 // Global configuration that applies to all services
@@ -101,7 +105,7 @@ import (
 }
 
 #Autoscaler: {
-    maxReplicas: uint8 & >=2 & <=100
+	maxReplicas: uint8 & >=2 & <=100
 }
 
 // Resource configuration for a service
@@ -120,14 +124,14 @@ import (
 	}
 
 	// Number of replicas for a service
-	replicas: uint8 & >=1 & <=10 | *1
-    autoscaler?: #Autoscaler
+	replicas:    uint8 & >=1 & <=10 | *1
+	autoscaler?: #Autoscaler
 
-    _validateReplicasMustBeSmallerThanMaxReplicas: (replicas <= autoscaler.maxReplicas) & true @cuegraph(skip)
+	_validateReplicasMustBeSmallerThanMaxReplicas: (replicas <= autoscaler.maxReplicas) & true @cuegraph(skip)
 
 	_validateMultipleReplicasNeedsCompute: (
-							replicas == 1 && autoscaler == _|_ |
-        compute != _|_) & true @cuegraph(skip)
+						replicas == 1 && autoscaler == _|_ |
+							compute != _|_) & true @cuegraph(skip)
 	_validateMultipleReplicasRatioMustBe1For2: (
 							replicas == 1 && autoscaler == _|_ |
 		(compute.cpu*2.048 == compute.memory)) & true @cuegraph(skip)
@@ -250,11 +254,11 @@ import (
 			capacity: uint32 & >=10 & <=1000 | *10 // GiB
 		}
 
-        enablePublicAccess?: bool | *false
+		enablePublicAccess?: bool | *false
 	} & {
 		replicas:    1
 		networking?: null
-        autoscaler?: null
+		autoscaler?: null
 	}
 
 	settings?: {
@@ -444,11 +448,11 @@ import (
 
 		webauthn: {
 			enabled: bool | *false
-            relyingParty?: {
-                id:    string | *""
-                name?: string
-                origins?: [...#Url] | *[redirections.clientUrl]
-            }
+			relyingParty?: {
+				id:    string | *""
+				name?: string
+				origins?: [...#Url] | *[redirections.clientUrl]
+			}
 			attestation: {
 				timeout: uint32 | *60000
 			}
@@ -465,9 +469,9 @@ import (
 		}
 	}
 
-    misc: {
-        concealErrors: bool | *false
-    }
+	misc: {
+		concealErrors: bool | *false
+	}
 
 	rateLimit: #AuthRateLimit
 }
@@ -572,9 +576,7 @@ import (
 		path:     string
 		default?: string
 	}
-} & {
-
-}
+} & {}
 
 #SystemConfig: {
 	auth: {
@@ -585,15 +587,15 @@ import (
 		}
 	}
 
-    graphql: {
-        // manually enable graphi on a per-service basis
-        // by default it follows the plan
-        featureAdvancedGraphql: bool | *false
-    }
+	graphql: {
+		// manually enable graphi on a per-service basis
+		// by default it follows the plan
+		featureAdvancedGraphql: bool | *false
+	}
 
 	postgres: {
-		enabled: bool | *true
-        majorVersion: "14"|"15"|"16" | *"14"
+		enabled:      bool | *true
+		majorVersion: "14" | "15" | "16" | *"14"
 		if enabled {
 			database: string
 		}
@@ -607,10 +609,10 @@ import (
 			storage: string
 		}
 
-        disk?: {
-            iops: uint32 | *3000
-            tput: uint32 | *125
-        }
+		disk?: {
+			iops: uint32 | *3000
+			tput: uint32 | *125
+		}
 	}
 }
 
@@ -679,9 +681,9 @@ import (
 	// Number of replicas for a service
 	replicas: uint8 & <=10
 
-    autoscaler?: #Autoscaler
+	autoscaler?: #Autoscaler
 
-    _validateReplicasMustBeSmallerThanMaxReplicas: (replicas <= autoscaler.maxReplicas) & true @cuegraph(skip)
+	_validateReplicasMustBeSmallerThanMaxReplicas: (replicas <= autoscaler.maxReplicas) & true @cuegraph(skip)
 
 	_replcas_cant_be_greater_than_1_when_using_storage: (len(storage) == 0 | (len(storage) > 0 & replicas <= 1 && autoscaler == _|_)) & true @cuegraph(skip)
 
@@ -690,8 +692,8 @@ import (
 
 #RunServiceImage: {
 	image: string
-    // content of "auths", i.e., { "auths": $THIS }
-    pullCredentials?: string
+	// content of "auths", i.e., { "auths": $THIS }
+	pullCredentials?: string
 }
 
 #HealthCheck: {

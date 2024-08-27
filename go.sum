@@ -517,6 +517,8 @@ github.com/nhost/be v0.0.0-20240820101832-63c0798e013b h1:ZCrX/vGfhnhx5HvjUJUbmK
 github.com/nhost/be v0.0.0-20240820101832-63c0798e013b/go.mod h1:iNulO8zDQ+jslaNRAm5NKY0W7sJeQ4INvQdS0AEN06w=
 github.com/nhost/be v0.0.0-20240827074322-bfcccb6fe6f4 h1:z8r2N7iNM0ijmfQ0BTaPLHpJgaFyztUSpbAfP1gSsnc=
 github.com/nhost/be v0.0.0-20240827074322-bfcccb6fe6f4/go.mod h1:iNulO8zDQ+jslaNRAm5NKY0W7sJeQ4INvQdS0AEN06w=
+github.com/nhost/be v0.0.0-20240827125525-b9345d4154be h1:FauI2dBeadFS9K6lX+uwhMMNAkufaOdp9WDg8f3CrSk=
+github.com/nhost/be v0.0.0-20240827125525-b9345d4154be/go.mod h1:iNulO8zDQ+jslaNRAm5NKY0W7sJeQ4INvQdS0AEN06w=
 github.com/onsi/gomega v1.27.10 h1:naR28SdDFlqrG6kScpT8VWpu1xWY5nJRCF3XaYyBjhI=
 github.com/onsi/gomega v1.27.10/go.mod h1:RsS8tutOdbdgzbPtzzATp12yT7kM5I5aElG3evPbQ0M=
 github.com/pelletier/go-toml/v2 v2.2.2 h1:aYUidT7k73Pcl9nb2gScu7NSrKCSHIDE89b3+6Wq+LM=

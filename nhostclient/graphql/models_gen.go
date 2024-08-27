@@ -72,6 +72,7 @@ type ConfigAIUpdateInput struct {
 type ConfigAuth struct {
 	ElevatedPrivileges *ConfigAuthElevatedPrivileges `json:"elevatedPrivileges,omitempty"`
 	Method             *ConfigAuthMethod             `json:"method,omitempty"`
+	Misc               *ConfigAuthMisc               `json:"misc,omitempty"`
 	RateLimit          *ConfigAuthRateLimit          `json:"rateLimit,omitempty"`
 	Redirections       *ConfigAuthRedirections       `json:"redirections,omitempty"`
 	Resources          *ConfigResources              `json:"resources,omitempty"`
@@ -272,6 +273,14 @@ type ConfigAuthMethodWebauthnUpdateInput struct {
 	RelyingParty *ConfigAuthMethodWebauthnRelyingPartyUpdateInput `json:"relyingParty,omitempty"`
 }
 
+type ConfigAuthMisc struct {
+	ConcealErrors *bool `json:"concealErrors,omitempty"`
+}
+
+type ConfigAuthMiscUpdateInput struct {
+	ConcealErrors *bool `json:"concealErrors,omitempty"`
+}
+
 type ConfigAuthRateLimit struct {
 	BruteForce *ConfigRateLimit `json:"bruteForce,omitempty"`
 	Emails     *ConfigRateLimit `json:"emails,omitempty"`
@@ -349,6 +358,7 @@ type ConfigAuthTotpUpdateInput struct {
 type ConfigAuthUpdateInput struct {
 	ElevatedPrivileges *ConfigAuthElevatedPrivilegesUpdateInput `json:"elevatedPrivileges,omitempty"`
 	Method             *ConfigAuthMethodUpdateInput             `json:"method,omitempty"`
+	Misc               *ConfigAuthMiscUpdateInput               `json:"misc,omitempty"`
 	RateLimit          *ConfigAuthRateLimitUpdateInput          `json:"rateLimit,omitempty"`
 	Redirections       *ConfigAuthRedirectionsUpdateInput       `json:"redirections,omitempty"`
 	Resources          *ConfigResourcesUpdateInput              `json:"resources,omitempty"`
