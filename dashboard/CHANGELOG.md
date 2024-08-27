@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.27.0
+
+### Minor Changes
+
+- a7cd02c: fix: resolve rate limit query
+
 ## 1.26.0
 
 ### Minor Changes

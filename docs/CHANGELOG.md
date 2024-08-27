@@ -1,5 +1,12 @@
 # @nhost/docs
 
+## 2.16.0
+
+### Minor Changes
+
+- ba55c1b: feat: run: added a guide on using a private registry
+- 3d70c63: feat: added rate-limiter guide for auth service
+
 ## 2.15.0
 
 ### Minor Changes
