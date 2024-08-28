@@ -4,14 +4,19 @@ import { useDropzone } from 'react-dropzone'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default function UploadSingleFile() {
+interface UploadSingleFileProps {
+  onUpload?: () => void
+}
+
+export default function UploadSingleFile({ onUpload }: UploadSingleFileProps) {
   const { upload, isUploaded, isUploading, isError } = useFileUpload()
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     multiple: false,
     onDropAccepted: async (files) => {
       if (files.length > 0) {
-        upload({ file: files[0] })
+        await upload({ file: files[0] })
+        await onUpload?.()
       }
     }
   })

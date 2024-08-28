@@ -6,6 +6,10 @@ import { Check, CircleCheckBig, LoaderCircle, Upload, X } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
+interface UploadMultipleFilesProps {
+  onUpload?: () => void
+}
+
 function FileItem({ fileRef }: { fileRef: FileItemRef }) {
   const { progress, isUploaded, name, isError } = useFileUploadItem(fileRef)
 
@@ -19,13 +23,18 @@ function FileItem({ fileRef }: { fileRef: FileItemRef }) {
   )
 }
 
-export default function UploadMultipleFiles() {
+export default function UploadMultipleFiles({ onUpload }: UploadMultipleFilesProps) {
   const { add, upload, files, isUploaded, isError, isUploading, clear } = useMultipleFilesUpload()
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     multiple: true,
     onDropAccepted: (files) => add({ files })
   })
+
+  const handleUploadFiles = async () => {
+    await upload()
+    await onUpload?.()
+  }
 
   return (
     <Card className="w-full">
@@ -77,7 +86,7 @@ export default function UploadMultipleFiles() {
         </div>
 
         <div className="flex flex-row w-full gap-4">
-          <Button className="w-full" onClick={() => upload()}>
+          <Button className="w-full" onClick={handleUploadFiles}>
             Upload
           </Button>
           <Button className="w-full" onClick={clear}>
