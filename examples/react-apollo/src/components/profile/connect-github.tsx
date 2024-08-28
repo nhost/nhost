@@ -5,6 +5,7 @@ import { gql } from '@apollo/client'
 import { SiGithub } from '@icons-pack/react-simple-icons'
 import { useProviderLink } from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
+import { LoaderCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function ConnectGithub() {
@@ -13,7 +14,7 @@ export default function ConnectGithub() {
     redirectTo: `${window.location.origin}/profile`
   })
 
-  const { data } = useAuthQuery<{
+  const { data, loading } = useAuthQuery<{
     authUserProviders: {
       id: string
       providerId: string
@@ -35,12 +36,14 @@ export default function ConnectGithub() {
         <CardTitle>Connect with Github</CardTitle>
       </CardHeader>
       <CardContent>
-        {isGithubConnected ? (
+        {!loading && isGithubConnected && (
           <div className="flex flex-row items-center gap-2 w-fit">
             <SiGithub className="w-4 h-4" />
             <span className="flex-1 text-center">Github connected</span>
           </div>
-        ) : (
+        )}
+
+        {!loading && !isGithubConnected && (
           <Link
             to={github}
             className={cn(
@@ -52,6 +55,8 @@ export default function ConnectGithub() {
             <span className="flex-1 text-center">Continue with Github</span>
           </Link>
         )}
+
+        {loading && <LoaderCircle className="w-5 h-5 animate-spin-fast" />}
       </CardContent>
     </Card>
   )
