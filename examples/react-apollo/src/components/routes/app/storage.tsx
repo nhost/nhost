@@ -28,7 +28,7 @@ export default function Storage() {
     }[]
   }>(gql`
     {
-      files(limit: 10, order_by: { createdAt: desc }) {
+      files(limit: 5, order_by: { createdAt: desc }) {
         id
         name
         mimeType
@@ -58,13 +58,11 @@ export default function Storage() {
           <CardTitle>Storage</CardTitle>
         </CardHeader>
       </Card>
-      <UploadSingleFile onUpload={refetch} />
-      <UploadMultipleFiles onUpload={refetch} />
 
       <Card>
         <CardHeader>
           <CardTitle>Files</CardTitle>
-          <CardDescription>A list of your recent uploaded files</CardDescription>
+          <CardDescription>A list of your recently uploaded files</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -93,6 +91,9 @@ export default function Storage() {
           </Table>
         </CardContent>
       </Card>
+
+      <UploadSingleFile onUpload={refetch} />
+      <UploadMultipleFiles onUpload={refetch} />
     </div>
   )
 }
