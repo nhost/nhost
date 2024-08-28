@@ -5,7 +5,9 @@ import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 
 export default function OAuthLinks() {
-  const { github, apple, google, linkedin } = useProviderLink()
+  const { github, apple, google, linkedin } = useProviderLink({
+    redirectTo: window.location.origin
+  })
 
   return (
     <div className="flex flex-col w-full max-w-md space-y-2">
