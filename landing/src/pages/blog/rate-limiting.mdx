@@ -1,0 +1,68 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Powerful Rate Limiting is now available on the Nhost Platform',
+  description: 'Rate Limiting: Better security and performance',
+  image: '/images/blog/og-dashboard-improvements.png',
+  date: '2024-08-28',
+  authors: [
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
+    },
+  ],
+  tags: ['Product', 'Platform', 'Rate Limiting'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+We're excited to introduce rate limiting to the Nhost platform. This new feature is designed to protect your services against abuse and ensure optimal performance for all your users.
+
+## What is Rate Limiting?
+
+Rate limiting is a crucial security measure that restricts the number of requests a client can make to your APIs within a specified time period. This helps in:
+
+- Mitigating the risk of unauthorized access
+- Preventing denial of service attacks
+- Managing resource consumption effectively
+
+## How it works
+
+Our rate limiting operates on a few simple principles:
+
+- Each service has a maximum number of requests (burst amount) allowed within a specific time frame (recovery time).
+- For example, with a limit of 30 requests and a recovery time of 5 minutes, you can make up to 30 requests before hitting the limit.
+- The system then allows an additional request every 10 seconds until you reach the limit again.
+
+## Custom limits for different services
+
+We've implemented rate limits across the Nhost Stack, with customized rules for different services:
+
+1. GraphQL, Storage, and Functions
+
+- These services have independent rate limits based on the client IP.
+- Requests to one service don't affect the limits of another.
+
+
+2. Auth
+
+- Features more complex rate-limiting rules due to the varying sensitivity of different endpoints.
+- Special limits are in place for email-sending, SMS-sending, and brute-force-sensitive endpoints.
+
+
+## What this means for you and your users
+
+With rate limiting in place, you can expect:
+
+- More robust protection against potential security threats
+- Improved overall performance of your projects
+- A more stable and reliable service for all your projects
+
+We're constantly working to improve our platform, and rate limiting is just another example. As always, we're here to support you. If you have any questions or need assistance, please don't hesitate to reach out to our support team.
+
+
+
+
