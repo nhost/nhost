@@ -4,7 +4,7 @@ import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 export const article = {
   title: 'Powerful Rate Limiting is now available on the Nhost Platform',
   description: 'Rate Limiting: Better security and performance',
-  image: '/images/blog/og-dashboard-improvements.png',
+  image: '/images/blog/og-rate-limiting.png',
   date: '2024-08-28',
   authors: [
     {
@@ -31,7 +31,7 @@ Rate limiting is a crucial security measure that restricts the number of request
 
 ## How it works
 
-Our rate limiting operates on a few simple principles:
+Our rate limiting operates on a simple principle:
 
 - Each service has a maximum number of requests (burst amount) allowed within a specific time frame (recovery time).
 - For example, with a limit of 30 requests and a recovery time of 5 minutes, you can make up to 30 requests before hitting the limit.
@@ -52,6 +52,35 @@ We've implemented rate limits across the Nhost Stack, with customized rules for 
 - Features more complex rate-limiting rules due to the varying sensitivity of different endpoints.
 - Special limits are in place for email-sending, SMS-sending, and brute-force-sensitive endpoints.
 
+You can configure rate limiting for your services either on the [Nhost Dashboard](https://app.nhost.io/_/_/settings/rate-limiting) or by using the configuration file:
+
+
+```toml
+# Example for Auth
+
+[auth.rateLimit]
+[auth.rateLimit.emails]
+limit = 10
+interval = '1h'
+
+[auth.rateLimit.sms]
+limit = 10
+interval = '1h'
+
+[auth.rateLimit.bruteForce]
+limit = 10
+interval = '5m'
+
+[auth.rateLimit.signups]
+limit = 10
+interval = '5m'
+
+[auth.rateLimit.global]
+limit = 100
+interval = '1m'
+```
+
+Very neat, if you ask me. For a full list of configurations available to all services, please check out the [documentation page](https://docs.nhost.io/platform/rate-limits).
 
 ## What this means for you and your users
 
