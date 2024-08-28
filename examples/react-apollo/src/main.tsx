@@ -8,7 +8,10 @@ import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import '@/styles/globals.css'
 
-const nhost = new NhostClient({ subdomain: 'local' })
+const nhost = new NhostClient({
+  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN || 'local',
+  region: import.meta.env.VITE_NHOST_REGION
+})
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <StrictMode>
