@@ -151,7 +151,10 @@
       "axios": "1.7.4",
       "webpack": "^5.94.0",
       "micromatch": "^4.0.8",
-      "nth-check": "^2.0.1"
+      "nth-check": "^2.0.1",
+      "react": "18.2.0",
+      "react-dom": "18.2.0",
+      "webpack": "5.94.0"
     }
   }
 }
