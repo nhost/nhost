@@ -26,6 +26,11 @@
     "path": "/auth/method/oauth/apple/teamId"
   },
   {
+    "value": "localhost",
+    "op": "replace",
+    "path": "/auth/method/webauthn/relyingParty/id"
+  },
+  {
     "value": "http://localhost:3000",
     "op": "replace",
     "path": "/auth/method/webauthn/relyingParty/origins/0"
