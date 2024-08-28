@@ -15,7 +15,7 @@ function FileItem({ fileRef }: { fileRef: FileItemRef }) {
 
   return (
     <div className="flex flex-row items-center justify-center w-full gap-4">
-      <span className="w-40">{name}</span>
+      <span className="truncate">{name}</span>
       <Progress value={progress} className="h-2" />
       {isUploaded && <Check className="text-green-500" />}
       {isError && <X className="text-red-500" />}
@@ -33,7 +33,7 @@ export default function UploadMultipleFiles({ onUpload }: UploadMultipleFilesPro
 
   const handleUploadFiles = async () => {
     await upload()
-    await onUpload?.()
+    onUpload?.()
   }
 
   return (
