@@ -72,10 +72,8 @@ build:  ## Build application and places the binary under ./result/bin
 
 .PHONY: build-dry-run
 build-dry-run:  ## Run nix flake check
-	nix build \
-		--dry-run \
-		--json \
-		--print-build-logs \
+	@nix path-info \
+		--derivation \
 		.\#packages.$(ARCH)-$(OS).default
 
 
