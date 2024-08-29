@@ -1,0 +1,106 @@
+---
+on:
+  workflow_call:
+    inputs:
+      NAME:
+        type: string
+        required: true
+      GIT_REF:
+        type: string
+        required: false
+      VERSION:
+        type: string
+        required: true
+      PATH:
+        type: string
+        default: "."
+        required: false
+      DOCKER:
+        type: boolean
+        required: true
+
+jobs:
+  artifacts:
+    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
+    permissions:
+      id-token: write
+      contents: write
+
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-arm64-22.04-2cores]
+      fail-fast: true
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+
+    steps:
+    - name: "Check out repository"
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ inputs.GIT_REF }}
+
+    - uses: cachix/install-nix-action@v27
+      with:
+        install_url: "https://releases.nixos.org/nix/nix-2.22.3/install"
+        install_options: "--no-daemon"
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+          sandbox = false
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          substituters = https://cache.nixos.org/?priority=40
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+
+    - uses: DeterminateSystems/magic-nix-cache-action@v7
+      with:
+        diagnostic-endpoint: ""
+        use-flakehub: false
+
+    - name: "Verify if we need to build"
+      id: verify-build
+      run: |
+        export drvPath=$(make check-dry-run)
+        echo "drvPath - $drvPath"
+        nix store verify --no-trust --store http://127.0.0.1:37515 $drvPath \
+          && export BUILD_NEEDED=no \
+          || export BUILD_NEEDED=yes
+
+        echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
+        echo DERIVATION_PATH=$drvPath >> $GITHUB_OUTPUT
+
+    - name: Compute common env vars
+      id: vars
+      run: |
+        echo "VERSION=$(make get-version VER=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
+
+    - name: "Build artifact"
+      run: |
+        make build
+        zip -r result.zip result
+
+    - name: "Push artifact to artifact repository"
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.NAME }}-artifact-${{ matrix.os }}-${{ steps.vars.outputs.VERSION }}
+        path: result/bin/hasura-storage
+        retention-days: 7
+
+    - name: "Build docker image"
+      run: |
+        make build-docker-image
+      if: ${{ ( inputs.DOCKER ) }}
+
+    - name: "Push docker image to artifact repository"
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.NAME }}-docker-image-${{ matrix.os }}-${{ steps.vars.outputs.VERSION }}
+        path: result
+        retention-days: 7
+      if: ${{ ( inputs.DOCKER ) }}
+
+    # - name: "Cache build environment"
+    #   run: |
+    #    # DEPENDENCIES=($(nix-store --query --requisites --include-outputs ${{ steps.verify-build.outputs.DERIVATION_PATH }}))
+    #    nix copy --to http://127.0.0.1:37515 "${DEPENDENCIES[@]}" || exit 0
+    #   if: ${{ steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}

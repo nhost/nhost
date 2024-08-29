@@ -1,0 +1,22 @@
+---
+name: "check and build"
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  tests:
+    uses: ./.github/workflows/wf_check.yaml
+    with:
+      NAME: hasura-storage
+      GIT_REF: ${{ github.event.pull_request.head.sha }}
+
+  build_artifacts:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    with:
+      NAME: hasura-storage
+      VERSION: 0.0.0-dev # hardcoded to avoid rebuilding
+      DOCKER: true
+      GIT_REF: ${{ github.event.pull_request.head.sha }}

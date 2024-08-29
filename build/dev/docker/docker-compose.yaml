@@ -44,7 +44,7 @@ services:
 
   storage:
     container_name: hasura-storage-storage
-    image: hasura-storage:dev
+    image: hasura-storage:0.0.0-dev
     depends_on:
       - graphql-engine
     restart: unless-stopped

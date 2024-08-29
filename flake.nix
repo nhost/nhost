@@ -73,7 +73,7 @@
         ];
 
         name = "hasura-storage";
-        version = nixpkgs.lib.fileContents ./VERSION;
+        version = "0.0.0-dev";
         module = "github.com/nhost/hasura-storage";
         tags = [ "integration" ];
 
@@ -111,7 +111,7 @@
             inherit name src version ldflags buildInputs nativeBuildInputs;
           };
 
-          dockerImage = nixops-lib.go.docker-image {
+          docker-image = nixops-lib.go.docker-image {
             inherit name version buildInputs;
 
             package = hasuraStorage;
@@ -124,7 +124,7 @@
             };
           };
 
-          clamavDockerImage = pkgs.dockerTools.buildLayeredImage {
+          clamav-docker-image = pkgs.dockerTools.buildLayeredImage {
             name = "clamav";
             tag = version;
             created = "now";

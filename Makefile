@@ -1,7 +1,28 @@
+ifdef VER
+VERSION=$(shell echo $(VER) | sed -e 's/^v//g' -e 's/\//_/g')
+else
+VERSION=$(shell grep -oP 'version\s*=\s*"\K[^"]+' flake.nix)
+endif
+
+ifeq ($(shell uname -m),x86_64)
+  ARCH?=x86_64
+else ifeq ($(shell uname -m),arm64)
+  ARCH?=aarch64
+else ifeq ($(shell uname -m),aarch64)
+  ARCH?=aarch64
+else
+  ARCH?=FIXME-$(shell uname -m)
+endif
+
+ifeq ($(shell uname -o),Darwin)
+  OS?=darwin
+else
+  OS?=linux
+endif
+
 DEV_ENV_PATH=build/dev
 DOCKER_DEV_ENV_PATH=$(DEV_ENV_PATH)/docker
 GITHUB_REF_NAME?="0.0.0-dev"
-VERSION=$(shell echo $(GITHUB_REF_NAME) | sed -e 's/^v//g' -e 's/\//_/g')
 
 
 .PHONY: help
@@ -19,17 +40,20 @@ help: ## Show this help.
 
 .PHONY: get-version
 get-version:  ## Return version
-	@echo $(VERSION) > VERSION
+	@sed -i "s/version\s*=\s*\"[^\"]*\"/version = \"${VERSION}\"/" flake.nix
 	@echo $(VERSION)
-
-
-.PHONY: tests
-tests:  dev-env-up check  ## Spin environment and run nix flake check
 
 
 .PHONY: check
 check:   ## Run nix flake check
 	./build/nix.sh flake check --print-build-logs
+
+
+.PHONY: check-dry-run
+check-dry-run:  ## Run nix flake check
+	@nix path-info \
+		--derivation \
+		.\#checks.$(ARCH)-$(OS).go-checks
 
 
 .PHONY: integration-tests
@@ -43,28 +67,36 @@ integration-tests: ## Run go test with integration flags
 
 .PHONY: build
 build:  ## Build application and places the binary under ./result/bin
-	@echo $(VERSION) > VERSION
 	./build/nix.sh build --print-build-logs
+
+
+.PHONY: build-dry-run
+build-dry-run:  ## Run nix flake check
+	nix build \
+		--dry-run \
+		--json \
+		--print-build-logs \
+		.\#packages.$(ARCH)-$(OS).default
 
 
 .PHONY: build-docker-image
 build-docker-image:  ## Build docker container for native architecture
-	@echo $(VERSION) > VERSION
 	./build/nix-docker-image.sh
-	docker tag hasura-storage:$(VERSION) hasura-storage:dev
+	docker tag hasura-storage:$(VERSION) nhost/hasura-storage:0.0.0-dev
+
 
 .PHONY: build-docker-image-clamav-dev
 build-docker-image-clamav-dev:  ## Build dev docker container for clamav
 	@echo $(VERSION) > VERSION
-	./build/nix-docker-image.sh clamavDockerImage
+	./build/nix-docker-image.sh clamav-docker-image
 	docker tag clamav:$(VERSION) clamav:dev
 
 .PHONY: build-docker-image-clamav
 build-docker-image-clamav:  ## Build docker container for clamav
 	@echo $(VERSION) > VERSION
-	./build/nix-docker-image.sh clamavDockerImage aarch64-linux
+	./build/nix-docker-image.sh clamav-docker-image aarch64-linux
 	docker tag clamav:$(VERSION) nhost/clamav:$(VERSION)-aarch64
-	./build/nix-docker-image.sh clamavDockerImage x86_64-linux
+	./build/nix-docker-image.sh clamav-docker-image x86_64-linux
 	docker tag clamav:$(VERSION) nhost/clamav:$(VERSION)-x86_64
 	docker push nhost/clamav:$(VERSION)-aarch64
 	docker push nhost/clamav:$(VERSION)-x86_64
