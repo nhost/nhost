@@ -602,7 +602,21 @@ type RunService struct {
 	Path   string
 }
 
-func ComposeFileFromConfig(
+func mountCACertificates(
+	path string,
+	services map[string]*Service,
+) {
+	for _, service := range services {
+		service.Volumes = append(service.Volumes, Volume{
+			Type:     "bind",
+			Source:   path,
+			Target:   "/etc/ssl/certs/ca-certificates.crt",
+			ReadOnly: ptr(true),
+		})
+	}
+}
+
+func ComposeFileFromConfig( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
 	projectName string,
@@ -618,6 +632,7 @@ func ComposeFileFromConfig(
 	dashboardVersion string,
 	configserverImage string,
 	startFunctions bool,
+	caCertificatesPath string,
 	runServices ...*RunService,
 ) (*ComposeFile, error) {
 	services, err := getServices(
@@ -656,6 +671,10 @@ func ComposeFileFromConfig(
 		for _, s := range runService.Config.GetResources().GetStorage() {
 			volumes[runVolumeName(runService.Config.Name, s.GetName(), branch)] = struct{}{}
 		}
+	}
+
+	if caCertificatesPath != "" {
+		mountCACertificates(caCertificatesPath, services)
 	}
 
 	return &ComposeFile{

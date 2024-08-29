@@ -43,6 +43,7 @@ const (
 	flagConfigserverImage  = "configserver-image"
 	flagRunService         = "run-service"
 	flagDownOnError        = "down-on-error"
+	flagCACertificates     = "ca-certificates"
 )
 
 const (
@@ -128,6 +129,11 @@ func CommandUp() *cli.Command { //nolint:funlen
 				Usage:   "Skip confirmation",
 				EnvVars: []string{"NHOST_YES"},
 			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagCACertificates,
+				Usage:   "Mounts and everrides path to CA certificates in the containers",
+				EnvVars: []string{"NHOST_CA_CERTIFICATES"},
+			},
 		},
 	}
 }
@@ -171,6 +177,7 @@ func commandUp(cCtx *cli.Context) error {
 		},
 		cCtx.String(flagDashboardVersion),
 		configserverImage,
+		cCtx.String(flagCACertificates),
 		cCtx.StringSlice(flagRunService),
 		cCtx.Bool(flagDownOnError),
 	)
@@ -311,6 +318,7 @@ func up( //nolint:funlen,cyclop
 	ports dockercompose.ExposePorts,
 	dashboardVersion string,
 	configserverImage string,
+	caCertificatesPath string,
 	runServices []string,
 ) error {
 	ctx, cancel := context.WithCancel(ctx)
@@ -364,6 +372,7 @@ func up( //nolint:funlen,cyclop
 		dashboardVersion,
 		configserverImage,
 		clienv.PathExists(ce.Path.Functions()),
+		caCertificatesPath,
 		runServicesCfg...,
 	)
 	if err != nil {
@@ -513,14 +522,26 @@ func Up(
 	ports dockercompose.ExposePorts,
 	dashboardVersion string,
 	configserverImage string,
+	caCertificatesPath string,
 	runServices []string,
 	downOnError bool,
 ) error {
 	dc := dockercompose.New(ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName())
 
 	if err := up(
-		ctx, ce, appVersion, dc, httpPort, useTLS, postgresPort,
-		applySeeds, ports, dashboardVersion, configserverImage, runServices,
+		ctx,
+		ce,
+		appVersion,
+		dc,
+		httpPort,
+		useTLS,
+		postgresPort,
+		applySeeds,
+		ports,
+		dashboardVersion,
+		configserverImage,
+		caCertificatesPath,
+		runServices,
 	); err != nil {
 		return upErr(ce, dc, downOnError, err) //nolint:contextcheck
 	}
