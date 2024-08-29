@@ -38,15 +38,16 @@ jobs:
           substituters = https://cache.nixos.org/?priority=40
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 
-    - uses: DeterminateSystems/magic-nix-cache-action@main
+    - uses: DeterminateSystems/magic-nix-cache-action@v7
       with:
         diagnostic-endpoint: ""
+        use-flakehub: false
 
     - name: "Verify if we need to build"
       id: verify-build
       run: |
-        export check_dry_run_output=$(make check-dry-run-go)
-        export drvPath=$(echo "$check_dry_run_output" | grep -oE '"out":.*"' | awk -F\" '{ print $4 }')
+        export drvPath=$(make check-dry-run-go)
+        echo "drvPath - $drvPath"
         nix store verify --no-trust --store http://127.0.0.1:37515 $drvPath \
           && export BUILD_NEEDED=no \
           || export BUILD_NEEDED=yes
@@ -60,6 +61,7 @@ jobs:
         fi
 
         echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
+        echo DERIVATION_PATH=$drvPath >> $GITHUB_OUTPUT
 
     - name: "Start containters for integration tests"
       run: |
@@ -69,4 +71,11 @@ jobs:
 
     - name: "Run checks"
       run: make check
+      if: ${{ steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
+
+    - name: "Cache checks"
+      run: |
+       # DEPENDENCIES=($(nix-store --query --requisites --include-outputs ${{ steps.verify-build.outputs.DERIVATION_PATH }}))
+       # nix copy --to http://127.0.0.1:37515 "${DEPENDENCIES[@]}" || exit 0
+       nix copy --to http://127.0.0.1:37515 ${{ steps.verify-build.outputs.DERIVATION_PATH }}|| exit 0
       if: ${{ steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}

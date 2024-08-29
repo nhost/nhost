@@ -46,20 +46,16 @@ check:   ## Run nix flake check
 
 
 .PHONY: check-dry-run-node
-check-dry-run-node:  ## Run nix flake check
-	nix build \
-		--dry-run \
-		--json \
-		--print-build-logs \
+check-dry-run-node:  ## Returns the derivation of the check
+	@nix path-info \
+		--derivation \
 		.\#checks.$(ARCH)-$(OS).node-checks
 
 
 .PHONY: check-dry-run-go
 check-dry-run-go:  ## Run nix flake check
-	nix build \
-		--dry-run \
-		--json \
-		--print-build-logs \
+	@nix path-info \
+		--derivation \
 		.\#checks.$(ARCH)-$(OS).go-checks
 
 
