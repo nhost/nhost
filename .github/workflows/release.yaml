@@ -9,11 +9,6 @@ jobs:
     uses: ./.github/workflows/wf_check.yaml
     with:
       NAME: hasura-auth
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-
 
   build_artifacts:
     uses: ./.github/workflows/wf_build_artifacts.yaml
@@ -21,13 +16,6 @@ jobs:
       NAME: hasura-auth
       VERSION: ${{ github.ref_name }}
       DOCKER: true
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      SSH_PRIVATE_KEY: ${{ secrets.NIX_REMOTE_BUILD_ARM_SSH_KEY }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      NIX_REMOTE_BUILDER_SECURITY_GROUP_ID: ${{ secrets.NIX_REMOTE_BUILDER_SECURITY_GROUP_ID }}
-      NIX_REMOTE_BUILDER_SUBNET_ID: ${{ secrets.NIX_REMOTE_BUILDER_SUBNET_ID }}
 
   push_docker_image:
     uses: ./.github/workflows/wf_docker_push_image.yaml

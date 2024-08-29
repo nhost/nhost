@@ -8,23 +8,17 @@ on:
       GIT_REF:
         type: string
         required: false
-    secrets:
-      AWS_ACCOUNT_ID:
-        required: true
-      NIX_CACHE_PUB_KEY:
-        required: true
-      NIX_CACHE_PRIV_KEY:
-        required: true
 
 jobs:
   tests:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 180
-
     # These permissions are needed to interact with GitHub's OIDC Token endpoint.
     permissions:
       id-token: write
       contents: write
+
+
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
 
     steps:
     - name: "Check out repository"
@@ -33,63 +27,39 @@ jobs:
         fetch-depth: 0
         ref: ${{ inputs.GIT_REF }}
 
-    - name: Configure aws
-      uses: aws-actions/configure-aws-credentials@v4
+    - uses: cachix/install-nix-action@v27
       with:
-        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
-        aws-region: eu-central-1
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-      with:
-        mask-password: 'true'
-
-    - uses: nixbuild/nix-quick-install-action@v28
-      with:
-        nix_version: 2.20.5
-        nix_conf: |
+        install_url: "https://releases.nixos.org/nix/nix-2.22.3/install"
+        install_options: "--no-daemon"
+        extra_nix_config: |
           experimental-features = nix-command flakes
           sandbox = false
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
+          substituters = https://cache.nixos.org/?priority=40
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+
+    - uses: DeterminateSystems/magic-nix-cache-action@main
+      with:
+        diagnostic-endpoint: ""
 
     - name: "Verify if we need to build"
       id: verify-build
       run: |
         export check_dry_run_output=$(make check-dry-run-go)
         export drvPath=$(echo "$check_dry_run_output" | grep -oE '"out":.*"' | awk -F\" '{ print $4 }')
-        nix store verify --store s3://nhost-nix-cache?region=eu-central-1 $drvPath \
+        nix store verify --no-trust --store http://127.0.0.1:37515 $drvPath \
           && export BUILD_NEEDED=no \
           || export BUILD_NEEDED=yes
 
         if [ "$BUILD_NEEDED" != "yes" ]; then
           export check_dry_run_output=$(make check-dry-run-node)
           export drvPath=$(echo "$check_dry_run_output" | grep -oE '"out":.*"' | awk -F\" '{ print $4 }')
-          nix store verify --store s3://nhost-nix-cache?region=eu-central-1 $drvPath \
+          nix store verify --no-trust --store http://127.0.0.1:37515 $drvPath \
             && export BUILD_NEEDED=no \
             || export BUILD_NEEDED=yes
         fi
 
         echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
-
-    - name: Cache nix store
-      uses: actions/cache@v4
-      with:
-        path: |
-          /nix/store/**
-          /nix/var/nix/*/*
-          /nix/var/nix/db/*
-          /nix/var/nix/db/*/**
-          !/nix/var/nix/daemon-socket/socket
-          !/nix/var/nix/userpool/*
-          !/nix/var/nix/gc.lock
-          !/nix/var/nix/db/big-lock
-          !/nix/var/nix/db/reserved
-        key: nix-${{ inputs.NAME }}-${{ runner.os }}-${{ hashFiles('nix/**.nix', 'flake.nix', 'flake.lock', '${{ inputs.PROJECT }}/**.nix') }}
-        restore-keys: nix-${{ inputs.NAME }}-${{ runner.OS }}-main
-      if: ${{ steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
 
     - name: "Start containters for integration tests"
       run: |
@@ -100,13 +70,3 @@ jobs:
     - name: "Run checks"
       run: make check
       if: ${{ steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
-
-    - name: "Cache nix store on s3"
-      run: |
-        echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
-        nix store sign --key-file cache-priv-key.pem --all
-        find /nix/store -maxdepth 1 -name "*-*" -type d | xargs -n 1000 nix copy --to s3://nhost-nix-cache\?region=eu-central-1
-      if: always()
-
-    - run: rm cache-priv-key.pem
-      if: always()

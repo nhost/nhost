@@ -1,60 +1,22 @@
 ---
 name: "check and build"
 on:
-  pull_request_target:
+  pull_request:
   push:
     branches:
       - main
 
 jobs:
-  check-permissions:
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          echo "github.event_name: ${{ github.event_name }}"
-          echo "github.event.pull_request.author_association: ${{ github.event.pull_request.author_association }}"
-      - name: "This task will run and fail if user has no permissions and label safe_to_test isn't pressent"
-        if: "github.event_name == 'pull_request_target' && ! ( contains(github.event.pull_request.labels.*.name, 'safe_to_test') || contains(fromJson('[\"OWNER\", \"MEMBER\", \"COLLABORATOR\"]'), github.event.pull_request.author_association) )"
-        run: |
-          exit 1
-
   tests:
     uses: ./.github/workflows/wf_check.yaml
-    needs:
-      - check-permissions
     with:
       NAME: hasura-auth
       GIT_REF: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
   build_artifacts:
     uses: ./.github/workflows/wf_build_artifacts.yaml
-    needs:
-      - check-permissions
     with:
       NAME: hasura-auth
       VERSION: 0.0.0-dev # hardcoded to avoid rebuilding
       DOCKER: true
       GIT_REF: ${{ github.event.pull_request.head.sha }}
-    secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      SSH_PRIVATE_KEY: ${{ secrets.NIX_REMOTE_BUILD_ARM_SSH_KEY }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      NIX_REMOTE_BUILDER_SECURITY_GROUP_ID: ${{ secrets.NIX_REMOTE_BUILDER_SECURITY_GROUP_ID }}
-      NIX_REMOTE_BUILDER_SUBNET_ID: ${{ secrets.NIX_REMOTE_BUILDER_SUBNET_ID }}
-
-  remove_label:
-    runs-on: ubuntu-latest
-    needs:
-      - check-permissions
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions-ecosystem/action-remove-labels@v1
-        with:
-          labels: |
-            safe_to_test
-    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test')
