@@ -8,7 +8,7 @@ import { Check, Info, Plus, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-export default function ProtectedNotes() {
+export default function Todos() {
   const { data, refetch: refetchTodos } = useAuthQuery<{
     todos: Array<{
       id: string
