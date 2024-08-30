@@ -14,7 +14,7 @@ This template, bootstrapped with [`create-react-app`](https://create-react-app.d
 To initialize a new React project using this template, run the following command:
 
 ```sh
-npx create-react-app my-app --template @nhost/cra-template-react-apollo
+npx create-react-app my-app --template @nhost/react-apollo
 ```
 
 For more information, check out these resources:
