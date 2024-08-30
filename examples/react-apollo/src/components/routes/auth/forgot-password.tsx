@@ -4,17 +4,22 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useSignInAnonymous } from '@nhost/react'
+import { useResetPassword, useSignInAnonymous } from '@nhost/react'
 import { ArrowLeft } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
+import { toast } from 'sonner'
 
-const signInFormSchema = z.object({
+const formSchema = z.object({
   email: z.string().email()
 })
 
 export default function ForgotPassword() {
+  const { resetPassword } = useResetPassword({
+    redirectTo: '/profile'
+  })
+
   const navigate = useNavigate()
 
   const { signInAnonymous } = useSignInAnonymous()
@@ -26,15 +31,22 @@ export default function ForgotPassword() {
     }
   }
 
-  const form = useForm<z.infer<typeof signInFormSchema>>({
-    resolver: zodResolver(signInFormSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       email: ''
     }
   })
 
-  const onSubmit = (values: z.infer<typeof signInFormSchema>) => {
-    console.log({ values })
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const { email } = values
+    const result = await resetPassword(email)
+
+    if (result.isError) {
+      toast.error(result.error?.message)
+    } else {
+      toast.success('A link to reset your password has been sent by email')
+    }
   }
 
   return (
