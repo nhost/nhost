@@ -1,7 +1,7 @@
 # Nhost React Apollo Template
 
-This template bootstrapped using `create-react-app` showcases how to properly use Nhost SDK within your React project.
-For a more comprehensive guide you can follow the [quickstart guide](https://docs.nhost.io/guides/quickstarts/react).
+This template, bootstrapped with [`create-react-app`](https://create-react-app.dev), offers a robust starting point for your React project using [Nhost](https://nhost.io) as the backend,complete with essential features to accelerate your development process. For a step-by-step guide on how to build on top of this template, refer to the [quickstart guide](https://docs.nhost.io/guides/quickstarts/react).
+
 
 ## Features
 
@@ -16,3 +16,9 @@ To initialize a new React project using this template, run the following command
 ```sh
 npx create-react-app my-app --template @nhost/cra-template-react-apollo
 ```
+
+For more information, check out these resources:
+
+- [Nhost](https://nhost.io)
+- [Documentation](https://docs.nhost.io)
+- [React Quickstart Guide](https://docs.nhost.io/guides/quickstarts/react)

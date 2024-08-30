@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom'
 import { z } from 'zod'
 import { toast } from 'sonner'
 
-const signInFormSchema = z.object({
+const formSchema = z.object({
   email: z.string().email()
 })
 
@@ -20,14 +20,14 @@ export default function ForgotPassword() {
     redirectTo: '/profile'
   })
 
-  const form = useForm<z.infer<typeof signInFormSchema>>({
-    resolver: zodResolver(signInFormSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       email: ''
     }
   })
 
-  const onSubmit = async (values: z.infer<typeof signInFormSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const { email } = values
     const result = await resetPassword(email)
 

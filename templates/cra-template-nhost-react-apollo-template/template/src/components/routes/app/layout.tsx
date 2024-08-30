@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useSignOut } from '@nhost/react'
-import { Archive, LogOut, PanelLeft, SquareCheckBig, User } from 'lucide-react'
+import { Archive, LogOut, PanelLeft, User } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
@@ -63,19 +63,6 @@ export default function Layout() {
           <Tooltip>
             <TooltipTrigger asChild>
               <NavLink
-                to="/todos"
-                className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 text-muted-foreground hover:text-foreground md:h-8 md:w-8 aria-[current]:bg-accent aria-[current]:text-accent-foreground"
-              >
-                <SquareCheckBig className="w-5 h-5" />
-                <span className="sr-only">Todos</span>
-              </NavLink>
-            </TooltipTrigger>
-            <TooltipContent side="right">Todos</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <NavLink
                 to={'/'}
                 onClick={handleSignOut}
                 className="flex items-center justify-center transition-colors rounded-lg h-9 w-9 text-muted-foreground hover:text-foreground md:h-8 md:w-8"
@@ -124,15 +111,6 @@ export default function Layout() {
                 >
                   <Archive className="w-5 h-5" />
                   Storage
-                </NavLink>
-
-                <NavLink
-                  to="/todos"
-                  onClick={() => setShowMobileNav(false)}
-                  className="flex items-center gap-4 p-2 rounded-md aria-[current]:bg-accent aria-[current]:text-accent-foreground text-muted-foreground"
-                >
-                  <SquareCheckBig className="w-5 h-5" />
-                  Todos
                 </NavLink>
               </nav>
             </SheetContent>

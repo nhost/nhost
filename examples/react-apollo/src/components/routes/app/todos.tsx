@@ -8,42 +8,20 @@ import { Check, Info, Plus, Trash } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-const TODO_LIST = gql`
-  query TodoList {
-    todos(order_by: { createdAt: desc }) {
-      id
-      contents
-    }
-  }
-`
-
-const ADD_TODO = gql`
-  mutation AddItem($contents: String!) {
-    insertTodo(object: { contents: $contents }) {
-      id
-      contents
-    }
-  }
-`
-
-const DELETE_TODO = gql`
-  mutation deleteTodo($todoId: uuid!) {
-    deleteTodo(id: $todoId) {
-      id
-      contents
-    }
-  }
-`
-
 export default function ProtectedNotes() {
   const { data, refetch: refetchTodos } = useAuthQuery<{
     todos: Array<{
       id: string
       contents: string
     }>
-  }>(TODO_LIST, {
-    fetchPolicy: 'cache-and-network'
-  })
+  }>(gql`
+    query {
+      todos(order_by: { createdAt: desc }) {
+        id
+        contents
+      }
+    }
+  `)
 
   const [contents, setContents] = useState('')
 
@@ -52,27 +30,41 @@ export default function ProtectedNotes() {
       id: string
       contents: string
     }
-  }>(ADD_TODO, {
-    variables: { contents },
-    onCompleted: async () => {
-      setContents('')
-      await refetchTodos()
-    },
-    onError: (error) => {
-      toast.error(error.message)
+  }>(gql`
+    mutation ($contents: String!) {
+      insertTodo(object: { contents: $contents }) {
+        id
+        contents
+      }
     }
-  })
+  `)
 
   const [deleteTodo] = useMutation<{
     deleteNote?: {
       id: string
       content: string
     }
-  }>(DELETE_TODO)
+  }>(gql`
+    mutation deleteTodo($todoId: uuid!) {
+      deleteTodo(id: $todoId) {
+        id
+        contents
+      }
+    }
+  `)
 
   const handleAddTodo = () => {
     if (contents) {
-      addTodo()
+      addTodo({
+        variables: { contents },
+        onCompleted: async () => {
+          setContents('')
+          await refetchTodos()
+        },
+        onError: (error) => {
+          toast.error(error.message)
+        }
+      })
     }
   }
 
