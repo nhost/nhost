@@ -176,7 +176,7 @@ describe('user password', () => {
     // use ticket to reset password
     await request
       .post('/user/password')
-      .send({ newPassword, ticket: 'inavlid-ticket' })
+      .send({ newPassword, ticket: 'passwordReset:inavlid-ticket' })
       .expect(StatusCodes.UNAUTHORIZED);
   });
 

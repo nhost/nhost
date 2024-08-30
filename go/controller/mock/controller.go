@@ -125,6 +125,21 @@ func (mr *MockDBClientGetUserMockRecorder) GetUserByRefreshTokenHash(ctx, arg an
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByRefreshTokenHash", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByRefreshTokenHash), ctx, arg)
 }
 
+// GetUserByTicket mocks base method.
+func (m *MockDBClientGetUser) GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByTicket", ctx, ticket)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByTicket indicates an expected call of GetUserByTicket.
+func (mr *MockDBClientGetUserMockRecorder) GetUserByTicket(ctx, ticket any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByTicket", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByTicket), ctx, ticket)
+}
+
 // MockDBClientInsertUser is a mock of DBClientInsertUser interface.
 type MockDBClientInsertUser struct {
 	ctrl     *gomock.Controller
@@ -244,6 +259,21 @@ func (m *MockDBClientUpdateUser) UpdateUserChangeEmail(ctx context.Context, arg 
 func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserChangeEmail(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserChangeEmail", reflect.TypeOf((*MockDBClientUpdateUser)(nil).UpdateUserChangeEmail), ctx, arg)
+}
+
+// UpdateUserChangePassword mocks base method.
+func (m *MockDBClientUpdateUser) UpdateUserChangePassword(ctx context.Context, arg sql.UpdateUserChangePasswordParams) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserChangePassword", ctx, arg)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserChangePassword indicates an expected call of UpdateUserChangePassword.
+func (mr *MockDBClientUpdateUserMockRecorder) UpdateUserChangePassword(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserChangePassword", reflect.TypeOf((*MockDBClientUpdateUser)(nil).UpdateUserChangePassword), ctx, arg)
 }
 
 // UpdateUserDeanonymize mocks base method.
@@ -401,6 +431,21 @@ func (mr *MockDBClientMockRecorder) GetUserByRefreshTokenHash(ctx, arg any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByRefreshTokenHash", reflect.TypeOf((*MockDBClient)(nil).GetUserByRefreshTokenHash), ctx, arg)
 }
 
+// GetUserByTicket mocks base method.
+func (m *MockDBClient) GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByTicket", ctx, ticket)
+	ret0, _ := ret[0].(sql.AuthUser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByTicket indicates an expected call of GetUserByTicket.
+func (mr *MockDBClientMockRecorder) GetUserByTicket(ctx, ticket any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByTicket", reflect.TypeOf((*MockDBClient)(nil).GetUserByTicket), ctx, ticket)
+}
+
 // GetUserRoles mocks base method.
 func (m *MockDBClient) GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error) {
 	m.ctrl.T.Helper()
@@ -519,6 +564,21 @@ func (m *MockDBClient) UpdateUserChangeEmail(ctx context.Context, arg sql.Update
 func (mr *MockDBClientMockRecorder) UpdateUserChangeEmail(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserChangeEmail", reflect.TypeOf((*MockDBClient)(nil).UpdateUserChangeEmail), ctx, arg)
+}
+
+// UpdateUserChangePassword mocks base method.
+func (m *MockDBClient) UpdateUserChangePassword(ctx context.Context, arg sql.UpdateUserChangePasswordParams) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserChangePassword", ctx, arg)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserChangePassword indicates an expected call of UpdateUserChangePassword.
+func (mr *MockDBClientMockRecorder) UpdateUserChangePassword(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserChangePassword", reflect.TypeOf((*MockDBClient)(nil).UpdateUserChangePassword), ctx, arg)
 }
 
 // UpdateUserDeanonymize mocks base method.

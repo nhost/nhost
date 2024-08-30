@@ -45,6 +45,7 @@ type DBClientGetUser interface {
 	GetUserByRefreshTokenHash(
 		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
 	) (sql.AuthUser, error)
+	GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error)
 }
 
 type DBClientInsertUser interface {
@@ -66,6 +67,9 @@ type DBClientUpdateUser interface {
 	UpdateUserDeanonymize(ctx context.Context, arg sql.UpdateUserDeanonymizeParams) error
 	UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error)
 	UpdateUserTicket(ctx context.Context, arg sql.UpdateUserTicketParams) (uuid.UUID, error)
+	UpdateUserChangePassword(
+		ctx context.Context, arg sql.UpdateUserChangePasswordParams,
+	) (uuid.UUID, error)
 	InsertUserWithSecurityKey(
 		ctx context.Context, arg sql.InsertUserWithSecurityKeyParams,
 	) (uuid.UUID, error)

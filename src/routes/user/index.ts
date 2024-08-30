@@ -6,7 +6,6 @@ import { authenticationGate } from '@/middleware/auth';
 
 import { userMFAHandler, userMfaSchema } from './mfa';
 import { userHandler } from './user';
-import { userPasswordHandler, userPasswordSchema } from './password';
 import {
   userProviderTokensHandler,
   userProviderTokensSchema,
@@ -31,23 +30,6 @@ router.get(
     '/user',
     authenticationGate(false),
     aw(userHandler),
-);
-
-/**
- * POST /user/password
- * @summary Set a new password
- * @param {UserPasswordSchema} request.body.required
- * @return {string} 200 - The password has been successfully changed - tapplication/json
- * @return {InvalidRequestError} 400 - The payload is invalid - application/json
- * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
- * @security BearerAuth
- * @tags User management
- */
-router.post(
-  '/user/password',
-  bodyValidator(userPasswordSchema),
-  // authenticationGate(true, false, (req) => req.body.ticket !== undefined), // this is done in the handler because the handler has an auhtenticated and unauthenticated mode.............
-  aw(userPasswordHandler)
 );
 
 /**

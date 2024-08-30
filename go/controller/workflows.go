@@ -296,6 +296,28 @@ func (wf *Workflows) GetUserByRefreshTokenHash(
 	return user, nil
 }
 
+func (wf *Workflows) GetUserByTicket(
+	ctx context.Context,
+	ticket string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, err := wf.db.GetUserByTicket(ctx, sql.Text(ticket))
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.Warn("user not found")
+		return sql.AuthUser{}, ErrInvalidTicket //nolint:exhaustruct
+	}
+	if err != nil {
+		logger.Error("could not get user by ticket", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError //nolint:exhaustruct
+	}
+
+	if apiErr := wf.ValidateUser(user, logger); apiErr != nil {
+		return user, apiErr
+	}
+
+	return user, nil
+}
+
 func pgtypeTextToOAPIEmail(pgemail pgtype.Text) *types.Email {
 	var email *types.Email
 	if pgemail.Valid {
@@ -532,6 +554,36 @@ func (wf *Workflows) ChangeEmail(
 	}
 
 	return user, nil
+}
+
+func (wf *Workflows) ChangePassword(
+	ctx context.Context,
+	userID uuid.UUID,
+	newPassord string,
+	logger *slog.Logger,
+) *APIError {
+	if err := wf.ValidatePassword(ctx, newPassord, logger); err != nil {
+		return err
+	}
+
+	hashedPassword, err := hashPassword(newPassord)
+	if err != nil {
+		logger.Error("error hashing password", logError(err))
+		return ErrInternalServerError
+	}
+
+	if _, err := wf.db.UpdateUserChangePassword(
+		ctx,
+		sql.UpdateUserChangePasswordParams{
+			ID:           userID,
+			PasswordHash: sql.Text(hashedPassword),
+		},
+	); err != nil {
+		logger.Error("error updating user password", logError(err))
+		return ErrInternalServerError
+	}
+
+	return nil
 }
 
 func (wf *Workflows) SendEmail(

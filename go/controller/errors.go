@@ -36,6 +36,7 @@ var (
 	ErrUnverifiedUser                  = &APIError{api.UnverifiedUser}
 	ErrUserNotAnonymous                = &APIError{api.UserNotAnonymous}
 	ErrInvalidPat                      = &APIError{api.InvalidPat}
+	ErrInvalidTicket                   = &APIError{api.InvalidTicket}
 	ErrInvalidRequest                  = &APIError{api.InvalidRequest}
 	ErrSignupDisabled                  = &APIError{api.SignupDisabled}
 	ErrDisabledEndpoint                = &APIError{api.DisabledEndpoint}
@@ -74,6 +75,10 @@ func (response ErrorResponse) VisitPostSigninPatResponse(w http.ResponseWriter) 
 }
 
 func (response ErrorResponse) VisitPostUserEmailChangeResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitPostUserPasswordResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 
@@ -119,7 +124,8 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.RoleNotAllowed,
 		api.SignupDisabled,
 		api.UnverifiedUser,
-		api.InvalidRefreshToken:
+		api.InvalidRefreshToken,
+		api.InvalidTicket:
 		return true
 	case
 		api.DefaultRoleMustBeInAllowedRoles,
@@ -258,6 +264,12 @@ func (ctrl *Controller) sendError( //nolint:funlen,cyclop
 			Status:  http.StatusUnauthorized,
 			Error:   err.t,
 			Message: "Invalid or expired refresh token",
+		}
+	case api.InvalidTicket:
+		return ErrorResponse{
+			Status:  http.StatusUnauthorized,
+			Error:   err.t,
+			Message: "Invalid ticket",
 		}
 	}
 

@@ -168,6 +168,51 @@ func (q *Queries) GetUserByRefreshTokenHash(ctx context.Context, arg GetUserByRe
 	return i, err
 }
 
+const getUserByTicket = `-- name: GetUserByTicket :one
+WITH selected_user AS (
+    SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge FROM auth.users
+    WHERE ticket = $1  AND ticket_expires_at > now()
+    LIMIT 1
+)
+UPDATE auth.users
+SET ticket = NULL, ticket_expires_at = now()
+WHERE id = (SELECT id FROM selected_user)
+RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge
+`
+
+func (q *Queries) GetUserByTicket(ctx context.Context, dollar_1 pgtype.Text) (AuthUser, error) {
+	row := q.db.QueryRow(ctx, getUserByTicket, dollar_1)
+	var i AuthUser
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastSeen,
+		&i.Disabled,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Locale,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.PasswordHash,
+		&i.EmailVerified,
+		&i.PhoneNumberVerified,
+		&i.NewEmail,
+		&i.OtpMethodLastUsed,
+		&i.OtpHash,
+		&i.OtpHashExpiresAt,
+		&i.DefaultRole,
+		&i.IsAnonymous,
+		&i.TotpSecret,
+		&i.ActiveMfaType,
+		&i.Ticket,
+		&i.TicketExpiresAt,
+		&i.Metadata,
+		&i.WebauthnCurrentChallenge,
+	)
+	return i, err
+}
+
 const getUserRoles = `-- name: GetUserRoles :many
 SELECT id, created_at, user_id, role FROM auth.user_roles
 WHERE user_id = $1
@@ -624,6 +669,25 @@ func (q *Queries) UpdateUserChangeEmail(ctx context.Context, arg UpdateUserChang
 		&i.WebauthnCurrentChallenge,
 	)
 	return i, err
+}
+
+const updateUserChangePassword = `-- name: UpdateUserChangePassword :one
+UPDATE auth.users
+SET password_hash = $2
+WHERE id = $1
+RETURNING id
+`
+
+type UpdateUserChangePasswordParams struct {
+	ID           uuid.UUID
+	PasswordHash pgtype.Text
+}
+
+func (q *Queries) UpdateUserChangePassword(ctx context.Context, arg UpdateUserChangePasswordParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, updateUserChangePassword, arg.ID, arg.PasswordHash)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updateUserDeanonymize = `-- name: UpdateUserDeanonymize :exec

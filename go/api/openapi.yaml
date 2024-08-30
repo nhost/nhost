@@ -295,6 +295,30 @@ paths:
           description: >-
             Email verification email sent successfully
 
+  /user/password:
+    post:
+      summary: >-
+        Change user password. The user must be authenticated or provide a ticket
+      tags:
+        - user
+        - password
+      security:
+        - BearerAuthElevated: []
+        - {}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPasswordRequest'
+      responses:
+        '200':
+          description: >-
+            Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OKResponse'
+
   /user/password/reset:
     post:
       summary: >-
@@ -432,6 +456,7 @@ components:
             - user-not-anonymous
             - invalid-pat
             - invalid-refresh-token
+            - invalid-ticket
       required:
         - status
         - message
@@ -640,6 +665,23 @@ components:
           $ref: "#/components/schemas/OptionsRedirectTo"
       required:
         - email
+
+    UserPasswordRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        newPassword:
+          description: A password of minimum 3 characters
+          example: Str0ngPassw#ord-94|%
+          minLength: 3
+          maxLength: 50
+          type: string
+        ticket:
+          type: string
+          pattern: ^passwordReset\:.*$
+          description: Ticket to reset the password, required if the user is not authenticated
+      required:
+        - newPassword
 
     OKResponse:
       type: string

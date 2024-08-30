@@ -30,6 +30,7 @@ const (
 	InvalidPat                      ErrorResponseError = "invalid-pat"
 	InvalidRefreshToken             ErrorResponseError = "invalid-refresh-token"
 	InvalidRequest                  ErrorResponseError = "invalid-request"
+	InvalidTicket                   ErrorResponseError = "invalid-ticket"
 	LocaleNotAllowed                ErrorResponseError = "locale-not-allowed"
 	PasswordInHibpDatabase          ErrorResponseError = "password-in-hibp-database"
 	PasswordTooShort                ErrorResponseError = "password-too-short"
@@ -253,6 +254,15 @@ type UserEmailSendVerificationEmailRequest struct {
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
 }
 
+// UserPasswordRequest defines model for UserPasswordRequest.
+type UserPasswordRequest struct {
+	// NewPassword A password of minimum 3 characters
+	NewPassword string `json:"newPassword"`
+
+	// Ticket Ticket to reset the password, required if the user is not authenticated
+	Ticket *string `json:"ticket,omitempty"`
+}
+
 // UserPasswordResetRequest defines model for UserPasswordResetRequest.
 type UserPasswordResetRequest struct {
 	// Email A valid email
@@ -292,6 +302,9 @@ type PostUserEmailChangeJSONRequestBody = UserEmailChangeRequest
 
 // PostUserEmailSendVerificationEmailJSONRequestBody defines body for PostUserEmailSendVerificationEmail for application/json ContentType.
 type PostUserEmailSendVerificationEmailJSONRequestBody = UserEmailSendVerificationEmailRequest
+
+// PostUserPasswordJSONRequestBody defines body for PostUserPassword for application/json ContentType.
+type PostUserPasswordJSONRequestBody = UserPasswordRequest
 
 // PostUserPasswordResetJSONRequestBody defines body for PostUserPasswordReset for application/json ContentType.
 type PostUserPasswordResetJSONRequestBody = UserPasswordResetRequest
