@@ -34,31 +34,20 @@ func NewSlidingWindow(
 }
 
 func (r *SlidingWindow) windowKey(t time.Time, key string) string {
-	return r.prefix + strconv.Itoa(int(t.UnixMilli()/r.window.Milliseconds())) + ":" + key
+	return r.prefix + strconv.FormatInt(t.UnixMilli()/r.window.Milliseconds(), 10) + ":" + key
 }
 
 func (r *SlidingWindow) getRate(key string) float64 {
-	count := r.store.Get(key)
-
-	if count > r.limit {
-		count = r.limit
-	}
-
+	count := min(r.store.Get(key), r.limit)
 	return float64(count) / float64(r.window.Milliseconds())
 }
 
 func (r *SlidingWindow) Allow(key string) bool {
 	now := time.Now()
-
 	windowKey := r.windowKey(now, key)
-	remainingTime := float64(
-		r.window.Milliseconds(),
-	) - float64(
-		now.UnixMilli()%r.window.Milliseconds(),
-	)
+	remainingTime := float64(r.window.Milliseconds() - now.UnixMilli()%r.window.Milliseconds())
 
 	count := r.store.Get(windowKey)
-
 	if count >= r.limit {
 		return false
 	}
@@ -71,6 +60,5 @@ func (r *SlidingWindow) Allow(key string) bool {
 		return false
 	}
 
-	newCount := r.store.Increment(windowKey, r.window*2) - 1 //nolint:mnd
-	return newCount < r.limit
+	return r.store.Increment(windowKey, r.window*2) <= r.limit //nolint:mnd
 }
