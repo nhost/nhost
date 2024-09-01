@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -429,6 +430,10 @@ func encode(v reflect.Value) ([]byte, error) {
 		return encodeJsonMarshaler(v.Interface())
 	}
 
+	if checkImplements[encoding.TextMarshaler](v) {
+		return encodeTextMarshaler(v.Interface())
+	}
+
 	t := v.Type() // Get the type from the value
 	switch t.Kind() {
 	case reflect.Ptr:
@@ -480,6 +485,15 @@ func encodeJsonMarshaler(v any) ([]byte, error) {
 		return val.MarshalJSON()
 	} else {
 		return nil, fmt.Errorf("failed to encode json.Marshaler: %v", v)
+	}
+}
+
+func encodeTextMarshaler(v any) ([]byte, error) {
+	if _, ok := v.(encoding.TextMarshaler); ok {
+		// json.Marshal uses encoding.TextMarshaler internally if the value implements it.
+		return json.Marshal(v)
+	} else {
+		return nil, fmt.Errorf("failed to encode encoding.TextMarshaler: %v", v)
 	}
 }
 
