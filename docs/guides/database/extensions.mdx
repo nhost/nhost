@@ -4,6 +4,57 @@ description: List of available extensions with Nhost Postgres.
 icon: grid
 ---
 
+## hypopg
+
+HypoPG is a PostgreSQL extension adding support for hypothetical indexes.
+
+An hypothetical -- or virtual -- index is an index that doesn't really exists, and thus doesn't cost CPU, disk or any resource to create. They're useful to know if specific indexes can increase performance for problematic queries, since you can know if PostgreSQL will use these indexes or not without having to spend resources to create them.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION hypopg;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION hypopg;
+```
+
+### Resources
+
+- [GitHub](https://github.com/HypoPG/hypopg)
+- [Documentation](https://hypopg.readthedocs.io/)
+
+## http
+
+HTTP client for PostgreSQL, retrieve a web page from inside the database.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION http;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION http;
+```
+
+### Resources
+
+- [GitHub](https://github.com/pramsey/pgsql-http)
+
 ## postgis
 
 PostGIS extends the capabilities of the PostgreSQL relational database by adding support storing, indexing and querying geographic data.
@@ -84,11 +135,9 @@ DROP EXTENSION pg_cron;
 
 - [GitHub](https://github.com/citusdata/pg_cron)
 
-## hypopg
+## pg_hashids
 
-HypoPG is a PostgreSQL extension adding support for hypothetical indexes.
-
-An hypothetical -- or virtual -- index is an index that doesn't really exists, and thus doesn't cost CPU, disk or any resource to create. They're useful to know if specific indexes can increase performance for problematic queries, since you can know if PostgreSQL will use these indexes or not without having to spend resources to create them.
+Hashids is a small open-source library that generates short, unique, non-sequential ids from numbers. It converts numbers like 347 into strings like “yr8”. You can also decode those ids back. This is useful in bundling several parameters into one or simply using them as short UIDs.
 
 ### Managing
 
@@ -96,20 +145,68 @@ To install the extension you can create a migration with the following contents:
 
 ```sql SQL
 SET ROLE postgres;
-CREATE EXTENSION hypopg;
+CREATE EXTENSION pg_hashids;
 ```
 
 To uninstall it, you can use the following migration:
 
 ```sql SQL
 SET ROLE postgres;
-DROP EXTENSION hypopg;
+DROP EXTENSION pg_hashids;
 ```
 
 ### Resources
 
-- [GitHub](https://github.com/HypoPG/hypopg)
-- [Documentation](https://hypopg.readthedocs.io/)
+- [GitHub](https://github.com/iCyberon/pg_hashids)
+
+## pg_squeeze
+
+PostgreSQL extension that removes unused space from a table and optionally sorts tuples according to particular index (as if CLUSTER command was executed concurrently with regular reads / writes). In fact we try to replace pg_repack extension.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_squeeze;
+```
+In addition, you may need to configure the WAL level and replication slots. Check the official documentation for details.
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_squeeze;
+```
+
+### Resources
+
+- [GitHub](https://github.com/cybertec-postgresql/pg_squeeze)
+
+## pg_stat_statements
+
+The pg_stat_statements module provides a means for tracking planning and execution statistics of all SQL statements executed by a server.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_stat_statements;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_stat_statements;
+```
+
+### Resources
+
+- [Documentation](https://www.postgresql.org/docs/14/pgstatstatements.html)
 
 ## timescaledb
 
@@ -140,50 +237,3 @@ DROP EXTENSION timescaledb;
 - [Documentation](https://docs.timescale.com/)
 - [Website](https://www.timescale.com/)
 
-## pg_stat_statements
-
-The pg_stat_statements module provides a means for tracking planning and execution statistics of all SQL statements executed by a server.
-
-### Managing
-
-To install the extension you can create a migration with the following contents:
-
-```sql SQL
-SET ROLE postgres;
-CREATE EXTENSION pg_stat_statements;
-```
-
-To uninstall it, you can use the following migration:
-
-```sql SQL
-SET ROLE postgres;
-DROP EXTENSION pg_stat_statements;
-```
-
-### Resources
-
-- [Documentation](https://www.postgresql.org/docs/14/pgstatstatements.html)
-
-## http
-
-HTTP client for PostgreSQL, retrieve a web page from inside the database.
-
-### Managing
-
-To install the extension you can create a migration with the following contents:
-
-```sql SQL
-SET ROLE postgres;
-CREATE EXTENSION http;
-```
-
-To uninstall it, you can use the following migration:
-
-```sql SQL
-SET ROLE postgres;
-DROP EXTENSION http;
-```
-
-### Resources
-
-- [GitHub](https://github.com/pramsey/pgsql-http)
