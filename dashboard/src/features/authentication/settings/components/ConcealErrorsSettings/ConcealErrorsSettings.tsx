@@ -119,8 +119,7 @@ export default function ConcealErrorsSettings() {
       <Form onSubmit={handleToggleConcealErrors}>
         <SettingsContainer
           title="Conceal errors"
-          description=""
-          //   docsLink="https://docs.nhost.io/guides/auth/overview#disable-new-users"
+          description="If set, conceals sensitive error messages to prevent leaking information about user accounts."
           switchId="enabled"
           showSwitch
           slotProps={{
