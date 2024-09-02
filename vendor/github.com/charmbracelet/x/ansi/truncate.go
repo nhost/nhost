@@ -26,7 +26,6 @@ func Truncate(s string, length int, tail string) string {
 	var buf bytes.Buffer
 	curWidth := 0
 	ignoring := false
-	gstate := -1
 	pstate := parser.GroundState // initial state
 	b := []byte(s)
 	i := 0
@@ -38,44 +37,40 @@ func Truncate(s string, length int, tail string) string {
 	// collect ANSI escape codes until we reach the end of string.
 	for i < len(b) {
 		state, action := parser.Table.Transition(pstate, b[i])
+		if state == parser.Utf8State {
+			// This action happens when we transition to the Utf8State.
+			var width int
+			cluster, _, width, _ = uniseg.FirstGraphemeCluster(b[i:], -1)
 
-		switch action {
-		case parser.PrintAction:
-			if utf8ByteLen(b[i]) > 1 {
-				// This action happens when we transition to the Utf8State.
-				var width int
-				cluster, _, width, gstate = uniseg.FirstGraphemeCluster(b[i:], gstate)
+			// increment the index by the length of the cluster
+			i += len(cluster)
 
-				// increment the index by the length of the cluster
-				i += len(cluster)
-
-				// Are we ignoring? Skip to the next byte
-				if ignoring {
-					continue
-				}
-
-				// Is this gonna be too wide?
-				// If so write the tail and stop collecting.
-				if curWidth+width > length && !ignoring {
-					ignoring = true
-					buf.WriteString(tail)
-				}
-
-				if curWidth+width > length {
-					continue
-				}
-
-				curWidth += width
-				for _, r := range cluster {
-					buf.WriteByte(r)
-				}
-
-				gstate = -1 // reset grapheme state otherwise, width calculation might be off
-				// Done collecting, now we're back in the ground state.
-				pstate = parser.GroundState
+			// Are we ignoring? Skip to the next byte
+			if ignoring {
 				continue
 			}
 
+			// Is this gonna be too wide?
+			// If so write the tail and stop collecting.
+			if curWidth+width > length && !ignoring {
+				ignoring = true
+				buf.WriteString(tail)
+			}
+
+			if curWidth+width > length {
+				continue
+			}
+
+			curWidth += width
+			buf.Write(cluster)
+
+			// Done collecting, now we're back in the ground state.
+			pstate = parser.GroundState
+			continue
+		}
+
+		switch action {
+		case parser.PrintAction:
 			// Is this gonna be too wide?
 			// If so write the tail and stop collecting.
 			if curWidth >= length && !ignoring {

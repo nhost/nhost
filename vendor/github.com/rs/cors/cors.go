@@ -364,9 +364,11 @@ func (c *Cors) handlePreflight(w http.ResponseWriter, r *http.Request) {
 	// Note: the Fetch standard guarantees that at most one
 	// Access-Control-Request-Headers header is present in the preflight request;
 	// see step 5.2 in https://fetch.spec.whatwg.org/#cors-preflight-fetch-0.
-	reqHeaders, found := first(r.Header, "Access-Control-Request-Headers")
-	if found && !c.allowedHeadersAll && !c.allowedHeaders.Subsumes(reqHeaders[0]) {
-		c.logf("  Preflight aborted: headers '%v' not allowed", reqHeaders[0])
+	// However, some gateways split that header into multiple headers of the same name;
+	// see https://github.com/rs/cors/issues/184.
+	reqHeaders, found := r.Header["Access-Control-Request-Headers"]
+	if found && !c.allowedHeadersAll && !c.allowedHeaders.Accepts(reqHeaders) {
+		c.logf("  Preflight aborted: headers '%v' not allowed", reqHeaders)
 		return
 	}
 	if c.allowedOriginsAll {
@@ -391,9 +393,7 @@ func (c *Cors) handlePreflight(w http.ResponseWriter, r *http.Request) {
 	if len(c.maxAge) > 0 {
 		headers["Access-Control-Max-Age"] = c.maxAge
 	}
-	if c.Log != nil {
-		c.logf("  Preflight response headers: %v", headers)
-	}
+	c.logf("  Preflight response headers: %v", headers)
 }
 
 // handleActualRequest handles simple cross-origin requests, actual request or redirects
@@ -440,9 +440,7 @@ func (c *Cors) handleActualRequest(w http.ResponseWriter, r *http.Request) {
 	if c.allowCredentials {
 		headers["Access-Control-Allow-Credentials"] = headerTrue
 	}
-	if c.Log != nil {
-		c.logf("  Actual response added headers: %v", headers)
-	}
+	c.logf("  Actual response added headers: %v", headers)
 }
 
 // convenience method. checks if a logger is set.

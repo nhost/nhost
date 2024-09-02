@@ -80,6 +80,15 @@ const (
 	RequestMouseAllMotion = "\x1b[?1003$p"
 )
 
+// Report Focus is a mode that makes the terminal report focus-in and focus-out events.
+//
+// See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-FocusIn_FocusOut
+const (
+	EnableReportFocus  = "\x1b[?1004h"
+	DisableReportFocus = "\x1b[?1004l"
+	RequestReportFocus = "\x1b[?1004$p"
+)
+
 // SGR Mouse Extension is a mode that determines whether the mouse reports events
 // formatted with SGR parameters.
 //
@@ -119,6 +128,18 @@ const (
 	EnableSyncdOutput  = "\x1b[?2026h"
 	DisableSyncdOutput = "\x1b[?2026l"
 	RequestSyncdOutput = "\x1b[?2026$p"
+)
+
+// Grapheme Clustering Mode is a mode that determines whether the terminal
+// should look for grapheme clusters instead of single runes in the rendered
+// text. This makes the terminal properly render combining characters such as
+// emojis.
+//
+// See: https://github.com/contour-terminal/terminal-unicode-core
+const (
+	EnableGraphemeClustering  = "\x1b[?2027h"
+	DisableGraphemeClustering = "\x1b[?2027l"
+	RequestGraphemeClustering = "\x1b[?2027$p"
 )
 
 // Win32Input is a mode that determines whether input is processed by the

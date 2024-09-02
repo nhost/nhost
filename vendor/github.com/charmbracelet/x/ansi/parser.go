@@ -2,6 +2,7 @@ package ansi
 
 import (
 	"unicode/utf8"
+	"unsafe"
 
 	"github.com/charmbracelet/x/ansi/parser"
 )
@@ -34,19 +35,19 @@ type Parser struct {
 
 	// ParamsLen keeps track of the number of parameters.
 	// This is limited by the size of the Params buffer.
+	//
+	// This is also used when collecting UTF-8 runes to keep track of the
+	// number of rune bytes collected.
 	ParamsLen int
 
 	// Cmd contains the raw command along with the private marker and
 	// intermediate bytes of the sequence.
 	// The first lower byte contains the command byte, the next byte contains
 	// the private marker, and the next byte contains the intermediate byte.
+	//
+	// This is also used when collecting UTF-8 runes treating it as a slice of
+	// 4 bytes.
 	Cmd int
-
-	// RuneLen keeps track of the number of bytes collected for a UTF-8 rune.
-	RuneLen int
-
-	// RuneBuf contains the bytes collected for a UTF-8 rune.
-	RuneBuf [utf8.MaxRune]byte
 
 	// State is the current state of the parser.
 	State byte
@@ -56,13 +57,13 @@ type Parser struct {
 // If dataSize is zero, the underlying data buffer will be unlimited and will
 // grow as needed.
 func NewParser(paramsSize, dataSize int) *Parser {
-	s := &Parser{
-		Params: make([]int, paramsSize),
-		Data:   make([]byte, dataSize),
-	}
+	s := new(Parser)
 	if dataSize <= 0 {
+		dataSize = 0
 		s.DataLen = -1
 	}
+	s.Params = make([]int, paramsSize)
+	s.Data = make([]byte, dataSize)
 	return s
 }
 
@@ -79,7 +80,13 @@ func (p *Parser) clear() {
 	}
 	p.ParamsLen = 0
 	p.Cmd = 0
-	p.RuneLen = 0
+}
+
+// clearCmd clears the parser command, params len and data len.
+func (p *Parser) clearCmd() {
+	p.Cmd = 0
+	p.ParamsLen = 0
+	p.DataLen = 0
 }
 
 // StateName returns the name of the current state.
@@ -106,37 +113,40 @@ func (p *Parser) Advance(dispatcher ParserDispatcher, b byte, more bool) parser.
 }
 
 func (p *Parser) collectRune(b byte) {
-	if p.RuneLen < utf8.UTFMax {
-		p.RuneBuf[p.RuneLen] = b
-		p.RuneLen++
+	if p.ParamsLen >= utf8.UTFMax {
+		return
 	}
+
+	shift := p.ParamsLen * 8
+	p.Cmd &^= 0xff << shift
+	p.Cmd |= int(b) << shift
+	p.ParamsLen++
 }
 
 func (p *Parser) advanceUtf8(dispatcher ParserDispatcher, b byte) parser.Action {
 	// Collect UTF-8 rune bytes.
 	p.collectRune(b)
-	rw := utf8ByteLen(p.RuneBuf[0])
+	rw := utf8ByteLen(byte(p.Cmd & 0xff))
 	if rw == -1 {
 		// We panic here because the first byte comes from the state machine,
 		// if this panics, it means there is a bug in the state machine!
 		panic("invalid rune") // unreachable
 	}
 
-	if p.RuneLen < rw {
-		return parser.NoneAction
+	if p.ParamsLen < rw {
+		return parser.CollectAction
 	}
 
-	// We have enough bytes to decode the rune
-	bts := p.RuneBuf[:rw]
-	r, _ := utf8.DecodeRune(bts)
+	// We have enough bytes to decode the rune using unsafe
+	r, _ := utf8.DecodeRune((*[utf8.UTFMax]byte)(unsafe.Pointer(&p.Cmd))[:rw])
 	if dispatcher != nil {
 		dispatcher(Rune(r))
 	}
 
 	p.State = parser.GroundState
-	p.RuneLen = 0
+	p.ParamsLen = 0
 
-	return parser.NoneAction
+	return parser.PrintAction
 }
 
 func (p *Parser) advance(d ParserDispatcher, b byte, more bool) parser.Action {
@@ -149,16 +159,15 @@ func (p *Parser) advance(d ParserDispatcher, b byte, more bool) parser.Action {
 	// EscapeState. However, the parser state is not cleared in this case and
 	// we need to clear it here before dispatching the esc sequence.
 	if p.State != state {
-		switch p.State {
-		case parser.EscapeState:
-			p.performAction(d, parser.ClearAction, b)
+		if p.State == parser.EscapeState {
+			p.performAction(d, parser.ClearAction, state, b)
 		}
 		if action == parser.PutAction &&
 			p.State == parser.DcsEntryState && state == parser.DcsStringState {
 			// XXX: This is a special case where we need to start collecting
 			// non-string parameterized data i.e. doesn't follow the ECMA-48 §
 			// 5.4.1 string parameters format.
-			p.performAction(d, parser.StartAction, 0)
+			p.performAction(d, parser.StartAction, state, 0)
 		}
 	}
 
@@ -166,34 +175,34 @@ func (p *Parser) advance(d ParserDispatcher, b byte, more bool) parser.Action {
 	switch {
 	case b == ESC && p.State == parser.EscapeState:
 		// Two ESCs in a row
-		p.performAction(d, parser.ExecuteAction, b)
+		p.performAction(d, parser.ExecuteAction, state, b)
 		if !more {
 			// Two ESCs at the end of the buffer
-			p.performAction(d, parser.ExecuteAction, b)
+			p.performAction(d, parser.ExecuteAction, state, b)
 		}
 	case b == ESC && !more:
 		// Last byte is an ESC
-		p.performAction(d, parser.ExecuteAction, b)
+		p.performAction(d, parser.ExecuteAction, state, b)
 	case p.State == parser.EscapeState && b == 'P' && !more:
 		// ESC P (DCS) at the end of the buffer
-		p.performAction(d, parser.DispatchAction, b)
+		p.performAction(d, parser.DispatchAction, state, b)
 	case p.State == parser.EscapeState && b == 'X' && !more:
 		// ESC X (SOS) at the end of the buffer
-		p.performAction(d, parser.DispatchAction, b)
+		p.performAction(d, parser.DispatchAction, state, b)
 	case p.State == parser.EscapeState && b == '[' && !more:
 		// ESC [ (CSI) at the end of the buffer
-		p.performAction(d, parser.DispatchAction, b)
+		p.performAction(d, parser.DispatchAction, state, b)
 	case p.State == parser.EscapeState && b == ']' && !more:
 		// ESC ] (OSC) at the end of the buffer
-		p.performAction(d, parser.DispatchAction, b)
+		p.performAction(d, parser.DispatchAction, state, b)
 	case p.State == parser.EscapeState && b == '^' && !more:
 		// ESC ^ (PM) at the end of the buffer
-		p.performAction(d, parser.DispatchAction, b)
+		p.performAction(d, parser.DispatchAction, state, b)
 	case p.State == parser.EscapeState && b == '_' && !more:
 		// ESC _ (APC) at the end of the buffer
-		p.performAction(d, parser.DispatchAction, b)
+		p.performAction(d, parser.DispatchAction, state, b)
 	default:
-		p.performAction(d, action, b)
+		p.performAction(d, action, state, b)
 	}
 
 	p.State = state
@@ -201,7 +210,7 @@ func (p *Parser) advance(d ParserDispatcher, b byte, more bool) parser.Action {
 	return action
 }
 
-func (p *Parser) performAction(dispatcher ParserDispatcher, action parser.Action, b byte) {
+func (p *Parser) performAction(dispatcher ParserDispatcher, action parser.Action, state parser.State, b byte) {
 	switch action {
 	case parser.IgnoreAction:
 		break
@@ -210,9 +219,7 @@ func (p *Parser) performAction(dispatcher ParserDispatcher, action parser.Action
 		p.clear()
 
 	case parser.PrintAction:
-		if utf8ByteLen(b) > 1 {
-			p.collectRune(b)
-		} else if dispatcher != nil {
+		if dispatcher != nil {
 			dispatcher(Rune(b))
 		}
 
@@ -228,10 +235,16 @@ func (p *Parser) performAction(dispatcher ParserDispatcher, action parser.Action
 		p.Cmd |= int(b) << parser.MarkerShift
 
 	case parser.CollectAction:
-		// Collect intermediate bytes
-		// we only store the last intermediate byte
-		p.Cmd &^= 0xff << parser.IntermedShift
-		p.Cmd |= int(b) << parser.IntermedShift
+		if state == parser.Utf8State {
+			// Reset the UTF-8 counter
+			p.ParamsLen = 0
+			p.collectRune(b)
+		} else {
+			// Collect intermediate bytes
+			// we only store the last intermediate byte
+			p.Cmd &^= 0xff << parser.IntermedShift
+			p.Cmd |= int(b) << parser.IntermedShift
+		}
 
 	case parser.ParamAction:
 		// Collect parameters
@@ -260,8 +273,8 @@ func (p *Parser) performAction(dispatcher ParserDispatcher, action parser.Action
 		}
 
 	case parser.StartAction:
-		if p.DataLen < 0 {
-			p.Data = make([]byte, 0)
+		if p.DataLen < 0 && p.Data != nil {
+			p.Data = p.Data[:0]
 		} else {
 			p.DataLen = 0
 		}

@@ -43,7 +43,7 @@ certbot certonly \
     --config-dir letsencrypt \
     --work-dir letsencrypt
 
-cp letsencrypt/live/local.auth.nhost.run/fullchain.pem ssl/.ssl/sub-fullchain.pem
-cp letsencrypt/live/local.auth.nhost.run/privkey.pem ssl/.ssl/sub-privkey.pem
+cp letsencrypt/live/auth.local.nhost.run/fullchain.pem ssl/.ssl/sub-fullchain.pem
+cp letsencrypt/live/auth.local.nhost.run/privkey.pem ssl/.ssl/sub-privkey.pem
 
 rm -rf letsencrypt

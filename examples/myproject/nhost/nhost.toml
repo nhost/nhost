@@ -4,7 +4,7 @@ name = 'GREET'
 value = 'Sayonara'
 
 [hasura]
-version = 'v2.33.4-ce'
+version = 'v2.38.0-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 webhookSecret = '{{ secrets.NHOST_WEBHOOK_SECRET }}'
 
@@ -22,7 +22,7 @@ liveQueriesMultiplexedRefetchInterval = 3000
 version = 20
 
 [auth]
-version = '0.30.0'
+version = '0.33.0'
 
 [auth.redirections]
 clientUrl = 'http://localhost:3000'
@@ -127,7 +127,7 @@ timeout = 60000
 enabled = false
 
 [postgres]
-version = '14.11-20240429-1'
+version = '16.2-20240901-1'
 
 [postgres.settings]
 maxConnections = 100
@@ -151,7 +151,7 @@ maxParallelMaintenanceWorkers = 2
 [provider]
 
 [storage]
-version = '0.6.0'
+version = '0.6.1'
 
 [observability]
 [observability.grafana]

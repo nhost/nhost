@@ -8,10 +8,7 @@ jobs:
   tests:
     uses: ./.github/workflows/wf_check.yaml
     secrets:
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NHOST_PAT: ${{ secrets.NHOST_PAT }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
   build_artifacts:
     strategy:
@@ -25,11 +22,6 @@ jobs:
       VERSION: ${{ github.ref_name }}
     secrets:
       NHOST_PAT: ${{ secrets.NHOST_PAT }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
-      CERT_FULL_CHAIN: ${{ secrets.CERT_FULL_CHAIN }}
-      CERT_PRIV_KEY: ${{ secrets.CERT_PRIV_KEY }}
-      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
 
   publish:
     uses: ./.github/workflows/wf_publish.yaml

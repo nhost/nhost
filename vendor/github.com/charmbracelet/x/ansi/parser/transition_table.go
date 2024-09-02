@@ -81,6 +81,9 @@ func r(start, end byte) []byte {
 //   - We don't ignore 0x3A (':') when building Csi and Dcs parameters and
 //     instead use it to denote sub-parameters.
 //   - Support dispatching SosPmApc sequences.
+//   - The DEL (0x7F) character is executed in the Ground state.
+//   - The DEL (0x7F) character is collected in the DcsPassthrough string state.
+//   - The ST C1 control character (0x9C) is executed and not ignored.
 func GenerateTransitionTable() TransitionTable {
 	table := NewTransitionTable(DefaultTableSize)
 	table.SetDefault(NoneAction, GroundState)
@@ -91,7 +94,7 @@ func GenerateTransitionTable() TransitionTable {
 		table.AddMany([]byte{0x18, 0x1a, 0x99, 0x9a}, state, ExecuteAction, GroundState)
 		table.AddRange(0x80, 0x8F, state, ExecuteAction, GroundState)
 		table.AddRange(0x90, 0x97, state, ExecuteAction, GroundState)
-		table.AddOne(0x9C, state, IgnoreAction, GroundState)
+		table.AddOne(0x9C, state, ExecuteAction, GroundState)
 		// Anywhere -> Escape
 		table.AddOne(0x1B, state, ClearAction, EscapeState)
 		// Anywhere -> SosStringState
@@ -107,16 +110,17 @@ func GenerateTransitionTable() TransitionTable {
 		// Anywhere -> OscString
 		table.AddOne(0x9D, state, StartAction, OscStringState)
 		// Anywhere -> Utf8
-		table.AddRange(0xC2, 0xDF, state, PrintAction, Utf8State) // UTF8 2 byte sequence
-		table.AddRange(0xE0, 0xEF, state, PrintAction, Utf8State) // UTF8 3 byte sequence
-		table.AddRange(0xF0, 0xF4, state, PrintAction, Utf8State) // UTF8 4 byte sequence
+		table.AddRange(0xC2, 0xDF, state, CollectAction, Utf8State) // UTF8 2 byte sequence
+		table.AddRange(0xE0, 0xEF, state, CollectAction, Utf8State) // UTF8 3 byte sequence
+		table.AddRange(0xF0, 0xF4, state, CollectAction, Utf8State) // UTF8 4 byte sequence
 	}
 
 	// Ground
 	table.AddRange(0x00, 0x17, GroundState, ExecuteAction, GroundState)
 	table.AddOne(0x19, GroundState, ExecuteAction, GroundState)
 	table.AddRange(0x1C, 0x1F, GroundState, ExecuteAction, GroundState)
-	table.AddRange(0x20, 0x7F, GroundState, PrintAction, GroundState)
+	table.AddRange(0x20, 0x7E, GroundState, PrintAction, GroundState)
+	table.AddOne(0x7F, GroundState, ExecuteAction, GroundState)
 
 	// EscapeIntermediate
 	table.AddRange(0x00, 0x17, EscapeIntermediateState, ExecuteAction, EscapeIntermediateState)
@@ -209,7 +213,7 @@ func GenerateTransitionTable() TransitionTable {
 	table.AddOne(0x19, DcsStringState, PutAction, DcsStringState)
 	table.AddRange(0x1C, 0x1F, DcsStringState, PutAction, DcsStringState)
 	table.AddRange(0x20, 0x7E, DcsStringState, PutAction, DcsStringState)
-	table.AddOne(0x7F, DcsStringState, IgnoreAction, DcsStringState)
+	table.AddOne(0x7F, DcsStringState, PutAction, DcsStringState)
 	table.AddRange(0x80, 0xFF, DcsStringState, PutAction, DcsStringState) // Allow Utf8 characters by extending the printable range from 0x7F to 0xFF
 	// ST, CAN, SUB, and ESC terminate the sequence
 	table.AddOne(0x1B, DcsStringState, DispatchAction, EscapeState)

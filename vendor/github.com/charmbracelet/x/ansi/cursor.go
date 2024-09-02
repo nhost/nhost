@@ -188,3 +188,48 @@ const SaveCursorPosition = "\x1b[s"
 //
 // See: https://vt100.net/docs/vt510-rm/SCORC.html
 const RestoreCursorPosition = "\x1b[u"
+
+// SetCursorStyle (DECSCUSR) returns a sequence for changing the cursor style.
+//
+//	CSI Ps SP q
+//
+// Where Ps is the cursor style:
+//
+//	0: Blinking block
+//	1: Blinking block (default)
+//	2: Steady block
+//	3: Blinking underline
+//	4: Steady underline
+//	5: Blinking bar (xterm)
+//	6: Steady bar (xterm)
+//
+// See: https://vt100.net/docs/vt510-rm/DECSCUSR.html
+// See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h4-Functions-using-CSI-_-ordered-by-the-final-character-lparen-s-rparen:CSI-Ps-SP-q.1D81
+func SetCursorStyle(style int) string {
+	if style < 0 {
+		style = 0
+	}
+	return "\x1b[" + strconv.Itoa(style) + " q"
+}
+
+// SetPointerShape returns a sequence for changing the mouse pointer cursor
+// shape. Use "default" for the default pointer shape.
+//
+//	OSC 22 ; Pt ST
+//	OSC 22 ; Pt BEL
+//
+// Where Pt is the pointer shape name. The name can be anything that the
+// operating system can understand. Some common names are:
+//
+//   - copy
+//   - crosshair
+//   - default
+//   - ew-resize
+//   - n-resize
+//   - text
+//   - wait
+//
+// See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Operating-System-Commands
+func SetPointerShape(shape string) string {
+	return "\x1b]22;" + shape + "\x07"
+}

@@ -17,16 +17,6 @@ on:
     secrets:
       NHOST_PAT:
         required: true
-      AWS_ACCOUNT_ID:
-        required: true
-      CERT_FULL_CHAIN:
-        required: true
-      CERT_PRIV_KEY:
-        required: true
-      NIX_CACHE_PUB_KEY:
-        required: true
-      NIX_CACHE_PRIV_KEY:
-        required: true
 
 jobs:
   artifacts:
@@ -44,51 +34,26 @@ jobs:
         ref: ${{ inputs.GIT_REF }}
         submodules: true
 
-    - name: Configure aws
-      uses: aws-actions/configure-aws-credentials@v4
+    - uses: cachix/install-nix-action@v27
       with:
-        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
-        aws-region: eu-central-1
-
-    - uses: nixbuild/nix-quick-install-action@v26
-      with:
-        nix_version: 2.16.2
-        nix_conf: |
+        install_url: "https://releases.nixos.org/nix/nix-2.22.3/install"
+        install_options: "--no-daemon"
+        extra_nix_config: |
           experimental-features = nix-command flakes
           sandbox = false
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
-          builders-use-substitutes = true
+          substituters = https://cache.nixos.org/?priority=40
+          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
 
-    - name: Cache nix store
-      uses: actions/cache@v4
+    - uses: DeterminateSystems/magic-nix-cache-action@v7
       with:
-        path: |
-          /nix/store/**
-          /nix/var/nix/*/*
-          /nix/var/nix/db/*
-          /nix/var/nix/db/*/**
-          !/nix/var/nix/daemon-socket/socket
-          !/nix/var/nix/userpool/*
-          !/nix/var/nix/gc.lock
-          !/nix/var/nix/db/big-lock
-          !/nix/var/nix/db/reserved
-        key: nix-build-${{ inputs.GOOS }}-${{ inputs.GOARCH}}-${{ hashFiles('flake.nix', 'flake.lock', '**.nix') }}
+        diagnostic-endpoint: ""
+        use-flakehub: false
+
     - name: Compute common env vars
       id: vars
       run: |
         echo "VERSION=$(make get-version VERSION=${{ inputs.VERSION }})" >> $GITHUB_OUTPUT
-
-    # - name: place let's encrypt cert
-    #   run: |
-    #     cat <<EOF > ssl/.ssl/fullchain.pem
-    #     ${{ secrets.CERT_FULL_CHAIN }}
-    #     EOF
-    #     cat <<EOF > ssl/.ssl/privkey.pem
-    #     ${{ secrets.CERT_PRIV_KEY }}
-    #     EOF
-    #   shell: bash
 
     - name: "Build artifact"
       run: |
@@ -140,10 +105,3 @@ jobs:
         path: result
         retention-days: 7
       if: ${{ ( inputs.GOOS == 'linux' ) }}
-
-    - name: "Cache nix store on s3"
-      run: |
-        echo ${{ secrets.NIX_CACHE_PRIV_KEY }} > cache-priv-key.pem
-        nix store sign --key-file cache-priv-key.pem --all
-        find /nix/store -maxdepth 1 -name "*-*" -type d | grep -v source | xargs -n 1000 nix copy --to s3://nhost-nix-cache\?region=eu-central-1
-      if: always()

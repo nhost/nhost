@@ -1,7 +1,6 @@
 package cors
 
 import (
-	"net/http"
 	"strings"
 )
 
@@ -23,12 +22,4 @@ func convert(s []string, f func(string) string) []string {
 		out[i] = f(s[i])
 	}
 	return out
-}
-
-func first(hdrs http.Header, k string) ([]string, bool) {
-	v, found := hdrs[k]
-	if !found || len(v) == 0 {
-		return nil, false
-	}
-	return v[:1], true
 }
