@@ -99,7 +99,7 @@ export default function UserSelect({
       group: 'Admin',
     },
     ...users.map((user) => ({
-      value: user.displayName,
+      value: user.id,
       label: user.displayName,
       group: 'Users',
     })),
@@ -140,7 +140,6 @@ export default function UserSelect({
         );
 
         const roles = user?.roles?.map(({ role }) => role);
-        console.log('roles:', roles);
 
         onUserChange(userId, roles ?? DEFAULT_ROLES);
 
@@ -151,7 +150,7 @@ export default function UserSelect({
               label: result.displayName,
               group: 'Users',
             }));
-            const autocompleteOptions = [
+            const newAutocompleteOptions = [
               {
                 value: 'admin',
                 label: 'Admin',
@@ -159,7 +158,7 @@ export default function UserSelect({
               },
               ...mappedResults,
             ];
-            setOptions(autocompleteOptions);
+            setOptions(newAutocompleteOptions);
             setUsers(results);
           }
         });
