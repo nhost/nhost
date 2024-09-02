@@ -36,7 +36,7 @@ cloud.google.com/go/storage
 cloud.google.com/go/storage/internal
 cloud.google.com/go/storage/internal/apiv2
 cloud.google.com/go/storage/internal/apiv2/storagepb
-# cuelang.org/go v0.9.2 => cuelang.org/go v0.4.3
+# cuelang.org/go v0.10.0 => cuelang.org/go v0.4.3
 ## explicit; go 1.17
 cuelang.org/go/cue
 cuelang.org/go/cue/ast
@@ -541,7 +541,7 @@ github.com/muesli/termenv
 # github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
 ## explicit
 github.com/munnerz/goautoneg
-# github.com/nhost/be v0.0.0-20240827125525-b9345d4154be
+# github.com/nhost/be v0.0.0-20240902135002-07c0f68f1386
 ## explicit; go 1.22.4
 github.com/nhost/be/lib/graphql
 github.com/nhost/be/lib/graphql/context

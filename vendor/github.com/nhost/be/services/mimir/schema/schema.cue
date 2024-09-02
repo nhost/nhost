@@ -245,7 +245,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.11-20240718-1"
+	version: string | *"14.11-20240901-1"
 
 	// Resources for the service
 	resources?: {
@@ -617,7 +617,7 @@ import (
 }
 
 #AI: {
-	version: string | *"0.5.2"
+	version: string | *"0.6.1"
 	resources: {
 		compute: #ComputeResources
 	}
