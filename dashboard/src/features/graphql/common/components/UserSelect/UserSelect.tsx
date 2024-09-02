@@ -1,4 +1,5 @@
 import { Autocomplete } from '@/components/ui/v2/Autocomplete';
+import { DEFAULT_ROLES } from '@/features/graphql/common/utils/constants';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import {
   useRemoteAppGetUsersCustomLazyQuery,
@@ -6,7 +7,6 @@ import {
 } from '@/utils/__generated__/graphql';
 import { debounce } from '@mui/material/utils';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DEFAULT_ROLES } from '../../utils/constants';
 
 export interface UserSelectProps {
   /**
@@ -14,7 +14,7 @@ export interface UserSelectProps {
    */
   onUserChange: (userId: string, availableRoles?: string[]) => void;
   /**
-   * Class name to be applied to the `<Select />` element.
+   * Class name to be applied to the `<Autocomplete />` element.
    */
   className?: string;
 }
@@ -25,7 +25,6 @@ export default function UserSelect({
 }: UserSelectProps) {
   const [inputValue, setInputValue] = useState('');
   const [users, setUsers] = useState([]);
-  const [options, setOptions] = useState([]);
   const [active, setActive] = useState(true);
 
   const userApplicationClient = useRemoteApplicationGQLClient();
@@ -63,37 +62,12 @@ export default function UserSelect({
 
   const fetchOptions = useMemo(() => debounce(fetchUsers, 1000), [fetchUsers]);
 
-  // const inputCooldown = useMemo(() => debounce(() => {}, 1000), [inputValue]);
-
   useEffect(() => {
-    // if (inputValue === '') {
-    //   setOptions(value ? [value] : []);
-    //   return undefined;
-    // }
-
     fetchOptions({ input: inputValue }, (results) => {
       if (active || inputValue === '') {
-        const mappedResults = results.map((result) => ({
-          value: result.id,
-          label: result.displayName,
-          group: 'Users',
-        }));
-        const autocompleteOptions = [
-          {
-            value: 'admin',
-            label: 'Admin',
-            group: 'Admin',
-          },
-          ...mappedResults,
-        ];
-        setOptions(autocompleteOptions);
         setUsers(results);
       }
     });
-
-    // return () => {
-    //   active = false;
-    // };
   }, [inputValue, fetchOptions, active]);
 
   const autocompleteOptions = [
@@ -126,6 +100,7 @@ export default function UserSelect({
       groupBy={(option) => option.group}
       autoHighlight
       includeInputInList
+      loading={loading}
       onChange={(_event, _value, reason, details) => {
         setActive(false);
         const userId = details.option.value;
@@ -149,20 +124,6 @@ export default function UserSelect({
 
         fetchUsers({ input: '' }, (results) => {
           if (results) {
-            const mappedResults = results.map((result) => ({
-              value: result.id,
-              label: result.displayName,
-              group: 'Users',
-            }));
-            const newAutocompleteOptions = [
-              {
-                value: 'admin',
-                label: 'Admin',
-                group: 'Admin',
-              },
-              ...mappedResults,
-            ];
-            setOptions(newAutocompleteOptions);
             setUsers(results);
           }
         });
