@@ -174,7 +174,17 @@ export interface Typegen0 {
       | 'done.invoke.passwordlessSms'
       | 'done.invoke.signUpEmailPassword'
       | 'done.invoke.signUpSecurityKey'
-    clearContextExceptRefreshToken: 'SIGNOUT'
+    clearContextExceptTokens: 'SIGNOUT'
+    destroyAccessToken:
+      | 'SESSION_UPDATE'
+      | 'SIGNIN_ANONYMOUS'
+      | 'SIGNIN_MFA_TOTP'
+      | 'SIGNIN_PASSWORD'
+      | 'SIGNIN_PAT'
+      | 'SIGNIN_SECURITY_KEY_EMAIL'
+      | 'done.invoke.signingOut'
+      | 'error.platform.signingOut'
+      | 'xstate.stop'
     destroyRefreshToken:
       | 'SESSION_UPDATE'
       | 'SIGNIN_ANONYMOUS'

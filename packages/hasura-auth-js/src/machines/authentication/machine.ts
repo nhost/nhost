@@ -165,8 +165,8 @@ export const createAuthMachine = ({
                 needsMfa: {},
                 failed: {},
                 signingOut: {
-                  entry: ['clearContextExceptRefreshToken'],
-                  exit: ['destroyRefreshToken', 'reportTokenChanged'],
+                  entry: ['clearContextExceptTokens'],
+                  exit: ['destroyAccessToken', 'destroyRefreshToken', 'reportTokenChanged'],
                   invoke: {
                     src: 'signout',
                     id: 'signingOut',
@@ -536,11 +536,11 @@ export const createAuthMachine = ({
             ...INITIAL_MACHINE_CONTEXT
           }
         }),
-        clearContextExceptRefreshToken: assign(({ refreshToken: { value } }) => {
-          storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
+        clearContextExceptTokens: assign(({ accessToken, refreshToken }) => {
           return {
             ...INITIAL_MACHINE_CONTEXT,
-            refreshToken: { value }
+            accessToken: accessToken,
+            refreshToken: refreshToken
           }
         }),
 
@@ -658,6 +658,17 @@ export const createAuthMachine = ({
             storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
             storageSetter(NHOST_REFRESH_TOKEN_ID_KEY, null)
             return { value: null }
+          }
+        }),
+
+        destroyAccessToken: assign({
+          accessToken: (_) => {
+            storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
+            return {
+              value: null,
+              expiresAt: null,
+              expiresInSeconds: null
+            }
           }
         }),
 
@@ -880,10 +891,14 @@ export const createAuthMachine = ({
           return { session, error: null }
         },
         signout: async (ctx, e) => {
-          const signOutResponse = await postRequest('/signout', {
-            refreshToken: ctx.refreshToken.value,
-            all: !!e.all
-          })
+          const signOutResponse = await postRequest(
+            '/signout',
+            {
+              refreshToken: ctx.refreshToken.value,
+              all: !!e.all
+            },
+            !!e.all ? ctx.accessToken.value : undefined
+          )
 
           try {
             const channel = new BroadcastChannel('nhost')
