@@ -199,6 +199,7 @@ export type ConfigAuth = {
   __typename?: 'ConfigAuth';
   elevatedPrivileges?: Maybe<ConfigAuthElevatedPrivileges>;
   method?: Maybe<ConfigAuthMethod>;
+  misc?: Maybe<ConfigAuthMisc>;
   rateLimit?: Maybe<ConfigAuthRateLimit>;
   redirections?: Maybe<ConfigAuthRedirections>;
   /** Resources for the service */
@@ -224,6 +225,7 @@ export type ConfigAuthComparisonExp = {
   _or?: InputMaybe<Array<ConfigAuthComparisonExp>>;
   elevatedPrivileges?: InputMaybe<ConfigAuthElevatedPrivilegesComparisonExp>;
   method?: InputMaybe<ConfigAuthMethodComparisonExp>;
+  misc?: InputMaybe<ConfigAuthMiscComparisonExp>;
   rateLimit?: InputMaybe<ConfigAuthRateLimitComparisonExp>;
   redirections?: InputMaybe<ConfigAuthRedirectionsComparisonExp>;
   resources?: InputMaybe<ConfigResourcesComparisonExp>;
@@ -257,6 +259,7 @@ export type ConfigAuthElevatedPrivilegesUpdateInput = {
 export type ConfigAuthInsertInput = {
   elevatedPrivileges?: InputMaybe<ConfigAuthElevatedPrivilegesInsertInput>;
   method?: InputMaybe<ConfigAuthMethodInsertInput>;
+  misc?: InputMaybe<ConfigAuthMiscInsertInput>;
   rateLimit?: InputMaybe<ConfigAuthRateLimitInsertInput>;
   redirections?: InputMaybe<ConfigAuthRedirectionsInsertInput>;
   resources?: InputMaybe<ConfigResourcesInsertInput>;
@@ -687,6 +690,26 @@ export type ConfigAuthMethodWebauthnUpdateInput = {
   relyingParty?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyUpdateInput>;
 };
 
+export type ConfigAuthMisc = {
+  __typename?: 'ConfigAuthMisc';
+  concealErrors?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMiscComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMiscComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMiscComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMiscComparisonExp>>;
+  concealErrors?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthMiscInsertInput = {
+  concealErrors?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMiscUpdateInput = {
+  concealErrors?: InputMaybe<Scalars['Boolean']>;
+};
+
 export type ConfigAuthRateLimit = {
   __typename?: 'ConfigAuthRateLimit';
   bruteForce?: Maybe<ConfigRateLimit>;
@@ -873,6 +896,7 @@ export type ConfigAuthTotpUpdateInput = {
 export type ConfigAuthUpdateInput = {
   elevatedPrivileges?: InputMaybe<ConfigAuthElevatedPrivilegesUpdateInput>;
   method?: InputMaybe<ConfigAuthMethodUpdateInput>;
+  misc?: InputMaybe<ConfigAuthMiscUpdateInput>;
   rateLimit?: InputMaybe<ConfigAuthRateLimitUpdateInput>;
   redirections?: InputMaybe<ConfigAuthRedirectionsUpdateInput>;
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
@@ -2198,6 +2222,8 @@ export type ConfigRunServiceConfigWithId = {
 export type ConfigRunServiceImage = {
   __typename?: 'ConfigRunServiceImage';
   image: Scalars['String'];
+  /** content of "auths", i.e., { "auths": $THIS } */
+  pullCredentials?: Maybe<Scalars['String']>;
 };
 
 export type ConfigRunServiceImageComparisonExp = {
@@ -2205,14 +2231,17 @@ export type ConfigRunServiceImageComparisonExp = {
   _not?: InputMaybe<ConfigRunServiceImageComparisonExp>;
   _or?: InputMaybe<Array<ConfigRunServiceImageComparisonExp>>;
   image?: InputMaybe<ConfigStringComparisonExp>;
+  pullCredentials?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigRunServiceImageInsertInput = {
   image: Scalars['String'];
+  pullCredentials?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigRunServiceImageUpdateInput = {
   image?: InputMaybe<Scalars['String']>;
+  pullCredentials?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigRunServiceNameComparisonExp = {
@@ -22885,7 +22914,7 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null } | null } | null };
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null, misc?: { __typename?: 'ConfigAuthMisc', concealErrors?: boolean | null } | null } | null } | null };
 
 export type GetPostgresSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -24328,6 +24357,9 @@ export const GetAuthenticationSettingsDocument = gql`
           allowed
           default
         }
+      }
+      misc {
+        concealErrors
       }
       version
     }

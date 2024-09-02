@@ -50,6 +50,9 @@ query GetAuthenticationSettings($appId: uuid!) {
           default
         }
       }
+      misc {
+        concealErrors
+      }
       version
     }
   }

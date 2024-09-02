@@ -6,6 +6,7 @@ import { AllowedRedirectURLsSettings } from '@/features/authentication/settings/
 import { AuthServiceVersionSettings } from '@/features/authentication/settings/components/AuthServiceVersionSettings';
 import { BlockedEmailSettings } from '@/features/authentication/settings/components/BlockedEmailSettings';
 import { ClientURLSettings } from '@/features/authentication/settings/components/ClientURLSettings';
+import { ConcealErrorsSettings } from '@/features/authentication/settings/components/ConcealErrorsSettings';
 import { DisableNewUsersSettings } from '@/features/authentication/settings/components/DisableNewUsersSettings';
 import { GravatarSettings } from '@/features/authentication/settings/components/GravatarSettings';
 import { MFASettings } from '@/features/authentication/settings/components/MFASettings';
@@ -43,7 +44,7 @@ export default function SettingsAuthenticationPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
       <AuthServiceVersionSettings />
@@ -55,6 +56,7 @@ export default function SettingsAuthenticationPage() {
       <SessionSettings />
       <GravatarSettings />
       <DisableNewUsersSettings />
+      <ConcealErrorsSettings />
     </Container>
   );
 }
