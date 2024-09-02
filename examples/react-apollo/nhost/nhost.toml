@@ -143,10 +143,9 @@ enabled = false
 enabled = true
 
 [auth.method.webauthn.relyingParty]
-id = 'example-react-apollo-git-feat-templatesreact-apollo-nhost.vercel.app'
+id = 'https://react-apollo.example.nhost.io'
 name = 'apollo-example'
-origins = ['https://example-react-apollo-git-feat-templatesreact-apollo-nhost.vercel.app']
-# origins = ['http://localhost:3000', 'https://react-apollo.example.nhost.io', 'https://example-react-apollo-git-feat-templatesreact-apollo-nhost.vercel.app']
+origins = ['https://react-apollo.example.nhost.io']
 
 [auth.method.webauthn.attestation]
 timeout = 60000
