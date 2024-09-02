@@ -5,7 +5,7 @@ import {
   type RemoteAppGetUsersCustomQuery,
 } from '@/utils/__generated__/graphql';
 import { debounce } from '@mui/material/utils';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DEFAULT_ROLES } from '../../utils/constants';
 
 export interface UserSelectProps {
@@ -39,25 +39,29 @@ export default function UserSelect({
     },
   });
 
-  const fetchUsers = async (
-    request: { input: string },
-    callback: (results?: RemoteAppGetUsersCustomQuery['users']) => void,
-  ) => {
-    const { data } = await fetchAppUsers({
-      client: userApplicationClient,
-      variables: {
-        where: {
-          displayName: { _ilike: `%${request.input}%` },
+  const fetchUsers = useCallback(
+    async (
+      request: { input: string },
+      callback: (results?: RemoteAppGetUsersCustomQuery['users']) => void,
+    ) => {
+      const ilike = `%${request.input === 'Admin' ? '' : request.input}%`;
+      const { data } = await fetchAppUsers({
+        client: userApplicationClient,
+        variables: {
+          where: {
+            displayName: { _ilike: ilike },
+          },
+          limit: 250,
+          offset: 0,
         },
-        limit: 250,
-        offset: 0,
-      },
-    });
+      });
 
-    callback(data?.users);
-  };
+      callback(data?.users);
+    },
+    [fetchAppUsers, userApplicationClient],
+  );
 
-  const fetchOptions = useMemo(() => debounce(fetchUsers, 1000), []);
+  const fetchOptions = useMemo(() => debounce(fetchUsers, 1000), [fetchUsers]);
 
   // const inputCooldown = useMemo(() => debounce(() => {}, 1000), [inputValue]);
 
@@ -70,7 +74,7 @@ export default function UserSelect({
     fetchOptions({ input: inputValue }, (results) => {
       if (active || inputValue === '') {
         const mappedResults = results.map((result) => ({
-          value: result.displayName,
+          value: result.id,
           label: result.displayName,
           group: 'Users',
         }));
@@ -146,7 +150,7 @@ export default function UserSelect({
         fetchUsers({ input: '' }, (results) => {
           if (results) {
             const mappedResults = results.map((result) => ({
-              value: result.displayName,
+              value: result.id,
               label: result.displayName,
               group: 'Users',
             }));
