@@ -31,11 +31,11 @@ test('should sign in automatically with a refresh token', async ({ page }) => {
   await clearStorage({ page: newPage })
   await newPage.reload()
 
-  await expect(newPage.getByText(/sign in to the application/i)).toBeVisible()
+  await expect(newPage.getByText(/sign in/i).nth(1)).toBeVisible()
 
   // User should be signed in automatically
-  await newPage.goto(`${baseURL}/profile#refreshToken=${refreshToken}`)
-  await expect(newPage.getByText(/profile page/i)).toBeVisible()
+  await newPage.goto(`${baseURL}/profile?refreshToken=${refreshToken}`)
+  await expect(newPage.getByRole('heading', { name: 'Profile' })).toBeVisible()
 })
 
 test('should fail automatic sign-in when network is not available', async ({ page }) => {
@@ -61,11 +61,11 @@ test('should fail automatic sign-in when network is not available', async ({ pag
   await clearStorage({ page: newPage })
   await newPage.reload()
 
-  await expect(newPage.getByText(/sign in to the application/i)).toBeVisible()
+  await expect(newPage.getByText(/sign in/i).nth(1)).toBeVisible()
   await newPage.route(`${authBackendURL}/**`, (route) => route.abort('internetdisconnected'))
 
   // User should be signed in automatically
-  await newPage.goto(`${baseURL}/profile#refreshToken=${refreshToken}`)
+  await newPage.goto(`${baseURL}/profile?refreshToken=${refreshToken}`)
   await expect(
     newPage.getByText(/could not sign in automatically. retrying to get user information/i)
   ).toBeVisible()

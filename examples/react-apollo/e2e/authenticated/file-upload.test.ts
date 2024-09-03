@@ -12,10 +12,12 @@ test('should upload a single file', async ({ page }) => {
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
 
   const newPage = await verifyEmail({ page, email, context: page.context() })
-  await newPage.getByRole('button', { name: /storage/i }).click()
+  await newPage.getByRole('link', { name: /storage/i }).click()
 
   await newPage
-    .getByRole('button', { name: /drag a file here or click to select/i })
+    .locator('div')
+    .filter({ hasText: /^Drag a file here or click to select$/ })
+    .nth(1)
     .locator('input[type=file]')
     .setInputFiles({
       buffer: Buffer.from('file contents', 'utf-8'),
@@ -23,7 +25,7 @@ test('should upload a single file', async ({ page }) => {
       mimeType: 'text/plain'
     })
 
-  await expect(newPage.getByText(/successfully uploaded/i)).toBeVisible()
+  await expect(newPage.getByText(/Uploaded successfully/i)).toBeVisible()
 })
 
 test('should upload two files using the same single file uploader', async ({ page }) => {
@@ -36,10 +38,12 @@ test('should upload two files using the same single file uploader', async ({ pag
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
 
   const newPage = await verifyEmail({ page, email, context: page.context() })
-  await newPage.getByRole('button', { name: /storage/i }).click()
+  await newPage.getByRole('link', { name: /storage/i }).click()
 
   await newPage
-    .getByRole('button', { name: /drag a file here or click to select/i })
+    .locator('div')
+    .filter({ hasText: /^Drag a file here or click to select$/ })
+    .nth(1)
     .locator('input[type=file]')
     .setInputFiles({
       buffer: Buffer.from('file contents 1', 'utf-8'),
@@ -47,10 +51,12 @@ test('should upload two files using the same single file uploader', async ({ pag
       mimeType: 'text/plain'
     })
 
-  await expect(newPage.getByText(/successfully uploaded/i)).toBeVisible()
+  await expect(newPage.getByText(/Uploaded successfully/i)).toBeVisible()
 
   await newPage
-    .getByRole('button', { name: /successfully uploaded/i })
+    .locator('div')
+    .filter({ hasText: /^Uploaded successfully$/ })
+    .nth(1)
     .locator('input[type=file]')
     .setInputFiles({
       buffer: Buffer.from('file contents 2', 'utf-8'),
@@ -58,7 +64,7 @@ test('should upload two files using the same single file uploader', async ({ pag
       mimeType: 'text/plain'
     })
 
-  await expect(newPage.getByText(/successfully uploaded/i)).toBeVisible()
+  await expect(newPage.getByText(/Uploaded successfully/i)).toBeVisible()
 })
 
 test('should upload multiple files at once', async ({ page }) => {
@@ -71,10 +77,12 @@ test('should upload multiple files at once', async ({ page }) => {
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
 
   const newPage = await verifyEmail({ page, email, context: page.context() })
-  await newPage.getByRole('button', { name: /storage/i }).click()
+  await newPage.getByRole('link', { name: /storage/i }).click()
 
   await newPage
-    .getByRole('button', { name: /drag files here or click to select/i })
+    .locator('div')
+    .filter({ hasText: /^Drag a file here or click to select$/ })
+    .nth(3)
     .locator('input[type=file]')
     .setInputFiles([
       {
@@ -89,9 +97,9 @@ test('should upload multiple files at once', async ({ page }) => {
       }
     ])
 
-  await expect(newPage.getByRole('row').nth(0)).toHaveText('file1.txt')
-  await expect(newPage.getByRole('row').nth(1)).toHaveText('file2.txt')
+  await expect(newPage.getByText('file1.txt')).toBeVisible()
+  await expect(newPage.getByText('file2.txt')).toBeVisible()
   await newPage.getByRole('button', { name: /upload/i }).click()
 
-  await expect(newPage.getByText(/successfully uploaded/i)).toBeVisible()
+  await expect(newPage.getByText(/Uploaded successfully/i)).toBeVisible()
 })

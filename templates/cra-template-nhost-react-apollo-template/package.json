@@ -1,0 +1,13 @@
+{
+  "name": "@nhost/cra-template-react-apollo",
+  "version": "0.0.6",
+  "description": "A template project crafted to swiftly guide you in using Nhost with React",
+  "scripts": {},
+  "keywords": ["template", "React", "Nhost", "Apollo"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "publishConfig": {
+    "access": "public"
+  }
+}
