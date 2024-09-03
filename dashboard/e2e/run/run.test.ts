@@ -78,12 +78,8 @@ test('should create and delete a run service', async () => {
   await page.getByRole('menuitem', { name: /delete service/i }).click();
 
   await page.getByLabel(/confirm delete project #/i).check();
-  await page
-    .getByText(/delete service/i)
-    .nth(2)
-    .click();
 
-  await page.getByLabel('Close').click();
+  await page.getByRole('button', { name: /delete service/i }).click();
 
   await expect(
     page
