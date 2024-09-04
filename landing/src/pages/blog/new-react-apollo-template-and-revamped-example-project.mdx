@@ -1,0 +1,119 @@
+import Image from 'next/image'
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'New React Template and Example Project',
+  description:
+    'Quickstart your web projects with our new feature-rich React Apollo template and example project',
+  image:
+    '/images/blog/new-react-apollo-template-and-revamped-example-project/og-react-apollo-template.png',
+  date: '2024-09-04',
+  authors: [
+    {
+      name: 'Hassan Ben Jobrane',
+      title: 'Software Engineer',
+      avatarUrl: '/images/avatars/hassan.png',
+      url: 'https://twitter.com/_onehassan',
+    },
+  ],
+  tags: ['SDK', 'React', 'Apollo', 'template', 'example'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+We are excited to unveil our newly revamped [React Apollo example project](https://react-apollo.example.nhost.io) along
+with a powerful new template designed to accelerate your project development. This release marks a significant step in
+our commitment to providing valuable tools and resources for developers working with React and Nhost.
+
+## 🌟 New React Example Project
+
+Our example project has been rewritten from scratch using the popular UI components library
+[shadcn/ui](https://ui.shadcn.com/).
+
+### 📋 Features
+
+The examples showcases the following featureset:
+
+1. 🔒 Authentication and protected pages via:
+
+   - Email and password
+   - Social login (Google, Apple, Github...)
+   - WebAuthn
+   - Magic link
+   - Anonymous login
+
+<img
+  src="/images/blog/new-react-apollo-template-and-revamped-example-project/authentication.png"
+  alt="Authentication"
+/>
+
+2.  🔐 Elevated permissions
+
+    The example includes a basic notes feature that requires elevated permissions via WebAuthn
+    to add and delete notes.
+
+    <img
+      src="/images/blog/new-react-apollo-template-and-revamped-example-project/elevated-permission.png"
+      alt="Elevated permissions"
+    />
+
+3.  🗂️ Uploading files
+
+    Learn how to upload single or multiple files using hooks from the [Nhost React SDK](https://www.npmjs.com/package/@nhost/react).
+
+    ```tsx
+    import { useFileUpload, useMultipleFilesUpload } from '@nhost/react'
+    ```
+
+    <img
+      src="/images/blog/new-react-apollo-template-and-revamped-example-project/upload.png"
+      alt="Upload files"
+    />
+
+4.  ✅ Todos feature
+
+    This feature demonstrates how to use [Apollo Client](https://www.npmjs.com/package/@apollo/client) and [Nhost Apollo Client Integration](https://www.npmjs.com/package/@nhost/react-apollo) for querying, adding, and deleting todos.
+
+    <img
+      src="/images/blog/new-react-apollo-template-and-revamped-example-project/todos.png"
+      alt="Todos page"
+    />
+
+### 👨‍💻 Running locally
+
+The example project comes with a local Nhost setup, allowing you to get started quickly using the
+[Nhost CLI](https://docs.nhost.io/development/cli/getting-started). For more details, check out the [README](https://github.com/nhost/nhost/blob/main/examples/react-apollo/README.md).
+
+## 🏗️ New Nhost React Apollo Template
+
+To make it even simpler and faster to get started working on your next project with Nhost and React, we've published
+a new [React Apollo Template](https://www.npmjs.com/package/@nhost/cra-template-react-apollo) incorporating features
+from the example project.
+
+Getting started with the template is easy:
+
+1. Scaffold the template
+
+```shell
+npx create-react-app my-app --template @nhost/react-apollo
+```
+
+2. Replace the '\<subdomain\>' and '\<region\>' in `src/index.tsx` with you project's details
+
+3. Start the project
+
+```shell
+npm start
+```
+
+## 📘 React Quickstart Guide
+
+Alongside our template, we've provided a thorough [**Quickstart Guide**](https://docs.nhost.io/guides/quickstarts/react).
+This guide will walk you through building a basic Todo app using the [React Apollo Template](https://www.npmjs.com/package/@nhost/cra-template-react-apollo),
+covering everything from database setup to feature implementation in the code.
+
+## 🎉 Conclusion
+
+We believe this new React Apollo example project and template will significantly enhance your development workflow.
+Whether you're building a new application from scratch or seeking concrete examples on how to implement advanced features
+into an existing project. We're excited to see what you build with them and look forward to your feedback!
