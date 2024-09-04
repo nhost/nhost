@@ -6,7 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 
 export default defineConfig({
   testDir: './e2e',
-  timeout: 60 * 1000,
+  timeout: 30 * 1000,
   expect: {
     timeout: 5000,
   },
@@ -21,7 +21,7 @@ export default defineConfig({
     trace: 'on-first-retry',
     baseURL: process.env.NHOST_TEST_DASHBOARD_URL,
     launchOptions: {
-      slowMo: 500,
+      slowMo: 1000,
     },
   },
   projects: [
