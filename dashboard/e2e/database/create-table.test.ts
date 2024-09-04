@@ -1,6 +1,6 @@
 import {
-  TEST_PROJECT_NAME,
-  TEST_PROJECT_SLUG,
+  PRO_TEST_PROJECT_NAME,
+  PRO_TEST_PROJECT_SLUG,
   TEST_WORKSPACE_SLUG,
 } from '@/e2e/env';
 import { openProject, prepareTable } from '@/e2e/utils';
@@ -20,9 +20,9 @@ test.beforeEach(async () => {
 
   await openProject({
     page,
-    projectName: TEST_PROJECT_NAME,
+    projectName: PRO_TEST_PROJECT_NAME,
     workspaceSlug: TEST_WORKSPACE_SLUG,
-    projectSlug: TEST_PROJECT_SLUG,
+    projectSlug: PRO_TEST_PROJECT_SLUG,
   });
 
   await page
@@ -55,7 +55,7 @@ test('should create a simple table', async () => {
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
+    `/${TEST_WORKSPACE_SLUG}/${PRO_TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
   );
 
   await expect(
@@ -84,7 +84,7 @@ test('should create a table with unique constraints', async () => {
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
+    `/${TEST_WORKSPACE_SLUG}/${PRO_TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
   );
 
   await expect(
@@ -113,7 +113,7 @@ test('should create a table with nullable columns', async () => {
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
+    `/${TEST_WORKSPACE_SLUG}/${PRO_TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
   );
 
   await expect(
@@ -146,7 +146,7 @@ test('should create a table with an identity column', async () => {
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
+    `/${TEST_WORKSPACE_SLUG}/${PRO_TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
   );
 
   await expect(
@@ -174,7 +174,7 @@ test('should create table with foreign key constraint', async () => {
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}/database/browser/default/public/${firstTableName}`,
+    `/${TEST_WORKSPACE_SLUG}/${PRO_TEST_PROJECT_SLUG}/database/browser/default/public/${firstTableName}`,
   );
 
   await page.getByRole('button', { name: /new table/i }).click();
@@ -219,7 +219,7 @@ test('should create table with foreign key constraint', async () => {
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}/database/browser/default/public/${secondTableName}`,
+    `/${TEST_WORKSPACE_SLUG}/${PRO_TEST_PROJECT_SLUG}/database/browser/default/public/${secondTableName}`,
   );
 
   await expect(
@@ -247,7 +247,7 @@ test('should not be able to create a table with a name that already exists', asy
   await page.getByRole('button', { name: /create/i }).click();
 
   await page.waitForURL(
-    `/${TEST_WORKSPACE_SLUG}/${TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
+    `/${TEST_WORKSPACE_SLUG}/${PRO_TEST_PROJECT_SLUG}/database/browser/default/public/${tableName}`,
   );
 
   await page.getByRole('button', { name: /new table/i }).click();

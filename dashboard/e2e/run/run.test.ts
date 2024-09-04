@@ -61,11 +61,7 @@ test('should create and delete a run service', async () => {
     page.getByRole('heading', { name: /confirm resources/i }),
   ).toBeVisible();
 
-  await page.waitForTimeout(1000);
-
   await page.getByRole('button', { name: /confirm/i }).click();
-
-  await expect(page.getByRole('dialog')).toBeVisible();
 
   await expect(
     page.getByRole('heading', { name: /service details/i }),
@@ -74,16 +70,14 @@ test('should create and delete a run service', async () => {
   await page.getByRole('button', { name: /ok/i }).click();
 
   await expect(page.getByRole('heading', { name: /test/i })).toBeVisible();
+
   await page.getByLabel(/more options/i).click();
+
   await page.getByRole('menuitem', { name: /delete service/i }).click();
 
   await page.getByLabel(/confirm delete project #/i).check();
-  await page
-    .getByText(/delete service/i)
-    .nth(2)
-    .click();
 
-  await page.getByLabel('Close').click();
+  await page.getByRole('button', { name: /delete service/i }).click();
 
   await expect(
     page
