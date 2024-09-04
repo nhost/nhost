@@ -20,9 +20,6 @@ export default defineConfig({
     actionTimeout: 0,
     trace: 'on-first-retry',
     baseURL: process.env.NHOST_TEST_DASHBOARD_URL,
-    launchOptions: {
-      slowMo: 1000,
-    },
   },
   projects: [
     {
