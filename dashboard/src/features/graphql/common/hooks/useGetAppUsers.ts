@@ -1,6 +1,9 @@
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
-import type { RemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
+import type {
+  RemoteAppGetUsersCustomQuery,
+  RemoteAppGetUsersCustomQueryVariables,
+} from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersCustomQuery } from '@/utils/__generated__/graphql';
 import type { QueryHookOptions } from '@apollo/client';
 
@@ -11,7 +14,10 @@ export type UseFilesOptions = {
   /**
    * Custom options for the query.
    */
-  options?: QueryHookOptions<RemoteAppGetUsersCustomQuery>;
+  options?: QueryHookOptions<
+    RemoteAppGetUsersCustomQuery,
+    RemoteAppGetUsersCustomQueryVariables
+  >;
 };
 
 export default function useGetAppUsers({
@@ -23,8 +29,10 @@ export default function useGetAppUsers({
   const { currentProject } = useCurrentWorkspaceAndProject();
   const userApplicationClient = useRemoteApplicationGQLClient();
   const { data, error, loading } = useRemoteAppGetUsersCustomQuery({
+    ...options,
     client: userApplicationClient,
     variables: {
+      ...options.variables,
       where: searchString
         ? {
             displayName: { _ilike: `%${searchString}%` },
