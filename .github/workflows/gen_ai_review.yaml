@@ -1,0 +1,28 @@
+---
+name: "gen: AI review"
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  issue_comment:
+jobs:
+  pr_agent_job:
+    if: ${{ github.event.sender.type != 'Bot' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+    name: Run pr agent on every pull request, respond to user comments
+    steps:
+      - name: PR Agent action step
+        id: pragent
+        uses: Codium-ai/pr-agent@v0.24
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          config.max_model_tokens: 100000
+          config.model: "anthropic/claude-3-5-sonnet-20240620"
+          config.model_turbo: "anthropic/claude-3-5-sonnet-20240620"
+          config.ignore.glob: "['vendor/**','**/client_gen.go','**/models_gen.go','**/generated.go','**/*.gen.go']"

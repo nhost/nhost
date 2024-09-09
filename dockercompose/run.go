@@ -12,7 +12,7 @@ func runVolumeName(
 	volumeName string,
 	branchName string,
 ) string {
-	return fmt.Sprintf("%s-run-%s-%s", branchName, runName, volumeName)
+	return fmt.Sprintf("%s-run-%s-%s", sanitizeBranch(branchName), runName, volumeName)
 }
 
 func run(
