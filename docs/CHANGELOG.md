@@ -1,5 +1,12 @@
 # @nhost/docs
 
+## 2.17.0
+
+### Minor Changes
+
+- cffdec5: feat: update react quickstart guide to use the nhost react apollo template
+- 4cf6677: feat: update list of postgres extensions
+
 ## 2.16.0
 
 ### Minor Changes

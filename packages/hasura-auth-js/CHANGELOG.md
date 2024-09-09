@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.5.6
+
+### Patch Changes
+
+- 8b12426: fix: correct signout to send accessToken when clearing all session
+
 ## 2.5.5
 
 ### Patch Changes
