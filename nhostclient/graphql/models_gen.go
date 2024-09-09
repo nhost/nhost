@@ -9,11 +9,6 @@ import (
 	"time"
 )
 
-type BackupPresignedURL struct {
-	ExpiresAt string `json:"expires_at"`
-	URL       string `json:"url"`
-}
-
 // Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
 type BooleanComparisonExp struct {
 	Eq     *bool  `json:"_eq,omitempty"`
@@ -649,6 +644,7 @@ type ConfigHasuraSettings struct {
 	EnableConsole                         *bool    `json:"enableConsole,omitempty"`
 	EnableRemoteSchemaPermissions         *bool    `json:"enableRemoteSchemaPermissions,omitempty"`
 	EnabledAPIs                           []string `json:"enabledAPIs,omitempty"`
+	InferFunctionPermissions              *bool    `json:"inferFunctionPermissions,omitempty"`
 	LiveQueriesMultiplexedRefetchInterval *uint32  `json:"liveQueriesMultiplexedRefetchInterval,omitempty"`
 	StringifyNumericTypes                 *bool    `json:"stringifyNumericTypes,omitempty"`
 }
@@ -660,6 +656,7 @@ type ConfigHasuraSettingsUpdateInput struct {
 	EnableConsole                         *bool    `json:"enableConsole,omitempty"`
 	EnableRemoteSchemaPermissions         *bool    `json:"enableRemoteSchemaPermissions,omitempty"`
 	EnabledAPIs                           []string `json:"enabledAPIs,omitempty"`
+	InferFunctionPermissions              *bool    `json:"inferFunctionPermissions,omitempty"`
 	LiveQueriesMultiplexedRefetchInterval *uint32  `json:"liveQueriesMultiplexedRefetchInterval,omitempty"`
 	StringifyNumericTypes                 *bool    `json:"stringifyNumericTypes,omitempty"`
 }
@@ -1120,11 +1117,6 @@ type ConfigSystemConfigPostgresDisk struct {
 	Tput *uint32 `json:"tput,omitempty"`
 }
 
-type ContainerError struct {
-	LastError *LastError `json:"lastError"`
-	Name      string     `json:"name"`
-}
-
 // Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
 type IntComparisonExp struct {
 	Eq     *int64  `json:"_eq,omitempty"`
@@ -1147,38 +1139,6 @@ type InvoiceSummary struct {
 	AmountDue string         `json:"AmountDue"`
 	PeriodEnd string         `json:"PeriodEnd"`
 	Items     []*InvoiceItem `json:"items"`
-}
-
-type LastError struct {
-	ExitCode int64  `json:"exitCode"`
-	Message  string `json:"message"`
-	Reason   string `json:"reason"`
-}
-
-type Log struct {
-	Log       string `json:"log"`
-	Service   string `json:"service"`
-	Timestamp string `json:"timestamp"`
-}
-
-type Metrics struct {
-	Value string `json:"value"`
-}
-
-type ProjectStatusResponse struct {
-	Services []*ServiceStatus `json:"services"`
-}
-
-type ReplicaStatus struct {
-	Date   string            `json:"date"`
-	Errors []*ContainerError `json:"errors"`
-	Ready  bool              `json:"ready"`
-}
-
-type ServiceStatus struct {
-	Name     string           `json:"name"`
-	Replicas []*ReplicaStatus `json:"replicas"`
-	State    ServiceState     `json:"state"`
 }
 
 // Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.
@@ -4468,53 +4428,6 @@ type WorkspacesUpdates struct {
 	Set *WorkspacesSetInput `json:"_set,omitempty"`
 	// filter the rows which have to be updated
 	Where *WorkspacesBoolExp `json:"where"`
-}
-
-type ServiceState string
-
-const (
-	ServiceStateError       ServiceState = "Error"
-	ServiceStateNone        ServiceState = "None"
-	ServiceStateRunning     ServiceState = "Running"
-	ServiceStateUpdateError ServiceState = "UpdateError"
-	ServiceStateUpdating    ServiceState = "Updating"
-)
-
-var AllServiceState = []ServiceState{
-	ServiceStateError,
-	ServiceStateNone,
-	ServiceStateRunning,
-	ServiceStateUpdateError,
-	ServiceStateUpdating,
-}
-
-func (e ServiceState) IsValid() bool {
-	switch e {
-	case ServiceStateError, ServiceStateNone, ServiceStateRunning, ServiceStateUpdateError, ServiceStateUpdating:
-		return true
-	}
-	return false
-}
-
-func (e ServiceState) String() string {
-	return string(e)
-}
-
-func (e *ServiceState) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = ServiceState(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid ServiceState", str)
-	}
-	return nil
-}
-
-func (e ServiceState) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 // select columns of table "announcements"
