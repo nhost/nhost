@@ -47,7 +47,7 @@ func printlist(ce *CliEnv, workspaces []*graphql.GetWorkspacesApps_Workspaces) e
 		}
 	}
 
-	ce.Println(Table(num, subdomain, project, workspace, region))
+	ce.Println("%s", Table(num, subdomain, project, workspace, region))
 
 	return nil
 }

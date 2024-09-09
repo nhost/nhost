@@ -38,7 +38,7 @@ func commandList(cCtx *cli.Context) error {
 	}
 
 	for _, secret := range secrets.GetAppSecrets() {
-		ce.Println(secret.Name)
+		ce.Println("%s", secret.Name)
 	}
 
 	return nil

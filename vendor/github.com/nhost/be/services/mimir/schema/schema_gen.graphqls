@@ -2163,6 +2163,10 @@ type ConfigHasuraSettings {
     """
     enabledAPIs: [ConfigHasuraAPIs!]
     """
+    HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
+    """
+    inferFunctionPermissions: Boolean
+    """
     HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
     """
     liveQueriesMultiplexedRefetchInterval: ConfigUint32
@@ -2179,6 +2183,7 @@ input ConfigHasuraSettingsUpdateInput {
     enableConsole: Boolean
     enableRemoteSchemaPermissions: Boolean
         enabledAPIs: [ConfigHasuraAPIs!]
+    inferFunctionPermissions: Boolean
     liveQueriesMultiplexedRefetchInterval: ConfigUint32
     stringifyNumericTypes: Boolean
 }
@@ -2190,6 +2195,7 @@ input ConfigHasuraSettingsInsertInput {
     enableConsole: Boolean
     enableRemoteSchemaPermissions: Boolean
         enabledAPIs: [ConfigHasuraAPIs!]
+    inferFunctionPermissions: Boolean
     liveQueriesMultiplexedRefetchInterval: ConfigUint32
     stringifyNumericTypes: Boolean
 }
@@ -2204,6 +2210,7 @@ input ConfigHasuraSettingsComparisonExp {
     enableConsole: ConfigBooleanComparisonExp
     enableRemoteSchemaPermissions: ConfigBooleanComparisonExp
     enabledAPIs: ConfigHasuraAPIsComparisonExp
+    inferFunctionPermissions: ConfigBooleanComparisonExp
     liveQueriesMultiplexedRefetchInterval: ConfigUint32ComparisonExp
     stringifyNumericTypes: ConfigBooleanComparisonExp
 }

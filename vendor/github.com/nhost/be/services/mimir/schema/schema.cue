@@ -170,6 +170,9 @@ import (
 		// HASURA_GRAPHQL_ENABLED_APIS
 		enabledAPIs: [...#HasuraAPIs] | *["metadata", "graphql", "pgdump", "config"]
 
+        // HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
+        inferFunctionPermissions: bool | *true
+
 		// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
 		liveQueriesMultiplexedRefetchInterval: uint32 | *1000
 

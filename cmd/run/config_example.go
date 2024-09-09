@@ -98,7 +98,7 @@ func commandConfigExample(cCtx *cli.Context) error { //nolint:funlen
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	ce.Println(string(b))
+	ce.Println("%s", b)
 
 	return nil
 }

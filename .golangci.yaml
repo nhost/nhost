@@ -9,6 +9,7 @@ linters:
       - depguard
       - gomnd
       - execinquery
+      - exportloopref
 
 issues:
   exclude-rules:

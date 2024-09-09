@@ -73,7 +73,7 @@ func TestMakeJSONRequest(t *testing.T) {
 					)
 				}
 				if diff := cmp.Diff(tc.headers, r.Header); diff != "" {
-					t.Errorf(diff)
+					t.Errorf("%s", diff)
 				}
 
 				var requestBody any
@@ -82,7 +82,7 @@ func TestMakeJSONRequest(t *testing.T) {
 				}
 
 				if diff := cmp.Diff(tc.requestBody, requestBody); diff != "" {
-					t.Errorf(diff)
+					t.Errorf("%s", diff)
 				}
 
 				w.WriteHeader(http.StatusOK)
@@ -111,7 +111,7 @@ func TestMakeJSONRequest(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(tc.expectedResponsePayload, responsePayload); diff != "" {
-				t.Errorf(diff)
+				t.Errorf("%s", diff)
 			}
 		})
 	}

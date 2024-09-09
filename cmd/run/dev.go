@@ -74,9 +74,9 @@ func commandConfigDev(cCtx *cli.Context) error {
 	for _, v := range cfg.GetEnvironment() {
 		value := escape(v.Value)
 		if cCtx.Bool(flagDevPrependExport) {
-			ce.Println(fmt.Sprintf("export %s=\"%s\"", v.Name, value))
+			ce.Println("export %s=\"%s\"", v.Name, value)
 		} else {
-			ce.Println(fmt.Sprintf("%s=\"%s\"", v.Name, value))
+			ce.Println("%s=\"%s\"", v.Name, value)
 		}
 	}
 

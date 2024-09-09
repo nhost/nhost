@@ -90,7 +90,6 @@
         devShells = flake-utils.lib.flattenTree rec {
           default = nixops-lib.go.devShell {
             buildInputs = with pkgs; [
-              goreleaser
               certbot-full
               python312Packages.certbot-dns-route53
             ] ++ checkDeps ++ buildInputs ++ nativeBuildInputs;

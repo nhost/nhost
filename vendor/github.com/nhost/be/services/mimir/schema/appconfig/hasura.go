@@ -246,6 +246,12 @@ func HasuraEnv( //nolint:funlen,maintidx
 			SecretName: "",
 		},
 		{
+			Name:       "HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS",
+			Value:      Stringify(*config.GetHasura().GetSettings().GetInferFunctionPermissions()),
+			IsSecret:   false,
+			SecretName: "",
+		},
+		{
 			Name:       "HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES",
 			Value:      Stringify(*config.GetHasura().GetSettings().GetStringifyNumericTypes()),
 			IsSecret:   false,

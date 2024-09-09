@@ -378,6 +378,7 @@ type ComplexityRoot struct {
 		EnableConsole                         func(childComplexity int) int
 		EnableRemoteSchemaPermissions         func(childComplexity int) int
 		EnabledAPIs                           func(childComplexity int) int
+		InferFunctionPermissions              func(childComplexity int) int
 		LiveQueriesMultiplexedRefetchInterval func(childComplexity int) int
 		StringifyNumericTypes                 func(childComplexity int) int
 	}
@@ -1851,6 +1852,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigHasuraSettings.EnabledAPIs(childComplexity), true
+
+	case "ConfigHasuraSettings.inferFunctionPermissions":
+		if e.complexity.ConfigHasuraSettings.InferFunctionPermissions == nil {
+			break
+		}
+
+		return e.complexity.ConfigHasuraSettings.InferFunctionPermissions(childComplexity), true
 
 	case "ConfigHasuraSettings.liveQueriesMultiplexedRefetchInterval":
 		if e.complexity.ConfigHasuraSettings.LiveQueriesMultiplexedRefetchInterval == nil {
@@ -5642,6 +5650,10 @@ type ConfigHasuraSettings {
     """
     enabledAPIs: [ConfigHasuraAPIs!]
     """
+    HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
+    """
+    inferFunctionPermissions: Boolean
+    """
     HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
     """
     liveQueriesMultiplexedRefetchInterval: ConfigUint32
@@ -5658,6 +5670,7 @@ input ConfigHasuraSettingsUpdateInput {
     enableConsole: Boolean
     enableRemoteSchemaPermissions: Boolean
         enabledAPIs: [ConfigHasuraAPIs!]
+    inferFunctionPermissions: Boolean
     liveQueriesMultiplexedRefetchInterval: ConfigUint32
     stringifyNumericTypes: Boolean
 }
@@ -5669,6 +5682,7 @@ input ConfigHasuraSettingsInsertInput {
     enableConsole: Boolean
     enableRemoteSchemaPermissions: Boolean
         enabledAPIs: [ConfigHasuraAPIs!]
+    inferFunctionPermissions: Boolean
     liveQueriesMultiplexedRefetchInterval: ConfigUint32
     stringifyNumericTypes: Boolean
 }
@@ -5683,6 +5697,7 @@ input ConfigHasuraSettingsComparisonExp {
     enableConsole: ConfigBooleanComparisonExp
     enableRemoteSchemaPermissions: ConfigBooleanComparisonExp
     enabledAPIs: ConfigHasuraAPIsComparisonExp
+    inferFunctionPermissions: ConfigBooleanComparisonExp
     liveQueriesMultiplexedRefetchInterval: ConfigUint32ComparisonExp
     stringifyNumericTypes: ConfigBooleanComparisonExp
 }
@@ -14986,6 +15001,8 @@ func (ec *executionContext) fieldContext_ConfigHasura_settings(_ context.Context
 				return ec.fieldContext_ConfigHasuraSettings_enableRemoteSchemaPermissions(ctx, field)
 			case "enabledAPIs":
 				return ec.fieldContext_ConfigHasuraSettings_enabledAPIs(ctx, field)
+			case "inferFunctionPermissions":
+				return ec.fieldContext_ConfigHasuraSettings_inferFunctionPermissions(ctx, field)
 			case "liveQueriesMultiplexedRefetchInterval":
 				return ec.fieldContext_ConfigHasuraSettings_liveQueriesMultiplexedRefetchInterval(ctx, field)
 			case "stringifyNumericTypes":
@@ -15683,6 +15700,47 @@ func (ec *executionContext) fieldContext_ConfigHasuraSettings_enabledAPIs(_ cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ConfigHasuraAPIs does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigHasuraSettings_inferFunctionPermissions(ctx context.Context, field graphql.CollectedField, obj *model.ConfigHasuraSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigHasuraSettings_inferFunctionPermissions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InferFunctionPermissions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigHasuraSettings_inferFunctionPermissions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigHasuraSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -30292,7 +30350,7 @@ func (ec *executionContext) unmarshalInputConfigHasuraSettingsComparisonExp(ctx 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "corsDomain", "devMode", "enableAllowList", "enableConsole", "enableRemoteSchemaPermissions", "enabledAPIs", "liveQueriesMultiplexedRefetchInterval", "stringifyNumericTypes"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "corsDomain", "devMode", "enableAllowList", "enableConsole", "enableRemoteSchemaPermissions", "enabledAPIs", "inferFunctionPermissions", "liveQueriesMultiplexedRefetchInterval", "stringifyNumericTypes"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30362,6 +30420,13 @@ func (ec *executionContext) unmarshalInputConfigHasuraSettingsComparisonExp(ctx 
 				return it, err
 			}
 			it.EnabledAPIs = data
+		case "inferFunctionPermissions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inferFunctionPermissions"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.InferFunctionPermissions = data
 		case "liveQueriesMultiplexedRefetchInterval":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("liveQueriesMultiplexedRefetchInterval"))
 			data, err := ec.unmarshalOConfigUint32ComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
@@ -30389,7 +30454,7 @@ func (ec *executionContext) unmarshalInputConfigHasuraSettingsInsertInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"corsDomain", "devMode", "enableAllowList", "enableConsole", "enableRemoteSchemaPermissions", "enabledAPIs", "liveQueriesMultiplexedRefetchInterval", "stringifyNumericTypes"}
+	fieldsInOrder := [...]string{"corsDomain", "devMode", "enableAllowList", "enableConsole", "enableRemoteSchemaPermissions", "enabledAPIs", "inferFunctionPermissions", "liveQueriesMultiplexedRefetchInterval", "stringifyNumericTypes"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30438,6 +30503,13 @@ func (ec *executionContext) unmarshalInputConfigHasuraSettingsInsertInput(ctx co
 				return it, err
 			}
 			it.EnabledAPIs = data
+		case "inferFunctionPermissions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("inferFunctionPermissions"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.InferFunctionPermissions = data
 		case "liveQueriesMultiplexedRefetchInterval":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("liveQueriesMultiplexedRefetchInterval"))
 			data, err := ec.unmarshalOConfigUint322ᚖuint32(ctx, v)
@@ -37126,6 +37198,8 @@ func (ec *executionContext) _ConfigHasuraSettings(ctx context.Context, sel ast.S
 			out.Values[i] = ec._ConfigHasuraSettings_enableRemoteSchemaPermissions(ctx, field, obj)
 		case "enabledAPIs":
 			out.Values[i] = ec._ConfigHasuraSettings_enabledAPIs(ctx, field, obj)
+		case "inferFunctionPermissions":
+			out.Values[i] = ec._ConfigHasuraSettings_inferFunctionPermissions(ctx, field, obj)
 		case "liveQueriesMultiplexedRefetchInterval":
 			out.Values[i] = ec._ConfigHasuraSettings_liveQueriesMultiplexedRefetchInterval(ctx, field, obj)
 		case "stringifyNumericTypes":

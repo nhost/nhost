@@ -13349,6 +13349,8 @@ type ConfigHasuraSettings struct {
 	EnableRemoteSchemaPermissions *bool `json:"enableRemoteSchemaPermissions" toml:"enableRemoteSchemaPermissions"`
 	// HASURA_GRAPHQL_ENABLED_APIS
 	EnabledAPIs []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
+	// HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
+	InferFunctionPermissions *bool `json:"inferFunctionPermissions" toml:"inferFunctionPermissions"`
 	// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
 	LiveQueriesMultiplexedRefetchInterval *uint32 `json:"liveQueriesMultiplexedRefetchInterval" toml:"liveQueriesMultiplexedRefetchInterval"`
 	// HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
@@ -13374,6 +13376,9 @@ func (o *ConfigHasuraSettings) MarshalJSON() ([]byte, error) {
 	}
 	if o.EnabledAPIs != nil {
 		m["enabledAPIs"] = o.EnabledAPIs
+	}
+	if o.InferFunctionPermissions != nil {
+		m["inferFunctionPermissions"] = o.InferFunctionPermissions
 	}
 	if o.LiveQueriesMultiplexedRefetchInterval != nil {
 		m["liveQueriesMultiplexedRefetchInterval"] = o.LiveQueriesMultiplexedRefetchInterval
@@ -13426,6 +13431,13 @@ func (o *ConfigHasuraSettings) GetEnabledAPIs() []string {
 	return o.EnabledAPIs
 }
 
+func (o *ConfigHasuraSettings) GetInferFunctionPermissions() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettings{}
+	}
+	return o.InferFunctionPermissions
+}
+
 func (o *ConfigHasuraSettings) GetLiveQueriesMultiplexedRefetchInterval() *uint32 {
 	if o == nil {
 		o = &ConfigHasuraSettings{}
@@ -13453,6 +13465,8 @@ type ConfigHasuraSettingsUpdateInput struct {
 	IsSetEnableRemoteSchemaPermissions         bool     `json:"-"`
 	EnabledAPIs                                []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
 	IsSetEnabledAPIs                           bool     `json:"-"`
+	InferFunctionPermissions                   *bool    `json:"inferFunctionPermissions,omitempty" toml:"inferFunctionPermissions,omitempty"`
+	IsSetInferFunctionPermissions              bool     `json:"-"`
 	LiveQueriesMultiplexedRefetchInterval      *uint32  `json:"liveQueriesMultiplexedRefetchInterval,omitempty" toml:"liveQueriesMultiplexedRefetchInterval,omitempty"`
 	IsSetLiveQueriesMultiplexedRefetchInterval bool     `json:"-"`
 	StringifyNumericTypes                      *bool    `json:"stringifyNumericTypes,omitempty" toml:"stringifyNumericTypes,omitempty"`
@@ -13562,6 +13576,23 @@ func (o *ConfigHasuraSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetEnabledAPIs = true
 	}
+	if v, ok := m["inferFunctionPermissions"]; ok {
+		if v == nil {
+			o.InferFunctionPermissions = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.InferFunctionPermissions = &x
+		}
+		o.IsSetInferFunctionPermissions = true
+	}
 	if v, ok := m["liveQueriesMultiplexedRefetchInterval"]; ok {
 		if v == nil {
 			o.LiveQueriesMultiplexedRefetchInterval = nil
@@ -13649,6 +13680,13 @@ func (o *ConfigHasuraSettingsUpdateInput) GetEnabledAPIs() []string {
 	return o.EnabledAPIs
 }
 
+func (o *ConfigHasuraSettingsUpdateInput) GetInferFunctionPermissions() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettingsUpdateInput{}
+	}
+	return o.InferFunctionPermissions
+}
+
 func (o *ConfigHasuraSettingsUpdateInput) GetLiveQueriesMultiplexedRefetchInterval() *uint32 {
 	if o == nil {
 		o = &ConfigHasuraSettingsUpdateInput{}
@@ -13699,6 +13737,9 @@ func (s *ConfigHasuraSettings) Update(v *ConfigHasuraSettingsUpdateInput) {
 			}
 		}
 	}
+	if v.IsSetInferFunctionPermissions || v.InferFunctionPermissions != nil {
+		s.InferFunctionPermissions = v.InferFunctionPermissions
+	}
 	if v.IsSetLiveQueriesMultiplexedRefetchInterval || v.LiveQueriesMultiplexedRefetchInterval != nil {
 		s.LiveQueriesMultiplexedRefetchInterval = v.LiveQueriesMultiplexedRefetchInterval
 	}
@@ -13714,6 +13755,7 @@ type ConfigHasuraSettingsInsertInput struct {
 	EnableConsole                         *bool    `json:"enableConsole,omitempty" toml:"enableConsole,omitempty"`
 	EnableRemoteSchemaPermissions         *bool    `json:"enableRemoteSchemaPermissions,omitempty" toml:"enableRemoteSchemaPermissions,omitempty"`
 	EnabledAPIs                           []string `json:"enabledAPIs,omitempty" toml:"enabledAPIs,omitempty"`
+	InferFunctionPermissions              *bool    `json:"inferFunctionPermissions,omitempty" toml:"inferFunctionPermissions,omitempty"`
 	LiveQueriesMultiplexedRefetchInterval *uint32  `json:"liveQueriesMultiplexedRefetchInterval,omitempty" toml:"liveQueriesMultiplexedRefetchInterval,omitempty"`
 	StringifyNumericTypes                 *bool    `json:"stringifyNumericTypes,omitempty" toml:"stringifyNumericTypes,omitempty"`
 }
@@ -13760,6 +13802,13 @@ func (o *ConfigHasuraSettingsInsertInput) GetEnabledAPIs() []string {
 	return o.EnabledAPIs
 }
 
+func (o *ConfigHasuraSettingsInsertInput) GetInferFunctionPermissions() *bool {
+	if o == nil {
+		o = &ConfigHasuraSettingsInsertInput{}
+	}
+	return o.InferFunctionPermissions
+}
+
 func (o *ConfigHasuraSettingsInsertInput) GetLiveQueriesMultiplexedRefetchInterval() *uint32 {
 	if o == nil {
 		o = &ConfigHasuraSettingsInsertInput{}
@@ -13791,6 +13840,7 @@ func (s *ConfigHasuraSettings) Insert(v *ConfigHasuraSettingsInsertInput) {
 			s.EnabledAPIs[i] = e
 		}
 	}
+	s.InferFunctionPermissions = v.InferFunctionPermissions
 	s.LiveQueriesMultiplexedRefetchInterval = v.LiveQueriesMultiplexedRefetchInterval
 	s.StringifyNumericTypes = v.StringifyNumericTypes
 }
@@ -13813,6 +13863,7 @@ func (s *ConfigHasuraSettings) Clone() *ConfigHasuraSettings {
 		v.EnabledAPIs = make([]string, len(s.EnabledAPIs))
 		copy(v.EnabledAPIs, s.EnabledAPIs)
 	}
+	v.InferFunctionPermissions = s.InferFunctionPermissions
 	v.LiveQueriesMultiplexedRefetchInterval = s.LiveQueriesMultiplexedRefetchInterval
 	v.StringifyNumericTypes = s.StringifyNumericTypes
 	return v
@@ -13828,6 +13879,7 @@ type ConfigHasuraSettingsComparisonExp struct {
 	EnableConsole                         *ConfigBooleanComparisonExp          `json:"enableConsole,omitempty"`
 	EnableRemoteSchemaPermissions         *ConfigBooleanComparisonExp          `json:"enableRemoteSchemaPermissions,omitempty"`
 	EnabledAPIs                           *ConfigHasuraAPIsComparisonExp       `json:"enabledAPIs,omitempty"`
+	InferFunctionPermissions              *ConfigBooleanComparisonExp          `json:"inferFunctionPermissions,omitempty"`
 	LiveQueriesMultiplexedRefetchInterval *ConfigUint32ComparisonExp           `json:"liveQueriesMultiplexedRefetchInterval,omitempty"`
 	StringifyNumericTypes                 *ConfigBooleanComparisonExp          `json:"stringifyNumericTypes,omitempty"`
 }
@@ -13878,6 +13930,9 @@ func (exp *ConfigHasuraSettingsComparisonExp) Matches(o *ConfigHasuraSettings) b
 		if !found && exp.EnabledAPIs != nil {
 			return false
 		}
+	}
+	if o.InferFunctionPermissions != nil && !exp.InferFunctionPermissions.Matches(*o.InferFunctionPermissions) {
+		return false
 	}
 	if o.LiveQueriesMultiplexedRefetchInterval != nil && !exp.LiveQueriesMultiplexedRefetchInterval.Matches(*o.LiveQueriesMultiplexedRefetchInterval) {
 		return false

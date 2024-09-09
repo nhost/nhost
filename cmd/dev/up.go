@@ -486,7 +486,7 @@ func upErr(
 	downOnError bool,
 	err error,
 ) error {
-	ce.Warnln(err.Error())
+	ce.Warnln("%s", err.Error())
 
 	if !downOnError {
 		ce.PromptMessage("Do you want to stop Nhost's development environment? [y/N] ")

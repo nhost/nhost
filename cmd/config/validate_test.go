@@ -47,6 +47,7 @@ func expectedConfig() *model.ConfigConfig {
 					"pgdump",
 					"config",
 				},
+				InferFunctionPermissions:              ptr(true),
 				LiveQueriesMultiplexedRefetchInterval: ptr(uint32(1000)),
 				StringifyNumericTypes:                 ptr(false),
 			},
@@ -256,7 +257,7 @@ func TestValidate(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(tc.expected(), cfg); diff != "" {
-				t.Errorf(diff)
+				t.Errorf("%s", diff)
 			}
 		})
 	}

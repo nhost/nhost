@@ -61,6 +61,6 @@ func commandConfigShow(cCtx *cli.Context) error {
 		return fmt.Errorf("error marshalling config: %w", err)
 	}
 
-	ce.Println(string(b))
+	ce.Println("%s", b)
 	return nil
 }
