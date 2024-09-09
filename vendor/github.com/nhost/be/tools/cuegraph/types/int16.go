@@ -26,17 +26,17 @@ func UnmarshalInt16(v interface{}) (int16, error) {
 		if err != nil {
 			return 0, fmt.Errorf("problem trying to parse string: %w", err)
 		}
-		return int16(iv), nil
+		return int16(iv), nil //nolint:gosec
 	case int:
-		return int16(v), nil
+		return int16(v), nil //nolint:gosec
 	case int64:
-		return int16(v), nil
+		return int16(v), nil //nolint:gosec
 	case json.Number:
 		iv, err := strconv.ParseUint(string(v), base, int16bitSize)
 		if err != nil {
 			return 0, fmt.Errorf("problem trying to parse json.Number: %w", err)
 		}
-		return int16(iv), nil
+		return int16(iv), nil //nolint:gosec
 	default:
 		return 0, fmt.Errorf("%T is not an int", v) //nolint: goerr113
 	}

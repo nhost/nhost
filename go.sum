@@ -514,6 +514,10 @@ github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/nhost/be v0.0.0-20240908163314-496619d1918a h1:3+feiRHyXSfWb1DRdk8DePL377tOQ2dA6vAYU8k3fys=
 github.com/nhost/be v0.0.0-20240908163314-496619d1918a/go.mod h1:66uhAK6GsdrY7fv2oOQaBAKzMQO0p/pGuf12YuXNHSs=
+github.com/nhost/be v0.0.0-20240909125313-7c9f5c9566d0 h1:nGocbayWSf+PivZLt06Si/8+dLMyf+U6vi/me+1hQDQ=
+github.com/nhost/be v0.0.0-20240909125313-7c9f5c9566d0/go.mod h1:fnA4FCHOZpOIdUCXvHBav8KhvHEc2bd+xjDDJq+j+To=
+github.com/nhost/be v0.0.0-20240909130456-6e51b7cb8f1c h1:Q8ZFSWvmU/l1/YiIfdrMk2pZ/yZQFiG1abJqXZByq4o=
+github.com/nhost/be v0.0.0-20240909130456-6e51b7cb8f1c/go.mod h1:fnA4FCHOZpOIdUCXvHBav8KhvHEc2bd+xjDDJq+j+To=
 github.com/onsi/gomega v1.27.10 h1:naR28SdDFlqrG6kScpT8VWpu1xWY5nJRCF3XaYyBjhI=
 github.com/onsi/gomega v1.27.10/go.mod h1:RsS8tutOdbdgzbPtzzATp12yT7kM5I5aElG3evPbQ0M=
 github.com/pelletier/go-toml/v2 v2.2.3 h1:YmeHyLY8mFWbdkNWwpr+qIL2bEqT0o95WSdkNHvL12M=

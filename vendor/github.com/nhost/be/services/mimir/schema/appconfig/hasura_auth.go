@@ -1379,7 +1379,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		{
 			Name: "AUTH_RATE_LIMIT_GLOBAL_BURST",
 			Value: Stringify(
-				config.GetAuth().GetRateLimit().GetGlobal().GetLimit() / uint32(replicas),
+				config.GetAuth().GetRateLimit().GetGlobal().GetLimit() /
+					uint32(replicas), //nolint:gosec
 			),
 			IsSecret:   false,
 			SecretName: "",
@@ -1399,7 +1400,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		{
 			Name: "AUTH_RATE_LIMIT_EMAIL_BURST",
 			Value: Stringify(
-				config.GetAuth().GetRateLimit().GetEmails().GetLimit() / uint32(replicas),
+				config.GetAuth().GetRateLimit().GetEmails().GetLimit() /
+					uint32(replicas), //nolint:gosec
 			),
 			IsSecret:   false,
 			SecretName: "",
@@ -1413,7 +1415,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		{
 			Name: "AUTH_RATE_LIMIT_SMS_BURST",
 			Value: Stringify(
-				config.GetAuth().GetRateLimit().GetSms().GetLimit() / uint32(replicas),
+				config.GetAuth().GetRateLimit().GetSms().GetLimit() /
+					uint32(replicas), //nolint:gosec
 			),
 			IsSecret:   false,
 			SecretName: "",
@@ -1427,7 +1430,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		{
 			Name: "AUTH_RATE_LIMIT_BRUTE_FORCE_BURST",
 			Value: Stringify(
-				config.GetAuth().GetRateLimit().GetBruteForce().GetLimit() / uint32(replicas),
+				config.GetAuth().GetRateLimit().GetBruteForce().GetLimit() /
+					uint32(replicas), //nolint:gosec
 			),
 			IsSecret:   false,
 			SecretName: "",
@@ -1441,7 +1445,8 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		{
 			Name: "AUTH_RATE_LIMIT_SIGNUPS_BURST",
 			Value: Stringify(
-				config.GetAuth().GetRateLimit().GetSignups().GetLimit() / uint32(replicas),
+				config.GetAuth().GetRateLimit().GetSignups().GetLimit() /
+					uint32(replicas), //nolint:gosec
 			),
 			IsSecret:   false,
 			SecretName: "",
