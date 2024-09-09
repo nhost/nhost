@@ -1,5 +1,18 @@
 # @nhost/dashboard
 
+## 1.28.0
+
+### Minor Changes
+
+- 526183a: feat: allow filtering users in "make request as" in graphql section
+- be3b85b: feat: add conceal errors toggle on auth settings page
+
+### Patch Changes
+
+- 35a2f12: fix: prevent run service details from opening when attempting to delete
+  - @nhost/react-apollo@12.0.6
+  - @nhost/nextjs@2.1.20
+
 ## 1.27.0
 
 ### Minor Changes
