@@ -20,6 +20,7 @@
     "useUnknownInCatchVariables": false,
     "types": ["@types/ace"],
     "paths": {
+      "@/*": ["./*"],
       "@/tests/*": ["tests/*"],
       "@/e2e/*": ["../e2e/*"],
       "@/components/*": ["components/*"],

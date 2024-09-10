@@ -195,11 +195,11 @@ importers:
         specifier: ^11.11.5
         version: 11.13.0(@emotion/react@11.13.3)(@types/react@18.3.4)(react@18.2.0)
       '@fontsource/inter':
-        specifier: ^5.0.17
-        version: 5.0.20
+        specifier: ^5.0.21
+        version: 5.0.21
       '@fontsource/roboto-mono':
-        specifier: ^5.0.17
-        version: 5.0.19
+        specifier: ^5.0.20
+        version: 5.0.20
       '@graphiql/react':
         specifier: ^0.22.3
         version: 0.22.4(@codemirror/language@6.10.2)(@types/node@16.18.106)(@types/react-dom@18.3.0)(@types/react@18.3.4)(graphql-ws@5.16.0)(graphql@16.8.1)(react-dom@18.2.0)(react@18.2.0)
@@ -278,6 +278,9 @@ importers:
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
+      class-variance-authority:
+        specifier: ^0.7.0
+        version: 0.7.0
       clsx:
         specifier: ^1.2.1
         version: 1.2.1
@@ -311,6 +314,9 @@ importers:
       lodash.debounce:
         specifier: ^4.0.8
         version: 4.0.8
+      lucide-react:
+        specifier: ^0.416.0
+        version: 0.416.0(react@18.2.0)
       next:
         specifier: ^14.2.10
         version: 14.2.12(@babel/core@7.25.2)(@playwright/test@1.41.0)(react-dom@18.2.0)(react@18.2.0)
@@ -386,6 +392,9 @@ importers:
       tailwind-merge:
         specifier: ^1.14.0
         version: 1.14.0
+      tailwindcss-animate:
+        specifier: ^1.0.7
+        version: 1.0.7(tailwindcss@3.4.10)
       utility-types:
         specifier: ^3.11.0
         version: 3.11.0
@@ -1088,7 +1097,7 @@ importers:
         version: 3.8.6(postcss@8.4.47)(svelte@4.2.19)
       tailwindcss:
         specifier: ^3.4.3
-        version: 3.4.10
+        version: 3.4.10(ts-node@10.9.2)
       typescript:
         specifier: ^5.4.3
         version: 5.5.4
@@ -2042,7 +2051,7 @@ importers:
         version: 9.7.0(react@18.2.0)
       '@nhost/react':
         specifier: ^3.5.4
-        version: link:../../../packages/react
+        version: 3.5.6(@types/react@18.3.4)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/react-apollo':
         specifier: ^12.0.4
         version: 12.0.6(@apollo/client@3.11.4)(@nhost/react@packages+react)(react-dom@18.2.0)(react@18.2.0)
@@ -2168,7 +2177,7 @@ importers:
         version: 3.11.4(@types/react@18.3.4)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/react':
         specifier: ^3.5.2
-        version: link:../../../packages/react
+        version: 3.5.6(@types/react@18.3.4)(react-dom@18.2.0)(react@18.2.0)
       '@nhost/react-apollo':
         specifier: ^12.0.2
         version: 12.0.6(@apollo/client@3.11.4)(@nhost/react@packages+react)(react-dom@18.2.0)(react@18.2.0)
@@ -5717,12 +5726,12 @@ packages:
     resolution: {integrity: sha512-X8R8Oj771YRl/w+c1HqAC1szL8zWQRwFvgDwT129k9ACdBoud/+/rX9V0qiMl6LWUdP9voC2nDVZYPMQQsb6eA==}
     dev: false
 
-  /@fontsource/inter@5.0.20:
-    resolution: {integrity: sha512-rtw2F7xfM7rJmmnncXnR4ADr5wXsp4GyN1O1jmQJ1PMjAK+bm620/ZkQkeOYOkGoa09OksGinOeMA+Mkt6K9PQ==}
+  /@fontsource/inter@5.0.21:
+    resolution: {integrity: sha512-Y4Ph0bYD5IfW8r9PSeiNjLvM6D/Bh5+YT9jOKiBqW3YS+AEBlmy8v74TpTNeZAvL3zHmikHCnzaKw7ob8LZiKQ==}
     dev: false
 
-  /@fontsource/roboto-mono@5.0.19:
-    resolution: {integrity: sha512-v9xg3ewKQoOJVKZWzRvFIT75mtTkrvKbyx52SScre0qRfvEWt9WvOLoR+Wsxfj4l0A4kwGPlOdNs6sy74OJoow==}
+  /@fontsource/roboto-mono@5.0.20:
+    resolution: {integrity: sha512-QxeGGLF37FfBcTX/qQLbL95PbaSzItft8UczmkBz8mqw/h84OgDkUPQ/OxvCpGA3EKYEvVT6HvBFkjOsG71UBg==}
     dev: false
 
   /@google-cloud/common@5.0.2:
@@ -6967,7 +6976,7 @@ packages:
   /@graphql-typed-document-node/core@3.2.0(graphql@16.8.1):
     resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       graphql: 16.8.1
 
@@ -8864,7 +8873,6 @@ packages:
       jwt-decode: 4.0.0
     transitivePeerDependencies:
       - encoding
-    dev: true
 
   /@nhost/hasura-auth-js@2.6.0:
     resolution: {integrity: sha512-gy2H/JlwSzpfFdpczFaVwheGq95SxmyzxJVTimBLCdVTl2yrnCZ3Zvk8gDpCcGLga/u+HjgRK+ymjH+RdNgiTg==}
@@ -8876,7 +8884,6 @@ packages:
       xstate: 4.38.3
     transitivePeerDependencies:
       - encoding
-    dev: true
 
   /@nhost/hasura-storage-js@2.5.1:
     resolution: {integrity: sha512-I3rOSa095lcR9BUmNw7dOoXLPWL39WOcrb0paUBFX4h3ltR92ILEHTZ38hN6bZSv157ZdqkIFNL/M2G45SSf7g==}
@@ -8887,7 +8894,6 @@ packages:
       xstate: 4.38.3
     transitivePeerDependencies:
       - encoding
-    dev: true
 
   /@nhost/nhost-js@3.1.10(graphql@16.8.1):
     resolution: {integrity: sha512-9KOX1krHu1UYAxTCUuRgRlaD97Nylzstck9YRSYwW27dHqDKhWUM5OWwOmOxJ2/W+Ty0V6EYbxuW2LRzrsdt1A==}
@@ -8901,7 +8907,43 @@ packages:
       isomorphic-unfetch: 3.1.0
     transitivePeerDependencies:
       - encoding
-    dev: true
+
+  /@nhost/react-apollo@12.0.6(@apollo/client@3.11.4)(@nhost/react@3.5.6)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-6Q4uN7PvC6UqS4YPKbjv/q/9FMP4SECdEcZFrfaKfJrcWyoAA5MRwJeQwDnD3uhx+npEUNgTbBxezXHjYH3AYw==}
+    peerDependencies:
+      '@apollo/client': ^3.7.10
+      '@nhost/react': 3.5.6
+      graphql: 16.8.1
+      react: 18.2.0
+      react-dom: 18.2.0
+    dependencies:
+      '@apollo/client': 3.11.4(@types/react@18.3.4)(react-dom@18.2.0)(react@18.2.0)
+      '@nhost/apollo': 7.1.6(@apollo/client@3.11.4)
+      '@nhost/react': 3.5.6(@types/react@18.3.4)(react-dom@18.2.0)(react@18.2.0)
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    transitivePeerDependencies:
+      - '@nhost/nhost-js'
+    dev: false
+
+  /@nhost/react@3.5.6(@types/react@18.3.4)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-EdhOo6cO0TP3s1G1daPf5vqu96IAwhwzTtmXjnByIRxibCxsI7f/C4WfgnoLnpUSaSkTn64K/GXH+uxuTi0T7A==}
+    peerDependencies:
+      react: 18.2.0
+      react-dom: 18.2.0
+    dependencies:
+      '@nhost/nhost-js': 3.1.9(graphql@16.8.1)
+      '@xstate/react': 3.2.2(@types/react@18.3.4)(react@18.2.0)(xstate@4.38.3)
+      jwt-decode: 4.0.0
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      xstate: 4.38.3
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@xstate/fsm'
+      - encoding
+      - graphql
+    dev: false
 
   /@nhost/react-apollo@12.0.6(@apollo/client@3.11.4)(@nhost/react@packages+react)(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-6Q4uN7PvC6UqS4YPKbjv/q/9FMP4SECdEcZFrfaKfJrcWyoAA5MRwJeQwDnD3uhx+npEUNgTbBxezXHjYH3AYw==}
@@ -20768,7 +20810,7 @@ packages:
     resolution: {integrity: sha512-FdSNcu2QQcWnM2VNvSCCDCVS5PpPqpzgFT8+GXzqJuoDd0CBncxCY278u4mhRO7tMgo2JjgJA5aZ+nWSQ/Z+xg==}
     engines: {node: '>=10'}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       graphql: 16.8.1
       tslib: 2.7.0
@@ -22252,7 +22294,7 @@ packages:
   /isomorphic-unfetch@3.1.0:
     resolution: {integrity: sha512-geDJjpoZ8N0kWexiwkX8F9NkTsXhetLPVbZFQ+JTW239QNOwvB0gniuR1Wc6f0AMTn7/mFGyXvHTifrCp/GH8Q==}
     dependencies:
-      node-fetch: 2.7.0
+      node-fetch: 2.7.0(encoding@0.1.13)
       unfetch: 4.2.0
     transitivePeerDependencies:
       - encoding
@@ -26100,17 +26142,6 @@ packages:
 
   /node-fetch@2.6.13:
     resolution: {integrity: sha512-StxNAxh15zr77QvvkmveSQ8uCQ4+v5FkvNTj0OESmiHu+VRi/gXArXtkWMElOsOUNLtUEvI4yS+rdtOHZTwlQA==}
-    engines: {node: 4.x || >=6.0.0}
-    peerDependencies:
-      encoding: ^0.1.0
-    peerDependenciesMeta:
-      encoding:
-        optional: true
-    dependencies:
-      whatwg-url: 5.0.0
-
-  /node-fetch@2.7.0:
-    resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
     engines: {node: 4.x || >=6.0.0}
     peerDependencies:
       encoding: ^0.1.0
@@ -31334,6 +31365,7 @@ packages:
       typescript:
         optional: true
     dependencies:
+      '@babel/core': 7.25.2
       '@types/pug': 2.0.10
       detect-indent: 6.1.0
       magic-string: 0.30.11
