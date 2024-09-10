@@ -35,7 +35,7 @@
     "dotenv": "8.2.0",
     "email-templates": "^11.1.1",
     "email-validator": "^2.0.4",
-    "express": "^4.19.2",
+    "express": "^4.20.0",
     "express-jsdoc-swagger": "^1.8.0",
     "express-session": "^1.18.0",
     "express-winston": "^4.2.0",
@@ -176,7 +176,8 @@
       "ws@^8.0.0 <8.17.1": "8.17.1",
       "elliptic@>=4.0.0 <=6.5.6": ">=6.5.7",
       "elliptic@>=2.0.0 <=6.5.6": ">=6.5.7",
-      "elliptic@>=5.2.1 <=6.5.6": ">=6.5.7"
+      "elliptic@>=5.2.1 <=6.5.6": ">=6.5.7",
+      "micromatch@<4.0.8": ">=4.0.8"
     }
   }
 }
