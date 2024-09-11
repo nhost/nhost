@@ -12,7 +12,6 @@ import { Chip } from '@/components/ui/v2/Chip';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
 import { LockIcon } from '@/components/ui/v2/icons/LockIcon';
 import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
@@ -20,7 +19,6 @@ import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { TerminalIcon } from '@/components/ui/v2/icons/TerminalIcon';
 import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { UsersIcon } from '@/components/ui/v2/icons/UsersIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Option } from '@/components/ui/v2/Option';
@@ -312,15 +310,6 @@ function DataBrowserSidebarContent({
               Your project is connected to GitHub. Please use the CLI to make
               schema changes.
             </Text>
-            <Link
-              href="https://docs.nhost.io/platform/github-integration"
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
-              className="grid items-center justify-start grid-flow-col gap-1"
-            >
-              Learn More <ArrowRightIcon />
-            </Link>
           </Box>
         )}
         {!isSelectedSchemaLocked && (
