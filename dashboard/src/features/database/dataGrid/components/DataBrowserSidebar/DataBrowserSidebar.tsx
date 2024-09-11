@@ -312,15 +312,6 @@ function DataBrowserSidebarContent({
               Your project is connected to GitHub. Please use the CLI to make
               schema changes.
             </Text>
-            <Link
-              href="https://docs.nhost.io/platform/github-integration"
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
-              className="grid items-center justify-start grid-flow-col gap-1"
-            >
-              Learn More <ArrowRightIcon />
-            </Link>
           </Box>
         )}
         {!isSelectedSchemaLocked && (
