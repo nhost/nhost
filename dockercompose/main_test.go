@@ -361,6 +361,7 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 		Observability: &model.ConfigObservability{
 			Grafana: &model.ConfigGrafana{
 				AdminPassword: "grafanaAdminPassword",
+				Smtp:          nil,
 			},
 		},
 	}

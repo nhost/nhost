@@ -27,6 +27,7 @@ func DefaultConfig() (*model.ConfigConfig, error) {
 		Observability: &model.ConfigObservability{
 			Grafana: &model.ConfigGrafana{
 				AdminPassword: "{{ secrets.GRAFANA_ADMIN_PASSWORD }}",
+				Smtp:          nil,
 			},
 		},
 	}

@@ -333,6 +333,15 @@ type ComplexityRoot struct {
 
 	ConfigGrafana struct {
 		AdminPassword func(childComplexity int) int
+		Smtp          func(childComplexity int) int
+	}
+
+	ConfigGrafanaSmtp struct {
+		Host     func(childComplexity int) int
+		Password func(childComplexity int) int
+		Port     func(childComplexity int) int
+		Sender   func(childComplexity int) int
+		User     func(childComplexity int) int
 	}
 
 	ConfigGraphql struct {
@@ -1684,6 +1693,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigGrafana.AdminPassword(childComplexity), true
+
+	case "ConfigGrafana.smtp":
+		if e.complexity.ConfigGrafana.Smtp == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafana.Smtp(childComplexity), true
+
+	case "ConfigGrafanaSmtp.host":
+		if e.complexity.ConfigGrafanaSmtp.Host == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanaSmtp.Host(childComplexity), true
+
+	case "ConfigGrafanaSmtp.password":
+		if e.complexity.ConfigGrafanaSmtp.Password == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanaSmtp.Password(childComplexity), true
+
+	case "ConfigGrafanaSmtp.port":
+		if e.complexity.ConfigGrafanaSmtp.Port == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanaSmtp.Port(childComplexity), true
+
+	case "ConfigGrafanaSmtp.sender":
+		if e.complexity.ConfigGrafanaSmtp.Sender == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanaSmtp.Sender(childComplexity), true
+
+	case "ConfigGrafanaSmtp.user":
+		if e.complexity.ConfigGrafanaSmtp.User == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanaSmtp.User(childComplexity), true
 
 	case "ConfigGraphql.security":
 		if e.complexity.ConfigGraphql.Security == nil {
@@ -3145,6 +3196,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigGlobalInsertInput,
 		ec.unmarshalInputConfigGrafanaComparisonExp,
 		ec.unmarshalInputConfigGrafanaInsertInput,
+		ec.unmarshalInputConfigGrafanaSmtpComparisonExp,
+		ec.unmarshalInputConfigGrafanaSmtpInsertInput,
 		ec.unmarshalInputConfigGraphqlComparisonExp,
 		ec.unmarshalInputConfigGraphqlInsertInput,
 		ec.unmarshalInputConfigGraphqlSecurityComparisonExp,
@@ -5358,14 +5411,20 @@ type ConfigGrafana {
 
     """
     adminPassword: String!
+    """
+
+    """
+    smtp: ConfigGrafanaSmtp
 }
 
 input ConfigGrafanaUpdateInput {
     adminPassword: String
+    smtp: ConfigGrafanaSmtpUpdateInput
 }
 
 input ConfigGrafanaInsertInput {
     adminPassword: String!
+    smtp: ConfigGrafanaSmtpInsertInput
 }
 
 input ConfigGrafanaComparisonExp {
@@ -5373,6 +5432,60 @@ input ConfigGrafanaComparisonExp {
     _not: ConfigGrafanaComparisonExp
     _or: [ConfigGrafanaComparisonExp!]
     adminPassword: ConfigStringComparisonExp
+    smtp: ConfigGrafanaSmtpComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanaSmtp {
+    """
+
+    """
+    host: String!
+    """
+
+    """
+    port: ConfigPort!
+    """
+
+    """
+    sender: String!
+    """
+
+    """
+    user: String!
+    """
+
+    """
+    password: String!
+}
+
+input ConfigGrafanaSmtpUpdateInput {
+    host: String
+    port: ConfigPort
+    sender: String
+    user: String
+    password: String
+}
+
+input ConfigGrafanaSmtpInsertInput {
+    host: String!
+    port: ConfigPort!
+    sender: String!
+    user: String!
+    password: String!
+}
+
+input ConfigGrafanaSmtpComparisonExp {
+    _and: [ConfigGrafanaSmtpComparisonExp!]
+    _not: ConfigGrafanaSmtpComparisonExp
+    _or: [ConfigGrafanaSmtpComparisonExp!]
+    host: ConfigStringComparisonExp
+    port: ConfigPortComparisonExp
+    sender: ConfigStringComparisonExp
+    user: ConfigStringComparisonExp
+    password: ConfigStringComparisonExp
 }
 
 """
@@ -14630,6 +14743,279 @@ func (ec *executionContext) fieldContext_ConfigGrafana_adminPassword(_ context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigGrafana_smtp(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafana) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafana_smtp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Smtp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigGrafanaSmtp)
+	fc.Result = res
+	return ec.marshalOConfigGrafanaSmtp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtp(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafana_smtp(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafana",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "host":
+				return ec.fieldContext_ConfigGrafanaSmtp_host(ctx, field)
+			case "port":
+				return ec.fieldContext_ConfigGrafanaSmtp_port(ctx, field)
+			case "sender":
+				return ec.fieldContext_ConfigGrafanaSmtp_sender(ctx, field)
+			case "user":
+				return ec.fieldContext_ConfigGrafanaSmtp_user(ctx, field)
+			case "password":
+				return ec.fieldContext_ConfigGrafanaSmtp_password(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigGrafanaSmtp", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanaSmtp_host(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanaSmtp) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanaSmtp_host(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Host, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanaSmtp_host(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanaSmtp",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanaSmtp_port(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanaSmtp) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanaSmtp_port(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Port, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(uint16)
+	fc.Result = res
+	return ec.marshalNConfigPort2uint16(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanaSmtp_port(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanaSmtp",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ConfigPort does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanaSmtp_sender(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanaSmtp) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanaSmtp_sender(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Sender, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanaSmtp_sender(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanaSmtp",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanaSmtp_user(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanaSmtp) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanaSmtp_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanaSmtp_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanaSmtp",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanaSmtp_password(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanaSmtp) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanaSmtp_password(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Password, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanaSmtp_password(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanaSmtp",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigGraphql_security(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGraphql) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigGraphql_security(ctx, field)
 	if err != nil {
@@ -16710,6 +17096,8 @@ func (ec *executionContext) fieldContext_ConfigObservability_grafana(_ context.C
 			switch field.Name {
 			case "adminPassword":
 				return ec.fieldContext_ConfigGrafana_adminPassword(ctx, field)
+			case "smtp":
+				return ec.fieldContext_ConfigGrafana_smtp(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigGrafana", field.Name)
 		},
@@ -29609,7 +29997,7 @@ func (ec *executionContext) unmarshalInputConfigGrafanaComparisonExp(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "adminPassword"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "adminPassword", "smtp"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -29644,6 +30032,13 @@ func (ec *executionContext) unmarshalInputConfigGrafanaComparisonExp(ctx context
 				return it, err
 			}
 			it.AdminPassword = data
+		case "smtp":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("smtp"))
+			data, err := ec.unmarshalOConfigGrafanaSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Smtp = data
 		}
 	}
 
@@ -29657,7 +30052,7 @@ func (ec *executionContext) unmarshalInputConfigGrafanaInsertInput(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"adminPassword"}
+	fieldsInOrder := [...]string{"adminPassword", "smtp"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -29671,6 +30066,144 @@ func (ec *executionContext) unmarshalInputConfigGrafanaInsertInput(ctx context.C
 				return it, err
 			}
 			it.AdminPassword = data
+		case "smtp":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("smtp"))
+			data, err := ec.unmarshalOConfigGrafanaSmtpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Smtp = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanaSmtpComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanaSmtpComparisonExp, error) {
+	var it model.ConfigGrafanaSmtpComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "host", "port", "sender", "user", "password"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigGrafanaSmtpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigGrafanaSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigGrafanaSmtpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "host":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Host = data
+		case "port":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("port"))
+			data, err := ec.unmarshalOConfigPortComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigPortComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Port = data
+		case "sender":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sender"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Sender = data
+		case "user":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.User = data
+		case "password":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanaSmtpInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanaSmtpInsertInput, error) {
+	var it model.ConfigGrafanaSmtpInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"host", "port", "sender", "user", "password"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "host":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("host"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Host = data
+		case "port":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("port"))
+			data, err := ec.unmarshalNConfigPort2uint16(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Port = data
+		case "sender":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sender"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Sender = data
+		case "user":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.User = data
+		case "password":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
 		}
 	}
 
@@ -36903,6 +37436,67 @@ func (ec *executionContext) _ConfigGrafana(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "smtp":
+			out.Values[i] = ec._ConfigGrafana_smtp(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configGrafanaSmtpImplementors = []string{"ConfigGrafanaSmtp"}
+
+func (ec *executionContext) _ConfigGrafanaSmtp(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigGrafanaSmtp) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configGrafanaSmtpImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigGrafanaSmtp")
+		case "host":
+			out.Values[i] = ec._ConfigGrafanaSmtp_host(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "port":
+			out.Values[i] = ec._ConfigGrafanaSmtp_port(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "sender":
+			out.Values[i] = ec._ConfigGrafanaSmtp_sender(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "user":
+			out.Values[i] = ec._ConfigGrafanaSmtp_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "password":
+			out.Values[i] = ec._ConfigGrafanaSmtp_password(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -40082,6 +40676,11 @@ func (ec *executionContext) unmarshalNConfigGrafanaComparisonExp2ᚖgithubᚗcom
 
 func (ec *executionContext) unmarshalNConfigGrafanaInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaInsertInput, error) {
 	res, err := ec.unmarshalInputConfigGrafanaInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanaSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaSmtpComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigGrafanaSmtpComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -43810,6 +44409,58 @@ func (ec *executionContext) unmarshalOConfigGrafanaComparisonExp2ᚖgithubᚗcom
 	}
 	res, err := ec.unmarshalInputConfigGrafanaComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigGrafanaSmtp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtp(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGrafanaSmtp) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigGrafanaSmtp(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanaSmtpComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanaSmtpComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanaSmtpComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanaSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanaSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaSmtpComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGrafanaSmtpComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanaSmtpInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaSmtpInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGrafanaSmtpInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanaSmtpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaSmtpUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigGrafanaSmtpUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOConfigGrafanaUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaUpdateInput, error) {

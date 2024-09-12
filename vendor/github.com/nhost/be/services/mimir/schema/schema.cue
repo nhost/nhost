@@ -643,6 +643,14 @@ import (
 
 #Grafana: {
 	adminPassword: string
+
+    smtp?: {
+        host:     string & net.FQDN | net.IP
+        port:     #Port
+        sender:   string
+        user:     string
+        password: string
+    }
 }
 
 #RunServicePort: {

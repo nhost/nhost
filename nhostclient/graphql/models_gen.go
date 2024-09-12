@@ -576,11 +576,29 @@ type ConfigGlobalUpdateInput struct {
 }
 
 type ConfigGrafana struct {
-	AdminPassword string `json:"adminPassword"`
+	AdminPassword string             `json:"adminPassword"`
+	SMTP          *ConfigGrafanaSMTP `json:"smtp,omitempty"`
+}
+
+type ConfigGrafanaSMTP struct {
+	Host     string `json:"host"`
+	Password string `json:"password"`
+	Port     uint32 `json:"port"`
+	Sender   string `json:"sender"`
+	User     string `json:"user"`
+}
+
+type ConfigGrafanaSMTPUpdateInput struct {
+	Host     *string `json:"host,omitempty"`
+	Password *string `json:"password,omitempty"`
+	Port     *uint32 `json:"port,omitempty"`
+	Sender   *string `json:"sender,omitempty"`
+	User     *string `json:"user,omitempty"`
 }
 
 type ConfigGrafanaUpdateInput struct {
-	AdminPassword *string `json:"adminPassword,omitempty"`
+	AdminPassword *string                       `json:"adminPassword,omitempty"`
+	SMTP          *ConfigGrafanaSMTPUpdateInput `json:"smtp,omitempty"`
 }
 
 type ConfigGraphql struct {

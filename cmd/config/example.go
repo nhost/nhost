@@ -427,6 +427,13 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 		Observability: &model.ConfigObservability{
 			Grafana: &model.ConfigGrafana{
 				AdminPassword: "grafanaAdminPassword",
+				Smtp: &model.ConfigGrafanaSmtp{
+					Host:     "localhost",
+					Port:     25,
+					Sender:   "admin@localhost",
+					User:     "smtpUser",
+					Password: "smtpPassword",
+				},
 			},
 		},
 	}

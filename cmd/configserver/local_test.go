@@ -56,6 +56,7 @@ func newApp() *graph.App {
 			Observability: &model.ConfigObservability{
 				Grafana: &model.ConfigGrafana{
 					AdminPassword: "asdasd",
+					Smtp:          nil,
 				},
 			},
 		},

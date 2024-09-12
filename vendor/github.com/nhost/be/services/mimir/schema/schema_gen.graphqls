@@ -1871,14 +1871,20 @@ type ConfigGrafana {
 
     """
     adminPassword: String!
+    """
+
+    """
+    smtp: ConfigGrafanaSmtp
 }
 
 input ConfigGrafanaUpdateInput {
     adminPassword: String
+    smtp: ConfigGrafanaSmtpUpdateInput
 }
 
 input ConfigGrafanaInsertInput {
     adminPassword: String!
+    smtp: ConfigGrafanaSmtpInsertInput
 }
 
 input ConfigGrafanaComparisonExp {
@@ -1886,6 +1892,60 @@ input ConfigGrafanaComparisonExp {
     _not: ConfigGrafanaComparisonExp
     _or: [ConfigGrafanaComparisonExp!]
     adminPassword: ConfigStringComparisonExp
+    smtp: ConfigGrafanaSmtpComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanaSmtp {
+    """
+
+    """
+    host: String!
+    """
+
+    """
+    port: ConfigPort!
+    """
+
+    """
+    sender: String!
+    """
+
+    """
+    user: String!
+    """
+
+    """
+    password: String!
+}
+
+input ConfigGrafanaSmtpUpdateInput {
+    host: String
+    port: ConfigPort
+    sender: String
+    user: String
+    password: String
+}
+
+input ConfigGrafanaSmtpInsertInput {
+    host: String!
+    port: ConfigPort!
+    sender: String!
+    user: String!
+    password: String!
+}
+
+input ConfigGrafanaSmtpComparisonExp {
+    _and: [ConfigGrafanaSmtpComparisonExp!]
+    _not: ConfigGrafanaSmtpComparisonExp
+    _or: [ConfigGrafanaSmtpComparisonExp!]
+    host: ConfigStringComparisonExp
+    port: ConfigPortComparisonExp
+    sender: ConfigStringComparisonExp
+    user: ConfigStringComparisonExp
+    password: ConfigStringComparisonExp
 }
 
 """

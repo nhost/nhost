@@ -11638,11 +11638,16 @@ func (exp *ConfigGlobalEnvironmentVariableComparisonExp) Matches(o *ConfigGlobal
 
 type ConfigGrafana struct {
 	AdminPassword string `json:"adminPassword" toml:"adminPassword"`
+
+	Smtp *ConfigGrafanaSmtp `json:"smtp,omitempty" toml:"smtp,omitempty"`
 }
 
 func (o *ConfigGrafana) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	m["adminPassword"] = o.AdminPassword
+	if o.Smtp != nil {
+		m["smtp"] = o.Smtp
+	}
 	return json.Marshal(m)
 }
 
@@ -11653,9 +11658,18 @@ func (o *ConfigGrafana) GetAdminPassword() string {
 	return o.AdminPassword
 }
 
+func (o *ConfigGrafana) GetSmtp() *ConfigGrafanaSmtp {
+	if o == nil {
+		return nil
+	}
+	return o.Smtp
+}
+
 type ConfigGrafanaUpdateInput struct {
-	AdminPassword      *string `json:"adminPassword,omitempty" toml:"adminPassword,omitempty"`
-	IsSetAdminPassword bool    `json:"-"`
+	AdminPassword      *string                       `json:"adminPassword,omitempty" toml:"adminPassword,omitempty"`
+	IsSetAdminPassword bool                          `json:"-"`
+	Smtp               *ConfigGrafanaSmtpUpdateInput `json:"smtp,omitempty" toml:"smtp,omitempty"`
+	IsSetSmtp          bool                          `json:"-"`
 }
 
 func (o *ConfigGrafanaUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -11680,6 +11694,16 @@ func (o *ConfigGrafanaUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetAdminPassword = true
 	}
+	if x, ok := m["smtp"]; ok {
+		if x != nil {
+			t := &ConfigGrafanaSmtpUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Smtp = t
+		}
+		o.IsSetSmtp = true
+	}
 
 	return nil
 }
@@ -11698,6 +11722,13 @@ func (o *ConfigGrafanaUpdateInput) GetAdminPassword() *string {
 	return o.AdminPassword
 }
 
+func (o *ConfigGrafanaUpdateInput) GetSmtp() *ConfigGrafanaSmtpUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Smtp
+}
+
 func (s *ConfigGrafana) Update(v *ConfigGrafanaUpdateInput) {
 	if v == nil {
 		return
@@ -11707,10 +11738,21 @@ func (s *ConfigGrafana) Update(v *ConfigGrafanaUpdateInput) {
 			s.AdminPassword = *v.AdminPassword
 		}
 	}
+	if v.IsSetSmtp || v.Smtp != nil {
+		if v.Smtp == nil {
+			s.Smtp = nil
+		} else {
+			if s.Smtp == nil {
+				s.Smtp = &ConfigGrafanaSmtp{}
+			}
+			s.Smtp.Update(v.Smtp)
+		}
+	}
 }
 
 type ConfigGrafanaInsertInput struct {
-	AdminPassword string `json:"adminPassword,omitempty" toml:"adminPassword,omitempty"`
+	AdminPassword string                        `json:"adminPassword,omitempty" toml:"adminPassword,omitempty"`
+	Smtp          *ConfigGrafanaSmtpInsertInput `json:"smtp,omitempty" toml:"smtp,omitempty"`
 }
 
 func (o *ConfigGrafanaInsertInput) GetAdminPassword() string {
@@ -11720,8 +11762,21 @@ func (o *ConfigGrafanaInsertInput) GetAdminPassword() string {
 	return o.AdminPassword
 }
 
+func (o *ConfigGrafanaInsertInput) GetSmtp() *ConfigGrafanaSmtpInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Smtp
+}
+
 func (s *ConfigGrafana) Insert(v *ConfigGrafanaInsertInput) {
 	s.AdminPassword = v.AdminPassword
+	if v.Smtp != nil {
+		if s.Smtp == nil {
+			s.Smtp = &ConfigGrafanaSmtp{}
+		}
+		s.Smtp.Insert(v.Smtp)
+	}
 }
 
 func (s *ConfigGrafana) Clone() *ConfigGrafana {
@@ -11731,14 +11786,16 @@ func (s *ConfigGrafana) Clone() *ConfigGrafana {
 
 	v := &ConfigGrafana{}
 	v.AdminPassword = s.AdminPassword
+	v.Smtp = s.Smtp.Clone()
 	return v
 }
 
 type ConfigGrafanaComparisonExp struct {
-	And           []*ConfigGrafanaComparisonExp `json:"_and,omitempty"`
-	Not           *ConfigGrafanaComparisonExp   `json:"_not,omitempty"`
-	Or            []*ConfigGrafanaComparisonExp `json:"_or,omitempty"`
-	AdminPassword *ConfigStringComparisonExp    `json:"adminPassword,omitempty"`
+	And           []*ConfigGrafanaComparisonExp   `json:"_and,omitempty"`
+	Not           *ConfigGrafanaComparisonExp     `json:"_not,omitempty"`
+	Or            []*ConfigGrafanaComparisonExp   `json:"_or,omitempty"`
+	AdminPassword *ConfigStringComparisonExp      `json:"adminPassword,omitempty"`
+	Smtp          *ConfigGrafanaSmtpComparisonExp `json:"smtp,omitempty"`
 }
 
 func (exp *ConfigGrafanaComparisonExp) Matches(o *ConfigGrafana) bool {
@@ -11747,9 +11804,366 @@ func (exp *ConfigGrafanaComparisonExp) Matches(o *ConfigGrafana) bool {
 	}
 
 	if o == nil {
-		o = &ConfigGrafana{}
+		o = &ConfigGrafana{
+			Smtp: &ConfigGrafanaSmtp{},
+		}
 	}
 	if !exp.AdminPassword.Matches(o.AdminPassword) {
+		return false
+	}
+	if !exp.Smtp.Matches(o.Smtp) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigGrafanaSmtp struct {
+	Host string `json:"host" toml:"host"`
+
+	Port uint16 `json:"port" toml:"port"`
+
+	Sender string `json:"sender" toml:"sender"`
+
+	User string `json:"user" toml:"user"`
+
+	Password string `json:"password" toml:"password"`
+}
+
+func (o *ConfigGrafanaSmtp) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["host"] = o.Host
+	m["port"] = o.Port
+	m["sender"] = o.Sender
+	m["user"] = o.User
+	m["password"] = o.Password
+	return json.Marshal(m)
+}
+
+func (o *ConfigGrafanaSmtp) GetHost() string {
+	if o == nil {
+		o = &ConfigGrafanaSmtp{}
+	}
+	return o.Host
+}
+
+func (o *ConfigGrafanaSmtp) GetPort() uint16 {
+	if o == nil {
+		o = &ConfigGrafanaSmtp{}
+	}
+	return o.Port
+}
+
+func (o *ConfigGrafanaSmtp) GetSender() string {
+	if o == nil {
+		o = &ConfigGrafanaSmtp{}
+	}
+	return o.Sender
+}
+
+func (o *ConfigGrafanaSmtp) GetUser() string {
+	if o == nil {
+		o = &ConfigGrafanaSmtp{}
+	}
+	return o.User
+}
+
+func (o *ConfigGrafanaSmtp) GetPassword() string {
+	if o == nil {
+		o = &ConfigGrafanaSmtp{}
+	}
+	return o.Password
+}
+
+type ConfigGrafanaSmtpUpdateInput struct {
+	Host          *string `json:"host,omitempty" toml:"host,omitempty"`
+	IsSetHost     bool    `json:"-"`
+	Port          *uint16 `json:"port,omitempty" toml:"port,omitempty"`
+	IsSetPort     bool    `json:"-"`
+	Sender        *string `json:"sender,omitempty" toml:"sender,omitempty"`
+	IsSetSender   bool    `json:"-"`
+	User          *string `json:"user,omitempty" toml:"user,omitempty"`
+	IsSetUser     bool    `json:"-"`
+	Password      *string `json:"password,omitempty" toml:"password,omitempty"`
+	IsSetPassword bool    `json:"-"`
+}
+
+func (o *ConfigGrafanaSmtpUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["host"]; ok {
+		if v == nil {
+			o.Host = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Host = &x
+		}
+		o.IsSetHost = true
+	}
+	if v, ok := m["port"]; ok {
+		if v == nil {
+			o.Port = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x uint16
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Port = &x
+		}
+		o.IsSetPort = true
+	}
+	if v, ok := m["sender"]; ok {
+		if v == nil {
+			o.Sender = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Sender = &x
+		}
+		o.IsSetSender = true
+	}
+	if v, ok := m["user"]; ok {
+		if v == nil {
+			o.User = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.User = &x
+		}
+		o.IsSetUser = true
+	}
+	if v, ok := m["password"]; ok {
+		if v == nil {
+			o.Password = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Password = &x
+		}
+		o.IsSetPassword = true
+	}
+
+	return nil
+}
+
+func (o *ConfigGrafanaSmtpUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigGrafanaSmtpUpdateInput) GetHost() *string {
+	if o == nil {
+		o = &ConfigGrafanaSmtpUpdateInput{}
+	}
+	return o.Host
+}
+
+func (o *ConfigGrafanaSmtpUpdateInput) GetPort() *uint16 {
+	if o == nil {
+		o = &ConfigGrafanaSmtpUpdateInput{}
+	}
+	return o.Port
+}
+
+func (o *ConfigGrafanaSmtpUpdateInput) GetSender() *string {
+	if o == nil {
+		o = &ConfigGrafanaSmtpUpdateInput{}
+	}
+	return o.Sender
+}
+
+func (o *ConfigGrafanaSmtpUpdateInput) GetUser() *string {
+	if o == nil {
+		o = &ConfigGrafanaSmtpUpdateInput{}
+	}
+	return o.User
+}
+
+func (o *ConfigGrafanaSmtpUpdateInput) GetPassword() *string {
+	if o == nil {
+		o = &ConfigGrafanaSmtpUpdateInput{}
+	}
+	return o.Password
+}
+
+func (s *ConfigGrafanaSmtp) Update(v *ConfigGrafanaSmtpUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetHost || v.Host != nil {
+		if v.Host != nil {
+			s.Host = *v.Host
+		}
+	}
+	if v.IsSetPort || v.Port != nil {
+		if v.Port != nil {
+			s.Port = *v.Port
+		}
+	}
+	if v.IsSetSender || v.Sender != nil {
+		if v.Sender != nil {
+			s.Sender = *v.Sender
+		}
+	}
+	if v.IsSetUser || v.User != nil {
+		if v.User != nil {
+			s.User = *v.User
+		}
+	}
+	if v.IsSetPassword || v.Password != nil {
+		if v.Password != nil {
+			s.Password = *v.Password
+		}
+	}
+}
+
+type ConfigGrafanaSmtpInsertInput struct {
+	Host     string `json:"host,omitempty" toml:"host,omitempty"`
+	Port     uint16 `json:"port,omitempty" toml:"port,omitempty"`
+	Sender   string `json:"sender,omitempty" toml:"sender,omitempty"`
+	User     string `json:"user,omitempty" toml:"user,omitempty"`
+	Password string `json:"password,omitempty" toml:"password,omitempty"`
+}
+
+func (o *ConfigGrafanaSmtpInsertInput) GetHost() string {
+	if o == nil {
+		o = &ConfigGrafanaSmtpInsertInput{}
+	}
+	return o.Host
+}
+
+func (o *ConfigGrafanaSmtpInsertInput) GetPort() uint16 {
+	if o == nil {
+		o = &ConfigGrafanaSmtpInsertInput{}
+	}
+	return o.Port
+}
+
+func (o *ConfigGrafanaSmtpInsertInput) GetSender() string {
+	if o == nil {
+		o = &ConfigGrafanaSmtpInsertInput{}
+	}
+	return o.Sender
+}
+
+func (o *ConfigGrafanaSmtpInsertInput) GetUser() string {
+	if o == nil {
+		o = &ConfigGrafanaSmtpInsertInput{}
+	}
+	return o.User
+}
+
+func (o *ConfigGrafanaSmtpInsertInput) GetPassword() string {
+	if o == nil {
+		o = &ConfigGrafanaSmtpInsertInput{}
+	}
+	return o.Password
+}
+
+func (s *ConfigGrafanaSmtp) Insert(v *ConfigGrafanaSmtpInsertInput) {
+	s.Host = v.Host
+	s.Port = v.Port
+	s.Sender = v.Sender
+	s.User = v.User
+	s.Password = v.Password
+}
+
+func (s *ConfigGrafanaSmtp) Clone() *ConfigGrafanaSmtp {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigGrafanaSmtp{}
+	v.Host = s.Host
+	v.Port = s.Port
+	v.Sender = s.Sender
+	v.User = s.User
+	v.Password = s.Password
+	return v
+}
+
+type ConfigGrafanaSmtpComparisonExp struct {
+	And      []*ConfigGrafanaSmtpComparisonExp `json:"_and,omitempty"`
+	Not      *ConfigGrafanaSmtpComparisonExp   `json:"_not,omitempty"`
+	Or       []*ConfigGrafanaSmtpComparisonExp `json:"_or,omitempty"`
+	Host     *ConfigStringComparisonExp        `json:"host,omitempty"`
+	Port     *ConfigPortComparisonExp          `json:"port,omitempty"`
+	Sender   *ConfigStringComparisonExp        `json:"sender,omitempty"`
+	User     *ConfigStringComparisonExp        `json:"user,omitempty"`
+	Password *ConfigStringComparisonExp        `json:"password,omitempty"`
+}
+
+func (exp *ConfigGrafanaSmtpComparisonExp) Matches(o *ConfigGrafanaSmtp) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigGrafanaSmtp{}
+	}
+	if !exp.Host.Matches(o.Host) {
+		return false
+	}
+	if !exp.Port.Matches(o.Port) {
+		return false
+	}
+	if !exp.Sender.Matches(o.Sender) {
+		return false
+	}
+	if !exp.User.Matches(o.User) {
+		return false
+	}
+	if !exp.Password.Matches(o.Password) {
 		return false
 	}
 
