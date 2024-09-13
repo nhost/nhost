@@ -45,7 +45,7 @@ Given that not all endpoints are equally sensitive, Auth supports more complex r
 
 | Endpoints             | Key | Limits | Description | Minimum version |
 | ----------------------|-----|--------|-------------|-----------------|
-| Any that sends emails<sup>1</sup> | Global | 50 / hour | Not configurable. This limit applies to any project without custom SMTP settings  | 0.33.0 |
+| Any that sends emails<sup>1</sup> | Global | 10 / hour | Not configurable. This limit applies to any project without custom SMTP settings  | 0.33.0 |
 | Any that sends emails<sup>1</sup> | Client IP | 10 / hour | Configurable. This limit applies to any project with custom SMTP settings and is configurable  | 0.33.0 |
 | Any that sends SMS<sup>2</sup> | Client IP | 10 / hour | Configurable. | 0.33.0 |
 | Any endpoint that an attacker may try to brute-force. This includes sign-in and verify endpoints<sup>3</sup> | Client IP | 10 / 5 minutes | Configurable | 0.33.0 |

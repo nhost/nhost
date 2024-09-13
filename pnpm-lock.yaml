@@ -61,6 +61,7 @@ overrides:
   react-dom: 18.2.0
   '@graphiql/react': ^0.22.3
   send: ^0.19.0
+  dset: ^3.1.4
 
 importers:
 
@@ -6915,7 +6916,7 @@ packages:
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
       cross-inspect: 1.0.1
-      dset: 3.1.3
+      dset: 3.1.4
       graphql: 16.8.1
       tslib: 2.7.0
     dev: true
@@ -6979,7 +6980,7 @@ packages:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.8.1)
       '@graphql-yoga/subscription': 2.2.3
       '@whatwg-node/fetch': 0.3.2
-      dset: 3.1.3
+      dset: 3.1.4
       graphql: 16.8.1
       tslib: 2.7.0
     transitivePeerDependencies:
@@ -17699,8 +17700,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /dset@3.1.3:
-    resolution: {integrity: sha512-20TuZZHCEZ2O71q9/+8BwKwZ0QtD9D8ObhrihJPr+vLLYlSuAU3/zL4cSlgbfeoGHTjCSJBa7NGcrF9/Bx/WJQ==}
+  /dset@3.1.4:
+    resolution: {integrity: sha512-2QF/g9/zTaPDc3BjNcVTGoBbXBgYfMTTceLaYcFJ/W9kggFUkhxD/hMEeuLKbugyef9SqAx8cpgwlIP/jinUTA==}
     engines: {node: '>=4'}
 
   /duplexer2@0.1.4:
@@ -20758,7 +20759,7 @@ packages:
       '@graphql-yoga/subscription': 3.1.0
       '@whatwg-node/fetch': 0.8.8
       '@whatwg-node/server': 0.7.7
-      dset: 3.1.3
+      dset: 3.1.4
       graphql: 16.8.1
       lru-cache: 7.18.3
       tslib: 2.7.0
