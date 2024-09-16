@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/vue-quickstart",
-  "version": "0.2.8",
+  "version": "0.2.11",
   "private": true,
   "scripts": {
     "build": "vite build",

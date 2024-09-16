@@ -13,16 +13,16 @@ test('should reset password', async ({ page, context }) => {
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
 
   await page.goto(`${baseURL}/sign-in`)
-  await page.getByRole('button', { name: /continue with email \+ password/i }).click()
-  await page.getByRole('button', { name: /forgot password?/i }).click()
+  await page.getByRole('link', { name: /continue with email \+ password/i }).click()
+  await page.getByRole('link', { name: /forgot password?/i }).click()
 
-  await page.getByPlaceholder('Email Address').type(email)
+  await page.getByPlaceholder('email').type(email)
   await page.getByRole('button', { name: /reset your password/i }).click()
 
   const authenticatedPage = await resetPassword({ page, context, email })
 
   await authenticatedPage.waitForLoadState()
-  await authenticatedPage.getByRole('button', { name: /profile/i }).click()
+  await authenticatedPage.getByRole('link', { name: /profile/i }).click()
 
-  await expect(authenticatedPage.getByText(/profile page/i)).toBeVisible()
+  await expect(authenticatedPage.getByRole('heading', { name: 'Profile' })).toBeVisible()
 })

@@ -1,5 +1,26 @@
 # @nhost-examples/vue-quickstart
 
+## 0.2.11
+
+### Patch Changes
+
+- @nhost/apollo@7.1.6
+- @nhost/vue@2.6.6
+
+## 0.2.10
+
+### Patch Changes
+
+- @nhost/apollo@7.1.5
+- @nhost/vue@2.6.5
+
+## 0.2.9
+
+### Patch Changes
+
+- @nhost/apollo@7.1.4
+- @nhost/vue@2.6.4
+
 ## 0.2.8
 
 ### Patch Changes

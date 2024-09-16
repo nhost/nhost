@@ -1,0 +1,38 @@
+fragment RunServiceRateLimit on ConfigRunServiceConfig {
+  name
+  ports {
+    port
+    type
+    publish
+    rateLimit {
+      limit
+      interval
+    }
+    ingresses {
+      fqdn
+    }
+  }
+}
+
+query getRunServicesRateLimit($appID: uuid!, $resolve: Boolean!) {
+  app(id: $appID) {
+    runServices {
+      id
+      createdAt
+      updatedAt
+      subdomain
+      config(resolve: $resolve) {
+        ...RunServiceRateLimit
+      }
+    }
+  }
+}
+
+query getLocalRunServiceRateLimit($appID: uuid!, $resolve: Boolean!) {
+  runServiceConfigs(appID: $appID, resolve: $resolve) {
+    serviceID
+    config {
+      ...RunServiceRateLimit
+    }
+  }
+}

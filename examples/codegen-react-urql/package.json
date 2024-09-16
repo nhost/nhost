@@ -1,7 +1,7 @@
 {
   "name": "@nhost-examples/codegen-react-urql",
   "private": true,
-  "version": "0.3.8",
+  "version": "0.3.11",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -15,7 +15,7 @@
     "graphql": "16.8.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "urql": "^3.0.4"
+    "urql": "^3.0.3"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.2",

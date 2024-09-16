@@ -1,0 +1,126 @@
+---
+title: AuthOptions
+sidebarTitle: AuthOptions
+description: No description provided.
+---
+
+# `AuthOptions`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">refreshIntervalTime</span>** <span className="optional-status">optional</span> <code>number</code>
+
+Time interval until token refreshes, in seconds
+
+---
+
+**<span className="parameter-name">clientStorageType</span>** <span className="optional-status">optional</span> [`ClientStorageType`](/reference/javascript/nhost-js/types/client-storage-type)
+
+Define a way to get information about the refresh token and its expiration date.
+
+**`@default`**
+
+`web`
+
+---
+
+**<span className="parameter-name">clientStorage</span>** <span className="optional-status">optional</span> [`ClientStorage`](/reference/javascript/nhost-js/types/client-storage)
+
+Object where the refresh token will be persisted and read locally.
+
+Recommended values:
+
+- `'web'` and `'cookies'`: no value is required
+- `'react-native'`: use [@react-native-async-storage/async-storage](https://www.npmjs.com/package/@react-native-async-storage/async-storage)
+  ```ts
+  import { NhostClient } from '@nhost/nhost-js'
+  import AsyncStorage from '@react-native-async-storage/async-storage';
+  const nhost = new NhostClient({
+    ...
+    clientStorageType: 'react-native',
+    clientStorage: AsyncStorage
+  })
+  ```
+- `'custom'`: an object that defines the following methods:
+  - `setItem` or `setItemAsync`
+  - `getItem` or `getItemAsync`
+  - `removeItem`
+- `'capacitor'`:
+
+  - capacitor version **< 4** : use [@capacitor/storage](https://www.npmjs.com/package/@capacitor/storage)
+
+  ```ts
+  import { NhostClient } from '@nhost/nhost-js'
+  import { Storage } from '@capacitor/storage'
+  const nhost = new NhostClient({
+    ...
+    clientStorageType: 'capacitor',
+    clientStorage: Storage
+  })
+  ```
+
+  - capacitor version **>= 4** : use [@capacitor/preferences](https://www.npmjs.com/package/@capacitor/preferences)
+
+  ```ts
+  import { NhostClient  } from '@nhost/nhost-js';
+  import { Preferences } from '@capacitor/preferences';
+  const nhost = new NhostClient({
+    ...
+    clientStorageType: 'custom',
+    clientStorage: {
+      setItemAsync: async (key, value) => Preferences.set({ key, value }),
+      getItemAsync: async (key) => {
+        const { value } = await Preferences.get({ key });
+        return value;
+      },
+      removeItem(key): (key) => Preferences.remove({ key })
+    },
+  });
+  ```
+
+- `'expo-secure-store'`: use [expo-secure-store](https://www.npmjs.com/package/expo-secure-store)
+  ```ts
+    import { NhostClient } from '@nhost/nhost-js'
+    import * as SecureStore from 'expo-secure-store';
+    const nhost = new NhostClient({
+      ...
+      clientStorageType: 'expo-secure-store',
+      clientStorage: SecureStore
+    })
+  ```
+
+| Property                                                                                                  | Type                                                                                         | Required | Notes |
+| :-------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>customSet</span>       | <code>(key: string, value: null &#124; string) =&gt; void &#124; Promise&lt;void&gt;</code>  |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>customGet</span>       | <code>(key: string) =&gt; null &#124; string &#124; Promise&lt;null &#124; string&gt;</code> |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>deleteItemAsync</span> | <code>(key: string) =&gt; void</code>                                                        |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>getItemAsync</span>    | <code>(key: string) =&gt; any</code>                                                         |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>setItemAsync</span>    | <code>(key: string, value: string) =&gt; void</code>                                         |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>remove</span>          | <code>(options: &#123; key: string &#125;) =&gt; void</code>                                 |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>get</span>             | <code>(options: &#123; key: string &#125;) =&gt; any</code>                                  |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>set</span>             | <code>(options: &#123; key: string, value: string &#125;) =&gt; void</code>                  |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>removeItem</span>      | <code>(key: string) =&gt; void</code>                                                        |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>getItem</span>         | <code>(key: string) =&gt; any</code>                                                         |          |       |
+| <span className="parameter-name"><span className="light-grey">clientStorage.</span>setItem</span>         | <code>(\_key: string, \_value: string) =&gt; void</code>                                     |          |       |
+
+---
+
+**<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> <code>boolean</code>
+
+When set to true, will automatically refresh token before it expires
+
+---
+
+**<span className="parameter-name">autoSignIn</span>** <span className="optional-status">optional</span> <code>boolean</code>
+
+When set to true, will parse the url on startup to check if it contains a refresh token to start the session with
+
+---
+
+**<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> <code>boolean</code>
+
+Activate devTools e.g. the ability to connect to the xstate inspector
+
+---

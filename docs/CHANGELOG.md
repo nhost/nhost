@@ -1,5 +1,32 @@
 # @nhost/docs
 
+## 2.17.0
+
+### Minor Changes
+
+- cffdec5: feat: update react quickstart guide to use the nhost react apollo template
+- 4cf6677: feat: update list of postgres extensions
+
+## 2.16.0
+
+### Minor Changes
+
+- ba55c1b: feat: run: added a guide on using a private registry
+- 3d70c63: feat: added rate-limiter guide for auth service
+
+## 2.15.0
+
+### Minor Changes
+
+- 40c0d7b: │feat: added subdomain/region information
+- a18b545: feat: added postgres upgrade docs
+
+## 2.14.3
+
+### Patch Changes
+
+- 4564232: chore: update `clientStorage` docs and add usage examples
+
 ## 2.14.2
 
 ### Patch Changes

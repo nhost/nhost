@@ -73,6 +73,7 @@
     {
       "group": "Platform",
       "pages": [
+        "platform/subdomain",
         "platform/compute-resources",
         "platform/service-replicas",
         {
@@ -83,7 +84,8 @@
         "platform/environment-variables",
         "platform/secrets",
         "platform/deployments",
-        "platform/custom-domains"
+        "platform/custom-domains",
+        "platform/rate-limits"
       ]
     },
     {
@@ -117,7 +119,8 @@
         "guides/database/configuring-postgres",
         "guides/database/access",
         "guides/database/extensions",
-        "guides/database/performance"
+        "guides/database/performance",
+        "guides/database/upgrade-major"
       ]
     },
     {
@@ -197,11 +200,11 @@
       "group": "CLI",
       "pages": [
         "guides/cli/local-development",
+        "guides/cli/subdomain",
         "guides/cli/migrate-config",
         "guides/cli/multiple-projects",
         "guides/cli/configuration-overlays",
-        "guides/cli/seeds",
-        "guides/cli/connect-devices-to-local-nhost-project"
+        "guides/cli/seeds"
       ]
     },
     {

@@ -67,6 +67,7 @@ export default function ServicesList({
               type: item.type as PortTypes,
               publish: item.publish,
               ingresses: item.ingresses,
+              rateLimit: item.rateLimit,
             })),
             compute: service.config?.resources?.compute ?? {
               cpu: 62,
@@ -179,7 +180,10 @@ export default function ServicesList({
               <Dropdown.Item
                 className="grid grid-flow-col items-center gap-2 p-2 text-sm+ font-medium"
                 sx={{ color: 'error.main' }}
-                onClick={() => deleteService(service)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteService(service);
+                }}
                 disabled={!isPlatform}
               >
                 <TrashIcon className="w-4 h-4" />

@@ -69,7 +69,16 @@ export interface ServiceFormProps extends DialogFormProps {
   /**
    * if there is initialData then it's an update operation
    */
-  initialData?: ServiceFormValues & { subdomain?: string }; // subdomain is only set on the backend
+  initialData?: Omit<ServiceFormValues, 'ports'> & {
+    subdomain?: string;
+    ports: {
+      port: number;
+      type: PortTypes;
+      publish: boolean;
+      ingresses?: { fqdn?: string[] }[] | null;
+      rateLimit?: { limit: number; interval: string } | null;
+    }[];
+  }; // subdomain is only set on the backend
 
   /**
    * Function to be called when the operation is cancelled.

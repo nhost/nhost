@@ -1,0 +1,112 @@
+---
+title: Rate Limits
+sidebarTitle: Rate Limits
+description: Protecting your service against abuse
+icon: shield
+---
+
+Rate limits in an HTTP API are essential for protecting services against abuse and brute force attacks by restricting the number of requests a client can make within a specified time period. By enforcing rate limits, we can mitigate the risk of unauthorized access, denial of service attacks, and excessive consumption of resources.
+
+Limits work by setting a maximum number of requests (burst amount) allowed for a key within a specified time frame (recovery time). For example, with a limit of 30 requests and a recovery time of 5 minutes, a user can make up to 30 requests before hitting the limit. Additionally, the user receives an extra request every 10 seconds (5 * 60 / 30) until reaching the limit.
+
+## GraphQL/Storage/Functions
+
+You can rate-limit the GraphQL, Storage, and Functions services independently of each other. These rate limits are based on the client IP, and requests made to one service do not count toward the rate limits of another service.
+
+### Configuration
+
+<Tabs>
+<Tab title="Dashboard">
+  **Project Dashboard -> Settings -> Rate Limiting**
+
+  ![Rate limit services](/images/platform/rate-limiting/misc.png)
+
+</Tab>
+<Tab title="Config">
+```toml
+[hasura.rateLimit]
+limit = 100
+interval = '15m'
+
+[functions.rateLimit]
+limit = 100
+interval = '15m'
+
+[storage.rateLimit]
+limit = 100
+interval = '15m'
+```
+</Tab>
+</Tabs>
+
+## Auth
+
+Given that not all endpoints are equally sensitive, Auth supports more complex rate-limiting rules, allowing you to set different configurations depending on the properties of each endpoint.
+
+| Endpoints             | Key | Limits | Description | Minimum version |
+| ----------------------|-----|--------|-------------|-----------------|
+| Any that sends emails<sup>1</sup> | Global | 10 / hour | Not configurable. This limit applies to any project without custom SMTP settings  | 0.33.0 |
+| Any that sends emails<sup>1</sup> | Client IP | 10 / hour | Configurable. This limit applies to any project with custom SMTP settings and is configurable  | 0.33.0 |
+| Any that sends SMS<sup>2</sup> | Client IP | 10 / hour | Configurable. | 0.33.0 |
+| Any endpoint that an attacker may try to brute-force. This includes sign-in and verify endpoints<sup>3</sup> | Client IP | 10 / 5 minutes | Configurable | 0.33.0 |
+| Signup endpoints<sup>4</sup> | Client IP | 10 / 5 minutes | Configurable | 0.33.0 |
+| Any | Client IP | 100 / minute | The total sum of requests to any endpoint (including previous ones) can not exceed this limit | 0.33.0 |
+
+<Note>
+Limits are grouped within a given category. For instance, with a limit of 10 per hour for the sign-in/verify category, if a user attempts to sign in 10 times and then tries to verify an OTP code, the latter will be rate-limited alongside the sign-in attempts.
+</Note>
+
+<sup>1</sup> Paths included:
+- `/signin/passwordless/email`
+- `/user/email/change`
+- `/user/email/send-verification-email`
+- `/user/password/reset`
+- `/signup/email-password` - If email verification enabled
+- `/user/deanonymize` - If email verification enabled
+
+<sup>2</sup> Paths included:
+- `/signin/passwordless/sms`
+
+<sup>3</sup> Paths included:
+- `/signin/*`
+- `*/verify`
+- `*/otp`
+
+<sup>4</sup> Paths included:
+- `/signup/*`
+
+
+### Configuration
+
+<Tabs>
+<Tab title="Dashboard">
+  **Project Dashboard -> Settings -> Rate Limiting**
+
+  ![Rate limit Auth](/images/platform/rate-limiting/auth.png)
+
+</Tab>
+<Tab title="Config">
+```toml
+[auth.rateLimit]
+[auth.rateLimit.emails]
+limit = 10
+interval = '1h'
+
+[auth.rateLimit.sms]
+limit = 10
+interval = '1h'
+
+[auth.rateLimit.bruteForce]
+limit = 10
+interval = '5m'
+
+[auth.rateLimit.signups]
+limit = 10
+interval = '5m'
+
+[auth.rateLimit.global]
+limit = 100
+interval = '1m'
+```
+</Tab>
+</Tabs>

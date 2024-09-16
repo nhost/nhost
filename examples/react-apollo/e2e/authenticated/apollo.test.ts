@@ -15,11 +15,13 @@ test('should add an item to the todo list when authenticated with email and pass
   await expect(page.getByText(/verification email sent/i)).toBeVisible()
 
   const newPage = await verifyEmail({ page, email, context: page.context() })
-  await newPage.getByRole('button', { name: /apollo/i }).click()
-  await expect(newPage.getByText(/todo list/i)).toBeVisible()
+
+  await newPage.getByRole('link', { name: /todos/i }).click()
+  await expect(newPage.getByRole('heading', { name: /todos/i })).toBeVisible()
+
   await newPage.getByRole('textbox').fill(sentence)
   await newPage.getByRole('button', { name: /add/i }).click()
-  await expect(newPage.getByRole('listitem').first()).toHaveText(sentence)
+  await expect(newPage.getByRole('main')).toContainText(sentence)
 })
 
 test('should add an item to the todo list when authenticated anonymously', async ({ page }) => {
@@ -28,11 +30,13 @@ test('should add an item to the todo list when authenticated anonymously', async
   await page.goto('/')
 
   await signInAnonymously({ page })
-  await page.getByRole('button', { name: /apollo/i }).click()
-  await expect(page.getByText(/todo list/i)).toBeVisible()
+
+  await page.getByRole('link', { name: /todos/i }).click()
+  await expect(page.getByRole('heading', { name: /todos/i })).toBeVisible()
+
   await page.getByRole('textbox').fill(sentence)
   await page.getByRole('button', { name: /add/i }).click()
-  await expect(page.getByRole('listitem').first()).toHaveText(sentence)
+  await expect(page.getByRole('main')).toContainText(sentence)
 })
 
 test('should fail when network is not available', async ({ page }) => {
@@ -41,12 +45,12 @@ test('should fail when network is not available', async ({ page }) => {
   await page.goto('/')
 
   await signInAnonymously({ page })
-  await page.getByRole('button', { name: /apollo/i }).click()
-  await expect(page.getByText(/todo list/i)).toBeVisible()
+  await page.getByRole('link', { name: /todos/i }).click()
+  await expect(page.getByRole('heading', { name: /todos/i })).toBeVisible()
 
   await page.route('**', (route) => route.abort('internetdisconnected'))
   await page.getByRole('textbox').fill(sentence)
   await page.getByRole('button', { name: /add/i }).click()
 
-  await expect(page.getByText(/network error/i)).toBeVisible()
+  await expect(page.getByText(/failed to fetch/i)).toBeVisible()
 })

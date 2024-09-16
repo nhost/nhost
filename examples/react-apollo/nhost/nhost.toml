@@ -29,14 +29,14 @@ httpPoolSize = 100
 version = 18
 
 [auth]
-version = '0.32.0'
+version = '0.32.1'
 
 [auth.elevatedPrivileges]
 mode = 'required'
 
 [auth.redirections]
 clientUrl = 'https://react-apollo.example.nhost.io/'
-allowedUrls = ['https://react-apollo.example.nhost.io', 'https://react-apollo.example.nhost.io/profile', 'https://vue-apollo.example.nhost.io', 'https://vue-apollo.example.nhost.io/profile', 'https://*.vercel.app', 'http://localhost:3000', 'http://localhost:3000/profile', 'http://localhost:5173', 'http://localhost:5173/profile']
+allowedUrls = ['https://react-apollo.example.nhost.io', 'https://react-apollo.example.nhost.io/profile', 'https://vue-apollo.example.nhost.io', 'https://vue-apollo.example.nhost.io/profile', 'https://*.vercel.app', 'http://localhost:5174', 'http://localhost:5174/profile', 'http://localhost:5174/', 'http://localhost:5174/profile']
 
 [auth.signUp]
 enabled = true
@@ -143,6 +143,7 @@ enabled = false
 enabled = true
 
 [auth.method.webauthn.relyingParty]
+id = 'nhost.io'
 name = 'apollo-example'
 origins = ['https://react-apollo.example.nhost.io']
 
@@ -154,12 +155,12 @@ enabled = true
 issuer = 'nhost'
 
 [postgres]
-version = '14.11-20240515-1'
+version = '16.2-20240718-1'
 
 [provider]
 
 [storage]
-version = '0.6.0'
+version = '0.6.1'
 
 [observability]
 [observability.grafana]

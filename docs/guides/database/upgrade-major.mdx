@@ -1,0 +1,37 @@
+---
+title: "Upgrade Major Version"
+description: Upgrade to Postgres 15.x or 16.y
+icon: circle-up
+---
+
+# Upgrade process
+
+<Info>
+This document only applies when changing Postgres major version (i.e. from 14 to 15/16 or from 15 to 16). It doesn'e apply when upgrading minor versions (i.e. from 14.5 to 14.11).
+</Info>
+
+While new cloud projects ship with Postgres 14 by default, versions 15 and 16 are also supported. To change your major version you can go to Settings -> Database, select the new major version and start the process:
+
+![dashboard settings](/images/guides/database/upgrade_01.png)
+
+<Warning>
+Keep in mind that the upgrade process requires downtime. Pay attention to all the information provided to you in the settings page.
+</Warning>
+
+After starting the process you can follow it on the same page:
+
+![logs](/images/guides/database/upgrade_02.png)
+
+Finally, you can confirm the upgrade by executing the SQL query `SELECT version();`
+
+![select version()](/images/guides/database/upgrade_03.png)
+
+## Projects with connected repos
+
+This process can only be triggered from the dashboard. If you have a project with a connected repository and want to upgrade postgres to either 15 or 16 you will have to follow the steps below:
+
+1. Upgrade the major version using the dashboard
+2. Run `nhost config pull` or edit the `nhost.toml` by hand.
+3. Push to git (this step should be a NOOP and can be skipped)
+
+If you attempt to change major versions via a deployment the deployment will fail. This is done on purpose to avoid unintended upgrades which can lead to downtime.

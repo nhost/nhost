@@ -200,6 +200,8 @@ export type ConfigAuth = {
   __typename?: 'ConfigAuth';
   elevatedPrivileges?: Maybe<ConfigAuthElevatedPrivileges>;
   method?: Maybe<ConfigAuthMethod>;
+  misc?: Maybe<ConfigAuthMisc>;
+  rateLimit?: Maybe<ConfigAuthRateLimit>;
   redirections?: Maybe<ConfigAuthRedirections>;
   /** Resources for the service */
   resources?: Maybe<ConfigResources>;
@@ -224,6 +226,8 @@ export type ConfigAuthComparisonExp = {
   _or?: InputMaybe<Array<ConfigAuthComparisonExp>>;
   elevatedPrivileges?: InputMaybe<ConfigAuthElevatedPrivilegesComparisonExp>;
   method?: InputMaybe<ConfigAuthMethodComparisonExp>;
+  misc?: InputMaybe<ConfigAuthMiscComparisonExp>;
+  rateLimit?: InputMaybe<ConfigAuthRateLimitComparisonExp>;
   redirections?: InputMaybe<ConfigAuthRedirectionsComparisonExp>;
   resources?: InputMaybe<ConfigResourcesComparisonExp>;
   session?: InputMaybe<ConfigAuthSessionComparisonExp>;
@@ -256,6 +260,8 @@ export type ConfigAuthElevatedPrivilegesUpdateInput = {
 export type ConfigAuthInsertInput = {
   elevatedPrivileges?: InputMaybe<ConfigAuthElevatedPrivilegesInsertInput>;
   method?: InputMaybe<ConfigAuthMethodInsertInput>;
+  misc?: InputMaybe<ConfigAuthMiscInsertInput>;
+  rateLimit?: InputMaybe<ConfigAuthRateLimitInsertInput>;
   redirections?: InputMaybe<ConfigAuthRedirectionsInsertInput>;
   resources?: InputMaybe<ConfigResourcesInsertInput>;
   session?: InputMaybe<ConfigAuthSessionInsertInput>;
@@ -685,6 +691,62 @@ export type ConfigAuthMethodWebauthnUpdateInput = {
   relyingParty?: InputMaybe<ConfigAuthMethodWebauthnRelyingPartyUpdateInput>;
 };
 
+export type ConfigAuthMisc = {
+  __typename?: 'ConfigAuthMisc';
+  concealErrors?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMiscComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthMiscComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthMiscComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthMiscComparisonExp>>;
+  concealErrors?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigAuthMiscInsertInput = {
+  concealErrors?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthMiscUpdateInput = {
+  concealErrors?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigAuthRateLimit = {
+  __typename?: 'ConfigAuthRateLimit';
+  bruteForce?: Maybe<ConfigRateLimit>;
+  emails?: Maybe<ConfigRateLimit>;
+  global?: Maybe<ConfigRateLimit>;
+  signups?: Maybe<ConfigRateLimit>;
+  sms?: Maybe<ConfigRateLimit>;
+};
+
+export type ConfigAuthRateLimitComparisonExp = {
+  _and?: InputMaybe<Array<ConfigAuthRateLimitComparisonExp>>;
+  _not?: InputMaybe<ConfigAuthRateLimitComparisonExp>;
+  _or?: InputMaybe<Array<ConfigAuthRateLimitComparisonExp>>;
+  bruteForce?: InputMaybe<ConfigRateLimitComparisonExp>;
+  emails?: InputMaybe<ConfigRateLimitComparisonExp>;
+  global?: InputMaybe<ConfigRateLimitComparisonExp>;
+  signups?: InputMaybe<ConfigRateLimitComparisonExp>;
+  sms?: InputMaybe<ConfigRateLimitComparisonExp>;
+};
+
+export type ConfigAuthRateLimitInsertInput = {
+  bruteForce?: InputMaybe<ConfigRateLimitInsertInput>;
+  emails?: InputMaybe<ConfigRateLimitInsertInput>;
+  global?: InputMaybe<ConfigRateLimitInsertInput>;
+  signups?: InputMaybe<ConfigRateLimitInsertInput>;
+  sms?: InputMaybe<ConfigRateLimitInsertInput>;
+};
+
+export type ConfigAuthRateLimitUpdateInput = {
+  bruteForce?: InputMaybe<ConfigRateLimitUpdateInput>;
+  emails?: InputMaybe<ConfigRateLimitUpdateInput>;
+  global?: InputMaybe<ConfigRateLimitUpdateInput>;
+  signups?: InputMaybe<ConfigRateLimitUpdateInput>;
+  sms?: InputMaybe<ConfigRateLimitUpdateInput>;
+};
+
 export type ConfigAuthRedirections = {
   __typename?: 'ConfigAuthRedirections';
   /** AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS */
@@ -835,6 +897,8 @@ export type ConfigAuthTotpUpdateInput = {
 export type ConfigAuthUpdateInput = {
   elevatedPrivileges?: InputMaybe<ConfigAuthElevatedPrivilegesUpdateInput>;
   method?: InputMaybe<ConfigAuthMethodUpdateInput>;
+  misc?: InputMaybe<ConfigAuthMiscUpdateInput>;
+  rateLimit?: InputMaybe<ConfigAuthRateLimitUpdateInput>;
   redirections?: InputMaybe<ConfigAuthRedirectionsUpdateInput>;
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
   session?: InputMaybe<ConfigAuthSessionUpdateInput>;
@@ -1234,6 +1298,7 @@ export type ConfigFloatComparisonExp = {
 export type ConfigFunctions = {
   __typename?: 'ConfigFunctions';
   node?: Maybe<ConfigFunctionsNode>;
+  rateLimit?: Maybe<ConfigRateLimit>;
   resources?: Maybe<ConfigFunctionsResources>;
 };
 
@@ -1242,11 +1307,13 @@ export type ConfigFunctionsComparisonExp = {
   _not?: InputMaybe<ConfigFunctionsComparisonExp>;
   _or?: InputMaybe<Array<ConfigFunctionsComparisonExp>>;
   node?: InputMaybe<ConfigFunctionsNodeComparisonExp>;
+  rateLimit?: InputMaybe<ConfigRateLimitComparisonExp>;
   resources?: InputMaybe<ConfigFunctionsResourcesComparisonExp>;
 };
 
 export type ConfigFunctionsInsertInput = {
   node?: InputMaybe<ConfigFunctionsNodeInsertInput>;
+  rateLimit?: InputMaybe<ConfigRateLimitInsertInput>;
   resources?: InputMaybe<ConfigFunctionsResourcesInsertInput>;
 };
 
@@ -1292,6 +1359,7 @@ export type ConfigFunctionsResourcesUpdateInput = {
 
 export type ConfigFunctionsUpdateInput = {
   node?: InputMaybe<ConfigFunctionsNodeUpdateInput>;
+  rateLimit?: InputMaybe<ConfigRateLimitUpdateInput>;
   resources?: InputMaybe<ConfigFunctionsResourcesUpdateInput>;
 };
 
@@ -1416,6 +1484,7 @@ export type ConfigHasura = {
   /** JWT Secrets configuration */
   jwtSecrets?: Maybe<Array<ConfigJwtSecret>>;
   logs?: Maybe<ConfigHasuraLogs>;
+  rateLimit?: Maybe<ConfigRateLimit>;
   /** Resources for the service */
   resources?: Maybe<ConfigResources>;
   /**
@@ -1478,6 +1547,7 @@ export type ConfigHasuraComparisonExp = {
   events?: InputMaybe<ConfigHasuraEventsComparisonExp>;
   jwtSecrets?: InputMaybe<ConfigJwtSecretComparisonExp>;
   logs?: InputMaybe<ConfigHasuraLogsComparisonExp>;
+  rateLimit?: InputMaybe<ConfigRateLimitComparisonExp>;
   resources?: InputMaybe<ConfigResourcesComparisonExp>;
   settings?: InputMaybe<ConfigHasuraSettingsComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
@@ -1511,6 +1581,7 @@ export type ConfigHasuraInsertInput = {
   events?: InputMaybe<ConfigHasuraEventsInsertInput>;
   jwtSecrets?: InputMaybe<Array<ConfigJwtSecretInsertInput>>;
   logs?: InputMaybe<ConfigHasuraLogsInsertInput>;
+  rateLimit?: InputMaybe<ConfigRateLimitInsertInput>;
   resources?: InputMaybe<ConfigResourcesInsertInput>;
   settings?: InputMaybe<ConfigHasuraSettingsInsertInput>;
   version?: InputMaybe<Scalars['String']>;
@@ -1603,6 +1674,7 @@ export type ConfigHasuraUpdateInput = {
   events?: InputMaybe<ConfigHasuraEventsUpdateInput>;
   jwtSecrets?: InputMaybe<Array<ConfigJwtSecretUpdateInput>>;
   logs?: InputMaybe<ConfigHasuraLogsUpdateInput>;
+  rateLimit?: InputMaybe<ConfigRateLimitUpdateInput>;
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
   settings?: InputMaybe<ConfigHasuraSettingsUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
@@ -2014,6 +2086,30 @@ export type ConfigProviderUpdateInput = {
   smtp?: InputMaybe<ConfigSmtpUpdateInput>;
 };
 
+export type ConfigRateLimit = {
+  __typename?: 'ConfigRateLimit';
+  interval: Scalars['String'];
+  limit: Scalars['ConfigUint32'];
+};
+
+export type ConfigRateLimitComparisonExp = {
+  _and?: InputMaybe<Array<ConfigRateLimitComparisonExp>>;
+  _not?: InputMaybe<ConfigRateLimitComparisonExp>;
+  _or?: InputMaybe<Array<ConfigRateLimitComparisonExp>>;
+  interval?: InputMaybe<ConfigStringComparisonExp>;
+  limit?: InputMaybe<ConfigUint32ComparisonExp>;
+};
+
+export type ConfigRateLimitInsertInput = {
+  interval: Scalars['String'];
+  limit: Scalars['ConfigUint32'];
+};
+
+export type ConfigRateLimitUpdateInput = {
+  interval?: InputMaybe<Scalars['String']>;
+  limit?: InputMaybe<Scalars['ConfigUint32']>;
+};
+
 /** Resource configuration for a service */
 export type ConfigResources = {
   __typename?: 'ConfigResources';
@@ -2127,6 +2223,8 @@ export type ConfigRunServiceConfigWithId = {
 export type ConfigRunServiceImage = {
   __typename?: 'ConfigRunServiceImage';
   image: Scalars['String'];
+  /** content of "auths", i.e., { "auths": $THIS } */
+  pullCredentials?: Maybe<Scalars['String']>;
 };
 
 export type ConfigRunServiceImageComparisonExp = {
@@ -2134,14 +2232,17 @@ export type ConfigRunServiceImageComparisonExp = {
   _not?: InputMaybe<ConfigRunServiceImageComparisonExp>;
   _or?: InputMaybe<Array<ConfigRunServiceImageComparisonExp>>;
   image?: InputMaybe<ConfigStringComparisonExp>;
+  pullCredentials?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigRunServiceImageInsertInput = {
   image: Scalars['String'];
+  pullCredentials?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigRunServiceImageUpdateInput = {
   image?: InputMaybe<Scalars['String']>;
+  pullCredentials?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigRunServiceNameComparisonExp = {
@@ -2156,6 +2257,7 @@ export type ConfigRunServicePort = {
   ingresses?: Maybe<Array<ConfigIngress>>;
   port: Scalars['ConfigPort'];
   publish?: Maybe<Scalars['Boolean']>;
+  rateLimit?: Maybe<ConfigRateLimit>;
   type: Scalars['String'];
 };
 
@@ -2166,6 +2268,7 @@ export type ConfigRunServicePortComparisonExp = {
   ingresses?: InputMaybe<ConfigIngressComparisonExp>;
   port?: InputMaybe<ConfigPortComparisonExp>;
   publish?: InputMaybe<ConfigBooleanComparisonExp>;
+  rateLimit?: InputMaybe<ConfigRateLimitComparisonExp>;
   type?: InputMaybe<ConfigStringComparisonExp>;
 };
 
@@ -2173,6 +2276,7 @@ export type ConfigRunServicePortInsertInput = {
   ingresses?: InputMaybe<Array<ConfigIngressInsertInput>>;
   port: Scalars['ConfigPort'];
   publish?: InputMaybe<Scalars['Boolean']>;
+  rateLimit?: InputMaybe<ConfigRateLimitInsertInput>;
   type: Scalars['String'];
 };
 
@@ -2180,6 +2284,7 @@ export type ConfigRunServicePortUpdateInput = {
   ingresses?: InputMaybe<Array<ConfigIngressUpdateInput>>;
   port?: InputMaybe<Scalars['ConfigPort']>;
   publish?: InputMaybe<Scalars['Boolean']>;
+  rateLimit?: InputMaybe<ConfigRateLimitUpdateInput>;
   type?: InputMaybe<Scalars['String']>;
 };
 
@@ -2387,6 +2492,7 @@ export type ConfigStandardOauthProviderWithScopeUpdateInput = {
 export type ConfigStorage = {
   __typename?: 'ConfigStorage';
   antivirus?: Maybe<ConfigStorageAntivirus>;
+  rateLimit?: Maybe<ConfigRateLimit>;
   /**
    * Networking (custom domains at the moment) are not allowed as we need to do further
    * configurations in the CDN. We will enable it again in the future.
@@ -2428,18 +2534,21 @@ export type ConfigStorageComparisonExp = {
   _not?: InputMaybe<ConfigStorageComparisonExp>;
   _or?: InputMaybe<Array<ConfigStorageComparisonExp>>;
   antivirus?: InputMaybe<ConfigStorageAntivirusComparisonExp>;
+  rateLimit?: InputMaybe<ConfigRateLimitComparisonExp>;
   resources?: InputMaybe<ConfigResourcesComparisonExp>;
   version?: InputMaybe<ConfigStringComparisonExp>;
 };
 
 export type ConfigStorageInsertInput = {
   antivirus?: InputMaybe<ConfigStorageAntivirusInsertInput>;
+  rateLimit?: InputMaybe<ConfigRateLimitInsertInput>;
   resources?: InputMaybe<ConfigResourcesInsertInput>;
   version?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigStorageUpdateInput = {
   antivirus?: InputMaybe<ConfigStorageAntivirusUpdateInput>;
+  rateLimit?: InputMaybe<ConfigRateLimitUpdateInput>;
   resources?: InputMaybe<ConfigResourcesUpdateInput>;
   version?: InputMaybe<Scalars['String']>;
 };
@@ -24516,7 +24625,7 @@ export type GetAuthenticationSettingsQueryVariables = Exact<{
 }>;
 
 
-export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null } | null } | null };
+export type GetAuthenticationSettingsQuery = { __typename?: 'query_root', config?: { __typename: 'ConfigConfig', id: 'ConfigConfig', auth?: { __typename: 'ConfigAuth', version?: string | null, id: 'ConfigAuth', redirections?: { __typename?: 'ConfigAuthRedirections', clientUrl?: any | null, allowedUrls?: Array<string> | null } | null, totp?: { __typename?: 'ConfigAuthTotp', enabled?: boolean | null, issuer?: string | null } | null, signUp?: { __typename?: 'ConfigAuthSignUp', enabled?: boolean | null } | null, session?: { __typename?: 'ConfigAuthSession', accessToken?: { __typename?: 'ConfigAuthSessionAccessToken', expiresIn?: any | null } | null, refreshToken?: { __typename?: 'ConfigAuthSessionRefreshToken', expiresIn?: any | null } | null } | null, resources?: { __typename?: 'ConfigResources', networking?: { __typename?: 'ConfigNetworking', ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null } | null } | null, user?: { __typename?: 'ConfigAuthUser', email?: { __typename?: 'ConfigAuthUserEmail', allowed?: Array<any> | null, blocked?: Array<any> | null } | null, emailDomains?: { __typename?: 'ConfigAuthUserEmailDomains', allowed?: Array<string> | null, blocked?: Array<string> | null } | null, gravatar?: { __typename?: 'ConfigAuthUserGravatar', enabled?: boolean | null, default?: string | null, rating?: string | null } | null, locale?: { __typename?: 'ConfigAuthUserLocale', allowed?: Array<any> | null, default?: any | null } | null } | null, misc?: { __typename?: 'ConfigAuthMisc', concealErrors?: boolean | null } | null } | null } | null };
 
 export type GetPostgresSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -24721,6 +24830,22 @@ export type GetConfigRawJsonQueryVariables = Exact<{
 
 export type GetConfigRawJsonQuery = { __typename?: 'query_root', configRawJSON: string };
 
+export type GetRateLimitConfigQueryVariables = Exact<{
+  appId: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetRateLimitConfigQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }, storage?: { __typename?: 'ConfigStorage', rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null } | null, functions?: { __typename?: 'ConfigFunctions', rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null } | null, auth?: { __typename?: 'ConfigAuth', rateLimit?: { __typename?: 'ConfigAuthRateLimit', bruteForce?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, emails?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, global?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, signups?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, sms?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null } | null } | null } | null };
+
+export type UpdateRateLimitConfigMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  config: ConfigConfigUpdateInput;
+}>;
+
+
+export type UpdateRateLimitConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', hasura: { __typename?: 'ConfigHasura', rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }, storage?: { __typename?: 'ConfigStorage', rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null } | null, functions?: { __typename?: 'ConfigFunctions', rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null } | null, auth?: { __typename?: 'ConfigAuth', rateLimit?: { __typename?: 'ConfigAuthRateLimit', bruteForce?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, emails?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, global?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, signups?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, sms?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null } | null } | null } };
+
 export type ReplaceConfigRawJsonMutationVariables = Exact<{
   appID: Scalars['uuid'];
   rawJSON: Scalars['String'];
@@ -24792,6 +24917,14 @@ export type UpdateConfigMutationVariables = Exact<{
 
 
 export type UpdateConfigMutation = { __typename?: 'mutation_root', updateConfig: { __typename?: 'ConfigConfig', id: 'ConfigConfig', postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', enablePublicAccess?: boolean | null, storage?: { __typename?: 'ConfigPostgresStorage', capacity: any } | null } | null } | null, ai?: { __typename?: 'ConfigAI', version?: string | null, webhookSecret: string, autoEmbeddings?: { __typename?: 'ConfigAIAutoEmbeddings', synchPeriodMinutes?: any | null } | null, openai: { __typename?: 'ConfigAIOpenai', organization?: string | null, apiKey: string }, resources: { __typename?: 'ConfigAIResources', compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any } } } | null } };
+
+export type UpdateDatabaseVersionMutationVariables = Exact<{
+  appId: Scalars['uuid'];
+  version: Scalars['String'];
+}>;
+
+
+export type UpdateDatabaseVersionMutation = { __typename?: 'mutation_root', changeDatabaseVersion: boolean };
 
 export type UnpauseApplicationMutationVariables = Exact<{
   appId: Scalars['uuid'];
@@ -24914,6 +25047,16 @@ export type GetServiceLabelValuesQueryVariables = Exact<{
 
 
 export type GetServiceLabelValuesQuery = { __typename?: 'query_root', getServiceLabelValues: Array<string> };
+
+export type GetSystemLogsQueryVariables = Exact<{
+  appID: Scalars['String'];
+  action: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+}>;
+
+
+export type GetSystemLogsQuery = { __typename?: 'query_root', systemLogs: Array<{ __typename?: 'Log', timestamp: any, log: string }> };
 
 export type DeletePaymentMethodMutationVariables = Exact<{
   paymentMethodId: Scalars['uuid'];
@@ -25086,7 +25229,7 @@ export type GetRunServiceQueryVariables = Exact<{
 
 export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
 
-export type RunServiceConfigFragment = { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null };
+export type RunServiceConfigFragment = { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null };
 
 export type GetRunServicesQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -25096,7 +25239,7 @@ export type GetRunServicesQueryVariables = Exact<{
 }>;
 
 
-export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
+export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
 
 export type GetLocalRunServiceConfigsQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -25104,7 +25247,25 @@ export type GetLocalRunServiceConfigsQueryVariables = Exact<{
 }>;
 
 
-export type GetLocalRunServiceConfigsQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } }> };
+export type GetLocalRunServiceConfigsQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } }> };
+
+export type RunServiceRateLimitFragment = { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null };
+
+export type GetRunServicesRateLimitQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetRunServicesRateLimitQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null } | null }> } | null };
+
+export type GetLocalRunServiceRateLimitQueryVariables = Exact<{
+  appID: Scalars['uuid'];
+  resolve: Scalars['Boolean'];
+}>;
+
+
+export type GetLocalRunServiceRateLimitQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null } }> };
 
 export type InsertRunServiceMutationVariables = Exact<{
   object: Run_Service_Insert_Input;
@@ -25567,11 +25728,32 @@ export const RunServiceConfigFragmentDoc = gql`
     ingresses {
       fqdn
     }
+    rateLimit {
+      limit
+      interval
+    }
   }
   healthCheck {
     port
     initialDelaySeconds
     probePeriodSeconds
+  }
+}
+    `;
+export const RunServiceRateLimitFragmentDoc = gql`
+    fragment RunServiceRateLimit on ConfigRunServiceConfig {
+  name
+  ports {
+    port
+    type
+    publish
+    rateLimit {
+      limit
+      interval
+    }
+    ingresses {
+      fqdn
+    }
   }
 }
     `;
@@ -25886,6 +26068,9 @@ export const GetAuthenticationSettingsDocument = gql`
           allowed
           default
         }
+      }
+      misc {
+        concealErrors
       }
       version
     }
@@ -27064,6 +27249,161 @@ export type GetConfigRawJsonQueryResult = Apollo.QueryResult<GetConfigRawJsonQue
 export function refetchGetConfigRawJsonQuery(variables: GetConfigRawJsonQueryVariables) {
       return { query: GetConfigRawJsonDocument, variables: variables }
     }
+export const GetRateLimitConfigDocument = gql`
+    query getRateLimitConfig($appId: uuid!, $resolve: Boolean!) {
+  config(appID: $appId, resolve: $resolve) {
+    hasura {
+      rateLimit {
+        limit
+        interval
+      }
+    }
+    storage {
+      rateLimit {
+        limit
+        interval
+      }
+    }
+    functions {
+      rateLimit {
+        limit
+        interval
+      }
+    }
+    auth {
+      rateLimit {
+        bruteForce {
+          limit
+          interval
+        }
+        emails {
+          limit
+          interval
+        }
+        global {
+          limit
+          interval
+        }
+        signups {
+          limit
+          interval
+        }
+        sms {
+          limit
+          interval
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetRateLimitConfigQuery__
+ *
+ * To run a query within a React component, call `useGetRateLimitConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRateLimitConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRateLimitConfigQuery({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetRateLimitConfigQuery(baseOptions: Apollo.QueryHookOptions<GetRateLimitConfigQuery, GetRateLimitConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRateLimitConfigQuery, GetRateLimitConfigQueryVariables>(GetRateLimitConfigDocument, options);
+      }
+export function useGetRateLimitConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRateLimitConfigQuery, GetRateLimitConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRateLimitConfigQuery, GetRateLimitConfigQueryVariables>(GetRateLimitConfigDocument, options);
+        }
+export type GetRateLimitConfigQueryHookResult = ReturnType<typeof useGetRateLimitConfigQuery>;
+export type GetRateLimitConfigLazyQueryHookResult = ReturnType<typeof useGetRateLimitConfigLazyQuery>;
+export type GetRateLimitConfigQueryResult = Apollo.QueryResult<GetRateLimitConfigQuery, GetRateLimitConfigQueryVariables>;
+export function refetchGetRateLimitConfigQuery(variables: GetRateLimitConfigQueryVariables) {
+      return { query: GetRateLimitConfigDocument, variables: variables }
+    }
+export const UpdateRateLimitConfigDocument = gql`
+    mutation UpdateRateLimitConfig($appId: uuid!, $config: ConfigConfigUpdateInput!) {
+  updateConfig(appID: $appId, config: $config) {
+    hasura {
+      rateLimit {
+        limit
+        interval
+      }
+    }
+    storage {
+      rateLimit {
+        limit
+        interval
+      }
+    }
+    functions {
+      rateLimit {
+        limit
+        interval
+      }
+    }
+    auth {
+      rateLimit {
+        bruteForce {
+          limit
+          interval
+        }
+        emails {
+          limit
+          interval
+        }
+        global {
+          limit
+          interval
+        }
+        signups {
+          limit
+          interval
+        }
+        sms {
+          limit
+          interval
+        }
+      }
+    }
+  }
+}
+    `;
+export type UpdateRateLimitConfigMutationFn = Apollo.MutationFunction<UpdateRateLimitConfigMutation, UpdateRateLimitConfigMutationVariables>;
+
+/**
+ * __useUpdateRateLimitConfigMutation__
+ *
+ * To run a mutation, you first call `useUpdateRateLimitConfigMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateRateLimitConfigMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateRateLimitConfigMutation, { data, loading, error }] = useUpdateRateLimitConfigMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      config: // value for 'config'
+ *   },
+ * });
+ */
+export function useUpdateRateLimitConfigMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRateLimitConfigMutation, UpdateRateLimitConfigMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateRateLimitConfigMutation, UpdateRateLimitConfigMutationVariables>(UpdateRateLimitConfigDocument, options);
+      }
+export type UpdateRateLimitConfigMutationHookResult = ReturnType<typeof useUpdateRateLimitConfigMutation>;
+export type UpdateRateLimitConfigMutationResult = Apollo.MutationResult<UpdateRateLimitConfigMutation>;
+export type UpdateRateLimitConfigMutationOptions = Apollo.BaseMutationOptions<UpdateRateLimitConfigMutation, UpdateRateLimitConfigMutationVariables>;
 export const ReplaceConfigRawJsonDocument = gql`
     mutation ReplaceConfigRawJSON($appID: uuid!, $rawJSON: String!) {
   replaceConfigRawJSON(appID: $appID, rawJSON: $rawJSON)
@@ -27565,6 +27905,38 @@ export function useUpdateConfigMutation(baseOptions?: Apollo.MutationHookOptions
 export type UpdateConfigMutationHookResult = ReturnType<typeof useUpdateConfigMutation>;
 export type UpdateConfigMutationResult = Apollo.MutationResult<UpdateConfigMutation>;
 export type UpdateConfigMutationOptions = Apollo.BaseMutationOptions<UpdateConfigMutation, UpdateConfigMutationVariables>;
+export const UpdateDatabaseVersionDocument = gql`
+    mutation UpdateDatabaseVersion($appId: uuid!, $version: String!) {
+  changeDatabaseVersion(appID: $appId, version: $version)
+}
+    `;
+export type UpdateDatabaseVersionMutationFn = Apollo.MutationFunction<UpdateDatabaseVersionMutation, UpdateDatabaseVersionMutationVariables>;
+
+/**
+ * __useUpdateDatabaseVersionMutation__
+ *
+ * To run a mutation, you first call `useUpdateDatabaseVersionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateDatabaseVersionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateDatabaseVersionMutation, { data, loading, error }] = useUpdateDatabaseVersionMutation({
+ *   variables: {
+ *      appId: // value for 'appId'
+ *      version: // value for 'version'
+ *   },
+ * });
+ */
+export function useUpdateDatabaseVersionMutation(baseOptions?: Apollo.MutationHookOptions<UpdateDatabaseVersionMutation, UpdateDatabaseVersionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateDatabaseVersionMutation, UpdateDatabaseVersionMutationVariables>(UpdateDatabaseVersionDocument, options);
+      }
+export type UpdateDatabaseVersionMutationHookResult = ReturnType<typeof useUpdateDatabaseVersionMutation>;
+export type UpdateDatabaseVersionMutationResult = Apollo.MutationResult<UpdateDatabaseVersionMutation>;
+export type UpdateDatabaseVersionMutationOptions = Apollo.BaseMutationOptions<UpdateDatabaseVersionMutation, UpdateDatabaseVersionMutationVariables>;
 export const UnpauseApplicationDocument = gql`
     mutation UnpauseApplication($appId: uuid!) {
   updateApp(pk_columns: {id: $appId}, _set: {desiredState: 5}) {
@@ -28151,6 +28523,48 @@ export type GetServiceLabelValuesLazyQueryHookResult = ReturnType<typeof useGetS
 export type GetServiceLabelValuesQueryResult = Apollo.QueryResult<GetServiceLabelValuesQuery, GetServiceLabelValuesQueryVariables>;
 export function refetchGetServiceLabelValuesQuery(variables: GetServiceLabelValuesQueryVariables) {
       return { query: GetServiceLabelValuesDocument, variables: variables }
+    }
+export const GetSystemLogsDocument = gql`
+    query getSystemLogs($appID: String!, $action: String!, $from: Timestamp, $to: Timestamp) {
+  systemLogs(appID: $appID, action: $action, from: $from) {
+    timestamp
+    log
+  }
+}
+    `;
+
+/**
+ * __useGetSystemLogsQuery__
+ *
+ * To run a query within a React component, call `useGetSystemLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSystemLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSystemLogsQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      action: // value for 'action'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *   },
+ * });
+ */
+export function useGetSystemLogsQuery(baseOptions: Apollo.QueryHookOptions<GetSystemLogsQuery, GetSystemLogsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSystemLogsQuery, GetSystemLogsQueryVariables>(GetSystemLogsDocument, options);
+      }
+export function useGetSystemLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSystemLogsQuery, GetSystemLogsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSystemLogsQuery, GetSystemLogsQueryVariables>(GetSystemLogsDocument, options);
+        }
+export type GetSystemLogsQueryHookResult = ReturnType<typeof useGetSystemLogsQuery>;
+export type GetSystemLogsLazyQueryHookResult = ReturnType<typeof useGetSystemLogsLazyQuery>;
+export type GetSystemLogsQueryResult = Apollo.QueryResult<GetSystemLogsQuery, GetSystemLogsQueryVariables>;
+export function refetchGetSystemLogsQuery(variables: GetSystemLogsQueryVariables) {
+      return { query: GetSystemLogsDocument, variables: variables }
     }
 export const DeletePaymentMethodDocument = gql`
     mutation deletePaymentMethod($paymentMethodId: uuid!) {
@@ -29190,6 +29604,95 @@ export type GetLocalRunServiceConfigsLazyQueryHookResult = ReturnType<typeof use
 export type GetLocalRunServiceConfigsQueryResult = Apollo.QueryResult<GetLocalRunServiceConfigsQuery, GetLocalRunServiceConfigsQueryVariables>;
 export function refetchGetLocalRunServiceConfigsQuery(variables: GetLocalRunServiceConfigsQueryVariables) {
       return { query: GetLocalRunServiceConfigsDocument, variables: variables }
+    }
+export const GetRunServicesRateLimitDocument = gql`
+    query getRunServicesRateLimit($appID: uuid!, $resolve: Boolean!) {
+  app(id: $appID) {
+    runServices {
+      id
+      createdAt
+      updatedAt
+      subdomain
+      config(resolve: $resolve) {
+        ...RunServiceRateLimit
+      }
+    }
+  }
+}
+    ${RunServiceRateLimitFragmentDoc}`;
+
+/**
+ * __useGetRunServicesRateLimitQuery__
+ *
+ * To run a query within a React component, call `useGetRunServicesRateLimitQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRunServicesRateLimitQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRunServicesRateLimitQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetRunServicesRateLimitQuery(baseOptions: Apollo.QueryHookOptions<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>(GetRunServicesRateLimitDocument, options);
+      }
+export function useGetRunServicesRateLimitLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>(GetRunServicesRateLimitDocument, options);
+        }
+export type GetRunServicesRateLimitQueryHookResult = ReturnType<typeof useGetRunServicesRateLimitQuery>;
+export type GetRunServicesRateLimitLazyQueryHookResult = ReturnType<typeof useGetRunServicesRateLimitLazyQuery>;
+export type GetRunServicesRateLimitQueryResult = Apollo.QueryResult<GetRunServicesRateLimitQuery, GetRunServicesRateLimitQueryVariables>;
+export function refetchGetRunServicesRateLimitQuery(variables: GetRunServicesRateLimitQueryVariables) {
+      return { query: GetRunServicesRateLimitDocument, variables: variables }
+    }
+export const GetLocalRunServiceRateLimitDocument = gql`
+    query getLocalRunServiceRateLimit($appID: uuid!, $resolve: Boolean!) {
+  runServiceConfigs(appID: $appID, resolve: $resolve) {
+    serviceID
+    config {
+      ...RunServiceRateLimit
+    }
+  }
+}
+    ${RunServiceRateLimitFragmentDoc}`;
+
+/**
+ * __useGetLocalRunServiceRateLimitQuery__
+ *
+ * To run a query within a React component, call `useGetLocalRunServiceRateLimitQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLocalRunServiceRateLimitQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLocalRunServiceRateLimitQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      resolve: // value for 'resolve'
+ *   },
+ * });
+ */
+export function useGetLocalRunServiceRateLimitQuery(baseOptions: Apollo.QueryHookOptions<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>(GetLocalRunServiceRateLimitDocument, options);
+      }
+export function useGetLocalRunServiceRateLimitLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>(GetLocalRunServiceRateLimitDocument, options);
+        }
+export type GetLocalRunServiceRateLimitQueryHookResult = ReturnType<typeof useGetLocalRunServiceRateLimitQuery>;
+export type GetLocalRunServiceRateLimitLazyQueryHookResult = ReturnType<typeof useGetLocalRunServiceRateLimitLazyQuery>;
+export type GetLocalRunServiceRateLimitQueryResult = Apollo.QueryResult<GetLocalRunServiceRateLimitQuery, GetLocalRunServiceRateLimitQueryVariables>;
+export function refetchGetLocalRunServiceRateLimitQuery(variables: GetLocalRunServiceRateLimitQueryVariables) {
+      return { query: GetLocalRunServiceRateLimitDocument, variables: variables }
     }
 export const InsertRunServiceDocument = gql`
     mutation insertRunService($object: run_service_insert_input!) {

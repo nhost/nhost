@@ -5,10 +5,10 @@ test('should redirect to /sign-in when not authenticated', async ({ page }) => {
   await page.goto(`${baseURL}`)
   await page.waitForURL(`${baseURL}/sign-in`)
 
-  await expect(page.getByText(/sign in to the application/i)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible()
 
-  await page.goto(`${baseURL}/apollo`)
+  await page.goto(`${baseURL}/todos`)
   await page.waitForURL(`${baseURL}/sign-in`)
 
-  await expect(page.getByText(/sign in to the application/i)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible()
 })

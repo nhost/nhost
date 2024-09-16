@@ -1,5 +1,49 @@
 # @nhost/dashboard
 
+## 1.28.0
+
+### Minor Changes
+
+- 526183a: feat: allow filtering users in "make request as" in graphql section
+- be3b85b: feat: add conceal errors toggle on auth settings page
+
+### Patch Changes
+
+- 35a2f12: fix: prevent run service details from opening when attempting to delete
+  - @nhost/react-apollo@12.0.6
+  - @nhost/nextjs@2.1.20
+
+## 1.27.0
+
+### Minor Changes
+
+- a7cd02c: fix: resolve rate limit query
+
+## 1.26.0
+
+### Minor Changes
+
+- 3773ad7: chore: update pricing information
+- b63250d: fix: not allow run service creation form resubmission while creating a run service
+- a44a1d4: feat: add rate limits settings page
+
+### Patch Changes
+
+- @nhost/react-apollo@12.0.5
+- @nhost/nextjs@2.1.19
+
+## 1.25.0
+
+### Minor Changes
+
+- d1ceede: feat: add setting to migrate postgres major and/or minor versions
+- e5d3d1a: fix: allow manually typing column for custom check in database row permissions
+
+### Patch Changes
+
+- @nhost/react-apollo@12.0.4
+- @nhost/nextjs@2.1.18
+
 ## 1.24.1
 
 ### Patch Changes

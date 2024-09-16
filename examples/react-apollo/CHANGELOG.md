@@ -1,5 +1,30 @@
 # @nhost-examples/react-apollo
 
+## 1.0.0
+
+### Major Changes
+
+- cffdec5: feat: rewrite example using shadcn ui components
+
+### Patch Changes
+
+- @nhost/react@3.5.6
+- @nhost/react-apollo@12.0.6
+
+## 0.8.11
+
+### Patch Changes
+
+- @nhost/react@3.5.5
+- @nhost/react-apollo@12.0.5
+
+## 0.8.10
+
+### Patch Changes
+
+- @nhost/react@3.5.4
+- @nhost/react-apollo@12.0.4
+
 ## 0.8.9
 
 ### Patch Changes
