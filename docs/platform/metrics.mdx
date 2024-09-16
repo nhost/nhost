@@ -38,7 +38,7 @@ You can find the link to Grafana in your project's dashboard, under **Metrics**.
 Grafana comes pre-configured with a datasource with your project's metrics plus a few useful dashboards to observe your projects. In addition, you can enable alerting by configuring one or more contact points and enabling alerts in your configuration file.
 
 <Info>
-The configuration below is opensource and can be found [here](https://github.com/nhost/nhost/tree/main/observability/grafana). If you want to see improvements, more rules, better dashboards, more options, etc., don't hesitate to contribute them or open an issue.
+The configuration below is open source and can be found [here](https://github.com/nhost/nhost/tree/main/observability/grafana). If you want to see improvements, more rules, better dashboards, more options, etc., don't hesitate to contribute them or open an issue.
 </Info>
 
 ### Configure contact points
@@ -143,7 +143,7 @@ This will enable the following rules, which you can find in your grafana dashboa
    - Trigger: Request error rate > 25%
    - Duration: Maintained for 5-10 minutes
 
-After they have been enabling they will start notiffying your contact points when the conditions are met. For instance, here is an email sent due to a high error rate:
+After they have been enabling they will start notifying your contact points when the conditions are met. For instance, here is an email sent due to a high error rate:
 
 ![email_notification](/images/platform/metrics/email_notification.png)
 
