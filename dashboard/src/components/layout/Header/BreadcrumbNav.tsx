@@ -1,90 +1,175 @@
 import { Slash } from 'lucide-react';
-import { useMemo } from 'react';
 
+import { Logo } from '@/components/presentational/Logo';
+import { Badge } from '@/components/ui/v3/badge';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from '@/components/ui/v3/breadcrumb';
-import { useRouter } from 'next/router';
-import OrgPagesComboBox from './OrgPagesComboBox';
-import OrgsComboBox from './OrgsComboBox';
-import ProjectPagesComboBox from './ProjectPagesComboBox';
-import ProjectsComboBox from './ProjectsComboBox';
-import ProjectSettingsPagesComboBox from './ProjectSettingsPagesComboBox';
+import { cn } from '@/lib/utils';
+import BreadCrumbComboBox from './BreadcrumbComboBox';
 
 export default function BreadcrumbNav() {
-  const { query, asPath, route } = useRouter();
+  const orgs = [
+    {
+      name: "Hassan's org",
+      slug: 'x2f9k7m1p3q8r',
+      isFree: false,
+      plan: 'Pro',
+      projects: [
+        { name: 'eu-central-1.celsia' },
+        { name: 'joyent' },
+        { name: 'react-apollo' },
+      ],
+    },
+    {
+      name: 'nhost-testing',
+      slug: 'a3b7c9d1e5f2g',
+      isFree: true,
+      plan: 'Starter',
+    },
+    {
+      name: 'uflip',
+      slug: 'h4j2l6n8m0p5q',
+      isFree: false,
+      plan: 'Team',
+    },
+  ];
 
-  // Extract orgSlug and appSubdomain from router.query
-  const { appSubdomain, workspaceSlug } = query;
-
-  // Extract path segments from the URL
-  const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
-
-  // Identify project and settings pages based on the URL pattern
-  const projectPage = pathSegments[3] || null;
-  const isSettingsPage = pathSegments[5] === 'settings';
-
-  const showBreadcrumbs =
-    !workspaceSlug && !['/', '/orgs/verify'].includes(route);
+  const projects = [
+    { name: 'eu-central-1.celsia', slug: 'x2f9k7m1p3q8r' },
+    { name: 'joyent', slug: 'a3b7c9d1e5f2g' },
+    { name: 'react-apollo', slug: 'h4j2l6n8m0p5q' },
+  ];
 
   return (
-    <Breadcrumb className="mt-2 flex w-full flex-row flex-nowrap overflow-x-auto lg:mt-0 lg:overflow-visible">
-      <BreadcrumbList className="flex-nowrap">
+    <Breadcrumb>
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <div className="h-7 w-7">
+            <Logo className="mx-auto cursor-pointer" />
+          </div>
+        </BreadcrumbItem>
+
         <BreadcrumbSeparator>
           <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
         </BreadcrumbSeparator>
 
         <BreadcrumbItem>
-          <OrgsComboBox />
+          <BreadCrumbComboBox
+            selectedValue={orgs[0].slug}
+            options={orgs.map((org) => ({
+              label: (
+                <>
+                  <span>{org.name}</span>
+                  {org.plan && (
+                    <Badge
+                      variant={org.isFree ? 'outline' : 'default'}
+                      className={cn(
+                        org.isFree ? 'bg-muted' : '',
+                        'hover:none ml-2 h-5 px-[6px] text-[10px]',
+                      )}
+                    >
+                      {org.plan}
+                    </Badge>
+                  )}
+                </>
+              ),
+              value: org.slug,
+            }))}
+          />
         </BreadcrumbItem>
 
-        {showBreadcrumbs && (
-          <>
-            <BreadcrumbSeparator>
-              <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
-            </BreadcrumbSeparator>
+        <BreadcrumbSeparator>
+          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+        </BreadcrumbSeparator>
 
-            {projectPage && <OrgPagesComboBox />}
-          </>
-        )}
+        <BreadcrumbItem>
+          <div className="flex flex-row items-center justify-center gap-2">
+            <BreadCrumbComboBox
+              selectedValue="projects"
+              options={[
+                { label: 'General', value: 'general' },
+                { label: 'Projects', value: 'projects' },
+                { label: 'Team', value: 'team' },
+                { label: 'Billing', value: 'billing' },
+              ]}
+            />
+          </div>
+        </BreadcrumbItem>
 
-        {showBreadcrumbs && appSubdomain && (
-          <>
-            <BreadcrumbSeparator>
-              <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
-            </BreadcrumbSeparator>
+        <BreadcrumbSeparator>
+          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+        </BreadcrumbSeparator>
 
-            <BreadcrumbItem>
-              <ProjectsComboBox />
-            </BreadcrumbItem>
+        <BreadcrumbItem>
+          <BreadCrumbComboBox
+            selectedValue={projects[0].slug}
+            options={projects.map((project) => ({
+              label: project.name,
+              value: project.slug,
+            }))}
+          />
+        </BreadcrumbItem>
 
-            <BreadcrumbSeparator>
-              <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
-            </BreadcrumbSeparator>
+        <BreadcrumbSeparator>
+          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+        </BreadcrumbSeparator>
 
-            <BreadcrumbItem>
-              <ProjectPagesComboBox />
-            </BreadcrumbItem>
+        <BreadcrumbItem>
+          <BreadCrumbComboBox
+            selectedValue="settings"
+            options={[
+              { label: 'Overview', value: 'overview' },
+              { label: 'Database', value: 'database' },
+              { label: 'GraphQL', value: 'graphql' },
+              { label: 'Hasura', value: 'hasura' },
+              { label: 'Authentication', value: 'auth' },
+              { label: 'Storage', value: 'storage' },
+              { label: 'Run', value: 'run' },
+              { label: 'AI', value: 'ai' },
+              { label: 'Deployments', value: 'deployments' },
+              { label: 'Backups', value: 'backups' },
+              { label: 'Logs', value: 'logs' },
+              { label: 'Metrics', value: 'metrics' },
+              { label: 'Settings', value: 'settings' },
+            ]}
+          />
+        </BreadcrumbItem>
 
-            {isSettingsPage && (
-              <>
-                <BreadcrumbSeparator>
-                  <Slash
-                    strokeWidth={3.5}
-                    className="text-muted-foreground/50"
-                  />
-                </BreadcrumbSeparator>
+        <BreadcrumbSeparator>
+          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+        </BreadcrumbSeparator>
 
-                <BreadcrumbItem>
-                  <ProjectSettingsPagesComboBox />
-                </BreadcrumbItem>
-              </>
-            )}
-          </>
-        )}
+        <BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadCrumbComboBox
+              selectedValue="authentication"
+              options={[
+                { label: 'General', value: 'general' },
+                { label: 'Database', value: 'database' },
+                { label: 'Authentication', value: 'authentication' },
+                { label: 'Sign-In methods', value: 'sign-in-methods' },
+                {
+                  label: 'Roles and Permissions',
+                  value: 'roles-and-permissions',
+                },
+                { label: 'SMTP', value: 'smtp' },
+                {
+                  label: 'Serverless Functions',
+                  value: 'serverless-functions',
+                },
+                { label: 'Git', value: 'git' },
+                {
+                  label: 'Environment Variables',
+                  value: 'environment-variables',
+                },
+              ]}
+            />
+          </BreadcrumbItem>
+        </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
   );

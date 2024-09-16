@@ -1,62 +1,43 @@
 import { Button } from '@/components/ui/v3/button';
-import { Separator } from '@/components/ui/v3/separator';
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from '@/components/ui/v3/sheet';
-import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
-import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
-import { Menu, Pin, PinOff, X } from 'lucide-react';
-import { useRouter } from 'next/router';
-import { useEffect, useRef } from 'react';
+import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
+import { cn } from '@/lib/utils';
+import { PanelLeft, Pin, PinOff } from 'lucide-react';
 import NavTree from './NavTree';
-import { useTreeNavState } from './TreeNavStateContext';
-import WorkspacesNavTree from './WorkspacesNavTree';
 
 interface MainNavProps {
   container: HTMLElement;
 }
 
 export default function MainNav({ container }: MainNavProps) {
-  const { asPath } = useRouter();
-  const { workspaces } = useWorkspaces();
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const { open, setOpen, mainNavPinned, setMainNavPinned } = useTreeNavState();
-
-  const scrollToCurrentPath = () => {
-    requestAnimationFrame(() => {
-      const element = document.querySelector(`a[href="${asPath}"]`);
-      if (element && scrollContainerRef.current) {
-        element.scrollIntoView({ block: 'center' });
-      }
-    });
-  };
-
-  useEffect(() => {
-    if (open) {
-      scrollToCurrentPath();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  const [mainNavPinned, setMainNavPinned] = useSSRLocalStorage(
+    'nav-tree-pin',
+    false,
+  );
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <div
-        className="min- absolute left-0 z-50 flex h-full w-6 justify-center border-r-[1px] bg-background pt-1 hover:bg-accent"
-        onMouseEnter={() => setOpen(true)}
-      >
-        <Menu className="w-4 h-4" />
-      </div>
-
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          className={cn('px-3 py-1', mainNavPinned && 'hidden')}
+          disabled={mainNavPinned}
+        >
+          <PanelLeft className="h-6 w-6" />
+        </Button>
+      </SheetTrigger>
       <SheetContent
         side="left"
         container={container}
         hideCloseButton
-        className="h-full w-full p-0 sm:max-w-[310px]"
-        onMouseLeave={() => setOpen(false)}
+        className="h-full p-0 sm:max-w-72"
       >
         <SheetHeader>
           <SheetTitle className="sr-only">Main navigation</SheetTitle>
@@ -65,44 +46,21 @@ export default function MainNav({ container }: MainNavProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex flex-row items-center justify-end w-full h-12 px-1 border-b bg-background">
+        <div className="flex w-full justify-end bg-background p-1">
           <Button
             variant="ghost"
-            className="hidden sm:flex"
             onClick={() => setMainNavPinned(!mainNavPinned)}
           >
             {mainNavPinned ? (
-              <PinOff className="w-5 h-5" />
+              <PinOff className="h-5 w-5" />
             ) : (
-              <Pin className="w-5 h-5" />
+              <Pin className="h-5 w-5" />
             )}
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="flex sm:hidden"
-            onClick={() => setOpen(false)}
-          >
-            <X className="w-5 h-5" />
           </Button>
         </div>
 
-        <div
-          ref={scrollContainerRef}
-          className="h-[calc(100vh-7rem)] space-y-4 overflow-auto pb-12 pt-2 lg:h-[calc(100vh-6rem)]"
-        >
-          <div className="flex flex-col gap-1 px-2">
-            <NavTree />
-            <CreateOrgDialog />
-          </div>
-          {workspaces.length > 0 && (
-            <>
-              <Separator className="mx-auto my-2" />
-              <div className="px-2">
-                <WorkspacesNavTree />
-              </div>
-            </>
-          )}
+        <div className="h-[calc(100vh-6rem)] overflow-auto px-4 pb-12 pt-2">
+          <NavTree />
         </div>
       </SheetContent>
     </Sheet>

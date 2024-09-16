@@ -47,18 +47,17 @@ export default function IndexPage() {
       }
     };
 
-    if (isPlatform) {
-      navigateToSlug();
-    }
-  }, [
-    orgs,
-    lastSlug,
-    push,
-    workspaces,
-    loadingOrgs,
-    loadingWorkspaces,
-    isPlatform,
-  ]);
+  if (true) {
+    return (
+      <Container className="grid grid-cols-1 gap-8 md:grid-cols-4 md:pt-8">
+        <Box className="noapps col-span-1 h-80 rounded-md text-center md:col-span-3">
+          <div className="pt-12">
+            <Text
+              className="text-center text-2xl font-semibold"
+              sx={{ color: 'common.white' }}
+            >
+              Welcome to Nhost!
+            </Text>
 
   return <LoadingScreen />;
 }
