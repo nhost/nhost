@@ -1,8 +1,8 @@
 :root {
-  --primary: #ffffff;
-  --primary-2: #f1f3f5;
-  --secondary: #000000;
-  --secondary-2: #111;
+  /* --primary: #ffffff;
+  --primary-2: #f1f3f5; */
+  /* --secondary: #000000;
+  --secondary-2: #111; */
   --selection: var(--cyan);
 
   --text-base: #000000;
