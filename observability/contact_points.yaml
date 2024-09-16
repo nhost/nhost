@@ -1,0 +1,58 @@
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: Nhost Managed Contacts
+    receivers:
+{{ if .Contacts.Emails }}
+      - uid: 1
+        type: email
+        settings:
+          addresses: {{ join .Contacts.Emails "," }}
+          singleEmail: false
+          sendReminder: true
+{{ end }}
+{{- range $i, $c := .Contacts.Pagerduty }}
+      - uid: {{ add 100 $i }}
+        type: pagerduty
+        settings:
+          integrationKey: {{ $c.IntegrationKey }}
+          severity: {{ $c.Severity }}
+          class: {{ $c.Class }}
+          component: {{ $c.Component }}
+          group: {{ $c.Group }}
+{{- end }}
+{{- range $i, $c := .Contacts.Discord }}
+      - uid: {{ add 200 $i }}
+        type: discord
+        settings:
+          url: {{ $c.URL }}
+          avatar_url: {{ $c.AvatarURL }}
+          use_discord_username: true
+{{- end }}
+{{- range $i, $c := .Contacts.Slack }}
+      - uid: {{ add 300 $i }}
+        type: slack
+        settings:
+          recipient: {{ $c.Recipient }}
+          token: {{ $c.Token }}
+          username: {{ $c.Username }}
+          icon_emoji: {{ $c.IconEmoji }}
+          icon_url: {{ $c.IconURL }}
+          mentionUsers: {{ join $c.MentionUsers "," }}
+          mentionGroups: {{ join $c.MentionGroups "," }}
+          mentionChannel: {{ $c.MentionChannel }}
+          url: {{ $c.URL }}
+          endpointUrl: {{ $c.EndpointURL }}
+{{- end }}
+{{- range $i, $c := .Contacts.Webhook }}
+      - uid: {{ add 400 $i }}
+        type: webhook
+        settings:
+          url: {{ $c.URL }}
+          httpMethod: {{ $c.HTTPMethod }}
+          username: {{ $c.Username }}
+          password: {{ $c.Password }}
+          authorization_scheme: {{ $c.AuthorizationScheme }}
+          authorization_credentials: {{ $c.AuthorizationCredentials }}
+          maxAlerts: '{{ $c.MaxAlerts }}'
+{{- end }}

@@ -1,0 +1,7 @@
+apiVersion: 1
+policies:
+    - orgId: 1
+      receiver: Nhost Managed Contacts
+      group_by:
+        - grafana_folder
+        - alertname

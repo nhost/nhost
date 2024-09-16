@@ -76,11 +76,7 @@
         "platform/subdomain",
         "platform/compute-resources",
         "platform/service-replicas",
-        {
-          "group": "Monitoring",
-          "icon": "monitor-waveform",
-          "pages": ["platform/metrics"]
-        },
+        "platform/metrics",
         "platform/environment-variables",
         "platform/secrets",
         "platform/deployments",

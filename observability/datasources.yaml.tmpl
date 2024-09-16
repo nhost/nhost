@@ -1,0 +1,17 @@
+apiVersion: 1
+datasources:
+- access: proxy
+  isDefault: true
+  name: Nhost
+  type: prometheus
+  url: http://amp-signer.nhost-services:8080
+  uid: nhost
+  jsonData:
+    customQueryParameters: app_id=${APP_ID}
+    httpHeaderName1: 'Authorization'
+    manageAlerts: false
+    cacheLevel: 'High'
+    disableRecordingRules: true
+    timeInterval: '60s'
+  secureJsonData:
+    httpHeaderValue1: 'Bearer ${TOKEN}'
