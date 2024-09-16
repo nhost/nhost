@@ -3,6 +3,7 @@ import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
 import { Header } from '@/components/layout/Header';
+import { MainNav } from '@/components/layout/MainNav';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -10,12 +11,20 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsHealthy } from '@/features/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { useAuthenticationStatus } from '@nhost/nextjs';
+
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import type { DetailedHTMLProps, HTMLProps } from 'react';
-import { useEffect } from 'react';
+import {
+  useEffect,
+  useState,
+  type DetailedHTMLProps,
+  type HTMLProps,
+} from 'react';
 import { twMerge } from 'tailwind-merge';
+
+import PinnedMainNav from '../MainNav/PinnedMainNav';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
@@ -39,6 +48,9 @@ export default function AuthenticatedLayout({
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
   const isHealthy = useIsHealthy();
+  const [mainNavContainer, setMainNavContainer] = useState(null);
+
+  const [mainNavPinned] = useSSRLocalStorage('nav-tree-pin', false);
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -116,21 +128,32 @@ export default function AuthenticatedLayout({
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
-      <Header className="flex max-h-[59px] flex-auto" />
+      <Header className="flex flex-auto py-1" />
 
-      <InviteNotification />
+      <div
+        className="relative flex flex-auto flex-row overflow-x-hidden"
+        ref={setMainNavContainer}
+      >
+        {mainNavPinned && <PinnedMainNav />}
 
-      <RetryableErrorBoundary errorMessageProps={{ className: 'pt-20' }}>
-        <div
-          className={twMerge(
-            'relative flex flex-auto overflow-x-hidden',
-            contentContainerClassName,
-          )}
-          {...contentContainerProps}
-        >
-          {children}
+        <div className="flex flex-col">
+          <div className="relative h-12 w-full border-b bg-background p-1">
+            {!mainNavPinned && <MainNav container={mainNavContainer} />}
+          </div>
+          <InviteNotification />
+          <RetryableErrorBoundary errorMessageProps={{ className: 'pt-20' }}>
+            <div
+              className={twMerge(
+                'relative flex flex-auto overflow-x-hidden',
+                contentContainerClassName,
+              )}
+              {...contentContainerProps}
+            >
+              {children}
+            </div>
+          </RetryableErrorBoundary>
         </div>
-      </RetryableErrorBoundary>
+      </div>
     </BaseLayout>
   );
 }

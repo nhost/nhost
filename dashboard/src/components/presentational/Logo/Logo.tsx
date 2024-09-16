@@ -11,8 +11,9 @@ function Logo(
   return (
     <svg
       ref={ref}
-      width="32"
-      height="34"
+      width="100%"
+      height="100%"
+      viewBox="0 0 32 34"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-label="Logo of Nhost"
