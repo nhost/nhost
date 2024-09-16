@@ -98,6 +98,12 @@ const serviceValidationSchema = Yup.object({
         );
       },
     ),
+  maxReplicas: Yup.number()
+    .label('Max Replicas')
+    .required()
+    .min(MIN_SERVICE_REPLICAS)
+    .max(MAX_SERVICE_REPLICAS),
+  autoscale: Yup.boolean().label('Autoscale'),
   vcpu: Yup.number()
     .label('vCPUs')
     .required()

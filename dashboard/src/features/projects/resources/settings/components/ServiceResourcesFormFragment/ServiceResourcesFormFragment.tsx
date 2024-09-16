@@ -1,6 +1,9 @@
 import { Box } from '@/components/ui/v2/Box';
 import { ExclamationIcon } from '@/components/ui/v2/icons/ExclamationIcon';
+import { InfoOutlinedIcon } from '@/components/ui/v2/icons/InfoOutlinedIcon';
+import { Input } from '@/components/ui/v2/Input';
 import { Slider } from '@/components/ui/v2/Slider';
+import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
@@ -52,6 +55,7 @@ export default function ServiceResourcesFormFragment({
     setValue,
     trigger: triggerValidation,
     formState,
+    register,
   } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
   const serviceValues = formValues[serviceKey];
@@ -135,7 +139,7 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid grid-flow-col items-center justify-between gap-2">
+        <Box className="grid grid-flow-col gap-2 justify-between items-center">
           <Text>
             Allocated vCPUs:{' '}
             <span className="font-medium">
@@ -165,7 +169,7 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid grid-flow-col items-center justify-between gap-2">
+        <Box className="grid grid-flow-col gap-2 justify-between items-center">
           <Text>
             Allocated Memory:{' '}
             <span className="font-medium">
@@ -195,45 +199,80 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       {!disableReplicas && (
-        <Box className="grid grid-flow-row gap-2">
-          <Box className="grid grid-flow-col items-center justify-start gap-2">
-            <Text
-              color={
-                formState.errors?.[serviceKey]?.replicas?.message
-                  ? 'error'
-                  : 'primary'
-              }
-              aria-errormessage={`${serviceKey}-replicas-error-tooltip`}
-            >
-              Replicas:{' '}
-              <span className="font-medium">{serviceValues.replicas}</span>
-            </Text>
+        <Box className="flex gap-2 justify-between">
+          <Box className="flex flex-row gap-8">
+            <Box className="flex flex-row gap-2 items-center">
+              <Box className="grid grid-flow-col gap-2 justify-start items-center">
+                {formState.errors?.[serviceKey]?.replicas?.message ? (
+                  <Tooltip
+                    title={formState.errors[serviceKey]?.replicas?.message}
+                    id={`${serviceKey}-replicas-error-tooltip`}
+                  >
+                    <ExclamationIcon
+                      color="error"
+                      className="w-4 h-4"
+                      aria-hidden="false"
+                    />
+                  </Tooltip>
+                ) : null}
+              </Box>
+              <Text>Replicas</Text>
+              <Input
+                {...register(`${serviceKey}.replicas`)}
+                type="number"
+                id={`${serviceKey}-replicas`}
+                placeholder="Replicas"
+                className="max-w-40"
+                hideEmptyHelperText
+                error={!!formState.errors?.[serviceKey]?.replicas}
+                helperText={formState.errors?.[serviceKey]?.replicas?.message}
+                fullWidth
+                autoComplete="off"
+              />
+            </Box>
+            <Box className="flex flex-row gap-2 items-center">
+              {formState.errors?.[serviceKey]?.maxReplicas?.message ? (
+                <Tooltip
+                  title={formState.errors[serviceKey]?.maxReplicas?.message}
+                  id={`${serviceKey}-replicas-error-tooltip`}
+                >
+                  <ExclamationIcon
+                    color="error"
+                    className="w-4 h-4"
+                    aria-hidden="false"
+                  />
+                </Tooltip>
+              ) : null}
+              <Text className="text-nowrap">Max Replicas</Text>
+              <Input
+                {...register(`${serviceKey}.maxReplicas`)}
+                type="number"
+                id={`${serviceKey}-replicas`}
+                placeholder="10"
+                disabled={!formValues[serviceKey].autoscale}
+                className="max-w-40"
+                hideEmptyHelperText
+                error={!!formState.errors?.[serviceKey]?.maxReplicas}
+                helperText={formState.errors?.[serviceKey]?.maxReplicas?.message}
+                fullWidth
+                autoComplete="off"
+              />
 
-            {formState.errors?.[serviceKey]?.replicas?.message ? (
-              <Tooltip
-                title={formState.errors[serviceKey].replicas.message}
-                id={`${serviceKey}-replicas-error-tooltip`}
-              >
-                <ExclamationIcon
-                  color="error"
-                  className="h-4 w-4"
-                  aria-hidden="false"
-                />
-              </Tooltip>
-            ) : null}
+            </Box>
           </Box>
-
-          <Slider
-            value={serviceValues.replicas}
-            onChange={(_event, value) => handleReplicaChange(value.toString())}
-            min={0}
-            max={MAX_SERVICE_REPLICAS}
-            step={1}
-            aria-label={`${title} Replicas`}
-            marks
-          />
+          <Box className="flex flex-row gap-3 items-center">
+            <Switch
+            />
+            <Text>Autoscaling</Text>
+            <Tooltip
+              title={`Enable autoscaler to automatically provision extra ${serviceKey} replicas when needed.`}
+            >
+              <InfoOutlinedIcon
+                className="w-4 h-4 text-black"
+              />
+            </Tooltip>
+          </Box>
         </Box>
       )}
-    </Box>
-  );
+    </Box>);
 }
