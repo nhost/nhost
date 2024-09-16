@@ -3,7 +3,6 @@ import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
 import { LocalAccountMenu } from '@/components/layout/LocalAccountMenu';
 import { MobileNav } from '@/components/layout/MobileNav';
-import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
@@ -16,6 +15,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { getToastStyleProps } from '@/utils/constants/settings';
+// import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -27,6 +27,8 @@ export interface HeaderProps
   > {}
 
 export default function Header({ className, ...props }: HeaderProps) {
+  // const router = useRouter();
+
   const isPlatform = useIsPlatform();
   const { openDrawer } = useDialog();
   const { project } = useProject();
@@ -61,15 +63,33 @@ export default function Header({ className, ...props }: HeaderProps) {
     <Box
       component="header"
       className={twMerge(
-        'relative z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b px-4',
+        'z-40 grid h-12 w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-1 px-4 py-3',
         className,
       )}
       sx={{ backgroundColor: 'background.paper' }}
       {...props}
     >
-      <div className="mr-2 h-6 w-6">
-        <Logo className="mx-auto h-6 w-6 cursor-pointer" />
-      </div>
+      <BreadcrumbNav />
+      {/* <div className="grid items-center grid-flow-col gap-3">
+        <NavLink href="/" className="w-fit">
+          <Logo className="mx-auto cursor-pointer" />
+        </NavLink>
+
+        {(router.query.workspaceSlug || router.query.appSlug) && (
+          <Breadcrumbs aria-label="Workspace breadcrumbs" />
+        )}
+
+        {isProjectUpdating && (
+          <Chip size="small" label="Updating" color="warning" />
+        )}
+        {isProjectMigratingDatabase && (
+          <Chip
+            size="small"
+            label="Upgrading Postgres version"
+            color="warning"
+          />
+        )}
+      </div> */}
 
       <BreadcrumbNav />
 

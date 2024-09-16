@@ -4,21 +4,15 @@ import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
 import { Header } from '@/components/layout/Header';
 import { MainNav } from '@/components/layout/MainNav';
-import { useTreeNavState } from '@/components/layout/MainNav/TreeNavStateContext';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 
-import { useMediaQuery } from '@/components/common/useMediaQuery';
-import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
-import { OrgStatus } from '@/features/orgs/components/OrgStatus';
-import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
-import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
-import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import {
@@ -27,6 +21,9 @@ import {
   type DetailedHTMLProps,
   type HTMLProps,
 } from 'react';
+import { twMerge } from 'tailwind-merge';
+
+import PinnedMainNav from '../MainNav/PinnedMainNav';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
@@ -49,9 +46,8 @@ export default function AuthenticatedLayout({
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
   const isHealthy = useIsHealthy();
   const [mainNavContainer, setMainNavContainer] = useState(null);
-  const { mainNavPinned } = useTreeNavState();
 
-  useNotFoundRedirect();
+  const [mainNavPinned] = useSSRLocalStorage('nav-tree-pin', false);
 
   useEffect(() => {
     if (!isPlatform || isLoading || isAuthenticated) {
@@ -129,38 +125,30 @@ export default function AuthenticatedLayout({
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
-      <Header className="flex py-1" />
+      <Header className="flex flex-auto py-1" />
 
       <div
-        className="relative flex h-full flex-row overflow-hidden"
+        className="relative flex flex-auto flex-row overflow-x-hidden"
         ref={setMainNavContainer}
       >
-        {mainNavPinned && isMdOrLarger && <PinnedMainNav />}
+        {mainNavPinned && <PinnedMainNav />}
 
-        <div
-          className={cn(
-            'relative flex h-full w-full flex-row bg-accent',
-            mainNavPinned && isMdOrLarger ? 'overflow-x-auto' : '',
-          )}
-        >
-          {(!mainNavPinned || !isMdOrLarger) && (
-            <div className="flex h-full w-6 justify-center">
-              <MainNav container={mainNavContainer} />
-            </div>
-          )}
-
-          <RetryableErrorBoundary
-            errorMessageProps={{
-              className: 'flex flex-col items-center',
-            }}
-          >
-            <div className="flex h-full w-full flex-col overflow-auto">
-              <OrgStatus />
+        <div className="flex flex-col">
+          <div className="relative h-12 w-full border-b bg-background p-1">
+            {!mainNavPinned && <MainNav container={mainNavContainer} />}
+          </div>
+          <InviteNotification />
+          <RetryableErrorBoundary errorMessageProps={{ className: 'pt-20' }}>
+            <div
+              className={twMerge(
+                'relative flex flex-auto overflow-x-hidden',
+                contentContainerClassName,
+              )}
+              {...contentContainerProps}
+            >
               {children}
             </div>
           </RetryableErrorBoundary>
-
-          <InviteNotification />
         </div>
       </div>
     </BaseLayout>
