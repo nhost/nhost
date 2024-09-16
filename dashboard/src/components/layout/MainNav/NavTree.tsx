@@ -1,6 +1,5 @@
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
 import { CloudIcon } from '@/components/ui/v2/icons/CloudIcon';
-import { CogIcon } from '@/components/ui/v2/icons/CogIcon';
 import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
 import { FileTextIcon } from '@/components/ui/v2/icons/FileTextIcon';
 import { GaugeIcon } from '@/components/ui/v2/icons/GaugeIcon';
@@ -14,7 +13,7 @@ import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Box, ChevronDown, ChevronRight } from 'lucide-react';
 import {
   StaticTreeDataProvider,
   Tree,
@@ -53,27 +52,29 @@ const projectPages = [
   { name: 'Backups', icon: <CloudIcon className="h-4 w-4" /> },
   { name: 'Logs', icon: <FileTextIcon className="h-4 w-4" /> },
   { name: 'Metrics', icon: <GaugeIcon className="h-4 w-4" /> },
-  { name: 'Settings', icon: <CogIcon className="h-4 w-4" /> },
+  {
+    name: 'Settings',
+    // icon: <CogIcon className="w-4 h-4" />
+  },
 ];
 
-// TODO add the settings sub pages
-// const projectSettingsPages = [
-//   'General',
-//   'Compute Resources',
-//   'Database',
-//   'Hasura',
-//   'Authentication',
-//   'Sign-In methods',
-//   'Roles and Permissions',
-//   'SMTP',
-//   'Serverless Functions',
-//   'Git',
-//   'Environment Variables',
-//   'Secrets',
-//   'Custom Domains',
-//   'Rate Limiting',
-//   'AI',
-// ];
+const projectSettingsPages = [
+  'General',
+  'Compute Resources',
+  'Database',
+  'Hasura',
+  'Authentication',
+  'Sign-In methods',
+  'Roles and Permissions',
+  'SMTP',
+  'Serverless Functions',
+  'Git',
+  'Environment Variables',
+  'Secrets',
+  'Custom Domains',
+  'Rate Limiting',
+  'AI',
+];
 
 const createOrganization = (org: any) => {
   const result = {};
@@ -114,10 +115,10 @@ const createOrganization = (org: any) => {
       isFolder: true,
       canMove: false,
       canRename: false,
-      data: { name: project.name },
+      data: { name: project.name, icon: <Box className="h-4 w-4" /> },
       children: projectPages.map(
         (page) => `${org.name}-${project.name}-${page.name}`,
-      ), // Link project page names
+      ),
     };
   });
 
@@ -126,12 +127,31 @@ const createOrganization = (org: any) => {
       result[`${org.name}-${_project.name}-${_page.name}`] = {
         index: `${org.name}-${_project.name}-${_page.name}`,
         canMove: false,
-        isFolder: false,
-        children: undefined,
+        isFolder: _page.name === 'Settings',
+        children:
+          _page.name === 'Settings'
+            ? projectSettingsPages.map(
+                (p) => `${org.name}-${_project.name}-settings-${p}`,
+              )
+            : undefined,
         data: {
           name: _page.name,
           icon: _page.icon,
           isProjectPage: true,
+        },
+        canRename: false,
+      };
+    });
+
+    // add the settings pages
+    projectSettingsPages.forEach((p) => {
+      result[`${org.name}-${_project.name}-settings-${p}`] = {
+        index: `${org.name}-${_project.name}-settings-${p}`,
+        canMove: false,
+        isFolder: false,
+        children: undefined,
+        data: {
+          name: p,
         },
         canRename: false,
       };
@@ -250,7 +270,7 @@ export default function NavTree() {
               <span
                 className={cn(context.isFocused ? 'text-primary-main' : '')}
               >
-                {item.data.isProjectPage && item.data.icon}
+                {item.data.icon}
               </span>
               <span
                 className={cn(
