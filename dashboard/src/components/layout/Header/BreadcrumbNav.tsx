@@ -148,25 +148,25 @@ export default function BreadcrumbNav() {
             <BreadCrumbComboBox
               selectedValue="authentication"
               options={[
-                { label: 'General', value: 'general' },
-                { label: 'Database', value: 'database' },
-                { label: 'Authentication', value: 'authentication' },
-                { label: 'Sign-In methods', value: 'sign-in-methods' },
-                {
-                  label: 'Roles and Permissions',
-                  value: 'roles-and-permissions',
-                },
-                { label: 'SMTP', value: 'smtp' },
-                {
-                  label: 'Serverless Functions',
-                  value: 'serverless-functions',
-                },
-                { label: 'Git', value: 'git' },
-                {
-                  label: 'Environment Variables',
-                  value: 'environment-variables',
-                },
-              ]}
+                'General',
+                'Compute Resources',
+                'Database',
+                'Hasura',
+                'Authentication',
+                'Sign-In methods',
+                'Roles and Permissions',
+                'SMTP',
+                'Serverless Functions',
+                'Git',
+                'Environment Variables',
+                'Secrets',
+                'Custom Domains',
+                'Rate Limiting',
+                'AI',
+              ].map((item) => ({
+                label: item,
+                value: item.toLowerCase().replace(' ', '-'),
+              }))}
             />
           </BreadcrumbItem>
         </BreadcrumbItem>
