@@ -1,24 +1,22 @@
 import { useDialog } from '@/components/common/DialogProvider';
 import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
-import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { LocalAccountMenu } from '@/components/layout/LocalAccountMenu';
 import { MobileNav } from '@/components/layout/MobileNav';
-import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Chip } from '@/components/ui/v2/Chip';
 import { GraphiteIcon } from '@/components/ui/v2/icons/GraphiteIcon';
 import { DevAssistant } from '@/features/ai/DevAssistant';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ApplicationStatus } from '@/types/application';
 import { getToastStyleProps } from '@/utils/constants/settings';
-import { useRouter } from 'next/router';
+// import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
 import { useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
+import BreadcrumbNav from './BreadcrumbNav';
 
 export interface HeaderProps
   extends PropsWithoutRef<
@@ -26,7 +24,7 @@ export interface HeaderProps
   > {}
 
 export default function Header({ className, ...props }: HeaderProps) {
-  const router = useRouter();
+  // const router = useRouter();
 
   const isPlatform = useIsPlatform();
 
@@ -77,14 +75,15 @@ export default function Header({ className, ...props }: HeaderProps) {
     <Box
       component="header"
       className={twMerge(
-        'z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-1 px-4 py-3',
+        'z-40 grid h-12 w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b-1 px-4 py-3',
         className,
       )}
       sx={{ backgroundColor: 'background.paper' }}
       {...props}
     >
-      <div className="grid grid-flow-col items-center gap-3">
-        <NavLink href="/" className="w-12">
+      <BreadcrumbNav />
+      {/* <div className="grid items-center grid-flow-col gap-3">
+        <NavLink href="/" className="w-fit">
           <Logo className="mx-auto cursor-pointer" />
         </NavLink>
 
@@ -102,11 +101,11 @@ export default function Header({ className, ...props }: HeaderProps) {
             color="warning"
           />
         )}
-      </div>
+      </div> */}
 
       <div className="hidden grid-flow-col items-center gap-2 sm:grid">
         <Button className="rounded-full" onClick={openDevAssistant}>
-          <GraphiteIcon />
+          <GraphiteIcon className="h-4 w-4" />
         </Button>
 
         {isPlatform && (
