@@ -333,7 +333,21 @@ type ComplexityRoot struct {
 
 	ConfigGrafana struct {
 		AdminPassword func(childComplexity int) int
+		Alerting      func(childComplexity int) int
+		Contacts      func(childComplexity int) int
 		Smtp          func(childComplexity int) int
+	}
+
+	ConfigGrafanaAlerting struct {
+		Enabled func(childComplexity int) int
+	}
+
+	ConfigGrafanaContacts struct {
+		Discord   func(childComplexity int) int
+		Emails    func(childComplexity int) int
+		Pagerduty func(childComplexity int) int
+		Slack     func(childComplexity int) int
+		Webhook   func(childComplexity int) int
 	}
 
 	ConfigGrafanaSmtp struct {
@@ -342,6 +356,42 @@ type ComplexityRoot struct {
 		Port     func(childComplexity int) int
 		Sender   func(childComplexity int) int
 		User     func(childComplexity int) int
+	}
+
+	ConfigGrafanacontactsDiscord struct {
+		AvatarUrl func(childComplexity int) int
+		Url       func(childComplexity int) int
+	}
+
+	ConfigGrafanacontactsPagerduty struct {
+		Class          func(childComplexity int) int
+		Component      func(childComplexity int) int
+		Group          func(childComplexity int) int
+		IntegrationKey func(childComplexity int) int
+		Severity       func(childComplexity int) int
+	}
+
+	ConfigGrafanacontactsSlack struct {
+		EndpointURL    func(childComplexity int) int
+		IconEmoji      func(childComplexity int) int
+		IconURL        func(childComplexity int) int
+		MentionChannel func(childComplexity int) int
+		MentionGroups  func(childComplexity int) int
+		MentionUsers   func(childComplexity int) int
+		Recipient      func(childComplexity int) int
+		Token          func(childComplexity int) int
+		Url            func(childComplexity int) int
+		Username       func(childComplexity int) int
+	}
+
+	ConfigGrafanacontactsWebhook struct {
+		AuthorizationCredentials func(childComplexity int) int
+		AuthorizationScheme      func(childComplexity int) int
+		HttpMethod               func(childComplexity int) int
+		MaxAlerts                func(childComplexity int) int
+		Password                 func(childComplexity int) int
+		Url                      func(childComplexity int) int
+		Username                 func(childComplexity int) int
 	}
 
 	ConfigGraphql struct {
@@ -1694,12 +1744,68 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigGrafana.AdminPassword(childComplexity), true
 
+	case "ConfigGrafana.alerting":
+		if e.complexity.ConfigGrafana.Alerting == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafana.Alerting(childComplexity), true
+
+	case "ConfigGrafana.contacts":
+		if e.complexity.ConfigGrafana.Contacts == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafana.Contacts(childComplexity), true
+
 	case "ConfigGrafana.smtp":
 		if e.complexity.ConfigGrafana.Smtp == nil {
 			break
 		}
 
 		return e.complexity.ConfigGrafana.Smtp(childComplexity), true
+
+	case "ConfigGrafanaAlerting.enabled":
+		if e.complexity.ConfigGrafanaAlerting.Enabled == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanaAlerting.Enabled(childComplexity), true
+
+	case "ConfigGrafanaContacts.discord":
+		if e.complexity.ConfigGrafanaContacts.Discord == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanaContacts.Discord(childComplexity), true
+
+	case "ConfigGrafanaContacts.emails":
+		if e.complexity.ConfigGrafanaContacts.Emails == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanaContacts.Emails(childComplexity), true
+
+	case "ConfigGrafanaContacts.pagerduty":
+		if e.complexity.ConfigGrafanaContacts.Pagerduty == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanaContacts.Pagerduty(childComplexity), true
+
+	case "ConfigGrafanaContacts.slack":
+		if e.complexity.ConfigGrafanaContacts.Slack == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanaContacts.Slack(childComplexity), true
+
+	case "ConfigGrafanaContacts.webhook":
+		if e.complexity.ConfigGrafanaContacts.Webhook == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanaContacts.Webhook(childComplexity), true
 
 	case "ConfigGrafanaSmtp.host":
 		if e.complexity.ConfigGrafanaSmtp.Host == nil {
@@ -1735,6 +1841,174 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigGrafanaSmtp.User(childComplexity), true
+
+	case "ConfigGrafanacontactsDiscord.avatarUrl":
+		if e.complexity.ConfigGrafanacontactsDiscord.AvatarUrl == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsDiscord.AvatarUrl(childComplexity), true
+
+	case "ConfigGrafanacontactsDiscord.url":
+		if e.complexity.ConfigGrafanacontactsDiscord.Url == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsDiscord.Url(childComplexity), true
+
+	case "ConfigGrafanacontactsPagerduty.class":
+		if e.complexity.ConfigGrafanacontactsPagerduty.Class == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsPagerduty.Class(childComplexity), true
+
+	case "ConfigGrafanacontactsPagerduty.component":
+		if e.complexity.ConfigGrafanacontactsPagerduty.Component == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsPagerduty.Component(childComplexity), true
+
+	case "ConfigGrafanacontactsPagerduty.group":
+		if e.complexity.ConfigGrafanacontactsPagerduty.Group == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsPagerduty.Group(childComplexity), true
+
+	case "ConfigGrafanacontactsPagerduty.integrationKey":
+		if e.complexity.ConfigGrafanacontactsPagerduty.IntegrationKey == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsPagerduty.IntegrationKey(childComplexity), true
+
+	case "ConfigGrafanacontactsPagerduty.severity":
+		if e.complexity.ConfigGrafanacontactsPagerduty.Severity == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsPagerduty.Severity(childComplexity), true
+
+	case "ConfigGrafanacontactsSlack.endpointURL":
+		if e.complexity.ConfigGrafanacontactsSlack.EndpointURL == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsSlack.EndpointURL(childComplexity), true
+
+	case "ConfigGrafanacontactsSlack.iconEmoji":
+		if e.complexity.ConfigGrafanacontactsSlack.IconEmoji == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsSlack.IconEmoji(childComplexity), true
+
+	case "ConfigGrafanacontactsSlack.iconURL":
+		if e.complexity.ConfigGrafanacontactsSlack.IconURL == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsSlack.IconURL(childComplexity), true
+
+	case "ConfigGrafanacontactsSlack.mentionChannel":
+		if e.complexity.ConfigGrafanacontactsSlack.MentionChannel == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsSlack.MentionChannel(childComplexity), true
+
+	case "ConfigGrafanacontactsSlack.mentionGroups":
+		if e.complexity.ConfigGrafanacontactsSlack.MentionGroups == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsSlack.MentionGroups(childComplexity), true
+
+	case "ConfigGrafanacontactsSlack.mentionUsers":
+		if e.complexity.ConfigGrafanacontactsSlack.MentionUsers == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsSlack.MentionUsers(childComplexity), true
+
+	case "ConfigGrafanacontactsSlack.recipient":
+		if e.complexity.ConfigGrafanacontactsSlack.Recipient == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsSlack.Recipient(childComplexity), true
+
+	case "ConfigGrafanacontactsSlack.token":
+		if e.complexity.ConfigGrafanacontactsSlack.Token == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsSlack.Token(childComplexity), true
+
+	case "ConfigGrafanacontactsSlack.url":
+		if e.complexity.ConfigGrafanacontactsSlack.Url == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsSlack.Url(childComplexity), true
+
+	case "ConfigGrafanacontactsSlack.username":
+		if e.complexity.ConfigGrafanacontactsSlack.Username == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsSlack.Username(childComplexity), true
+
+	case "ConfigGrafanacontactsWebhook.authorizationCredentials":
+		if e.complexity.ConfigGrafanacontactsWebhook.AuthorizationCredentials == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsWebhook.AuthorizationCredentials(childComplexity), true
+
+	case "ConfigGrafanacontactsWebhook.authorizationScheme":
+		if e.complexity.ConfigGrafanacontactsWebhook.AuthorizationScheme == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsWebhook.AuthorizationScheme(childComplexity), true
+
+	case "ConfigGrafanacontactsWebhook.httpMethod":
+		if e.complexity.ConfigGrafanacontactsWebhook.HttpMethod == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsWebhook.HttpMethod(childComplexity), true
+
+	case "ConfigGrafanacontactsWebhook.maxAlerts":
+		if e.complexity.ConfigGrafanacontactsWebhook.MaxAlerts == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsWebhook.MaxAlerts(childComplexity), true
+
+	case "ConfigGrafanacontactsWebhook.password":
+		if e.complexity.ConfigGrafanacontactsWebhook.Password == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsWebhook.Password(childComplexity), true
+
+	case "ConfigGrafanacontactsWebhook.url":
+		if e.complexity.ConfigGrafanacontactsWebhook.Url == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsWebhook.Url(childComplexity), true
+
+	case "ConfigGrafanacontactsWebhook.username":
+		if e.complexity.ConfigGrafanacontactsWebhook.Username == nil {
+			break
+		}
+
+		return e.complexity.ConfigGrafanacontactsWebhook.Username(childComplexity), true
 
 	case "ConfigGraphql.security":
 		if e.complexity.ConfigGraphql.Security == nil {
@@ -3194,10 +3468,22 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigGlobalEnvironmentVariableComparisonExp,
 		ec.unmarshalInputConfigGlobalEnvironmentVariableInsertInput,
 		ec.unmarshalInputConfigGlobalInsertInput,
+		ec.unmarshalInputConfigGrafanaAlertingComparisonExp,
+		ec.unmarshalInputConfigGrafanaAlertingInsertInput,
 		ec.unmarshalInputConfigGrafanaComparisonExp,
+		ec.unmarshalInputConfigGrafanaContactsComparisonExp,
+		ec.unmarshalInputConfigGrafanaContactsInsertInput,
 		ec.unmarshalInputConfigGrafanaInsertInput,
 		ec.unmarshalInputConfigGrafanaSmtpComparisonExp,
 		ec.unmarshalInputConfigGrafanaSmtpInsertInput,
+		ec.unmarshalInputConfigGrafanacontactsDiscordComparisonExp,
+		ec.unmarshalInputConfigGrafanacontactsDiscordInsertInput,
+		ec.unmarshalInputConfigGrafanacontactsPagerdutyComparisonExp,
+		ec.unmarshalInputConfigGrafanacontactsPagerdutyInsertInput,
+		ec.unmarshalInputConfigGrafanacontactsSlackComparisonExp,
+		ec.unmarshalInputConfigGrafanacontactsSlackInsertInput,
+		ec.unmarshalInputConfigGrafanacontactsWebhookComparisonExp,
+		ec.unmarshalInputConfigGrafanacontactsWebhookInsertInput,
 		ec.unmarshalInputConfigGraphqlComparisonExp,
 		ec.unmarshalInputConfigGraphqlInsertInput,
 		ec.unmarshalInputConfigGraphqlSecurityComparisonExp,
@@ -5415,16 +5701,28 @@ type ConfigGrafana {
 
     """
     smtp: ConfigGrafanaSmtp
+    """
+
+    """
+    alerting: ConfigGrafanaAlerting
+    """
+
+    """
+    contacts: ConfigGrafanaContacts
 }
 
 input ConfigGrafanaUpdateInput {
     adminPassword: String
     smtp: ConfigGrafanaSmtpUpdateInput
+    alerting: ConfigGrafanaAlertingUpdateInput
+    contacts: ConfigGrafanaContactsUpdateInput
 }
 
 input ConfigGrafanaInsertInput {
     adminPassword: String!
     smtp: ConfigGrafanaSmtpInsertInput
+    alerting: ConfigGrafanaAlertingInsertInput
+    contacts: ConfigGrafanaContactsInsertInput
 }
 
 input ConfigGrafanaComparisonExp {
@@ -5433,6 +5731,86 @@ input ConfigGrafanaComparisonExp {
     _or: [ConfigGrafanaComparisonExp!]
     adminPassword: ConfigStringComparisonExp
     smtp: ConfigGrafanaSmtpComparisonExp
+    alerting: ConfigGrafanaAlertingComparisonExp
+    contacts: ConfigGrafanaContactsComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanaAlerting {
+    """
+
+    """
+    enabled: Boolean
+}
+
+input ConfigGrafanaAlertingUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigGrafanaAlertingInsertInput {
+    enabled: Boolean
+}
+
+input ConfigGrafanaAlertingComparisonExp {
+    _and: [ConfigGrafanaAlertingComparisonExp!]
+    _not: ConfigGrafanaAlertingComparisonExp
+    _or: [ConfigGrafanaAlertingComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanaContacts {
+    """
+
+    """
+    emails: [String!]
+    """
+
+    """
+    pagerduty: [ConfigGrafanacontactsPagerduty!]
+    """
+
+    """
+    discord: [ConfigGrafanacontactsDiscord!]
+    """
+
+    """
+    slack: [ConfigGrafanacontactsSlack!]
+    """
+
+    """
+    webhook: [ConfigGrafanacontactsWebhook!]
+}
+
+input ConfigGrafanaContactsUpdateInput {
+        emails: [String!]
+        pagerduty: [ConfigGrafanacontactsPagerdutyUpdateInput!]
+        discord: [ConfigGrafanacontactsDiscordUpdateInput!]
+        slack: [ConfigGrafanacontactsSlackUpdateInput!]
+        webhook: [ConfigGrafanacontactsWebhookUpdateInput!]
+}
+
+input ConfigGrafanaContactsInsertInput {
+        emails: [String!]
+        pagerduty: [ConfigGrafanacontactsPagerdutyInsertInput!]
+        discord: [ConfigGrafanacontactsDiscordInsertInput!]
+        slack: [ConfigGrafanacontactsSlackInsertInput!]
+        webhook: [ConfigGrafanacontactsWebhookInsertInput!]
+}
+
+input ConfigGrafanaContactsComparisonExp {
+    _and: [ConfigGrafanaContactsComparisonExp!]
+    _not: ConfigGrafanaContactsComparisonExp
+    _or: [ConfigGrafanaContactsComparisonExp!]
+    emails: ConfigStringComparisonExp
+    pagerduty: ConfigGrafanacontactsPagerdutyComparisonExp
+    discord: ConfigGrafanacontactsDiscordComparisonExp
+    slack: ConfigGrafanacontactsSlackComparisonExp
+    webhook: ConfigGrafanacontactsWebhookComparisonExp
 }
 
 """
@@ -5486,6 +5864,246 @@ input ConfigGrafanaSmtpComparisonExp {
     sender: ConfigStringComparisonExp
     user: ConfigStringComparisonExp
     password: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanacontactsDiscord {
+    """
+
+    """
+    url: String!
+    """
+
+    """
+    avatarUrl: String!
+}
+
+input ConfigGrafanacontactsDiscordUpdateInput {
+    url: String
+    avatarUrl: String
+}
+
+input ConfigGrafanacontactsDiscordInsertInput {
+    url: String!
+    avatarUrl: String!
+}
+
+input ConfigGrafanacontactsDiscordComparisonExp {
+    _and: [ConfigGrafanacontactsDiscordComparisonExp!]
+    _not: ConfigGrafanacontactsDiscordComparisonExp
+    _or: [ConfigGrafanacontactsDiscordComparisonExp!]
+    url: ConfigStringComparisonExp
+    avatarUrl: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanacontactsPagerduty {
+    """
+
+    """
+    integrationKey: String!
+    """
+
+    """
+    severity: String!
+    """
+
+    """
+    class: String!
+    """
+
+    """
+    component: String!
+    """
+
+    """
+    group: String!
+}
+
+input ConfigGrafanacontactsPagerdutyUpdateInput {
+    integrationKey: String
+    severity: String
+    class: String
+    component: String
+    group: String
+}
+
+input ConfigGrafanacontactsPagerdutyInsertInput {
+    integrationKey: String!
+    severity: String!
+    class: String!
+    component: String!
+    group: String!
+}
+
+input ConfigGrafanacontactsPagerdutyComparisonExp {
+    _and: [ConfigGrafanacontactsPagerdutyComparisonExp!]
+    _not: ConfigGrafanacontactsPagerdutyComparisonExp
+    _or: [ConfigGrafanacontactsPagerdutyComparisonExp!]
+    integrationKey: ConfigStringComparisonExp
+    severity: ConfigStringComparisonExp
+    class: ConfigStringComparisonExp
+    component: ConfigStringComparisonExp
+    group: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanacontactsSlack {
+    """
+
+    """
+    recipient: String!
+    """
+
+    """
+    token: String!
+    """
+
+    """
+    username: String!
+    """
+
+    """
+    iconEmoji: String!
+    """
+
+    """
+    iconURL: String!
+    """
+
+    """
+    mentionUsers: [String!]!
+    """
+
+    """
+    mentionGroups: [String!]!
+    """
+
+    """
+    mentionChannel: String!
+    """
+
+    """
+    url: String!
+    """
+
+    """
+    endpointURL: String!
+}
+
+input ConfigGrafanacontactsSlackUpdateInput {
+    recipient: String
+    token: String
+    username: String
+    iconEmoji: String
+    iconURL: String
+        mentionUsers: [String!]
+        mentionGroups: [String!]
+    mentionChannel: String
+    url: String
+    endpointURL: String
+}
+
+input ConfigGrafanacontactsSlackInsertInput {
+    recipient: String!
+    token: String!
+    username: String!
+    iconEmoji: String!
+    iconURL: String!
+        mentionUsers: [String!]!
+        mentionGroups: [String!]!
+    mentionChannel: String!
+    url: String!
+    endpointURL: String!
+}
+
+input ConfigGrafanacontactsSlackComparisonExp {
+    _and: [ConfigGrafanacontactsSlackComparisonExp!]
+    _not: ConfigGrafanacontactsSlackComparisonExp
+    _or: [ConfigGrafanacontactsSlackComparisonExp!]
+    recipient: ConfigStringComparisonExp
+    token: ConfigStringComparisonExp
+    username: ConfigStringComparisonExp
+    iconEmoji: ConfigStringComparisonExp
+    iconURL: ConfigStringComparisonExp
+    mentionUsers: ConfigStringComparisonExp
+    mentionGroups: ConfigStringComparisonExp
+    mentionChannel: ConfigStringComparisonExp
+    url: ConfigStringComparisonExp
+    endpointURL: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanacontactsWebhook {
+    """
+
+    """
+    url: String!
+    """
+
+    """
+    httpMethod: String!
+    """
+
+    """
+    username: String!
+    """
+
+    """
+    password: String!
+    """
+
+    """
+    authorizationScheme: String!
+    """
+
+    """
+    authorizationCredentials: String!
+    """
+
+    """
+    maxAlerts: Int!
+}
+
+input ConfigGrafanacontactsWebhookUpdateInput {
+    url: String
+    httpMethod: String
+    username: String
+    password: String
+    authorizationScheme: String
+    authorizationCredentials: String
+    maxAlerts: Int
+}
+
+input ConfigGrafanacontactsWebhookInsertInput {
+    url: String!
+    httpMethod: String!
+    username: String!
+    password: String!
+    authorizationScheme: String!
+    authorizationCredentials: String!
+    maxAlerts: Int!
+}
+
+input ConfigGrafanacontactsWebhookComparisonExp {
+    _and: [ConfigGrafanacontactsWebhookComparisonExp!]
+    _not: ConfigGrafanacontactsWebhookComparisonExp
+    _or: [ConfigGrafanacontactsWebhookComparisonExp!]
+    url: ConfigStringComparisonExp
+    httpMethod: ConfigStringComparisonExp
+    username: ConfigStringComparisonExp
+    password: ConfigStringComparisonExp
+    authorizationScheme: ConfigStringComparisonExp
+    authorizationCredentials: ConfigStringComparisonExp
+    maxAlerts: ConfigIntComparisonExp
 }
 
 """
@@ -14796,6 +15414,406 @@ func (ec *executionContext) fieldContext_ConfigGrafana_smtp(_ context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigGrafana_alerting(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafana) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafana_alerting(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Alerting, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigGrafanaAlerting)
+	fc.Result = res
+	return ec.marshalOConfigGrafanaAlerting2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlerting(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafana_alerting(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafana",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "enabled":
+				return ec.fieldContext_ConfigGrafanaAlerting_enabled(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigGrafanaAlerting", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafana_contacts(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafana) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafana_contacts(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Contacts, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigGrafanaContacts)
+	fc.Result = res
+	return ec.marshalOConfigGrafanaContacts2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContacts(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafana_contacts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafana",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "emails":
+				return ec.fieldContext_ConfigGrafanaContacts_emails(ctx, field)
+			case "pagerduty":
+				return ec.fieldContext_ConfigGrafanaContacts_pagerduty(ctx, field)
+			case "discord":
+				return ec.fieldContext_ConfigGrafanaContacts_discord(ctx, field)
+			case "slack":
+				return ec.fieldContext_ConfigGrafanaContacts_slack(ctx, field)
+			case "webhook":
+				return ec.fieldContext_ConfigGrafanaContacts_webhook(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigGrafanaContacts", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanaAlerting_enabled(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanaAlerting) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanaAlerting_enabled(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Enabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanaAlerting_enabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanaAlerting",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanaContacts_emails(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanaContacts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanaContacts_emails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Emails, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanaContacts_emails(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanaContacts",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanaContacts_pagerduty(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanaContacts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanaContacts_pagerduty(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Pagerduty, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ConfigGrafanacontactsPagerduty)
+	fc.Result = res
+	return ec.marshalOConfigGrafanacontactsPagerduty2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanaContacts_pagerduty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanaContacts",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "integrationKey":
+				return ec.fieldContext_ConfigGrafanacontactsPagerduty_integrationKey(ctx, field)
+			case "severity":
+				return ec.fieldContext_ConfigGrafanacontactsPagerduty_severity(ctx, field)
+			case "class":
+				return ec.fieldContext_ConfigGrafanacontactsPagerduty_class(ctx, field)
+			case "component":
+				return ec.fieldContext_ConfigGrafanacontactsPagerduty_component(ctx, field)
+			case "group":
+				return ec.fieldContext_ConfigGrafanacontactsPagerduty_group(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigGrafanacontactsPagerduty", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanaContacts_discord(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanaContacts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanaContacts_discord(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Discord, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ConfigGrafanacontactsDiscord)
+	fc.Result = res
+	return ec.marshalOConfigGrafanacontactsDiscord2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanaContacts_discord(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanaContacts",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "url":
+				return ec.fieldContext_ConfigGrafanacontactsDiscord_url(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_ConfigGrafanacontactsDiscord_avatarUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigGrafanacontactsDiscord", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanaContacts_slack(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanaContacts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanaContacts_slack(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Slack, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ConfigGrafanacontactsSlack)
+	fc.Result = res
+	return ec.marshalOConfigGrafanacontactsSlack2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanaContacts_slack(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanaContacts",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "recipient":
+				return ec.fieldContext_ConfigGrafanacontactsSlack_recipient(ctx, field)
+			case "token":
+				return ec.fieldContext_ConfigGrafanacontactsSlack_token(ctx, field)
+			case "username":
+				return ec.fieldContext_ConfigGrafanacontactsSlack_username(ctx, field)
+			case "iconEmoji":
+				return ec.fieldContext_ConfigGrafanacontactsSlack_iconEmoji(ctx, field)
+			case "iconURL":
+				return ec.fieldContext_ConfigGrafanacontactsSlack_iconURL(ctx, field)
+			case "mentionUsers":
+				return ec.fieldContext_ConfigGrafanacontactsSlack_mentionUsers(ctx, field)
+			case "mentionGroups":
+				return ec.fieldContext_ConfigGrafanacontactsSlack_mentionGroups(ctx, field)
+			case "mentionChannel":
+				return ec.fieldContext_ConfigGrafanacontactsSlack_mentionChannel(ctx, field)
+			case "url":
+				return ec.fieldContext_ConfigGrafanacontactsSlack_url(ctx, field)
+			case "endpointURL":
+				return ec.fieldContext_ConfigGrafanacontactsSlack_endpointURL(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigGrafanacontactsSlack", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanaContacts_webhook(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanaContacts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanaContacts_webhook(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Webhook, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ConfigGrafanacontactsWebhook)
+	fc.Result = res
+	return ec.marshalOConfigGrafanacontactsWebhook2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanaContacts_webhook(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanaContacts",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "url":
+				return ec.fieldContext_ConfigGrafanacontactsWebhook_url(ctx, field)
+			case "httpMethod":
+				return ec.fieldContext_ConfigGrafanacontactsWebhook_httpMethod(ctx, field)
+			case "username":
+				return ec.fieldContext_ConfigGrafanacontactsWebhook_username(ctx, field)
+			case "password":
+				return ec.fieldContext_ConfigGrafanacontactsWebhook_password(ctx, field)
+			case "authorizationScheme":
+				return ec.fieldContext_ConfigGrafanacontactsWebhook_authorizationScheme(ctx, field)
+			case "authorizationCredentials":
+				return ec.fieldContext_ConfigGrafanacontactsWebhook_authorizationCredentials(ctx, field)
+			case "maxAlerts":
+				return ec.fieldContext_ConfigGrafanacontactsWebhook_maxAlerts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigGrafanacontactsWebhook", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigGrafanaSmtp_host(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanaSmtp) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigGrafanaSmtp_host(ctx, field)
 	if err != nil {
@@ -15011,6 +16029,1062 @@ func (ec *executionContext) fieldContext_ConfigGrafanaSmtp_password(_ context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsDiscord_url(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsDiscord) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsDiscord_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Url, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsDiscord_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsDiscord",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsDiscord_avatarUrl(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsDiscord) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsDiscord_avatarUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AvatarUrl, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsDiscord_avatarUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsDiscord",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsPagerduty_integrationKey(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsPagerduty) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsPagerduty_integrationKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IntegrationKey, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsPagerduty_integrationKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsPagerduty",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsPagerduty_severity(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsPagerduty) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsPagerduty_severity(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Severity, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsPagerduty_severity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsPagerduty",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsPagerduty_class(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsPagerduty) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsPagerduty_class(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Class, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsPagerduty_class(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsPagerduty",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsPagerduty_component(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsPagerduty) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsPagerduty_component(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Component, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsPagerduty_component(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsPagerduty",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsPagerduty_group(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsPagerduty) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsPagerduty_group(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Group, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsPagerduty_group(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsPagerduty",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsSlack_recipient(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsSlack) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsSlack_recipient(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Recipient, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsSlack_recipient(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsSlack",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsSlack_token(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsSlack) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsSlack_token(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Token, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsSlack_token(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsSlack",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsSlack_username(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsSlack) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsSlack_username(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsSlack_username(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsSlack",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsSlack_iconEmoji(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsSlack) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsSlack_iconEmoji(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IconEmoji, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsSlack_iconEmoji(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsSlack",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsSlack_iconURL(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsSlack) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsSlack_iconURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IconURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsSlack_iconURL(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsSlack",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsSlack_mentionUsers(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsSlack) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsSlack_mentionUsers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MentionUsers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsSlack_mentionUsers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsSlack",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsSlack_mentionGroups(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsSlack) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsSlack_mentionGroups(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MentionGroups, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsSlack_mentionGroups(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsSlack",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsSlack_mentionChannel(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsSlack) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsSlack_mentionChannel(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MentionChannel, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsSlack_mentionChannel(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsSlack",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsSlack_url(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsSlack) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsSlack_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Url, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsSlack_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsSlack",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsSlack_endpointURL(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsSlack) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsSlack_endpointURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EndpointURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsSlack_endpointURL(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsSlack",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsWebhook_url(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsWebhook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsWebhook_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Url, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsWebhook_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsWebhook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsWebhook_httpMethod(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsWebhook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsWebhook_httpMethod(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HttpMethod, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsWebhook_httpMethod(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsWebhook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsWebhook_username(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsWebhook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsWebhook_username(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsWebhook_username(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsWebhook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsWebhook_password(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsWebhook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsWebhook_password(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Password, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsWebhook_password(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsWebhook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsWebhook_authorizationScheme(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsWebhook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsWebhook_authorizationScheme(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthorizationScheme, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsWebhook_authorizationScheme(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsWebhook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsWebhook_authorizationCredentials(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsWebhook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsWebhook_authorizationCredentials(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AuthorizationCredentials, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsWebhook_authorizationCredentials(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsWebhook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigGrafanacontactsWebhook_maxAlerts(ctx context.Context, field graphql.CollectedField, obj *model.ConfigGrafanacontactsWebhook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigGrafanacontactsWebhook_maxAlerts(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaxAlerts, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigGrafanacontactsWebhook_maxAlerts(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigGrafanacontactsWebhook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -17098,6 +19172,10 @@ func (ec *executionContext) fieldContext_ConfigObservability_grafana(_ context.C
 				return ec.fieldContext_ConfigGrafana_adminPassword(ctx, field)
 			case "smtp":
 				return ec.fieldContext_ConfigGrafana_smtp(ctx, field)
+			case "alerting":
+				return ec.fieldContext_ConfigGrafana_alerting(ctx, field)
+			case "contacts":
+				return ec.fieldContext_ConfigGrafana_contacts(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigGrafana", field.Name)
 		},
@@ -29990,6 +32068,81 @@ func (ec *executionContext) unmarshalInputConfigGlobalInsertInput(ctx context.Co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputConfigGrafanaAlertingComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanaAlertingComparisonExp, error) {
+	var it model.ConfigGrafanaAlertingComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigGrafanaAlertingComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigGrafanaAlertingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigGrafanaAlertingComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanaAlertingInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanaAlertingInsertInput, error) {
+	var it model.ConfigGrafanaAlertingInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"enabled"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "enabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Enabled = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigGrafanaComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanaComparisonExp, error) {
 	var it model.ConfigGrafanaComparisonExp
 	asMap := map[string]interface{}{}
@@ -29997,7 +32150,7 @@ func (ec *executionContext) unmarshalInputConfigGrafanaComparisonExp(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "adminPassword", "smtp"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "adminPassword", "smtp", "alerting", "contacts"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30039,6 +32192,151 @@ func (ec *executionContext) unmarshalInputConfigGrafanaComparisonExp(ctx context
 				return it, err
 			}
 			it.Smtp = data
+		case "alerting":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alerting"))
+			data, err := ec.unmarshalOConfigGrafanaAlertingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Alerting = data
+		case "contacts":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contacts"))
+			data, err := ec.unmarshalOConfigGrafanaContactsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Contacts = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanaContactsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanaContactsComparisonExp, error) {
+	var it model.ConfigGrafanaContactsComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "emails", "pagerduty", "discord", "slack", "webhook"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigGrafanaContactsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigGrafanaContactsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigGrafanaContactsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "emails":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Emails = data
+		case "pagerduty":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagerduty"))
+			data, err := ec.unmarshalOConfigGrafanacontactsPagerdutyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Pagerduty = data
+		case "discord":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discord"))
+			data, err := ec.unmarshalOConfigGrafanacontactsDiscordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Discord = data
+		case "slack":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack"))
+			data, err := ec.unmarshalOConfigGrafanacontactsSlackComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Slack = data
+		case "webhook":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook"))
+			data, err := ec.unmarshalOConfigGrafanacontactsWebhookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Webhook = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanaContactsInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanaContactsInsertInput, error) {
+	var it model.ConfigGrafanaContactsInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"emails", "pagerduty", "discord", "slack", "webhook"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "emails":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emails"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Emails = data
+		case "pagerduty":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pagerduty"))
+			data, err := ec.unmarshalOConfigGrafanacontactsPagerdutyInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyInsertInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Pagerduty = data
+		case "discord":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("discord"))
+			data, err := ec.unmarshalOConfigGrafanacontactsDiscordInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordInsertInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Discord = data
+		case "slack":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack"))
+			data, err := ec.unmarshalOConfigGrafanacontactsSlackInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackInsertInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Slack = data
+		case "webhook":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook"))
+			data, err := ec.unmarshalOConfigGrafanacontactsWebhookInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookInsertInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Webhook = data
 		}
 	}
 
@@ -30052,7 +32350,7 @@ func (ec *executionContext) unmarshalInputConfigGrafanaInsertInput(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"adminPassword", "smtp"}
+	fieldsInOrder := [...]string{"adminPassword", "smtp", "alerting", "contacts"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30073,6 +32371,20 @@ func (ec *executionContext) unmarshalInputConfigGrafanaInsertInput(ctx context.C
 				return it, err
 			}
 			it.Smtp = data
+		case "alerting":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("alerting"))
+			data, err := ec.unmarshalOConfigGrafanaAlertingInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Alerting = data
+		case "contacts":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("contacts"))
+			data, err := ec.unmarshalOConfigGrafanaContactsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Contacts = data
 		}
 	}
 
@@ -30204,6 +32516,586 @@ func (ec *executionContext) unmarshalInputConfigGrafanaSmtpInsertInput(ctx conte
 				return it, err
 			}
 			it.Password = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsDiscordComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsDiscordComparisonExp, error) {
+	var it model.ConfigGrafanacontactsDiscordComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "url", "avatarUrl"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigGrafanacontactsDiscordComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigGrafanacontactsDiscordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigGrafanacontactsDiscordComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "url":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Url = data
+		case "avatarUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("avatarUrl"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AvatarUrl = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsDiscordInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsDiscordInsertInput, error) {
+	var it model.ConfigGrafanacontactsDiscordInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"url", "avatarUrl"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "url":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Url = data
+		case "avatarUrl":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("avatarUrl"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AvatarUrl = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsPagerdutyComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsPagerdutyComparisonExp, error) {
+	var it model.ConfigGrafanacontactsPagerdutyComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "integrationKey", "severity", "class", "component", "group"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigGrafanacontactsPagerdutyComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigGrafanacontactsPagerdutyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigGrafanacontactsPagerdutyComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "integrationKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integrationKey"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IntegrationKey = data
+		case "severity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("severity"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Severity = data
+		case "class":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("class"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Class = data
+		case "component":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("component"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Component = data
+		case "group":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Group = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsPagerdutyInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsPagerdutyInsertInput, error) {
+	var it model.ConfigGrafanacontactsPagerdutyInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"integrationKey", "severity", "class", "component", "group"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "integrationKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("integrationKey"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IntegrationKey = data
+		case "severity":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("severity"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Severity = data
+		case "class":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("class"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Class = data
+		case "component":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("component"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Component = data
+		case "group":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("group"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Group = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsSlackComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsSlackComparisonExp, error) {
+	var it model.ConfigGrafanacontactsSlackComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "recipient", "token", "username", "iconEmoji", "iconURL", "mentionUsers", "mentionGroups", "mentionChannel", "url", "endpointURL"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigGrafanacontactsSlackComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigGrafanacontactsSlackComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigGrafanacontactsSlackComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "recipient":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("recipient"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Recipient = data
+		case "token":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Token = data
+		case "username":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "iconEmoji":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iconEmoji"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IconEmoji = data
+		case "iconURL":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iconURL"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IconURL = data
+		case "mentionUsers":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mentionUsers"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MentionUsers = data
+		case "mentionGroups":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mentionGroups"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MentionGroups = data
+		case "mentionChannel":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mentionChannel"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MentionChannel = data
+		case "url":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Url = data
+		case "endpointURL":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endpointURL"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EndpointURL = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsSlackInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsSlackInsertInput, error) {
+	var it model.ConfigGrafanacontactsSlackInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"recipient", "token", "username", "iconEmoji", "iconURL", "mentionUsers", "mentionGroups", "mentionChannel", "url", "endpointURL"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "recipient":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("recipient"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Recipient = data
+		case "token":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("token"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Token = data
+		case "username":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "iconEmoji":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iconEmoji"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IconEmoji = data
+		case "iconURL":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("iconURL"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IconURL = data
+		case "mentionUsers":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mentionUsers"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MentionUsers = data
+		case "mentionGroups":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mentionGroups"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MentionGroups = data
+		case "mentionChannel":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mentionChannel"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MentionChannel = data
+		case "url":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Url = data
+		case "endpointURL":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endpointURL"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EndpointURL = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsWebhookComparisonExp(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsWebhookComparisonExp, error) {
+	var it model.ConfigGrafanacontactsWebhookComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "url", "httpMethod", "username", "password", "authorizationScheme", "authorizationCredentials", "maxAlerts"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigGrafanacontactsWebhookComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigGrafanacontactsWebhookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigGrafanacontactsWebhookComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "url":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Url = data
+		case "httpMethod":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpMethod"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HttpMethod = data
+		case "username":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "password":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
+		case "authorizationScheme":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authorizationScheme"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthorizationScheme = data
+		case "authorizationCredentials":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authorizationCredentials"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthorizationCredentials = data
+		case "maxAlerts":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxAlerts"))
+			data, err := ec.unmarshalOConfigIntComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxAlerts = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigGrafanacontactsWebhookInsertInput(ctx context.Context, obj interface{}) (model.ConfigGrafanacontactsWebhookInsertInput, error) {
+	var it model.ConfigGrafanacontactsWebhookInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"url", "httpMethod", "username", "password", "authorizationScheme", "authorizationCredentials", "maxAlerts"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "url":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Url = data
+		case "httpMethod":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("httpMethod"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HttpMethod = data
+		case "username":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Username = data
+		case "password":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
+		case "authorizationScheme":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authorizationScheme"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthorizationScheme = data
+		case "authorizationCredentials":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authorizationCredentials"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthorizationCredentials = data
+		case "maxAlerts":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("maxAlerts"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.MaxAlerts = data
 		}
 	}
 
@@ -37438,6 +40330,90 @@ func (ec *executionContext) _ConfigGrafana(ctx context.Context, sel ast.Selectio
 			}
 		case "smtp":
 			out.Values[i] = ec._ConfigGrafana_smtp(ctx, field, obj)
+		case "alerting":
+			out.Values[i] = ec._ConfigGrafana_alerting(ctx, field, obj)
+		case "contacts":
+			out.Values[i] = ec._ConfigGrafana_contacts(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configGrafanaAlertingImplementors = []string{"ConfigGrafanaAlerting"}
+
+func (ec *executionContext) _ConfigGrafanaAlerting(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigGrafanaAlerting) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configGrafanaAlertingImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigGrafanaAlerting")
+		case "enabled":
+			out.Values[i] = ec._ConfigGrafanaAlerting_enabled(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configGrafanaContactsImplementors = []string{"ConfigGrafanaContacts"}
+
+func (ec *executionContext) _ConfigGrafanaContacts(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigGrafanaContacts) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configGrafanaContactsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigGrafanaContacts")
+		case "emails":
+			out.Values[i] = ec._ConfigGrafanaContacts_emails(ctx, field, obj)
+		case "pagerduty":
+			out.Values[i] = ec._ConfigGrafanaContacts_pagerduty(ctx, field, obj)
+		case "discord":
+			out.Values[i] = ec._ConfigGrafanaContacts_discord(ctx, field, obj)
+		case "slack":
+			out.Values[i] = ec._ConfigGrafanaContacts_slack(ctx, field, obj)
+		case "webhook":
+			out.Values[i] = ec._ConfigGrafanaContacts_webhook(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -37494,6 +40470,262 @@ func (ec *executionContext) _ConfigGrafanaSmtp(ctx context.Context, sel ast.Sele
 			}
 		case "password":
 			out.Values[i] = ec._ConfigGrafanaSmtp_password(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configGrafanacontactsDiscordImplementors = []string{"ConfigGrafanacontactsDiscord"}
+
+func (ec *executionContext) _ConfigGrafanacontactsDiscord(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigGrafanacontactsDiscord) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configGrafanacontactsDiscordImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigGrafanacontactsDiscord")
+		case "url":
+			out.Values[i] = ec._ConfigGrafanacontactsDiscord_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "avatarUrl":
+			out.Values[i] = ec._ConfigGrafanacontactsDiscord_avatarUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configGrafanacontactsPagerdutyImplementors = []string{"ConfigGrafanacontactsPagerduty"}
+
+func (ec *executionContext) _ConfigGrafanacontactsPagerduty(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigGrafanacontactsPagerduty) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configGrafanacontactsPagerdutyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigGrafanacontactsPagerduty")
+		case "integrationKey":
+			out.Values[i] = ec._ConfigGrafanacontactsPagerduty_integrationKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "severity":
+			out.Values[i] = ec._ConfigGrafanacontactsPagerduty_severity(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "class":
+			out.Values[i] = ec._ConfigGrafanacontactsPagerduty_class(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "component":
+			out.Values[i] = ec._ConfigGrafanacontactsPagerduty_component(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "group":
+			out.Values[i] = ec._ConfigGrafanacontactsPagerduty_group(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configGrafanacontactsSlackImplementors = []string{"ConfigGrafanacontactsSlack"}
+
+func (ec *executionContext) _ConfigGrafanacontactsSlack(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigGrafanacontactsSlack) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configGrafanacontactsSlackImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigGrafanacontactsSlack")
+		case "recipient":
+			out.Values[i] = ec._ConfigGrafanacontactsSlack_recipient(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "token":
+			out.Values[i] = ec._ConfigGrafanacontactsSlack_token(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "username":
+			out.Values[i] = ec._ConfigGrafanacontactsSlack_username(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "iconEmoji":
+			out.Values[i] = ec._ConfigGrafanacontactsSlack_iconEmoji(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "iconURL":
+			out.Values[i] = ec._ConfigGrafanacontactsSlack_iconURL(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mentionUsers":
+			out.Values[i] = ec._ConfigGrafanacontactsSlack_mentionUsers(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mentionGroups":
+			out.Values[i] = ec._ConfigGrafanacontactsSlack_mentionGroups(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "mentionChannel":
+			out.Values[i] = ec._ConfigGrafanacontactsSlack_mentionChannel(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "url":
+			out.Values[i] = ec._ConfigGrafanacontactsSlack_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "endpointURL":
+			out.Values[i] = ec._ConfigGrafanacontactsSlack_endpointURL(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configGrafanacontactsWebhookImplementors = []string{"ConfigGrafanacontactsWebhook"}
+
+func (ec *executionContext) _ConfigGrafanacontactsWebhook(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigGrafanacontactsWebhook) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configGrafanacontactsWebhookImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigGrafanacontactsWebhook")
+		case "url":
+			out.Values[i] = ec._ConfigGrafanacontactsWebhook_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "httpMethod":
+			out.Values[i] = ec._ConfigGrafanacontactsWebhook_httpMethod(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "username":
+			out.Values[i] = ec._ConfigGrafanacontactsWebhook_username(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "password":
+			out.Values[i] = ec._ConfigGrafanacontactsWebhook_password(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "authorizationScheme":
+			out.Values[i] = ec._ConfigGrafanacontactsWebhook_authorizationScheme(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "authorizationCredentials":
+			out.Values[i] = ec._ConfigGrafanacontactsWebhook_authorizationCredentials(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "maxAlerts":
+			out.Values[i] = ec._ConfigGrafanacontactsWebhook_maxAlerts(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -40669,8 +43901,18 @@ func (ec *executionContext) marshalNConfigGrafana2ᚖgithubᚗcomᚋnhostᚋbe�
 	return ec._ConfigGrafana(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNConfigGrafanaAlertingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaAlertingComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigGrafanaAlertingComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNConfigGrafanaComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGrafanaComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanaContactsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaContactsComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigGrafanaContactsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -40682,6 +43924,110 @@ func (ec *executionContext) unmarshalNConfigGrafanaInsertInput2ᚖgithubᚗcom�
 func (ec *executionContext) unmarshalNConfigGrafanaSmtpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaSmtpComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigGrafanaSmtpComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNConfigGrafanacontactsDiscord2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscord(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGrafanacontactsDiscord) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ConfigGrafanacontactsDiscord(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanacontactsDiscordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsDiscordComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigGrafanacontactsDiscordComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanacontactsDiscordInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsDiscordInsertInput, error) {
+	res, err := ec.unmarshalInputConfigGrafanacontactsDiscordInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanacontactsDiscordUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsDiscordUpdateInput, error) {
+	var res = new(model.ConfigGrafanacontactsDiscordUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNConfigGrafanacontactsPagerduty2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerduty(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGrafanacontactsPagerduty) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ConfigGrafanacontactsPagerduty(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanacontactsPagerdutyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsPagerdutyComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigGrafanacontactsPagerdutyComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanacontactsPagerdutyInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsPagerdutyInsertInput, error) {
+	res, err := ec.unmarshalInputConfigGrafanacontactsPagerdutyInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanacontactsPagerdutyUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsPagerdutyUpdateInput, error) {
+	var res = new(model.ConfigGrafanacontactsPagerdutyUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNConfigGrafanacontactsSlack2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlack(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGrafanacontactsSlack) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ConfigGrafanacontactsSlack(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanacontactsSlackComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsSlackComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigGrafanacontactsSlackComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanacontactsSlackInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsSlackInsertInput, error) {
+	res, err := ec.unmarshalInputConfigGrafanacontactsSlackInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanacontactsSlackUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsSlackUpdateInput, error) {
+	var res = new(model.ConfigGrafanacontactsSlackUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNConfigGrafanacontactsWebhook2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhook(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGrafanacontactsWebhook) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ConfigGrafanacontactsWebhook(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanacontactsWebhookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsWebhookComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigGrafanacontactsWebhookComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanacontactsWebhookInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsWebhookInsertInput, error) {
+	res, err := ec.unmarshalInputConfigGrafanacontactsWebhookInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigGrafanacontactsWebhookUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsWebhookUpdateInput, error) {
+	var res = new(model.ConfigGrafanacontactsWebhookUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNConfigGraphqlComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphqlComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGraphqlComparisonExp, error) {
@@ -41439,6 +44785,38 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -44383,6 +47761,58 @@ func (ec *executionContext) unmarshalOConfigGlobalUpdateInput2ᚖgithubᚗcomᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalOConfigGrafanaAlerting2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlerting(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGrafanaAlerting) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigGrafanaAlerting(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanaAlertingComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanaAlertingComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanaAlertingComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanaAlertingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanaAlertingComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaAlertingComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGrafanaAlertingComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanaAlertingInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaAlertingInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGrafanaAlertingInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanaAlertingUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaAlertingUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaAlertingUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigGrafanaAlertingUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOConfigGrafanaComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanaComparisonExp, error) {
 	if v == nil {
 		return nil, nil
@@ -44409,6 +47839,58 @@ func (ec *executionContext) unmarshalOConfigGrafanaComparisonExp2ᚖgithubᚗcom
 	}
 	res, err := ec.unmarshalInputConfigGrafanaComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigGrafanaContacts2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContacts(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGrafanaContacts) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigGrafanaContacts(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanaContactsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanaContactsComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanaContactsComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanaContactsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanaContactsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanaContactsComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGrafanaContactsComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanaContactsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsInsertInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaContactsInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGrafanaContactsInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanaContactsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaContactsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigGrafanaContactsUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigGrafanaContactsUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOConfigGrafanaSmtp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanaSmtp(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGrafanaSmtp) graphql.Marshaler {
@@ -44470,6 +47952,466 @@ func (ec *executionContext) unmarshalOConfigGrafanaUpdateInput2ᚖgithubᚗcom�
 	var res = new(model.ConfigGrafanaUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigGrafanacontactsDiscord2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigGrafanacontactsDiscord) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNConfigGrafanacontactsDiscord2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscord(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsDiscordComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanacontactsDiscordComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanacontactsDiscordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsDiscordComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGrafanacontactsDiscordComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsDiscordInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanacontactsDiscordInsertInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanacontactsDiscordInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordInsertInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsDiscordUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsDiscordUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanacontactsDiscordUpdateInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanacontactsDiscordUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsDiscordUpdateInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOConfigGrafanacontactsPagerduty2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigGrafanacontactsPagerduty) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNConfigGrafanacontactsPagerduty2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerduty(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsPagerdutyComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanacontactsPagerdutyComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanacontactsPagerdutyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsPagerdutyComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGrafanacontactsPagerdutyComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsPagerdutyInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanacontactsPagerdutyInsertInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanacontactsPagerdutyInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyInsertInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsPagerdutyUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsPagerdutyUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanacontactsPagerdutyUpdateInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanacontactsPagerdutyUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsPagerdutyUpdateInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOConfigGrafanacontactsSlack2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigGrafanacontactsSlack) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNConfigGrafanacontactsSlack2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlack(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsSlackComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanacontactsSlackComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanacontactsSlackComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsSlackComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGrafanacontactsSlackComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsSlackInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanacontactsSlackInsertInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanacontactsSlackInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackInsertInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsSlackUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsSlackUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanacontactsSlackUpdateInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanacontactsSlackUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsSlackUpdateInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOConfigGrafanacontactsWebhook2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ConfigGrafanacontactsWebhook) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNConfigGrafanacontactsWebhook2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhook(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsWebhookComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanacontactsWebhookComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanacontactsWebhookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookComparisonExp(ctx context.Context, v interface{}) (*model.ConfigGrafanacontactsWebhookComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigGrafanacontactsWebhookComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookInsertInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookInsertInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsWebhookInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanacontactsWebhookInsertInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanacontactsWebhookInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookInsertInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigGrafanacontactsWebhookUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigGrafanacontactsWebhookUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigGrafanacontactsWebhookUpdateInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigGrafanacontactsWebhookUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGrafanacontactsWebhookUpdateInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalOConfigGraphql2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigGraphql(ctx context.Context, sel ast.SelectionSet, v *model.ConfigGraphql) graphql.Marshaler {

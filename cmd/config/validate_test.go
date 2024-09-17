@@ -202,7 +202,14 @@ func expectedConfig() *model.ConfigConfig {
 		Provider: &model.ConfigProvider{},
 		Storage:  &model.ConfigStorage{Version: ptr("0.3.4")},
 		Observability: &model.ConfigObservability{
-			Grafana: &model.ConfigGrafana{AdminPassword: "grafana-admin-password"},
+			Grafana: &model.ConfigGrafana{
+				AdminPassword: "grafana-admin-password",
+				Smtp:          nil,
+				Alerting: &model.ConfigGrafanaAlerting{
+					Enabled: ptr(false),
+				},
+				Contacts: &model.ConfigGrafanaContacts{},
+			},
 		},
 	}
 }

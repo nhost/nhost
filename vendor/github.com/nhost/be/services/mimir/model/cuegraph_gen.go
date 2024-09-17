@@ -11640,6 +11640,10 @@ type ConfigGrafana struct {
 	AdminPassword string `json:"adminPassword" toml:"adminPassword"`
 
 	Smtp *ConfigGrafanaSmtp `json:"smtp,omitempty" toml:"smtp,omitempty"`
+
+	Alerting *ConfigGrafanaAlerting `json:"alerting,omitempty" toml:"alerting,omitempty"`
+
+	Contacts *ConfigGrafanaContacts `json:"contacts,omitempty" toml:"contacts,omitempty"`
 }
 
 func (o *ConfigGrafana) MarshalJSON() ([]byte, error) {
@@ -11647,6 +11651,12 @@ func (o *ConfigGrafana) MarshalJSON() ([]byte, error) {
 	m["adminPassword"] = o.AdminPassword
 	if o.Smtp != nil {
 		m["smtp"] = o.Smtp
+	}
+	if o.Alerting != nil {
+		m["alerting"] = o.Alerting
+	}
+	if o.Contacts != nil {
+		m["contacts"] = o.Contacts
 	}
 	return json.Marshal(m)
 }
@@ -11665,11 +11675,29 @@ func (o *ConfigGrafana) GetSmtp() *ConfigGrafanaSmtp {
 	return o.Smtp
 }
 
+func (o *ConfigGrafana) GetAlerting() *ConfigGrafanaAlerting {
+	if o == nil {
+		return nil
+	}
+	return o.Alerting
+}
+
+func (o *ConfigGrafana) GetContacts() *ConfigGrafanaContacts {
+	if o == nil {
+		return nil
+	}
+	return o.Contacts
+}
+
 type ConfigGrafanaUpdateInput struct {
-	AdminPassword      *string                       `json:"adminPassword,omitempty" toml:"adminPassword,omitempty"`
-	IsSetAdminPassword bool                          `json:"-"`
-	Smtp               *ConfigGrafanaSmtpUpdateInput `json:"smtp,omitempty" toml:"smtp,omitempty"`
-	IsSetSmtp          bool                          `json:"-"`
+	AdminPassword      *string                           `json:"adminPassword,omitempty" toml:"adminPassword,omitempty"`
+	IsSetAdminPassword bool                              `json:"-"`
+	Smtp               *ConfigGrafanaSmtpUpdateInput     `json:"smtp,omitempty" toml:"smtp,omitempty"`
+	IsSetSmtp          bool                              `json:"-"`
+	Alerting           *ConfigGrafanaAlertingUpdateInput `json:"alerting,omitempty" toml:"alerting,omitempty"`
+	IsSetAlerting      bool                              `json:"-"`
+	Contacts           *ConfigGrafanaContactsUpdateInput `json:"contacts,omitempty" toml:"contacts,omitempty"`
+	IsSetContacts      bool                              `json:"-"`
 }
 
 func (o *ConfigGrafanaUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -11704,6 +11732,26 @@ func (o *ConfigGrafanaUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetSmtp = true
 	}
+	if x, ok := m["alerting"]; ok {
+		if x != nil {
+			t := &ConfigGrafanaAlertingUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Alerting = t
+		}
+		o.IsSetAlerting = true
+	}
+	if x, ok := m["contacts"]; ok {
+		if x != nil {
+			t := &ConfigGrafanaContactsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Contacts = t
+		}
+		o.IsSetContacts = true
+	}
 
 	return nil
 }
@@ -11729,6 +11777,20 @@ func (o *ConfigGrafanaUpdateInput) GetSmtp() *ConfigGrafanaSmtpUpdateInput {
 	return o.Smtp
 }
 
+func (o *ConfigGrafanaUpdateInput) GetAlerting() *ConfigGrafanaAlertingUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Alerting
+}
+
+func (o *ConfigGrafanaUpdateInput) GetContacts() *ConfigGrafanaContactsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Contacts
+}
+
 func (s *ConfigGrafana) Update(v *ConfigGrafanaUpdateInput) {
 	if v == nil {
 		return
@@ -11748,11 +11810,33 @@ func (s *ConfigGrafana) Update(v *ConfigGrafanaUpdateInput) {
 			s.Smtp.Update(v.Smtp)
 		}
 	}
+	if v.IsSetAlerting || v.Alerting != nil {
+		if v.Alerting == nil {
+			s.Alerting = nil
+		} else {
+			if s.Alerting == nil {
+				s.Alerting = &ConfigGrafanaAlerting{}
+			}
+			s.Alerting.Update(v.Alerting)
+		}
+	}
+	if v.IsSetContacts || v.Contacts != nil {
+		if v.Contacts == nil {
+			s.Contacts = nil
+		} else {
+			if s.Contacts == nil {
+				s.Contacts = &ConfigGrafanaContacts{}
+			}
+			s.Contacts.Update(v.Contacts)
+		}
+	}
 }
 
 type ConfigGrafanaInsertInput struct {
-	AdminPassword string                        `json:"adminPassword,omitempty" toml:"adminPassword,omitempty"`
-	Smtp          *ConfigGrafanaSmtpInsertInput `json:"smtp,omitempty" toml:"smtp,omitempty"`
+	AdminPassword string                            `json:"adminPassword,omitempty" toml:"adminPassword,omitempty"`
+	Smtp          *ConfigGrafanaSmtpInsertInput     `json:"smtp,omitempty" toml:"smtp,omitempty"`
+	Alerting      *ConfigGrafanaAlertingInsertInput `json:"alerting,omitempty" toml:"alerting,omitempty"`
+	Contacts      *ConfigGrafanaContactsInsertInput `json:"contacts,omitempty" toml:"contacts,omitempty"`
 }
 
 func (o *ConfigGrafanaInsertInput) GetAdminPassword() string {
@@ -11769,6 +11853,20 @@ func (o *ConfigGrafanaInsertInput) GetSmtp() *ConfigGrafanaSmtpInsertInput {
 	return o.Smtp
 }
 
+func (o *ConfigGrafanaInsertInput) GetAlerting() *ConfigGrafanaAlertingInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Alerting
+}
+
+func (o *ConfigGrafanaInsertInput) GetContacts() *ConfigGrafanaContactsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Contacts
+}
+
 func (s *ConfigGrafana) Insert(v *ConfigGrafanaInsertInput) {
 	s.AdminPassword = v.AdminPassword
 	if v.Smtp != nil {
@@ -11776,6 +11874,18 @@ func (s *ConfigGrafana) Insert(v *ConfigGrafanaInsertInput) {
 			s.Smtp = &ConfigGrafanaSmtp{}
 		}
 		s.Smtp.Insert(v.Smtp)
+	}
+	if v.Alerting != nil {
+		if s.Alerting == nil {
+			s.Alerting = &ConfigGrafanaAlerting{}
+		}
+		s.Alerting.Insert(v.Alerting)
+	}
+	if v.Contacts != nil {
+		if s.Contacts == nil {
+			s.Contacts = &ConfigGrafanaContacts{}
+		}
+		s.Contacts.Insert(v.Contacts)
 	}
 }
 
@@ -11787,15 +11897,19 @@ func (s *ConfigGrafana) Clone() *ConfigGrafana {
 	v := &ConfigGrafana{}
 	v.AdminPassword = s.AdminPassword
 	v.Smtp = s.Smtp.Clone()
+	v.Alerting = s.Alerting.Clone()
+	v.Contacts = s.Contacts.Clone()
 	return v
 }
 
 type ConfigGrafanaComparisonExp struct {
-	And           []*ConfigGrafanaComparisonExp   `json:"_and,omitempty"`
-	Not           *ConfigGrafanaComparisonExp     `json:"_not,omitempty"`
-	Or            []*ConfigGrafanaComparisonExp   `json:"_or,omitempty"`
-	AdminPassword *ConfigStringComparisonExp      `json:"adminPassword,omitempty"`
-	Smtp          *ConfigGrafanaSmtpComparisonExp `json:"smtp,omitempty"`
+	And           []*ConfigGrafanaComparisonExp       `json:"_and,omitempty"`
+	Not           *ConfigGrafanaComparisonExp         `json:"_not,omitempty"`
+	Or            []*ConfigGrafanaComparisonExp       `json:"_or,omitempty"`
+	AdminPassword *ConfigStringComparisonExp          `json:"adminPassword,omitempty"`
+	Smtp          *ConfigGrafanaSmtpComparisonExp     `json:"smtp,omitempty"`
+	Alerting      *ConfigGrafanaAlertingComparisonExp `json:"alerting,omitempty"`
+	Contacts      *ConfigGrafanaContactsComparisonExp `json:"contacts,omitempty"`
 }
 
 func (exp *ConfigGrafanaComparisonExp) Matches(o *ConfigGrafana) bool {
@@ -11805,7 +11919,9 @@ func (exp *ConfigGrafanaComparisonExp) Matches(o *ConfigGrafana) bool {
 
 	if o == nil {
 		o = &ConfigGrafana{
-			Smtp: &ConfigGrafanaSmtp{},
+			Smtp:     &ConfigGrafanaSmtp{},
+			Alerting: &ConfigGrafanaAlerting{},
+			Contacts: &ConfigGrafanaContacts{},
 		}
 	}
 	if !exp.AdminPassword.Matches(o.AdminPassword) {
@@ -11813,6 +11929,652 @@ func (exp *ConfigGrafanaComparisonExp) Matches(o *ConfigGrafana) bool {
 	}
 	if !exp.Smtp.Matches(o.Smtp) {
 		return false
+	}
+	if !exp.Alerting.Matches(o.Alerting) {
+		return false
+	}
+	if !exp.Contacts.Matches(o.Contacts) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigGrafanaAlerting struct {
+	Enabled *bool `json:"enabled" toml:"enabled"`
+}
+
+func (o *ConfigGrafanaAlerting) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Enabled != nil {
+		m["enabled"] = o.Enabled
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigGrafanaAlerting) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigGrafanaAlerting{}
+	}
+	return o.Enabled
+}
+
+type ConfigGrafanaAlertingUpdateInput struct {
+	Enabled      *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+	IsSetEnabled bool  `json:"-"`
+}
+
+func (o *ConfigGrafanaAlertingUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["enabled"]; ok {
+		if v == nil {
+			o.Enabled = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Enabled = &x
+		}
+		o.IsSetEnabled = true
+	}
+
+	return nil
+}
+
+func (o *ConfigGrafanaAlertingUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigGrafanaAlertingUpdateInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigGrafanaAlertingUpdateInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigGrafanaAlerting) Update(v *ConfigGrafanaAlertingUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEnabled || v.Enabled != nil {
+		s.Enabled = v.Enabled
+	}
+}
+
+type ConfigGrafanaAlertingInsertInput struct {
+	Enabled *bool `json:"enabled,omitempty" toml:"enabled,omitempty"`
+}
+
+func (o *ConfigGrafanaAlertingInsertInput) GetEnabled() *bool {
+	if o == nil {
+		o = &ConfigGrafanaAlertingInsertInput{}
+	}
+	return o.Enabled
+}
+
+func (s *ConfigGrafanaAlerting) Insert(v *ConfigGrafanaAlertingInsertInput) {
+	s.Enabled = v.Enabled
+}
+
+func (s *ConfigGrafanaAlerting) Clone() *ConfigGrafanaAlerting {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigGrafanaAlerting{}
+	v.Enabled = s.Enabled
+	return v
+}
+
+type ConfigGrafanaAlertingComparisonExp struct {
+	And     []*ConfigGrafanaAlertingComparisonExp `json:"_and,omitempty"`
+	Not     *ConfigGrafanaAlertingComparisonExp   `json:"_not,omitempty"`
+	Or      []*ConfigGrafanaAlertingComparisonExp `json:"_or,omitempty"`
+	Enabled *ConfigBooleanComparisonExp           `json:"enabled,omitempty"`
+}
+
+func (exp *ConfigGrafanaAlertingComparisonExp) Matches(o *ConfigGrafanaAlerting) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigGrafanaAlerting{}
+	}
+	if o.Enabled != nil && !exp.Enabled.Matches(*o.Enabled) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigGrafanaContacts struct {
+	Emails []string `json:"emails,omitempty" toml:"emails,omitempty"`
+
+	Pagerduty []*ConfigGrafanacontactsPagerduty `json:"pagerduty,omitempty" toml:"pagerduty,omitempty"`
+
+	Discord []*ConfigGrafanacontactsDiscord `json:"discord,omitempty" toml:"discord,omitempty"`
+
+	Slack []*ConfigGrafanacontactsSlack `json:"slack,omitempty" toml:"slack,omitempty"`
+
+	Webhook []*ConfigGrafanacontactsWebhook `json:"webhook,omitempty" toml:"webhook,omitempty"`
+}
+
+func (o *ConfigGrafanaContacts) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Emails != nil {
+		m["emails"] = o.Emails
+	}
+	if o.Pagerduty != nil {
+		m["pagerduty"] = o.Pagerduty
+	}
+	if o.Discord != nil {
+		m["discord"] = o.Discord
+	}
+	if o.Slack != nil {
+		m["slack"] = o.Slack
+	}
+	if o.Webhook != nil {
+		m["webhook"] = o.Webhook
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigGrafanaContacts) GetEmails() []string {
+	if o == nil {
+		o = &ConfigGrafanaContacts{}
+	}
+	return o.Emails
+}
+
+func (o *ConfigGrafanaContacts) GetPagerduty() []*ConfigGrafanacontactsPagerduty {
+	if o == nil {
+		o = &ConfigGrafanaContacts{}
+	}
+	return o.Pagerduty
+}
+
+func (o *ConfigGrafanaContacts) GetDiscord() []*ConfigGrafanacontactsDiscord {
+	if o == nil {
+		o = &ConfigGrafanaContacts{}
+	}
+	return o.Discord
+}
+
+func (o *ConfigGrafanaContacts) GetSlack() []*ConfigGrafanacontactsSlack {
+	if o == nil {
+		o = &ConfigGrafanaContacts{}
+	}
+	return o.Slack
+}
+
+func (o *ConfigGrafanaContacts) GetWebhook() []*ConfigGrafanacontactsWebhook {
+	if o == nil {
+		o = &ConfigGrafanaContacts{}
+	}
+	return o.Webhook
+}
+
+type ConfigGrafanaContactsUpdateInput struct {
+	Emails         []string                                     `json:"emails,omitempty" toml:"emails,omitempty"`
+	IsSetEmails    bool                                         `json:"-"`
+	Pagerduty      []*ConfigGrafanacontactsPagerdutyUpdateInput `json:"pagerduty,omitempty" toml:"pagerduty,omitempty"`
+	IsSetPagerduty bool                                         `json:"-"`
+	Discord        []*ConfigGrafanacontactsDiscordUpdateInput   `json:"discord,omitempty" toml:"discord,omitempty"`
+	IsSetDiscord   bool                                         `json:"-"`
+	Slack          []*ConfigGrafanacontactsSlackUpdateInput     `json:"slack,omitempty" toml:"slack,omitempty"`
+	IsSetSlack     bool                                         `json:"-"`
+	Webhook        []*ConfigGrafanacontactsWebhookUpdateInput   `json:"webhook,omitempty" toml:"webhook,omitempty"`
+	IsSetWebhook   bool                                         `json:"-"`
+}
+
+func (o *ConfigGrafanaContactsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["emails"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.Emails = l
+		}
+		o.IsSetEmails = true
+	}
+	if v, ok := m["pagerduty"]; ok {
+		if v != nil {
+			x, ok := v.([]interface{})
+			if !ok {
+				return fmt.Errorf("Pagerduty must be []interface{}, got %T", v)
+			}
+
+			l := make([]*ConfigGrafanacontactsPagerdutyUpdateInput, len(x))
+			for i, vv := range x {
+				t := &ConfigGrafanacontactsPagerdutyUpdateInput{}
+				if err := t.UnmarshalGQL(vv); err != nil {
+					return err
+				}
+				l[i] = t
+			}
+			o.Pagerduty = l
+		}
+		o.IsSetPagerduty = true
+	}
+	if v, ok := m["discord"]; ok {
+		if v != nil {
+			x, ok := v.([]interface{})
+			if !ok {
+				return fmt.Errorf("Discord must be []interface{}, got %T", v)
+			}
+
+			l := make([]*ConfigGrafanacontactsDiscordUpdateInput, len(x))
+			for i, vv := range x {
+				t := &ConfigGrafanacontactsDiscordUpdateInput{}
+				if err := t.UnmarshalGQL(vv); err != nil {
+					return err
+				}
+				l[i] = t
+			}
+			o.Discord = l
+		}
+		o.IsSetDiscord = true
+	}
+	if v, ok := m["slack"]; ok {
+		if v != nil {
+			x, ok := v.([]interface{})
+			if !ok {
+				return fmt.Errorf("Slack must be []interface{}, got %T", v)
+			}
+
+			l := make([]*ConfigGrafanacontactsSlackUpdateInput, len(x))
+			for i, vv := range x {
+				t := &ConfigGrafanacontactsSlackUpdateInput{}
+				if err := t.UnmarshalGQL(vv); err != nil {
+					return err
+				}
+				l[i] = t
+			}
+			o.Slack = l
+		}
+		o.IsSetSlack = true
+	}
+	if v, ok := m["webhook"]; ok {
+		if v != nil {
+			x, ok := v.([]interface{})
+			if !ok {
+				return fmt.Errorf("Webhook must be []interface{}, got %T", v)
+			}
+
+			l := make([]*ConfigGrafanacontactsWebhookUpdateInput, len(x))
+			for i, vv := range x {
+				t := &ConfigGrafanacontactsWebhookUpdateInput{}
+				if err := t.UnmarshalGQL(vv); err != nil {
+					return err
+				}
+				l[i] = t
+			}
+			o.Webhook = l
+		}
+		o.IsSetWebhook = true
+	}
+
+	return nil
+}
+
+func (o *ConfigGrafanaContactsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigGrafanaContactsUpdateInput) GetEmails() []string {
+	if o == nil {
+		o = &ConfigGrafanaContactsUpdateInput{}
+	}
+	return o.Emails
+}
+
+func (o *ConfigGrafanaContactsUpdateInput) GetPagerduty() []*ConfigGrafanacontactsPagerdutyUpdateInput {
+	if o == nil {
+		o = &ConfigGrafanaContactsUpdateInput{}
+	}
+	return o.Pagerduty
+}
+
+func (o *ConfigGrafanaContactsUpdateInput) GetDiscord() []*ConfigGrafanacontactsDiscordUpdateInput {
+	if o == nil {
+		o = &ConfigGrafanaContactsUpdateInput{}
+	}
+	return o.Discord
+}
+
+func (o *ConfigGrafanaContactsUpdateInput) GetSlack() []*ConfigGrafanacontactsSlackUpdateInput {
+	if o == nil {
+		o = &ConfigGrafanaContactsUpdateInput{}
+	}
+	return o.Slack
+}
+
+func (o *ConfigGrafanaContactsUpdateInput) GetWebhook() []*ConfigGrafanacontactsWebhookUpdateInput {
+	if o == nil {
+		o = &ConfigGrafanaContactsUpdateInput{}
+	}
+	return o.Webhook
+}
+
+func (s *ConfigGrafanaContacts) Update(v *ConfigGrafanaContactsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetEmails || v.Emails != nil {
+		if v.Emails == nil {
+			s.Emails = nil
+		} else {
+			s.Emails = make([]string, len(v.Emails))
+			for i, e := range v.Emails {
+				s.Emails[i] = e
+			}
+		}
+	}
+	if v.IsSetPagerduty || v.Pagerduty != nil {
+		if v.Pagerduty == nil {
+			s.Pagerduty = nil
+		} else {
+			s.Pagerduty = make([]*ConfigGrafanacontactsPagerduty, len(v.Pagerduty))
+			for i, e := range v.Pagerduty {
+				v := &ConfigGrafanacontactsPagerduty{}
+				v.Update(e)
+				s.Pagerduty[i] = v
+			}
+		}
+	}
+	if v.IsSetDiscord || v.Discord != nil {
+		if v.Discord == nil {
+			s.Discord = nil
+		} else {
+			s.Discord = make([]*ConfigGrafanacontactsDiscord, len(v.Discord))
+			for i, e := range v.Discord {
+				v := &ConfigGrafanacontactsDiscord{}
+				v.Update(e)
+				s.Discord[i] = v
+			}
+		}
+	}
+	if v.IsSetSlack || v.Slack != nil {
+		if v.Slack == nil {
+			s.Slack = nil
+		} else {
+			s.Slack = make([]*ConfigGrafanacontactsSlack, len(v.Slack))
+			for i, e := range v.Slack {
+				v := &ConfigGrafanacontactsSlack{}
+				v.Update(e)
+				s.Slack[i] = v
+			}
+		}
+	}
+	if v.IsSetWebhook || v.Webhook != nil {
+		if v.Webhook == nil {
+			s.Webhook = nil
+		} else {
+			s.Webhook = make([]*ConfigGrafanacontactsWebhook, len(v.Webhook))
+			for i, e := range v.Webhook {
+				v := &ConfigGrafanacontactsWebhook{}
+				v.Update(e)
+				s.Webhook[i] = v
+			}
+		}
+	}
+}
+
+type ConfigGrafanaContactsInsertInput struct {
+	Emails    []string                                     `json:"emails,omitempty" toml:"emails,omitempty"`
+	Pagerduty []*ConfigGrafanacontactsPagerdutyInsertInput `json:"pagerduty,omitempty" toml:"pagerduty,omitempty"`
+	Discord   []*ConfigGrafanacontactsDiscordInsertInput   `json:"discord,omitempty" toml:"discord,omitempty"`
+	Slack     []*ConfigGrafanacontactsSlackInsertInput     `json:"slack,omitempty" toml:"slack,omitempty"`
+	Webhook   []*ConfigGrafanacontactsWebhookInsertInput   `json:"webhook,omitempty" toml:"webhook,omitempty"`
+}
+
+func (o *ConfigGrafanaContactsInsertInput) GetEmails() []string {
+	if o == nil {
+		o = &ConfigGrafanaContactsInsertInput{}
+	}
+	return o.Emails
+}
+
+func (o *ConfigGrafanaContactsInsertInput) GetPagerduty() []*ConfigGrafanacontactsPagerdutyInsertInput {
+	if o == nil {
+		o = &ConfigGrafanaContactsInsertInput{}
+	}
+	return o.Pagerduty
+}
+
+func (o *ConfigGrafanaContactsInsertInput) GetDiscord() []*ConfigGrafanacontactsDiscordInsertInput {
+	if o == nil {
+		o = &ConfigGrafanaContactsInsertInput{}
+	}
+	return o.Discord
+}
+
+func (o *ConfigGrafanaContactsInsertInput) GetSlack() []*ConfigGrafanacontactsSlackInsertInput {
+	if o == nil {
+		o = &ConfigGrafanaContactsInsertInput{}
+	}
+	return o.Slack
+}
+
+func (o *ConfigGrafanaContactsInsertInput) GetWebhook() []*ConfigGrafanacontactsWebhookInsertInput {
+	if o == nil {
+		o = &ConfigGrafanaContactsInsertInput{}
+	}
+	return o.Webhook
+}
+
+func (s *ConfigGrafanaContacts) Insert(v *ConfigGrafanaContactsInsertInput) {
+	if v.Emails != nil {
+		s.Emails = make([]string, len(v.Emails))
+		for i, e := range v.Emails {
+			s.Emails[i] = e
+		}
+	}
+	if v.Pagerduty != nil {
+		s.Pagerduty = make([]*ConfigGrafanacontactsPagerduty, len(v.Pagerduty))
+		for i, e := range v.Pagerduty {
+			v := &ConfigGrafanacontactsPagerduty{}
+			v.Insert(e)
+			s.Pagerduty[i] = v
+		}
+	}
+	if v.Discord != nil {
+		s.Discord = make([]*ConfigGrafanacontactsDiscord, len(v.Discord))
+		for i, e := range v.Discord {
+			v := &ConfigGrafanacontactsDiscord{}
+			v.Insert(e)
+			s.Discord[i] = v
+		}
+	}
+	if v.Slack != nil {
+		s.Slack = make([]*ConfigGrafanacontactsSlack, len(v.Slack))
+		for i, e := range v.Slack {
+			v := &ConfigGrafanacontactsSlack{}
+			v.Insert(e)
+			s.Slack[i] = v
+		}
+	}
+	if v.Webhook != nil {
+		s.Webhook = make([]*ConfigGrafanacontactsWebhook, len(v.Webhook))
+		for i, e := range v.Webhook {
+			v := &ConfigGrafanacontactsWebhook{}
+			v.Insert(e)
+			s.Webhook[i] = v
+		}
+	}
+}
+
+func (s *ConfigGrafanaContacts) Clone() *ConfigGrafanaContacts {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigGrafanaContacts{}
+	if s.Emails != nil {
+		v.Emails = make([]string, len(s.Emails))
+		copy(v.Emails, s.Emails)
+	}
+	if s.Pagerduty != nil {
+		v.Pagerduty = make([]*ConfigGrafanacontactsPagerduty, len(s.Pagerduty))
+		for i, e := range s.Pagerduty {
+			v.Pagerduty[i] = e.Clone()
+		}
+	}
+	if s.Discord != nil {
+		v.Discord = make([]*ConfigGrafanacontactsDiscord, len(s.Discord))
+		for i, e := range s.Discord {
+			v.Discord[i] = e.Clone()
+		}
+	}
+	if s.Slack != nil {
+		v.Slack = make([]*ConfigGrafanacontactsSlack, len(s.Slack))
+		for i, e := range s.Slack {
+			v.Slack[i] = e.Clone()
+		}
+	}
+	if s.Webhook != nil {
+		v.Webhook = make([]*ConfigGrafanacontactsWebhook, len(s.Webhook))
+		for i, e := range s.Webhook {
+			v.Webhook[i] = e.Clone()
+		}
+	}
+	return v
+}
+
+type ConfigGrafanaContactsComparisonExp struct {
+	And       []*ConfigGrafanaContactsComparisonExp        `json:"_and,omitempty"`
+	Not       *ConfigGrafanaContactsComparisonExp          `json:"_not,omitempty"`
+	Or        []*ConfigGrafanaContactsComparisonExp        `json:"_or,omitempty"`
+	Emails    *ConfigStringComparisonExp                   `json:"emails,omitempty"`
+	Pagerduty *ConfigGrafanacontactsPagerdutyComparisonExp `json:"pagerduty,omitempty"`
+	Discord   *ConfigGrafanacontactsDiscordComparisonExp   `json:"discord,omitempty"`
+	Slack     *ConfigGrafanacontactsSlackComparisonExp     `json:"slack,omitempty"`
+	Webhook   *ConfigGrafanacontactsWebhookComparisonExp   `json:"webhook,omitempty"`
+}
+
+func (exp *ConfigGrafanaContactsComparisonExp) Matches(o *ConfigGrafanaContacts) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigGrafanaContacts{
+			Emails:    []string{},
+			Pagerduty: []*ConfigGrafanacontactsPagerduty{},
+			Discord:   []*ConfigGrafanacontactsDiscord{},
+			Slack:     []*ConfigGrafanacontactsSlack{},
+			Webhook:   []*ConfigGrafanacontactsWebhook{},
+		}
+	}
+	{
+		found := false
+		for _, o := range o.Emails {
+			if exp.Emails.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Emails != nil {
+			return false
+		}
+	}
+	{
+		found := false
+		for _, o := range o.Pagerduty {
+			if exp.Pagerduty.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Pagerduty != nil {
+			return false
+		}
+	}
+	{
+		found := false
+		for _, o := range o.Discord {
+			if exp.Discord.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Discord != nil {
+			return false
+		}
+	}
+	{
+		found := false
+		for _, o := range o.Slack {
+			if exp.Slack.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Slack != nil {
+			return false
+		}
+	}
+	{
+		found := false
+		for _, o := range o.Webhook {
+			if exp.Webhook.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.Webhook != nil {
+			return false
+		}
 	}
 
 	if exp.And != nil && !all(exp.And, o) {
@@ -12164,6 +12926,1681 @@ func (exp *ConfigGrafanaSmtpComparisonExp) Matches(o *ConfigGrafanaSmtp) bool {
 		return false
 	}
 	if !exp.Password.Matches(o.Password) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigGrafanacontactsDiscord struct {
+	Url string `json:"url" toml:"url"`
+
+	AvatarUrl string `json:"avatarUrl" toml:"avatarUrl"`
+}
+
+func (o *ConfigGrafanacontactsDiscord) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["url"] = o.Url
+	m["avatarUrl"] = o.AvatarUrl
+	return json.Marshal(m)
+}
+
+func (o *ConfigGrafanacontactsDiscord) GetUrl() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsDiscord{}
+	}
+	return o.Url
+}
+
+func (o *ConfigGrafanacontactsDiscord) GetAvatarUrl() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsDiscord{}
+	}
+	return o.AvatarUrl
+}
+
+type ConfigGrafanacontactsDiscordUpdateInput struct {
+	Url            *string `json:"url,omitempty" toml:"url,omitempty"`
+	IsSetUrl       bool    `json:"-"`
+	AvatarUrl      *string `json:"avatarUrl,omitempty" toml:"avatarUrl,omitempty"`
+	IsSetAvatarUrl bool    `json:"-"`
+}
+
+func (o *ConfigGrafanacontactsDiscordUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["url"]; ok {
+		if v == nil {
+			o.Url = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Url = &x
+		}
+		o.IsSetUrl = true
+	}
+	if v, ok := m["avatarUrl"]; ok {
+		if v == nil {
+			o.AvatarUrl = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.AvatarUrl = &x
+		}
+		o.IsSetAvatarUrl = true
+	}
+
+	return nil
+}
+
+func (o *ConfigGrafanacontactsDiscordUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigGrafanacontactsDiscordUpdateInput) GetUrl() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsDiscordUpdateInput{}
+	}
+	return o.Url
+}
+
+func (o *ConfigGrafanacontactsDiscordUpdateInput) GetAvatarUrl() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsDiscordUpdateInput{}
+	}
+	return o.AvatarUrl
+}
+
+func (s *ConfigGrafanacontactsDiscord) Update(v *ConfigGrafanacontactsDiscordUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetUrl || v.Url != nil {
+		if v.Url != nil {
+			s.Url = *v.Url
+		}
+	}
+	if v.IsSetAvatarUrl || v.AvatarUrl != nil {
+		if v.AvatarUrl != nil {
+			s.AvatarUrl = *v.AvatarUrl
+		}
+	}
+}
+
+type ConfigGrafanacontactsDiscordInsertInput struct {
+	Url       string `json:"url,omitempty" toml:"url,omitempty"`
+	AvatarUrl string `json:"avatarUrl,omitempty" toml:"avatarUrl,omitempty"`
+}
+
+func (o *ConfigGrafanacontactsDiscordInsertInput) GetUrl() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsDiscordInsertInput{}
+	}
+	return o.Url
+}
+
+func (o *ConfigGrafanacontactsDiscordInsertInput) GetAvatarUrl() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsDiscordInsertInput{}
+	}
+	return o.AvatarUrl
+}
+
+func (s *ConfigGrafanacontactsDiscord) Insert(v *ConfigGrafanacontactsDiscordInsertInput) {
+	s.Url = v.Url
+	s.AvatarUrl = v.AvatarUrl
+}
+
+func (s *ConfigGrafanacontactsDiscord) Clone() *ConfigGrafanacontactsDiscord {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigGrafanacontactsDiscord{}
+	v.Url = s.Url
+	v.AvatarUrl = s.AvatarUrl
+	return v
+}
+
+type ConfigGrafanacontactsDiscordComparisonExp struct {
+	And       []*ConfigGrafanacontactsDiscordComparisonExp `json:"_and,omitempty"`
+	Not       *ConfigGrafanacontactsDiscordComparisonExp   `json:"_not,omitempty"`
+	Or        []*ConfigGrafanacontactsDiscordComparisonExp `json:"_or,omitempty"`
+	Url       *ConfigStringComparisonExp                   `json:"url,omitempty"`
+	AvatarUrl *ConfigStringComparisonExp                   `json:"avatarUrl,omitempty"`
+}
+
+func (exp *ConfigGrafanacontactsDiscordComparisonExp) Matches(o *ConfigGrafanacontactsDiscord) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigGrafanacontactsDiscord{}
+	}
+	if !exp.Url.Matches(o.Url) {
+		return false
+	}
+	if !exp.AvatarUrl.Matches(o.AvatarUrl) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigGrafanacontactsPagerduty struct {
+	IntegrationKey string `json:"integrationKey" toml:"integrationKey"`
+
+	Severity string `json:"severity" toml:"severity"`
+
+	Class string `json:"class" toml:"class"`
+
+	Component string `json:"component" toml:"component"`
+
+	Group string `json:"group" toml:"group"`
+}
+
+func (o *ConfigGrafanacontactsPagerduty) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["integrationKey"] = o.IntegrationKey
+	m["severity"] = o.Severity
+	m["class"] = o.Class
+	m["component"] = o.Component
+	m["group"] = o.Group
+	return json.Marshal(m)
+}
+
+func (o *ConfigGrafanacontactsPagerduty) GetIntegrationKey() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerduty{}
+	}
+	return o.IntegrationKey
+}
+
+func (o *ConfigGrafanacontactsPagerduty) GetSeverity() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerduty{}
+	}
+	return o.Severity
+}
+
+func (o *ConfigGrafanacontactsPagerduty) GetClass() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerduty{}
+	}
+	return o.Class
+}
+
+func (o *ConfigGrafanacontactsPagerduty) GetComponent() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerduty{}
+	}
+	return o.Component
+}
+
+func (o *ConfigGrafanacontactsPagerduty) GetGroup() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerduty{}
+	}
+	return o.Group
+}
+
+type ConfigGrafanacontactsPagerdutyUpdateInput struct {
+	IntegrationKey      *string `json:"integrationKey,omitempty" toml:"integrationKey,omitempty"`
+	IsSetIntegrationKey bool    `json:"-"`
+	Severity            *string `json:"severity,omitempty" toml:"severity,omitempty"`
+	IsSetSeverity       bool    `json:"-"`
+	Class               *string `json:"class,omitempty" toml:"class,omitempty"`
+	IsSetClass          bool    `json:"-"`
+	Component           *string `json:"component,omitempty" toml:"component,omitempty"`
+	IsSetComponent      bool    `json:"-"`
+	Group               *string `json:"group,omitempty" toml:"group,omitempty"`
+	IsSetGroup          bool    `json:"-"`
+}
+
+func (o *ConfigGrafanacontactsPagerdutyUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["integrationKey"]; ok {
+		if v == nil {
+			o.IntegrationKey = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.IntegrationKey = &x
+		}
+		o.IsSetIntegrationKey = true
+	}
+	if v, ok := m["severity"]; ok {
+		if v == nil {
+			o.Severity = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Severity = &x
+		}
+		o.IsSetSeverity = true
+	}
+	if v, ok := m["class"]; ok {
+		if v == nil {
+			o.Class = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Class = &x
+		}
+		o.IsSetClass = true
+	}
+	if v, ok := m["component"]; ok {
+		if v == nil {
+			o.Component = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Component = &x
+		}
+		o.IsSetComponent = true
+	}
+	if v, ok := m["group"]; ok {
+		if v == nil {
+			o.Group = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Group = &x
+		}
+		o.IsSetGroup = true
+	}
+
+	return nil
+}
+
+func (o *ConfigGrafanacontactsPagerdutyUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigGrafanacontactsPagerdutyUpdateInput) GetIntegrationKey() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerdutyUpdateInput{}
+	}
+	return o.IntegrationKey
+}
+
+func (o *ConfigGrafanacontactsPagerdutyUpdateInput) GetSeverity() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerdutyUpdateInput{}
+	}
+	return o.Severity
+}
+
+func (o *ConfigGrafanacontactsPagerdutyUpdateInput) GetClass() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerdutyUpdateInput{}
+	}
+	return o.Class
+}
+
+func (o *ConfigGrafanacontactsPagerdutyUpdateInput) GetComponent() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerdutyUpdateInput{}
+	}
+	return o.Component
+}
+
+func (o *ConfigGrafanacontactsPagerdutyUpdateInput) GetGroup() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerdutyUpdateInput{}
+	}
+	return o.Group
+}
+
+func (s *ConfigGrafanacontactsPagerduty) Update(v *ConfigGrafanacontactsPagerdutyUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetIntegrationKey || v.IntegrationKey != nil {
+		if v.IntegrationKey != nil {
+			s.IntegrationKey = *v.IntegrationKey
+		}
+	}
+	if v.IsSetSeverity || v.Severity != nil {
+		if v.Severity != nil {
+			s.Severity = *v.Severity
+		}
+	}
+	if v.IsSetClass || v.Class != nil {
+		if v.Class != nil {
+			s.Class = *v.Class
+		}
+	}
+	if v.IsSetComponent || v.Component != nil {
+		if v.Component != nil {
+			s.Component = *v.Component
+		}
+	}
+	if v.IsSetGroup || v.Group != nil {
+		if v.Group != nil {
+			s.Group = *v.Group
+		}
+	}
+}
+
+type ConfigGrafanacontactsPagerdutyInsertInput struct {
+	IntegrationKey string `json:"integrationKey,omitempty" toml:"integrationKey,omitempty"`
+	Severity       string `json:"severity,omitempty" toml:"severity,omitempty"`
+	Class          string `json:"class,omitempty" toml:"class,omitempty"`
+	Component      string `json:"component,omitempty" toml:"component,omitempty"`
+	Group          string `json:"group,omitempty" toml:"group,omitempty"`
+}
+
+func (o *ConfigGrafanacontactsPagerdutyInsertInput) GetIntegrationKey() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerdutyInsertInput{}
+	}
+	return o.IntegrationKey
+}
+
+func (o *ConfigGrafanacontactsPagerdutyInsertInput) GetSeverity() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerdutyInsertInput{}
+	}
+	return o.Severity
+}
+
+func (o *ConfigGrafanacontactsPagerdutyInsertInput) GetClass() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerdutyInsertInput{}
+	}
+	return o.Class
+}
+
+func (o *ConfigGrafanacontactsPagerdutyInsertInput) GetComponent() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerdutyInsertInput{}
+	}
+	return o.Component
+}
+
+func (o *ConfigGrafanacontactsPagerdutyInsertInput) GetGroup() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerdutyInsertInput{}
+	}
+	return o.Group
+}
+
+func (s *ConfigGrafanacontactsPagerduty) Insert(v *ConfigGrafanacontactsPagerdutyInsertInput) {
+	s.IntegrationKey = v.IntegrationKey
+	s.Severity = v.Severity
+	s.Class = v.Class
+	s.Component = v.Component
+	s.Group = v.Group
+}
+
+func (s *ConfigGrafanacontactsPagerduty) Clone() *ConfigGrafanacontactsPagerduty {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigGrafanacontactsPagerduty{}
+	v.IntegrationKey = s.IntegrationKey
+	v.Severity = s.Severity
+	v.Class = s.Class
+	v.Component = s.Component
+	v.Group = s.Group
+	return v
+}
+
+type ConfigGrafanacontactsPagerdutyComparisonExp struct {
+	And            []*ConfigGrafanacontactsPagerdutyComparisonExp `json:"_and,omitempty"`
+	Not            *ConfigGrafanacontactsPagerdutyComparisonExp   `json:"_not,omitempty"`
+	Or             []*ConfigGrafanacontactsPagerdutyComparisonExp `json:"_or,omitempty"`
+	IntegrationKey *ConfigStringComparisonExp                     `json:"integrationKey,omitempty"`
+	Severity       *ConfigStringComparisonExp                     `json:"severity,omitempty"`
+	Class          *ConfigStringComparisonExp                     `json:"class,omitempty"`
+	Component      *ConfigStringComparisonExp                     `json:"component,omitempty"`
+	Group          *ConfigStringComparisonExp                     `json:"group,omitempty"`
+}
+
+func (exp *ConfigGrafanacontactsPagerdutyComparisonExp) Matches(o *ConfigGrafanacontactsPagerduty) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigGrafanacontactsPagerduty{}
+	}
+	if !exp.IntegrationKey.Matches(o.IntegrationKey) {
+		return false
+	}
+	if !exp.Severity.Matches(o.Severity) {
+		return false
+	}
+	if !exp.Class.Matches(o.Class) {
+		return false
+	}
+	if !exp.Component.Matches(o.Component) {
+		return false
+	}
+	if !exp.Group.Matches(o.Group) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigGrafanacontactsSlack struct {
+	Recipient string `json:"recipient" toml:"recipient"`
+
+	Token string `json:"token" toml:"token"`
+
+	Username string `json:"username" toml:"username"`
+
+	IconEmoji string `json:"iconEmoji" toml:"iconEmoji"`
+
+	IconURL string `json:"iconURL" toml:"iconURL"`
+
+	MentionUsers []string `json:"mentionUsers,omitempty" toml:"mentionUsers,omitempty"`
+
+	MentionGroups []string `json:"mentionGroups,omitempty" toml:"mentionGroups,omitempty"`
+
+	MentionChannel string `json:"mentionChannel" toml:"mentionChannel"`
+
+	Url string `json:"url" toml:"url"`
+
+	EndpointURL string `json:"endpointURL" toml:"endpointURL"`
+}
+
+func (o *ConfigGrafanacontactsSlack) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["recipient"] = o.Recipient
+	m["token"] = o.Token
+	m["username"] = o.Username
+	m["iconEmoji"] = o.IconEmoji
+	m["iconURL"] = o.IconURL
+	if o.MentionUsers != nil {
+		m["mentionUsers"] = o.MentionUsers
+	}
+	if o.MentionGroups != nil {
+		m["mentionGroups"] = o.MentionGroups
+	}
+	m["mentionChannel"] = o.MentionChannel
+	m["url"] = o.Url
+	m["endpointURL"] = o.EndpointURL
+	return json.Marshal(m)
+}
+
+func (o *ConfigGrafanacontactsSlack) GetRecipient() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlack{}
+	}
+	return o.Recipient
+}
+
+func (o *ConfigGrafanacontactsSlack) GetToken() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlack{}
+	}
+	return o.Token
+}
+
+func (o *ConfigGrafanacontactsSlack) GetUsername() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlack{}
+	}
+	return o.Username
+}
+
+func (o *ConfigGrafanacontactsSlack) GetIconEmoji() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlack{}
+	}
+	return o.IconEmoji
+}
+
+func (o *ConfigGrafanacontactsSlack) GetIconURL() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlack{}
+	}
+	return o.IconURL
+}
+
+func (o *ConfigGrafanacontactsSlack) GetMentionUsers() []string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlack{}
+	}
+	return o.MentionUsers
+}
+
+func (o *ConfigGrafanacontactsSlack) GetMentionGroups() []string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlack{}
+	}
+	return o.MentionGroups
+}
+
+func (o *ConfigGrafanacontactsSlack) GetMentionChannel() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlack{}
+	}
+	return o.MentionChannel
+}
+
+func (o *ConfigGrafanacontactsSlack) GetUrl() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlack{}
+	}
+	return o.Url
+}
+
+func (o *ConfigGrafanacontactsSlack) GetEndpointURL() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlack{}
+	}
+	return o.EndpointURL
+}
+
+type ConfigGrafanacontactsSlackUpdateInput struct {
+	Recipient           *string  `json:"recipient,omitempty" toml:"recipient,omitempty"`
+	IsSetRecipient      bool     `json:"-"`
+	Token               *string  `json:"token,omitempty" toml:"token,omitempty"`
+	IsSetToken          bool     `json:"-"`
+	Username            *string  `json:"username,omitempty" toml:"username,omitempty"`
+	IsSetUsername       bool     `json:"-"`
+	IconEmoji           *string  `json:"iconEmoji,omitempty" toml:"iconEmoji,omitempty"`
+	IsSetIconEmoji      bool     `json:"-"`
+	IconURL             *string  `json:"iconURL,omitempty" toml:"iconURL,omitempty"`
+	IsSetIconURL        bool     `json:"-"`
+	MentionUsers        []string `json:"mentionUsers,omitempty" toml:"mentionUsers,omitempty"`
+	IsSetMentionUsers   bool     `json:"-"`
+	MentionGroups       []string `json:"mentionGroups,omitempty" toml:"mentionGroups,omitempty"`
+	IsSetMentionGroups  bool     `json:"-"`
+	MentionChannel      *string  `json:"mentionChannel,omitempty" toml:"mentionChannel,omitempty"`
+	IsSetMentionChannel bool     `json:"-"`
+	Url                 *string  `json:"url,omitempty" toml:"url,omitempty"`
+	IsSetUrl            bool     `json:"-"`
+	EndpointURL         *string  `json:"endpointURL,omitempty" toml:"endpointURL,omitempty"`
+	IsSetEndpointURL    bool     `json:"-"`
+}
+
+func (o *ConfigGrafanacontactsSlackUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["recipient"]; ok {
+		if v == nil {
+			o.Recipient = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Recipient = &x
+		}
+		o.IsSetRecipient = true
+	}
+	if v, ok := m["token"]; ok {
+		if v == nil {
+			o.Token = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Token = &x
+		}
+		o.IsSetToken = true
+	}
+	if v, ok := m["username"]; ok {
+		if v == nil {
+			o.Username = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Username = &x
+		}
+		o.IsSetUsername = true
+	}
+	if v, ok := m["iconEmoji"]; ok {
+		if v == nil {
+			o.IconEmoji = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.IconEmoji = &x
+		}
+		o.IsSetIconEmoji = true
+	}
+	if v, ok := m["iconURL"]; ok {
+		if v == nil {
+			o.IconURL = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.IconURL = &x
+		}
+		o.IsSetIconURL = true
+	}
+	if v, ok := m["mentionUsers"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.MentionUsers = l
+		}
+		o.IsSetMentionUsers = true
+	}
+	if v, ok := m["mentionGroups"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.MentionGroups = l
+		}
+		o.IsSetMentionGroups = true
+	}
+	if v, ok := m["mentionChannel"]; ok {
+		if v == nil {
+			o.MentionChannel = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MentionChannel = &x
+		}
+		o.IsSetMentionChannel = true
+	}
+	if v, ok := m["url"]; ok {
+		if v == nil {
+			o.Url = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Url = &x
+		}
+		o.IsSetUrl = true
+	}
+	if v, ok := m["endpointURL"]; ok {
+		if v == nil {
+			o.EndpointURL = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.EndpointURL = &x
+		}
+		o.IsSetEndpointURL = true
+	}
+
+	return nil
+}
+
+func (o *ConfigGrafanacontactsSlackUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigGrafanacontactsSlackUpdateInput) GetRecipient() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackUpdateInput{}
+	}
+	return o.Recipient
+}
+
+func (o *ConfigGrafanacontactsSlackUpdateInput) GetToken() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackUpdateInput{}
+	}
+	return o.Token
+}
+
+func (o *ConfigGrafanacontactsSlackUpdateInput) GetUsername() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackUpdateInput{}
+	}
+	return o.Username
+}
+
+func (o *ConfigGrafanacontactsSlackUpdateInput) GetIconEmoji() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackUpdateInput{}
+	}
+	return o.IconEmoji
+}
+
+func (o *ConfigGrafanacontactsSlackUpdateInput) GetIconURL() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackUpdateInput{}
+	}
+	return o.IconURL
+}
+
+func (o *ConfigGrafanacontactsSlackUpdateInput) GetMentionUsers() []string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackUpdateInput{}
+	}
+	return o.MentionUsers
+}
+
+func (o *ConfigGrafanacontactsSlackUpdateInput) GetMentionGroups() []string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackUpdateInput{}
+	}
+	return o.MentionGroups
+}
+
+func (o *ConfigGrafanacontactsSlackUpdateInput) GetMentionChannel() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackUpdateInput{}
+	}
+	return o.MentionChannel
+}
+
+func (o *ConfigGrafanacontactsSlackUpdateInput) GetUrl() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackUpdateInput{}
+	}
+	return o.Url
+}
+
+func (o *ConfigGrafanacontactsSlackUpdateInput) GetEndpointURL() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackUpdateInput{}
+	}
+	return o.EndpointURL
+}
+
+func (s *ConfigGrafanacontactsSlack) Update(v *ConfigGrafanacontactsSlackUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetRecipient || v.Recipient != nil {
+		if v.Recipient != nil {
+			s.Recipient = *v.Recipient
+		}
+	}
+	if v.IsSetToken || v.Token != nil {
+		if v.Token != nil {
+			s.Token = *v.Token
+		}
+	}
+	if v.IsSetUsername || v.Username != nil {
+		if v.Username != nil {
+			s.Username = *v.Username
+		}
+	}
+	if v.IsSetIconEmoji || v.IconEmoji != nil {
+		if v.IconEmoji != nil {
+			s.IconEmoji = *v.IconEmoji
+		}
+	}
+	if v.IsSetIconURL || v.IconURL != nil {
+		if v.IconURL != nil {
+			s.IconURL = *v.IconURL
+		}
+	}
+	if v.IsSetMentionUsers || v.MentionUsers != nil {
+		if v.MentionUsers == nil {
+			s.MentionUsers = nil
+		} else {
+			s.MentionUsers = make([]string, len(v.MentionUsers))
+			for i, e := range v.MentionUsers {
+				s.MentionUsers[i] = e
+			}
+		}
+	}
+	if v.IsSetMentionGroups || v.MentionGroups != nil {
+		if v.MentionGroups == nil {
+			s.MentionGroups = nil
+		} else {
+			s.MentionGroups = make([]string, len(v.MentionGroups))
+			for i, e := range v.MentionGroups {
+				s.MentionGroups[i] = e
+			}
+		}
+	}
+	if v.IsSetMentionChannel || v.MentionChannel != nil {
+		if v.MentionChannel != nil {
+			s.MentionChannel = *v.MentionChannel
+		}
+	}
+	if v.IsSetUrl || v.Url != nil {
+		if v.Url != nil {
+			s.Url = *v.Url
+		}
+	}
+	if v.IsSetEndpointURL || v.EndpointURL != nil {
+		if v.EndpointURL != nil {
+			s.EndpointURL = *v.EndpointURL
+		}
+	}
+}
+
+type ConfigGrafanacontactsSlackInsertInput struct {
+	Recipient      string   `json:"recipient,omitempty" toml:"recipient,omitempty"`
+	Token          string   `json:"token,omitempty" toml:"token,omitempty"`
+	Username       string   `json:"username,omitempty" toml:"username,omitempty"`
+	IconEmoji      string   `json:"iconEmoji,omitempty" toml:"iconEmoji,omitempty"`
+	IconURL        string   `json:"iconURL,omitempty" toml:"iconURL,omitempty"`
+	MentionUsers   []string `json:"mentionUsers,omitempty" toml:"mentionUsers,omitempty"`
+	MentionGroups  []string `json:"mentionGroups,omitempty" toml:"mentionGroups,omitempty"`
+	MentionChannel string   `json:"mentionChannel,omitempty" toml:"mentionChannel,omitempty"`
+	Url            string   `json:"url,omitempty" toml:"url,omitempty"`
+	EndpointURL    string   `json:"endpointURL,omitempty" toml:"endpointURL,omitempty"`
+}
+
+func (o *ConfigGrafanacontactsSlackInsertInput) GetRecipient() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackInsertInput{}
+	}
+	return o.Recipient
+}
+
+func (o *ConfigGrafanacontactsSlackInsertInput) GetToken() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackInsertInput{}
+	}
+	return o.Token
+}
+
+func (o *ConfigGrafanacontactsSlackInsertInput) GetUsername() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackInsertInput{}
+	}
+	return o.Username
+}
+
+func (o *ConfigGrafanacontactsSlackInsertInput) GetIconEmoji() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackInsertInput{}
+	}
+	return o.IconEmoji
+}
+
+func (o *ConfigGrafanacontactsSlackInsertInput) GetIconURL() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackInsertInput{}
+	}
+	return o.IconURL
+}
+
+func (o *ConfigGrafanacontactsSlackInsertInput) GetMentionUsers() []string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackInsertInput{}
+	}
+	return o.MentionUsers
+}
+
+func (o *ConfigGrafanacontactsSlackInsertInput) GetMentionGroups() []string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackInsertInput{}
+	}
+	return o.MentionGroups
+}
+
+func (o *ConfigGrafanacontactsSlackInsertInput) GetMentionChannel() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackInsertInput{}
+	}
+	return o.MentionChannel
+}
+
+func (o *ConfigGrafanacontactsSlackInsertInput) GetUrl() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackInsertInput{}
+	}
+	return o.Url
+}
+
+func (o *ConfigGrafanacontactsSlackInsertInput) GetEndpointURL() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsSlackInsertInput{}
+	}
+	return o.EndpointURL
+}
+
+func (s *ConfigGrafanacontactsSlack) Insert(v *ConfigGrafanacontactsSlackInsertInput) {
+	s.Recipient = v.Recipient
+	s.Token = v.Token
+	s.Username = v.Username
+	s.IconEmoji = v.IconEmoji
+	s.IconURL = v.IconURL
+	if v.MentionUsers != nil {
+		s.MentionUsers = make([]string, len(v.MentionUsers))
+		for i, e := range v.MentionUsers {
+			s.MentionUsers[i] = e
+		}
+	}
+	if v.MentionGroups != nil {
+		s.MentionGroups = make([]string, len(v.MentionGroups))
+		for i, e := range v.MentionGroups {
+			s.MentionGroups[i] = e
+		}
+	}
+	s.MentionChannel = v.MentionChannel
+	s.Url = v.Url
+	s.EndpointURL = v.EndpointURL
+}
+
+func (s *ConfigGrafanacontactsSlack) Clone() *ConfigGrafanacontactsSlack {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigGrafanacontactsSlack{}
+	v.Recipient = s.Recipient
+	v.Token = s.Token
+	v.Username = s.Username
+	v.IconEmoji = s.IconEmoji
+	v.IconURL = s.IconURL
+	if s.MentionUsers != nil {
+		v.MentionUsers = make([]string, len(s.MentionUsers))
+		copy(v.MentionUsers, s.MentionUsers)
+	}
+	if s.MentionGroups != nil {
+		v.MentionGroups = make([]string, len(s.MentionGroups))
+		copy(v.MentionGroups, s.MentionGroups)
+	}
+	v.MentionChannel = s.MentionChannel
+	v.Url = s.Url
+	v.EndpointURL = s.EndpointURL
+	return v
+}
+
+type ConfigGrafanacontactsSlackComparisonExp struct {
+	And            []*ConfigGrafanacontactsSlackComparisonExp `json:"_and,omitempty"`
+	Not            *ConfigGrafanacontactsSlackComparisonExp   `json:"_not,omitempty"`
+	Or             []*ConfigGrafanacontactsSlackComparisonExp `json:"_or,omitempty"`
+	Recipient      *ConfigStringComparisonExp                 `json:"recipient,omitempty"`
+	Token          *ConfigStringComparisonExp                 `json:"token,omitempty"`
+	Username       *ConfigStringComparisonExp                 `json:"username,omitempty"`
+	IconEmoji      *ConfigStringComparisonExp                 `json:"iconEmoji,omitempty"`
+	IconURL        *ConfigStringComparisonExp                 `json:"iconURL,omitempty"`
+	MentionUsers   *ConfigStringComparisonExp                 `json:"mentionUsers,omitempty"`
+	MentionGroups  *ConfigStringComparisonExp                 `json:"mentionGroups,omitempty"`
+	MentionChannel *ConfigStringComparisonExp                 `json:"mentionChannel,omitempty"`
+	Url            *ConfigStringComparisonExp                 `json:"url,omitempty"`
+	EndpointURL    *ConfigStringComparisonExp                 `json:"endpointURL,omitempty"`
+}
+
+func (exp *ConfigGrafanacontactsSlackComparisonExp) Matches(o *ConfigGrafanacontactsSlack) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigGrafanacontactsSlack{
+			MentionUsers:  []string{},
+			MentionGroups: []string{},
+		}
+	}
+	if !exp.Recipient.Matches(o.Recipient) {
+		return false
+	}
+	if !exp.Token.Matches(o.Token) {
+		return false
+	}
+	if !exp.Username.Matches(o.Username) {
+		return false
+	}
+	if !exp.IconEmoji.Matches(o.IconEmoji) {
+		return false
+	}
+	if !exp.IconURL.Matches(o.IconURL) {
+		return false
+	}
+	{
+		found := false
+		for _, o := range o.MentionUsers {
+			if exp.MentionUsers.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.MentionUsers != nil {
+			return false
+		}
+	}
+	{
+		found := false
+		for _, o := range o.MentionGroups {
+			if exp.MentionGroups.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.MentionGroups != nil {
+			return false
+		}
+	}
+	if !exp.MentionChannel.Matches(o.MentionChannel) {
+		return false
+	}
+	if !exp.Url.Matches(o.Url) {
+		return false
+	}
+	if !exp.EndpointURL.Matches(o.EndpointURL) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigGrafanacontactsWebhook struct {
+	Url string `json:"url" toml:"url"`
+
+	HttpMethod string `json:"httpMethod" toml:"httpMethod"`
+
+	Username string `json:"username" toml:"username"`
+
+	Password string `json:"password" toml:"password"`
+
+	AuthorizationScheme string `json:"authorizationScheme" toml:"authorizationScheme"`
+
+	AuthorizationCredentials string `json:"authorizationCredentials" toml:"authorizationCredentials"`
+
+	MaxAlerts int `json:"maxAlerts" toml:"maxAlerts"`
+}
+
+func (o *ConfigGrafanacontactsWebhook) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["url"] = o.Url
+	m["httpMethod"] = o.HttpMethod
+	m["username"] = o.Username
+	m["password"] = o.Password
+	m["authorizationScheme"] = o.AuthorizationScheme
+	m["authorizationCredentials"] = o.AuthorizationCredentials
+	m["maxAlerts"] = o.MaxAlerts
+	return json.Marshal(m)
+}
+
+func (o *ConfigGrafanacontactsWebhook) GetUrl() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhook{}
+	}
+	return o.Url
+}
+
+func (o *ConfigGrafanacontactsWebhook) GetHttpMethod() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhook{}
+	}
+	return o.HttpMethod
+}
+
+func (o *ConfigGrafanacontactsWebhook) GetUsername() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhook{}
+	}
+	return o.Username
+}
+
+func (o *ConfigGrafanacontactsWebhook) GetPassword() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhook{}
+	}
+	return o.Password
+}
+
+func (o *ConfigGrafanacontactsWebhook) GetAuthorizationScheme() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhook{}
+	}
+	return o.AuthorizationScheme
+}
+
+func (o *ConfigGrafanacontactsWebhook) GetAuthorizationCredentials() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhook{}
+	}
+	return o.AuthorizationCredentials
+}
+
+func (o *ConfigGrafanacontactsWebhook) GetMaxAlerts() int {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhook{}
+	}
+	return o.MaxAlerts
+}
+
+type ConfigGrafanacontactsWebhookUpdateInput struct {
+	Url                           *string `json:"url,omitempty" toml:"url,omitempty"`
+	IsSetUrl                      bool    `json:"-"`
+	HttpMethod                    *string `json:"httpMethod,omitempty" toml:"httpMethod,omitempty"`
+	IsSetHttpMethod               bool    `json:"-"`
+	Username                      *string `json:"username,omitempty" toml:"username,omitempty"`
+	IsSetUsername                 bool    `json:"-"`
+	Password                      *string `json:"password,omitempty" toml:"password,omitempty"`
+	IsSetPassword                 bool    `json:"-"`
+	AuthorizationScheme           *string `json:"authorizationScheme,omitempty" toml:"authorizationScheme,omitempty"`
+	IsSetAuthorizationScheme      bool    `json:"-"`
+	AuthorizationCredentials      *string `json:"authorizationCredentials,omitempty" toml:"authorizationCredentials,omitempty"`
+	IsSetAuthorizationCredentials bool    `json:"-"`
+	MaxAlerts                     *int    `json:"maxAlerts,omitempty" toml:"maxAlerts,omitempty"`
+	IsSetMaxAlerts                bool    `json:"-"`
+}
+
+func (o *ConfigGrafanacontactsWebhookUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["url"]; ok {
+		if v == nil {
+			o.Url = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Url = &x
+		}
+		o.IsSetUrl = true
+	}
+	if v, ok := m["httpMethod"]; ok {
+		if v == nil {
+			o.HttpMethod = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.HttpMethod = &x
+		}
+		o.IsSetHttpMethod = true
+	}
+	if v, ok := m["username"]; ok {
+		if v == nil {
+			o.Username = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Username = &x
+		}
+		o.IsSetUsername = true
+	}
+	if v, ok := m["password"]; ok {
+		if v == nil {
+			o.Password = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Password = &x
+		}
+		o.IsSetPassword = true
+	}
+	if v, ok := m["authorizationScheme"]; ok {
+		if v == nil {
+			o.AuthorizationScheme = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.AuthorizationScheme = &x
+		}
+		o.IsSetAuthorizationScheme = true
+	}
+	if v, ok := m["authorizationCredentials"]; ok {
+		if v == nil {
+			o.AuthorizationCredentials = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.AuthorizationCredentials = &x
+		}
+		o.IsSetAuthorizationCredentials = true
+	}
+	if v, ok := m["maxAlerts"]; ok {
+		if v == nil {
+			o.MaxAlerts = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxAlerts = &x
+		}
+		o.IsSetMaxAlerts = true
+	}
+
+	return nil
+}
+
+func (o *ConfigGrafanacontactsWebhookUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigGrafanacontactsWebhookUpdateInput) GetUrl() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookUpdateInput{}
+	}
+	return o.Url
+}
+
+func (o *ConfigGrafanacontactsWebhookUpdateInput) GetHttpMethod() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookUpdateInput{}
+	}
+	return o.HttpMethod
+}
+
+func (o *ConfigGrafanacontactsWebhookUpdateInput) GetUsername() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookUpdateInput{}
+	}
+	return o.Username
+}
+
+func (o *ConfigGrafanacontactsWebhookUpdateInput) GetPassword() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookUpdateInput{}
+	}
+	return o.Password
+}
+
+func (o *ConfigGrafanacontactsWebhookUpdateInput) GetAuthorizationScheme() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookUpdateInput{}
+	}
+	return o.AuthorizationScheme
+}
+
+func (o *ConfigGrafanacontactsWebhookUpdateInput) GetAuthorizationCredentials() *string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookUpdateInput{}
+	}
+	return o.AuthorizationCredentials
+}
+
+func (o *ConfigGrafanacontactsWebhookUpdateInput) GetMaxAlerts() *int {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookUpdateInput{}
+	}
+	return o.MaxAlerts
+}
+
+func (s *ConfigGrafanacontactsWebhook) Update(v *ConfigGrafanacontactsWebhookUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetUrl || v.Url != nil {
+		if v.Url != nil {
+			s.Url = *v.Url
+		}
+	}
+	if v.IsSetHttpMethod || v.HttpMethod != nil {
+		if v.HttpMethod != nil {
+			s.HttpMethod = *v.HttpMethod
+		}
+	}
+	if v.IsSetUsername || v.Username != nil {
+		if v.Username != nil {
+			s.Username = *v.Username
+		}
+	}
+	if v.IsSetPassword || v.Password != nil {
+		if v.Password != nil {
+			s.Password = *v.Password
+		}
+	}
+	if v.IsSetAuthorizationScheme || v.AuthorizationScheme != nil {
+		if v.AuthorizationScheme != nil {
+			s.AuthorizationScheme = *v.AuthorizationScheme
+		}
+	}
+	if v.IsSetAuthorizationCredentials || v.AuthorizationCredentials != nil {
+		if v.AuthorizationCredentials != nil {
+			s.AuthorizationCredentials = *v.AuthorizationCredentials
+		}
+	}
+	if v.IsSetMaxAlerts || v.MaxAlerts != nil {
+		if v.MaxAlerts != nil {
+			s.MaxAlerts = *v.MaxAlerts
+		}
+	}
+}
+
+type ConfigGrafanacontactsWebhookInsertInput struct {
+	Url                      string `json:"url,omitempty" toml:"url,omitempty"`
+	HttpMethod               string `json:"httpMethod,omitempty" toml:"httpMethod,omitempty"`
+	Username                 string `json:"username,omitempty" toml:"username,omitempty"`
+	Password                 string `json:"password,omitempty" toml:"password,omitempty"`
+	AuthorizationScheme      string `json:"authorizationScheme,omitempty" toml:"authorizationScheme,omitempty"`
+	AuthorizationCredentials string `json:"authorizationCredentials,omitempty" toml:"authorizationCredentials,omitempty"`
+	MaxAlerts                int    `json:"maxAlerts,omitempty" toml:"maxAlerts,omitempty"`
+}
+
+func (o *ConfigGrafanacontactsWebhookInsertInput) GetUrl() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookInsertInput{}
+	}
+	return o.Url
+}
+
+func (o *ConfigGrafanacontactsWebhookInsertInput) GetHttpMethod() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookInsertInput{}
+	}
+	return o.HttpMethod
+}
+
+func (o *ConfigGrafanacontactsWebhookInsertInput) GetUsername() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookInsertInput{}
+	}
+	return o.Username
+}
+
+func (o *ConfigGrafanacontactsWebhookInsertInput) GetPassword() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookInsertInput{}
+	}
+	return o.Password
+}
+
+func (o *ConfigGrafanacontactsWebhookInsertInput) GetAuthorizationScheme() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookInsertInput{}
+	}
+	return o.AuthorizationScheme
+}
+
+func (o *ConfigGrafanacontactsWebhookInsertInput) GetAuthorizationCredentials() string {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookInsertInput{}
+	}
+	return o.AuthorizationCredentials
+}
+
+func (o *ConfigGrafanacontactsWebhookInsertInput) GetMaxAlerts() int {
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhookInsertInput{}
+	}
+	return o.MaxAlerts
+}
+
+func (s *ConfigGrafanacontactsWebhook) Insert(v *ConfigGrafanacontactsWebhookInsertInput) {
+	s.Url = v.Url
+	s.HttpMethod = v.HttpMethod
+	s.Username = v.Username
+	s.Password = v.Password
+	s.AuthorizationScheme = v.AuthorizationScheme
+	s.AuthorizationCredentials = v.AuthorizationCredentials
+	s.MaxAlerts = v.MaxAlerts
+}
+
+func (s *ConfigGrafanacontactsWebhook) Clone() *ConfigGrafanacontactsWebhook {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigGrafanacontactsWebhook{}
+	v.Url = s.Url
+	v.HttpMethod = s.HttpMethod
+	v.Username = s.Username
+	v.Password = s.Password
+	v.AuthorizationScheme = s.AuthorizationScheme
+	v.AuthorizationCredentials = s.AuthorizationCredentials
+	v.MaxAlerts = s.MaxAlerts
+	return v
+}
+
+type ConfigGrafanacontactsWebhookComparisonExp struct {
+	And                      []*ConfigGrafanacontactsWebhookComparisonExp `json:"_and,omitempty"`
+	Not                      *ConfigGrafanacontactsWebhookComparisonExp   `json:"_not,omitempty"`
+	Or                       []*ConfigGrafanacontactsWebhookComparisonExp `json:"_or,omitempty"`
+	Url                      *ConfigStringComparisonExp                   `json:"url,omitempty"`
+	HttpMethod               *ConfigStringComparisonExp                   `json:"httpMethod,omitempty"`
+	Username                 *ConfigStringComparisonExp                   `json:"username,omitempty"`
+	Password                 *ConfigStringComparisonExp                   `json:"password,omitempty"`
+	AuthorizationScheme      *ConfigStringComparisonExp                   `json:"authorizationScheme,omitempty"`
+	AuthorizationCredentials *ConfigStringComparisonExp                   `json:"authorizationCredentials,omitempty"`
+	MaxAlerts                *ConfigIntComparisonExp                      `json:"maxAlerts,omitempty"`
+}
+
+func (exp *ConfigGrafanacontactsWebhookComparisonExp) Matches(o *ConfigGrafanacontactsWebhook) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigGrafanacontactsWebhook{}
+	}
+	if !exp.Url.Matches(o.Url) {
+		return false
+	}
+	if !exp.HttpMethod.Matches(o.HttpMethod) {
+		return false
+	}
+	if !exp.Username.Matches(o.Username) {
+		return false
+	}
+	if !exp.Password.Matches(o.Password) {
+		return false
+	}
+	if !exp.AuthorizationScheme.Matches(o.AuthorizationScheme) {
+		return false
+	}
+	if !exp.AuthorizationCredentials.Matches(o.AuthorizationCredentials) {
+		return false
+	}
+	if !exp.MaxAlerts.Matches(o.MaxAlerts) {
 		return false
 	}
 

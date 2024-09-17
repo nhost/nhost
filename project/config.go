@@ -28,6 +28,8 @@ func DefaultConfig() (*model.ConfigConfig, error) {
 			Grafana: &model.ConfigGrafana{
 				AdminPassword: "{{ secrets.GRAFANA_ADMIN_PASSWORD }}",
 				Smtp:          nil,
+				Alerting:      &model.ConfigGrafanaAlerting{}, //nolint:exhaustruct
+				Contacts:      &model.ConfigGrafanaContacts{}, //nolint:exhaustruct
 			},
 		},
 	}

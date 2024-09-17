@@ -434,6 +434,58 @@ func commandExample(cCtx *cli.Context) error { //nolint:funlen,maintidx
 					User:     "smtpUser",
 					Password: "smtpPassword",
 				},
+				Alerting: &model.ConfigGrafanaAlerting{
+					Enabled: ptr(true),
+				},
+				Contacts: &model.ConfigGrafanaContacts{
+					Emails: []string{
+						"engineering@acme.com",
+					},
+					Pagerduty: []*model.ConfigGrafanacontactsPagerduty{
+						{
+							IntegrationKey: "integration-key",
+							Severity:       "critical",
+							Class:          "infra",
+							Component:      "backend",
+							Group:          "group",
+						},
+					},
+					Discord: []*model.ConfigGrafanacontactsDiscord{
+						{
+							Url:       "https://discord.com/api/webhooks/...",
+							AvatarUrl: "https://discord.com/api/avatar/...",
+						},
+					},
+					Slack: []*model.ConfigGrafanacontactsSlack{
+						{
+							Recipient: "recipient",
+							Token:     "token",
+							Username:  "username",
+							IconEmoji: "danger",
+							IconURL:   "https://...",
+							MentionUsers: []string{
+								"user1", "user2",
+							},
+							MentionGroups: []string{
+								"group1", "group2",
+							},
+							MentionChannel: "channel",
+							Url:            "https://slack.com/api/webhooks/...",
+							EndpointURL:    "https://slack.com/api/endpoint/...",
+						},
+					},
+					Webhook: []*model.ConfigGrafanacontactsWebhook{
+						{
+							Url:                      "https://webhook.example.com",
+							HttpMethod:               "POST",
+							Username:                 "user",
+							Password:                 "password",
+							AuthorizationScheme:      "Bearer",
+							AuthorizationCredentials: "token",
+							MaxAlerts:                10,
+						},
+					},
+				},
 			},
 		},
 	}

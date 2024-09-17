@@ -576,8 +576,34 @@ type ConfigGlobalUpdateInput struct {
 }
 
 type ConfigGrafana struct {
-	AdminPassword string             `json:"adminPassword"`
-	SMTP          *ConfigGrafanaSMTP `json:"smtp,omitempty"`
+	AdminPassword string                 `json:"adminPassword"`
+	Alerting      *ConfigGrafanaAlerting `json:"alerting,omitempty"`
+	Contacts      *ConfigGrafanaContacts `json:"contacts,omitempty"`
+	SMTP          *ConfigGrafanaSMTP     `json:"smtp,omitempty"`
+}
+
+type ConfigGrafanaAlerting struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+type ConfigGrafanaAlertingUpdateInput struct {
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+type ConfigGrafanaContacts struct {
+	Discord   []*ConfigGrafanacontactsDiscord   `json:"discord,omitempty"`
+	Emails    []string                          `json:"emails,omitempty"`
+	Pagerduty []*ConfigGrafanacontactsPagerduty `json:"pagerduty,omitempty"`
+	Slack     []*ConfigGrafanacontactsSlack     `json:"slack,omitempty"`
+	Webhook   []*ConfigGrafanacontactsWebhook   `json:"webhook,omitempty"`
+}
+
+type ConfigGrafanaContactsUpdateInput struct {
+	Discord   []*ConfigGrafanacontactsDiscordUpdateInput   `json:"discord,omitempty"`
+	Emails    []string                                     `json:"emails,omitempty"`
+	Pagerduty []*ConfigGrafanacontactsPagerdutyUpdateInput `json:"pagerduty,omitempty"`
+	Slack     []*ConfigGrafanacontactsSlackUpdateInput     `json:"slack,omitempty"`
+	Webhook   []*ConfigGrafanacontactsWebhookUpdateInput   `json:"webhook,omitempty"`
 }
 
 type ConfigGrafanaSMTP struct {
@@ -597,8 +623,82 @@ type ConfigGrafanaSMTPUpdateInput struct {
 }
 
 type ConfigGrafanaUpdateInput struct {
-	AdminPassword *string                       `json:"adminPassword,omitempty"`
-	SMTP          *ConfigGrafanaSMTPUpdateInput `json:"smtp,omitempty"`
+	AdminPassword *string                           `json:"adminPassword,omitempty"`
+	Alerting      *ConfigGrafanaAlertingUpdateInput `json:"alerting,omitempty"`
+	Contacts      *ConfigGrafanaContactsUpdateInput `json:"contacts,omitempty"`
+	SMTP          *ConfigGrafanaSMTPUpdateInput     `json:"smtp,omitempty"`
+}
+
+type ConfigGrafanacontactsDiscord struct {
+	AvatarURL string `json:"avatarUrl"`
+	URL       string `json:"url"`
+}
+
+type ConfigGrafanacontactsDiscordUpdateInput struct {
+	AvatarURL *string `json:"avatarUrl,omitempty"`
+	URL       *string `json:"url,omitempty"`
+}
+
+type ConfigGrafanacontactsPagerduty struct {
+	Class          string `json:"class"`
+	Component      string `json:"component"`
+	Group          string `json:"group"`
+	IntegrationKey string `json:"integrationKey"`
+	Severity       string `json:"severity"`
+}
+
+type ConfigGrafanacontactsPagerdutyUpdateInput struct {
+	Class          *string `json:"class,omitempty"`
+	Component      *string `json:"component,omitempty"`
+	Group          *string `json:"group,omitempty"`
+	IntegrationKey *string `json:"integrationKey,omitempty"`
+	Severity       *string `json:"severity,omitempty"`
+}
+
+type ConfigGrafanacontactsSlack struct {
+	EndpointURL    string   `json:"endpointURL"`
+	IconEmoji      string   `json:"iconEmoji"`
+	IconURL        string   `json:"iconURL"`
+	MentionChannel string   `json:"mentionChannel"`
+	MentionGroups  []string `json:"mentionGroups"`
+	MentionUsers   []string `json:"mentionUsers"`
+	Recipient      string   `json:"recipient"`
+	Token          string   `json:"token"`
+	URL            string   `json:"url"`
+	Username       string   `json:"username"`
+}
+
+type ConfigGrafanacontactsSlackUpdateInput struct {
+	EndpointURL    *string  `json:"endpointURL,omitempty"`
+	IconEmoji      *string  `json:"iconEmoji,omitempty"`
+	IconURL        *string  `json:"iconURL,omitempty"`
+	MentionChannel *string  `json:"mentionChannel,omitempty"`
+	MentionGroups  []string `json:"mentionGroups,omitempty"`
+	MentionUsers   []string `json:"mentionUsers,omitempty"`
+	Recipient      *string  `json:"recipient,omitempty"`
+	Token          *string  `json:"token,omitempty"`
+	URL            *string  `json:"url,omitempty"`
+	Username       *string  `json:"username,omitempty"`
+}
+
+type ConfigGrafanacontactsWebhook struct {
+	AuthorizationCredentials string `json:"authorizationCredentials"`
+	AuthorizationScheme      string `json:"authorizationScheme"`
+	HTTPMethod               string `json:"httpMethod"`
+	MaxAlerts                int64  `json:"maxAlerts"`
+	Password                 string `json:"password"`
+	URL                      string `json:"url"`
+	Username                 string `json:"username"`
+}
+
+type ConfigGrafanacontactsWebhookUpdateInput struct {
+	AuthorizationCredentials *string `json:"authorizationCredentials,omitempty"`
+	AuthorizationScheme      *string `json:"authorizationScheme,omitempty"`
+	HTTPMethod               *string `json:"httpMethod,omitempty"`
+	MaxAlerts                *int64  `json:"maxAlerts,omitempty"`
+	Password                 *string `json:"password,omitempty"`
+	URL                      *string `json:"url,omitempty"`
+	Username                 *string `json:"username,omitempty"`
 }
 
 type ConfigGraphql struct {

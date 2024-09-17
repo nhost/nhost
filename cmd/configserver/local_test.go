@@ -57,6 +57,8 @@ func newApp() *graph.App {
 				Grafana: &model.ConfigGrafana{
 					AdminPassword: "asdasd",
 					Smtp:          nil,
+					Alerting:      nil,
+					Contacts:      nil,
 				},
 			},
 		},

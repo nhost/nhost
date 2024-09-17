@@ -170,8 +170,8 @@ import (
 		// HASURA_GRAPHQL_ENABLED_APIS
 		enabledAPIs: [...#HasuraAPIs] | *["metadata", "graphql", "pgdump", "config"]
 
-        // HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
-        inferFunctionPermissions: bool | *true
+		// HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
+		inferFunctionPermissions: bool | *true
 
 		// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
 		liveQueriesMultiplexedRefetchInterval: uint32 | *1000
@@ -644,13 +644,54 @@ import (
 #Grafana: {
 	adminPassword: string
 
-    smtp?: {
-        host:     string & net.FQDN | net.IP
-        port:     #Port
-        sender:   string
-        user:     string
-        password: string
-    }
+	smtp?: {
+		host:     string & net.FQDN | net.IP
+		port:     #Port
+		sender:   string
+		user:     string
+		password: string
+	}
+
+	alerting: {
+		enabled: bool | *false
+	}
+
+	contacts: {
+		emails?: [...string]
+		pagerduty?: [{
+			integrationKey: string
+			severity:       string
+			class:          string
+			component:      string
+			group:          string
+		}]
+		discord?: [{
+			url:       string
+			avatarUrl: string
+		}]
+		slack?: [{
+			recipient: string
+			token:     string
+			username:  string
+			iconEmoji: string
+			iconURL:   string
+			mentionUsers: [...string]
+			mentionGroups: [...string]
+			mentionChannel: string
+			url:            string
+			endpointURL:    string
+		}]
+		webhook?: [{
+			url:                      string
+			httpMethod:               string
+			username:                 string
+			password:                 string
+			authorizationScheme:      string
+			authorizationCredentials: string
+			maxAlerts:                int
+		}]
+
+	}
 }
 
 #RunServicePort: {

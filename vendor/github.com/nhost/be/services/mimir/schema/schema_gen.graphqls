@@ -1875,16 +1875,28 @@ type ConfigGrafana {
 
     """
     smtp: ConfigGrafanaSmtp
+    """
+
+    """
+    alerting: ConfigGrafanaAlerting
+    """
+
+    """
+    contacts: ConfigGrafanaContacts
 }
 
 input ConfigGrafanaUpdateInput {
     adminPassword: String
     smtp: ConfigGrafanaSmtpUpdateInput
+    alerting: ConfigGrafanaAlertingUpdateInput
+    contacts: ConfigGrafanaContactsUpdateInput
 }
 
 input ConfigGrafanaInsertInput {
     adminPassword: String!
     smtp: ConfigGrafanaSmtpInsertInput
+    alerting: ConfigGrafanaAlertingInsertInput
+    contacts: ConfigGrafanaContactsInsertInput
 }
 
 input ConfigGrafanaComparisonExp {
@@ -1893,6 +1905,86 @@ input ConfigGrafanaComparisonExp {
     _or: [ConfigGrafanaComparisonExp!]
     adminPassword: ConfigStringComparisonExp
     smtp: ConfigGrafanaSmtpComparisonExp
+    alerting: ConfigGrafanaAlertingComparisonExp
+    contacts: ConfigGrafanaContactsComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanaAlerting {
+    """
+
+    """
+    enabled: Boolean
+}
+
+input ConfigGrafanaAlertingUpdateInput {
+    enabled: Boolean
+}
+
+input ConfigGrafanaAlertingInsertInput {
+    enabled: Boolean
+}
+
+input ConfigGrafanaAlertingComparisonExp {
+    _and: [ConfigGrafanaAlertingComparisonExp!]
+    _not: ConfigGrafanaAlertingComparisonExp
+    _or: [ConfigGrafanaAlertingComparisonExp!]
+    enabled: ConfigBooleanComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanaContacts {
+    """
+
+    """
+    emails: [String!]
+    """
+
+    """
+    pagerduty: [ConfigGrafanacontactsPagerduty!]
+    """
+
+    """
+    discord: [ConfigGrafanacontactsDiscord!]
+    """
+
+    """
+    slack: [ConfigGrafanacontactsSlack!]
+    """
+
+    """
+    webhook: [ConfigGrafanacontactsWebhook!]
+}
+
+input ConfigGrafanaContactsUpdateInput {
+        emails: [String!]
+        pagerduty: [ConfigGrafanacontactsPagerdutyUpdateInput!]
+        discord: [ConfigGrafanacontactsDiscordUpdateInput!]
+        slack: [ConfigGrafanacontactsSlackUpdateInput!]
+        webhook: [ConfigGrafanacontactsWebhookUpdateInput!]
+}
+
+input ConfigGrafanaContactsInsertInput {
+        emails: [String!]
+        pagerduty: [ConfigGrafanacontactsPagerdutyInsertInput!]
+        discord: [ConfigGrafanacontactsDiscordInsertInput!]
+        slack: [ConfigGrafanacontactsSlackInsertInput!]
+        webhook: [ConfigGrafanacontactsWebhookInsertInput!]
+}
+
+input ConfigGrafanaContactsComparisonExp {
+    _and: [ConfigGrafanaContactsComparisonExp!]
+    _not: ConfigGrafanaContactsComparisonExp
+    _or: [ConfigGrafanaContactsComparisonExp!]
+    emails: ConfigStringComparisonExp
+    pagerduty: ConfigGrafanacontactsPagerdutyComparisonExp
+    discord: ConfigGrafanacontactsDiscordComparisonExp
+    slack: ConfigGrafanacontactsSlackComparisonExp
+    webhook: ConfigGrafanacontactsWebhookComparisonExp
 }
 
 """
@@ -1946,6 +2038,246 @@ input ConfigGrafanaSmtpComparisonExp {
     sender: ConfigStringComparisonExp
     user: ConfigStringComparisonExp
     password: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanacontactsDiscord {
+    """
+
+    """
+    url: String!
+    """
+
+    """
+    avatarUrl: String!
+}
+
+input ConfigGrafanacontactsDiscordUpdateInput {
+    url: String
+    avatarUrl: String
+}
+
+input ConfigGrafanacontactsDiscordInsertInput {
+    url: String!
+    avatarUrl: String!
+}
+
+input ConfigGrafanacontactsDiscordComparisonExp {
+    _and: [ConfigGrafanacontactsDiscordComparisonExp!]
+    _not: ConfigGrafanacontactsDiscordComparisonExp
+    _or: [ConfigGrafanacontactsDiscordComparisonExp!]
+    url: ConfigStringComparisonExp
+    avatarUrl: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanacontactsPagerduty {
+    """
+
+    """
+    integrationKey: String!
+    """
+
+    """
+    severity: String!
+    """
+
+    """
+    class: String!
+    """
+
+    """
+    component: String!
+    """
+
+    """
+    group: String!
+}
+
+input ConfigGrafanacontactsPagerdutyUpdateInput {
+    integrationKey: String
+    severity: String
+    class: String
+    component: String
+    group: String
+}
+
+input ConfigGrafanacontactsPagerdutyInsertInput {
+    integrationKey: String!
+    severity: String!
+    class: String!
+    component: String!
+    group: String!
+}
+
+input ConfigGrafanacontactsPagerdutyComparisonExp {
+    _and: [ConfigGrafanacontactsPagerdutyComparisonExp!]
+    _not: ConfigGrafanacontactsPagerdutyComparisonExp
+    _or: [ConfigGrafanacontactsPagerdutyComparisonExp!]
+    integrationKey: ConfigStringComparisonExp
+    severity: ConfigStringComparisonExp
+    class: ConfigStringComparisonExp
+    component: ConfigStringComparisonExp
+    group: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanacontactsSlack {
+    """
+
+    """
+    recipient: String!
+    """
+
+    """
+    token: String!
+    """
+
+    """
+    username: String!
+    """
+
+    """
+    iconEmoji: String!
+    """
+
+    """
+    iconURL: String!
+    """
+
+    """
+    mentionUsers: [String!]!
+    """
+
+    """
+    mentionGroups: [String!]!
+    """
+
+    """
+    mentionChannel: String!
+    """
+
+    """
+    url: String!
+    """
+
+    """
+    endpointURL: String!
+}
+
+input ConfigGrafanacontactsSlackUpdateInput {
+    recipient: String
+    token: String
+    username: String
+    iconEmoji: String
+    iconURL: String
+        mentionUsers: [String!]
+        mentionGroups: [String!]
+    mentionChannel: String
+    url: String
+    endpointURL: String
+}
+
+input ConfigGrafanacontactsSlackInsertInput {
+    recipient: String!
+    token: String!
+    username: String!
+    iconEmoji: String!
+    iconURL: String!
+        mentionUsers: [String!]!
+        mentionGroups: [String!]!
+    mentionChannel: String!
+    url: String!
+    endpointURL: String!
+}
+
+input ConfigGrafanacontactsSlackComparisonExp {
+    _and: [ConfigGrafanacontactsSlackComparisonExp!]
+    _not: ConfigGrafanacontactsSlackComparisonExp
+    _or: [ConfigGrafanacontactsSlackComparisonExp!]
+    recipient: ConfigStringComparisonExp
+    token: ConfigStringComparisonExp
+    username: ConfigStringComparisonExp
+    iconEmoji: ConfigStringComparisonExp
+    iconURL: ConfigStringComparisonExp
+    mentionUsers: ConfigStringComparisonExp
+    mentionGroups: ConfigStringComparisonExp
+    mentionChannel: ConfigStringComparisonExp
+    url: ConfigStringComparisonExp
+    endpointURL: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigGrafanacontactsWebhook {
+    """
+
+    """
+    url: String!
+    """
+
+    """
+    httpMethod: String!
+    """
+
+    """
+    username: String!
+    """
+
+    """
+    password: String!
+    """
+
+    """
+    authorizationScheme: String!
+    """
+
+    """
+    authorizationCredentials: String!
+    """
+
+    """
+    maxAlerts: Int!
+}
+
+input ConfigGrafanacontactsWebhookUpdateInput {
+    url: String
+    httpMethod: String
+    username: String
+    password: String
+    authorizationScheme: String
+    authorizationCredentials: String
+    maxAlerts: Int
+}
+
+input ConfigGrafanacontactsWebhookInsertInput {
+    url: String!
+    httpMethod: String!
+    username: String!
+    password: String!
+    authorizationScheme: String!
+    authorizationCredentials: String!
+    maxAlerts: Int!
+}
+
+input ConfigGrafanacontactsWebhookComparisonExp {
+    _and: [ConfigGrafanacontactsWebhookComparisonExp!]
+    _not: ConfigGrafanacontactsWebhookComparisonExp
+    _or: [ConfigGrafanacontactsWebhookComparisonExp!]
+    url: ConfigStringComparisonExp
+    httpMethod: ConfigStringComparisonExp
+    username: ConfigStringComparisonExp
+    password: ConfigStringComparisonExp
+    authorizationScheme: ConfigStringComparisonExp
+    authorizationCredentials: ConfigStringComparisonExp
+    maxAlerts: ConfigIntComparisonExp
 }
 
 """
