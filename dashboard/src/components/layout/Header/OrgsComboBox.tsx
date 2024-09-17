@@ -1,5 +1,6 @@
-import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
+import { cn } from '@/lib/utils';
+
 import {
   Command,
   CommandEmpty,
@@ -7,201 +8,118 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from '@/components/ui/v3/command';
+
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
-import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
-import { cn } from '@/lib/utils';
+
+import { Badge } from '@/components/ui/v3/badge';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useState, type ReactElement } from 'react';
 
 type Option = {
   value: string;
   label: string;
-  plan: string;
-  type: 'organization' | 'workspace';
+  badge: ReactElement;
 };
 
+const options: Option[] = [
+  {
+    name: "Hassan's org",
+    slug: 'x2f9k7m1p3q8r',
+    isFree: false,
+    plan: 'Pro',
+    projects: [
+      { name: 'eu-central-1.celsia' },
+      { name: 'joyent' },
+      { name: 'react-apollo' },
+    ],
+  },
+  {
+    name: 'nhost-testing',
+    slug: 'a3b7c9d1e5f2g',
+    isFree: true,
+    plan: 'Starter',
+  },
+  {
+    name: 'uflip',
+    slug: 'h4j2l6n8m0p5q',
+    isFree: false,
+    plan: 'Team',
+  },
+].map((org) => ({
+  label: org.name,
+  value: org.slug,
+  badge: (
+    <Badge
+      variant={org.isFree ? 'outline' : 'default'}
+      className={cn(
+        org.isFree ? 'bg-muted' : '',
+        'hover:none ml-2 h-5 px-[6px] text-[10px]',
+      )}
+    >
+      {org.plan}
+    </Badge>
+  ),
+}));
+
 export default function OrgsComboBox() {
-  const { orgs } = useOrgs();
-  const isPlatform = useIsPlatform();
-  const { workspaces } = useWorkspaces();
-  const [, setLastSlug] = useSSRLocalStorage('slug', null);
-
-  const {
-    query: { orgSlug, workspaceSlug },
-    push,
-  } = useRouter();
-
-  const selectedOrgFromUrl =
-    Boolean(orgSlug) && orgs.find((item) => item.slug === orgSlug);
-  const selectedWorkspaceFromUrl =
-    Boolean(workspaceSlug) &&
-    workspaces.find((item) => item.slug === workspaceSlug);
-
-  const [selectedItem, setSelectedItem] = useState<Option | null>(null);
-
-  useEffect(() => {
-    const selectedItemFromUrl = selectedOrgFromUrl || selectedWorkspaceFromUrl;
-
-    if (selectedItemFromUrl) {
-      setSelectedItem({
-        label: selectedItemFromUrl.name,
-        value: selectedItemFromUrl.slug,
-        plan: selectedOrgFromUrl ? selectedOrgFromUrl.plan.name : 'Legacy',
-        type: selectedOrgFromUrl ? 'organization' : 'workspace',
-      });
-    }
-  }, [selectedOrgFromUrl, selectedWorkspaceFromUrl]);
-
-  const orgsOptions: Option[] = orgs.map((org) => ({
-    label: org.name,
-    value: org.slug,
-    plan: org.plan.name,
-    type: 'organization',
-  }));
-
-  const workspacesOptions: Option[] = workspaces.map((workspace) => ({
-    label: workspace.name,
-    value: workspace.slug,
-    plan: 'Legacy',
-    type: 'workspace',
-  }));
-
   const [open, setOpen] = useState(false);
-
-  const renderBadge = (plan: string) => {
-    if (!isPlatform) {
-      return null;
-    }
-
-    return (
-      <Badge
-        variant={plan === 'Starter' ? 'outline' : 'default'}
-        className={cn(
-          plan === 'Starter' ? 'bg-muted' : '',
-          plan === 'Legacy'
-            ? 'bg-orange-200 text-foreground hover:bg-orange-200 dark:bg-orange-500'
-            : '',
-          'hover:none ml-2 h-5 px-[6px] text-[10px]',
-        )}
-      >
-        {plan}
-      </Badge>
-    );
-  };
+  const [selectedOrg, setSelectedOrg] = useState<Option | null>(options[0]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          size="sm"
           variant="ghost"
-          className="justify-between w-full gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
+          size="sm"
+          className="justify-start gap-2 text-foreground"
         >
-          {selectedItem ? (
+          {selectedOrg ? (
             <div className="flex flex-row items-center justify-center">
-              {selectedItem.label}
-              {renderBadge(selectedItem.plan)}
+              {selectedOrg.label}
+              {selectedOrg.badge}
             </div>
           ) : (
-            'Select organization / workspace'
+            <>Select organization</>
           )}
-          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
+          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
         <Command>
-          <CommandInput placeholder="Select organization..." />
+          <CommandInput placeholder="Change status..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup heading="Organizations">
-              {orgsOptions.map((option) => (
+            <CommandGroup>
+              {options.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.label}
-                  className="flex items-center justify-between bg-background text-foreground dark:hover:bg-muted"
-                  onSelect={() => {
-                    setSelectedItem(option);
+                  onSelect={(value) => {
+                    setSelectedOrg(
+                      options.find((o) => o.label === value) || null,
+                    );
+
                     setOpen(false);
-
-                    // persist last slug in local storage
-                    setLastSlug(option.value);
-
-                    if (option.type === 'organization') {
-                      push(`/orgs/${option.value}/projects`);
-                    } else {
-                      push(`/${option.value}`);
-                    }
                   }}
                 >
-                  <div className="flex items-center font-normal">
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selectedItem?.value === option.value
-                          ? 'opacity-100'
-                          : 'opacity-0',
-                      )}
-                    />
-                    <span className="truncate max-w-52">{option.label}</span>
-                  </div>
-                  {renderBadge(option.plan)}
+                  <Check
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      selectedOrg?.value === option.value
+                        ? 'opacity-100'
+                        : 'opacity-0',
+                    )}
+                  />
+                  <span>{option.label}</span>
+                  {option.badge}
                 </CommandItem>
               ))}
             </CommandGroup>
-
-            {workspaces.length > 0 && (
-              <>
-                <CommandSeparator />
-
-                <CommandGroup heading="Workspaces">
-                  {workspacesOptions.map((option) => (
-                    <CommandItem
-                      key={option.value}
-                      value={option.label}
-                      className="flex items-center justify-between bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
-                      onSelect={() => {
-                        setSelectedItem(option);
-                        setOpen(false);
-
-                        // persist last slug in local storage
-                        setLastSlug(option.value);
-
-                        if (option.type === 'organization') {
-                          push(`/orgs/${option.value}/projects`);
-                        } else {
-                          push(`/${option.value}`);
-                        }
-                      }}
-                    >
-                      <div className="flex items-center">
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            selectedItem?.value === option.value
-                              ? 'opacity-100'
-                              : 'opacity-0',
-                          )}
-                        />
-                        <span className="truncate max-w-52">
-                          {option.label}
-                        </span>
-                      </div>
-                      {renderBadge(option.plan)}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </>
-            )}
           </CommandList>
         </Command>
       </PopoverContent>

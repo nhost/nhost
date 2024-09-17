@@ -16,28 +16,23 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 
-import { Box, Check, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
 
 type Option = {
   value: string;
   label: string;
+  icon?: ReactNode;
 };
 
-const projects = [
-  { name: 'eu-central-1.celsia', slug: 'x2f9k7m1p3q8r' },
-  { name: 'joyent', slug: 'a3b7c9d1e5f2g' },
-  { name: 'react-apollo', slug: 'h4j2l6n8m0p5q' },
-];
+interface NavComboBoxProps {
+  value: Option;
+  options: Option[];
+}
 
-const options: Option[] = projects.map((project) => ({
-  label: project.name,
-  value: project.slug,
-}));
-
-export default function ProjectsComboBox() {
+export default function NavComboBox({ value, options }: NavComboBoxProps) {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Option | null>(options[0]);
+  const [selected, setSelected] = useState<Option | null>(value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -49,11 +44,11 @@ export default function ProjectsComboBox() {
         >
           {selected ? (
             <div className="flex flex-row items-center justify-center gap-2">
-              <Box className="h-4 w-4" />
+              {selected.icon}
               {selected.label}
             </div>
           ) : (
-            <>Select project</>
+            <>Select page</>
           )}
           <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
@@ -63,13 +58,15 @@ export default function ProjectsComboBox() {
           <CommandInput placeholder="Change status..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup className="bg-background">
+            <CommandGroup>
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
                   value={option.label}
-                  onSelect={(value) => {
-                    setSelected(options.find((o) => o.label === value) || null);
+                  onSelect={(_value) => {
+                    setSelected(
+                      options.find((o) => o.label === _value) || null,
+                    );
 
                     setOpen(false);
                   }}
@@ -83,7 +80,7 @@ export default function ProjectsComboBox() {
                         : 'opacity-0',
                     )}
                   />
-                  <Box className="h-4 w-4" />
+                  {option.icon}
                   <span>{option.label}</span>
                 </CommandItem>
               ))}
