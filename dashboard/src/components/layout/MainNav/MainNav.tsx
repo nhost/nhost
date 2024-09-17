@@ -37,7 +37,7 @@ export default function MainNav({ container }: MainNavProps) {
         side="left"
         container={container}
         hideCloseButton
-        className="h-full p-0 sm:max-w-72"
+        className="h-full w-full p-0 sm:max-w-72"
       >
         <SheetHeader>
           <SheetTitle className="sr-only">Main navigation</SheetTitle>
