@@ -1,49 +1,112 @@
-import { Slash } from 'lucide-react';
+import {
+  CloudIcon,
+  CogIcon,
+  DatabaseIcon,
+  FileTextIcon,
+  GaugeIcon,
+  HomeIcon,
+  RocketIcon,
+  Slash,
+  UserIcon,
+} from 'lucide-react';
 
 import { Logo } from '@/components/presentational/Logo';
-import { Badge } from '@/components/ui/v3/badge';
+import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
+import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
+import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
+import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
+import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from '@/components/ui/v3/breadcrumb';
-import { cn } from '@/lib/utils';
-import BreadCrumbComboBox from './BreadcrumbComboBox';
+import NavComboBox from './NavComboBox';
+import OrgsComboBox from './OrgsComboBox';
+import ProjectsComboBox from './ProjectsComboBox';
+
+const projectPagesOptions = [
+  {
+    label: 'Overview',
+    value: 'overview',
+    icon: <HomeIcon className="h-4 w-4" />,
+  },
+  {
+    label: 'Database',
+    value: 'database',
+    icon: <DatabaseIcon className="h-4 w-4" />,
+  },
+  {
+    label: 'GraphQL',
+    value: 'graphql',
+    icon: <GraphQLIcon className="h-4 w-4" />,
+  },
+  {
+    label: 'Hasura',
+    value: 'hasura',
+    icon: <HasuraIcon className="h-4 w-4" />,
+  },
+  { label: 'Auth', value: 'auth', icon: <UserIcon className="h-4 w-4" /> },
+  {
+    label: 'Storage',
+    value: 'storage',
+    icon: <StorageIcon className="h-4 w-4" />,
+  },
+  { label: 'Run', value: 'run', icon: <ServicesIcon className="h-4 w-4" /> },
+  { label: 'AI', value: 'ai', icon: <AIIcon className="h-4 w-4" /> },
+  {
+    label: 'Deployments',
+    value: 'deployments',
+    icon: <RocketIcon className="h-4 w-4" />,
+  },
+  {
+    label: 'Backups',
+    value: 'backups',
+    icon: <CloudIcon className="h-4 w-4" />,
+  },
+  { label: 'Logs', value: 'logs', icon: <FileTextIcon className="h-4 w-4" /> },
+  {
+    label: 'Metrics',
+    value: 'metrics',
+    icon: <GaugeIcon className="h-4 w-4" />,
+  },
+  {
+    label: 'Settings',
+    value: 'settings',
+    icon: <CogIcon className="h-4 w-4" />,
+  },
+];
+
+const projectSettingsOptions = [
+  'General',
+  'Compute Resources',
+  'Database',
+  'Hasura',
+  'Authentication',
+  'Sign-In methods',
+  'Roles and Permissions',
+  'SMTP',
+  'Serverless Functions',
+  'Git',
+  'Environment Variables',
+  'Secrets',
+  'Custom Domains',
+  'Rate Limiting',
+  'AI',
+].map((item) => ({
+  label: item,
+  value: item.toLowerCase().replace(' ', '-'),
+}));
+
+const orgPages = [
+  { label: 'General', value: 'general' },
+  { label: 'Projects', value: 'projects' },
+  { label: 'Team', value: 'team' },
+  { label: 'Billing', value: 'billing' },
+];
 
 export default function BreadcrumbNav() {
-  const orgs = [
-    {
-      name: "Hassan's org",
-      slug: 'x2f9k7m1p3q8r',
-      isFree: false,
-      plan: 'Pro',
-      projects: [
-        { name: 'eu-central-1.celsia' },
-        { name: 'joyent' },
-        { name: 'react-apollo' },
-      ],
-    },
-    {
-      name: 'nhost-testing',
-      slug: 'a3b7c9d1e5f2g',
-      isFree: true,
-      plan: 'Starter',
-    },
-    {
-      name: 'uflip',
-      slug: 'h4j2l6n8m0p5q',
-      isFree: false,
-      plan: 'Team',
-    },
-  ];
-
-  const projects = [
-    { name: 'eu-central-1.celsia', slug: 'x2f9k7m1p3q8r' },
-    { name: 'joyent', slug: 'a3b7c9d1e5f2g' },
-    { name: 'react-apollo', slug: 'h4j2l6n8m0p5q' },
-  ];
-
   return (
     <Breadcrumb>
       <BreadcrumbList>
@@ -58,27 +121,33 @@ export default function BreadcrumbNav() {
         </BreadcrumbSeparator>
 
         <BreadcrumbItem>
-          <BreadCrumbComboBox
-            selectedValue={orgs[0].slug}
-            options={orgs.map((org) => ({
-              label: (
-                <>
-                  <span>{org.name}</span>
-                  {org.plan && (
-                    <Badge
-                      variant={org.isFree ? 'outline' : 'default'}
-                      className={cn(
-                        org.isFree ? 'bg-muted' : '',
-                        'hover:none ml-2 h-5 px-[6px] text-[10px]',
-                      )}
-                    >
-                      {org.plan}
-                    </Badge>
-                  )}
-                </>
-              ),
-              value: org.slug,
-            }))}
+          <OrgsComboBox />
+        </BreadcrumbItem>
+
+        <BreadcrumbSeparator>
+          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+        </BreadcrumbSeparator>
+
+        <BreadcrumbItem>
+          <NavComboBox value={orgPages[0]} options={orgPages} />
+        </BreadcrumbItem>
+
+        <BreadcrumbSeparator>
+          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+        </BreadcrumbSeparator>
+
+        <BreadcrumbItem>
+          <ProjectsComboBox />
+        </BreadcrumbItem>
+
+        <BreadcrumbSeparator>
+          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+        </BreadcrumbSeparator>
+
+        <BreadcrumbItem>
+          <NavComboBox
+            value={projectPagesOptions[0]}
+            options={projectPagesOptions}
           />
         </BreadcrumbItem>
 
@@ -87,88 +156,10 @@ export default function BreadcrumbNav() {
         </BreadcrumbSeparator>
 
         <BreadcrumbItem>
-          <div className="flex flex-row items-center justify-center gap-2">
-            <BreadCrumbComboBox
-              selectedValue="projects"
-              options={[
-                { label: 'General', value: 'general' },
-                { label: 'Projects', value: 'projects' },
-                { label: 'Team', value: 'team' },
-                { label: 'Billing', value: 'billing' },
-              ]}
-            />
-          </div>
-        </BreadcrumbItem>
-
-        <BreadcrumbSeparator>
-          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
-        </BreadcrumbSeparator>
-
-        <BreadcrumbItem>
-          <BreadCrumbComboBox
-            selectedValue={projects[0].slug}
-            options={projects.map((project) => ({
-              label: project.name,
-              value: project.slug,
-            }))}
+          <NavComboBox
+            value={projectSettingsOptions[0]}
+            options={projectSettingsOptions}
           />
-        </BreadcrumbItem>
-
-        <BreadcrumbSeparator>
-          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
-        </BreadcrumbSeparator>
-
-        <BreadcrumbItem>
-          <BreadCrumbComboBox
-            selectedValue="settings"
-            options={[
-              { label: 'Overview', value: 'overview' },
-              { label: 'Database', value: 'database' },
-              { label: 'GraphQL', value: 'graphql' },
-              { label: 'Hasura', value: 'hasura' },
-              { label: 'Authentication', value: 'auth' },
-              { label: 'Storage', value: 'storage' },
-              { label: 'Run', value: 'run' },
-              { label: 'AI', value: 'ai' },
-              { label: 'Deployments', value: 'deployments' },
-              { label: 'Backups', value: 'backups' },
-              { label: 'Logs', value: 'logs' },
-              { label: 'Metrics', value: 'metrics' },
-              { label: 'Settings', value: 'settings' },
-            ]}
-          />
-        </BreadcrumbItem>
-
-        <BreadcrumbSeparator>
-          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
-        </BreadcrumbSeparator>
-
-        <BreadcrumbItem>
-          <BreadcrumbItem>
-            <BreadCrumbComboBox
-              selectedValue="authentication"
-              options={[
-                'General',
-                'Compute Resources',
-                'Database',
-                'Hasura',
-                'Authentication',
-                'Sign-In methods',
-                'Roles and Permissions',
-                'SMTP',
-                'Serverless Functions',
-                'Git',
-                'Environment Variables',
-                'Secrets',
-                'Custom Domains',
-                'Rate Limiting',
-                'AI',
-              ].map((item) => ({
-                label: item,
-                value: item.toLowerCase().replace(' ', '-'),
-              }))}
-            />
-          </BreadcrumbItem>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>

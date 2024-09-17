@@ -11,7 +11,6 @@ import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ApplicationStatus } from '@/types/application';
 import { getToastStyleProps } from '@/utils/constants/settings';
-// import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
 import { useEffect } from 'react';
 import { toast } from 'react-hot-toast';
@@ -82,26 +81,6 @@ export default function Header({ className, ...props }: HeaderProps) {
       {...props}
     >
       <BreadcrumbNav />
-      {/* <div className="grid items-center grid-flow-col gap-3">
-        <NavLink href="/" className="w-fit">
-          <Logo className="mx-auto cursor-pointer" />
-        </NavLink>
-
-        {(router.query.workspaceSlug || router.query.appSlug) && (
-          <Breadcrumbs aria-label="Workspace breadcrumbs" />
-        )}
-
-        {isProjectUpdating && (
-          <Chip size="small" label="Updating" color="warning" />
-        )}
-        {isProjectMigratingDatabase && (
-          <Chip
-            size="small"
-            label="Upgrading Postgres version"
-            color="warning"
-          />
-        )}
-      </div> */}
 
       <div className="hidden grid-flow-col items-center gap-2 sm:grid">
         <Button className="rounded-full" onClick={openDevAssistant}>
