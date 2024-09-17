@@ -24,7 +24,7 @@ import {
 } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-import PinnedMainNav from '../MainNav/PinnedMainNav';
+import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
   /**
