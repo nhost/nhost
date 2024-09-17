@@ -12,12 +12,15 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
+import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
+import { type ReactElement } from 'react';
 import {
-  StaticTreeDataProvider,
+  ControlledTreeEnvironment,
   Tree,
-  UncontrolledTreeEnvironment,
+  type TreeItem,
+  type TreeItemIndex,
 } from 'react-complex-tree';
 
 const orgs = [
@@ -194,8 +197,16 @@ const createOrganization = (org: any) => {
   return result;
 };
 
+type NavItem = {
+  name: string;
+  type?: string;
+  isFree?: boolean;
+  plan?: string;
+  icon?: ReactElement;
+};
+
 // Initialize navTree
-const navTree = {
+const navTree: { items: Record<TreeItemIndex, TreeItem<NavItem>> } = {
   items: {
     root: {
       index: 'root',
@@ -218,16 +229,30 @@ const navTree = {
 };
 
 export default function NavTree() {
+  const [focusedItem, setFocusedItem] = useSSRLocalStorage(
+    'nav-tree-focused-item',
+    null,
+  );
+  const [expandedItems, setExpandedItems] = useSSRLocalStorage(
+    'nav-tree-expanded-items',
+    ['Organizations', orgs[0].name, `${orgs[0].name}-projects`],
+  );
+  const [selectedItems, setSelectedItems] = useSSRLocalStorage(
+    'nav-tree-selected-items',
+    [],
+  );
+
   return (
-    <UncontrolledTreeEnvironment
-      dataProvider={
-        new StaticTreeDataProvider(navTree.items, (item) => ({
-          ...item,
-          data: item.data,
-        }))
-      }
+    <ControlledTreeEnvironment
+      items={navTree.items}
       getItemTitle={(item) => item.data.name}
-      viewState={{}}
+      viewState={{
+        'nav-tree': {
+          focusedItem,
+          expandedItems,
+          selectedItems,
+        },
+      }}
       renderItemTitle={({ title }) => <span>{title}</span>}
       renderItemArrow={({ item, context }) => {
         if (!item.isFolder) {
@@ -265,16 +290,20 @@ export default function NavTree() {
                   context.focusItem();
                 }
               }}
-              className="flex h-8 w-full flex-row justify-start px-2 py-1"
+              className="flex h-8 w-full flex-row justify-start gap-2 px-1"
             >
-              <span
-                className={cn(context.isFocused ? 'text-primary-main' : '')}
-              >
-                {item.data.icon}
-              </span>
+              {item.data.icon && (
+                <span
+                  className={cn(
+                    'flex items-start',
+                    context.isFocused ? 'text-primary-main' : '',
+                  )}
+                >
+                  {item.data.icon}
+                </span>
+              )}
               <span
                 className={cn(
-                  'pl-2',
                   item.index === 'Organizations' && 'font-bold',
                   context.isFocused ? 'font-bold text-primary-main' : '',
                 )}
@@ -285,7 +314,7 @@ export default function NavTree() {
                 <Badge
                   variant={item.data.isFree ? 'outline' : 'default'}
                   className={cn(
-                    'ml-2 h-5 px-[6px] text-[10px]',
+                    'h-5 px-[6px] text-[10px]',
                     item.data.isFree ? 'bg-muted' : '',
                   )}
                 >
@@ -323,8 +352,20 @@ export default function NavTree() {
         );
       }}
       canSearch={false}
+      onFocusItem={(item) => setFocusedItem(item.index)}
+      onExpandItem={(item) =>
+        setExpandedItems([...expandedItems, item.index as string])
+      }
+      onCollapseItem={(item) =>
+        setExpandedItems(
+          expandedItems.filter(
+            (expandedItemIndex) => expandedItemIndex !== item.index,
+          ),
+        )
+      }
+      onSelectItems={(items) => setSelectedItems(items)}
     >
-      <Tree treeId="tree-1" rootItem="root" treeLabel="Tree Example" />
-    </UncontrolledTreeEnvironment>
+      <Tree treeId="nav-tree" rootItem="root" treeLabel="Navigation Tree" />
+    </ControlledTreeEnvironment>
   );
 }
