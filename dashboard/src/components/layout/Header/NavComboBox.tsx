@@ -16,59 +16,23 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 
-import { Badge } from '@/components/ui/v3/badge';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState, type ReactElement } from 'react';
+import { useState, type ReactNode } from 'react';
 
 type Option = {
   value: string;
   label: string;
-  badge: ReactElement;
+  icon?: ReactNode;
 };
 
-const options: Option[] = [
-  {
-    name: "Hassan's org",
-    slug: 'x2f9k7m1p3q8r',
-    isFree: false,
-    plan: 'Pro',
-    projects: [
-      { name: 'eu-central-1.celsia' },
-      { name: 'joyent' },
-      { name: 'react-apollo' },
-    ],
-  },
-  {
-    name: 'nhost-testing',
-    slug: 'a3b7c9d1e5f2g',
-    isFree: true,
-    plan: 'Starter',
-  },
-  {
-    name: 'uflip',
-    slug: 'h4j2l6n8m0p5q',
-    isFree: false,
-    plan: 'Team',
-  },
-].map((org) => ({
-  label: org.name,
-  value: org.slug,
-  badge: (
-    <Badge
-      variant={org.isFree ? 'outline' : 'default'}
-      className={cn(
-        org.isFree ? 'bg-muted' : '',
-        'hover:none ml-2 h-5 px-[6px] text-[10px]',
-      )}
-    >
-      {org.plan}
-    </Badge>
-  ),
-}));
+interface NavComboBoxProps {
+  value: Option;
+  options: Option[];
+}
 
-export default function OrgsComboBox() {
+export default function NavComboBox({ value, options }: NavComboBoxProps) {
   const [open, setOpen] = useState(false);
-  const [selectedOrg, setSelectedOrg] = useState<Option | null>(options[0]);
+  const [selected, setSelected] = useState<Option | null>(value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -78,13 +42,13 @@ export default function OrgsComboBox() {
           size="sm"
           className="justify-start gap-2 text-foreground"
         >
-          {selectedOrg ? (
-            <div className="flex flex-row items-center justify-center">
-              {selectedOrg.label}
-              {selectedOrg.badge}
+          {selected ? (
+            <div className="flex flex-row items-center justify-center gap-2">
+              {selected.icon}
+              {selected.label}
             </div>
           ) : (
-            <>Select organization</>
+            <>Select page</>
           )}
           <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
@@ -97,27 +61,27 @@ export default function OrgsComboBox() {
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
-                  keywords={[option.label]}
                   key={option.value}
                   value={option.label}
-                  onSelect={(value) => {
-                    setSelectedOrg(
-                      options.find((o) => o.label === value) || null,
+                  onSelect={(_value) => {
+                    setSelected(
+                      options.find((o) => o.label === _value) || null,
                     );
 
                     setOpen(false);
                   }}
+                  className="flex flex-row gap-2"
                 >
                   <Check
                     className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedOrg?.value === option.value
+                      'h-4 w-4',
+                      selected?.value === option.value
                         ? 'opacity-100'
                         : 'opacity-0',
                     )}
                   />
+                  {option.icon}
                   <span>{option.label}</span>
-                  {option.badge}
                 </CommandItem>
               ))}
             </CommandGroup>

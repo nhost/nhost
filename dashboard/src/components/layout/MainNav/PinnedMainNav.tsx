@@ -10,7 +10,7 @@ export default function PinnedMainNav() {
   );
 
   return (
-    <div className="h-full w-3/4 border-r sm:max-w-72">
+    <div className="h-full w-full border-r p-0 sm:max-w-96">
       <div className="flex w-full justify-end bg-background p-1">
         <Button
           variant="ghost"

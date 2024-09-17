@@ -15,7 +15,6 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { getToastStyleProps } from '@/utils/constants/settings';
-// import { useRouter } from 'next/router';
 import type { DetailedHTMLProps, HTMLProps, PropsWithoutRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { twMerge } from 'tailwind-merge';
@@ -70,26 +69,6 @@ export default function Header({ className, ...props }: HeaderProps) {
       {...props}
     >
       <BreadcrumbNav />
-      {/* <div className="grid items-center grid-flow-col gap-3">
-        <NavLink href="/" className="w-fit">
-          <Logo className="mx-auto cursor-pointer" />
-        </NavLink>
-
-        {(router.query.workspaceSlug || router.query.appSlug) && (
-          <Breadcrumbs aria-label="Workspace breadcrumbs" />
-        )}
-
-        {isProjectUpdating && (
-          <Chip size="small" label="Updating" color="warning" />
-        )}
-        {isProjectMigratingDatabase && (
-          <Chip
-            size="small"
-            label="Upgrading Postgres version"
-            color="warning"
-          />
-        )}
-      </div> */}
 
       <BreadcrumbNav />
 

@@ -1,5 +1,6 @@
-import ProjectStatus from '@/components/layout/Header/ProjectStatus';
 import { Button } from '@/components/ui/v3/button';
+import { cn } from '@/lib/utils';
+
 import {
   Command,
   CommandEmpty,
@@ -8,49 +9,35 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/v3/command';
+
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { cn } from '@/lib/utils';
+
 import { Box, Check, ChevronsUpDown } from 'lucide-react';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 type Option = {
   value: string;
   label: string;
 };
 
+const projects = [
+  { name: 'eu-central-1.celsia', slug: 'x2f9k7m1p3q8r' },
+  { name: 'joyent', slug: 'a3b7c9d1e5f2g' },
+  { name: 'react-apollo', slug: 'h4j2l6n8m0p5q' },
+];
+
+const options: Option[] = projects.map((project) => ({
+  label: project.name,
+  value: project.slug,
+}));
+
 export default function ProjectsComboBox() {
-  const {
-    query: { appSubdomain },
-    push,
-  } = useRouter();
-
-  const { currentOrg: { slug: orgSlug, apps = [] } = {} } = useOrgs();
-  const selectedProjectFromUrl = apps.find(
-    (item) => item.subdomain === appSubdomain,
-  );
-  const [selectedProject, setSelectedProject] = useState<Option | null>(null);
-
-  useEffect(() => {
-    if (selectedProjectFromUrl) {
-      setSelectedProject({
-        label: selectedProjectFromUrl.name,
-        value: selectedProjectFromUrl.subdomain,
-      });
-    }
-  }, [selectedProjectFromUrl]);
-
-  const options: Option[] = apps.map((app) => ({
-    label: app.name,
-    value: app.subdomain,
-  }));
-
   const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<Option | null>(options[0]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -58,49 +45,47 @@ export default function ProjectsComboBox() {
         <Button
           variant="ghost"
           size="sm"
-          className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
+          className="justify-start gap-2 text-foreground"
         >
-          {selectedProject ? (
-            <div className="flex flex-row items-center justify-center gap-1">
+          {selected ? (
+            <div className="flex flex-row items-center justify-center gap-2">
               <Box className="h-4 w-4" />
-              {selectedProject.label}
-              <ProjectStatus />
+              {selected.label}
             </div>
           ) : (
-            <>Select a project</>
+            <>Select project</>
           )}
           <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
         <Command>
-          <CommandInput placeholder="Select a project..." />
+          <CommandInput placeholder="Change status..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup className="bg-background">
               {options.map((option) => (
                 <CommandItem
                   keywords={[option.label]}
                   key={option.value}
-                  value={option.value}
-                  onSelect={() => {
-                    setSelectedProject(option);
+                  value={option.label}
+                  onSelect={(value) => {
+                    setSelected(options.find((o) => o.label === value) || null);
+
                     setOpen(false);
-                    push(`/orgs/${orgSlug}/projects/${option.value}`);
                   }}
+                  className="flex flex-row gap-2"
                 >
                   <Check
                     className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedProject?.value === option.value
+                      'h-4 w-4',
+                      selected?.value === option.value
                         ? 'opacity-100'
                         : 'opacity-0',
                     )}
                   />
-                  <div className="flex flex-row items-center gap-1">
-                    <Box className="h-4 w-4" />
-                    <span className="max-w-52 truncate">{option.label}</span>
-                  </div>
+                  <Box className="h-4 w-4" />
+                  <span>{option.label}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
