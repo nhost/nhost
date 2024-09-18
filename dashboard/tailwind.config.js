@@ -194,41 +194,23 @@ module.exports = {
       fontFamily: {
         display: ['Inter var', ...defaultTheme.fontFamily.sans],
         sans: ['Work Sans', ...defaultTheme.fontFamily.sans],
-        system: 'defaultTheme.fontFamily.sans',
+        system: defaultTheme.fontFamily.sans,
         'inter-var': ['Inter var', ...defaultTheme.fontFamily.sans],
-        mono: ['Roboto Mono"', ...defaultTheme.fontFamily.mono],
+        mono: ['"Roboto Mono"', ...defaultTheme.fontFamily.mono],
       },
       keyframes: {
         blinking: {
-          '0%': {
-            opacity: '0',
-          },
-          '50%': {
-            opacity: '1',
-          },
-          '100%': {
-            opacity: '0',
-          },
+          '0%': { opacity: 0 },
+          '50%': { opacity: 1 },
+          '100%': { opacity: 0 },
         },
         toastenter: {
-          '0%': {
-            transform: 'scale(0.9)',
-            opacity: '0',
-          },
-          '100%': {
-            transform: 'scale(1)',
-            opacity: '1',
-          },
+          '0%': { transform: 'scale(0.9)', opacity: 0 },
+          '100%': { transform: 'scale(1)', opacity: 1 },
         },
         toastleave: {
-          '0%': {
-            transform: 'scale(1)',
-            opacity: '1',
-          },
-          '100%': {
-            transform: 'scale(0.9)',
-            opacity: '0',
-          },
+          '0%': { transform: 'scale(1)', opacity: 1 },
+          '100%': { transform: 'scale(0.9)', opacity: 0 },
         },
       },
       animation: {
