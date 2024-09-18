@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.28.1
+
+### Patch Changes
+
+- 9735fa2: chore: remove broken link
+
 ## 1.28.0
 
 ### Minor Changes
