@@ -159,6 +159,32 @@ DROP EXTENSION pg_hashids;
 
 - [GitHub](https://github.com/iCyberon/pg_hashids)
 
+## pg_ivm
+
+The pg_ivm module provides Incremental View Maintenance (IVM) feature for PostgreSQL.
+
+Incremental View Maintenance (IVM) is a way to make materialized views up-to-date in which only incremental changes are computed and applied on views rather than recomputing the contents from scratch as REFRESH MATERIALIZED VIEW does. IVM can update materialized views more efficiently than recomputation when only small parts of the view are changed.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION pg_ivm;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION pg_ivm;
+```
+
+### Resources
+
+- [GitHub](https://github.com/sraoss/pg_ivm)
+
 ## pg_squeeze
 
 PostgreSQL extension that removes unused space from a table and optionally sorts tuples according to particular index (as if CLUSTER command was executed concurrently with regular reads / writes). In fact we try to replace pg_repack extension.
