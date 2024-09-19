@@ -44,7 +44,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "fieldConfig": {
         "defaults": {
@@ -91,7 +91,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -108,7 +108,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "fieldConfig": {
         "defaults": {
@@ -155,7 +155,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -172,7 +172,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "fieldConfig": {
         "defaults": {
@@ -219,7 +219,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -249,7 +249,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "description": "Number of invocations by method/function",
       "fieldConfig": {
@@ -327,13 +327,13 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "code",
           "expr": "sum by(method, route) (increase(functions_requests_total{method=~\"$method\",route=~\"$route\"}[$__rate_interval]))",
           "format": "time_series",
           "interval": "2m",
-          "legendFormat": "{{method}} {{route}}",
+          "legendFormat": "{{ print "{{ method }} - {{ route }}" }}",
           "range": true,
           "refId": "A"
         }
@@ -344,7 +344,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "description": "Number of invocations by status response",
       "fieldConfig": {
@@ -422,13 +422,13 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "code",
           "expr": "sum by(status) (increase(functions_requests_total{method=~\"$method\",route=~\"$route\"}[$__rate_interval]))",
           "format": "time_series",
           "interval": "2m",
-          "legendFormat": "{{status}}",
+          "legendFormat": "{{ print "{{status}}" }}",
           "range": true,
           "refId": "A"
         }
@@ -439,7 +439,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "description": "",
       "fieldConfig": {
@@ -518,12 +518,12 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "code",
           "expr": "sum by(method, route) (increase(functions_bytes_sent{method=~\"$method\", route=~\"$route\"}[$__rate_interval])) / sum by(method, route) (increase(functions_requests_total{method=~\"$method\", route=~\"$route\"}[$__rate_interval]))",
           "interval": "2m",
-          "legendFormat": "{{ method }} - {{ route }}",
+          "legendFormat": "{{ print "{{ method }} - {{ route }}" }}",
           "range": true,
           "refId": "A"
         }
@@ -534,7 +534,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "fieldConfig": {
         "defaults": {
@@ -601,7 +601,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -609,7 +609,7 @@
           "format": "table",
           "instant": true,
           "interval": "2m",
-          "legendFormat": "{{method}} {{route}}",
+          "legendFormat": "{{ print "{{ method }} - {{ route }}" }}",
           "range": false,
           "refId": "A"
         }
@@ -634,7 +634,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "description": "Time the slowest response took",
       "fieldConfig": {
@@ -712,12 +712,12 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(1, rate(functions_duration_seconds_bucket[$__rate_interval]))",
           "interval": "2m",
-          "legendFormat": "{{ method }} - {{ route }}",
+          "legendFormat": "{{ print "{{ method }} - {{ route }}" }}",
           "range": true,
           "refId": "A"
         }
@@ -728,7 +728,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "description": "The 95th percentile of response times refers to the value below which 95% of response times fall. In other words, it is the point at which only 5% of response times are higher",
       "fieldConfig": {
@@ -806,12 +806,12 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.95, rate(functions_duration_seconds_bucket[$__rate_interval]))",
           "interval": "2m",
-          "legendFormat": "{{ method }} - {{ route }}",
+          "legendFormat": "{{ print "{{ method }} - {{ route }}" }}",
           "range": true,
           "refId": "A"
         }
@@ -822,7 +822,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "description": "The 75th percentile of response times refers to the value below which 75% of response times fall. In other words, it is the point at which 25% of response times are higher",
       "fieldConfig": {
@@ -900,12 +900,12 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "code",
           "expr": "histogram_quantile(0.75, rate(functions_duration_seconds_bucket[$__rate_interval]))",
           "interval": "2m",
-          "legendFormat": "{{ method }} - {{ route }}",
+          "legendFormat": "{{ print "{{ method }} - {{ route }}" }}",
           "range": true,
           "refId": "A"
         }
@@ -916,7 +916,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "description": "",
       "fieldConfig": {
@@ -994,12 +994,12 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "builder",
           "expr": "sum by(method, route) (increase(functions_duration_seconds_sum{method=~\"$method\", route=~\"$route\"}[$__rate_interval])) / sum by(method, route) (increase(functions_duration_seconds_count{method=~\"$method\", route=~\"$route\"}[$__rate_interval]))",
           "interval": "2m",
-          "legendFormat": "{{ method }} - {{ route }}",
+          "legendFormat": "{{ print "{{ method }} - {{ route }}" }}",
           "range": true,
           "refId": "A"
         }
@@ -1023,7 +1023,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "description": "Number of invocations that failed divided by the total number of invocations",
       "fieldConfig": {
@@ -1101,13 +1101,13 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "code",
           "expr": "sum by(method, route) (increase(functions_requests_total{method=~\"$method\",route=~\"$route\",status=~\"^[4-5].*\"}[$__rate_interval])) / sum by(method, route) (increase(functions_requests_total[$__rate_interval]))",
           "format": "time_series",
           "interval": "2m",
-          "legendFormat": "{{method}} {{ route }}",
+          "legendFormat": "{{ print "{{ method }} - {{ route }}" }}",
           "range": true,
           "refId": "A"
         }
@@ -1118,7 +1118,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "nhost"
       },
       "fieldConfig": {
         "defaults": {
@@ -1184,7 +1184,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "nhost"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -1192,7 +1192,7 @@
           "format": "table",
           "instant": true,
           "interval": "2m",
-          "legendFormat": "{{method}} {{route}}",
+          "legendFormat": "{{ print "{{ method }} - {{ route }}" }}",
           "range": false,
           "refId": "A"
         }
@@ -1205,7 +1205,9 @@
   "refresh": false,
   "schemaVersion": 37,
   "style": "dark",
-  "tags": [],
+  "tags": [
+    "nhost"
+  ],
   "templating": {
     "list": [
       {
@@ -1217,7 +1219,7 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "nhost"
         },
         "definition": "label_values(functions_requests_total, method)",
         "hide": 0,
@@ -1244,7 +1246,7 @@
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "nhost"
         },
         "definition": "label_values(functions_requests_total, route)",
         "hide": 0,

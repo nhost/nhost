@@ -1,0 +1,369 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: core
+      folder: "Nhost - {{ .Subdomain }} ({{ .ProjectName }})"
+      interval: 5m
+      rules:
+        - uid: nhosthighcpuusage
+          title: High CPU usage
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: nhost
+              model:
+                editorMode: code
+                expr: sum by(pod) (irate(container_cpu_usage_seconds_total{container!~"grafana|POD|"}[$__rate_interval]))  / (sum by(pod) (container_spec_cpu_quota{container!~"grafana|POD|"}) / sum by(pod) (container_spec_cpu_period{container!~"POD|"})) * 100
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 75
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          annotations:
+            runbook_url: https://docs.nhost.io/platform/compute-resources
+            Project Subdomain: {{ .Subdomain }}
+            Project Name: {{ .ProjectName }}
+            description: |
+              High CPU usage can be caused by a number of factors, including but not limited to:
+              - High traffic
+              - Inefficient code/queries
+              - Inadequate resources
+
+              To resolve this issue, consider the following:
+              - Optimize your code/queries
+              - Increase the number of replicas
+              - Increase the CPU resources allocated to your service
+
+              High CPU usage can lead to service instability, increased latency and downtime.
+
+              For more information, see the [Nhost documentation](https://docs.nhost.io/platform/compute-resources)
+            summary: |
+              The service replica {{ print "{{ index $labels \"pod\" }}" }} is experiencing, or has experienced, high CPU usage. Current usage is at {{ print "{{ index $values \"A\" }}" }}%.
+          labels: {}
+          isPaused: false
+
+        - uid: nhostlowdiskspace
+          title: Low disk space
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: nhost
+              model:
+                editorMode: code
+                expr: sum by(persistentvolumeclaim) (kubelet_volume_stats_used_bytes) / sum by(persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes) * 100
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 75
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          annotations:
+            runbook_url: https://docs.nhost.io/guides/database/configuring-postgres
+            Subdomain: {{ .Subdomain }}
+            Project Name: {{ .ProjectName }}
+            description: |
+              An increase in disk space usage can be caused by a number of factors, including but not limited to:
+              - Large amounts of data
+              - Changing in WAL settings
+
+              To resolve this issue, consider the following:
+              - If you recently changed your WAL settings, consider reverting to the previous settings
+              - Optimize your database tables
+              - Remove data that is no longer needed
+              - Increase the disk space allocated to your database
+
+              Running out of disk space can lead to service downtime and potential data loss.
+
+              For more information, see the [Nhost documentation](https://docs.nhost.io/guides/database/configuring-postgres)
+            summary: |
+              The persistent volume claim {{ print "{{ index $labels \"persistentvolumeclaim\" }}" }} current usage is at {{ print "{{ index $values \"A\" }}" }}%.
+          labels: {}
+          isPaused: false
+
+        - uid: nhostlowmemory
+          title: Low free memory
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: nhost
+              model:
+                editorMode: code
+                expr: sum by(pod) (container_memory_usage_bytes{container!~"grafana|"}) / sum by(pod) (container_spec_memory_limit_bytes{container!~"grafana|"}) * 100
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 75
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          annotations:
+            runbook_url: https://docs.nhost.io/platform/compute-resources
+            Subdomain: {{ .Subdomain }}
+            Project Name: {{ .ProjectName }}
+            description: |
+              Low memory can be caused by a number of factors, including but not limited to:
+              - High traffic
+              - Inefficient code/queries
+              - Inadequate resources
+
+              To resolve this issue, consider the following:
+              - Optimize your code/queries
+              - Increase the memory resources allocated to your service
+
+              Running out of memory can lead to service instability, increased latency and downtime.
+
+              For more information, see the [Nhost documentation](https://docs.nhost.io/platform/compute-resources)
+
+            summary: |
+              The service replica {{ print "{{ index $labels \"pod\" }}" }} is experiencing, or has experienced, low memory. Current usage is at {{ print "{{ index $values \"A\" }}" }}%.
+          labels: {}
+          isPaused: false
+
+        - uid: nhostoom
+          title: Service restarted due to lack of memory
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: nhost
+              model:
+                editorMode: code
+                expr: sum by(pod) (increase(pod_terminated_total{reason="OOMKilled", pod!="grafana"}[$__rate_interval]))
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          for: 0s
+          annotations:
+            summary: |
+              The service replica {{ print "{{ index $labels \"pod\" }}" }} has been restarted due to lack of memory.
+            description: |
+              When a service runs out of memory and is unable to allocate more, it is terminated by the
+              OOM Killer.  This is primarily caused by trying to allocate more memory than is permitted,
+              which in turn can be caused by:
+
+              - High traffic
+              - Inefficient code/queries
+              - Inadequate resources
+
+              To resolve this issue, consider the following:
+              - Optimize your code/queries
+              - Increase the memory resources allocated to your service
+
+              This can lead to service instability, increased latency and downtime.
+
+
+              For more information, see the [Nhost documentation](https://docs.nhost.io/platform/compute-resources)
+            runbook_url: https://docs.nhost.io/platform/compute-resources
+            Subdomain: {{ .Subdomain }}
+            Project Name: {{ .ProjectName }}
+          labels: {}
+          isPaused: false
+
+        - uid: nhosthigherrorrate
+          title: High request error rate
+          condition: B
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: nhost
+              model:
+                editorMode: code
+                expr: sum by(ingress,method) (increase(nginx_ingress_controller_requests{ingress!="grafana",status=~"^[4-5].*"}[$__rate_interval])) / sum by(ingress, method) (increase(nginx_ingress_controller_requests[$__rate_interval])) * 100
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 25
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: B
+                type: threshold
+          noDataState: OK
+          execErrState: Error
+          for: 5m
+          annotations:
+            Subdomain: {{ .Subdomain }}
+            Project Name: {{ .ProjectName }}
+            summary: |
+              The service {{ print "{{ index $labels \"ingress\" }}" }} is experiencing, or has experienced, a high error rate. Current error rate is at {{ print "{{ index $values \"A\" }}" }}%.
+            description: |
+              A high error rate can be caused by a number of factors, including but not limited to:
+              - High traffic
+              - Inefficient code/queries
+              - Inadequate resources
+              - Network issues
+              - Code errors
+              - Permission issues
+
+              To resolve this issue, consider the following:
+              - Observe the service logs for more information
+
+              A high error rate means there is something fundamentally wrong with the service or your application. It can lead to service instability, increased latency and downtime.
+
+              For more information, see the [Nhost documentation](https://docs.nhost.io/platform/compute-resources)
+          labels: {}
+          isPaused: false

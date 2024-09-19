@@ -1,5 +1,19 @@
 # @nhost/dashboard
 
+## 1.28.2
+
+### Patch Changes
+
+- 52a38fe: chore: update dependencies to address security vulnerabilities
+- Updated dependencies [52a38fe]
+  - @nhost/nextjs@2.1.21
+
+## 1.28.1
+
+### Patch Changes
+
+- 9735fa2: chore: remove broken link
+
 ## 1.28.0
 
 ### Minor Changes

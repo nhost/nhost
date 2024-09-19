@@ -1,5 +1,18 @@
 # @nhost/docs
 
+## 2.17.2
+
+### Patch Changes
+
+- 52a38fe: chore: added pg_ivm extension
+
+## 2.17.1
+
+### Patch Changes
+
+- db2f44d: fix: update rate-limit to reflect reality
+- dda0c67: chore: udpate metrics documentation with managed configuration
+
 ## 2.17.0
 
 ### Minor Changes

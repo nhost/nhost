@@ -1,5 +1,11 @@
 # @nhost-examples/vue-apollo
 
+## 0.6.12
+
+### Patch Changes
+
+- 52a38fe: chore: update dependencies to address security vulnerabilities
+
 ## 0.6.11
 
 ### Patch Changes

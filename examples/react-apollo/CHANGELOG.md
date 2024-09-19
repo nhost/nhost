@@ -1,5 +1,13 @@
 # @nhost-examples/react-apollo
 
+## 1.0.1
+
+### Patch Changes
+
+- 4d6b722: fix: add check for elevated permission before deleting a security key
+- 3dcbacf: fix: add elevated permission check before adding a security key
+- 52a38fe: chore: update dependencies to address security vulnerabilities
+
 ## 1.0.0
 
 ### Major Changes

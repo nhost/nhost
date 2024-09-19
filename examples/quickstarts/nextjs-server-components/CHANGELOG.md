@@ -1,5 +1,11 @@
 # @nhost-examples/nextjs-server-components
 
+## 0.4.13
+
+### Patch Changes
+
+- 52a38fe: chore: update dependencies to address security vulnerabilities
+
 ## 0.4.12
 
 ### Patch Changes

@@ -6,7 +6,12 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Input } from '@/components/ui/input'
 import { ApolloError, gql, useMutation } from '@apollo/client'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useAddSecurityKey, useUserId } from '@nhost/react'
+import {
+  useAddSecurityKey,
+  useElevateSecurityKeyEmail,
+  useUserEmail,
+  useUserId
+} from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
 import { Fingerprint, Info, Plus, Trash } from 'lucide-react'
 import { useState } from 'react'
@@ -29,9 +34,11 @@ const addSecurityKeySchema = z.object({
 
 export default function SecurityKeys() {
   const userId = useUserId()
-  const [showAddSecurityKeyDialog, setShowAddSecurityDialog] = useState(false)
+  const email = useUserEmail()
   const { add } = useAddSecurityKey()
   const [keys, setKeys] = useState<SecurityKey[]>([])
+  const { elevated, elevateEmailSecurityKey } = useElevateSecurityKeyEmail()
+  const [showAddSecurityKeyDialog, setShowAddSecurityDialog] = useState(false)
 
   const { refetch: refetchSecurityKeys } = useAuthQuery<SecurityKeysQuery>(
     gql`
@@ -51,30 +58,6 @@ export default function SecurityKeys() {
       }
     }
   )
-
-  const form = useForm<z.infer<typeof addSecurityKeySchema>>({
-    resolver: zodResolver(addSecurityKeySchema),
-    defaultValues: {
-      nickname: ''
-    }
-  })
-
-  const onSubmit = async (values: z.infer<typeof addSecurityKeySchema>) => {
-    const { nickname } = values
-    const { key, isError, error } = await add(nickname)
-
-    if (isError) {
-      toast.error(error?.message)
-    } else {
-      if (key) {
-        setKeys((previousKeys) => [...previousKeys, key])
-        setShowAddSecurityDialog(false)
-      }
-
-      form.reset()
-      await refetchSecurityKeys()
-    }
-  }
 
   const [removeKey] = useMutation<{
     deleteAuthUserSecurityKey?: {
@@ -97,7 +80,58 @@ export default function SecurityKeys() {
     }
   )
 
+  const form = useForm<z.infer<typeof addSecurityKeySchema>>({
+    resolver: zodResolver(addSecurityKeySchema),
+    defaultValues: {
+      nickname: ''
+    }
+  })
+
+  const elevatePermission = async () => {
+    if (!elevated && keys.length > 0) {
+      try {
+        const { elevated } = await elevateEmailSecurityKey(email as string)
+
+        if (!elevated) {
+          throw new Error('Permissions were not elevated')
+        }
+        return true
+      } catch {
+        toast.error('Could not elevate permissions')
+        return false
+      }
+    }
+    return true // Return true if already elevated or no keys
+  }
+
+  const onSubmit = async (values: z.infer<typeof addSecurityKeySchema>) => {
+    const { nickname } = values
+
+    const permissionGranted = await elevatePermission()
+
+    if (!permissionGranted) {
+      return
+    }
+
+    const { key, isError, error } = await add(nickname)
+
+    if (isError) {
+      toast.error(error?.message)
+    } else if (key) {
+      setKeys((previousKeys) => [...previousKeys, key])
+      setShowAddSecurityDialog(false)
+      form.reset()
+      await refetchSecurityKeys()
+    }
+  }
+
   const handleDeleteSecurityKey = async (id: string) => {
+    const permissionGranted = await elevatePermission()
+
+    if (!permissionGranted) {
+      return
+    }
+
     try {
       await removeKey({ variables: { id } })
       await refetchSecurityKeys()

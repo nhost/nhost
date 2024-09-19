@@ -1,5 +1,11 @@
 # @nhost-examples/react-urql
 
+## 0.3.12
+
+### Patch Changes
+
+- 52a38fe: chore: update dependencies to address security vulnerabilities
+
 ## 0.3.11
 
 ### Patch Changes

@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+- disableDeletion: false
+  editable: false
+  folder: "Nhost - {{ .Subdomain }} ({{ .ProjectName }})"
+  name: default
+  options:
+    path: /var/lib/grafana/dashboards/default
+  orgId: 1
+  type: file
