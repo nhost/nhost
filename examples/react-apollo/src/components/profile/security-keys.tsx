@@ -6,7 +6,12 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Input } from '@/components/ui/input'
 import { ApolloError, gql, useMutation } from '@apollo/client'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useAddSecurityKey, useUserId } from '@nhost/react'
+import {
+  useAddSecurityKey,
+  useElevateSecurityKeyEmail,
+  useUserEmail,
+  useUserId
+} from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
 import { Fingerprint, Info, Plus, Trash } from 'lucide-react'
 import { useState } from 'react'
@@ -29,9 +34,11 @@ const addSecurityKeySchema = z.object({
 
 export default function SecurityKeys() {
   const userId = useUserId()
-  const [showAddSecurityKeyDialog, setShowAddSecurityDialog] = useState(false)
+  const email = useUserEmail()
   const { add } = useAddSecurityKey()
   const [keys, setKeys] = useState<SecurityKey[]>([])
+  const { elevated, elevateEmailSecurityKey } = useElevateSecurityKeyEmail()
+  const [showAddSecurityKeyDialog, setShowAddSecurityDialog] = useState(false)
 
   const { refetch: refetchSecurityKeys } = useAuthQuery<SecurityKeysQuery>(
     gql`
@@ -61,6 +68,21 @@ export default function SecurityKeys() {
 
   const onSubmit = async (values: z.infer<typeof addSecurityKeySchema>) => {
     const { nickname } = values
+
+    if (!elevated && keys.length > 0) {
+      try {
+        const { elevated } = await elevateEmailSecurityKey(email as string)
+
+        if (!elevated) {
+          throw new Error('Permissions were not elevated')
+        }
+      } catch {
+        toast.error('Could not elevate permissions')
+
+        return
+      }
+    }
+
     const { key, isError, error } = await add(nickname)
 
     if (isError) {
