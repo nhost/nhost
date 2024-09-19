@@ -59,45 +59,6 @@ export default function SecurityKeys() {
     }
   )
 
-  const form = useForm<z.infer<typeof addSecurityKeySchema>>({
-    resolver: zodResolver(addSecurityKeySchema),
-    defaultValues: {
-      nickname: ''
-    }
-  })
-
-  const onSubmit = async (values: z.infer<typeof addSecurityKeySchema>) => {
-    const { nickname } = values
-
-    if (!elevated && keys.length > 0) {
-      try {
-        const { elevated } = await elevateEmailSecurityKey(email as string)
-
-        if (!elevated) {
-          throw new Error('Permissions were not elevated')
-        }
-      } catch {
-        toast.error('Could not elevate permissions')
-
-        return
-      }
-    }
-
-    const { key, isError, error } = await add(nickname)
-
-    if (isError) {
-      toast.error(error?.message)
-    } else {
-      if (key) {
-        setKeys((previousKeys) => [...previousKeys, key])
-        setShowAddSecurityDialog(false)
-      }
-
-      form.reset()
-      await refetchSecurityKeys()
-    }
-  }
-
   const [removeKey] = useMutation<{
     deleteAuthUserSecurityKey?: {
       id: string
@@ -119,7 +80,58 @@ export default function SecurityKeys() {
     }
   )
 
+  const form = useForm<z.infer<typeof addSecurityKeySchema>>({
+    resolver: zodResolver(addSecurityKeySchema),
+    defaultValues: {
+      nickname: ''
+    }
+  })
+
+  const elevatePermission = async () => {
+    if (!elevated && keys.length > 0) {
+      try {
+        const { elevated } = await elevateEmailSecurityKey(email as string)
+
+        if (!elevated) {
+          throw new Error('Permissions were not elevated')
+        }
+        return true
+      } catch {
+        toast.error('Could not elevate permissions')
+        return false
+      }
+    }
+    return true // Return true if already elevated or no keys
+  }
+
+  const onSubmit = async (values: z.infer<typeof addSecurityKeySchema>) => {
+    const { nickname } = values
+
+    const permissionGranted = await elevatePermission()
+
+    if (!permissionGranted) {
+      return
+    }
+
+    const { key, isError, error } = await add(nickname)
+
+    if (isError) {
+      toast.error(error?.message)
+    } else if (key) {
+      setKeys((previousKeys) => [...previousKeys, key])
+      setShowAddSecurityDialog(false)
+      form.reset()
+      await refetchSecurityKeys()
+    }
+  }
+
   const handleDeleteSecurityKey = async (id: string) => {
+    const permissionGranted = await elevatePermission()
+
+    if (!permissionGranted) {
+      return
+    }
+
     try {
       await removeKey({ variables: { id } })
       await refetchSecurityKeys()
