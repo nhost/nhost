@@ -3360,7 +3360,6 @@ export type _GraphiteFileStoreBuckets_Updates = {
 /** columns and relationships of "graphite.file_stores" */
 export type _GraphiteFileStores = {
   __typename?: '_graphiteFileStores';
-  bucketID?: Maybe<Scalars['String']>;
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   lastSyncedAt?: Maybe<Scalars['timestamptz']>;
@@ -3397,7 +3396,6 @@ export type _GraphiteFileStores_Bool_Exp = {
   _and?: InputMaybe<Array<_GraphiteFileStores_Bool_Exp>>;
   _not?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
   _or?: InputMaybe<Array<_GraphiteFileStores_Bool_Exp>>;
-  bucketID?: InputMaybe<String_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   lastSyncedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -3409,8 +3407,6 @@ export type _GraphiteFileStores_Bool_Exp = {
 
 /** unique or primary key constraints on table "graphite.file_stores" */
 export enum _GraphiteFileStores_Constraint {
-  /** unique or primary key constraint on columns "bucket_id" */
-  FileStoresBucketIdKey = 'file_stores_bucket_id_key',
   /** unique or primary key constraint on columns "id" */
   FileStoresPkey = 'file_stores_pkey',
   /** unique or primary key constraint on columns "vector_store_id" */
@@ -3419,7 +3415,6 @@ export enum _GraphiteFileStores_Constraint {
 
 /** input type for inserting data into table "graphite.file_stores" */
 export type _GraphiteFileStores_Insert_Input = {
-  bucketID?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   lastSyncedAt?: InputMaybe<Scalars['timestamptz']>;
@@ -3432,7 +3427,6 @@ export type _GraphiteFileStores_Insert_Input = {
 /** aggregate max on columns */
 export type _GraphiteFileStores_Max_Fields = {
   __typename?: '_graphiteFileStores_max_fields';
-  bucketID?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   lastSyncedAt?: Maybe<Scalars['timestamptz']>;
@@ -3445,7 +3439,6 @@ export type _GraphiteFileStores_Max_Fields = {
 /** aggregate min on columns */
 export type _GraphiteFileStores_Min_Fields = {
   __typename?: '_graphiteFileStores_min_fields';
-  bucketID?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   lastSyncedAt?: Maybe<Scalars['timestamptz']>;
@@ -3473,7 +3466,6 @@ export type _GraphiteFileStores_On_Conflict = {
 
 /** Ordering options when selecting data from "graphite.file_stores". */
 export type _GraphiteFileStores_Order_By = {
-  bucketID?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   lastSyncedAt?: InputMaybe<Order_By>;
@@ -3490,8 +3482,6 @@ export type _GraphiteFileStores_Pk_Columns_Input = {
 
 /** select columns of table "graphite.file_stores" */
 export enum _GraphiteFileStores_Select_Column {
-  /** column name */
-  BucketId = 'bucketID',
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -3510,7 +3500,6 @@ export enum _GraphiteFileStores_Select_Column {
 
 /** input type for updating data in table "graphite.file_stores" */
 export type _GraphiteFileStores_Set_Input = {
-  bucketID?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   lastSyncedAt?: InputMaybe<Scalars['timestamptz']>;
@@ -3530,7 +3519,6 @@ export type _GraphiteFileStores_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type _GraphiteFileStores_Stream_Cursor_Value_Input = {
-  bucketID?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   lastSyncedAt?: InputMaybe<Scalars['timestamptz']>;
@@ -3542,8 +3530,6 @@ export type _GraphiteFileStores_Stream_Cursor_Value_Input = {
 
 /** update columns of table "graphite.file_stores" */
 export enum _GraphiteFileStores_Update_Column {
-  /** column name */
-  BucketId = 'bucketID',
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
@@ -3571,11 +3557,10 @@ export type _GraphiteFileStores_Updates = {
 export type _GraphiteFiles = {
   __typename?: '_graphiteFiles';
   createdAt: Scalars['timestamptz'];
-  etag?: Maybe<Scalars['String']>;
-  fileID?: Maybe<Scalars['String']>;
-  fileStoreID?: Maybe<Scalars['uuid']>;
+  etag: Scalars['String'];
+  fileID: Scalars['String'];
   id: Scalars['uuid'];
-  storageFileID?: Maybe<Scalars['uuid']>;
+  storageFileID: Scalars['uuid'];
   updatedAt: Scalars['timestamptz'];
 };
 
@@ -3609,7 +3594,6 @@ export type _GraphiteFiles_Bool_Exp = {
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   etag?: InputMaybe<String_Comparison_Exp>;
   fileID?: InputMaybe<String_Comparison_Exp>;
-  fileStoreID?: InputMaybe<Uuid_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   storageFileID?: InputMaybe<Uuid_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -3630,7 +3614,6 @@ export type _GraphiteFiles_Insert_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   etag?: InputMaybe<Scalars['String']>;
   fileID?: InputMaybe<Scalars['String']>;
-  fileStoreID?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
   storageFileID?: InputMaybe<Scalars['uuid']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
@@ -3642,7 +3625,6 @@ export type _GraphiteFiles_Max_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   etag?: Maybe<Scalars['String']>;
   fileID?: Maybe<Scalars['String']>;
-  fileStoreID?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
   storageFileID?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
@@ -3654,7 +3636,6 @@ export type _GraphiteFiles_Min_Fields = {
   createdAt?: Maybe<Scalars['timestamptz']>;
   etag?: Maybe<Scalars['String']>;
   fileID?: Maybe<Scalars['String']>;
-  fileStoreID?: Maybe<Scalars['uuid']>;
   id?: Maybe<Scalars['uuid']>;
   storageFileID?: Maybe<Scalars['uuid']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
@@ -3681,7 +3662,6 @@ export type _GraphiteFiles_Order_By = {
   createdAt?: InputMaybe<Order_By>;
   etag?: InputMaybe<Order_By>;
   fileID?: InputMaybe<Order_By>;
-  fileStoreID?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   storageFileID?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
@@ -3701,8 +3681,6 @@ export enum _GraphiteFiles_Select_Column {
   /** column name */
   FileId = 'fileID',
   /** column name */
-  FileStoreId = 'fileStoreID',
-  /** column name */
   Id = 'id',
   /** column name */
   StorageFileId = 'storageFileID',
@@ -3715,7 +3693,6 @@ export type _GraphiteFiles_Set_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   etag?: InputMaybe<Scalars['String']>;
   fileID?: InputMaybe<Scalars['String']>;
-  fileStoreID?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
   storageFileID?: InputMaybe<Scalars['uuid']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
@@ -3734,7 +3711,6 @@ export type _GraphiteFiles_Stream_Cursor_Value_Input = {
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   etag?: InputMaybe<Scalars['String']>;
   fileID?: InputMaybe<Scalars['String']>;
-  fileStoreID?: InputMaybe<Scalars['uuid']>;
   id?: InputMaybe<Scalars['uuid']>;
   storageFileID?: InputMaybe<Scalars['uuid']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
@@ -3748,8 +3724,6 @@ export enum _GraphiteFiles_Update_Column {
   Etag = 'etag',
   /** column name */
   FileId = 'fileID',
-  /** column name */
-  FileStoreId = 'fileStoreID',
   /** column name */
   Id = 'id',
   /** column name */
@@ -25492,7 +25466,9 @@ export type DeleteAssistantMutationVariables = Exact<{
 
 export type DeleteAssistantMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', deleteAssistant: boolean } | null };
 
-export type GetAssistantsQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetAssistantsQueryVariables = Exact<{
+  isFileStoresSupported: Scalars['Boolean'];
+}>;
 
 
 export type GetAssistantsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', assistants: Array<{ __typename?: 'graphiteAssistant', assistantID: string, name: string, description: string, model: string, instructions: string, fileStores?: Array<any> | null, graphql?: Array<{ __typename?: 'graphiteAssistantToolGraphQL', name: string, query: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null, webhooks?: Array<{ __typename?: 'graphiteAssistantToolWebhook', name: string, URL: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null }> } | null };
@@ -25635,7 +25611,7 @@ export type DeleteAssistantMutationHookResult = ReturnType<typeof useDeleteAssis
 export type DeleteAssistantMutationResult = Apollo.MutationResult<DeleteAssistantMutation>;
 export type DeleteAssistantMutationOptions = Apollo.BaseMutationOptions<DeleteAssistantMutation, DeleteAssistantMutationVariables>;
 export const GetAssistantsDocument = gql`
-    query getAssistants {
+    query getAssistants($isFileStoresSupported: Boolean!) {
   graphite {
     assistants {
       assistantID
@@ -25665,7 +25641,7 @@ export const GetAssistantsDocument = gql`
           required
         }
       }
-      fileStores
+      fileStores @include(if: $isFileStoresSupported)
     }
   }
 }
@@ -25683,10 +25659,11 @@ export const GetAssistantsDocument = gql`
  * @example
  * const { data, loading, error } = useGetAssistantsQuery({
  *   variables: {
+ *      isFileStoresSupported: // value for 'isFileStoresSupported'
  *   },
  * });
  */
-export function useGetAssistantsQuery(baseOptions?: Apollo.QueryHookOptions<GetAssistantsQuery, GetAssistantsQueryVariables>) {
+export function useGetAssistantsQuery(baseOptions: Apollo.QueryHookOptions<GetAssistantsQuery, GetAssistantsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<GetAssistantsQuery, GetAssistantsQueryVariables>(GetAssistantsDocument, options);
       }
@@ -25697,7 +25674,7 @@ export function useGetAssistantsLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
 export type GetAssistantsQueryHookResult = ReturnType<typeof useGetAssistantsQuery>;
 export type GetAssistantsLazyQueryHookResult = ReturnType<typeof useGetAssistantsLazyQuery>;
 export type GetAssistantsQueryResult = Apollo.QueryResult<GetAssistantsQuery, GetAssistantsQueryVariables>;
-export function refetchGetAssistantsQuery(variables?: GetAssistantsQueryVariables) {
+export function refetchGetAssistantsQuery(variables: GetAssistantsQueryVariables) {
       return { query: GetAssistantsDocument, variables: variables }
     }
 export const GetGraphiteSessionsDocument = gql`

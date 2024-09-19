@@ -50,6 +50,8 @@ function ControlledAutocomplete(
 
   const { setValue } = form || {};
 
+  console.log({field})
+
   return (
     <Autocomplete
       inputValue={

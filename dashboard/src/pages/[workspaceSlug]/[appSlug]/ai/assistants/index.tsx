@@ -9,6 +9,7 @@ import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { AssistantForm } from '@/features/ai/AssistantForm';
 import { AssistantsList } from '@/features/ai/AssistantsList';
+import { useIsFileStoreSupported } from '@/features/ai/common/hooks/useIsFileStoreSupported';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
 import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGraphiteEnabled';
@@ -16,22 +17,17 @@ import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   useGetAssistantsQuery,
   useGetGraphiteFileStoresQuery,
-  type GetAssistantsQuery,
 } from '@/utils/__generated__/graphite.graphql';
 import { useMemo, type ReactElement } from 'react';
-
-export type Assistant = Omit<
-  GetAssistantsQuery['graphite']['assistants'][0],
-  '__typename'
->;
 
 export default function AssistantsPage() {
   const { openDrawer } = useDialog();
   const isPlatform = useIsPlatform();
-
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const { adminClient } = useAdminApolloClient();
   const { isGraphiteEnabled } = useIsGraphiteEnabled();
+
+  const { isFileStoreSupported, loading: fileStoreLoading } = useIsFileStoreSupported();
 
   const {
     data: assistantsData,
@@ -39,6 +35,10 @@ export default function AssistantsPage() {
     refetch: assistantsRefetch,
   } = useGetAssistantsQuery({
     client: adminClient,
+    variables: {
+      isFileStoresSupported: isFileStoreSupported ?? false,
+    },
+    skip: isFileStoreSupported === null || fileStoreLoading,
   });
   const { data: fileStoresData } = useGetGraphiteFileStoresQuery({
     client: adminClient,
@@ -57,7 +57,10 @@ export default function AssistantsPage() {
     openDrawer({
       title: 'Create a new Assistant',
       component: (
-        <AssistantForm onSubmit={assistantsRefetch} fileStores={fileStores} />
+        <AssistantForm 
+          onSubmit={assistantsRefetch} 
+          fileStores={isFileStoreSupported ? fileStores : undefined}
+        />
       ),
     });
   };
@@ -106,7 +109,11 @@ export default function AssistantsPage() {
     );
   }
 
-  if (assistantsData?.graphite?.assistants.length === 0 && !assistantsLoading) {
+  if (assistantsLoading) {
+    return <Box className="p-4">Loading...</Box>;
+  }
+
+  if (assistants.length === 0) {
     return (
       <Box className="p-6" sx={{ backgroundColor: 'background.default' }}>
         <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
@@ -147,14 +154,12 @@ export default function AssistantsPage() {
           New
         </Button>
       </Box>
-      <div>
-        <AssistantsList
-          assistants={assistants}
-          fileStores={fileStores}
-          onDelete={() => assistantsRefetch()}
-          onCreateOrUpdate={() => assistantsRefetch()}
-        />
-      </div>
+      <AssistantsList
+        assistants={assistants}
+        fileStores={isFileStoreSupported ? fileStores : undefined}
+        onDelete={() => assistantsRefetch()}
+        onCreateOrUpdate={() => assistantsRefetch()}
+      />
     </Box>
   );
 }

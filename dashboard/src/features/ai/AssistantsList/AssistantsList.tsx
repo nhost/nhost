@@ -16,13 +16,13 @@ import { type GraphiteFileStore } from 'pages/[workspaceSlug]/[appSlug]/ai/file-
 
 interface AssistantsListProps {
   /**
-   * The run services fetched from entering the users page.
+   * The list of assistants.
    */
   assistants: Assistant[];
-  fileStores: GraphiteFileStore[];
+  fileStores?: GraphiteFileStore[];
 
   /**
-   * Function to be called after a submitting the form for either creating or updating a service.
+   * Function to be called after a submitting the form for either creating or updating an assistant.
    *
    * @example onDelete={() => refetch()}
    */

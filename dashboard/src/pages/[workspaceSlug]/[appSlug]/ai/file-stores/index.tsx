@@ -5,10 +5,11 @@ import AILayout from '@/components/layout/AILayout/AILayout';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { EmbeddingsIcon } from '@/components/ui/v2/icons/EmbeddingsIcon';
+import { FileStoresIcon } from '@/components/ui/v2/icons/FileStoresIcon';
 import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { useIsFileStoreSupported } from '@/features/ai/common/hooks/useIsFileStoreSupported';
 import { FileStoreForm } from '@/features/ai/FileStoreForm';
 import { FileStoresList } from '@/features/ai/FileStoresList';
 import { useAdminApolloClient } from '@/features/projects/common/hooks/useAdminApolloClient';
@@ -17,10 +18,11 @@ import { useIsGraphiteEnabled } from '@/features/projects/common/hooks/useIsGrap
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   useGetGraphiteFileStoresQuery,
-  type GetGraphiteFileStoresQuery,
+  type GetGraphiteFileStoresQuery
 } from '@/utils/__generated__/graphite.graphql';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 export type GraphiteFileStore = Omit<
   GetGraphiteFileStoresQuery['graphite']['fileStores'][0],
@@ -38,6 +40,7 @@ export default function FileStoresPage() {
 
   const { adminClient } = useAdminApolloClient();
   const { isGraphiteEnabled } = useIsGraphiteEnabled();
+  const { isFileStoreSupported } = useIsFileStoreSupported();
 
   const [currentPage, setCurrentPage] = useState(
     parseInt(router.query.page as string, 10) || 1,
@@ -116,18 +119,27 @@ export default function FileStoresPage() {
     );
   }
 
-  if (data?.graphite.fileStores.length === 0 && !loading) {
+  if (!loading && fileStores.length === 0) {
     return (
       <Box className="p-6" sx={{ backgroundColor: 'background.default' }}>
         <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <EmbeddingsIcon className="h-10 w-10" />
+          <FileStoresIcon className="h-10 w-10" />
+          {/* <EmbeddingsIcon className="h-10 w-10" /> */}
+
           <div className="flex flex-col space-y-1">
             <Text className="text-center font-medium" variant="h3">
               No File Stores are configured
             </Text>
             <Text variant="subtitle1" className="text-center">
-              All your File Stores will be listed here.
+                File Stores are used to share your files and documents with your AI assistants.
             </Text>
+            {!isFileStoreSupported && (
+            <Box className={twMerge('px-4', 'pb-4')}>
+              <Alert className="text-left">
+                Please upgrade Graphite to its latest version in order to use file stores.
+              </Alert>
+            </Box>
+            )}
           </div>
           <div className="flex flex-row place-content-between rounded-lg ">
             <Button
@@ -136,6 +148,7 @@ export default function FileStoresPage() {
               className="w-full"
               onClick={openCreateFileStore}
               startIcon={<PlusIcon className="h-4 w-4" />}
+              disabled={!isFileStoreSupported}
             >
               Add a new File Store
             </Button>
