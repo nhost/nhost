@@ -165,7 +165,7 @@ export default function ResourcesForm() {
 
   const initialPrice = isPlatform
     ? proPlan.price +
-      (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
+    (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
     : 0;
 
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
@@ -176,45 +176,65 @@ export default function ResourcesForm() {
           postgres: {
             resources: formValues.enabled
               ? {
-                  compute: {
-                    cpu: formValues.database.vcpu,
-                    memory: formValues.database.memory,
-                  },
-                  replicas: formValues.database.replicas,
-                }
+                compute: {
+                  cpu: formValues.database.vcpu,
+                  memory: formValues.database.memory,
+                },
+                replicas: formValues.database.replicas,
+                autoscaler: formValues.database.autoscale
+                  ? {
+                    maxReplicas: formValues.database.maxReplicas,
+                  }
+                  : null,
+              }
               : null,
           },
           hasura: {
             resources: formValues.enabled
               ? {
-                  compute: {
-                    cpu: formValues.hasura.vcpu,
-                    memory: formValues.hasura.memory,
-                  },
-                  replicas: formValues.hasura.replicas,
-                }
+                compute: {
+                  cpu: formValues.hasura.vcpu,
+                  memory: formValues.hasura.memory,
+                },
+                replicas: formValues.hasura.replicas,
+                autoscaler: formValues.hasura.autoscale
+                  ? {
+                    maxReplicas: formValues.hasura.maxReplicas,
+                  }
+                  : null,
+              }
               : null,
           },
           auth: {
             resources: formValues.enabled
               ? {
-                  compute: {
-                    cpu: formValues.auth.vcpu,
-                    memory: formValues.auth.memory,
-                  },
-                  replicas: formValues.auth.replicas,
-                }
+                compute: {
+                  cpu: formValues.auth.vcpu,
+                  memory: formValues.auth.memory,
+                },
+                replicas: formValues.auth.replicas,
+                autoscaler: formValues.auth.autoscale
+                  ? {
+                    maxReplicas: formValues.auth.maxReplicas,
+                  }
+                  : null,
+              }
               : null,
           },
           storage: {
             resources: formValues.enabled
               ? {
-                  compute: {
-                    cpu: formValues.storage.vcpu,
-                    memory: formValues.storage.memory,
-                  },
-                  replicas: formValues.storage.replicas,
-                }
+                compute: {
+                  cpu: formValues.storage.vcpu,
+                  memory: formValues.storage.memory,
+                },
+                replicas: formValues.storage.replicas,
+                autoscaler: formValues.storage.autoscale
+                  ? {
+                    maxReplicas: formValues.storage.maxReplicas,
+                  }
+                  : null,
+              }
               : null,
           },
         },
@@ -253,21 +273,29 @@ export default function ResourcesForm() {
           totalAvailableMemory: 4096,
           database: {
             replicas: 1,
+            maxReplicas: 1,
+            autoscale: false,
             vcpu: 1000,
             memory: 2048,
           },
           hasura: {
             replicas: 1,
+            maxReplicas: 1,
+            autoscale: false,
             vcpu: 500,
             memory: 1536,
           },
           auth: {
             replicas: 1,
+            maxReplicas: 1,
+            autoscale: false,
             vcpu: 250,
             memory: 256,
           },
           storage: {
             replicas: 1,
+            maxReplicas: 1,
+            autoscale: false,
             vcpu: 250,
             memory: 256,
           },

@@ -1,9 +1,9 @@
+import { ControlledSwitch } from '@/components/form/ControlledSwitch';
 import { Box } from '@/components/ui/v2/Box';
 import { ExclamationIcon } from '@/components/ui/v2/icons/ExclamationIcon';
 import { InfoOutlinedIcon } from '@/components/ui/v2/icons/InfoOutlinedIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Slider } from '@/components/ui/v2/Slider';
-import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
@@ -86,6 +86,8 @@ export default function ServiceResourcesFormFragment({
   const remainingMemory =
     formValues.totalAvailableMemory - totalAllocatedMemory;
   const allowedMemory = remainingMemory + serviceValues.memory;
+
+  console.log(formValues);
 
   function handleReplicaChange(value: string) {
     const updatedReplicas = parseInt(value, 10);
@@ -220,7 +222,7 @@ export default function ServiceResourcesFormFragment({
               <Input
                 {...register(`${serviceKey}.replicas`)}
                 type="number"
-                id={`${serviceKey}-replicas`}
+                id={`${serviceKey}.replicas`}
                 placeholder="Replicas"
                 className="max-w-40"
                 hideEmptyHelperText
@@ -247,7 +249,7 @@ export default function ServiceResourcesFormFragment({
               <Input
                 {...register(`${serviceKey}.maxReplicas`)}
                 type="number"
-                id={`${serviceKey}-replicas`}
+                id={`${serviceKey}.maxReplicas`}
                 placeholder="10"
                 disabled={!formValues[serviceKey].autoscale}
                 className="max-w-40"
@@ -261,11 +263,12 @@ export default function ServiceResourcesFormFragment({
             </Box>
           </Box>
           <Box className="flex flex-row gap-3 items-center">
-            <Switch
+            <ControlledSwitch
+              {...register(`${serviceKey}.autoscale`)}
             />
             <Text>Autoscaling</Text>
             <Tooltip
-              title={`Enable autoscaler to automatically provision extra ${serviceKey} replicas when needed.`}
+              title={`Enable autoscaler to automatically provision extra ${title} replicas when needed.`}
             >
               <InfoOutlinedIcon
                 className="w-4 h-4 text-black"
