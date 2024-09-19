@@ -164,8 +164,6 @@ export default function AssistantForm({
       delete payload.graphql;
     }
 
-    console.log({payload})
-
     if (isFileStoreSupported && values.fileStore) {
       payload.fileStores = [values.fileStore];
     }
