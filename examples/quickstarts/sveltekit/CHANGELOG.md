@@ -1,5 +1,10 @@
 ---
 
+## 0.4.1
+### Patch Changes
+
+- 52a38fe: chore: update dependencies to address security vulnerabilities
+
 ## 0.4.0
 ### Minor Changes
 

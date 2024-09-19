@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 2.17.2
+
+### Patch Changes
+
+- 52a38fe: chore: added pg_ivm extension
+
 ## 2.17.1
 
 ### Patch Changes

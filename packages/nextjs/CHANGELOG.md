@@ -1,5 +1,11 @@
 # @nhost/nextjs
 
+## 2.1.21
+
+### Patch Changes
+
+- 52a38fe: chore: update dependencies to address security vulnerabilities
+
 ## 2.1.20
 
 ### Patch Changes
