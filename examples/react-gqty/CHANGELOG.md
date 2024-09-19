@@ -1,5 +1,11 @@
 # @nhost-examples/react-gqty
 
+## 1.2.12
+
+### Patch Changes
+
+- 52a38fe: chore: update dependencies to address security vulnerabilities
+
 ## 1.2.11
 
 ### Patch Changes

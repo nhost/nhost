@@ -1,5 +1,11 @@
 # @nhost-examples/multi-tenant-one-to-many
 
+## 2.2.12
+
+### Patch Changes
+
+- 52a38fe: chore: update dependencies to address security vulnerabilities
+
 ## 2.2.11
 
 ### Patch Changes
