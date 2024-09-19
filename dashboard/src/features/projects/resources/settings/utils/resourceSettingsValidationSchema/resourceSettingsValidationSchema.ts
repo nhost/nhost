@@ -103,7 +103,7 @@ const serviceValidationSchema = Yup.object({
     .required()
     .min(MIN_SERVICE_REPLICAS)
     .max(MAX_SERVICE_REPLICAS),
-  autoscale: Yup.boolean().label('Autoscale'),
+  autoscale: Yup.boolean().label('Autoscale').required(),
   vcpu: Yup.number()
     .label('vCPUs')
     .required()

@@ -37,12 +37,13 @@ function getInitialServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
-  const { compute, replicas } = data?.config?.[service]?.resources || {};
+  const { compute, replicas, autoscaler } = data?.config?.[service]?.resources || {};
 
   return {
     replicas,
     vcpu: compute?.cpu || 0,
     memory: compute?.memory || 0,
+    autoscale: autoscaler || null,
   };
 }
 
@@ -100,21 +101,29 @@ export default function ResourcesForm() {
         replicas: initialDatabaseResources.replicas || 1,
         vcpu: initialDatabaseResources.vcpu || 1000,
         memory: initialDatabaseResources.memory || 2048,
+        autoscale: !!initialDatabaseResources.autoscale || false,
+        maxReplicas: initialDatabaseResources.autoscale?.maxReplicas || 10,
       },
       hasura: {
         replicas: initialHasuraResources.replicas || 1,
         vcpu: initialHasuraResources.vcpu || 500,
         memory: initialHasuraResources.memory || 1536,
+        autoscale: !!initialHasuraResources.autoscale || false,
+        maxReplicas: initialHasuraResources.autoscale?.maxReplicas || 10,
       },
       auth: {
         replicas: initialAuthResources.replicas || 1,
         vcpu: initialAuthResources.vcpu || 250,
         memory: initialAuthResources.memory || 256,
+        autoscale: !!initialAuthResources.autoscale || false,
+        maxReplicas: initialAuthResources.autoscale?.maxReplicas || 10,
       },
       storage: {
         replicas: initialStorageResources.replicas || 1,
         vcpu: initialStorageResources.vcpu || 250,
         memory: initialStorageResources.memory || 256,
+        autoscale: !!initialStorageResources.autoscale || false,
+        maxReplicas: initialStorageResources.autoscale?.maxReplicas || 10,
       },
     },
     resolver: yupResolver(resourceSettingsValidationSchema),
