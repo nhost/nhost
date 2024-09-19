@@ -4,6 +4,7 @@ import { ExclamationIcon } from '@/components/ui/v2/icons/ExclamationIcon';
 import { InfoOutlinedIcon } from '@/components/ui/v2/icons/InfoOutlinedIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Slider } from '@/components/ui/v2/Slider';
+import debounce from 'lodash.debounce';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
@@ -87,18 +88,13 @@ export default function ServiceResourcesFormFragment({
     formValues.totalAvailableMemory - totalAllocatedMemory;
   const allowedMemory = remainingMemory + serviceValues.memory;
 
-  console.log(formValues);
-
-  function handleReplicaChange(value: string) {
+  // Debounce the revalidation to prevent excessive re-renders
+  const handleReplicaChange = debounce((value: string) => {
     const updatedReplicas = parseInt(value, 10);
-
-    if (updatedReplicas < MIN_SERVICE_REPLICAS) {
-      return;
-    }
 
     setValue(`${serviceKey}.replicas`, updatedReplicas, { shouldDirty: true });
     triggerValidation(`${serviceKey}.replicas`);
-  }
+  }, 500);
 
   function handleVCPUChange(value: string) {
     const updatedVCPU = parseFloat(value);
@@ -221,13 +217,13 @@ export default function ServiceResourcesFormFragment({
               <Text>Replicas</Text>
               <Input
                 {...register(`${serviceKey}.replicas`)}
+                onChange={(event) => handleReplicaChange(event.target.value)}
                 type="number"
                 id={`${serviceKey}.replicas`}
                 placeholder="Replicas"
                 className="max-w-40"
                 hideEmptyHelperText
                 error={!!formState.errors?.[serviceKey]?.replicas}
-                helperText={formState.errors?.[serviceKey]?.replicas?.message}
                 fullWidth
                 autoComplete="off"
               />
@@ -265,6 +261,7 @@ export default function ServiceResourcesFormFragment({
           <Box className="flex flex-row gap-3 items-center">
             <ControlledSwitch
               {...register(`${serviceKey}.autoscale`)}
+              onChange={() => triggerValidation(`${serviceKey}.replicas`)}
             />
             <Text>Autoscaling</Text>
             <Tooltip

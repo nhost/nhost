@@ -110,6 +110,7 @@ export default function ResourcesForm() {
         memory: initialHasuraResources.memory || 1536,
         autoscale: !!initialHasuraResources.autoscale || false,
         maxReplicas: initialHasuraResources.autoscale?.maxReplicas || 10,
+        // TODO: add alert message back
       },
       auth: {
         replicas: initialAuthResources.replicas || 1,
