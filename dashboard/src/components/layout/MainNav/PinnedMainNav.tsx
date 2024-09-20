@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/v3/button';
+import CreateOrgDialog from '@/features/orgs/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { Pin, PinOff } from 'lucide-react';
 import NavTree from './NavTree';
@@ -24,8 +25,9 @@ export default function PinnedMainNav() {
         </Button>
       </div>
 
-      <div className="flex w-full px-4 pt-2">
+      <div className="flex w-full flex-col px-4 pt-2">
         <NavTree />
+        <CreateOrgDialog />
       </div>
     </div>
   );

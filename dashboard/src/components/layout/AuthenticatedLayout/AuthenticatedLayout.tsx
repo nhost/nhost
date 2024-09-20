@@ -128,7 +128,7 @@ export default function AuthenticatedLayout({
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
-      <Header className="flex flex-auto py-1" />
+      <Header className="flex py-1" />
 
       <div
         className="relative flex flex-auto flex-row overflow-x-hidden"
@@ -136,8 +136,8 @@ export default function AuthenticatedLayout({
       >
         {mainNavPinned && <PinnedMainNav />}
 
-        <div className="flex flex-col">
-          <div className="relative h-12 w-full border-b bg-background p-1">
+        <div className="flex w-full flex-col">
+          <div className="relative h-12 w-full border-b bg-background">
             {!mainNavPinned && <MainNav container={mainNavContainer} />}
           </div>
           <InviteNotification />

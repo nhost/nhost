@@ -199,7 +199,7 @@ export default function SettingsGeneralPage() {
         </Form>
       </FormProvider>
 
-      {currentProject?.plan?.isFree && (
+      {currentProject?.legacyPlan?.isFree && (
         <SettingsContainer
           title="Pause Project"
           description="While your project is paused, it will not be accessible. You can wake it up anytime after."

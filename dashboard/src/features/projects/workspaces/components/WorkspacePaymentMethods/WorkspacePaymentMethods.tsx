@@ -74,7 +74,7 @@ export default function WorkspacePaymentMethods() {
     if (isLastPaymentMethod) {
       // if so, make sure no non-free projects exists for the workspace
       const workspaceHasPaidProjects = currentWorkspace.projects.some(
-        (app) => !app.plan.isFree,
+        (app) => !app.legacyPlan.isFree,
       );
 
       if (workspaceHasPaidProjects) {

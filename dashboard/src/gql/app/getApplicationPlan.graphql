@@ -4,7 +4,7 @@ query getApplicationPlan($workspace: String!, $slug: String!) {
   ) {
     id
     subdomain
-    plan {
+    legacyPlan {
       name
       price
       upatedAt

@@ -43,7 +43,7 @@ export default function SelectWorkspaceAndProject() {
       workspaceName: workspace.name,
       projectName: project.name,
       value: `${workspace.slug}/${project.slug}`,
-      isFree: project.plan.isFree,
+      isFree: project.legacyPlan.isFree,
     })),
   );
 
@@ -137,7 +137,7 @@ export default function SelectWorkspaceAndProject() {
 
   if (loading) {
     return (
-      <div className="flex justify-center w-full">
+      <div className="flex w-full justify-center">
         <ActivityIndicator
           delay={500}
           label="Loading workspaces and projects..."
@@ -160,7 +160,7 @@ export default function SelectWorkspaceAndProject() {
         />
 
         <div>
-          <div className="flex w-full mb-2">
+          <div className="mb-2 flex w-full">
             <Input
               placeholder="Search..."
               onChange={handleFilterChange}
@@ -170,11 +170,11 @@ export default function SelectWorkspaceAndProject() {
           </div>
           <RetryableErrorBoundary>
             {projectsToDisplay.length === 0 ? (
-              <Box className="py-2 h-import">
+              <Box className="h-import py-2">
                 <Text variant="subtitle2">No results found.</Text>
               </Box>
             ) : (
-              <List className="overflow-y-auto h-import">
+              <List className="h-import overflow-y-auto">
                 {projectsToDisplay.map((project, index) => (
                   <Fragment key={project.value}>
                     <ListItem.Root
@@ -190,7 +190,7 @@ export default function SelectWorkspaceAndProject() {
                       }
                     >
                       <ListItem.Avatar>
-                        <span className="inline-block w-6 h-6 overflow-hidden rounded-md">
+                        <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
                           <Image
                             src="/logos/new.svg"
                             alt="Nhost Logo"

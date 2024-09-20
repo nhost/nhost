@@ -12,31 +12,17 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
+import { useOrgs, type Org } from '@/features/projects/common/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
-import { type ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
 import {
   ControlledTreeEnvironment,
   Tree,
   type TreeItem,
   type TreeItemIndex,
 } from 'react-complex-tree';
-
-const orgs = [
-  {
-    name: "Hassan's org",
-    isFree: false,
-    plan: 'Pro',
-    projects: [
-      { name: 'eu-central-1.celsia' },
-      { name: 'joyent' },
-      { name: 'react-apollo' },
-    ],
-  },
-  { name: 'nhost-testing', isFree: true, plan: 'Starter', projects: [] },
-  { name: 'uflip', isFree: false, plan: 'Team', projects: [] },
-];
 
 const projectPages = [
   {
@@ -79,7 +65,7 @@ const projectSettingsPages = [
   'AI',
 ];
 
-const createOrganization = (org: any) => {
+const createOrganization = (org: Org) => {
   const result = {};
 
   result[org.name] = {
@@ -95,8 +81,8 @@ const createOrganization = (org: any) => {
     data: {
       name: org.name,
       type: 'org',
-      isFree: org.isFree,
-      plan: org.plan,
+      isFree: org.plan.isFree,
+      plan: org.plan.name,
     },
     canRename: false,
   };
@@ -105,36 +91,36 @@ const createOrganization = (org: any) => {
     index: `${org.name}-projects`,
     canMove: false,
     isFolder: true,
-    children: org.projects.map((project) => `${org.name}-${project.name}`),
+    children: org.plan.apps.map((app) => `${org.name}-${app.name}`),
     data: {
       name: 'Projects',
     },
     canRename: false,
   };
 
-  org.projects.forEach((project) => {
-    result[`${org.name}-${project.name}`] = {
-      index: `${org.name}-${project.name}`,
+  org.plan.apps.forEach((app) => {
+    result[`${org.name}-${app.name}`] = {
+      index: `${org.name}-${app.name}`,
       isFolder: true,
       canMove: false,
       canRename: false,
-      data: { name: project.name, icon: <Box className="h-4 w-4" /> },
+      data: { name: app.name, icon: <Box className="h-4 w-4" /> },
       children: projectPages.map(
-        (page) => `${org.name}-${project.name}-${page.name}`,
+        (page) => `${org.name}-${app.name}-${page.name}`,
       ),
     };
   });
 
-  org.projects.forEach((_project) => {
+  org.plan.apps.forEach((_app) => {
     projectPages.forEach((_page) => {
-      result[`${org.name}-${_project.name}-${_page.name}`] = {
-        index: `${org.name}-${_project.name}-${_page.name}`,
+      result[`${org.name}-${_app.name}-${_page.name}`] = {
+        index: `${org.name}-${_app.name}-${_page.name}`,
         canMove: false,
         isFolder: _page.name === 'Settings',
         children:
           _page.name === 'Settings'
             ? projectSettingsPages.map(
-                (p) => `${org.name}-${_project.name}-settings-${p}`,
+                (p) => `${org.name}-${_app.name}-settings-${p}`,
               )
             : undefined,
         data: {
@@ -148,8 +134,8 @@ const createOrganization = (org: any) => {
 
     // add the settings pages
     projectSettingsPages.forEach((p) => {
-      result[`${org.name}-${_project.name}-settings-${p}`] = {
-        index: `${org.name}-${_project.name}-settings-${p}`,
+      result[`${org.name}-${_app.name}-settings-${p}`] = {
+        index: `${org.name}-${_app.name}-settings-${p}`,
         canMove: false,
         isFolder: false,
         children: undefined,
@@ -205,42 +191,67 @@ type NavItem = {
   icon?: ReactElement;
 };
 
-// Initialize navTree
-const navTree: { items: Record<TreeItemIndex, TreeItem<NavItem>> } = {
-  items: {
-    root: {
-      index: 'root',
-      canMove: false,
-      isFolder: true,
-      children: ['Organizations'],
-      data: { name: 'root' },
-      canRename: false,
+const buildNavTreeData = (
+  orgs: Org[],
+): { items: Record<TreeItemIndex, TreeItem<NavItem>> } => {
+  const navTree = {
+    items: {
+      root: {
+        index: 'root',
+        canMove: false,
+        isFolder: true,
+        children: ['Organizations'],
+        data: { name: 'root' },
+        canRename: false,
+      },
+      Organizations: {
+        index: 'Organizations',
+        canMove: false,
+        isFolder: true,
+        children: orgs.map((org) => org.name),
+        data: { name: 'Organizations' },
+        canRename: false,
+      },
+      ...orgs.reduce(
+        (acc, org) => ({ ...acc, ...createOrganization(org) }),
+        {},
+      ),
     },
-    Organizations: {
-      index: 'Organizations',
-      canMove: false,
-      isFolder: true,
-      children: orgs.map((org) => org.name), // Link organization names
-      data: { name: 'Organizations' },
-      canRename: false,
-    },
-    ...orgs.reduce((acc, org) => ({ ...acc, ...createOrganization(org) }), {}),
-  },
+  };
+
+  return navTree;
 };
 
 export default function NavTree() {
+  const { orgs } = useOrgs();
+  const navTree = buildNavTreeData(orgs);
+
   const [focusedItem, setFocusedItem] = useSSRLocalStorage(
     'nav-tree-focused-item',
     null,
   );
+
   const [expandedItems, setExpandedItems] = useSSRLocalStorage(
     'nav-tree-expanded-items',
-    ['Organizations', orgs[0].name, `${orgs[0].name}-projects`],
+    null,
   );
+
   const [selectedItems, setSelectedItems] = useSSRLocalStorage(
     'nav-tree-selected-items',
     [],
   );
+
+  useEffect(() => {
+    if (orgs?.length > 0) {
+      if (!expandedItems) {
+        setExpandedItems(['Organizations', orgs[0].name]);
+      }
+
+      if (!focusedItem) {
+        setFocusedItem(`${orgs[0].name}-projects`);
+      }
+    }
+  }, [orgs, expandedItems, focusedItem, setExpandedItems, setFocusedItem]);
 
   return (
     <ControlledTreeEnvironment
@@ -274,7 +285,7 @@ export default function NavTree() {
           </Button>
         );
       }}
-      renderItem={({ title, arrow, context, item, children }) => (
+      renderItem={({ arrow, context, item, children }) => (
         <li
           {...context.itemContainerWithChildrenProps}
           className="flex flex-col gap-1"
@@ -306,9 +317,15 @@ export default function NavTree() {
                 className={cn(
                   item.index === 'Organizations' && 'font-bold',
                   context.isFocused ? 'font-bold text-primary-main' : '',
+                  'max-w-52 truncate', // Add this utility for ellipsis
                 )}
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
               >
-                {title}
+                {item.data.name}
               </span>
               {item.data?.plan && (
                 <Badge

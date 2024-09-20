@@ -7,7 +7,7 @@ fragment getAppPlanAndGlobalPlansApp on apps {
       id
     }
   }
-  plan {
+  legacyPlan {
     id
     name
   }
