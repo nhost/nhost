@@ -55,7 +55,7 @@ export default function ComputeFormSection({
   };
 
   return (
-    <Box className="space-y-4 rounded border-1 p-4">
+    <Box className="p-4 space-y-4 rounded border-1">
       <Box className="flex flex-row items-center space-x-2">
         <Text variant="h4" className="font-semibold">
           vCPUs: {formValues.compute.cpu / 1000} / Memory:{' '}
@@ -70,7 +70,7 @@ export default function ComputeFormSection({
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href="https://docs.nhost.io/run/resources"
+                  href="https://docs.nhost.io/guides/run/resources"
                   className="underline"
                 >
                   resources
@@ -107,7 +107,7 @@ export default function ComputeFormSection({
           variant="outlined"
           onClick={incrementCompute}
         >
-          <ArrowRightIcon className="h-4 w-4" />
+          <ArrowRightIcon className="w-4 h-4" />
         </Button>
       </Box>
     </Box>

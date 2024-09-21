@@ -35,8 +35,7 @@ export default function ReplicasFormSection() {
               <a
                 target="_blank"
                 rel="noopener noreferrer"
-                href="https://docs.nhost.io/run/resources"
-                className="underline"
+                href="https://docs.nhost.io/guides/run/resources"
               >
                 resources
               </a>{' '}
