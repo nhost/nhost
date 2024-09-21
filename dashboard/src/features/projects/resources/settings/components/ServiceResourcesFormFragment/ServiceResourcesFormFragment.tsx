@@ -4,7 +4,6 @@ import { ExclamationIcon } from '@/components/ui/v2/icons/ExclamationIcon';
 import { InfoOutlinedIcon } from '@/components/ui/v2/icons/InfoOutlinedIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Slider } from '@/components/ui/v2/Slider';
-import debounce from 'lodash.debounce';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
@@ -12,16 +11,15 @@ import { prettifyVCPU } from '@/features/projects/resources/settings/utils/prett
 import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import {
   MAX_SERVICE_MEMORY,
-  MAX_SERVICE_REPLICAS,
   MAX_SERVICE_VCPU,
   MIN_SERVICE_MEMORY,
-  MIN_SERVICE_REPLICAS,
   MIN_SERVICE_VCPU,
 } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import {
   RESOURCE_MEMORY_STEP,
   RESOURCE_VCPU_STEP,
 } from '@/utils/constants/common';
+import debounce from 'lodash.debounce';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 export interface ServiceResourcesFormFragmentProps {
@@ -137,7 +135,7 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid grid-flow-col gap-2 justify-between items-center">
+        <Box className="grid grid-flow-col items-center justify-between gap-2">
           <Text>
             Allocated vCPUs:{' '}
             <span className="font-medium">
@@ -167,7 +165,7 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid grid-flow-col gap-2 justify-between items-center">
+        <Box className="grid grid-flow-col items-center justify-between gap-2">
           <Text>
             Allocated Memory:{' '}
             <span className="font-medium">
@@ -197,10 +195,10 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       {!disableReplicas && (
-        <Box className="flex gap-2 justify-between">
+        <Box className="flex justify-between gap-2">
           <Box className="flex flex-row gap-8">
-            <Box className="flex flex-row gap-2 items-center">
-              <Box className="grid grid-flow-col gap-2 justify-start items-center">
+            <Box className="flex flex-row items-center gap-2">
+              <Box className="grid grid-flow-col items-center justify-start gap-2">
                 {formState.errors?.[serviceKey]?.replicas?.message ? (
                   <Tooltip
                     title={formState.errors[serviceKey]?.replicas?.message}
@@ -208,7 +206,7 @@ export default function ServiceResourcesFormFragment({
                   >
                     <ExclamationIcon
                       color="error"
-                      className="w-4 h-4"
+                      className="h-4 w-4"
                       aria-hidden="false"
                     />
                   </Tooltip>
@@ -228,7 +226,7 @@ export default function ServiceResourcesFormFragment({
                 autoComplete="off"
               />
             </Box>
-            <Box className="flex flex-row gap-2 items-center">
+            <Box className="flex flex-row items-center gap-2">
               {formState.errors?.[serviceKey]?.maxReplicas?.message ? (
                 <Tooltip
                   title={formState.errors[serviceKey]?.maxReplicas?.message}
@@ -236,7 +234,7 @@ export default function ServiceResourcesFormFragment({
                 >
                   <ExclamationIcon
                     color="error"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     aria-hidden="false"
                   />
                 </Tooltip>
@@ -251,14 +249,15 @@ export default function ServiceResourcesFormFragment({
                 className="max-w-40"
                 hideEmptyHelperText
                 error={!!formState.errors?.[serviceKey]?.maxReplicas}
-                helperText={formState.errors?.[serviceKey]?.maxReplicas?.message}
+                helperText={
+                  formState.errors?.[serviceKey]?.maxReplicas?.message
+                }
                 fullWidth
                 autoComplete="off"
               />
-
             </Box>
           </Box>
-          <Box className="flex flex-row gap-3 items-center">
+          <Box className="flex flex-row items-center gap-3">
             <ControlledSwitch
               {...register(`${serviceKey}.autoscale`)}
               onChange={() => triggerValidation(`${serviceKey}.replicas`)}
@@ -267,12 +266,11 @@ export default function ServiceResourcesFormFragment({
             <Tooltip
               title={`Enable autoscaler to automatically provision extra ${title} replicas when needed.`}
             >
-              <InfoOutlinedIcon
-                className="w-4 h-4 text-black"
-              />
+              <InfoOutlinedIcon className="h-4 w-4 text-black" />
             </Tooltip>
           </Box>
         </Box>
       )}
-    </Box>);
+    </Box>
+  );
 }

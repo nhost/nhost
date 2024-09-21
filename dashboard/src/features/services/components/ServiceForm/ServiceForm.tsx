@@ -16,6 +16,7 @@ import { useHostName } from '@/features/projects/common/hooks/useHostName';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { AutoscalerFormSection } from '@/features/services/components/ServiceForm/components/AutoscalerFormSection';
 import { ComputeFormSection } from '@/features/services/components/ServiceForm/components/ComputeFormSection';
 import { EnvironmentFormSection } from '@/features/services/components/ServiceForm/components/EnvironmentFormSection';
 import { PortsFormSection } from '@/features/services/components/ServiceForm/components/PortsFormSection';
@@ -89,6 +90,8 @@ export default function ServiceForm({
     formState: { errors, isSubmitting, dirtyFields },
   } = form;
 
+  console.log('dirtyFields', dirtyFields);
+
   const formValues = watch();
 
   const serviceImage = watch('image');
@@ -123,6 +126,11 @@ export default function ServiceForm({
           capacity: item.capacity,
         })),
         replicas: sanitizedValues.replicas,
+        autoscaler: sanitizedValues.autoscaler
+          ? {
+              maxReplicas: sanitizedValues.autoscaler?.maxReplicas,
+            }
+          : null,
       },
       environment: sanitizedValues.environment.map((item) => ({
         name: item.name,
@@ -423,6 +431,8 @@ export default function ServiceForm({
         <ComputeFormSection showTooltip />
 
         <ReplicasFormSection />
+
+        <AutoscalerFormSection />
 
         <EnvironmentFormSection />
 

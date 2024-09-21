@@ -23785,9 +23785,9 @@ export type GetRunServiceQueryVariables = Exact<{
 }>;
 
 
-export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
+export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
 
-export type RunServiceConfigFragment = { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null };
+export type RunServiceConfigFragment = { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null };
 
 export type GetRunServicesQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -23797,7 +23797,7 @@ export type GetRunServicesQueryVariables = Exact<{
 }>;
 
 
-export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
+export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
 
 export type GetLocalRunServiceConfigsQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -23805,7 +23805,7 @@ export type GetLocalRunServiceConfigsQueryVariables = Exact<{
 }>;
 
 
-export type GetLocalRunServiceConfigsQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } }> };
+export type GetLocalRunServiceConfigsQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } }> };
 
 export type RunServiceRateLimitFragment = { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null };
 
@@ -24286,6 +24286,9 @@ export const RunServiceConfigFragmentDoc = gql`
       capacity
     }
     replicas
+    autoscaler {
+      maxReplicas
+    }
   }
   environment {
     name
@@ -28033,6 +28036,9 @@ export const GetRunServiceDocument = gql`
           capacity
         }
         replicas
+        autoscaler {
+          maxReplicas
+        }
       }
       environment {
         name

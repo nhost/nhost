@@ -19,6 +19,9 @@ query getRunService($id: uuid!, $resolve: Boolean!) {
           capacity
         }
         replicas
+        autoscaler {
+          maxReplicas
+        }
       }
       environment {
         name

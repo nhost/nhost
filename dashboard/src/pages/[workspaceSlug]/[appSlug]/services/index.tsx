@@ -40,6 +40,7 @@ export default function ServicesPage() {
 
   const checkConfigFromQuery = useCallback(
     (base64Config: string) => {
+      console.log('Base64 config:', base64Config);
       if (router.query?.config) {
         try {
           const decodedConfig = atob(base64Config);
@@ -149,7 +150,7 @@ export default function ServicesPage() {
             </Text>
           </div>
           {isPlatform ? (
-            <div className="flex flex-row place-content-between rounded-lg ">
+            <div className="flex flex-row place-content-between rounded-lg">
               <Button
                 variant="contained"
                 color="primary"
