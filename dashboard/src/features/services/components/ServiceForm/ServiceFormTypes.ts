@@ -25,9 +25,12 @@ export const validationSchema = Yup.object({
     memory: Yup.number().min(MIN_SERVICES_MEM).max(MAX_SERVICES_MEM).required(),
   }),
   replicas: Yup.number().min(0).max(MAX_SERVICE_REPLICAS).required(),
-  autoscaler: Yup.object().shape({
-    maxReplicas: Yup.number().min(0).max(MAX_SERVICE_REPLICAS),
-  }),
+  autoscaler: Yup.object()
+    .shape({
+      maxReplicas: Yup.number().min(0).max(MAX_SERVICE_REPLICAS),
+    })
+    .nullable()
+    .default(undefined),
   ports: Yup.array().of(
     Yup.object().shape({
       port: Yup.number().required(),

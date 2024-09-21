@@ -90,8 +90,6 @@ export default function ServiceForm({
     formState: { errors, isSubmitting, dirtyFields },
   } = form;
 
-  console.log('dirtyFields', dirtyFields);
-
   const formValues = watch();
 
   const serviceImage = watch('image');
