@@ -149,7 +149,7 @@ export default function ServicesPage() {
             </Text>
           </div>
           {isPlatform ? (
-            <div className="flex flex-row place-content-between rounded-lg">
+            <div className="flex flex-row place-content-between rounded-lg ">
               <Button
                 variant="contained"
                 color="primary"
