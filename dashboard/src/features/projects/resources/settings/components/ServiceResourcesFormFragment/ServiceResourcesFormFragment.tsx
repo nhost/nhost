@@ -9,6 +9,7 @@ import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/projects/resources/settings/utils/prettifyVCPU';
 import type { ResourceSettingsFormValues } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
+import { Alert } from '@/components/ui/v2/Alert';
 import {
   MAX_SERVICE_MEMORY,
   MAX_SERVICE_VCPU,
@@ -95,7 +96,8 @@ export default function ServiceResourcesFormFragment({
     const updatedReplicas = parseInt(value, 10);
 
     setValue(`${serviceKey}.replicas`, updatedReplicas, { shouldDirty: true });
-    triggerValidation(`${serviceKey}.replicas`);
+    triggerValidation(`${serviceKey}.replicas`)
+    triggerValidation(`${serviceKey}.memory`);
   }, 500);
 
   const handleMaxReplicasChange = debounce((value: string) => {
@@ -105,7 +107,12 @@ export default function ServiceResourcesFormFragment({
       shouldDirty: true,
     });
     triggerValidation(`${serviceKey}.maxReplicas`);
+    triggerValidation(`${serviceKey}.memory`);
   }, 500);
+
+  const handleSwitchChange = () => {
+    triggerValidation(`${serviceKey}.memory`);
+  }
 
   function handleVCPUChange(value: string) {
     const updatedVCPU = parseFloat(value);
@@ -122,7 +129,7 @@ export default function ServiceResourcesFormFragment({
 
     // trigger validation for "replicas" field
     if (!disableReplicas) {
-      triggerValidation(`${serviceKey}.replicas`);
+      triggerValidation(`${serviceKey}.memory`);
     }
   }
 
@@ -141,7 +148,7 @@ export default function ServiceResourcesFormFragment({
 
     // trigger validation for "replicas" field
     if (!disableReplicas) {
-      triggerValidation(`${serviceKey}.replicas`);
+      triggerValidation(`${serviceKey}.memory`);
     }
   }
 
@@ -213,6 +220,11 @@ export default function ServiceResourcesFormFragment({
           aria-label={`${title} Memory`}
           marks
         />
+        {formState.errors[serviceKey]?.memory?.message ? (
+          <Alert severity="error">
+            {formState.errors[serviceKey]?.memory?.message}
+          </Alert>
+        ) : null}
       </Box>
 
       {!disableReplicas && (
@@ -279,7 +291,7 @@ export default function ServiceResourcesFormFragment({
           <Box className="flex flex-row items-center gap-3">
             <ControlledSwitch
               {...register(`${serviceKey}.autoscale`)}
-              onChange={() => triggerValidation(`${serviceKey}.replicas`)}
+              onChange={handleSwitchChange}
             />
             <Text>Autoscaling</Text>
             <Tooltip

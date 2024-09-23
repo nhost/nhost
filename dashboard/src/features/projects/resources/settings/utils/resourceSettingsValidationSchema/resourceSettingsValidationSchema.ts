@@ -81,23 +81,7 @@ const serviceValidationSchema = Yup.object({
     .label('Replicas')
     .required()
     .min(1)
-    .max(MAX_SERVICE_REPLICAS)
-    .test(
-      'is-matching-ratio',
-      `vCPU and Memory for this service must follow a 1:${RESOURCE_VCPU_MEMORY_RATIO} ratio when more than one replica is selected or when autoscaler is activated.`,
-      (replicas: number, { parent }) => {
-        if (replicas === 1 && !parent.autoscale) {
-          return true;
-        }
-
-        return (
-          parent.memory /
-            RESOURCE_MEMORY_MULTIPLIER /
-            (parent.vcpu / RESOURCE_VCPU_MULTIPLIER) ===
-          RESOURCE_VCPU_MEMORY_RATIO
-        );
-      },
-    ),
+    .max(MAX_SERVICE_REPLICAS),
   maxReplicas: Yup.number()
     .label('Max Replicas')
     .required()
@@ -112,7 +96,23 @@ const serviceValidationSchema = Yup.object({
   memory: Yup.number()
     .required()
     .min(MIN_SERVICE_MEMORY)
-    .max(MAX_SERVICE_MEMORY),
+    .max(MAX_SERVICE_MEMORY)
+    .test(
+      'is-matching-ratio',
+      `vCPU and Memory for this service must follow a 1:${RESOURCE_VCPU_MEMORY_RATIO} ratio when more than one replica is selected or when autoscaler is activated.`,
+      (memory: number, { parent }) => {
+        if (parent.replicas === 1 && !parent.autoscale) {
+          return true;
+        }
+
+        return (
+          memory /
+            RESOURCE_MEMORY_MULTIPLIER /
+            (parent.vcpu / RESOURCE_VCPU_MULTIPLIER) ===
+          RESOURCE_VCPU_MEMORY_RATIO
+        );
+      },
+    ),
 });
 
 export const resourceSettingsValidationSchema = Yup.object({
