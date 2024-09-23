@@ -40,7 +40,6 @@ export default function ServicesPage() {
 
   const checkConfigFromQuery = useCallback(
     (base64Config: string) => {
-      console.log('Base64 config:', base64Config);
       if (router.query?.config) {
         try {
           const decodedConfig = atob(base64Config);
