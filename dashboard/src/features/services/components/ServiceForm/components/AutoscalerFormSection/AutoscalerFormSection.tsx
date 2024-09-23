@@ -39,8 +39,8 @@ export default function AutoscalerFormSection() {
   };
 
   return (
-    <Box className="p-4 space-y-4 rounded border-1">
-      <Box className="flex flex-row justify-between items-center">
+    <Box className="space-y-4 rounded border-1 p-4">
+      <Box className="flex flex-row items-center justify-between">
         <Box className="flex flex-row items-center space-x-2">
           <Text variant="h4" className="font-semibold">
             Autoscaler
@@ -53,7 +53,7 @@ export default function AutoscalerFormSection() {
               </span>
             }
           >
-            <InfoIcon aria-label="Info" className="w-4 h-4" color="primary" />
+            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
           </Tooltip>
         </Box>
 
@@ -76,7 +76,7 @@ export default function AutoscalerFormSection() {
             min={0}
             max={MAX_SERVICE_REPLICAS}
             step={1}
-            aria-label="Replicas"
+            aria-label="Max Replicas"
             marks
           />
         </Box>

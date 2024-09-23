@@ -144,7 +144,7 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid grid-flow-col gap-2 justify-between items-center">
+        <Box className="grid grid-flow-col items-center justify-between gap-2">
           <Text>
             Allocated vCPUs:{' '}
             <span className="font-medium">
@@ -174,7 +174,7 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid grid-flow-col gap-2 justify-between items-center">
+        <Box className="grid grid-flow-col items-center justify-between gap-2">
           <Text>
             Allocated Memory:{' '}
             <span className="font-medium">
@@ -204,9 +204,9 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       {!disableReplicas && (
-        <Box className="flex flex-col gap-4 justify-between lg:flex-row">
+        <Box className="flex flex-col justify-between gap-4 lg:flex-row">
           <Box className="flex flex-col gap-4 lg:flex-row lg:gap-8">
-            <Box className="flex flex-row gap-2 items-center">
+            <Box className="flex flex-row items-center gap-2">
               {formState.errors?.[serviceKey]?.replicas?.message ? (
                 <Tooltip
                   title={formState.errors[serviceKey]?.replicas?.message}
@@ -214,12 +214,12 @@ export default function ServiceResourcesFormFragment({
                 >
                   <ExclamationIcon
                     color="error"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     aria-hidden="false"
                   />
                 </Tooltip>
               ) : null}
-              <Text>Replicas</Text>
+              <Text className="w-28 lg:w-auto">Replicas</Text>
               <Input
                 {...register(`${serviceKey}.replicas`)}
                 onChange={(event) => handleReplicaChange(event.target.value)}
@@ -233,7 +233,7 @@ export default function ServiceResourcesFormFragment({
                 autoComplete="off"
               />
             </Box>
-            <Box className="flex flex-row gap-2 items-center">
+            <Box className="flex flex-row items-center gap-2">
               {formState.errors?.[serviceKey]?.maxReplicas?.message ? (
                 <Tooltip
                   title={formState.errors[serviceKey]?.maxReplicas?.message}
@@ -241,12 +241,12 @@ export default function ServiceResourcesFormFragment({
                 >
                   <ExclamationIcon
                     color="error"
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     aria-hidden="false"
                   />
                 </Tooltip>
               ) : null}
-              <Text className="text-nowrap">Max Replicas</Text>
+              <Text className="w-28 text-nowrap lg:w-auto">Max Replicas</Text>
               <Input
                 {...register(`${serviceKey}.maxReplicas`)}
                 onChange={(event) =>
@@ -264,7 +264,7 @@ export default function ServiceResourcesFormFragment({
               />
             </Box>
           </Box>
-          <Box className="flex flex-row gap-3 items-center">
+          <Box className="flex flex-row items-center gap-3">
             <ControlledSwitch
               {...register(`${serviceKey}.autoscale`)}
               onChange={() => triggerValidation(`${serviceKey}.replicas`)}
@@ -273,7 +273,7 @@ export default function ServiceResourcesFormFragment({
             <Tooltip
               title={`Enable autoscaler to automatically provision extra ${title} replicas when needed.`}
             >
-              <InfoOutlinedIcon className="w-4 h-4 text-black" />
+              <InfoOutlinedIcon className="h-4 w-4 text-black" />
             </Tooltip>
           </Box>
         </Box>
