@@ -37,7 +37,8 @@ function getInitialServiceResources(
   data: GetResourcesQuery,
   service: Exclude<keyof GetResourcesQuery['config'], '__typename'>,
 ) {
-  const { compute, replicas, autoscaler } = data?.config?.[service]?.resources || {};
+  const { compute, replicas, autoscaler } =
+    data?.config?.[service]?.resources || {};
 
   return {
     replicas,
@@ -110,7 +111,6 @@ export default function ResourcesForm() {
         memory: initialHasuraResources.memory || 1536,
         autoscale: !!initialHasuraResources.autoscale || false,
         maxReplicas: initialHasuraResources.autoscale?.maxReplicas || 10,
-        // TODO: add alert message back
       },
       auth: {
         replicas: initialAuthResources.replicas || 1,
@@ -175,7 +175,7 @@ export default function ResourcesForm() {
 
   const initialPrice = isPlatform
     ? proPlan.price +
-    (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
+      (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE
     : 0;
 
   async function handleSubmit(formValues: ResourceSettingsFormValues) {
@@ -186,65 +186,65 @@ export default function ResourcesForm() {
           postgres: {
             resources: formValues.enabled
               ? {
-                compute: {
-                  cpu: formValues.database.vcpu,
-                  memory: formValues.database.memory,
-                },
-                replicas: formValues.database.replicas,
-                autoscaler: formValues.database.autoscale
-                  ? {
-                    maxReplicas: formValues.database.maxReplicas,
-                  }
-                  : null,
-              }
+                  compute: {
+                    cpu: formValues.database.vcpu,
+                    memory: formValues.database.memory,
+                  },
+                  replicas: formValues.database.replicas,
+                  autoscaler: formValues.database.autoscale
+                    ? {
+                        maxReplicas: formValues.database.maxReplicas,
+                      }
+                    : null,
+                }
               : null,
           },
           hasura: {
             resources: formValues.enabled
               ? {
-                compute: {
-                  cpu: formValues.hasura.vcpu,
-                  memory: formValues.hasura.memory,
-                },
-                replicas: formValues.hasura.replicas,
-                autoscaler: formValues.hasura.autoscale
-                  ? {
-                    maxReplicas: formValues.hasura.maxReplicas,
-                  }
-                  : null,
-              }
+                  compute: {
+                    cpu: formValues.hasura.vcpu,
+                    memory: formValues.hasura.memory,
+                  },
+                  replicas: formValues.hasura.replicas,
+                  autoscaler: formValues.hasura.autoscale
+                    ? {
+                        maxReplicas: formValues.hasura.maxReplicas,
+                      }
+                    : null,
+                }
               : null,
           },
           auth: {
             resources: formValues.enabled
               ? {
-                compute: {
-                  cpu: formValues.auth.vcpu,
-                  memory: formValues.auth.memory,
-                },
-                replicas: formValues.auth.replicas,
-                autoscaler: formValues.auth.autoscale
-                  ? {
-                    maxReplicas: formValues.auth.maxReplicas,
-                  }
-                  : null,
-              }
+                  compute: {
+                    cpu: formValues.auth.vcpu,
+                    memory: formValues.auth.memory,
+                  },
+                  replicas: formValues.auth.replicas,
+                  autoscaler: formValues.auth.autoscale
+                    ? {
+                        maxReplicas: formValues.auth.maxReplicas,
+                      }
+                    : null,
+                }
               : null,
           },
           storage: {
             resources: formValues.enabled
               ? {
-                compute: {
-                  cpu: formValues.storage.vcpu,
-                  memory: formValues.storage.memory,
-                },
-                replicas: formValues.storage.replicas,
-                autoscaler: formValues.storage.autoscale
-                  ? {
-                    maxReplicas: formValues.storage.maxReplicas,
-                  }
-                  : null,
-              }
+                  compute: {
+                    cpu: formValues.storage.vcpu,
+                    memory: formValues.storage.memory,
+                  },
+                  replicas: formValues.storage.replicas,
+                  autoscaler: formValues.storage.autoscale
+                    ? {
+                        maxReplicas: formValues.storage.maxReplicas,
+                      }
+                    : null,
+                }
               : null,
           },
         },
