@@ -24,7 +24,7 @@ export default function OrgProjects() {
     <Container className="">
       {/* Orgs Header: General, Projects, Team, Billing */}
 
-      <span>Org projects</span>
+      <span>Projects</span>
 
       {/* <WorkspaceHeader />
       <WorkspaceApps />

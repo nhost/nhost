@@ -12346,6 +12346,7 @@ export type Mutation_Root = {
   billingFinishSubscription: Scalars['Boolean'];
   billingFixSubscriptions: Scalars['Boolean'];
   billingFullReportWorkflow: Scalars['Boolean'];
+  billingMigrateProjectToOrganization: Scalars['Boolean'];
   billingPostOrganizationRequest: PostOrganizationRequestResponse;
   billingUpdateCustomDomains: Scalars['Boolean'];
   billingUpdateDedicatedCompute: Scalars['Boolean'];
@@ -13119,6 +13120,13 @@ export type Mutation_RootBillingFinishSubscriptionArgs = {
 /** mutation root */
 export type Mutation_RootBillingFullReportWorkflowArgs = {
   reportTime?: InputMaybe<Scalars['Timestamp']>;
+};
+
+
+/** mutation root */
+export type Mutation_RootBillingMigrateProjectToOrganizationArgs = {
+  appID: Scalars['uuid'];
+  organizationID: Scalars['uuid'];
 };
 
 
@@ -16739,6 +16747,10 @@ export type Organizations = {
   allowedPrivateRegions: Array<Regions_Allowed_Organization>;
   /** An aggregate relationship */
   allowedPrivateRegions_aggregate: Regions_Allowed_Organization_Aggregate;
+  /** An array relationship */
+  apps: Array<Apps>;
+  /** An aggregate relationship */
+  apps_aggregate: Apps_Aggregate;
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   /** An array relationship */
@@ -16779,6 +16791,26 @@ export type OrganizationsAllowedPrivateRegions_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Regions_Allowed_Organization_Order_By>>;
   where?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
+};
+
+
+/** columns and relationships of "organizations" */
+export type OrganizationsAppsArgs = {
+  distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Apps_Order_By>>;
+  where?: InputMaybe<Apps_Bool_Exp>;
+};
+
+
+/** columns and relationships of "organizations" */
+export type OrganizationsApps_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Apps_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Apps_Order_By>>;
+  where?: InputMaybe<Apps_Bool_Exp>;
 };
 
 
@@ -16875,6 +16907,8 @@ export type Organizations_Bool_Exp = {
   _or?: InputMaybe<Array<Organizations_Bool_Exp>>;
   allowedPrivateRegions?: InputMaybe<Regions_Allowed_Organization_Bool_Exp>;
   allowedPrivateRegions_aggregate?: InputMaybe<Regions_Allowed_Organization_Aggregate_Bool_Exp>;
+  apps?: InputMaybe<Apps_Bool_Exp>;
+  apps_aggregate?: InputMaybe<Apps_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   invites?: InputMaybe<Organization_Member_Invites_Bool_Exp>;
@@ -17073,6 +17107,7 @@ export type Organizations_Free_Usage_Updates = {
 /** input type for inserting data into table "organizations" */
 export type Organizations_Insert_Input = {
   allowedPrivateRegions?: InputMaybe<Regions_Allowed_Organization_Arr_Rel_Insert_Input>;
+  apps?: InputMaybe<Apps_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
   invites?: InputMaybe<Organization_Member_Invites_Arr_Rel_Insert_Input>;
@@ -17168,6 +17203,7 @@ export type Organizations_On_Conflict = {
 /** Ordering options when selecting data from "organizations". */
 export type Organizations_Order_By = {
   allowedPrivateRegions_aggregate?: InputMaybe<Regions_Allowed_Organization_Aggregate_Order_By>;
+  apps_aggregate?: InputMaybe<Apps_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   invites_aggregate?: InputMaybe<Organization_Member_Invites_Aggregate_Order_By>;
@@ -21541,8 +21577,6 @@ export enum Software_Type_Constraint {
 export enum Software_Type_Enum {
   /** Hasura Auth */
   Auth = 'Auth',
-  /** Graphite */
-  Graphite = 'Graphite',
   /** Hasura GraphQL Engine */
   Hasura = 'Hasura',
   /** PostgreSQL Database */
@@ -26686,6 +26720,13 @@ export type GetOrganizationQueryVariables = Exact<{
 
 export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> } }> };
 
+export type GetOrganizationByIdQueryVariables = Exact<{
+  orgId: Scalars['uuid'];
+}>;
+
+
+export type GetOrganizationByIdQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string }> };
+
 export type GetOrganizationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -30295,6 +30336,46 @@ export type GetOrganizationLazyQueryHookResult = ReturnType<typeof useGetOrganiz
 export type GetOrganizationQueryResult = Apollo.QueryResult<GetOrganizationQuery, GetOrganizationQueryVariables>;
 export function refetchGetOrganizationQuery(variables: GetOrganizationQueryVariables) {
       return { query: GetOrganizationDocument, variables: variables }
+    }
+export const GetOrganizationByIdDocument = gql`
+    query getOrganizationById($orgId: uuid!) {
+  organizations(where: {id: {_eq: $orgId}}) {
+    id
+    name
+    slug
+  }
+}
+    `;
+
+/**
+ * __useGetOrganizationByIdQuery__
+ *
+ * To run a query within a React component, call `useGetOrganizationByIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOrganizationByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOrganizationByIdQuery({
+ *   variables: {
+ *      orgId: // value for 'orgId'
+ *   },
+ * });
+ */
+export function useGetOrganizationByIdQuery(baseOptions: Apollo.QueryHookOptions<GetOrganizationByIdQuery, GetOrganizationByIdQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOrganizationByIdQuery, GetOrganizationByIdQueryVariables>(GetOrganizationByIdDocument, options);
+      }
+export function useGetOrganizationByIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOrganizationByIdQuery, GetOrganizationByIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOrganizationByIdQuery, GetOrganizationByIdQueryVariables>(GetOrganizationByIdDocument, options);
+        }
+export type GetOrganizationByIdQueryHookResult = ReturnType<typeof useGetOrganizationByIdQuery>;
+export type GetOrganizationByIdLazyQueryHookResult = ReturnType<typeof useGetOrganizationByIdLazyQuery>;
+export type GetOrganizationByIdQueryResult = Apollo.QueryResult<GetOrganizationByIdQuery, GetOrganizationByIdQueryVariables>;
+export function refetchGetOrganizationByIdQuery(variables: GetOrganizationByIdQueryVariables) {
+      return { query: GetOrganizationByIdDocument, variables: variables }
     }
 export const GetOrganizationsDocument = gql`
     query getOrganizations {

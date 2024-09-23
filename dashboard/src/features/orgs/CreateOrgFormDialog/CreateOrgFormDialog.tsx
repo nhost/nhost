@@ -78,7 +78,7 @@ function CreateOrgForm({ plans, onSubmit }: CreateOrgFormProps) {
           control={form.control}
           name="plan"
           render={({ field }) => (
-            <FormItem className="space-y-2">
+            <FormItem className="">
               <div>
                 <FormLabel>Plan</FormLabel>
                 <FormDescription className="text-xs">
@@ -92,31 +92,26 @@ function CreateOrgForm({ plans, onSubmit }: CreateOrgFormProps) {
                   className="flex flex-col space-y-1"
                 >
                   {plans.map((plan) => (
-                    <FormItem
-                      key={plan.id}
-                      className="flex w-full flex-row items-center justify-between rounded-md border p-3"
-                    >
-                      <div className="flex flex-row items-center space-x-3">
-                        <FormControl>
-                          <RadioGroupItem value={plan.id} />
-                        </FormControl>
-                        <div className="flex flex-col">
-                          <FormLabel className="text-md font-semibold">
-                            {plan.name}
-                          </FormLabel>
-                          <FormDescription className="text-xs">
-                            {planDescriptions[plan.name]}
-                          </FormDescription>
+                    <FormItem key={plan.id}>
+                      <FormLabel className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                        <div className="flex flex-row items-center space-x-3">
+                          <FormControl>
+                            <RadioGroupItem value={plan.id} />
+                          </FormControl>
+                          <div className="flex flex-col space-y-2">
+                            <div className="text-md font-semibold">
+                              {plan.name}
+                            </div>
+                            <FormDescription className="w-2/3 text-xs">
+                              {planDescriptions[plan.name]}
+                            </FormDescription>
+                          </div>
                         </div>
-                      </div>
 
-                      {plan.isFree ? (
-                        <span className="text-xl font-semibold">Free</span>
-                      ) : (
-                        <span className="text-xl font-semibold">
-                          ${plan.price}/mo
-                        </span>
-                      )}
+                        <div className="mt-0 flex h-full items-center text-xl font-semibold">
+                          {plan.isFree ? 'Free' : `${plan.price}/mo`}
+                        </div>
+                      </FormLabel>
                     </FormItem>
                   ))}
                 </RadioGroup>
@@ -155,8 +150,8 @@ export default function CreateOrgDialog() {
 
   const createOrg = async ({
     name,
-    plan,
-  }: {
+  }: // plan,
+  {
     name?: string;
     plan?: string;
   }) => {
@@ -168,18 +163,16 @@ export default function CreateOrgDialog() {
           variables: {
             organizationName: name,
             planID: 'dc5e805e-1bef-4d43-809e-9fdf865e211a',
-            redirectURL: 'http://localhost:3000/post-checkout',
+            redirectURL: 'http://localhost:3000/orgs/verify',
           },
         });
-
-        // show dialog
 
         setStripeClientSecret(clientSecret);
       },
       {
-        loadingMessage: 'Creating new workspace...',
-        successMessage: 'The new workspace has been created successfully.',
-        errorMessage: 'An error occurred while creating the new workspace.',
+        loadingMessage: 'Redirecting to checkout',
+        successMessage: 'Success',
+        errorMessage: 'An error occurred while redirecting to checkout!',
       },
     );
   };
@@ -194,6 +187,7 @@ export default function CreateOrgDialog() {
         <Button
           variant="ghost"
           className="flex h-8 w-full flex-row justify-start gap-3 px-2"
+          onClick={() => setStripeClientSecret('')}
         >
           <Plus className="h-4 w-4 font-bold" strokeWidth={3} />
           New Organization
@@ -205,7 +199,15 @@ export default function CreateOrgDialog() {
           <DialogDescription />
         </DialogHeader>
 
-        {loading && <ActivityIndicator />}
+        {loading && (
+          <div className="flex h-52 items-center justify-center">
+            <ActivityIndicator
+              circularProgressProps={{
+                className: 'w-5 h-5',
+              }}
+            />
+          </div>
+        )}
         {!loading && !stripeClientSecret && (
           <CreateOrgForm plans={data?.plans} onSubmit={createOrg} />
         )}

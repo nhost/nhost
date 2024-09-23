@@ -12,14 +12,18 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { useOrgs, type Org } from '@/features/projects/common/hooks/useOrgs';
-import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
+import { useNavTreeStateFromURL } from '@/features/orgs/hooks/useNavTreeStateFromURL';
+import { useOrgs, type Org } from '@/features/orgs/hooks/useOrgs';
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
-import { useEffect, type ReactElement } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useEffect, useMemo, type ReactElement } from 'react';
+
 import {
-  ControlledTreeEnvironment,
+  StaticTreeDataProvider,
   Tree,
+  UncontrolledTreeEnvironment,
   type TreeItem,
   type TreeItemIndex,
 } from 'react-complex-tree';
@@ -68,65 +72,74 @@ const projectSettingsPages = [
 const createOrganization = (org: Org) => {
   const result = {};
 
-  result[org.name] = {
-    index: org.name,
+  result[org.slug] = {
+    index: org.slug,
     canMove: false,
     isFolder: true,
     children: [
-      `${org.name}-projects`,
-      `${org.name}-settings`,
-      `${org.name}-members`,
-      `${org.name}-billing`,
+      `${org.slug}-projects`,
+      `${org.slug}-settings`,
+      `${org.slug}-members`,
+      `${org.slug}-billing`,
     ],
     data: {
       name: org.name,
+      slug: org.slug,
       type: 'org',
       isFree: org.plan.isFree,
       plan: org.plan.name,
+      targetUrl: `/orgs/${org.slug}/projects`, // default to projects
     },
     canRename: false,
   };
 
-  result[`${org.name}-projects`] = {
-    index: `${org.name}-projects`,
+  result[`${org.slug}-projects`] = {
+    index: `${org.slug}-projects`,
     canMove: false,
     isFolder: true,
-    children: org.plan.apps.map((app) => `${org.name}-${app.name}`),
+    children: org.plan.apps.map((app) => `${org.slug}-${app.slug}`),
     data: {
       name: 'Projects',
+      targetUrl: `/orgs/${org.slug}/projects`,
     },
     canRename: false,
   };
 
   org.plan.apps.forEach((app) => {
-    result[`${org.name}-${app.name}`] = {
-      index: `${org.name}-${app.name}`,
+    result[`${org.slug}-${app.slug}`] = {
+      index: `${org.slug}-${app.slug}`,
       isFolder: true,
       canMove: false,
       canRename: false,
-      data: { name: app.name, icon: <Box className="h-4 w-4" /> },
+      data: {
+        name: app.name,
+        slug: app.slug,
+        icon: <Box className="h-4 w-4" />,
+        targetUrl: `/orgs/${org.slug}/projects/${app.slug}/overview`,
+      },
       children: projectPages.map(
-        (page) => `${org.name}-${app.name}-${page.name}`,
+        (page) => `${org.slug}-${app.slug}-${page.name}`,
       ),
     };
   });
 
   org.plan.apps.forEach((_app) => {
     projectPages.forEach((_page) => {
-      result[`${org.name}-${_app.name}-${_page.name}`] = {
-        index: `${org.name}-${_app.name}-${_page.name}`,
+      result[`${org.slug}-${_app.slug}-${_page.name}`] = {
+        index: `${org.slug}-${_app.slug}-${_page.name}`,
         canMove: false,
         isFolder: _page.name === 'Settings',
         children:
           _page.name === 'Settings'
             ? projectSettingsPages.map(
-                (p) => `${org.name}-${_app.name}-settings-${p}`,
+                (p) => `${org.slug}-${_app.slug}-settings-${p}`,
               )
             : undefined,
         data: {
           name: _page.name,
           icon: _page.icon,
           isProjectPage: true,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.slug}/${_page.name.toLowerCase()}`,
         },
         canRename: false,
       };
@@ -134,48 +147,52 @@ const createOrganization = (org: Org) => {
 
     // add the settings pages
     projectSettingsPages.forEach((p) => {
-      result[`${org.name}-${_app.name}-settings-${p}`] = {
-        index: `${org.name}-${_app.name}-settings-${p}`,
+      result[`${org.slug}-${_app.slug}-settings-${p}`] = {
+        index: `${org.slug}-${_app.slug}-settings-${p}`,
         canMove: false,
         isFolder: false,
         children: undefined,
         data: {
           name: p,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.slug}/settings/${p.toLowerCase().replace(' ', '-')}`,
         },
         canRename: false,
       };
     });
   });
 
-  result[`${org.name}-settings`] = {
-    index: `${org.name}-settings`,
+  result[`${org.slug}-settings`] = {
+    index: `${org.slug}-settings`,
     canMove: false,
     isFolder: false,
     children: [],
     data: {
       name: 'Settings',
+      targetUrl: `/orgs/${org.slug}/settings`,
     },
     canRename: false,
   };
 
-  result[`${org.name}-members`] = {
-    index: `${org.name}-members`,
+  result[`${org.slug}-members`] = {
+    index: `${org.slug}-members`,
     canMove: false,
     isFolder: false,
     children: [],
     data: {
       name: 'Members',
+      targetUrl: `/orgs/${org.slug}/members`,
     },
     canRename: false,
   };
 
-  result[`${org.name}-billing`] = {
-    index: `${org.name}-billing`,
+  result[`${org.slug}-billing`] = {
+    index: `${org.slug}-billing`,
     canMove: false,
     isFolder: false,
     children: [],
     data: {
       name: 'Billing',
+      targetUrl: `/orgs/${org.slug}/billing`,
     },
     canRename: false,
   };
@@ -185,10 +202,12 @@ const createOrganization = (org: Org) => {
 
 type NavItem = {
   name: string;
+  slug?: string;
   type?: string;
   isFree?: boolean;
   plan?: string;
   icon?: ReactElement;
+  targetUrl?: string;
 };
 
 const buildNavTreeData = (
@@ -200,15 +219,15 @@ const buildNavTreeData = (
         index: 'root',
         canMove: false,
         isFolder: true,
-        children: ['Organizations'],
+        children: ['organizations'],
         data: { name: 'root' },
         canRename: false,
       },
-      Organizations: {
-        index: 'Organizations',
+      organizations: {
+        index: 'organizations',
         canMove: false,
         isFolder: true,
-        children: orgs.map((org) => org.name),
+        children: orgs.map((org) => org.slug),
         data: { name: 'Organizations' },
         canRename: false,
       },
@@ -223,45 +242,38 @@ const buildNavTreeData = (
 };
 
 export default function NavTree() {
+  const { asPath } = useRouter();
   const { orgs } = useOrgs();
   const navTree = buildNavTreeData(orgs);
+  const { expandedItems, focusedItem } = useNavTreeStateFromURL();
 
-  const [focusedItem, setFocusedItem] = useSSRLocalStorage(
-    'nav-tree-focused-item',
-    null,
-  );
-
-  const [expandedItems, setExpandedItems] = useSSRLocalStorage(
-    'nav-tree-expanded-items',
-    null,
-  );
-
-  const [selectedItems, setSelectedItems] = useSSRLocalStorage(
-    'nav-tree-selected-items',
-    [],
+  const dataProvider = useMemo(
+    () =>
+      new StaticTreeDataProvider(navTree.items, (item) => ({
+        ...item,
+        data: item.data,
+      })),
+    [navTree.items],
   );
 
   useEffect(() => {
-    if (orgs?.length > 0) {
-      if (!expandedItems) {
-        setExpandedItems(['Organizations', orgs[0].name]);
-      }
+    const validItems = [...expandedItems, focusedItem].filter((item) =>
+      Boolean(navTree.items[item]),
+    );
 
-      if (!focusedItem) {
-        setFocusedItem(`${orgs[0].name}-projects`);
-      }
-    }
-  }, [orgs, expandedItems, focusedItem, setExpandedItems, setFocusedItem]);
+    dataProvider.onDidChangeTreeDataEmitter.emit(validItems);
+  }, [dataProvider, expandedItems, focusedItem, navTree.items]);
 
   return (
-    <ControlledTreeEnvironment
-      items={navTree.items}
+    <UncontrolledTreeEnvironment
+      key={asPath}
+      dataProvider={dataProvider}
       getItemTitle={(item) => item.data.name}
       viewState={{
         'nav-tree': {
           focusedItem,
           expandedItems,
-          selectedItems,
+          selectedItems: null,
         },
       }}
       renderItemTitle={({ title }) => <span>{title}</span>}
@@ -293,6 +305,7 @@ export default function NavTree() {
           <div className="flex flex-row items-center gap-1">
             {arrow}
             <Button
+              asChild
               variant={context.isFocused ? 'secondary' : 'ghost'}
               onClick={() => {
                 if (item.data.type === 'org') {
@@ -303,41 +316,43 @@ export default function NavTree() {
               }}
               className="flex h-8 w-full flex-row justify-start gap-2 px-1"
             >
-              {item.data.icon && (
+              <Link href={item.data.targetUrl || '/'}>
+                {item.data.icon && (
+                  <span
+                    className={cn(
+                      'flex items-start',
+                      context.isFocused ? 'text-primary-main' : '',
+                    )}
+                  >
+                    {item.data.icon}
+                  </span>
+                )}
                 <span
                   className={cn(
-                    'flex items-start',
-                    context.isFocused ? 'text-primary-main' : '',
+                    item?.index === 'organizations' && 'font-bold',
+                    context.isFocused ? 'font-bold text-primary-main' : '',
+                    'max-w-52 truncate', // Add this utility for ellipsis
                   )}
+                  style={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
                 >
-                  {item.data.icon}
+                  {item.data.name}
                 </span>
-              )}
-              <span
-                className={cn(
-                  item.index === 'Organizations' && 'font-bold',
-                  context.isFocused ? 'font-bold text-primary-main' : '',
-                  'max-w-52 truncate', // Add this utility for ellipsis
+                {item.data?.plan && (
+                  <Badge
+                    variant={item.data.isFree ? 'outline' : 'default'}
+                    className={cn(
+                      'h-5 px-[6px] text-[10px]',
+                      item.data.isFree ? 'bg-muted' : '',
+                    )}
+                  >
+                    {item.data.plan}
+                  </Badge>
                 )}
-                style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {item.data.name}
-              </span>
-              {item.data?.plan && (
-                <Badge
-                  variant={item.data.isFree ? 'outline' : 'default'}
-                  className={cn(
-                    'h-5 px-[6px] text-[10px]',
-                    item.data.isFree ? 'bg-muted' : '',
-                  )}
-                >
-                  {item.data.plan}
-                </Badge>
-              )}
+              </Link>
             </Button>
           </div>
           <div>{children}</div>
@@ -369,20 +384,19 @@ export default function NavTree() {
         );
       }}
       canSearch={false}
-      onFocusItem={(item) => setFocusedItem(item.index)}
-      onExpandItem={(item) =>
-        setExpandedItems([...expandedItems, item.index as string])
-      }
-      onCollapseItem={(item) =>
-        setExpandedItems(
-          expandedItems.filter(
-            (expandedItemIndex) => expandedItemIndex !== item.index,
-          ),
-        )
-      }
-      onSelectItems={(items) => setSelectedItems(items)}
+      // onFocusItem={(item) => setFocusedItem(item.index)}
+      // onExpandItem={(item) =>
+      //   setExpandedItems([...expandedItems, item.index as string])
+      // }
+      // onCollapseItem={(item) =>
+      //   setExpandedItems(
+      //     expandedItems.filter(
+      //       (expandedItemIndex) => expandedItemIndex !== item.index,
+      //     ),
+      //   )
+      // }
     >
       <Tree treeId="nav-tree" rootItem="root" treeLabel="Navigation Tree" />
-    </ControlledTreeEnvironment>
+    </UncontrolledTreeEnvironment>
   );
 }

@@ -264,7 +264,7 @@ importers:
         version: 1.54.2
       '@tailwindcss/forms':
         specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.10)
+        version: 0.5.7(tailwindcss@3.4.12)
       '@tanstack/react-query':
         specifier: ^4.36.1
         version: 4.36.1(react-dom@18.2.0)(react@18.2.0)
@@ -414,7 +414,7 @@ importers:
         version: 1.14.0
       tailwindcss-animate:
         specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@3.4.10)
+        version: 1.0.7(tailwindcss@3.4.12)
       utility-types:
         specifier: ^3.11.0
         version: 3.11.0
@@ -484,7 +484,7 @@ importers:
         version: 0.2.2
       '@tailwindcss/typography':
         specifier: ^0.5.12
-        version: 0.5.14(tailwindcss@3.4.10)
+        version: 0.5.14(tailwindcss@3.4.12)
       '@testing-library/dom':
         specifier: ^9.3.4
         version: 9.3.4
@@ -609,14 +609,14 @@ importers:
         specifier: ^8.4.38
         version: 8.4.47
       prettier:
-        specifier: ^2.8.8
-        version: 2.8.8
+        specifier: ^3.3.3
+        version: 3.3.3
       prettier-plugin-organize-imports:
-        specifier: ^3.2.4
-        version: 3.2.4(prettier@2.8.8)(typescript@4.9.5)
+        specifier: ^4.1.0
+        version: 4.1.0(prettier@3.3.3)(typescript@4.9.5)
       prettier-plugin-tailwindcss:
-        specifier: ^0.4.1
-        version: 0.4.1(prettier-plugin-organize-imports@3.2.4)(prettier@2.8.8)
+        specifier: ^0.6.6
+        version: 0.6.6(prettier-plugin-organize-imports@4.1.0)(prettier@3.3.3)
       react-date-fns-hooks:
         specifier: ^0.9.4
         version: 0.9.4(date-fns@2.30.0)(react-dom@18.2.0)(react@18.2.0)
@@ -630,8 +630,8 @@ importers:
         specifier: ^4.0.2
         version: 4.0.2(@storybook/addon-actions@6.5.16)(next@14.2.12)(react-dom@18.2.0)(react@18.2.0)
       tailwindcss:
-        specifier: ^3.4.3
-        version: 3.4.10(ts-node@10.9.2)
+        specifier: ^3.4.12
+        version: 3.4.12(ts-node@10.9.2)
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@16.18.106)(typescript@4.9.5)
@@ -731,7 +731,7 @@ importers:
         version: 8.4.47
       tailwindcss:
         specifier: ^3.4.3
-        version: 3.4.10(ts-node@10.9.2)
+        version: 3.4.10
       typescript:
         specifier: ^4.9.5
         version: 4.9.5
@@ -798,7 +798,7 @@ importers:
         version: 8.4.47
       tailwindcss:
         specifier: ^3.4.3
-        version: 3.4.10(ts-node@10.9.2)
+        version: 3.4.10
       typescript:
         specifier: ^4.9.5
         version: 4.9.5
@@ -862,7 +862,7 @@ importers:
         version: 8.4.47
       tailwindcss:
         specifier: ^3.4.3
-        version: 3.4.10(ts-node@10.9.2)
+        version: 3.4.10
       typescript:
         specifier: ^4.9.5
         version: 4.9.5
@@ -1120,7 +1120,7 @@ importers:
         version: 3.8.6(@babel/core@7.25.2)(postcss@8.4.47)(svelte@4.2.19)
       tailwindcss:
         specifier: ^3.4.3
-        version: 3.4.10(ts-node@10.9.2)
+        version: 3.4.10
       typescript:
         specifier: ^5.4.3
         version: 5.5.4
@@ -1262,7 +1262,7 @@ importers:
         version: 8.4.47
       tailwindcss:
         specifier: ^3.4.9
-        version: 3.4.10(ts-node@10.9.2)
+        version: 3.4.10
       totp-generator:
         specifier: ^0.0.13
         version: 0.0.13
@@ -1320,7 +1320,7 @@ importers:
         version: 8.4.47
       tailwindcss:
         specifier: ^3.4.3
-        version: 3.4.10(ts-node@10.9.2)
+        version: 3.4.10
       typescript:
         specifier: ^4.9.5
         version: 4.9.5
@@ -2189,7 +2189,7 @@ importers:
         version: 8.4.47
       tailwindcss:
         specifier: ^3.4.10
-        version: 3.4.10(ts-node@10.9.2)
+        version: 3.4.10
 
   templates/react-native: {}
 
@@ -6960,7 +6960,7 @@ packages:
   /@graphql-tools/utils@8.13.1(graphql@16.8.1):
     resolution: {integrity: sha512-qIh9yYpdUFmctVqovwMdheVNJqFh+DQNWIhX87FJStfXYnmweBUDATok9fWPleKeFwxnW8IapKmY8m8toJEkAw==}
     peerDependencies:
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
     dependencies:
       graphql: 16.8.1
       tslib: 2.7.0
@@ -12861,9 +12861,19 @@ packages:
       tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1'
     dependencies:
       mini-svg-data-uri: 1.4.4
-      tailwindcss: 3.4.10(ts-node@10.9.2)
+      tailwindcss: 3.4.10
+    dev: true
 
-  /@tailwindcss/typography@0.5.14(tailwindcss@3.4.10):
+  /@tailwindcss/forms@0.5.7(tailwindcss@3.4.12):
+    resolution: {integrity: sha512-QE7X69iQI+ZXwldE+rzasvbJiyV/ju1FGHH0Qn2W3FKbuYtqp8LKcy6iSw79fVUT5/Vvf+0XgLCeYVG+UV6hOw==}
+    peerDependencies:
+      tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1'
+    dependencies:
+      mini-svg-data-uri: 1.4.4
+      tailwindcss: 3.4.12(ts-node@10.9.2)
+    dev: false
+
+  /@tailwindcss/typography@0.5.14(tailwindcss@3.4.12):
     resolution: {integrity: sha512-ZvOCjUbsJBjL9CxQBn+VEnFpouzuKhxh2dH8xMIWHILL+HfOYtlAkWcyoon8LlzE53d2Yo6YO6pahKKNW3q1YQ==}
     peerDependencies:
       tailwindcss: '>=3.0.0 || insiders'
@@ -12872,7 +12882,7 @@ packages:
       lodash.isplainobject: 4.0.6
       lodash.merge: 4.6.2
       postcss-selector-parser: 6.0.10
-      tailwindcss: 3.4.10(ts-node@10.9.2)
+      tailwindcss: 3.4.12(ts-node@10.9.2)
     dev: true
 
   /@tanstack/match-sorter-utils@8.19.4:
@@ -28331,20 +28341,17 @@ packages:
       fast-diff: 1.3.0
     dev: true
 
-  /prettier-plugin-organize-imports@3.2.4(prettier@2.8.8)(typescript@4.9.5):
-    resolution: {integrity: sha512-6m8WBhIp0dfwu0SkgfOxJqh+HpdyfqSSLfKKRZSFbDuEQXDDndb8fTpRWkUrX/uBenkex3MgnVk0J3b3Y5byog==}
+  /prettier-plugin-organize-imports@4.1.0(prettier@3.3.3)(typescript@4.9.5):
+    resolution: {integrity: sha512-5aWRdCgv645xaa58X8lOxzZoiHAldAPChljr/MT0crXVOWTZ+Svl4hIWlz+niYSlO6ikE5UXkN1JrRvIP2ut0A==}
     peerDependencies:
-      '@volar/vue-language-plugin-pug': ^1.0.4
-      '@volar/vue-typescript': ^1.0.4
       prettier: '>=2.0'
       typescript: '>=2.9'
+      vue-tsc: ^2.1.0
     peerDependenciesMeta:
-      '@volar/vue-language-plugin-pug':
-        optional: true
-      '@volar/vue-typescript':
+      vue-tsc:
         optional: true
     dependencies:
-      prettier: 2.8.8
+      prettier: 3.3.3
       typescript: 4.9.5
     dev: true
 
@@ -28358,26 +28365,27 @@ packages:
       svelte: 4.2.19
     dev: true
 
-  /prettier-plugin-tailwindcss@0.4.1(prettier-plugin-organize-imports@3.2.4)(prettier@2.8.8):
-    resolution: {integrity: sha512-hwn2EiJmv8M+AW4YDkbjJ6HlZCTzLyz1QlySn9sMuKV/Px0fjwldlB7tol8GzdgqtkdPtzT3iJ4UzdnYXP25Ag==}
-    engines: {node: '>=12.17.0'}
+  /prettier-plugin-tailwindcss@0.6.6(prettier-plugin-organize-imports@4.1.0)(prettier@3.3.3):
+    resolution: {integrity: sha512-OPva5S7WAsPLEsOuOWXATi13QrCKACCiIonFgIR6V4lYv4QLp++UXVhZSzRbZxXGimkQtQT86CC6fQqTOybGng==}
+    engines: {node: '>=14.21.3'}
     peerDependencies:
       '@ianvs/prettier-plugin-sort-imports': '*'
       '@prettier/plugin-pug': '*'
       '@shopify/prettier-plugin-liquid': '*'
-      '@shufo/prettier-plugin-blade': '*'
       '@trivago/prettier-plugin-sort-imports': '*'
-      prettier: ^2.2 || ^3.0
+      '@zackad/prettier-plugin-twig-melody': '*'
+      prettier: ^3.0
       prettier-plugin-astro: '*'
       prettier-plugin-css-order: '*'
       prettier-plugin-import-sort: '*'
       prettier-plugin-jsdoc: '*'
       prettier-plugin-marko: '*'
+      prettier-plugin-multiline-arrays: '*'
       prettier-plugin-organize-attributes: '*'
       prettier-plugin-organize-imports: '*'
+      prettier-plugin-sort-imports: '*'
       prettier-plugin-style-order: '*'
       prettier-plugin-svelte: '*'
-      prettier-plugin-twig-melody: '*'
     peerDependenciesMeta:
       '@ianvs/prettier-plugin-sort-imports':
         optional: true
@@ -28385,9 +28393,9 @@ packages:
         optional: true
       '@shopify/prettier-plugin-liquid':
         optional: true
-      '@shufo/prettier-plugin-blade':
-        optional: true
       '@trivago/prettier-plugin-sort-imports':
+        optional: true
+      '@zackad/prettier-plugin-twig-melody':
         optional: true
       prettier-plugin-astro:
         optional: true
@@ -28399,19 +28407,21 @@ packages:
         optional: true
       prettier-plugin-marko:
         optional: true
+      prettier-plugin-multiline-arrays:
+        optional: true
       prettier-plugin-organize-attributes:
         optional: true
       prettier-plugin-organize-imports:
+        optional: true
+      prettier-plugin-sort-imports:
         optional: true
       prettier-plugin-style-order:
         optional: true
       prettier-plugin-svelte:
         optional: true
-      prettier-plugin-twig-melody:
-        optional: true
     dependencies:
-      prettier: 2.8.8
-      prettier-plugin-organize-imports: 3.2.4(prettier@2.8.8)(typescript@4.9.5)
+      prettier: 3.3.3
+      prettier-plugin-organize-imports: 4.1.0(prettier@3.3.3)(typescript@4.9.5)
     dev: true
 
   /prettier@2.3.0:
@@ -28424,6 +28434,12 @@ packages:
     resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
     engines: {node: '>=10.13.0'}
     hasBin: true
+
+  /prettier@3.3.3:
+    resolution: {integrity: sha512-i2tDNA0O5IrMO757lfrdQZCc2jPNDVntV0m/+4whiDfWaTKfMNgR7Qz0NAeGz/nRqF4m5/6CLzbP4/liHt12Ew==}
+    engines: {node: '>=14'}
+    hasBin: true
+    dev: true
 
   /pretty-bytes@5.6.0:
     resolution: {integrity: sha512-FFw039TmrBqFK8ma/7OL3sDz/VytdtJr044/QUJtH0wK9lb9jLq9tJyIxUwtQJHwar2BqtiA4iCWSwo9JLkzFg==}
@@ -29408,7 +29424,7 @@ packages:
       semver: 7.6.3
       source-map-loader: 3.0.2(webpack@5.94.0)
       style-loader: 3.3.4(webpack@5.94.0)
-      tailwindcss: 3.4.10(ts-node@10.9.2)
+      tailwindcss: 3.4.10
       terser-webpack-plugin: 5.3.10(webpack@5.94.0)
       typescript: 4.9.5
       webpack: 5.94.0
@@ -31859,7 +31875,15 @@ packages:
     peerDependencies:
       tailwindcss: '>=3.0.0 || insiders'
     dependencies:
-      tailwindcss: 3.4.10(ts-node@10.9.2)
+      tailwindcss: 3.4.10
+    dev: false
+
+  /tailwindcss-animate@1.0.7(tailwindcss@3.4.12):
+    resolution: {integrity: sha512-bl6mpH3T7I3UFxuvDEXLxy/VuFxBk5bbzplh7tXI68mwMokNYd1t9qPBHlnyTwfa4JGC4zP516I1hYYtQ/vspA==}
+    peerDependencies:
+      tailwindcss: '>=3.0.0 || insiders'
+    dependencies:
+      tailwindcss: 3.4.12(ts-node@10.9.2)
     dev: false
 
   /tailwindcss@3.3.3:
@@ -31893,8 +31917,38 @@ packages:
       - ts-node
     dev: false
 
-  /tailwindcss@3.4.10(ts-node@10.9.2):
+  /tailwindcss@3.4.10:
     resolution: {integrity: sha512-KWZkVPm7yJRhdu4SRSl9d4AK2wM3a50UsvgHZO7xY77NQr2V+fIrEuoDGQcbvswWvFGbS2f6e+jC/6WJm1Dl0w==}
+    engines: {node: '>=14.0.0'}
+    hasBin: true
+    dependencies:
+      '@alloc/quick-lru': 5.2.0
+      arg: 5.0.2
+      chokidar: 3.6.0
+      didyoumean: 1.2.2
+      dlv: 1.1.3
+      fast-glob: 3.3.2
+      glob-parent: 6.0.2
+      is-glob: 4.0.3
+      jiti: 1.21.6
+      lilconfig: 2.1.0
+      micromatch: 4.0.8
+      normalize-path: 3.0.0
+      object-hash: 3.0.0
+      picocolors: 1.1.0
+      postcss: 8.4.47
+      postcss-import: 15.1.0(postcss@8.4.47)
+      postcss-js: 4.0.1(postcss@8.4.47)
+      postcss-load-config: 4.0.2(postcss@8.4.47)(ts-node@10.9.2)
+      postcss-nested: 6.2.0(postcss@8.4.47)
+      postcss-selector-parser: 6.1.2
+      resolve: 1.22.8
+      sucrase: 3.35.0
+    transitivePeerDependencies:
+      - ts-node
+
+  /tailwindcss@3.4.12(ts-node@10.9.2):
+    resolution: {integrity: sha512-Htf/gHj2+soPb9UayUNci/Ja3d8pTmu9ONTfh4QY8r3MATTZOzmv6UYWF7ZwikEIC8okpfqmGqrmDehua8mF8w==}
     engines: {node: '>=14.0.0'}
     hasBin: true
     dependencies:

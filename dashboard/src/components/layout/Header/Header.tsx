@@ -82,9 +82,9 @@ export default function Header({ className, ...props }: HeaderProps) {
     >
       <BreadcrumbNav />
 
-      <div className="hidden grid-flow-col items-center gap-2 sm:grid">
+      <div className="items-center hidden grid-flow-col gap-2 sm:grid">
         <Button className="rounded-full" onClick={openDevAssistant}>
-          <GraphiteIcon className="h-4 w-4" />
+          <GraphiteIcon className="w-4 h-4" />
         </Button>
 
         {isPlatform && (

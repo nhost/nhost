@@ -25,56 +25,57 @@ import {
 import NavComboBox from './NavComboBox';
 import OrgsComboBox from './OrgsComboBox';
 import ProjectsComboBox from './ProjectsComboBox';
+import { useRouter } from 'next/router'
 
 const projectPagesOptions = [
   {
     label: 'Overview',
     value: 'overview',
-    icon: <HomeIcon className="h-4 w-4" />,
+    icon: <HomeIcon className="w-4 h-4" />,
   },
   {
     label: 'Database',
     value: 'database',
-    icon: <DatabaseIcon className="h-4 w-4" />,
+    icon: <DatabaseIcon className="w-4 h-4" />,
   },
   {
     label: 'GraphQL',
     value: 'graphql',
-    icon: <GraphQLIcon className="h-4 w-4" />,
+    icon: <GraphQLIcon className="w-4 h-4" />,
   },
   {
     label: 'Hasura',
     value: 'hasura',
-    icon: <HasuraIcon className="h-4 w-4" />,
+    icon: <HasuraIcon className="w-4 h-4" />,
   },
-  { label: 'Auth', value: 'auth', icon: <UserIcon className="h-4 w-4" /> },
+  { label: 'Auth', value: 'auth', icon: <UserIcon className="w-4 h-4" /> },
   {
     label: 'Storage',
     value: 'storage',
-    icon: <StorageIcon className="h-4 w-4" />,
+    icon: <StorageIcon className="w-4 h-4" />,
   },
-  { label: 'Run', value: 'run', icon: <ServicesIcon className="h-4 w-4" /> },
-  { label: 'AI', value: 'ai', icon: <AIIcon className="h-4 w-4" /> },
+  { label: 'Run', value: 'run', icon: <ServicesIcon className="w-4 h-4" /> },
+  { label: 'AI', value: 'ai', icon: <AIIcon className="w-4 h-4" /> },
   {
     label: 'Deployments',
     value: 'deployments',
-    icon: <RocketIcon className="h-4 w-4" />,
+    icon: <RocketIcon className="w-4 h-4" />,
   },
   {
     label: 'Backups',
     value: 'backups',
-    icon: <CloudIcon className="h-4 w-4" />,
+    icon: <CloudIcon className="w-4 h-4" />,
   },
-  { label: 'Logs', value: 'logs', icon: <FileTextIcon className="h-4 w-4" /> },
+  { label: 'Logs', value: 'logs', icon: <FileTextIcon className="w-4 h-4" /> },
   {
     label: 'Metrics',
     value: 'metrics',
-    icon: <GaugeIcon className="h-4 w-4" />,
+    icon: <GaugeIcon className="w-4 h-4" />,
   },
   {
     label: 'Settings',
     value: 'settings',
-    icon: <CogIcon className="h-4 w-4" />,
+    icon: <CogIcon className="w-4 h-4" />,
   },
 ];
 
@@ -100,13 +101,17 @@ const projectSettingsOptions = [
 }));
 
 const orgPages = [
-  { label: 'General', value: 'general' },
+  { label: 'Settings', value: 'settings' },
   { label: 'Projects', value: 'projects' },
-  { label: 'Team', value: 'team' },
+  { label: 'Members', value: 'members' },
   { label: 'Billing', value: 'billing' },
 ];
 
 export default function BreadcrumbNav() {
+
+  const { route } = useRouter()
+  const showNavigationBreadCrumbs = route !== '/orgs/verify'
+  
   return (
     <Breadcrumb>
       <BreadcrumbList>
@@ -116,7 +121,10 @@ export default function BreadcrumbNav() {
           </div>
         </BreadcrumbItem>
 
-        <BreadcrumbSeparator>
+        {
+          showNavigationBreadCrumbs && (
+            <>
+              <BreadcrumbSeparator>
           <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
         </BreadcrumbSeparator>
 
@@ -161,7 +169,10 @@ export default function BreadcrumbNav() {
             options={projectSettingsOptions}
           />
         </BreadcrumbItem>
-      </BreadcrumbList>
+            </>
+          )
+        }
+        </BreadcrumbList>
     </Breadcrumb>
   );
 }
