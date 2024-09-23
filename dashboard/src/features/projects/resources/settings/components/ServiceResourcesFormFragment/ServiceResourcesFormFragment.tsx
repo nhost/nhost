@@ -86,12 +86,21 @@ export default function ServiceResourcesFormFragment({
     formValues.totalAvailableMemory - totalAllocatedMemory;
   const allowedMemory = remainingMemory + serviceValues.memory;
 
-  // Debounce the revalidation to prevent excessive re-renders
+  // Debounce revalidation to prevent excessive re-renders
   const handleReplicaChange = debounce((value: string) => {
     const updatedReplicas = parseInt(value, 10);
 
     setValue(`${serviceKey}.replicas`, updatedReplicas, { shouldDirty: true });
     triggerValidation(`${serviceKey}.replicas`);
+  }, 500);
+
+  const handleMaxReplicasChange = debounce((value: string) => {
+    const updatedMaxReplicas = parseInt(value, 10);
+
+    setValue(`${serviceKey}.maxReplicas`, updatedMaxReplicas, {
+      shouldDirty: true,
+    });
+    triggerValidation(`${serviceKey}.maxReplicas`);
   }, 500);
 
   function handleVCPUChange(value: string) {
@@ -135,7 +144,7 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid grid-flow-col items-center justify-between gap-2">
+        <Box className="grid grid-flow-col gap-2 justify-between items-center">
           <Text>
             Allocated vCPUs:{' '}
             <span className="font-medium">
@@ -165,7 +174,7 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid grid-flow-col items-center justify-between gap-2">
+        <Box className="grid grid-flow-col gap-2 justify-between items-center">
           <Text>
             Allocated Memory:{' '}
             <span className="font-medium">
@@ -195,23 +204,21 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       {!disableReplicas && (
-        <Box className="flex justify-between gap-2">
-          <Box className="flex flex-row gap-8">
-            <Box className="flex flex-row items-center gap-2">
-              <Box className="grid grid-flow-col items-center justify-start gap-2">
-                {formState.errors?.[serviceKey]?.replicas?.message ? (
-                  <Tooltip
-                    title={formState.errors[serviceKey]?.replicas?.message}
-                    id={`${serviceKey}-replicas-error-tooltip`}
-                  >
-                    <ExclamationIcon
-                      color="error"
-                      className="h-4 w-4"
-                      aria-hidden="false"
-                    />
-                  </Tooltip>
-                ) : null}
-              </Box>
+        <Box className="flex flex-col gap-4 justify-between lg:flex-row">
+          <Box className="flex flex-col gap-4 lg:flex-row lg:gap-8">
+            <Box className="flex flex-row gap-2 items-center">
+              {formState.errors?.[serviceKey]?.replicas?.message ? (
+                <Tooltip
+                  title={formState.errors[serviceKey]?.replicas?.message}
+                  id={`${serviceKey}-replicas-error-tooltip`}
+                >
+                  <ExclamationIcon
+                    color="error"
+                    className="w-4 h-4"
+                    aria-hidden="false"
+                  />
+                </Tooltip>
+              ) : null}
               <Text>Replicas</Text>
               <Input
                 {...register(`${serviceKey}.replicas`)}
@@ -219,22 +226,22 @@ export default function ServiceResourcesFormFragment({
                 type="number"
                 id={`${serviceKey}.replicas`}
                 placeholder="Replicas"
-                className="max-w-40"
+                className="max-w-28"
                 hideEmptyHelperText
                 error={!!formState.errors?.[serviceKey]?.replicas}
                 fullWidth
                 autoComplete="off"
               />
             </Box>
-            <Box className="flex flex-row items-center gap-2">
+            <Box className="flex flex-row gap-2 items-center">
               {formState.errors?.[serviceKey]?.maxReplicas?.message ? (
                 <Tooltip
                   title={formState.errors[serviceKey]?.maxReplicas?.message}
-                  id={`${serviceKey}-replicas-error-tooltip`}
+                  id={`${serviceKey}-maxReplicas-error-tooltip`}
                 >
                   <ExclamationIcon
                     color="error"
-                    className="h-4 w-4"
+                    className="w-4 h-4"
                     aria-hidden="false"
                   />
                 </Tooltip>
@@ -242,22 +249,22 @@ export default function ServiceResourcesFormFragment({
               <Text className="text-nowrap">Max Replicas</Text>
               <Input
                 {...register(`${serviceKey}.maxReplicas`)}
+                onChange={(event) =>
+                  handleMaxReplicasChange(event.target.value)
+                }
                 type="number"
                 id={`${serviceKey}.maxReplicas`}
                 placeholder="10"
                 disabled={!formValues[serviceKey].autoscale}
-                className="max-w-40"
+                className="max-w-28"
                 hideEmptyHelperText
                 error={!!formState.errors?.[serviceKey]?.maxReplicas}
-                helperText={
-                  formState.errors?.[serviceKey]?.maxReplicas?.message
-                }
                 fullWidth
                 autoComplete="off"
               />
             </Box>
           </Box>
-          <Box className="flex flex-row items-center gap-3">
+          <Box className="flex flex-row gap-3 items-center">
             <ControlledSwitch
               {...register(`${serviceKey}.autoscale`)}
               onChange={() => triggerValidation(`${serviceKey}.replicas`)}
@@ -266,7 +273,7 @@ export default function ServiceResourcesFormFragment({
             <Tooltip
               title={`Enable autoscaler to automatically provision extra ${title} replicas when needed.`}
             >
-              <InfoOutlinedIcon className="h-4 w-4 text-black" />
+              <InfoOutlinedIcon className="w-4 h-4 text-black" />
             </Tooltip>
           </Box>
         </Box>
