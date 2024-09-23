@@ -261,6 +261,10 @@ export default function NavTree() {
       Boolean(navTree.items[item]),
     );
 
+    // dataProvider.onDidChangeTreeDataEmitter.emit(
+    //   Object.values(navTree.items).map((item) => item.index),
+    // );
+
     dataProvider.onDidChangeTreeDataEmitter.emit(validItems);
   }, [dataProvider, expandedItems, focusedItem, navTree.items]);
 
@@ -331,13 +335,8 @@ export default function NavTree() {
                   className={cn(
                     item?.index === 'organizations' && 'font-bold',
                     context.isFocused ? 'font-bold text-primary-main' : '',
-                    'max-w-52 truncate', // Add this utility for ellipsis
+                    'max-w-52 truncate',
                   )}
-                  style={{
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
                 >
                   {item.data.name}
                 </span>

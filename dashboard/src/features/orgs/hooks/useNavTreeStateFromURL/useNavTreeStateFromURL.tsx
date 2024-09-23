@@ -20,8 +20,8 @@ const useNavTreeStateFromURL = (): TreeState => {
 
   // Identify project and settings pages based on the URL pattern
   const isSettingsPage = pathSegments.includes('settings');
-  const projectPage = pathSegments[5] || null;
-  const settingsPage = isSettingsPage ? pathSegments[6] || null : null;
+  const projectPage = pathSegments[3] || null;
+  const settingsPage = isSettingsPage ? pathSegments[4] || null : null;
 
   return useMemo(() => {
     if (!orgSlug) {
