@@ -16,6 +16,7 @@ import {
   MIN_SERVICE_VCPU,
 } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import {
+  RESOURCE_MEMORY_LOCKED_STEP,
   RESOURCE_MEMORY_STEP,
   RESOURCE_VCPU_STEP,
 } from '@/utils/constants/common';
@@ -58,6 +59,9 @@ export default function ServiceResourcesFormFragment({
   } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
   const serviceValues = formValues[serviceKey];
+
+  const isRatioLocked = serviceValues.replicas > 1 || serviceValues.autoscale;
+  const resourceMemoryStep = isRatioLocked ? RESOURCE_MEMORY_LOCKED_STEP : RESOURCE_MEMORY_STEP;
 
   // Total allocated CPU for all resources
   const totalAllocatedVCPU = Object.keys(formValues)
@@ -112,6 +116,10 @@ export default function ServiceResourcesFormFragment({
 
     setValue(`${serviceKey}.vcpu`, updatedVCPU, { shouldDirty: true });
 
+    if (isRatioLocked) {
+      setValue(`${serviceKey}.memory`, updatedVCPU * 2.048, { shouldDirty: true });
+    }
+
     // trigger validation for "replicas" field
     if (!disableReplicas) {
       triggerValidation(`${serviceKey}.replicas`);
@@ -126,6 +134,10 @@ export default function ServiceResourcesFormFragment({
     }
 
     setValue(`${serviceKey}.memory`, updatedMemory, { shouldDirty: true });
+
+    if (isRatioLocked) {
+      setValue(`${serviceKey}.vcpu`, updatedMemory / 2.048, { shouldDirty: true });
+    }
 
     // trigger validation for "replicas" field
     if (!disableReplicas) {
@@ -196,7 +208,7 @@ export default function ServiceResourcesFormFragment({
           value={serviceValues.memory}
           onChange={(_event, value) => handleMemoryChange(value.toString())}
           max={MAX_SERVICE_MEMORY}
-          step={RESOURCE_MEMORY_STEP}
+          step={resourceMemoryStep}
           allowed={allowedMemory}
           aria-label={`${title} Memory`}
           marks
