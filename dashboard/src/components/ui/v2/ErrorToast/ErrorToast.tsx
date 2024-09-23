@@ -93,7 +93,7 @@ export default function ErrorToast({
           style={{
             backgroundColor: getToastBackgroundColor(),
           }}
-          className="flex max-w-xl flex-col space-y-4 rounded-lg p-4 text-white"
+          className="flex w-full max-w-xl flex-col space-y-4 rounded-lg p-4 text-white"
           initial={{
             opacity: 0,
             y: 100,
@@ -121,14 +121,15 @@ export default function ErrorToast({
             >
               <XIcon className="h-4 w-4 text-white" />
             </button>
-            <p className="flex-grow overflow-hidden text-ellipsis">
+            <span className="flex-grow overflow-hidden break-words">
               {msg ?? 'An unkown error has occured, please try again later!'}
-            </p>
+            </span>
 
             <button
               type="button"
               onClick={() => setShowInfo(!showInfo)}
               className="flex flex-shrink-0 flex-row items-center justify-center space-x-2 text-white"
+              aria-label="Show error details"
             >
               <span>Info</span>
               {showInfo ? (
