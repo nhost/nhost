@@ -1,0 +1,110 @@
+---
+title: 'Service Replicas and Autoscaler'
+description: 'High Availability and Fault Tolerance'
+icon: clone
+---
+
+# Service Replicas
+
+Service Replicas allows for multiple instances (or replicas) of your services, enhancing availability and fault tolerance of your backend infrastructure. By distributing user requests among replicas, your backend can handle more traffic and provide a better experience to your users.
+
+![Service Replicas](/images/platform/service-replicas/replicas-diagram.png)
+
+## Benefits
+
+- Improved fault tolerance: Multiple replicas ensure that if one instance crashes duo to an unexpected issue, the other replicas can continue to serve user requests.
+- Improved availability: Distributing user requests among multiple replicas allows your apps to handle more traffic and maintain a high level of performance.
+- Load balancing: Distributing workloads evenly among replicas to prevent bottlenecks and ensure smooth performance during peak times.
+
+<Info>Replicas can be set for Hasura, Auth, Storage, and Run Services, Postgres support is coming next</Info>
+
+
+## Configuration
+
+To setup replicas for your project, you can either use the Dashboard or the Config.
+
+<Note>When configuring multiple replicas of a service, you must adhere to a 1:2 ratio between vCPU and RAM for that service</Note>
+
+<Tabs>
+  <Tab title="Config">
+    ```bash nhost/nhost.toml
+    [hasura.resources]
+    replicas = 2
+
+    [auth.resources]
+    replicas = 2
+
+    [storage.resources]
+    replicas = 2
+  ```
+  </Tab>
+  <Tab title="Dashboard">
+    ![Service Replicas](/images/platform/service-replicas/autoscaler-config.png)
+  </Tab>
+</Tabs>
+
+# Autoscaler
+
+The autoscaler is a powerful feature that dynamically manages the number of replicas for your services based on application load. This document explains how the autoscaler works and its key features.
+
+## Overview
+
+When enabled, the autoscaler continuously monitors the CPU usage of your service. Its primary goal is to maintain an average CPU utilization of approximately 50% across all replicas.
+
+## How It Works
+
+### Scaling Up
+
+If the CPU utilization exceeds 50% for a sustained period and the number of replicas is below the configured maximum, the autoscaler will increase the number of replicas.
+
+### Scaling Down
+
+Conversely, if the average CPU utilization falls below 50% for a sustained period and the number of replicas is above the configured minimum, the autoscaler will decrease the number of replicas.
+
+### Key Features
+
+- Automatic Management: Eliminates the need for manual scaling interventions.
+- Load-Based Scaling: Scales based on actual CPU utilization, ensuring efficient resource use.
+- Configurable Thresholds: Allows setting of minimum and maximum replica counts.
+- Balanced Performance: Aims to maintain optimal performance by targeting 50% CPU utilization.
+
+## Example
+
+Below you can see a graph illustrating the above with a configuration of 1 replica as minimum value and 10 as maximum:
+
+![replicas/cpu](/images/platform/service-replicas/autoscaler-cpu.png)
+
+For more details and some load testing demos you can refer to our [blog post](https://nhost.io/blog/autoscaler).
+
+## Configuration
+
+To configure the autoscaler you can either use the `nhost.toml` configuration file or the dashboard:
+
+<Tabs>
+  <Tab title="Config">
+    ```bash nhost/nhost.toml
+    [hasura.resources]
+    replicas = 2
+
+    [hasura.resources.autoscaler]
+    maxReplicas = 20
+
+    [auth.resources]
+    replicas = 2
+
+    [auth.resources.autoscaler]
+    maxReplicas = 20
+
+    [storage.resources]
+    replicas = 2
+
+    [storage.resources.autoscaler]
+    maxReplicas = 20
+  ```
+  </Tab>
+  <Tab title="Dashboard">
+    ![Service Replicas](/images/platform/service-replicas/autoscaler-config.png)
+  </Tab>
+</Tabs>
+
+<Note>The replicas setting will act as the minimum amount of replicas when the autoscaler is enabled</Note>
