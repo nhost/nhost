@@ -36,7 +36,7 @@ export default function ServicesPage() {
     refetch,
   } = useRunServices();
 
-  const isPlanFree = currentProject?.plan?.isFree;
+  const isPlanFree = currentProject?.legacyPlan?.isFree;
 
   const checkConfigFromQuery = useCallback(
     (base64Config: string) => {

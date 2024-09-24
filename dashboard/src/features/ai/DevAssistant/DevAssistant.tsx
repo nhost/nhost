@@ -152,7 +152,7 @@ export default function DevAssistant() {
     }
   };
 
-  if (isPlatform && currentProject?.plan?.isFree) {
+  if (isPlatform && currentProject?.legacyPlan?.isFree) {
     return (
       <Box className="p-4">
         <UpgradeToProBanner
@@ -170,7 +170,7 @@ export default function DevAssistant() {
 
   if (
     (isPlatform &&
-      !currentProject?.plan?.isFree &&
+      !currentProject?.legacyPlan?.isFree &&
       !currentProject.config?.ai) ||
     !isGraphiteEnabled
   ) {

@@ -8,8 +8,8 @@ import { Text } from '@/components/ui/v2/Text';
 import { WorkspaceAndProjectList } from '@/features/projects/common/components/WorkspaceAndProjectList';
 import { WorkspaceSidebar } from '@/features/projects/common/components/WorkspaceSidebar';
 import {
-  useGetAllWorkspacesAndProjectsQuery,
-  type GetAllWorkspacesAndProjectsQuery,
+  useGetOrganizationsQuery,
+  type GetOrganizationsQuery,
 } from '@/utils/__generated__/graphql';
 import { NetworkStatus } from '@apollo/client';
 import { darken } from '@mui/system';
@@ -21,11 +21,11 @@ export default function IndexPage() {
   const user = useUserData();
   const [, setPollInterval] = useState(1_000);
 
-  // keep polling for workspaces until there is a workspace available.
-  // We do this because when a user signs up a workspace is created automatically
-  // and the serverless function can take some time to complete.
+  // keep polling for organizations until there is at least one available (default org)
+  // We do this because when a user signs up a default org is created automatically
+  // and that could take some time
   const { data, startPolling, stopPolling, networkStatus } =
-    useGetAllWorkspacesAndProjectsQuery({
+    useGetOrganizationsQuery({
       skip: !user,
       notifyOnNetworkStatusChange: true,
       onError: () => {
@@ -36,8 +36,8 @@ export default function IndexPage() {
           return newInterval;
         });
       },
-      onCompleted: (queryData: GetAllWorkspacesAndProjectsQuery) => {
-        if (!queryData?.workspaces.length) {
+      onCompleted: (queryData: GetOrganizationsQuery) => {
+        if (!queryData?.organizations.length) {
           setPollInterval(1000);
           startPolling(1000);
         } else {
@@ -49,18 +49,13 @@ export default function IndexPage() {
 
   // keep showing loading indicator while polling
   const loading = networkStatus === NetworkStatus.loading;
-
-  const numberOfProjects = data?.workspaces.reduce(
-    (projectCount, currentWorkspace) =>
-      projectCount + currentWorkspace.projects.length,
-    0,
-  );
+  const appCount = data?.organizations?.[0]?.plan?.apps?.length || 0;
 
   if ((!data && loading) || !user) {
     return <LoadingScreen />;
   }
 
-  if (true) {
+  if (appCount === 0) {
     return (
       <Container className="grid grid-cols-1 gap-8 md:grid-cols-4 md:pt-8">
         <Box className="noapps col-span-1 h-80 rounded-md text-center md:col-span-3">
@@ -89,7 +84,7 @@ export default function IndexPage() {
                         `${darken(theme.palette.common.white, 0.1)} !important`,
                     },
                   }}
-                  disabled={data?.workspaces?.length === 0}
+                  disabled={data?.organizations.length === 0}
                 >
                   Create Your First Project
                 </Button>
@@ -98,7 +93,8 @@ export default function IndexPage() {
           </div>
         </Box>
 
-        <WorkspaceSidebar workspaces={data?.workspaces || []} />
+        {/* TODO fetch the legacy workspaces  */}
+        <WorkspaceSidebar workspaces={[]} />
       </Container>
     );
   }
@@ -106,11 +102,11 @@ export default function IndexPage() {
   return (
     <Container className="grid grid-cols-1 gap-8 md:grid-cols-4">
       <WorkspaceAndProjectList
-        workspaces={data?.workspaces || []}
+        workspaces={[]}
         className="col-span-1 md:col-span-3"
       />
 
-      <WorkspaceSidebar workspaces={data?.workspaces || []} />
+      <WorkspaceSidebar workspaces={[]} />
     </Container>
   );
 }

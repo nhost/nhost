@@ -1,4 +1,4 @@
-import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useProject } from '@/features/orgs/hooks/useProject';
 import { ApplicationStatus } from '@/types/application';
 
 /**
@@ -9,25 +9,25 @@ export default function useAppState(): {
   state: ApplicationStatus;
   message?: string;
 } {
-  const { currentProject } = useCurrentWorkspaceAndProject();
-  const noApplication = !currentProject;
+  const { project } = useProject();
+  const noApplication = !project;
 
   if (noApplication) {
     return { state: ApplicationStatus.Empty };
   }
 
-  const emptyApplicationStates = !currentProject.appStates;
+  const emptyApplicationStates = !project.appStates;
 
   if (noApplication || emptyApplicationStates) {
     return { state: ApplicationStatus.Empty };
   }
 
-  if (currentProject.appStates?.length === 0) {
+  if (project.appStates?.length === 0) {
     return { state: ApplicationStatus.Empty };
   }
 
   return {
-    state: currentProject.appStates[0].stateId,
-    message: currentProject.appStates[0].message,
+    state: project.appStates[0].stateId,
+    message: project.appStates[0].message,
   };
 }

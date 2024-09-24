@@ -63,7 +63,7 @@ export const mockApplication: Project = {
   githubRepository: { fullName: 'test/git-project' },
   repositoryProductionBranch: null,
   nhostBaseFolder: null,
-  plan: {
+  legacyPlan: {
     id: '1',
     name: 'Starter',
     isFree: true,
