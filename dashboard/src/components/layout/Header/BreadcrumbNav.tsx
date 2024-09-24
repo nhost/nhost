@@ -9,6 +9,7 @@ import {
   Slash,
   UserIcon,
 } from 'lucide-react';
+import { useMemo } from 'react';
 
 import { Logo } from '@/components/presentational/Logo';
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
@@ -22,6 +23,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from '@/components/ui/v3/breadcrumb';
+import { useRouter } from 'next/router';
 import NavComboBox from './NavComboBox';
 import OrgsComboBox from './OrgsComboBox';
 import ProjectsComboBox from './ProjectsComboBox';
@@ -100,13 +102,27 @@ const projectSettingsOptions = [
 }));
 
 const orgPages = [
-  { label: 'General', value: 'general' },
+  { label: 'Settings', value: 'settings' },
   { label: 'Projects', value: 'projects' },
-  { label: 'Team', value: 'team' },
+  { label: 'Members', value: 'members' },
   { label: 'Billing', value: 'billing' },
 ];
 
 export default function BreadcrumbNav() {
+  const router = useRouter();
+
+  // Extract orgSlug and appSlug from router.query
+  const { orgSlug, appSlug } = router.query;
+
+  // Extract path segments from the URL
+  const pathSegments = useMemo(() => router.asPath.split('/'), [router.asPath]);
+
+  // Identify project and settings pages based on the URL pattern
+  const isSettingsPage = pathSegments.includes('settings');
+  const projectPage = pathSegments[3] || null;
+  const settingsPage = isSettingsPage ? pathSegments[4] || null : null;
+  const showNavigationBreadCrumbs = router.route !== '/orgs/verify';
+
   return (
     <Breadcrumb>
       <BreadcrumbList>
@@ -116,51 +132,67 @@ export default function BreadcrumbNav() {
           </div>
         </BreadcrumbItem>
 
-        <BreadcrumbSeparator>
-          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
-        </BreadcrumbSeparator>
+        {showNavigationBreadCrumbs && (
+          <>
+            <BreadcrumbSeparator>
+              <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+            </BreadcrumbSeparator>
 
-        <BreadcrumbItem>
-          <OrgsComboBox />
-        </BreadcrumbItem>
+            <BreadcrumbItem>
+              <OrgsComboBox />
+            </BreadcrumbItem>
 
-        <BreadcrumbSeparator>
-          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
-        </BreadcrumbSeparator>
+            <BreadcrumbSeparator>
+              <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+            </BreadcrumbSeparator>
 
-        <BreadcrumbItem>
-          <NavComboBox value={orgPages[0]} options={orgPages} />
-        </BreadcrumbItem>
+            {projectPage && (
+              <BreadcrumbItem>
+                <NavComboBox
+                  value={orgPages.find((p) => p.value === projectPage)}
+                  options={orgPages}
+                  onSelect={(projectPageOption) =>
+                    router.push(`/orgs/${orgSlug}/${projectPageOption.value}`)
+                  }
+                />
+              </BreadcrumbItem>
+            )}
+          </>
+        )}
 
-        <BreadcrumbSeparator>
-          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
-        </BreadcrumbSeparator>
+        {showNavigationBreadCrumbs && appSlug && (
+          <>
+            <BreadcrumbSeparator>
+              <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+            </BreadcrumbSeparator>
 
-        <BreadcrumbItem>
-          <ProjectsComboBox />
-        </BreadcrumbItem>
+            <BreadcrumbItem>
+              <ProjectsComboBox />
+            </BreadcrumbItem>
 
-        <BreadcrumbSeparator>
-          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
-        </BreadcrumbSeparator>
+            <BreadcrumbSeparator>
+              <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+            </BreadcrumbSeparator>
 
-        <BreadcrumbItem>
-          <NavComboBox
-            value={projectPagesOptions[0]}
-            options={projectPagesOptions}
-          />
-        </BreadcrumbItem>
+            <BreadcrumbItem>
+              <NavComboBox
+                value={projectPagesOptions[0]}
+                options={projectPagesOptions}
+              />
+            </BreadcrumbItem>
 
-        <BreadcrumbSeparator>
-          <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
-        </BreadcrumbSeparator>
+            <BreadcrumbSeparator>
+              <Slash strokeWidth={3.5} className="text-muted-foreground/50" />
+            </BreadcrumbSeparator>
 
-        <BreadcrumbItem>
-          <NavComboBox
-            value={projectSettingsOptions[0]}
-            options={projectSettingsOptions}
-          />
-        </BreadcrumbItem>
+            <BreadcrumbItem>
+              <NavComboBox
+                value={projectSettingsOptions[0]}
+                options={projectSettingsOptions}
+              />
+            </BreadcrumbItem>
+          </>
+        )}
       </BreadcrumbList>
     </Breadcrumb>
   );

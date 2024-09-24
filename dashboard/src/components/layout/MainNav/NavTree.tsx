@@ -12,31 +12,21 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
+import { useNavTreeStateFromURL } from '@/features/orgs/hooks/useNavTreeStateFromURL';
+import { useOrgs, type Org } from '@/features/orgs/hooks/useOrgs';
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
-import { type ReactElement } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useEffect, useMemo, type ReactElement } from 'react';
+
 import {
-  ControlledTreeEnvironment,
+  StaticTreeDataProvider,
   Tree,
+  UncontrolledTreeEnvironment,
   type TreeItem,
   type TreeItemIndex,
 } from 'react-complex-tree';
-
-const orgs = [
-  {
-    name: "Hassan's org",
-    isFree: false,
-    plan: 'Pro',
-    projects: [
-      { name: 'eu-central-1.celsia' },
-      { name: 'joyent' },
-      { name: 'react-apollo' },
-    ],
-  },
-  { name: 'nhost-testing', isFree: true, plan: 'Starter', projects: [] },
-  { name: 'uflip', isFree: false, plan: 'Team', projects: [] },
-];
 
 const projectPages = [
   {
@@ -79,68 +69,77 @@ const projectSettingsPages = [
   'AI',
 ];
 
-const createOrganization = (org: any) => {
+const createOrganization = (org: Org) => {
   const result = {};
 
-  result[org.name] = {
-    index: org.name,
+  result[org.slug] = {
+    index: org.slug,
     canMove: false,
     isFolder: true,
     children: [
-      `${org.name}-projects`,
-      `${org.name}-settings`,
-      `${org.name}-members`,
-      `${org.name}-billing`,
+      `${org.slug}-projects`,
+      `${org.slug}-settings`,
+      `${org.slug}-members`,
+      `${org.slug}-billing`,
     ],
     data: {
       name: org.name,
+      slug: org.slug,
       type: 'org',
-      isFree: org.isFree,
-      plan: org.plan,
+      isFree: org.plan.isFree,
+      plan: org.plan.name,
+      targetUrl: `/orgs/${org.slug}/projects`, // default to projects
     },
     canRename: false,
   };
 
-  result[`${org.name}-projects`] = {
-    index: `${org.name}-projects`,
+  result[`${org.slug}-projects`] = {
+    index: `${org.slug}-projects`,
     canMove: false,
     isFolder: true,
-    children: org.projects.map((project) => `${org.name}-${project.name}`),
+    children: org.plan.apps.map((app) => `${org.slug}-${app.slug}`),
     data: {
       name: 'Projects',
+      targetUrl: `/orgs/${org.slug}/projects`,
     },
     canRename: false,
   };
 
-  org.projects.forEach((project) => {
-    result[`${org.name}-${project.name}`] = {
-      index: `${org.name}-${project.name}`,
+  org.plan.apps.forEach((app) => {
+    result[`${org.slug}-${app.slug}`] = {
+      index: `${org.slug}-${app.slug}`,
       isFolder: true,
       canMove: false,
       canRename: false,
-      data: { name: project.name, icon: <Box className="h-4 w-4" /> },
+      data: {
+        name: app.name,
+        slug: app.slug,
+        icon: <Box className="h-4 w-4" />,
+        targetUrl: `/orgs/${org.slug}/projects/${app.slug}/overview`,
+      },
       children: projectPages.map(
-        (page) => `${org.name}-${project.name}-${page.name}`,
+        (page) => `${org.slug}-${app.slug}-${page.name}`,
       ),
     };
   });
 
-  org.projects.forEach((_project) => {
+  org.plan.apps.forEach((_app) => {
     projectPages.forEach((_page) => {
-      result[`${org.name}-${_project.name}-${_page.name}`] = {
-        index: `${org.name}-${_project.name}-${_page.name}`,
+      result[`${org.slug}-${_app.slug}-${_page.name}`] = {
+        index: `${org.slug}-${_app.slug}-${_page.name}`,
         canMove: false,
         isFolder: _page.name === 'Settings',
         children:
           _page.name === 'Settings'
             ? projectSettingsPages.map(
-                (p) => `${org.name}-${_project.name}-settings-${p}`,
+                (p) => `${org.slug}-${_app.slug}-settings-${p}`,
               )
             : undefined,
         data: {
           name: _page.name,
           icon: _page.icon,
           isProjectPage: true,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.slug}/${_page.name.toLowerCase()}`,
         },
         canRename: false,
       };
@@ -148,48 +147,52 @@ const createOrganization = (org: any) => {
 
     // add the settings pages
     projectSettingsPages.forEach((p) => {
-      result[`${org.name}-${_project.name}-settings-${p}`] = {
-        index: `${org.name}-${_project.name}-settings-${p}`,
+      result[`${org.slug}-${_app.slug}-settings-${p}`] = {
+        index: `${org.slug}-${_app.slug}-settings-${p}`,
         canMove: false,
         isFolder: false,
         children: undefined,
         data: {
           name: p,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.slug}/settings/${p.toLowerCase().replace(' ', '-')}`,
         },
         canRename: false,
       };
     });
   });
 
-  result[`${org.name}-settings`] = {
-    index: `${org.name}-settings`,
+  result[`${org.slug}-settings`] = {
+    index: `${org.slug}-settings`,
     canMove: false,
     isFolder: false,
     children: [],
     data: {
       name: 'Settings',
+      targetUrl: `/orgs/${org.slug}/settings`,
     },
     canRename: false,
   };
 
-  result[`${org.name}-members`] = {
-    index: `${org.name}-members`,
+  result[`${org.slug}-members`] = {
+    index: `${org.slug}-members`,
     canMove: false,
     isFolder: false,
     children: [],
     data: {
       name: 'Members',
+      targetUrl: `/orgs/${org.slug}/members`,
     },
     canRename: false,
   };
 
-  result[`${org.name}-billing`] = {
-    index: `${org.name}-billing`,
+  result[`${org.slug}-billing`] = {
+    index: `${org.slug}-billing`,
     canMove: false,
     isFolder: false,
     children: [],
     data: {
       name: 'Billing',
+      targetUrl: `/orgs/${org.slug}/billing`,
     },
     canRename: false,
   };
@@ -199,58 +202,82 @@ const createOrganization = (org: any) => {
 
 type NavItem = {
   name: string;
+  slug?: string;
   type?: string;
   isFree?: boolean;
   plan?: string;
   icon?: ReactElement;
+  targetUrl?: string;
 };
 
-// Initialize navTree
-const navTree: { items: Record<TreeItemIndex, TreeItem<NavItem>> } = {
-  items: {
-    root: {
-      index: 'root',
-      canMove: false,
-      isFolder: true,
-      children: ['Organizations'],
-      data: { name: 'root' },
-      canRename: false,
+const buildNavTreeData = (
+  orgs: Org[],
+): { items: Record<TreeItemIndex, TreeItem<NavItem>> } => {
+  const navTree = {
+    items: {
+      root: {
+        index: 'root',
+        canMove: false,
+        isFolder: true,
+        children: ['organizations'],
+        data: { name: 'root' },
+        canRename: false,
+      },
+      organizations: {
+        index: 'organizations',
+        canMove: false,
+        isFolder: true,
+        children: orgs.map((org) => org.slug),
+        data: { name: 'Organizations' },
+        canRename: false,
+      },
+      ...orgs.reduce(
+        (acc, org) => ({ ...acc, ...createOrganization(org) }),
+        {},
+      ),
     },
-    Organizations: {
-      index: 'Organizations',
-      canMove: false,
-      isFolder: true,
-      children: orgs.map((org) => org.name), // Link organization names
-      data: { name: 'Organizations' },
-      canRename: false,
-    },
-    ...orgs.reduce((acc, org) => ({ ...acc, ...createOrganization(org) }), {}),
-  },
+  };
+
+  return navTree;
 };
 
 export default function NavTree() {
-  const [focusedItem, setFocusedItem] = useSSRLocalStorage(
-    'nav-tree-focused-item',
-    null,
-  );
-  const [expandedItems, setExpandedItems] = useSSRLocalStorage(
-    'nav-tree-expanded-items',
-    ['Organizations', orgs[0].name, `${orgs[0].name}-projects`],
-  );
-  const [selectedItems, setSelectedItems] = useSSRLocalStorage(
-    'nav-tree-selected-items',
-    [],
+  const { asPath } = useRouter();
+  const { orgs } = useOrgs();
+  const navTree = buildNavTreeData(orgs);
+  const { expandedItems, focusedItem } = useNavTreeStateFromURL();
+
+  const dataProvider = useMemo(
+    () =>
+      new StaticTreeDataProvider(navTree.items, (item) => ({
+        ...item,
+        data: item.data,
+      })),
+    [navTree.items],
   );
 
+  useEffect(() => {
+    const validItems = [...expandedItems, focusedItem].filter((item) =>
+      Boolean(navTree.items[item]),
+    );
+
+    // dataProvider.onDidChangeTreeDataEmitter.emit(
+    //   Object.values(navTree.items).map((item) => item.index),
+    // );
+
+    dataProvider.onDidChangeTreeDataEmitter.emit(validItems);
+  }, [dataProvider, expandedItems, focusedItem, navTree.items]);
+
   return (
-    <ControlledTreeEnvironment
-      items={navTree.items}
+    <UncontrolledTreeEnvironment
+      key={asPath}
+      dataProvider={dataProvider}
       getItemTitle={(item) => item.data.name}
       viewState={{
         'nav-tree': {
           focusedItem,
           expandedItems,
-          selectedItems,
+          selectedItems: null,
         },
       }}
       renderItemTitle={({ title }) => <span>{title}</span>}
@@ -274,7 +301,7 @@ export default function NavTree() {
           </Button>
         );
       }}
-      renderItem={({ title, arrow, context, item, children }) => (
+      renderItem={({ arrow, context, item, children }) => (
         <li
           {...context.itemContainerWithChildrenProps}
           className="flex flex-col gap-1"
@@ -282,6 +309,7 @@ export default function NavTree() {
           <div className="flex flex-row items-center gap-1">
             {arrow}
             <Button
+              asChild
               variant={context.isFocused ? 'secondary' : 'ghost'}
               onClick={() => {
                 if (item.data.type === 'org') {
@@ -292,35 +320,38 @@ export default function NavTree() {
               }}
               className="flex h-8 w-full flex-row justify-start gap-2 px-1"
             >
-              {item.data.icon && (
+              <Link href={item.data.targetUrl || '/'}>
+                {item.data.icon && (
+                  <span
+                    className={cn(
+                      'flex items-start',
+                      context.isFocused ? 'text-primary-main' : '',
+                    )}
+                  >
+                    {item.data.icon}
+                  </span>
+                )}
                 <span
                   className={cn(
-                    'flex items-start',
-                    context.isFocused ? 'text-primary-main' : '',
+                    item?.index === 'organizations' && 'font-bold',
+                    context.isFocused ? 'font-bold text-primary-main' : '',
+                    'max-w-52 truncate',
                   )}
                 >
-                  {item.data.icon}
+                  {item.data.name}
                 </span>
-              )}
-              <span
-                className={cn(
-                  item.index === 'Organizations' && 'font-bold',
-                  context.isFocused ? 'font-bold text-primary-main' : '',
+                {item.data?.plan && (
+                  <Badge
+                    variant={item.data.isFree ? 'outline' : 'default'}
+                    className={cn(
+                      'h-5 px-[6px] text-[10px]',
+                      item.data.isFree ? 'bg-muted' : '',
+                    )}
+                  >
+                    {item.data.plan}
+                  </Badge>
                 )}
-              >
-                {title}
-              </span>
-              {item.data?.plan && (
-                <Badge
-                  variant={item.data.isFree ? 'outline' : 'default'}
-                  className={cn(
-                    'h-5 px-[6px] text-[10px]',
-                    item.data.isFree ? 'bg-muted' : '',
-                  )}
-                >
-                  {item.data.plan}
-                </Badge>
-              )}
+              </Link>
             </Button>
           </div>
           <div>{children}</div>
@@ -352,20 +383,19 @@ export default function NavTree() {
         );
       }}
       canSearch={false}
-      onFocusItem={(item) => setFocusedItem(item.index)}
-      onExpandItem={(item) =>
-        setExpandedItems([...expandedItems, item.index as string])
-      }
-      onCollapseItem={(item) =>
-        setExpandedItems(
-          expandedItems.filter(
-            (expandedItemIndex) => expandedItemIndex !== item.index,
-          ),
-        )
-      }
-      onSelectItems={(items) => setSelectedItems(items)}
+      // onFocusItem={(item) => setFocusedItem(item.index)}
+      // onExpandItem={(item) =>
+      //   setExpandedItems([...expandedItems, item.index as string])
+      // }
+      // onCollapseItem={(item) =>
+      //   setExpandedItems(
+      //     expandedItems.filter(
+      //       (expandedItemIndex) => expandedItemIndex !== item.index,
+      //     ),
+      //   )
+      // }
     >
       <Tree treeId="nav-tree" rootItem="root" treeLabel="Navigation Tree" />
-    </ControlledTreeEnvironment>
+    </UncontrolledTreeEnvironment>
   );
 }

@@ -1,17 +1,41 @@
-import { DeleteOrg } from '@/features/orgs/components/general/components/DeleteOrg';
-import { GeneralSettings } from '@/features/orgs/components/general/components/GeneralSettings';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { Container } from '@/components/layout/Container';
+// import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+// import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+// import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';
+// import { WorkspaceApps } from '@/features/projects/workspaces/components/WorkspaceApps';
+// import { WorkspaceHeader } from '@/features/projects/workspaces/components/WorkspaceHeader';
+// import { WorkspaceInvoices } from '@/features/projects/workspaces/components/WorkspaceInvoices';
+// import { WorkspaceMembers } from '@/features/projects/workspaces/components/WorkspaceMembers';
+// import { WorkspacePaymentMethods } from '@/features/projects/workspaces/components/WorkspacePaymentMethods';
+// import { NextSeo } from 'next-seo';
 import type { ReactElement } from 'react';
 
 export default function OrgSettings() {
+  // const { currentWorkspace, loading } = useCurrentWorkspaceAndProject();
+
+  // useNotFoundRedirect();
+
+  // if (!currentWorkspace || loading) {
+  //   return <LoadingScreen />;
+  // }
+
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto bg-accent p-4">
-      <GeneralSettings />
-      <DeleteOrg />
-    </div>
+    <Container className="">
+      {/* Orgs Header: General, Projects, Team, Billing */}
+
+      <span>Settings</span>
+
+      {/* <WorkspaceHeader />
+      <WorkspaceApps />
+      <WorkspacePaymentMethods />
+      <WorkspaceInvoices />
+      <WorkspaceMembers />
+      <NextSeo title={currentWorkspace.name} /> */}
+    </Container>
   );
 }
 
 OrgSettings.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return <AuthenticatedLayout>{page}</AuthenticatedLayout>;
 };

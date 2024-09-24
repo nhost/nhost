@@ -5,6 +5,7 @@ import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useNavigationVisible } from '@/features/projects/common/hooks/useNavigationVisible';
 import { useProjectRoutes } from '@/features/projects/common/hooks/useProjectRoutes';
 import { NextSeo } from 'next-seo';
 import { useRouter } from 'next/router';
@@ -41,7 +42,6 @@ function ProjectLayoutContent({
       ),
     );
 
-  // TODO(orgs) 1
   // useNotFoundRedirect();
 
   useEffect(() => {

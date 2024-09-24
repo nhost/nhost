@@ -1,4 +1,5 @@
 import { useUI } from '@/components/common/UIProvider';
+import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
@@ -8,8 +9,7 @@ import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useOrgs } from '@/features/orgs/hooks/useOrgs';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { getErrorMessage } from '@/utils/getErrorMessage';
@@ -333,14 +333,14 @@ export function NewProjectPageContent({
 }
 
 export default function NewProjectPage() {
-  const { currentOrg, orgs, loading: loadingOrgs } = useOrgs();
-  const { data, loading: loadingPlans, error } = usePrefetchNewAppQuery();
+  const { currentOrg, orgs } = useOrgs();
+  const { data, loading, error } = usePrefetchNewAppQuery();
 
   if (error) {
     throw error;
   }
 
-  if (loadingOrgs || loadingPlans || !data) {
+  if (loading) {
     return <ActivityIndicator delay={500} label="Loading regions..." />;
   }
 
@@ -352,8 +352,8 @@ export default function NewProjectPage() {
   const preSelectedRegion = regions.find((region) => region.active);
 
   return (
-    <div className="flex h-full w-full items-start justify-center p-4">
-      <div className="flex w-full max-w-4xl flex-col items-center justify-center space-y-8 overflow-hidden rounded-md">
+    <div className="flex h-full w-full items-start justify-center bg-muted p-4">
+      <div className="flex w-full max-w-4xl flex-col items-center justify-center space-y-8 overflow-hidden rounded-md border bg-background">
         <NewProjectPageContent
           regions={regions}
           orgs={orgs}
@@ -366,5 +366,5 @@ export default function NewProjectPage() {
 }
 
 NewProjectPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return <AuthenticatedLayout title="New Project">{page}</AuthenticatedLayout>;
 };

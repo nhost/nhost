@@ -171,7 +171,7 @@ export default function DevAssistant() {
   if (
     (isPlatform &&
       !currentProject?.legacyPlan?.isFree &&
-      !currentProject?.config?.ai) ||
+      !currentProject.config?.ai) ||
     !isGraphiteEnabled
   ) {
     return (
