@@ -411,10 +411,6 @@ test('should take replicas into account when confirming the resources', async ()
 
   render(<ResourcesForm />);
 
-  const hasuraReplicasInput = screen.getAllByPlaceholderText('Replicas')[0];
-  const authReplicasInput = screen.getAllByPlaceholderText('Replicas')[1];
-  const storageReplicasInput = screen.getAllByPlaceholderText('Replicas')[2];
-
   expect(
     await screen.findByRole('slider', { name: /total available vcpu/i }),
   ).toBeInTheDocument();
@@ -436,6 +432,7 @@ test('should take replicas into account when confirming the resources', async ()
     4 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
+  const hasuraReplicasInput = screen.getAllByPlaceholderText('Replicas')[0];
   await user.type(hasuraReplicasInput, '3');
 
   changeSliderValue(
@@ -447,6 +444,7 @@ test('should take replicas into account when confirming the resources', async ()
     5 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
+  const authReplicasInput = screen.getAllByPlaceholderText('Replicas')[1];
   // setting up auth
   await user.type(authReplicasInput, '2');
 
@@ -459,6 +457,7 @@ test('should take replicas into account when confirming the resources', async ()
     3 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
+  const storageReplicasInput = screen.getAllByPlaceholderText('Replicas')[2];
   // setting up storage
   await user.type(storageReplicasInput, '4');
 
