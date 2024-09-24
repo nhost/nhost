@@ -5,6 +5,7 @@ import { InfoOutlinedIcon } from '@/components/ui/v2/icons/InfoOutlinedIcon';
 import { Input } from '@/components/ui/v2/Input';
 import { Slider } from '@/components/ui/v2/Slider';
 import { Text } from '@/components/ui/v2/Text';
+import { Link } from '@/components/ui/v2/Link';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { prettifyMemory } from '@/features/projects/resources/settings/utils/prettifyMemory';
 import { prettifyVCPU } from '@/features/projects/resources/settings/utils/prettifyVCPU';
@@ -23,6 +24,7 @@ import {
 } from '@/utils/constants/common';
 import debounce from 'lodash.debounce';
 import { useFormContext, useWatch } from 'react-hook-form';
+import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 
 export interface ServiceResourcesFormFragmentProps {
   /**
@@ -302,6 +304,24 @@ export default function ServiceResourcesFormFragment({
           </Box>
         </Box>
       )}
+
+      {
+        !disableReplicas && (
+          <Text>
+            Learn more about{' '}
+            <Link
+              href="https://docs.nhost.io/platform/service-replicas"
+              target="_blank"
+              rel="noopener noreferrer"
+              underline="hover"
+              className="font-medium"
+            >
+              Service Replicas
+              <ArrowSquareOutIcon className="w-4 h-4 ml-1" />
+            </Link>
+          </Text>
+        )
+      }
     </Box>
   );
 }
