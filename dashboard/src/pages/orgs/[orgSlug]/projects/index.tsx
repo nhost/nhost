@@ -2,7 +2,7 @@ import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v3/button';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useOrgs } from '@/features/orgs/hooks/useOrgs';
 import { useGetOrganizationProjectsQuery } from '@/utils/__generated__/graphql';
 // import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 // import { useNotFoundRedirect } from '@/features/projects/common/hooks/useNotFoundRedirect';

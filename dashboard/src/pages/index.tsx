@@ -26,7 +26,7 @@ export default function IndexPage() {
   // and that could take some time
   const { data, startPolling, stopPolling, networkStatus } =
     useGetOrganizationsQuery({
-      skip: !user, 
+      skip: !user,
       notifyOnNetworkStatusChange: true,
       onError: () => {
         // When there's an error (graphql, network error) apply an exponential backoff strategy
@@ -49,7 +49,7 @@ export default function IndexPage() {
 
   // keep showing loading indicator while polling
   const loading = networkStatus === NetworkStatus.loading;
-  const appCount = data?.organizations?.[0]?.apps?.length || 0;
+  const appCount = data?.organizations?.[0]?.plan?.apps?.length || 0;
 
   if ((!data && loading) || !user) {
     return <LoadingScreen />;

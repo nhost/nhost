@@ -28,6 +28,11 @@ export default function UnauthenticatedLayout({
   useEffect(() => {
     (async () => {
       if (!isPlatform || (!isLoading && isAuthenticated)) {
+        // TODO(orgs) discuss how this should work
+        // if we should make a page with all orgs and then the user can select one
+        // fetch the orgs
+        // then redirect to the first one
+        // /org-slug/projects
         try {
           const {
             data: { organizations },
@@ -37,7 +42,7 @@ export default function UnauthenticatedLayout({
 
           router.push(`/orgs/${defaultOrg.slug}/projects`);
         } catch (error) {
-          console.error('Error redirecting to Personal Organization');
+          console.log('Error: no orgs after signup');
         }
         // router.push('/');
       }

@@ -35,6 +35,24 @@ export default function PostCheckout() {
   }, [isLoading, isAuthenticated, router, isPlatform]);
 
   useEffect(() => {
+    const redirectToOrg = async (orgId: string) => {
+      try {
+        const { data } = await fetchOrg({
+          variables: { orgId },
+        });
+
+        const orgSlug = data?.organizations?.[0]?.slug;
+
+        if (!orgSlug) {
+          throw new Error('Organization not found or missing slug');
+        }
+
+        await router.push(`/orgs/${orgSlug}/projects`);
+      } catch (error) {
+        console.error('Error redirecting to organization:', error);
+      }
+    };
+
     (async () => {
       if (session_id && isAuthenticated) {
         setLoading(true);
@@ -49,14 +67,14 @@ export default function PostCheckout() {
               },
             });
 
-            const { Status, Slug } = billingPostOrganizationRequest;
+            const { Status, OrganizationID } = billingPostOrganizationRequest;
 
             setLoading(false);
             setPostOrganizationRequestStatus(Status);
 
             switch (Status) {
               case CheckoutStatus.Completed:
-                await router.push(`/orgs/${Slug}/projects`);
+                redirectToOrg(OrganizationID);
                 break;
 
               case CheckoutStatus.Expired:
@@ -85,13 +103,13 @@ export default function PostCheckout() {
   }, [session_id, postOrganizationRequest, router, fetchOrg, isAuthenticated]);
 
   return (
-    <BaseLayout className="flex flex-col h-screen">
+    <BaseLayout className="flex h-screen flex-col">
       <Header className="flex py-1" />
-      <div className="flex flex-col w-full h-screen">
+      <div className="flex h-screen w-full flex-col">
         <RetryableErrorBoundary errorMessageProps={{ className: 'pt-20' }}>
           <div className="relative flex flex-auto overflow-x-hidden">
             {loading && (
-              <div className="flex flex-col items-center justify-center w-full h-full space-y-2">
+              <div className="flex h-full w-full flex-col items-center justify-center space-y-2">
                 <ActivityIndicator
                   circularProgressProps={{ className: 'w-6 h-6' }}
                 />
@@ -101,7 +119,7 @@ export default function PostCheckout() {
 
             {!loading &&
               postOrganizationRequestStatus === CheckoutStatus.Completed && (
-                <div className="flex flex-col items-center justify-center w-full h-full space-y-2">
+                <div className="flex h-full w-full flex-col items-center justify-center space-y-2">
                   <ActivityIndicator
                     circularProgressProps={{ className: 'w-6 h-6' }}
                   />
@@ -111,7 +129,7 @@ export default function PostCheckout() {
 
             {!loading &&
               postOrganizationRequestStatus === CheckoutStatus.Expired && (
-                <div className="flex flex-col items-center justify-center w-full h-full space-y-2">
+                <div className="flex h-full w-full flex-col items-center justify-center space-y-2">
                   <span>
                     Error occurred while creating the organization. Please try
                     again.
@@ -121,7 +139,7 @@ export default function PostCheckout() {
 
             {!loading &&
               postOrganizationRequestStatus === CheckoutStatus.Open && (
-                <div className="flex flex-col items-center justify-center w-full h-full space-y-2">
+                <div className="flex h-full w-full flex-col items-center justify-center space-y-2">
                   <span>Organization creation is pending...</span>
                 </div>
               )}

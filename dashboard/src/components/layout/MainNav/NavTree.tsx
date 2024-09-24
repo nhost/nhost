@@ -12,8 +12,8 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { useNavTreeStateFromURL } from '@/features/orgs/projects/hooks/useNavTreeStateFromURL';
-import { useOrgs, type Org } from '@/features/orgs/projects/hooks/useOrgs';
+import { useNavTreeStateFromURL } from '@/features/orgs/hooks/useNavTreeStateFromURL';
+import { useOrgs, type Org } from '@/features/orgs/hooks/useOrgs';
 import { cn } from '@/lib/utils';
 import { Box, ChevronDown, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
@@ -157,7 +157,7 @@ const createOrganization = (org: Org) => {
     index: `${org.slug}-projects`,
     canMove: false,
     isFolder: true,
-    children: org.apps.map((app) => `${org.slug}-${app.slug}`),
+    children: org.plan.apps.map((app) => `${org.slug}-${app.slug}`),
     data: {
       name: 'Projects',
       targetUrl: `/orgs/${org.slug}/projects`,
@@ -165,7 +165,7 @@ const createOrganization = (org: Org) => {
     canRename: false,
   };
 
-  org.apps.forEach((app) => {
+  org.plan.apps.forEach((app) => {
     result[`${org.slug}-${app.slug}`] = {
       index: `${org.slug}-${app.slug}`,
       isFolder: true,
@@ -174,32 +174,32 @@ const createOrganization = (org: Org) => {
       data: {
         name: app.name,
         slug: app.slug,
-        icon: <Box className="w-4 h-4" />,
-        targetUrl: `/orgs/${org.slug}/projects/${app.slug}`,
+        icon: <Box className="h-4 w-4" />,
+        targetUrl: `/orgs/${org.slug}/projects/${app.slug}/overview`,
       },
       children: projectPages.map(
-        (page) => `${org.slug}-${app.slug}-${page.slug}`,
+        (page) => `${org.slug}-${app.slug}-${page.name}`,
       ),
     };
   });
 
-  org.apps.forEach((_app) => {
+  org.plan.apps.forEach((_app) => {
     projectPages.forEach((_page) => {
-      result[`${org.slug}-${_app.slug}-${_page.slug}`] = {
-        index: `${org.slug}-${_app.slug}-${_page.slug}`,
+      result[`${org.slug}-${_app.slug}-${_page.name}`] = {
+        index: `${org.slug}-${_app.slug}-${_page.name}`,
         canMove: false,
         isFolder: _page.name === 'Settings',
         children:
           _page.name === 'Settings'
             ? projectSettingsPages.map(
-                (p) => `${org.slug}-${_app.slug}-settings-${p.slug}`,
+                (p) => `${org.slug}-${_app.slug}-settings-${p}`,
               )
             : undefined,
         data: {
           name: _page.name,
           icon: _page.icon,
           isProjectPage: true,
-          targetUrl: `/orgs/${org.slug}/projects/${_app.slug}/${_page.route}`,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.slug}/${_page.name.toLowerCase()}`,
         },
         canRename: false,
       };
@@ -207,17 +207,14 @@ const createOrganization = (org: Org) => {
 
     // add the settings pages
     projectSettingsPages.forEach((p) => {
-      result[`${org.slug}-${_app.slug}-settings-${p.slug}`] = {
-        index: `${org.slug}-${_app.slug}-settings-${p.slug}`,
+      result[`${org.slug}-${_app.slug}-settings-${p}`] = {
+        index: `${org.slug}-${_app.slug}-settings-${p}`,
         canMove: false,
         isFolder: false,
         children: undefined,
         data: {
-          name: p.name,
-          targetUrl:
-            p.slug === 'general'
-              ? `/orgs/${org.slug}/projects/${_app.slug}/settings`
-              : `/orgs/${org.slug}/projects/${_app.slug}/settings/${p.slug}`,
+          name: p,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.slug}/settings/${p.toLowerCase().replace(' ', '-')}`,
         },
         canRename: false,
       };
@@ -324,7 +321,6 @@ export default function NavTree() {
       Boolean(navTree.items[item]),
     );
 
-    // TODO figure out if this is still necessary
     // dataProvider.onDidChangeTreeDataEmitter.emit(
     //   Object.values(navTree.items).map((item) => item.index),
     // );
@@ -447,6 +443,17 @@ export default function NavTree() {
         );
       }}
       canSearch={false}
+      // onFocusItem={(item) => setFocusedItem(item.index)}
+      // onExpandItem={(item) =>
+      //   setExpandedItems([...expandedItems, item.index as string])
+      // }
+      // onCollapseItem={(item) =>
+      //   setExpandedItems(
+      //     expandedItems.filter(
+      //       (expandedItemIndex) => expandedItemIndex !== item.index,
+      //     ),
+      //   )
+      // }
     >
       <Tree treeId="nav-tree" rootItem="root" treeLabel="Navigation Tree" />
     </UncontrolledTreeEnvironment>

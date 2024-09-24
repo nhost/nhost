@@ -26,40 +26,17 @@ type Option = {
   label: string;
 };
 
-const orgPages = [
-  { label: 'Settings', value: 'settings' },
-  { label: 'Projects', value: 'projects' },
-  { label: 'Members', value: 'members' },
-  { label: 'Billing', value: 'billing' },
-];
+interface NavComboBoxProps {
+  value: Option;
+  options: Option[];
+  onSelect?: (option: Option) => Promise<any>;
+}
 
-export default function OrgPagesComboBox() {
-  const {
-    query: { orgSlug },
-    push,
-    asPath,
-  } = useRouter();
-
-  const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
-  const orgPageFromUrl = pathSegments[3] || null;
-
-  const selectedOrgPageFromUrl = orgPages.find(
-    (item) => item.value === orgPageFromUrl,
-  );
-
-  const [selectedOrgPage, setSelectedOrgPage] = useState<Option | null>(null);
-
-  useEffect(() => {
-    if (selectedOrgPageFromUrl) {
-      setSelectedOrgPage(selectedOrgPageFromUrl);
-    }
-  }, [selectedOrgPageFromUrl]);
-
-  const options: Option[] = orgPages.map((page) => ({
-    label: page.label,
-    value: page.value,
-  }));
-
+export default function NavComboBox({
+  value,
+  options,
+  onSelect,
+}: NavComboBoxProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -70,8 +47,11 @@ export default function OrgPagesComboBox() {
           size="sm"
           className="justify-start gap-2 text-foreground"
         >
-          {selectedOrgPage ? (
-            <div>{selectedOrgPage.label}</div>
+          {value ? (
+            <div className="flex flex-row items-center justify-center gap-2">
+              {value.icon}
+              {value.label}
+            </div>
           ) : (
             <>Select a page</>
           )}
@@ -88,16 +68,17 @@ export default function OrgPagesComboBox() {
                 <CommandItem
                   key={option.value}
                   value={option.label}
-                  onSelect={() => {
-                    setSelectedOrgPage(option);
+                  onSelect={(_value) => {
+                    const selectedOption =
+                      options.find((o) => o.label === _value) || null;
                     setOpen(false);
-                    push(`/orgs/${orgSlug}/${option.value}`);
+                    onSelect?.(selectedOption);
                   }}
                 >
                   <Check
                     className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedOrgPage?.value === option.value
+                      'h-4 w-4',
+                      value?.value === option.value
                         ? 'opacity-100'
                         : 'opacity-0',
                     )}

@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
+import { useOrgs } from '@/features/orgs/hooks/useOrgs';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
@@ -32,7 +32,9 @@ export default function OrgsComboBox() {
   } = useRouter();
 
   const { orgs } = useOrgs();
+
   const selectedOrgFromUrl = orgs.find((item) => item.slug === orgSlug);
+
   const [selectedOrg, setSelectedOrg] = useState<Option | null>(null);
 
   useEffect(() => {
@@ -108,7 +110,7 @@ export default function OrgsComboBox() {
                         : 'opacity-0',
                     )}
                   />
-                  <span className="truncate max-w-52">{option.label}</span>
+                  <span className="max-w-52 truncate">{option.label}</span>
                   {renderBadge(option.plan)}
                 </CommandItem>
               ))}

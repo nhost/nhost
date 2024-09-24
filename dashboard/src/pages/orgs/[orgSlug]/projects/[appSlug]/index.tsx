@@ -1,20 +1,20 @@
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { ApplicationErrored } from '@/features/orgs/projects/common/components/ApplicationErrored';
-import { ApplicationLive } from '@/features/orgs/projects/common/components/ApplicationLive';
-import { ApplicationPaused } from '@/features/orgs/projects/common/components/ApplicationPaused';
-import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
-import { ApplicationRestoring } from '@/features/orgs/projects/common/components/ApplicationRestoring';
-import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
-import { ApplicationUnpausing } from '@/features/orgs/projects/common/components/ApplicationUnpausing';
-import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { ProjectLayout } from '@/components/layout/ProjectLayout';
+import { useProject } from '@/features/orgs/hooks/useProject';
+import { ApplicationErrored } from '@/features/projects/common/components/ApplicationErrored';
+import { ApplicationLive } from '@/features/projects/common/components/ApplicationLive';
+import { ApplicationPaused } from '@/features/projects/common/components/ApplicationPaused';
+import { ApplicationProvisioning } from '@/features/projects/common/components/ApplicationProvisioning';
+import { ApplicationRestoring } from '@/features/projects/common/components/ApplicationRestoring';
+import { ApplicationUnknown } from '@/features/projects/common/components/ApplicationUnknown';
+import { ApplicationUnpausing } from '@/features/projects/common/components/ApplicationUnpausing';
+import { useAppState } from '@/features/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { ApplicationStatus } from '@/types/application';
 import type { ReactElement } from 'react';
 
 export default function AppIndexPage() {
   const isPlatform = useIsPlatform();
-  const { project, error } = useProject({ poll: true });
+  const { project, error } = useProject();
   const { state } = useAppState();
 
   if (error) {

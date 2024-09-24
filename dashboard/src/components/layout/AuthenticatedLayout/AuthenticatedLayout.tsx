@@ -1,7 +1,7 @@
 import { InviteNotification } from '@/components/common/InviteNotification';
 import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
 import { BaseLayout } from '@/components/layout/BaseLayout';
-import { Container } from '@/components/layout/Container';
+import { Container } from '@/components/layout/Container'; 
 import { Header } from '@/components/layout/Header';
 import { MainNav } from '@/components/layout/MainNav';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
@@ -13,7 +13,7 @@ import { useIsHealthy } from '@/features/projects/common/hooks/useIsHealthy';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { useAuthenticationStatus } from '@nhost/nextjs';
-import NextLink from 'next/link';
+import NextLink from 'next/link'; 
 
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -26,7 +26,7 @@ import {
 import { twMerge } from 'tailwind-merge';
 
 import PinnedMainNav from '@/components/layout/MainNav/PinnedMainNav';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { useCurrentOrg } from '@/features/projects/common/hooks/useCurrentOrg';
 import { cn } from '@/lib/utils';
 
 export interface AuthenticatedLayoutProps extends BaseLayoutProps {
@@ -144,34 +144,33 @@ export default function AuthenticatedLayout({
       <Header className="flex py-1" />
 
       <div
-        className="relative flex flex-row h-full overflow-x-hidden"
+        className="relative flex flex-row flex-auto overflow-x-hidden"
         ref={setMainNavContainer}
       >
         {mainNavPinned && <PinnedMainNav />}
 
-        <div className="flex flex-col w-full h-full overflow-auto">
+        <div className="flex flex-col w-full">
           <div className="relative flex flex-row items-center w-full h-12 px-2 space-x-2 border-b bg-background">
             {!mainNavPinned && <MainNav container={mainNavContainer} />}
 
-            {!router.query.appSlug &&
-              orgPages.map((page) => {
-                const href = `/orgs/${org?.slug}/${page.value}`;
-                const isActive = router.asPath === href;
-                return (
-                  <NextLink
-                    key={page.value}
-                    passHref
-                    href={href}
-                    className={cn(
-                      'flex h-8 items-center justify-center rounded px-4 text-sm font-medium transition-colors hover:bg-secondary/80',
-                      isActive ? 'bg-secondary text-primary-main' : '',
-                    )}
-                  >
-                    {page.label}
-                    <span className="sr-only">Home</span>
-                  </NextLink>
-                );
-              })}
+            {orgPages.map((page) => {
+              const href = `/orgs/${org?.slug}/${page.value}`;
+              const isActive = router.asPath === href;
+              return (
+                <NextLink
+                  key={page.value}
+                  passHref
+                  href={href}
+                  className={cn(
+                    'flex h-8 items-center justify-center rounded px-4 text-sm font-medium transition-colors hover:bg-secondary/80',
+                    isActive ? 'bg-secondary text-primary-main' : '',
+                  )}
+                >
+                  {page.label}
+                  <span className="sr-only">Home</span>
+                </NextLink>
+              );
+            })}
           </div>
 
           <RetryableErrorBoundary errorMessageProps={{ className: 'pt-20' }}>
