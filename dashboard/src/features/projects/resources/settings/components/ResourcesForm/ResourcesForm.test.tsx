@@ -334,6 +334,8 @@ test('should show a warning message when resources are overallocated', async () 
 });
 
 test('should change pricing based on selected replicas', async () => {
+  const user = userEvent.setup();
+
   render(<ResourcesForm />);
 
   expect(
@@ -345,14 +347,13 @@ test('should change pricing based on selected replicas', async () => {
   );
 
   const hasuraReplicasInput = screen.getByTestId('hasura.replicas');
-
-  fireEvent.change(hasuraReplicasInput, { target: { value: '2' } });
+  await user.type(hasuraReplicasInput, '2');
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
     /approximate cost: \$525\.00\/mo/i,
   );
 
-  fireEvent.change(hasuraReplicasInput, { target: { value: '1' } });
+  await user.type(hasuraReplicasInput, '1');
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
     /approximate cost: \$425\.00\/mo/i,
@@ -376,8 +377,7 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
   );
 
   const storageReplicasInput = screen.getByTestId('storage.replicas');
-
-  fireEvent.change(storageReplicasInput, { target: { value: '2' } });
+  await user.type(storageReplicasInput, '2');
 
   changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
@@ -436,7 +436,7 @@ test('should take replicas into account when confirming the resources', async ()
     4 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
-  fireEvent.change(hasuraReplicasInput, { target: { value: '3' } });
+  await user.type(hasuraReplicasInput, '3');
 
   changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql vcpu/i }),
@@ -448,7 +448,7 @@ test('should take replicas into account when confirming the resources', async ()
   );
 
   // setting up auth
-  fireEvent.change(authReplicasInput, { target: { value: '2' } });
+  await user.type(authReplicasInput, '2');
 
   changeSliderValue(
     screen.getByRole('slider', { name: /auth vcpu/i }),
@@ -460,7 +460,7 @@ test('should take replicas into account when confirming the resources', async ()
   );
 
   // setting up storage
-  fireEvent.change(storageReplicasInput, { target: { value: '4' } });
+  await user.type(storageReplicasInput, '4');
 
   changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
