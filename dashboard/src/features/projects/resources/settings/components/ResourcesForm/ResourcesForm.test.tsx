@@ -344,8 +344,7 @@ test('should change pricing based on selected replicas', async () => {
     /approximate cost: \$425\.00\/mo/i,
   );
 
-  const hasuraContainer = screen.getAllByText(/hasura graphQL/i)[0];
-  const hasuraReplicasInput = within(hasuraContainer).getByRole('spinbutton', { name: /replicas/i });
+  const hasuraReplicasInput = screen.getAllByRole('spinbutton', { name: /replicas/i })[0];
 
   fireEvent.change(hasuraReplicasInput, { target: { value: '2' } });
 
@@ -376,8 +375,7 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
     20 * RESOURCE_VCPU_MULTIPLIER,
   );
 
-  const storageContainer = screen.getAllByText(/storage/i)[0];
-  const storageReplicasInput = within(storageContainer).getByRole('spinbutton', { name: /replicas/i });
+  const storageReplicasInput = screen.getAllByRole('spinbutton', { name: /replicas/i })[4];
 
   fireEvent.change(storageReplicasInput, { target: { value: '2' } });
 
@@ -413,14 +411,9 @@ test('should take replicas into account when confirming the resources', async ()
 
   render(<ResourcesForm />);
 
-  const hasuraContainer = screen.getAllByText(/hasura graphQL/i)[0];
-  const hasuraReplicasInput = within(hasuraContainer).getByRole('spinbutton', { name: /replicas/i });
-
-  const authContainer = screen.getAllByText(/auth/i)[0];
-  const authReplicasInput = within(authContainer).getByRole('spinbutton', { name: /replicas/i });
-
-  const storageContainer = screen.getAllByText(/storage/i)[0];
-  const storageReplicasInput = within(storageContainer).getByRole('spinbutton', { name: /replicas/i });
+  const hasuraReplicasInput = screen.getAllByRole('spinbutton', { name: /replicas/i })[0];
+  const authReplicasInput = screen.getAllByRole('spinbutton', { name: /replicas/i })[2];
+  const storageReplicasInput = screen.getAllByRole('spinbutton', { name: /replicas/i })[4];
 
   expect(
     await screen.findByRole('slider', { name: /total available vcpu/i }),
