@@ -75,7 +75,7 @@
       "pages": [
         "platform/subdomain",
         "platform/compute-resources",
-        "platform/service-replicas-autoscaler",
+        "platform/service-replicas",
         "platform/metrics",
         "platform/environment-variables",
         "platform/secrets",
