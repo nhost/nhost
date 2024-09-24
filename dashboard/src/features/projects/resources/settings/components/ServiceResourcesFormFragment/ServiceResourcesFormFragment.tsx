@@ -251,6 +251,7 @@ export default function ServiceResourcesFormFragment({
                 onChange={(event) => handleReplicaChange(event.target.value)}
                 type="number"
                 id={`${serviceKey}.replicas`}
+                data-testid={`${serviceKey}.replicas`}
                 placeholder="Replicas"
                 className="max-w-28"
                 hideEmptyHelperText

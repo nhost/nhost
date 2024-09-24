@@ -344,7 +344,7 @@ test('should change pricing based on selected replicas', async () => {
     /approximate cost: \$425\.00\/mo/i,
   );
 
-  const hasuraReplicasInput = screen.getByRole('spinbutton', { name: /hasura.replicas/i });
+  const hasuraReplicasInput = screen.getByTestId('hasura.replicas');
 
   fireEvent.change(hasuraReplicasInput, { target: { value: '2' } });
 
@@ -375,7 +375,7 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
     20 * RESOURCE_VCPU_MULTIPLIER,
   );
 
-  const storageReplicasInput = screen.getByRole('spinbutton', { name: /storage.replicas/i });
+  const storageReplicasInput = screen.getByTestId('storage.replicas');
 
   fireEvent.change(storageReplicasInput, { target: { value: '2' } });
 
@@ -411,9 +411,9 @@ test('should take replicas into account when confirming the resources', async ()
 
   render(<ResourcesForm />);
 
-  const hasuraReplicasInput = screen.getByRole('spinbutton', { name: /hasura.replicas/i });
-  const authReplicasInput = screen.getByRole('spinbutton', { name: /auth.replicas/i });
-  const storageReplicasInput = screen.getByRole('spinbutton', { name: /storage.replicas/i });
+  const hasuraReplicasInput = screen.getByTestId('hasura.replicas');
+  const authReplicasInput = screen.getByTestId('auth.replicas')
+  const storageReplicasInput = screen.getByTestId('storage.replicas')
 
   expect(
     await screen.findByRole('slider', { name: /total available vcpu/i }),
