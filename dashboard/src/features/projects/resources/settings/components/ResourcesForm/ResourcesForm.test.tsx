@@ -267,10 +267,7 @@ test('should display a red button when custom resources are disabled', async () 
     await screen.findByRole('slider', { name: /total available vcpu/i }),
   ).toBeInTheDocument();
 
-  const computeResourcesSections = screen.getAllByText(/compute resources/i);
-  const computeResourcesSection = computeResourcesSections[0];
-  const checkbox = within(computeResourcesSection).getByRole('checkbox');
-  await user.click(checkbox);
+  await user.click(screen.getAllByRole('checkbox')[0]);
 
   expect(screen.getByText(/enable this feature/i)).toBeInTheDocument();
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
@@ -300,10 +297,7 @@ test('should hide the pricing information when custom resource allocation is dis
     await screen.findByRole('slider', { name: /total available vcpu/i }),
   ).toBeInTheDocument();
 
-  const computeResourcesSections = screen.getAllByText(/compute resources/i);
-  const computeResourcesSection = computeResourcesSections[0];
-  const checkbox = within(computeResourcesSection).getByRole('checkbox');
-  await user.click(checkbox);
+  await user.click(screen.getAllByRole('checkbox')[0]);
   
   await user.click(screen.getByRole('button', { name: /save/i }));
 
