@@ -78,7 +78,7 @@ test('should show the sliders if the switch is enabled', async () => {
   await user.click(screen.getByRole('checkbox'));
 
   expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
-  expect(screen.getAllByRole('slider')).toHaveLength(12);
+  expect(screen.getAllByRole('slider')).toHaveLength(9);
 });
 
 test('should not show an empty state message if there is data available', async () => {
@@ -89,7 +89,7 @@ test('should not show an empty state message if there is data available', async 
   ).toBeInTheDocument();
 
   expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
-  expect(screen.getAllByRole('slider')).toHaveLength(12);
+  expect(screen.getAllByRole('slider')).toHaveLength(9);
   expect(screen.getByText(/^vcpus:/i)).toHaveTextContent(/vcpus: 8/i);
   expect(screen.getByText(/^memory:/i)).toHaveTextContent(/memory: 16384 mib/i);
 });
