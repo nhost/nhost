@@ -140,7 +140,6 @@ export function NewProjectPageContent({
             app: {
               name,
               slug,
-              planId: plan.id,
               workspaceId: selectedWorkspace.id,
               regionId: selectedRegion.id,
             },

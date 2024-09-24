@@ -1,0 +1,20 @@
+query getOrganizations {
+  organizations(order_by: { name: asc }) {
+    id
+    name
+    slug
+    plan {
+      id
+      name
+      deprecated
+      individual
+      isFree
+      apps(order_by: { name: asc }) {
+        id
+        name
+        subdomain
+        slug
+      }
+    }
+  }
+}

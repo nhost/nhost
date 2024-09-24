@@ -1,0 +1,20 @@
+query getOrganization($orgSlug: String!) {
+  organizations(where: { slug: { _eq: $orgSlug } }) {
+    id
+    name
+    slug
+    plan {
+      id
+      name
+      deprecated
+      individual
+      isFree
+      apps(order_by: { name: asc }) {
+        id
+        name
+        subdomain
+        slug
+      }
+    }
+  }
+}

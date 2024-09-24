@@ -28,7 +28,7 @@ export default function MetricsPage() {
     );
   }
 
-  if (currentProject.plan.isFree) {
+  if (currentProject.legacyPlan.isFree) {
     return (
       <Container>
         <UpgradeNotification message="Unlock metrics by upgrading your project to the Pro plan." />

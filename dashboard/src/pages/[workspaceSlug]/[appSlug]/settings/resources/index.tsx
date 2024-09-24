@@ -13,7 +13,7 @@ export default function ResourceSettingsPage() {
     return <ActivityIndicator delay={1000} label="Loading project..." />;
   }
 
-  if (currentProject?.plan?.isFree) {
+  if (currentProject?.legacyPlan?.isFree) {
     return (
       <UpgradeNotification message="Unlock Compute settings by upgrading your project to the Pro plan." />
     );

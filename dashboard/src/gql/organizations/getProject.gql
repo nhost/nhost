@@ -1,0 +1,5 @@
+query getProject($slug: String!) {
+  apps(where: { slug: { _eq: $slug } }) {
+    ...Project
+  }
+}

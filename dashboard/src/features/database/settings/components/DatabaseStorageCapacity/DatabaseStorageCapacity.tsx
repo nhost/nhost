@@ -43,7 +43,7 @@ export default function AuthDomain() {
 
   const capacity =
     (data?.config?.postgres?.resources?.storage?.capacity ??
-      currentProject?.plan?.featureMaxDbSize) ||
+      currentProject?.legacyPlan?.featureMaxDbSize) ||
     0;
 
   const [updateConfig] = useUpdateConfigMutation({
@@ -124,7 +124,7 @@ export default function AuthDomain() {
           }}
           className="flex flex-col"
         >
-          {currentProject.plan?.isFree && (
+          {currentProject.legacyPlan?.isFree && (
             <UpgradeNotification message="Unlock by upgrading your project to the Pro plan." />
           )}
           <Box className="grid grid-flow-row lg:grid-cols-5">
@@ -134,7 +134,7 @@ export default function AuthDomain() {
               name="capacity"
               type="number"
               fullWidth
-              disabled={currentProject.plan?.isFree}
+              disabled={currentProject.legacyPlan?.isFree}
               className="lg:col-span-2"
               error={Boolean(formState.errors.capacity?.message)}
               helperText={formState.errors.capacity?.message}
@@ -145,7 +145,7 @@ export default function AuthDomain() {
               }}
             />
           </Box>
-          {!currentProject.plan?.isFree && (
+          {!currentProject.legacyPlan?.isFree && (
             <Alert severity="info" className="col-span-6 text-left">
               Note that volumes can only be increased (not decreased). Also, due
               to an AWS limitation, the same volume can only be increased once

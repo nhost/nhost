@@ -27,7 +27,7 @@ function AllWorkspaceApps() {
 
   if (currentWorkspace?.projects?.length === 0) {
     return (
-      <Box className="flex flex-row py-4 border-y">
+      <Box className="flex flex-row border-y py-4">
         <Text className="text-xs" color="secondary">
           No projects on this workspace.
         </Text>
@@ -45,12 +45,13 @@ function AllWorkspaceApps() {
             <NavLink
               href={`${currentWorkspace?.slug}/${project.slug}`}
               passHref
-              className='w-full'
-              legacyBehavior>
-              <ListItem.Button className="grid items-center justify-between grid-flow-col gap-2">
-                <div className="grid items-center justify-start grid-flow-col gap-2">
+              className="w-full"
+              legacyBehavior
+            >
+              <ListItem.Button className="grid grid-flow-col items-center justify-between gap-2">
+                <div className="grid grid-flow-col items-center justify-start gap-2">
                   <ListItem.Avatar>
-                    <div className="w-8 h-8 overflow-hidden rounded-lg">
+                    <div className="h-8 w-8 overflow-hidden rounded-lg">
                       <Image
                         src="/logos/new.svg"
                         alt="Nhost Logo"
@@ -81,8 +82,8 @@ function AllWorkspaceApps() {
 
                 <Chip
                   size="small"
-                  label={project.plan.name}
-                  color={project.plan.isFree ? 'default' : 'primary'}
+                  label={project.legacyPlan.name}
+                  color={project.legacyPlan.isFree ? 'default' : 'primary'}
                 />
               </ListItem.Button>
             </NavLink>
@@ -100,8 +101,8 @@ export default function WorkspaceApps() {
 
   return (
     <div className="mt-9">
-      <div className="max-w-3xl mx-auto font-display">
-        <div className="grid items-center justify-between grid-flow-col gap-2 mb-4">
+      <div className="mx-auto max-w-3xl font-display">
+        <div className="mb-4 grid grid-flow-col items-center justify-between gap-2">
           <Text className="text-lg font-medium">Projects</Text>
 
           {!loading && (
@@ -110,7 +111,8 @@ export default function WorkspaceApps() {
                 pathname: '/new',
                 query: { workspace: currentWorkspace?.slug },
               }}
-              legacyBehavior>
+              legacyBehavior
+            >
               <Button
                 variant="outlined"
                 color="secondary"

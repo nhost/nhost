@@ -81,7 +81,7 @@ export default function AutoEmbeddingsPage() {
     });
   };
 
-  if (isPlatform && currentProject?.plan?.isFree) {
+  if (isPlatform && currentProject?.legacyPlan?.isFree) {
     return (
       <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
         <UpgradeToProBanner
@@ -99,7 +99,7 @@ export default function AutoEmbeddingsPage() {
 
   if (
     (isPlatform &&
-      !currentProject?.plan?.isFree &&
+      !currentProject?.legacyPlan?.isFree &&
       !currentProject.config?.ai) ||
     !isGraphiteEnabled
   ) {

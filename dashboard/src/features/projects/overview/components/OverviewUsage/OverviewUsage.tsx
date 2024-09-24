@@ -94,25 +94,25 @@ export function OverviewUsageMetrics() {
   // metrics for storage
   const usedStorage =
     remoteAppMetricsData?.filesAggregate?.aggregate?.sum?.size || 0;
-  const totalStorage = currentProject?.plan?.isFree
+  const totalStorage = currentProject?.legacyPlan?.isFree
     ? 1 * 1000 ** 3 // 1 GB
     : 50 * 1000 ** 3; // 10 GB
 
   // metrics for users
   const usedUsers = remoteAppMetricsData?.usersAggregate?.aggregate?.count || 0;
-  const totalUsers = currentProject?.plan?.isFree ? 10000 : 100000;
+  const totalUsers = currentProject?.legacyPlan?.isFree ? 10000 : 100000;
 
   // metrics for functions
   const usedFunctions = functionsInfoData?.app.metadataFunctions.length || 0;
-  const totalFunctions = currentProject?.plan?.isFree ? 10 : 50;
+  const totalFunctions = currentProject?.legacyPlan?.isFree ? 10 : 50;
   const usedFunctionsDuration = projectMetrics?.functionsDuration.value || 0;
-  const totalFunctionsDuration = currentProject?.plan?.isFree
+  const totalFunctionsDuration = currentProject?.legacyPlan?.isFree
     ? 3600 // 1 hour
     : 3600 * 10; // 10 hours
 
   // metrics for egress
   const usedEgressVolume = projectMetrics?.egressVolume.value || 0;
-  const totalEgressVolume = currentProject?.plan?.isFree
+  const totalEgressVolume = currentProject?.legacyPlan?.isFree
     ? 5 * 1000 ** 3 // 5 GB
     : 50 * 1000 ** 3; // 50 GB
 

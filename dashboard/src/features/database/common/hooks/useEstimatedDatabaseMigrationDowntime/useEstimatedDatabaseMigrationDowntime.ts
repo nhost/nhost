@@ -63,7 +63,7 @@ export default function useEstimatedDatabaseMigrationDowntime(
 ): TimePeriod {
   const { currentProject } = useCurrentWorkspaceAndProject();
 
-  const isPlanFree = currentProject?.plan?.isFree;
+  const isPlanFree = currentProject?.legacyPlan?.isFree;
 
   const { data, loading, error } = useGetApplicationBackupsQuery({
     ...options,

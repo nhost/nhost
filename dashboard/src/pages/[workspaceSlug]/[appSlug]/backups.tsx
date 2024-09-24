@@ -11,7 +11,7 @@ import type { ReactElement } from 'react';
 
 function BackupsContent() {
   const { currentProject } = useCurrentWorkspaceAndProject();
-  const isPlanFree = currentProject.plan.isFree;
+  const isPlanFree = currentProject.legacyPlan.isFree;
 
   if (isPlanFree) {
     return (
@@ -39,7 +39,7 @@ function BackupsContent() {
 
 export default function BackupsPage() {
   const { currentProject, loading } = useCurrentWorkspaceAndProject();
-  const { plan } = currentProject;
+  const { legacyPlan } = currentProject;
 
   if (loading) {
     return <ActivityIndicator label="Loading project..." delay={1000} />;
@@ -53,8 +53,8 @@ export default function BackupsPage() {
         </Text>
 
         <Chip
-          color={plan.isFree ? 'default' : 'success'}
-          label={plan.isFree ? 'Off' : 'Live'}
+          color={legacyPlan.isFree ? 'default' : 'success'}
+          label={legacyPlan.isFree ? 'Off' : 'Live'}
           size="small"
         />
       </div>

@@ -1,0 +1,5 @@
+query getOrganizationProjects($orgId: uuid!) {
+  apps(where: { organizationID: { _eq: $orgId } }, order_by: { name: asc }) {
+    ...Project
+  }
+}

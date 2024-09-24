@@ -1,0 +1,11 @@
+mutation createOrganizationRequest(
+  $organizationName: String!
+  $planID: uuid!
+  $redirectURL: String!
+) {
+  billingCreateOrganizationRequest(
+    organizationName: $organizationName
+    planID: $planID
+    redirectURL: $redirectURL
+  )
+}

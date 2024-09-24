@@ -43,7 +43,7 @@ fragment Project on apps {
     domain
     city
   }
-  plan {
+  legacyPlan {
     id
     name
     price

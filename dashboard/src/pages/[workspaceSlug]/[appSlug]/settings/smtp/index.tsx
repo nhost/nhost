@@ -31,7 +31,7 @@ export default function SMTPSettingsPage() {
     setMode(host !== 'postmark' ? 'smtp' : 'postmark');
   }, [host]);
 
-  if (isPlatform && currentProject?.plan?.isFree) {
+  if (isPlatform && currentProject?.legacyPlan?.isFree) {
     return (
       <Container
         className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"

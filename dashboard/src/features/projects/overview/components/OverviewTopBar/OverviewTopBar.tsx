@@ -16,8 +16,8 @@ export default function OverviewTopBar() {
   const isPlatform = useIsPlatform();
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const isOwner = useIsCurrentUserOwner();
-  const isStarter = currentProject?.plan?.name === 'Starter';
-  const isPro = currentProject?.plan?.name === 'Pro';
+  const isStarter = currentProject?.legacyPlan?.name === 'Starter';
+  const isPro = currentProject?.legacyPlan?.name === 'Pro';
   const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
 
@@ -84,7 +84,7 @@ export default function OverviewTopBar() {
               <div className="mt-1 inline-grid grid-flow-col items-center justify-start gap-2 md:mt-0">
                 <Chip
                   size="small"
-                  label={currentProject.plan.name}
+                  label={currentProject.legacyPlan.name}
                   color={!isStarter ? 'primary' : 'default'}
                 />
 
@@ -127,7 +127,8 @@ export default function OverviewTopBar() {
       <Link
         href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/general`}
         passHref
-        legacyBehavior>
+        legacyBehavior
+      >
         <Button
           endIcon={<CogIcon className="h-4 w-4" />}
           variant="outlined"
