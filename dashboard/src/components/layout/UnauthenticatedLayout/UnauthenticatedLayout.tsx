@@ -6,6 +6,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Box } from '@/components/ui/v2/Box';
 import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { useGetOrganizationsLazyQuery } from '@/utils/__generated__/graphql';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import Image from 'next/image';
@@ -22,11 +23,31 @@ export default function UnauthenticatedLayout({
   const isPlatform = useIsPlatform();
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
 
+  const [fetchOrgs] = useGetOrganizationsLazyQuery();
+
   useEffect(() => {
-    if (!isPlatform || (!isLoading && isAuthenticated)) {
-      router.push('/');
-    }
-  }, [isLoading, isAuthenticated, router, isPlatform]);
+    (async () => {
+      if (!isPlatform || (!isLoading && isAuthenticated)) {
+        // TODO(orgs) discuss how this should work
+        // if we should make a page with all orgs and then the user can select one
+        // fetch the orgs
+        // then redirect to the first one
+        // /org-slug/projects
+        try {
+          const {
+            data: { organizations },
+          } = await fetchOrgs();
+
+          const defaultOrg = organizations.at(0);
+
+          router.push(`/orgs/${defaultOrg.slug}/projects`);
+        } catch (error) {
+          console.log('Error: no orgs after signup');
+        }
+        // router.push('/');
+      }
+    })();
+  }, [isLoading, isAuthenticated, router, isPlatform, fetchOrgs]);
 
   if (!isPlatform || isLoading || isAuthenticated) {
     return (
@@ -64,14 +85,14 @@ export default function UnauthenticatedLayout({
           >
             <Container
               rootClassName="bg-transparent h-full"
-              className="grid h-full w-full items-center justify-items-center gap-12 bg-transparent pt-8 pb-12 lg:grid-cols-2 lg:gap-4 lg:pt-0 lg:pb-0"
+              className="grid h-full w-full items-center justify-items-center gap-12 bg-transparent pb-12 pt-8 lg:grid-cols-2 lg:gap-4 lg:pb-0 lg:pt-0"
             >
               <div className="relative z-10 order-2 grid w-full max-w-[544px] grid-flow-row gap-12 lg:order-1">
                 {children}
               </div>
 
               <div className="relative z-0 order-1 flex h-full w-full items-center justify-center md:min-h-[150px] lg:order-2 lg:min-h-[none]">
-                <div className="absolute top-0 left-0 right-0 bottom-0 mx-auto flex h-full w-full max-w-xl items-center justify-center opacity-70">
+                <div className="absolute bottom-0 left-0 right-0 top-0 mx-auto flex h-full w-full max-w-xl items-center justify-center overflow-hidden opacity-70">
                   <Image
                     priority
                     src="/assets/line-grid.svg"

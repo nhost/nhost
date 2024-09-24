@@ -28,11 +28,15 @@ type Option = {
 interface NavComboBoxProps {
   value: Option;
   options: Option[];
+  onSelect?: (option: Option) => Promise<any>;
 }
 
-export default function NavComboBox({ value, options }: NavComboBoxProps) {
+export default function NavComboBox({
+  value,
+  options,
+  onSelect,
+}: NavComboBoxProps) {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Option | null>(value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -42,10 +46,10 @@ export default function NavComboBox({ value, options }: NavComboBoxProps) {
           size="sm"
           className="justify-start gap-2 text-foreground"
         >
-          {selected ? (
+          {value ? (
             <div className="flex flex-row items-center justify-center gap-2">
-              {selected.icon}
-              {selected.label}
+              {value.icon}
+              {value.label}
             </div>
           ) : (
             <>Select page</>
@@ -64,18 +68,17 @@ export default function NavComboBox({ value, options }: NavComboBoxProps) {
                   key={option.value}
                   value={option.label}
                   onSelect={(_value) => {
-                    setSelected(
-                      options.find((o) => o.label === _value) || null,
-                    );
-
+                    const selectedOption =
+                      options.find((o) => o.label === _value) || null;
                     setOpen(false);
+                    onSelect?.(selectedOption);
                   }}
                   className="flex flex-row gap-2"
                 >
                   <Check
                     className={cn(
                       'h-4 w-4',
-                      selected?.value === option.value
+                      value?.value === option.value
                         ? 'opacity-100'
                         : 'opacity-0',
                     )}

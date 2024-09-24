@@ -11,7 +11,7 @@ import type { ReactElement } from 'react';
 export default function StorageSettingsPage() {
   const { currentProject, loading, error } = useCurrentWorkspaceAndProject();
 
-  if (currentProject?.plan?.isFree) {
+  if (currentProject?.legacyPlan?.isFree) {
     return (
       <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
         <UpgradeToProBanner
@@ -43,7 +43,7 @@ export default function StorageSettingsPage() {
 
   return (
     <Container
-      className="grid max-w-5xl grid-flow-row bg-transparent gap-y-6"
+      className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent"
       rootClassName="bg-transparent"
     >
       <AISettings />

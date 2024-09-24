@@ -1,6 +1,5 @@
+import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
-import { cn } from '@/lib/utils';
-
 import {
   Command,
   CommandEmpty,
@@ -9,66 +8,64 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/v3/command';
-
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-
-import { Badge } from '@/components/ui/v3/badge';
+import { useOrgs } from '@/features/orgs/hooks/useOrgs';
+import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState, type ReactElement } from 'react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 type Option = {
   value: string;
   label: string;
-  badge: ReactElement;
+  plan: string;
 };
 
-const options: Option[] = [
-  {
-    name: "Hassan's org",
-    slug: 'x2f9k7m1p3q8r',
-    isFree: false,
-    plan: 'Pro',
-    projects: [
-      { name: 'eu-central-1.celsia' },
-      { name: 'joyent' },
-      { name: 'react-apollo' },
-    ],
-  },
-  {
-    name: 'nhost-testing',
-    slug: 'a3b7c9d1e5f2g',
-    isFree: true,
-    plan: 'Starter',
-  },
-  {
-    name: 'uflip',
-    slug: 'h4j2l6n8m0p5q',
-    isFree: false,
-    plan: 'Team',
-  },
-].map((org) => ({
-  label: org.name,
-  value: org.slug,
-  badge: (
+export default function OrgsComboBox() {
+  const {
+    query: { orgSlug },
+    push,
+  } = useRouter();
+
+  const { orgs } = useOrgs();
+
+  const selectedOrgFromUrl = orgs.find((item) => item.slug === orgSlug);
+
+  const [selectedOrg, setSelectedOrg] = useState<Option | null>(null);
+
+  useEffect(() => {
+    if (selectedOrgFromUrl) {
+      setSelectedOrg({
+        label: selectedOrgFromUrl.name,
+        value: selectedOrgFromUrl.slug,
+        plan: selectedOrgFromUrl.plan.name,
+      });
+    }
+  }, [selectedOrgFromUrl]);
+
+  const options: Option[] = orgs.map((org) => ({
+    label: org.name,
+    value: org.slug,
+    plan: org.plan.name,
+  }));
+
+  const [open, setOpen] = useState(false);
+
+  const renderBadge = (plan: string) => (
     <Badge
-      variant={org.isFree ? 'outline' : 'default'}
+      variant={plan === 'Starter' ? 'outline' : 'default'}
       className={cn(
-        org.isFree ? 'bg-muted' : '',
+        plan === 'Starter' ? 'bg-muted' : '',
         'hover:none ml-2 h-5 px-[6px] text-[10px]',
       )}
     >
-      {org.plan}
+      {plan}
     </Badge>
-  ),
-}));
-
-export default function OrgsComboBox() {
-  const [open, setOpen] = useState(false);
-  const [selectedOrg, setSelectedOrg] = useState<Option | null>(options[0]);
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -81,7 +78,7 @@ export default function OrgsComboBox() {
           {selectedOrg ? (
             <div className="flex flex-row items-center justify-center">
               {selectedOrg.label}
-              {selectedOrg.badge}
+              {renderBadge(selectedOrg.plan)}
             </div>
           ) : (
             <>Select organization</>
@@ -91,7 +88,7 @@ export default function OrgsComboBox() {
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
         <Command>
-          <CommandInput placeholder="Change status..." />
+          <CommandInput placeholder="Select organization..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
@@ -99,12 +96,10 @@ export default function OrgsComboBox() {
                 <CommandItem
                   key={option.value}
                   value={option.label}
-                  onSelect={(value) => {
-                    setSelectedOrg(
-                      options.find((o) => o.label === value) || null,
-                    );
-
+                  onSelect={() => {
+                    setSelectedOrg(option);
                     setOpen(false);
+                    push(`/orgs/${option.value}/projects`);
                   }}
                 >
                   <Check
@@ -115,8 +110,8 @@ export default function OrgsComboBox() {
                         : 'opacity-0',
                     )}
                   />
-                  <span>{option.label}</span>
-                  {option.badge}
+                  <span className="max-w-52 truncate">{option.label}</span>
+                  {renderBadge(option.plan)}
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -80,7 +80,7 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const paymentMethodAvailable = data?.paymentMethods.length > 0;
 
-  const currentPlan = plans.find((plan) => plan.id === app.plan.id);
+  const currentPlan = plans.find((plan) => plan.id === app.legacyPlan);
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId);
   const higherPlans = plans.filter((plan) => plan.price > currentPlan.price);
 
@@ -123,7 +123,6 @@ export function ChangePlanModalWithData({ app, plans, close }: any) {
           variables: {
             appId: app.id,
             app: {
-              planId: selectedPlan.id,
               desiredState: 5,
             },
           },

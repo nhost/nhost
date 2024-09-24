@@ -19,7 +19,7 @@ const cspHeader = `
 `;
 
 module.exports = withBundleAnalyzer({
-  reactStrictMode: true,
+  reactStrictMode: false,
   swcMinify: false,
   output: 'standalone',
   experimental: {
