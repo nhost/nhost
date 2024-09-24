@@ -269,7 +269,7 @@ test('should display a red button when custom resources are disabled', async () 
 
   const computeResourcesSections = screen.getAllByText(/compute resources/i);
   const computeResourcesSection = computeResourcesSections[0];
-  const checkbox = within(computeResourcesSection.closest('div')).getByRole('checkbox');
+  const checkbox = within(computeResourcesSection).getByRole('checkbox');
   await user.click(checkbox);
 
   expect(screen.getByText(/enable this feature/i)).toBeInTheDocument();
@@ -302,7 +302,7 @@ test('should hide the pricing information when custom resource allocation is dis
 
   const computeResourcesSections = screen.getAllByText(/compute resources/i);
   const computeResourcesSection = computeResourcesSections[0];
-  const checkbox = within(computeResourcesSection.closest('div')).getByRole('checkbox');
+  const checkbox = within(computeResourcesSection).getByRole('checkbox');
   await user.click(checkbox);
   
   await user.click(screen.getByRole('button', { name: /save/i }));
@@ -474,7 +474,7 @@ test('should take replicas into account when confirming the resources', async ()
 
   // setting up storage
   fireEvent.change(storageReplicasInput, { target: { value: '4' } });
-  
+
   changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
     2.5 * RESOURCE_VCPU_MULTIPLIER,
