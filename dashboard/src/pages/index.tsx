@@ -2,12 +2,20 @@ import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { MaintenanceAlert } from '@/components/presentational/MaintenanceAlert';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
-import { useWorkspaces } from '@/features/orgs/projects/hooks/useWorkspaces';
-import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
-import { useRouter } from 'next/router';
-import { useEffect, type ReactElement } from 'react';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Text } from '@/components/ui/v2/Text';
+import { WorkspaceAndProjectList } from '@/features/projects/common/components/WorkspaceAndProjectList';
+import { WorkspaceSidebar } from '@/features/projects/common/components/WorkspaceSidebar';
+import {
+  useGetOrganizationsQuery,
+  type GetOrganizationsQuery,
+} from '@/utils/__generated__/graphql';
+import { NetworkStatus } from '@apollo/client';
+import { darken } from '@mui/system';
+import { useUserData } from '@nhost/nextjs';
+import NavLink from 'next/link';
+import { useState, type ReactElement } from 'react';
 
 export default function IndexPage() {
   const { push } = useRouter();
@@ -15,31 +23,33 @@ export default function IndexPage() {
   const { orgs, loading: loadingOrgs } = useOrgs();
   const { workspaces, loading: loadingWorkspaces } = useWorkspaces();
 
-  const [lastSlug] = useSSRLocalStorage('slug', null);
-
-  useEffect(() => {
-    const navigateToSlug = async () => {
-      if (loadingOrgs || loadingWorkspaces) {
-        return;
-      }
-
-      if (orgs && workspaces) {
-        const orgFromLastSlug = orgs.find((o) => o.slug === lastSlug);
-        const workspaceFromLastSlug = workspaces.find(
-          (w) => w.slug === lastSlug,
-        );
-
-        if (orgFromLastSlug) {
-          await push(`/orgs/${orgFromLastSlug.slug}/projects`);
-          return;
+  // keep polling for organizations until there is at least one available (default org)
+  // We do this because when a user signs up a default org is created automatically
+  // and that could take some time
+  const { data, startPolling, stopPolling, networkStatus } =
+    useGetOrganizationsQuery({
+      skip: !user,
+      notifyOnNetworkStatusChange: true,
+      onError: () => {
+        // When there's an error (graphql, network error) apply an exponential backoff strategy
+        setPollInterval((prevInterval) => {
+          const newInterval = Math.min(60_000, prevInterval * 2);
+          startPolling(newInterval);
+          return newInterval;
+        });
+      },
+      onCompleted: (queryData: GetOrganizationsQuery) => {
+        if (!queryData?.organizations.length) {
+          setPollInterval(1000);
+          startPolling(1000);
+        } else {
+          setPollInterval(0);
+          stopPolling();
         }
 
-        if (workspaceFromLastSlug) {
-          await push(`/${workspaceFromLastSlug.slug}`);
-          return;
-        }
-
-        const personalOrg = orgs.find((org) => org.plan.isFree);
+  // keep showing loading indicator while polling
+  const loading = networkStatus === NetworkStatus.loading;
+  const appCount = data?.organizations?.[0]?.plan?.apps?.length || 0;
 
         if (personalOrg) {
           push(`/orgs/${personalOrg.slug}/projects`);
@@ -47,7 +57,7 @@ export default function IndexPage() {
       }
     };
 
-  if (true) {
+  if (appCount === 0) {
     return (
       <Container className="grid grid-cols-1 gap-8 md:grid-cols-4 md:pt-8">
         <Box className="noapps col-span-1 h-80 rounded-md text-center md:col-span-3">
@@ -59,7 +69,48 @@ export default function IndexPage() {
               Welcome to Nhost!
             </Text>
 
-  return <LoadingScreen />;
+            <Text className="mt-2" sx={{ color: 'common.white' }}>
+              Let&apos;s set up your first backend - the Nhost way.
+            </Text>
+
+            <div className="inline-block pt-10">
+              <NavLink href="/new" passHref legacyBehavior>
+                <Button
+                  sx={{
+                    backgroundColor: (theme) =>
+                      `${theme.palette.common.white} !important`,
+                    color: (theme) =>
+                      `${theme.palette.common.black} !important`,
+                    '&:hover': {
+                      backgroundColor: (theme) =>
+                        `${darken(theme.palette.common.white, 0.1)} !important`,
+                    },
+                  }}
+                  disabled={data?.organizations.length === 0}
+                >
+                  Create Your First Project
+                </Button>
+              </NavLink>
+            </div>
+          </div>
+        </Box>
+
+        {/* TODO fetch the legacy workspaces  */}
+        <WorkspaceSidebar workspaces={[]} />
+      </Container>
+    );
+  }
+
+  return (
+    <Container className="grid grid-cols-1 gap-8 md:grid-cols-4">
+      <WorkspaceAndProjectList
+        workspaces={[]}
+        className="col-span-1 md:col-span-3"
+      />
+
+      <WorkspaceSidebar workspaces={[]} />
+    </Container>
+  );
 }
 
 IndexPage.getLayout = function getLayout(page: ReactElement) {

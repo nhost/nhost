@@ -69,14 +69,11 @@ export default function AssistantsPage() {
   if (
     (isPlatform &&
       !currentProject?.legacyPlan?.isFree &&
-      !currentProject?.config?.ai) ||
+      !currentProject.config?.ai) ||
     !isGraphiteEnabled
   ) {
     return (
-      <Box
-        className="w-full p-4"
-        sx={{ backgroundColor: 'background.default' }}
-      >
+      <Box className="p-4" sx={{ backgroundColor: 'background.default' }}>
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
           <Text className="grid grid-flow-row justify-items-start gap-0.5">
             <Text component="span">
@@ -99,10 +96,7 @@ export default function AssistantsPage() {
 
   if (data?.graphite?.assistants.length === 0 && !loading) {
     return (
-      <Box
-        className="w-full p-6"
-        sx={{ backgroundColor: 'background.default' }}
-      >
+      <Box className="p-6" sx={{ backgroundColor: 'background.default' }}>
         <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <span className="text-6xl">🤖</span>
           <div className="flex flex-col space-y-1">
@@ -113,7 +107,7 @@ export default function AssistantsPage() {
               All your assistants will be listed here.
             </Text>
           </div>
-          <div className="flex flex-row place-content-between rounded-lg">
+          <div className="flex flex-row place-content-between rounded-lg ">
             <Button
               variant="contained"
               color="primary"
@@ -130,7 +124,7 @@ export default function AssistantsPage() {
   }
 
   return (
-    <Box className="flex w-full flex-col overflow-hidden">
+    <Box className="flex flex-col overflow-hidden">
       <Box className="flex flex-row place-content-end border-b-1 p-4">
         <Button
           variant="contained"

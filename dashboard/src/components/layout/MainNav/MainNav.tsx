@@ -7,6 +7,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/v3/sheet';
+import CreateOrgDialog from '@/features/orgs/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
 import { PanelLeft, Pin, PinOff } from 'lucide-react';
@@ -61,6 +62,7 @@ export default function MainNav({ container }: MainNavProps) {
 
         <div className="h-[calc(100vh-6rem)] overflow-auto px-4 pb-12 pt-2">
           <NavTree />
+          <CreateOrgDialog />
         </div>
       </SheetContent>
     </Sheet>

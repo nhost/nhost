@@ -39,8 +39,7 @@ function BackupsContent() {
 
 export default function BackupsPage() {
   const { currentProject, loading } = useCurrentWorkspaceAndProject();
-
-  const legacyPlan = currentProject?.legacyPlan;
+  const { legacyPlan } = currentProject;
 
   if (loading) {
     return <ActivityIndicator label="Loading project..." delay={1000} />;

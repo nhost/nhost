@@ -3,31 +3,18 @@ query getOrganization($orgSlug: String!) {
     id
     name
     slug
-    status
     plan {
       id
       name
-      price
       deprecated
       individual
       isFree
-      featureMaxDbSize
-    }
-    members {
-      id
-      role
-      user {
+      apps(order_by: { name: asc }) {
         id
-        email
-        displayName
-        avatarUrl
+        name
+        subdomain
+        slug
       }
-    }
-    apps(order_by: { name: asc }) {
-      id
-      name
-      subdomain
-      slug
     }
   }
 }

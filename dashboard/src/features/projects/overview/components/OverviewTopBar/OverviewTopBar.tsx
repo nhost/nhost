@@ -16,6 +16,8 @@ export default function OverviewTopBar() {
   const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const isOwner = useIsCurrentUserOwner();
   const isStarter = currentProject?.legacyPlan?.name === 'Starter';
+  const isPro = currentProject?.legacyPlan?.name === 'Pro';
+  const { openDialog } = useDialog();
   const { maintenanceActive } = useUI();
 
   if (!isPlatform) {
@@ -86,6 +88,30 @@ export default function OverviewTopBar() {
                   ago
                 </Text>
               )}
+              <div className="mt-1 inline-grid grid-flow-col items-center justify-start gap-2 md:mt-0">
+                <Chip
+                  size="small"
+                  label={currentProject.legacyPlan.name}
+                  color={!isStarter ? 'primary' : 'default'}
+                />
+
+                {(isStarter || isPro) && isOwner && (
+                  <Button
+                    variant="borderless"
+                    className="mr-2"
+                    onClick={() => {
+                      openDialog({
+                        component: <ChangePlanModal />,
+                        props: {
+                          PaperProps: { className: 'p-0 max-w-xl w-full' },
+                        },
+                      });
+                    }}
+                  >
+                    Upgrade
+                  </Button>
+                )}
+              </div>
             </div>
 
             {currentProject.creator && (
@@ -105,12 +131,16 @@ export default function OverviewTopBar() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row">
-        {isOwner && <MigrateProjectToOrg />}
-        <Link
-          href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/general`}
-          passHref
-          legacyBehavior
+      <Link
+        href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/general`}
+        passHref
+        legacyBehavior
+      >
+        <Button
+          endIcon={<CogIcon className="h-4 w-4" />}
+          variant="outlined"
+          color="secondary"
+          disabled={maintenanceActive}
         >
           <Button
             endIcon={<CogIcon className="w-4 h-4" />}

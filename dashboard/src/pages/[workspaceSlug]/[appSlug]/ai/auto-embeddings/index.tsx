@@ -105,7 +105,7 @@ export default function AutoEmbeddingsPage() {
   if (
     (isPlatform &&
       !currentProject?.legacyPlan?.isFree &&
-      !currentProject?.config?.ai) ||
+      !currentProject.config?.ai) ||
     !isGraphiteEnabled
   ) {
     return (
