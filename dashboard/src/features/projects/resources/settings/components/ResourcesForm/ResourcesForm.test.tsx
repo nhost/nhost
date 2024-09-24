@@ -350,19 +350,16 @@ test('should change pricing based on selected replicas', async () => {
     /approximate cost: \$425\.00\/mo/i,
   );
 
-  changeSliderValue(
-    screen.getByRole('slider', { name: /hasura graphql replicas/i }),
-    2,
-  );
+  const hasuraContainer = screen.getByText(/hasura graphQL/i).closest('div');
+  const hasuraReplicasInput = within(hasuraContainer).getByRole('spinbutton', { name: /replicas/i });
+
+  fireEvent.change(hasuraReplicasInput, { target: { value: '2' } });
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
     /approximate cost: \$525\.00\/mo/i,
   );
 
-  changeSliderValue(
-    screen.getByRole('slider', { name: /hasura graphql replicas/i }),
-    1,
-  );
+  fireEvent.change(hasuraReplicasInput, { target: { value: '1' } });
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
     /approximate cost: \$425\.00\/mo/i,
@@ -385,10 +382,10 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
     20 * RESOURCE_VCPU_MULTIPLIER,
   );
 
-  changeSliderValue(
-    screen.getByRole('slider', { name: /storage replicas/i }),
-    2,
-  );
+  const storageContainer = screen.getByText(/storage/i).closest('div');
+  const storageReplicasInput = within(storageContainer).getByRole('spinbutton', { name: /replicas/i });
+
+  fireEvent.change(storageReplicasInput, { target: { value: '2' } });
 
   changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
@@ -422,6 +419,15 @@ test('should take replicas into account when confirming the resources', async ()
 
   render(<ResourcesForm />);
 
+  const hasuraContainer = screen.getByText(/hasura graphQL/i).closest('div');
+  const hasuraReplicasInput = within(hasuraContainer).getByRole('spinbutton', { name: /replicas/i });
+
+  const authContainer = screen.getByText(/auth/i).closest('div');
+  const authReplicasInput = within(authContainer).getByRole('spinbutton', { name: /replicas/i });
+
+  const storageContainer = screen.getByText(/storage/i).closest('div');
+  const storageReplicasInput = within(storageContainer).getByRole('spinbutton', { name: /replicas/i });
+
   expect(
     await screen.findByRole('slider', { name: /total available vcpu/i }),
   ).toBeInTheDocument();
@@ -443,11 +449,8 @@ test('should take replicas into account when confirming the resources', async ()
     4 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
-  // setting up hasura
-  changeSliderValue(
-    screen.getByRole('slider', { name: /hasura graphql replicas/i }),
-    3,
-  );
+  fireEvent.change(hasuraReplicasInput, { target: { value: '3' } });
+
   changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql vcpu/i }),
     2.5 * RESOURCE_VCPU_MULTIPLIER,
@@ -458,7 +461,8 @@ test('should take replicas into account when confirming the resources', async ()
   );
 
   // setting up auth
-  changeSliderValue(screen.getByRole('slider', { name: /auth replicas/i }), 2);
+  fireEvent.change(authReplicasInput, { target: { value: '2' } });
+
   changeSliderValue(
     screen.getByRole('slider', { name: /auth vcpu/i }),
     1.5 * RESOURCE_VCPU_MULTIPLIER,
@@ -469,10 +473,8 @@ test('should take replicas into account when confirming the resources', async ()
   );
 
   // setting up storage
-  changeSliderValue(
-    screen.getByRole('slider', { name: /storage replicas/i }),
-    4,
-  );
+  fireEvent.change(storageReplicasInput, { target: { value: '4' } });
+  
   changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
     2.5 * RESOURCE_VCPU_MULTIPLIER,
