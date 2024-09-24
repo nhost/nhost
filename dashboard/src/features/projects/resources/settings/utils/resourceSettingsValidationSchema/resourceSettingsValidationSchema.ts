@@ -99,7 +99,7 @@ const serviceValidationSchema = Yup.object({
     .max(MAX_SERVICE_MEMORY)
     .test(
       'is-matching-ratio',
-      `vCPU and Memory for this service must follow a 1:${RESOURCE_VCPU_MEMORY_RATIO} ratio when more than one replica is selected or when autoscaler is activated.`,
+      `vCPU and Memory for this service must follow a 1:${RESOURCE_VCPU_MEMORY_RATIO} ratio when more than one replica is selected or when the autoscaler is activated.`,
       (memory: number, { parent }) => {
         if (parent.replicas === 1 && !parent.autoscale) {
           return true;

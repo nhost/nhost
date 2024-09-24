@@ -163,7 +163,7 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid grid-flow-col items-center justify-between gap-2">
+        <Box className="grid items-center justify-between grid-flow-col gap-2">
           <Text>
             Allocated vCPUs:{' '}
             <span className="font-medium">
@@ -193,7 +193,7 @@ export default function ServiceResourcesFormFragment({
       </Box>
 
       <Box className="grid grid-flow-row gap-2">
-        <Box className="grid grid-flow-col items-center justify-between gap-2">
+        <Box className="grid items-center justify-between grid-flow-col gap-2">
           <Text>
             Allocated Memory:{' '}
             <span className="font-medium">
@@ -238,7 +238,7 @@ export default function ServiceResourcesFormFragment({
                 >
                   <ExclamationIcon
                     color="error"
-                    className="h-4 w-4"
+                    className="w-4 h-4"
                     aria-hidden="false"
                   />
                 </Tooltip>
@@ -265,7 +265,7 @@ export default function ServiceResourcesFormFragment({
                 >
                   <ExclamationIcon
                     color="error"
-                    className="h-4 w-4"
+                    className="w-4 h-4"
                     aria-hidden="false"
                   />
                 </Tooltip>
@@ -293,11 +293,11 @@ export default function ServiceResourcesFormFragment({
               {...register(`${serviceKey}.autoscale`)}
               onChange={handleSwitchChange}
             />
-            <Text>Autoscaling</Text>
+            <Text>Autoscaler</Text>
             <Tooltip
               title={`Enable autoscaler to automatically provision extra ${title} replicas when needed.`}
             >
-              <InfoOutlinedIcon className="h-4 w-4 text-black" />
+              <InfoOutlinedIcon className="w-4 h-4 text-black" />
             </Tooltip>
           </Box>
         </Box>
