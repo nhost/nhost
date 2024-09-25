@@ -57,3 +57,8 @@ export interface WorkOsOptions extends CommonProviderOptions {
   provider?: string
 }
 export interface ProviderOptions extends CommonProviderOptions, WorkOsOptions {}
+
+export interface RequestOptions {
+  // optional extra headers to be sent with request (ex: x-cf-turnstile-response)
+  headers?: Record<string, string>
+}
