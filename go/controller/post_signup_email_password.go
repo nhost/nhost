@@ -17,22 +17,22 @@ func (ctrl *Controller) postSignupEmailPasswordValidateRequest(
 ) (api.PostSignupEmailPasswordRequestObject, *APIError) {
 	if ctrl.config.DisableSignup {
 		logger.Warn("signup disabled")
-		return api.PostSignupEmailPasswordRequestObject{}, ErrSignupDisabled //nolint:exhaustruct
+		return api.PostSignupEmailPasswordRequestObject{}, ErrSignupDisabled
 	}
 
 	if err := ctrl.wf.ValidateSignupEmail(req.Body.Email, logger); err != nil {
-		return api.PostSignupEmailPasswordRequestObject{}, err //nolint:exhaustruct
+		return api.PostSignupEmailPasswordRequestObject{}, err
 	}
 
 	if err := ctrl.wf.ValidatePassword(ctx, req.Body.Password, logger); err != nil {
-		return api.PostSignupEmailPasswordRequestObject{}, err //nolint:exhaustruct
+		return api.PostSignupEmailPasswordRequestObject{}, err
 	}
 
 	options, err := ctrl.wf.ValidateSignUpOptions(
 		req.Body.Options, string(req.Body.Email), logger,
 	)
 	if err != nil {
-		return api.PostSignupEmailPasswordRequestObject{}, err //nolint:exhaustruct
+		return api.PostSignupEmailPasswordRequestObject{}, err
 	}
 
 	req.Body.Options = options

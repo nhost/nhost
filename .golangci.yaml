@@ -13,6 +13,7 @@ linters:
       - gci    # we already check the linter did its magic
       - execinquery
       - gomnd # renamed to mnd
+      - exportloopref # deprecated
 
 issues:
   exclude-rules:

@@ -210,15 +210,15 @@ func (wf *Workflows) GetUser(
 	user, err := wf.db.GetUser(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.Warn("user not found")
-		return sql.AuthUser{}, ErrInvalidEmailPassword //nolint:exhaustruct
+		return sql.AuthUser{}, ErrInvalidEmailPassword
 	}
 	if err != nil {
 		logger.Error("error getting user by email", logError(err))
-		return sql.AuthUser{}, ErrInternalServerError //nolint:exhaustruct
+		return sql.AuthUser{}, ErrInternalServerError
 	}
 
 	if err := wf.ValidateUser(user, logger); err != nil {
-		return sql.AuthUser{}, err //nolint:exhaustruct
+		return sql.AuthUser{}, err
 	}
 
 	return user, nil
@@ -250,11 +250,11 @@ func (wf *Workflows) GetUserByEmail(
 	user, err := wf.db.GetUserByEmail(ctx, sql.Text(email))
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.Warn("user not found")
-		return sql.AuthUser{}, ErrUserEmailNotFound //nolint:exhaustruct
+		return sql.AuthUser{}, ErrUserEmailNotFound
 	}
 	if err != nil {
 		logger.Error("error getting user by email", logError(err))
-		return sql.AuthUser{}, ErrInternalServerError //nolint:exhaustruct
+		return sql.AuthUser{}, ErrInternalServerError
 	}
 
 	if err := wf.ValidateUser(user, logger); err != nil {
@@ -280,13 +280,13 @@ func (wf *Workflows) GetUserByRefreshTokenHash(
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.Error("could not find user by refresh token")
 		if refreshTokenType == sql.RefreshTokenTypePAT {
-			return sql.AuthUser{}, ErrInvalidPat //nolint:exhaustruct
+			return sql.AuthUser{}, ErrInvalidPat
 		}
-		return sql.AuthUser{}, ErrInvalidRefreshToken //nolint:exhaustruct
+		return sql.AuthUser{}, ErrInvalidRefreshToken
 	}
 	if err != nil {
 		logger.Error("could not get user by refresh token", logError(err))
-		return sql.AuthUser{}, ErrInternalServerError //nolint:exhaustruct
+		return sql.AuthUser{}, ErrInternalServerError
 	}
 
 	if apiErr := wf.ValidateUser(user, logger); apiErr != nil {
@@ -304,11 +304,11 @@ func (wf *Workflows) GetUserByTicket(
 	user, err := wf.db.GetUserByTicket(ctx, sql.Text(ticket))
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.Warn("user not found")
-		return sql.AuthUser{}, ErrInvalidTicket //nolint:exhaustruct
+		return sql.AuthUser{}, ErrInvalidTicket
 	}
 	if err != nil {
 		logger.Error("could not get user by ticket", logError(err))
-		return sql.AuthUser{}, ErrInternalServerError //nolint:exhaustruct
+		return sql.AuthUser{}, ErrInternalServerError
 	}
 
 	if apiErr := wf.ValidateUser(user, logger); apiErr != nil {
@@ -340,7 +340,7 @@ func (wf *Workflows) UpdateSession( //nolint:funlen
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.Warn("invalid refresh token")
-		return &api.Session{}, ErrInvalidRefreshToken //nolint:exhaustruct
+		return &api.Session{}, ErrInvalidRefreshToken
 	}
 	if err != nil {
 		logger.Error("error getting user roles by refresh token", logError(err))
@@ -469,29 +469,29 @@ func (wf *Workflows) GetUserFromJWTInContext(
 		logger.Error(
 			"jwt token not found in context, this should not be possilble due to middleware",
 		)
-		return sql.AuthUser{}, ErrInternalServerError //nolint:exhaustruct
+		return sql.AuthUser{}, ErrInternalServerError
 	}
 
 	sub, err := jwtToken.Claims.GetSubject()
 	if err != nil {
 		logger.Error("error getting user id from jwt token", logError(err))
-		return sql.AuthUser{}, ErrInvalidRequest //nolint:exhaustruct
+		return sql.AuthUser{}, ErrInvalidRequest
 	}
 	logger = logger.With(slog.String("user_id", sub))
 
 	userID, err := uuid.Parse(sub)
 	if err != nil {
 		logger.Error("error parsing user id from jwt token's subject", logError(err))
-		return sql.AuthUser{}, ErrInvalidRequest //nolint:exhaustruct
+		return sql.AuthUser{}, ErrInvalidRequest
 	}
 
 	user, apiErr := wf.GetUser(ctx, userID, logger)
 	if apiErr != nil {
-		return sql.AuthUser{}, apiErr //nolint:exhaustruct
+		return sql.AuthUser{}, apiErr
 	}
 
 	if apiErr := wf.ValidateUser(user, logger); apiErr != nil {
-		return sql.AuthUser{}, apiErr //nolint:exhaustruct
+		return sql.AuthUser{}, apiErr
 	}
 
 	return user, nil
@@ -550,7 +550,7 @@ func (wf *Workflows) ChangeEmail(
 	)
 	if err != nil {
 		logger.Error("error updating user ticket", logError(err))
-		return sql.AuthUser{}, ErrInternalServerError //nolint:exhaustruct
+		return sql.AuthUser{}, ErrInternalServerError
 	}
 
 	return user, nil
@@ -673,13 +673,13 @@ func (wf *Workflows) SignUpUser( //nolint:funlen
 ) (sql.AuthUser, *APIError) {
 	if wf.config.DisableSignup {
 		logger.Warn("signup disabled")
-		return sql.AuthUser{}, ErrSignupDisabled //nolint:exhaustruct
+		return sql.AuthUser{}, ErrSignupDisabled
 	}
 
 	metadata, err := json.Marshal(options.Metadata)
 	if err != nil {
 		logger.Error("error marshaling metadata", logError(err))
-		return sql.AuthUser{}, ErrInternalServerError //nolint:exhaustruct
+		return sql.AuthUser{}, ErrInternalServerError
 	}
 
 	gravatarURL := wf.gravatarURL(email)
@@ -703,18 +703,18 @@ func (wf *Workflows) SignUpUser( //nolint:funlen
 	for _, fn := range withInputFn {
 		if err := fn(&input); err != nil {
 			logger.Error("error applying input function to user signup", logError(err))
-			return sql.AuthUser{}, ErrInternalServerError //nolint:exhaustruct
+			return sql.AuthUser{}, ErrInternalServerError
 		}
 	}
 
 	insertedUser, err := wf.db.InsertUser(ctx, input)
 	if err != nil {
-		return sql.AuthUser{}, sqlErrIsDuplicatedEmail(err, logger) //nolint:exhaustruct
+		return sql.AuthUser{}, sqlErrIsDuplicatedEmail(err, logger)
 	}
 
 	if wf.config.DisableNewUsers {
 		logger.Warn("new user disabled")
-		return sql.AuthUser{}, ErrDisabledUser //nolint:exhaustruct
+		return sql.AuthUser{}, ErrDisabledUser
 	}
 
 	return sql.AuthUser{ //nolint:exhaustruct
@@ -743,13 +743,13 @@ func (wf *Workflows) SignupUserWithRefreshToken( //nolint:funlen
 ) (*api.User, sql.InsertUserWithRefreshTokenRow, *APIError) {
 	if wf.config.DisableSignup {
 		logger.Warn("signup disabled")
-		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrSignupDisabled //nolint:exhaustruct
+		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrSignupDisabled
 	}
 
 	metadata, err := json.Marshal(options.Metadata)
 	if err != nil {
 		logger.Error("error marshaling metadata", logError(err))
-		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrInternalServerError //nolint:exhaustruct
+		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrInternalServerError
 	}
 
 	gravatarURL := wf.gravatarURL(email)
@@ -757,7 +757,7 @@ func (wf *Workflows) SignupUserWithRefreshToken( //nolint:funlen
 	hashedPassword, err := hashPassword(password)
 	if err != nil {
 		logger.Error("error hashing password", logError(err))
-		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrInternalServerError //nolint:exhaustruct
+		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrInternalServerError
 	}
 
 	resp, err := wf.db.InsertUserWithRefreshToken(
@@ -779,13 +779,13 @@ func (wf *Workflows) SignupUserWithRefreshToken( //nolint:funlen
 		},
 	)
 	if err != nil {
-		return nil, sql.InsertUserWithRefreshTokenRow{}, //nolint:exhaustruct
+		return nil, sql.InsertUserWithRefreshTokenRow{},
 			sqlErrIsDuplicatedEmail(err, logger)
 	}
 
 	if wf.config.DisableNewUsers {
 		logger.Warn("new user disabled")
-		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrDisabledUser //nolint:exhaustruct
+		return nil, sql.InsertUserWithRefreshTokenRow{}, ErrDisabledUser
 	}
 
 	return &api.User{

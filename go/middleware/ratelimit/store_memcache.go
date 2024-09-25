@@ -62,5 +62,5 @@ func (m *MemcacheStore) Increment(key string, expire time.Duration) int {
 		m.logger.Error("error incrementing key", slog.String("error", err.Error()))
 		return 0
 	}
-	return int(newValue)
+	return int(newValue) //nolint:gosec
 }

@@ -61,7 +61,7 @@ func getSMTPEmailer(cCtx *cli.Context, logger *slog.Logger) (*notifications.Emai
 
 	return notifications.NewEmail(
 		cCtx.String(flagSMTPHost),
-		uint16(cCtx.Uint(flagSMTPPort)),
+		uint16(cCtx.Uint(flagSMTPPort)), //nolint:gosec
 		cCtx.Bool(flagSMTPSecure),
 		auth,
 		cCtx.String(flagSMTPSender),
