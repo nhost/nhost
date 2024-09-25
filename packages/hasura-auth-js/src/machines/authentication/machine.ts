@@ -920,8 +920,6 @@ export const createAuthMachine = ({
             return Promise.reject<SignUpResponse>({ error: INVALID_PASSWORD_ERROR })
           }
 
-          const { headers = {} } = requestOptions as RequestOptions
-
           if (context.user?.isAnonymous) {
             return postRequest<SignUpResponse>(
               '/user/deanonymize',
@@ -932,7 +930,7 @@ export const createAuthMachine = ({
                 options: rewriteRedirectTo(clientUrl, options)
               },
               context.accessToken.value,
-              headers
+              requestOptions?.headers
             )
           } else {
             return postRequest<SignUpResponse>(
@@ -943,7 +941,7 @@ export const createAuthMachine = ({
                 options: rewriteRedirectTo(clientUrl, options)
               },
               null,
-              headers
+              requestOptions?.headers
             )
           }
         },
