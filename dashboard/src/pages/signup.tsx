@@ -10,7 +10,6 @@ import { Text } from '@/components/ui/v2/Text';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Turnstile } from '@marsidev/react-turnstile';
 import { styled } from '@mui/material';
 import { useSignUpEmailPassword } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
@@ -40,9 +39,6 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // x-cf-turnstile-response
-  const [turnstileResponse, setTurnstileResponse] = useState(null);
-
   const form = useForm<SignUpFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
@@ -70,27 +66,11 @@ export default function SignUpPage() {
     password,
     displayName,
   }: SignUpFormValues) {
-    if (!turnstileResponse) {
-      toast.error(
-        'Please complete the signup verification challenge to continue.',
-        getToastStyleProps(),
-      );
-
-      return;
-    }
-
     try {
       const { needsEmailVerification } = await signUpEmailPassword(
         email,
         password,
-        {
-          displayName,
-        },
-        {
-          headers: {
-            'x-cf-turnstile-response': turnstileResponse,
-          },
-        },
+        { displayName },
       );
 
       if (needsEmailVerification) {
@@ -190,12 +170,6 @@ export default function SignUpPage() {
               inputProps={{ min: 2, max: 128 }}
               error={!!formState.errors.password}
               helperText={formState.errors.password?.message}
-            />
-
-            <Turnstile
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-              options={{ theme: 'dark', size: 'flexible' }}
-              onSuccess={setTurnstileResponse}
             />
 
             <Button
