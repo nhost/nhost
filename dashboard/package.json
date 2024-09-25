@@ -35,6 +35,7 @@
     "@heroicons/react": "^1.0.6",
     "@hookform/resolvers": "^3.3.4",
     "@iarna/toml": "^2.2.5",
+    "@marsidev/react-turnstile": "^1.0.2",
     "@mui/base": "5.0.0-beta.31",
     "@mui/material": "^5.15.14",
     "@mui/system": "^5.15.14",
