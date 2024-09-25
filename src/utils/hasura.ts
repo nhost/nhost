@@ -9,7 +9,7 @@ function delay(ms: number) {
 const reachHasura = async () => {
   try {
     await axios.get(
-      `${ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/healthz')}`
+      `${ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/hasura/healthz')}`
     );
   } catch (err) {
     const { message } = err as AxiosError;
