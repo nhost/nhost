@@ -31,7 +31,6 @@ const fetchWrapper = async <T>(
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  // add optional extra headers (ex: x-cf-turnstile-response)
   const mergedHeaders = { ...headers, ...extraHeaders }
 
   const options: RequestInit = {

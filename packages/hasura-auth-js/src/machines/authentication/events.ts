@@ -1,6 +1,7 @@
 import type {
   NhostSession,
   PasswordlessOptions,
+  RequestOptions,
   SignUpOptions,
   SignUpSecurityKeyOptions
 } from '../../types'
@@ -23,7 +24,13 @@ export type AuthEvents =
       options?: PasswordlessOptions
     }
   | { type: 'PASSWORDLESS_SMS_OTP'; phoneNumber?: string; otp?: string }
-  | { type: 'SIGNUP_EMAIL_PASSWORD'; email?: string; password?: string; options?: SignUpOptions }
+  | {
+      type: 'SIGNUP_EMAIL_PASSWORD'
+      email?: string
+      password?: string
+      options?: SignUpOptions
+      requestOptions?: RequestOptions
+    }
   | { type: 'SIGNUP_SECURITY_KEY'; email?: string; options?: SignUpSecurityKeyOptions }
   | { type: 'SIGNOUT'; all?: boolean }
   | { type: 'SIGNIN_MFA_TOTP'; ticket?: string; otp?: string }

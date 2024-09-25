@@ -34,6 +34,7 @@ import {
   PasswordlessSmsOtpResponse,
   PasswordlessSmsResponse,
   RefreshSessionResponse,
+  RequestOptions,
   SignInAnonymousResponse,
   SignInMfaTotpResponse,
   SignInPATResponse,
@@ -911,14 +912,15 @@ export const createAuthMachine = ({
 
           return signOutResponse
         },
-        signUpEmailPassword: async (context, { email, password, options }) => {
+        signUpEmailPassword: async (context, { email, password, options, requestOptions }) => {
           if (!isValidEmail(email)) {
             return Promise.reject<SignUpResponse>({ error: INVALID_EMAIL_ERROR })
           }
           if (!isValidPassword(password)) {
             return Promise.reject<SignUpResponse>({ error: INVALID_PASSWORD_ERROR })
           }
-          const { headers = {}, ...otherOptions } = options || {}
+
+          const { headers = {} } = requestOptions as RequestOptions
 
           if (context.user?.isAnonymous) {
             return postRequest<SignUpResponse>(
@@ -927,7 +929,7 @@ export const createAuthMachine = ({
                 signInMethod: 'email-password',
                 email,
                 password,
-                options: rewriteRedirectTo(clientUrl, otherOptions)
+                options: rewriteRedirectTo(clientUrl, options)
               },
               context.accessToken.value,
               headers
@@ -938,7 +940,7 @@ export const createAuthMachine = ({
               {
                 email,
                 password,
-                options: rewriteRedirectTo(clientUrl, otherOptions)
+                options: rewriteRedirectTo(clientUrl, options)
               },
               null,
               headers
