@@ -23,6 +23,11 @@ interface RegistrationOptions {
    * @example `{ firstName: 'Bob', profession: 'builder' }`
    */
   metadata?: Record<string, unknown>
+  /**
+   * Optional headers to include with the request
+   * @example `'x-cf-turnstile-response': 'xxx'`
+   */
+  headers?: Record<string, string>
 }
 
 export interface RedirectOption {

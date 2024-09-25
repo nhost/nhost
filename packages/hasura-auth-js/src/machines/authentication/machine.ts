@@ -92,9 +92,10 @@ export const createAuthMachine = ({
   const postRequest = async <T = any, D = any>(
     url: string,
     data?: D,
-    token?: string | null
+    token?: string | null,
+    headers?: Record<string, string>
   ): Promise<T> => {
-    const result = await postFetch<T>(`${backendUrl}${url}`, data, token)
+    const result = await postFetch<T>(`${backendUrl}${url}`, data, token, headers)
 
     return result.data
   }
@@ -917,6 +918,8 @@ export const createAuthMachine = ({
           if (!isValidPassword(password)) {
             return Promise.reject<SignUpResponse>({ error: INVALID_PASSWORD_ERROR })
           }
+          const { headers = {}, ...otherOptions } = options || {}
+
           if (context.user?.isAnonymous) {
             return postRequest<SignUpResponse>(
               '/user/deanonymize',
@@ -924,16 +927,22 @@ export const createAuthMachine = ({
                 signInMethod: 'email-password',
                 email,
                 password,
-                options: rewriteRedirectTo(clientUrl, options)
+                options: rewriteRedirectTo(clientUrl, otherOptions)
               },
-              context.accessToken.value
+              context.accessToken.value,
+              headers
             )
           } else {
-            return postRequest<SignUpResponse>('/signup/email-password', {
-              email,
-              password,
-              options: rewriteRedirectTo(clientUrl, options)
-            })
+            return postRequest<SignUpResponse>(
+              '/signup/email-password',
+              {
+                email,
+                password,
+                options: rewriteRedirectTo(clientUrl, otherOptions)
+              },
+              null,
+              headers
+            )
           }
         },
         signUpSecurityKey: async (_, { email, options }) => {
