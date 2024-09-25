@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 2.6.0
+
+### Minor Changes
+
+- 55d8bb5: feat: support custom headers in sign-up and deanonymize requests
+
 ## 2.5.6
 
 ### Patch Changes
