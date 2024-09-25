@@ -85,6 +85,8 @@ export default function SignUpPage() {
         password,
         {
           displayName,
+        },
+        {
           headers: {
             'x-cf-turnstile-response': turnstileResponse,
           },
