@@ -81,7 +81,8 @@
         "platform/secrets",
         "platform/deployments",
         "platform/custom-domains",
-        "platform/rate-limits"
+        "platform/rate-limits",
+        "platform/tls"
       ]
     },
     {

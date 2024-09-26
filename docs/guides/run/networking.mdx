@@ -95,7 +95,7 @@ publish = true
   </Tab>
 </Tabs>
 
-<Info>Currently, only services of type `http` can be exposed to the internet.</Info>
+<Info>Currently, only services of type `http` and `grpc` can be exposed to the internet.</Info>
 
 2. Once the service of type `http` is published, you can connect to it using a URL with the following format:
 
@@ -105,3 +105,21 @@ publish = true
 
   `https://zlbmqjfczuwqvsquujno-3000.svc.eu-central-1.nhost.run`
 
+
+## GRPC
+
+GRPC services are supported, however, they are only supported via [custom domains](/platform/custom-domains). To expose a GRPC service to the internet you can use the following configuration:
+
+``` toml
+...
+
+[[ports]]
+type = "grpc"
+port = 5000
+publish = false
+
+[[ports.ingresses]]
+fqdn = ["grpc.domain.com"]
+
+...
+```
