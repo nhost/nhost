@@ -347,15 +347,20 @@ test('should change pricing based on selected replicas', async () => {
   );
 
   const hasuraReplicasInput = screen.getAllByPlaceholderText('Replicas')[0];
+
+  await user.click(hasuraReplicasInput);
   await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '2');
+  expect(hasuraReplicasInput).toHaveValue('2');
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
     /approximate cost: \$525\.00\/mo/i,
   );
 
+  await user.click(hasuraReplicasInput);
   await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '1');
+  expect(hasuraReplicasInput).toHaveValue('2');
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
     /approximate cost: \$425\.00\/mo/i,
