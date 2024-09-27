@@ -91,6 +91,7 @@ const (
 	flagRateLimitSignupsInterval         = "rate-limit-signups-interval"
 	flagRateLimitMemcacheServer          = "rate-limit-memcache-server"
 	flagRateLimitMemcachePrefix          = "rate-limit-memcache-prefix"
+	flagTurnstileSecret                  = "turnstile-secret"
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -554,6 +555,12 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Category: "rate-limit",
 				EnvVars:  []string{"AUTH_RATE_LIMIT_MEMCACHE_PREFIX"},
 			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagTurnstileSecret,
+				Usage:    "Turnstile secret. If passed, enable Cloudflare's turnstile for signup methods. The header `X-Cf-Turnstile-Response ` will have to be included in the request for verification",
+				Category: "turnstile",
+				EnvVars:  []string{"AUTH_TURNSTILE_SECRET"},
+			},
 		},
 		Action: serve,
 	}
@@ -651,6 +658,12 @@ func getGoServer( //nolint:funlen
 
 	if cCtx.Bool(flagRateLimitEnable) {
 		handlers = append(handlers, getRateLimiter(cCtx, logger))
+	}
+
+	if cCtx.String(flagTurnstileSecret) != "" {
+		handlers = append(handlers, middleware.Tunrstile(
+			cCtx.String(flagTurnstileSecret), cCtx.String(flagAPIPrefix)),
+		)
 	}
 
 	router.Use(handlers...)
