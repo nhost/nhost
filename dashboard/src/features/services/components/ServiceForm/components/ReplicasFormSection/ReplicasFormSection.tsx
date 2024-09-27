@@ -82,13 +82,14 @@ export default function ReplicasFormSection() {
               className="max-w-28"
               hideEmptyHelperText
               fullWidth
+              onWheel={(e) => (e.target as HTMLInputElement).blur()}
               autoComplete="off"
             />
           </Box>
           <Box className="flex flex-row items-center gap-2">
             <Text className="w-28 text-nowrap lg:w-auto">Max Replicas</Text>
             <Input
-              value={autoscaler?.maxReplicas || 10}
+              value={autoscaler?.maxReplicas}
               onChange={(event) => handleMaxReplicasChange(event.target.value)}
               type="number"
               id="maxReplicas"
@@ -97,6 +98,7 @@ export default function ReplicasFormSection() {
               className="max-w-28"
               hideEmptyHelperText
               fullWidth
+              onWheel={(e) => (e.target as HTMLInputElement).blur()}
               autoComplete="off"
             />
           </Box>
