@@ -14,6 +14,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   waitForElementToBeRemoved,
   within,
 } from '@/tests/testUtils';
@@ -352,17 +353,25 @@ test('should change pricing based on selected replicas', async () => {
   await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '2');
 
-  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
-    /approximate cost: \$525\.00\/mo/i,
+  await new Promise((resolve) => {
+    setTimeout(resolve, 1000);
+  });
+
+  await waitFor(() =>
+    expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
+      /approximate cost: \$525\.00\/mo/i,
+    ),
   );
 
   await user.click(hasuraReplicasInput);
   await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '1');
 
-  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
-    /approximate cost: \$425\.00\/mo/i,
-  );
+  await waitFor(() => {
+    expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
+      /approximate cost: \$425\.00\/mo/i,
+    );
+  });
 });
 
 test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 replica is selected', async () => {
@@ -405,12 +414,13 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
     ),
   ).toBeInTheDocument();
 
-  const validationErrorMessage = screen.getByLabelText(
-    /vcpu and memory for this service must match the 1:2 ratio if more than one replica is selected\./i,
-  );
-
-  expect(validationErrorMessage).toBeInTheDocument();
-  expect(validationErrorMessage).toHaveStyle({ color: '#f13154' });
+  await waitFor(() => {
+    const validationErrorMessage = screen.getByText(
+      /vCPU and Memory for this service must follow a 1:2 ratio when more than one replica is selected or when the autoscaler is activated\./i,
+    );
+    expect(validationErrorMessage).toBeInTheDocument();
+    expect(validationErrorMessage).toHaveStyle({ color: '#f13154' });
+  });
 });
 
 test('should take replicas into account when confirming the resources', async () => {
