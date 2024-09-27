@@ -25,4 +25,4 @@ jobs:
           config.max_model_tokens: 100000
           config.model: "anthropic/claude-3-5-sonnet-20240620"
           config.model_turbo: "anthropic/claude-3-5-sonnet-20240620"
-          config.ignore.glob: "['vendor/**','**/client_gen.go','**/models_gen.go','**/generated.go','**/*.gen.go']"
+          ignore.glob: "['vendor/**','**/client_gen.go','**/models_gen.go','**/generated.go','**/*.gen.go']"

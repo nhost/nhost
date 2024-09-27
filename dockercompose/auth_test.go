@@ -28,6 +28,7 @@ func expectedAuth() *Service {
 			"AUTH_API_PREFIX":                           "/v1",
 			"AUTH_CLIENT_URL":                           "http://localhost:3000",
 			"AUTH_CONCEAL_ERRORS":                       "true",
+			"AUTH_TURNSTILE_SECRET":                     "turnstileSecretKey",
 			"AUTH_DISABLE_NEW_USERS":                    "false",
 			"AUTH_DISABLE_SIGNUP":                       "false",
 			"AUTH_EMAIL_PASSWORDLESS_ENABLED":           "true",

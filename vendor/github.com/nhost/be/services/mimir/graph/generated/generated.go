@@ -228,6 +228,11 @@ type ComplexityRoot struct {
 	ConfigAuthSignUp struct {
 		DisableNewUsers func(childComplexity int) int
 		Enabled         func(childComplexity int) int
+		Turnstile       func(childComplexity int) int
+	}
+
+	ConfigAuthSignUpTurnstile struct {
+		SecretKey func(childComplexity int) int
 	}
 
 	ConfigAuthTotp struct {
@@ -450,6 +455,11 @@ type ComplexityRoot struct {
 
 	ConfigIngress struct {
 		Fqdn func(childComplexity int) int
+		Tls  func(childComplexity int) int
+	}
+
+	ConfigIngressTls struct {
+		ClientCA func(childComplexity int) int
 	}
 
 	ConfigInsertConfigResponse struct {
@@ -1408,6 +1418,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ConfigAuthSignUp.Enabled(childComplexity), true
 
+	case "ConfigAuthSignUp.turnstile":
+		if e.complexity.ConfigAuthSignUp.Turnstile == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthSignUp.Turnstile(childComplexity), true
+
+	case "ConfigAuthSignUpTurnstile.secretKey":
+		if e.complexity.ConfigAuthSignUpTurnstile.SecretKey == nil {
+			break
+		}
+
+		return e.complexity.ConfigAuthSignUpTurnstile.SecretKey(childComplexity), true
+
 	case "ConfigAuthTotp.enabled":
 		if e.complexity.ConfigAuthTotp.Enabled == nil {
 			break
@@ -2226,6 +2250,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ConfigIngress.Fqdn(childComplexity), true
+
+	case "ConfigIngress.tls":
+		if e.complexity.ConfigIngress.Tls == nil {
+			break
+		}
+
+		return e.complexity.ConfigIngress.Tls(childComplexity), true
+
+	case "ConfigIngressTls.clientCA":
+		if e.complexity.ConfigIngressTls.ClientCA == nil {
+			break
+		}
+
+		return e.complexity.ConfigIngressTls.ClientCA(childComplexity), true
 
 	case "ConfigInsertConfigResponse.config":
 		if e.complexity.ConfigInsertConfigResponse.Config == nil {
@@ -3429,6 +3467,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigAuthSessionRefreshTokenInsertInput,
 		ec.unmarshalInputConfigAuthSignUpComparisonExp,
 		ec.unmarshalInputConfigAuthSignUpInsertInput,
+		ec.unmarshalInputConfigAuthSignUpTurnstileComparisonExp,
+		ec.unmarshalInputConfigAuthSignUpTurnstileInsertInput,
 		ec.unmarshalInputConfigAuthTotpComparisonExp,
 		ec.unmarshalInputConfigAuthTotpInsertInput,
 		ec.unmarshalInputConfigAuthUserComparisonExp,
@@ -3503,6 +3543,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputConfigHealthCheckInsertInput,
 		ec.unmarshalInputConfigIngressComparisonExp,
 		ec.unmarshalInputConfigIngressInsertInput,
+		ec.unmarshalInputConfigIngressTlsComparisonExp,
+		ec.unmarshalInputConfigIngressTlsInsertInput,
 		ec.unmarshalInputConfigInt16ComparisonExp,
 		ec.unmarshalInputConfigInt32ComparisonExp,
 		ec.unmarshalInputConfigInt64ComparisonExp,
@@ -5007,16 +5049,22 @@ type ConfigAuthSignUp {
     AUTH_DISABLE_NEW_USERS
     """
     disableNewUsers: Boolean
+    """
+
+    """
+    turnstile: ConfigAuthSignUpTurnstile
 }
 
 input ConfigAuthSignUpUpdateInput {
     enabled: Boolean
     disableNewUsers: Boolean
+    turnstile: ConfigAuthSignUpTurnstileUpdateInput
 }
 
 input ConfigAuthSignUpInsertInput {
     enabled: Boolean
     disableNewUsers: Boolean
+    turnstile: ConfigAuthSignUpTurnstileInsertInput
 }
 
 input ConfigAuthSignUpComparisonExp {
@@ -5025,6 +5073,32 @@ input ConfigAuthSignUpComparisonExp {
     _or: [ConfigAuthSignUpComparisonExp!]
     enabled: ConfigBooleanComparisonExp
     disableNewUsers: ConfigBooleanComparisonExp
+    turnstile: ConfigAuthSignUpTurnstileComparisonExp
+}
+
+"""
+
+"""
+type ConfigAuthSignUpTurnstile {
+    """
+
+    """
+    secretKey: String!
+}
+
+input ConfigAuthSignUpTurnstileUpdateInput {
+    secretKey: String
+}
+
+input ConfigAuthSignUpTurnstileInsertInput {
+    secretKey: String!
+}
+
+input ConfigAuthSignUpTurnstileComparisonExp {
+    _and: [ConfigAuthSignUpTurnstileComparisonExp!]
+    _not: ConfigAuthSignUpTurnstileComparisonExp
+    _or: [ConfigAuthSignUpTurnstileComparisonExp!]
+    secretKey: ConfigStringComparisonExp
 }
 
 """
@@ -6480,14 +6554,20 @@ type ConfigIngress {
 
     """
     fqdn: [String!]
+    """
+
+    """
+    tls: ConfigIngressTls
 }
 
 input ConfigIngressUpdateInput {
         fqdn: [String!]
+    tls: ConfigIngressTlsUpdateInput
 }
 
 input ConfigIngressInsertInput {
         fqdn: [String!]
+    tls: ConfigIngressTlsInsertInput
 }
 
 input ConfigIngressComparisonExp {
@@ -6495,6 +6575,32 @@ input ConfigIngressComparisonExp {
     _not: ConfigIngressComparisonExp
     _or: [ConfigIngressComparisonExp!]
     fqdn: ConfigStringComparisonExp
+    tls: ConfigIngressTlsComparisonExp
+}
+
+"""
+
+"""
+type ConfigIngressTls {
+    """
+
+    """
+    clientCA: String
+}
+
+input ConfigIngressTlsUpdateInput {
+    clientCA: String
+}
+
+input ConfigIngressTlsInsertInput {
+    clientCA: String
+}
+
+input ConfigIngressTlsComparisonExp {
+    _and: [ConfigIngressTlsComparisonExp!]
+    _not: ConfigIngressTlsComparisonExp
+    _or: [ConfigIngressTlsComparisonExp!]
+    clientCA: ConfigStringComparisonExp
 }
 
 """
@@ -9831,6 +9937,8 @@ func (ec *executionContext) fieldContext_ConfigAuth_signUp(_ context.Context, fi
 				return ec.fieldContext_ConfigAuthSignUp_enabled(ctx, field)
 			case "disableNewUsers":
 				return ec.fieldContext_ConfigAuthSignUp_disableNewUsers(ctx, field)
+			case "turnstile":
+				return ec.fieldContext_ConfigAuthSignUp_turnstile(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthSignUp", field.Name)
 		},
@@ -13191,6 +13299,95 @@ func (ec *executionContext) fieldContext_ConfigAuthSignUp_disableNewUsers(_ cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthSignUp_turnstile(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthSignUp) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthSignUp_turnstile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Turnstile, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigAuthSignUpTurnstile)
+	fc.Result = res
+	return ec.marshalOConfigAuthSignUpTurnstile2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthSignUp_turnstile(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthSignUp",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "secretKey":
+				return ec.fieldContext_ConfigAuthSignUpTurnstile_secretKey(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAuthSignUpTurnstile", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAuthSignUpTurnstile_secretKey(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAuthSignUpTurnstile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigAuthSignUpTurnstile_secretKey(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SecretKey, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigAuthSignUpTurnstile_secretKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAuthSignUpTurnstile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -18455,6 +18652,92 @@ func (ec *executionContext) fieldContext_ConfigIngress_fqdn(_ context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigIngress_tls(ctx context.Context, field graphql.CollectedField, obj *model.ConfigIngress) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigIngress_tls(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tls, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ConfigIngressTls)
+	fc.Result = res
+	return ec.marshalOConfigIngressTls2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTls(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigIngress_tls(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigIngress",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "clientCA":
+				return ec.fieldContext_ConfigIngressTls_clientCA(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigIngressTls", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigIngressTls_clientCA(ctx context.Context, field graphql.CollectedField, obj *model.ConfigIngressTls) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ConfigIngressTls_clientCA(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClientCA, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ConfigIngressTls_clientCA(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigIngressTls",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigInsertConfigResponse_config(ctx context.Context, field graphql.CollectedField, obj *model.ConfigInsertConfigResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ConfigInsertConfigResponse_config(ctx, field)
 	if err != nil {
@@ -19122,6 +19405,8 @@ func (ec *executionContext) fieldContext_ConfigNetworking_ingresses(_ context.Co
 			switch field.Name {
 			case "fqdn":
 				return ec.fieldContext_ConfigIngress_fqdn(ctx, field)
+			case "tls":
+				return ec.fieldContext_ConfigIngress_tls(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigIngress", field.Name)
 		},
@@ -21689,6 +21974,8 @@ func (ec *executionContext) fieldContext_ConfigRunServicePort_ingresses(_ contex
 			switch field.Name {
 			case "fqdn":
 				return ec.fieldContext_ConfigIngress_fqdn(ctx, field)
+			case "tls":
+				return ec.fieldContext_ConfigIngress_tls(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigIngress", field.Name)
 		},
@@ -30086,7 +30373,7 @@ func (ec *executionContext) unmarshalInputConfigAuthSignUpComparisonExp(ctx cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "disableNewUsers"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "enabled", "disableNewUsers", "turnstile"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30128,6 +30415,13 @@ func (ec *executionContext) unmarshalInputConfigAuthSignUpComparisonExp(ctx cont
 				return it, err
 			}
 			it.DisableNewUsers = data
+		case "turnstile":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("turnstile"))
+			data, err := ec.unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Turnstile = data
 		}
 	}
 
@@ -30141,7 +30435,7 @@ func (ec *executionContext) unmarshalInputConfigAuthSignUpInsertInput(ctx contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"enabled", "disableNewUsers"}
+	fieldsInOrder := [...]string{"enabled", "disableNewUsers", "turnstile"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -30162,6 +30456,88 @@ func (ec *executionContext) unmarshalInputConfigAuthSignUpInsertInput(ctx contex
 				return it, err
 			}
 			it.DisableNewUsers = data
+		case "turnstile":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("turnstile"))
+			data, err := ec.unmarshalOConfigAuthSignUpTurnstileInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Turnstile = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthSignUpTurnstileComparisonExp(ctx context.Context, obj interface{}) (model.ConfigAuthSignUpTurnstileComparisonExp, error) {
+	var it model.ConfigAuthSignUpTurnstileComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "secretKey"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "secretKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secretKey"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SecretKey = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAuthSignUpTurnstileInsertInput(ctx context.Context, obj interface{}) (model.ConfigAuthSignUpTurnstileInsertInput, error) {
+	var it model.ConfigAuthSignUpTurnstileInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"secretKey"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "secretKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secretKey"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SecretKey = data
 		}
 	}
 
@@ -34065,7 +34441,7 @@ func (ec *executionContext) unmarshalInputConfigIngressComparisonExp(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "fqdn"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "fqdn", "tls"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -34100,6 +34476,13 @@ func (ec *executionContext) unmarshalInputConfigIngressComparisonExp(ctx context
 				return it, err
 			}
 			it.Fqdn = data
+		case "tls":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tls"))
+			data, err := ec.unmarshalOConfigIngressTlsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Tls = data
 		}
 	}
 
@@ -34113,7 +34496,7 @@ func (ec *executionContext) unmarshalInputConfigIngressInsertInput(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"fqdn"}
+	fieldsInOrder := [...]string{"fqdn", "tls"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -34127,6 +34510,88 @@ func (ec *executionContext) unmarshalInputConfigIngressInsertInput(ctx context.C
 				return it, err
 			}
 			it.Fqdn = data
+		case "tls":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tls"))
+			data, err := ec.unmarshalOConfigIngressTlsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Tls = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigIngressTlsComparisonExp(ctx context.Context, obj interface{}) (model.ConfigIngressTlsComparisonExp, error) {
+	var it model.ConfigIngressTlsComparisonExp
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "clientCA"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigIngressTlsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigIngressTlsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigIngressTlsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "clientCA":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientCA"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientCA = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigIngressTlsInsertInput(ctx context.Context, obj interface{}) (model.ConfigIngressTlsInsertInput, error) {
+	var it model.ConfigIngressTlsInsertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"clientCA"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "clientCA":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clientCA"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClientCA = data
 		}
 	}
 
@@ -39547,6 +40012,47 @@ func (ec *executionContext) _ConfigAuthSignUp(ctx context.Context, sel ast.Selec
 			out.Values[i] = ec._ConfigAuthSignUp_enabled(ctx, field, obj)
 		case "disableNewUsers":
 			out.Values[i] = ec._ConfigAuthSignUp_disableNewUsers(ctx, field, obj)
+		case "turnstile":
+			out.Values[i] = ec._ConfigAuthSignUp_turnstile(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAuthSignUpTurnstileImplementors = []string{"ConfigAuthSignUpTurnstile"}
+
+func (ec *executionContext) _ConfigAuthSignUpTurnstile(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAuthSignUpTurnstile) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAuthSignUpTurnstileImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAuthSignUpTurnstile")
+		case "secretKey":
+			out.Values[i] = ec._ConfigAuthSignUpTurnstile_secretKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -41109,6 +41615,44 @@ func (ec *executionContext) _ConfigIngress(ctx context.Context, sel ast.Selectio
 			out.Values[i] = graphql.MarshalString("ConfigIngress")
 		case "fqdn":
 			out.Values[i] = ec._ConfigIngress_fqdn(ctx, field, obj)
+		case "tls":
+			out.Values[i] = ec._ConfigIngress_tls(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configIngressTlsImplementors = []string{"ConfigIngressTls"}
+
+func (ec *executionContext) _ConfigIngressTls(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigIngressTls) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configIngressTlsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigIngressTls")
+		case "clientCA":
+			out.Values[i] = ec._ConfigIngressTls_clientCA(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -43609,6 +44153,11 @@ func (ec *executionContext) unmarshalNConfigAuthSignUpComparisonExp2ᚖgithubᚗ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNConfigAuthSignUpTurnstileComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpTurnstileComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAuthSignUpTurnstileComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNConfigAuthTotpComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthTotpComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthTotpComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAuthTotpComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -44117,6 +44666,11 @@ func (ec *executionContext) unmarshalNConfigIngressComparisonExp2ᚖgithubᚗcom
 
 func (ec *executionContext) unmarshalNConfigIngressInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressInsertInput(ctx context.Context, v interface{}) (*model.ConfigIngressInsertInput, error) {
 	res, err := ec.unmarshalInputConfigIngressInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigIngressTlsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigIngressTlsComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigIngressTlsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -46500,6 +47054,58 @@ func (ec *executionContext) unmarshalOConfigAuthSignUpInsertInput2ᚖgithubᚗco
 	}
 	res, err := ec.unmarshalInputConfigAuthSignUpInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAuthSignUpTurnstile2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstile(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAuthSignUpTurnstile) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAuthSignUpTurnstile(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigAuthSignUpTurnstileComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigAuthSignUpTurnstileComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAuthSignUpTurnstileComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileComparisonExp(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpTurnstileComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthSignUpTurnstileComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileInsertInput(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpTurnstileInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAuthSignUpTurnstileInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAuthSignUpTurnstileUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpTurnstileUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpTurnstileUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAuthSignUpTurnstileUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOConfigAuthSignUpUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAuthSignUpUpdateInput(ctx context.Context, v interface{}) (*model.ConfigAuthSignUpUpdateInput, error) {
@@ -48970,6 +49576,58 @@ func (ec *executionContext) unmarshalOConfigIngressInsertInput2ᚕᚖgithubᚗco
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) marshalOConfigIngressTls2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTls(ctx context.Context, sel ast.SelectionSet, v *model.ConfigIngressTls) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigIngressTls(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigIngressTlsComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExpᚄ(ctx context.Context, v interface{}) ([]*model.ConfigIngressTlsComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.ConfigIngressTlsComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigIngressTlsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigIngressTlsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsComparisonExp(ctx context.Context, v interface{}) (*model.ConfigIngressTlsComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigIngressTlsComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigIngressTlsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsInsertInput(ctx context.Context, v interface{}) (*model.ConfigIngressTlsInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigIngressTlsInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigIngressTlsUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressTlsUpdateInput(ctx context.Context, v interface{}) (*model.ConfigIngressTlsUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigIngressTlsUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOConfigIngressUpdateInput2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigIngressUpdateInputᚄ(ctx context.Context, v interface{}) ([]*model.ConfigIngressUpdateInput, error) {

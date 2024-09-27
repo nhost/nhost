@@ -57,6 +57,9 @@ func commandConfigExample(cCtx *cli.Context) error { //nolint:funlen
 				Ingresses: []*model.ConfigIngress{
 					{
 						Fqdn: []string{"my-run-service.acme.com"},
+						Tls: &model.ConfigIngressTls{
+							ClientCA: ptr("---BEGIN CERTIFICATE---\n...\n---END CERTIFICATE---"),
+						},
 					},
 				},
 			},

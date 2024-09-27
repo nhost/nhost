@@ -323,6 +323,12 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 			IsSecret:   false,
 			SecretName: "",
 		},
+		{
+			Name:       "AUTH_TURNSTILE_SECRET",
+			Value:      config.GetAuth().GetSignUp().GetTurnstile().GetSecretKey(),
+			SecretName: "",
+			IsSecret:   false,
+		},
 	}
 
 	env = append(env, []EnvVar{

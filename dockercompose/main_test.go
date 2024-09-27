@@ -203,6 +203,9 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 			SignUp: &model.ConfigAuthSignUp{
 				Enabled:         ptr(true),
 				DisableNewUsers: ptr(false),
+				Turnstile: &model.ConfigAuthSignUpTurnstile{
+					SecretKey: "turnstileSecretKey",
+				},
 			},
 			Totp: &model.ConfigAuthTotp{
 				Enabled: ptr(true),

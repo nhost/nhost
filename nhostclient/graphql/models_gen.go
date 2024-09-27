@@ -336,13 +336,23 @@ type ConfigAuthSessionUpdateInput struct {
 }
 
 type ConfigAuthSignUp struct {
-	DisableNewUsers *bool `json:"disableNewUsers,omitempty"`
-	Enabled         *bool `json:"enabled,omitempty"`
+	DisableNewUsers *bool                      `json:"disableNewUsers,omitempty"`
+	Enabled         *bool                      `json:"enabled,omitempty"`
+	Turnstile       *ConfigAuthSignUpTurnstile `json:"turnstile,omitempty"`
+}
+
+type ConfigAuthSignUpTurnstile struct {
+	SecretKey string `json:"secretKey"`
+}
+
+type ConfigAuthSignUpTurnstileUpdateInput struct {
+	SecretKey *string `json:"secretKey,omitempty"`
 }
 
 type ConfigAuthSignUpUpdateInput struct {
-	DisableNewUsers *bool `json:"disableNewUsers,omitempty"`
-	Enabled         *bool `json:"enabled,omitempty"`
+	DisableNewUsers *bool                                 `json:"disableNewUsers,omitempty"`
+	Enabled         *bool                                 `json:"enabled,omitempty"`
+	Turnstile       *ConfigAuthSignUpTurnstileUpdateInput `json:"turnstile,omitempty"`
 }
 
 type ConfigAuthTotp struct {
@@ -816,15 +826,30 @@ type ConfigHealthCheckUpdateInput struct {
 }
 
 type ConfigIngress struct {
-	Fqdn []string `json:"fqdn,omitempty"`
+	Fqdn []string          `json:"fqdn,omitempty"`
+	TLS  *ConfigIngressTLS `json:"tls,omitempty"`
 }
 
 type ConfigIngressInsertInput struct {
-	Fqdn []string `json:"fqdn,omitempty"`
+	Fqdn []string                     `json:"fqdn,omitempty"`
+	TLS  *ConfigIngressTLSInsertInput `json:"tls,omitempty"`
+}
+
+type ConfigIngressTLS struct {
+	ClientCa *string `json:"clientCA,omitempty"`
+}
+
+type ConfigIngressTLSInsertInput struct {
+	ClientCa *string `json:"clientCA,omitempty"`
+}
+
+type ConfigIngressTLSUpdateInput struct {
+	ClientCa *string `json:"clientCA,omitempty"`
 }
 
 type ConfigIngressUpdateInput struct {
-	Fqdn []string `json:"fqdn,omitempty"`
+	Fqdn []string                     `json:"fqdn,omitempty"`
+	TLS  *ConfigIngressTLSUpdateInput `json:"tls,omitempty"`
 }
 
 type ConfigJWTSecret struct {
@@ -1042,15 +1067,18 @@ type ConfigRunServiceConfigWithID struct {
 }
 
 type ConfigRunServiceImage struct {
-	Image string `json:"image"`
+	Image           string  `json:"image"`
+	PullCredentials *string `json:"pullCredentials,omitempty"`
 }
 
 type ConfigRunServiceImageInsertInput struct {
-	Image string `json:"image"`
+	Image           string  `json:"image"`
+	PullCredentials *string `json:"pullCredentials,omitempty"`
 }
 
 type ConfigRunServiceImageUpdateInput struct {
-	Image *string `json:"image,omitempty"`
+	Image           *string `json:"image,omitempty"`
+	PullCredentials *string `json:"pullCredentials,omitempty"`
 }
 
 type ConfigRunServicePort struct {
