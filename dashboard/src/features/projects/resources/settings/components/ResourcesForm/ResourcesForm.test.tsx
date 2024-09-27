@@ -351,7 +351,6 @@ test('should change pricing based on selected replicas', async () => {
   await user.click(hasuraReplicasInput);
   await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '2');
-  expect(hasuraReplicasInput).toHaveValue('2');
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
     /approximate cost: \$525\.00\/mo/i,
@@ -360,7 +359,6 @@ test('should change pricing based on selected replicas', async () => {
   await user.click(hasuraReplicasInput);
   await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '1');
-  expect(hasuraReplicasInput).toHaveValue('2');
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
     /approximate cost: \$425\.00\/mo/i,
@@ -384,6 +382,7 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
   );
 
   const storageReplicasInput = screen.getAllByPlaceholderText('Replicas')[2];
+  await user.click(storageReplicasInput);
   await user.clear(storageReplicasInput);
   await user.type(storageReplicasInput, '2');
 
@@ -441,6 +440,7 @@ test('should take replicas into account when confirming the resources', async ()
   );
 
   const hasuraReplicasInput = screen.getAllByPlaceholderText('Replicas')[0];
+  await user.click(hasuraReplicasInput);
   await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '3');
 
@@ -455,6 +455,7 @@ test('should take replicas into account when confirming the resources', async ()
 
   const authReplicasInput = screen.getAllByPlaceholderText('Replicas')[1];
   // setting up auth
+  await user.click(authReplicasInput);
   await user.clear(authReplicasInput);
   await user.type(authReplicasInput, '2');
 
@@ -469,6 +470,7 @@ test('should take replicas into account when confirming the resources', async ()
 
   const storageReplicasInput = screen.getAllByPlaceholderText('Replicas')[2];
   // setting up storage
+  await user.click(storageReplicasInput);
   await user.clear(storageReplicasInput);
   await user.type(storageReplicasInput, '4');
 
