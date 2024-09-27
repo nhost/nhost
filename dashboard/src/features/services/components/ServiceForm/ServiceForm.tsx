@@ -16,7 +16,6 @@ import { useHostName } from '@/features/projects/common/hooks/useHostName';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { InfoCard } from '@/features/projects/overview/components/InfoCard';
 import { COST_PER_VCPU } from '@/features/projects/resources/settings/utils/resourceSettingsValidationSchema';
-import { AutoscalerFormSection } from '@/features/services/components/ServiceForm/components/AutoscalerFormSection';
 import { ComputeFormSection } from '@/features/services/components/ServiceForm/components/ComputeFormSection';
 import { EnvironmentFormSection } from '@/features/services/components/ServiceForm/components/EnvironmentFormSection';
 import { PortsFormSection } from '@/features/services/components/ServiceForm/components/PortsFormSection';
@@ -322,7 +321,7 @@ export default function ServiceForm({
               <Tooltip title="Name of the service, must be unique per project.">
                 <InfoIcon
                   aria-label="Info"
-                  className="h-4 w-4"
+                  className="w-4 h-4"
                   color="primary"
                 />
               </Tooltip>
@@ -362,7 +361,7 @@ export default function ServiceForm({
               >
                 <InfoIcon
                   aria-label="Info"
-                  className="h-4 w-4"
+                  className="w-4 h-4"
                   color="primary"
                 />
               </Tooltip>
@@ -393,7 +392,7 @@ export default function ServiceForm({
               <Tooltip title="Command to run when to start the service. This is optional as the image may already have a baked-in command.">
                 <InfoIcon
                   aria-label="Info"
-                  className="h-4 w-4"
+                  className="w-4 h-4"
                   color="primary"
                 />
               </Tooltip>
@@ -430,8 +429,6 @@ export default function ServiceForm({
 
         <ReplicasFormSection />
 
-        <AutoscalerFormSection />
-
         <EnvironmentFormSection />
 
         <PortsFormSection />
@@ -443,7 +440,7 @@ export default function ServiceForm({
         {createServiceFormError && (
           <Alert
             severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            className="grid items-center justify-between grid-flow-col px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {createServiceFormError.message}
