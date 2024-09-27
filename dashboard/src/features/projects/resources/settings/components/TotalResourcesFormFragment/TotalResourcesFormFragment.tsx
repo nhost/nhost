@@ -2,6 +2,7 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
 import { Slider, sliderClasses } from '@/components/ui/v2/Slider';
+import { calculateBillableResources } from '@/features/projects/resources/settings/utils/calculateBillableResources';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import { useProPlan } from '@/features/projects/common/hooks/useProPlan';
@@ -46,6 +47,7 @@ export default function TotalResourcesFormFragment({
     error: proPlanError,
     loading: proPlanLoading,
   } = useProPlan();
+  
   const { setValue } = useFormContext<ResourceSettingsFormValues>();
   const formValues = useWatch<ResourceSettingsFormValues>();
 
@@ -65,9 +67,38 @@ export default function TotalResourcesFormFragment({
     (formValues.totalAvailableVCPU / RESOURCE_VCPU_MULTIPLIER) *
     RESOURCE_VCPU_PRICE;
 
-  const updatedPrice = isPlatform
-    ? priceForTotalAvailableVCPU + proPlan.price
-    : 0;
+  const billableResources = calculateBillableResources(
+    {
+      replicas: formValues.database?.replicas,
+      vcpu: formValues.database?.vcpu,
+    },
+    {
+      replicas: formValues.hasura?.replicas,
+      vcpu: formValues.hasura?.vcpu,
+    },
+    {
+      replicas: formValues.auth?.replicas,
+      vcpu: formValues.auth?.vcpu,
+    },
+    {
+      replicas: formValues.storage?.replicas,
+      vcpu: formValues.storage?.vcpu,
+    },
+  );
+
+  const computeUpdatedPrice = () => {
+    if (!isPlatform) {
+      return 0;
+    }
+
+    return (
+      Math.max(
+        priceForTotalAvailableVCPU,
+        (billableResources.vcpu / RESOURCE_VCPU_MULTIPLIER) *
+          RESOURCE_VCPU_PRICE,
+      ) + proPlan.price
+    );
+  };
 
   const { vcpu: allocatedVCPU, memory: allocatedMemory } =
     getAllocatedResources(formValues);
@@ -114,14 +145,14 @@ export default function TotalResourcesFormFragment({
               Total available compute for your project:
             </Text>
 
-            {initialPrice !== updatedPrice && (
+            {initialPrice !== computeUpdatedPrice() && (
               <Text className="flex flex-row items-center justify-end gap-2">
                 <Text component="span" color="secondary">
                   ${initialPrice.toFixed(2)}/mo
                 </Text>
                 <ArrowRightIcon />
                 <Text component="span" className="font-medium">
-                  ${updatedPrice.toFixed(2)}/mo
+                  ${computeUpdatedPrice().toFixed(2)}/mo
                 </Text>
               </Text>
             )}

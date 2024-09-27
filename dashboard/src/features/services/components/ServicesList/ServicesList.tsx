@@ -73,6 +73,7 @@ export default function ServicesList({
               cpu: 62,
               memory: 128,
             },
+            autoscaler: service?.config?.resources?.autoscaler,
             replicas: service.config?.resources?.replicas,
             storage: service.config?.resources?.storage,
           }}

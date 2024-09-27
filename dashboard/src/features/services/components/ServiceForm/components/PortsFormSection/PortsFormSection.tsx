@@ -38,7 +38,8 @@ export default function PortsFormSection() {
 
   const showURL = (index: number) =>
     formValues.subdomain &&
-    formValues.ports[index]?.type === PortTypes.HTTP &&
+    (formValues.ports[index]?.type === PortTypes.HTTP ||
+      formValues.ports[index]?.type === PortTypes.GRPC) &&
     formValues.ports[index]?.publish;
 
   return (
@@ -106,7 +107,7 @@ export default function PortsFormSection() {
                   },
                 }}
               >
-                {['http', 'tcp', 'udp']?.map((portType) => (
+                {['http', 'tcp', 'udp', 'grpc']?.map((portType) => (
                   <Option key={portType} value={portType}>
                     {portType}
                   </Option>
