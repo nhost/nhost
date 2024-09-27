@@ -1,5 +1,15 @@
 # @nhost/docs
 
+## 2.18.0
+
+### Minor Changes
+
+- c4aa159: feat: added advanced TLS document
+
+### Patch Changes
+
+- 91f0465: feat: added turnstile guide
+
 ## 2.17.2
 
 ### Patch Changes

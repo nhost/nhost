@@ -1,5 +1,11 @@
 # @nhost/dashboard
 
+## 1.30.0
+
+### Minor Changes
+
+- 50441a8: feat: add ui for project autoscaler settings and run services autoscaler settings
+
 ## 1.29.0
 
 ### Minor Changes
