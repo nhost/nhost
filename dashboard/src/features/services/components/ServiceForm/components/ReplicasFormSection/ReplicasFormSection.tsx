@@ -88,7 +88,7 @@ export default function ReplicasFormSection() {
           <Box className="flex flex-row items-center gap-2">
             <Text className="w-28 text-nowrap lg:w-auto">Max Replicas</Text>
             <Input
-              {...register('autoscaler.maxReplicas')}
+              value={autoscaler?.maxReplicas || 10}
               onChange={(event) => handleMaxReplicasChange(event.target.value)}
               type="number"
               id="maxReplicas"

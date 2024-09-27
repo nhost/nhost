@@ -78,6 +78,7 @@ export default function ServiceForm({
         memory: 128,
       },
       replicas: 1,
+      autoscaler: null,
     },
     reValidateMode: 'onSubmit',
     resolver: yupResolver(validationSchema),
@@ -88,6 +89,8 @@ export default function ServiceForm({
     register,
     formState: { errors, isSubmitting, dirtyFields },
   } = form;
+
+  console.log({ errors });
 
   const formValues = watch();
 
@@ -239,6 +242,8 @@ export default function ServiceForm({
       await handleSubmit(formValues);
       return;
     }
+
+    console.log({ formValues });
 
     openDialog({
       title: 'Confirm Resources',
