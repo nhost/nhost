@@ -90,8 +90,6 @@ export default function ServiceForm({
     formState: { errors, isSubmitting, dirtyFields },
   } = form;
 
-  console.log({ errors });
-
   const formValues = watch();
 
   const serviceImage = watch('image');
@@ -242,8 +240,6 @@ export default function ServiceForm({
       await handleSubmit(formValues);
       return;
     }
-
-    console.log({ formValues });
 
     openDialog({
       title: 'Confirm Resources',
