@@ -39,22 +39,6 @@ test('should create and delete a run service', async () => {
   await page.getByPlaceholder(/service name/i).click();
   await page.getByPlaceholder(/service name/i).fill('test');
 
-  const sliderRail = page.locator(
-    '.space-y-4 > .MuiSlider-root > .MuiSlider-rail',
-  );
-
-  // Get the bounding box of the slider rail to determine where to click
-  const box = await sliderRail.boundingBox();
-
-  if (box) {
-    // Calculate the position to click (start of the rail)
-    const x = box.x + 1; // A little offset to ensure click inside the rail
-    const y = box.y + box.height / 2; // Middle of the rail height-wise
-
-    // Perform the click
-    await page.mouse.click(x, y);
-  }
-
   await page.getByRole('button', { name: /create/i }).click();
 
   await expect(
