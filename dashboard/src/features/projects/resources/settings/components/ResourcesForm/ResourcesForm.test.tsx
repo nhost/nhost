@@ -298,7 +298,7 @@ test('should hide the pricing information when custom resource allocation is dis
   ).toBeInTheDocument();
 
   await user.click(screen.getAllByRole('checkbox')[0]);
-  
+
   await user.click(screen.getByRole('button', { name: /save/i }));
 
   expect(await screen.findByRole('dialog')).toBeInTheDocument();
@@ -347,12 +347,14 @@ test('should change pricing based on selected replicas', async () => {
   );
 
   const hasuraReplicasInput = screen.getAllByPlaceholderText('Replicas')[0];
+  await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '2');
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
     /approximate cost: \$525\.00\/mo/i,
   );
 
+  await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '1');
 
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
@@ -377,6 +379,7 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
   );
 
   const storageReplicasInput = screen.getAllByPlaceholderText('Replicas')[2];
+  await user.clear(storageReplicasInput);
   await user.type(storageReplicasInput, '2');
 
   changeSliderValue(
@@ -433,6 +436,7 @@ test('should take replicas into account when confirming the resources', async ()
   );
 
   const hasuraReplicasInput = screen.getAllByPlaceholderText('Replicas')[0];
+  await user.clear(hasuraReplicasInput);
   await user.type(hasuraReplicasInput, '3');
 
   changeSliderValue(
@@ -446,6 +450,7 @@ test('should take replicas into account when confirming the resources', async ()
 
   const authReplicasInput = screen.getAllByPlaceholderText('Replicas')[1];
   // setting up auth
+  await user.clear(authReplicasInput);
   await user.type(authReplicasInput, '2');
 
   changeSliderValue(
@@ -459,6 +464,7 @@ test('should take replicas into account when confirming the resources', async ()
 
   const storageReplicasInput = screen.getAllByPlaceholderText('Replicas')[2];
   // setting up storage
+  await user.clear(storageReplicasInput);
   await user.type(storageReplicasInput, '4');
 
   changeSliderValue(
