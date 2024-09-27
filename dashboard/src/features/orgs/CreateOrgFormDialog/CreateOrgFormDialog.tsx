@@ -34,6 +34,7 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { useUserData } from '@nhost/nextjs'
 
 const createOrgFormSchema = z.object({
   name: z.string().min(2),
@@ -93,13 +94,13 @@ function CreateOrgForm({ plans, onSubmit }: CreateOrgFormProps) {
                 >
                   {plans.map((plan) => (
                     <FormItem key={plan.id}>
-                      <FormLabel className="flex w-full cursor-pointer flex-row items-center justify-between space-y-0 rounded-md border p-3">
+                      <FormLabel className="flex flex-row items-center justify-between w-full p-3 space-y-0 border rounded-md cursor-pointer">
                         <div className="flex flex-row items-center space-x-3">
                           <FormControl>
                             <RadioGroupItem value={plan.id} />
                           </FormControl>
                           <div className="flex flex-col space-y-2">
-                            <div className="text-md font-semibold">
+                            <div className="font-semibold text-md">
                               {plan.name}
                             </div>
                             <FormDescription className="w-2/3 text-xs">
@@ -108,7 +109,7 @@ function CreateOrgForm({ plans, onSubmit }: CreateOrgFormProps) {
                           </div>
                         </div>
 
-                        <div className="mt-0 flex h-full items-center text-xl font-semibold">
+                        <div className="flex items-center h-full mt-0 text-xl font-semibold">
                           {plan.isFree ? 'Free' : `${plan.price}/mo`}
                         </div>
                       </FormLabel>
@@ -143,8 +144,11 @@ function CreateOrgForm({ plans, onSubmit }: CreateOrgFormProps) {
 }
 
 export default function CreateOrgDialog() {
+  const user = useUserData()
   const [open, setOpen] = useState(false);
-  const { data, loading, error } = usePrefetchNewAppQuery();
+  const { data, loading, error } = usePrefetchNewAppQuery({
+    skip: !user
+  });
   const [createOrganizationRequest] = useCreateOrganizationRequestMutation();
   const [stripeClientSecret, setStripeClientSecret] = useState('');
 
@@ -163,7 +167,7 @@ export default function CreateOrgDialog() {
           variables: {
             organizationName: name,
             planID: 'dc5e805e-1bef-4d43-809e-9fdf865e211a',
-            redirectURL: 'http://localhost:3000/orgs/verify',
+            redirectURL: `${window.location.origin}/orgs/verify`,
           },
         });
 
@@ -186,10 +190,10 @@ export default function CreateOrgDialog() {
       <DialogTrigger asChild>
         <Button
           variant="ghost"
-          className="flex h-8 w-full flex-row justify-start gap-3 px-2"
+          className="flex flex-row justify-start w-full h-8 gap-3 px-2"
           onClick={() => setStripeClientSecret('')}
         >
-          <Plus className="h-4 w-4 font-bold" strokeWidth={3} />
+          <Plus className="w-4 h-4 font-bold" strokeWidth={3} />
           New Organization
         </Button>
       </DialogTrigger>
@@ -200,7 +204,7 @@ export default function CreateOrgDialog() {
         </DialogHeader>
 
         {loading && (
-          <div className="flex h-52 items-center justify-center">
+          <div className="flex items-center justify-center h-52">
             <ActivityIndicator
               circularProgressProps={{
                 className: 'w-5 h-5',

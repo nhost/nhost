@@ -10,6 +10,8 @@ import {
   CommandList,
 } from '@/components/ui/v3/command';
 
+import { useRouter } from 'next/router';
+
 import {
   Popover,
   PopoverContent,
@@ -18,6 +20,7 @@ import {
 
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
+import { useCurrentOrg } from '@/features/projects/common/hooks/useCurrentOrg';
 
 type Option = {
   value: string;
@@ -36,6 +39,13 @@ export default function NavComboBox({
   options,
   onSelect,
 }: NavComboBoxProps) {
+  const {
+    query: { appSlug },
+    push,
+  } = useRouter();
+
+  const { org: {slug} = {} } = useCurrentOrg();
+
   const [open, setOpen] = useState(false);
 
   return (
@@ -52,14 +62,14 @@ export default function NavComboBox({
               {value.label}
             </div>
           ) : (
-            <>Select page</>
+            <>Select a page</>
           )}
-          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
+          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
         <Command>
-          <CommandInput placeholder="Change status..." />
+          <CommandInput placeholder="Select a page..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
@@ -71,7 +81,8 @@ export default function NavComboBox({
                     const selectedOption =
                       options.find((o) => o.label === _value) || null;
                     setOpen(false);
-                    onSelect?.(selectedOption);
+                    push(`/orgs/${slug}/projects/${appSlug}/${option.value}`);
+                    // onSelect?.(selectedOption);
                   }}
                   className="flex flex-row gap-2"
                 >
