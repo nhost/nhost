@@ -1,0 +1,76 @@
+---
+title: Bot Protection
+description: Use turnstile to protect from bots
+icon: robot
+---
+
+## Overview
+
+To safeguard your Auth API against automated attacks from scripts and bots, you can implement [Cloudflare's Turnstile](https://www.cloudflare.com/en-gb/products/turnstile/). Turnstile offers CAPTCHA-like protection without user friction, as it doesn't require solving puzzles.
+
+![Turnstile Check in Action](/images/guides/auth/turnstile/turnstile.gif)
+
+## Integration Benefits
+
+1. **Selective Protection**: Auth integrates Turnstile specifically for all signup methods.
+2. **API Accessibility**: Other API endpoints remain accessible for legitimate programmatic use.
+3. **Bot Deterrence**: Manual verification during signup discourages unwanted bot activity.
+
+This approach balances security with usability, ensuring robust protection where it matters most.
+
+## Guide
+
+<Steps>
+  <Step title="Create a widget on Cloudflare">
+  Sign up on [Cloudflare](https://dash.cloudflare.com) if you haven't already.
+
+  Go to your account -> Turnstile -> Add Widget. Then:
+  - Set a descriptive name
+  - In the domain, enter your frontend's domain
+  - Set widget mode as "managed"
+
+  Then click on "create" and write down the site key and the secret key.
+  </Step>
+  <Step title="Enable Turnstile integration on auth">
+    Start by adding the following configuration to your Nhost project:
+    <Tabs>
+    <Tab title="Config">
+    ```toml
+    [auth.signUp.turnstile]
+    secretKey = 'turnstileSecretKey'
+    ```
+    </Tab>
+    </Tabs>
+
+    Replace `turnstileSecretKey` with the secret key from the first step.
+  </Step>
+
+  <Step title="Integrate turnstile into your sign up form">
+    To integrate turnstile into your sign up form you can refer to [Cloudfare's documentation](https://developers.cloudflare.com/turnstile/tutorials/login-pages). Just keep in mind a few things:
+
+    - You don't need to do any verification of the response, just pass it to the Auth service on the `/signup/...` request in the header `x-cf-turnstile-response`.
+    - The "server side verification" is done by the auth service and will return a forbidden status error if the header is not present or if the check didn't pass.
+    - You will need to use the site key from step 1 to configure turnstile in your form
+  </Step>
+
+  <Step title="Pass turnstile's response to the signup request">
+  To pass the response as a header change your request to include the header. For instance:
+
+  ```js
+  await signUpEmailPassword(
+     email,
+     password,
+     {
+       displayName,
+     },
+     {
+       headers: {
+         'x-cf-turnstile-response': turnstileResponse,
+       },
+     },
+   );
+  ```
+
+  In the following [PR](https://github.com/nhost/nhost/pull/2897/files) you can see the changes that were needed in our very own dashboard to integrate turnstile.
+  </Step>
+</Steps>
