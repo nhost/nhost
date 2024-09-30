@@ -1,17 +1,15 @@
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { LinearProgress } from '@/components/ui/v2/LinearProgress';
 import { Text } from '@/components/ui/v2/Text';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   useGetAppFunctionsMetadataQuery,
   useGetProjectMetricsQuery,
   useGetRemoteAppMetricsQuery,
 } from '@/generated/graphql';
+import { useRemoteApplicationGQLClient } from '@/hooks/useRemoteApplicationGQLClient';
 import { prettifySize } from '@/utils/prettifySize';
-
-import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 const now = new Date();
 
@@ -61,31 +59,30 @@ export function UsageProgress({
 }
 
 export function OverviewUsageMetrics() {
-  const { org } = useCurrentOrg();
-  const { project } = useProject();
   const isPlatform = useIsPlatform();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const remoteAppClient = useRemoteApplicationGQLClient();
 
   const { data: functionsInfoData, loading: functionMetricsLoading } =
     useGetAppFunctionsMetadataQuery({
-      variables: { id: project?.id },
-      skip: !isPlatform || !project,
+      variables: { id: currentProject?.id },
+      skip: !isPlatform || !currentProject,
     });
 
   const { data: projectMetrics, loading: projectMetricsLoading } =
     useGetProjectMetricsQuery({
       variables: {
-        appId: project?.id,
-        subdomain: project?.subdomain,
+        appId: currentProject?.id,
+        subdomain: currentProject?.subdomain,
         from: new Date(now.getFullYear(), now.getMonth(), 1),
       },
-      skip: !isPlatform || !project,
+      skip: !isPlatform || !currentProject,
     });
 
   const { data: remoteAppMetricsData, loading: remoteAppMetricsLoading } =
     useGetRemoteAppMetricsQuery({
       client: remoteAppClient,
-      skip: !project,
+      skip: !currentProject,
     });
 
   const metricsLoading =
@@ -97,25 +94,25 @@ export function OverviewUsageMetrics() {
   // metrics for storage
   const usedStorage =
     remoteAppMetricsData?.filesAggregate?.aggregate?.sum?.size || 0;
-  const totalStorage = org?.plan?.isFree
+  const totalStorage = currentProject?.legacyPlan?.isFree
     ? 1 * 1000 ** 3 // 1 GB
     : 50 * 1000 ** 3; // 10 GB
 
   // metrics for users
   const usedUsers = remoteAppMetricsData?.usersAggregate?.aggregate?.count || 0;
-  const totalUsers = org?.plan?.isFree ? 10000 : 100000;
+  const totalUsers = currentProject?.legacyPlan?.isFree ? 10000 : 100000;
 
   // metrics for functions
   const usedFunctions = functionsInfoData?.app.metadataFunctions.length || 0;
-  const totalFunctions = org?.plan?.isFree ? 10 : 50;
+  const totalFunctions = currentProject?.legacyPlan?.isFree ? 10 : 50;
   const usedFunctionsDuration = projectMetrics?.functionsDuration.value || 0;
-  const totalFunctionsDuration = org?.plan?.isFree
+  const totalFunctionsDuration = currentProject?.legacyPlan?.isFree
     ? 3600 // 1 hour
     : 3600 * 10; // 10 hours
 
   // metrics for egress
   const usedEgressVolume = projectMetrics?.egressVolume.value || 0;
-  const totalEgressVolume = org?.plan?.isFree
+  const totalEgressVolume = currentProject?.legacyPlan?.isFree
     ? 5 * 1000 ** 3 // 5 GB
     : 50 * 1000 ** 3; // 50 GB
 

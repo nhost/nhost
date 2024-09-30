@@ -5,16 +5,16 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
-import { ApplicationInfo } from '@/features/orgs/projects/common/components/ApplicationInfo';
-import { ApplicationLockedReason } from '@/features/orgs/projects/common/components/ApplicationLockedReason';
-import { ApplicationPausedReason } from '@/features/orgs/projects/common/components/ApplicationPausedReason';
-import { ApplicationPausedSymbol } from '@/features/orgs/projects/common/components/ApplicationPausedSymbol';
-import { ChangePlanModal } from '@/features/orgs/projects/common/components/ChangePlanModal';
-import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
-import { StagingMetadata } from '@/features/orgs/projects/common/components/StagingMetadata';
-import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useAppPausedReason';
-import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { ApplicationInfo } from '@/features/projects/common/components/ApplicationInfo';
+import { ApplicationLockedReason } from '@/features/projects/common/components/ApplicationLockedReason';
+import { ApplicationPausedReason } from '@/features/projects/common/components/ApplicationPausedReason';
+import { ApplicationPausedSymbol } from '@/features/projects/common/components/ApplicationPausedSymbol';
+import { ChangePlanModal } from '@/features/projects/common/components/ChangePlanModal';
+import { RemoveApplicationModal } from '@/features/projects/common/components/RemoveApplicationModal';
+import { StagingMetadata } from '@/features/projects/common/components/StagingMetadata';
+import { useAppPausedReason } from '@/features/projects/common/hooks/useAppPausedReason';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsCurrentUserOwner } from '@/features/projects/common/hooks/useIsCurrentUserOwner';
 import {
   GetAllWorkspacesAndProjectsDocument,
   useUnpauseApplicationMutation,
@@ -24,7 +24,8 @@ import { useState } from 'react';
 
 export default function ApplicationPaused() {
   const { openDialog } = useDialog();
-  const { project, refetch: refetchProject } = useProject();
+  const { currentProject, refetch: refetchWorkspaceAndProject } =
+    useCurrentWorkspaceAndProject();
   const isOwner = useIsCurrentUserOwner();
 
   const [showDeletingModal, setShowDeletingModal] = useState(false);
@@ -39,8 +40,8 @@ export default function ApplicationPaused() {
   async function handleTriggerUnpausing() {
     await execPromiseWithErrorToast(
       async () => {
-        await unpauseApplication({ variables: { appId: project.id } });
-        await refetchProject();
+        await unpauseApplication({ variables: { appId: currentProject.id } });
+        await refetchWorkspaceAndProject();
       },
       {
         loadingMessage: 'Starting the project...',
@@ -63,20 +64,20 @@ export default function ApplicationPaused() {
       >
         <RemoveApplicationModal
           close={() => setShowDeletingModal(false)}
-          title={`Remove project ${project.name}?`}
-          description={`The project ${project.name} will be removed. All data will be lost and there will be no way to
+          title={`Remove project ${currentProject.name}?`}
+          description={`The project ${currentProject.name} will be removed. All data will be lost and there will be no way to
           recover the app once it has been deleted.`}
         />
       </Modal>
 
-      <Container className="grid max-w-lg grid-flow-row gap-6 mx-auto mt-20 text-center">
-        <div className="flex flex-col mx-auto text-center w-centImage">
+      <Container className="mx-auto mt-20 grid max-w-lg grid-flow-row gap-6 text-center">
+        <div className="mx-auto flex w-centImage flex-col text-center">
           <ApplicationPausedSymbol isLocked={isLocked} />
         </div>
 
         <Box className="grid grid-flow-row gap-6">
           <Text variant="h3" component="h1">
-            {project.name} is {isLocked ? 'locked' : 'paused'}
+            {currentProject.name} is {isLocked ? 'locked' : 'paused'}
           </Text>
           {isLocked ? (
             <ApplicationLockedReason reason={lockedReason} />
@@ -90,7 +91,7 @@ export default function ApplicationPaused() {
               <div className="grid grid-flow-row gap-4">
                 {isOwner && (
                   <Button
-                    className="w-full max-w-xs mx-auto"
+                    className="mx-auto w-full max-w-xs"
                     onClick={() => {
                       openDialog({
                         component: <ChangePlanModal />,
@@ -106,7 +107,7 @@ export default function ApplicationPaused() {
                 )}
                 <Button
                   variant="borderless"
-                  className="w-full max-w-xs mx-auto"
+                  className="mx-auto w-full max-w-xs"
                   loading={changingApplicationStateLoading}
                   disabled={
                     changingApplicationStateLoading ||
@@ -121,7 +122,7 @@ export default function ApplicationPaused() {
                   <Button
                     color="error"
                     variant="outlined"
-                    className="w-full max-w-xs mx-auto"
+                    className="mx-auto w-full max-w-xs"
                     onClick={() => setShowDeletingModal(true)}
                   >
                     Delete Project

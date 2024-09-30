@@ -1,6 +1,6 @@
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { ServiceHealthInfo } from '@/features/orgs/projects/overview/health';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import type { ServiceHealthInfo } from '@/features/projects/overview/health';
 import {
   useGetProjectServicesHealthQuery,
   type GetProjectServicesHealthQuery,

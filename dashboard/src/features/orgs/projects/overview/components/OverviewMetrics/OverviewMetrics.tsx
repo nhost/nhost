@@ -1,7 +1,7 @@
 import { Text } from '@/components/ui/v2/Text';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { MetricsCardProps } from '@/features/orgs/projects/overview/components/MetricsCard';
-import { MetricsCard } from '@/features/orgs/projects/overview/components/MetricsCard';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import type { MetricsCardProps } from '@/features/projects/overview/components/MetricsCard';
+import { MetricsCard } from '@/features/projects/overview/components/MetricsCard';
 import { prettifyNumber } from '@/utils/prettifyNumber';
 import { prettifySize } from '@/utils/prettifySize';
 import { useGetProjectMetricsQuery } from '@/utils/__generated__/graphql';
@@ -10,14 +10,14 @@ import { twMerge } from 'tailwind-merge';
 const now = new Date();
 
 export default function OverviewMetrics() {
-  const { project } = useProject();
+  const { currentProject } = useCurrentWorkspaceAndProject();
   const { data, loading, error } = useGetProjectMetricsQuery({
     variables: {
-      appId: project?.id,
-      subdomain: project?.subdomain,
+      appId: currentProject?.id,
+      subdomain: currentProject?.subdomain,
       from: new Date(now.getFullYear(), now.getMonth(), 1),
     },
-    skip: !project?.id,
+    skip: !currentProject?.id,
   });
 
   const cardElements: MetricsCardProps[] = [

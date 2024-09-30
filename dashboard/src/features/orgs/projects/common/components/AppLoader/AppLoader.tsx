@@ -3,7 +3,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Button } from '@/components/ui/v2/Button';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { Text } from '@/components/ui/v2/Text';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { useInterval } from '@/hooks/useInterval';
 import { getRelativeDateByApplicationState } from '@/utils/helpers';
 import { useState } from 'react';
@@ -33,7 +33,7 @@ export default function AppLoader({
   date,
   restoring,
 }: AppLoaderProps) {
-  const { project } = useProject();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   let timeElapsedSinceEventCreation: number;
 
@@ -41,11 +41,11 @@ export default function AppLoader({
     timeElapsedSinceEventCreation = getRelativeDateByApplicationState(date);
   } else if (unpause) {
     timeElapsedSinceEventCreation = getRelativeDateByApplicationState(
-      project.appStates[0].createdAt,
+      currentProject.appStates[0].createdAt,
     );
   } else {
     timeElapsedSinceEventCreation = getRelativeDateByApplicationState(
-      project.createdAt,
+      currentProject.createdAt,
     );
   }
 
@@ -63,9 +63,9 @@ export default function AppLoader({
     <div className="grid grid-flow-row gap-2">
       <div className="grid grid-flow-row gap-1">
         <Text variant="h3" component="h1">
-          {restoring && `Restoring ${project.name} from backup`}
-          {!restoring && unpause && `Unpausing ${project.name}`}
-          {!restoring && !unpause && `Provisioning ${project.name}`}
+          {restoring && `Restoring ${currentProject.name} from backup`}
+          {!restoring && unpause && `Unpausing ${currentProject.name}`}
+          {!restoring && !unpause && `Provisioning ${currentProject.name}`}
         </Text>
         <Text>This normally takes around 2 minutes</Text>
       </div>
@@ -86,9 +86,9 @@ export default function AppLoader({
       <ActivityIndicator className="mx-auto" />
 
       {timeElapsed > 180 && (
-        <Dropdown.Root className="flex flex-col mx-auto">
+        <Dropdown.Root className="mx-auto flex flex-col">
           <Dropdown.Trigger
-            className="flex mx-auto font-medium"
+            className="mx-auto flex font-medium"
             hideChevron
             asChild
           >

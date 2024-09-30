@@ -1,6 +1,6 @@
 import { Text } from '@/components/ui/v2/Text';
-import { OverviewCard } from '@/features/orgs/projects/overview/components/OverviewCard';
-import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
+import { OverviewCard } from '@/features/projects/overview/components/OverviewCard';
+import type { CardProps } from '@/features/projects/overview/types/cards';
 import { useTheme } from '@mui/material';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Text } from '@/components/ui/v2/Text';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 import {
@@ -48,11 +48,11 @@ export default function RemoveApplicationModal({
     refetchQueries: [{ query: GetAllWorkspacesAndProjectsDocument }],
   });
   const [loadingRemove, setLoadingRemove] = useState(false);
-  const { project } = useProject();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const [remove, setRemove] = useState(false);
   const [remove2, setRemove2] = useState(false);
-  const appName = project?.name;
+  const appName = currentProject?.name;
 
   async function handleClick() {
     setLoadingRemove(true);
@@ -69,7 +69,7 @@ export default function RemoveApplicationModal({
     try {
       await deleteApplication({
         variables: {
-          appId: project.id,
+          appId: currentProject.id,
         },
       });
     } catch (error) {
@@ -77,7 +77,7 @@ export default function RemoveApplicationModal({
     }
     close();
     await router.push('/');
-    triggerToast(`${project.name} deleted`);
+    triggerToast(`${currentProject.name} deleted`);
   }
 
   return (

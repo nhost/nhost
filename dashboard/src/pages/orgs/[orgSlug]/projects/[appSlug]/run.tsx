@@ -119,9 +119,9 @@ export default function RunPage() {
 
   if (isPlatform && isPlanFree) {
     return (
-      <Container className="w-full p-0">
+      <Container>
         <UpgradeNotification
-          message="Unlock Nhost Run by upgrading your organization to the Pro plan."
+          message="Unlock Nhost Run by upgrading your project to the Pro plan."
           className="mt-4"
         />
       </Container>

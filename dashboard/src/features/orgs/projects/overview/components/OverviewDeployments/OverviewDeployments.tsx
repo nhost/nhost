@@ -8,10 +8,9 @@ import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
-
-import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
-import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
-
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { DeploymentListItem } from '@/features/projects/deployments/components/DeploymentListItem';
+import { useGitHubModal } from '@/features/projects/git/common/hooks/useGitHubModal';
 import { getLastLiveDeployment } from '@/utils/helpers';
 import {
   useGetDeploymentsSubSubscription,
@@ -20,14 +19,9 @@ import {
 import NavLink from 'next/link';
 import { Fragment } from 'react';
 
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-
 function OverviewDeploymentsTopBar() {
-  const { org } = useCurrentOrg();
-  const { project } = useProject();
-
-  const isGitHubConnected = !!project?.githubRepository;
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
+  const isGitHubConnected = !!currentProject?.githubRepository;
 
   return (
     <div className="grid grid-flow-col place-content-between items-center gap-2 pb-4">
@@ -36,10 +30,9 @@ function OverviewDeploymentsTopBar() {
       </Text>
 
       <NavLink
-        href={`/orgs/${org?.slug}/projects/${project?.slug}/deployments`}
+        href={`/${currentWorkspace?.slug}/${currentProject?.slug}/deployments`}
         passHref
-        legacyBehavior
-      >
+        legacyBehavior>
         <Button variant="borderless" disabled={!isGitHubConnected}>
           View all
           <ChevronRightIcon className="ml-1 inline-block h-4 w-4" />
@@ -50,12 +43,10 @@ function OverviewDeploymentsTopBar() {
 }
 
 function OverviewDeploymentList() {
-  const { org } = useCurrentOrg();
-  const { project } = useProject();
-
+  const { currentWorkspace, currentProject } = useCurrentWorkspaceAndProject();
   const { data, loading } = useGetDeploymentsSubSubscription({
     variables: {
-      id: project?.id,
+      id: currentProject?.id,
       limit: 5,
       offset: 0,
     },
@@ -66,7 +57,7 @@ function OverviewDeploymentList() {
     loading: scheduledOrPendingDeploymentsLoading,
   } = useScheduledOrPendingDeploymentsSubSubscription({
     variables: {
-      appId: project?.id,
+      appId: currentProject?.id,
     },
   });
 
@@ -82,7 +73,7 @@ function OverviewDeploymentList() {
 
   if (!deployments?.length) {
     return (
-      <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 px-4 py-12 shadow-sm">
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 overflow-hidden rounded-lg border-1 py-12 px-4 shadow-sm">
         <RocketIcon
           strokeWidth={1}
           className="h-10 w-10"
@@ -99,7 +90,7 @@ function OverviewDeploymentList() {
         </div>
 
         <Box
-          className="mt-6 flex w-full max-w-sm flex-row place-content-between rounded-lg px-2 py-2"
+          className="mt-6 flex w-full max-w-sm flex-row place-content-between rounded-lg py-2 px-2"
           sx={{ backgroundColor: 'grey.200' }}
         >
           <Box
@@ -108,15 +99,14 @@ function OverviewDeploymentList() {
           >
             <GitHubIcon className="h-4 w-4 self-center" />
             <Text variant="body1" className="self-center font-normal">
-              {project?.githubRepository?.fullName}
+              {currentProject?.githubRepository?.fullName}
             </Text>
           </Box>
 
           <NavLink
-            href={`/orgs/${org.slug}/projects/${project.slug}/settings/git`}
+            href={`/${currentWorkspace.slug}/${currentProject.slug}/settings/git`}
             passHref
-            legacyBehavior
-          >
+            legacyBehavior>
             <Button variant="borderless" size="small">
               Edit
             </Button>
@@ -158,10 +148,10 @@ function OverviewDeploymentList() {
 }
 
 export default function OverviewDeployments() {
-  const { project, loading } = useProject();
+  const { currentProject, loading } = useCurrentWorkspaceAndProject();
   const { openGitHubModal } = useGitHubModal();
   const { maintenanceActive } = useUI();
-  const isGitHubConnected = !!project?.githubRepository;
+  const isGitHubConnected = !!currentProject?.githubRepository;
 
   if (loading) {
     return <ActivityIndicator label="Loading project info..." delay={1000} />;
@@ -182,7 +172,7 @@ export default function OverviewDeployments() {
     <div className="flex flex-col">
       <OverviewDeploymentsTopBar />
 
-      <Box className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border-1 px-4 py-12 shadow-sm">
+      <Box className="grid grid-flow-row items-center justify-items-center gap-5 rounded-lg border-1 py-12 px-4 shadow-sm">
         <RocketIcon strokeWidth={1} className="h-10 w-10" />
 
         <div className="grid grid-flow-row gap-1">
