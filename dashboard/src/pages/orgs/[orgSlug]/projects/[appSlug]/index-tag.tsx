@@ -25,9 +25,33 @@ export default function AppIndexPage() {
     return null;
   }
 
-  return (
-    <span>Overview</span>
-  )
+  if (!isPlatform) {
+    return <ApplicationLive />;
+  }
+
+  switch (state) {
+    case ApplicationStatus.Empty:
+      return <ApplicationProvisioning />;
+    case ApplicationStatus.Provisioning:
+      return <ApplicationProvisioning />;
+    case ApplicationStatus.Updating:
+      return <ApplicationLive />;
+    case ApplicationStatus.Live:
+      return <ApplicationLive />;
+    case ApplicationStatus.Errored:
+      return <ApplicationErrored />;
+    case ApplicationStatus.Pausing:
+    case ApplicationStatus.Paused:
+      return <ApplicationPaused />;
+    case ApplicationStatus.Unpausing:
+      return <ApplicationUnpausing />;
+    case ApplicationStatus.Restoring:
+      return <ApplicationRestoring />;
+    case ApplicationStatus.Migrating:
+      return <ApplicationLive />;
+    default:
+      return <ApplicationUnknown />;
+  }
 }
 
 AppIndexPage.getLayout = function getLayout(page: ReactElement) {

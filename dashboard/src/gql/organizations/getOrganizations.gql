@@ -9,12 +9,12 @@ query getOrganizations {
       deprecated
       individual
       isFree
-      apps(order_by: { name: asc }) {
-        id
-        name
-        subdomain
-        slug
-      }
+    }
+    apps(order_by: { name: asc }) {
+      id
+      name
+      subdomain
+      slug
     }
   }
 }

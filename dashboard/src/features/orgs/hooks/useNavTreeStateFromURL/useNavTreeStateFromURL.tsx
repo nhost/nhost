@@ -19,9 +19,11 @@ const useNavTreeStateFromURL = (): TreeState => {
   const pathSegments = useMemo(() => router.asPath.split('/'), [router.asPath]);
 
   // Identify project and settings pages based on the URL pattern
+  const orgPage = pathSegments[3] || null;
+  const projectPage = pathSegments[5] || null;
+
   const isSettingsPage = pathSegments.includes('settings');
-  const projectPage = pathSegments[3] || null;
-  const settingsPage = isSettingsPage ? pathSegments[4] || null : null;
+  const settingsPage = isSettingsPage ? pathSegments[6] || null : null;
 
   return useMemo(() => {
     if (!orgSlug) {
@@ -36,8 +38,6 @@ const useNavTreeStateFromURL = (): TreeState => {
     expandedItems.push('organizations', orgSlug);
 
     if (!appSlug) {
-      // Focus on organization-level URLs
-      const orgPage = pathSegments[pathSegments.length - 1];
       if (orgPage) {
         focusedItem = `${orgSlug}-${orgPage}`;
       }
@@ -47,24 +47,24 @@ const useNavTreeStateFromURL = (): TreeState => {
     // Expand project-level items
     expandedItems.push(`${orgSlug}-projects`, `${orgSlug}-${appSlug}`);
 
-    if (projectPage) {
-      expandedItems.push(`${orgSlug}-${appSlug}-${projectPage}`);
+    if (!projectPage) {
+      // overview page is the default when hitting /orgs/[orgSlug]/projects/[projectSlug]
+      focusedItem = `${orgSlug}-${appSlug}-overview`;
+    } else {
+      focusedItem = `${orgSlug}-${appSlug}-${projectPage}`;
     }
 
-    if (isSettingsPage && settingsPage) {
+    if (isSettingsPage) {
       expandedItems.push(`${orgSlug}-${appSlug}-settings`);
-      focusedItem = `${orgSlug}-${appSlug}-settings-${settingsPage}`;
+      if (!settingsPage) {
+        focusedItem = `${orgSlug}-${appSlug}-settings-general`;
+      } else {
+        focusedItem = `${orgSlug}-${appSlug}-settings-${settingsPage}`;
+      }
     }
 
     return { expandedItems, focusedItem };
-  }, [
-    orgSlug,
-    appSlug,
-    projectPage,
-    settingsPage,
-    pathSegments,
-    isSettingsPage,
-  ]);
+  }, [orgSlug, appSlug, orgPage, projectPage, settingsPage, isSettingsPage]);
 };
 
 export default useNavTreeStateFromURL;
