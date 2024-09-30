@@ -1,5 +1,15 @@
 # @nhost/docs
 
+## 2.19.0
+
+### Minor Changes
+
+- 2e42eac: feat: added autoscaler docs
+
+### Patch Changes
+
+- d197507: chore: added pg's ip4r extension documentation
+
 ## 2.18.0
 
 ### Minor Changes
