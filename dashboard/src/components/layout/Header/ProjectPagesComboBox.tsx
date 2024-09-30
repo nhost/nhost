@@ -5,10 +5,12 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList
+  CommandList,
 } from '@/components/ui/v3/command';
 
 import {
+  Check,
+  ChevronsUpDown,
   CloudIcon,
   CogIcon,
   DatabaseIcon,
@@ -16,7 +18,7 @@ import {
   GaugeIcon,
   HomeIcon,
   RocketIcon,
-  UserIcon
+  UserIcon,
 } from 'lucide-react';
 
 import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
@@ -28,109 +30,129 @@ import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
+  PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactElement } from 'react';
 
 type Option = {
   value: string;
   label: string;
-  icon: ReactElement
+  icon: ReactElement;
 };
 
 const projectPages = [
   {
     label: 'Overview',
     value: 'overview',
-    icon: <HomeIcon className="w-4 h-4" />,
-    slug: ''
+    icon: <HomeIcon className="h-4 w-4" />,
+    slug: '',
   },
   {
     label: 'Database',
     value: 'database',
-    icon: <DatabaseIcon className="w-4 h-4" />,
-    slug: 'database'
+    icon: <DatabaseIcon className="h-4 w-4" />,
+    slug: 'database',
   },
   {
     label: 'GraphQL',
     value: 'graphql',
-    icon: <GraphQLIcon className="w-4 h-4" />,
-    slug: 'graphql'
+    icon: <GraphQLIcon className="h-4 w-4" />,
+    slug: 'graphql',
   },
   {
     label: 'Hasura',
     value: 'hasura',
-    icon: <HasuraIcon className="w-4 h-4" />,
-    slug: 'hasura'
+    icon: <HasuraIcon className="h-4 w-4" />,
+    slug: 'hasura',
   },
-  { label: 'Auth', value: 'auth', icon: <UserIcon className="w-4 h-4" />, slug: 'users' },
+  {
+    label: 'Auth',
+    value: 'auth',
+    icon: <UserIcon className="h-4 w-4" />,
+    slug: 'users',
+  },
   {
     label: 'Storage',
     value: 'storage',
-    icon: <StorageIcon className="w-4 h-4" />,
-    slug: 'storage'
+    icon: <StorageIcon className="h-4 w-4" />,
+    slug: 'storage',
   },
-  { label: 'Run', value: 'run', icon: <ServicesIcon className="w-4 h-4" />, slug: 'run' },
-  { label: 'AI', value: 'ai', icon: <AIIcon className="w-4 h-4" />, slug: 'ai' },
+  {
+    label: 'Run',
+    value: 'run',
+    icon: <ServicesIcon className="h-4 w-4" />,
+    slug: 'run',
+  },
+  {
+    label: 'AI',
+    value: 'ai',
+    icon: <AIIcon className="h-4 w-4" />,
+    slug: 'ai',
+  },
   {
     label: 'Deployments',
     value: 'deployments',
-    icon: <RocketIcon className="w-4 h-4" />,
-    slug: 'deployments'
+    icon: <RocketIcon className="h-4 w-4" />,
+    slug: 'deployments',
   },
   {
     label: 'Backups',
     value: 'backups',
-    icon: <CloudIcon className="w-4 h-4" />,
-    slug: 'backups'
+    icon: <CloudIcon className="h-4 w-4" />,
+    slug: 'backups',
   },
-  { label: 'Logs', value: 'logs', icon: <FileTextIcon className="w-4 h-4" />, slug: 'logs' },
+  {
+    label: 'Logs',
+    value: 'logs',
+    icon: <FileTextIcon className="h-4 w-4" />,
+    slug: 'logs',
+  },
   {
     label: 'Metrics',
     value: 'metrics',
-    icon: <GaugeIcon className="w-4 h-4" />,
-    slug: 'metrics'
+    icon: <GaugeIcon className="h-4 w-4" />,
+    slug: 'metrics',
   },
   {
     label: 'Settings',
     value: 'settings',
-    icon: <CogIcon className="w-4 h-4" />,
-    slug: 'settings'
+    icon: <CogIcon className="h-4 w-4" />,
+    slug: 'settings',
   },
 ];
 
 export default function ProjectPagesComboBox() {
-  
   const {
     query: { orgSlug, appSlug },
     push,
-    asPath
+    asPath,
   } = useRouter();
 
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
-
-  console.log({pathSegments})
-  const projectPageFromUrl = appSlug ? (pathSegments[5] || 'overview') : null;
-  const selectedProjectPageFromUrl = projectPages.find((item) => item.value === projectPageFromUrl);  
-  const [selectedProjectPage, setSelectedProjectPage] = useState<Option | null>(null);
+  const projectPageFromUrl = appSlug ? pathSegments[5] || 'overview' : null;
+  const selectedProjectPageFromUrl = projectPages.find(
+    (item) => item.value === projectPageFromUrl,
+  );
+  const [selectedProjectPage, setSelectedProjectPage] = useState<Option | null>(
+    null,
+  );
 
   useEffect(() => {
-    if (projectPageFromUrl) {
+    if (selectedProjectPageFromUrl) {
       setSelectedProjectPage({
         label: selectedProjectPageFromUrl.label,
         value: selectedProjectPageFromUrl.slug,
-        icon: selectedProjectPageFromUrl.icon
+        icon: selectedProjectPageFromUrl.icon,
       });
     }
-  }, [projectPageFromUrl]);
+  }, [selectedProjectPageFromUrl]);
 
   const options: Option[] = projectPages.map((app) => ({
     label: app.label,
     value: app.slug,
-    icon: app.icon
+    icon: app.icon,
   }));
 
   const [open, setOpen] = useState(false);
@@ -151,7 +173,7 @@ export default function ProjectPagesComboBox() {
           ) : (
             <>Select a page</>
           )}
-          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
+          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
@@ -167,7 +189,9 @@ export default function ProjectPagesComboBox() {
                   onSelect={() => {
                     setSelectedProjectPage(option);
                     setOpen(false);
-                    push(`/orgs/${orgSlug}/projects/${appSlug}/${option.value}`);
+                    push(
+                      `/orgs/${orgSlug}/projects/${appSlug}/${option.value}`,
+                    );
                   }}
                 >
                   <Check
@@ -178,9 +202,9 @@ export default function ProjectPagesComboBox() {
                         : 'opacity-0',
                     )}
                   />
-                  <div className='flex flex-row items-center gap-2'>
+                  <div className="flex flex-row items-center gap-2">
                     {option.icon}
-                    <span className="truncate max-w-52">{option.label}</span>
+                    <span className="max-w-52 truncate">{option.label}</span>
                   </div>
                 </CommandItem>
               ))}

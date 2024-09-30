@@ -5,15 +5,13 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
-  CommandList
+  CommandList,
 } from '@/components/ui/v3/command';
-
-
 
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
+  PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -47,28 +45,32 @@ const projectSettingsPages = [
 }));
 
 export default function ProjectSettingsPagesComboBox() {
-  
   const {
     query: { orgSlug, appSlug },
     push,
-    asPath
+    asPath,
   } = useRouter();
 
   const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
   const isSettingsPage = pathSegments.includes('settings');
-  const settingsPageFromUrl = isSettingsPage ? (pathSegments[6] || 'general') : null;
+  const settingsPageFromUrl = isSettingsPage
+    ? pathSegments[6] || 'general'
+    : null;
 
-  const selectedSettingsPageFromUrl = projectSettingsPages.find((item) => item.value === settingsPageFromUrl);  
-  const [selectedSettingsPage, setSelectedSettingsPage] = useState<Option | null>(null);
+  const selectedSettingsPageFromUrl = projectSettingsPages.find(
+    (item) => item.value === settingsPageFromUrl,
+  );
+  const [selectedSettingsPage, setSelectedSettingsPage] =
+    useState<Option | null>(null);
 
   useEffect(() => {
-    if (settingsPageFromUrl) {
+    if (selectedSettingsPageFromUrl) {
       setSelectedSettingsPage({
         label: selectedSettingsPageFromUrl.label,
         value: selectedSettingsPageFromUrl.value,
       });
     }
-  }, [settingsPageFromUrl]);
+  }, [selectedSettingsPageFromUrl]);
 
   const options: Option[] = projectSettingsPages.map((page) => ({
     label: page.label,
@@ -86,13 +88,11 @@ export default function ProjectSettingsPagesComboBox() {
           className="justify-start gap-2 text-foreground"
         >
           {selectedSettingsPage ? (
-            <div>
-              {selectedSettingsPage.label}
-            </div>
+            <div>{selectedSettingsPage.label}</div>
           ) : (
             <>Select a page</>
           )}
-          <ChevronsUpDown className="w-5 h-5 text-muted-foreground" />
+          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
@@ -108,7 +108,9 @@ export default function ProjectSettingsPagesComboBox() {
                   onSelect={() => {
                     setSelectedSettingsPage(option);
                     setOpen(false);
-                    push(`/orgs/${orgSlug}/projects/${appSlug}/settings/${option.value}/`);
+                    push(
+                      `/orgs/${orgSlug}/projects/${appSlug}/settings/${option.value}/`,
+                    );
                   }}
                 >
                   <Check
@@ -119,8 +121,8 @@ export default function ProjectSettingsPagesComboBox() {
                         : 'opacity-0',
                     )}
                   />
-                  <div className='flex flex-row items-center gap-2'>
-                    <span className="truncate max-w-52">{option.label}</span>
+                  <div className="flex flex-row items-center gap-2">
+                    <span className="max-w-52 truncate">{option.label}</span>
                   </div>
                 </CommandItem>
               ))}
