@@ -1,5 +1,24 @@
 # @nhost/dashboard
 
+## 1.30.0
+
+### Minor Changes
+
+- 50441a8: feat: add ui for project autoscaler settings and run services autoscaler settings
+
+## 1.29.0
+
+### Minor Changes
+
+- 55d8bb5: feat: integrate turnstile for signup verification
+- 2a2e54c: fix: update docs url in run services form tooltip
+- 18f942f: fix: display long error messages in error toast without overflow
+
+### Patch Changes
+
+- @nhost/react-apollo@13.0.0
+- @nhost/nextjs@2.1.22
+
 ## 1.28.2
 
 ### Patch Changes

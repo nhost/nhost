@@ -1,5 +1,11 @@
 # @nhost-examples/multi-tenant-one-to-many
 
+## 2.2.13
+
+### Patch Changes
+
+- @nhost/nhost-js@3.1.10
+
 ## 2.2.12
 
 ### Patch Changes

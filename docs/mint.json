@@ -81,7 +81,8 @@
         "platform/secrets",
         "platform/deployments",
         "platform/custom-domains",
-        "platform/rate-limits"
+        "platform/rate-limits",
+        "platform/tls"
       ]
     },
     {
@@ -155,6 +156,7 @@
         "guides/auth/sign-in-phone-number",
         "guides/auth/sign-in-webauthn",
         "guides/auth/elevated-permissions",
+        "guides/auth/bot-protection",
         "guides/auth/email-templates",
         "guides/auth/custom-jwts"
       ]

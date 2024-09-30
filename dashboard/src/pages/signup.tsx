@@ -10,6 +10,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Turnstile } from '@marsidev/react-turnstile';
 import { styled } from '@mui/material';
 import { useSignUpEmailPassword } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
@@ -39,6 +40,9 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // x-cf-turnstile-response
+  const [turnstileResponse, setTurnstileResponse] = useState(null);
+
   const form = useForm<SignUpFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
@@ -66,11 +70,27 @@ export default function SignUpPage() {
     password,
     displayName,
   }: SignUpFormValues) {
+    if (!turnstileResponse) {
+      toast.error(
+        'Please complete the signup verification challenge to continue.',
+        getToastStyleProps(),
+      );
+
+      return;
+    }
+
     try {
       const { needsEmailVerification } = await signUpEmailPassword(
         email,
         password,
-        { displayName },
+        {
+          displayName,
+        },
+        {
+          headers: {
+            'x-cf-turnstile-response': turnstileResponse,
+          },
+        },
       );
 
       if (needsEmailVerification) {
@@ -94,7 +114,7 @@ export default function SignUpPage() {
         Sign Up
       </Text>
 
-      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
+      <Box className="grid grid-flow-row gap-4 p-6 bg-transparent border rounded-md lg:p-12">
         <Button
           variant="borderless"
           className="!bg-white !text-black hover:ring-2 hover:ring-white hover:ring-opacity-50 disabled:!text-black disabled:!text-opacity-60"
@@ -122,7 +142,7 @@ export default function SignUpPage() {
 
         <div className="relative py-2">
           <Text
-            className="absolute left-0 right-0 top-1/2 mx-auto w-12 -translate-y-1/2 bg-black px-2 text-center text-sm"
+            className="absolute left-0 right-0 w-12 px-2 mx-auto text-sm text-center -translate-y-1/2 bg-black top-1/2"
             color="disabled"
           >
             OR
@@ -172,6 +192,12 @@ export default function SignUpPage() {
               helperText={formState.errors.password?.message}
             />
 
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+              options={{ theme: 'dark', size: 'flexible' }}
+              onSuccess={setTurnstileResponse}
+            />
+
             <Button
               variant="outlined"
               color="secondary"
@@ -188,7 +214,7 @@ export default function SignUpPage() {
 
         <Divider className="!my-2" />
 
-        <Text color="secondary" className="text-center text-sm">
+        <Text color="secondary" className="text-sm text-center">
           By signing up, you agree to our{' '}
           <NavLink
             href="https://nhost.io/legal/terms-of-service"
@@ -212,7 +238,7 @@ export default function SignUpPage() {
         </Text>
       </Box>
 
-      <Text color="secondary" className="text-center text-base lg:text-lg">
+      <Text color="secondary" className="text-base text-center lg:text-lg">
         Already have an account?{' '}
         <NavLink href="/signin" color="white" className="font-medium">
           Sign In

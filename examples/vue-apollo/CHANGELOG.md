@@ -1,5 +1,13 @@
 # @nhost-examples/vue-apollo
 
+## 0.6.13
+
+### Patch Changes
+
+- @nhost/nhost-js@3.1.10
+- @nhost/apollo@7.1.7
+- @nhost/vue@2.6.7
+
 ## 0.6.12
 
 ### Patch Changes

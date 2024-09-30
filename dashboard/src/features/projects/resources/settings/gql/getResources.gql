@@ -6,6 +6,9 @@ fragment ServiceResources on ConfigConfig {
         memory
       }
       replicas
+      autoscaler {
+        maxReplicas
+      }
     }
   }
   hasura {
@@ -15,6 +18,9 @@ fragment ServiceResources on ConfigConfig {
         memory
       }
       replicas
+      autoscaler {
+        maxReplicas
+      }
     }
   }
   postgres {
@@ -24,6 +30,9 @@ fragment ServiceResources on ConfigConfig {
         memory
       }
       replicas
+      autoscaler {
+        maxReplicas
+      }
     }
   }
   storage {
@@ -33,6 +42,9 @@ fragment ServiceResources on ConfigConfig {
         memory
       }
       replicas
+      autoscaler {
+        maxReplicas
+      }
     }
   }
 }

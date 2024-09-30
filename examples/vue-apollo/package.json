@@ -1,7 +1,7 @@
 {
   "name": "@nhost-examples/vue-apollo",
   "private": true,
-  "version": "0.6.12",
+  "version": "0.6.13",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -1,5 +1,15 @@
 # @nhost/react
 
+## 3.6.0
+
+### Minor Changes
+
+- 55d8bb5: feat: add `requestOptions` to `signUpEmailPassword` to allow passing extra headers with the signup request
+
+### Patch Changes
+
+- @nhost/nhost-js@3.1.10
+
 ## 3.5.6
 
 ### Patch Changes

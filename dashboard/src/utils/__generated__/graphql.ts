@@ -1412,6 +1412,29 @@ export type ConfigGlobalUpdateInput = {
 export type ConfigGrafana = {
   __typename?: 'ConfigGrafana';
   adminPassword: Scalars['String'];
+  alerting?: Maybe<ConfigGrafanaAlerting>;
+  contacts?: Maybe<ConfigGrafanaContacts>;
+  smtp?: Maybe<ConfigGrafanaSmtp>;
+};
+
+export type ConfigGrafanaAlerting = {
+  __typename?: 'ConfigGrafanaAlerting';
+  enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type ConfigGrafanaAlertingComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGrafanaAlertingComparisonExp>>;
+  _not?: InputMaybe<ConfigGrafanaAlertingComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGrafanaAlertingComparisonExp>>;
+  enabled?: InputMaybe<ConfigBooleanComparisonExp>;
+};
+
+export type ConfigGrafanaAlertingInsertInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
+export type ConfigGrafanaAlertingUpdateInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type ConfigGrafanaComparisonExp = {
@@ -1419,14 +1442,255 @@ export type ConfigGrafanaComparisonExp = {
   _not?: InputMaybe<ConfigGrafanaComparisonExp>;
   _or?: InputMaybe<Array<ConfigGrafanaComparisonExp>>;
   adminPassword?: InputMaybe<ConfigStringComparisonExp>;
+  alerting?: InputMaybe<ConfigGrafanaAlertingComparisonExp>;
+  contacts?: InputMaybe<ConfigGrafanaContactsComparisonExp>;
+  smtp?: InputMaybe<ConfigGrafanaSmtpComparisonExp>;
+};
+
+export type ConfigGrafanaContacts = {
+  __typename?: 'ConfigGrafanaContacts';
+  discord?: Maybe<Array<ConfigGrafanacontactsDiscord>>;
+  emails?: Maybe<Array<Scalars['String']>>;
+  pagerduty?: Maybe<Array<ConfigGrafanacontactsPagerduty>>;
+  slack?: Maybe<Array<ConfigGrafanacontactsSlack>>;
+  webhook?: Maybe<Array<ConfigGrafanacontactsWebhook>>;
+};
+
+export type ConfigGrafanaContactsComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGrafanaContactsComparisonExp>>;
+  _not?: InputMaybe<ConfigGrafanaContactsComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGrafanaContactsComparisonExp>>;
+  discord?: InputMaybe<ConfigGrafanacontactsDiscordComparisonExp>;
+  emails?: InputMaybe<ConfigStringComparisonExp>;
+  pagerduty?: InputMaybe<ConfigGrafanacontactsPagerdutyComparisonExp>;
+  slack?: InputMaybe<ConfigGrafanacontactsSlackComparisonExp>;
+  webhook?: InputMaybe<ConfigGrafanacontactsWebhookComparisonExp>;
+};
+
+export type ConfigGrafanaContactsInsertInput = {
+  discord?: InputMaybe<Array<ConfigGrafanacontactsDiscordInsertInput>>;
+  emails?: InputMaybe<Array<Scalars['String']>>;
+  pagerduty?: InputMaybe<Array<ConfigGrafanacontactsPagerdutyInsertInput>>;
+  slack?: InputMaybe<Array<ConfigGrafanacontactsSlackInsertInput>>;
+  webhook?: InputMaybe<Array<ConfigGrafanacontactsWebhookInsertInput>>;
+};
+
+export type ConfigGrafanaContactsUpdateInput = {
+  discord?: InputMaybe<Array<ConfigGrafanacontactsDiscordUpdateInput>>;
+  emails?: InputMaybe<Array<Scalars['String']>>;
+  pagerduty?: InputMaybe<Array<ConfigGrafanacontactsPagerdutyUpdateInput>>;
+  slack?: InputMaybe<Array<ConfigGrafanacontactsSlackUpdateInput>>;
+  webhook?: InputMaybe<Array<ConfigGrafanacontactsWebhookUpdateInput>>;
 };
 
 export type ConfigGrafanaInsertInput = {
   adminPassword: Scalars['String'];
+  alerting?: InputMaybe<ConfigGrafanaAlertingInsertInput>;
+  contacts?: InputMaybe<ConfigGrafanaContactsInsertInput>;
+  smtp?: InputMaybe<ConfigGrafanaSmtpInsertInput>;
+};
+
+export type ConfigGrafanaSmtp = {
+  __typename?: 'ConfigGrafanaSmtp';
+  host: Scalars['String'];
+  password: Scalars['String'];
+  port: Scalars['ConfigPort'];
+  sender: Scalars['String'];
+  user: Scalars['String'];
+};
+
+export type ConfigGrafanaSmtpComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGrafanaSmtpComparisonExp>>;
+  _not?: InputMaybe<ConfigGrafanaSmtpComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGrafanaSmtpComparisonExp>>;
+  host?: InputMaybe<ConfigStringComparisonExp>;
+  password?: InputMaybe<ConfigStringComparisonExp>;
+  port?: InputMaybe<ConfigPortComparisonExp>;
+  sender?: InputMaybe<ConfigStringComparisonExp>;
+  user?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigGrafanaSmtpInsertInput = {
+  host: Scalars['String'];
+  password: Scalars['String'];
+  port: Scalars['ConfigPort'];
+  sender: Scalars['String'];
+  user: Scalars['String'];
+};
+
+export type ConfigGrafanaSmtpUpdateInput = {
+  host?: InputMaybe<Scalars['String']>;
+  password?: InputMaybe<Scalars['String']>;
+  port?: InputMaybe<Scalars['ConfigPort']>;
+  sender?: InputMaybe<Scalars['String']>;
+  user?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigGrafanaUpdateInput = {
   adminPassword?: InputMaybe<Scalars['String']>;
+  alerting?: InputMaybe<ConfigGrafanaAlertingUpdateInput>;
+  contacts?: InputMaybe<ConfigGrafanaContactsUpdateInput>;
+  smtp?: InputMaybe<ConfigGrafanaSmtpUpdateInput>;
+};
+
+export type ConfigGrafanacontactsDiscord = {
+  __typename?: 'ConfigGrafanacontactsDiscord';
+  avatarUrl: Scalars['String'];
+  url: Scalars['String'];
+};
+
+export type ConfigGrafanacontactsDiscordComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGrafanacontactsDiscordComparisonExp>>;
+  _not?: InputMaybe<ConfigGrafanacontactsDiscordComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGrafanacontactsDiscordComparisonExp>>;
+  avatarUrl?: InputMaybe<ConfigStringComparisonExp>;
+  url?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigGrafanacontactsDiscordInsertInput = {
+  avatarUrl: Scalars['String'];
+  url: Scalars['String'];
+};
+
+export type ConfigGrafanacontactsDiscordUpdateInput = {
+  avatarUrl?: InputMaybe<Scalars['String']>;
+  url?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigGrafanacontactsPagerduty = {
+  __typename?: 'ConfigGrafanacontactsPagerduty';
+  class: Scalars['String'];
+  component: Scalars['String'];
+  group: Scalars['String'];
+  integrationKey: Scalars['String'];
+  severity: Scalars['String'];
+};
+
+export type ConfigGrafanacontactsPagerdutyComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGrafanacontactsPagerdutyComparisonExp>>;
+  _not?: InputMaybe<ConfigGrafanacontactsPagerdutyComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGrafanacontactsPagerdutyComparisonExp>>;
+  class?: InputMaybe<ConfigStringComparisonExp>;
+  component?: InputMaybe<ConfigStringComparisonExp>;
+  group?: InputMaybe<ConfigStringComparisonExp>;
+  integrationKey?: InputMaybe<ConfigStringComparisonExp>;
+  severity?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigGrafanacontactsPagerdutyInsertInput = {
+  class: Scalars['String'];
+  component: Scalars['String'];
+  group: Scalars['String'];
+  integrationKey: Scalars['String'];
+  severity: Scalars['String'];
+};
+
+export type ConfigGrafanacontactsPagerdutyUpdateInput = {
+  class?: InputMaybe<Scalars['String']>;
+  component?: InputMaybe<Scalars['String']>;
+  group?: InputMaybe<Scalars['String']>;
+  integrationKey?: InputMaybe<Scalars['String']>;
+  severity?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigGrafanacontactsSlack = {
+  __typename?: 'ConfigGrafanacontactsSlack';
+  endpointURL: Scalars['String'];
+  iconEmoji: Scalars['String'];
+  iconURL: Scalars['String'];
+  mentionChannel: Scalars['String'];
+  mentionGroups: Array<Scalars['String']>;
+  mentionUsers: Array<Scalars['String']>;
+  recipient: Scalars['String'];
+  token: Scalars['String'];
+  url: Scalars['String'];
+  username: Scalars['String'];
+};
+
+export type ConfigGrafanacontactsSlackComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGrafanacontactsSlackComparisonExp>>;
+  _not?: InputMaybe<ConfigGrafanacontactsSlackComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGrafanacontactsSlackComparisonExp>>;
+  endpointURL?: InputMaybe<ConfigStringComparisonExp>;
+  iconEmoji?: InputMaybe<ConfigStringComparisonExp>;
+  iconURL?: InputMaybe<ConfigStringComparisonExp>;
+  mentionChannel?: InputMaybe<ConfigStringComparisonExp>;
+  mentionGroups?: InputMaybe<ConfigStringComparisonExp>;
+  mentionUsers?: InputMaybe<ConfigStringComparisonExp>;
+  recipient?: InputMaybe<ConfigStringComparisonExp>;
+  token?: InputMaybe<ConfigStringComparisonExp>;
+  url?: InputMaybe<ConfigStringComparisonExp>;
+  username?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigGrafanacontactsSlackInsertInput = {
+  endpointURL: Scalars['String'];
+  iconEmoji: Scalars['String'];
+  iconURL: Scalars['String'];
+  mentionChannel: Scalars['String'];
+  mentionGroups: Array<Scalars['String']>;
+  mentionUsers: Array<Scalars['String']>;
+  recipient: Scalars['String'];
+  token: Scalars['String'];
+  url: Scalars['String'];
+  username: Scalars['String'];
+};
+
+export type ConfigGrafanacontactsSlackUpdateInput = {
+  endpointURL?: InputMaybe<Scalars['String']>;
+  iconEmoji?: InputMaybe<Scalars['String']>;
+  iconURL?: InputMaybe<Scalars['String']>;
+  mentionChannel?: InputMaybe<Scalars['String']>;
+  mentionGroups?: InputMaybe<Array<Scalars['String']>>;
+  mentionUsers?: InputMaybe<Array<Scalars['String']>>;
+  recipient?: InputMaybe<Scalars['String']>;
+  token?: InputMaybe<Scalars['String']>;
+  url?: InputMaybe<Scalars['String']>;
+  username?: InputMaybe<Scalars['String']>;
+};
+
+export type ConfigGrafanacontactsWebhook = {
+  __typename?: 'ConfigGrafanacontactsWebhook';
+  authorizationCredentials: Scalars['String'];
+  authorizationScheme: Scalars['String'];
+  httpMethod: Scalars['String'];
+  maxAlerts: Scalars['Int'];
+  password: Scalars['String'];
+  url: Scalars['String'];
+  username: Scalars['String'];
+};
+
+export type ConfigGrafanacontactsWebhookComparisonExp = {
+  _and?: InputMaybe<Array<ConfigGrafanacontactsWebhookComparisonExp>>;
+  _not?: InputMaybe<ConfigGrafanacontactsWebhookComparisonExp>;
+  _or?: InputMaybe<Array<ConfigGrafanacontactsWebhookComparisonExp>>;
+  authorizationCredentials?: InputMaybe<ConfigStringComparisonExp>;
+  authorizationScheme?: InputMaybe<ConfigStringComparisonExp>;
+  httpMethod?: InputMaybe<ConfigStringComparisonExp>;
+  maxAlerts?: InputMaybe<ConfigIntComparisonExp>;
+  password?: InputMaybe<ConfigStringComparisonExp>;
+  url?: InputMaybe<ConfigStringComparisonExp>;
+  username?: InputMaybe<ConfigStringComparisonExp>;
+};
+
+export type ConfigGrafanacontactsWebhookInsertInput = {
+  authorizationCredentials: Scalars['String'];
+  authorizationScheme: Scalars['String'];
+  httpMethod: Scalars['String'];
+  maxAlerts: Scalars['Int'];
+  password: Scalars['String'];
+  url: Scalars['String'];
+  username: Scalars['String'];
+};
+
+export type ConfigGrafanacontactsWebhookUpdateInput = {
+  authorizationCredentials?: InputMaybe<Scalars['String']>;
+  authorizationScheme?: InputMaybe<Scalars['String']>;
+  httpMethod?: InputMaybe<Scalars['String']>;
+  maxAlerts?: InputMaybe<Scalars['Int']>;
+  password?: InputMaybe<Scalars['String']>;
+  url?: InputMaybe<Scalars['String']>;
+  username?: InputMaybe<Scalars['String']>;
 };
 
 export type ConfigGraphql = {
@@ -1625,6 +1889,8 @@ export type ConfigHasuraSettings = {
   enableRemoteSchemaPermissions?: Maybe<Scalars['Boolean']>;
   /** HASURA_GRAPHQL_ENABLED_APIS */
   enabledAPIs?: Maybe<Array<Scalars['ConfigHasuraAPIs']>>;
+  /** HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS */
+  inferFunctionPermissions?: Maybe<Scalars['Boolean']>;
   /** HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL */
   liveQueriesMultiplexedRefetchInterval?: Maybe<Scalars['ConfigUint32']>;
   /** HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES */
@@ -1641,6 +1907,7 @@ export type ConfigHasuraSettingsComparisonExp = {
   enableConsole?: InputMaybe<ConfigBooleanComparisonExp>;
   enableRemoteSchemaPermissions?: InputMaybe<ConfigBooleanComparisonExp>;
   enabledAPIs?: InputMaybe<ConfigHasuraApIsComparisonExp>;
+  inferFunctionPermissions?: InputMaybe<ConfigBooleanComparisonExp>;
   liveQueriesMultiplexedRefetchInterval?: InputMaybe<ConfigUint32ComparisonExp>;
   stringifyNumericTypes?: InputMaybe<ConfigBooleanComparisonExp>;
 };
@@ -1652,6 +1919,7 @@ export type ConfigHasuraSettingsInsertInput = {
   enableConsole?: InputMaybe<Scalars['Boolean']>;
   enableRemoteSchemaPermissions?: InputMaybe<Scalars['Boolean']>;
   enabledAPIs?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
+  inferFunctionPermissions?: InputMaybe<Scalars['Boolean']>;
   liveQueriesMultiplexedRefetchInterval?: InputMaybe<Scalars['ConfigUint32']>;
   stringifyNumericTypes?: InputMaybe<Scalars['Boolean']>;
 };
@@ -1663,6 +1931,7 @@ export type ConfigHasuraSettingsUpdateInput = {
   enableConsole?: InputMaybe<Scalars['Boolean']>;
   enableRemoteSchemaPermissions?: InputMaybe<Scalars['Boolean']>;
   enabledAPIs?: InputMaybe<Array<Scalars['ConfigHasuraAPIs']>>;
+  inferFunctionPermissions?: InputMaybe<Scalars['Boolean']>;
   liveQueriesMultiplexedRefetchInterval?: InputMaybe<Scalars['ConfigUint32']>;
   stringifyNumericTypes?: InputMaybe<Scalars['Boolean']>;
 };
@@ -22956,14 +23225,14 @@ export type GetBackupPresignedUrlQueryVariables = Exact<{
 
 export type GetBackupPresignedUrlQuery = { __typename?: 'query_root', getBackupPresignedUrl: { __typename?: 'BackupPresignedURL', url: string, expiresAt: any } };
 
-export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null };
+export type ServiceResourcesFragment = { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null };
 
 export type GetResourcesQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
 
 
-export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null } | null } | null } | null };
+export type GetResourcesQuery = { __typename?: 'query_root', config?: { __typename?: 'ConfigConfig', auth?: { __typename?: 'ConfigAuth', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null, hasura: { __typename?: 'ConfigHasura', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null }, postgres?: { __typename?: 'ConfigPostgres', resources?: { __typename?: 'ConfigPostgresResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null, storage?: { __typename?: 'ConfigStorage', resources?: { __typename?: 'ConfigResources', replicas?: any | null, compute?: { __typename?: 'ConfigResourcesCompute', cpu: any, memory: any } | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null } | null } | null } | null };
 
 export type GetServerlessFunctionsSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
@@ -23516,9 +23785,9 @@ export type GetRunServiceQueryVariables = Exact<{
 }>;
 
 
-export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
+export type GetRunServiceQuery = { __typename?: 'query_root', runService?: { __typename?: 'run_service', id: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null }> | null } | null } | null };
 
-export type RunServiceConfigFragment = { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null };
+export type RunServiceConfigFragment = { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null };
 
 export type GetRunServicesQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -23528,7 +23797,7 @@ export type GetRunServicesQueryVariables = Exact<{
 }>;
 
 
-export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
+export type GetRunServicesQuery = { __typename?: 'query_root', app?: { __typename?: 'apps', runServices: Array<{ __typename?: 'run_service', id: any, createdAt: any, updatedAt: any, subdomain: string, config?: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } | null }>, runServices_aggregate: { __typename?: 'run_service_aggregate', aggregate?: { __typename?: 'run_service_aggregate_fields', count: number } | null } } | null };
 
 export type GetLocalRunServiceConfigsQueryVariables = Exact<{
   appID: Scalars['uuid'];
@@ -23536,7 +23805,7 @@ export type GetLocalRunServiceConfigsQueryVariables = Exact<{
 }>;
 
 
-export type GetLocalRunServiceConfigsQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } }> };
+export type GetLocalRunServiceConfigsQuery = { __typename?: 'query_root', runServiceConfigs: Array<{ __typename?: 'ConfigRunServiceConfigWithID', serviceID: any, config: { __typename?: 'ConfigRunServiceConfig', name: any, command?: Array<string> | null, image: { __typename?: 'ConfigRunServiceImage', image: string }, resources: { __typename?: 'ConfigRunServiceResources', replicas: any, compute: { __typename?: 'ConfigComputeResources', cpu: any, memory: any }, storage?: Array<{ __typename?: 'ConfigRunServiceResourcesStorage', name: any, path: string, capacity: any }> | null, autoscaler?: { __typename?: 'ConfigAutoscaler', maxReplicas: any } | null }, environment?: Array<{ __typename?: 'ConfigEnvironmentVariable', name: string, value: string }> | null, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null }> | null, healthCheck?: { __typename?: 'ConfigHealthCheck', port: any, initialDelaySeconds?: number | null, probePeriodSeconds?: number | null } | null } }> };
 
 export type RunServiceRateLimitFragment = { __typename?: 'ConfigRunServiceConfig', name: any, ports?: Array<{ __typename?: 'ConfigRunServicePort', port: any, type: string, publish?: boolean | null, rateLimit?: { __typename?: 'ConfigRateLimit', limit: any, interval: string } | null, ingresses?: Array<{ __typename?: 'ConfigIngress', fqdn?: Array<string> | null }> | null }> | null };
 
@@ -23691,6 +23960,9 @@ export const ServiceResourcesFragmentDoc = gql`
         memory
       }
       replicas
+      autoscaler {
+        maxReplicas
+      }
     }
   }
   hasura {
@@ -23700,6 +23972,9 @@ export const ServiceResourcesFragmentDoc = gql`
         memory
       }
       replicas
+      autoscaler {
+        maxReplicas
+      }
     }
   }
   postgres {
@@ -23709,6 +23984,9 @@ export const ServiceResourcesFragmentDoc = gql`
         memory
       }
       replicas
+      autoscaler {
+        maxReplicas
+      }
     }
   }
   storage {
@@ -23718,6 +23996,9 @@ export const ServiceResourcesFragmentDoc = gql`
         memory
       }
       replicas
+      autoscaler {
+        maxReplicas
+      }
     }
   }
 }
@@ -24005,6 +24286,9 @@ export const RunServiceConfigFragmentDoc = gql`
       capacity
     }
     replicas
+    autoscaler {
+      maxReplicas
+    }
   }
   environment {
     name
@@ -27752,6 +28036,9 @@ export const GetRunServiceDocument = gql`
           capacity
         }
         replicas
+        autoscaler {
+          maxReplicas
+        }
       }
       environment {
         name

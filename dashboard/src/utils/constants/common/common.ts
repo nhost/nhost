@@ -51,6 +51,11 @@ export const RESOURCE_VCPU_STEP = 0.25 * RESOURCE_VCPU_MULTIPLIER;
 export const RESOURCE_MEMORY_STEP = 128;
 
 /**
+ * Number of steps between GiB of RAM when the ratio is locked.
+ */
+export const RESOURCE_MEMORY_LOCKED_STEP = 4 * RESOURCE_MEMORY_STEP;
+
+/**
  * Price per vCPU.
  *
  * @remarks This will be moved to the backend in the future.

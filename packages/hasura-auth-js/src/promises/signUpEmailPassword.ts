@@ -1,6 +1,6 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter } from '../machines'
-import { SignUpOptions } from '../types'
+import { RequestOptions, SignUpOptions } from '../types'
 
 import {
   AuthActionLoadingState,
@@ -20,13 +20,15 @@ export const signUpEmailPasswordPromise = (
   interpreter: AuthInterpreter,
   email: string,
   password: string,
-  options?: SignUpOptions
+  options?: SignUpOptions,
+  requestOptions?: RequestOptions
 ): Promise<SignUpEmailPasswordHandlerResult> =>
   new Promise<SignUpEmailPasswordHandlerResult>((resolve) => {
     const { changed, context } = interpreter.send('SIGNUP_EMAIL_PASSWORD', {
       email,
       password,
-      options
+      options,
+      requestOptions
     })
     if (!changed) {
       return resolve({

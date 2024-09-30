@@ -14,6 +14,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   waitForElementToBeRemoved,
   within,
 } from '@/tests/testUtils';
@@ -78,7 +79,7 @@ test('should show the sliders if the switch is enabled', async () => {
   await user.click(screen.getByRole('checkbox'));
 
   expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
-  expect(screen.getAllByRole('slider')).toHaveLength(12);
+  expect(screen.getAllByRole('slider')).toHaveLength(9);
 });
 
 test('should not show an empty state message if there is data available', async () => {
@@ -89,7 +90,7 @@ test('should not show an empty state message if there is data available', async 
   ).toBeInTheDocument();
 
   expect(screen.queryByText(/enable this feature/i)).not.toBeInTheDocument();
-  expect(screen.getAllByRole('slider')).toHaveLength(12);
+  expect(screen.getAllByRole('slider')).toHaveLength(9);
   expect(screen.getByText(/^vcpus:/i)).toHaveTextContent(/vcpus: 8/i);
   expect(screen.getByText(/^memory:/i)).toHaveTextContent(/memory: 16384 mib/i);
 });
@@ -267,7 +268,7 @@ test('should display a red button when custom resources are disabled', async () 
     await screen.findByRole('slider', { name: /total available vcpu/i }),
   ).toBeInTheDocument();
 
-  await user.click(screen.getByRole('checkbox'));
+  await user.click(screen.getAllByRole('checkbox')[0]);
 
   expect(screen.getByText(/enable this feature/i)).toBeInTheDocument();
   expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
@@ -297,7 +298,8 @@ test('should hide the pricing information when custom resource allocation is dis
     await screen.findByRole('slider', { name: /total available vcpu/i }),
   ).toBeInTheDocument();
 
-  await user.click(screen.getByRole('checkbox'));
+  await user.click(screen.getAllByRole('checkbox')[0]);
+
   await user.click(screen.getByRole('button', { name: /save/i }));
 
   expect(await screen.findByRole('dialog')).toBeInTheDocument();
@@ -333,6 +335,8 @@ test('should show a warning message when resources are overallocated', async () 
 });
 
 test('should change pricing based on selected replicas', async () => {
+  const user = userEvent.setup();
+
   render(<ResourcesForm />);
 
   expect(
@@ -343,23 +347,31 @@ test('should change pricing based on selected replicas', async () => {
     /approximate cost: \$425\.00\/mo/i,
   );
 
-  changeSliderValue(
-    screen.getByRole('slider', { name: /hasura graphql replicas/i }),
-    2,
+  const hasuraReplicasInput = screen.getAllByPlaceholderText('Replicas')[0];
+
+  await user.click(hasuraReplicasInput);
+  await user.clear(hasuraReplicasInput);
+  await user.type(hasuraReplicasInput, '2');
+
+  await new Promise((resolve) => {
+    setTimeout(resolve, 1000);
+  });
+
+  await waitFor(() =>
+    expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
+      /approximate cost: \$525\.00\/mo/i,
+    ),
   );
 
-  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
-    /approximate cost: \$525\.00\/mo/i,
-  );
+  await user.click(hasuraReplicasInput);
+  await user.clear(hasuraReplicasInput);
+  await user.type(hasuraReplicasInput, '1');
 
-  changeSliderValue(
-    screen.getByRole('slider', { name: /hasura graphql replicas/i }),
-    1,
-  );
-
-  expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
-    /approximate cost: \$425\.00\/mo/i,
-  );
+  await waitFor(() => {
+    expect(screen.getByText(/approximate cost:/i)).toHaveTextContent(
+      /approximate cost: \$425\.00\/mo/i,
+    );
+  });
 });
 
 test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 replica is selected', async () => {
@@ -378,10 +390,10 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
     20 * RESOURCE_VCPU_MULTIPLIER,
   );
 
-  changeSliderValue(
-    screen.getByRole('slider', { name: /storage replicas/i }),
-    2,
-  );
+  const storageReplicasInput = screen.getAllByPlaceholderText('Replicas')[2];
+  await user.click(storageReplicasInput);
+  await user.clear(storageReplicasInput);
+  await user.type(storageReplicasInput, '2');
 
   changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
@@ -402,12 +414,13 @@ test('should validate if vCPU and Memory match the 1:2 ratio if more than 1 repl
     ),
   ).toBeInTheDocument();
 
-  const validationErrorMessage = screen.getByLabelText(
-    /vcpu and memory for this service must match the 1:2 ratio if more than one replica is selected\./i,
-  );
-
-  expect(validationErrorMessage).toBeInTheDocument();
-  expect(validationErrorMessage).toHaveStyle({ color: '#f13154' });
+  await waitFor(() => {
+    const validationErrorMessage = screen.getByText(
+      /vCPU and Memory for this service must follow a 1:2 ratio when more than one replica is selected or when the autoscaler is activated\./i,
+    );
+    expect(validationErrorMessage).toBeInTheDocument();
+    expect(validationErrorMessage).toHaveStyle({ color: '#f13154' });
+  });
 });
 
 test('should take replicas into account when confirming the resources', async () => {
@@ -436,11 +449,11 @@ test('should take replicas into account when confirming the resources', async ()
     4 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
-  // setting up hasura
-  changeSliderValue(
-    screen.getByRole('slider', { name: /hasura graphql replicas/i }),
-    3,
-  );
+  const hasuraReplicasInput = screen.getAllByPlaceholderText('Replicas')[0];
+  await user.click(hasuraReplicasInput);
+  await user.clear(hasuraReplicasInput);
+  await user.type(hasuraReplicasInput, '3');
+
   changeSliderValue(
     screen.getByRole('slider', { name: /hasura graphql vcpu/i }),
     2.5 * RESOURCE_VCPU_MULTIPLIER,
@@ -450,8 +463,12 @@ test('should take replicas into account when confirming the resources', async ()
     5 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
+  const authReplicasInput = screen.getAllByPlaceholderText('Replicas')[1];
   // setting up auth
-  changeSliderValue(screen.getByRole('slider', { name: /auth replicas/i }), 2);
+  await user.click(authReplicasInput);
+  await user.clear(authReplicasInput);
+  await user.type(authReplicasInput, '2');
+
   changeSliderValue(
     screen.getByRole('slider', { name: /auth vcpu/i }),
     1.5 * RESOURCE_VCPU_MULTIPLIER,
@@ -461,11 +478,12 @@ test('should take replicas into account when confirming the resources', async ()
     3 * RESOURCE_MEMORY_MULTIPLIER,
   );
 
+  const storageReplicasInput = screen.getAllByPlaceholderText('Replicas')[2];
   // setting up storage
-  changeSliderValue(
-    screen.getByRole('slider', { name: /storage replicas/i }),
-    4,
-  );
+  await user.click(storageReplicasInput);
+  await user.clear(storageReplicasInput);
+  await user.type(storageReplicasInput, '4');
+
   changeSliderValue(
     screen.getByRole('slider', { name: /storage vcpu/i }),
     2.5 * RESOURCE_VCPU_MULTIPLIER,

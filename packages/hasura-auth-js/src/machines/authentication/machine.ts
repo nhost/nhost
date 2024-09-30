@@ -34,6 +34,7 @@ import {
   PasswordlessSmsOtpResponse,
   PasswordlessSmsResponse,
   RefreshSessionResponse,
+  RequestOptions,
   SignInAnonymousResponse,
   SignInMfaTotpResponse,
   SignInPATResponse,
@@ -92,9 +93,10 @@ export const createAuthMachine = ({
   const postRequest = async <T = any, D = any>(
     url: string,
     data?: D,
-    token?: string | null
+    token?: string | null,
+    headers?: Record<string, string>
   ): Promise<T> => {
-    const result = await postFetch<T>(`${backendUrl}${url}`, data, token)
+    const result = await postFetch<T>(`${backendUrl}${url}`, data, token, headers)
 
     return result.data
   }
@@ -910,13 +912,14 @@ export const createAuthMachine = ({
 
           return signOutResponse
         },
-        signUpEmailPassword: async (context, { email, password, options }) => {
+        signUpEmailPassword: async (context, { email, password, options, requestOptions }) => {
           if (!isValidEmail(email)) {
             return Promise.reject<SignUpResponse>({ error: INVALID_EMAIL_ERROR })
           }
           if (!isValidPassword(password)) {
             return Promise.reject<SignUpResponse>({ error: INVALID_PASSWORD_ERROR })
           }
+
           if (context.user?.isAnonymous) {
             return postRequest<SignUpResponse>(
               '/user/deanonymize',
@@ -926,14 +929,20 @@ export const createAuthMachine = ({
                 password,
                 options: rewriteRedirectTo(clientUrl, options)
               },
-              context.accessToken.value
+              context.accessToken.value,
+              requestOptions?.headers
             )
           } else {
-            return postRequest<SignUpResponse>('/signup/email-password', {
-              email,
-              password,
-              options: rewriteRedirectTo(clientUrl, options)
-            })
+            return postRequest<SignUpResponse>(
+              '/signup/email-password',
+              {
+                email,
+                password,
+                options: rewriteRedirectTo(clientUrl, options)
+              },
+              null,
+              requestOptions?.headers
+            )
           }
         },
         signUpSecurityKey: async (_, { email, options }) => {

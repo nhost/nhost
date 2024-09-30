@@ -51,9 +51,29 @@ SET ROLE postgres;
 DROP EXTENSION http;
 ```
 
+## ip4r
+
+IPv4/v6 and IPv4/v6 range index type for PostgreSQL.
+
+### Managing
+
+To install the extension you can create a migration with the following contents:
+
+```sql SQL
+SET ROLE postgres;
+CREATE EXTENSION ip4r;
+```
+
+To uninstall it, you can use the following migration:
+
+```sql SQL
+SET ROLE postgres;
+DROP EXTENSION ip4r;
+```
+
 ### Resources
 
-- [GitHub](https://github.com/pramsey/pgsql-http)
+- [GitHub](https://github.com/RhodiumToad/ip4r)
 
 ## postgis
 

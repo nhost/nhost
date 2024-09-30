@@ -15,6 +15,9 @@ fragment RunServiceConfig on ConfigRunServiceConfig {
       capacity
     }
     replicas
+    autoscaler {
+      maxReplicas
+    }
   }
   environment {
     name
