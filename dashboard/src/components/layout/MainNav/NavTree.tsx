@@ -31,65 +31,80 @@ import {
 const projectPages = [
   {
     name: 'Overview',
-    icon: <HomeIcon className="w-4 h-4" />,
+    icon: <HomeIcon className="h-4 w-4" />,
     route: '',
     slug: 'overview',
   },
   {
     name: 'Database',
-    icon: <DatabaseIcon className="w-4 h-4" />,
+    icon: <DatabaseIcon className="h-4 w-4" />,
     route: 'database',
     slug: 'database',
   },
   {
     name: 'GraphQL',
-    icon: <GraphQLIcon className="w-4 h-4" />,
+    icon: <GraphQLIcon className="h-4 w-4" />,
     route: 'graphql',
     slug: 'graphql',
   },
-  { name: 'Hasura', icon: <HasuraIcon className="w-4 h-4" />, route: 'hasura', slug: 'hasura' },
-  { name: 'Auth', icon: <UserIcon className="w-4 h-4" />, route: 'users', slug: 'users' },
+  {
+    name: 'Hasura',
+    icon: <HasuraIcon className="h-4 w-4" />,
+    route: 'hasura',
+    slug: 'hasura',
+  },
+  {
+    name: 'Auth',
+    icon: <UserIcon className="h-4 w-4" />,
+    route: 'users',
+    slug: 'users',
+  },
   {
     name: 'Storage',
-    icon: <StorageIcon className="w-4 h-4" />,
+    icon: <StorageIcon className="h-4 w-4" />,
     route: 'storage',
     slug: 'storage',
   },
   {
     name: 'Run',
-    icon: <ServicesIcon className="w-4 h-4" />,
+    icon: <ServicesIcon className="h-4 w-4" />,
     route: 'run',
     slug: 'run',
   },
   {
     name: 'AI',
-    icon: <AIIcon className="w-4 h-4" />,
+    icon: <AIIcon className="h-4 w-4" />,
     route: 'ai',
     slug: 'ai',
   },
   {
     name: 'Deployments',
-    icon: <RocketIcon className="w-4 h-4" />,
+    icon: <RocketIcon className="h-4 w-4" />,
     route: 'deployments',
     slug: 'deployments',
   },
   {
     name: 'Backups',
-    icon: <CloudIcon className="w-4 h-4" />,
+    icon: <CloudIcon className="h-4 w-4" />,
     route: 'backups',
-    slug: 'backups'
+    slug: 'backups',
   },
-  { name: 'Logs', icon: <FileTextIcon className="w-4 h-4" />, route: 'logs', slug: 'logs' },
+  {
+    name: 'Logs',
+    icon: <FileTextIcon className="h-4 w-4" />,
+    route: 'logs',
+    slug: 'logs',
+  },
   {
     name: 'Metrics',
-    icon: <GaugeIcon className="w-4 h-4" />,
+    icon: <GaugeIcon className="h-4 w-4" />,
     route: 'metrics',
-    slug: 'metrics'
+    slug: 'metrics',
   },
   {
     name: 'Settings',
     route: 'settings',
-    slug: 'settings'
+    slug: 'settings',
   },
 ];
 
@@ -111,7 +126,7 @@ const projectSettingsPages = [
   'AI',
 ].map((item) => ({
   name: item,
-  slug: item.toLowerCase().replaceAll(' ', '-')
+  slug: item.toLowerCase().replaceAll(' ', '-'),
 }));
 
 const createOrganization = (org: Org) => {
@@ -159,7 +174,7 @@ const createOrganization = (org: Org) => {
       data: {
         name: app.name,
         slug: app.slug,
-        icon: <Box className="w-4 h-4" />,
+        icon: <Box className="h-4 w-4" />,
         targetUrl: `/orgs/${org.slug}/projects/${app.slug}`,
       },
       children: projectPages.map(
@@ -199,7 +214,10 @@ const createOrganization = (org: Org) => {
         children: undefined,
         data: {
           name: p.name,
-          targetUrl: p.slug === 'general' ? `/orgs/${org.slug}/projects/${_app.slug}/settings` : `/orgs/${org.slug}/projects/${_app.slug}/settings/${p.slug}`,
+          targetUrl:
+            p.slug === 'general'
+              ? `/orgs/${org.slug}/projects/${_app.slug}/settings`
+              : `/orgs/${org.slug}/projects/${_app.slug}/settings/${p.slug}`,
         },
         canRename: false,
       };
@@ -213,7 +231,7 @@ const createOrganization = (org: Org) => {
     children: [],
     data: {
       name: 'Settings',
-      targetUrl: `/orgs/${org.slug}/settings/general`,
+      targetUrl: `/orgs/${org.slug}/settings`,
     },
     canRename: false,
   };
@@ -340,9 +358,9 @@ export default function NavTree() {
             className="h-8 px-2"
           >
             {context.isExpanded ? (
-              <ChevronDown className="w-4 h-4 font-bold" strokeWidth={3} />
+              <ChevronDown className="h-4 w-4 font-bold" strokeWidth={3} />
             ) : (
-              <ChevronRight className="w-4 h-4" strokeWidth={3} />
+              <ChevronRight className="h-4 w-4" strokeWidth={3} />
             )}
           </Button>
         );
@@ -364,7 +382,7 @@ export default function NavTree() {
                   context.focusItem();
                 }
               }}
-              className="flex flex-row justify-start w-full h-8 gap-2 px-1"
+              className="flex h-8 w-full flex-row justify-start gap-2 px-1"
             >
               <Link href={item.data.targetUrl || '/'}>
                 {item.data.icon && (
@@ -418,9 +436,9 @@ export default function NavTree() {
         }
 
         return (
-          <div className="flex flex-row w-full gap-1">
+          <div className="flex w-full flex-row gap-1">
             <div className="flex justify-center px-[15px] pb-3">
-              <div className="w-0 h-full border-r border-dashed" />
+              <div className="h-full w-0 border-r border-dashed" />
             </div>
             <ul {...containerProps} className="w-full">
               {children}
