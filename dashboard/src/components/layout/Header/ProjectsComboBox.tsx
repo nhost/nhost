@@ -12,7 +12,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
-import { useCurrentOrg } from '@/features/projects/common/hooks/useCurrentOrg';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { cn } from '@/lib/utils';
 import { Box, Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';

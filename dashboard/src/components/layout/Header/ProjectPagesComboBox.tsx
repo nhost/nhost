@@ -69,7 +69,7 @@ const projectPages = [
   },
   {
     label: 'Auth',
-    value: 'auth',
+    value: 'users',
     icon: <UserIcon className="h-4 w-4" />,
     slug: 'users',
   },
