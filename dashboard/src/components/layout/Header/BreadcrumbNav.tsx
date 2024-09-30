@@ -26,7 +26,7 @@ export default function BreadcrumbNav() {
 
   // Identify project and settings pages based on the URL pattern
   const projectPage = pathSegments[3] || null;
-  const isSettingsPage = !!pathSegments[5];
+  const isSettingsPage = pathSegments[5] === 'settings';
   const showNavigationBreadCrumbs = route !== '/orgs/verify';
 
   return (
