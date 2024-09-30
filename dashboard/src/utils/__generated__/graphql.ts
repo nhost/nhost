@@ -3174,7 +3174,7 @@ export type Metrics = {
 
 export type PostOrganizationRequestResponse = {
   __typename?: 'PostOrganizationRequestResponse';
-  OrganizationID?: Maybe<Scalars['uuid']>;
+  Slug: Scalars['String'];
   Status: CheckoutStatus;
 };
 
@@ -16712,6 +16712,7 @@ export type Organization_New_Request = {
   plan: Plans;
   planID: Scalars['uuid'];
   sessionID: Scalars['String'];
+  slug: Scalars['String'];
   /** An object relationship */
   user: Users;
   userID: Scalars['uuid'];
@@ -16750,6 +16751,7 @@ export type Organization_New_Request_Bool_Exp = {
   plan?: InputMaybe<Plans_Bool_Exp>;
   planID?: InputMaybe<Uuid_Comparison_Exp>;
   sessionID?: InputMaybe<String_Comparison_Exp>;
+  slug?: InputMaybe<String_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userID?: InputMaybe<Uuid_Comparison_Exp>;
 };
@@ -16770,6 +16772,7 @@ export type Organization_New_Request_Insert_Input = {
   plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
   planID?: InputMaybe<Scalars['uuid']>;
   sessionID?: InputMaybe<Scalars['String']>;
+  slug?: InputMaybe<Scalars['String']>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userID?: InputMaybe<Scalars['uuid']>;
 };
@@ -16782,6 +16785,7 @@ export type Organization_New_Request_Max_Fields = {
   name?: Maybe<Scalars['String']>;
   planID?: Maybe<Scalars['uuid']>;
   sessionID?: Maybe<Scalars['String']>;
+  slug?: Maybe<Scalars['String']>;
   userID?: Maybe<Scalars['uuid']>;
 };
 
@@ -16793,6 +16797,7 @@ export type Organization_New_Request_Min_Fields = {
   name?: Maybe<Scalars['String']>;
   planID?: Maybe<Scalars['uuid']>;
   sessionID?: Maybe<Scalars['String']>;
+  slug?: Maybe<Scalars['String']>;
   userID?: Maybe<Scalars['uuid']>;
 };
 
@@ -16820,6 +16825,7 @@ export type Organization_New_Request_Order_By = {
   plan?: InputMaybe<Plans_Order_By>;
   planID?: InputMaybe<Order_By>;
   sessionID?: InputMaybe<Order_By>;
+  slug?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userID?: InputMaybe<Order_By>;
 };
@@ -16842,6 +16848,8 @@ export enum Organization_New_Request_Select_Column {
   /** column name */
   SessionId = 'sessionID',
   /** column name */
+  Slug = 'slug',
+  /** column name */
   UserId = 'userID'
 }
 
@@ -16852,6 +16860,7 @@ export type Organization_New_Request_Set_Input = {
   name?: InputMaybe<Scalars['String']>;
   planID?: InputMaybe<Scalars['uuid']>;
   sessionID?: InputMaybe<Scalars['String']>;
+  slug?: InputMaybe<Scalars['String']>;
   userID?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -16870,6 +16879,7 @@ export type Organization_New_Request_Stream_Cursor_Value_Input = {
   name?: InputMaybe<Scalars['String']>;
   planID?: InputMaybe<Scalars['uuid']>;
   sessionID?: InputMaybe<Scalars['String']>;
+  slug?: InputMaybe<Scalars['String']>;
   userID?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -16885,6 +16895,8 @@ export enum Organization_New_Request_Update_Column {
   PlanId = 'planID',
   /** column name */
   SessionId = 'sessionID',
+  /** column name */
+  Slug = 'slug',
   /** column name */
   UserId = 'userID'
 }
@@ -21929,6 +21941,8 @@ export enum Software_Type_Constraint {
 export enum Software_Type_Enum {
   /** Hasura Auth */
   Auth = 'Auth',
+  /** Graphite */
+  Graphite = 'Graphite',
   /** Hasura GraphQL Engine */
   Hasura = 'Hasura',
   /** PostgreSQL Database */
@@ -27108,7 +27122,7 @@ export type GetOrganizationQueryVariables = Exact<{
 }>;
 
 
-export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> } }> };
+export type GetOrganizationQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean }, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
 
 export type GetOrganizationByIdQueryVariables = Exact<{
   orgId: Scalars['uuid'];
@@ -27127,7 +27141,7 @@ export type GetOrganizationProjectsQuery = { __typename?: 'query_root', apps: Ar
 export type GetOrganizationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> } }> };
+export type GetOrganizationsQuery = { __typename?: 'query_root', organizations: Array<{ __typename?: 'organizations', id: any, name: string, slug: string, plan: { __typename?: 'plans', id: any, name: string, deprecated: boolean, individual: boolean, isFree: boolean }, apps: Array<{ __typename?: 'apps', id: any, name: string, subdomain: string, slug: string }> }> };
 
 export type GetProjectQueryVariables = Exact<{
   slug: Scalars['String'];
@@ -27141,7 +27155,7 @@ export type PostOrganizationRequestMutationVariables = Exact<{
 }>;
 
 
-export type PostOrganizationRequestMutation = { __typename?: 'mutation_root', billingPostOrganizationRequest: { __typename?: 'PostOrganizationRequestResponse', Status: CheckoutStatus, OrganizationID?: any | null } };
+export type PostOrganizationRequestMutation = { __typename?: 'mutation_root', billingPostOrganizationRequest: { __typename?: 'PostOrganizationRequestResponse', Status: CheckoutStatus, Slug: string } };
 
 export type UpdateOrganizationSpendingNotificationMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -30774,12 +30788,12 @@ export const GetOrganizationDocument = gql`
       deprecated
       individual
       isFree
-      apps(order_by: {name: asc}) {
-        id
-        name
-        subdomain
-        slug
-      }
+    }
+    apps(order_by: {name: asc}) {
+      id
+      name
+      subdomain
+      slug
     }
   }
 }
@@ -30943,12 +30957,12 @@ export const GetOrganizationsDocument = gql`
       deprecated
       individual
       isFree
-      apps(order_by: {name: asc}) {
-        id
-        name
-        subdomain
-        slug
-      }
+    }
+    apps(order_by: {name: asc}) {
+      id
+      name
+      subdomain
+      slug
     }
     members {
       id
@@ -31035,7 +31049,7 @@ export const PostOrganizationRequestDocument = gql`
     mutation postOrganizationRequest($sessionID: String!) {
   billingPostOrganizationRequest(sessionID: $sessionID) {
     Status
-    OrganizationID
+    Slug
   }
 }
     `;
