@@ -1,0 +1,7 @@
+mutation updateFileStore($id: uuid!, $object: graphiteFileStoreInput!) {
+  graphite {
+    updateFileStore(id: $id, object: $object) {
+      name
+    }
+  }
+}
