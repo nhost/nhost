@@ -9,7 +9,7 @@ export default function useAppState(): {
   state: ApplicationStatus;
   message?: string;
 } {
-  const { project } = useProject();
+  const { project } = useProject({ poll: true });
   const noApplication = !project;
 
   if (noApplication) {

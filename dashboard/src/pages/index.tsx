@@ -26,7 +26,7 @@ export default function IndexPage() {
   // and that could take some time
   const { data, startPolling, stopPolling, networkStatus } =
     useGetOrganizationsQuery({
-      skip: !user,
+      skip: !user, 
       notifyOnNetworkStatusChange: true,
       onError: () => {
         // When there's an error (graphql, network error) apply an exponential backoff strategy
@@ -49,7 +49,7 @@ export default function IndexPage() {
 
   // keep showing loading indicator while polling
   const loading = networkStatus === NetworkStatus.loading;
-  const appCount = data?.organizations?.[0]?.plan?.apps?.length || 0;
+  const appCount = data?.organizations?.[0]?.apps?.length || 0;
 
   if ((!data && loading) || !user) {
     return <LoadingScreen />;
@@ -58,10 +58,10 @@ export default function IndexPage() {
   if (appCount === 0) {
     return (
       <Container className="grid grid-cols-1 gap-8 md:grid-cols-4 md:pt-8">
-        <Box className="noapps col-span-1 h-80 rounded-md text-center md:col-span-3">
+        <Box className="col-span-1 text-center rounded-md noapps h-80 md:col-span-3">
           <div className="pt-12">
             <Text
-              className="text-center text-2xl font-semibold"
+              className="text-2xl font-semibold text-center"
               sx={{ color: 'common.white' }}
             >
               Welcome to Nhost!

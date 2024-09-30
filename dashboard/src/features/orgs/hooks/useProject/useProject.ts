@@ -3,7 +3,7 @@ import { useGetProjectQuery } from '@/utils/__generated__/graphql';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import { useRouter } from 'next/router';
 
-export default function useProject() {
+export default function useProject({ poll = false }: { poll?: boolean } = {}) {
   const {
     query: { appSlug },
   } = useRouter();
@@ -19,7 +19,7 @@ export default function useProject() {
     skip: !shouldFetchProject,
     fetchPolicy: 'network-only',
     nextFetchPolicy: 'cache-first',
-    pollInterval: 3000,
+    pollInterval: poll ? 5000 : 0,
   });
 
   const project = data?.apps?.[0];

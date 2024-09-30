@@ -10,6 +10,8 @@ import {
   CommandList,
 } from '@/components/ui/v3/command';
 
+import { useRouter } from 'next/router';
+
 import {
   Popover,
   PopoverContent,
@@ -17,25 +19,47 @@ import {
 } from '@/components/ui/v3/popover';
 
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type Option = {
   value: string;
   label: string;
-  icon?: ReactNode;
 };
 
-interface NavComboBoxProps {
-  value: Option;
-  options: Option[];
-  onSelect?: (option: Option) => Promise<any>;
-}
+const orgPages = [
+  { label: 'Settings', value: 'settings' },
+  { label: 'Projects', value: 'projects' },
+  { label: 'Members', value: 'members' },
+  { label: 'Billing', value: 'billing' },
+];
 
-export default function NavComboBox({
-  value,
-  options,
-  onSelect,
-}: NavComboBoxProps) {
+export default function OrgPagesComboBox() {
+  const {
+    query: { orgSlug },
+    push,
+    asPath,
+  } = useRouter();
+
+  const pathSegments = useMemo(() => asPath.split('/'), [asPath]);
+  const orgPageFromUrl = pathSegments[3] || null;
+
+  const selectedOrgPageFromUrl = orgPages.find(
+    (item) => item.value === orgPageFromUrl,
+  );
+
+  const [selectedOrgPage, setSelectedOrgPage] = useState<Option | null>(null);
+
+  useEffect(() => {
+    if (selectedOrgPageFromUrl) {
+      setSelectedOrgPage(selectedOrgPageFromUrl);
+    }
+  }, [selectedOrgPageFromUrl]);
+
+  const options: Option[] = orgPages.map((page) => ({
+    label: page.label,
+    value: page.value,
+  }));
+
   const [open, setOpen] = useState(false);
 
   return (
@@ -46,20 +70,17 @@ export default function NavComboBox({
           size="sm"
           className="justify-start gap-2 text-foreground"
         >
-          {value ? (
-            <div className="flex flex-row items-center justify-center gap-2">
-              {value.icon}
-              {value.label}
-            </div>
+          {selectedOrgPage ? (
+            <div>{selectedOrgPage.label}</div>
           ) : (
-            <>Select page</>
+            <>Select a page</>
           )}
           <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" side="bottom" align="start">
         <Command>
-          <CommandInput placeholder="Change status..." />
+          <CommandInput placeholder="Select a page..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
@@ -67,24 +88,23 @@ export default function NavComboBox({
                 <CommandItem
                   key={option.value}
                   value={option.label}
-                  onSelect={(_value) => {
-                    const selectedOption =
-                      options.find((o) => o.label === _value) || null;
+                  onSelect={() => {
+                    setSelectedOrgPage(option);
                     setOpen(false);
-                    onSelect?.(selectedOption);
+                    push(`/orgs/${orgSlug}/${option.value}`);
                   }}
-                  className="flex flex-row gap-2"
                 >
                   <Check
                     className={cn(
-                      'h-4 w-4',
-                      value?.value === option.value
+                      'mr-2 h-4 w-4',
+                      selectedOrgPage?.value === option.value
                         ? 'opacity-100'
                         : 'opacity-0',
                     )}
                   />
-                  {option.icon}
-                  <span>{option.label}</span>
+                  <div className="flex flex-row items-center gap-2">
+                    <span className="max-w-52 truncate">{option.label}</span>
+                  </div>
                 </CommandItem>
               ))}
             </CommandGroup>
