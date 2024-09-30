@@ -57,6 +57,8 @@ function ProjectLayoutContent({
   //   }
   // }, [isPlatform, isRestrictedPath, router]);
 
+  console.log({ loading });
+
   if (isRestrictedPath || loading) {
     return <LoadingScreen />;
   }

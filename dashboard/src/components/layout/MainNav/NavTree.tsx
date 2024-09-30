@@ -32,22 +32,79 @@ const projectPages = [
   {
     name: 'Overview',
     icon: <HomeIcon className="h-4 w-4" />,
-    isProjectPage: true,
+    route: '',
+    slug: 'overview',
   },
-  { name: 'Database', icon: <DatabaseIcon className="h-4 w-4" /> },
-  { name: 'GraphQL', icon: <GraphQLIcon className="h-4 w-4" /> },
-  { name: 'Hasura', icon: <HasuraIcon className="h-4 w-4" /> },
-  { name: 'Auth', icon: <UserIcon className="h-4 w-4" /> },
-  { name: 'Storage', icon: <StorageIcon className="h-4 w-4" /> },
-  { name: 'Run', icon: <ServicesIcon className="h-4 w-4" /> },
-  { name: 'AI', icon: <AIIcon className="h-4 w-4" /> },
-  { name: 'Deployments', icon: <RocketIcon className="h-4 w-4" /> },
-  { name: 'Backups', icon: <CloudIcon className="h-4 w-4" /> },
-  { name: 'Logs', icon: <FileTextIcon className="h-4 w-4" /> },
-  { name: 'Metrics', icon: <GaugeIcon className="h-4 w-4" /> },
+  {
+    name: 'Database',
+    icon: <DatabaseIcon className="h-4 w-4" />,
+    route: 'database',
+    slug: 'database',
+  },
+  {
+    name: 'GraphQL',
+    icon: <GraphQLIcon className="h-4 w-4" />,
+    route: 'graphql',
+    slug: 'graphql',
+  },
+  {
+    name: 'Hasura',
+    icon: <HasuraIcon className="h-4 w-4" />,
+    route: 'hasura',
+    slug: 'hasura',
+  },
+  {
+    name: 'Auth',
+    icon: <UserIcon className="h-4 w-4" />,
+    route: 'users',
+    slug: 'users',
+  },
+  {
+    name: 'Storage',
+    icon: <StorageIcon className="h-4 w-4" />,
+    route: 'storage',
+    slug: 'storage',
+  },
+  {
+    name: 'Run',
+    icon: <ServicesIcon className="h-4 w-4" />,
+    route: 'run',
+    slug: 'run',
+  },
+  {
+    name: 'AI',
+    icon: <AIIcon className="h-4 w-4" />,
+    route: 'ai',
+    slug: 'ai',
+  },
+  {
+    name: 'Deployments',
+    icon: <RocketIcon className="h-4 w-4" />,
+    route: 'deployments',
+    slug: 'deployments',
+  },
+  {
+    name: 'Backups',
+    icon: <CloudIcon className="h-4 w-4" />,
+    route: 'backups',
+    slug: 'backups',
+  },
+  {
+    name: 'Logs',
+    icon: <FileTextIcon className="h-4 w-4" />,
+    route: 'logs',
+    slug: 'logs',
+  },
+  {
+    name: 'Metrics',
+    icon: <GaugeIcon className="h-4 w-4" />,
+    route: 'metrics',
+    slug: 'metrics',
+  },
   {
     name: 'Settings',
-    // icon: <CogIcon className="w-4 h-4" />
+    route: 'settings',
+    slug: 'settings',
   },
 ];
 
@@ -67,7 +124,10 @@ const projectSettingsPages = [
   'Custom Domains',
   'Rate Limiting',
   'AI',
-];
+].map((item) => ({
+  name: item,
+  slug: item.toLowerCase().replaceAll(' ', '-'),
+}));
 
 const createOrganization = (org: Org) => {
   const result = {};
@@ -97,7 +157,7 @@ const createOrganization = (org: Org) => {
     index: `${org.slug}-projects`,
     canMove: false,
     isFolder: true,
-    children: org.plan.apps.map((app) => `${org.slug}-${app.slug}`),
+    children: org.apps.map((app) => `${org.slug}-${app.slug}`),
     data: {
       name: 'Projects',
       targetUrl: `/orgs/${org.slug}/projects`,
@@ -105,7 +165,7 @@ const createOrganization = (org: Org) => {
     canRename: false,
   };
 
-  org.plan.apps.forEach((app) => {
+  org.apps.forEach((app) => {
     result[`${org.slug}-${app.slug}`] = {
       index: `${org.slug}-${app.slug}`,
       isFolder: true,
@@ -115,31 +175,31 @@ const createOrganization = (org: Org) => {
         name: app.name,
         slug: app.slug,
         icon: <Box className="h-4 w-4" />,
-        targetUrl: `/orgs/${org.slug}/projects/${app.slug}/overview`,
+        targetUrl: `/orgs/${org.slug}/projects/${app.slug}`,
       },
       children: projectPages.map(
-        (page) => `${org.slug}-${app.slug}-${page.name}`,
+        (page) => `${org.slug}-${app.slug}-${page.slug}`,
       ),
     };
   });
 
-  org.plan.apps.forEach((_app) => {
+  org.apps.forEach((_app) => {
     projectPages.forEach((_page) => {
-      result[`${org.slug}-${_app.slug}-${_page.name}`] = {
-        index: `${org.slug}-${_app.slug}-${_page.name}`,
+      result[`${org.slug}-${_app.slug}-${_page.slug}`] = {
+        index: `${org.slug}-${_app.slug}-${_page.slug}`,
         canMove: false,
         isFolder: _page.name === 'Settings',
         children:
           _page.name === 'Settings'
             ? projectSettingsPages.map(
-                (p) => `${org.slug}-${_app.slug}-settings-${p}`,
+                (p) => `${org.slug}-${_app.slug}-settings-${p.slug}`,
               )
             : undefined,
         data: {
           name: _page.name,
           icon: _page.icon,
           isProjectPage: true,
-          targetUrl: `/orgs/${org.slug}/projects/${_app.slug}/${_page.name.toLowerCase()}`,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.slug}/${_page.route}`,
         },
         canRename: false,
       };
@@ -147,14 +207,17 @@ const createOrganization = (org: Org) => {
 
     // add the settings pages
     projectSettingsPages.forEach((p) => {
-      result[`${org.slug}-${_app.slug}-settings-${p}`] = {
-        index: `${org.slug}-${_app.slug}-settings-${p}`,
+      result[`${org.slug}-${_app.slug}-settings-${p.slug}`] = {
+        index: `${org.slug}-${_app.slug}-settings-${p.slug}`,
         canMove: false,
         isFolder: false,
         children: undefined,
         data: {
-          name: p,
-          targetUrl: `/orgs/${org.slug}/projects/${_app.slug}/settings/${p.toLowerCase().replace(' ', '-')}`,
+          name: p.name,
+          targetUrl:
+            p.slug === 'general'
+              ? `/orgs/${org.slug}/projects/${_app.slug}/settings`
+              : `/orgs/${org.slug}/projects/${_app.slug}/settings/${p.slug}`,
         },
         canRename: false,
       };
@@ -261,6 +324,7 @@ export default function NavTree() {
       Boolean(navTree.items[item]),
     );
 
+    // TODO figure out if this is still necessary
     // dataProvider.onDidChangeTreeDataEmitter.emit(
     //   Object.values(navTree.items).map((item) => item.index),
     // );
@@ -383,17 +447,6 @@ export default function NavTree() {
         );
       }}
       canSearch={false}
-      // onFocusItem={(item) => setFocusedItem(item.index)}
-      // onExpandItem={(item) =>
-      //   setExpandedItems([...expandedItems, item.index as string])
-      // }
-      // onCollapseItem={(item) =>
-      //   setExpandedItems(
-      //     expandedItems.filter(
-      //       (expandedItemIndex) => expandedItemIndex !== item.index,
-      //     ),
-      //   )
-      // }
     >
       <Tree treeId="nav-tree" rootItem="root" treeLabel="Navigation Tree" />
     </UncontrolledTreeEnvironment>
