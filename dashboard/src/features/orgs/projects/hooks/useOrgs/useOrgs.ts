@@ -32,8 +32,7 @@ export default function useOrgs(): UseOrgsReturnType {
   const shouldFetchOrg = isPlatform && isAuthenticated && !isAuthLoading;
 
   const { data, loading, error, refetch } = useGetOrganizationsQuery({
-    fetchPolicy: 'network-only',
-    nextFetchPolicy: 'cache-first',
+    fetchPolicy: 'cache-and-network',
     skip: !shouldFetchOrg,
   });
 
