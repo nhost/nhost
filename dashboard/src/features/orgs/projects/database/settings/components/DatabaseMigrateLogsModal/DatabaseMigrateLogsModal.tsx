@@ -1,6 +1,6 @@
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
-import { useMigrationLogs } from '@/features/orgs/projects/database/common/hooks/useMigrationLogs';
+import { useMigrationLogs } from '@/features/database/common/hooks/useMigrationLogs';
 
 export default function DatabaseMigrateLogsModal() {
   const { logs, loading, error } = useMigrationLogs({
@@ -11,7 +11,7 @@ export default function DatabaseMigrateLogsModal() {
     return (
       <Box className="pt-2">
         <Box
-          className="p-4 min-h-80"
+          className="min-h-80 p-4"
           sx={{
             backgroundColor: (theme) =>
               theme.palette.mode === 'dark' ? 'grey.300' : 'grey.700',
@@ -35,7 +35,7 @@ export default function DatabaseMigrateLogsModal() {
     return (
       <Box className="pt-2">
         <Box
-          className="p-4 min-h-80"
+          className="min-h-80 p-4"
           sx={{
             backgroundColor: (theme) =>
               theme.palette.mode === 'dark' ? 'grey.300' : 'grey.700',
@@ -59,7 +59,7 @@ export default function DatabaseMigrateLogsModal() {
     return (
       <Box className="pt-2">
         <Box
-          className="p-4 min-h-80"
+          className="min-h-80 p-4"
           sx={{
             backgroundColor: (theme) =>
               theme.palette.mode === 'dark' ? 'grey.300' : 'grey.700',
@@ -82,7 +82,7 @@ export default function DatabaseMigrateLogsModal() {
   return (
     <Box className="pt-2">
       <Box
-        className="p-4 min-h-80"
+        className="min-h-80 p-4"
         sx={{
           backgroundColor: (theme) =>
             theme.palette.mode === 'dark' ? 'grey.300' : 'grey.700',

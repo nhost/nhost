@@ -5,15 +5,15 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { UpgradeNotification } from '@/features/orgs/projects/common/components/UpgradeNotification';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { UpgradeNotification } from '@/features/projects/common/components/UpgradeNotification';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
 import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -29,7 +29,7 @@ export default function AuthDomain() {
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const {
     data,
@@ -37,13 +37,13 @@ export default function AuthDomain() {
     error,
     refetch: refetchPostgresSettings,
   } = useGetPostgresSettingsQuery({
-    variables: { appId: project?.id },
+    variables: { appId: currentProject?.id },
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
   const capacity =
     (data?.config?.postgres?.resources?.storage?.capacity ??
-      project?.legacyPlan?.featureMaxDbSize) ||
+      currentProject?.legacyPlan?.featureMaxDbSize) ||
     0;
 
   const [updateConfig] = useUpdateConfigMutation({
@@ -84,7 +84,7 @@ export default function AuthDomain() {
       async () => {
         await updateConfig({
           variables: {
-            appId: project.id,
+            appId: currentProject.id,
             config: {
               postgres: {
                 resources: {
@@ -124,7 +124,7 @@ export default function AuthDomain() {
           }}
           className="flex flex-col"
         >
-          {project.legacyPlan?.isFree && (
+          {currentProject.legacyPlan?.isFree && (
             <UpgradeNotification message="Unlock by upgrading your project to the Pro plan." />
           )}
           <Box className="grid grid-flow-row lg:grid-cols-5">
@@ -134,7 +134,7 @@ export default function AuthDomain() {
               name="capacity"
               type="number"
               fullWidth
-              disabled={project.legacyPlan?.isFree}
+              disabled={currentProject.legacyPlan?.isFree}
               className="lg:col-span-2"
               error={Boolean(formState.errors.capacity?.message)}
               helperText={formState.errors.capacity?.message}
@@ -145,7 +145,7 @@ export default function AuthDomain() {
               }}
             />
           </Box>
-          {!project.legacyPlan?.isFree && (
+          {!currentProject.legacyPlan?.isFree && (
             <Alert severity="info" className="col-span-6 text-left">
               Note that volumes can only be increased (not decreased). Also, due
               to an AWS limitation, the same volume can only be increased once

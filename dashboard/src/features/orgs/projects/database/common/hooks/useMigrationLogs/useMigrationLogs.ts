@@ -1,4 +1,4 @@
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
 import {
   useGetApplicationStateQuery,
   useGetSystemLogsQuery,
@@ -46,13 +46,13 @@ export default function useMigrationLogs(
   loading: boolean;
   error: ApolloError;
 } {
-  const { project } = useProject();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const isVisible = useVisibilityChange();
 
   const { data: appStatesData } = useGetApplicationStateQuery({
-    variables: { appId: project?.id },
-    skip: !project,
+    variables: { appId: currentProject?.id },
+    skip: !currentProject,
   });
 
   const migrationStartTimestamp = appStatesData?.app?.appStates?.find(
@@ -66,11 +66,11 @@ export default function useMigrationLogs(
       ...options,
       variables: {
         ...options.variables,
-        appID: project.id,
+        appID: currentProject.id,
         action: 'change-database-version',
         from,
       },
-      skip: !project || !from,
+      skip: !currentProject || !from,
       skipPollAttempt: () => !isVisible,
     });
 

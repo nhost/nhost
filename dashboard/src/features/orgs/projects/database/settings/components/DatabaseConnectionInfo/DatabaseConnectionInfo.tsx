@@ -10,12 +10,12 @@ import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import type { InputProps } from '@/components/ui/v2/Input';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
-import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useCurrentWorkspaceAndProject } from '@/features/projects/common/hooks/useCurrentWorkspaceAndProject';
+import { useIsPlatform } from '@/features/projects/common/hooks/useIsPlatform';
+import { generateAppServiceUrl } from '@/features/projects/common/utils/generateAppServiceUrl';
+import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { copy } from '@/utils/copy';
+import { execPromiseWithErrorToast } from '@/utils/execPromiseWithErrorToast';
 import {
   useGetPostgresSettingsQuery,
   useUpdateConfigMutation,
@@ -37,10 +37,10 @@ export default function DatabaseConnectionInfo() {
   const isPlatform = useIsPlatform();
   const { maintenanceActive } = useUI();
   const localMimirClient = useLocalMimirClient();
-  const { project } = useProject();
+  const { currentProject } = useCurrentWorkspaceAndProject();
 
   const { data, loading, error } = useGetPostgresSettingsQuery({
-    variables: { appId: project?.id },
+    variables: { appId: currentProject?.id },
     fetchPolicy: 'cache-only',
   });
 
@@ -62,7 +62,7 @@ export default function DatabaseConnectionInfo() {
   async function handleSubmit(formValues: DatabasePublicAccessFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
-        appId: project.id,
+        appId: currentProject.id,
         config: {
           postgres: {
             resources: {
@@ -118,8 +118,8 @@ export default function DatabaseConnectionInfo() {
   }
 
   const postgresHost = generateAppServiceUrl(
-    project.subdomain,
-    project.region,
+    currentProject.subdomain,
+    currentProject.region,
     'db',
   ).replace('https://', '');
 
