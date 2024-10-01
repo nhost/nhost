@@ -340,6 +340,9 @@ importers:
       next-seo:
         specifier: ^6.5.0
         version: 6.5.0(next@14.2.12)(react-dom@18.2.0)(react@18.2.0)
+      nextjs-toploader:
+        specifier: ^3.6.15
+        version: 3.6.15(next@14.2.12)(react-dom@18.2.0)(react@18.2.0)
       node-pg-format:
         specifier: ^1.3.5
         version: 1.3.5
@@ -2606,7 +2609,7 @@ packages:
     resolution: {integrity: sha512-9anThAaj1dQr6IGmzBMcfzOQKTa5artjuPmw8NYK/fiGEMjADbSguBY2FMDykt+QhilR3wc9VA/3yVju7JHg7Q==}
     hasBin: true
     peerDependencies:
-      graphql: 16.8.1
+      graphql: '>=16.8.1'
     dependencies:
       '@babel/core': 7.25.2
       '@babel/generator': 7.25.5
@@ -6960,7 +6963,7 @@ packages:
   /@graphql-tools/utils@8.13.1(graphql@16.8.1):
     resolution: {integrity: sha512-qIh9yYpdUFmctVqovwMdheVNJqFh+DQNWIhX87FJStfXYnmweBUDATok9fWPleKeFwxnW8IapKmY8m8toJEkAw==}
     peerDependencies:
-      graphql: '>=16.8.1'
+      graphql: 16.8.1
     dependencies:
       graphql: 16.8.1
       tslib: 2.7.0
@@ -26474,6 +26477,20 @@ packages:
       - '@babel/core'
       - babel-plugin-macros
 
+  /nextjs-toploader@3.6.15(next@14.2.12)(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-DMxO0BiT+NbGU7E9A8U2+0e7rRbG9qozbk19DFXhKRc9wuhgTPR/u8zr2TevsbFtVxDb9mf8YHFz+oBgjMC+HA==}
+    peerDependencies:
+      next: '>=13.4.20-canary.13'
+      react: 18.2.0
+      react-dom: 18.2.0
+    dependencies:
+      next: 14.2.12(@babel/core@7.25.2)(@playwright/test@1.41.0)(react-dom@18.2.0)(react@18.2.0)
+      nprogress: 0.2.0
+      prop-types: 15.8.1
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
   /nice-try@1.0.5:
     resolution: {integrity: sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==}
     dev: true
@@ -26670,6 +26687,10 @@ packages:
       gauge: 3.0.2
       set-blocking: 2.0.0
     dev: true
+
+  /nprogress@0.2.0:
+    resolution: {integrity: sha512-I19aIingLgR1fmhftnbWWO3dXc0hSxqHQHQb3H8m+K3TnEn/iSeTZZOyvKXWqQESMwuUVnatlCnZdLBZZt2VSA==}
+    dev: false
 
   /nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}

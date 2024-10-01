@@ -76,6 +76,7 @@
     "lucide-react": "^0.416.0",
     "next": "^14.2.10",
     "next-seo": "^6.5.0",
+    "nextjs-toploader": "^3.6.15",
     "node-pg-format": "^1.3.5",
     "pluralize": "^8.0.0",
     "react": "18.2.0",
