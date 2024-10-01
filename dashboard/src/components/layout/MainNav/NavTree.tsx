@@ -38,7 +38,7 @@ const projectPages = [
   {
     name: 'Database',
     icon: <DatabaseIcon className="h-4 w-4" />,
-    route: 'database',
+    route: '/database/browser/default',
     slug: 'database',
   },
   {

@@ -35,9 +35,5 @@ export default function DataBrowserDatabaseDetailsPage() {
 DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
   page: ReactElement,
 ) {
-  return (
-    <DataBrowserLayout>
-      {page}
-    </DataBrowserLayout>
-  );
+  return <DataBrowserLayout>{page}</DataBrowserLayout>;
 };

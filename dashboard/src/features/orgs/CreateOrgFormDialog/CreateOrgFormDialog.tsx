@@ -29,12 +29,12 @@ import {
   type PrefetchNewAppPlansFragment,
 } from '@/utils/__generated__/graphql';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useUserData } from '@nhost/nextjs';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useUserData } from '@nhost/nextjs'
 
 const createOrgFormSchema = z.object({
   name: z.string().min(2),
@@ -144,18 +144,18 @@ function CreateOrgForm({ plans, onSubmit }: CreateOrgFormProps) {
 }
 
 export default function CreateOrgDialog() {
-  const user = useUserData()
+  const user = useUserData();
   const [open, setOpen] = useState(false);
   const { data, loading, error } = usePrefetchNewAppQuery({
-    skip: !user
+    skip: !user,
   });
   const [createOrganizationRequest] = useCreateOrganizationRequestMutation();
   const [stripeClientSecret, setStripeClientSecret] = useState('');
 
   const createOrg = async ({
     name,
-  }: // plan,
-  {
+    plan,
+  }: {
     name?: string;
     plan?: string;
   }) => {
@@ -166,7 +166,7 @@ export default function CreateOrgDialog() {
         } = await createOrganizationRequest({
           variables: {
             organizationName: name,
-            planID: 'dc5e805e-1bef-4d43-809e-9fdf865e211a',
+            planID: plan,
             redirectURL: `${window.location.origin}/orgs/verify`,
           },
         });
