@@ -27,6 +27,8 @@ import {
   type ServiceFormValues,
 } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 
+import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
+import { Link } from '@/components/ui/v2/Link';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useLocalMimirClient } from '@/hooks/useLocalMimirClient';
 import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
@@ -111,6 +113,7 @@ export default function ServiceForm({
       name: sanitizedValues.name,
       image: {
         image: sanitizedValues.image,
+        pullCredentials: sanitizedValues.pullCredentials,
       },
       command: parse(sanitizedValues.command).map((item) => item.toString()),
       resources: {
@@ -317,7 +320,7 @@ export default function ServiceForm({
               <Tooltip title="Name of the service, must be unique per project.">
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -357,7 +360,7 @@ export default function ServiceForm({
               >
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -370,7 +373,51 @@ export default function ServiceForm({
           fullWidth
           autoComplete="off"
         />
-
+        <Input
+          {...register('pullCredentials')}
+          id="pullCredentials"
+          label={
+            <Box className="flex flex-row items-center space-x-2">
+              <Text>Pull credentials</Text>
+              <Tooltip
+                title={
+                  <span>
+                    If you are publishing your images in your own private
+                    registry you can add pull credentials to your Run
+                    configuration so the image can be pulled successfully.
+                  </span>
+                }
+              >
+                <InfoIcon
+                  aria-label="Info"
+                  className="h-4 w-4"
+                  color="primary"
+                />
+              </Tooltip>
+            </Box>
+          }
+          placeholder="If you are using a private registry, add the secret variable for pull credentials here."
+          hideEmptyHelperText
+          error={!!errors.image}
+          helperText={errors?.image?.message}
+          fullWidth
+          autoComplete="off"
+        />
+        <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
+          <Text>
+            Learn more about{' '}
+            <Link
+              href="https://docs.nhost.io/guides/run/registry#using-your-own-private-registry"
+              target="_blank"
+              rel="noopener noreferrer"
+              underline="hover"
+              className="font-medium"
+            >
+              Using your own private registry for images
+              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+            </Link>
+          </Text>
+        </div>
         {/* This shows only when trying to edit a service and when running against the nhost platform */}
         {isPlatform && serviceID && serviceImage && (
           <InfoCard
@@ -388,7 +435,7 @@ export default function ServiceForm({
               <Tooltip title="Command to run when to start the service. This is optional as the image may already have a baked-in command.">
                 <InfoIcon
                   aria-label="Info"
-                  className="w-4 h-4"
+                  className="h-4 w-4"
                   color="primary"
                 />
               </Tooltip>
@@ -436,7 +483,7 @@ export default function ServiceForm({
         {createServiceFormError && (
           <Alert
             severity="error"
-            className="grid items-center justify-between grid-flow-col px-4 py-3"
+            className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {createServiceFormError.message}
