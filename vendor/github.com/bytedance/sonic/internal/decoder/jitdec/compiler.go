@@ -77,7 +77,6 @@ const (
     _OP_array_clear_p
     _OP_slice_init
     _OP_slice_append
-    _OP_object_skip
     _OP_object_next
     _OP_struct_field
     _OP_unmarshal
@@ -97,6 +96,7 @@ const (
     _OP_check_char_0
     _OP_dismatch_err
     _OP_go_skip
+    _OP_skip_emtpy
     _OP_add
     _OP_check_empty
     _OP_debug
@@ -155,7 +155,6 @@ var _OpNames = [256]string {
     _OP_array_skip       : "array_skip",
     _OP_slice_init       : "slice_init",
     _OP_slice_append     : "slice_append",
-    _OP_object_skip      : "object_skip",
     _OP_object_next      : "object_next",
     _OP_struct_field     : "struct_field",
     _OP_unmarshal        : "unmarshal",
@@ -267,6 +266,13 @@ func newInsVs(op _Op, vs []int) _Instr {
 func newInsVt(op _Op, vt reflect.Type) _Instr {
     return _Instr {
         u: packOp(op),
+        p: unsafe.Pointer(rt.UnpackType(vt)),
+    }
+}
+
+func newInsVtI(op _Op, vt reflect.Type, iv int) _Instr {
+    return _Instr {
+        u: packOp(op) | rt.PackInt(iv),
         p: unsafe.Pointer(rt.UnpackType(vt)),
     }
 }
@@ -452,6 +458,10 @@ func (self *_Program) rtt(op _Op, vt reflect.Type) {
     *self = append(*self, newInsVt(op, vt))
 }
 
+func (self *_Program) rtti(op _Op, vt reflect.Type, iv int) {
+    *self = append(*self, newInsVtI(op, vt, iv))
+}
+
 func (self *_Program) fmv(op _Op, vf *caching.FieldMap) {
     *self = append(*self, newInsVf(op, vf))
 }
@@ -527,35 +537,54 @@ func (self *_Compiler) compile(vt reflect.Type) (ret _Program, err error) {
     return
 }
 
-func (self *_Compiler) checkMarshaler(p *_Program, vt reflect.Type) bool {
+const (
+    checkMarshalerFlags_quoted = 1
+)
+
+func (self *_Compiler) checkMarshaler(p *_Program, vt reflect.Type, flags int, exec bool) bool {
     pt := reflect.PtrTo(vt)
 
     /* check for `json.Unmarshaler` with pointer receiver */
     if pt.Implements(jsonUnmarshalerType) {
-        p.rtt(_OP_unmarshal_p, pt)
+        if exec {
+            p.add(_OP_lspace)
+            p.rtti(_OP_unmarshal_p, pt, flags)
+        }
         return true
     }
 
     /* check for `json.Unmarshaler` */
     if vt.Implements(jsonUnmarshalerType) {
-        p.add(_OP_lspace)
-        self.compileUnmarshalJson(p, vt)
+        if exec {
+            p.add(_OP_lspace)
+            self.compileUnmarshalJson(p, vt, flags)
+        }
         return true
+    }
+
+    if flags == checkMarshalerFlags_quoted {
+        // text marshaler shouldn't be supported for quoted string
+        return false
     }
 
     /* check for `encoding.TextMarshaler` with pointer receiver */
     if pt.Implements(encodingTextUnmarshalerType) {
-        p.add(_OP_lspace)
-        self.compileUnmarshalTextPtr(p, pt)
+        if exec {
+            p.add(_OP_lspace)
+            self.compileUnmarshalTextPtr(p, pt, flags)
+        }
         return true
     }
 
     /* check for `encoding.TextUnmarshaler` */
     if vt.Implements(encodingTextUnmarshalerType) {
-        p.add(_OP_lspace)
-        self.compileUnmarshalText(p, vt)
+        if exec {
+            p.add(_OP_lspace)
+            self.compileUnmarshalText(p, vt, flags)
+        }
         return true
     }
+
     return false
 }
 
@@ -567,7 +596,7 @@ func (self *_Compiler) compileOne(p *_Program, sp int, vt reflect.Type) {
         return
     }
 
-    if self.checkMarshaler(p, vt) {
+    if self.checkMarshaler(p, vt, 0, true) {
         return
     }
 
@@ -690,7 +719,7 @@ func (self *_Compiler) compilePtr(p *_Program, sp int, et reflect.Type) {
 
     /* dereference all the way down */
     for et.Kind() == reflect.Ptr {
-        if self.checkMarshaler(p, et) {
+        if self.checkMarshaler(p, et, 0, true) {
             return
         }
         et = et.Elem()
@@ -872,7 +901,24 @@ func (self *_Compiler) compileStructBody(p *_Program, sp int, vt reflect.Type) {
     n := p.pc()
     p.add(_OP_is_null)
 
-    skip := self.checkIfSkip(p, vt, '{')
+    j := p.pc()
+    p.chr(_OP_check_char_0, '{')
+    p.rtt(_OP_dismatch_err, vt)
+
+    /* special case for empty object */
+    if len(fv) == 0 {
+        p.pin(j)
+        s := p.pc()
+        p.add(_OP_skip_emtpy)
+        p.pin(s)
+        p.pin(n)
+        return
+    }
+
+    skip := p.pc()
+    p.add(_OP_go_skip)
+    p.pin(j)
+    p.int(_OP_add, 1)
     
     p.add(_OP_save)
     p.add(_OP_lspace)
@@ -890,11 +936,6 @@ func (self *_Compiler) compileStructBody(p *_Program, sp int, vt reflect.Type) {
     p.chr(_OP_check_char, '}')
     p.chr(_OP_match_char, ',')
 
-    /* special case of an empty struct */
-    if len(fv) == 0 {
-        p.add(_OP_object_skip)
-        goto end_of_object
-    }
 
     /* match the remaining fields */
     p.add(_OP_lspace)
@@ -930,7 +971,6 @@ func (self *_Compiler) compileStructBody(p *_Program, sp int, vt reflect.Type) {
         p.int(_OP_goto, y0)
     }
 
-end_of_object:
     p.pin(x)
     p.pin(y1)
     p.add(_OP_drop)
@@ -938,7 +978,22 @@ end_of_object:
     p.pin(skip)
 }
 
+func (self *_Compiler) compileStructFieldStrUnmarshal(p *_Program, vt reflect.Type) {
+    p.add(_OP_lspace)
+    n0 := p.pc()
+    p.add(_OP_is_null)
+    self.checkMarshaler(p, vt, checkMarshalerFlags_quoted, true)
+    p.pin(n0)
+}
+
 func (self *_Compiler) compileStructFieldStr(p *_Program, sp int, vt reflect.Type) {
+    // according to std, json.Unmarshaler should be called before stringize
+    // see https://github.com/bytedance/sonic/issues/670
+    if self.checkMarshaler(p, vt, checkMarshalerFlags_quoted, false) {
+        self.compileStructFieldStrUnmarshal(p, vt)
+        return
+    }
+
     n1 := -1
     ft := vt
     sv := false
@@ -1106,7 +1161,7 @@ func (self *_Compiler) compileUnmarshalEnd(p *_Program, vt reflect.Type, i int) 
     p.pin(j)
 }
 
-func (self *_Compiler) compileUnmarshalJson(p *_Program, vt reflect.Type) {
+func (self *_Compiler) compileUnmarshalJson(p *_Program, vt reflect.Type, flags int) {
     i := p.pc()
     v := _OP_unmarshal
     p.add(_OP_is_null)
@@ -1117,11 +1172,11 @@ func (self *_Compiler) compileUnmarshalJson(p *_Program, vt reflect.Type) {
     }
 
     /* call the unmarshaler */
-    p.rtt(v, vt)
+    p.rtti(v, vt, flags)
     self.compileUnmarshalEnd(p, vt, i)
 }
 
-func (self *_Compiler) compileUnmarshalText(p *_Program, vt reflect.Type) {
+func (self *_Compiler) compileUnmarshalText(p *_Program, vt reflect.Type, iv int) {
     i := p.pc()
     v := _OP_unmarshal_text
     p.add(_OP_is_null)
@@ -1134,15 +1189,15 @@ func (self *_Compiler) compileUnmarshalText(p *_Program, vt reflect.Type) {
     }
 
     /* call the unmarshaler */
-    p.rtt(v, vt)
+    p.rtti(v, vt, iv)
     self.compileUnmarshalEnd(p, vt, i)
 }
 
-func (self *_Compiler) compileUnmarshalTextPtr(p *_Program, vt reflect.Type) {
+func (self *_Compiler) compileUnmarshalTextPtr(p *_Program, vt reflect.Type, iv int) {
     i := p.pc()
     p.add(_OP_is_null)
     p.chr(_OP_match_char, '"')
-    p.rtt(_OP_unmarshal_text_p, vt)
+    p.rtti(_OP_unmarshal_text_p, vt, iv)
     p.pin(i)
 }
 

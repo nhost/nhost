@@ -80,10 +80,8 @@ func (d *Decoder) Parse(payload *PayloadJSON) (metadata *Metadata, err error) {
 	return metadata, nil
 }
 
-// Decode the blob from an io.ReadCloser. This function will close the io.ReadCloser after completing.
-func (d *Decoder) Decode(r io.ReadCloser) (payload *PayloadJSON, err error) {
-	defer r.Close()
-
+// Decode the blob from an io.Reader. This function will close the io.ReadCloser after completing.
+func (d *Decoder) Decode(r io.Reader) (payload *PayloadJSON, err error) {
 	bytes, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err

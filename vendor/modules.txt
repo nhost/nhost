@@ -1,7 +1,7 @@
 # github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
 ## explicit; go 1.18
 github.com/bradfitz/gomemcache/memcache
-# github.com/bytedance/sonic v1.12.0
+# github.com/bytedance/sonic v1.12.3
 ## explicit; go 1.17
 github.com/bytedance/sonic
 github.com/bytedance/sonic/ast
@@ -46,7 +46,7 @@ github.com/cloudwego/base64x
 ## explicit; go 1.16
 github.com/cloudwego/iasm/expr
 github.com/cloudwego/iasm/x86_64
-# github.com/cpuguy83/go-md2man/v2 v2.0.4
+# github.com/cpuguy83/go-md2man/v2 v2.0.5
 ## explicit; go 1.11
 github.com/cpuguy83/go-md2man/v2/md2man
 # github.com/fxamacker/cbor/v2 v2.7.0
@@ -89,18 +89,18 @@ github.com/go-playground/locales/currency
 # github.com/go-playground/universal-translator v0.18.1
 ## explicit; go 1.18
 github.com/go-playground/universal-translator
-# github.com/go-playground/validator/v10 v10.22.0
+# github.com/go-playground/validator/v10 v10.22.1
 ## explicit; go 1.18
 github.com/go-playground/validator/v10
-# github.com/go-webauthn/webauthn v0.11.0
-## explicit; go 1.22
+# github.com/go-webauthn/webauthn v0.11.2
+## explicit; go 1.23
 github.com/go-webauthn/webauthn/metadata
 github.com/go-webauthn/webauthn/protocol
 github.com/go-webauthn/webauthn/protocol/webauthncbor
 github.com/go-webauthn/webauthn/protocol/webauthncose
 github.com/go-webauthn/webauthn/webauthn
-# github.com/go-webauthn/x v0.1.12
-## explicit; go 1.22
+# github.com/go-webauthn/x v0.1.14
+## explicit; go 1.23
 github.com/go-webauthn/x/revoke
 # github.com/gobwas/glob v0.2.3
 ## explicit
@@ -154,8 +154,8 @@ github.com/jackc/pgpassfile
 # github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761
 ## explicit; go 1.14
 github.com/jackc/pgservicefile
-# github.com/jackc/pgx/v5 v5.6.0
-## explicit; go 1.20
+# github.com/jackc/pgx/v5 v5.7.1
+## explicit; go 1.21
 github.com/jackc/pgx/v5
 github.com/jackc/pgx/v5/internal/iobufpool
 github.com/jackc/pgx/v5/internal/pgio
@@ -167,7 +167,7 @@ github.com/jackc/pgx/v5/pgconn/internal/bgreader
 github.com/jackc/pgx/v5/pgproto3
 github.com/jackc/pgx/v5/pgtype
 github.com/jackc/pgx/v5/pgxpool
-# github.com/jackc/puddle/v2 v2.2.1
+# github.com/jackc/puddle/v2 v2.2.2
 ## explicit; go 1.19
 github.com/jackc/puddle/v2
 github.com/jackc/puddle/v2/internal/genstack
@@ -214,8 +214,8 @@ github.com/oapi-codegen/gin-middleware
 ## explicit; go 1.20
 github.com/oapi-codegen/runtime/strictmiddleware/gin
 github.com/oapi-codegen/runtime/types
-# github.com/pelletier/go-toml/v2 v2.2.2
-## explicit; go 1.16
+# github.com/pelletier/go-toml/v2 v2.2.3
+## explicit; go 1.21.0
 github.com/pelletier/go-toml/v2
 github.com/pelletier/go-toml/v2/internal/characters
 github.com/pelletier/go-toml/v2/internal/danger
@@ -249,7 +249,7 @@ github.com/twitchyliquid64/golang-asm/unsafeheader
 # github.com/ugorji/go/codec v1.2.12
 ## explicit; go 1.11
 github.com/ugorji/go/codec
-# github.com/urfave/cli/v2 v2.27.3
+# github.com/urfave/cli/v2 v2.27.4
 ## explicit; go 1.18
 github.com/urfave/cli/v2
 # github.com/valyala/bytebufferpool v1.0.0
@@ -267,10 +267,10 @@ github.com/xrash/smetrics
 # go.uber.org/mock v0.4.0
 ## explicit; go 1.20
 go.uber.org/mock/gomock
-# golang.org/x/arch v0.8.0
+# golang.org/x/arch v0.10.0
 ## explicit; go 1.18
 golang.org/x/arch/x86/x86asm
-# golang.org/x/crypto v0.25.0
+# golang.org/x/crypto v0.27.0
 ## explicit; go 1.20
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
@@ -278,7 +278,7 @@ golang.org/x/crypto/ed25519
 golang.org/x/crypto/ocsp
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/sha3
-# golang.org/x/net v0.27.0
+# golang.org/x/net v0.29.0
 ## explicit; go 1.18
 golang.org/x/net/html
 golang.org/x/net/html/atom
@@ -287,14 +287,14 @@ golang.org/x/net/http2
 golang.org/x/net/http2/h2c
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
-# golang.org/x/sync v0.7.0
+# golang.org/x/sync v0.8.0
 ## explicit; go 1.18
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.22.0
+# golang.org/x/sys v0.25.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
-# golang.org/x/text v0.16.0
+# golang.org/x/text v0.18.0
 ## explicit; go 1.18
 golang.org/x/text/cases
 golang.org/x/text/internal
@@ -327,7 +327,7 @@ google.golang.org/protobuf/runtime/protoiface
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
-# k8s.io/client-go v0.30.3
+# k8s.io/client-go v0.31.1
 ## explicit; go 1.22.0
 k8s.io/client-go/third_party/forked/golang/template
 k8s.io/client-go/util/jsonpath
