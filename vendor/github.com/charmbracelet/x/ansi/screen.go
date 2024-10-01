@@ -22,8 +22,8 @@ func EraseDisplay(n int) string {
 // EraseDisplay constants.
 // These are the possible values for the EraseDisplay function.
 const (
-	EraseDisplayRight  = "\x1b[0J"
-	EraseDisplayLeft   = "\x1b[1J"
+	EraseDisplayBelow  = "\x1b[0J"
+	EraseDisplayAbove  = "\x1b[1J"
 	EraseEntireDisplay = "\x1b[2J"
 )
 

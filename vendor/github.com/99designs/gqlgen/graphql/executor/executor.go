@@ -22,7 +22,7 @@ type Executor struct {
 
 	errorPresenter graphql.ErrorPresenterFunc
 	recoverFunc    graphql.RecoverFunc
-	queryCache     graphql.Cache
+	queryCache     graphql.Cache[*ast.QueryDocument]
 
 	parserTokenLimit int
 }
@@ -36,7 +36,7 @@ func New(es graphql.ExecutableSchema) *Executor {
 		es:               es,
 		errorPresenter:   graphql.DefaultErrorPresenter,
 		recoverFunc:      graphql.DefaultRecover,
-		queryCache:       graphql.NoCache{},
+		queryCache:       graphql.NoCache[ast.QueryDocument, *ast.QueryDocument]{},
 		ext:              processExtensions(nil),
 		parserTokenLimit: parserTokenNoLimit,
 	}
@@ -84,7 +84,6 @@ func (e *Executor) CreateOperationContext(
 
 	var err error
 	rc.Variables, err = validator.VariableValues(e.es.Schema(), rc.Operation, params.Variables)
-
 	if err != nil {
 		gqlErr, ok := err.(*gqlerror.Error)
 		if ok {
@@ -162,7 +161,7 @@ func (e *Executor) PresentRecoveredError(ctx context.Context, err any) error {
 	return e.errorPresenter(ctx, e.recoverFunc(ctx, err))
 }
 
-func (e *Executor) SetQueryCache(cache graphql.Cache) {
+func (e *Executor) SetQueryCache(cache graphql.Cache[*ast.QueryDocument]) {
 	e.queryCache = cache
 }
 
@@ -195,7 +194,7 @@ func (e *Executor) parseQuery(
 
 		stats.Parsing.End = now
 		stats.Validation.Start = now
-		return doc.(*ast.QueryDocument), nil
+		return doc, nil
 	}
 
 	doc, err := parser.ParseQueryWithTokenLimit(&ast.Source{Input: query}, e.parserTokenLimit)

@@ -26,18 +26,22 @@ package ansi
 //
 // See: https://vt100.net/docs/vt510-rm/DECCKM.html
 const (
-	EnableCursorKeys  = "\x1b[?1h"
-	DisableCursorKeys = "\x1b[?1l"
-	RequestCursorKeys = "\x1b[?1$p"
+	CursorKeysMode = "?1"
+
+	EnableCursorKeys  = "\x1b[" + CursorKeysMode + "h"
+	DisableCursorKeys = "\x1b[" + CursorKeysMode + "l"
+	RequestCursorKeys = "\x1b[" + CursorKeysMode + "$p"
 )
 
 // Text Cursor Enable Mode (DECTCEM) is a mode that shows/hides the cursor.
 //
 // See: https://vt100.net/docs/vt510-rm/DECTCEM.html
 const (
-	ShowCursor              = "\x1b[?25h"
-	HideCursor              = "\x1b[?25l"
-	RequestCursorVisibility = "\x1b[?25$p"
+	CursorVisibilityMode = "?25"
+
+	ShowCursor              = "\x1b[" + CursorVisibilityMode + "h"
+	HideCursor              = "\x1b[" + CursorVisibilityMode + "l"
+	RequestCursorVisibility = "\x1b[" + CursorVisibilityMode + "$p"
 )
 
 // VT Mouse Tracking is a mode that determines whether the mouse reports on
@@ -45,9 +49,11 @@ const (
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking
 const (
-	EnableMouse  = "\x1b[?1000h"
-	DisableMouse = "\x1b[?1000l"
-	RequestMouse = "\x1b[?1000$p"
+	MouseMode = "?1000"
+
+	EnableMouse  = "\x1b[" + MouseMode + "h"
+	DisableMouse = "\x1b[" + MouseMode + "l"
+	RequestMouse = "\x1b[" + MouseMode + "$p"
 )
 
 // VT Hilite Mouse Tracking is a mode that determines whether the mouse reports on
@@ -55,9 +61,11 @@ const (
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking
 const (
-	EnableMouseHilite  = "\x1b[?1001h"
-	DisableMouseHilite = "\x1b[?1001l"
-	RequestMouseHilite = "\x1b[?1001$p"
+	MouseHiliteMode = "?1001"
+
+	EnableMouseHilite  = "\x1b[" + MouseHiliteMode + "h"
+	DisableMouseHilite = "\x1b[" + MouseHiliteMode + "l"
+	RequestMouseHilite = "\x1b[" + MouseHiliteMode + "$p"
 )
 
 // Cell Motion Mouse Tracking is a mode that determines whether the mouse
@@ -65,9 +73,11 @@ const (
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking
 const (
-	EnableMouseCellMotion  = "\x1b[?1002h"
-	DisableMouseCellMotion = "\x1b[?1002l"
-	RequestMouseCellMotion = "\x1b[?1002$p"
+	MouseCellMotionMode = "?1002"
+
+	EnableMouseCellMotion  = "\x1b[" + MouseCellMotionMode + "h"
+	DisableMouseCellMotion = "\x1b[" + MouseCellMotionMode + "l"
+	RequestMouseCellMotion = "\x1b[" + MouseCellMotionMode + "$p"
 )
 
 // All Mouse Tracking is a mode that determines whether the mouse reports on
@@ -75,18 +85,22 @@ const (
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking
 const (
-	EnableMouseAllMotion  = "\x1b[?1003h"
-	DisableMouseAllMotion = "\x1b[?1003l"
-	RequestMouseAllMotion = "\x1b[?1003$p"
+	MouseAllMotionMode = "?1003"
+
+	EnableMouseAllMotion  = "\x1b[" + MouseAllMotionMode + "h"
+	DisableMouseAllMotion = "\x1b[" + MouseAllMotionMode + "l"
+	RequestMouseAllMotion = "\x1b[" + MouseAllMotionMode + "$p"
 )
 
 // Report Focus is a mode that makes the terminal report focus-in and focus-out events.
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-FocusIn_FocusOut
 const (
-	EnableReportFocus  = "\x1b[?1004h"
-	DisableReportFocus = "\x1b[?1004l"
-	RequestReportFocus = "\x1b[?1004$p"
+	ReportFocusMode = "?1004"
+
+	EnableReportFocus  = "\x1b[" + ReportFocusMode + "h"
+	DisableReportFocus = "\x1b[" + ReportFocusMode + "l"
+	RequestReportFocus = "\x1b[" + ReportFocusMode + "$p"
 )
 
 // SGR Mouse Extension is a mode that determines whether the mouse reports events
@@ -94,9 +108,11 @@ const (
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Mouse-Tracking
 const (
-	EnableMouseSgrExt  = "\x1b[?1006h"
-	DisableMouseSgrExt = "\x1b[?1006l"
-	RequestMouseSgrExt = "\x1b[?1006$p"
+	MouseSgrExtMode = "?1006"
+
+	EnableMouseSgrExt  = "\x1b[" + MouseSgrExtMode + "h"
+	DisableMouseSgrExt = "\x1b[" + MouseSgrExtMode + "l"
+	RequestMouseSgrExt = "\x1b[" + MouseSgrExtMode + "$p"
 )
 
 // Alternate Screen Buffer is a mode that determines whether the alternate screen
@@ -104,9 +120,11 @@ const (
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-The-Alternate-Screen-Buffer
 const (
-	EnableAltScreenBuffer  = "\x1b[?1049h"
-	DisableAltScreenBuffer = "\x1b[?1049l"
-	RequestAltScreenBuffer = "\x1b[?1049$p"
+	AltScreenBufferMode = "?1049"
+
+	EnableAltScreenBuffer  = "\x1b[" + AltScreenBufferMode + "h"
+	DisableAltScreenBuffer = "\x1b[" + AltScreenBufferMode + "l"
+	RequestAltScreenBuffer = "\x1b[" + AltScreenBufferMode + "$p"
 )
 
 // Bracketed Paste Mode is a mode that determines whether pasted text is
@@ -115,9 +133,11 @@ const (
 // See: https://cirw.in/blog/bracketed-paste
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h2-Bracketed-Paste-Mode
 const (
-	EnableBracketedPaste  = "\x1b[?2004h"
-	DisableBracketedPaste = "\x1b[?2004l"
-	RequestBracketedPaste = "\x1b[?2004$p"
+	BracketedPasteMode = "?2004"
+
+	EnableBracketedPaste  = "\x1b[" + BracketedPasteMode + "h"
+	DisableBracketedPaste = "\x1b[" + BracketedPasteMode + "l"
+	RequestBracketedPaste = "\x1b[" + BracketedPasteMode + "$p"
 )
 
 // Synchronized Output Mode is a mode that determines whether output is
@@ -125,9 +145,11 @@ const (
 //
 // See: https://gist.github.com/christianparpart/d8a62cc1ab659194337d73e399004036
 const (
-	EnableSyncdOutput  = "\x1b[?2026h"
-	DisableSyncdOutput = "\x1b[?2026l"
-	RequestSyncdOutput = "\x1b[?2026$p"
+	SyncdOutputMode = "?2026"
+
+	EnableSyncdOutput  = "\x1b[" + SyncdOutputMode + "h"
+	DisableSyncdOutput = "\x1b[" + SyncdOutputMode + "l"
+	RequestSyncdOutput = "\x1b[" + SyncdOutputMode + "$p"
 )
 
 // Grapheme Clustering Mode is a mode that determines whether the terminal
@@ -137,9 +159,11 @@ const (
 //
 // See: https://github.com/contour-terminal/terminal-unicode-core
 const (
-	EnableGraphemeClustering  = "\x1b[?2027h"
-	DisableGraphemeClustering = "\x1b[?2027l"
-	RequestGraphemeClustering = "\x1b[?2027$p"
+	GraphemeClusteringMode = "?2027"
+
+	EnableGraphemeClustering  = "\x1b[" + GraphemeClusteringMode + "h"
+	DisableGraphemeClustering = "\x1b[" + GraphemeClusteringMode + "l"
+	RequestGraphemeClustering = "\x1b[" + GraphemeClusteringMode + "$p"
 )
 
 // Win32Input is a mode that determines whether input is processed by the
@@ -147,7 +171,9 @@ const (
 //
 // See: https://github.com/microsoft/terminal/blob/main/doc/specs/%234999%20-%20Improved%20keyboard%20handling%20in%20Conpty.md
 const (
-	EnableWin32Input  = "\x1b[?9001h"
-	DisableWin32Input = "\x1b[?9001l"
-	RequestWin32Input = "\x1b[?9001$p"
+	Win32InputMode = "?9001"
+
+	EnableWin32Input  = "\x1b[" + Win32InputMode + "h"
+	DisableWin32Input = "\x1b[" + Win32InputMode + "l"
+	RequestWin32Input = "\x1b[" + Win32InputMode + "$p"
 )

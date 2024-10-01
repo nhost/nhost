@@ -82,13 +82,6 @@ func (p *Parser) clear() {
 	p.Cmd = 0
 }
 
-// clearCmd clears the parser command, params len and data len.
-func (p *Parser) clearCmd() {
-	p.Cmd = 0
-	p.ParamsLen = 0
-	p.DataLen = 0
-}
-
 // StateName returns the name of the current state.
 func (p *Parser) StateName() string {
 	return parser.StateNames[p.State]

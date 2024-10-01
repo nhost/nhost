@@ -23,6 +23,12 @@ func SetForegroundColor(c color.Color) string {
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Operating-System-Commands
 const RequestForegroundColor = "\x1b]10;?\x07"
 
+// ResetForegroundColor is a sequence that resets the default terminal
+// foreground color.
+//
+// See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Operating-System-Commands
+const ResetForegroundColor = "\x1b]110\x07"
+
 // SetBackgroundColor returns a sequence that sets the default terminal
 // background color.
 //
@@ -42,6 +48,12 @@ func SetBackgroundColor(c color.Color) string {
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Operating-System-Commands
 const RequestBackgroundColor = "\x1b]11;?\x07"
 
+// ResetBackgroundColor is a sequence that resets the default terminal
+// background color.
+//
+// See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Operating-System-Commands
+const ResetBackgroundColor = "\x1b]111\x07"
+
 // SetCursorColor returns a sequence that sets the terminal cursor color.
 //
 //	OSC 12 ; color ST
@@ -59,3 +71,8 @@ func SetCursorColor(c color.Color) string {
 //
 // See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Operating-System-Commands
 const RequestCursorColor = "\x1b]12;?\x07"
+
+// ResetCursorColor is a sequence that resets the terminal cursor color.
+//
+// See: https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Operating-System-Commands
+const ResetCursorColor = "\x1b]112\x07"
