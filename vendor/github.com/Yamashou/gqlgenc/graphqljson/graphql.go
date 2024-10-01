@@ -273,7 +273,7 @@ func (d *Decoder) decode() error { //nolint:maintidx
 					if v.Kind() != reflect.Struct {
 						continue
 					}
-					for i := 0; i < v.NumField(); i++ {
+					for i := range v.NumField() {
 						if isGraphQLFragment(v.Type().Field(i)) || v.Type().Field(i).Anonymous {
 							// Add GraphQL fragment or embedded struct.
 							d.vs = append(d.vs, []reflect.Value{v.Field(i)})
@@ -352,7 +352,7 @@ func (d *Decoder) popAllVs() {
 // fieldByGraphQLName returns an exported struct field of struct v
 // that matches GraphQL name, or invalid reflect.Value if none found.
 func fieldByGraphQLName(v reflect.Value, name string) reflect.Value {
-	for i := 0; i < v.NumField(); i++ {
+	for i := range v.NumField() {
 		if v.Type().Field(i).PkgPath != "" {
 			// Skip unexported field.
 			continue

@@ -11,6 +11,7 @@ linters:
       - depguard
       - gomnd
       - execinquery
+      - exportloopref # deprecated
 
 issues:
   exclude-rules:

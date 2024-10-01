@@ -332,8 +332,8 @@ func (c *Client) do(_ context.Context, req *http.Request, _ *GQLRequestInfo, res
 
 func (c *Client) parseResponse(body []byte, httpCode int, result interface{}) error {
 	errResponse := &ErrorResponse{}
-	isKOCode := httpCode < 200 || 299 < httpCode
-	if isKOCode {
+	isOKCode := httpCode < 200 || 299 < httpCode
+	if isOKCode {
 		errResponse.NetworkError = &HTTPError{
 			Code:    httpCode,
 			Message: fmt.Sprintf("Response body %s", string(body)),
@@ -345,7 +345,7 @@ func (c *Client) parseResponse(body []byte, httpCode int, result interface{}) er
 		var gqlErr *GqlErrorList
 		if errors.As(err, &gqlErr) {
 			errResponse.GqlErrors = &gqlErr.Errors
-		} else if !isKOCode {
+		} else if !isOKCode {
 			return err
 		}
 	}
@@ -535,7 +535,7 @@ type fieldInfo struct {
 func prepareFields(t reflect.Type) []fieldInfo {
 	num := t.NumField()
 	fields := make([]fieldInfo, 0, num)
-	for i := 0; i < num; i++ {
+	for i := range num {
 		f := t.Field(i)
 		if f.PkgPath != "" && !f.Anonymous { // Skip unexported fields unless they are embedded
 			continue
@@ -619,7 +619,7 @@ func encodeMap(v reflect.Value) ([]byte, error) {
 
 func encodeSlice(v reflect.Value) ([]byte, error) {
 	result := make([]json.RawMessage, v.Len())
-	for i := 0; i < v.Len(); i++ {
+	for i := range v.Len() {
 		encodedValue, err := encode(v.Index(i))
 		if err != nil {
 			return nil, err
@@ -631,7 +631,7 @@ func encodeSlice(v reflect.Value) ([]byte, error) {
 
 func encodeArray(v reflect.Value) ([]byte, error) {
 	result := make([]json.RawMessage, v.Len())
-	for i := 0; i < v.Len(); i++ {
+	for i := range v.Len() {
 		encodedValue, err := encode(v.Index(i))
 		if err != nil {
 			return nil, err

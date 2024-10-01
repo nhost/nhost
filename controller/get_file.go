@@ -168,7 +168,9 @@ func (ctrl *Controller) processFileToDownload( //nolint: funlen
 	if !opts.IsEmpty() {
 		defer body.Close()
 
-		body, contentLength, etag, apiErr = ctrl.manipulateImage(body, uint64(contentLength), opts)
+		body, contentLength, etag, apiErr = ctrl.manipulateImage(
+			body, uint64(contentLength), opts, //nolint:gosec
+		)
 		if apiErr != nil {
 			return nil, apiErr
 		}

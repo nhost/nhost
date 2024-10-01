@@ -165,7 +165,7 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 
 		var object io.ReadCloser
 		object, fileMetadata.Size, fileMetadata.ETag, apiErr = ctrl.manipulateImage(
-			download.Body, uint64(fileMetadata.Size), opts,
+			download.Body, uint64(fileMetadata.Size), opts, //nolint:gosec
 		)
 		if apiErr != nil {
 			return nil, apiErr
