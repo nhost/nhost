@@ -70,7 +70,7 @@ const projectPages = [
   {
     label: 'Auth',
     value: 'users',
-    icon: <UserIcon className="h-4 w-4" />,
+    icon: <UserIcon className="w-4 h-4" />,
     slug: 'users',
   },
   {
@@ -89,7 +89,7 @@ const projectPages = [
     label: 'AI',
     value: 'ai',
     icon: <AIIcon className="w-4 h-4" />,
-    slug: 'ai/auto-embeddings',
+    slug: 'ai',
   },
   {
     label: 'Deployments',
