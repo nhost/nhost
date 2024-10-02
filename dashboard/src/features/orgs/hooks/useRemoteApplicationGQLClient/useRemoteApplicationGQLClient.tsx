@@ -9,7 +9,7 @@ import { useMemo } from 'react';
  * @returns A function that returns a new ApolloClient instance.
  */
 export default function useRemoteApplicationGQLClient() {
-  const { project, loading } = useProject();
+  const { project, loading } = useProject({ target: 'user-project' });
   const serviceUrl = generateAppServiceUrl(
     project?.subdomain,
     project?.region,
