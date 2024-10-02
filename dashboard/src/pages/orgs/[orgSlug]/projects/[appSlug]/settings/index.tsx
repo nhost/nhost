@@ -122,7 +122,7 @@ export default function SettingsGeneralPage() {
 
       await refetchProject();
       await router.replace(
-        `/orgs/${org.slug}/projects/${updateAppResult.slug}/settings`,
+        `/orgs/${org.slug}/projects/${updateAppResult.slug}/settings/general`,
       );
     } catch {
       // Note: The toast will handle the error.
