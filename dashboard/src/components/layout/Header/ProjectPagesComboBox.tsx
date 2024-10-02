@@ -89,7 +89,7 @@ const projectPages = [
     label: 'AI',
     value: 'ai',
     icon: <AIIcon className="w-4 h-4" />,
-    slug: 'ai',
+    slug: 'ai/auto-embeddings',
   },
   {
     label: 'Deployments',
