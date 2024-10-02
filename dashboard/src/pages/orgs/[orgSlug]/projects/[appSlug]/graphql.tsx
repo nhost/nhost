@@ -250,7 +250,7 @@ function GraphiQLEditor({ onHeaderChange }: GraphiQLEditorProps) {
 }
 
 export default function GraphQLPage() {
-  const { project } = useProject();
+  const { project } = useProject({ target: 'user-project' });
   const [userHeaders, setUserHeaders] = useState<Record<string, any>>({});
 
   if (!project?.subdomain || !project?.config?.hasura.adminSecret) {
